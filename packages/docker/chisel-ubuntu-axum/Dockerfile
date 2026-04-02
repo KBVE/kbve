@@ -2,7 +2,8 @@
 # chisel-ubuntu-axum — Shared base images for KBVE Axum services
 #
 # Two targets:
-#   builder  → Rust build environment (cargo-chef, protobuf, ssl, pq, jemalloc-dev, mold, brotli)
+#   builder  → Rust build environment (cargo-chef, mold, protobuf, ssl, pq,
+#              jemalloc-dev, brotli, gzip, Node + pnpm)
 #   runtime  → Minimal chiseled Ubuntu (jemalloc, libpq, CA certs)
 #
 # Published as:
@@ -10,18 +11,18 @@
 #   ghcr.io/kbve/chisel-ubuntu-axum:24.04.X-builder  (builder)
 #
 # Service Dockerfile usage:
-#   FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04.2-builder AS builder
+#   FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04.3-builder AS builder
 #   COPY src/ src/
 #   RUN cargo build --release -p my-service
 #
-#   FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04.2
+#   FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04.3
 #   COPY --from=builder /app/target/release/my-service /app/my-service
 #   ENTRYPOINT ["/app/my-service"]
 # ============================================================================
 
 # ╔═══════════════════════════════════════════════════════════════════╗
 # ║  BUILDER TARGET                                                    ║
-# ║  Rust 1.94 + cargo-chef + build deps + jemalloc-dev               ║
+# ║  Rust 1.94 + cargo-chef + mold + brotli/gzip + Node 24 + pnpm    ║
 # ╚═══════════════════════════════════════════════════════════════════╝
 
 FROM --platform=linux/amd64 rust:1.94-slim AS builder
@@ -70,7 +71,7 @@ FROM --platform=linux/amd64 ubuntu:24.04 AS chisel-stage
 
 RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates
 
-ARG CHISEL_VERSION=1.1.0
+ARG CHISEL_VERSION=1.4.0
 RUN wget -q "https://github.com/canonical/chisel/releases/download/v${CHISEL_VERSION}/chisel_v${CHISEL_VERSION}_linux_amd64.tar.gz" -O /tmp/chisel.tar.gz && \
     tar -xzf /tmp/chisel.tar.gz -C /usr/local/bin chisel && \
     rm /tmp/chisel.tar.gz
@@ -86,28 +87,22 @@ RUN chisel cut --release ubuntu-24.04 --root /rootfs \
         openssl_config && \
     echo 'appuser:x:10001:10001::/nonexistent:/usr/sbin/nologin' >> /rootfs/etc/passwd && \
     echo 'appgroup:x:10001:' >> /rootfs/etc/group && \
-    mkdir -p /rootfs/app && chown 10001:10001 /rootfs/app
+    mkdir -p /rootfs/app && chown 10001:10001 /rootfs/app && \
+    mkdir -p /rootfs/tmp && chmod 1777 /rootfs/tmp
 
-# ── Extract jemalloc runtime lib ─────────────────────────────────────
-FROM --platform=linux/amd64 ubuntu:24.04 AS jemalloc-stage
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends libjemalloc-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-# ── Extract libpq runtime lib ───────────────────────────────────────
-FROM --platform=linux/amd64 ubuntu:24.04 AS libpq-stage
+# ── Extract runtime shared libs (jemalloc + libpq) ──────────────────
+FROM --platform=linux/amd64 ubuntu:24.04 AS libs-stage
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libpq5 && \
+    apt-get install -y --no-install-recommends libjemalloc-dev libpq5 && \
     rm -rf /var/lib/apt/lists/*
 
 # ── Assemble runtime image ──────────────────────────────────────────
 FROM --platform=linux/amd64 scratch AS runtime
 
 COPY --from=chisel-stage /rootfs /
-COPY --from=jemalloc-stage /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
-COPY --from=libpq-stage /usr/lib/x86_64-linux-gnu/libpq.so.5* /usr/lib/x86_64-linux-gnu/
+COPY --from=libs-stage /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+COPY --from=libs-stage /usr/lib/x86_64-linux-gnu/libpq.so.5* /usr/lib/x86_64-linux-gnu/
 
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:10000,muzzy_decay_ms:10000,lg_tcache_max:32,oversize_threshold:4194304"
