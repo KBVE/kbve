@@ -21,6 +21,12 @@ rules:
           - virtualmachines/restart
           - virtualmachineinstances/vnc
       verbs: ['update', 'get']
+    # KASM workspace management — list/scale deployments in kasm namespace
+    - apiGroups: ['apps']
+      resources:
+          - deployments
+          - deployments/scale
+      verbs: ['get', 'list', 'patch', 'update']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding

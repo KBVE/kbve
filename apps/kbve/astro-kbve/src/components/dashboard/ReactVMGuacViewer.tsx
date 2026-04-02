@@ -10,12 +10,22 @@ let Guacamole: any = null;
 async function loadGuacamole() {
 	if (!Guacamole) {
 		try {
-			const mod = await import(/* @vite-ignore */ 'guacamole-common-js');
+			// Try vendored ESM first
+			const vendorUrl = `${window.location.origin}/vendor/guacamole/guacamole-common.js`;
+			const mod = await import(/* @vite-ignore */ vendorUrl);
 			Guacamole = mod.default ?? mod;
 		} catch {
-			throw new Error(
-				'Guacamole module not available — ensure guacamole-common-js is installed',
-			);
+			try {
+				// Fallback: npm package (dev mode)
+				const mod = await import(
+					/* @vite-ignore */ 'guacamole-common-js'
+				);
+				Guacamole = mod.default ?? mod;
+			} catch {
+				throw new Error(
+					'RDP not available — Guacamole server is not deployed. Deploy via ArgoCD (kubevirt-guacamole app).',
+				);
+			}
 		}
 	}
 	return Guacamole;
