@@ -22,7 +22,7 @@
 
 # ╔═══════════════════════════════════════════════════════════════════╗
 # ║  BUILDER TARGET                                                    ║
-# ║  Rust 1.94 + cargo-chef + mold + brotli/gzip + Node 24 + pnpm    ║
+# ║  Rust 1.94 + cargo-chef + sccache + mold + brotli/gzip + Node 24 ║
 # ╚═══════════════════════════════════════════════════════════════════╝
 
 FROM --platform=linux/amd64 rust:1.94-slim AS builder
@@ -46,7 +46,13 @@ RUN apt-get update && \
 
 # ── Rust tooling ─────────────────────────────────────────────────────
 RUN rustup target add x86_64-unknown-linux-gnu && \
-    cargo install cargo-chef --locked
+    cargo install cargo-chef sccache --locked
+
+# sccache wraps rustc to cache compilation artifacts across builds.
+# Consumers mount --mount=type=cache,target=/usr/local/sccache for persistence.
+ENV RUSTC_WRAPPER=/usr/local/cargo/bin/sccache
+ENV SCCACHE_DIR=/usr/local/sccache
+ENV CARGO_INCREMENTAL=1
 
 # ── Node.js + pnpm (for Astro frontend builds) ──────────────────────
 ARG NODE_VERSION=24

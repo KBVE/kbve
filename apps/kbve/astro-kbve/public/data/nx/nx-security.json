@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-04-01T08:38:56Z",
+  "generated_at": "2026-04-02T08:32:38Z",
   "summary": {
     "critical": 1,
-    "high": 29,
-    "medium": 33,
+    "high": 31,
+    "medium": 35,
     "low": 5,
     "info": 25
   },
   "ecosystems": {
     "npm": {
-      "total": 66,
+      "total": 70,
       "severities": {
         "critical": 1,
-        "high": 29,
-        "medium": 31,
+        "high": 31,
+        "medium": 33,
         "low": 5,
         "info": 0
       },
@@ -479,6 +479,34 @@
           "severity": "high",
           "package": "@xmldom/xmldom",
           "url": "https://github.com/advisories/GHSA-wh4c-j3r5-mjhp"
+        },
+        {
+          "id": "1115805",
+          "title": "lodash vulnerable to Code Injection via `_.template` imports key names",
+          "severity": "high",
+          "package": "lodash-es",
+          "url": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
+        },
+        {
+          "id": "1115806",
+          "title": "lodash vulnerable to Code Injection via `_.template` imports key names",
+          "severity": "high",
+          "package": "lodash",
+          "url": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
+        },
+        {
+          "id": "1115809",
+          "title": "lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`",
+          "severity": "medium",
+          "package": "lodash-es",
+          "url": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
+        },
+        {
+          "id": "1115810",
+          "title": "lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`",
+          "severity": "medium",
+          "package": "lodash",
+          "url": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
         }
       ]
     },
