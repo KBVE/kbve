@@ -3,6 +3,7 @@ import { corsHeaders } from "../_shared/cors.ts";
 import { requireJsonContentType, enforceBodySizeLimit } from "../_shared/validators.ts";
 import { extractToken, jsonResponse, parseJwt } from "./_shared.ts";
 import { CHARACTER_ACTIONS, handleCharacter } from "./character.ts";
+import { FIRECRACKER_ACTIONS, handleFirecracker } from "./firecracker.ts";
 import { handleMaintenance, MAINTENANCE_ACTIONS } from "./maintenance.ts";
 
 // ---------------------------------------------------------------------------
@@ -13,6 +14,7 @@ import { handleMaintenance, MAINTENANCE_ACTIONS } from "./maintenance.ts";
 // Command format: "module.action"
 //   character:    unstuck, reset_stats, lookup, list, create, delete, set_admin
 //   maintenance:  cleanup_worldservers, cleanup_map_instances, status
+//   firecracker:  status, create, list, destroy
 // ---------------------------------------------------------------------------
 
 const MODULES: Record<
@@ -23,6 +25,7 @@ const MODULES: Record<
   }
 > = {
   character: { handler: handleCharacter, actions: CHARACTER_ACTIONS },
+  firecracker: { handler: handleFirecracker, actions: FIRECRACKER_ACTIONS },
   maintenance: { handler: handleMaintenance, actions: MAINTENANCE_ACTIONS },
 };
 
