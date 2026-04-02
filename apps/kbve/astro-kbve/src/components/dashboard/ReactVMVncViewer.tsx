@@ -3,26 +3,32 @@ import { useStore } from '@nanostores/react';
 import { vmService } from './vmService';
 import { X, Maximize2, Minimize2, Keyboard } from 'lucide-react';
 
-// noVNC RFB client — loaded via npm package (@novnc/novnc), Vite bundles it
-// as a code-split chunk. Vendored ESM in public/vendor/novnc/ kept as fallback.
+// noVNC RFB client — loaded from vendored ESM in public/vendor/novnc/.
+// The npm package (@novnc/novnc) ships CJS with a top-level await in
+// browser.js that Rollup cannot parse, so it cannot be bundled directly.
+// Vendored ESM (from noVNC GitHub) is the primary path; npm kept as
+// @vite-ignore dev fallback only.
 let RFB: any = null;
 async function loadRFB() {
 	if (!RFB) {
 		try {
-			// Primary: npm package — Vite resolves + bundles automatically
-			// @ts-expect-error — @novnc/novnc ships without TypeScript declarations
-			const mod = await import('@novnc/novnc/lib/rfb');
+			// Primary: vendored ESM — bypasses Vite module graph via full URL
+			const vendorUrl = `${window.location.origin}/vendor/novnc/core/rfb.js`;
+			const mod = await import(/* @vite-ignore */ vendorUrl);
 			RFB = mod.default ?? mod;
 		} catch {
 			try {
-				// Fallback: vendored ESM served as static asset
-				const vendorUrl = `${window.location.origin}/vendor/novnc/core/rfb.js`;
-				const mod = await import(/* @vite-ignore */ vendorUrl);
+				// Fallback: npm package (dev mode only, not bundleable)
+				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+				// @ts-ignore — @novnc/novnc has no type declarations
+				const mod = await import(
+					/* @vite-ignore */ '@novnc/novnc/lib/rfb'
+				);
 				RFB = mod.default ?? mod;
 			} catch (err) {
 				console.error('noVNC load failed:', err);
 				throw new Error(
-					'noVNC module not available — install @novnc/novnc or check /vendor/novnc/',
+					'noVNC module not available — check /vendor/novnc/ is present',
 				);
 			}
 		}
