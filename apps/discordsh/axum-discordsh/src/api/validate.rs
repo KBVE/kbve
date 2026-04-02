@@ -1,5 +1,4 @@
 /// Shared validation functions mirroring PostgreSQL `is_safe_text()` and friends.
-
 /// Check that a string contains no dangerous control characters.
 /// Mirrors `discordsh.is_safe_text()` in PostgreSQL.
 pub fn is_safe_text(s: &str) -> bool {

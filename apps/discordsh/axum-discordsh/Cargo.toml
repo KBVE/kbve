@@ -39,6 +39,7 @@ tikv-jemallocator = { version = "0.6", optional = true }
 
 [dev-dependencies]
 http-body-util = "0.1"
+serial_test = "3"
 
 [features]
 default = []

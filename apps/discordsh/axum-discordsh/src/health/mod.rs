@@ -34,6 +34,7 @@ impl HealthStatus {
 
     /// Discord embed color override.
     /// Returns `None` for Healthy (caller should use the normal state color).
+    #[allow(dead_code)]
     pub fn color_override(self) -> Option<u32> {
         match self {
             Self::Healthy => None,
@@ -42,6 +43,7 @@ impl HealthStatus {
         }
     }
 
+    #[allow(dead_code)]
     pub fn emoji(self) -> &'static str {
         match self {
             Self::Healthy => "\u{1F7E2}",
@@ -70,6 +72,7 @@ pub struct HealthSnapshot {
 
 impl HealthSnapshot {
     /// Generate a Discord-friendly memory bar using emoji squares.
+    #[allow(dead_code)]
     pub fn memory_bar(&self, width: usize) -> String {
         let filled = ((self.memory_percent / 100.0) * width as f64).round() as usize;
         let filled = filled.min(width);
@@ -130,6 +133,7 @@ impl HealthMonitor {
     }
 
     /// Force an immediate metric refresh (used by the Refresh button).
+    #[allow(dead_code)]
     pub async fn force_refresh(&self) {
         let snap = self.collect_inner().await;
         *self.snapshot.write().await = Some(snap);
