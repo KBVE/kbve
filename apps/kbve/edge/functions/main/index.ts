@@ -93,7 +93,7 @@ serve(async (req: Request) => {
     "user-vault": [],
     "vault-reader": [],
     meme: [],
-    ows: [],
+    ows: ["FIRECRACKER_URL"],
     logs: ["CLICKHOUSE_URL", "CLICKHOUSE_USER", "CLICKHOUSE_PASSWORD"],
     health: [],
   };
