@@ -184,17 +184,21 @@ struct PendingTokenFetch {
     in_flight: bool,
 }
 
-/// Stores WebSocket fallback info when a WebTransport connection is attempted.
-/// If WT fails (Unlinked before Connected), the client retries with this WS config.
-#[derive(Resource, Default)]
-struct WsFallbackInfo {
+/// Attached to a WebTransport client entity so that if the WT link fails
+/// before the netcode handshake completes, `on_unlinked` can swap the
+/// transport IO component to WebSocket on the **same entity** instead of
+/// tearing everything down and respawning.
+#[derive(Component)]
+struct WsFallback {
     /// WebSocket URL to fall back to.
     ws_url: String,
-    /// Token bytes for re-creating the ConnectToken.
-    token_bytes: Option<[u8; 2048]>,
-    /// True while WT is being attempted and fallback is available.
-    armed: bool,
 }
+
+/// Marker inserted by `on_unlinked` when a WT→WS transport swap is needed.
+/// `on_disconnected` checks for this marker and performs the swap instead of
+/// the normal cleanup / title-screen return.
+#[derive(Component)]
+struct TransportSwapPending;
 
 pub struct NetPlugin;
 
@@ -232,7 +236,6 @@ impl Plugin for NetPlugin {
         app.init_resource::<ServerTime>();
         app.init_resource::<CapturedCreatures>();
         app.init_resource::<PendingTokenFetch>();
-        app.init_resource::<WsFallbackInfo>();
 
         // Watch for go-online requests from JS / poll async token results
         app.add_systems(Update, poll_go_online_request);
@@ -311,9 +314,6 @@ impl Plugin for NetPlugin {
         // Deferred cleanup of disconnected client entities (one frame delay)
         app.add_systems(Last, cleanup_pending_despawn);
 
-        // WebSocket fallback after WebTransport failure (runs after cleanup)
-        app.add_systems(Last, poll_ws_fallback.after(cleanup_pending_despawn));
-
         info!("[net] NetPlugin::build — all systems registered");
     }
 }
@@ -325,39 +325,24 @@ fn on_linking(trigger: On<Add, lightyear::prelude::Linking>) {
 }
 
 /// Link layer — Unlinked added (transport failed or closed).
-/// If WebTransport failed before handshake, trigger WebSocket fallback.
-/// Otherwise return to title screen.
+/// If the entity carries a `WsFallback` component (WebTransport was attempted
+/// and a WebSocket URL is available), mark it for an in-place transport swap.
+/// Lightyear will automatically add `Disconnected` next, and our
+/// `on_disconnected` observer will perform the actual swap.
 fn on_unlinked(
     trigger: On<Add, lightyear::prelude::Unlinked>,
     mut commands: Commands,
-    mut next_phase: ResMut<NextState<super::phase::GamePhase>>,
-    play_mode: Res<super::phase::PlayMode>,
     was_connected_q: Query<(), With<WasConnected>>,
-    mut ws_fallback: ResMut<WsFallbackInfo>,
+    fallback_q: Query<(), With<WsFallback>>,
 ) {
     let entity = trigger.entity;
     warn!("[net][link] UNLINKED — entity {entity:?} transport failed or closed");
 
-    // If we never reached Connected and player chose Online, try WS fallback or go back to title
-    if *play_mode == super::phase::PlayMode::Online && was_connected_q.get(entity).is_err() {
-        commands.entity(entity).insert(PendingDespawn);
-
-        if ws_fallback.armed && ws_fallback.token_bytes.is_some() {
-            warn!(
-                "[net] WebTransport failed — scheduling WebSocket fallback to {}",
-                ws_fallback.ws_url
-            );
-            super::telemetry::report_warn("WebTransport failed, falling back to WebSocket");
-            // Disarm WT fallback; the pending token_bytes signals poll_ws_fallback
-            // to initiate a WS connection on the next frame (after PendingDespawn flushes).
-            ws_fallback.armed = false;
-        } else {
-            warn!("[net] connection failed before handshake completed — returning to title screen");
-            super::telemetry::report_error(
-                "netcode handshake failed — transport unlinked before Connected",
-            );
-            next_phase.set(super::phase::GamePhase::Title);
-        }
+    // Only attempt fallback if we never reached Connected and a WsFallback is present.
+    if was_connected_q.get(entity).is_err() && fallback_q.get(entity).is_ok() {
+        warn!("[net] WebTransport failed — marking entity for WS transport swap");
+        super::telemetry::report_warn("WebTransport failed, falling back to WebSocket");
+        commands.entity(entity).insert(TransportSwapPending);
     }
 }
 
@@ -386,16 +371,14 @@ fn on_connecting(trigger: On<Add, Connecting>, mut commands: Commands, time: Res
 }
 
 /// Lightyear Connected added — mark entity so on_disconnected knows this was real.
-/// Also clears any pending WS fallback since the connection succeeded.
-fn on_connected(
-    trigger: On<Add, Connected>,
-    mut commands: Commands,
-    mut ws_fallback: ResMut<WsFallbackInfo>,
-) {
+/// Also strips any leftover fallback components since the connection succeeded.
+fn on_connected(trigger: On<Add, Connected>, mut commands: Commands) {
     let entity = trigger.entity;
     commands.entity(entity).insert(WasConnected);
     // Connection succeeded — no need for WS fallback
-    *ws_fallback = WsFallbackInfo::default();
+    commands
+        .entity(entity)
+        .remove::<(WsFallback, TransportSwapPending)>();
     info!("[net][lifecycle] CONNECTED — entity {entity:?} fully connected!");
 }
 
@@ -428,7 +411,7 @@ fn on_disconnected(
     remote_players: Query<Entity, With<RemotePlayer>>,
     own_replicated: Query<Entity, With<OwnReplicatedPlayer>>,
     attempted_q: Query<(), With<ConnectionAttempted>>,
-    ws_fallback: Res<WsFallbackInfo>,
+    swap_q: Query<&WsFallback, With<TransportSwapPending>>,
 ) {
     let entity = trigger.entity;
 
@@ -439,6 +422,45 @@ fn on_disconnected(
         return;
     }
 
+    // ── WT → WS in-place transport swap ──────────────────────────────
+    // If on_unlinked marked this entity for a transport swap, perform it
+    // here instead of the normal teardown. The entity keeps its
+    // NetcodeClient and ReplicationReceiver — only the IO component changes.
+    if let Ok(fallback) = swap_q.get(entity) {
+        use lightyear::websocket::prelude::client::*;
+        use lightyear::webtransport::prelude::client::WebTransportClientIo;
+
+        let ws_url = fallback.ws_url.clone();
+        info!("[net] executing WT→WS transport swap on entity {entity:?} → {ws_url}");
+
+        // Desktop: skip cert validation (server uses self-signed cert for dev)
+        // WASM: browser handles TLS natively via web_sys::WebSocket
+        #[cfg(not(target_arch = "wasm32"))]
+        let ws_config = ClientConfig::builder().with_no_cert_validation();
+        #[cfg(target_arch = "wasm32")]
+        let ws_config = ClientConfig::default();
+
+        // Strip old WT transport + swap markers, insert WS transport
+        commands.entity(entity).remove::<(
+            WebTransportClientIo,
+            WsFallback,
+            TransportSwapPending,
+            ConnectionAttempted,
+            HandshakeStartedAt,
+        )>();
+        commands
+            .entity(entity)
+            .insert(WebSocketClientIo::from_url(ws_config, ws_url));
+
+        // Re-trigger the connection — NetcodeClient.inner.connect() resets
+        // the netcode state machine, and ConnectionPlugin triggers LinkStart
+        // which the WebSocket plugin picks up.
+        commands.trigger(Connect { entity });
+        info!("[net] Connect re-triggered on {entity:?} — WS handshake starting");
+        return;
+    }
+
+    // ── Normal disconnect cleanup ────────────────────────────────────
     warn!("[net][lifecycle] DISCONNECTED — entity {entity:?} lost connection");
     super::telemetry::report_warn(&format!("client disconnected entity={entity:?}"));
 
@@ -474,16 +496,10 @@ fn on_disconnected(
     info!("[net] marked disconnected client entity {entity:?} for deferred despawn");
 
     // If the player chose "Play Online", return to the title screen on disconnect
-    // — UNLESS a WebSocket fallback is pending (token_bytes still present).
+    // so they can retry or switch to offline mode.
     if *play_mode == super::phase::PlayMode::Online {
-        if ws_fallback.token_bytes.is_some() {
-            info!(
-                "[net] online mode — WS fallback pending, staying in Connecting (not returning to title)"
-            );
-        } else {
-            info!("[net] online mode — returning to title screen after disconnect");
-            next_phase.set(super::phase::GamePhase::Title);
-        }
+        info!("[net] online mode — returning to title screen after disconnect");
+        next_phase.set(super::phase::GamePhase::Title);
     }
 
     info!("[net] connection state reset — ready for reconnection");
@@ -519,42 +535,6 @@ fn cleanup_pending_despawn(mut commands: Commands, query: Query<Entity, With<Pen
         commands.entity(entity).despawn();
         info!("[net] deferred despawn of client entity {entity:?}");
     }
-}
-
-/// One-shot system: after a WebTransport failure, initiate a WebSocket connection
-/// using the stored token bytes. Runs after PendingDespawn cleanup so the old
-/// client entity is fully gone before spawning a new one.
-fn poll_ws_fallback(
-    mut commands: Commands,
-    mut ws_fallback: ResMut<WsFallbackInfo>,
-    mut next_phase: ResMut<NextState<super::phase::GamePhase>>,
-    pending_despawn_q: Query<(), With<PendingDespawn>>,
-) {
-    // Wait until armed=false (set by on_unlinked) AND token_bytes present AND
-    // no PendingDespawn entities remain (old WT client fully cleaned up).
-    if ws_fallback.armed || ws_fallback.token_bytes.is_none() || !pending_despawn_q.is_empty() {
-        return;
-    }
-
-    let token_bytes = ws_fallback.token_bytes.take().unwrap();
-    let ws_url = std::mem::take(&mut ws_fallback.ws_url);
-
-    if ws_url.is_empty() {
-        warn!("[net] WS fallback has no WebSocket URL — returning to title");
-        return;
-    }
-
-    // Ensure we're in Connecting so auth success can transition to Playing
-    next_phase.set(super::phase::GamePhase::Connecting);
-
-    info!("[net] executing WebSocket fallback to {ws_url}");
-    let transport = TransportConfig {
-        ws_url,
-        wt_url: String::new(),
-        cert_digest: String::new(),
-        cert_type: String::new(),
-    };
-    connect_to_server(&mut commands, &transport, &token_bytes);
 }
 
 /// Timer resource for throttling heartbeat logs.
@@ -651,7 +631,6 @@ fn poll_go_online_request(
     profile: Res<super::client_profile::ClientProfile>,
     mut pending_auth: ResMut<PendingAuth>,
     mut pending_token: ResMut<PendingTokenFetch>,
-    mut ws_fallback: ResMut<WsFallbackInfo>,
 ) {
     if !GO_ONLINE_REQUESTED.swap(false, Ordering::AcqRel) {
         return;
@@ -790,19 +769,6 @@ fn poll_go_online_request(
                         cert_type: cert_type.to_string(),
                     };
 
-                    // Arm WS fallback if trying WebTransport
-                    if !transport.wt_url.is_empty() && !transport.ws_url.is_empty() {
-                        *ws_fallback = WsFallbackInfo {
-                            ws_url: transport.ws_url.clone(),
-                            token_bytes: Some(token_bytes.clone()),
-                            armed: true,
-                        };
-                        info!(
-                            "[net] desktop: WS fallback armed for {}",
-                            ws_fallback.ws_url
-                        );
-                    }
-
                     connect_to_server(&mut commands, &transport, &token_bytes);
                     info!("[net] desktop: remote connection initiated");
                     return;
@@ -868,21 +834,6 @@ fn poll_go_online_request(
             cert_type: "self-signed".to_string(),
         };
 
-        // Arm WS fallback if trying WebTransport on desktop
-        if !transport.wt_url.is_empty() && !transport.ws_url.is_empty() {
-            *ws_fallback = WsFallbackInfo {
-                ws_url: transport.ws_url.clone(),
-                token_bytes: Some(token_bytes),
-                armed: true,
-            };
-            info!(
-                "[net] desktop: WS fallback armed for {}",
-                ws_fallback.ws_url
-            );
-        } else {
-            *ws_fallback = WsFallbackInfo::default();
-        }
-
         info!("[net] desktop: generated ConnectToken locally, connecting...");
         connect_to_server(&mut commands, &transport, &token_bytes);
     }
@@ -936,7 +887,6 @@ fn poll_token_fetch_result(
     mut commands: Commands,
     profile: Res<super::client_profile::ClientProfile>,
     mut pending_token: ResMut<PendingTokenFetch>,
-    mut ws_fallback: ResMut<WsFallbackInfo>,
 ) {
     if !pending_token.in_flight {
         return;
@@ -978,22 +928,6 @@ fn poll_token_fetch_result(
         cert_digest: result.cert_digest.clone(),
         cert_type: result.cert_type.clone(),
     };
-
-    // Arm WS fallback if we're about to try WebTransport
-    if !transport.wt_url.is_empty() && !transport.ws_url.is_empty() {
-        *ws_fallback = WsFallbackInfo {
-            ws_url: transport.ws_url.clone(),
-            token_bytes: Some(result.token_bytes),
-            armed: true,
-        };
-        info!(
-            "[net] WS fallback armed — will retry via {} if WebTransport fails",
-            ws_fallback.ws_url
-        );
-    } else {
-        // Clear any stale fallback
-        *ws_fallback = WsFallbackInfo::default();
-    }
 
     let transport_name = if !transport.wt_url.is_empty() {
         "WebTransport"
@@ -1639,16 +1573,23 @@ fn connect_to_server(commands: &mut Commands, transport: &TransportConfig, token
             transport.cert_digest.clone()
         };
 
-        let client_entity = commands
-            .spawn((
-                netcode,
-                PeerAddr(server_addr),
-                WebTransportClientIo {
-                    certificate_digest: digest,
-                },
-                ReplicationReceiver::default(),
-            ))
-            .id();
+        let mut entity_commands = commands.spawn((
+            netcode,
+            PeerAddr(server_addr),
+            WebTransportClientIo {
+                certificate_digest: digest,
+            },
+            ReplicationReceiver::default(),
+        ));
+
+        // Attach WS fallback info so on_unlinked can swap in-place
+        if !transport.ws_url.is_empty() {
+            entity_commands.insert(WsFallback {
+                ws_url: transport.ws_url.clone(),
+            });
+        }
+
+        let client_entity = entity_commands.id();
 
         info!(
             "[net] NetcodeClient+WebTransport entity spawned: {client_entity:?} addr={server_addr}"

@@ -5,6 +5,7 @@ settings:
     excludeLinksFromLockfile: false
 
 overrides:
+    '@novnc/novnc': 1.5.0
     fast-xml-parser: '>=5.5.8'
     minimatch@<3.1.4: 3.1.4
     minimatch@>=5.0.0 <5.1.8: 5.1.8
@@ -43,8 +44,8 @@ importers:
                 specifier: ^5.2.2
                 version: 5.2.2(react-hook-form@7.55.0(react@19.2.4))
             '@novnc/novnc':
-                specifier: ^1.6.0
-                version: 1.6.0
+                specifier: 1.5.0
+                version: 1.5.0
             '@peculiar/webcrypto':
                 specifier: ^1.5.0
                 version: 1.5.0
@@ -5095,10 +5096,10 @@ packages:
             }
         engines: { node: '>= 8' }
 
-    '@novnc/novnc@1.6.0':
+    '@novnc/novnc@1.5.0':
         resolution:
             {
-                integrity: sha512-CJrmdSe9Yt2ZbLsJpVFoVkEu0KICEvnr3njW25Nz0jodaiFJtg8AYLGZogRYy0/N5HUWkGUsCmegKXYBSqwygw==,
+                integrity: sha512-4yGHOtUCnEJUCsgEt/L78eeJu00kthurLBWXFiaXfonNx0pzbs6R/3gJb1byZe6iAE8V9MF0syQb0xIL8MSOtQ==,
             }
 
     '@nx-tools/ci-context@7.2.1':
@@ -30469,7 +30470,7 @@ snapshots:
             '@nodelib/fs.scandir': 2.1.5
             fastq: 1.17.1
 
-    '@novnc/novnc@1.6.0': {}
+    '@novnc/novnc@1.5.0': {}
 
     '@nx-tools/ci-context@7.2.1(@nx/devkit@22.6.1(nx@22.6.1(@swc-node/register@1.11.1(@swc/core@1.15.21(@swc/helpers@0.5.18))(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.21(@swc/helpers@0.5.18))))(tslib@2.8.1)':
         dependencies:
