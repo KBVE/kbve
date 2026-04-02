@@ -10,6 +10,7 @@ pub struct AppState {
     pub health_monitor: Arc<HealthMonitor>,
 
     /// Process start time (for uptime calculation).
+    #[allow(dead_code)]
     pub start_time: Instant,
 
     /// Shared reqwest client for outbound calls.

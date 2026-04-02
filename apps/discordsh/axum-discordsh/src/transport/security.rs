@@ -40,12 +40,13 @@ fn percent_decode(s: &str) -> String {
     let mut i = 0;
 
     while i < bytes.len() {
-        if bytes[i] == b'%' && i + 2 < bytes.len() {
-            if let (Some(hi), Some(lo)) = (hex_val(bytes[i + 1]), hex_val(bytes[i + 2])) {
-                out.push(hi << 4 | lo);
-                i += 3;
-                continue;
-            }
+        if bytes[i] == b'%'
+            && i + 2 < bytes.len()
+            && let (Some(hi), Some(lo)) = (hex_val(bytes[i + 1]), hex_val(bytes[i + 2]))
+        {
+            out.push(hi << 4 | lo);
+            i += 3;
+            continue;
         }
         out.push(bytes[i]);
         i += 1;
@@ -64,6 +65,7 @@ fn hex_val(b: u8) -> Option<u8> {
 }
 
 /// Validate that a session ID is exactly 8 lowercase hex characters.
+#[allow(dead_code)]
 pub fn is_valid_session_id(id: &str) -> bool {
     id.len() == 8 && id.bytes().all(|b| b.is_ascii_hexdigit())
 }
