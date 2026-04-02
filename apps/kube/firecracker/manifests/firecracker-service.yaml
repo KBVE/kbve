@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: firecracker-ctl
+    namespace: kilobase
+    labels:
+        app: firecracker-ctl
+spec:
+    type: ClusterIP
+    selector:
+        app: firecracker-ctl
+    ports:
+        - port: 9001
+          targetPort: api
+          protocol: TCP
+          name: api
