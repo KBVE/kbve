@@ -222,7 +222,7 @@ export default defineConfig({
 		plugins: [tailwindcss()],
 		build: {
 			rollupOptions: {
-				external: ['fsevents', /^\.\.\/pkg/, /@novnc\/novnc/],
+				external: ['fsevents', /^\.\.\/pkg/],
 			},
 		},
 		optimizeDeps: {
