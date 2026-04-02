@@ -1,4 +1,12 @@
 # ============================================================================
+# axum-kbve — Multi-stage Docker build
+#
+# Runtime uses the shared chisel base image:
+#   ghcr.io/kbve/chisel-ubuntu-axum:24.04.2
+#   (chiseled Ubuntu 24.04 + jemalloc + libpq + CA certs)
+# ============================================================================
+
+# ============================================================================
 # [STAGE A] - Build Astro Static Site
 # ============================================================================
 FROM --platform=linux/amd64 node:24-slim AS astro-builder
@@ -176,69 +184,20 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     strip target/release/axum-kbve
 
 # ============================================================================
-# [STAGE G] - Chisel Ubuntu Base (Minimal Runtime)
+# [STAGE Z] - Runtime Image (shared chisel base)
 # ============================================================================
-FROM --platform=linux/amd64 ubuntu:24.04 AS chisel-builder
-
-RUN apt-get update && apt-get install -y wget ca-certificates
-
-WORKDIR /tmp
-
-RUN wget https://go.dev/dl/go1.23.4.linux-amd64.tar.gz && \
-    tar -xvf go1.23.4.linux-amd64.tar.gz && \
-    mv go /usr/local
-
-RUN GOBIN=/usr/local/bin/ /usr/local/go/bin/go install github.com/canonical/chisel/cmd/chisel@latest
-
-WORKDIR /rootfs
-RUN chisel cut --release ubuntu-24.04 --root /rootfs \
-        base-files_base \
-        base-files_release-info \
-        ca-certificates_data \
-        libgcc-s1_libs \
-        libc6_libs \
-        libstdc++6_libs \
-        openssl_config && \
-    echo 'appuser:x:10001:10001::/nonexistent:/usr/sbin/nologin' >> /rootfs/etc/passwd && \
-    echo 'appgroup:x:10001:' >> /rootfs/etc/group && \
-    mkdir -p /rootfs/app && chown 10001:10001 /rootfs/app
-
-# ============================================================================
-# [STAGE H] - Jemalloc
-# ============================================================================
-FROM --platform=linux/amd64 ubuntu:24.04 AS jemalloc
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends libjemalloc-dev && \
-    apt-get autoremove -y && \
-    apt-get purge -y --auto-remove && \
-    rm -rf /var/lib/apt/lists/*
-
-# ============================================================================
-# [STAGE Z] - Runtime Image (Scratch + Chisel + Jemalloc)
-# ============================================================================
-FROM --platform=linux/amd64 scratch AS runtime
-
-COPY --from=chisel-builder /rootfs /
-
-COPY --from=jemalloc /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
-
-WORKDIR /app
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.2 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/axum-kbve /app/axum-kbve
 
 COPY --from=builder --chown=10001:10001 /app/apps/kbve/axum-kbve/templates/dist /app/templates/dist
 COPY --from=builder --chown=10001:10001 /app/apps/kbve/axum-kbve/templates/askama /app/templates/askama
 
-ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
-ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:10000,muzzy_decay_ms:10000,lg_tcache_max:32,oversize_threshold:4194304"
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4321
 ENV RUST_LOG=info
 
 EXPOSE 4321
 EXPOSE 5000
-
-USER 10001:10001
 
 ENTRYPOINT ["/app/axum-kbve"]
