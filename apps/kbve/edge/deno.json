@@ -1,7 +1,9 @@
 {
-  "version": "0.1.21",
+  "version": "0.1.22",
   "compilerOptions": {
-    "lib": ["deno.window"],
+    "lib": [
+      "deno.window"
+    ],
     "strict": true
   },
   "imports": {
@@ -13,6 +15,8 @@
     "indentWidth": 2,
     "singleQuote": false,
     "proseWrap": "preserve",
-    "include": ["functions/"]
+    "include": [
+      "functions/"
+    ]
   }
 }
