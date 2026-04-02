@@ -11,24 +11,16 @@ let RFB: any = null;
 async function loadRFB() {
 	if (!RFB) {
 		try {
-			// Try vendored ESM first (production path)
+			// Load from vendored ESM source in public/vendor/novnc/.
+			// Uses full origin URL to bypass Vite's module graph during build.
 			const vendorUrl = `${window.location.origin}/vendor/novnc/core/rfb.js`;
 			const mod = await import(/* @vite-ignore */ vendorUrl);
 			RFB = mod.default ?? mod;
-		} catch (vendorErr) {
-			try {
-				// Fallback: try npm package (works in dev mode)
-				// @ts-expect-error — noVNC ships without TypeScript declarations
-				const mod = await import(
-					/* @vite-ignore */ '@novnc/novnc/lib/rfb'
-				);
-				RFB = mod.default ?? mod;
-			} catch {
-				console.error('noVNC load failed:', vendorErr);
-				throw new Error(
-					'noVNC module not available — check browser console for details',
-				);
-			}
+		} catch (err) {
+			console.error('noVNC load failed:', err);
+			throw new Error(
+				'noVNC module not available — check that /vendor/novnc/ is present',
+			);
 		}
 	}
 	return RFB;
