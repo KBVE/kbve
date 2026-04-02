@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: firecracker-ctl
+    namespace: kilobase
+    labels:
+        app: firecracker-ctl
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: firecracker-ctl
+    template:
+        metadata:
+            labels:
+                app: firecracker-ctl
+        spec:
+            nodeSelector:
+                kvm: 'true'
+            containers:
+                - name: firecracker-ctl
+                  image: ghcr.io/kbve/firecracker-ctl:0.1.0
+                  command: ['firecracker-ctl', 'serve', '--port', '9001']
+                  ports:
+                      - containerPort: 9001
+                        name: api
+                        protocol: TCP
+                  resources:
+                      requests:
+                          cpu: 250m
+                          memory: 512Mi
+                          devices.kubevirt.io/kvm: '1'
+                      limits:
+                          cpu: '2'
+                          memory: 2Gi
+                          devices.kubevirt.io/kvm: '1'
+                  securityContext:
+                      capabilities:
+                          add: ['NET_ADMIN']
+                  volumeMounts:
+                      - name: rootfs-cache
+                        mountPath: /var/lib/firecracker/rootfs
+                        readOnly: true
+                      - name: vm-scratch
+                        mountPath: /var/lib/firecracker/scratch
+                  livenessProbe:
+                      httpGet:
+                          path: /health
+                          port: api
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                  readinessProbe:
+                      httpGet:
+                          path: /health
+                          port: api
+                      initialDelaySeconds: 3
+                      periodSeconds: 5
+            volumes:
+                - name: rootfs-cache
+                  persistentVolumeClaim:
+                      claimName: firecracker-rootfs
+                - name: vm-scratch
+                  emptyDir:
+                      sizeLimit: 4Gi
