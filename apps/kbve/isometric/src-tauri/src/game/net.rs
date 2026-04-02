@@ -428,6 +428,7 @@ fn on_disconnected(
     remote_players: Query<Entity, With<RemotePlayer>>,
     own_replicated: Query<Entity, With<OwnReplicatedPlayer>>,
     attempted_q: Query<(), With<ConnectionAttempted>>,
+    ws_fallback: Res<WsFallbackInfo>,
 ) {
     let entity = trigger.entity;
 
@@ -473,10 +474,16 @@ fn on_disconnected(
     info!("[net] marked disconnected client entity {entity:?} for deferred despawn");
 
     // If the player chose "Play Online", return to the title screen on disconnect
-    // so they can retry or switch to offline mode.
+    // — UNLESS a WebSocket fallback is pending (token_bytes still present).
     if *play_mode == super::phase::PlayMode::Online {
-        info!("[net] online mode — returning to title screen after disconnect");
-        next_phase.set(super::phase::GamePhase::Title);
+        if ws_fallback.token_bytes.is_some() {
+            info!(
+                "[net] online mode — WS fallback pending, staying in Connecting (not returning to title)"
+            );
+        } else {
+            info!("[net] online mode — returning to title screen after disconnect");
+            next_phase.set(super::phase::GamePhase::Title);
+        }
     }
 
     info!("[net] connection state reset — ready for reconnection");
@@ -520,6 +527,7 @@ fn cleanup_pending_despawn(mut commands: Commands, query: Query<Entity, With<Pen
 fn poll_ws_fallback(
     mut commands: Commands,
     mut ws_fallback: ResMut<WsFallbackInfo>,
+    mut next_phase: ResMut<NextState<super::phase::GamePhase>>,
     pending_despawn_q: Query<(), With<PendingDespawn>>,
 ) {
     // Wait until armed=false (set by on_unlinked) AND token_bytes present AND
@@ -535,6 +543,9 @@ fn poll_ws_fallback(
         warn!("[net] WS fallback has no WebSocket URL — returning to title");
         return;
     }
+
+    // Ensure we're in Connecting so auth success can transition to Playing
+    next_phase.set(super::phase::GamePhase::Connecting);
 
     info!("[net] executing WebSocket fallback to {ws_url}");
     let transport = TransportConfig {
