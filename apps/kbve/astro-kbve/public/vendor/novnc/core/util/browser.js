@@ -205,7 +205,11 @@ async function _checkWebCodecsH264DecodeSupport() {
 
 	return true;
 }
-supportsWebCodecsH264Decode = await _checkWebCodecsH264DecodeSupport();
+try {
+	supportsWebCodecsH264Decode = await _checkWebCodecsH264DecodeSupport();
+} catch {
+	supportsWebCodecsH264Decode = false;
+}
 
 /*
  * The functions for detection of platforms and browsers below are exported

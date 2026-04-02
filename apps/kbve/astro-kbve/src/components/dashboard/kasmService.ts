@@ -224,12 +224,21 @@ class KasmService {
 		);
 	}
 
+	/** Per-workspace action result — cleared after 5s or on next action */
+	public readonly $lastAction = atom<{
+		name: string;
+		ok: boolean;
+		message: string;
+	} | null>(null);
+
 	public async scaleWorkspace(
 		token: string,
 		name: string,
 		replicas: number,
 	): Promise<void> {
+		const action = replicas > 0 ? 'Starting' : 'Stopping';
 		this.$actionInProgress.set(`scale:${name}:${replicas}`);
+		this.$lastAction.set({ name, ok: true, message: `${action}...` });
 		try {
 			// Use the dedicated scale endpoint (PUT) instead of the generic
 			// VM proxy — the proxy forwards PATCH with application/json which
@@ -250,11 +259,27 @@ class KasmService {
 					`Scale failed ${resp.status}: ${text.slice(0, 200)}`,
 				);
 			}
+			this.$lastAction.set({
+				name,
+				ok: true,
+				message: `${action} ${name} — waiting for cluster...`,
+			});
 			setTimeout(() => this.fetchData(token), 2000);
+			setTimeout(() => {
+				if (this.$lastAction.get()?.name === name) {
+					this.$lastAction.set(null);
+				}
+			}, 8000);
 		} catch (e) {
-			this.$error.set(
-				e instanceof Error ? e.message : `Failed to scale ${name}`,
-			);
+			const msg =
+				e instanceof Error ? e.message : `Failed to scale ${name}`;
+			this.$error.set(msg);
+			this.$lastAction.set({ name, ok: false, message: msg });
+			setTimeout(() => {
+				if (this.$lastAction.get()?.name === name) {
+					this.$lastAction.set(null);
+				}
+			}, 8000);
 		} finally {
 			this.$actionInProgress.set(null);
 		}
