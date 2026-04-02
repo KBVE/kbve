@@ -97,6 +97,8 @@ RUN cargo chef prepare --recipe-path recipe.json
 
 # [STAGE D] - Cargo Chef Cook (Cache External Dependencies)
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder-deps
+# sccache is incompatible with incremental compilation
+ENV CARGO_INCREMENTAL=0
 
 COPY --from=planner /app/recipe.json recipe.json
 COPY --from=planner /app/Cargo.toml /app/Cargo.lock ./
@@ -110,6 +112,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 
 # [STAGE E] - Foundation Layer (Compile kbve + jedi from real source)
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS foundation
+ENV CARGO_INCREMENTAL=0
 
 COPY --from=builder-deps /app/target target
 COPY --from=builder-deps /usr/local/cargo /usr/local/cargo

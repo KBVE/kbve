@@ -16,7 +16,6 @@ describe('Content-Type Validation', () => {
 		'user-vault',
 		'vault-reader',
 		'meme',
-		'mc',
 		'discordsh',
 		'guild-vault',
 	];
