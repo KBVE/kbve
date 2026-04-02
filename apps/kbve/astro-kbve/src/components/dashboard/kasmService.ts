@@ -231,12 +231,25 @@ class KasmService {
 	): Promise<void> {
 		this.$actionInProgress.set(`scale:${name}:${replicas}`);
 		try {
-			await kasmFetch(
-				token,
-				`/apis/apps/v1/namespaces/${KASM_NAMESPACE}/deployments/${name}/scale`,
-				'PATCH',
-				{ spec: { replicas } },
-			);
+			// Use the dedicated scale endpoint (PUT) instead of the generic
+			// VM proxy — the proxy forwards PATCH with application/json which
+			// K8s rejects with 415 (Unsupported Media Type).
+			const headers: Record<string, string> = {
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'application/json',
+			};
+			const resp = await fetch(`/dashboard/kasm/scale/${name}`, {
+				method: 'PUT',
+				headers,
+				body: JSON.stringify({ replicas }),
+				signal: AbortSignal.timeout(15000),
+			});
+			if (!resp.ok) {
+				const text = await resp.text().catch(() => '');
+				throw new Error(
+					`Scale failed ${resp.status}: ${text.slice(0, 200)}`,
+				);
+			}
 			setTimeout(() => this.fetchData(token), 2000);
 		} catch (e) {
 			this.$error.set(
