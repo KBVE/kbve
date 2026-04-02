@@ -6603,6 +6603,20 @@
               "configurations": {},
               "parallelism": true
             },
+            "run": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo run -p isometric-game",
+                "cwd": ""
+              },
+              "configurations": {
+                "production": {
+                  "command": "GAME_SERVER_URL=wss://kbve.com/ws cargo run -p isometric-game",
+                  "cwd": ""
+                }
+              },
+              "parallelism": true
+            },
             "build:tauri": {
               "executor": "nx:run-commands",
               "options": {
@@ -9772,6 +9786,11 @@
           "source": "astro-irc",
           "target": "astro",
           "type": "static"
+        },
+        {
+          "source": "astro-irc",
+          "target": "astro",
+          "type": "dynamic"
         },
         {
           "source": "astro-irc",
