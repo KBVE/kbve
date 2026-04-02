@@ -20,7 +20,7 @@
 					"commands": [
 						"npx nx run chisel-ubuntu-axum:containerx-runtime:production",
 						"npx nx run chisel-ubuntu-axum:containerx-builder:production",
-						"VERSION=$(grep -m1 'version' packages/docker/chisel-ubuntu-axum/version.toml | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder ghcr.io/kbve/chisel-ubuntu-axum:${VERSION}-builder && docker push ghcr.io/kbve/chisel-ubuntu-axum:${VERSION}-builder && echo \"Published builder as ${VERSION}-builder\""
+						"VERSION=$(grep -m1 'version' packages/docker/chisel-ubuntu-axum/version.toml | sed 's/.*\"\\(.*\\)\"/\\1/') && docker buildx imagetools create --tag ghcr.io/kbve/chisel-ubuntu-axum:${VERSION}-builder ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder && echo \"Published builder as ${VERSION}-builder\""
 					]
 				}
 			}
