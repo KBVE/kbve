@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: firecracker-ctl-ingress
+    namespace: kilobase
+spec:
+    podSelector:
+        matchLabels:
+            app: firecracker-ctl
+    policyTypes:
+        - Ingress
+    ingress:
+        - from:
+              - podSelector:
+                    matchLabels:
+                        app: edge-functions
+          ports:
+              - protocol: TCP
+                port: 9001
