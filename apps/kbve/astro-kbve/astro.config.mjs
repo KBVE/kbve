@@ -222,19 +222,20 @@ export default defineConfig({
 		plugins: [tailwindcss()],
 		build: {
 			rollupOptions: {
-				external: ['fsevents', /^\.\.\/pkg/],
+				// noVNC CJS has broken top-level await; guacamole-common-js is
+				// loaded via vendored ESM at runtime. Both use @vite-ignore
+				// dynamic imports — externalize so Rollup never parses them.
+				external: ['fsevents', /^\.\.\/pkg/, '@novnc/novnc', /^@novnc\//, 'guacamole-common-js'],
 			},
 		},
 		optimizeDeps: {
-			exclude: ['fsevents'],
+			exclude: ['fsevents', '@novnc/novnc', 'guacamole-common-js'],
 			esbuildOptions: {
 				supported: { 'top-level-await': true },
 			},
 		},
 		ssr: {
 			noExternal: [],
-			// noVNC + guacamole-common-js are client-only — externalize from SSR
-			// but let Vite bundle them for the client (removed from build.external)
 			external: ['@novnc/novnc', 'guacamole-common-js'],
 		},
 	},
