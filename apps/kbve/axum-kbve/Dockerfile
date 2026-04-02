@@ -105,6 +105,7 @@ COPY --from=planner /app/packages packages
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo chef cook --release --recipe-path recipe.json -p axum-kbve
 
 # [STAGE E] - Foundation Layer (Compile kbve + jedi from real source)
@@ -129,6 +130,7 @@ COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo build --release -p kbve -p jedi -p bevy_kbve_net -p bevy_npc
 
 # ============================================================================
@@ -155,6 +157,7 @@ RUN cp -a /app/apps/kbve/axum-kbve/templates/dist/askama/. /app/apps/kbve/axum-k
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo build --release -p axum-kbve && \
     strip target/release/axum-kbve
 
