@@ -2,7 +2,7 @@
 # chisel-ubuntu-axum — Shared base images for KBVE Axum services
 #
 # Two targets:
-#   builder  → Rust build environment (cargo-chef, protobuf, ssl, pq, jemalloc-dev)
+#   builder  → Rust build environment (cargo-chef, protobuf, ssl, pq, jemalloc-dev, mold, brotli)
 #   runtime  → Minimal chiseled Ubuntu (jemalloc, libpq, CA certs)
 #
 # Published as:
@@ -36,6 +36,9 @@ RUN apt-get update && \
         libjemalloc-dev \
         protobuf-compiler \
         libprotobuf-dev \
+        mold \
+        gzip \
+        brotli \
         curl \
         ca-certificates && \
     rm -rf /var/lib/apt/lists/*
