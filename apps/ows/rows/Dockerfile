@@ -48,6 +48,10 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # ── Stage 3: Build — compile only our source ────────────────
 FROM cook AS builder
 
+# Ensure make is available for tikv-jemalloc-sys compilation (build from source)
+RUN dpkg -s make >/dev/null 2>&1 || \
+    (apt-get update && apt-get install -y --no-install-recommends make && rm -rf /var/lib/apt/lists/*)
+
 COPY packages/rust/jedi/ packages/rust/jedi/
 COPY packages/rust/kbve/ packages/rust/kbve/
 COPY apps/ows/rows/src/ apps/ows/rows/src/
