@@ -25,3 +25,9 @@ hex = "0.4"
 bevy_npc = { path = "../bevy_npc", optional = true }
 aeronet_webtransport = { version = "0.19", optional = true }
 lightyear_aeronet = { version = "0.26", optional = true }
+bytes = "1"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = ["WebSocket", "BinaryType", "MessageEvent", "CloseEvent", "Event"] }
+js-sys = "0.3"

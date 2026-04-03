@@ -2171,10 +2171,14 @@ dependencies = [
  "base64 0.22.1",
  "bevy",
  "bevy_npc",
+ "bytes",
  "hex",
+ "js-sys",
  "lightyear",
  "lightyear_aeronet",
  "serde",
+ "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]
