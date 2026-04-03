@@ -645,9 +645,12 @@ class VMService {
 	}
 
 	public getVNCWebSocketURL(name: string): string {
-		// Dedicated VNC WebSocket bridge — axum handles auth + upstream relay
+		// Dedicated VNC WebSocket bridge — axum handles auth + upstream relay.
+		// Browser WebSocket API cannot set custom headers, so pass JWT as
+		// query param. The backend accepts ?access_token= for WS auth.
 		const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		return `${proto}//${window.location.host}/dashboard/vm/vnc/${name}`;
+		const token = this.$accessToken.get() ?? '';
+		return `${proto}//${window.location.host}/dashboard/vm/vnc/${name}?access_token=${token}`;
 	}
 
 	private _startAutoRefresh(): void {
