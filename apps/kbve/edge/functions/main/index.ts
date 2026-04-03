@@ -6,7 +6,10 @@ console.log("main function started");
 
 const JWT_SECRET = Deno.env.get("JWT_SECRET");
 const VERIFY_JWT = Deno.env.get("VERIFY_JWT") === "true";
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const PUBLIC_ROUTES = new Set(["health"]);
+const STAFF_ROUTES = new Set(["argo"]);
 
 function getAuthToken(req: Request) {
   const authHeader = req.headers.get("authorization");
@@ -67,6 +70,53 @@ serve(async (req: Request) => {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
+  }
+
+  // Staff-only routes: block non-staff, non-service_role before worker boot.
+  if (STAFF_ROUTES.has(service_name) && req.method !== "OPTIONS") {
+    try {
+      const token = getAuthToken(req);
+      // Decode payload (already signature-verified above) to read role.
+      const payloadB64 = token.split(".")[1];
+      const payload = JSON.parse(atob(payloadB64));
+
+      if (payload.role !== "service_role") {
+        // Check staff via public.staff_permissions() RPC as the user.
+        const rpcRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/rpc/staff_permissions`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${token}`,
+            },
+            body: "{}",
+          },
+        );
+        const permissions = rpcRes.ok ? await rpcRes.json() : 0;
+        if (typeof permissions !== "number" || permissions <= 0) {
+          return new Response(
+            JSON.stringify({
+              msg: "Access denied: staff or service_role required",
+            }),
+            {
+              status: 403,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
+        }
+      }
+    } catch (e) {
+      console.error("Staff gate error:", e);
+      return new Response(
+        JSON.stringify({ msg: "Access denied" }),
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
   }
 
   const servicePath = `/home/deno/functions/${service_name}`;
