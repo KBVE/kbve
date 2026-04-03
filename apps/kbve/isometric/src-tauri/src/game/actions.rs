@@ -8,6 +8,7 @@ use super::inventory::{
     ITEM_LOG, ITEM_PORCINI, ITEM_STONE, ITEM_WILDFLOWER, ItemKind, LootEvent,
     item_from_flower_archetype, item_from_mushroom_kind, item_from_rock_kind,
 };
+use super::phase::GamePhase;
 use super::scene_objects::{
     CollectEvent, FlowerArchetype, HoverOutline, Interactable, InteractableKind, MushroomKind,
     RockKind,
@@ -167,7 +168,7 @@ impl Plugin for ActionsPlugin {
         app.add_systems(
             Update,
             (
-                process_action_buffer,
+                process_action_buffer.run_if(in_state(GamePhase::Playing)),
                 animate_tree_chop.run_if(any_with_component::<ChoppingTree>),
                 animate_rock_mine.run_if(any_with_component::<MiningRock>),
                 animate_forageable_collect.run_if(any_with_component::<CollectingForageable>),

@@ -123,6 +123,12 @@ impl GameClient {
                     use lightyear::webtransport::prelude::client::*;
 
                     let is_trusted = cert_type == "trusted";
+                    let digest = if is_trusted {
+                        String::new()
+                    } else {
+                        cert_digest
+                    };
+
                     let addr_str = url
                         .trim_start_matches("https://")
                         .trim_start_matches("http://");
@@ -131,19 +137,28 @@ impl GameClient {
                         if let Ok(addr) = addr_str.parse::<std::net::SocketAddr>() {
                             addr
                         } else {
-                            use std::net::ToSocketAddrs;
-                            addr_str
-                                .to_socket_addrs()
-                                .ok()
-                                .and_then(|mut addrs| addrs.find(|a| a.is_ipv4()))
-                                .unwrap_or_else(|| "127.0.0.1:5001".parse().unwrap())
+                            #[cfg(not(target_family = "wasm"))]
+                            {
+                                use std::net::ToSocketAddrs;
+                                addr_str
+                                    .to_socket_addrs()
+                                    .ok()
+                                    .and_then(|mut addrs| addrs.find(|a| a.is_ipv4()))
+                                    .unwrap_or_else(|| "127.0.0.1:5001".parse().unwrap())
+                            }
+                            #[cfg(target_family = "wasm")]
+                            {
+                                let port = addr_str
+                                    .rsplit(':')
+                                    .next()
+                                    .and_then(|p| p.parse::<u16>().ok())
+                                    .unwrap_or(5001);
+                                std::net::SocketAddr::new(
+                                    std::net::IpAddr::V4(std::net::Ipv4Addr::new(0, 0, 0, 0)),
+                                    port,
+                                )
+                            }
                         };
-
-                    let digest = if is_trusted {
-                        String::new()
-                    } else {
-                        cert_digest
-                    };
 
                     info!(
                         "[GameClient] WebTransport → {url} (cert={cert_type}, addr={server_addr})"
@@ -154,6 +169,16 @@ impl GameClient {
                             certificate_digest: digest,
                         },
                     ));
+
+                    #[cfg(target_family = "wasm")]
+                    {
+                        let full_url = if url.starts_with("https://") {
+                            url
+                        } else {
+                            format!("https://{url}")
+                        };
+                        entity_mut.insert(WtHostnameUrl(full_url));
+                    }
                 }
                 ClientTransport::WebSocket { url } => {
                     use lightyear::websocket::prelude::client::*;
@@ -180,6 +205,13 @@ impl GameClient {
 // ---------------------------------------------------------------------------
 // Connection lifecycle markers
 // ---------------------------------------------------------------------------
+
+/// On WASM, stores the original hostname-based WebTransport URL so our
+/// `wasm_wt_hostname_link` observer can connect to the hostname instead
+/// of the IP that `PeerAddr` holds.
+#[cfg(target_family = "wasm")]
+#[derive(Component, Clone, Debug)]
+pub struct WtHostnameUrl(pub String);
 
 /// Marker: a connection attempt has begun (Connecting was reached).
 /// Distinguishes "initial Disconnected from #[require]" vs "real disconnect".
@@ -241,6 +273,67 @@ pub fn on_unlinked(trigger: On<Add, Unlinked>) {
 }
 
 /// Handshake timeout — abort if netcode doesn't complete in time.
+/// WASM-only: intercepts LinkStart for WebTransport entities that have a
+/// `WtHostnameUrl`. Connects to the hostname URL instead of the IP from
+/// PeerAddr. Inserts `Linking` so lightyear's default WT observer won't fire.
+#[cfg(target_family = "wasm")]
+pub fn wasm_wt_hostname_link(
+    trigger: On<LinkStart>,
+    query: Query<
+        (
+            Entity,
+            &lightyear::webtransport::prelude::client::WebTransportClientIo,
+            &WtHostnameUrl,
+        ),
+        (Without<Linking>, Without<Linked>),
+    >,
+    mut commands: Commands,
+) {
+    let Ok((entity, client, hostname_url)) = query.get(trigger.entity) else {
+        return;
+    };
+
+    let digest = client.certificate_digest.clone();
+    let url = hostname_url.0.clone();
+
+    info!("[GameClient] WASM WT hostname override → {url}");
+
+    commands.queue(move |world: &mut World| {
+        use aeronet_webtransport::client::{ClientConfig, WebTransportClient};
+        use aeronet_webtransport::xwt_web::{CertificateHash, HashAlgorithm};
+        use lightyear_aeronet::AeronetLinkOf;
+
+        let server_certificate_hashes = if digest.is_empty() {
+            Vec::new()
+        } else {
+            let hash: Vec<u8> = (0..digest.len())
+                .step_by(2)
+                .filter_map(|i| u8::from_str_radix(&digest[i..i + 2], 16).ok())
+                .collect();
+            vec![CertificateHash {
+                algorithm: HashAlgorithm::Sha256,
+                value: hash,
+            }]
+        };
+
+        let config = ClientConfig {
+            server_certificate_hashes,
+            ..Default::default()
+        };
+
+        let entity_mut = world.spawn((AeronetLinkOf(entity), Name::from("WebTransportClient")));
+        WebTransportClient::connect(config, url).apply(entity_mut);
+    });
+
+    // Insert Linking AND remove WebTransportClientIo so lightyear's
+    // default WT observer (which queries &WebTransportClientIo) won't
+    // also fire and create a duplicate connection to the wrong URL.
+    commands
+        .entity(entity)
+        .insert(Linking)
+        .remove::<lightyear::webtransport::prelude::client::WebTransportClientIo>();
+}
+
 pub fn check_handshake_timeout(
     mut commands: Commands,
     time: Res<Time>,

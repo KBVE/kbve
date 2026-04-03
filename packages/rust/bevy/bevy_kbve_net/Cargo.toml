@@ -7,7 +7,7 @@ description = "Shared lightyear protocol for KBVE multiplayer — replicated com
 [features]
 default = []
 npcdb = ["bevy_npc/creature"]
-client = ["lightyear/client", "lightyear/websocket", "lightyear/webtransport", "lightyear/udp"]
+client = ["lightyear/client", "lightyear/websocket", "lightyear/webtransport", "lightyear/udp", "dep:aeronet_webtransport", "dep:lightyear_aeronet"]
 
 [dependencies]
 bevy = { version = "0.18", default-features = false, features = ["bevy_state", "bevy_render"] }
@@ -23,3 +23,5 @@ serde = { version = "1", features = ["derive"] }
 base64 = "0.22"
 hex = "0.4"
 bevy_npc = { path = "../bevy_npc", optional = true }
+aeronet_webtransport = { version = "0.19", optional = true }
+lightyear_aeronet = { version = "0.26", optional = true }
