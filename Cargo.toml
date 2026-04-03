@@ -31,7 +31,7 @@ members = [
 	'packages/rust/bevy/bevy_battle',
 	'packages/rust/bevy/bevy_skills',
 	'packages/rust/bevy/bevy_tasker',
-	'apps/kube/firecracker/firecracker-ctl',
+	'apps/vm/firecracker-ctl',
 ]
 
 [profile.dev]

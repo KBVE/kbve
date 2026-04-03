@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: firecracker-rootfs-init
+    namespace: kilobase
+    labels:
+        app: firecracker-ctl
+    annotations:
+        argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+    backoffLimit: 2
+    ttlSecondsAfterFinished: 600
+    template:
+        metadata:
+            labels:
+                app: firecracker-rootfs-init
+        spec:
+            restartPolicy: OnFailure
+            containers:
+                - name: init
+                  image: curlimages/curl:8.12.1
+                  command:
+                      - /bin/sh
+                      - -c
+                      - |
+                          set -eu
+                          FC_VERSION=1.10.1
+                          KERNEL_URL="https://github.com/firecracker-microvm/firecracker/releases/download/v${FC_VERSION}/vmlinux-5.10.bin"
+                          OUTPUT_DIR="/rootfs"
+
+                          echo "=== Firecracker rootfs init ==="
+
+                          # Download kernel if not present
+                          if [ ! -f "${OUTPUT_DIR}/vmlinux" ]; then
+                              echo "Downloading vmlinux kernel..."
+                              curl -fSL "${KERNEL_URL}" -o "${OUTPUT_DIR}/vmlinux"
+                              chmod 644 "${OUTPUT_DIR}/vmlinux"
+                              echo "Kernel downloaded ($(wc -c < "${OUTPUT_DIR}/vmlinux") bytes)"
+                          else
+                              echo "Kernel already exists, skipping"
+                          fi
+
+                          echo "=== Done ==="
+                          ls -lh "${OUTPUT_DIR}/"
+                  volumeMounts:
+                      - name: rootfs
+                        mountPath: /rootfs
+            volumes:
+                - name: rootfs
+                  persistentVolumeClaim:
+                      claimName: firecracker-rootfs

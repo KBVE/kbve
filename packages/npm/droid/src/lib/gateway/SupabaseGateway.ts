@@ -17,6 +17,8 @@ import {
 import { SharedWorkerStrategy } from './strategies/SharedWorkerStrategy';
 import { WebWorkerStrategy } from './strategies/WebWorkerStrategy';
 import { DirectStrategy } from './strategies/DirectStrategy';
+import { getWorkerCommunication } from './WorkerCommunication';
+import { DroidEvents } from '../workers/events';
 
 // Vite ?worker&url imports — bundles workers as JS and returns their URL
 import defaultSharedWorkerUrl from '../workers/supabase-shared-worker?worker&url';
@@ -71,6 +73,22 @@ export class SupabaseGateway implements ISupabaseStrategy {
 			case 'direct':
 				this.strategy = new DirectStrategy();
 				break;
+		}
+
+		// Forward worker-error events from BroadcastChannel to DroidEvents
+		if (typeof window !== 'undefined') {
+			const comm = getWorkerCommunication();
+			comm.on('worker-error', (payload) => {
+				DroidEvents.emit(
+					'worker-error',
+					payload as {
+						timestamp: number;
+						worker: 'shared' | 'db' | 'ws';
+						operation: string;
+						message: string;
+					},
+				);
+			});
 		}
 	}
 

@@ -97,13 +97,29 @@ type Res =
 
 const ports = new Set<MessagePort>();
 
+/** Emit a worker-error event via BroadcastChannel so the main thread can surface it. */
+function broadcastError(operation: string, err: unknown) {
+	const message = err instanceof Error ? err.message : String(err);
+	console.error(`[SharedWorker] ${operation}:`, message);
+	comm.broadcast({
+		type: 'worker-error',
+		data: {
+			timestamp: Date.now(),
+			worker: 'shared',
+			operation,
+			message,
+		},
+	});
+}
+
 /** Post to all connected ports, removing dead ones on failure */
 function safeBroadcast(msg: unknown) {
 	for (const p of ports) {
 		try {
 			p.postMessage(msg);
-		} catch {
+		} catch (err) {
 			ports.delete(p);
+			broadcastError('postMessage', err);
 		}
 	}
 }
@@ -234,14 +250,12 @@ async function connectWebSocket(wsUrl?: string) {
 			safeBroadcast({ type: 'ws.message', data: message });
 			comm.broadcast({ type: 'ws.message', data: message });
 		} catch (error) {
-			console.error(
-				'[SharedWorker] Failed to parse WebSocket message:',
-				error,
-			);
+			broadcastError('ws.onmessage', error);
 		}
 	};
 
 	ws.onerror = () => {
+		broadcastError('ws.connect', 'WebSocket connection error');
 		safeBroadcast({
 			type: 'ws.status',
 			status: 'error',
@@ -364,15 +378,29 @@ async function ensureClient(
 	});
 
 	client.auth.onAuthStateChange(async (_event, session) => {
-		safeBroadcast({ type: 'auth', session });
-		comm.broadcast({ type: 'auth', data: { session } });
+		// Supabase session objects may contain non-cloneable references
+		// (internal SDK callbacks, circular refs). JSON round-trip strips
+		// them so postMessage / BroadcastChannel.postMessage won't throw
+		// DataCloneError.
+		const safe = session ? JSON.parse(JSON.stringify(session)) : null;
+		safeBroadcast({ type: 'auth', session: safe });
+		comm.broadcast({ type: 'auth', data: { session: safe } });
 	});
 
 	return client;
 }
 
+/** JSON round-trip to strip non-cloneable refs (functions, circular) before postMessage. */
+function cloneSafe<T>(obj: T): T {
+	try {
+		return JSON.parse(JSON.stringify(obj));
+	} catch {
+		return obj;
+	}
+}
+
 function reply(port: MessagePort, msg: Res) {
-	port.postMessage(msg);
+	port.postMessage(cloneSafe(msg));
 }
 
 (self as unknown as SharedWorkerGlobalScope).onconnect = (
@@ -559,6 +587,7 @@ function reply(port: MessagePort, msg: Res) {
 				}
 			}
 		} catch (err: unknown) {
+			broadcastError(m.type, err);
 			reply(port, {
 				id: m.id,
 				ok: false,

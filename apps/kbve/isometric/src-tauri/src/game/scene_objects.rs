@@ -1,3 +1,4 @@
+use avian3d::prelude::*;
 use bevy::picking::events::{Out, Over, Pointer};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
@@ -265,13 +266,16 @@ pub(crate) fn on_pointer_out(trigger: On<Pointer<Out>>, mut commands: Commands) 
     commands.entity(trigger.event_target()).remove::<Hovered>();
 }
 
-/// Tile-based hover detection: unproject cursor to world XZ, look up DashMap.
+/// Desktop hover detection: cast an avian3d ray from the isometric camera
+/// through the cursor position against actual collider geometry. This gives
+/// pixel-accurate picking — no tile-grid approximation.
 #[cfg(not(target_arch = "wasm32"))]
 fn raycast_hover_detection_desktop(
     windows: Query<&Window, With<PrimaryWindow>>,
     cursor: Res<BridgedCursorPosition>,
     camera_query: Query<(&GlobalTransform, &Projection), With<IsometricCamera>>,
-    hover_map: Res<super::hover_bvh::HoverMap>,
+    spatial_query: SpatialQuery,
+    interactable_q: Query<(), With<Interactable>>,
     current_hovered: Query<Entity, With<Hovered>>,
     mut last_cursor: ResMut<LastCursorPos>,
     mut commands: Commands,
@@ -281,7 +285,10 @@ fn raycast_hover_detection_desktop(
         return;
     };
 
-    let Some(cursor_pos) = cursor.position else {
+    // Use bridged cursor (Tauri IPC), fall back to window cursor (native cargo run)
+    let resolved_cursor = cursor.position.or_else(|| window.cursor_position());
+
+    let Some(cursor_pos) = resolved_cursor else {
         last_cursor.0 = None;
         for entity in &current_hovered {
             commands.entity(entity).remove::<Hovered>();
@@ -297,10 +304,18 @@ fn raycast_hover_detection_desktop(
     }
     last_cursor.0 = Some(cursor_pos);
 
-    // Multi-plane pick: cast cursor ray against Y-planes from top to bottom
-    // so tall objects (trees) are picked at canopy height, not just base tile.
-    let new_hovered =
-        super::hover_bvh::cursor_pick(cam_gt, projection, window, cursor_pos, &hover_map);
+    // Build ray from isometric camera, cast against physics colliders
+    let new_hovered = super::hover_bvh::cursor_ray_from_camera(
+        cam_gt, projection, window, cursor_pos,
+    )
+    .and_then(|(ray_origin, ray_dir)| {
+        let dir = Dir3::new(ray_dir).ok()?;
+        let hits = spatial_query.ray_hits(ray_origin, dir, 100.0, 20, true, &default());
+        hits.iter()
+            .filter(|hit| interactable_q.get(hit.entity).is_ok())
+            .min_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap())
+            .map(|hit| hit.entity)
+    });
 
     for entity in &current_hovered {
         if Some(entity) != new_hovered {
@@ -386,20 +401,54 @@ fn rotate_boxes(time: Res<Time>, mut query: Query<&mut Transform, With<RotatingB
 
 /// Draw a wireframe outline around hovered objects using gizmos.
 /// The pixelation shader will pixelate the lines into chunky pixel-art borders.
+/// Marker for the hover indicator mesh entity.
+#[derive(Component)]
+struct HoverIndicator;
+
+/// Spawn/move a subtle ground ring under the hovered object.
+/// Uses a real mesh (not gizmos) so it renders through the pixel-art pipeline.
 fn draw_hover_outline(
-    mut gizmos: Gizmos,
-    query: Query<(&GlobalTransform, &HoverOutline), With<Hovered>>,
+    mut commands: Commands,
+    hovered: Query<(&GlobalTransform, &HoverOutline), With<Hovered>>,
+    mut indicator_q: Query<(Entity, &mut Transform, &mut Visibility), With<HoverIndicator>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let outline_color = Color::srgba(1.0, 0.85, 0.2, 0.9);
-    for (gt, outline) in &query {
+    if let Some((gt, outline)) = hovered.iter().next() {
         let base = gt.compute_transform();
-        let outline_transform = Transform {
-            translation: base.translation,
-            rotation: base.rotation,
-            // Scale to match visual size + 10% margin
-            scale: outline.half_extents * 2.2,
-        };
-        gizmos.cube(outline_transform, outline_color);
+        // Place at the object's base
+        let pos = Vec3::new(
+            base.translation.x,
+            base.translation.y + 0.02,
+            base.translation.z,
+        );
+        let radius = outline.half_extents.x.max(outline.half_extents.z) * 1.3;
+
+        if let Some((_entity, mut tf, mut vis)) = indicator_q.iter_mut().next() {
+            tf.translation = pos;
+            tf.scale = Vec3::new(radius, 0.01, radius);
+            *vis = Visibility::Visible;
+        } else {
+            // Thin torus at the base — subtle selection ring
+            commands.spawn((
+                Mesh3d(meshes.add(Torus::new(0.42, 0.5))),
+                MeshMaterial3d(materials.add(StandardMaterial {
+                    base_color: Color::srgba(1.0, 1.0, 0.9, 0.5),
+                    emissive: LinearRgba::new(0.6, 0.55, 0.3, 1.0),
+                    alpha_mode: AlphaMode::Blend,
+                    unlit: true,
+                    ..default()
+                })),
+                Transform::from_translation(pos)
+                    .with_rotation(Quat::from_rotation_x(std::f32::consts::FRAC_PI_2))
+                    .with_scale(Vec3::new(radius, radius, 0.01)),
+                HoverIndicator,
+            ));
+        }
+    } else {
+        for (_entity, _tf, mut vis) in &mut indicator_q {
+            *vis = Visibility::Hidden;
+        }
     }
 }
 

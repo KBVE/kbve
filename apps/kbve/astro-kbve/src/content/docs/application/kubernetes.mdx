@@ -695,8 +695,21 @@ The KBVE edge platform uses Firecracker as a composable Tier 2 isolation layer a
 
 - Linux kernel with KVM support (Intel VT-x / AMD-V)
 - `/dev/kvm` exposed via `kubevirt/device-plugin-kvm` (already deployed for KubeVirt)
-- Nodes labeled `kvm=true`
+- Nodes labeled `kvm=true` (applied via Talos machine config patch)
 - Bare metal preferred (nested virt adds latency)
+
+### Node Setup (Talos)
+
+The `nodeSelector: kvm: "true"` requires a node label. On Talos, apply the machine config patch:
+
+```shell
+# Apply kvm=true node label via Talos machine config
+talosctl patch machineconfig --nodes <node> \
+  --patch @apps/kube/talos/patches/kvm-node-label.yaml
+
+# Verify label was applied
+kubectl get nodes --show-labels | grep kvm
+```
 
 ### Deployment
 

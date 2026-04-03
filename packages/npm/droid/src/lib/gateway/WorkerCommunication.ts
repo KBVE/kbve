@@ -58,7 +58,7 @@ export class WorkerCommunication {
 		if (type === 'realtime' && key) {
 			this.emit(`realtime:${key}`, event.payload);
 		} else {
-			this.emit(type, event);
+			this.emit(type, event.data ?? event);
 		}
 	}
 

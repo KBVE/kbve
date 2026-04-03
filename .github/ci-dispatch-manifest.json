@@ -159,6 +159,19 @@
 			"image": "kbve/rows",
 			"deployment_yaml": "apps/kube/ows/manifest/rows-deployment.yaml",
 			"has_test": false
+		},
+		{
+			"key": "firecracker_ctl",
+			"app_name": "firecracker-ctl",
+			"version": "0.1.0",
+			"version_toml": "apps/vm/firecracker-ctl/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
+			"version_target": "apps/vm/firecracker-ctl/Cargo.toml",
+			"source_path": "apps/vm/firecracker-ctl",
+			"runner": "arc-runner-set",
+			"image": "kbve/firecracker-ctl",
+			"deployment_yaml": "apps/kube/firecracker/manifests/firecracker-deployment.yaml",
+			"has_test": false
 		}
 	],
 	"npm": [

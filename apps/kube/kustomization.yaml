@@ -84,6 +84,9 @@ resources:
     # Forgejo — Git LFS server + Actions runner, UE asset storage on sdb
     - forgejo/application.yaml
 
+    # Firecracker — microVM runtime service (edge function Tier 2 isolation)
+    - firecracker/application.yaml
+
     # Multus CNI — multiple network interfaces for KubeVirt VMs
     - multus/application.yaml
 

@@ -39,7 +39,7 @@ const FRAME_W: f32 = 1.0 / SHEET_COLS as f32;
 const FRAME_H: f32 = 1.0 / SHEET_ROWS as f32;
 
 /// World-space size of the wraith billboard quad (larger than frog).
-const WRAITH_SIZE: f32 = 1.6;
+const WRAITH_SIZE: f32 = 3.2;
 
 const FRAME_DURATION_BASE: f32 = 0.12;
 
