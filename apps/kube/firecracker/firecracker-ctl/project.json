@@ -1,0 +1,90 @@
+{
+	"name": "firecracker-ctl",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/kube/firecracker/firecracker-ctl/src",
+	"targets": {
+		"build": {
+			"executor": "@monodon/rust:build",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/firecracker-ctl"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"test": {
+			"executor": "@monodon/rust:test",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/firecracker-ctl"
+			}
+		},
+		"lint": {
+			"executor": "@monodon/rust:lint",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/firecracker-ctl"
+			}
+		},
+		"container": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx firecracker-ctl:containerx",
+						"VERSION=$(grep '^version' apps/kube/firecracker/firecracker-ctl/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/firecracker-ctl:latest kbve/firecracker-ctl:$VERSION && echo \"Tagged kbve/firecracker-ctl:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx firecracker-ctl:containerx --configuration=production",
+						"VERSION=$(grep '^version' apps/kube/firecracker/firecracker-ctl/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/firecracker-ctl:latest kbve/firecracker-ctl:$VERSION && docker tag kbve/firecracker-ctl:latest ghcr.io/kbve/firecracker-ctl:latest && docker tag kbve/firecracker-ctl:latest ghcr.io/kbve/firecracker-ctl:$VERSION && echo \"Tagged ghcr.io/kbve/firecracker-ctl:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/kube/firecracker/firecracker-ctl/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/firecracker-ctl:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": [
+							"ghcr.io/kbve/firecracker-ctl",
+							"kbve/firecracker-ctl"
+						],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/firecracker-ctl:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/firecracker-ctl:buildcache,mode=max"
+					]
+				}
+			}
+		}
+	},
+	"tags": ["scope:kube", "firecracker", "infrastructure"]
+}

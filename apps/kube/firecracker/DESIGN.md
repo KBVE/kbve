@@ -195,16 +195,21 @@ Start with Option A (MMDS) — sufficient for request/response workloads. Gradua
 - [x] Documentation: edge.mdx expanded with Firecracker design
 - [x] Documentation: kubernetes.mdx Firecracker reference section
 
-### Phase 3: Integration (current)
+### Phase 3: Integration (complete)
 
 - [x] Wire edge function → Firecracker via OWS module (`ows/firecracker.ts`)
 - [x] E2E tests (`edge-e2e/e2e/firecracker.spec.ts`)
 - [x] ClickHouse schema (`firecracker.vm_events` + `vm_stats_1m` materialized view)
 - [x] KEDA ScaledObject (cron + CPU-based autoscaling, scale-to-zero)
 
-### Phase 4: Production
+### Phase 4: Production (current)
 
-- [ ] TAP networking (if needed)
-- [ ] Additional rootfs images
+- [x] `firecracker-ctl` Rust Axum binary (`apps/kube/firecracker/firecracker-ctl/`)
+- [x] Dockerfile with Firecracker v1.10.1 binary + jailer
+- [x] Nx project.json with build/test/lint/container targets
+- [x] Registered in workspace Cargo.toml
+- [x] Rootfs Dockerfiles: alpine-minimal, alpine-node, alpine-python
+- [ ] TAP networking (deferred — MMDS sufficient for now)
 - [ ] Warm pool (pre-booted VMs for <50ms dispatch)
 - [ ] Multi-node scheduling
+- [ ] Linux kernel (vmlinux) build/download pipeline
