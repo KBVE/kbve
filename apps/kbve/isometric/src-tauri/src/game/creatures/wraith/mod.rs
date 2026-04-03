@@ -19,7 +19,7 @@ use bevy::asset::RenderAssetUsages;
 use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 
-use super::common::{CreaturePool, hash_f32, scene_center};
+use super::common::{CreaturePool, GameTime, hash_f32, scene_center};
 use super::creature::{
     Creature, CreaturePoolIndex, CreatureRegistry, CreatureState, RenderKind, SpriteData,
     SpriteHopState,
@@ -223,19 +223,36 @@ pub(super) fn spawn_wraiths(
                 hop_state: SpriteHopState::Idle { timer: idle_timer },
             },
             CreaturePoolIndex(i as u32),
-            WraithMarker,
+            WraithMarker {
+                patrol_step: (hash_f32(seed * 97 + 31) * 1000.0) as u32,
+            },
         ));
     }
 
     info!("[wraith] spawned {count} entities");
 }
 
-/// Marker component to distinguish wraith queries from frog queries.
+/// Wraith-specific component: marker + deterministic patrol counter.
+/// `patrol_step` increments on each state transition so decisions are
+/// seed-driven and naturally desync'd across wraiths.
 #[derive(Component)]
-pub struct WraithMarker;
+pub struct WraithMarker {
+    pub patrol_step: u32,
+}
+
+/// Deterministic seed for wraith decisions. Combines slot_seed, patrol_step,
+/// and creature_seed so all clients produce identical behavior.
+#[inline]
+fn patrol_seed(slot_seed: u32, step: u32, creature_seed: u64) -> u32 {
+    slot_seed
+        .wrapping_mul(2654435761)
+        .wrapping_add(step.wrapping_mul(7919))
+        .wrapping_add(creature_seed as u32)
+}
 
 pub(super) fn animate_wraiths(
     time: Res<Time>,
+    game_time: Res<GameTime>,
     mut terrain: ResMut<TerrainMap>,
     camera_q: Query<&Transform, With<IsometricCamera>>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -246,8 +263,9 @@ pub(super) fn animate_wraiths(
             &mut SpriteData,
             &mut Visibility,
             &Mesh3d,
+            &mut WraithMarker,
         ),
-        (Without<IsometricCamera>, With<WraithMarker>),
+        Without<IsometricCamera>,
     >,
 ) {
     let Ok(cam_tf) = camera_q.single() else {
@@ -255,21 +273,20 @@ pub(super) fn animate_wraiths(
     };
     let dt = time.delta_secs();
     let t = time.elapsed_secs();
-    // Wraiths are always visible — alpha modulation handled by tint_wraiths_for_daynight
+    let cseed = game_time.creature_seed;
 
     let cam_pos = cam_tf.translation;
     let center = scene_center(cam_pos);
 
-    for (mut tf, mut cr, mut sd, mut vis, mesh_handle) in &mut wraith_q {
-        let wraith_id = (cr.phase * 100000.0) as u32;
-
+    for (mut tf, mut cr, mut sd, mut vis, mesh_handle, mut wm) in &mut wraith_q {
         // Relocate if too far or below world
         let dist = Vec2::new(cr.anchor.x - center.x, cr.anchor.z - center.z).length();
         if dist > RECYCLE_DIST || cr.anchor.y < -50.0 {
-            let seed = wraith_id.wrapping_mul(2654435761) ^ (t * 31.0) as u32;
-            let angle = hash_f32(seed) * std::f32::consts::TAU;
+            wm.patrol_step = wm.patrol_step.wrapping_add(1);
+            let ps = patrol_seed(cr.slot_seed, wm.patrol_step, cseed);
+            let angle = hash_f32(ps) * std::f32::consts::TAU;
             let ring =
-                SPAWN_RING_INNER + hash_f32(seed + 100) * (SPAWN_RING_OUTER - SPAWN_RING_INNER);
+                SPAWN_RING_INNER + hash_f32(ps + 100) * (SPAWN_RING_OUTER - SPAWN_RING_INNER);
             let spawn_x = center.x + angle.cos() * ring;
             let spawn_z = center.z + angle.sin() * ring;
             let ground = terrain.height_at_world(spawn_x, spawn_z);
@@ -278,7 +295,7 @@ pub(super) fn animate_wraiths(
             sd.anim_frames = ANIM_IDLE.frame_count;
             sd.current_frame = 0;
             sd.frame_timer = 0.0;
-            let idle_timer = IDLE_MIN + hash_f32(seed + 500) * (IDLE_MAX - IDLE_MIN);
+            let idle_timer = IDLE_MIN + hash_f32(ps + 500) * (IDLE_MAX - IDLE_MIN);
             sd.hop_state = SpriteHopState::Idle { timer: idle_timer };
             cr.state = CreatureState::Active;
             *vis = Visibility::Hidden;
@@ -300,8 +317,8 @@ pub(super) fn animate_wraiths(
         let ground = terrain.height_at_world(cr.anchor.x, cr.anchor.z);
         cr.anchor.y = ground;
 
-        // State machine — wraiths glide slowly, occasionally emote with
-        // attack/skill animations, then return to idle.
+        // State machine — each transition increments patrol_step so decisions
+        // are deterministic and unique per wraith (no time dependency).
         let mut state = sd.hop_state;
         match state {
             SpriteHopState::Idle { ref mut timer } => {
@@ -311,12 +328,13 @@ pub(super) fn animate_wraiths(
 
                 *timer -= dt;
                 if *timer <= 0.0 {
-                    let seed = wraith_id.wrapping_mul(2654435761) ^ (t * 100.0) as u32;
-                    let roll = hash_f32(seed);
+                    wm.patrol_step = wm.patrol_step.wrapping_add(1);
+                    let ps = patrol_seed(cr.slot_seed, wm.patrol_step, cseed);
+                    let roll = hash_f32(ps);
                     if roll < 0.30 {
-                        // Glide to a nearby position
-                        let angle = hash_f32(seed + 100) * std::f32::consts::TAU;
-                        let glide_dist = 1.5 + hash_f32(seed + 200) * 2.5;
+                        // Glide to a nearby position (deterministic direction)
+                        let angle = hash_f32(ps + 100) * std::f32::consts::TAU;
+                        let glide_dist = 1.5 + hash_f32(ps + 200) * 2.5;
                         let target_x = cr.anchor.x + angle.cos() * glide_dist;
                         let target_z = cr.anchor.z + angle.sin() * glide_dist;
                         let target_ground = terrain.height_at_world(target_x, target_z);
@@ -324,7 +342,6 @@ pub(super) fn animate_wraiths(
                         let dx = target.x - cr.anchor.x;
                         let dz = target.z - cr.anchor.z;
                         sd.facing_left = (dx - dz) < 0.0;
-                        // Use idle2 (glide) animation during movement
                         sd.anim_row = ANIM_IDLE2.row;
                         sd.anim_frames = ANIM_IDLE2.frame_count;
                         sd.current_frame = 0;
@@ -382,9 +399,10 @@ pub(super) fn animate_wraiths(
                     *remaining_frames = remaining_frames.saturating_sub(sd.anim_frames);
                 }
                 if sd.current_frame == sd.anim_frames - 1 && *remaining_frames == 0 {
-                    let seed = wraith_id.wrapping_mul(2654435761) ^ (t * 73.0) as u32;
+                    wm.patrol_step = wm.patrol_step.wrapping_add(1);
+                    let ps = patrol_seed(cr.slot_seed, wm.patrol_step, cseed);
                     state = SpriteHopState::Idle {
-                        timer: IDLE_MIN + hash_f32(seed) * (IDLE_MAX - IDLE_MIN),
+                        timer: IDLE_MIN + hash_f32(ps) * (IDLE_MAX - IDLE_MIN),
                     };
                     sd.anim_row = ANIM_IDLE.row;
                     sd.anim_frames = ANIM_IDLE.frame_count;
@@ -437,9 +455,10 @@ pub(super) fn animate_wraiths(
                 sd.current_frame = 0;
                 *timer -= dt;
                 if *timer <= 0.0 {
-                    let seed = wraith_id.wrapping_mul(2654435761) ^ (t * 47.0) as u32;
+                    wm.patrol_step = wm.patrol_step.wrapping_add(1);
+                    let ps = patrol_seed(cr.slot_seed, wm.patrol_step, cseed);
                     state = SpriteHopState::Idle {
-                        timer: IDLE_MIN + hash_f32(seed) * (IDLE_MAX - IDLE_MIN),
+                        timer: IDLE_MIN + hash_f32(ps) * (IDLE_MAX - IDLE_MIN),
                     };
                 }
             }
