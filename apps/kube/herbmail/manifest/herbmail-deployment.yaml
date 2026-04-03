@@ -13,14 +13,14 @@ spec:
   template:
     metadata:
       annotations:
-        rollout-restart: "2026-02-15T00:00:00Z"
+        rollout-restart: "2026-04-03T22:24:57Z"
       labels:
         app: herbmail
-        version: "0.1.0"
+        version: "0.1.1"
     spec:
       containers:
       - name: herbmail
-        image: ghcr.io/kbve/herbmail:0.1.0
+        image: ghcr.io/kbve/herbmail:0.1.1
         imagePullPolicy: Always
         ports:
         - containerPort: 4321
