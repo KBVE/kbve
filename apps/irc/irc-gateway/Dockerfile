@@ -132,8 +132,6 @@ COPY packages/rust/kbve packages/rust/kbve
 
 COPY apps/irc/irc-gateway apps/irc/irc-gateway
 
-COPY apps/irc/irc-gateway/templates/askama /app/apps/irc/irc-gateway/templates/askama
-
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
@@ -148,7 +146,6 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 COPY --from=builder --chown=10001:10001 /app/target/release/irc-gateway /app/irc-gateway
 
 COPY --from=builder --chown=10001:10001 /app/apps/irc/irc-gateway/templates/dist /app/templates/dist
-COPY --from=builder --chown=10001:10001 /app/apps/irc/irc-gateway/templates/askama /app/templates/askama
 
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4321
