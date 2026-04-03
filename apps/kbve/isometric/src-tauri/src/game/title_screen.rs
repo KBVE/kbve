@@ -50,6 +50,13 @@ struct PlayOfflineBtn;
 #[derive(Component)]
 struct SettingsBtn;
 
+/// Tracks whether a button is primary or secondary for hover/press styling.
+#[derive(Component, Clone, Copy, PartialEq, Eq)]
+enum ButtonKind {
+    Primary,
+    Secondary,
+}
+
 // ---------------------------------------------------------------------------
 // Plugin
 // ---------------------------------------------------------------------------
@@ -64,6 +71,7 @@ impl Plugin for TitleScreenPlugin {
             (
                 update_transport_label,
                 update_auth_label,
+                button_visuals,
                 handle_title_buttons,
             )
                 .run_if(in_state(GamePhase::Title)),
@@ -203,6 +211,11 @@ fn spawn_button(
     marker: impl Component,
     primary: bool,
 ) {
+    let kind = if primary {
+        ButtonKind::Primary
+    } else {
+        ButtonKind::Secondary
+    };
     let bg = if primary {
         ui_color::BTN_PRIMARY
     } else {
@@ -221,6 +234,7 @@ fn spawn_button(
             },
             BackgroundColor(bg),
             Interaction::default(),
+            kind,
             marker,
         ))
         .with_child((
@@ -288,6 +302,25 @@ fn update_auth_label(
                 color.0 = ui_color::TEXT_SECONDARY;
             }
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Button visuals (hover / press feedback)
+// ---------------------------------------------------------------------------
+
+fn button_visuals(
+    mut query: Query<(&Interaction, &ButtonKind, &mut BackgroundColor), Changed<Interaction>>,
+) {
+    for (interaction, kind, mut bg) in &mut query {
+        *bg = match (interaction, kind) {
+            (Interaction::Pressed, ButtonKind::Primary) => ui_color::BTN_PRIMARY_PRESSED.into(),
+            (Interaction::Pressed, ButtonKind::Secondary) => ui_color::BTN_SECONDARY_PRESSED.into(),
+            (Interaction::Hovered, ButtonKind::Primary) => ui_color::BTN_PRIMARY_HOVER.into(),
+            (Interaction::Hovered, ButtonKind::Secondary) => ui_color::BTN_SECONDARY_HOVER.into(),
+            (Interaction::None, ButtonKind::Primary) => ui_color::BTN_PRIMARY.into(),
+            (Interaction::None, ButtonKind::Secondary) => ui_color::BTN_SECONDARY.into(),
+        };
     }
 }
 
