@@ -69,7 +69,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 FROM --platform=linux/amd64 ubuntu:24.04 AS firecracker-dl
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl && \
+    apt-get install -y --no-install-recommends curl ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 ARG FC_VERSION=1.10.1
