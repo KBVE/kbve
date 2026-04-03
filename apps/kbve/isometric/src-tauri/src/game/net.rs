@@ -1136,10 +1136,10 @@ fn receive_auth_response(
                     msg.server_time
                 );
 
-                // Gate: only now transition from Connecting → Playing
+                // Don't transition to Playing yet — wait for first TimeSyncMessage
+                // so the world has correct time-of-day before the player sees it.
                 if **phase == super::phase::GamePhase::Connecting {
-                    info!("[net] handshake complete — transitioning Connecting → Playing");
-                    next_phase.set(super::phase::GamePhase::Playing);
+                    info!("[net] auth complete — waiting for first time sync before Playing");
                 }
             } else {
                 warn!("[net] AUTH FAILED from entity {entity:?} — triggering Disconnect to reset");
@@ -1762,6 +1762,8 @@ fn poll_set_username_request(
 /// Receive TimeSyncMessage from the server and update ServerTime resource.
 fn receive_time_sync(
     mut server_time: ResMut<ServerTime>,
+    mut next_phase: ResMut<NextState<super::phase::GamePhase>>,
+    phase: Res<State<super::phase::GamePhase>>,
     mut query: Query<(Entity, &mut MessageReceiver<TimeSyncMessage>)>,
 ) {
     for (_entity, mut receiver) in &mut query {
@@ -1777,6 +1779,12 @@ fn receive_time_sync(
                     msg.game_hour, msg.day_speed, msg.creature_seed
                 );
                 server_time.active = true;
+
+                // Now that we have the world time, transition to Playing
+                if **phase == super::phase::GamePhase::Connecting {
+                    info!("[net] time sync received — transitioning Connecting → Playing");
+                    next_phase.set(super::phase::GamePhase::Playing);
+                }
             }
         }
     }

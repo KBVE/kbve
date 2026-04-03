@@ -20,6 +20,7 @@ pub mod telemetry;
 pub mod terrain;
 pub mod tilemap;
 pub mod title_screen;
+pub mod toast;
 pub mod trees;
 pub mod ui_color;
 pub mod virtual_joystick;
@@ -89,5 +90,6 @@ impl PluginGroup for GamePluginGroup {
             .add(OrbHudPlugin)
             .add(ActionsPlugin)
             .add(PixelatePlugin)
+            .add(toast::ToastPlugin)
     }
 }
