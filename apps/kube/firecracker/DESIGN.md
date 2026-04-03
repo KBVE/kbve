@@ -204,7 +204,7 @@ Start with Option A (MMDS) — sufficient for request/response workloads. Gradua
 
 ### Phase 4: Production (complete)
 
-- [x] `firecracker-ctl` Rust Axum binary (`apps/kube/firecracker/firecracker-ctl/`)
+- [x] `firecracker-ctl` Rust Axum binary (`apps/vm/firecracker-ctl/`)
 - [x] Dockerfile with Firecracker v1.10.1 binary + jailer
 - [x] Nx project.json with build/test/lint/container targets
 - [x] Registered in workspace Cargo.toml

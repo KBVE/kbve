@@ -25,11 +25,11 @@ WORKDIR /app
 # ============================================================================
 FROM rust-base AS planner
 
-COPY apps/kube/firecracker/firecracker-ctl/Cargo.workspace.toml Cargo.toml
-COPY apps/kube/firecracker/firecracker-ctl/Cargo.toml apps/kube/firecracker/firecracker-ctl/Cargo.toml
+COPY apps/vm/firecracker-ctl/Cargo.workspace.toml Cargo.toml
+COPY apps/vm/firecracker-ctl/Cargo.toml apps/vm/firecracker-ctl/Cargo.toml
 
-RUN mkdir -p apps/kube/firecracker/firecracker-ctl/src && \
-    echo "fn main() {}" > apps/kube/firecracker/firecracker-ctl/src/main.rs
+RUN mkdir -p apps/vm/firecracker-ctl/src && \
+    echo "fn main() {}" > apps/vm/firecracker-ctl/src/main.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -56,7 +56,7 @@ COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
 
 COPY --from=planner /app/Cargo.toml ./
 
-COPY apps/kube/firecracker/firecracker-ctl apps/kube/firecracker/firecracker-ctl
+COPY apps/vm/firecracker-ctl apps/vm/firecracker-ctl
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
