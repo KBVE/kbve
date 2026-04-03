@@ -20,7 +20,6 @@ spec:
             containers:
                 - name: firecracker-ctl
                   image: ghcr.io/kbve/firecracker-ctl:0.1.0
-                  command: ['firecracker-ctl', 'serve', '--port', '9001']
                   ports:
                       - containerPort: 9001
                         name: api

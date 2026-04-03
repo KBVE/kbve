@@ -210,14 +210,18 @@ Start with Option A (MMDS) — sufficient for request/response workloads. Gradua
 - [x] Registered in workspace Cargo.toml
 - [x] Rootfs Dockerfiles: alpine-minimal, alpine-node, alpine-python
 
-### Phase 5: Deployment & CI (current)
+### Phase 5: Deployment & CI (complete)
 
 - [x] CI dispatch manifest entry (`firecracker_ctl` in `ci-dispatch-manifest.json`)
 - [x] ArgoCD application registered in `kustomization.yaml`
 - [x] Vector log routing for `firecracker-ctl` → ClickHouse
 - [x] vmlinux kernel download script + K8s init Job (PostSync hook)
 - [x] version.toml for CI pipeline version gating
-- [ ] Node label `kvm=true` (requires manual kubectl — see deployment notes)
+
+### Phase 6: Deployment fixes & hardening (current)
+
+- [x] Remove redundant `nodeSelector` removal — keep `kvm: "true"` as defense-in-depth
+- [x] Talos machine config patch for `kvm=true` node label (`talos/patches/kvm-node-label.yaml`)
 - [ ] TAP networking (deferred — MMDS sufficient for now)
 - [ ] Warm pool (pre-booted VMs for <50ms dispatch)
 - [ ] Multi-node scheduling
