@@ -23,7 +23,7 @@ spec:
         spec:
             containers:
                 - name: cryptothrone
-                  image: ghcr.io/kbve/cryptothrone:0.1.4
+                  image: ghcr.io/kbve/cryptothrone:0.1.5
                   imagePullPolicy: Always
                   ports:
                       - name: http
