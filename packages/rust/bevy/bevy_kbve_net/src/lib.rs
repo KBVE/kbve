@@ -2,7 +2,12 @@
 //!
 //! Defines replicated components, input types, channels, and the protocol
 //! plugin used by both client and server.
+//!
+//! Enable the `client` feature for transport selection and connection
+//! lifecycle (follows lightyear's example patterns).
 
+#[cfg(feature = "client")]
+pub mod client;
 pub mod inputs;
 pub mod net_config;
 #[cfg(feature = "npcdb")]
