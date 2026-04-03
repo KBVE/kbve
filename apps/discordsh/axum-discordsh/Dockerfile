@@ -163,7 +163,7 @@ COPY apps/discordsh/axum-discordsh apps/discordsh/axum-discordsh
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    cargo build --release -p axum-discordsh && \
+    cargo build --release -p axum-discordsh --features jemalloc && \
     strip target/release/axum-discordsh
 
 # ============================================================================
