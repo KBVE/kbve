@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-04-02T08:32:38Z",
+  "generated_at": "2026-04-03T08:28:37Z",
   "summary": {
     "critical": 1,
     "high": 31,
-    "medium": 35,
+    "medium": 37,
     "low": 5,
     "info": 25
   },
   "ecosystems": {
     "npm": {
-      "total": 70,
+      "total": 72,
       "severities": {
         "critical": 1,
         "high": 31,
-        "medium": 33,
+        "medium": 35,
         "low": 5,
         "info": 0
       },
@@ -507,6 +507,20 @@
           "severity": "medium",
           "package": "lodash",
           "url": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
+        },
+        {
+          "id": "1115921",
+          "title": "DOMPurify ADD_ATTR predicate skips URI validation",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-cjmm-f4jc-qw8r"
+        },
+        {
+          "id": "1115922",
+          "title": "DOMPurify USE_PROFILES prototype pollution allows event handlers",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-cj63-jhhr-wcxv"
         }
       ]
     },
