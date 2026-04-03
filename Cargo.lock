@@ -2166,12 +2166,14 @@ dependencies = [
 name = "bevy_kbve_net"
 version = "0.1.0"
 dependencies = [
+ "aeronet_webtransport",
  "avian3d",
  "base64 0.22.1",
  "bevy",
  "bevy_npc",
  "hex",
  "lightyear",
+ "lightyear_aeronet",
  "serde",
 ]
 

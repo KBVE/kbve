@@ -305,6 +305,10 @@ impl Plugin for NetPlugin {
         app.add_observer(on_linking);
         app.add_observer(on_unlinked);
 
+        // WASM: use hostname URL for WebTransport (cert validation needs hostname, not IP)
+        #[cfg(target_arch = "wasm32")]
+        app.add_observer(bevy_kbve_net::client::wasm_wt_hostname_link);
+
         // Safety net: abort if the handshake doesn't complete within HANDSHAKE_TIMEOUT_SECS
         app.add_systems(Update, check_handshake_timeout);
 
@@ -935,14 +939,10 @@ fn poll_token_fetch_result(
     // frame buffering/rewriting by http-proxy.
     let ws_url = result.server_url.clone();
 
-    // Use ClientProfile to decide transport — WT URL comes from the profile
-    // (resolved once by JS), so QUIC traffic routes to the correct endpoint.
+    // Use the server's WT URL if the browser supports WebTransport.
+    // The token endpoint returns the correct production hostname.
     let wt_url = if !result.server_wt_url.is_empty() && profile.has_webtransport {
-        if profile.wt_url.is_empty() {
-            result.server_wt_url.clone()
-        } else {
-            profile.wt_url.clone()
-        }
+        result.server_wt_url.clone()
     } else {
         if !result.server_wt_url.is_empty() {
             info!(
@@ -1577,16 +1577,34 @@ fn connect_to_server(commands: &mut Commands, transport: &ClientTransport, token
                 .trim_start_matches("https://")
                 .trim_start_matches("http://");
 
+            // Resolve to SocketAddr — on WASM use dummy since we connect via hostname
             let server_addr: std::net::SocketAddr =
                 if addr_str.parse::<std::net::SocketAddr>().is_ok() {
                     addr_str.parse().unwrap()
                 } else {
-                    use std::net::ToSocketAddrs;
-                    addr_str
-                        .to_socket_addrs()
-                        .ok()
-                        .and_then(|mut addrs| addrs.find(|a| a.is_ipv4()))
-                        .unwrap_or_else(|| "127.0.0.1:5001".parse().unwrap())
+                    #[cfg(not(target_arch = "wasm32"))]
+                    {
+                        use std::net::ToSocketAddrs;
+                        addr_str
+                            .to_socket_addrs()
+                            .ok()
+                            .and_then(|mut addrs| addrs.find(|a| a.is_ipv4()))
+                            .unwrap_or_else(|| "127.0.0.1:5001".parse().unwrap())
+                    }
+                    #[cfg(target_arch = "wasm32")]
+                    {
+                        // WASM: can't DNS resolve. Use dummy — our wasm_wt_hostname_link
+                        // observer uses WtHostnameUrl for the real connection.
+                        let port = addr_str
+                            .rsplit(':')
+                            .next()
+                            .and_then(|p| p.parse::<u16>().ok())
+                            .unwrap_or(5001);
+                        std::net::SocketAddr::new(
+                            std::net::IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED),
+                            port,
+                        )
+                    }
                 };
 
             let digest = if is_trusted {
@@ -1605,6 +1623,17 @@ fn connect_to_server(commands: &mut Commands, transport: &ClientTransport, token
                 },
                 ReplicationReceiver::default(),
             ));
+
+            // WASM: store hostname URL for our LinkStart observer
+            #[cfg(target_arch = "wasm32")]
+            {
+                let full_url = if url.starts_with("https://") {
+                    url.clone()
+                } else {
+                    format!("https://{url}")
+                };
+                entity_commands.insert(bevy_kbve_net::client::WtHostnameUrl(full_url));
+            }
 
             if let Some(ws_url) = ws_fallback_url {
                 entity_commands.insert(WsFallback {

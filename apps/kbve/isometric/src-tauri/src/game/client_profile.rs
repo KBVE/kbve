@@ -49,36 +49,97 @@ impl Default for ClientProfile {
 }
 
 impl ClientProfile {
-    /// Read the profile from `localStorage["kbve_client_profile"]`.
-    /// Returns `Default` if anything goes wrong (WASM-only).
+    /// Build profile by probing browser capabilities directly, with
+    /// optional URL overrides from `localStorage["kbve_client_profile"]`.
     #[cfg(target_arch = "wasm32")]
     pub fn from_local_storage() -> Self {
-        let fallback = Self::default();
-        let Some(window) = web_sys::window() else {
-            return fallback;
+        use wasm_bindgen::prelude::*;
+
+        let window = web_sys::window();
+
+        let secure_context = window
+            .as_ref()
+            .and_then(|w| js_sys::Reflect::get(w, &JsValue::from_str("isSecureContext")).ok())
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+
+        let has_webtransport = {
+            let global = js_sys::global();
+            let wt = js_sys::Reflect::get(&global, &JsValue::from_str("WebTransport"));
+            matches!(wt, Ok(val) if !val.is_undefined())
         };
-        let Ok(Some(storage)) = window.local_storage() else {
-            return fallback;
+
+        let has_shared_array_buffer = {
+            let global = js_sys::global();
+            let sab = js_sys::Reflect::get(&global, &JsValue::from_str("SharedArrayBuffer"));
+            matches!(sab, Ok(val) if !val.is_undefined())
         };
-        let Ok(Some(raw)) = storage.get_item("kbve_client_profile") else {
-            return fallback;
+
+        let has_offscreen_canvas = {
+            let global = js_sys::global();
+            let oc = js_sys::Reflect::get(&global, &JsValue::from_str("OffscreenCanvas"));
+            matches!(oc, Ok(val) if !val.is_undefined())
         };
-        let Ok(v) = serde_json::from_str::<serde_json::Value>(&raw) else {
-            return fallback;
-        };
+
+        let hardware_concurrency = window
+            .as_ref()
+            .map(|w| w.navigator().hardware_concurrency() as u32)
+            .unwrap_or(1u32);
+
+        let storage = window
+            .as_ref()
+            .and_then(|w| w.local_storage().ok().flatten());
+        let stored: Option<serde_json::Value> = storage
+            .as_ref()
+            .and_then(|s| s.get_item("kbve_client_profile").ok().flatten())
+            .and_then(|raw| serde_json::from_str(&raw).ok());
+
+        let page_origin = window
+            .as_ref()
+            .and_then(|w| w.location().origin().ok())
+            .unwrap_or_default();
+
+        let api_base = stored
+            .as_ref()
+            .and_then(|v| v["api_base"].as_str())
+            .filter(|s| !s.is_empty())
+            .map(|s| s.to_owned())
+            .unwrap_or_else(|| page_origin.clone());
+
+        let ws_url = stored
+            .as_ref()
+            .and_then(|v| v["ws_url"].as_str())
+            .filter(|s| !s.is_empty())
+            .map(|s| s.to_owned())
+            .unwrap_or_else(|| {
+                page_origin
+                    .replace("https://", "wss://")
+                    .replace("http://", "ws://")
+                    + ":5000"
+            });
+
+        let wt_url = stored
+            .as_ref()
+            .and_then(|v| v["wt_url"].as_str())
+            .filter(|s| !s.is_empty())
+            .map(|s| s.to_owned())
+            .unwrap_or_else(|| {
+                page_origin
+                    .replace("https://", "https://")
+                    .replace("http://", "https://")
+                    + ":5001"
+            });
+
         Self {
-            secure_context: v["secure_context"].as_bool().unwrap_or(false),
-            has_webgpu: v["has_webgpu"].as_bool().unwrap_or(false),
-            has_webtransport: v["has_webtransport"].as_bool().unwrap_or(false),
-            has_shared_array_buffer: v["has_shared_array_buffer"].as_bool().unwrap_or(false),
-            has_offscreen_canvas: v["has_offscreen_canvas"].as_bool().unwrap_or(false),
-            hardware_concurrency: v["hardware_concurrency"]
-                .as_u64()
-                .unwrap_or(1)
-                .min(u32::MAX as u64) as u32,
-            api_base: v["api_base"].as_str().unwrap_or("").to_owned(),
-            ws_url: v["ws_url"].as_str().unwrap_or("").to_owned(),
-            wt_url: v["wt_url"].as_str().unwrap_or("").to_owned(),
+            secure_context,
+            has_webgpu: true,
+            has_webtransport,
+            has_shared_array_buffer,
+            has_offscreen_canvas,
+            hardware_concurrency,
+            api_base,
+            ws_url,
+            wt_url,
         }
     }
 
