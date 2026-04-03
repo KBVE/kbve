@@ -4,8 +4,21 @@ import tailwindcss from '@tailwindcss/vite';
 import wasm from 'vite-plugin-wasm';
 import topLevelAwait from 'vite-plugin-top-level-await';
 import { compression } from 'vite-plugin-compression2';
+import fs from 'fs';
+import path from 'path';
 
 const host = process.env.TAURI_DEV_HOST;
+
+// Use mkcert certs for local HTTPS when available
+const certDir = path.resolve(__dirname, 'certificates');
+const httpsConfig =
+	fs.existsSync(path.join(certDir, 'cert.pem')) &&
+	fs.existsSync(path.join(certDir, 'key.pem'))
+		? {
+				cert: fs.readFileSync(path.join(certDir, 'cert.pem')),
+				key: fs.readFileSync(path.join(certDir, 'key.pem')),
+			}
+		: undefined;
 
 export default defineConfig(async () => ({
 	plugins: [
@@ -41,27 +54,29 @@ export default defineConfig(async () => ({
 		port: 1420,
 		strictPort: true,
 		host: host || false,
+		https: httpsConfig,
 		watch: {
 			ignored: ['**/src-tauri/**'],
 		},
 		headers: {
 			'Cross-Origin-Opener-Policy': 'same-origin',
-			'Cross-Origin-Embedder-Policy': 'credentialless',
+			'Cross-Origin-Embedder-Policy': 'require-corp',
 		},
 		proxy: {
-			// Game server routes → axum (3080)
 			'/api/v1/telemetry': {
-				target: 'http://127.0.0.1:3080',
+				target: process.env.GAME_API_TARGET || 'http://127.0.0.1:3080',
 				changeOrigin: true,
+				secure: false,
 			},
 			'/api/v1/auth/game-token': {
-				target: 'http://127.0.0.1:3080',
+				target: process.env.GAME_API_TARGET || 'http://127.0.0.1:3080',
 				changeOrigin: true,
+				secure: false,
 			},
-			// Everything else → Astro (4321)
 			'/api': {
-				target: 'http://127.0.0.1:4321',
+				target: process.env.ASTRO_API_TARGET || 'http://127.0.0.1:4321',
 				changeOrigin: true,
+				secure: false,
 			},
 		},
 	},
