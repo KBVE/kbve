@@ -6,6 +6,8 @@ use bevy::input::mouse::{MouseButtonInput, MouseWheel};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
+use super::phase::GamePhase;
+
 // ---------------------------------------------------------------------------
 // Bridged cursor position (replaces window.cursor_position() since we
 // skip WinitPlugin and can't update the Window's internal cursor state)
@@ -84,9 +86,24 @@ impl Plugin for InputBridgePlugin {
         app.init_resource::<BridgedCursorPosition>();
         app.add_systems(
             PreUpdate,
-            inject_input_from_ipc.before(bevy::input::InputSystems),
+            inject_input_from_ipc
+                .before(bevy::input::InputSystems)
+                .run_if(in_state(GamePhase::Playing)),
+        );
+        // Drain stale input during non-Playing phases so nothing queues up
+        app.add_systems(
+            PreUpdate,
+            drain_input_buffer.run_if(not(in_state(GamePhase::Playing))),
         );
     }
+}
+
+// ---------------------------------------------------------------------------
+// Drain stale input during non-Playing phases (Title, Connecting)
+// ---------------------------------------------------------------------------
+
+fn drain_input_buffer() {
+    let _ = INPUT_BUFFER.lock().unwrap().take();
 }
 
 // ---------------------------------------------------------------------------
