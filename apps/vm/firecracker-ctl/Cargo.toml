@@ -1,7 +1,7 @@
 [package]
 name = "firecracker-ctl"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.0"
+version = "0.1.22"
 edition = "2021"
 publish = false
 description = "REST API service for managing Firecracker microVMs"

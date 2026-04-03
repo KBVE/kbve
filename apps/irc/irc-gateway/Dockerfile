@@ -120,6 +120,10 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # ============================================================================
 FROM foundation AS builder
 
+# Ensure make is available for tikv-jemalloc-sys compilation (build from source)
+RUN dpkg -s make >/dev/null 2>&1 || \
+    (apt-get update && apt-get install -y --no-install-recommends make && rm -rf /var/lib/apt/lists/*)
+
 COPY --from=astro-precompressor /static /app/apps/irc/irc-gateway/templates/dist
 
 COPY packages/data/proto packages/data/proto
