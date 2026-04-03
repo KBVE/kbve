@@ -5,6 +5,8 @@ use jedi::entity::github::GitHubIssue;
 use poise::serenity_prelude as serenity;
 use std::collections::BTreeMap;
 
+use crate::discord::branding;
+
 // ── Task Status ─────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Copy)]
@@ -186,7 +188,10 @@ fn truncate_value(s: &str, max: usize) -> String {
 fn add_footer(embed: serenity::CreateEmbed, repo_url: &str) -> serenity::CreateEmbed {
     embed
         .field("Repository", repo_url, false)
-        .footer(serenity::CreateEmbedFooter::new("Task Board"))
+        .footer(serenity::CreateEmbedFooter::new(format!(
+            "Task Board • {}",
+            branding::footer_text()
+        )))
 }
 
 #[cfg(test)]

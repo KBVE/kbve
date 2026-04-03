@@ -1,4 +1,5 @@
 use crate::discord::bot::{Context, Error};
+use crate::discord::branding;
 use poise::serenity_prelude as serenity;
 
 /// Reports detailed system health information.
@@ -19,6 +20,7 @@ pub async fn health(ctx: Context<'_>) -> Result<(), Error> {
 
     let embed = serenity::CreateEmbed::new()
         .title("System Health Report")
+        .url(branding::PROJECT_URL)
         .color(color)
         .field(
             "Health Status",
@@ -47,10 +49,9 @@ pub async fn health(ctx: Context<'_>) -> Result<(), Error> {
         .field("Threads", snap.thread_count.to_string(), true)
         .field("PID", snap.pid.to_string(), true)
         .field("Uptime", &snap.uptime_formatted, true)
-        .footer(serenity::CreateEmbedFooter::new(format!(
-            "axum-discordsh v{}",
-            env!("CARGO_PKG_VERSION")
-        )))
+        .footer(serenity::CreateEmbedFooter::new(
+            branding::footer_with_source("src/discord/commands/health.rs"),
+        ))
         .timestamp(serenity::Timestamp::now());
 
     let reply = poise::CreateReply::default().embed(embed);
