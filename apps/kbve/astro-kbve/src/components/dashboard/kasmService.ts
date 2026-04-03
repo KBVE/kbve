@@ -195,6 +195,26 @@ class KasmService {
 	);
 
 	private _refreshInterval: ReturnType<typeof setInterval> | undefined;
+	private _fastPollTimer: ReturnType<typeof setInterval> | undefined;
+	private _fastPollEnd: ReturnType<typeof setTimeout> | undefined;
+
+	/** Temporarily poll every 3s for 30s after a scale action */
+	private startFastPoll(token: string): void {
+		this.stopFastPoll();
+		this._fastPollTimer = setInterval(() => this.fetchData(token), 3000);
+		this._fastPollEnd = setTimeout(() => this.stopFastPoll(), 30000);
+	}
+
+	private stopFastPoll(): void {
+		if (this._fastPollTimer) {
+			clearInterval(this._fastPollTimer);
+			this._fastPollTimer = undefined;
+		}
+		if (this._fastPollEnd) {
+			clearTimeout(this._fastPollEnd);
+			this._fastPollEnd = undefined;
+		}
+	}
 
 	public async fetchData(token: string): Promise<void> {
 		try {
@@ -209,6 +229,21 @@ class KasmService {
 				} as KasmInfo;
 			});
 			this.$workspaces.set(workspaces);
+
+			// Clear action feedback once workspace reaches a stable state
+			const action = this.$lastAction.get();
+			if (action) {
+				const target = workspaces.find(
+					(w) => w.workspace.name === action.name,
+				);
+				if (
+					target &&
+					(target.phase === 'Running' || target.phase === 'Stopped')
+				) {
+					this.$lastAction.set(null);
+					this.stopFastPoll();
+				}
+			}
 		} catch (e) {
 			this.$error.set(e instanceof Error ? e.message : 'Unknown error');
 		} finally {
@@ -264,12 +299,8 @@ class KasmService {
 				ok: true,
 				message: `${action} ${name} — waiting for cluster...`,
 			});
-			setTimeout(() => this.fetchData(token), 2000);
-			setTimeout(() => {
-				if (this.$lastAction.get()?.name === name) {
-					this.$lastAction.set(null);
-				}
-			}, 8000);
+			// Poll aggressively every 3s for 30s to catch the pod transitioning
+			this.startFastPoll(token);
 		} catch (e) {
 			const msg =
 				e instanceof Error ? e.message : `Failed to scale ${name}`;
