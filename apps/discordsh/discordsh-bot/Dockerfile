@@ -1,31 +1,13 @@
 # ============================================================================
 # discordsh-bot — Multi-stage Docker build
 #
-# Follows the same cargo-chef + foundation layer pattern as axum-discordsh.
-# No Astro/Node stages — bot-only binary.
+# Uses shared chisel base images:
+#   ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder  (Rust + cargo-chef + sccache)
+#   ghcr.io/kbve/chisel-ubuntu-axum:24.04.3         (chiseled Ubuntu + jemalloc + libpq)
 # ============================================================================
 
-# [STAGE A] - Rust Base Image
-FROM --platform=linux/amd64 rust:1.94-slim AS rust-base
-
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends \
-        pkg-config \
-        libssl-dev \
-        libpq-dev \
-        libjemalloc-dev \
-        protobuf-compiler \
-        libprotobuf-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN rustup target add x86_64-unknown-linux-gnu && \
-    cargo install cargo-chef --locked
-
-WORKDIR /app
-
-# [STAGE B] - Cargo Chef Planner
-FROM rust-base AS planner
+# [STAGE A] - Cargo Chef Planner
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
 
 COPY apps/discordsh/discordsh-bot/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
@@ -52,8 +34,9 @@ RUN mkdir -p apps/discordsh/discordsh-bot/src && echo "fn main() {}" > apps/disc
 
 RUN cargo chef prepare --recipe-path recipe.json
 
-# [STAGE C] - Cargo Chef Cook (Cache External Dependencies)
-FROM rust-base AS builder-deps
+# [STAGE B] - Cargo Chef Cook (Cache External Dependencies)
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder-deps
+ENV CARGO_INCREMENTAL=0
 
 COPY --from=planner /app/recipe.json recipe.json
 COPY --from=planner /app/Cargo.toml /app/Cargo.lock ./
@@ -62,10 +45,12 @@ COPY --from=planner /app/packages packages
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo chef cook --release --recipe-path recipe.json -p discordsh-bot
 
-# [STAGE D] - Foundation Layer (Compile workspace crates from real source)
-FROM rust-base AS foundation
+# [STAGE C] - Foundation Layer (Compile workspace crates from real source)
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS foundation
+ENV CARGO_INCREMENTAL=0
 
 COPY --from=builder-deps /app/target target
 COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
@@ -89,10 +74,11 @@ COPY packages/rust/bevy/bevy_quests packages/rust/bevy/bevy_quests
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo build --release -p kbve -p jedi -p bevy_inventory -p bevy_items -p bevy_battle -p bevy_npc -p bevy_quests
 
 # ============================================================================
-# [STAGE E] - Build Application
+# [STAGE D] - Build Application
 # ============================================================================
 FROM foundation AS builder
 
@@ -111,13 +97,14 @@ COPY apps/discordsh/discordsh-bot apps/discordsh/discordsh-bot
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo build --release -p discordsh-bot --features jemalloc && \
     strip target/release/discordsh-bot
 
 # ============================================================================
 # [STAGE Z] - Runtime Image
 # ============================================================================
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.2 AS runtime
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/discordsh-bot /app/discordsh-bot
 
