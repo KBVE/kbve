@@ -50,6 +50,7 @@
 		},
 		"run": {
 			"executor": "nx:run-commands",
+			"cache": false,
 			"options": {
 				"command": "cargo run -p isometric-game",
 				"cwd": "{workspaceRoot}"

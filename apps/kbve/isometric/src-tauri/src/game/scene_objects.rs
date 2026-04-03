@@ -281,7 +281,10 @@ fn raycast_hover_detection_desktop(
         return;
     };
 
-    let Some(cursor_pos) = cursor.position else {
+    // Use bridged cursor (Tauri IPC), fall back to window cursor (native cargo run)
+    let resolved_cursor = cursor.position.or_else(|| window.cursor_position());
+
+    let Some(cursor_pos) = resolved_cursor else {
         last_cursor.0 = None;
         for entity in &current_hovered {
             commands.entity(entity).remove::<Hovered>();
@@ -386,20 +389,54 @@ fn rotate_boxes(time: Res<Time>, mut query: Query<&mut Transform, With<RotatingB
 
 /// Draw a wireframe outline around hovered objects using gizmos.
 /// The pixelation shader will pixelate the lines into chunky pixel-art borders.
+/// Marker for the hover indicator mesh entity.
+#[derive(Component)]
+struct HoverIndicator;
+
+/// Spawn/move a subtle ground ring under the hovered object.
+/// Uses a real mesh (not gizmos) so it renders through the pixel-art pipeline.
 fn draw_hover_outline(
-    mut gizmos: Gizmos,
-    query: Query<(&GlobalTransform, &HoverOutline), With<Hovered>>,
+    mut commands: Commands,
+    hovered: Query<(&GlobalTransform, &HoverOutline), With<Hovered>>,
+    mut indicator_q: Query<(Entity, &mut Transform, &mut Visibility), With<HoverIndicator>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let outline_color = Color::srgba(1.0, 0.85, 0.2, 0.9);
-    for (gt, outline) in &query {
+    if let Some((gt, outline)) = hovered.iter().next() {
         let base = gt.compute_transform();
-        let outline_transform = Transform {
-            translation: base.translation,
-            rotation: base.rotation,
-            // Scale to match visual size + 10% margin
-            scale: outline.half_extents * 2.2,
-        };
-        gizmos.cube(outline_transform, outline_color);
+        // Place at the object's base
+        let pos = Vec3::new(
+            base.translation.x,
+            base.translation.y + 0.02,
+            base.translation.z,
+        );
+        let radius = outline.half_extents.x.max(outline.half_extents.z) * 1.3;
+
+        if let Some((_entity, mut tf, mut vis)) = indicator_q.iter_mut().next() {
+            tf.translation = pos;
+            tf.scale = Vec3::new(radius, 0.01, radius);
+            *vis = Visibility::Visible;
+        } else {
+            // Thin torus at the base — subtle selection ring
+            commands.spawn((
+                Mesh3d(meshes.add(Torus::new(0.42, 0.5))),
+                MeshMaterial3d(materials.add(StandardMaterial {
+                    base_color: Color::srgba(1.0, 1.0, 0.9, 0.5),
+                    emissive: LinearRgba::new(0.6, 0.55, 0.3, 1.0),
+                    alpha_mode: AlphaMode::Blend,
+                    unlit: true,
+                    ..default()
+                })),
+                Transform::from_translation(pos)
+                    .with_rotation(Quat::from_rotation_x(std::f32::consts::FRAC_PI_2))
+                    .with_scale(Vec3::new(radius, radius, 0.01)),
+                HoverIndicator,
+            ));
+        }
+    } else {
+        for (_entity, _tf, mut vis) in &mut indicator_q {
+            *vis = Visibility::Hidden;
+        }
     }
 }
 

@@ -1149,27 +1149,26 @@ fn server_debug_netcode_collection(
     }
 }
 
-/// When a new client connects (Netcode handshake complete), add ReplicationSender
-/// so lightyear can replicate entities to this client, and mark as pending authentication.
-/// When a client's link is established (LinkOf added), add ReplicationSender
-/// so lightyear can replicate entities to this client.
-/// This follows the standard lightyear example pattern:
-///   On<Add, LinkOf>  → ReplicationSender
-///   On<Add, Connected> → player entity / auth
+/// When a client's link is established (LinkOf added by the transport layer),
+/// add ReplicationSender so lightyear can replicate entities to this client.
+///
+/// This follows the standard lightyear example pattern. LinkOf is auto-inserted
+/// by all transports (UDP, WebSocket, WebTransport) when a client session is
+/// established — it lives on the link entity that lightyear routes replication
+/// through.
 fn handle_new_link(trigger: On<Add, LinkOf>, mut commands: Commands) {
-    let client_entity = trigger.entity;
-    tracing::info!("[gameserver] NEW LINK — entity {client_entity:?}, adding ReplicationSender");
-    commands
-        .entity(client_entity)
-        .insert(ReplicationSender::new(
-            REPLICATION_SEND_INTERVAL,
-            SendUpdatesMode::SinceLastAck,
-            false,
-        ));
+    let link_entity = trigger.entity;
+    tracing::info!("[gameserver] NEW LINK — entity {link_entity:?}, adding ReplicationSender");
+    commands.entity(link_entity).insert(ReplicationSender::new(
+        REPLICATION_SEND_INTERVAL,
+        SendUpdatesMode::SinceLastAck,
+        false,
+    ));
 }
 
 /// When a client's netcode handshake completes (Connected added), mark as
-/// pending authentication and record connect time.
+/// pending authentication and record connect time. Player entity is spawned
+/// later during auth processing.
 fn handle_new_connection(
     trigger: On<Add, Connected>,
     mut commands: Commands,

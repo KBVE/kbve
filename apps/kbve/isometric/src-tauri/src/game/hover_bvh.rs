@@ -56,19 +56,31 @@ impl Default for HoverMap {
 impl HoverMap {
     /// Look up which entity (if any) occupies a world XZ position at a given
     /// Y height. Checks the target tile and its 8 neighbors, returning the
-    /// first entity whose vertical range contains `y`.
+    /// **closest** entity whose vertical range contains `y`.
     fn lookup_at_y(&self, world_x: f32, world_z: f32, y: f32) -> Option<Entity> {
         let tx = world_x.floor() as i32;
         let tz = world_z.floor() as i32;
 
-        // Check center tile first (most likely hit).
-        if let Some(entry) = self.map.get(&(tx, tz)) {
-            if y >= entry.y_min && y <= entry.y_max {
-                return Some(entry.entity);
-            }
-        }
+        let mut best: Option<(Entity, f32)> = None;
 
-        // Check 8 neighbors for objects that visually span tiles.
+        let mut check = |cx: i32, cz: i32| {
+            if let Some(entry) = self.map.get(&(cx, cz)) {
+                if y >= entry.y_min && y <= entry.y_max {
+                    // Distance from cursor world pos to tile center
+                    let tile_center_x = cx as f32 + 0.5;
+                    let tile_center_z = cz as f32 + 0.5;
+                    let dx = world_x - tile_center_x;
+                    let dz = world_z - tile_center_z;
+                    let dist_sq = dx * dx + dz * dz;
+                    if best.map_or(true, |(_, d)| dist_sq < d) {
+                        best = Some((entry.entity, dist_sq));
+                    }
+                }
+            }
+        };
+
+        // Check center tile + 8 neighbors
+        check(tx, tz);
         for &(dx, dz) in &[
             (-1, -1),
             (-1, 0),
@@ -79,14 +91,10 @@ impl HoverMap {
             (1, 0),
             (1, 1),
         ] {
-            if let Some(entry) = self.map.get(&(tx + dx, tz + dz)) {
-                if y >= entry.y_min && y <= entry.y_max {
-                    return Some(entry.entity);
-                }
-            }
+            check(tx + dx, tz + dz);
         }
 
-        None
+        best.map(|(entity, _)| entity)
     }
 
     /// Legacy lookup without height check — kept for callers that don't need
@@ -205,9 +213,14 @@ fn ray_hit_y_plane(ray_origin: Vec3, ray_dir: Vec3, y: f32) -> Option<Vec2> {
 // ---------------------------------------------------------------------------
 
 /// Multi-plane cursor picking. Casts the cursor ray against Y-planes from
-/// MAX_HOVER_Y down to 0, returning the first entity whose vertical bounds
-/// contain the tested plane. This correctly picks tall objects (trees) when
-/// the cursor is over their canopy rather than their base tile.
+/// MAX_HOVER_Y down to 0, collecting all candidate entities, then returns
+/// the one whose tile center is closest to the ground-level (Y=0) ray hit.
+///
+/// This avoids the isometric parallax problem where the angled ray hits
+/// different XZ positions at different Y levels — a tree canopy at Y=5
+/// projects to a different tile than the trunk at Y=0. By scoring all
+/// candidates against the ground hit point we pick what's visually under
+/// the cursor, not what the ray happens to intersect first.
 pub fn cursor_pick(
     cam_gt: &GlobalTransform,
     projection: &Projection,
@@ -217,18 +230,50 @@ pub fn cursor_pick(
 ) -> Option<Entity> {
     let (ray_origin, ray_dir) = cursor_ray(cam_gt, projection, window, cursor_pos)?;
 
-    // Sweep Y-planes from top to bottom so elevated geometry wins over ground.
+    // Ground-level hit — this is what the player perceives as "under the cursor"
+    let ground_xz = ray_hit_y_plane(ray_origin, ray_dir, 0.0)?;
+
+    let mut best: Option<(Entity, f32)> = None;
+
+    // Sweep Y-planes and collect all candidates
     let mut y = MAX_HOVER_Y;
     while y >= 0.0 {
         if let Some(xz) = ray_hit_y_plane(ray_origin, ray_dir, y) {
-            if let Some(entity) = hover_map.lookup_at_y(xz.x, xz.y, y) {
-                return Some(entity);
+            let tx = xz.x.floor() as i32;
+            let tz = xz.y.floor() as i32;
+
+            // Check center tile + 8 neighbors at this Y level
+            for &(dx, dz) in &[
+                (0, 0),
+                (-1, -1),
+                (-1, 0),
+                (-1, 1),
+                (0, -1),
+                (0, 1),
+                (1, -1),
+                (1, 0),
+                (1, 1),
+            ] {
+                let cx = tx + dx;
+                let cz = tz + dz;
+                if let Some(entry) = hover_map.map.get(&(cx, cz)) {
+                    if y >= entry.y_min && y <= entry.y_max {
+                        // Score by distance from tile center to ground hit point
+                        let tile_cx = cx as f32 + 0.5;
+                        let tile_cz = cz as f32 + 0.5;
+                        let dist_sq =
+                            (ground_xz.x - tile_cx).powi(2) + (ground_xz.y - tile_cz).powi(2);
+                        if best.map_or(true, |(_, d)| dist_sq < d) {
+                            best = Some((entry.entity, dist_sq));
+                        }
+                    }
+                }
             }
         }
         y -= Y_PLANE_STEP;
     }
 
-    None
+    best.map(|(entity, _)| entity)
 }
 
 /// Legacy single-plane unproject (Y=0 only). Kept for backward compatibility.
