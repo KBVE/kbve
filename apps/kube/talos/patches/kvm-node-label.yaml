@@ -1,0 +1,10 @@
+## Talos machine config patch — add kvm=true node label
+## Apply: talosctl patch machineconfig --nodes <node> --patch @kvm-node-label.yaml
+##
+## Enables scheduling of Firecracker microVM workloads on this node.
+## The firecracker-ctl deployment uses nodeSelector: kvm: "true"
+## in addition to the devices.kubevirt.io/kvm resource request.
+
+machine:
+    nodeLabels:
+        kvm: 'true'
