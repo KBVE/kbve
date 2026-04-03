@@ -94,12 +94,17 @@ export default function ReactVMVncViewer() {
 				rfb.addEventListener(
 					'disconnect',
 					(e: { detail: { clean: boolean } }) => {
+						const wasConnected = connected;
 						setConnected(false);
-						setStatus(
-							e.detail.clean
-								? 'Disconnected cleanly'
-								: 'Connection lost — VM may have stopped',
-						);
+						if (e.detail.clean) {
+							setStatus('Disconnected cleanly');
+						} else if (!wasConnected) {
+							setStatus(
+								'WebSocket failed — VM may not be running or K8s API unreachable',
+							);
+						} else {
+							setStatus('Connection lost — VM may have stopped');
+						}
 						rfbRef.current = null;
 					},
 				);
