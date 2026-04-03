@@ -74,8 +74,8 @@ pub(super) fn spawn_fireflies(
                 PointLight {
                     color: Color::srgb(0.4, 0.85, 0.25),
                     intensity: 0.0,
-                    radius: 0.05,
-                    range: 5.0,
+                    radius: 0.08,
+                    range: 10.0,
                     shadows_enabled: false,
                     ..default()
                 },
@@ -300,9 +300,9 @@ pub(super) fn animate_fireflies(
         let pos = cr.anchor + Vec3::new(ox, oy, oz) + wind_off;
         tf.translation = pos;
 
-        // Double-pulse glow pattern
+        // Double-pulse glow pattern with a faint base glow between pulses
         let pulse_t = ed.glow_phase;
-        let glow = if pulse_t < 0.15 {
+        let pulse = if pulse_t < 0.15 {
             (pulse_t / 0.15 * std::f32::consts::PI).sin()
         } else if pulse_t < 0.25 {
             0.0
@@ -312,16 +312,18 @@ pub(super) fn animate_fireflies(
             0.0
         };
 
+        // Faint base glow (0.18) so fireflies never fully go dark — they always emit light
+        let glow = 0.18 + pulse * 0.82;
         let intensity = glow * nf;
 
         if let Some(mat) = materials.get_mut(&cr.mat_handle) {
-            let emit = intensity * 12.0;
+            let emit = intensity * 35.0;
             mat.emissive = LinearRgba::new(0.3 * emit, 0.85 * emit, 0.15 * emit, 1.0);
-            mat.base_color = Color::srgba(0.5, 0.9, 0.3, intensity * 0.9 + 0.15 * nf);
+            mat.base_color = Color::srgba(0.5, 0.9, 0.3, intensity * 0.95 + 0.2 * nf);
         }
 
         if let Ok((mut pl, mut ltf, mut lvis)) = light_q.get_mut(ed.light_entity) {
-            pl.intensity = intensity * 2800.0;
+            pl.intensity = intensity * 8000.0;
             ltf.translation = pos;
             *lvis = if intensity > 0.01 {
                 Visibility::Visible

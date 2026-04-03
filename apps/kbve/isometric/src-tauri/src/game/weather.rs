@@ -481,6 +481,7 @@ fn tint_frogs_for_daynight(
 }
 
 /// Tint unlit wraith materials based on time of day (same curve as frogs).
+/// Wraiths are always visible: fully opaque at night, semi-transparent (ghostly) during day.
 fn tint_wraiths_for_daynight(
     day: Res<DayCycle>,
     wraith_mats: Option<Res<WraithMaterials>>,
@@ -496,9 +497,16 @@ fn tint_wraiths_for_daynight(
     let g = 0.20 + h * 0.90;
     let b = 0.28 + h * 0.75;
 
+    // Ghostly transparency during daytime: fully opaque at night, semi-transparent at day
+    let alpha = if h < 0.01 {
+        1.0
+    } else {
+        0.35 + (1.0 - h) * 0.15
+    };
+
     for handle in &wraith_mats.handles {
         if let Some(mat) = materials.get_mut(handle) {
-            mat.base_color = Color::srgb(r, g, b);
+            mat.base_color = Color::srgba(r, g, b, alpha);
         }
     }
 }

@@ -19,7 +19,7 @@ pub use wraith::WraithMaterials;
 /// Build creature meshes once at Startup to avoid allocating during spawn.
 fn setup_creature_meshes(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>) {
     commands.insert_resource(CreatureMeshes {
-        firefly_sphere: meshes.add(Sphere::new(0.04).mesh().ico(1).unwrap()),
+        firefly_sphere: meshes.add(Sphere::new(0.07).mesh().ico(1).unwrap()),
         butterfly_wings: meshes.add(butterfly::build_butterfly_mesh()),
     });
 }

@@ -19,7 +19,7 @@ use bevy::asset::RenderAssetUsages;
 use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 
-use super::common::{CreaturePool, GameTime, hash_f32, night_factor, scene_center};
+use super::common::{CreaturePool, hash_f32, scene_center};
 use super::creature::{
     Creature, CreaturePoolIndex, CreatureRegistry, CreatureState, RenderKind, SpriteData,
     SpriteHopState,
@@ -186,7 +186,7 @@ pub(super) fn spawn_wraiths(
 
         let mat = materials.add(StandardMaterial {
             base_color_texture: Some(texture.clone()),
-            alpha_mode: AlphaMode::Mask(0.5),
+            alpha_mode: AlphaMode::Blend,
             cull_mode: None,
             double_sided: true,
             unlit: true,
@@ -236,7 +236,6 @@ pub struct WraithMarker;
 
 pub(super) fn animate_wraiths(
     time: Res<Time>,
-    game_time: Res<GameTime>,
     mut terrain: ResMut<TerrainMap>,
     camera_q: Query<&Transform, With<IsometricCamera>>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -256,17 +255,7 @@ pub(super) fn animate_wraiths(
     };
     let dt = time.delta_secs();
     let t = time.elapsed_secs();
-    let nf = night_factor(game_time.hour);
-
-    // Hide wraiths during daytime
-    if nf < 0.01 {
-        for (mut tf, mut cr, _, mut vis, _) in &mut wraith_q {
-            *vis = Visibility::Hidden;
-            tf.translation.y = -100.0;
-            cr.anchor.y = -100.0;
-        }
-        return;
-    }
+    // Wraiths are always visible — alpha modulation handled by tint_wraiths_for_daynight
 
     let cam_pos = cam_tf.translation;
     let center = scene_center(cam_pos);
