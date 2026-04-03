@@ -10,6 +10,7 @@
 # [STAGE A] - Cargo Chef Planner
 # ============================================================================
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
+ENV CARGO_INCREMENTAL=0
 
 COPY apps/vm/firecracker-ctl/Cargo.workspace.toml Cargo.toml
 COPY apps/vm/firecracker-ctl/Cargo.toml apps/vm/firecracker-ctl/Cargo.toml
@@ -17,8 +18,7 @@ COPY apps/vm/firecracker-ctl/Cargo.toml apps/vm/firecracker-ctl/Cargo.toml
 RUN mkdir -p apps/vm/firecracker-ctl/src && \
     echo "fn main() {}" > apps/vm/firecracker-ctl/src/main.rs
 
-RUN --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    cargo chef prepare --recipe-path recipe.json
+RUN cargo chef prepare --recipe-path recipe.json
 
 # ============================================================================
 # [STAGE B] - Cargo Chef Cook (Cache Dependencies)

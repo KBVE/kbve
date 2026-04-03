@@ -71,3 +71,54 @@ export function requireServiceRole(claims: JwtClaims): Response | null {
   }
   return null;
 }
+
+// ---------------------------------------------------------------------------
+// Staff permission helpers
+//
+// Mirrors the bitwise permission system in staff.members.permissions.
+// Uses the public.staff_permissions() RPC to resolve the caller's bitmask.
+// ---------------------------------------------------------------------------
+
+export const staffPerm = {
+  STAFF: 0x0000_0001,
+  MODERATOR: 0x0000_0002,
+  ADMIN: 0x0000_0004,
+  DASHBOARD_VIEW: 0x0000_0100,
+  DASHBOARD_MANAGE: 0x0000_0200,
+  SUPERADMIN: 0x4000_0000,
+} as const;
+
+/**
+ * Call public.staff_permissions() RPC as the given user.
+ * Returns the integer permission bitmask (0 = not staff).
+ */
+export async function checkStaffPermissions(
+  token: string,
+): Promise<number> {
+  const client = createUserClient(token);
+  const { data, error } = await client.rpc("staff_permissions");
+  if (error) {
+    console.error("staff_permissions RPC error:", error.message);
+    return 0;
+  }
+  return typeof data === "number" ? data : 0;
+}
+
+/**
+ * Guard: allow service_role OR any user with staff permissions > 0.
+ * Returns a 403 Response if denied, null if allowed.
+ */
+export async function requireStaffOrServiceRole(
+  token: string,
+  claims: JwtClaims,
+): Promise<Response | null> {
+  if (claims.role === "service_role") return null;
+
+  const permissions = await checkStaffPermissions(token);
+  if (permissions > 0) return null;
+
+  return jsonResponse(
+    { error: "Access denied: staff or service_role required" },
+    403,
+  );
+}
