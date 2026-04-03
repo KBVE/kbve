@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "apps/kube/firecracker/firecracker-ctl",
+    "apps/vm/firecracker-ctl",
 ]
 
 [profile.release]

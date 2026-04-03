@@ -202,14 +202,22 @@ Start with Option A (MMDS) — sufficient for request/response workloads. Gradua
 - [x] ClickHouse schema (`firecracker.vm_events` + `vm_stats_1m` materialized view)
 - [x] KEDA ScaledObject (cron + CPU-based autoscaling, scale-to-zero)
 
-### Phase 4: Production (current)
+### Phase 4: Production (complete)
 
-- [x] `firecracker-ctl` Rust Axum binary (`apps/kube/firecracker/firecracker-ctl/`)
+- [x] `firecracker-ctl` Rust Axum binary (`apps/vm/firecracker-ctl/`)
 - [x] Dockerfile with Firecracker v1.10.1 binary + jailer
 - [x] Nx project.json with build/test/lint/container targets
 - [x] Registered in workspace Cargo.toml
 - [x] Rootfs Dockerfiles: alpine-minimal, alpine-node, alpine-python
+
+### Phase 5: Deployment & CI (current)
+
+- [x] CI dispatch manifest entry (`firecracker_ctl` in `ci-dispatch-manifest.json`)
+- [x] ArgoCD application registered in `kustomization.yaml`
+- [x] Vector log routing for `firecracker-ctl` → ClickHouse
+- [x] vmlinux kernel download script + K8s init Job (PostSync hook)
+- [x] version.toml for CI pipeline version gating
+- [ ] Node label `kvm=true` (requires manual kubectl — see deployment notes)
 - [ ] TAP networking (deferred — MMDS sufficient for now)
 - [ ] Warm pool (pre-booted VMs for <50ms dispatch)
 - [ ] Multi-node scheduling
-- [ ] Linux kernel (vmlinux) build/download pipeline

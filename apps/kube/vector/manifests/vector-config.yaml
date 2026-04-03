@@ -94,6 +94,7 @@ data:
               analytics: '.appname == "logflare" || .appname == "supabase-analytics"'
               meta: '.appname == "postgres-meta" || .appname == "supabase-meta"'
               studio: '.appname == "studio" || .appname == "supabase-studio"'
+              firecracker: '.appname == "firecracker-ctl"'
           kong_logs:
             type: remap
             inputs:
@@ -250,6 +251,7 @@ data:
               - meta_logs
               - studio_logs
               - router.functions
+              - router.firecracker
               - router._unmatched
             source: |-
               # Extract level from metadata fields first

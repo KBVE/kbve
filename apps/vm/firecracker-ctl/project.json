@@ -1,8 +1,8 @@
 {
 	"name": "firecracker-ctl",
-	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
-	"sourceRoot": "apps/kube/firecracker/firecracker-ctl/src",
+	"sourceRoot": "apps/vm/firecracker-ctl/src",
 	"targets": {
 		"build": {
 			"executor": "@monodon/rust:build",
@@ -40,13 +40,13 @@
 				"local": {
 					"commands": [
 						"./kbve.sh -nx firecracker-ctl:containerx",
-						"VERSION=$(grep '^version' apps/kube/firecracker/firecracker-ctl/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/firecracker-ctl:latest kbve/firecracker-ctl:$VERSION && echo \"Tagged kbve/firecracker-ctl:$VERSION\""
+						"VERSION=$(grep '^version' apps/vm/firecracker-ctl/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/firecracker-ctl:latest kbve/firecracker-ctl:$VERSION && echo \"Tagged kbve/firecracker-ctl:$VERSION\""
 					]
 				},
 				"production": {
 					"commands": [
 						"./kbve.sh -nx firecracker-ctl:containerx --configuration=production",
-						"VERSION=$(grep '^version' apps/kube/firecracker/firecracker-ctl/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/firecracker-ctl:latest kbve/firecracker-ctl:$VERSION && docker tag kbve/firecracker-ctl:latest ghcr.io/kbve/firecracker-ctl:latest && docker tag kbve/firecracker-ctl:latest ghcr.io/kbve/firecracker-ctl:$VERSION && echo \"Tagged ghcr.io/kbve/firecracker-ctl:$VERSION\""
+						"VERSION=$(grep '^version' apps/vm/firecracker-ctl/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/firecracker-ctl:latest kbve/firecracker-ctl:$VERSION && docker tag kbve/firecracker-ctl:latest ghcr.io/kbve/firecracker-ctl:latest && docker tag kbve/firecracker-ctl:latest ghcr.io/kbve/firecracker-ctl:$VERSION && echo \"Tagged ghcr.io/kbve/firecracker-ctl:$VERSION\""
 					]
 				}
 			}
@@ -57,7 +57,7 @@
 			"options": {
 				"engine": "docker",
 				"context": ".",
-				"file": "apps/kube/firecracker/firecracker-ctl/Dockerfile",
+				"file": "apps/vm/firecracker-ctl/Dockerfile",
 				"load": true
 			},
 			"configurations": {
@@ -86,5 +86,5 @@
 			}
 		}
 	},
-	"tags": ["scope:kube", "firecracker", "infrastructure"]
+	"tags": ["scope:vm", "firecracker", "infrastructure"]
 }
