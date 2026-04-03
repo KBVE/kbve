@@ -4,6 +4,8 @@
 use jedi::entity::github::{GitHubClient, GitHubIssue, GitHubPull};
 use poise::serenity_prelude as serenity;
 
+use crate::discord::branding;
+
 // ── Priority ────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -132,8 +134,9 @@ pub fn build_notice_embed(item: &NoticeItem, repo_name: &str) -> serenity::Creat
     }
 
     embed = embed.footer(serenity::CreateEmbedFooter::new(format!(
-        "Notice Board • {}",
-        repo_name
+        "Notice Board • {} • {}",
+        repo_name,
+        branding::footer_text()
     )));
 
     embed
@@ -198,14 +201,16 @@ pub fn build_notice_board_summary(items: &[NoticeItem], repo_name: &str) -> sere
 
     if items.len() > 25 {
         embed = embed.footer(serenity::CreateEmbedFooter::new(format!(
-            "Showing 25 of {} • {}",
+            "Showing 25 of {} • {} • {}",
             items.len(),
-            repo_name
+            repo_name,
+            branding::footer_text()
         )));
     } else {
         embed = embed.footer(serenity::CreateEmbedFooter::new(format!(
-            "Notice Board • {}",
-            repo_name
+            "Notice Board • {} • {}",
+            repo_name,
+            branding::footer_text()
         )));
     }
 
