@@ -1,23 +1,15 @@
 # ============================================================================
 # axum-discordsh — Multi-stage Docker build
 #
-# Runtime uses the shared chisel base image:
-#   ghcr.io/kbve/chisel-ubuntu-axum:24.04.2
-#   (chiseled Ubuntu 24.04 + jemalloc + libpq + CA certs)
+# Uses shared chisel base images:
+#   ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder  (Rust + Node + pnpm + cargo-chef)
+#   ghcr.io/kbve/chisel-ubuntu-axum:24.04.3         (chiseled Ubuntu + jemalloc + libpq)
 # ============================================================================
 
 # ============================================================================
 # [STAGE A] - Build Astro Static Site
 # ============================================================================
-# node:24-slim (Debian) instead of Alpine — Sharp image optimizer needs
-# glibc-compatible native binaries for Astro image processing
-FROM --platform=linux/amd64 node:24-slim AS astro-builder
-
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Prevent Playwright from downloading browser binaries during pnpm install —
-# they are never used in the Docker build and waste ~600MB + cause timeouts.
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS astro-builder
 
 WORKDIR /app
 
@@ -25,7 +17,8 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml .npmrc tsconfig.base.json ./
 
 # Install all dependencies (hoisted mode - all go to root node_modules)
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store/v3,id=pnpm-store \
+    pnpm install --frozen-lockfile
 
 # Copy workspace package sources (TypeScript path aliases resolve to these)
 COPY packages/npm/astro/ packages/npm/astro/
@@ -74,27 +67,8 @@ RUN find . -type f \( \
 # BuildKit layer cache handles incremental rebuilds across runs.
 # ============================================================================
 
-# [STAGE C] - Rust Base Image
-FROM --platform=linux/amd64 rust:1.94-slim AS rust-base
-
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends \
-        pkg-config \
-        libssl-dev \
-        libpq-dev \
-        libjemalloc-dev \
-        protobuf-compiler \
-        libprotobuf-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN rustup target add x86_64-unknown-linux-gnu && \
-    cargo install cargo-chef --locked
-
-WORKDIR /app
-
-# [STAGE D] - Cargo Chef Planner
-FROM rust-base AS planner
+# [STAGE C] - Cargo Chef Planner
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
 
 COPY apps/discordsh/axum-discordsh/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
@@ -111,8 +85,9 @@ RUN mkdir -p apps/discordsh/axum-discordsh/src && echo "fn main() {}" > apps/dis
 
 RUN cargo chef prepare --recipe-path recipe.json
 
-# [STAGE E] - Cargo Chef Cook (Cache External Dependencies)
-FROM rust-base AS builder-deps
+# [STAGE D] - Cargo Chef Cook (Cache External Dependencies)
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder-deps
+ENV CARGO_INCREMENTAL=0
 
 COPY --from=planner /app/recipe.json recipe.json
 COPY --from=planner /app/Cargo.toml /app/Cargo.lock ./
@@ -121,10 +96,12 @@ COPY --from=planner /app/packages packages
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo chef cook --release --recipe-path recipe.json -p axum-discordsh
 
-# [STAGE E2] - Foundation Layer (Compile kbve + jedi from real source)
-FROM rust-base AS foundation
+# [STAGE E] - Foundation Layer (Compile kbve + jedi from real source)
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS foundation
+ENV CARGO_INCREMENTAL=0
 
 COPY --from=builder-deps /app/target target
 COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
@@ -143,6 +120,7 @@ COPY packages/rust/kbve packages/rust/kbve
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo build --release -p kbve -p jedi
 
 # ============================================================================
@@ -163,13 +141,14 @@ COPY apps/discordsh/axum-discordsh apps/discordsh/axum-discordsh
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo build --release -p axum-discordsh --features jemalloc && \
     strip target/release/axum-discordsh
 
 # ============================================================================
 # [STAGE Z] - Runtime Image (shared chisel base)
 # ============================================================================
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.2 AS runtime
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/axum-discordsh /app/axum-discordsh
 

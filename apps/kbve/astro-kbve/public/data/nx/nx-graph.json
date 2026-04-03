@@ -480,13 +480,20 @@
               "options": {
                 "commands": [
                   "npx nx run chisel-ubuntu-axum:containerx-runtime",
-                  "npx nx run chisel-ubuntu-axum:containerx-builder"
+                  "npx nx run chisel-ubuntu-axum:containerx-builder",
+                  "VERSION=$(grep -m1 'version' packages/docker/chisel-ubuntu-axum/version.toml | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder ghcr.io/kbve/chisel-ubuntu-axum:${VERSION}-builder && echo \"Tagged builder as ${VERSION}-builder\""
                 ],
                 "parallel": false
               },
               "configurations": {
                 "local": {},
-                "production": {}
+                "production": {
+                  "commands": [
+                    "npx nx run chisel-ubuntu-axum:containerx-runtime:production",
+                    "npx nx run chisel-ubuntu-axum:containerx-builder:production",
+                    "VERSION=$(grep -m1 'version' packages/docker/chisel-ubuntu-axum/version.toml | sed 's/.*\"\\(.*\\)\"/\\1/') && docker buildx imagetools create --tag ghcr.io/kbve/chisel-ubuntu-axum:${VERSION}-builder ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder && echo \"Published builder as ${VERSION}-builder\""
+                  ]
+                }
               },
               "parallelism": true
             },
@@ -3770,6 +3777,143 @@
           ]
         }
       },
+      "firecracker-ctl": {
+        "name": "firecracker-ctl",
+        "type": "app",
+        "data": {
+          "root": "apps/vm/firecracker-ctl",
+          "name": "firecracker-ctl",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/vm/firecracker-ctl/src",
+          "tags": [
+            "scope:vm",
+            "firecracker",
+            "infrastructure"
+          ],
+          "targets": {
+            "build": {
+              "executor": "@monodon/rust:build",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/firecracker-ctl"
+              },
+              "configurations": {
+                "production": {
+                  "release": true
+                }
+              },
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "test": {
+              "executor": "@monodon/rust:test",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/firecracker-ctl"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "lint": {
+              "executor": "@monodon/rust:lint",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/firecracker-ctl"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true
+            },
+            "container": {
+              "executor": "nx:run-commands",
+              "defaultConfiguration": "local",
+              "options": {
+                "parallel": false
+              },
+              "configurations": {
+                "local": {
+                  "commands": [
+                    "./kbve.sh -nx firecracker-ctl:containerx",
+                    "VERSION=$(grep '^version' apps/vm/firecracker-ctl/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/firecracker-ctl:latest kbve/firecracker-ctl:$VERSION && echo \"Tagged kbve/firecracker-ctl:$VERSION\""
+                  ]
+                },
+                "production": {
+                  "commands": [
+                    "./kbve.sh -nx firecracker-ctl:containerx --configuration=production",
+                    "VERSION=$(grep '^version' apps/vm/firecracker-ctl/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/firecracker-ctl:latest kbve/firecracker-ctl:$VERSION && docker tag kbve/firecracker-ctl:latest ghcr.io/kbve/firecracker-ctl:latest && docker tag kbve/firecracker-ctl:latest ghcr.io/kbve/firecracker-ctl:$VERSION && echo \"Tagged ghcr.io/kbve/firecracker-ctl:$VERSION\""
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "containerx": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/vm/firecracker-ctl/Dockerfile",
+                "load": true
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/firecracker-ctl:latest"
+                  ]
+                },
+                "production": {
+                  "load": true,
+                  "push": false,
+                  "metadata": {
+                    "images": [
+                      "ghcr.io/kbve/firecracker-ctl",
+                      "kbve/firecracker-ctl"
+                    ],
+                    "tags": [
+                      "latest"
+                    ]
+                  },
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/firecracker-ctl:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/firecracker-ctl:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "khashvault": {
         "name": "khashvault",
         "type": "lib",
@@ -6605,6 +6749,7 @@
             },
             "run": {
               "executor": "nx:run-commands",
+              "cache": false,
               "options": {
                 "command": "cargo run -p isometric-game",
                 "cwd": ""
@@ -9670,6 +9815,7 @@
           "type": "dynamic"
         }
       ],
+      "firecracker-ctl": [],
       "khashvault": [
         {
           "source": "khashvault",

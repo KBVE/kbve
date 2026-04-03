@@ -1,34 +1,31 @@
 # ============================================================================
+# axum-cryptothrone — Multi-stage Docker build
+#
+# Uses shared chisel base images:
+#   ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder  (Rust + Node + pnpm + cargo-chef)
+#   ghcr.io/kbve/chisel-ubuntu-axum:24.04.3         (chiseled Ubuntu + jemalloc + libpq)
+# ============================================================================
+
+# ============================================================================
 # [STAGE A] - Build Astro Static Site
 # ============================================================================
-FROM --platform=linux/amd64 node:24-slim AS astro-builder
-
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Prevent Playwright from downloading browser binaries during pnpm install —
-# they are never used in the Docker build and waste ~600MB + cause timeouts.
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS astro-builder
 
 WORKDIR /app
 
-# Copy root dependency and config files (layer-cached separately from source)
 COPY package.json pnpm-lock.yaml .npmrc tsconfig.base.json ./
 
-# Install all dependencies (hoisted mode - all go to root node_modules)
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store/v3,id=pnpm-store \
+    pnpm install --frozen-lockfile
 
-# Copy workspace package sources (TypeScript path aliases resolve to these)
 COPY packages/npm/astro/ packages/npm/astro/
 COPY packages/npm/droid/ packages/npm/droid/
 COPY packages/npm/laser/ packages/npm/laser/
 
-# Copy generated schemas (content collections may import these)
 COPY packages/data/codegen/generated/ packages/data/codegen/generated/
 
-# Copy astro-cryptothrone source
 COPY apps/cryptothrone/astro-cryptothrone/ apps/cryptothrone/astro-cryptothrone/
 
-# Build astro site
 WORKDIR /app/apps/cryptothrone/astro-cryptothrone
 RUN rm -rf .astro && npx astro sync && \
     UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
@@ -60,29 +57,11 @@ RUN find . -type f \( \
     echo "Precompression complete (brotli-11 + gzip-9)"
 
 # ============================================================================
-# Rust build stages — cargo-chef separates dependency compilation from source.
-# BuildKit layer cache handles incremental rebuilds across runs.
+# Rust build stages
 # ============================================================================
 
-# [STAGE C] - Rust Base Image
-FROM --platform=linux/amd64 rust:1.94-slim AS rust-base
-
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends \
-        pkg-config \
-        libssl-dev \
-        protobuf-compiler \
-        libprotobuf-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN rustup target add x86_64-unknown-linux-gnu && \
-    cargo install cargo-chef --locked
-
-WORKDIR /app
-
-# [STAGE D] - Cargo Chef Planner
-FROM rust-base AS planner
+# [STAGE C] - Cargo Chef Planner
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
 
 COPY apps/cryptothrone/axum-cryptothrone/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
@@ -99,8 +78,9 @@ RUN mkdir -p apps/cryptothrone/axum-cryptothrone/src && echo "fn main() {}" > ap
 
 RUN cargo chef prepare --recipe-path recipe.json
 
-# [STAGE E] - Cargo Chef Cook (Cache External Dependencies)
-FROM rust-base AS builder-deps
+# [STAGE D] - Cargo Chef Cook (Cache External Dependencies)
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder-deps
+ENV CARGO_INCREMENTAL=0
 
 COPY --from=planner /app/recipe.json recipe.json
 COPY --from=planner /app/Cargo.toml /app/Cargo.lock ./
@@ -109,10 +89,12 @@ COPY --from=planner /app/packages packages
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo chef cook --release --recipe-path recipe.json -p axum-cryptothrone
 
-# [STAGE E2] - Foundation Layer (Compile kbve + jedi from real source)
-FROM rust-base AS foundation
+# [STAGE E] - Foundation Layer (Compile kbve + jedi from real source)
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS foundation
+ENV CARGO_INCREMENTAL=0
 
 COPY --from=builder-deps /app/target target
 COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
@@ -131,6 +113,7 @@ COPY packages/rust/kbve packages/rust/kbve
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo build --release -p kbve -p jedi
 
 # ============================================================================
@@ -138,88 +121,36 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # ============================================================================
 FROM foundation AS builder
 
-# Astro build output (precompressed) → placed into templates/dist
 COPY --from=astro-precompressor /static /app/apps/cryptothrone/axum-cryptothrone/templates/dist
 
-# Foundation crate source (cargo needs source to verify fingerprints)
 COPY packages/data/proto packages/data/proto
 COPY packages/rust/jedi packages/rust/jedi
 COPY packages/rust/kbve packages/rust/kbve
 
-# Application source (most frequently changing — placed last for cache)
 COPY apps/cryptothrone/axum-cryptothrone apps/cryptothrone/axum-cryptothrone
 
-# Copy Askama templates
 COPY apps/cryptothrone/axum-cryptothrone/templates/askama /app/apps/cryptothrone/axum-cryptothrone/templates/askama
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo build --release -p axum-cryptothrone --features jemalloc && \
     strip target/release/axum-cryptothrone
 
 # ============================================================================
-# [STAGE G] - Chisel Ubuntu Base (Minimal Runtime)
+# [STAGE Z] - Runtime Image (shared chisel base)
 # ============================================================================
-FROM --platform=linux/amd64 ubuntu:24.04 AS chisel-builder
-
-RUN apt-get update && apt-get install -y wget ca-certificates
-
-WORKDIR /tmp
-
-RUN wget https://go.dev/dl/go1.23.4.linux-amd64.tar.gz && \
-    tar -xvf go1.23.4.linux-amd64.tar.gz && \
-    mv go /usr/local
-
-RUN GOBIN=/usr/local/bin/ /usr/local/go/bin/go install github.com/canonical/chisel/cmd/chisel@latest
-
-WORKDIR /rootfs
-RUN chisel cut --release ubuntu-24.04 --root /rootfs \
-        base-files_base \
-        base-files_release-info \
-        ca-certificates_data \
-        libgcc-s1_libs \
-        libc6_libs \
-        libstdc++6_libs \
-        openssl_config && \
-    echo 'appuser:x:10001:10001::/nonexistent:/usr/sbin/nologin' >> /rootfs/etc/passwd && \
-    echo 'appgroup:x:10001:' >> /rootfs/etc/group && \
-    mkdir -p /rootfs/app && chown 10001:10001 /rootfs/app
-
-# ============================================================================
-# [STAGE H] - Jemalloc
-# ============================================================================
-FROM --platform=linux/amd64 ubuntu:24.04 AS jemalloc
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends libjemalloc-dev && \
-    apt-get autoremove -y && \
-    apt-get purge -y --auto-remove && \
-    rm -rf /var/lib/apt/lists/*
-
-# ============================================================================
-# [STAGE Z] - Runtime Image (Scratch + Chisel + Jemalloc)
-# ============================================================================
-FROM --platform=linux/amd64 scratch AS runtime
-
-COPY --from=chisel-builder /rootfs /
-
-COPY --from=jemalloc /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
-
-WORKDIR /app
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/axum-cryptothrone /app/axum-cryptothrone
 
 COPY --from=builder --chown=10001:10001 /app/apps/cryptothrone/axum-cryptothrone/templates/dist /app/templates/dist
 COPY --from=builder --chown=10001:10001 /app/apps/cryptothrone/axum-cryptothrone/templates/askama /app/templates/askama
 
-ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
-ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:10000,muzzy_decay_ms:10000,lg_tcache_max:32,oversize_threshold:4194304"
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4321
 ENV RUST_LOG=info
 
 EXPOSE 4321
-
-USER 10001:10001
 
 ENTRYPOINT ["/app/axum-cryptothrone"]

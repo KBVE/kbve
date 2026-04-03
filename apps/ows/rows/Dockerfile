@@ -1,8 +1,14 @@
 # syntax=docker/dockerfile:1
+# ============================================================================
+# rows — Multi-stage Docker build
+#
+# Uses shared chisel base images:
+#   ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder  (Rust + cargo-chef + sccache)
+#   ghcr.io/kbve/chisel-ubuntu-axum:24.04.3         (chiseled Ubuntu + jemalloc + libpq)
+# ============================================================================
+
 # ── Stage 1: Plan — generate dependency recipe ──────────────
-FROM rust:1.94-slim-bookworm AS planner
-RUN cargo install cargo-chef
-WORKDIR /src
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
 
 # Create workspace
 RUN printf '[workspace]\nmembers = ["apps/ows/rows", "packages/rust/jedi", "packages/rust/kbve"]\nresolver = "2"\n' > Cargo.toml
@@ -20,14 +26,8 @@ COPY packages/rust/kbve/src/ packages/rust/kbve/src/
 RUN cargo chef prepare --recipe-path recipe.json
 
 # ── Stage 2: Cook — build deps only (cached layer) ─────────
-FROM rust:1.94-slim-bookworm AS cook
-
-RUN apt-get update && apt-get install -y \
-    pkg-config libssl-dev protobuf-compiler curl \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN cargo install cargo-chef
-WORKDIR /src
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS cook
+ENV CARGO_INCREMENTAL=0
 
 # Create workspace
 RUN printf '[workspace]\nmembers = ["apps/ows/rows", "packages/rust/jedi", "packages/rust/kbve"]\nresolver = "2"\n' > Cargo.toml
@@ -42,6 +42,7 @@ COPY apps/ows/rows/build.rs apps/ows/rows/build.rs
 # Cook deps from recipe — this layer is cached until Cargo.toml/Cargo.lock change
 COPY --from=planner /src/recipe.json recipe.json
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo chef cook --release --recipe-path recipe.json -p rows
 
 # ── Stage 3: Build — compile only our source ────────────────
@@ -51,22 +52,15 @@ COPY packages/rust/jedi/ packages/rust/jedi/
 COPY packages/rust/kbve/ packages/rust/kbve/
 COPY apps/ows/rows/src/ apps/ows/rows/src/
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     touch apps/ows/rows/src/main.rs && \
     cargo build --release -p rows --features jemalloc && \
-    cp target/release/rows /usr/local/bin/rows
+    strip target/release/rows
 
 # ── Stage 4: Runtime ────────────────────────────────────────
-FROM debian:bookworm-slim
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 
-RUN apt-get update && apt-get install -y \
-    ca-certificates libssl3 \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN groupadd -r rows && useradd -r -g rows rows
-
-COPY --from=builder /usr/local/bin/rows /usr/local/bin/rows
-
-USER rows
+COPY --from=builder --chown=10001:10001 /app/target/release/rows /app/rows
 
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4322
@@ -76,6 +70,6 @@ EXPOSE 4322
 EXPOSE 4323
 
 HEALTHCHECK --interval=15s --timeout=3s --start-period=5s \
-    CMD ["/usr/local/bin/rows", "--health-check"] || exit 1
+    CMD ["/app/rows", "--health-check"] || exit 1
 
-ENTRYPOINT ["/usr/local/bin/rows"]
+ENTRYPOINT ["/app/rows"]
