@@ -183,6 +183,14 @@ fn router(state: AppState) -> Router {
             "/application/kubectl",
             get(|| async { Redirect::permanent("/application/kubernetes/") }),
         )
+        .route(
+            "/application/bevy",
+            get(|| async { Redirect::permanent("/application/rust/#bevy") }),
+        )
+        .route(
+            "/application/bevy/",
+            get(|| async { Redirect::permanent("/application/rust/#bevy") }),
+        )
         .with_state(state.clone());
 
     let main_app = static_router.merge(public_router).layer(middleware);
