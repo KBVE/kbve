@@ -8,7 +8,7 @@
 # ============================================================================
 # [STAGE A] - Rust Build Base
 # ============================================================================
-FROM --platform=linux/amd64 rust:1.85-slim AS rust-base
+FROM --platform=linux/amd64 rust:1.86-slim AS rust-base
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
