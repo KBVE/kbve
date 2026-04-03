@@ -1156,6 +1156,9 @@ fn server_debug_netcode_collection(
 /// by all transports (UDP, WebSocket, WebTransport) when a client session is
 /// established — it lives on the link entity that lightyear routes replication
 /// through.
+/// When a client's link is established (LinkOf added by the transport layer),
+/// add ReplicationSender. Follows lightyear's example pattern exactly.
+/// LinkOf + Connected + ReplicationSender end up on the same entity.
 fn handle_new_link(trigger: On<Add, LinkOf>, mut commands: Commands) {
     let link_entity = trigger.entity;
     tracing::info!("[gameserver] NEW LINK — entity {link_entity:?}, adding ReplicationSender");
@@ -1167,8 +1170,7 @@ fn handle_new_link(trigger: On<Add, LinkOf>, mut commands: Commands) {
 }
 
 /// When a client's netcode handshake completes (Connected added), mark as
-/// pending authentication and record connect time. Player entity is spawned
-/// later during auth processing.
+/// pending authentication. Player entity is spawned later during auth.
 fn handle_new_connection(
     trigger: On<Add, Connected>,
     mut commands: Commands,
@@ -1194,10 +1196,21 @@ fn handle_new_connection(
         );
     }
 
-    commands
-        .entity(client_entity)
-        .insert((PendingAuth, ConnectedAt(time.elapsed_secs())));
-    tracing::info!("[gameserver] PendingAuth inserted for {client_entity:?}");
+    // Insert ReplicationSender here too — lightyear's handle_connection
+    // triggers on On<Add, (Connected, ReplicationSender)>. If both LinkOf
+    // and Connected are added in the same command flush (WebSocket path),
+    // the ReplicationSender from handle_new_link might not be committed yet.
+    // Adding it here ensures it's present when Connected is inserted.
+    commands.entity(client_entity).insert((
+        PendingAuth,
+        ConnectedAt(time.elapsed_secs()),
+        ReplicationSender::new(
+            REPLICATION_SEND_INTERVAL,
+            SendUpdatesMode::SinceLastAck,
+            false,
+        ),
+    ));
+    tracing::info!("[gameserver] PendingAuth + ReplicationSender inserted for {client_entity:?}");
 }
 
 /// Encode the current game hour as a millihour challenge value.
