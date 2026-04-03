@@ -5,13 +5,13 @@ import {
   extractToken,
   jsonResponse,
   parseJwt,
-  requireServiceRole,
+  requireStaffOrServiceRole,
 } from "../_shared/supabase.ts";
 
 // ---------------------------------------------------------------------------
 // Argo Edge Function — Proxy to ArgoCD API with diagnostics
 //
-// Auth: service_role only
+// Auth: service_role OR staff (permissions > 0)
 //
 // POST /argo  { command, ...params }
 //   applications  — list all ArgoCD applications
@@ -134,7 +134,7 @@ serve(async (req) => {
     const token = extractToken(req);
     const claims = await parseJwt(token);
 
-    const denied = requireServiceRole(claims);
+    const denied = await requireStaffOrServiceRole(token, claims);
     if (denied) return denied;
 
     const sizeErr = enforceBodySizeLimit(req);
