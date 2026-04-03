@@ -144,7 +144,7 @@ COPY apps/memes/axum-memes/templates/askama /app/apps/memes/axum-memes/templates
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    cargo build --release -p axum-memes && \
+    cargo build --release -p axum-memes --features jemalloc && \
     strip target/release/axum-memes
 
 # ============================================================================

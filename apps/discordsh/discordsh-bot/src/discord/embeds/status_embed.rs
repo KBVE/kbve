@@ -2,6 +2,7 @@ use poise::serenity_prelude as serenity;
 use std::time::Duration;
 
 use super::status_state::StatusState;
+use crate::discord::branding;
 use crate::health::HealthSnapshot;
 
 /// Data bag passed into the embed builder, decoupled from poise's Data struct.
@@ -54,6 +55,7 @@ pub fn build_status_embed(snap: &StatusSnapshot) -> serenity::CreateEmbed {
 
     let mut embed = serenity::CreateEmbed::new()
         .title("Bot Status Dashboard")
+        .url(branding::PROJECT_URL)
         .color(color)
         .thumbnail(state.thumbnail_url())
         .field(
@@ -91,10 +93,9 @@ pub fn build_status_embed(snap: &StatusSnapshot) -> serenity::CreateEmbed {
     }
 
     embed
-        .footer(serenity::CreateEmbedFooter::new(format!(
-            "axum-discordsh v{}",
-            snap.version
-        )))
+        .footer(serenity::CreateEmbedFooter::new(
+            branding::footer_with_source("src/discord/embeds/status_embed.rs"),
+        ))
         .timestamp(serenity::Timestamp::now())
 }
 

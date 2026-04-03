@@ -144,7 +144,7 @@ COPY apps/herbmail/axum-herbmail/templates/askama /app/apps/herbmail/axum-herbma
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    cargo build --release -p axum-herbmail && \
+    cargo build --release -p axum-herbmail --features jemalloc && \
     strip target/release/axum-herbmail
 
 # ============================================================================

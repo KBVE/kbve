@@ -1,4 +1,5 @@
 use crate::discord::bot::{Context, Error};
+use crate::discord::branding;
 use crate::discord::components::build_status_action_row;
 use crate::discord::embeds::{StatusSnapshot, StatusState, build_status_embed};
 
@@ -10,7 +11,7 @@ pub async fn status(ctx: Context<'_>) -> Result<(), Error> {
 
     let snap = StatusSnapshot {
         state: StatusState::Online,
-        version: env!("CARGO_PKG_VERSION"),
+        version: branding::BOT_VERSION,
         guild_count: ctx.cache().guild_count(),
         shard_id: Some(ctx.serenity_context().shard_id.0),
         uptime: data.app.start_time.elapsed(),

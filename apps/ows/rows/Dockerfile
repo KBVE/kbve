@@ -52,7 +52,7 @@ COPY packages/rust/kbve/ packages/rust/kbve/
 COPY apps/ows/rows/src/ apps/ows/rows/src/
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     touch apps/ows/rows/src/main.rs && \
-    cargo build --release -p rows && \
+    cargo build --release -p rows --features jemalloc && \
     cp target/release/rows /usr/local/bin/rows
 
 # ── Stage 4: Runtime ────────────────────────────────────────

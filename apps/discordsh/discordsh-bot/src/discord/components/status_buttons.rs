@@ -2,6 +2,7 @@ use poise::serenity_prelude as serenity;
 use tracing::{error, info};
 
 use crate::discord::bot::{Data, Error};
+use crate::discord::branding;
 use crate::discord::embeds::{StatusSnapshot, StatusState, build_status_embed};
 
 // ── Custom ID constants ──────────────────────────────────────────────
@@ -40,7 +41,7 @@ async fn collect_snapshot(data: &Data, cache: &serenity::Cache) -> StatusSnapsho
     let health = data.app.health_monitor.snapshot().await;
     StatusSnapshot {
         state: StatusState::Online,
-        version: env!("CARGO_PKG_VERSION"),
+        version: branding::BOT_VERSION,
         guild_count: cache.guild_count(),
         shard_id: None,
         uptime: data.app.start_time.elapsed(),

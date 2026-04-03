@@ -39,7 +39,7 @@ const FRAME_W: f32 = 1.0 / SHEET_COLS as f32;
 const FRAME_H: f32 = 1.0 / SHEET_ROWS as f32;
 
 /// World-space size of the wraith billboard quad (larger than frog).
-const WRAITH_SIZE: f32 = 3.2;
+const WRAITH_SIZE: f32 = 3.52;
 
 const FRAME_DURATION_BASE: f32 = 0.12;
 
@@ -426,6 +426,11 @@ pub(super) fn animate_wraiths(
                 let pos = start.lerp(target, p);
                 let hover = (t * 1.5 + cr.phase * 6.28).sin() * 0.15;
                 tf.translation = Vec3::new(pos.x, pos.y + 0.3 + hover, pos.z);
+
+                // Flip sprite based on isometric screen-space movement direction
+                let dx = target.x - start.x;
+                let dz = target.z - start.z;
+                sd.facing_left = (dx - dz) < 0.0;
 
                 if *progress >= 1.0 {
                     cr.anchor = target;

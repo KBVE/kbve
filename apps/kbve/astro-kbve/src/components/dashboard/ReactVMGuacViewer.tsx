@@ -68,10 +68,12 @@ export default function ReactVMGuacViewer() {
 			try {
 				const GuacLib = await loadGuacamole();
 
-				// Build WebSocket tunnel URL to our Guacamole proxy
+				// Build WebSocket tunnel URL to our Guacamole proxy.
+				// Pass JWT as query param — browser WS API can't set headers.
 				const proto =
 					window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-				const tunnelUrl = `${proto}//${window.location.host}/dashboard/guac/proxy/guacamole/websocket-tunnel`;
+				const accessToken = vmService.$accessToken.get() ?? '';
+				const tunnelUrl = `${proto}//${window.location.host}/dashboard/guac/proxy/guacamole/websocket-tunnel?access_token=${accessToken}`;
 
 				const tunnel = new GuacLib.WebSocketTunnel(tunnelUrl);
 				const client = new GuacLib.Client(tunnel);

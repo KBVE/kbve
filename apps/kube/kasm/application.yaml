@@ -12,9 +12,18 @@ spec:
     destination:
         server: https://kubernetes.default.svc
         namespace: kasm
+    # Allow the dashboard to scale deployments without ArgoCD reverting
+    # replicas back to the Git-defined value (0). selfHeal still manages
+    # all other fields — only spec.replicas is ignored.
+    ignoreDifferences:
+        - group: apps
+          kind: Deployment
+          jsonPointers:
+              - /spec/replicas
     syncPolicy:
         automated:
             prune: true
             selfHeal: true
         syncOptions:
             - CreateNamespace=true
+            - RespectIgnoreDifferences=true

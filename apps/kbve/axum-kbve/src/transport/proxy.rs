@@ -223,40 +223,56 @@ impl ServiceProxy {
 // Shared JWT + staff permission gate
 // ---------------------------------------------------------------------------
 
-async fn require_dashboard_view(headers: &HeaderMap, service_name: &str) -> Result<(), Response> {
-    let auth_header = match headers.get(header::AUTHORIZATION) {
-        Some(h) => match h.to_str() {
-            Ok(s) => s.to_string(),
-            Err(_) => {
-                return Err((
-                    StatusCode::BAD_REQUEST,
-                    axum::Json(json!({"error": "Invalid Authorization header encoding"})),
-                )
-                    .into_response());
+/// Extract Bearer token from headers or `?access_token=` query param.
+/// WebSocket connections cannot set custom headers, so the frontend passes
+/// the JWT as a query parameter for WS upgrade requests.
+fn extract_auth_token(headers: &HeaderMap, query: Option<&str>) -> Option<String> {
+    // 1. Try Authorization header first (standard HTTP path)
+    if let Some(h) = headers.get(header::AUTHORIZATION) {
+        if let Ok(s) = h.to_str() {
+            if let Some(t) = extract_bearer_token(s) {
+                return Some(t.to_string());
             }
-        },
+        }
+    }
+    // 2. Fall back to ?access_token= query param (WebSocket path)
+    // JWTs are base64url-encoded so they don't need URL decoding.
+    if let Some(qs) = query {
+        for pair in qs.split('&') {
+            if let Some(val) = pair.strip_prefix("access_token=") {
+                if !val.is_empty() {
+                    return Some(val.to_string());
+                }
+            }
+        }
+    }
+    None
+}
+
+async fn require_dashboard_view(headers: &HeaderMap, service_name: &str) -> Result<(), Response> {
+    require_dashboard_view_with_query(headers, None, service_name).await
+}
+
+async fn require_dashboard_view_with_query(
+    headers: &HeaderMap,
+    query: Option<&str>,
+    service_name: &str,
+) -> Result<(), Response> {
+    let auth_token = match extract_auth_token(headers, query) {
+        Some(t) => t,
         None => {
             return Err((
                 StatusCode::UNAUTHORIZED,
                 axum::Json(json!({
-                    "error": "Missing Authorization header",
-                    "hint": "Include 'Authorization: Bearer <token>' header"
+                    "error": "Missing Authorization header or access_token query param",
+                    "hint": "Include 'Authorization: Bearer <token>' header or ?access_token=<token>"
                 })),
             )
                 .into_response());
         }
     };
 
-    let token = match extract_bearer_token(&auth_header) {
-        Some(t) => t.to_string(),
-        None => {
-            return Err((
-                StatusCode::UNAUTHORIZED,
-                axum::Json(json!({"error": "Invalid Authorization header format"})),
-            )
-                .into_response());
-        }
-    };
+    let token = auth_token;
 
     let jwt_cache = match get_jwt_cache() {
         Some(c) => c,
@@ -594,9 +610,13 @@ pub async fn kubevirt_vnc_handler(
     req: Request<Body>,
 ) -> Response {
     let headers = req.headers().clone();
+    let query = req.uri().query().map(|q| q.to_string());
 
-    // Auth gate — staff only
-    if let Err(resp) = require_dashboard_view(&headers, "KubeVirt-VNC").await {
+    // Auth gate — accepts Bearer header or ?access_token= query param
+    // (browser WebSocket API cannot set custom headers)
+    if let Err(resp) =
+        require_dashboard_view_with_query(&headers, query.as_deref(), "KubeVirt-VNC").await
+    {
         return resp;
     }
 
@@ -996,8 +1016,12 @@ pub async fn guacamole_ws_handler(
     req: Request<Body>,
 ) -> Response {
     let headers = req.headers().clone();
+    let query = req.uri().query().map(|q| q.to_string());
 
-    if let Err(resp) = require_dashboard_view(&headers, "Guacamole-WS").await {
+    // Auth gate — accepts Bearer header or ?access_token= query param
+    if let Err(resp) =
+        require_dashboard_view_with_query(&headers, query.as_deref(), "Guacamole-WS").await
+    {
         return resp;
     }
 

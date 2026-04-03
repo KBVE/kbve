@@ -1,6 +1,7 @@
 use poise::serenity_prelude as serenity;
 
 use super::types::*;
+use crate::discord::branding;
 
 // ── Colors ──────────────────────────────────────────────────────────
 
@@ -435,8 +436,10 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
 
     // Footer — turn/session only
     embed = embed.footer(serenity::CreateEmbedFooter::new(format!(
-        "Turn {}  //  Session {}",
-        session.turn, session.short_id
+        "Turn {}  //  Session {}  //  {}",
+        session.turn,
+        session.short_id,
+        branding::footer_text()
     )));
 
     embed

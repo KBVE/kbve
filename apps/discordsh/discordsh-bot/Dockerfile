@@ -111,7 +111,7 @@ COPY apps/discordsh/discordsh-bot apps/discordsh/discordsh-bot
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    cargo build --release -p discordsh-bot && \
+    cargo build --release -p discordsh-bot --features jemalloc && \
     strip target/release/discordsh-bot
 
 # ============================================================================

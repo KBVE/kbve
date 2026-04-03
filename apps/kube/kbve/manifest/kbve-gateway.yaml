@@ -61,6 +61,21 @@ spec:
           backendRefs:
               - name: kbve-service
                 port: 5000
+        # Dashboard WebSocket paths — VNC (noVNC), Guacamole (RDP),
+        # KASM proxy. These are long-lived WebSocket connections that
+        # need the same generous timeout as the game /ws path.
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /dashboard/vm/vnc
+              - path:
+                    type: PathPrefix
+                    value: /dashboard/guac/proxy/guacamole/websocket-tunnel
+          timeouts:
+              backendRequest: 3600s
+          backendRefs:
+              - name: kbve-service
+                port: 4321
         - matches:
               - path:
                     type: PathPrefix
