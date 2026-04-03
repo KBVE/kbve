@@ -45,3 +45,8 @@ publish = true
 name = "ows"
 label = "OWS"
 description = "OWS admin operations (unstuck, maintenance, status)"
+
+[[functions]]
+name = "irc"
+label = "IRC"
+description = "IRC admin operations (channels, messages, server status)"

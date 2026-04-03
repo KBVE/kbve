@@ -94,6 +94,7 @@ serve(async (req: Request) => {
     "vault-reader": [],
     meme: [],
     ows: ["FIRECRACKER_URL"],
+    irc: ["ERGO_IRC_HOST", "ERGO_IRC_PORT"],
     logs: ["CLICKHOUSE_URL", "CLICKHOUSE_USER", "CLICKHOUSE_PASSWORD"],
     health: [],
   };
