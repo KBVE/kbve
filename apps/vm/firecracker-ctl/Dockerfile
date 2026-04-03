@@ -1,29 +1,17 @@
 # ============================================================================
 # firecracker-ctl — Multi-stage Docker build
 #
-# Builds the REST API service that manages Firecracker microVM lifecycle.
-# Runtime includes the Firecracker binary + minimal Linux kernel + rootfs images.
+# Builder uses the shared chisel base image:
+#   ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder  (Rust 1.94 + cargo-chef)
+# Runtime includes the Firecracker binary + jailer for microVM management.
 # ============================================================================
 
 # ============================================================================
-# [STAGE A] - Rust Build Base
+# [STAGE A] - Cargo Chef Planner
 # ============================================================================
-FROM --platform=linux/amd64 rust:1.86-slim AS rust-base
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        pkg-config \
-        libssl-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN cargo install cargo-chef --locked
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
 
 WORKDIR /app
-
-# ============================================================================
-# [STAGE B] - Cargo Chef Planner
-# ============================================================================
-FROM rust-base AS planner
 
 COPY apps/vm/firecracker-ctl/Cargo.workspace.toml Cargo.toml
 COPY apps/vm/firecracker-ctl/Cargo.toml apps/vm/firecracker-ctl/Cargo.toml
@@ -34,9 +22,11 @@ RUN mkdir -p apps/vm/firecracker-ctl/src && \
 RUN cargo chef prepare --recipe-path recipe.json
 
 # ============================================================================
-# [STAGE C] - Cargo Chef Cook (Cache Dependencies)
+# [STAGE B] - Cargo Chef Cook (Cache Dependencies)
 # ============================================================================
-FROM rust-base AS builder-deps
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder-deps
+
+WORKDIR /app
 
 COPY --from=planner /app/recipe.json recipe.json
 COPY --from=planner /app/Cargo.toml ./
@@ -47,9 +37,11 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo chef cook --release --recipe-path recipe.json -p firecracker-ctl
 
 # ============================================================================
-# [STAGE D] - Build Application
+# [STAGE C] - Build Application
 # ============================================================================
-FROM rust-base AS builder
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder
+
+WORKDIR /app
 
 COPY --from=builder-deps /app/target target
 COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
@@ -64,7 +56,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     strip target/release/firecracker-ctl
 
 # ============================================================================
-# [STAGE E] - Download Firecracker Binary
+# [STAGE D] - Download Firecracker Binary
 # ============================================================================
 FROM --platform=linux/amd64 ubuntu:24.04 AS firecracker-dl
 
