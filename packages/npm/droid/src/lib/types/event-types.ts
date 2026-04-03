@@ -54,6 +54,13 @@ export const AuthErrorSchema = z.object({
 	message: z.string(),
 });
 
+export const WorkerErrorSchema = z.object({
+	timestamp: z.number(),
+	worker: z.enum(['shared', 'db', 'ws']),
+	operation: z.string(),
+	message: z.string(),
+});
+
 export const DroidEventSchemas = {
 	'droid-first-connect': DroidFirstConnectSchema,
 	'droid-ready': DroidReadySchema,
@@ -70,6 +77,7 @@ export const DroidEventSchemas = {
 	'modal-closed': ModalPayloadSchema.pick({ id: true }),
 	'auth-ready': AuthReadySchema,
 	'auth-error': AuthErrorSchema,
+	'worker-error': WorkerErrorSchema,
 };
 
 export type DroidEventMap = {
