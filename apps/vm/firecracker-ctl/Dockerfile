@@ -11,22 +11,20 @@
 # ============================================================================
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
 
-WORKDIR /app
-
 COPY apps/vm/firecracker-ctl/Cargo.workspace.toml Cargo.toml
 COPY apps/vm/firecracker-ctl/Cargo.toml apps/vm/firecracker-ctl/Cargo.toml
 
 RUN mkdir -p apps/vm/firecracker-ctl/src && \
     echo "fn main() {}" > apps/vm/firecracker-ctl/src/main.rs
 
-RUN cargo chef prepare --recipe-path recipe.json
+RUN --mount=type=cache,target=/usr/local/sccache,id=sccache \
+    cargo chef prepare --recipe-path recipe.json
 
 # ============================================================================
 # [STAGE B] - Cargo Chef Cook (Cache Dependencies)
 # ============================================================================
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder-deps
-
-WORKDIR /app
+ENV CARGO_INCREMENTAL=0
 
 COPY --from=planner /app/recipe.json recipe.json
 COPY --from=planner /app/Cargo.toml ./
@@ -34,14 +32,14 @@ COPY --from=planner /app/apps apps
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo chef cook --release --recipe-path recipe.json -p firecracker-ctl
 
 # ============================================================================
 # [STAGE C] - Build Application
 # ============================================================================
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder
-
-WORKDIR /app
+ENV CARGO_INCREMENTAL=0
 
 COPY --from=builder-deps /app/target target
 COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
@@ -52,6 +50,7 @@ COPY apps/vm/firecracker-ctl apps/vm/firecracker-ctl
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo build --release -p firecracker-ctl && \
     strip target/release/firecracker-ctl
 
