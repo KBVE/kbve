@@ -8,6 +8,7 @@ const ALLOWED_ORIGINS = new Set([
   "https://www.chuckrpg.com",
   "https://herbmail.com",
   "https://www.herbmail.com",
+  "https://chat.kbve.com",
   "http://localhost:3000",
   "http://localhost:4321",
   "http://localhost:1420",

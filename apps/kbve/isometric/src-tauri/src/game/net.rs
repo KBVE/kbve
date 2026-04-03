@@ -192,6 +192,8 @@ struct PendingTokenFetch {
 struct WsFallback {
     /// WebSocket URL to fall back to.
     ws_url: String,
+    /// Token bytes for creating a new NetcodeClient on the fresh WS entity.
+    token_bytes: [u8; 2048],
 }
 
 /// Marker inserted by `on_unlinked` when a WT→WS transport swap is needed.
@@ -308,6 +310,21 @@ impl Plugin for NetPlugin {
         // WASM: use hostname URL for WebTransport (cert validation needs hostname, not IP)
         #[cfg(target_arch = "wasm32")]
         app.add_observer(bevy_kbve_net::client::wasm_wt_hostname_link);
+
+        // WASM: custom WebSocket transport systems (bypasses aeronet's broken send_loop)
+        #[cfg(target_arch = "wasm32")]
+        {
+            use bevy_kbve_net::wasm_ws;
+            app.add_systems(
+                PreUpdate,
+                wasm_ws::wasm_ws_recv.in_set(lightyear::prelude::LinkSystems::Receive),
+            );
+            app.add_systems(
+                PostUpdate,
+                wasm_ws::wasm_ws_send.in_set(lightyear::prelude::LinkSystems::Send),
+            );
+            app.add_systems(Update, wasm_ws::wasm_ws_lifecycle);
+        }
 
         // Safety net: abort if the handshake doesn't complete within HANDSHAKE_TIMEOUT_SECS
         app.add_systems(Update, check_handshake_timeout);
@@ -433,41 +450,19 @@ fn on_disconnected(
         return;
     }
 
-    // ── WT → WS in-place transport swap ──────────────────────────────
-    // If on_unlinked marked this entity for a transport swap, perform it
-    // here instead of the normal teardown. The entity keeps its
-    // NetcodeClient and ReplicationReceiver — only the IO component changes.
+    // ── WT → WS fallback ───────────────────────────────────────────
+    // If on_unlinked marked this entity for a WS fallback, despawn the
+    // failed WT entity and spawn a fresh WS connection with a new entity.
     if let Ok(fallback) = swap_q.get(entity) {
-        use lightyear::websocket::prelude::client::*;
-        use lightyear::webtransport::prelude::client::WebTransportClientIo;
-
         let ws_url = fallback.ws_url.clone();
-        info!("[net] executing WT→WS transport swap on entity {entity:?} → {ws_url}");
+        let token_bytes = fallback.token_bytes;
+        info!("[net] WT failed — despawning {entity:?}, spawning fresh WS to {ws_url}");
 
-        // Desktop: skip cert validation (server uses self-signed cert for dev)
-        // WASM: browser handles TLS natively via web_sys::WebSocket
-        #[cfg(not(target_arch = "wasm32"))]
-        let ws_config = ClientConfig::builder().with_no_cert_validation();
-        #[cfg(target_arch = "wasm32")]
-        let ws_config = ClientConfig::default();
+        commands.entity(entity).insert(PendingDespawn);
 
-        // Strip old WT transport + swap markers, insert WS transport
-        commands.entity(entity).remove::<(
-            WebTransportClientIo,
-            WsFallback,
-            TransportSwapPending,
-            ConnectionAttempted,
-            HandshakeStartedAt,
-        )>();
-        commands
-            .entity(entity)
-            .insert(WebSocketClientIo::from_url(ws_config, ws_url));
-
-        // Re-trigger the connection — NetcodeClient.inner.connect() resets
-        // the netcode state machine, and ConnectionPlugin triggers LinkStart
-        // which the WebSocket plugin picks up.
-        commands.trigger(Connect { entity });
-        info!("[net] Connect re-triggered on {entity:?} — WS handshake starting");
+        let transport = ClientTransport::WebSocket { url: ws_url };
+        connect_to_server(&mut commands, &transport, &token_bytes);
+        super::telemetry::report_warn("WebTransport failed, falling back to WebSocket");
         return;
     }
 
@@ -1141,10 +1136,10 @@ fn receive_auth_response(
                     msg.server_time
                 );
 
-                // Gate: only now transition from Connecting → Playing
+                // Don't transition to Playing yet — wait for first TimeSyncMessage
+                // so the world has correct time-of-day before the player sees it.
                 if **phase == super::phase::GamePhase::Connecting {
-                    info!("[net] handshake complete — transitioning Connecting → Playing");
-                    next_phase.set(super::phase::GamePhase::Playing);
+                    info!("[net] auth complete — waiting for first time sync before Playing");
                 }
             } else {
                 warn!("[net] AUTH FAILED from entity {entity:?} — triggering Disconnect to reset");
@@ -1636,8 +1631,11 @@ fn connect_to_server(commands: &mut Commands, transport: &ClientTransport, token
             }
 
             if let Some(ws_url) = ws_fallback_url {
+                let mut tb = [0u8; 2048];
+                tb.copy_from_slice(token_bytes);
                 entity_commands.insert(WsFallback {
                     ws_url: ws_url.clone(),
+                    token_bytes: tb,
                 });
             }
 
@@ -1651,26 +1649,58 @@ fn connect_to_server(commands: &mut Commands, transport: &ClientTransport, token
             info!("[net] Connect trigger dispatched — Netcode+WebTransport handshake starting");
         }
         ClientTransport::WebSocket { url } => {
-            use lightyear::websocket::prelude::client::*;
-
             info!("[net] connect_to_server — using WebSocket: {url}");
 
-            #[cfg(not(target_arch = "wasm32"))]
-            let ws_config = ClientConfig::builder().with_no_cert_validation();
+            // WASM: use our custom WasmWsSocket (bypasses aeronet's broken send_loop)
             #[cfg(target_arch = "wasm32")]
-            let ws_config = ClientConfig::default();
+            {
+                match bevy_kbve_net::wasm_ws::open_wasm_ws(&url) {
+                    Ok(ws_socket) => {
+                        let client_entity = commands
+                            .spawn((
+                                netcode,
+                                lightyear::prelude::Link::new(None),
+                                ws_socket,
+                                ReplicationReceiver::default(),
+                            ))
+                            .id();
 
-            let ws_io = WebSocketClientIo::from_url(ws_config, url.clone());
+                        // Insert Linking — our wasm_ws_lifecycle system will
+                        // upgrade to Linked when on_open fires
+                        commands
+                            .entity(client_entity)
+                            .insert(lightyear::prelude::Linking);
 
-            let client_entity = commands
-                .spawn((netcode, ws_io, ReplicationReceiver::default()))
-                .id();
+                        info!("[net] NetcodeClient+WasmWsSocket entity spawned: {client_entity:?}");
+                        commands.trigger(Connect {
+                            entity: client_entity,
+                        });
+                        info!("[net] Connect trigger dispatched — WASM WS handshake starting");
+                    }
+                    Err(e) => {
+                        warn!("[net] Failed to create WASM WebSocket: {:?}", e);
+                    }
+                }
+            }
 
-            info!("[net] NetcodeClient+WebSocket entity spawned: {client_entity:?}");
-            commands.trigger(Connect {
-                entity: client_entity,
-            });
-            info!("[net] Connect trigger dispatched — Netcode+WebSocket handshake starting");
+            // Native: use aeronet's WebSocketClientIo (works fine with tokio)
+            #[cfg(not(target_arch = "wasm32"))]
+            {
+                use lightyear::websocket::prelude::client::*;
+
+                let ws_config = ClientConfig::builder().with_no_cert_validation();
+                let ws_io = WebSocketClientIo::from_url(ws_config, url.clone());
+
+                let client_entity = commands
+                    .spawn((netcode, ws_io, ReplicationReceiver::default()))
+                    .id();
+
+                info!("[net] NetcodeClient+WebSocket entity spawned: {client_entity:?}");
+                commands.trigger(Connect {
+                    entity: client_entity,
+                });
+                info!("[net] Connect trigger dispatched — Netcode+WebSocket handshake starting");
+            }
         }
     }
 }
@@ -1732,6 +1762,8 @@ fn poll_set_username_request(
 /// Receive TimeSyncMessage from the server and update ServerTime resource.
 fn receive_time_sync(
     mut server_time: ResMut<ServerTime>,
+    mut next_phase: ResMut<NextState<super::phase::GamePhase>>,
+    phase: Res<State<super::phase::GamePhase>>,
     mut query: Query<(Entity, &mut MessageReceiver<TimeSyncMessage>)>,
 ) {
     for (_entity, mut receiver) in &mut query {
@@ -1747,6 +1779,12 @@ fn receive_time_sync(
                     msg.game_hour, msg.day_speed, msg.creature_seed
                 );
                 server_time.active = true;
+
+                // Now that we have the world time, transition to Playing
+                if **phase == super::phase::GamePhase::Connecting {
+                    info!("[net] time sync received — transitioning Connecting → Playing");
+                    next_phase.set(super::phase::GamePhase::Playing);
+                }
             }
         }
     }

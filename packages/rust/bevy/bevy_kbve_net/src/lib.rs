@@ -13,6 +13,8 @@ pub mod net_config;
 #[cfg(feature = "npcdb")]
 pub mod npcdb;
 pub mod protocol;
+#[cfg(all(feature = "client", target_arch = "wasm32"))]
+pub mod wasm_ws;
 pub mod worldgen;
 
 pub use inputs::PlayerInput;

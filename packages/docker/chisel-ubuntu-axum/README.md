@@ -7,6 +7,7 @@ Shared base images for KBVE Axum services — one for building, one for running.
 ### Runtime (`ghcr.io/kbve/chisel-ubuntu-axum:24.04.X`)
 
 Minimal chiseled Ubuntu 24.04 for production containers (~15MB):
+TODO: jemalloc upgrade.
 
 | Component           | Details                                                                                                |
 | ------------------- | ------------------------------------------------------------------------------------------------------ |

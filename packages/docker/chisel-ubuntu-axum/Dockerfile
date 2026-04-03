@@ -35,6 +35,7 @@ RUN apt-get update && \
         libssl-dev \
         libpq-dev \
         libjemalloc-dev \
+        make \
         protobuf-compiler \
         libprotobuf-dev \
         mold \
