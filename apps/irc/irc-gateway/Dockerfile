@@ -141,7 +141,7 @@ COPY packages/data/proto packages/data/proto
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    cargo build --release -p irc-gateway && \
+    cargo build --release -p irc-gateway --features jemalloc && \
     strip target/release/irc-gateway
 
 # ============================================================================

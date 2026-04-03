@@ -154,7 +154,7 @@ COPY apps/cryptothrone/axum-cryptothrone/templates/askama /app/apps/cryptothrone
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    cargo build --release -p axum-cryptothrone && \
+    cargo build --release -p axum-cryptothrone --features jemalloc && \
     strip target/release/axum-cryptothrone
 
 # ============================================================================

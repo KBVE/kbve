@@ -161,7 +161,7 @@ RUN cp -a /app/apps/kbve/axum-kbve/templates/dist/askama/. /app/apps/kbve/axum-k
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    cargo build --release -p axum-kbve && \
+    cargo build --release -p axum-kbve --features jemalloc && \
     strip target/release/axum-kbve
 
 # ============================================================================
