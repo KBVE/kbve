@@ -163,7 +163,7 @@ pub fn remove_hoverables(mut removed: RemovedComponents<HoverOutline>, hover_map
 /// Build a ray (origin, direction) from the orthographic camera through the
 /// cursor's screen position. Returns None if the camera isn't orthographic
 /// or uses an unsupported scaling mode.
-fn cursor_ray(
+pub fn cursor_ray_from_camera(
     cam_gt: &GlobalTransform,
     projection: &Projection,
     window: &Window,
@@ -228,7 +228,7 @@ pub fn cursor_pick(
     cursor_pos: Vec2,
     hover_map: &HoverMap,
 ) -> Option<Entity> {
-    let (ray_origin, ray_dir) = cursor_ray(cam_gt, projection, window, cursor_pos)?;
+    let (ray_origin, ray_dir) = cursor_ray_from_camera(cam_gt, projection, window, cursor_pos)?;
 
     // Ground-level hit — this is what the player perceives as "under the cursor"
     let ground_xz = ray_hit_y_plane(ray_origin, ray_dir, 0.0)?;
@@ -283,6 +283,6 @@ pub fn cursor_to_world_xz(
     window: &Window,
     cursor_pos: Vec2,
 ) -> Option<Vec2> {
-    let (ray_origin, ray_dir) = cursor_ray(cam_gt, projection, window, cursor_pos)?;
+    let (ray_origin, ray_dir) = cursor_ray_from_camera(cam_gt, projection, window, cursor_pos)?;
     ray_hit_y_plane(ray_origin, ray_dir, 0.0)
 }

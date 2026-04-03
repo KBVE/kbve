@@ -1,3 +1,4 @@
+use avian3d::prelude::*;
 use bevy::picking::events::{Out, Over, Pointer};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
@@ -265,13 +266,16 @@ pub(crate) fn on_pointer_out(trigger: On<Pointer<Out>>, mut commands: Commands) 
     commands.entity(trigger.event_target()).remove::<Hovered>();
 }
 
-/// Tile-based hover detection: unproject cursor to world XZ, look up DashMap.
+/// Desktop hover detection: cast an avian3d ray from the isometric camera
+/// through the cursor position against actual collider geometry. This gives
+/// pixel-accurate picking — no tile-grid approximation.
 #[cfg(not(target_arch = "wasm32"))]
 fn raycast_hover_detection_desktop(
     windows: Query<&Window, With<PrimaryWindow>>,
     cursor: Res<BridgedCursorPosition>,
     camera_query: Query<(&GlobalTransform, &Projection), With<IsometricCamera>>,
-    hover_map: Res<super::hover_bvh::HoverMap>,
+    spatial_query: SpatialQuery,
+    interactable_q: Query<(), With<Interactable>>,
     current_hovered: Query<Entity, With<Hovered>>,
     mut last_cursor: ResMut<LastCursorPos>,
     mut commands: Commands,
@@ -300,10 +304,18 @@ fn raycast_hover_detection_desktop(
     }
     last_cursor.0 = Some(cursor_pos);
 
-    // Multi-plane pick: cast cursor ray against Y-planes from top to bottom
-    // so tall objects (trees) are picked at canopy height, not just base tile.
-    let new_hovered =
-        super::hover_bvh::cursor_pick(cam_gt, projection, window, cursor_pos, &hover_map);
+    // Build ray from isometric camera, cast against physics colliders
+    let new_hovered = super::hover_bvh::cursor_ray_from_camera(
+        cam_gt, projection, window, cursor_pos,
+    )
+    .and_then(|(ray_origin, ray_dir)| {
+        let dir = Dir3::new(ray_dir).ok()?;
+        let hits = spatial_query.ray_hits(ray_origin, dir, 100.0, 20, true, &default());
+        hits.iter()
+            .filter(|hit| interactable_q.get(hit.entity).is_ok())
+            .min_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap())
+            .map(|hit| hit.entity)
+    });
 
     for entity in &current_hovered {
         if Some(entity) != new_hovered {
