@@ -6,6 +6,7 @@ use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 
 use super::camera::IsometricCamera;
+use super::creatures::sprite_material::SpriteSheetMaterial;
 use super::creatures::{FrogMaterials, GameTime, WraithMaterials};
 use super::net::ServerTime;
 use super::tilemap::TileMaterials;
@@ -457,11 +458,11 @@ fn tint_trees_for_daynight(
     }
 }
 
-/// Tint unlit frog materials based on time of day (same curve as trees).
+/// Tint frog sprite sheet materials based on time of day (same curve as trees).
 fn tint_frogs_for_daynight(
     day: Res<DayCycle>,
     frog_mats: Option<Res<FrogMaterials>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut materials: ResMut<Assets<SpriteSheetMaterial>>,
 ) {
     let Some(frog_mats) = frog_mats else {
         return;
@@ -475,17 +476,17 @@ fn tint_frogs_for_daynight(
 
     for handle in &frog_mats.handles {
         if let Some(mat) = materials.get_mut(handle) {
-            mat.base_color = Color::srgb(r, g, b);
+            mat.uniforms.tint = Vec4::new(r, g, b, 1.0);
         }
     }
 }
 
-/// Tint unlit wraith materials based on time of day (same curve as frogs).
+/// Tint wraith sprite sheet materials based on time of day.
 /// Wraiths are always visible: fully opaque at night, semi-transparent (ghostly) during day.
 fn tint_wraiths_for_daynight(
     day: Res<DayCycle>,
     wraith_mats: Option<Res<WraithMaterials>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut materials: ResMut<Assets<SpriteSheetMaterial>>,
 ) {
     let Some(wraith_mats) = wraith_mats else {
         return;
@@ -506,7 +507,7 @@ fn tint_wraiths_for_daynight(
 
     for handle in &wraith_mats.handles {
         if let Some(mat) = materials.get_mut(handle) {
-            mat.base_color = Color::srgba(r, g, b, alpha);
+            mat.uniforms.tint = Vec4::new(r, g, b, alpha);
         }
     }
 }
