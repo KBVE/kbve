@@ -1,0 +1,112 @@
+# ============================================================================
+# firecracker-ctl — Multi-stage Docker build
+#
+# Builds the REST API service that manages Firecracker microVM lifecycle.
+# Runtime includes the Firecracker binary + minimal Linux kernel + rootfs images.
+# ============================================================================
+
+# ============================================================================
+# [STAGE A] - Rust Build Base
+# ============================================================================
+FROM --platform=linux/amd64 rust:1.85-slim AS rust-base
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        pkg-config \
+        libssl-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN cargo install cargo-chef --locked
+
+WORKDIR /app
+
+# ============================================================================
+# [STAGE B] - Cargo Chef Planner
+# ============================================================================
+FROM rust-base AS planner
+
+COPY apps/kube/firecracker/firecracker-ctl/Cargo.workspace.toml Cargo.toml
+COPY apps/kube/firecracker/firecracker-ctl/Cargo.toml apps/kube/firecracker/firecracker-ctl/Cargo.toml
+
+RUN mkdir -p apps/kube/firecracker/firecracker-ctl/src && \
+    echo "fn main() {}" > apps/kube/firecracker/firecracker-ctl/src/main.rs
+
+RUN cargo chef prepare --recipe-path recipe.json
+
+# ============================================================================
+# [STAGE C] - Cargo Chef Cook (Cache Dependencies)
+# ============================================================================
+FROM rust-base AS builder-deps
+
+COPY --from=planner /app/recipe.json recipe.json
+COPY --from=planner /app/Cargo.toml ./
+COPY --from=planner /app/apps apps
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    cargo chef cook --release --recipe-path recipe.json -p firecracker-ctl
+
+# ============================================================================
+# [STAGE D] - Build Application
+# ============================================================================
+FROM rust-base AS builder
+
+COPY --from=builder-deps /app/target target
+COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
+
+COPY --from=planner /app/Cargo.toml ./
+
+COPY apps/kube/firecracker/firecracker-ctl apps/kube/firecracker/firecracker-ctl
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    cargo build --release -p firecracker-ctl && \
+    strip target/release/firecracker-ctl
+
+# ============================================================================
+# [STAGE E] - Download Firecracker Binary
+# ============================================================================
+FROM --platform=linux/amd64 ubuntu:24.04 AS firecracker-dl
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
+
+ARG FC_VERSION=1.10.1
+RUN curl -fSL "https://github.com/firecracker-microvm/firecracker/releases/download/v${FC_VERSION}/firecracker-v${FC_VERSION}-x86_64.tgz" \
+    -o /tmp/fc.tgz && \
+    tar -xzf /tmp/fc.tgz -C /tmp && \
+    mv "/tmp/release-v${FC_VERSION}-x86_64/firecracker-v${FC_VERSION}-x86_64" /usr/local/bin/firecracker && \
+    mv "/tmp/release-v${FC_VERSION}-x86_64/jailer-v${FC_VERSION}-x86_64" /usr/local/bin/jailer && \
+    chmod +x /usr/local/bin/firecracker /usr/local/bin/jailer && \
+    rm -rf /tmp/fc.tgz /tmp/release-*
+
+# ============================================================================
+# [STAGE Z] - Runtime
+# ============================================================================
+FROM --platform=linux/amd64 ubuntu:24.04 AS runtime
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        iproute2 \
+        iptables && \
+    rm -rf /var/lib/apt/lists/* && \
+    groupadd -g 10001 appgroup && \
+    useradd -u 10001 -g appgroup -s /bin/false appuser && \
+    mkdir -p /var/lib/firecracker/rootfs /var/lib/firecracker/scratch && \
+    chown -R 10001:10001 /var/lib/firecracker
+
+COPY --from=builder /app/target/release/firecracker-ctl /usr/local/bin/firecracker-ctl
+COPY --from=firecracker-dl /usr/local/bin/firecracker /usr/local/bin/firecracker
+COPY --from=firecracker-dl /usr/local/bin/jailer /usr/local/bin/jailer
+
+ENV FC_PORT=9001
+ENV FC_ROOTFS_DIR=/var/lib/firecracker/rootfs
+ENV RUST_LOG=firecracker_ctl=info,tower_http=info
+
+EXPOSE 9001
+
+# Note: runs as root because Firecracker needs /dev/kvm access.
+# The jailer handles per-VM sandboxing (cgroup + seccomp + chroot).
+ENTRYPOINT ["firecracker-ctl"]
