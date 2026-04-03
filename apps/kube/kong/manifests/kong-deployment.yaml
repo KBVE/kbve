@@ -192,7 +192,7 @@ spec:
                       - name: KONG_CLUSTER_LISTEN
                         value: 'off'
                       - name: RESTART_TRIGGER
-                        value: 'cors-chuckrpg-cryptothrone-2026-03-28'
+                        value: 'cors-chat-supabase-forgejo-2026-04-02'
                       - name: KONG_STREAM_LISTEN
                         value: 'off'
                       - name: KONG_PREFIX
