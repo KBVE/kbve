@@ -308,8 +308,15 @@ impl Plugin for NetPlugin {
         // Safety net: abort if the handshake doesn't complete within HANDSHAKE_TIMEOUT_SECS
         app.add_systems(Update, check_handshake_timeout);
 
-        // Periodic connection-state heartbeat (logs every ~2 seconds)
-        app.add_systems(Update, debug_connection_heartbeat);
+        // Periodic connection-state heartbeat + PostUpdate netcode diagnostic
+        // disabled for now — too noisy. Re-enable by uncommenting:
+        // app.add_systems(Update, debug_connection_heartbeat);
+        // app.add_systems(
+        //     PostUpdate,
+        //     debug_post_netcode_send
+        //         .after(lightyear::prelude::ConnectionSystems::Send)
+        //         .before(lightyear::prelude::LinkSystems::Send),
+        // );
 
         // Deferred cleanup of disconnected client entities (one frame delay)
         app.add_systems(Last, cleanup_pending_despawn);
@@ -472,10 +479,13 @@ fn on_disconnected(
     server_time.active = false;
     captured_creatures.clear();
 
-    // Despawn all remote player visuals
+    // Despawn all remote player visuals.
+    // Use try_despawn — lightyear may already despawn replicated entities
+    // when the connection drops, so the entity could be gone by the time
+    // our deferred commands execute.
     let mut count = 0u32;
     for remote_entity in &remote_players {
-        commands.entity(remote_entity).despawn();
+        commands.entity(remote_entity).try_despawn();
         count += 1;
     }
     if count > 0 {
@@ -485,7 +495,7 @@ fn on_disconnected(
     // Despawn our own replicated entity so it doesn't block categorisation
     // of the new replicated entity on reconnect.
     for own_entity in &own_replicated {
-        commands.entity(own_entity).despawn();
+        commands.entity(own_entity).try_despawn();
         info!("[net] despawned own replicated entity {own_entity:?} after disconnect");
     }
 
@@ -583,7 +593,8 @@ fn debug_connection_heartbeat(
         let recv_len = link.recv.len();
         if send_len > 0 || recv_len > 0 || is_linked || is_linking {
             info!(
-                "[net][heartbeat] link entity={entity:?} send={send_len} recv={recv_len} linked={is_linked} linking={is_linking}"
+                "[net][heartbeat] link entity={entity:?} send={send_len} recv={recv_len} linked={is_linked} linking={is_linking} link_state={:?}",
+                link.state
             );
         }
     }
@@ -592,7 +603,6 @@ fn debug_connection_heartbeat(
 /// PostUpdate diagnostic: logs link.send AFTER netcode writes packets but BEFORE
 /// aeronet drains them to the WebSocket. Kept as dead code for future debugging;
 /// register in plugin build() when needed.
-#[allow(dead_code)]
 fn debug_post_netcode_send(
     query: Query<
         (
@@ -612,7 +622,7 @@ fn debug_post_netcode_send(
         let pending = client.inner.is_pending();
         let error = client.inner.is_error();
         if is_connecting || is_linked {
-            debug!(
+            info!(
                 "[net][post-send] entity={entity:?} send={send_len} recv={recv_len} \
                  linked={is_linked} connecting={is_connecting} disconnected={is_disconnected} \
                  netcode_pending={pending} netcode_error={error}"
@@ -762,11 +772,25 @@ fn poll_go_online_request(
                         "[net] desktop: token received — ws={server_url} wt={server_wt_url} cert_type={cert_type}"
                     );
 
-                    let transport = TransportConfig {
-                        ws_url: server_url.to_string(),
-                        wt_url: server_wt_url.to_string(),
-                        cert_digest: cert_digest.to_string(),
-                        cert_type: cert_type.to_string(),
+                    // Build transport based on the hint we sent.
+                    // The server may return both WS and WT URLs, but we pick
+                    // exactly the transport we asked for.
+                    let transport = if transport_hint == "webtransport" && !server_wt_url.is_empty()
+                    {
+                        ClientTransport::WebTransport {
+                            url: server_wt_url.to_string(),
+                            cert_digest: cert_digest.to_string(),
+                            cert_type: cert_type.to_string(),
+                            ws_fallback_url: if server_url.is_empty() {
+                                None
+                            } else {
+                                Some(server_url.to_string())
+                            },
+                        }
+                    } else {
+                        ClientTransport::WebSocket {
+                            url: server_url.to_string(),
+                        }
                     };
 
                     connect_to_server(&mut commands, &transport, &token_bytes);
@@ -827,11 +851,17 @@ fn poll_go_online_request(
             Err(_) => (String::new(), String::new()),
         };
 
-        let transport = TransportConfig {
-            ws_url: resolved_ws.clone(),
-            wt_url,
-            cert_digest,
-            cert_type: "self-signed".to_string(),
+        let transport = if !wt_url.is_empty() {
+            ClientTransport::WebTransport {
+                url: wt_url,
+                cert_digest,
+                cert_type: "self-signed".to_string(),
+                ws_fallback_url: Some(resolved_ws.clone()),
+            }
+        } else {
+            ClientTransport::WebSocket {
+                url: resolved_ws.clone(),
+            }
         };
 
         info!("[net] desktop: generated ConnectToken locally, connecting...");
@@ -922,26 +952,26 @@ fn poll_token_fetch_result(
         String::new()
     };
 
-    let transport = TransportConfig {
-        ws_url,
-        wt_url,
-        cert_digest: result.cert_digest.clone(),
-        cert_type: result.cert_type.clone(),
+    let transport = if !wt_url.is_empty() {
+        ClientTransport::WebTransport {
+            url: wt_url,
+            cert_digest: result.cert_digest.clone(),
+            cert_type: result.cert_type.clone(),
+            ws_fallback_url: if ws_url.is_empty() {
+                None
+            } else {
+                Some(ws_url.clone())
+            },
+        }
+    } else {
+        ClientTransport::WebSocket { url: ws_url }
     };
 
-    let transport_name = if !transport.wt_url.is_empty() {
-        "WebTransport"
-    } else {
-        "WebSocket"
+    let (transport_name, transport_url) = match &transport {
+        ClientTransport::WebTransport { url, .. } => ("WebTransport", url.as_str()),
+        ClientTransport::WebSocket { url } => ("WebSocket", url.as_str()),
     };
-    info!(
-        "[net] WASM token fetch complete, connecting via {transport_name} to {}",
-        if !transport.wt_url.is_empty() {
-            &transport.wt_url
-        } else {
-            &transport.ws_url
-        }
-    );
+    info!("[net] WASM token fetch complete, connecting via {transport_name} to {transport_url}");
     connect_to_server(&mut commands, &transport, &result.token_bytes);
 }
 
@@ -1473,29 +1503,32 @@ fn receive_object_respawned(
     }
 }
 
-/// Transport selection for the game server connection.
-struct TransportConfig {
-    /// WebSocket URL (always available).
-    ws_url: String,
-    /// WebTransport URL (empty = not available).
-    wt_url: String,
-    /// Certificate digest for self-signed WebTransport certs (hex, 64 chars).
-    /// Empty when cert_type is "trusted" (CA-signed, browser validates via CA chain).
-    cert_digest: String,
-    /// "trusted" = CA-signed cert (no hash pinning, connect via hostname),
-    /// "self-signed" = must use serverCertificateHashes with cert_digest.
-    /// Empty = WebTransport not available.
-    cert_type: String,
+/// Transport selection — each variant is fully self-contained.
+/// Follows lightyear's example pattern: one enum, one IO component per entity.
+enum ClientTransport {
+    WebSocket {
+        url: String,
+    },
+    WebTransport {
+        url: String,
+        cert_digest: String,
+        cert_type: String,
+        /// Optional WS URL for in-place fallback if WT fails.
+        ws_fallback_url: Option<String>,
+    },
 }
 
 /// Initiate a Netcode connection to the game server.
-/// Prefers WebTransport when available, falls back to WebSocket.
-fn connect_to_server(commands: &mut Commands, transport: &TransportConfig, token_bytes: &[u8]) {
+fn connect_to_server(commands: &mut Commands, transport: &ClientTransport, token_bytes: &[u8]) {
     use lightyear::netcode::prelude::client::*;
 
-    // Belt: refuse empty URLs
-    if transport.ws_url.is_empty() && transport.wt_url.is_empty() {
-        warn!("[net] connect_to_server called with no URLs — aborting");
+    let transport_url = match transport {
+        ClientTransport::WebSocket { url } => url.as_str(),
+        ClientTransport::WebTransport { url, .. } => url.as_str(),
+    };
+
+    if transport_url.is_empty() {
+        warn!("[net] connect_to_server called with empty URL — aborting");
         return;
     }
 
@@ -1503,19 +1536,15 @@ fn connect_to_server(commands: &mut Commands, transport: &TransportConfig, token
     // UNLESS the page itself is served from localhost (local dev via quick script).
     #[cfg(target_arch = "wasm32")]
     {
-        let check_url = if !transport.wt_url.is_empty() {
-            &transport.wt_url
-        } else {
-            &transport.ws_url
-        };
-        let is_local_target = check_url.contains("127.0.0.1") || check_url.contains("localhost");
+        let is_local_target =
+            transport_url.contains("127.0.0.1") || transport_url.contains("localhost");
         let page_is_local = web_sys::window()
             .and_then(|w| w.location().hostname().ok())
             .map(|h| h == "localhost" || h == "127.0.0.1")
             .unwrap_or(false);
         if is_local_target && !page_is_local {
             warn!(
-                "[net] BLOCKED localhost connection on WASM: {check_url} — page is not localhost"
+                "[net] BLOCKED localhost connection on WASM: {transport_url} — page is not localhost"
             );
             return;
         }
@@ -1525,105 +1554,95 @@ fn connect_to_server(commands: &mut Commands, transport: &TransportConfig, token
     let netcode = NetcodeClient::new(Authentication::Token(token), NetcodeConfig::default())
         .expect("NetcodeClient init failed");
 
-    // Try WebTransport first, fall back to WebSocket
-    if !transport.wt_url.is_empty() {
-        use lightyear::webtransport::prelude::client::*;
+    match transport {
+        ClientTransport::WebTransport {
+            url,
+            cert_digest,
+            cert_type,
+            ws_fallback_url,
+        } => {
+            use lightyear::webtransport::prelude::client::*;
 
-        let is_trusted = transport.cert_type == "trusted";
-        info!(
-            "[net] connect_to_server — using WebTransport: {} (cert_type={}, digest={}...)",
-            transport.wt_url,
-            transport.cert_type,
-            if transport.cert_digest.len() >= 16 {
-                &transport.cert_digest[..16]
+            let is_trusted = cert_type == "trusted";
+            info!(
+                "[net] connect_to_server — using WebTransport: {url} (cert_type={cert_type}, digest={}...)",
+                if cert_digest.len() >= 16 {
+                    &cert_digest[..16]
+                } else {
+                    cert_digest
+                }
+            );
+
+            let addr_str = url
+                .trim_start_matches("https://")
+                .trim_start_matches("http://");
+
+            let server_addr: std::net::SocketAddr =
+                if addr_str.parse::<std::net::SocketAddr>().is_ok() {
+                    addr_str.parse().unwrap()
+                } else {
+                    use std::net::ToSocketAddrs;
+                    addr_str
+                        .to_socket_addrs()
+                        .ok()
+                        .and_then(|mut addrs| addrs.find(|a| a.is_ipv4()))
+                        .unwrap_or_else(|| "127.0.0.1:5001".parse().unwrap())
+                };
+
+            let digest = if is_trusted {
+                info!("[net] trusted cert — no hash pinning, browser will validate via CA chain");
+                String::new()
             } else {
-                &transport.cert_digest
+                info!("[net] self-signed cert — using hash pinning with cert_digest");
+                cert_digest.clone()
+            };
+
+            let mut entity_commands = commands.spawn((
+                netcode,
+                PeerAddr(server_addr),
+                WebTransportClientIo {
+                    certificate_digest: digest,
+                },
+                ReplicationReceiver::default(),
+            ));
+
+            if let Some(ws_url) = ws_fallback_url {
+                entity_commands.insert(WsFallback {
+                    ws_url: ws_url.clone(),
+                });
             }
-        );
 
-        // Parse the server address from the URL (https://host:port)
-        let addr_str = transport
-            .wt_url
-            .trim_start_matches("https://")
-            .trim_start_matches("http://");
-
-        // For trusted certs, addr_str is "wt.kbve.com:5001" — resolve to IP for SocketAddr.
-        // For self-signed, addr_str is already "IP:port".
-        let server_addr: std::net::SocketAddr = if addr_str.parse::<std::net::SocketAddr>().is_ok()
-        {
-            addr_str.parse().unwrap()
-        } else {
-            // Hostname — resolve via DNS
-            use std::net::ToSocketAddrs;
-            addr_str
-                .to_socket_addrs()
-                .ok()
-                .and_then(|mut addrs| addrs.find(|a| a.is_ipv4()))
-                .unwrap_or_else(|| "127.0.0.1:5001".parse().unwrap())
-        };
-
-        // Belt and suspenders:
-        // - Trusted (CA-signed): empty digest → browser validates via CA chain
-        // - Self-signed: pass digest → browser uses serverCertificateHashes
-        let digest = if is_trusted {
-            info!("[net] trusted cert — no hash pinning, browser will validate via CA chain");
-            String::new()
-        } else {
-            info!("[net] self-signed cert — using hash pinning with cert_digest");
-            transport.cert_digest.clone()
-        };
-
-        let mut entity_commands = commands.spawn((
-            netcode,
-            PeerAddr(server_addr),
-            WebTransportClientIo {
-                certificate_digest: digest,
-            },
-            ReplicationReceiver::default(),
-        ));
-
-        // Attach WS fallback info so on_unlinked can swap in-place
-        if !transport.ws_url.is_empty() {
-            entity_commands.insert(WsFallback {
-                ws_url: transport.ws_url.clone(),
+            let client_entity = entity_commands.id();
+            info!(
+                "[net] NetcodeClient+WebTransport entity spawned: {client_entity:?} addr={server_addr}"
+            );
+            commands.trigger(Connect {
+                entity: client_entity,
             });
+            info!("[net] Connect trigger dispatched — Netcode+WebTransport handshake starting");
         }
+        ClientTransport::WebSocket { url } => {
+            use lightyear::websocket::prelude::client::*;
 
-        let client_entity = entity_commands.id();
+            info!("[net] connect_to_server — using WebSocket: {url}");
 
-        info!(
-            "[net] NetcodeClient+WebTransport entity spawned: {client_entity:?} addr={server_addr}"
-        );
-        commands.trigger(Connect {
-            entity: client_entity,
-        });
-        info!("[net] Connect trigger dispatched — Netcode+WebTransport handshake starting");
-    } else {
-        use lightyear::websocket::prelude::client::*;
+            #[cfg(not(target_arch = "wasm32"))]
+            let ws_config = ClientConfig::builder().with_no_cert_validation();
+            #[cfg(target_arch = "wasm32")]
+            let ws_config = ClientConfig::default();
 
-        info!(
-            "[net] connect_to_server — using WebSocket: {}",
-            transport.ws_url
-        );
+            let ws_io = WebSocketClientIo::from_url(ws_config, url.clone());
 
-        // Desktop: skip cert validation (server uses self-signed cert for dev)
-        // WASM: browser handles TLS natively via web_sys::WebSocket
-        #[cfg(not(target_arch = "wasm32"))]
-        let ws_config = ClientConfig::builder().with_no_cert_validation();
-        #[cfg(target_arch = "wasm32")]
-        let ws_config = ClientConfig::default();
+            let client_entity = commands
+                .spawn((netcode, ws_io, ReplicationReceiver::default()))
+                .id();
 
-        let ws_io = WebSocketClientIo::from_url(ws_config, transport.ws_url.clone());
-
-        let client_entity = commands
-            .spawn((netcode, ws_io, ReplicationReceiver::default()))
-            .id();
-
-        info!("[net] NetcodeClient+WebSocket entity spawned: {client_entity:?}");
-        commands.trigger(Connect {
-            entity: client_entity,
-        });
-        info!("[net] Connect trigger dispatched — Netcode+WebSocket handshake starting");
+            info!("[net] NetcodeClient+WebSocket entity spawned: {client_entity:?}");
+            commands.trigger(Connect {
+                entity: client_entity,
+            });
+            info!("[net] Connect trigger dispatched — Netcode+WebSocket handshake starting");
+        }
     }
 }
 

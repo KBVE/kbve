@@ -13,10 +13,12 @@ import {
 
 function KasmCard({ info }: { info: KasmInfo }) {
 	const actionInProgress = useStore(kasmService.$actionInProgress);
+	const lastAction = useStore(kasmService.$lastAction);
 	const token = useStore(vmService.$accessToken);
 	const { workspace, phase, state } = info;
 
 	const isActing = actionInProgress?.includes(workspace.name) ?? false;
+	const cardAction = lastAction?.name === workspace.name ? lastAction : null;
 	const canStart = !!(state & KasmState.CAN_START);
 	const canStop = !!(state & KasmState.CAN_STOP);
 	const canConnect = !!(state & KasmState.CAN_CONNECT);
@@ -202,6 +204,23 @@ function KasmCard({ info }: { info: KasmInfo }) {
 					</a>
 				)}
 			</div>
+
+			{/* Inline action feedback */}
+			{cardAction && (
+				<div
+					style={{
+						padding: '0.4rem 0.75rem',
+						borderRadius: '6px',
+						fontSize: '0.8rem',
+						background: cardAction.ok
+							? 'rgba(34, 197, 94, 0.1)'
+							: 'rgba(239, 68, 68, 0.1)',
+						border: `1px solid ${cardAction.ok ? 'rgba(34, 197, 94, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`,
+						color: cardAction.ok ? '#22c55e' : '#ef4444',
+					}}>
+					{cardAction.message}
+				</div>
+			)}
 		</div>
 	);
 }

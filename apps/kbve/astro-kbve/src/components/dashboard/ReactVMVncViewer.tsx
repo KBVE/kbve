@@ -16,7 +16,8 @@ async function loadRFB() {
 			const vendorUrl = `${window.location.origin}/vendor/novnc/core/rfb.js`;
 			const mod = await import(/* @vite-ignore */ vendorUrl);
 			RFB = mod.default ?? mod;
-		} catch {
+		} catch (vendorErr) {
+			console.warn('noVNC vendored ESM failed:', vendorErr);
 			try {
 				// Fallback: npm package (dev mode only, not bundleable)
 				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -25,10 +26,11 @@ async function loadRFB() {
 					/* @vite-ignore */ '@novnc/novnc/lib/rfb'
 				);
 				RFB = mod.default ?? mod;
-			} catch (err) {
-				console.error('noVNC load failed:', err);
+			} catch (npmErr) {
+				console.error('noVNC load failed (vendored):', vendorErr);
+				console.error('noVNC load failed (npm):', npmErr);
 				throw new Error(
-					'noVNC module not available — check /vendor/novnc/ is present',
+					`noVNC module failed to load: ${vendorErr instanceof Error ? vendorErr.message : 'unknown error'}`,
 				);
 			}
 		}

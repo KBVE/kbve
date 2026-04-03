@@ -624,6 +624,7 @@ fn run_bevy_app(
     );
 
     // Handle new client connections (mark as pending auth)
+    app.add_observer(handle_new_link);
     app.add_observer(handle_new_connection);
 
     // Debug observers for connection lifecycle
@@ -1150,6 +1151,25 @@ fn server_debug_netcode_collection(
 
 /// When a new client connects (Netcode handshake complete), add ReplicationSender
 /// so lightyear can replicate entities to this client, and mark as pending authentication.
+/// When a client's link is established (LinkOf added), add ReplicationSender
+/// so lightyear can replicate entities to this client.
+/// This follows the standard lightyear example pattern:
+///   On<Add, LinkOf>  → ReplicationSender
+///   On<Add, Connected> → player entity / auth
+fn handle_new_link(trigger: On<Add, LinkOf>, mut commands: Commands) {
+    let client_entity = trigger.entity;
+    tracing::info!("[gameserver] NEW LINK — entity {client_entity:?}, adding ReplicationSender");
+    commands
+        .entity(client_entity)
+        .insert(ReplicationSender::new(
+            REPLICATION_SEND_INTERVAL,
+            SendUpdatesMode::SinceLastAck,
+            false,
+        ));
+}
+
+/// When a client's netcode handshake completes (Connected added), mark as
+/// pending authentication and record connect time.
 fn handle_new_connection(
     trigger: On<Add, Connected>,
     mut commands: Commands,
@@ -1175,16 +1195,10 @@ fn handle_new_connection(
         );
     }
 
-    commands.entity(client_entity).insert((
-        PendingAuth,
-        ConnectedAt(time.elapsed_secs()),
-        ReplicationSender::new(
-            REPLICATION_SEND_INTERVAL,
-            SendUpdatesMode::SinceLastAck,
-            false,
-        ),
-    ));
-    tracing::info!("[gameserver] PendingAuth + ReplicationSender inserted for {client_entity:?}");
+    commands
+        .entity(client_entity)
+        .insert((PendingAuth, ConnectedAt(time.elapsed_secs())));
+    tracing::info!("[gameserver] PendingAuth inserted for {client_entity:?}");
 }
 
 /// Encode the current game hour as a millihour challenge value.

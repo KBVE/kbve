@@ -3,27 +3,29 @@ import { useStore } from '@nanostores/react';
 import { vmService } from './vmService';
 import { X, Maximize2, Minimize2, Keyboard } from 'lucide-react';
 
-// Guacamole client — dynamically imported at runtime.
-// The package is externalized in vite config to avoid bundling issues.
-// Only loaded when the Guacamole viewer is actually opened.
+// Guacamole client — loaded from vendored ESM in public/vendor/guacamole/.
+// Externalized from Rollup build; npm fallback for dev mode only.
 let Guacamole: any = null;
 async function loadGuacamole() {
 	if (!Guacamole) {
 		try {
-			// Try vendored ESM first
+			// Primary: vendored ESM served as static asset
 			const vendorUrl = `${window.location.origin}/vendor/guacamole/guacamole-common.js`;
 			const mod = await import(/* @vite-ignore */ vendorUrl);
 			Guacamole = mod.default ?? mod;
-		} catch {
+		} catch (vendorErr) {
+			console.warn('Guacamole vendored ESM failed:', vendorErr);
 			try {
-				// Fallback: npm package (dev mode)
+				// Fallback: npm package (dev mode only)
 				const mod = await import(
 					/* @vite-ignore */ 'guacamole-common-js'
 				);
 				Guacamole = mod.default ?? mod;
-			} catch {
+			} catch (npmErr) {
+				console.error('Guacamole load failed (vendored):', vendorErr);
+				console.error('Guacamole load failed (npm):', npmErr);
 				throw new Error(
-					'RDP not available — Guacamole server is not deployed. Deploy via ArgoCD (kubevirt-guacamole app).',
+					`Guacamole client failed to load: ${vendorErr instanceof Error ? vendorErr.message : 'check /vendor/guacamole/ is present'}`,
 				);
 			}
 		}

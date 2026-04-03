@@ -184,7 +184,7 @@ Start with Option A (MMDS) — sufficient for request/response workloads. Gradua
 - [x] Kubernetes manifests (deployment, service, PVC, NetworkPolicy)
 - [ ] Health check endpoint
 
-### Phase 2: Core API & Integration (current)
+### Phase 2: Core API & Integration (complete)
 
 - [ ] VM lifecycle API (create, status, result, delete)
 - [ ] MMDS-based stdin/stdout communication
@@ -195,12 +195,12 @@ Start with Option A (MMDS) — sufficient for request/response workloads. Gradua
 - [x] Documentation: edge.mdx expanded with Firecracker design
 - [x] Documentation: kubernetes.mdx Firecracker reference section
 
-### Phase 3: Integration
+### Phase 3: Integration (current)
 
-- [ ] Wire edge function → Firecracker for a test workload
-- [ ] E2E tests
-- [ ] Monitoring (VM count, boot latency, memory usage → ClickHouse)
-- [ ] KEDA autoscaling based on VM queue depth
+- [x] Wire edge function → Firecracker via OWS module (`ows/firecracker.ts`)
+- [x] E2E tests (`edge-e2e/e2e/firecracker.spec.ts`)
+- [x] ClickHouse schema (`firecracker.vm_events` + `vm_stats_1m` materialized view)
+- [x] KEDA ScaledObject (cron + CPU-based autoscaling, scale-to-zero)
 
 ### Phase 4: Production
 
