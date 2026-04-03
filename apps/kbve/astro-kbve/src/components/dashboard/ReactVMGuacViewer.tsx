@@ -95,6 +95,7 @@ export default function ReactVMGuacViewer() {
 				});
 				resizeObserver.observe(target);
 
+				let didConnect = false;
 				client.onstatechange = (state: number) => {
 					switch (state) {
 						case 0: // IDLE
@@ -102,12 +103,15 @@ export default function ReactVMGuacViewer() {
 							setConnected(false);
 							break;
 						case 1: // CONNECTING
-							setStatus('Connecting...');
+							setStatus('Connecting to Guacamole...');
 							break;
 						case 2: // WAITING
-							setStatus('Waiting for server...');
+							setStatus(
+								'Waiting for Guacamole server — check it is deployed',
+							);
 							break;
 						case 3: // CONNECTED
+							didConnect = true;
 							setStatus(`Connected to ${guacTarget}`);
 							setConnected(true);
 							break;
@@ -115,15 +119,19 @@ export default function ReactVMGuacViewer() {
 							setStatus('Disconnecting...');
 							break;
 						case 5: // DISCONNECTED
-							setStatus('Disconnected');
 							setConnected(false);
+							setStatus(
+								didConnect
+									? 'Disconnected'
+									: 'Failed to connect — Guacamole may not be deployed or WebSocket tunnel unreachable',
+							);
 							break;
 					}
 				};
 
 				client.onerror = (error: { message?: string }) => {
 					setStatus(
-						`Error: ${error?.message ?? 'Connection failed'}`,
+						`Error: ${error?.message ?? 'Connection failed — check Guacamole deployment'}`,
 					);
 					setConnected(false);
 				};
