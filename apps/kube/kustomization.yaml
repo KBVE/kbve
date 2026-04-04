@@ -99,3 +99,5 @@ resources:
     - kubevirt/keda-application.yaml
     # File server — scale up to transfer files to VMs, scale down when done
     - kubevirt/file-server-application.yaml
+    # Guacamole — browser-based RDP gateway for Windows VMs
+    - kubevirt/guacamole-application.yaml
