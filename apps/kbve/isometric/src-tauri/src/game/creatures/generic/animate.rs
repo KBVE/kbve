@@ -8,6 +8,8 @@ use super::super::creature::{
     Creature, CreaturePoolIndex, CreatureState, SpriteData, SpriteHopState,
 };
 use super::super::sprite_material::SpriteAnimData;
+use super::behavior::CreatureIntent;
+use super::brain::CreatureBrain;
 use super::types::*;
 use crate::game::camera::IsometricCamera;
 use crate::game::terrain::TerrainMap;
@@ -31,6 +33,7 @@ pub fn animate_sprite_creatures(
             &CreaturePoolIndex,
             &mut SpriteCreatureMarker,
             Option<&CreatureShadowLink>,
+            Option<&mut CreatureBrain>,
         ),
         Without<IsometricCamera>,
     >,
@@ -45,7 +48,9 @@ pub fn animate_sprite_creatures(
     let cam_pos = cam_tf.translation;
     let center = scene_center(cam_pos);
 
-    for (mut tf, mut cr, mut sd, mut vis, pool_idx, mut marker, shadow) in &mut creature_q {
+    for (mut tf, mut cr, mut sd, mut vis, pool_idx, mut marker, shadow, mut brain) in
+        &mut creature_q
+    {
         // Look up type descriptor
         let Some(ctype) = types.types.iter().find(|ct| ct.npc_ref == marker.type_key) else {
             continue;
@@ -130,71 +135,107 @@ pub fn animate_sprite_creatures(
                 tf.translation = cr.anchor;
                 *timer -= dt;
 
-                if *timer <= 0.0 {
+                // Check for behavior tree intent first
+                let brain_intent = brain.as_mut().and_then(|b| {
+                    let intent = std::mem::take(&mut b.intent);
+                    if matches!(intent, CreatureIntent::None) {
+                        None
+                    } else {
+                        Some(intent)
+                    }
+                });
+
+                // Use brain intent if available, otherwise fall back to
+                // probability rolls when idle timer expires.
+                let resolved_intent = if let Some(intent) = brain_intent {
+                    Some(intent)
+                } else if *timer <= 0.0 {
+                    // Legacy fallback: probability-weighted behavior
                     marker.patrol_step = marker.patrol_step.wrapping_add(1);
                     let ps = patrol_seed(cr.slot_seed, marker.patrol_step, cseed);
                     let roll = hash_f32(ps);
 
-                    // Find matching behavior
-                    let action = ctype
+                    ctype
                         .behavior
                         .choices
                         .iter()
                         .find(|c| roll < c.threshold)
-                        .map(|c| &c.action);
+                        .map(|c| {
+                            legacy_action_to_intent(&c.action, ps, cr.anchor, &mut terrain, ctype)
+                        })
+                } else {
+                    None
+                };
 
-                    if let Some(action) = action {
-                        match action {
-                            BehaviorAction::Move {
-                                anim_name,
-                                min_dist,
-                                max_dist,
-                                speed,
-                            } => {
-                                let angle = hash_f32(ps + 100) * std::f32::consts::TAU;
-                                let run_dist =
-                                    min_dist + hash_f32(ps + 200) * (max_dist - min_dist);
-                                let target_x = cr.anchor.x + angle.cos() * run_dist;
-                                let target_z = cr.anchor.z + angle.sin() * run_dist;
-                                let target_ground = terrain.height_at_world(target_x, target_z);
-                                let target = Vec3::new(target_x, target_ground, target_z);
-                                let dx = target.x - cr.anchor.x;
-                                let dz = target.z - cr.anchor.z;
-
-                                // Update direction
-                                match &ctype.direction_model {
-                                    DirectionModel::Flip => {
-                                        sd.facing_left = (dx - dz) < 0.0;
-                                    }
-                                    DirectionModel::FourWay { quadrant_to_row } => {
-                                        let q = iso_quadrant(dx, dz) as usize;
-                                        marker.direction = quadrant_to_row[q];
-                                    }
+                if let Some(intent) = resolved_intent {
+                    match intent {
+                        CreatureIntent::MoveTo {
+                            target,
+                            speed,
+                            anim_name,
+                        } => {
+                            let dx = target.x - cr.anchor.x;
+                            let dz = target.z - cr.anchor.z;
+                            match &ctype.direction_model {
+                                DirectionModel::Flip => {
+                                    sd.facing_left = (dx - dz) < 0.0;
                                 }
-
-                                let anim_def = ctype.anims.find(anim_name);
-                                set_anim(&mut sd, &mut marker, &anim_def);
-                                marker.active_move_speed = *speed;
-                                state = SpriteHopState::Airborne {
-                                    start: cr.anchor,
-                                    target,
-                                    progress: 0.0,
-                                };
+                                DirectionModel::FourWay { quadrant_to_row } => {
+                                    let q = iso_quadrant(dx, dz) as usize;
+                                    marker.direction = quadrant_to_row[q];
+                                }
                             }
-                            BehaviorAction::Emote { anim_name, repeat } => {
-                                let anim_def = ctype.anims.find(anim_name);
-                                set_anim(&mut sd, &mut marker, &anim_def);
-                                state = SpriteHopState::Emote {
-                                    remaining_frames: anim_def.frame_count * repeat,
-                                };
-                            }
-                            BehaviorAction::ExtendedIdle { repeat } => {
-                                set_anim(&mut sd, &mut marker, &ctype.anims.idle);
-                                state = SpriteHopState::Emote {
-                                    remaining_frames: ctype.anims.idle.frame_count * repeat,
-                                };
-                            }
+                            let anim_def = ctype.anims.find(anim_name);
+                            set_anim(&mut sd, &mut marker, &anim_def);
+                            marker.active_move_speed = speed;
+                            state = SpriteHopState::Airborne {
+                                start: cr.anchor,
+                                target,
+                                progress: 0.0,
+                            };
                         }
+                        CreatureIntent::Flee {
+                            direction,
+                            speed,
+                            anim_name,
+                        } => {
+                            let flee_dist = 6.0;
+                            let target = Vec3::new(
+                                cr.anchor.x + direction.x * flee_dist,
+                                cr.anchor.y,
+                                cr.anchor.z + direction.z * flee_dist,
+                            );
+                            let dx = target.x - cr.anchor.x;
+                            let dz = target.z - cr.anchor.z;
+                            match &ctype.direction_model {
+                                DirectionModel::Flip => {
+                                    sd.facing_left = (dx - dz) < 0.0;
+                                }
+                                DirectionModel::FourWay { quadrant_to_row } => {
+                                    let q = iso_quadrant(dx, dz) as usize;
+                                    marker.direction = quadrant_to_row[q];
+                                }
+                            }
+                            let anim_def = ctype.anims.find(anim_name);
+                            set_anim(&mut sd, &mut marker, &anim_def);
+                            marker.active_move_speed = speed;
+                            state = SpriteHopState::Airborne {
+                                start: cr.anchor,
+                                target,
+                                progress: 0.0,
+                            };
+                        }
+                        CreatureIntent::Emote { anim_name, repeat } => {
+                            let anim_def = ctype.anims.find(anim_name);
+                            set_anim(&mut sd, &mut marker, &anim_def);
+                            state = SpriteHopState::Emote {
+                                remaining_frames: anim_def.frame_count * repeat,
+                            };
+                        }
+                        CreatureIntent::SetIdle { duration } => {
+                            state = SpriteHopState::Idle { timer: duration };
+                        }
+                        CreatureIntent::None => {}
                     }
                 }
             }
@@ -426,5 +467,43 @@ fn hide_shadow(
             bs.anchor.y = -100.0;
             *sv = Visibility::Hidden;
         }
+    }
+}
+
+/// Convert a legacy `BehaviorAction` to a `CreatureIntent` (fallback path for
+/// creatures without a behavior tree).
+fn legacy_action_to_intent(
+    action: &BehaviorAction,
+    ps: u32,
+    anchor: Vec3,
+    terrain: &mut TerrainMap,
+    ctype: &SpriteCreatureType,
+) -> CreatureIntent {
+    match action {
+        BehaviorAction::Move {
+            anim_name,
+            min_dist,
+            max_dist,
+            speed,
+        } => {
+            let angle = hash_f32(ps + 100) * std::f32::consts::TAU;
+            let run_dist = min_dist + hash_f32(ps + 200) * (max_dist - min_dist);
+            let target_x = anchor.x + angle.cos() * run_dist;
+            let target_z = anchor.z + angle.sin() * run_dist;
+            let target_ground = terrain.height_at_world(target_x, target_z);
+            CreatureIntent::MoveTo {
+                target: Vec3::new(target_x, target_ground, target_z),
+                speed: *speed,
+                anim_name,
+            }
+        }
+        BehaviorAction::Emote { anim_name, repeat } => CreatureIntent::Emote {
+            anim_name,
+            repeat: *repeat,
+        },
+        BehaviorAction::ExtendedIdle { repeat } => CreatureIntent::Emote {
+            anim_name: "idle",
+            repeat: *repeat,
+        },
     }
 }

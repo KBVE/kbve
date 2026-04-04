@@ -1,5 +1,6 @@
 //! Creature type descriptors — the data that drives the generic system.
 
+use super::behavior::BehaviorNode;
 use super::types::*;
 
 /// Build all sprite creature type descriptors.
@@ -71,11 +72,47 @@ fn boar() -> SpriteCreatureType {
                 },
             ],
         },
+        behavior_tree: Some(boar_tree()),
+        physics_lod: Some(super::physics_lod::PhysicsLodConfig {
+            kinematic_radius: 8.0,
+            sensor_radius: 16.0,
+            collider_radius: 0.5,
+            collider_half_height: 0.4,
+        }),
     }
 }
 
+fn boar_tree() -> BehaviorNode {
+    BehaviorNode::Selector(vec![
+        // Flee if player too close
+        BehaviorNode::Sequence(vec![
+            BehaviorNode::PlayerNearby { radius: 5.0 },
+            BehaviorNode::Flee {
+                speed: 4.5,
+                anim: "run",
+            },
+        ]),
+        // Normal ambient behavior
+        BehaviorNode::Selector(vec![
+            BehaviorNode::Chance {
+                probability: 0.4,
+                child: Box::new(BehaviorNode::Wander {
+                    min_dist: 2.0,
+                    max_dist: 5.0,
+                    speed: 3.5,
+                    anim: "run",
+                }),
+            },
+            BehaviorNode::Idle {
+                min: 3.0,
+                max: 10.0,
+            },
+        ]),
+    ])
+}
+
 // ---------------------------------------------------------------------------
-// Badger: 4-directional, 5 anims (idle + walk + burrow + unburrow + tunnel),
+// Badger: 4-directional, 5 anims (idle + walk + burrow + unburrow),
 // always visible, slow walker with burrowing emotes
 // ---------------------------------------------------------------------------
 
@@ -161,5 +198,7 @@ fn badger() -> SpriteCreatureType {
                 },
             ],
         },
+        behavior_tree: None,
+        physics_lod: None,
     }
 }
