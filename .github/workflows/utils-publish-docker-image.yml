@@ -51,6 +51,17 @@ jobs:
             packages: write
 
         steps:
+            - name: Free disk space
+              uses: jlumbroso/free-disk-space@main
+              with:
+                  tool-cache: false
+                  android: true
+                  dotnet: true
+                  haskell: true
+                  large-packages: false
+                  swap-storage: false
+                  docker-images: true
+
             - name: Checkout Repository
               uses: actions/checkout@v6
               continue-on-error: true
