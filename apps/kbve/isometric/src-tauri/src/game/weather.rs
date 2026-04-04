@@ -43,7 +43,7 @@ impl Default for DayCycle {
 }
 
 /// Sun arc parameters derived from game hour.
-struct SunParams {
+pub(crate) struct SunParams {
     /// Direction the light points (normalized, toward ground).
     direction: Vec3,
     /// Direct light illuminance (lux).
@@ -55,12 +55,12 @@ struct SunParams {
     /// Ambient color.
     ambient_color: Color,
     /// 0.0 at night, 1.0 at zenith — used to tint unlit materials.
-    sun_height: f32,
+    pub(crate) sun_height: f32,
 }
 
 /// Compute sun parameters for a given game hour.
 /// Sun rises ~6:00, peaks ~12:00, sets ~18:00. Night 20:00–4:00.
-fn sun_params(hour: f32) -> SunParams {
+pub(crate) fn sun_params(hour: f32) -> SunParams {
     // Sun elevation: 0 at horizon, π/2 at zenith
     // Maps 6:00=sunrise, 12:00=zenith, 18:00=sunset
     // Outside 5:00–19:00 the sun is below horizon
@@ -574,6 +574,7 @@ fn tint_boars_for_daynight(
     }
 }
 
+
 /// Copy the current DayCycle hour and server creature seed into the shared GameTime resource.
 /// Creature modules read GameTime instead of DayCycle directly.
 fn sync_game_time(
@@ -793,6 +794,8 @@ impl Plugin for WeatherPlugin {
                 tint_wolves_for_daynight.run_if(resource_changed::<DayCycle>),
                 tint_stags_for_daynight.run_if(resource_changed::<DayCycle>),
                 tint_boars_for_daynight.run_if(resource_changed::<DayCycle>),
+                super::creatures::generic::tint::tint_sprite_creatures
+                    .run_if(resource_changed::<DayCycle>),
                 update_blob_shadows.run_if(any_with_component::<BlobShadow>),
                 animate_veg_wind.run_if(any_with_component::<WindSway>),
                 animate_tree_wind.run_if(any_with_component::<TreeWindSway>),

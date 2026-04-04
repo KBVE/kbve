@@ -82,6 +82,28 @@ pub const BADGE_OFFLINE: Color = Color::srgba(0.5, 0.5, 0.55, 0.8);
 pub const BADGE_LOADING: Color = Color::srgba(0.95, 0.75, 0.2, 0.9);
 
 // ---------------------------------------------------------------------------
+// Toast severity accents (left border stripe)
+// ---------------------------------------------------------------------------
+
+/// Info toast accent.
+pub const TOAST_INFO: Color = Color::srgba(0.3, 0.7, 1.0, 1.0);
+
+/// Success toast accent.
+pub const TOAST_SUCCESS: Color = Color::srgba(0.3, 0.85, 0.45, 1.0);
+
+/// Warning toast accent.
+pub const TOAST_WARNING: Color = Color::srgba(0.95, 0.75, 0.2, 1.0);
+
+/// Error toast accent.
+pub const TOAST_ERROR: Color = Color::srgba(0.95, 0.3, 0.3, 1.0);
+
+/// Loot toast accent (golden).
+pub const TOAST_LOOT: Color = Color::srgba(0.85, 0.72, 0.25, 1.0);
+
+/// Toast panel background.
+pub const TOAST_BG: Color = Color::srgba(0.06, 0.07, 0.10, 0.92);
+
+// ---------------------------------------------------------------------------
 // Misc
 // ---------------------------------------------------------------------------
 

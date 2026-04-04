@@ -284,7 +284,7 @@ export default function ReactCHLogStream() {
 					<span>
 						Showing {logs.rows.length} of {logs.count} results
 					</span>
-					<span>Source: observability.logs_raw</span>
+					<span>Source: observability.logs_distributed</span>
 				</div>
 			)}
 		</>

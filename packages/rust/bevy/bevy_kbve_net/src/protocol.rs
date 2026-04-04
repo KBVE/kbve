@@ -182,6 +182,46 @@ pub struct CreatureCaptured {
     pub captor_player_id: u64,
 }
 
+// ---------------------------------------------------------------------------
+// Creature interaction messages
+// ---------------------------------------------------------------------------
+
+/// Client requests to attack/interact with a creature.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct CreatureAttackRequest {
+    /// NPC ref string (e.g. "wild-boar") to identify the creature type.
+    pub npc_ref: String,
+    /// Pool index of the targeted creature.
+    pub creature_index: u32,
+    /// Damage amount (server validates).
+    pub damage: f32,
+}
+
+/// Server broadcasts a creature state correction to all clients.
+/// Overrides local deterministic behavior when external events occur.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct CreatureStateEvent {
+    /// NPC ref string identifying the creature type.
+    pub npc_ref: String,
+    /// Pool index of the affected creature.
+    pub creature_index: u32,
+    /// What happened to the creature.
+    pub event: CreatureEventKind,
+}
+
+/// The kind of state correction for a creature.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub enum CreatureEventKind {
+    /// Creature took damage. Client should trigger flee/flinch behavior.
+    TakeDamage { amount: f32, attacker_id: u64 },
+    /// Creature died. Client should play death animation and despawn.
+    Die,
+    /// Creature forced to flee from a position (e.g. AoE, loud noise).
+    ForceFlee { from_x: f32, from_z: f32 },
+    /// Creature was captured by a player.
+    Captured { by_player_id: u64 },
+}
+
 /// Unreliable sequenced channel for time sync (avoids clogging ordered-reliable GameChannel).
 pub struct TimeChannel;
 
@@ -256,6 +296,13 @@ impl Plugin for ProtocolPlugin {
             .add_direction(NetworkDirection::ClientToServer);
         // CreatureCaptured: server → all clients
         app.register_message::<CreatureCaptured>()
+            .add_direction(NetworkDirection::ServerToClient);
+
+        // CreatureAttackRequest: client → server
+        app.register_message::<CreatureAttackRequest>()
+            .add_direction(NetworkDirection::ClientToServer);
+        // CreatureStateEvent: server → all clients (determinism corrections)
+        app.register_message::<CreatureStateEvent>()
             .add_direction(NetworkDirection::ServerToClient);
 
         // --- Replicated components (custom game components) ---

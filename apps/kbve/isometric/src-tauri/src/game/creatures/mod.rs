@@ -4,6 +4,7 @@ pub mod common;
 pub mod creature;
 mod firefly;
 mod frog;
+pub mod generic;
 pub mod sprite_material;
 mod stag;
 mod wolf;
@@ -77,6 +78,12 @@ impl Plugin for CreaturesPlugin {
         app.init_resource::<StagAtlasResources>();
         app.init_resource::<BoarAtlasResources>();
         app.init_resource::<firefly::FireflyState>();
+
+        // --- Generic sprite creature system ---
+        app.insert_resource(generic::definitions::build_sprite_creature_types());
+        app.init_resource::<generic::SpriteAtlasPool>();
+        app.init_resource::<generic::physics_lod::PhysicsLodTimer>();
+
         app.add_systems(Startup, setup_creature_meshes);
 
         // --- Per-type systems ---
@@ -108,9 +115,21 @@ impl Plugin for CreaturesPlugin {
                 // Stags (SpriteAtlasMaterial + SSBO, 4-directional, daytime)
                 stag::spawn_stags.run_if(|pool: Res<CreaturePool>| !pool.stags_spawned),
                 stag::animate_stags.run_if(any_with_component::<stag::StagMarker>),
-                // Boars (SpriteAtlasMaterial + SSBO, 4-directional)
-                boar::spawn_boars.run_if(|pool: Res<CreaturePool>| !pool.boars_spawned),
-                boar::animate_boars.run_if(any_with_component::<boar::BoarMarker>),
+                // --- Generic sprite creatures (boar + badger) ---
+                generic::spawn::spawn_sprite_creatures,
+                generic::brain::dispatch_behavior_trees
+                    .after(generic::spawn::spawn_sprite_creatures)
+                    .run_if(any_with_component::<generic::CreatureBrain>),
+                generic::brain::poll_behavior_results
+                    .after(generic::brain::dispatch_behavior_trees)
+                    .run_if(any_with_component::<generic::CreatureBrain>),
+                generic::animate::animate_sprite_creatures
+                    .after(generic::brain::poll_behavior_results)
+                    .run_if(any_with_component::<generic::SpriteCreatureMarker>),
+                generic::physics_lod::update_physics_lod
+                    .run_if(any_with_component::<generic::PhysicsLod>),
+                // Networked creature event corrections
+                generic::net_events::receive_creature_events,
             ),
         );
     }
