@@ -16,17 +16,13 @@
 //! https://darkpixel-kronovi.itch.io/undead-executioner
 
 use bevy::asset::RenderAssetUsages;
-use bevy::mesh::{Indices, MeshTag, PrimitiveTopology};
+use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
-use bevy::render::storage::ShaderStorageBuffer;
 
-use super::common::{CreaturePool, GameTime, day_factor, hash_f32, scene_center};
+use super::common::{CreaturePool, GameTime, hash_f32, scene_center};
 use super::creature::{
     Creature, CreaturePoolIndex, CreatureRegistry, CreatureState, RenderKind, SpriteData,
     SpriteHopState,
-};
-use super::sprite_material::{
-    SpriteInstanceData, SpriteSheetMaterial, SpriteTypeResources, flush_sprite_buffer,
 };
 use crate::game::camera::IsometricCamera;
 use crate::game::terrain::TerrainMap;
@@ -100,18 +96,9 @@ const ANIM_SUMMON: Anim = Anim {
 // WraithMaterials — exposed for day/night tinting in weather.rs
 // ---------------------------------------------------------------------------
 
-#[derive(Resource)]
-pub struct WraithSpriteResources(pub SpriteTypeResources);
-
-impl Default for WraithSpriteResources {
-    fn default() -> Self {
-        Self(SpriteTypeResources {
-            material: Handle::default(),
-            storage_buffer: Handle::default(),
-            mesh: Handle::default(),
-            instances: Vec::new(),
-        })
-    }
+#[derive(Resource, Default)]
+pub struct WraithMaterials {
+    pub handles: Vec<Handle<StandardMaterial>>,
 }
 
 // ---------------------------------------------------------------------------
@@ -137,7 +124,12 @@ fn build_wraith_quad() -> Mesh {
     .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0.0, 0.0, 1.0]; 4])
     .with_inserted_attribute(
         Mesh::ATTRIBUTE_UV_0,
-        vec![[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]],
+        vec![
+            [0.0, 0.0],
+            [FRAME_W, 0.0],
+            [FRAME_W, FRAME_H],
+            [0.0, FRAME_H],
+        ],
     )
     .with_inserted_indices(Indices::U32(vec![0, 2, 1, 0, 3, 2]))
 }
@@ -163,11 +155,10 @@ fn frame_uvs(anim: &Anim, frame: u32, flip: bool) -> [[f32; 2]; 4] {
 pub(super) fn spawn_wraiths(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut sprite_materials: ResMut<Assets<SpriteSheetMaterial>>,
-    mut buffers: ResMut<Assets<ShaderStorageBuffer>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
     mut pool: ResMut<CreaturePool>,
-    mut wraith_res: ResMut<WraithSpriteResources>,
+    mut wraith_mats: ResMut<WraithMaterials>,
     registry: Res<CreatureRegistry>,
 ) {
     if pool.wraiths_spawned {
@@ -189,34 +180,19 @@ pub(super) fn spawn_wraiths(
         asset_server.load("textures/creatures/wraith/wraith_executioner.png");
     let wraith_mesh = meshes.add(build_wraith_quad());
 
-    // Pre-fill instance data
-    let instances: Vec<SpriteInstanceData> = (0..count)
-        .map(|_| SpriteInstanceData {
-            sheet_cols: SHEET_COLS as f32,
-            sheet_rows: SHEET_ROWS as f32,
-            alpha_cutoff: 0.1, // wraiths use blend, low cutoff
-            ..Default::default()
-        })
-        .collect();
-
-    let initial_data: Vec<[f32; 4]> = instances.iter().flat_map(|inst| inst.to_floats()).collect();
-    let storage_handle = buffers.add(ShaderStorageBuffer::from(initial_data));
-
-    let material_handle = sprite_materials.add(SpriteSheetMaterial {
-        instance_data: storage_handle.clone(),
-        texture,
-    });
-
-    wraith_res.0 = SpriteTypeResources {
-        material: material_handle.clone(),
-        storage_buffer: storage_handle,
-        mesh: wraith_mesh.clone(),
-        instances,
-    };
-
     for i in 0..count {
         let seed = (i as u32).wrapping_add(7700);
         let phase = hash_f32(seed * 11 + 1);
+
+        let mat = materials.add(StandardMaterial {
+            base_color_texture: Some(texture.clone()),
+            alpha_mode: AlphaMode::Blend,
+            cull_mode: None,
+            double_sided: true,
+            unlit: true,
+            ..default()
+        });
+        wraith_mats.handles.push(mat.clone());
 
         let idle_timer = IDLE_MIN + hash_f32(seed * 53 + 11) * (IDLE_MAX - IDLE_MIN);
         let frame_duration = FRAME_DURATION_BASE * (0.8 + hash_f32(seed * 79 + 17) * 0.4);
@@ -224,8 +200,7 @@ pub(super) fn spawn_wraiths(
 
         commands.spawn((
             Mesh3d(wraith_mesh.clone()),
-            MeshMaterial3d(material_handle.clone()),
-            MeshTag(i as u32),
+            MeshMaterial3d(mat.clone()),
             Transform::from_xyz(0.0, -100.0, 0.0),
             Visibility::Hidden,
             Creature {
@@ -236,7 +211,7 @@ pub(super) fn spawn_wraiths(
                 assigned_slot: None,
                 anchor: Vec3::new(0.0, -100.0, 0.0),
                 phase,
-                mat_handle: Handle::default(),
+                mat_handle: mat,
             },
             SpriteData {
                 frame_timer: hash_f32(seed * 83 + 13) * frame_duration,
@@ -254,7 +229,7 @@ pub(super) fn spawn_wraiths(
         ));
     }
 
-    info!("[wraith] spawned {count} entities (instanced)");
+    info!("[wraith] spawned {count} entities");
 }
 
 /// Wraith-specific component: marker + deterministic patrol counter.
@@ -280,15 +255,14 @@ pub(super) fn animate_wraiths(
     game_time: Res<GameTime>,
     mut terrain: ResMut<TerrainMap>,
     camera_q: Query<&Transform, With<IsometricCamera>>,
-    mut buffers: ResMut<Assets<ShaderStorageBuffer>>,
-    mut wraith_res: ResMut<WraithSpriteResources>,
+    mut meshes: ResMut<Assets<Mesh>>,
     mut wraith_q: Query<
         (
             &mut Transform,
             &mut Creature,
             &mut SpriteData,
             &mut Visibility,
-            &CreaturePoolIndex,
+            &Mesh3d,
             &mut WraithMarker,
         ),
         Without<IsometricCamera>,
@@ -304,7 +278,7 @@ pub(super) fn animate_wraiths(
     let cam_pos = cam_tf.translation;
     let center = scene_center(cam_pos);
 
-    for (mut tf, mut cr, mut sd, mut vis, pool_idx, mut wm) in &mut wraith_q {
+    for (mut tf, mut cr, mut sd, mut vis, mesh_handle, mut wm) in &mut wraith_q {
         // Relocate if too far or below world
         let dist = Vec2::new(cr.anchor.x - center.x, cr.anchor.z - center.z).length();
         if dist > RECYCLE_DIST || cr.anchor.y < -50.0 {
@@ -496,18 +470,15 @@ pub(super) fn animate_wraiths(
         }
         sd.hop_state = state;
 
-        // Update per-instance sprite data in storage buffer
-        let idx = pool_idx.0 as usize;
-        if idx < wraith_res.0.instances.len() {
-            let col = (sd.current_frame % SHEET_COLS) as f32;
-            let row = sd.anim_row as f32;
-            wraith_res.0.instances[idx].frame_col = col;
-            wraith_res.0.instances[idx].frame_row = row;
-            wraith_res.0.instances[idx].flip = if sd.facing_left { 1.0 } else { 0.0 };
-            // Wraiths: ghostly during day, full opacity at night
-            let night = 1.0 - day_factor(game_time.hour);
-            let alpha = 0.3 + night * 0.7;
-            wraith_res.0.instances[idx].tint = [0.7, 0.6, 0.9, alpha];
+        // Update UVs for current frame
+        let anim = Anim {
+            row: sd.anim_row,
+            start_col: 0,
+            frame_count: sd.anim_frames,
+        };
+        let uvs = frame_uvs(&anim, sd.current_frame, sd.facing_left);
+        if let Some(mesh) = meshes.get_mut(mesh_handle.0.id()) {
+            mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, vec![uvs[0], uvs[1], uvs[2], uvs[3]]);
         }
 
         // Billboard: face camera
@@ -528,7 +499,4 @@ pub(super) fn animate_wraiths(
 
         *vis = Visibility::Visible;
     }
-
-    // Flush all instance data to GPU
-    flush_sprite_buffer(&wraith_res.0, &mut buffers);
 }

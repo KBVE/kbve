@@ -6,7 +6,7 @@ use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 
 use super::camera::IsometricCamera;
-use super::creatures::GameTime;
+use super::creatures::{FrogMaterials, GameTime, WraithMaterials};
 use super::net::ServerTime;
 use super::tilemap::TileMaterials;
 use super::trees::TreeWindSway;
@@ -457,13 +457,59 @@ fn tint_trees_for_daynight(
     }
 }
 
-// Frog day/night tinting is now handled in animate_frogs via the
-// per-instance storage buffer (SpriteInstanceData.tint). No separate
-// weather system needed — the animate system applies df (day factor)
-// to each frog's tint every frame.
+/// Tint unlit frog materials based on time of day (same curve as trees).
+fn tint_frogs_for_daynight(
+    day: Res<DayCycle>,
+    frog_mats: Option<Res<FrogMaterials>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let Some(frog_mats) = frog_mats else {
+        return;
+    };
+    let params = sun_params(day.hour);
+    let h = params.sun_height;
 
-// Wraith day/night tinting is now handled in animate_wraiths via the
-// per-instance storage buffer (SpriteInstanceData.tint).
+    let r = 0.18 + h * 0.92;
+    let g = 0.20 + h * 0.90;
+    let b = 0.28 + h * 0.75;
+
+    for handle in &frog_mats.handles {
+        if let Some(mat) = materials.get_mut(handle) {
+            mat.base_color = Color::srgb(r, g, b);
+        }
+    }
+}
+
+/// Tint unlit wraith materials based on time of day (same curve as frogs).
+/// Wraiths are always visible: fully opaque at night, semi-transparent (ghostly) during day.
+fn tint_wraiths_for_daynight(
+    day: Res<DayCycle>,
+    wraith_mats: Option<Res<WraithMaterials>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let Some(wraith_mats) = wraith_mats else {
+        return;
+    };
+    let params = sun_params(day.hour);
+    let h = params.sun_height;
+
+    let r = 0.18 + h * 0.92;
+    let g = 0.20 + h * 0.90;
+    let b = 0.28 + h * 0.75;
+
+    // Ghostly transparency during daytime: fully opaque at night, semi-transparent at day
+    let alpha = if h < 0.01 {
+        1.0
+    } else {
+        0.35 + (1.0 - h) * 0.15
+    };
+
+    for handle in &wraith_mats.handles {
+        if let Some(mat) = materials.get_mut(handle) {
+            mat.base_color = Color::srgba(r, g, b, alpha);
+        }
+    }
+}
 
 /// Copy the current DayCycle hour and server creature seed into the shared GameTime resource.
 /// Creature modules read GameTime instead of DayCycle directly.
@@ -679,8 +725,8 @@ impl Plugin for WeatherPlugin {
                 sync_game_time.after(update_day_cycle),
                 update_sun_position,
                 tint_trees_for_daynight.run_if(resource_changed::<DayCycle>),
-                // Frog tinting now in animate_frogs via storage buffer
-                // Wraith tinting now in animate_wraiths via storage buffer
+                tint_frogs_for_daynight.run_if(resource_changed::<DayCycle>),
+                tint_wraiths_for_daynight.run_if(resource_changed::<DayCycle>),
                 update_blob_shadows.run_if(any_with_component::<BlobShadow>),
                 animate_veg_wind.run_if(any_with_component::<WindSway>),
                 animate_tree_wind.run_if(any_with_component::<TreeWindSway>),
