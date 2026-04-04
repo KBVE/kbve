@@ -1,74 +1,146 @@
-# macOS KubeVirt VM Setup — install Xcode + UE build deps
+# macOS KubeVirt VM Setup — install Xcode CLI Tools + UE build deps
 #
-# TODO(implement): This is a stub workflow for the macOS build pipeline.
 # Mirrors ci-ue-win-setup.yml but for macOS on KubeVirt.
 #
-# Prerequisites (not yet done):
-#   1. Provision macOS VM in KubeVirt (vm-macos-builder.yaml)
-#      - Upload BaseSystem.img via virtctl
-#      - Install macOS via VNC
-#      - Install GitHub Actions runner
-#   2. Apple hardware requirement — macOS VMs must run on Apple-branded hosts
-#      (Mac Pro, Mac Mini cluster node) per Apple EULA
-#   3. KEDA ScaledJob for UE5-Mac label already exists (scaled-jobs.yaml)
+# Prerequisites:
+#   1. macOS VM provisioned in KubeVirt (vm-macos-builder.yaml)
+#   2. Apple-branded hardware host (Mac Pro / Mac Mini per EULA)
+#   3. GitHub Actions runner installed in the VM (label: UE5-Mac)
+#   4. File-server scaled up with staged installers (see pre-req below)
 #
-# Pipeline (when implemented):
-#   Job 1 (Linux runner): Stage downloads via download-proxy
-#     - Xcode .xip (requires Apple Developer account)
-#     - Command Line Tools .dmg
-#     - UE5 source (from KBVE/UnrealEngine-Angelscript)
-#   Job 2 (macOS VM runner): Install from staged files
-#     - xip -x Xcode.xip
-#     - xcode-select --install
-#     - Build UE5 from source (GenerateProjectFiles + xcodebuild)
+# Pre-requisite: stage installers on the file-server pod before dispatching.
+# From your local machine (with kubectl access):
+#   kubectl scale deploy file-server -n angelscript --replicas=1
+#   kubectl wait --for=condition=ready pod -l app=file-server -n angelscript --timeout=120s
+#   POD=$(kubectl get pods -n angelscript -l app=file-server -o jsonpath='{.items[0].metadata.name}')
+#   kubectl exec -n angelscript $POD -- wget -q -O /shared/CommandLineTools.pkg "https://developer.apple.com/..."
 #
-# Challenges:
-#   - Xcode requires Apple ID auth for download (~13GB)
-#   - macOS VMs need GPU passthrough for Metal shader compilation
-#   - KubeVirt macOS networking uses same masquerade NAT (download-proxy needed)
-#   - OSX-KVM approach needs specific CPU feature flags (already in VM manifest)
+# NOTE: Xcode .xip download requires Apple Developer session cookie.
+# Stage it manually or use xcodes CLI (https://github.com/XcodesOrg/xcodes).
 
 name: UE Mac Setup
+
 on:
+    workflow_call: {}
     workflow_dispatch:
         inputs:
-            xcode_version:
-                description: 'Xcode version (e.g. 16.2)'
-                required: false
-                default: '16.2'
+            install_cli_tools:
+                description: 'Install Xcode Command Line Tools'
+                type: boolean
+                default: true
+            install_homebrew:
+                description: 'Install Homebrew package manager'
+                type: boolean
+                default: true
+            install_cmake:
+                description: 'Install CMake'
+                type: boolean
+                default: true
+            install_python:
+                description: 'Install Python 3'
+                type: boolean
+                default: true
+
 jobs:
-    stub:
-        name: macOS Setup (not yet implemented)
-        runs-on: ubuntu-latest
+    install:
+        name: Install on UE5-Mac
+        runs-on: UE5-Mac
+        env:
+            FILE_SERVER: http://file-server.angelscript.svc:8080
         steps:
-            - name: Stub
-              run: echo "macOS VM not yet provisioned — see workflow comments for implementation plan"
-# TODO: Uncomment and replace stub when macOS VM is provisioned
-#   stage-downloads:
-#     name: Stage Downloads
-#     runs-on: arc-runner-set
-#     steps:
-#       - name: Scale up download proxy
-#         run: kubectl scale deploy download-proxy -n angelscript --replicas=1
-#
-#       - name: Wait for proxy
-#         run: kubectl wait --for=condition=Ready pod -l app=download-proxy -n angelscript --timeout=60s
-#
-#       - name: Stage Xcode CLI Tools
-#         run: |
-#           # TODO: Download Command Line Tools from Apple
-#           # Requires Apple Developer session cookie or API token
-#           echo "Staging Xcode CLI tools..."
-#
-#   install:
-#     name: Install on macOS VM
-#     runs-on: UE5-Mac
-#     needs: stage-downloads
-#     steps:
-#       - name: Install from staged files
-#         run: |
-#           # TODO: Install from download-proxy
-#           # curl http://download-proxy.angelscript.svc:8080/CommandLineTools.dmg -o /tmp/CLT.dmg
-#           # hdiutil attach /tmp/CLT.dmg
-#           # installer -pkg /Volumes/Command\ Line\ Tools/CommandLineTools.pkg -target /
-#           echo "Installing build tools..."
+            - name: System Info
+              run: |
+                  echo "=== System Info ==="
+                  sw_vers
+                  sysctl -n machdep.cpu.brand_string
+                  echo "RAM: $(( $(sysctl -n hw.memsize) / 1073741824 )) GB"
+                  df -h /
+                  xcode-select -p 2>/dev/null && echo "Xcode CLT: installed" || echo "Xcode CLT: not installed"
+                  git --version
+
+            - name: Check file server reachable
+              run: |
+                  STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$FILE_SERVER/")
+                  if [ "$STATUS" != "200" ]; then
+                      echo "ERROR: File server not reachable (HTTP $STATUS)"
+                      echo "Scale up: kubectl scale deploy file-server -n angelscript --replicas=1"
+                      exit 1
+                  fi
+                  echo "File server reachable."
+
+            - name: Install Xcode Command Line Tools
+              if: inputs.install_cli_tools
+              timeout-minutes: 15
+              run: |
+                  if xcode-select -p &>/dev/null; then
+                      echo "Xcode CLT already installed at $(xcode-select -p), skipping."
+                      exit 0
+                  fi
+                  # Try staged .pkg from file server first
+                  if curl -sf "$FILE_SERVER/CommandLineTools.pkg" -o /tmp/CLT.pkg; then
+                      echo "Installing from staged package..."
+                      sudo installer -pkg /tmp/CLT.pkg -target /
+                      rm -f /tmp/CLT.pkg
+                  else
+                      # Fallback: trigger Apple's softwareupdate mechanism
+                      echo "No staged package found. Using softwareupdate..."
+                      touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+                      PROD=$(softwareupdate -l 2>&1 | grep -o '.*Command Line Tools.*' | head -1 | sed 's/^[* ]*//')
+                      if [ -n "$PROD" ]; then
+                          softwareupdate -i "$PROD" --verbose
+                      else
+                          echo "ERROR: Could not find CLT in softwareupdate catalog"
+                          exit 1
+                      fi
+                      rm -f /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+                  fi
+                  xcode-select -p && echo "CLT installed successfully."
+
+            - name: Install Homebrew
+              if: inputs.install_homebrew
+              timeout-minutes: 10
+              run: |
+                  if command -v brew &>/dev/null; then
+                      echo "Homebrew already installed, updating..."
+                      brew update
+                      exit 0
+                  fi
+                  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                  echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+                  eval "$(/opt/homebrew/bin/brew shellenv)"
+                  brew --version
+
+            - name: Install CMake
+              if: inputs.install_cmake
+              timeout-minutes: 5
+              run: |
+                  if command -v cmake &>/dev/null; then
+                      echo "CMake already installed: $(cmake --version | head -1)"
+                      exit 0
+                  fi
+                  eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || true)"
+                  brew install cmake
+                  cmake --version
+
+            - name: Install Python 3
+              if: inputs.install_python
+              timeout-minutes: 5
+              run: |
+                  if command -v python3 &>/dev/null; then
+                      echo "Python already installed: $(python3 --version)"
+                      exit 0
+                  fi
+                  eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || true)"
+                  brew install python@3.12
+                  python3 --version
+
+            - name: Verify installation
+              run: |
+                  echo "=== Verification ==="
+                  echo "CLT: $(xcode-select -p 2>/dev/null || echo 'NOT INSTALLED')"
+                  echo "Git: $(git --version)"
+                  echo "CMake: $(cmake --version 2>/dev/null | head -1 || echo 'NOT INSTALLED')"
+                  echo "Python: $(python3 --version 2>/dev/null || echo 'NOT INSTALLED')"
+                  echo "Brew: $(brew --version 2>/dev/null | head -1 || echo 'NOT INSTALLED')"
+                  echo "=== Disk space ==="
+                  df -h /
