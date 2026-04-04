@@ -157,98 +157,111 @@ export default function ReactVMVncViewer() {
 				overflow: 'hidden',
 				display: 'flex',
 				flexDirection: 'column',
+				height: fullscreen ? '100vh' : undefined,
 			}}>
-			{/* Toolbar */}
-			<div
-				style={{
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'space-between',
-					padding: '0.5rem 1rem',
-					background: 'var(--sl-color-gray-6, #161b22)',
-					borderBottom: '1px solid var(--sl-color-gray-5, #30363d)',
-				}}>
-				<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-					<span
-						style={{
-							width: 8,
-							height: 8,
-							borderRadius: '50%',
-							background: connected ? '#22c55e' : '#ef4444',
-							boxShadow: connected ? '0 0 6px #22c55e' : 'none',
-						}}
-					/>
-					<span
-						style={{
-							fontSize: '0.8rem',
-							color: 'var(--sl-color-text, #e6edf3)',
-							fontWeight: 500,
-						}}>
-						{status}
-					</span>
-				</div>
-				<div style={{ display: 'flex', gap: 4 }}>
-					{connected && (
-						<>
-							<ToolbarButton
-								title="Send Ctrl+Alt+Del"
-								onClick={sendCtrlAltDel}>
-								<span
-									style={{
-										fontSize: '0.6rem',
-										fontWeight: 700,
-									}}>
-									CAD
-								</span>
-							</ToolbarButton>
-							<ToolbarButton
-								title="Toggle keyboard"
-								onClick={toggleKeyboard}>
-								<Keyboard size={14} />
-							</ToolbarButton>
-						</>
-					)}
-					<ToolbarButton
-						title={fullscreen ? 'Exit fullscreen' : 'Fullscreen'}
-						onClick={() => setFullscreen(!fullscreen)}>
-						{fullscreen ? (
-							<Minimize2 size={14} />
-						) : (
-							<Maximize2 size={14} />
-						)}
-					</ToolbarButton>
-					<ToolbarButton
-						title="Close VNC"
-						onClick={() => vmService.closeVNC()}
-						color="#ef4444">
-						<X size={14} />
-					</ToolbarButton>
-				</div>
-			</div>
-
 			{/* noVNC renders into this container */}
 			<div
 				ref={viewerRef}
 				style={{
 					flex: 1,
 					minHeight: fullscreen ? undefined : 480,
+					height: fullscreen ? undefined : 480,
 					background: '#0a0a0a',
 					cursor: connected ? 'default' : 'not-allowed',
 				}}
 			/>
 
-			{/* Status bar */}
+			{/* Bottom toolbar — controls + status */}
 			<div
 				style={{
-					padding: '0.4rem 1rem',
 					borderTop: '1px solid var(--sl-color-gray-5, #30363d)',
-					fontSize: '0.65rem',
-					color: 'var(--sl-color-gray-3, #8b949e)',
-					textAlign: 'center',
+					background: 'var(--sl-color-gray-6, #161b22)',
+					flexShrink: 0,
 				}}>
-				{connected
-					? 'Click inside to capture keyboard · Ctrl+Alt+Del via toolbar'
-					: 'Waiting for VNC connection...'}
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'space-between',
+						padding: '0.5rem 1rem',
+					}}>
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 8,
+						}}>
+						<span
+							style={{
+								width: 8,
+								height: 8,
+								borderRadius: '50%',
+								background: connected ? '#22c55e' : '#ef4444',
+								boxShadow: connected
+									? '0 0 6px #22c55e'
+									: 'none',
+							}}
+						/>
+						<span
+							style={{
+								fontSize: '0.8rem',
+								color: 'var(--sl-color-text, #e6edf3)',
+								fontWeight: 500,
+							}}>
+							{status}
+						</span>
+					</div>
+					<div style={{ display: 'flex', gap: 4 }}>
+						{connected && (
+							<>
+								<ToolbarButton
+									title="Send Ctrl+Alt+Del"
+									onClick={sendCtrlAltDel}>
+									<span
+										style={{
+											fontSize: '0.6rem',
+											fontWeight: 700,
+										}}>
+										CAD
+									</span>
+								</ToolbarButton>
+								<ToolbarButton
+									title="Toggle keyboard"
+									onClick={toggleKeyboard}>
+									<Keyboard size={14} />
+								</ToolbarButton>
+							</>
+						)}
+						<ToolbarButton
+							title={
+								fullscreen ? 'Exit fullscreen' : 'Fullscreen'
+							}
+							onClick={() => setFullscreen(!fullscreen)}>
+							{fullscreen ? (
+								<Minimize2 size={14} />
+							) : (
+								<Maximize2 size={14} />
+							)}
+						</ToolbarButton>
+						<ToolbarButton
+							title="Close VNC"
+							onClick={() => vmService.closeVNC()}
+							color="#ef4444">
+							<X size={14} />
+						</ToolbarButton>
+					</div>
+				</div>
+				<div
+					style={{
+						padding: '0.25rem 1rem 0.4rem',
+						fontSize: '0.65rem',
+						color: 'var(--sl-color-gray-3, #8b949e)',
+						textAlign: 'center',
+					}}>
+					{connected
+						? 'Click inside to capture keyboard · Ctrl+Alt+Del via toolbar'
+						: 'Waiting for VNC connection...'}
+				</div>
 			</div>
 		</div>
 	);

@@ -9,14 +9,54 @@ spec:
             app: firecracker-ctl
     policyTypes:
         - Ingress
+        - Egress
     ingress:
+        # Edge functions (kilobase/functions) → firecracker-ctl API
         - from:
               - namespaceSelector:
                     matchLabels:
-                        app: kilobase
+                        kubernetes.io/metadata.name: kilobase
                 podSelector:
                     matchLabels:
                         app: functions
           ports:
               - protocol: TCP
                 port: 9001
+        # Dashboard proxy (kbve/app:kbve) → firecracker-ctl API
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: kbve
+                podSelector:
+                    matchLabels:
+                        app: kbve
+          ports:
+              - protocol: TCP
+                port: 9001
+    egress:
+        # DNS resolution (required for any service discovery)
+        - to:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: kube-system
+          ports:
+              - protocol: UDP
+                port: 53
+              - protocol: TCP
+                port: 53
+---
+# Default deny all traffic for any other pods in the firecracker namespace.
+# MicroVMs spawned by firecracker-ctl inherit the host network stack inside
+# the pod — this policy ensures they cannot reach cluster services.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: default-deny-all
+    namespace: firecracker
+spec:
+    podSelector: {}
+    policyTypes:
+        - Ingress
+        - Egress
+    # No ingress or egress rules = deny everything by default.
+    # The firecracker-ctl-ingress policy above adds explicit exceptions.
