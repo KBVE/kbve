@@ -13,7 +13,7 @@ use super::super::creature::{
 };
 use super::super::sprite_material::{SpriteAnimData, SpriteAtlasMaterial};
 use super::brain::CreatureBrain;
-use super::physics_lod::PhysicsLod;
+use super::physics_lod::{PhysicsLod, PlayerProximity};
 use super::types::*;
 use crate::game::weather::BlobShadowAssets;
 
@@ -167,7 +167,7 @@ pub fn spawn_sprite_creatures(
 
             // Add physics LOD (starts as Ghost — no physics components)
             if creature_type.physics_lod.is_some() {
-                entity.insert(PhysicsLod::Ghost);
+                entity.insert((PhysicsLod::Ghost, PlayerProximity::default()));
             }
 
             if let Some(se) = shadow_entity {

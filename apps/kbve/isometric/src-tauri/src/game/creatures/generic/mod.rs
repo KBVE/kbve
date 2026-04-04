@@ -13,5 +13,5 @@ pub mod tint;
 pub mod types;
 
 pub use brain::CreatureBrain;
-pub use physics_lod::PhysicsLod;
+pub use physics_lod::{PhysicsLod, PlayerProximity};
 pub use types::{CreatureShadowLink, SpriteAtlasPool, SpriteCreatureMarker, SpriteCreatureTypes};

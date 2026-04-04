@@ -28,6 +28,16 @@ pub enum PhysicsLod {
     Kinematic,
 }
 
+/// Cached player proximity data, updated by the physics LOD system.
+/// Read by the behavior tree dispatch to avoid re-querying players.
+#[derive(Component, Default)]
+pub struct PlayerProximity {
+    /// Distance to the nearest player (f32::MAX if no players).
+    pub distance: f32,
+    /// Direction from creature toward nearest player (unnormalized).
+    pub direction: Vec3,
+}
+
 /// Per-creature-type physics LOD configuration.
 #[derive(Clone, Debug)]
 pub struct PhysicsLodConfig {
@@ -74,7 +84,13 @@ pub fn update_physics_lod(
     types: Res<SpriteCreatureTypes>,
     player_q: Query<&Transform, With<Player>>,
     mut commands: Commands,
-    mut creature_q: Query<(Entity, &Creature, &SpriteCreatureMarker, &mut PhysicsLod)>,
+    mut creature_q: Query<(
+        Entity,
+        &Creature,
+        &SpriteCreatureMarker,
+        &mut PhysicsLod,
+        &mut PlayerProximity,
+    )>,
 ) {
     timer.0.tick(time.delta());
     if !timer.0.just_finished() {
@@ -86,15 +102,30 @@ pub fn update_physics_lod(
         return;
     }
 
-    for (entity, cr, marker, mut lod) in &mut creature_q {
+    for (entity, cr, marker, mut lod, mut proximity) in &mut creature_q {
         // Skip pooled creatures
         if cr.anchor.y < -50.0 {
             if *lod != PhysicsLod::Ghost {
                 demote_to_ghost(entity, &mut commands);
                 *lod = PhysicsLod::Ghost;
             }
+            proximity.distance = f32::MAX;
+            proximity.direction = Vec3::ZERO;
             continue;
         }
+
+        // Find nearest player distance + direction
+        let (nearest_dist, nearest_dir) = player_positions
+            .iter()
+            .map(|p| {
+                let diff = *p - cr.anchor;
+                (diff.length(), diff)
+            })
+            .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal))
+            .unwrap_or((f32::MAX, Vec3::ZERO));
+
+        proximity.distance = nearest_dist;
+        proximity.direction = nearest_dir;
 
         let Some(ctype) = types.types.iter().find(|t| t.npc_ref == marker.type_key) else {
             continue;
@@ -102,12 +133,6 @@ pub fn update_physics_lod(
         let Some(ref phys) = ctype.physics_lod else {
             continue;
         };
-
-        // Find nearest player distance
-        let nearest_dist = player_positions
-            .iter()
-            .map(|p| (*p - cr.anchor).length())
-            .fold(f32::MAX, f32::min);
 
         let target_lod = if nearest_dist <= phys.kinematic_radius {
             PhysicsLod::Kinematic
