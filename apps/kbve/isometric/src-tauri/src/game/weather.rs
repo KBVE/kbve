@@ -7,7 +7,7 @@ use bevy::prelude::*;
 
 use super::camera::IsometricCamera;
 use super::creatures::sprite_material::SpriteAtlasMaterial;
-use super::creatures::{FrogAtlasResources, GameTime, WraithMaterials};
+use super::creatures::{FrogAtlasResources, GameTime, WolfAtlasResources, WraithMaterials};
 use super::net::ServerTime;
 use super::tilemap::TileMaterials;
 use super::trees::TreeWindSway;
@@ -510,6 +510,27 @@ fn tint_wraiths_for_daynight(
     }
 }
 
+/// Tint wolf atlas material based on time of day (same curve as frogs).
+fn tint_wolves_for_daynight(
+    day: Res<DayCycle>,
+    wolf_res: Option<Res<WolfAtlasResources>>,
+    mut atlas_materials: ResMut<Assets<SpriteAtlasMaterial>>,
+) {
+    let Some(wolf_res) = wolf_res else {
+        return;
+    };
+    let params = sun_params(day.hour);
+    let h = params.sun_height;
+
+    let r = 0.18 + h * 0.92;
+    let g = 0.20 + h * 0.90;
+    let b = 0.28 + h * 0.75;
+
+    if let Some(mat) = atlas_materials.get_mut(&wolf_res.material) {
+        mat.tint = LinearRgba::new(r, g, b, 1.0);
+    }
+}
+
 /// Copy the current DayCycle hour and server creature seed into the shared GameTime resource.
 /// Creature modules read GameTime instead of DayCycle directly.
 fn sync_game_time(
@@ -726,6 +747,7 @@ impl Plugin for WeatherPlugin {
                 tint_trees_for_daynight.run_if(resource_changed::<DayCycle>),
                 tint_frogs_for_daynight.run_if(resource_changed::<DayCycle>),
                 tint_wraiths_for_daynight.run_if(resource_changed::<DayCycle>),
+                tint_wolves_for_daynight.run_if(resource_changed::<DayCycle>),
                 update_blob_shadows.run_if(any_with_component::<BlobShadow>),
                 animate_veg_wind.run_if(any_with_component::<WindSway>),
                 animate_tree_wind.run_if(any_with_component::<TreeWindSway>),
