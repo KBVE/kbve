@@ -14,7 +14,7 @@ pub use creature::{
     Creature, CreatureConfig, CreaturePoolIndex, CreatureRegistry, CreatureState, EmissiveData,
     RenderKind, TimeSchedule,
 };
-pub use frog::FrogMaterials;
+pub use frog::FrogSpriteResources;
 pub use wraith::WraithMaterials;
 
 /// Build creature meshes once at Startup to avoid allocating during spawn.
@@ -66,7 +66,7 @@ impl Plugin for CreaturesPlugin {
         // --- Legacy per-type resources ---
         app.init_resource::<CreaturePool>();
         app.init_resource::<common::GameTime>();
-        app.init_resource::<FrogMaterials>();
+        app.init_resource::<FrogSpriteResources>();
         app.init_resource::<WraithMaterials>();
         app.init_resource::<firefly::FireflyState>();
         app.add_systems(Startup, setup_creature_meshes);
