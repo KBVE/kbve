@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-04-03T08:28:37Z",
+  "generated_at": "2026-04-04T08:21:55Z",
   "summary": {
     "critical": 1,
-    "high": 31,
+    "high": 32,
     "medium": 37,
     "low": 5,
     "info": 25
   },
   "ecosystems": {
     "npm": {
-      "total": 72,
+      "total": 73,
       "severities": {
         "critical": 1,
-        "high": 31,
+        "high": 32,
         "medium": 35,
         "low": 5,
         "info": 0
@@ -521,6 +521,13 @@
           "severity": "medium",
           "package": "dompurify",
           "url": "https://github.com/advisories/GHSA-cj63-jhhr-wcxv"
+        },
+        {
+          "id": "1115969",
+          "title": "defu: Prototype pollution via `__proto__` key in defaults argument",
+          "severity": "high",
+          "package": "defu",
+          "url": "https://github.com/advisories/GHSA-737v-mqg7-c878"
         }
       ]
     },
