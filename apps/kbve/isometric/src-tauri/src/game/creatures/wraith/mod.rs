@@ -2,7 +2,7 @@
 //!
 //! Wraiths are nighttime undead enemies with sprite-sheet animation. They
 //! patrol in slow gliding arcs and occasionally perform attack or skill
-//! animations. Uses the same UV-shift system as the frog module.
+//! animations. Uses GPU-driven SpriteAtlasMaterial with per-instance SSBO.
 //!
 //! Atlas layout: 20 columns × 6 rows of 100×100 frames (2000×600 texture).
 //!   Row 0: idle       (4 frames)
@@ -16,14 +16,17 @@
 //! https://darkpixel-kronovi.itch.io/undead-executioner
 
 use bevy::asset::RenderAssetUsages;
-use bevy::mesh::{Indices, PrimitiveTopology};
+use bevy::camera::visibility::NoFrustumCulling;
+use bevy::mesh::{Indices, MeshTag, PrimitiveTopology};
 use bevy::prelude::*;
+use bevy::render::storage::ShaderStorageBuffer;
 
 use super::common::{CreaturePool, GameTime, hash_f32, scene_center};
 use super::creature::{
     Creature, CreaturePoolIndex, CreatureRegistry, CreatureState, RenderKind, SpriteData,
     SpriteHopState,
 };
+use super::sprite_material::{SpriteAnimData, SpriteAtlasMaterial};
 use crate::game::camera::IsometricCamera;
 use crate::game::terrain::TerrainMap;
 
@@ -35,8 +38,6 @@ const NPC_REF: &str = "wraith-executioner";
 
 const SHEET_COLS: u32 = 20;
 const SHEET_ROWS: u32 = 6;
-const FRAME_W: f32 = 1.0 / SHEET_COLS as f32;
-const FRAME_H: f32 = 1.0 / SHEET_ROWS as f32;
 
 /// World-space size of the wraith billboard quad (larger than frog).
 const WRAITH_SIZE: f32 = 3.52;
@@ -57,54 +58,61 @@ const SPAWN_RING_OUTER: f32 = 30.0;
 #[derive(Clone, Copy)]
 struct Anim {
     row: u32,
-    start_col: u32,
     frame_count: u32,
 }
 
 const ANIM_IDLE: Anim = Anim {
     row: 0,
-    start_col: 0,
     frame_count: 4,
 };
 const ANIM_IDLE2: Anim = Anim {
     row: 1,
-    start_col: 0,
     frame_count: 4,
 };
 const ANIM_ATTACK: Anim = Anim {
     row: 2,
-    start_col: 0,
     frame_count: 13,
 };
 const ANIM_SKILL: Anim = Anim {
     row: 3,
-    start_col: 0,
     frame_count: 12,
 };
 const _ANIM_DEATH: Anim = Anim {
     row: 4,
-    start_col: 0,
     frame_count: 20,
 };
 const ANIM_SUMMON: Anim = Anim {
     row: 5,
-    start_col: 0,
     frame_count: 5,
 };
 
 // ---------------------------------------------------------------------------
-// WraithMaterials — exposed for day/night tinting in weather.rs
+// WraithAtlasResources — shared material + SSBO for all wraiths
 // ---------------------------------------------------------------------------
 
-#[derive(Resource, Default)]
-pub struct WraithMaterials {
-    pub handles: Vec<Handle<StandardMaterial>>,
+#[derive(Resource)]
+pub struct WraithAtlasResources {
+    pub material: Handle<SpriteAtlasMaterial>,
+    pub anim_buffer: Handle<ShaderStorageBuffer>,
+    pub anim_data: Vec<SpriteAnimData>,
+}
+
+impl Default for WraithAtlasResources {
+    fn default() -> Self {
+        Self {
+            material: Handle::default(),
+            anim_buffer: Handle::default(),
+            anim_data: Vec::new(),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
 // Mesh
 // ---------------------------------------------------------------------------
 
+/// Single-sided billboard quad, bottom-aligned (y=0 .. y=WRAITH_SIZE).
+/// UVs span full [0,1] — the shader maps to the correct atlas cell.
 fn build_wraith_quad() -> Mesh {
     let h = WRAITH_SIZE;
     let w = WRAITH_SIZE;
@@ -124,28 +132,9 @@ fn build_wraith_quad() -> Mesh {
     .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0.0, 0.0, 1.0]; 4])
     .with_inserted_attribute(
         Mesh::ATTRIBUTE_UV_0,
-        vec![
-            [0.0, 0.0],
-            [FRAME_W, 0.0],
-            [FRAME_W, FRAME_H],
-            [0.0, FRAME_H],
-        ],
+        vec![[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]],
     )
     .with_inserted_indices(Indices::U32(vec![0, 2, 1, 0, 3, 2]))
-}
-
-fn frame_uvs(anim: &Anim, frame: u32, flip: bool) -> [[f32; 2]; 4] {
-    let col = anim.start_col + (frame % anim.frame_count);
-    let row = anim.row;
-    let u0 = col as f32 * FRAME_W;
-    let u1 = u0 + FRAME_W;
-    let v0 = row as f32 * FRAME_H;
-    let v1 = v0 + FRAME_H;
-    if flip {
-        [[u1, v0], [u0, v0], [u0, v1], [u1, v1]]
-    } else {
-        [[u0, v0], [u1, v0], [u1, v1], [u0, v1]]
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -155,10 +144,11 @@ fn frame_uvs(anim: &Anim, frame: u32, flip: bool) -> [[f32; 2]; 4] {
 pub(super) fn spawn_wraiths(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut buffers: ResMut<Assets<ShaderStorageBuffer>>,
+    mut atlas_materials: ResMut<Assets<SpriteAtlasMaterial>>,
     asset_server: Res<AssetServer>,
     mut pool: ResMut<CreaturePool>,
-    mut wraith_mats: ResMut<WraithMaterials>,
+    mut wraith_res: ResMut<WraithAtlasResources>,
     registry: Res<CreatureRegistry>,
 ) {
     if pool.wraiths_spawned {
@@ -180,19 +170,24 @@ pub(super) fn spawn_wraiths(
         asset_server.load("textures/creatures/wraith/wraith_executioner.png");
     let wraith_mesh = meshes.add(build_wraith_quad());
 
+    // Initial animation data for all wraiths
+    let anim_data: Vec<SpriteAnimData> = (0..count).map(|_| SpriteAnimData::default()).collect();
+    let anim_buffer = buffers.add(ShaderStorageBuffer::from(anim_data.clone()));
+
+    let material = atlas_materials.add(SpriteAtlasMaterial {
+        atlas: texture,
+        anim_data: anim_buffer.clone(),
+        atlas_grid: UVec2::new(SHEET_COLS, SHEET_ROWS),
+        tint: LinearRgba::WHITE,
+    });
+
+    wraith_res.material = material.clone();
+    wraith_res.anim_buffer = anim_buffer;
+    wraith_res.anim_data = anim_data;
+
     for i in 0..count {
         let seed = (i as u32).wrapping_add(7700);
         let phase = hash_f32(seed * 11 + 1);
-
-        let mat = materials.add(StandardMaterial {
-            base_color_texture: Some(texture.clone()),
-            alpha_mode: AlphaMode::Blend,
-            cull_mode: None,
-            double_sided: true,
-            unlit: true,
-            ..default()
-        });
-        wraith_mats.handles.push(mat.clone());
 
         let idle_timer = IDLE_MIN + hash_f32(seed * 53 + 11) * (IDLE_MAX - IDLE_MIN);
         let frame_duration = FRAME_DURATION_BASE * (0.8 + hash_f32(seed * 79 + 17) * 0.4);
@@ -200,9 +195,11 @@ pub(super) fn spawn_wraiths(
 
         commands.spawn((
             Mesh3d(wraith_mesh.clone()),
-            MeshMaterial3d(mat.clone()),
+            MeshMaterial3d(material.clone()),
+            MeshTag(i as u32),
             Transform::from_xyz(0.0, -100.0, 0.0),
             Visibility::Hidden,
+            NoFrustumCulling,
             Creature {
                 npc_id,
                 render_kind: RenderKind::Sprite,
@@ -211,7 +208,7 @@ pub(super) fn spawn_wraiths(
                 assigned_slot: None,
                 anchor: Vec3::new(0.0, -100.0, 0.0),
                 phase,
-                mat_handle: mat,
+                mat_handle: Handle::default(),
             },
             SpriteData {
                 frame_timer: hash_f32(seed * 83 + 13) * frame_duration,
@@ -229,7 +226,7 @@ pub(super) fn spawn_wraiths(
         ));
     }
 
-    info!("[wraith] spawned {count} entities");
+    info!("[wraith] spawned {count} entities (atlas instanced, NoFrustumCulling)");
 }
 
 /// Wraith-specific component: marker + deterministic patrol counter.
@@ -255,14 +252,15 @@ pub(super) fn animate_wraiths(
     game_time: Res<GameTime>,
     mut terrain: ResMut<TerrainMap>,
     camera_q: Query<&Transform, With<IsometricCamera>>,
-    mut meshes: ResMut<Assets<Mesh>>,
+    mut buffers: ResMut<Assets<ShaderStorageBuffer>>,
+    mut wraith_res: ResMut<WraithAtlasResources>,
     mut wraith_q: Query<
         (
             &mut Transform,
             &mut Creature,
             &mut SpriteData,
             &mut Visibility,
-            &Mesh3d,
+            &CreaturePoolIndex,
             &mut WraithMarker,
         ),
         Without<IsometricCamera>,
@@ -278,7 +276,7 @@ pub(super) fn animate_wraiths(
     let cam_pos = cam_tf.translation;
     let center = scene_center(cam_pos);
 
-    for (mut tf, mut cr, mut sd, mut vis, mesh_handle, mut wm) in &mut wraith_q {
+    for (mut tf, mut cr, mut sd, mut vis, pool_idx, mut wm) in &mut wraith_q {
         // Relocate if too far or below world
         let dist = Vec2::new(cr.anchor.x - center.x, cr.anchor.z - center.z).length();
         if dist > RECYCLE_DIST || cr.anchor.y < -50.0 {
@@ -470,23 +468,21 @@ pub(super) fn animate_wraiths(
         }
         sd.hop_state = state;
 
-        // Update UVs for current frame
-        let anim = Anim {
-            row: sd.anim_row,
-            start_col: 0,
-            frame_count: sd.anim_frames,
-        };
-        let uvs = frame_uvs(&anim, sd.current_frame, sd.facing_left);
-        if let Some(mesh) = meshes.get_mut(mesh_handle.0.id()) {
-            mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, vec![uvs[0], uvs[1], uvs[2], uvs[3]]);
+        // Update per-instance animation data in storage buffer
+        let idx = pool_idx.0 as usize;
+        if idx < wraith_res.anim_data.len() {
+            let col = sd.current_frame % SHEET_COLS;
+            let row = sd.anim_row;
+            wraith_res.anim_data[idx] = SpriteAnimData {
+                frame: col + row * SHEET_COLS,
+                flip: if sd.facing_left { 1 } else { 0 },
+                _pad1: 0,
+                _pad2: 0,
+            };
         }
 
-        // Billboard: face camera
-        let to_cam = cam_pos - tf.translation;
-        let to_cam_flat = Vec3::new(to_cam.x, 0.0, to_cam.z).normalize_or_zero();
-        if to_cam_flat.length_squared() > 0.001 {
-            tf.look_to(to_cam_flat, Vec3::Y);
-        }
+        // Billboard: use camera's forward direction (uniform for isometric view)
+        tf.look_to(cam_tf.forward().as_vec3(), Vec3::Y);
 
         // Slight hover above ground
         if matches!(
@@ -498,5 +494,10 @@ pub(super) fn animate_wraiths(
         }
 
         *vis = Visibility::Visible;
+    }
+
+    // Flush animation data to GPU once per frame
+    if let Some(buffer) = buffers.get_mut(&wraith_res.anim_buffer) {
+        buffer.set_data(wraith_res.anim_data.as_slice());
     }
 }

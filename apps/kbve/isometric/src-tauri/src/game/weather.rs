@@ -7,7 +7,7 @@ use bevy::prelude::*;
 
 use super::camera::IsometricCamera;
 use super::creatures::sprite_material::SpriteAtlasMaterial;
-use super::creatures::{FrogAtlasResources, GameTime, WolfAtlasResources, WraithMaterials};
+use super::creatures::{FrogAtlasResources, GameTime, WolfAtlasResources, WraithAtlasResources};
 use super::net::ServerTime;
 use super::tilemap::TileMaterials;
 use super::trees::TreeWindSway;
@@ -479,14 +479,14 @@ fn tint_frogs_for_daynight(
     }
 }
 
-/// Tint unlit wraith materials based on time of day (same curve as frogs).
+/// Tint wraith SpriteAtlasMaterial based on time of day.
 /// Wraiths are always visible: fully opaque at night, semi-transparent (ghostly) during day.
 fn tint_wraiths_for_daynight(
     day: Res<DayCycle>,
-    wraith_mats: Option<Res<WraithMaterials>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    wraith_res: Option<Res<WraithAtlasResources>>,
+    mut atlas_materials: ResMut<Assets<SpriteAtlasMaterial>>,
 ) {
-    let Some(wraith_mats) = wraith_mats else {
+    let Some(wraith_res) = wraith_res else {
         return;
     };
     let params = sun_params(day.hour);
@@ -503,10 +503,8 @@ fn tint_wraiths_for_daynight(
         0.35 + (1.0 - h) * 0.15
     };
 
-    for handle in &wraith_mats.handles {
-        if let Some(mat) = materials.get_mut(handle) {
-            mat.base_color = Color::srgba(r, g, b, alpha);
-        }
+    if let Some(mat) = atlas_materials.get_mut(&wraith_res.material) {
+        mat.tint = LinearRgba::new(r, g, b, alpha);
     }
 }
 

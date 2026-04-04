@@ -17,7 +17,7 @@ pub use creature::{
 };
 pub use frog::FrogAtlasResources;
 pub use wolf::WolfAtlasResources;
-pub use wraith::WraithMaterials;
+pub use wraith::WraithAtlasResources;
 
 /// Build creature meshes once at Startup to avoid allocating during spawn.
 fn setup_creature_meshes(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>) {
@@ -68,7 +68,7 @@ impl Plugin for CreaturesPlugin {
         app.init_resource::<CreaturePool>();
         app.init_resource::<common::GameTime>();
         app.init_resource::<FrogAtlasResources>();
-        app.init_resource::<WraithMaterials>();
+        app.init_resource::<WraithAtlasResources>();
         app.init_resource::<WolfAtlasResources>();
         app.init_resource::<firefly::FireflyState>();
         app.add_systems(Startup, setup_creature_meshes);
