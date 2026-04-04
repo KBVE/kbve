@@ -987,6 +987,49 @@ pub async fn kasm_scale_handler(Path(name): Path<String>, req: Request<Body>) ->
 }
 
 // ---------------------------------------------------------------------------
+// Firecracker proxy singleton (reverse proxy to firecracker-ctl REST API)
+// ---------------------------------------------------------------------------
+
+static FIRECRACKER: OnceLock<ServiceProxy> = OnceLock::new();
+
+pub fn init_firecracker_proxy() -> bool {
+    let upstream = std::env::var("FIRECRACKER_CTL_URL")
+        .unwrap_or_else(|_| "http://firecracker-ctl.firecracker.svc.cluster.local:9001".into());
+
+    let client = Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(10))
+        .timeout(Duration::from_secs(30))
+        .build()
+        .expect("failed to build reqwest client for firecracker proxy");
+
+    FIRECRACKER
+        .set(ServiceProxy {
+            name: "Firecracker",
+            client,
+            upstream: upstream.trim_end_matches('/').to_string(),
+            upstream_token: None,
+        })
+        .is_ok()
+}
+
+pub async fn firecracker_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
+    let headers = req.headers().clone();
+    if let Err(resp) = require_dashboard_view(&headers, "Firecracker").await {
+        return resp;
+    }
+
+    match FIRECRACKER.get() {
+        Some(proxy) => proxy.handle(path, req).await,
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Firecracker proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Guacamole proxy singleton (reverse proxy to Apache Guacamole web app)
 // ---------------------------------------------------------------------------
 // guacamole-common-js connects via HTTP tunnel or WebSocket to:

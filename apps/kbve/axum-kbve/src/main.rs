@@ -141,6 +141,13 @@ async fn main() -> anyhow::Result<()> {
         info!("KASM proxy not configured (using default cluster URL)");
     }
 
+    // Initialize Firecracker proxy (optional - for /dashboard/firecracker)
+    if transport::proxy::init_firecracker_proxy() {
+        info!("Firecracker proxy initialized - /dashboard/firecracker/proxy enabled");
+    } else {
+        info!("Firecracker proxy not configured (using default cluster URL)");
+    }
+
     // Initialize Guacamole proxy (optional - for /dashboard/guac)
     if transport::proxy::init_guacamole_proxy() {
         info!("Guacamole proxy initialized - /dashboard/guac/proxy enabled");
