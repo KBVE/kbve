@@ -22,6 +22,7 @@ pub async fn health(ctx: Context<'_>) -> Result<(), Error> {
         .title("System Health Report")
         .url(branding::PROJECT_URL)
         .color(color)
+        .author(branding::embed_author())
         .field(
             "Health Status",
             format!("{} {:?}", snap.health_status.emoji(), snap.health_status),
