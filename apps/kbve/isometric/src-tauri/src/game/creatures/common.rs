@@ -124,3 +124,50 @@ pub fn flutter_offset(t: f32, phase: f32, speed: f32, radius: f32, amp: f32) -> 
 pub fn scene_center(cam_pos: Vec3) -> Vec3 {
     Vec3::new(cam_pos.x - 15.0, 0.0, cam_pos.z - 15.0)
 }
+
+// ---------------------------------------------------------------------------
+// Shared mesh builder for sprite billboard quads
+// ---------------------------------------------------------------------------
+
+/// Build a single-sided billboard quad, bottom-aligned (y=0..y=size).
+/// UVs span full [0,1] — the shader maps to the correct atlas cell.
+pub fn build_billboard_quad(size: f32) -> Mesh {
+    use bevy::asset::RenderAssetUsages;
+    use bevy::mesh::{Indices, PrimitiveTopology};
+
+    let h = size;
+    let w = size;
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_attribute(
+        Mesh::ATTRIBUTE_POSITION,
+        vec![
+            [-w * 0.5, h, 0.0],
+            [w * 0.5, h, 0.0],
+            [w * 0.5, 0.0, 0.0],
+            [-w * 0.5, 0.0, 0.0],
+        ],
+    )
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0.0, 0.0, 1.0]; 4])
+    .with_inserted_attribute(
+        Mesh::ATTRIBUTE_UV_0,
+        vec![[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]],
+    )
+    .with_inserted_indices(Indices::U32(vec![0, 2, 1, 0, 3, 2]))
+}
+
+// ---------------------------------------------------------------------------
+// Deterministic patrol seed (shared by all patrol-based creatures)
+// ---------------------------------------------------------------------------
+
+/// Deterministic seed for creature decisions. Combines slot_seed, patrol_step,
+/// and creature_seed so all clients produce identical behavior.
+#[inline]
+pub fn patrol_seed(slot_seed: u32, step: u32, creature_seed: u64) -> u32 {
+    slot_seed
+        .wrapping_mul(2654435761)
+        .wrapping_add(step.wrapping_mul(7919))
+        .wrapping_add(creature_seed as u32)
+}
