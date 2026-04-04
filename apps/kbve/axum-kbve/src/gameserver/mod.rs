@@ -1265,7 +1265,7 @@ fn process_auth_messages(
                     "client {entity:?} connecting as guest: {guest_user_id} (challenge={server_time})"
                 );
                 let player_id = user_id_to_player_id(&guest_user_id);
-                let player_entity = spawn_player(&mut commands, player_id);
+                let player_entity = spawn_player(&mut commands, player_id, entity);
                 sender.send::<GameChannel>(AuthResponse {
                     success: true,
                     user_id: guest_user_id.clone(),
@@ -1289,7 +1289,7 @@ fn process_auth_messages(
                     "SUPABASE_JWT_SECRET not set — accepting {entity:?} as {anon_user_id} (challenge={server_time})"
                 );
                 let player_id = user_id_to_player_id(&anon_user_id);
-                let player_entity = spawn_player(&mut commands, player_id);
+                let player_entity = spawn_player(&mut commands, player_id, entity);
                 sender.send::<GameChannel>(AuthResponse {
                     success: true,
                     user_id: anon_user_id.clone(),
@@ -1317,7 +1317,7 @@ fn process_auth_messages(
                         "client {entity:?} authenticated as user {user_id} (challenge={server_time})"
                     );
                     let player_id = user_id_to_player_id(&user_id);
-                    let player_entity = spawn_player(&mut commands, player_id);
+                    let player_entity = spawn_player(&mut commands, player_id, entity);
                     sender.send::<GameChannel>(AuthResponse {
                         success: true,
                         user_id: user_id.clone(),
@@ -1409,7 +1409,10 @@ fn user_id_to_player_id(user_id: &str) -> u64 {
 
 /// Spawn a player entity for an authenticated client, marked for replication.
 /// `player_id` is derived from the user's identity (stable across reconnects).
-fn spawn_player(commands: &mut Commands, player_id: u64) -> Entity {
+/// `client_entity` is the connection entity — used for `ControlledBy` so
+/// lightyear knows which client owns this player (required for replication
+/// routing to work correctly for late-joining clients).
+fn spawn_player(commands: &mut Commands, player_id: u64, client_entity: Entity) -> Entity {
     let idx = PLAYER_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
     // Spread players apart so they don't collide on spawn
@@ -1434,6 +1437,11 @@ fn spawn_player(commands: &mut Commands, player_id: u64) -> Entity {
             Collider::cuboid(0.6, 1.2, 0.6),
             // Mark for lightyear replication to all connected clients
             Replicate::to_clients(NetworkTarget::All),
+            // Link player to owning client — required for replication routing
+            ControlledBy {
+                owner: client_entity,
+                lifetime: Default::default(),
+            },
         ))
         .id();
 
