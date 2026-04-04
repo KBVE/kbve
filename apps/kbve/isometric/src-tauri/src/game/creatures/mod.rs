@@ -1,28 +1,18 @@
-mod boar;
 mod butterfly;
 pub mod common;
 pub mod creature;
 mod firefly;
-mod frog;
 pub mod generic;
 pub mod sprite_material;
-mod stag;
-mod wolf;
-mod wraith;
 
 use bevy::prelude::*;
 
-pub use boar::BoarAtlasResources;
 pub use common::GameTime;
 use common::{CreatureMeshes, CreaturePool};
 pub use creature::{
     Creature, CreatureConfig, CreaturePoolIndex, CreatureRegistry, CreatureState, EmissiveData,
     RenderKind, TimeSchedule,
 };
-pub use frog::FrogAtlasResources;
-pub use stag::StagAtlasResources;
-pub use wolf::WolfAtlasResources;
-pub use wraith::WraithAtlasResources;
 
 /// Build creature meshes once at Startup to avoid allocating during spawn.
 fn setup_creature_meshes(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>) {
@@ -52,14 +42,15 @@ fn setup_creature_registry(mut commands: Commands) {
 ///
 /// ## Architecture
 ///
-/// The creature system has two layers:
-///
 /// 1. **NpcDb registry** ([`CreatureRegistry`]) — game-agnostic NPC definitions
 ///    from proto + game-specific spawn/render configs. Loaded at startup.
 ///
-/// 2. **Per-type systems** (firefly, butterfly, frog) — each uses the unified
-///    [`Creature`] component with render-specific companions (`EmissiveData`,
-///    `BillboardData`, `SpriteData`). New creature types should follow this pattern.
+/// 2. **Generic sprite system** — data-driven spawn/animate/tint for all sprite
+///    creatures (boar, badger, wolf, stag, frog, wraith). Behavior trees evaluated
+///    off-thread via `bevy_tasker`.
+///
+/// 3. **Legacy non-sprite systems** — fireflies (emissive) and butterflies
+///    (billboard) still use per-type modules.
 pub struct CreaturesPlugin;
 
 impl Plugin for CreaturesPlugin {
@@ -69,14 +60,9 @@ impl Plugin for CreaturesPlugin {
         // --- Unified NpcDb-driven registry ---
         app.add_systems(Startup, setup_creature_registry);
 
-        // --- Legacy per-type resources ---
+        // --- Shared resources ---
         app.init_resource::<CreaturePool>();
         app.init_resource::<common::GameTime>();
-        app.init_resource::<FrogAtlasResources>();
-        app.init_resource::<WraithAtlasResources>();
-        app.init_resource::<WolfAtlasResources>();
-        app.init_resource::<StagAtlasResources>();
-        app.init_resource::<BoarAtlasResources>();
         app.init_resource::<firefly::FireflyState>();
 
         // --- Generic sprite creature system ---
@@ -90,7 +76,7 @@ impl Plugin for CreaturesPlugin {
         app.add_systems(
             Update,
             (
-                // Fireflies (unified Creature + EmissiveData)
+                // Fireflies (Creature + EmissiveData)
                 firefly::spawn_fireflies.run_if(|pool: Res<CreaturePool>| !pool.fireflies_spawned),
                 firefly::assign_firefly_slots
                     .after(firefly::spawn_fireflies)
@@ -98,24 +84,12 @@ impl Plugin for CreaturesPlugin {
                 firefly::animate_fireflies
                     .after(firefly::assign_firefly_slots)
                     .run_if(any_with_component::<creature::EmissiveData>),
-                // Butterflies (unified Creature + BillboardData)
+                // Butterflies (Creature + BillboardData)
                 butterfly::spawn_butterflies
                     .run_if(|pool: Res<CreaturePool>| !pool.butterflies_spawned),
                 butterfly::animate_butterflies
                     .run_if(any_with_component::<creature::BillboardData>),
-                // Frogs (unified Creature + SpriteData)
-                frog::spawn_frogs.run_if(|pool: Res<CreaturePool>| !pool.frogs_spawned),
-                frog::animate_frogs.run_if(any_with_component::<creature::SpriteData>),
-                // Wraiths (unified Creature + SpriteData + WraithMarker)
-                wraith::spawn_wraiths.run_if(|pool: Res<CreaturePool>| !pool.wraiths_spawned),
-                wraith::animate_wraiths.run_if(any_with_component::<wraith::WraithMarker>),
-                // Wolves (SpriteAtlasMaterial + SSBO, 4-directional)
-                wolf::spawn_wolves.run_if(|pool: Res<CreaturePool>| !pool.wolves_spawned),
-                wolf::animate_wolves.run_if(any_with_component::<wolf::WolfMarker>),
-                // Stags (SpriteAtlasMaterial + SSBO, 4-directional, daytime)
-                stag::spawn_stags.run_if(|pool: Res<CreaturePool>| !pool.stags_spawned),
-                stag::animate_stags.run_if(any_with_component::<stag::StagMarker>),
-                // --- Generic sprite creatures (boar + badger) ---
+                // --- Generic sprite creatures (all sprite types) ---
                 generic::spawn::spawn_sprite_creatures,
                 generic::brain::dispatch_behavior_trees
                     .after(generic::spawn::spawn_sprite_creatures)
@@ -128,7 +102,6 @@ impl Plugin for CreaturesPlugin {
                     .run_if(any_with_component::<generic::SpriteCreatureMarker>),
                 generic::physics_lod::update_physics_lod
                     .run_if(any_with_component::<generic::PhysicsLod>),
-                // Networked creature event corrections
                 generic::net_events::receive_creature_events,
             ),
         );
