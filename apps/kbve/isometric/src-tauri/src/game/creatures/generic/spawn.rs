@@ -12,6 +12,7 @@ use super::super::creature::{
     SpriteHopState,
 };
 use super::super::sprite_material::{SpriteAnimData, SpriteAtlasMaterial};
+use super::brain::CreatureBrain;
 use super::types::*;
 use crate::game::weather::BlobShadowAssets;
 
@@ -157,6 +158,11 @@ pub fn spawn_sprite_creatures(
                     active_move_speed: 0.0,
                 },
             ));
+
+            // Add brain if creature type has a behavior tree
+            if creature_type.behavior_tree.is_some() {
+                entity.insert(CreatureBrain::new());
+            }
 
             if let Some(se) = shadow_entity {
                 entity.insert(CreatureShadowLink(se));

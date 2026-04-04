@@ -116,8 +116,14 @@ impl Plugin for CreaturesPlugin {
                 stag::animate_stags.run_if(any_with_component::<stag::StagMarker>),
                 // --- Generic sprite creatures (boar + badger) ---
                 generic::spawn::spawn_sprite_creatures,
-                generic::animate::animate_sprite_creatures
+                generic::brain::dispatch_behavior_trees
                     .after(generic::spawn::spawn_sprite_creatures)
+                    .run_if(any_with_component::<generic::CreatureBrain>),
+                generic::brain::poll_behavior_results
+                    .after(generic::brain::dispatch_behavior_trees)
+                    .run_if(any_with_component::<generic::CreatureBrain>),
+                generic::animate::animate_sprite_creatures
+                    .after(generic::brain::poll_behavior_results)
                     .run_if(any_with_component::<generic::SpriteCreatureMarker>),
             ),
         );

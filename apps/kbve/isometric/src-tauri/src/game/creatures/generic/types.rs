@@ -206,6 +206,9 @@ pub struct SpriteCreatureType {
     pub tint: TintProfile,
     pub anims: AnimSet,
     pub behavior: BehaviorProfile,
+    /// Optional behavior tree. When present, replaces the weighted-probability
+    /// system with tree-driven decisions evaluated off the game thread.
+    pub behavior_tree: Option<super::behavior::BehaviorNode>,
 }
 
 // ---------------------------------------------------------------------------
