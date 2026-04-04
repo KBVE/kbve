@@ -33,9 +33,6 @@ spec:
                           cpu: '2'
                           memory: 2Gi
                           devices.kubevirt.io/kvm: '1'
-                  securityContext:
-                      capabilities:
-                          add: ['NET_ADMIN']
                   volumeMounts:
                       - name: rootfs-cache
                         mountPath: /var/lib/firecracker/rootfs
