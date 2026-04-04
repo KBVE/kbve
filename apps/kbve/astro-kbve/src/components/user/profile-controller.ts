@@ -14,7 +14,7 @@
  * - Vanilla username form with real-time validation
  */
 
-import { setAuth } from '@kbve/droid';
+import { setAuth, AuthPresets } from '@kbve/droid';
 import { initSupa, getSupa } from '@/lib/supa';
 
 // ── Constants ───────────────────────────────────────────────────────────────
@@ -148,6 +148,27 @@ async function fetchProfile(token: string): Promise<ApiProfile | null> {
 		return data;
 	} catch {
 		return null;
+	}
+}
+
+// ── Staff permissions check ─────────────────────────────────────────────────
+
+/**
+ * Call the Supabase staff_permissions RPC to check if the user has
+ * dashboard access. Updates the global $auth flags so dashboard panels
+ * (Grafana, ArgoCD, ClickHouse, etc.) become visible.
+ */
+async function fetchStaffFlags(_token: string): Promise<void> {
+	try {
+		const supa = getSupa();
+		const data = await supa.rpc('staff_permissions');
+		// data is the integer bitmask from the RPC
+		const perms = typeof data === 'number' ? data : 0;
+		if (perms > 0) {
+			setAuth({ flags: AuthPresets.STAFF });
+		}
+	} catch {
+		// Non-critical — staff panels just won't show
 	}
 }
 
@@ -347,6 +368,18 @@ async function handleSession(session: any) {
 
 	const token = session.access_token;
 	const userId = session.user.id;
+
+	// Set initial auth flags (authenticated, not yet staff-checked)
+	setAuth({
+		tone: 'auth',
+		flags: AuthPresets.USER,
+		id: userId,
+		name: session.user.user_metadata?.full_name ?? '',
+		avatar: session.user.user_metadata?.avatar_url,
+	});
+
+	// Check staff permissions via Supabase RPC (non-blocking for UI)
+	fetchStaffFlags(token).catch(() => {});
 
 	// Cache-first for instant display
 	const cached = getCachedProfile(userId);
