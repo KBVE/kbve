@@ -33,6 +33,103 @@ pub struct SpriteCreatureMarker {
 pub struct CreatureShadowLink(pub Entity);
 
 // ---------------------------------------------------------------------------
+// Creature vitals — ECS-friendly health/mana/energy tracking
+// ---------------------------------------------------------------------------
+
+/// Per-entity vitals for NPC creatures. Server-authoritative, replicated
+/// to clients for health bars and interaction logic.
+#[derive(Component, Clone, Debug)]
+pub struct CreatureVitals {
+    pub health: f32,
+    pub max_health: f32,
+    pub mana: f32,
+    pub max_mana: f32,
+    pub energy: f32,
+    pub max_energy: f32,
+    /// True when health <= 0. Prevents further damage processing.
+    pub is_dead: bool,
+}
+
+impl CreatureVitals {
+    pub fn new(max_health: f32, max_mana: f32, max_energy: f32) -> Self {
+        Self {
+            health: max_health,
+            max_health,
+            mana: max_mana,
+            max_mana,
+            energy: max_energy,
+            max_energy,
+            is_dead: false,
+        }
+    }
+
+    /// Apply damage, clamping health to 0. Returns true if this killed the creature.
+    pub fn take_damage(&mut self, amount: f32) -> bool {
+        if self.is_dead {
+            return false;
+        }
+        self.health = (self.health - amount).max(0.0);
+        if self.health <= 0.0 {
+            self.is_dead = true;
+            return true;
+        }
+        false
+    }
+
+    /// Heal, clamping to max_health.
+    pub fn heal(&mut self, amount: f32) {
+        if self.is_dead {
+            return;
+        }
+        self.health = (self.health + amount).min(self.max_health);
+    }
+
+    /// Spend mana. Returns false if insufficient.
+    pub fn spend_mana(&mut self, amount: f32) -> bool {
+        if self.mana < amount {
+            return false;
+        }
+        self.mana -= amount;
+        true
+    }
+
+    /// Spend energy. Returns false if insufficient.
+    pub fn spend_energy(&mut self, amount: f32) -> bool {
+        if self.energy < amount {
+            return false;
+        }
+        self.energy -= amount;
+        true
+    }
+
+    /// Health as a 0.0–1.0 fraction.
+    pub fn health_fraction(&self) -> f32 {
+        if self.max_health <= 0.0 {
+            return 0.0;
+        }
+        self.health / self.max_health
+    }
+}
+
+/// Per-creature-type vitals configuration.
+#[derive(Clone, Debug)]
+pub struct VitalsConfig {
+    pub max_health: f32,
+    pub max_mana: f32,
+    pub max_energy: f32,
+}
+
+impl Default for VitalsConfig {
+    fn default() -> Self {
+        Self {
+            max_health: 20.0,
+            max_mana: 0.0,
+            max_energy: 50.0,
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Direction handling
 // ---------------------------------------------------------------------------
 
@@ -212,6 +309,8 @@ pub struct SpriteCreatureType {
     /// Optional physics LOD config. When present, creatures get adaptive
     /// collision components based on distance to player.
     pub physics_lod: Option<super::physics_lod::PhysicsLodConfig>,
+    /// Vitals configuration (health, mana, energy). Every creature gets vitals.
+    pub vitals: VitalsConfig,
 }
 
 // ---------------------------------------------------------------------------

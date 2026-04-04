@@ -160,6 +160,13 @@ pub fn spawn_sprite_creatures(
                 },
             ));
 
+            // Vitals (health, mana, energy)
+            entity.insert(CreatureVitals::new(
+                creature_type.vitals.max_health,
+                creature_type.vitals.max_mana,
+                creature_type.vitals.max_energy,
+            ));
+
             // Add brain if creature type has a behavior tree
             if creature_type.behavior_tree.is_some() {
                 entity.insert(CreatureBrain::new());
