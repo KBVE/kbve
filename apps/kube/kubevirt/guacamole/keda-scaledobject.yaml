@@ -1,11 +1,8 @@
 # KEDA ScaledObjects for Guacamole stack.
 #
-# Previously used github-runner triggers (removed to save API quota).
-# Guacamole now scales based on whether the VM is running — CI workflows
-# that start VMs should also scale up guacd + guacamole via kubectl.
+# Guacamole scales to 1 replica when the Windows VM is likely in use
+# (weekdays 06:00–22:00 UTC) and back to 0 outside that window.
 # Manual override: kubectl scale deploy guacd guacamole -n angelscript --replicas=1
-#
-# Kept as ScaledObjects with no active triggers so KEDA manages scale-to-zero.
 ---
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
@@ -27,9 +24,9 @@ spec:
         - type: cron
           metadata:
               timezone: UTC
-              start: '0 6 * * 1-5'
-              end: '0 7 * * 1-5'
-              desiredReplicas: '0'
+              start: 0 6 * * 1-5
+              end: 0 22 * * 1-5
+              desiredReplicas: '1'
 ---
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
@@ -51,6 +48,6 @@ spec:
         - type: cron
           metadata:
               timezone: UTC
-              start: '0 6 * * 1-5'
-              end: '0 7 * * 1-5'
-              desiredReplicas: '0'
+              start: 0 6 * * 1-5
+              end: 0 22 * * 1-5
+              desiredReplicas: '1'
