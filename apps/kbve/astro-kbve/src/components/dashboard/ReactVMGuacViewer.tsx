@@ -69,11 +69,9 @@ export default function ReactVMGuacViewer() {
 				const GuacLib = await loadGuacamole();
 
 				// Build WebSocket tunnel URL to our Guacamole proxy.
-				// Pass JWT as query param — browser WS API can't set headers.
 				const proto =
 					window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-				const accessToken = vmService.$accessToken.get() ?? '';
-				const tunnelUrl = `${proto}//${window.location.host}/dashboard/guac/proxy/guacamole/websocket-tunnel?access_token=${accessToken}`;
+				const tunnelUrl = `${proto}//${window.location.host}/dashboard/guac/proxy/guacamole/websocket-tunnel`;
 
 				const tunnel = new GuacLib.WebSocketTunnel(tunnelUrl);
 				const client = new GuacLib.Client(tunnel);
@@ -138,11 +136,13 @@ export default function ReactVMGuacViewer() {
 					setConnected(false);
 				};
 
-				// Connect with the connection parameters
-				// The token and connection ID are passed as query params
-				// Guacamole authenticates via its own session system
+				// Connect with the connection parameters.
+				// access_token is included here (not in the tunnel URL) because
+				// guacamole-common-js builds the full query string from connect()
+				// params — putting it in the URL causes a double-? problem.
+				const accessToken = vmService.$accessToken.get() ?? '';
 				client.connect(
-					`token=${encodeURIComponent(guacTarget)}&GUAC_WIDTH=${window.screen.width}&GUAC_HEIGHT=${window.screen.height}&GUAC_DPI=96`,
+					`access_token=${accessToken}&token=${encodeURIComponent(guacTarget)}&GUAC_WIDTH=${window.screen.width}&GUAC_HEIGHT=${window.screen.height}&GUAC_DPI=96`,
 				);
 
 				clientRef.current = client;
