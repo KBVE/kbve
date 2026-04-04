@@ -70,6 +70,7 @@ lightyear_avian3d = { version = "0.26", default-features = false, features = ["3
 bevy_kbve_net = { path = "../../../packages/rust/bevy/bevy_kbve_net", features = ["npcdb"] }
 futures-util = "0.3"
 tokio-tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
+webpki-roots = "0.26"
 
 # Workspace path dependencies
 jedi = { path = "../../../packages/rust/jedi" }

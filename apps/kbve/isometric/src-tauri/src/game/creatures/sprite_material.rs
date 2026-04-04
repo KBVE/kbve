@@ -1,84 +1,120 @@
-//! GPU-driven sprite sheet material.
+//! Sprite sheet material using automatic instancing + storage buffer.
 //!
-//! Replaces per-frame `insert_attribute(UV_0)` mesh uploads with a uniform
-//! buffer that the vertex shader reads to compute atlas UVs on the GPU.
-//! Used by both frog and wraith sprite creatures.
+//! Follows Bevy 0.18's automatic_instancing + storage_buffer examples:
+//! - All creatures of the same type share ONE material handle + ONE mesh handle
+//! - Per-instance data (frame, flip, tint) stored in a ShaderStorageBuffer
+//! - MeshTag on each entity indexes into the storage buffer
+//! - Bevy auto-instances all entities with the same mesh+material into one draw call
+//!
+//! Adding a new creature type = new material with its atlas texture + storage buffer.
 
+use bevy::mesh::MeshTag;
 use bevy::prelude::*;
-use bevy::render::render_resource::{AsBindGroup, ShaderType};
+use bevy::render::render_resource::AsBindGroup;
+use bevy::render::storage::ShaderStorageBuffer;
 use bevy::shader::ShaderRef;
 
-/// Uniform block matching the WGSL `SpriteUniforms` struct.
-#[derive(ShaderType, Clone, Copy, Debug)]
-pub struct SpriteUniforms {
-    /// RGBA tint applied to the texture sample (used for day/night).
-    pub tint: Vec4,
-    /// Current frame column in the atlas (0-based).
+const SHADER_PATH: &str = "shaders/sprite_sheet.wgsl";
+
+/// Per-instance sprite data: 3 vec4s packed into the storage buffer.
+/// Index = MeshTag * 3.
+///
+/// [0] = (frame_col, frame_row, sheet_cols, sheet_rows)
+/// [1] = (flip, alpha_cutoff, 0, 0)
+/// [2] = (tint_r, tint_g, tint_b, tint_a)
+#[derive(Clone, Copy, Debug)]
+pub struct SpriteInstanceData {
     pub frame_col: f32,
-    /// Current frame row in the atlas (0-based).
     pub frame_row: f32,
-    /// Total columns in the sprite sheet.
     pub sheet_cols: f32,
-    /// Total rows in the sprite sheet.
     pub sheet_rows: f32,
-    /// >0.5 to flip horizontally.
     pub flip: f32,
-    /// Alpha discard threshold (0.5 for mask, 0.01 for blend).
     pub alpha_cutoff: f32,
-    pub _pad0: f32,
-    pub _pad1: f32,
+    pub tint: [f32; 4],
 }
 
-impl Default for SpriteUniforms {
+impl Default for SpriteInstanceData {
     fn default() -> Self {
         Self {
-            tint: Vec4::ONE,
             frame_col: 0.0,
             frame_row: 0.0,
             sheet_cols: 1.0,
             sheet_rows: 1.0,
             flip: 0.0,
             alpha_cutoff: 0.5,
-            _pad0: 0.0,
-            _pad1: 0.0,
+            tint: [1.0, 1.0, 1.0, 1.0],
         }
     }
 }
 
+impl SpriteInstanceData {
+    /// Pack into 3 vec4s (12 floats) for the storage buffer.
+    pub fn to_floats(&self) -> [[f32; 4]; 3] {
+        [
+            [
+                self.frame_col,
+                self.frame_row,
+                self.sheet_cols,
+                self.sheet_rows,
+            ],
+            [self.flip, self.alpha_cutoff, 0.0, 0.0],
+            self.tint,
+        ]
+    }
+}
+
 /// Custom material for sprite-sheet creatures.
-///
-/// Bind layout:
-/// - binding(0): `SpriteUniforms` uniform buffer
-/// - binding(1): sprite atlas texture
-/// - binding(2): sampler
-#[derive(Asset, TypePath, AsBindGroup, Clone)]
+/// Uses storage buffer for per-instance data (indexed by MeshTag).
+#[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
 pub struct SpriteSheetMaterial {
-    #[uniform(0)]
-    pub uniforms: SpriteUniforms,
+    #[storage(0, read_only)]
+    pub instance_data: Handle<ShaderStorageBuffer>,
     #[texture(1)]
     #[sampler(2)]
     pub texture: Handle<Image>,
 }
 
-/// Component that stores the SpriteSheetMaterial handle on sprite creatures.
-/// Used instead of `Creature.mat_handle` (which is typed StandardMaterial).
-#[derive(Component)]
-pub struct SpriteMatHandle(pub Handle<SpriteSheetMaterial>);
-
 impl Material for SpriteSheetMaterial {
     fn vertex_shader() -> ShaderRef {
-        "shaders/sprite_sheet.wgsl".into()
+        SHADER_PATH.into()
     }
 
     fn fragment_shader() -> ShaderRef {
-        "shaders/sprite_sheet.wgsl".into()
+        SHADER_PATH.into()
     }
 
     fn alpha_mode(&self) -> AlphaMode {
-        if self.uniforms.alpha_cutoff > 0.4 {
-            AlphaMode::Mask(self.uniforms.alpha_cutoff)
-        } else {
-            AlphaMode::Blend
-        }
+        AlphaMode::Mask(0.5)
+    }
+}
+
+/// Resource holding the shared material + storage buffer for a creature type.
+/// Each creature type (frog, wraith, etc.) gets one of these.
+#[derive(Resource)]
+pub struct SpriteTypeResources {
+    pub material: Handle<SpriteSheetMaterial>,
+    pub storage_buffer: Handle<ShaderStorageBuffer>,
+    pub mesh: Handle<Mesh>,
+    /// Current instance data — updated each frame, then flushed to the storage buffer.
+    pub instances: Vec<SpriteInstanceData>,
+}
+
+/// Component on each sprite creature entity linking it to its slot in the
+/// storage buffer. The MeshTag value matches this index.
+#[derive(Component)]
+pub struct SpriteSlot {
+    pub index: u32,
+}
+
+/// Flush updated instance data to the GPU storage buffer.
+/// Call this once per frame after animation systems update `instances`.
+pub fn flush_sprite_buffer(res: &SpriteTypeResources, buffers: &mut Assets<ShaderStorageBuffer>) {
+    if let Some(buffer) = buffers.get_mut(&res.storage_buffer) {
+        let data: Vec<[f32; 4]> = res
+            .instances
+            .iter()
+            .flat_map(|inst| inst.to_floats())
+            .collect();
+        buffer.set_data(data);
     }
 }

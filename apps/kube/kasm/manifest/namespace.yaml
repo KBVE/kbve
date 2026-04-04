@@ -4,3 +4,9 @@ metadata:
     name: kasm
     labels:
         app.kubernetes.io/part-of: kasm
+        # gluetun VPN sidecar requires NET_ADMIN capability, which is
+        # forbidden by the baseline PodSecurity standard. Allow privileged
+        # workloads in this namespace.
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/warn: privileged
+        pod-security.kubernetes.io/audit: privileged

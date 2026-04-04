@@ -57,7 +57,7 @@ pub struct CreaturesPlugin;
 
 impl Plugin for CreaturesPlugin {
     fn build(&self, app: &mut App) {
-        // GPU-driven sprite sheet material (shared by frog + wraith)
+        // Sprite sheet material plugin (automatic instancing + storage buffer)
         app.add_plugins(MaterialPlugin::<sprite_material::SpriteSheetMaterial>::default());
 
         // --- Unified NpcDb-driven registry ---

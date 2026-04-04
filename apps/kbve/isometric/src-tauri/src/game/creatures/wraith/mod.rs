@@ -24,7 +24,6 @@ use super::creature::{
     Creature, CreaturePoolIndex, CreatureRegistry, CreatureState, RenderKind, SpriteData,
     SpriteHopState,
 };
-use super::sprite_material::{SpriteMatHandle, SpriteSheetMaterial, SpriteUniforms};
 use crate::game::camera::IsometricCamera;
 use crate::game::terrain::TerrainMap;
 
@@ -36,6 +35,8 @@ const NPC_REF: &str = "wraith-executioner";
 
 const SHEET_COLS: u32 = 20;
 const SHEET_ROWS: u32 = 6;
+const FRAME_W: f32 = 1.0 / SHEET_COLS as f32;
+const FRAME_H: f32 = 1.0 / SHEET_ROWS as f32;
 
 /// World-space size of the wraith billboard quad (larger than frog).
 const WRAITH_SIZE: f32 = 3.52;
@@ -97,7 +98,7 @@ const ANIM_SUMMON: Anim = Anim {
 
 #[derive(Resource, Default)]
 pub struct WraithMaterials {
-    pub handles: Vec<Handle<SpriteSheetMaterial>>,
+    pub handles: Vec<Handle<StandardMaterial>>,
 }
 
 // ---------------------------------------------------------------------------
@@ -123,9 +124,28 @@ fn build_wraith_quad() -> Mesh {
     .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0.0, 0.0, 1.0]; 4])
     .with_inserted_attribute(
         Mesh::ATTRIBUTE_UV_0,
-        vec![[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]],
+        vec![
+            [0.0, 0.0],
+            [FRAME_W, 0.0],
+            [FRAME_W, FRAME_H],
+            [0.0, FRAME_H],
+        ],
     )
     .with_inserted_indices(Indices::U32(vec![0, 2, 1, 0, 3, 2]))
+}
+
+fn frame_uvs(anim: &Anim, frame: u32, flip: bool) -> [[f32; 2]; 4] {
+    let col = anim.start_col + (frame % anim.frame_count);
+    let row = anim.row;
+    let u0 = col as f32 * FRAME_W;
+    let u1 = u0 + FRAME_W;
+    let v0 = row as f32 * FRAME_H;
+    let v1 = v0 + FRAME_H;
+    if flip {
+        [[u1, v0], [u0, v0], [u0, v1], [u1, v1]]
+    } else {
+        [[u0, v0], [u1, v0], [u1, v1], [u0, v1]]
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -135,8 +155,7 @@ fn build_wraith_quad() -> Mesh {
 pub(super) fn spawn_wraiths(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<SpriteSheetMaterial>>,
-    mut std_materials: ResMut<Assets<StandardMaterial>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
     mut pool: ResMut<CreaturePool>,
     mut wraith_mats: ResMut<WraithMaterials>,
@@ -160,34 +179,24 @@ pub(super) fn spawn_wraiths(
     let texture: Handle<Image> =
         asset_server.load("textures/creatures/wraith/wraith_executioner.png");
     let wraith_mesh = meshes.add(build_wraith_quad());
-    let dummy_std = std_materials.add(StandardMaterial::default());
 
     for i in 0..count {
         let seed = (i as u32).wrapping_add(7700);
         let phase = hash_f32(seed * 11 + 1);
-        let start_frame = (hash_f32(seed * 41 + 7) * ANIM_IDLE.frame_count as f32) as u32;
 
-        let mat = materials.add(SpriteSheetMaterial {
-            uniforms: SpriteUniforms {
-                tint: Vec4::ONE,
-                frame_col: (start_frame % ANIM_IDLE.frame_count) as f32,
-                frame_row: ANIM_IDLE.row as f32,
-                sheet_cols: SHEET_COLS as f32,
-                sheet_rows: SHEET_ROWS as f32,
-                flip: if hash_f32(seed * 67 + 3) > 0.5 {
-                    1.0
-                } else {
-                    0.0
-                },
-                alpha_cutoff: 0.01, // Blend mode for wraiths
-                ..default()
-            },
-            texture: texture.clone(),
+        let mat = materials.add(StandardMaterial {
+            base_color_texture: Some(texture.clone()),
+            alpha_mode: AlphaMode::Blend,
+            cull_mode: None,
+            double_sided: true,
+            unlit: true,
+            ..default()
         });
         wraith_mats.handles.push(mat.clone());
 
         let idle_timer = IDLE_MIN + hash_f32(seed * 53 + 11) * (IDLE_MAX - IDLE_MIN);
         let frame_duration = FRAME_DURATION_BASE * (0.8 + hash_f32(seed * 79 + 17) * 0.4);
+        let start_frame = (hash_f32(seed * 41 + 7) * ANIM_IDLE.frame_count as f32) as u32;
 
         commands.spawn((
             Mesh3d(wraith_mesh.clone()),
@@ -202,9 +211,8 @@ pub(super) fn spawn_wraiths(
                 assigned_slot: None,
                 anchor: Vec3::new(0.0, -100.0, 0.0),
                 phase,
-                mat_handle: dummy_std.clone(),
+                mat_handle: mat,
             },
-            SpriteMatHandle(mat),
             SpriteData {
                 frame_timer: hash_f32(seed * 83 + 13) * frame_duration,
                 frame_duration,
@@ -221,7 +229,7 @@ pub(super) fn spawn_wraiths(
         ));
     }
 
-    info!("[wraith] spawned {count} entities (GPU-driven sprite sheet)");
+    info!("[wraith] spawned {count} entities");
 }
 
 /// Wraith-specific component: marker + deterministic patrol counter.
@@ -247,14 +255,14 @@ pub(super) fn animate_wraiths(
     game_time: Res<GameTime>,
     mut terrain: ResMut<TerrainMap>,
     camera_q: Query<&Transform, With<IsometricCamera>>,
-    mut sprite_mats: ResMut<Assets<SpriteSheetMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
     mut wraith_q: Query<
         (
             &mut Transform,
             &mut Creature,
             &mut SpriteData,
             &mut Visibility,
-            &SpriteMatHandle,
+            &Mesh3d,
             &mut WraithMarker,
         ),
         Without<IsometricCamera>,
@@ -270,7 +278,7 @@ pub(super) fn animate_wraiths(
     let cam_pos = cam_tf.translation;
     let center = scene_center(cam_pos);
 
-    for (mut tf, mut cr, mut sd, mut vis, smat, mut wm) in &mut wraith_q {
+    for (mut tf, mut cr, mut sd, mut vis, mesh_handle, mut wm) in &mut wraith_q {
         // Relocate if too far or below world
         let dist = Vec2::new(cr.anchor.x - center.x, cr.anchor.z - center.z).length();
         if dist > RECYCLE_DIST || cr.anchor.y < -50.0 {
@@ -462,12 +470,15 @@ pub(super) fn animate_wraiths(
         }
         sd.hop_state = state;
 
-        // Update sprite sheet uniforms (GPU-driven, no mesh upload)
-        if let Some(mat) = sprite_mats.get_mut(&smat.0) {
-            let col = sd.current_frame % sd.anim_frames;
-            mat.uniforms.frame_col = col as f32;
-            mat.uniforms.frame_row = sd.anim_row as f32;
-            mat.uniforms.flip = if sd.facing_left { 1.0 } else { 0.0 };
+        // Update UVs for current frame
+        let anim = Anim {
+            row: sd.anim_row,
+            start_col: 0,
+            frame_count: sd.anim_frames,
+        };
+        let uvs = frame_uvs(&anim, sd.current_frame, sd.facing_left);
+        if let Some(mesh) = meshes.get_mut(mesh_handle.0.id()) {
+            mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, vec![uvs[0], uvs[1], uvs[2], uvs[3]]);
         }
 
         // Billboard: face camera

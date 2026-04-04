@@ -682,9 +682,34 @@ async fn vnc_bridge(
         .headers_mut()
         .insert("Sec-WebSocket-Protocol", "base64.binary.k8s.io".parse()?);
 
+    // Build TLS connector with K8s cluster CA so the VNC subresource
+    // endpoint's certificate is trusted (default webpki roots don't
+    // include the in-cluster CA).
+    let tls_connector = {
+        let mut root_store = rustls::RootCertStore::empty();
+        root_store.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
+        // Try custom CA path first, then in-cluster default
+        let ca_path = std::env::var("KUBEVIRT_CA_CERT_PATH")
+            .unwrap_or_else(|_| "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt".into());
+        if let Ok(pem) = std::fs::read(&ca_path) {
+            let certs = rustls_pemfile::certs(&mut pem.as_slice())
+                .filter_map(|c| c.ok())
+                .collect::<Vec<_>>();
+            for cert in certs {
+                let _ = root_store.add(cert);
+            }
+            debug!("VNC bridge: loaded CA from {ca_path}");
+        }
+        let config = rustls::ClientConfig::builder()
+            .with_root_certificates(root_store)
+            .with_no_client_auth();
+        tokio_tungstenite::Connector::Rustls(std::sync::Arc::new(config))
+    };
+
     // Connect to K8s API VNC subresource
     let (upstream_ws, _resp) =
-        tokio_tungstenite::connect_async_tls_with_config(request, None, false, None).await?;
+        tokio_tungstenite::connect_async_tls_with_config(request, None, false, Some(tls_connector))
+            .await?;
 
     // Split both sides into sender/receiver
     let (mut browser_tx, mut browser_rx) = browser_ws.split();
