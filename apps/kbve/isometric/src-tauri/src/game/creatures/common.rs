@@ -12,6 +12,7 @@ pub struct CreaturePool {
     pub frogs_spawned: bool,
     pub wraiths_spawned: bool,
     pub wolves_spawned: bool,
+    pub stags_spawned: bool,
 }
 
 /// Pre-built mesh handles created once at Startup to avoid allocating

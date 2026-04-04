@@ -389,6 +389,57 @@ pub fn build_creature_registry() -> CreatureRegistry {
         },
     );
 
+    // --- Woodland Stag ---
+    registry.register(
+        npc_types::Npc {
+            r#ref: "woodland-stag".into(),
+            name: "Woodland Stag".into(),
+            family: npc_types::CreatureFamily::Beast as i32,
+            rarity: npc_types::NpcRarity::Uncommon as i32,
+            level: 2,
+            stats: Some(npc_types::NpcStats {
+                hp: 18,
+                max_hp: 18,
+                attack: 4,
+                defense: 3,
+                speed: 7,
+                ..Default::default()
+            }),
+            spawn_rules: vec![npc_types::SpawnRule {
+                zone: Some("grassland".into()),
+                spawn_weight: 0.30,
+                ..Default::default()
+            }],
+            spatial: Some(npc_types::SpatialProperties {
+                walk_speed: Some(1.8),
+                ..Default::default()
+            }),
+            behavior: Some(npc_types::BehaviorTraits {
+                wander_radius: Some(6.0),
+                ..Default::default()
+            }),
+            interaction: Some(npc_types::InteractionFlags {
+                is_interactable: Some(true),
+                is_targetable: Some(true),
+                ..Default::default()
+            }),
+            phase_rules: vec![npc_types::PhaseRule {
+                time_start: Some(600),
+                time_end: Some(1900),
+                ..Default::default()
+            }],
+            ..Default::default()
+        },
+        CreatureConfig {
+            render_kind: RenderKind::Sprite,
+            pool_size: 4,
+            chunk_size: 22.0,
+            per_chunk: 1,
+            spawn_chance: 0.25,
+            schedule: TimeSchedule::Day,
+        },
+    );
+
     registry
 }
 
