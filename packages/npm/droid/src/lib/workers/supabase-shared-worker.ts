@@ -391,11 +391,17 @@ async function ensureClient(
 }
 
 /** JSON round-trip to strip non-cloneable refs (functions, circular) before postMessage. */
-function cloneSafe<T>(obj: T): T {
+function cloneSafe(obj: Res): Res {
 	try {
 		return JSON.parse(JSON.stringify(obj));
 	} catch {
-		return obj;
+		// JSON.stringify failed (circular refs, BigInt, etc.)
+		// Return a safe error response instead of the non-cloneable original
+		return {
+			id: (obj as { id?: string }).id ?? 'unknown',
+			ok: false,
+			error: 'Response contained non-serializable data',
+		};
 	}
 }
 
