@@ -10,7 +10,7 @@ import {
 import { requireJsonContentType, enforceBodySizeLimit } from "../_shared/validators.ts";
 
 // ---------------------------------------------------------------------------
-// Logs Edge Function — Query observability.logs_raw in ClickHouse
+// Logs Edge Function — Query observability.logs_distributed in ClickHouse
 //
 // Auth: service_role only (admin/staff access)
 //
@@ -82,7 +82,7 @@ async function handleQuery(params: QueryParams) {
     query: `
       SELECT timestamp, pod_namespace, service, level,
              message, pod_name, metadata
-      FROM logs_raw
+      FROM logs_distributed
       ${where}
       ORDER BY timestamp DESC
       LIMIT {lim:UInt32}
@@ -101,7 +101,7 @@ async function handleStats(params: { minutes?: number }) {
   const resultSet = await ch.query({
     query: `
       SELECT pod_namespace, service, level, count() as cnt
-      FROM logs_raw
+      FROM logs_distributed
       WHERE timestamp > now() - INTERVAL {minutes:UInt32} MINUTE
       GROUP BY pod_namespace, service, level
       ORDER BY cnt DESC
