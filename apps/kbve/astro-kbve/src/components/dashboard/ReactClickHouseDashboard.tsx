@@ -1451,7 +1451,7 @@ export default function ReactClickHouseDashboard() {
 						<span>
 							Showing {logs.rows.length} of {logs.count} results
 						</span>
-						<span>Source: observability.logs_raw</span>
+						<span>Source: observability.logs_distributed</span>
 					</div>
 				)}
 			</div>
