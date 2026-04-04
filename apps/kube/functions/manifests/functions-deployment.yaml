@@ -13,7 +13,7 @@ spec:
             labels:
                 app: functions
             annotations:
-                rollout-restart: '2026-02-28T00:00:00Z'
+                rollout-restart: '2026-04-04T09:00:00Z'
         spec:
             containers:
                 - name: edge-functions

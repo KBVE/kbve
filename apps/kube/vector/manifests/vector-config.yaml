@@ -5,7 +5,7 @@ metadata:
     name: vector-config
     namespace: vector
     annotations:
-        kbve.sh/last-updated: '2026-03-23T18:00:00Z'
+        kbve.sh/last-updated: '2026-04-04T09:00:00Z'
 data:
     vector.yml: |
         api:
@@ -195,16 +195,15 @@ data:
 
               parsed, err = parse_regex(.event_message, r'.*(?P<level>INFO|NOTICE|WARNING|ERROR|LOG|FATAL|PANIC?):.*', numeric_groups: true)
 
-              if err != null || parsed == null {
+              if err == null && parsed != null {
+                .metadata.parsed.error_severity = parsed.level
+              } else {
                 .metadata.parsed.error_severity = "info"
               }
-              if parsed != null {
-               .metadata.parsed.error_severity = parsed.level
-              }
-              if .metadata.parsed.error_severity == "info" {
+              if (string(.metadata.parsed.error_severity) ?? "") == "info" {
                   .metadata.parsed.error_severity = "log"
               }
-              .metadata.parsed.error_severity = upcase!(.metadata.parsed.error_severity)
+              .metadata.parsed.error_severity = upcase(string(.metadata.parsed.error_severity) ?? "LOG") ?? "LOG"
 
           analytics_logs:
             type: remap

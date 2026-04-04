@@ -145,7 +145,7 @@ serve(async (req: Request) => {
     meme: [],
     ows: ["FIRECRACKER_URL"],
     irc: ["ERGO_IRC_HOST", "ERGO_IRC_PORT"],
-    logs: ["CLICKHOUSE_URL", "CLICKHOUSE_USER", "CLICKHOUSE_PASSWORD"],
+    logs: ["CLICKHOUSE_ENDPOINT", "CLICKHOUSE_USER", "CLICKHOUSE_PASSWORD"],
     health: [],
   };
   const allowedKeys = new Set([
