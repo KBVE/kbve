@@ -19,6 +19,7 @@
 
 use bevy::asset::RenderAssetUsages;
 use bevy::camera::visibility::NoFrustumCulling;
+use bevy::light::NotShadowCaster;
 use bevy::mesh::{Indices, MeshTag, PrimitiveTopology};
 use bevy::prelude::*;
 use bevy::render::storage::ShaderStorageBuffer;
@@ -31,6 +32,7 @@ use super::creature::{
 use super::sprite_material::{SpriteAnimData, SpriteAtlasMaterial};
 use crate::game::camera::IsometricCamera;
 use crate::game::terrain::TerrainMap;
+use crate::game::weather::{BlobShadow, BlobShadowAssets};
 
 const NPC_REF: &str = "forest-wolf";
 
@@ -127,6 +129,10 @@ impl Default for WolfAtlasResources {
 // Wolf marker component
 // ---------------------------------------------------------------------------
 
+/// Links a wolf entity to its blob shadow entity.
+#[derive(Component)]
+pub(super) struct WolfShadow(Entity);
+
 #[derive(Component)]
 pub struct WolfMarker {
     pub patrol_step: u32,
@@ -188,6 +194,7 @@ pub(super) fn spawn_wolves(
     mut pool: ResMut<CreaturePool>,
     mut wolf_res: ResMut<WolfAtlasResources>,
     registry: Res<CreatureRegistry>,
+    blob_shadow: Option<Res<BlobShadowAssets>>,
 ) {
     if pool.wolves_spawned {
         return;
@@ -228,13 +235,35 @@ pub(super) fn spawn_wolves(
         let idle_timer = IDLE_MIN + hash_f32(seed * 53 + 11) * (IDLE_MAX - IDLE_MIN);
         let frame_duration = FRAME_DURATION_BASE * (0.8 + hash_f32(seed * 79 + 17) * 0.4);
 
-        commands.spawn((
+        // Spawn blob shadow (hidden at Y=-100 like the wolf)
+        let shadow_entity = if let Some(ref bs) = blob_shadow {
+            Some(
+                commands
+                    .spawn((
+                        Mesh3d(bs.mesh.clone()),
+                        MeshMaterial3d(bs.material.clone()),
+                        Transform::from_xyz(0.0, -100.0, 0.0),
+                        Visibility::Hidden,
+                        BlobShadow {
+                            anchor: Vec3::new(0.0, -100.0, 0.0),
+                            radius: WOLF_SIZE * 0.4,
+                            object_height: WOLF_SIZE * 0.5,
+                        },
+                    ))
+                    .id(),
+            )
+        } else {
+            None
+        };
+
+        let mut wolf = commands.spawn((
             Mesh3d(wolf_mesh.clone()),
             MeshMaterial3d(material.clone()),
             MeshTag(i as u32),
             Transform::from_xyz(0.0, -100.0, 0.0),
             Visibility::Hidden,
             NoFrustumCulling,
+            NotShadowCaster,
             Creature {
                 npc_id,
                 render_kind: RenderKind::Sprite,
@@ -262,6 +291,9 @@ pub(super) fn spawn_wolves(
                 anim_frame_count: ANIM_IDLE.frame_count,
             },
         ));
+        if let Some(se) = shadow_entity {
+            wolf.insert(WolfShadow(se));
+        }
     }
 
     info!("[wolf] spawned {count} entities (atlas instanced, 4-directional)");
@@ -282,9 +314,11 @@ pub(super) fn animate_wolves(
             &mut Visibility,
             &CreaturePoolIndex,
             &mut WolfMarker,
+            Option<&WolfShadow>,
         ),
         Without<IsometricCamera>,
     >,
+    mut shadow_q: Query<(&mut BlobShadow, &mut Visibility), Without<Creature>>,
 ) {
     let Ok(cam_tf) = camera_q.single() else {
         return;
@@ -296,7 +330,7 @@ pub(super) fn animate_wolves(
     let cam_pos = cam_tf.translation;
     let center = scene_center(cam_pos);
 
-    for (mut tf, mut cr, mut sd, mut vis, pool_idx, mut wm) in &mut wolf_q {
+    for (mut tf, mut cr, mut sd, mut vis, pool_idx, mut wm, shadow) in &mut wolf_q {
         // Relocate if too far or below world
         let dist = Vec2::new(cr.anchor.x - center.x, cr.anchor.z - center.z).length();
         if dist > RECYCLE_DIST || cr.anchor.y < -50.0 {
@@ -316,6 +350,12 @@ pub(super) fn animate_wolves(
             cr.state = CreatureState::Active;
             *vis = Visibility::Hidden;
             tf.translation.y = -100.0;
+            if let Some(WolfShadow(se)) = shadow {
+                if let Ok((mut bs, mut sv)) = shadow_q.get_mut(*se) {
+                    bs.anchor.y = -100.0;
+                    *sv = Visibility::Hidden;
+                }
+            }
             continue;
         }
 
@@ -465,6 +505,14 @@ pub(super) fn animate_wolves(
         // Billboard: face camera
         tf.look_to(cam_tf.forward().as_vec3(), Vec3::Y);
 
+        // Sync blob shadow to wolf anchor
+        if let Some(WolfShadow(se)) = shadow {
+            if let Ok((mut bs, mut sv)) = shadow_q.get_mut(*se) {
+                bs.anchor = Vec3::new(cr.anchor.x, cr.anchor.y + 0.01, cr.anchor.z);
+                *sv = Visibility::Visible;
+            }
+        }
+
         *vis = Visibility::Visible;
     }
 
@@ -485,5 +533,9 @@ fn set_wolf_anim(sd: &mut SpriteData, wm: &mut WolfMarker, anim: &DirAnim) {
     } else {
         sd.anim_row = anim.base_row + wm.direction;
         sd.anim_frames = anim.frame_count;
+        // Clamp frame if direction changed and new row has fewer frames
+        if sd.current_frame >= sd.anim_frames {
+            sd.current_frame = 0;
+        }
     }
 }
