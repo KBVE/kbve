@@ -15,7 +15,7 @@ pub use creature::{
     RenderKind, TimeSchedule,
 };
 pub use frog::FrogSpriteResources;
-pub use wraith::WraithMaterials;
+pub use wraith::WraithSpriteResources;
 
 /// Build creature meshes once at Startup to avoid allocating during spawn.
 fn setup_creature_meshes(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>) {
@@ -67,7 +67,7 @@ impl Plugin for CreaturesPlugin {
         app.init_resource::<CreaturePool>();
         app.init_resource::<common::GameTime>();
         app.init_resource::<FrogSpriteResources>();
-        app.init_resource::<WraithMaterials>();
+        app.init_resource::<WraithSpriteResources>();
         app.init_resource::<firefly::FireflyState>();
         app.add_systems(Startup, setup_creature_meshes);
 
