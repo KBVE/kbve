@@ -57,6 +57,7 @@ pub fn build_status_embed(snap: &StatusSnapshot) -> serenity::CreateEmbed {
         .title("Bot Status Dashboard")
         .url(branding::PROJECT_URL)
         .color(color)
+        .author(branding::embed_author())
         .thumbnail(state.thumbnail_url())
         .field(
             "Status",
