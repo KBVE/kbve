@@ -82,6 +82,7 @@ impl Plugin for CreaturesPlugin {
         // --- Generic sprite creature system ---
         app.insert_resource(generic::definitions::build_sprite_creature_types());
         app.init_resource::<generic::SpriteAtlasPool>();
+        app.init_resource::<generic::physics_lod::PhysicsLodTimer>();
 
         app.add_systems(Startup, setup_creature_meshes);
 
@@ -125,6 +126,8 @@ impl Plugin for CreaturesPlugin {
                 generic::animate::animate_sprite_creatures
                     .after(generic::brain::poll_behavior_results)
                     .run_if(any_with_component::<generic::SpriteCreatureMarker>),
+                generic::physics_lod::update_physics_lod
+                    .run_if(any_with_component::<generic::PhysicsLod>),
             ),
         );
     }

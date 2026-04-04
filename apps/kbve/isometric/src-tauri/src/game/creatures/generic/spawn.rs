@@ -13,6 +13,7 @@ use super::super::creature::{
 };
 use super::super::sprite_material::{SpriteAnimData, SpriteAtlasMaterial};
 use super::brain::CreatureBrain;
+use super::physics_lod::PhysicsLod;
 use super::types::*;
 use crate::game::weather::BlobShadowAssets;
 
@@ -162,6 +163,11 @@ pub fn spawn_sprite_creatures(
             // Add brain if creature type has a behavior tree
             if creature_type.behavior_tree.is_some() {
                 entity.insert(CreatureBrain::new());
+            }
+
+            // Add physics LOD (starts as Ghost — no physics components)
+            if creature_type.physics_lod.is_some() {
+                entity.insert(PhysicsLod::Ghost);
             }
 
             if let Some(se) = shadow_entity {

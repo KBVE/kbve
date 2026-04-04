@@ -73,6 +73,12 @@ fn boar() -> SpriteCreatureType {
             ],
         },
         behavior_tree: Some(boar_tree()),
+        physics_lod: Some(super::physics_lod::PhysicsLodConfig {
+            kinematic_radius: 8.0,
+            sensor_radius: 16.0,
+            collider_radius: 0.5,
+            collider_half_height: 0.4,
+        }),
     }
 }
 
