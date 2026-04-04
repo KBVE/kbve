@@ -5,13 +5,17 @@
 //! chunk-based deterministic seeding is pending.
 
 use bevy::asset::RenderAssetUsages;
-use bevy::mesh::{Indices, PrimitiveTopology};
+use bevy::mesh::{Indices, MeshTag, PrimitiveTopology};
 use bevy::prelude::*;
+use bevy::render::storage::ShaderStorageBuffer;
 
 use super::common::{CreaturePool, GameTime, day_factor, hash_f32, scene_center};
 use super::creature::{
     Creature, CreaturePoolIndex, CreatureRegistry, CreatureState, RenderKind, SpriteData,
     SpriteHopState,
+};
+use super::sprite_material::{
+    SpriteInstanceData, SpriteSheetMaterial, SpriteTypeResources, flush_sprite_buffer,
 };
 use super::wraith::WraithMarker;
 use crate::game::camera::IsometricCamera;
@@ -76,9 +80,19 @@ const JUMP_AIRBORNE_FRAME: u32 = 4;
 // ---------------------------------------------------------------------------
 
 /// Holds all frog material handles so the weather system can tint them.
-#[derive(Resource, Default)]
-pub struct FrogMaterials {
-    pub handles: Vec<Handle<StandardMaterial>>,
+/// Frog-specific sprite resources (shared material, mesh, storage buffer).
+#[derive(Resource)]
+pub struct FrogSpriteResources(pub SpriteTypeResources);
+
+impl Default for FrogSpriteResources {
+    fn default() -> Self {
+        Self(SpriteTypeResources {
+            material: Handle::default(),
+            storage_buffer: Handle::default(),
+            mesh: Handle::default(),
+            instances: Vec::new(),
+        })
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -88,6 +102,7 @@ pub struct FrogMaterials {
 fn build_frog_quad() -> Mesh {
     let h = FROG_SIZE;
     let w = FROG_SIZE;
+    // UVs are [0,1] — the shader maps to the correct atlas frame via storage buffer
     Mesh::new(
         PrimitiveTopology::TriangleList,
         RenderAssetUsages::default(),
@@ -104,12 +119,7 @@ fn build_frog_quad() -> Mesh {
     .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0.0, 0.0, 1.0]; 4])
     .with_inserted_attribute(
         Mesh::ATTRIBUTE_UV_0,
-        vec![
-            [0.0, 0.0],
-            [FRAME_W, 0.0],
-            [FRAME_W, FRAME_H],
-            [0.0, FRAME_H],
-        ],
+        vec![[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]],
     )
     .with_inserted_indices(Indices::U32(vec![0, 2, 1, 0, 3, 2]))
 }
@@ -135,10 +145,11 @@ fn frame_uvs(anim: &Anim, frame: u32, flip: bool) -> [[f32; 2]; 4] {
 pub(super) fn spawn_frogs(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut sprite_materials: ResMut<Assets<SpriteSheetMaterial>>,
+    mut buffers: ResMut<Assets<ShaderStorageBuffer>>,
     asset_server: Res<AssetServer>,
     mut pool: ResMut<CreaturePool>,
-    mut frog_mats: ResMut<FrogMaterials>,
+    mut frog_res: ResMut<FrogSpriteResources>,
     registry: Res<CreatureRegistry>,
 ) {
     if pool.frogs_spawned {
@@ -159,19 +170,36 @@ pub(super) fn spawn_frogs(
     let texture: Handle<Image> = asset_server.load("textures/frog_green_mob.png");
     let frog_mesh = meshes.add(build_frog_quad());
 
+    // Pre-fill instance data with defaults
+    let mut instances: Vec<SpriteInstanceData> = (0..count)
+        .map(|_| SpriteInstanceData {
+            sheet_cols: SHEET_COLS as f32,
+            sheet_rows: SHEET_ROWS as f32,
+            ..Default::default()
+        })
+        .collect();
+
+    // Create storage buffer with initial data
+    let initial_data: Vec<[f32; 4]> = instances.iter().flat_map(|inst| inst.to_floats()).collect();
+    let storage_handle = buffers.add(ShaderStorageBuffer::from(initial_data));
+
+    // Create shared material (one for ALL frogs)
+    let material_handle = sprite_materials.add(SpriteSheetMaterial {
+        instance_data: storage_handle.clone(),
+        texture,
+    });
+
+    // Store shared resources
+    frog_res.0 = SpriteTypeResources {
+        material: material_handle.clone(),
+        storage_buffer: storage_handle,
+        mesh: frog_mesh.clone(),
+        instances,
+    };
+
     for i in 0..count {
         let seed = (i as u32).wrapping_add(900);
         let phase = hash_f32(seed * 11 + 1);
-
-        let mat = materials.add(StandardMaterial {
-            base_color_texture: Some(texture.clone()),
-            alpha_mode: AlphaMode::Mask(0.5),
-            cull_mode: None,
-            double_sided: true,
-            unlit: true,
-            ..default()
-        });
-        frog_mats.handles.push(mat.clone());
 
         let idle_timer = IDLE_MIN + hash_f32(seed * 53 + 11) * (IDLE_MAX - IDLE_MIN);
         let frame_duration = FRAME_DURATION_BASE * (0.8 + hash_f32(seed * 79 + 17) * 0.4);
@@ -179,7 +207,8 @@ pub(super) fn spawn_frogs(
 
         commands.spawn((
             Mesh3d(frog_mesh.clone()),
-            MeshMaterial3d(mat.clone()),
+            MeshMaterial3d(material_handle.clone()),
+            MeshTag(i as u32),
             Transform::from_xyz(0.0, -100.0, 0.0),
             Visibility::Hidden,
             Creature {
@@ -190,7 +219,7 @@ pub(super) fn spawn_frogs(
                 assigned_slot: None,
                 anchor: Vec3::new(0.0, -100.0, 0.0),
                 phase,
-                mat_handle: mat,
+                mat_handle: Handle::default(),
             },
             SpriteData {
                 frame_timer: hash_f32(seed * 83 + 13) * frame_duration,
@@ -205,7 +234,7 @@ pub(super) fn spawn_frogs(
         ));
     }
 
-    info!("[frog] spawned {count} entities");
+    info!("[frog] spawned {count} entities (instanced)");
 }
 
 pub(super) fn animate_frogs(
@@ -213,14 +242,15 @@ pub(super) fn animate_frogs(
     game_time: Res<GameTime>,
     mut terrain: ResMut<TerrainMap>,
     camera_q: Query<&Transform, With<IsometricCamera>>,
-    mut meshes: ResMut<Assets<Mesh>>,
+    mut buffers: ResMut<Assets<ShaderStorageBuffer>>,
+    mut frog_res: ResMut<FrogSpriteResources>,
     mut frog_q: Query<
         (
             &mut Transform,
             &mut Creature,
             &mut SpriteData,
             &mut Visibility,
-            &Mesh3d,
+            &CreaturePoolIndex,
         ),
         (Without<IsometricCamera>, Without<WraithMarker>),
     >,
@@ -244,7 +274,7 @@ pub(super) fn animate_frogs(
     let cam_pos = cam_tf.translation;
     let center = scene_center(cam_pos);
 
-    for (mut tf, mut cr, mut sd, mut vis, mesh_handle) in &mut frog_q {
+    for (mut tf, mut cr, mut sd, mut vis, pool_idx) in &mut frog_q {
         let frog_id = (cr.phase * 100000.0) as u32;
 
         // Relocate frog if too far from scene center or below world
@@ -412,15 +442,15 @@ pub(super) fn animate_frogs(
         }
         sd.hop_state = state;
 
-        // Update UVs on the mesh to show current frame
-        let anim = Anim {
-            row: sd.anim_row,
-            start_col: 0,
-            frame_count: sd.anim_frames,
-        };
-        let uvs = frame_uvs(&anim, sd.current_frame, sd.facing_left);
-        if let Some(mesh) = meshes.get_mut(mesh_handle.0.id()) {
-            mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, vec![uvs[0], uvs[1], uvs[2], uvs[3]]);
+        // Update per-instance sprite data in storage buffer
+        let idx = pool_idx.0 as usize;
+        if idx < frog_res.0.instances.len() {
+            let col = (sd.current_frame % SHEET_COLS) as f32;
+            let row = sd.anim_row as f32;
+            frog_res.0.instances[idx].frame_col = col;
+            frog_res.0.instances[idx].frame_row = row;
+            frog_res.0.instances[idx].flip = if sd.facing_left { 1.0 } else { 0.0 };
+            frog_res.0.instances[idx].tint = [df, df, df, 1.0]; // day/night tint
         }
 
         // Billboard: face camera
@@ -432,4 +462,7 @@ pub(super) fn animate_frogs(
 
         *vis = Visibility::Visible;
     }
+
+    // Flush all instance data to the GPU storage buffer (one upload per frame)
+    flush_sprite_buffer(&frog_res.0, &mut buffers);
 }
