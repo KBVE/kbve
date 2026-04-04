@@ -4,6 +4,7 @@ pub mod creature;
 mod firefly;
 mod frog;
 pub mod sprite_material;
+mod stag;
 mod wolf;
 mod wraith;
 
@@ -16,6 +17,7 @@ pub use creature::{
     RenderKind, TimeSchedule,
 };
 pub use frog::FrogAtlasResources;
+pub use stag::StagAtlasResources;
 pub use wolf::WolfAtlasResources;
 pub use wraith::WraithAtlasResources;
 
@@ -70,6 +72,7 @@ impl Plugin for CreaturesPlugin {
         app.init_resource::<FrogAtlasResources>();
         app.init_resource::<WraithAtlasResources>();
         app.init_resource::<WolfAtlasResources>();
+        app.init_resource::<StagAtlasResources>();
         app.init_resource::<firefly::FireflyState>();
         app.add_systems(Startup, setup_creature_meshes);
 
@@ -99,6 +102,9 @@ impl Plugin for CreaturesPlugin {
                 // Wolves (SpriteAtlasMaterial + SSBO, 4-directional)
                 wolf::spawn_wolves.run_if(|pool: Res<CreaturePool>| !pool.wolves_spawned),
                 wolf::animate_wolves.run_if(any_with_component::<wolf::WolfMarker>),
+                // Stags (SpriteAtlasMaterial + SSBO, 4-directional, daytime)
+                stag::spawn_stags.run_if(|pool: Res<CreaturePool>| !pool.stags_spawned),
+                stag::animate_stags.run_if(any_with_component::<stag::StagMarker>),
             ),
         );
     }
