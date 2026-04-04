@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="320" viewBox="0 0 800 320">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#161b22"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="320" fill="url(#bg)" rx="12"/>
+  <rect x="0" y="0" width="4" height="320" fill="#238636" rx="2"/>
+
+  <!-- Title -->
+  <text x="28" y="38" font-family="sans-serif" font-size="18" font-weight="bold" fill="#e6edf3">Issue Activity -- {{ repo_name }}</text>
+  <text x="28" y="58" font-family="sans-serif" font-size="12" fill="#8b949e">Last {{ day_count }} days | {{ total_opened }} opened, {{ total_closed }} closed</text>
+
+  <!-- Legend -->
+  <g transform="translate(600, 28)">
+    <rect x="0" y="0" width="10" height="10" fill="#238636" rx="2"/>
+    <text x="14" y="10" font-family="sans-serif" font-size="11" fill="#8b949e">Opened</text>
+    <rect x="80" y="0" width="10" height="10" fill="#8957E5" rx="2"/>
+    <text x="94" y="10" font-family="sans-serif" font-size="11" fill="#8b949e">Closed</text>
+  </g>
+
+  <!-- Chart area -->
+  <g transform="translate(50, 75)">
+    <!-- Grid lines -->
+    {% for grid in grid_lines %}
+    <line x1="0" y1="{{ grid.y }}" x2="700" y2="{{ grid.y }}" stroke="#21262d" stroke-width="1"/>
+    <text x="-8" y="{{ grid.label_y }}" font-family="sans-serif" font-size="10" fill="#484f58" text-anchor="end">{{ grid.value }}</text>
+    {% endfor %}
+
+    <!-- Bars -->
+    {% for bar in bars %}
+    <!-- Opened (green) -->
+    {% if bar.opened_h > 0.0 %}
+    <rect x="{{ bar.x }}" y="{{ bar.opened_y }}" width="{{ bar.width }}" height="{{ bar.opened_h }}" fill="#238636" rx="2"/>
+    {% endif %}
+    <!-- Closed (purple) -->
+    {% if bar.closed_h > 0.0 %}
+    <rect x="{{ bar.closed_x }}" y="{{ bar.closed_y }}" width="{{ bar.width }}" height="{{ bar.closed_h }}" fill="#8957E5" rx="2"/>
+    {% endif %}
+    {% endfor %}
+
+    <!-- X-axis labels -->
+    {% for label in x_labels %}
+    <text x="{{ label.x }}" y="195" font-family="sans-serif" font-size="10" fill="#484f58" text-anchor="middle">{{ label.text }}</text>
+    {% endfor %}
+  </g>
+
+  <!-- Footer -->
+  <rect x="0" y="312" width="800" height="8" fill="#238636" opacity="0.3"/>
+  <text x="760" y="306" font-family="sans-serif" font-size="10" fill="#30363d" text-anchor="end">discord.sh</text>
+</svg>

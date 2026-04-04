@@ -1,3 +1,4 @@
+pub mod chart_buttons;
 pub mod github_components;
 mod status_buttons;
 

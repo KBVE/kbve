@@ -5,6 +5,7 @@
 
 use askama::Template;
 use jedi::entity::github::{GitHubCommit, GitHubIssue, GitHubPull, GitHubRepo};
+use std::collections::HashMap;
 
 use crate::discord::embeds::notice_board_embed::NoticeItem;
 use crate::discord::embeds::task_board_embed::TaskItem;
@@ -655,6 +656,388 @@ fn priority_color_from_labels(labels: &[jedi::entity::github::GitHubLabel]) -> S
         }
     }
     "#30363d".to_owned()
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Chart Cards — on-demand visualizations triggered by button clicks
+// ═══════════════════════════════════════════════════════════════════
+
+// ── Languages Chart ────────────────────────────────────────────────
+
+/// GitHub language colors (top languages only; fallback to gray).
+fn language_color(name: &str) -> &'static str {
+    match name.to_lowercase().as_str() {
+        "rust" => "#dea584",
+        "typescript" => "#3178c6",
+        "javascript" => "#f1e05a",
+        "python" => "#3572a5",
+        "go" => "#00add8",
+        "java" => "#b07219",
+        "c++" | "cpp" => "#f34b7d",
+        "c" => "#555555",
+        "c#" | "csharp" => "#178600",
+        "ruby" => "#701516",
+        "swift" => "#f05138",
+        "kotlin" => "#a97bff",
+        "dart" => "#00b4ab",
+        "shell" | "bash" => "#89e051",
+        "html" => "#e34c26",
+        "css" | "scss" => "#563d7c",
+        "lua" => "#000080",
+        "astro" => "#ff5a03",
+        "svelte" => "#ff3e00",
+        "mdx" => "#fcb32c",
+        "nix" => "#7e7eff",
+        "dockerfile" => "#384d54",
+        "protobuf" | "proto" => "#ccc",
+        "makefile" => "#427819",
+        _ => "#8b949e",
+    }
+}
+
+fn format_bytes(bytes: u64) -> String {
+    if bytes >= 1_000_000 {
+        format!("{:.1}MB", bytes as f64 / 1_000_000.0)
+    } else if bytes >= 1_000 {
+        format!("{:.1}KB", bytes as f64 / 1_000.0)
+    } else {
+        format!("{}B", bytes)
+    }
+}
+
+pub struct LanguageBarSegment {
+    pub x: f64,
+    pub width: f64,
+    pub color: String,
+}
+
+pub struct LanguageRow {
+    pub name: String,
+    pub percent: String,
+    pub color: String,
+    pub bar_width: f64,
+    pub bytes_display: String,
+    pub label_x: f64,
+    pub y: u32,
+}
+
+#[derive(Template)]
+#[template(path = "github/languages_chart.svg")]
+pub struct LanguagesChartTemplate {
+    pub repo_name: String,
+    pub total_bytes_display: String,
+    pub languages: Vec<LanguageRow>,
+    pub bar_segments: Vec<LanguageBarSegment>,
+    pub height: u32,
+    pub footer_y: u32,
+    pub brand_y: u32,
+}
+
+pub fn build_languages_chart(
+    lang_map: &HashMap<String, u64>,
+    repo_name: &str,
+) -> LanguagesChartTemplate {
+    let total: u64 = lang_map.values().sum();
+    let mut sorted: Vec<_> = lang_map.iter().collect();
+    sorted.sort_by(|a, b| b.1.cmp(a.1));
+    let sorted = &sorted[..sorted.len().min(12)]; // top 12
+
+    let max_bar = 480.0;
+
+    // Stacked bar segments
+    let mut bar_segments = Vec::new();
+    let mut seg_x = 0.0;
+    let bar_total_width = 744.0;
+    for (name, bytes) in sorted {
+        let bytes = **bytes;
+        let frac = if total > 0 {
+            bytes as f64 / total as f64
+        } else {
+            0.0
+        };
+        let w = (frac * bar_total_width).max(1.0);
+        bar_segments.push(LanguageBarSegment {
+            x: seg_x,
+            width: w,
+            color: language_color(name).to_owned(),
+        });
+        seg_x += w;
+    }
+
+    // Individual rows
+    let languages: Vec<LanguageRow> = sorted
+        .iter()
+        .enumerate()
+        .map(|(i, (name, bytes))| {
+            let bytes = **bytes;
+            let pct = if total > 0 {
+                (bytes as f64 / total as f64) * 100.0
+            } else {
+                0.0
+            };
+            let bw = (pct / 100.0) * max_bar;
+            LanguageRow {
+                name: name.to_string(),
+                percent: format!("{:.1}", pct),
+                color: language_color(name).to_owned(),
+                bar_width: bw.max(2.0),
+                bytes_display: format_bytes(bytes),
+                label_x: 260.0 + bw.max(2.0) + 8.0,
+                y: 100 + (i as u32 * 28),
+            }
+        })
+        .collect();
+
+    let row_count = languages.len() as u32;
+    let height = 100 + row_count * 28 + 30;
+
+    LanguagesChartTemplate {
+        repo_name: repo_name.to_owned(),
+        total_bytes_display: format_bytes(total),
+        languages,
+        bar_segments,
+        height,
+        footer_y: height - 8,
+        brand_y: height - 14,
+    }
+}
+
+pub fn render_languages_chart_blocking(
+    lang_map: &HashMap<String, u64>,
+    repo_name: &str,
+    fontdb: &kbve::FontDb,
+) -> Result<Vec<u8>, String> {
+    let template = build_languages_chart(lang_map, repo_name);
+    let svg = template
+        .render()
+        .map_err(|e| format!("Languages chart SVG: {e}"))?;
+    kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("Languages chart PNG: {e}"))
+}
+
+// ── Label Distribution Chart ───────────────────────────────────────
+
+pub struct LabelChartRow {
+    pub name: String,
+    pub color: String,
+    pub count: u64,
+    pub bar_width: f64,
+    pub count_x: f64,
+    pub y: u32,
+}
+
+#[derive(Template)]
+#[template(path = "github/label_chart.svg")]
+pub struct LabelChartTemplate {
+    pub repo_name: String,
+    pub total_issues: usize,
+    pub label_count: usize,
+    pub labels: Vec<LabelChartRow>,
+    pub height: u32,
+    pub footer_y: u32,
+    pub brand_y: u32,
+}
+
+pub fn build_label_chart(issues: &[GitHubIssue], repo_name: &str) -> LabelChartTemplate {
+    // Count issues per label
+    let mut counts: HashMap<String, (u64, String)> = HashMap::new();
+    for issue in issues {
+        for label in &issue.labels {
+            let entry = counts.entry(label.name.clone()).or_insert((
+                0,
+                label.color.clone().unwrap_or_else(|| "8b949e".to_owned()),
+            ));
+            entry.0 += 1;
+        }
+    }
+
+    let mut sorted: Vec<_> = counts.into_iter().collect();
+    sorted.sort_by(|a, b| b.1.0.cmp(&a.1.0));
+    let sorted = &sorted[..sorted.len().min(15)]; // top 15
+
+    let max_count = sorted.first().map(|(_, (c, _))| *c).unwrap_or(1);
+    let max_bar = 480.0;
+
+    let labels: Vec<LabelChartRow> = sorted
+        .iter()
+        .enumerate()
+        .map(|(i, (name, (count, color)))| {
+            let bw = (*count as f64 / max_count as f64) * max_bar;
+            LabelChartRow {
+                name: truncate(name, 25),
+                color: color.clone(),
+                count: *count,
+                bar_width: bw.max(4.0),
+                count_x: 220.0 + bw.max(4.0) + 8.0,
+                y: 75 + (i as u32 * 28),
+            }
+        })
+        .collect();
+
+    let row_count = labels.len() as u32;
+    let height = 75 + row_count * 28 + 30;
+
+    LabelChartTemplate {
+        repo_name: repo_name.to_owned(),
+        total_issues: issues.len(),
+        label_count: labels.len(),
+        labels,
+        height,
+        footer_y: height - 8,
+        brand_y: height - 14,
+    }
+}
+
+pub fn render_label_chart_blocking(
+    issues: &[GitHubIssue],
+    repo_name: &str,
+    fontdb: &kbve::FontDb,
+) -> Result<Vec<u8>, String> {
+    let template = build_label_chart(issues, repo_name);
+    let svg = template
+        .render()
+        .map_err(|e| format!("Label chart SVG: {e}"))?;
+    kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("Label chart PNG: {e}"))
+}
+
+// ── Activity Chart ─────────────────────────────────────────────────
+
+pub struct ActivityBar {
+    pub x: f64,
+    pub width: f64,
+    pub opened_y: f64,
+    pub opened_h: f64,
+    pub closed_x: f64,
+    pub closed_y: f64,
+    pub closed_h: f64,
+}
+
+pub struct GridLine {
+    pub y: f64,
+    pub label_y: f64,
+    pub value: u32,
+}
+
+pub struct XLabel {
+    pub x: f64,
+    pub text: String,
+}
+
+#[derive(Template)]
+#[template(path = "github/activity_chart.svg")]
+pub struct ActivityChartTemplate {
+    pub repo_name: String,
+    pub day_count: usize,
+    pub total_opened: u32,
+    pub total_closed: u32,
+    pub bars: Vec<ActivityBar>,
+    pub grid_lines: Vec<GridLine>,
+    pub x_labels: Vec<XLabel>,
+}
+
+pub fn build_activity_chart(issues: &[GitHubIssue], repo_name: &str) -> ActivityChartTemplate {
+    let now = chrono::Utc::now();
+    let day_count = 14usize;
+    let chart_width = 700.0;
+    let chart_height = 180.0;
+
+    // Bucket issues by day offset
+    let mut opened_by_day = vec![0u32; day_count];
+    let mut closed_by_day = vec![0u32; day_count];
+
+    for issue in issues {
+        if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(&issue.created_at) {
+            let days_ago = (now - dt.with_timezone(&chrono::Utc)).num_days();
+            if days_ago >= 0 && (days_ago as usize) < day_count {
+                opened_by_day[day_count - 1 - days_ago as usize] += 1;
+            }
+        }
+        if issue.state == "closed" {
+            if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(&issue.updated_at) {
+                let days_ago = (now - dt.with_timezone(&chrono::Utc)).num_days();
+                if days_ago >= 0 && (days_ago as usize) < day_count {
+                    closed_by_day[day_count - 1 - days_ago as usize] += 1;
+                }
+            }
+        }
+    }
+
+    let max_val = opened_by_day
+        .iter()
+        .chain(closed_by_day.iter())
+        .copied()
+        .max()
+        .unwrap_or(1)
+        .max(1);
+
+    let bar_group_width = chart_width / day_count as f64;
+    let bar_width = (bar_group_width * 0.35).min(20.0);
+    let gap = 2.0;
+
+    let bars: Vec<ActivityBar> = (0..day_count)
+        .map(|i| {
+            let opened = opened_by_day[i];
+            let closed = closed_by_day[i];
+            let oh = (opened as f64 / max_val as f64) * chart_height;
+            let ch = (closed as f64 / max_val as f64) * chart_height;
+            let center_x = i as f64 * bar_group_width + bar_group_width / 2.0;
+            ActivityBar {
+                x: center_x - bar_width - gap / 2.0,
+                width: bar_width,
+                opened_y: chart_height - oh,
+                opened_h: oh,
+                closed_x: center_x + gap / 2.0,
+                closed_y: chart_height - ch,
+                closed_h: ch,
+            }
+        })
+        .collect();
+
+    // Grid lines (3 lines)
+    let grid_lines: Vec<GridLine> = (0..=3)
+        .map(|i| {
+            let val = (max_val as f64 * (1.0 - i as f64 / 3.0)) as u32;
+            let y = (i as f64 / 3.0) * chart_height;
+            GridLine {
+                y,
+                label_y: y + 4.0,
+                value: val,
+            }
+        })
+        .collect();
+
+    // X-axis labels (every other day)
+    let x_labels: Vec<XLabel> = (0..day_count)
+        .filter(|i| i % 2 == 0 || *i == day_count - 1)
+        .map(|i| {
+            let date = now - chrono::Duration::days((day_count - 1 - i) as i64);
+            XLabel {
+                x: i as f64 * bar_group_width + bar_group_width / 2.0,
+                text: date.format("%m/%d").to_string(),
+            }
+        })
+        .collect();
+
+    ActivityChartTemplate {
+        repo_name: repo_name.to_owned(),
+        day_count,
+        total_opened: opened_by_day.iter().sum(),
+        total_closed: closed_by_day.iter().sum(),
+        bars,
+        grid_lines,
+        x_labels,
+    }
+}
+
+pub fn render_activity_chart_blocking(
+    issues: &[GitHubIssue],
+    repo_name: &str,
+    fontdb: &kbve::FontDb,
+) -> Result<Vec<u8>, String> {
+    let template = build_activity_chart(issues, repo_name);
+    let svg = template
+        .render()
+        .map_err(|e| format!("Activity chart SVG: {e}"))?;
+    kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("Activity chart PNG: {e}"))
 }
 
 #[cfg(test)]

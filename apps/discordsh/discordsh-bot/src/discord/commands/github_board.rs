@@ -406,6 +406,25 @@ async fn issues(
                     }
                 }
 
+                // Chart buttons
+                let chart_row = poise::serenity_prelude::CreateActionRow::Buttons(vec![
+                    poise::serenity_prelude::CreateButton::new(format!(
+                        "chart|{full_name}|activity"
+                    ))
+                    .label("Activity")
+                    .style(poise::serenity_prelude::ButtonStyle::Secondary)
+                    .emoji(poise::serenity_prelude::ReactionType::Unicode(
+                        "\u{1F4C8}".to_owned(),
+                    )),
+                    poise::serenity_prelude::CreateButton::new(format!("chart|{full_name}|labels"))
+                        .label("Labels")
+                        .style(poise::serenity_prelude::ButtonStyle::Secondary)
+                        .emoji(poise::serenity_prelude::ReactionType::Unicode(
+                            "\u{1F3F7}".to_owned(),
+                        )),
+                ]);
+                reply = reply.components(vec![chart_row]);
+
                 ctx.send(reply).await.map_err(|e| e.to_string())?;
                 Ok(())
             }
@@ -558,6 +577,7 @@ async fn repo(
 
         match gh.get_repo(&owner, &repo_name).await {
             Ok(info) => {
+                let full_name = info.full_name.clone();
                 let fontdb = ctx.data().app.fontdb.clone();
                 let info_clone = info.clone();
 
@@ -601,6 +621,19 @@ async fn repo(
                         reply = reply.embed(detail_embed);
                     }
                 }
+
+                // Chart buttons
+                let chart_row = poise::serenity_prelude::CreateActionRow::Buttons(vec![
+                    poise::serenity_prelude::CreateButton::new(format!(
+                        "chart|{full_name}|languages"
+                    ))
+                    .label("Languages")
+                    .style(poise::serenity_prelude::ButtonStyle::Secondary)
+                    .emoji(poise::serenity_prelude::ReactionType::Unicode(
+                        "\u{1F4CA}".to_owned(),
+                    )),
+                ]);
+                reply = reply.components(vec![chart_row]);
 
                 ctx.send(reply).await.map_err(|e| e.to_string())?;
                 Ok(())
