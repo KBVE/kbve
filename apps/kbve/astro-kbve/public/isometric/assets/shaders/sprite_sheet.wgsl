@@ -1,67 +1,85 @@
-//! Uniform-driven sprite sheet shader.
-//!
-//! Computes atlas UVs in the vertex shader from frame/sheet uniforms,
-//! eliminating per-frame mesh UV buffer uploads. Supports horizontal
-//! flip and RGBA tint for day/night coloring.
+#import bevy_pbr::mesh_functions
+#import bevy_pbr::view_transformations::position_world_to_clip
 
-#import bevy_pbr::mesh_functions::mesh_position_local_to_clip
-#import bevy_pbr::forward_io::Vertex
+@group(#{MATERIAL_BIND_GROUP}) @binding(0)
+var atlas_tex: texture_2d<f32>;
 
-struct SpriteUniforms {
-    tint: vec4<f32>,
-    frame_col: f32,
-    frame_row: f32,
-    sheet_cols: f32,
-    sheet_rows: f32,
-    flip: f32,
-    alpha_cutoff: f32,
-    _pad0: f32,
-    _pad1: f32,
-}
+@group(#{MATERIAL_BIND_GROUP}) @binding(1)
+var atlas_sampler: sampler;
 
-@group(2) @binding(0) var<uniform> sprite: SpriteUniforms;
-@group(2) @binding(1) var sprite_texture: texture_2d<f32>;
-@group(2) @binding(2) var sprite_sampler: sampler;
+struct SpriteAnimData {
+    frame: u32,
+    flip: u32,
+    _pad1: u32,
+    _pad2: u32,
+};
 
-struct SpriteVertexOutput {
-    @builtin(position) position: vec4<f32>,
+@group(#{MATERIAL_BIND_GROUP}) @binding(2)
+var<storage, read> anim_data: array<SpriteAnimData>;
+
+struct AtlasGrid {
+    cols: u32,
+    rows: u32,
+};
+
+@group(#{MATERIAL_BIND_GROUP}) @binding(3)
+var<uniform> atlas_grid: AtlasGrid;
+
+@group(#{MATERIAL_BIND_GROUP}) @binding(4)
+var<uniform> tint: vec4<f32>;
+
+struct Vertex {
+    @builtin(instance_index) instance_index: u32,
+    @location(0) position: vec3<f32>,
+    @location(1) normal: vec3<f32>,
+    @location(2) uv: vec2<f32>,
+};
+
+struct VertexOutput {
+    @builtin(position) clip_position: vec4<f32>,
     @location(0) uv: vec2<f32>,
-}
+};
 
 @vertex
-fn vertex(in: Vertex) -> SpriteVertexOutput {
-    var out: SpriteVertexOutput;
+fn vertex(in: Vertex) -> VertexOutput {
+    var out: VertexOutput;
 
-    out.position = mesh_position_local_to_clip(
-        in.instance_index,
-        vec4(in.position, 1.0),
+    let tag = mesh_functions::get_tag(in.instance_index);
+    let frame = anim_data[tag].frame;
+    let flip = anim_data[tag].flip;
+
+    let world_from_local = mesh_functions::get_world_from_local(in.instance_index);
+    let world_pos = mesh_functions::mesh_position_local_to_world(
+        world_from_local,
+        vec4<f32>(in.position, 1.0)
     );
 
-    // in.uv is [0,1] normalized across the quad.
-    // Map to the correct atlas frame using uniforms.
-    let frame_w = 1.0 / sprite.sheet_cols;
-    let frame_h = 1.0 / sprite.sheet_rows;
+    out.clip_position = position_world_to_clip(world_pos.xyz);
+
+    let cols = atlas_grid.cols;
+    let rows = atlas_grid.rows;
+
+    let frame_x = frame % cols;
+    let frame_y = frame / cols;
+
+    let cell = vec2<f32>(1.0 / f32(cols), 1.0 / f32(rows));
+    let base = vec2<f32>(f32(frame_x), f32(frame_y)) * cell;
 
     var u = in.uv.x;
-    if (sprite.flip > 0.5) {
+    if (flip > 0u) {
         u = 1.0 - u;
     }
-
-    let atlas_u = sprite.frame_col * frame_w + u * frame_w;
-    let atlas_v = sprite.frame_row * frame_h + in.uv.y * frame_h;
-
-    out.uv = vec2(atlas_u, atlas_v);
+    out.uv = base + vec2(u, in.uv.y) * cell;
     return out;
 }
 
 @fragment
-fn fragment(in: SpriteVertexOutput) -> @location(0) vec4<f32> {
-    let tex = textureSample(sprite_texture, sprite_sampler, in.uv);
-    let color = tex * sprite.tint;
+fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
+    let color = textureSample(atlas_tex, atlas_sampler, in.uv);
 
-    if (color.a < sprite.alpha_cutoff) {
+    if (color.a < 0.01) {
         discard;
     }
 
-    return color;
+    return vec4<f32>(color.rgb * tint.rgb, color.a * tint.a);
 }
