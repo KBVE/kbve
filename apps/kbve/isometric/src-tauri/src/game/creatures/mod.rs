@@ -3,7 +3,6 @@ pub mod common;
 pub mod creature;
 mod firefly;
 mod frog;
-pub mod sprite_material;
 mod wraith;
 
 use bevy::prelude::*;
@@ -57,9 +56,6 @@ pub struct CreaturesPlugin;
 
 impl Plugin for CreaturesPlugin {
     fn build(&self, app: &mut App) {
-        // GPU-driven sprite sheet material (shared by frog + wraith)
-        app.add_plugins(MaterialPlugin::<sprite_material::SpriteSheetMaterial>::default());
-
         // --- Unified NpcDb-driven registry ---
         app.add_systems(Startup, setup_creature_registry);
 
