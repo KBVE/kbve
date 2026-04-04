@@ -1,4 +1,5 @@
 ---
+import CollapsibleSection from './CollapsibleSection.astro';
 import ReactGrafanaAuth from './ReactGrafanaAuth';
 import ReactGrafanaHeader from './ReactGrafanaHeader';
 import ReactGrafanaNodes from './ReactGrafanaNodes';
@@ -12,20 +13,25 @@ import ReactGrafanaK8s from './ReactGrafanaK8s';
 	<div id="dashboard-content" class="dashboard-content">
 		<ReactGrafanaAuth client:only="react">
 			<div class="not-content grafana-dashboard">
-				<!-- Island: Header (title, cache badge, time range, refresh) -->
 				<div id="grafana-header">
 					<ReactGrafanaHeader client:only="react" />
 				</div>
 
-				<!-- Island: Node section (stat cards, drill-downs, charts) -->
-				<div id="grafana-nodes">
+				<CollapsibleSection
+					id="grafana-nodes"
+					title="Node Health"
+					accentColor="#06b6d4"
+					defaultOpen={true}>
 					<ReactGrafanaNodes client:only="react" />
-				</div>
+				</CollapsibleSection>
 
-				<!-- Island: K8s section (stat cards, drill-downs, pods chart) -->
-				<div id="grafana-k8s">
+				<CollapsibleSection
+					id="grafana-k8s"
+					title="Kubernetes Resources"
+					accentColor="#8b5cf6"
+					defaultOpen={true}>
 					<ReactGrafanaK8s client:only="react" />
-				</div>
+				</CollapsibleSection>
 			</div>
 		</ReactGrafanaAuth>
 	</div>
@@ -55,7 +61,7 @@ import ReactGrafanaK8s from './ReactGrafanaK8s';
 	.grafana-dashboard {
 		display: flex;
 		flex-direction: column;
-		gap: 1.5rem;
+		gap: 0.5rem;
 	}
 
 	:global(@keyframes spin) {

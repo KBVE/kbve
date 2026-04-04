@@ -1,4 +1,5 @@
 ---
+import CollapsibleSection from './CollapsibleSection.astro';
 import ReactCHAuth from './ReactCHAuth';
 import ReactCHHeader from './ReactCHHeader';
 import ReactCHSummary from './ReactCHSummary';
@@ -15,38 +16,44 @@ import ReactCHQueryTabs from './ReactCHQueryTabs';
 	<div id="dashboard-content" class="dashboard-content">
 		<ReactCHAuth client:only="react">
 			<div class="not-content ch-dashboard">
-				<!-- Island: Header (time range selector, refresh) -->
 				<div id="ch-header">
 					<ReactCHHeader client:only="react" />
 				</div>
 
-				<!-- Island: Summary bar (total logs, errors, warnings, namespace count) -->
 				<div id="ch-summary">
 					<ReactCHSummary client:only="react" />
 				</div>
 
-				<!-- Island: Sort controls + namespace card grid -->
-				<div id="ch-namespace-grid" class="ch-namespace-section">
+				<CollapsibleSection
+					id="ch-namespaces"
+					title="Namespace Overview"
+					accentColor="#f59e0b"
+					defaultOpen={true}>
 					<ReactCHNamespaceGrid client:only="react" />
-				</div>
+				</CollapsibleSection>
 
-				<!-- Static shell: Log explorer container -->
-				<div id="ch-log-explorer" class="ch-log-explorer">
-					<!-- Island: Filter bar (dropdowns, search, chips) -->
-					<div id="ch-filter-bar">
-						<ReactCHFilterBar client:only="react" />
+				<CollapsibleSection
+					id="ch-log-explorer"
+					title="Log Explorer"
+					accentColor="#22c55e"
+					defaultOpen={true}>
+					<div class="ch-log-explorer-inner">
+						<div id="ch-filter-bar">
+							<ReactCHFilterBar client:only="react" />
+						</div>
+						<div id="ch-log-stream">
+							<ReactCHLogStream client:only="react" />
+						</div>
 					</div>
+				</CollapsibleSection>
 
-					<!-- Island: Log stream (entries, footer) -->
-					<div id="ch-log-stream">
-						<ReactCHLogStream client:only="react" />
-					</div>
-				</div>
-
-				<!-- Island: Query tabs (pinned queries, polling, dnd, presets) -->
-				<div id="ch-query-tabs">
+				<CollapsibleSection
+					id="ch-queries"
+					title="Saved Queries"
+					accentColor="#8b5cf6"
+					defaultOpen={false}>
 					<ReactCHQueryTabs client:only="react" />
-				</div>
+				</CollapsibleSection>
 			</div>
 		</ReactCHAuth>
 	</div>
@@ -73,25 +80,18 @@ import ReactCHQueryTabs from './ReactCHQueryTabs';
 		}
 	}
 
-	/* Static layout shell - zero JS cost */
 	.ch-dashboard {
 		display: flex;
 		flex-direction: column;
-		gap: 1.25rem;
+		gap: 0.5rem;
 		min-height: 60vh;
 	}
 
-	.ch-log-explorer {
-		border-radius: 12px;
+	.ch-log-explorer-inner {
+		border-radius: 8px;
 		border: 1px solid var(--sl-color-gray-5, #262626);
 		background: var(--sl-color-bg-nav, #111);
 		overflow: hidden;
-	}
-
-	.ch-namespace-section {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
 	}
 
 	:global(@keyframes spin) {

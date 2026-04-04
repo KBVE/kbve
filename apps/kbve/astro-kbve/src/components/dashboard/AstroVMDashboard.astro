@@ -1,4 +1,12 @@
 ---
+/**
+ * VM Dashboard — static HTML shell with React islands.
+ *
+ * Section headers are native <details>/<summary> (zero JS, zero vDOM).
+ * React components hydrate only inside each section's content slot.
+ * Collapse state persists to localStorage via CollapsibleSection.
+ */
+import CollapsibleSection from './CollapsibleSection.astro';
 import ReactVMAuth from './ReactVMAuth';
 import ReactVMHeader from './ReactVMHeader';
 import ReactVMCards from './ReactVMCards';
@@ -15,35 +23,45 @@ import ReactFirecrackerCards from './ReactFirecrackerCards';
 	<div id="dashboard-content" class="dashboard-content">
 		<ReactVMAuth client:only="react">
 			<div class="not-content vm-dashboard">
-				<!-- Island: Header (title, running count, refresh) -->
+				<!-- Static header — always visible, no React -->
 				<div id="vm-header">
 					<ReactVMHeader client:only="react" />
 				</div>
 
-				<!-- Island: VM cards with start/stop/restart/VNC controls -->
-				<div id="vm-cards">
-					<ReactVMCards client:only="react" />
-				</div>
-
-				<!-- Island: VNC viewer (shown when a VM VNC is opened) -->
+				<!-- VNC / Guac viewers — outside collapsible sections, shown on demand -->
 				<div id="vm-vnc">
 					<ReactVMVncViewer client:only="react" />
 				</div>
-
-				<!-- Island: Guacamole RDP viewer (shown when RDP is opened) -->
 				<div id="vm-guac">
 					<ReactVMGuacViewer client:only="react" />
 				</div>
 
-				<!-- Island: KASM workspaces (start/stop/connect) -->
-				<div id="kasm-cards">
-					<ReactKasmCards client:only="react" />
-				</div>
+				<!-- KubeVirt VMs — collapsible -->
+				<CollapsibleSection
+					id="kubevirt-vms"
+					title="KubeVirt Virtual Machines"
+					accentColor="#8b5cf6"
+					defaultOpen={true}>
+					<ReactVMCards client:only="react" />
+				</CollapsibleSection>
 
-				<!-- Island: Firecracker microVMs (status/destroy) -->
-				<div id="firecracker-cards">
+				<!-- KASM Workspaces — collapsible -->
+				<CollapsibleSection
+					id="kasm-workspaces"
+					title="KASM Workspaces"
+					accentColor="#22c55e"
+					defaultOpen={true}>
+					<ReactKasmCards client:only="react" />
+				</CollapsibleSection>
+
+				<!-- Firecracker microVMs — collapsible, collapsed by default -->
+				<CollapsibleSection
+					id="firecracker-vms"
+					title="Firecracker microVMs"
+					accentColor="#f59e0b"
+					defaultOpen={false}>
 					<ReactFirecrackerCards client:only="react" />
-				</div>
+				</CollapsibleSection>
 			</div>
 		</ReactVMAuth>
 	</div>
@@ -75,6 +93,7 @@ import ReactFirecrackerCards from './ReactFirecrackerCards';
 		flex-direction: column;
 		color: var(--sl-color-text, #e6edf3);
 		min-height: 60vh;
+		gap: 0.5rem;
 	}
 
 	:global(@keyframes spin) {
