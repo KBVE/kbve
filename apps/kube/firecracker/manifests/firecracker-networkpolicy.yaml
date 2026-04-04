@@ -21,11 +21,14 @@ spec:
           ports:
               - protocol: TCP
                 port: 9001
-        # Dashboard proxy (kbve/kbve-deployment) → firecracker-ctl
+        # Dashboard proxy (kbve/app:kbve only) → firecracker-ctl
         - from:
               - namespaceSelector:
                     matchLabels:
                         kubernetes.io/metadata.name: kbve
+                podSelector:
+                    matchLabels:
+                        app: kbve
           ports:
               - protocol: TCP
                 port: 9001
