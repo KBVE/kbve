@@ -215,7 +215,15 @@ function respond(
 	id: string,
 	response: { ok: true; data?: unknown } | { ok: false; error: string },
 ) {
-	self.postMessage({ id, ...response });
+	// JSON round-trip strips non-cloneable SDK internals (functions, circular
+	// refs) that would cause DataCloneError in postMessage.
+	let safe: typeof response;
+	try {
+		safe = JSON.parse(JSON.stringify(response));
+	} catch {
+		safe = { ok: false, error: 'Response contained non-serializable data' };
+	}
+	self.postMessage({ id, ...safe });
 }
 
 console.log('[DB Worker] Ready');

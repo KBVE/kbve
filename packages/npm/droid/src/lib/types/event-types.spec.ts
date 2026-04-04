@@ -27,8 +27,8 @@ describe('DroidEventSchemas', () => {
 		expect(keys).toContain('auth-error');
 	});
 
-	it('has exactly 15 event types', () => {
-		expect(Object.keys(DroidEventSchemas)).toHaveLength(15);
+	it('has exactly 16 event types', () => {
+		expect(Object.keys(DroidEventSchemas)).toHaveLength(16);
 	});
 });
 
