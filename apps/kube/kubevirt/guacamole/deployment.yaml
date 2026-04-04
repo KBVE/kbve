@@ -32,7 +32,7 @@ metadata:
         app: guacd
         component: guacamole
 spec:
-    replicas: 0
+    replicas: 1
     selector:
         matchLabels:
             app: guacd
@@ -84,7 +84,7 @@ metadata:
         app: guacamole
         component: guacamole
 spec:
-    replicas: 0
+    replicas: 1
     selector:
         matchLabels:
             app: guacamole
@@ -102,14 +102,17 @@ spec:
                         value: guacd.angelscript.svc.cluster.local
                       - name: GUACD_PORT
                         value: '4822'
-                      # TODO(db): Switch to PostgreSQL for production
-                      # For initial testing, use user-mapping.xml (initdb not needed)
-                      # Production: set POSTGRESQL_HOSTNAME, POSTGRESQL_DATABASE, etc.
-                      # and run the initdb.sh script to create the schema
+                      # user-mapping.xml provides auth + connection config.
+                      # For production, switch to PostgreSQL backend.
                   ports:
                       - containerPort: 8080
                         name: http
                         protocol: TCP
+                  volumeMounts:
+                      - name: user-mapping
+                        mountPath: /etc/guacamole/user-mapping.xml
+                        subPath: user-mapping.xml
+                        readOnly: true
                   resources:
                       requests:
                           cpu: 100m
@@ -117,19 +120,10 @@ spec:
                       limits:
                           cpu: '1'
                           memory: 512Mi
-                  # TODO(user-mapping): Mount a ConfigMap with user-mapping.xml for initial testing:
-                  #   <user-mapping>
-                  #     <authorize username="admin" password="<hash>" encoding="sha256">
-                  #       <connection name="Windows Builder">
-                  #         <protocol>rdp</protocol>
-                  #         <param name="hostname">windows-builder-rdp.angelscript.svc.cluster.local</param>
-                  #         <param name="port">3389</param>
-                  #         <param name="username">Administrator</param>
-                  #         <param name="security">nla</param>
-                  #         <param name="ignore-cert">true</param>
-                  #       </connection>
-                  #     </authorize>
-                  #   </user-mapping>
+            volumes:
+                - name: user-mapping
+                  configMap:
+                      name: guacamole-user-mapping
 ---
 apiVersion: v1
 kind: Service

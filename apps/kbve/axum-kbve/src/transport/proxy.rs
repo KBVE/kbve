@@ -678,9 +678,10 @@ async fn vnc_bridge(
             .headers_mut()
             .insert("Authorization", format!("Bearer {t}").parse()?);
     }
-    request
-        .headers_mut()
-        .insert("Sec-WebSocket-Protocol", "base64.binary.k8s.io".parse()?);
+    // NOTE: Do not set Sec-WebSocket-Protocol on the upstream request.
+    // tokio-tungstenite requires the server to echo the subprotocol back,
+    // but the K8s VNC subresource may not. The browser-side protocol
+    // negotiation is handled separately by the axum WebSocketUpgrade.
 
     // Build TLS connector with K8s cluster CA so the VNC subresource
     // endpoint's certificate is trusted (default webpki roots don't
