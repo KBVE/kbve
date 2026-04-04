@@ -1,5 +1,4 @@
 ---
-import CollapsibleSection from './CollapsibleSection.astro';
 import ReactArgoAuth from './ReactArgoAuth';
 import ReactArgoHeader from './ReactArgoHeader';
 import ReactArgoSummary from './ReactArgoSummary';
@@ -13,21 +12,20 @@ import ReactArgoAppTable from './ReactArgoAppTable';
 	<div id="dashboard-content" class="dashboard-content">
 		<ReactArgoAuth client:only="react">
 			<div class="not-content argo-dashboard">
+				<!-- Island: Header (title, last updated, refresh) -->
 				<div id="argo-header">
 					<ReactArgoHeader client:only="react" />
 				</div>
 
+				<!-- Island: Error banner + summary stat cards + loading state -->
 				<div id="argo-summary">
 					<ReactArgoSummary client:only="react" />
 				</div>
 
-				<CollapsibleSection
-					id="argo-apps"
-					title="Applications"
-					accentColor="#8b5cf6"
-					defaultOpen={true}>
+				<!-- Island: Application table with expandable resource trees -->
+				<div id="argo-app-table">
 					<ReactArgoAppTable client:only="react" />
-				</CollapsibleSection>
+				</div>
 			</div>
 		</ReactArgoAuth>
 	</div>
@@ -57,7 +55,6 @@ import ReactArgoAppTable from './ReactArgoAppTable';
 	.argo-dashboard {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
 		color: var(--sl-color-text, #e6edf3);
 		min-height: 60vh;
 	}

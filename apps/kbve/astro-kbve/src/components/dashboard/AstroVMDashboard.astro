@@ -1,12 +1,4 @@
 ---
-/**
- * VM Dashboard — static HTML shell with React islands.
- *
- * Section headers are native <details>/<summary> (zero JS, zero vDOM).
- * React components hydrate only inside each section's content slot.
- * Collapse state persists to localStorage via CollapsibleSection.
- */
-import CollapsibleSection from './CollapsibleSection.astro';
 import ReactVMAuth from './ReactVMAuth';
 import ReactVMHeader from './ReactVMHeader';
 import ReactVMCards from './ReactVMCards';
@@ -23,12 +15,10 @@ import ReactFirecrackerCards from './ReactFirecrackerCards';
 	<div id="dashboard-content" class="dashboard-content">
 		<ReactVMAuth client:only="react">
 			<div class="not-content vm-dashboard">
-				<!-- Static header — always visible, no React -->
 				<div id="vm-header">
 					<ReactVMHeader client:only="react" />
 				</div>
 
-				<!-- VNC / Guac viewers — outside collapsible sections, shown on demand -->
 				<div id="vm-vnc">
 					<ReactVMVncViewer client:only="react" />
 				</div>
@@ -36,32 +26,17 @@ import ReactFirecrackerCards from './ReactFirecrackerCards';
 					<ReactVMGuacViewer client:only="react" />
 				</div>
 
-				<!-- KubeVirt VMs — collapsible -->
-				<CollapsibleSection
-					id="kubevirt-vms"
-					title="KubeVirt Virtual Machines"
-					accentColor="#8b5cf6"
-					defaultOpen={true}>
+				<div id="vm-cards">
 					<ReactVMCards client:only="react" />
-				</CollapsibleSection>
+				</div>
 
-				<!-- KASM Workspaces — collapsible -->
-				<CollapsibleSection
-					id="kasm-workspaces"
-					title="KASM Workspaces"
-					accentColor="#22c55e"
-					defaultOpen={true}>
+				<div id="kasm-cards">
 					<ReactKasmCards client:only="react" />
-				</CollapsibleSection>
+				</div>
 
-				<!-- Firecracker microVMs — collapsible, collapsed by default -->
-				<CollapsibleSection
-					id="firecracker-vms"
-					title="Firecracker microVMs"
-					accentColor="#f59e0b"
-					defaultOpen={false}>
+				<div id="firecracker-cards">
 					<ReactFirecrackerCards client:only="react" />
-				</CollapsibleSection>
+				</div>
 			</div>
 		</ReactVMAuth>
 	</div>

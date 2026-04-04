@@ -1,5 +1,4 @@
 ---
-import CollapsibleSection from './CollapsibleSection.astro';
 import ReactCHAuth from './ReactCHAuth';
 import ReactCHHeader from './ReactCHHeader';
 import ReactCHSummary from './ReactCHSummary';
@@ -16,44 +15,38 @@ import ReactCHQueryTabs from './ReactCHQueryTabs';
 	<div id="dashboard-content" class="dashboard-content">
 		<ReactCHAuth client:only="react">
 			<div class="not-content ch-dashboard">
+				<!-- Island: Header (time range selector, refresh) -->
 				<div id="ch-header">
 					<ReactCHHeader client:only="react" />
 				</div>
 
+				<!-- Island: Summary bar (total logs, errors, warnings, namespace count) -->
 				<div id="ch-summary">
 					<ReactCHSummary client:only="react" />
 				</div>
 
-				<CollapsibleSection
-					id="ch-namespaces"
-					title="Namespace Overview"
-					accentColor="#f59e0b"
-					defaultOpen={true}>
+				<!-- Island: Sort controls + namespace card grid -->
+				<div id="ch-namespace-grid" class="ch-namespace-section">
 					<ReactCHNamespaceGrid client:only="react" />
-				</CollapsibleSection>
+				</div>
 
-				<CollapsibleSection
-					id="ch-log-explorer"
-					title="Log Explorer"
-					accentColor="#22c55e"
-					defaultOpen={true}>
-					<div class="ch-log-explorer-inner">
-						<div id="ch-filter-bar">
-							<ReactCHFilterBar client:only="react" />
-						</div>
-						<div id="ch-log-stream">
-							<ReactCHLogStream client:only="react" />
-						</div>
+				<!-- Static shell: Log explorer container -->
+				<div id="ch-log-explorer" class="ch-log-explorer">
+					<!-- Island: Filter bar (dropdowns, search, chips) -->
+					<div id="ch-filter-bar">
+						<ReactCHFilterBar client:only="react" />
 					</div>
-				</CollapsibleSection>
 
-				<CollapsibleSection
-					id="ch-queries"
-					title="Saved Queries"
-					accentColor="#8b5cf6"
-					defaultOpen={false}>
+					<!-- Island: Log stream (entries, footer) -->
+					<div id="ch-log-stream">
+						<ReactCHLogStream client:only="react" />
+					</div>
+				</div>
+
+				<!-- Island: Query tabs (pinned queries, polling, dnd, presets) -->
+				<div id="ch-query-tabs">
 					<ReactCHQueryTabs client:only="react" />
-				</CollapsibleSection>
+				</div>
 			</div>
 		</ReactCHAuth>
 	</div>
@@ -80,18 +73,25 @@ import ReactCHQueryTabs from './ReactCHQueryTabs';
 		}
 	}
 
+	/* Static layout shell - zero JS cost */
 	.ch-dashboard {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: 1.25rem;
 		min-height: 60vh;
 	}
 
-	.ch-log-explorer-inner {
-		border-radius: 8px;
+	.ch-log-explorer {
+		border-radius: 12px;
 		border: 1px solid var(--sl-color-gray-5, #262626);
 		background: var(--sl-color-bg-nav, #111);
 		overflow: hidden;
+	}
+
+	.ch-namespace-section {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
 	}
 
 	:global(@keyframes spin) {
