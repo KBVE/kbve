@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-04-03T08:24:28.991Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-04-04T08:18:16.700Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -45,7 +45,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **1** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **399** items
+    **416** items
   </Card>
 </CardGrid>
 
@@ -62,7 +62,7 @@ pie showData
     "Error" : 11
     "Staging" : 4
     "Review" : 1
-    "Done" : 399
+    "Done" : 416
 ```
 
 ```mermaid
@@ -70,7 +70,7 @@ pie showData
     title Work State
     "Active (Todo+Staging+Review)" : 11
     "Blocked (Error+Support)" : 11
-    "Done" : 399
+    "Done" : 416
     "Planning (Theory+AI+Backlog)" : 30
 ```
 
@@ -99,7 +99,7 @@ flowchart LR
     Staging --> Review
     Review["Review<br/><strong>1</strong>"]
     Review --> Done
-    Done["Done<br/><strong>399</strong>"]
+    Done["Done<br/><strong>416</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -116,7 +116,7 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 394
+    "Pull Request" : 411
     "Issue" : 57
 ```
 
@@ -124,9 +124,9 @@ pie showData
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 394 |
-| dev→main | 200 |
-| atomic | 163 |
+| auto-pr | 411 |
+| dev→main | 205 |
+| atomic | 170 |
 | enhancement | 29 |
 | 0 | 20 |
 | unity | 16 |
@@ -223,23 +223,15 @@ pie showData
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
-| [#9563](https://github.com/KBVE/kbve/pull/9563) | deploy(isometric): update WASM build | — | — | auto-pr |
+| [#9628](https://github.com/KBVE/kbve/pull/9628) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
 
-### Done (399)
+### Done (416)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
 | [#7761](https://github.com/KBVE/kbve/issues/7761) | [PSQL] Schema Optimizations - Memes, Realtime, Discordsh | — | h0lybyte | 3, bug, security |
 | [#7956](https://github.com/KBVE/kbve/issues/7956) | chore(astro-kbve): re-enable starlight-site-graph after Zod 4 / Astro 6 support | — | — | 1, bug, backlog |
 | [#8341](https://github.com/KBVE/kbve/issues/8341) | [PROTO] Zod codegen for 10 uncovered proto schemas | — | — | 6, enhancement |
-| [#8362](https://github.com/KBVE/kbve/pull/8362) | Release: 1 feature, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#8363](https://github.com/KBVE/kbve/pull/8363) | Atomic: kube axum-kbve v1.0.65 | — | — | auto-pr, atomic |
-| [#8366](https://github.com/KBVE/kbve/pull/8366) | Release: 3 features, 2 fixes, 1 refactor → Main | — | — | auto-pr, dev→main |
-| [#8371](https://github.com/KBVE/kbve/pull/8371) | Atomic: forgejo sealed secret | — | — | auto-pr, atomic |
-| [#8375](https://github.com/KBVE/kbve/pull/8375) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
-| [#8377](https://github.com/KBVE/kbve/pull/8377) | Release: 2 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#8380](https://github.com/KBVE/kbve/pull/8380) | Atomic: kube axum-kbve v1.0.66 | — | — | auto-pr, atomic |
-| [#8383](https://github.com/KBVE/kbve/pull/8383) | Release: 1 feature → Main | — | — | auto-pr, dev→main |
 | [#8386](https://github.com/KBVE/kbve/pull/8386) | Release: 1 feature, 4 fixes → Main | — | — | auto-pr, dev→main |
 | [#8392](https://github.com/KBVE/kbve/pull/8392) | Atomic: kube edge v0.1.16 | — | — | auto-pr, atomic |
 | [#8398](https://github.com/KBVE/kbve/pull/8398) | Release: 2 features, 1 fix, 3 chores → Main | — | — | auto-pr, dev→main |
@@ -628,6 +620,31 @@ pie showData
 | [#9547](https://github.com/KBVE/kbve/pull/9547) | Release: 2 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#9549](https://github.com/KBVE/kbve/pull/9549) | Release: 4 fixes, 1 refactor, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#9553](https://github.com/KBVE/kbve/pull/9553) | deploy(isometric): update WASM build | — | — | auto-pr |
+| [#9563](https://github.com/KBVE/kbve/pull/9563) | deploy(isometric): update WASM build | — | — | auto-pr |
+| [#9566](https://github.com/KBVE/kbve/pull/9566) | chore(dashboard): daily sync — 2026-04-03 | — | — | auto-pr |
+| [#9567](https://github.com/KBVE/kbve/pull/9567) | Release: 1 fix, 1 refactor, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#9570](https://github.com/KBVE/kbve/pull/9570) | Release: 1 feature, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#9572](https://github.com/KBVE/kbve/pull/9572) | Atomic: chisel-ubuntu-axum v24.04.6 post-publish sync | — | — | auto-pr, atomic |
+| [#9575](https://github.com/KBVE/kbve/pull/9575) | Release: 1 feature, 2 fixes → Main | — | — | auto-pr, dev→main |
+| [#9577](https://github.com/KBVE/kbve/pull/9577) | deploy(isometric): update WASM build | — | — | auto-pr |
+| [#9580](https://github.com/KBVE/kbve/pull/9580) | Release: 4 features, 2 fixes, 1 doc, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#9583](https://github.com/KBVE/kbve/pull/9583) | deploy(isometric): update WASM build | — | — | auto-pr |
+| [#9590](https://github.com/KBVE/kbve/pull/9590) | Atomic: chisel-ubuntu-axum v24.04.7 post-publish sync | — | — | auto-pr, atomic |
+| [#9592](https://github.com/KBVE/kbve/pull/9592) | Release: 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#9597](https://github.com/KBVE/kbve/pull/9597) | deploy(isometric): update WASM build | — | — | auto-pr |
+| [#9600](https://github.com/KBVE/kbve/pull/9600) | Release: 1 feature, 1 fix → Main | — | — | auto-pr, dev→main |
+| [#9602](https://github.com/KBVE/kbve/pull/9602) | Atomic: firecracker-ctl v0.1.22 post-publish sync | — | — | auto-pr, atomic |
+| [#9603](https://github.com/KBVE/kbve/pull/9603) | Release: 2 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#9606](https://github.com/KBVE/kbve/pull/9606) | Atomic: herbmail v0.1.1 post-publish sync | — | — | auto-pr, atomic |
+| [#9607](https://github.com/KBVE/kbve/pull/9607) | Atomic: discordsh-bot v0.1.3 post-publish sync | — | — | auto-pr, atomic |
+| [#9608](https://github.com/KBVE/kbve/pull/9608) | Atomic: cryptothrone v0.1.5 post-publish sync | — | — | auto-pr, atomic |
+| [#9609](https://github.com/KBVE/kbve/pull/9609) | Atomic: memes v0.1.8 post-publish sync | — | — | auto-pr, atomic |
+| [#9611](https://github.com/KBVE/kbve/pull/9611) | Release: 1 fix, 6 chores → Main | — | — | auto-pr, dev→main |
+| [#9612](https://github.com/KBVE/kbve/pull/9612) | Atomic: discordsh v0.1.43 post-publish sync | — | — | auto-pr, atomic |
+| [#9613](https://github.com/KBVE/kbve/pull/9613) | Atomic: axum-kbve v1.0.91 post-publish sync | — | — | auto-pr, atomic |
+| [#9617](https://github.com/KBVE/kbve/pull/9617) | Atomic: irc-gateway v0.1.6 post-publish sync | — | — | auto-pr, atomic |
+| [#9618](https://github.com/KBVE/kbve/pull/9618) | Release: 1 feature, 4 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#9626](https://github.com/KBVE/kbve/pull/9626) | deploy(isometric): update WASM build | — | — | auto-pr |
 
 ---
 
