@@ -128,6 +128,8 @@ impl Plugin for CreaturesPlugin {
                     .run_if(any_with_component::<generic::SpriteCreatureMarker>),
                 generic::physics_lod::update_physics_lod
                     .run_if(any_with_component::<generic::PhysicsLod>),
+                // Networked creature event corrections
+                generic::net_events::receive_creature_events,
             ),
         );
     }

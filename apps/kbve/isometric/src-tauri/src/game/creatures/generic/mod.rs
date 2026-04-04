@@ -7,6 +7,7 @@ pub mod animate;
 pub mod behavior;
 pub mod brain;
 pub mod definitions;
+pub mod net_events;
 pub mod physics_lod;
 pub mod spawn;
 pub mod tint;
