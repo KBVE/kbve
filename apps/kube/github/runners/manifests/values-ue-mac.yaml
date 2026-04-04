@@ -33,9 +33,10 @@ controllerServiceAccount:
 minRunners: 0
 maxRunners: 2
 
-# Non-containerized mode — runner agent runs directly on the host
-containerMode:
-    type: kubernetes
+# Non-containerized — macOS cannot run in containers. Runner agent
+# executes directly on the host OS. When no Mac nodes exist, the
+# scale set stays at 0 runners harmlessly.
+# containerMode deliberately omitted (defaults to non-containerized)
 
 template:
     metadata:

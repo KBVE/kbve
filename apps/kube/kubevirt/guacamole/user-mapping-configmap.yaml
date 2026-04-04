@@ -1,0 +1,28 @@
+# Guacamole user-mapping.xml — initial auth + RDP connection config.
+# Default password: guacadmin (sha256 hash below). CHANGE after first login.
+# For production, migrate to PostgreSQL backend.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: guacamole-user-mapping
+    namespace: angelscript
+    labels:
+        app: guacamole
+        component: guacamole
+data:
+    user-mapping.xml: |
+        <user-mapping>
+            <authorize username="guacadmin"
+                       password="f3293a1a94713ed45a8f23d84f41b41c670a7ae6fef7b05a2b0ba47a06061f43"
+                       encoding="sha256">
+                <connection name="Windows Builder">
+                    <protocol>rdp</protocol>
+                    <param name="hostname">windows-builder-rdp.angelscript.svc.cluster.local</param>
+                    <param name="port">3389</param>
+                    <param name="username">Administrator</param>
+                    <param name="security">nla</param>
+                    <param name="ignore-cert">true</param>
+                    <param name="resize-method">display-update</param>
+                </connection>
+            </authorize>
+        </user-mapping>

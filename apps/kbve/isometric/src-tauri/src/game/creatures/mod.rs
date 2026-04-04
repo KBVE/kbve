@@ -3,6 +3,9 @@ pub mod common;
 pub mod creature;
 mod firefly;
 mod frog;
+pub mod sprite_material;
+mod stag;
+mod wolf;
 mod wraith;
 
 use bevy::prelude::*;
@@ -13,8 +16,10 @@ pub use creature::{
     Creature, CreatureConfig, CreaturePoolIndex, CreatureRegistry, CreatureState, EmissiveData,
     RenderKind, TimeSchedule,
 };
-pub use frog::FrogMaterials;
-pub use wraith::WraithMaterials;
+pub use frog::FrogAtlasResources;
+pub use stag::StagAtlasResources;
+pub use wolf::WolfAtlasResources;
+pub use wraith::WraithAtlasResources;
 
 /// Build creature meshes once at Startup to avoid allocating during spawn.
 fn setup_creature_meshes(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>) {
@@ -56,14 +61,18 @@ pub struct CreaturesPlugin;
 
 impl Plugin for CreaturesPlugin {
     fn build(&self, app: &mut App) {
+        app.add_plugins(MaterialPlugin::<sprite_material::SpriteAtlasMaterial>::default());
+
         // --- Unified NpcDb-driven registry ---
         app.add_systems(Startup, setup_creature_registry);
 
         // --- Legacy per-type resources ---
         app.init_resource::<CreaturePool>();
         app.init_resource::<common::GameTime>();
-        app.init_resource::<FrogMaterials>();
-        app.init_resource::<WraithMaterials>();
+        app.init_resource::<FrogAtlasResources>();
+        app.init_resource::<WraithAtlasResources>();
+        app.init_resource::<WolfAtlasResources>();
+        app.init_resource::<StagAtlasResources>();
         app.init_resource::<firefly::FireflyState>();
         app.add_systems(Startup, setup_creature_meshes);
 
@@ -90,6 +99,12 @@ impl Plugin for CreaturesPlugin {
                 // Wraiths (unified Creature + SpriteData + WraithMarker)
                 wraith::spawn_wraiths.run_if(|pool: Res<CreaturePool>| !pool.wraiths_spawned),
                 wraith::animate_wraiths.run_if(any_with_component::<wraith::WraithMarker>),
+                // Wolves (SpriteAtlasMaterial + SSBO, 4-directional)
+                wolf::spawn_wolves.run_if(|pool: Res<CreaturePool>| !pool.wolves_spawned),
+                wolf::animate_wolves.run_if(any_with_component::<wolf::WolfMarker>),
+                // Stags (SpriteAtlasMaterial + SSBO, 4-directional, daytime)
+                stag::spawn_stags.run_if(|pool: Res<CreaturePool>| !pool.stags_spawned),
+                stag::animate_stags.run_if(any_with_component::<stag::StagMarker>),
             ),
         );
     }

@@ -5,6 +5,7 @@ import ReactVMCards from './ReactVMCards';
 import ReactVMVncViewer from './ReactVMVncViewer';
 import ReactVMGuacViewer from './ReactVMGuacViewer';
 import ReactKasmCards from './ReactKasmCards';
+import ReactFirecrackerCards from './ReactFirecrackerCards';
 ---
 
 <section
@@ -37,6 +38,11 @@ import ReactKasmCards from './ReactKasmCards';
 				<!-- Island: KASM workspaces (start/stop/connect) -->
 				<div id="kasm-cards">
 					<ReactKasmCards client:only="react" />
+				</div>
+
+				<!-- Island: Firecracker microVMs (status/destroy) -->
+				<div id="firecracker-cards">
+					<ReactFirecrackerCards client:only="react" />
 				</div>
 			</div>
 		</ReactVMAuth>

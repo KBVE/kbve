@@ -678,9 +678,10 @@ async fn vnc_bridge(
             .headers_mut()
             .insert("Authorization", format!("Bearer {t}").parse()?);
     }
-    request
-        .headers_mut()
-        .insert("Sec-WebSocket-Protocol", "base64.binary.k8s.io".parse()?);
+    // NOTE: Do not set Sec-WebSocket-Protocol on the upstream request.
+    // tokio-tungstenite requires the server to echo the subprotocol back,
+    // but the K8s VNC subresource may not. The browser-side protocol
+    // negotiation is handled separately by the axum WebSocketUpgrade.
 
     // Build TLS connector with K8s cluster CA so the VNC subresource
     // endpoint's certificate is trusted (default webpki roots don't
@@ -980,6 +981,49 @@ pub async fn kasm_scale_handler(Path(name): Path<String>, req: Request<Body>) ->
         Err(e) => (
             StatusCode::BAD_GATEWAY,
             axum::Json(json!({"error": format!("Scale request failed: {e}")})),
+        )
+            .into_response(),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Firecracker proxy singleton (reverse proxy to firecracker-ctl REST API)
+// ---------------------------------------------------------------------------
+
+static FIRECRACKER: OnceLock<ServiceProxy> = OnceLock::new();
+
+pub fn init_firecracker_proxy() -> bool {
+    let upstream = std::env::var("FIRECRACKER_CTL_URL")
+        .unwrap_or_else(|_| "http://firecracker-ctl.firecracker.svc.cluster.local:9001".into());
+
+    let client = Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(10))
+        .timeout(Duration::from_secs(30))
+        .build()
+        .expect("failed to build reqwest client for firecracker proxy");
+
+    FIRECRACKER
+        .set(ServiceProxy {
+            name: "Firecracker",
+            client,
+            upstream: upstream.trim_end_matches('/').to_string(),
+            upstream_token: None,
+        })
+        .is_ok()
+}
+
+pub async fn firecracker_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
+    let headers = req.headers().clone();
+    if let Err(resp) = require_dashboard_view(&headers, "Firecracker").await {
+        return resp;
+    }
+
+    match FIRECRACKER.get() {
+        Some(proxy) => proxy.handle(path, req).await,
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Firecracker proxy not configured"})),
         )
             .into_response(),
     }

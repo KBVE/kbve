@@ -8,6 +8,7 @@ use jedi::entity::github::{
 use tracing::{info, warn};
 
 use crate::discord::bot::{Context, Error};
+use crate::discord::branding;
 use crate::discord::embeds::notice_board_embed::{build_notice_board_summary, notices_from_stale};
 use crate::discord::embeds::task_board_embed::{build_task_board_embed, tasks_from_issues};
 use crate::discord::game::github_cards;
@@ -173,7 +174,9 @@ async fn noticeboard(
                         let card_embed = poise::serenity_prelude::CreateEmbed::new()
                             .title(format!("Notice Board — {}", full_name))
                             .image("attachment://noticeboard.png")
-                            .color(0xE67E22);
+                            .color(branding::GH_NOTICE)
+                            .author(branding::embed_author())
+                            .footer(branding::embed_footer(None));
                         reply = reply
                             .embed(card_embed)
                             .embed(summary_embed)
@@ -274,7 +277,9 @@ async fn taskboard(
                         let card_embed = poise::serenity_prelude::CreateEmbed::new()
                             .title(format!("Task Board — {}", full_name))
                             .image("attachment://taskboard.png")
-                            .color(0x3498DB);
+                            .color(branding::GH_TASK)
+                            .author(branding::embed_author())
+                            .footer(branding::embed_footer(None));
                         reply = reply
                             .embed(card_embed)
                             .embed(detail_embed)
@@ -356,7 +361,9 @@ async fn issues(
                 // Build text detail embed (always used)
                 let mut detail_embed = poise::serenity_prelude::CreateEmbed::new()
                     .title(format!("Open Issues — {}", full_name))
-                    .color(0x238636);
+                    .url(format!("https://github.com/{full_name}/issues"))
+                    .color(branding::GH_GREEN)
+                    .author(branding::embed_author());
                 if issues.is_empty() {
                     detail_embed = detail_embed.description("No open issues!");
                 } else {
@@ -374,6 +381,11 @@ async fn issues(
                     }
                 }
 
+                detail_embed = detail_embed.footer(branding::embed_footer(Some(&format!(
+                    "{} open",
+                    issues.len()
+                ))));
+
                 match png_result {
                     Ok(png_bytes) => {
                         let attachment = poise::serenity_prelude::CreateAttachment::bytes(
@@ -382,7 +394,7 @@ async fn issues(
                         );
                         let card_embed = poise::serenity_prelude::CreateEmbed::new()
                             .image("attachment://issues.png")
-                            .color(0x238636);
+                            .color(branding::GH_GREEN);
                         reply = reply
                             .embed(card_embed)
                             .embed(detail_embed)
@@ -393,6 +405,25 @@ async fn issues(
                         reply = reply.embed(detail_embed);
                     }
                 }
+
+                // Chart buttons
+                let chart_row = poise::serenity_prelude::CreateActionRow::Buttons(vec![
+                    poise::serenity_prelude::CreateButton::new(format!(
+                        "chart|{full_name}|activity"
+                    ))
+                    .label("Activity")
+                    .style(poise::serenity_prelude::ButtonStyle::Secondary)
+                    .emoji(poise::serenity_prelude::ReactionType::Unicode(
+                        "\u{1F4C8}".to_owned(),
+                    )),
+                    poise::serenity_prelude::CreateButton::new(format!("chart|{full_name}|labels"))
+                        .label("Labels")
+                        .style(poise::serenity_prelude::ButtonStyle::Secondary)
+                        .emoji(poise::serenity_prelude::ReactionType::Unicode(
+                            "\u{1F3F7}".to_owned(),
+                        )),
+                ]);
+                reply = reply.components(vec![chart_row]);
 
                 ctx.send(reply).await.map_err(|e| e.to_string())?;
                 Ok(())
@@ -457,7 +488,9 @@ async fn pulls(
 
                 let mut detail_embed = poise::serenity_prelude::CreateEmbed::new()
                     .title(format!("Open PRs — {}", full_name))
-                    .color(0x8957E5);
+                    .url(format!("https://github.com/{full_name}/pulls"))
+                    .color(branding::GH_PURPLE)
+                    .author(branding::embed_author());
                 if pulls.is_empty() {
                     detail_embed = detail_embed.description("No open pull requests!");
                 } else {
@@ -477,6 +510,11 @@ async fn pulls(
                     }
                 }
 
+                detail_embed = detail_embed.footer(branding::embed_footer(Some(&format!(
+                    "{} open",
+                    pulls.len()
+                ))));
+
                 match png_result {
                     Ok(png_bytes) => {
                         let attachment = poise::serenity_prelude::CreateAttachment::bytes(
@@ -485,7 +523,7 @@ async fn pulls(
                         );
                         let card_embed = poise::serenity_prelude::CreateEmbed::new()
                             .image("attachment://pulls.png")
-                            .color(0x8957E5);
+                            .color(branding::GH_PURPLE);
                         reply = reply
                             .embed(card_embed)
                             .embed(detail_embed)
@@ -539,6 +577,7 @@ async fn repo(
 
         match gh.get_repo(&owner, &repo_name).await {
             Ok(info) => {
+                let full_name = info.full_name.clone();
                 let fontdb = ctx.data().app.fontdb.clone();
                 let info_clone = info.clone();
 
@@ -555,9 +594,15 @@ async fn repo(
                     .title(&info.full_name)
                     .url(&info.html_url)
                     .description(desc)
-                    .field("Default Branch", &info.default_branch, true)
+                    .field(
+                        "Default Branch",
+                        format!("`{}`", &info.default_branch),
+                        true,
+                    )
                     .field("Open Issues", info.open_issues_count.to_string(), true)
-                    .color(0x0d1117);
+                    .color(branding::GH_DARK)
+                    .author(branding::embed_author())
+                    .footer(branding::embed_footer(None));
 
                 match png_result {
                     Ok(png_bytes) => {
@@ -565,7 +610,7 @@ async fn repo(
                             poise::serenity_prelude::CreateAttachment::bytes(png_bytes, "repo.png");
                         let card_embed = poise::serenity_prelude::CreateEmbed::new()
                             .image("attachment://repo.png")
-                            .color(0x0d1117);
+                            .color(branding::GH_DARK);
                         reply = reply
                             .embed(card_embed)
                             .embed(detail_embed)
@@ -576,6 +621,19 @@ async fn repo(
                         reply = reply.embed(detail_embed);
                     }
                 }
+
+                // Chart buttons
+                let chart_row = poise::serenity_prelude::CreateActionRow::Buttons(vec![
+                    poise::serenity_prelude::CreateButton::new(format!(
+                        "chart|{full_name}|languages"
+                    ))
+                    .label("Languages")
+                    .style(poise::serenity_prelude::ButtonStyle::Secondary)
+                    .emoji(poise::serenity_prelude::ReactionType::Unicode(
+                        "\u{1F4CA}".to_owned(),
+                    )),
+                ]);
+                reply = reply.components(vec![chart_row]);
 
                 ctx.send(reply).await.map_err(|e| e.to_string())?;
                 Ok(())
@@ -636,7 +694,9 @@ async fn commits(
 
                 let mut detail_embed = poise::serenity_prelude::CreateEmbed::new()
                     .title(format!("Recent Commits — {}", full_name))
-                    .color(0x2EA043);
+                    .url(format!("https://github.com/{full_name}/commits"))
+                    .color(branding::GH_COMMIT)
+                    .author(branding::embed_author());
                 if commits.is_empty() {
                     detail_embed = detail_embed.description("No commits found.");
                 } else {
@@ -651,6 +711,11 @@ async fn commits(
                     }
                 }
 
+                detail_embed = detail_embed.footer(branding::embed_footer(Some(&format!(
+                    "{} commits",
+                    commits.len()
+                ))));
+
                 match png_result {
                     Ok(png_bytes) => {
                         let attachment = poise::serenity_prelude::CreateAttachment::bytes(
@@ -659,7 +724,7 @@ async fn commits(
                         );
                         let card_embed = poise::serenity_prelude::CreateEmbed::new()
                             .image("attachment://commits.png")
-                            .color(0x2EA043);
+                            .color(branding::GH_COMMIT);
                         reply = reply
                             .embed(card_embed)
                             .embed(detail_embed)
@@ -744,9 +809,9 @@ pub async fn view_issue_impl(
         let mut reply = poise::CreateReply::default();
 
         let issue_color = if issue.state == "open" {
-            0x238636u32
+            branding::GH_GREEN
         } else {
-            0x8b949eu32
+            branding::GH_GRAY
         };
 
         // Build the text detail embed (always shown)
@@ -762,7 +827,8 @@ pub async fn view_issue_impl(
         let mut detail_embed = poise::serenity_prelude::CreateEmbed::new()
             .title(format!("#{} — {}", number, truncate(&issue.title, 60)))
             .url(&issue.html_url)
-            .color(issue_color);
+            .color(issue_color)
+            .author(branding::embed_author());
 
         if !body_preview.is_empty() {
             detail_embed = detail_embed.description(body_preview);
@@ -796,6 +862,8 @@ pub async fn view_issue_impl(
                 .collect();
             detail_embed = detail_embed.field("Assignees", names.join(", "), false);
         }
+
+        detail_embed = detail_embed.footer(branding::embed_footer(Some(&full_name)));
 
         match png_result {
             Ok(png_bytes) => {
@@ -979,7 +1047,9 @@ async fn create(
                     ))
                     .url(&issue.html_url)
                     .description(format!("Issue created in `{full_name}`"))
-                    .color(0x238636);
+                    .color(branding::GH_GREEN)
+                    .author(branding::embed_author())
+                    .footer(branding::embed_footer(None));
 
                 ctx.send(poise::CreateReply::default().embed(embed))
                     .await
@@ -1035,7 +1105,9 @@ async fn close(
                 let embed = poise::serenity_prelude::CreateEmbed::new()
                     .title(format!("Closed #{number}"))
                     .description(format!("Issue closed in `{full_name}`"))
-                    .color(0x8b949e);
+                    .color(branding::GH_GRAY)
+                    .author(branding::embed_author())
+                    .footer(branding::embed_footer(None));
 
                 ctx.send(poise::CreateReply::default().embed(embed))
                     .await
@@ -1088,7 +1160,9 @@ async fn reopen(
                 let embed = poise::serenity_prelude::CreateEmbed::new()
                     .title(format!("Reopened #{number}"))
                     .description(format!("Issue reopened in `{full_name}`"))
-                    .color(0x238636);
+                    .color(branding::GH_GREEN)
+                    .author(branding::embed_author())
+                    .footer(branding::embed_footer(None));
 
                 ctx.send(poise::CreateReply::default().embed(embed))
                     .await
@@ -1145,7 +1219,9 @@ async fn comment(
                     .title(format!("Commented on #{number}"))
                     .url(&c.html_url)
                     .description(truncate(&text, 200))
-                    .color(0x58a6ff);
+                    .color(branding::GH_BLUE)
+                    .author(branding::embed_author())
+                    .footer(branding::embed_footer(Some(&full_name)));
 
                 ctx.send(poise::CreateReply::default().embed(embed))
                     .await
@@ -1191,7 +1267,9 @@ async fn assign(
                 let embed = poise::serenity_prelude::CreateEmbed::new()
                     .title(format!("Assigned `{username}` to #{number}"))
                     .description(format!("in `{full_name}`"))
-                    .color(0x58a6ff);
+                    .color(branding::GH_BLUE)
+                    .author(branding::embed_author())
+                    .footer(branding::embed_footer(None));
 
                 ctx.send(poise::CreateReply::default().embed(embed))
                     .await
@@ -1237,7 +1315,9 @@ async fn unassign(
                 let embed = poise::serenity_prelude::CreateEmbed::new()
                     .title(format!("Unassigned `{username}` from #{number}"))
                     .description(format!("in `{full_name}`"))
-                    .color(0x8b949e);
+                    .color(branding::GH_GRAY)
+                    .author(branding::embed_author())
+                    .footer(branding::embed_footer(None));
 
                 ctx.send(poise::CreateReply::default().embed(embed))
                     .await
@@ -1292,7 +1372,8 @@ async fn search(
                         result.total_count,
                         if result.total_count == 1 { "" } else { "s" }
                     ))
-                    .color(0x58a6ff);
+                    .color(branding::GH_BLUE)
+                    .author(branding::embed_author());
 
                 if result.items.is_empty() {
                     embed = embed
@@ -1324,14 +1405,18 @@ async fn search(
                             false,
                         );
                     }
-                    if result.total_count > result.items.len() as u64 {
-                        embed =
-                            embed.footer(poise::serenity_prelude::CreateEmbedFooter::new(format!(
-                                "Showing {} of {} results",
-                                result.items.len(),
-                                result.total_count
-                            )));
-                    }
+                    embed = if result.total_count > result.items.len() as u64 {
+                        embed.footer(branding::embed_footer(Some(&format!(
+                            "Showing {} of {}",
+                            result.items.len(),
+                            result.total_count
+                        ))))
+                    } else {
+                        embed.footer(branding::embed_footer(Some(&format!(
+                            "{} results",
+                            result.total_count
+                        ))))
+                    };
                 }
 
                 ctx.send(poise::CreateReply::default().embed(embed))
@@ -1375,7 +1460,8 @@ async fn labels(
             Ok(labels) => {
                 let mut embed = poise::serenity_prelude::CreateEmbed::new()
                     .title(format!("Labels — {full_name}"))
-                    .color(0xE8EAED);
+                    .color(branding::GH_LABELS)
+                    .author(branding::embed_author());
 
                 if labels.is_empty() {
                     embed = embed.description("No labels configured.");
@@ -1404,10 +1490,10 @@ async fn labels(
                         ));
                     }
 
-                    embed = embed.footer(poise::serenity_prelude::CreateEmbedFooter::new(format!(
+                    embed = embed.footer(branding::embed_footer(Some(&format!(
                         "{} labels",
                         labels.len()
-                    )));
+                    ))));
                 }
 
                 ctx.send(poise::CreateReply::default().embed(embed))
@@ -1457,7 +1543,9 @@ async fn comments(
             Ok(comments) => {
                 let mut embed = poise::serenity_prelude::CreateEmbed::new()
                     .title(format!("Comments on #{number} — {full_name}"))
-                    .color(0x58a6ff);
+                    .color(branding::GH_BLUE)
+                    .author(branding::embed_author())
+                    .footer(branding::embed_footer(Some(&full_name)));
 
                 if comments.is_empty() {
                     embed = embed.description("No comments yet.");
@@ -1518,7 +1606,9 @@ async fn workflows(
 
                 let mut embed = poise::serenity_prelude::CreateEmbed::new()
                     .title(format!("Workflows — {full_name}"))
-                    .color(0x2EA043);
+                    .url(format!("https://github.com/{full_name}/actions"))
+                    .color(branding::GH_COMMIT)
+                    .author(branding::embed_author());
 
                 if active.is_empty() {
                     embed = embed.description("No active workflows found.");
@@ -1534,11 +1624,11 @@ async fn workflows(
                             false,
                         );
                     }
-                    embed = embed.footer(poise::serenity_prelude::CreateEmbedFooter::new(format!(
+                    embed = embed.footer(branding::embed_footer(Some(&format!(
                         "{} active of {} total",
                         active.len(),
                         wfs.len()
-                    )));
+                    ))));
                 }
 
                 ctx.send(poise::CreateReply::default().embed(embed))
@@ -1599,7 +1689,9 @@ async fn dispatch(
                     .description(format!(
                         "Workflow triggered on `{ref_name}` in `{full_name}`"
                     ))
-                    .color(0x2EA043);
+                    .color(branding::GH_COMMIT)
+                    .author(branding::embed_author())
+                    .footer(branding::embed_footer(Some(&full_name)));
 
                 ctx.send(poise::CreateReply::default().embed(embed))
                     .await
@@ -1674,7 +1766,9 @@ async fn merge(
                         result.message,
                         &result.sha[..7.min(result.sha.len())]
                     ))
-                    .color(0x8957E5);
+                    .color(branding::GH_PURPLE)
+                    .author(branding::embed_author())
+                    .footer(branding::embed_footer(Some(&full_name)));
 
                 ctx.send(poise::CreateReply::default().embed(embed))
                     .await

@@ -716,6 +716,11 @@ struct PendingWtIdentity(Option<lightyear::webtransport::prelude::Identity>);
 #[derive(Resource)]
 struct WtAddr(SocketAddr);
 
+/// The WS server entity — used by `spawn_player` for `ReplicationMode::Server`
+/// so lightyear doesn't need `.single()` (which fails with multiple servers).
+#[derive(Resource)]
+struct WsServerEntity(Entity);
+
 /// Shared netcode keys for the game server.
 #[derive(Resource)]
 struct NetcodeKeys {
@@ -831,6 +836,7 @@ fn start_server(
         .id();
 
     commands.trigger(Start { entity: ws_entity });
+    commands.insert_resource(WsServerEntity(ws_entity));
     tracing::info!("[gameserver] WS server entity {ws_entity:?} started on {ws_addr}");
 
     // --- WebTransport server entity (optional) ---
@@ -1239,6 +1245,7 @@ fn process_auth_messages(
     mut commands: Commands,
     jwt_secret: Res<JwtSecret>,
     day: Res<DayCycle>,
+    ws_server: Res<WsServerEntity>,
     mut authenticated: ResMut<AuthenticatedClients>,
     mut client_player_map: ResMut<ClientPlayerMap>,
     profile_tx: Res<ProfileBridgeTx>,
@@ -1263,7 +1270,7 @@ fn process_auth_messages(
                     "client {entity:?} connecting as guest: {guest_user_id} (challenge={server_time})"
                 );
                 let player_id = user_id_to_player_id(&guest_user_id);
-                let player_entity = spawn_player(&mut commands, player_id, entity);
+                let player_entity = spawn_player(&mut commands, player_id, entity, ws_server.0);
                 sender.send::<GameChannel>(AuthResponse {
                     success: true,
                     user_id: guest_user_id.clone(),
@@ -1287,7 +1294,7 @@ fn process_auth_messages(
                     "SUPABASE_JWT_SECRET not set — accepting {entity:?} as {anon_user_id} (challenge={server_time})"
                 );
                 let player_id = user_id_to_player_id(&anon_user_id);
-                let player_entity = spawn_player(&mut commands, player_id, entity);
+                let player_entity = spawn_player(&mut commands, player_id, entity, ws_server.0);
                 sender.send::<GameChannel>(AuthResponse {
                     success: true,
                     user_id: anon_user_id.clone(),
@@ -1315,7 +1322,7 @@ fn process_auth_messages(
                         "client {entity:?} authenticated as user {user_id} (challenge={server_time})"
                     );
                     let player_id = user_id_to_player_id(&user_id);
-                    let player_entity = spawn_player(&mut commands, player_id, entity);
+                    let player_entity = spawn_player(&mut commands, player_id, entity, ws_server.0);
                     sender.send::<GameChannel>(AuthResponse {
                         success: true,
                         user_id: user_id.clone(),
@@ -1410,7 +1417,12 @@ fn user_id_to_player_id(user_id: &str) -> u64 {
 /// `client_entity` is the connection entity — used for `ControlledBy` so
 /// lightyear knows which client owns this player (required for replication
 /// routing to work correctly for late-joining clients).
-fn spawn_player(commands: &mut Commands, player_id: u64, client_entity: Entity) -> Entity {
+fn spawn_player(
+    commands: &mut Commands,
+    player_id: u64,
+    client_entity: Entity,
+    server_entity: Entity,
+) -> Entity {
     let idx = PLAYER_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
     // Spread players apart so they don't collide on spawn
@@ -1433,8 +1445,12 @@ fn spawn_player(commands: &mut Commands, player_id: u64, client_entity: Entity) 
             Rotation::default(),
             LinearVelocity::default(),
             Collider::cuboid(0.6, 1.2, 0.6),
-            // Mark for lightyear replication to all connected clients
-            Replicate::to_clients(NetworkTarget::All),
+            // Target a specific server entity — avoids .single() failure when
+            // multiple Server entities exist (WS + WT).
+            Replicate::new(lightyear::prelude::ReplicationMode::Server(
+                server_entity,
+                NetworkTarget::All,
+            )),
             // Link player to owning client — required for replication routing
             ControlledBy {
                 owner: client_entity,

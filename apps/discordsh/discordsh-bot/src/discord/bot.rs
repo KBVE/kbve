@@ -86,6 +86,9 @@ async fn event_handler(
                 components::github_components::handle_github_component(ctx, component, &data.app)
                     .await;
                 Ok(())
+            } else if custom_id.starts_with("chart|") {
+                components::chart_buttons::handle_chart_component(ctx, component, &data.app).await;
+                Ok(())
             } else {
                 Ok(())
             };

@@ -185,6 +185,30 @@ impl GitHubClient {
         self.parse_response(resp).await
     }
 
+    // ── Repository Languages ──────────────────────────────────────
+
+    /// Fetch repository language breakdown (bytes per language).
+    /// Returns a map like `{"Rust": 123456, "TypeScript": 78901}`.
+    pub async fn get_languages(
+        &self,
+        owner: &str,
+        repo: &str,
+    ) -> Result<std::collections::HashMap<String, u64>, JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!("{}/repos/{}/{}/languages", self.base_url, owner, repo);
+
+        let resp = self
+            .client
+            .get(&url)
+            .bearer_auth(&self.token)
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        self.parse_response(resp).await
+    }
+
     // ── Single Issue/PR ────────────────────────────────────────────
 
     /// Fetch a single issue or pull request by number.

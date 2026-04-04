@@ -6,7 +6,10 @@ use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 
 use super::camera::IsometricCamera;
-use super::creatures::{FrogMaterials, GameTime, WraithMaterials};
+use super::creatures::sprite_material::SpriteAtlasMaterial;
+use super::creatures::{
+    FrogAtlasResources, GameTime, StagAtlasResources, WolfAtlasResources, WraithAtlasResources,
+};
 use super::net::ServerTime;
 use super::tilemap::TileMaterials;
 use super::trees::TreeWindSway;
@@ -457,13 +460,13 @@ fn tint_trees_for_daynight(
     }
 }
 
-/// Tint unlit frog materials based on time of day (same curve as trees).
+/// Tint frogs via SpriteAtlasMaterial tint uniform (same curve as trees).
 fn tint_frogs_for_daynight(
     day: Res<DayCycle>,
-    frog_mats: Option<Res<FrogMaterials>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    frog_res: Option<Res<FrogAtlasResources>>,
+    mut atlas_materials: ResMut<Assets<SpriteAtlasMaterial>>,
 ) {
-    let Some(frog_mats) = frog_mats else {
+    let Some(frog_res) = frog_res else {
         return;
     };
     let params = sun_params(day.hour);
@@ -473,21 +476,19 @@ fn tint_frogs_for_daynight(
     let g = 0.20 + h * 0.90;
     let b = 0.28 + h * 0.75;
 
-    for handle in &frog_mats.handles {
-        if let Some(mat) = materials.get_mut(handle) {
-            mat.base_color = Color::srgb(r, g, b);
-        }
+    if let Some(mat) = atlas_materials.get_mut(&frog_res.material) {
+        mat.tint = LinearRgba::new(r, g, b, 1.0);
     }
 }
 
-/// Tint unlit wraith materials based on time of day (same curve as frogs).
+/// Tint wraith SpriteAtlasMaterial based on time of day.
 /// Wraiths are always visible: fully opaque at night, semi-transparent (ghostly) during day.
 fn tint_wraiths_for_daynight(
     day: Res<DayCycle>,
-    wraith_mats: Option<Res<WraithMaterials>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    wraith_res: Option<Res<WraithAtlasResources>>,
+    mut atlas_materials: ResMut<Assets<SpriteAtlasMaterial>>,
 ) {
-    let Some(wraith_mats) = wraith_mats else {
+    let Some(wraith_res) = wraith_res else {
         return;
     };
     let params = sun_params(day.hour);
@@ -504,10 +505,50 @@ fn tint_wraiths_for_daynight(
         0.35 + (1.0 - h) * 0.15
     };
 
-    for handle in &wraith_mats.handles {
-        if let Some(mat) = materials.get_mut(handle) {
-            mat.base_color = Color::srgba(r, g, b, alpha);
-        }
+    if let Some(mat) = atlas_materials.get_mut(&wraith_res.material) {
+        mat.tint = LinearRgba::new(r, g, b, alpha);
+    }
+}
+
+/// Tint wolf atlas material based on time of day (same curve as frogs).
+fn tint_wolves_for_daynight(
+    day: Res<DayCycle>,
+    wolf_res: Option<Res<WolfAtlasResources>>,
+    mut atlas_materials: ResMut<Assets<SpriteAtlasMaterial>>,
+) {
+    let Some(wolf_res) = wolf_res else {
+        return;
+    };
+    let params = sun_params(day.hour);
+    let h = params.sun_height;
+
+    let r = 0.18 + h * 0.92;
+    let g = 0.20 + h * 0.90;
+    let b = 0.28 + h * 0.75;
+
+    if let Some(mat) = atlas_materials.get_mut(&wolf_res.material) {
+        mat.tint = LinearRgba::new(r, g, b, 1.0);
+    }
+}
+
+/// Tint stag atlas material based on time of day (same curve as frogs).
+fn tint_stags_for_daynight(
+    day: Res<DayCycle>,
+    stag_res: Option<Res<StagAtlasResources>>,
+    mut atlas_materials: ResMut<Assets<SpriteAtlasMaterial>>,
+) {
+    let Some(stag_res) = stag_res else {
+        return;
+    };
+    let params = sun_params(day.hour);
+    let h = params.sun_height;
+
+    let r = 0.18 + h * 0.92;
+    let g = 0.20 + h * 0.90;
+    let b = 0.28 + h * 0.75;
+
+    if let Some(mat) = atlas_materials.get_mut(&stag_res.material) {
+        mat.tint = LinearRgba::new(r, g, b, 1.0);
     }
 }
 
@@ -727,6 +768,8 @@ impl Plugin for WeatherPlugin {
                 tint_trees_for_daynight.run_if(resource_changed::<DayCycle>),
                 tint_frogs_for_daynight.run_if(resource_changed::<DayCycle>),
                 tint_wraiths_for_daynight.run_if(resource_changed::<DayCycle>),
+                tint_wolves_for_daynight.run_if(resource_changed::<DayCycle>),
+                tint_stags_for_daynight.run_if(resource_changed::<DayCycle>),
                 update_blob_shadows.run_if(any_with_component::<BlobShadow>),
                 animate_veg_wind.run_if(any_with_component::<WindSway>),
                 animate_tree_wind.run_if(any_with_component::<TreeWindSway>),
