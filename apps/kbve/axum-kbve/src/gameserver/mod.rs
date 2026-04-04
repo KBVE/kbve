@@ -638,6 +638,20 @@ fn run_bevy_app(
     app.add_observer(debug_on_linked_added);
     app.add_observer(debug_on_unlinked_added);
 
+    // Diagnostic: track LinkOf creation and Session addition
+    app.add_observer(|trigger: On<Add, LinkOf>| {
+        let entity = trigger.entity;
+        tracing::info!("[diag] LinkOf ADDED on entity {entity:?}");
+    });
+    app.add_observer(|trigger: On<Add, aeronet_io::Session>| {
+        let entity = trigger.entity;
+        tracing::info!("[diag] Session ADDED on entity {entity:?}");
+    });
+    app.add_observer(|trigger: On<Add, ReplicationSender>| {
+        let entity = trigger.entity;
+        tracing::info!("[diag] ReplicationSender ADDED on entity {entity:?}");
+    });
+
     // Diagnostic: log Link buffer states every tick to trace packet flow
     app.add_systems(Update, debug_link_packet_flow);
     // Diagnostic: log ALL Link entities (even orphaned ones not in Server collection)
