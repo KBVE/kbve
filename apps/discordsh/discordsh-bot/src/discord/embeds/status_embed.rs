@@ -93,9 +93,12 @@ pub fn build_status_embed(snap: &StatusSnapshot) -> serenity::CreateEmbed {
     }
 
     embed
-        .footer(serenity::CreateEmbedFooter::new(
-            branding::footer_with_source("src/discord/embeds/status_embed.rs"),
-        ))
+        .field(
+            "",
+            branding::source_link("src/discord/embeds/status_embed.rs"),
+            false,
+        )
+        .footer(serenity::CreateEmbedFooter::new(branding::footer_text()))
         .timestamp(serenity::Timestamp::now())
 }
 
