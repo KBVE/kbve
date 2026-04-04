@@ -37,6 +37,9 @@ pub struct SpriteAtlasMaterial {
 
     #[uniform(3)]
     pub atlas_grid: UVec2,
+
+    #[uniform(4)]
+    pub tint: LinearRgba,
 }
 
 impl Material for SpriteAtlasMaterial {

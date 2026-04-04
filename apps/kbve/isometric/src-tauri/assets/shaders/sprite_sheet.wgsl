@@ -25,6 +25,9 @@ struct AtlasGrid {
 @group(#{MATERIAL_BIND_GROUP}) @binding(3)
 var<uniform> atlas_grid: AtlasGrid;
 
+@group(#{MATERIAL_BIND_GROUP}) @binding(4)
+var<uniform> tint: vec4<f32>;
+
 struct Vertex {
     @builtin(instance_index) instance_index: u32,
     @location(0) position: vec3<f32>,
@@ -78,5 +81,5 @@ fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
         discard;
     }
 
-    return color;
+    return vec4<f32>(color.rgb * tint.rgb, color.a * tint.a);
 }

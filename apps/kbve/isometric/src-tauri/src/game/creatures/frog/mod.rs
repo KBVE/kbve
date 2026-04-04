@@ -31,7 +31,7 @@ const SHEET_COLS: u32 = 9;
 const SHEET_ROWS: u32 = 5;
 
 /// World-space size of the frog billboard quad.
-const FROG_SIZE: f32 = 0.9;
+const FROG_SIZE: f32 = 1.4;
 
 /// Seconds per animation frame (base — each frog gets a randomized variant).
 const FRAME_DURATION_BASE: f32 = 0.15;
@@ -161,6 +161,7 @@ pub(super) fn spawn_frogs(
         atlas: texture,
         anim_data: anim_buffer.clone(),
         atlas_grid: UVec2::new(SHEET_COLS, SHEET_ROWS),
+        tint: LinearRgba::WHITE,
     });
 
     frog_res.material = material.clone();
@@ -426,12 +427,8 @@ pub(super) fn animate_frogs(
             };
         }
 
-        // Billboard: face camera
-        let to_cam = cam_pos - tf.translation;
-        let to_cam_flat = Vec3::new(to_cam.x, 0.0, to_cam.z).normalize_or_zero();
-        if to_cam_flat.length_squared() > 0.001 {
-            tf.look_to(to_cam_flat, Vec3::Y);
-        }
+        // Billboard: use camera's forward direction (uniform for isometric view)
+        tf.look_to(cam_tf.forward().as_vec3(), Vec3::Y);
 
         *vis = Visibility::Visible;
     }
