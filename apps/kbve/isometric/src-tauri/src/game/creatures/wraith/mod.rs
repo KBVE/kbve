@@ -17,6 +17,7 @@
 
 use bevy::asset::RenderAssetUsages;
 use bevy::camera::visibility::NoFrustumCulling;
+use bevy::light::NotShadowCaster;
 use bevy::mesh::{Indices, MeshTag, PrimitiveTopology};
 use bevy::prelude::*;
 use bevy::render::storage::ShaderStorageBuffer;
@@ -29,6 +30,7 @@ use super::creature::{
 use super::sprite_material::{SpriteAnimData, SpriteAtlasMaterial};
 use crate::game::camera::IsometricCamera;
 use crate::game::terrain::TerrainMap;
+use crate::game::weather::{BlobShadow, BlobShadowAssets};
 
 const NPC_REF: &str = "wraith-executioner";
 
@@ -107,6 +109,10 @@ impl Default for WraithAtlasResources {
     }
 }
 
+/// Links a wraith entity to its blob shadow entity.
+#[derive(Component)]
+pub(super) struct WraithShadow(Entity);
+
 // ---------------------------------------------------------------------------
 // Mesh
 // ---------------------------------------------------------------------------
@@ -150,6 +156,7 @@ pub(super) fn spawn_wraiths(
     mut pool: ResMut<CreaturePool>,
     mut wraith_res: ResMut<WraithAtlasResources>,
     registry: Res<CreatureRegistry>,
+    blob_shadow: Option<Res<BlobShadowAssets>>,
 ) {
     if pool.wraiths_spawned {
         return;
@@ -193,13 +200,35 @@ pub(super) fn spawn_wraiths(
         let frame_duration = FRAME_DURATION_BASE * (0.8 + hash_f32(seed * 79 + 17) * 0.4);
         let start_frame = (hash_f32(seed * 41 + 7) * ANIM_IDLE.frame_count as f32) as u32;
 
-        commands.spawn((
+        // Spawn blob shadow (hidden at Y=-100 like the wraith)
+        let shadow_entity = if let Some(ref bs) = blob_shadow {
+            Some(
+                commands
+                    .spawn((
+                        Mesh3d(bs.mesh.clone()),
+                        MeshMaterial3d(bs.material.clone()),
+                        Transform::from_xyz(0.0, -100.0, 0.0),
+                        Visibility::Hidden,
+                        BlobShadow {
+                            anchor: Vec3::new(0.0, -100.0, 0.0),
+                            radius: WRAITH_SIZE * 0.35,
+                            object_height: WRAITH_SIZE * 0.5,
+                        },
+                    ))
+                    .id(),
+            )
+        } else {
+            None
+        };
+
+        let mut wraith = commands.spawn((
             Mesh3d(wraith_mesh.clone()),
             MeshMaterial3d(material.clone()),
             MeshTag(i as u32),
             Transform::from_xyz(0.0, -100.0, 0.0),
             Visibility::Hidden,
             NoFrustumCulling,
+            NotShadowCaster,
             Creature {
                 npc_id,
                 render_kind: RenderKind::Sprite,
@@ -224,6 +253,9 @@ pub(super) fn spawn_wraiths(
                 patrol_step: (hash_f32(seed * 97 + 31) * 1000.0) as u32,
             },
         ));
+        if let Some(se) = shadow_entity {
+            wraith.insert(WraithShadow(se));
+        }
     }
 
     info!("[wraith] spawned {count} entities (atlas instanced, NoFrustumCulling)");
@@ -262,9 +294,11 @@ pub(super) fn animate_wraiths(
             &mut Visibility,
             &CreaturePoolIndex,
             &mut WraithMarker,
+            Option<&WraithShadow>,
         ),
         Without<IsometricCamera>,
     >,
+    mut shadow_q: Query<(&mut BlobShadow, &mut Visibility), Without<Creature>>,
 ) {
     let Ok(cam_tf) = camera_q.single() else {
         return;
@@ -276,7 +310,7 @@ pub(super) fn animate_wraiths(
     let cam_pos = cam_tf.translation;
     let center = scene_center(cam_pos);
 
-    for (mut tf, mut cr, mut sd, mut vis, pool_idx, mut wm) in &mut wraith_q {
+    for (mut tf, mut cr, mut sd, mut vis, pool_idx, mut wm, shadow) in &mut wraith_q {
         // Relocate if too far or below world
         let dist = Vec2::new(cr.anchor.x - center.x, cr.anchor.z - center.z).length();
         if dist > RECYCLE_DIST || cr.anchor.y < -50.0 {
@@ -298,6 +332,12 @@ pub(super) fn animate_wraiths(
             cr.state = CreatureState::Active;
             *vis = Visibility::Hidden;
             tf.translation.y = -100.0;
+            if let Some(WraithShadow(se)) = shadow {
+                if let Ok((mut bs, mut sv)) = shadow_q.get_mut(*se) {
+                    bs.anchor.y = -100.0;
+                    *sv = Visibility::Hidden;
+                }
+            }
             continue;
         }
 
@@ -491,6 +531,14 @@ pub(super) fn animate_wraiths(
         ) {
             let hover = (t * 1.5 + cr.phase * 6.28).sin() * 0.15;
             tf.translation.y = cr.anchor.y + 0.3 + hover;
+        }
+
+        // Sync blob shadow to wraith anchor
+        if let Some(WraithShadow(se)) = shadow {
+            if let Ok((mut bs, mut sv)) = shadow_q.get_mut(*se) {
+                bs.anchor = Vec3::new(cr.anchor.x, cr.anchor.y + 0.01, cr.anchor.z);
+                *sv = Visibility::Visible;
+            }
         }
 
         *vis = Visibility::Visible;

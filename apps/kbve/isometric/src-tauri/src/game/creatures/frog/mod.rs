@@ -6,6 +6,7 @@
 
 use bevy::asset::RenderAssetUsages;
 use bevy::camera::visibility::NoFrustumCulling;
+use bevy::light::NotShadowCaster;
 use bevy::mesh::{Indices, MeshTag, PrimitiveTopology};
 use bevy::prelude::*;
 use bevy::render::storage::ShaderStorageBuffer;
@@ -19,6 +20,7 @@ use super::sprite_material::{SpriteAnimData, SpriteAtlasMaterial};
 use super::wraith::WraithMarker;
 use crate::game::camera::IsometricCamera;
 use crate::game::terrain::TerrainMap;
+use crate::game::weather::{BlobShadow, BlobShadowAssets};
 
 const NPC_REF: &str = "green-toad";
 
@@ -91,6 +93,10 @@ impl Default for FrogAtlasResources {
     }
 }
 
+/// Links a frog entity to its blob shadow entity.
+#[derive(Component)]
+pub(super) struct FrogShadow(Entity);
+
 // Mesh: Cuboid with near-zero depth — gives proper normals + UVs at
 // locations 0/1/2 which the shader expects. The billboard system rotates
 // it to face the camera each frame.
@@ -134,6 +140,7 @@ pub(super) fn spawn_frogs(
     mut pool: ResMut<CreaturePool>,
     mut frog_res: ResMut<FrogAtlasResources>,
     registry: Res<CreatureRegistry>,
+    blob_shadow: Option<Res<BlobShadowAssets>>,
 ) {
     if pool.frogs_spawned {
         return;
@@ -176,13 +183,35 @@ pub(super) fn spawn_frogs(
         let frame_duration = FRAME_DURATION_BASE * (0.8 + hash_f32(seed * 79 + 17) * 0.4);
         let start_frame = (hash_f32(seed * 41 + 7) * ANIM_IDLE.frame_count as f32) as u32;
 
-        commands.spawn((
+        // Spawn blob shadow (hidden at Y=-100 like the frog)
+        let shadow_entity = if let Some(ref bs) = blob_shadow {
+            Some(
+                commands
+                    .spawn((
+                        Mesh3d(bs.mesh.clone()),
+                        MeshMaterial3d(bs.material.clone()),
+                        Transform::from_xyz(0.0, -100.0, 0.0),
+                        Visibility::Hidden,
+                        BlobShadow {
+                            anchor: Vec3::new(0.0, -100.0, 0.0),
+                            radius: FROG_SIZE * 0.4,
+                            object_height: FROG_SIZE * 0.5,
+                        },
+                    ))
+                    .id(),
+            )
+        } else {
+            None
+        };
+
+        let mut frog = commands.spawn((
             Mesh3d(frog_mesh.clone()),
             MeshMaterial3d(material.clone()),
             MeshTag(i as u32),
             Transform::from_xyz(0.0, -100.0, 0.0),
             Visibility::Hidden,
             NoFrustumCulling,
+            NotShadowCaster,
             Creature {
                 npc_id,
                 render_kind: RenderKind::Sprite,
@@ -204,9 +233,15 @@ pub(super) fn spawn_frogs(
             },
             CreaturePoolIndex(i as u32),
         ));
+        if let Some(se) = shadow_entity {
+            frog.insert(FrogShadow(se));
+        }
     }
 
-    info!("[frog] spawned {count} entities (atlas instanced, NoFrustumCulling)");
+    info!(
+        "[frog] spawned {count} entities (atlas instanced, NoFrustumCulling, blob_shadow={})",
+        blob_shadow.is_some()
+    );
 }
 
 pub(super) fn animate_frogs(
@@ -223,9 +258,11 @@ pub(super) fn animate_frogs(
             &mut SpriteData,
             &mut Visibility,
             &CreaturePoolIndex,
+            Option<&FrogShadow>,
         ),
         (Without<IsometricCamera>, Without<WraithMarker>),
     >,
+    mut shadow_q: Query<(&mut BlobShadow, &mut Visibility), Without<Creature>>,
 ) {
     let Ok(cam_tf) = camera_q.single() else {
         return;
@@ -235,10 +272,16 @@ pub(super) fn animate_frogs(
     let df = day_factor(game_time.hour);
 
     if df < 0.01 {
-        for (mut tf, mut cr, _, mut vis, _) in &mut frog_q {
+        for (mut tf, mut cr, _, mut vis, _, shadow) in &mut frog_q {
             *vis = Visibility::Hidden;
             tf.translation.y = -100.0;
             cr.anchor.y = -100.0;
+            if let Some(FrogShadow(se)) = shadow {
+                if let Ok((mut bs, mut sv)) = shadow_q.get_mut(*se) {
+                    bs.anchor.y = -100.0;
+                    *sv = Visibility::Hidden;
+                }
+            }
         }
         return;
     }
@@ -246,7 +289,7 @@ pub(super) fn animate_frogs(
     let cam_pos = cam_tf.translation;
     let center = scene_center(cam_pos);
 
-    for (mut tf, mut cr, mut sd, mut vis, pool_idx) in &mut frog_q {
+    for (mut tf, mut cr, mut sd, mut vis, pool_idx, shadow) in &mut frog_q {
         let frog_id = (cr.phase * 100000.0) as u32;
 
         // Relocate frog if too far from scene center or below world
@@ -429,6 +472,14 @@ pub(super) fn animate_frogs(
 
         // Billboard: use camera's forward direction (uniform for isometric view)
         tf.look_to(cam_tf.forward().as_vec3(), Vec3::Y);
+
+        // Sync blob shadow to frog anchor
+        if let Some(FrogShadow(se)) = shadow {
+            if let Ok((mut bs, mut sv)) = shadow_q.get_mut(*se) {
+                bs.anchor = Vec3::new(cr.anchor.x, cr.anchor.y + 0.01, cr.anchor.z);
+                *sv = Visibility::Visible;
+            }
+        }
 
         *vis = Visibility::Visible;
     }

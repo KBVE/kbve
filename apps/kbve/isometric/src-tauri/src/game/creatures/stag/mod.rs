@@ -14,6 +14,7 @@
 
 use bevy::asset::RenderAssetUsages;
 use bevy::camera::visibility::NoFrustumCulling;
+use bevy::light::NotShadowCaster;
 use bevy::mesh::{Indices, MeshTag, PrimitiveTopology};
 use bevy::prelude::*;
 use bevy::render::storage::ShaderStorageBuffer;
@@ -26,6 +27,7 @@ use super::creature::{
 use super::sprite_material::{SpriteAnimData, SpriteAtlasMaterial};
 use crate::game::camera::IsometricCamera;
 use crate::game::terrain::TerrainMap;
+use crate::game::weather::{BlobShadow, BlobShadowAssets};
 
 const NPC_REF: &str = "woodland-stag";
 
@@ -108,8 +110,12 @@ impl Default for StagAtlasResources {
 }
 
 // ---------------------------------------------------------------------------
-// Stag marker component
+// Stag marker + shadow link
 // ---------------------------------------------------------------------------
+
+/// Links a stag entity to its blob shadow entity.
+#[derive(Component)]
+pub(super) struct StagShadow(Entity);
 
 #[derive(Component)]
 pub struct StagMarker {
@@ -172,6 +178,7 @@ pub(super) fn spawn_stags(
     mut pool: ResMut<CreaturePool>,
     mut stag_res: ResMut<StagAtlasResources>,
     registry: Res<CreatureRegistry>,
+    blob_shadow: Option<Res<BlobShadowAssets>>,
 ) {
     if pool.stags_spawned {
         return;
@@ -212,13 +219,35 @@ pub(super) fn spawn_stags(
         let idle_timer = IDLE_MIN + hash_f32(seed * 53 + 11) * (IDLE_MAX - IDLE_MIN);
         let frame_duration = FRAME_DURATION_BASE * (0.8 + hash_f32(seed * 79 + 17) * 0.4);
 
-        commands.spawn((
+        // Spawn blob shadow (hidden at Y=-100 like the stag)
+        let shadow_entity = if let Some(ref bs) = blob_shadow {
+            Some(
+                commands
+                    .spawn((
+                        Mesh3d(bs.mesh.clone()),
+                        MeshMaterial3d(bs.material.clone()),
+                        Transform::from_xyz(0.0, -100.0, 0.0),
+                        Visibility::Hidden,
+                        BlobShadow {
+                            anchor: Vec3::new(0.0, -100.0, 0.0),
+                            radius: STAG_SIZE * 0.4,
+                            object_height: STAG_SIZE * 0.5,
+                        },
+                    ))
+                    .id(),
+            )
+        } else {
+            None
+        };
+
+        let mut stag = commands.spawn((
             Mesh3d(stag_mesh.clone()),
             MeshMaterial3d(material.clone()),
             MeshTag(i as u32),
             Transform::from_xyz(0.0, -100.0, 0.0),
             Visibility::Hidden,
             NoFrustumCulling,
+            NotShadowCaster,
             Creature {
                 npc_id,
                 render_kind: RenderKind::Sprite,
@@ -246,6 +275,9 @@ pub(super) fn spawn_stags(
                 anim_frame_count: ANIM_IDLE.frame_count,
             },
         ));
+        if let Some(se) = shadow_entity {
+            stag.insert(StagShadow(se));
+        }
     }
 
     info!("[stag] spawned {count} entities (atlas instanced, 4-directional)");
@@ -266,9 +298,11 @@ pub(super) fn animate_stags(
             &mut Visibility,
             &CreaturePoolIndex,
             &mut StagMarker,
+            Option<&StagShadow>,
         ),
         Without<IsometricCamera>,
     >,
+    mut shadow_q: Query<(&mut BlobShadow, &mut Visibility), Without<Creature>>,
 ) {
     let Ok(cam_tf) = camera_q.single() else {
         return;
@@ -280,10 +314,16 @@ pub(super) fn animate_stags(
 
     // Stags are daytime creatures
     if df < 0.01 {
-        for (mut tf, mut cr, _, mut vis, _, _) in &mut stag_q {
+        for (mut tf, mut cr, _, mut vis, _, _, shadow) in &mut stag_q {
             *vis = Visibility::Hidden;
             tf.translation.y = -100.0;
             cr.anchor.y = -100.0;
+            if let Some(StagShadow(se)) = shadow {
+                if let Ok((mut bs, mut sv)) = shadow_q.get_mut(*se) {
+                    bs.anchor.y = -100.0;
+                    *sv = Visibility::Hidden;
+                }
+            }
         }
         return;
     }
@@ -291,7 +331,7 @@ pub(super) fn animate_stags(
     let cam_pos = cam_tf.translation;
     let center = scene_center(cam_pos);
 
-    for (mut tf, mut cr, mut sd, mut vis, pool_idx, mut sm) in &mut stag_q {
+    for (mut tf, mut cr, mut sd, mut vis, pool_idx, mut sm, shadow) in &mut stag_q {
         // Relocate if too far or below world
         let dist = Vec2::new(cr.anchor.x - center.x, cr.anchor.z - center.z).length();
         if dist > RECYCLE_DIST || cr.anchor.y < -50.0 {
@@ -311,6 +351,12 @@ pub(super) fn animate_stags(
             cr.state = CreatureState::Active;
             *vis = Visibility::Hidden;
             tf.translation.y = -100.0;
+            if let Some(StagShadow(se)) = shadow {
+                if let Ok((mut bs, mut sv)) = shadow_q.get_mut(*se) {
+                    bs.anchor.y = -100.0;
+                    *sv = Visibility::Hidden;
+                }
+            }
             continue;
         }
 
@@ -473,6 +519,14 @@ pub(super) fn animate_stags(
 
         // Billboard: face camera
         tf.look_to(cam_tf.forward().as_vec3(), Vec3::Y);
+
+        // Sync blob shadow to stag anchor
+        if let Some(StagShadow(se)) = shadow {
+            if let Ok((mut bs, mut sv)) = shadow_q.get_mut(*se) {
+                bs.anchor = Vec3::new(cr.anchor.x, cr.anchor.y + 0.01, cr.anchor.z);
+                *sv = Visibility::Visible;
+            }
+        }
 
         *vis = Visibility::Visible;
     }

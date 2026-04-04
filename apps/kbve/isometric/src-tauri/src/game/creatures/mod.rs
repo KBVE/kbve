@@ -1,3 +1,4 @@
+mod boar;
 mod butterfly;
 pub mod common;
 pub mod creature;
@@ -10,6 +11,7 @@ mod wraith;
 
 use bevy::prelude::*;
 
+pub use boar::BoarAtlasResources;
 pub use common::GameTime;
 use common::{CreatureMeshes, CreaturePool};
 pub use creature::{
@@ -73,6 +75,7 @@ impl Plugin for CreaturesPlugin {
         app.init_resource::<WraithAtlasResources>();
         app.init_resource::<WolfAtlasResources>();
         app.init_resource::<StagAtlasResources>();
+        app.init_resource::<BoarAtlasResources>();
         app.init_resource::<firefly::FireflyState>();
         app.add_systems(Startup, setup_creature_meshes);
 
@@ -105,6 +108,9 @@ impl Plugin for CreaturesPlugin {
                 // Stags (SpriteAtlasMaterial + SSBO, 4-directional, daytime)
                 stag::spawn_stags.run_if(|pool: Res<CreaturePool>| !pool.stags_spawned),
                 stag::animate_stags.run_if(any_with_component::<stag::StagMarker>),
+                // Boars (SpriteAtlasMaterial + SSBO, 4-directional)
+                boar::spawn_boars.run_if(|pool: Res<CreaturePool>| !pool.boars_spawned),
+                boar::animate_boars.run_if(any_with_component::<boar::BoarMarker>),
             ),
         );
     }
