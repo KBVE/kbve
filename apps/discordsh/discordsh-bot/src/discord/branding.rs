@@ -12,13 +12,13 @@ pub const PROJECT_URL: &str = "https://kbve.com/project/discordsh-bot/";
 /// Source repository tree URL.
 pub const SOURCE_URL: &str = "https://github.com/KBVE/kbve/tree/main/apps/discordsh/discordsh-bot";
 
-/// Build the standard footer text: `discordsh-bot v0.1.2`
+/// Build the standard footer text: `discordsh-bot v0.1.3`
 pub fn footer_text() -> String {
     format!("{BOT_NAME} v{BOT_VERSION}")
 }
 
-/// Build a source-linked footer for a specific module: `discordsh-bot v0.1.2 • source`
-/// The `module` is a relative path within the bot source (e.g. `src/discord/commands/health.rs`).
-pub fn footer_with_source(module: &str) -> String {
-    format!("{BOT_NAME} v{BOT_VERSION} • {SOURCE_URL}/{module}")
+/// Build a Discord markdown link to the source file for a specific module.
+/// Returns `[source](https://github.com/...)` — usable in embed descriptions/fields.
+pub fn source_link(module: &str) -> String {
+    format!("[source]({SOURCE_URL}/{module})")
 }
