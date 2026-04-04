@@ -1,65 +1,82 @@
-//! Uniform-driven sprite sheet shader.
+//! Sprite sheet shader using automatic instancing + storage buffer.
 //!
-//! Computes atlas UVs in the vertex shader from frame/sheet uniforms,
-//! eliminating per-frame mesh UV buffer uploads. Supports horizontal
-//! flip and RGBA tint for day/night coloring.
+//! Combines Bevy 0.18's automatic_instancing and storage_buffer examples:
+//! - Atlas texture via Material bind group (#{MATERIAL_BIND_GROUP})
+//! - Per-instance sprite data via storage buffer, indexed by MeshTag
+//! - One draw call per creature type (all frogs, all wraiths, etc.)
+//!
+//! SpriteData layout per instance:
+//!   [0] = vec4(frame_col, frame_row, sheet_cols, sheet_rows)
+//!   [1] = vec4(flip, alpha_cutoff, 0, 0)
+//!   [2] = vec4(tint_r, tint_g, tint_b, tint_a)
 
-#import bevy_pbr::mesh_functions::mesh_position_local_to_clip
-#import bevy_pbr::forward_io::Vertex
-
-struct SpriteUniforms {
-    tint: vec4<f32>,
-    frame_col: f32,
-    frame_row: f32,
-    sheet_cols: f32,
-    sheet_rows: f32,
-    flip: f32,
-    alpha_cutoff: f32,
-    _pad0: f32,
-    _pad1: f32,
+#import bevy_pbr::{
+    mesh_functions,
+    view_transformations::position_world_to_clip
 }
 
-@group(2) @binding(0) var<uniform> sprite: SpriteUniforms;
-@group(2) @binding(1) var sprite_texture: texture_2d<f32>;
-@group(2) @binding(2) var sprite_sampler: sampler;
+// Per-instance sprite data: 3 vec4s per sprite, packed into flat array
+// Index = MeshTag * 3
+@group(#{MATERIAL_BIND_GROUP}) @binding(0) var<storage, read> sprite_data: array<vec4<f32>>;
+@group(#{MATERIAL_BIND_GROUP}) @binding(1) var sprite_texture: texture_2d<f32>;
+@group(#{MATERIAL_BIND_GROUP}) @binding(2) var sprite_sampler: sampler;
 
-struct SpriteVertexOutput {
-    @builtin(position) position: vec4<f32>,
+struct Vertex {
+    @builtin(instance_index) instance_index: u32,
+    @location(0) position: vec3<f32>,
+    @location(2) uv: vec2<f32>,
+};
+
+struct VertexOutput {
+    @builtin(position) clip_position: vec4<f32>,
     @location(0) uv: vec2<f32>,
-}
+    @location(1) tint: vec4<f32>,
+    @location(2) alpha_cutoff: f32,
+};
 
 @vertex
-fn vertex(in: Vertex) -> SpriteVertexOutput {
-    var out: SpriteVertexOutput;
+fn vertex(vertex: Vertex) -> VertexOutput {
+    var out: VertexOutput;
 
-    out.position = mesh_position_local_to_clip(
-        in.instance_index,
-        vec4(in.position, 1.0),
+    let tag = mesh_functions::get_tag(vertex.instance_index);
+    var world_from_local = mesh_functions::get_world_from_local(vertex.instance_index);
+    let world_position = mesh_functions::mesh_position_local_to_world(
+        world_from_local,
+        vec4(vertex.position, 1.0),
     );
+    out.clip_position = position_world_to_clip(world_position.xyz);
 
-    // in.uv is [0,1] normalized across the quad.
-    // Map to the correct atlas frame using uniforms.
-    let frame_w = 1.0 / sprite.sheet_cols;
-    let frame_h = 1.0 / sprite.sheet_rows;
+    // Read per-instance data from storage buffer
+    let base = tag * 3u;
+    let frame_data = sprite_data[base];      // frame_col, frame_row, sheet_cols, sheet_rows
+    let extra_data = sprite_data[base + 1u]; // flip, alpha_cutoff, 0, 0
+    let tint_data = sprite_data[base + 2u];  // tint RGBA
 
-    var u = in.uv.x;
-    if (sprite.flip > 0.5) {
+    // Compute atlas UVs
+    let frame_w = 1.0 / frame_data.z;
+    let frame_h = 1.0 / frame_data.w;
+
+    var u = vertex.uv.x;
+    if (extra_data.x > 0.5) {
         u = 1.0 - u;
     }
 
-    let atlas_u = sprite.frame_col * frame_w + u * frame_w;
-    let atlas_v = sprite.frame_row * frame_h + in.uv.y * frame_h;
+    out.uv = vec2(
+        frame_data.x * frame_w + u * frame_w,
+        frame_data.y * frame_h + vertex.uv.y * frame_h,
+    );
+    out.tint = tint_data;
+    out.alpha_cutoff = extra_data.y;
 
-    out.uv = vec2(atlas_u, atlas_v);
     return out;
 }
 
 @fragment
-fn fragment(in: SpriteVertexOutput) -> @location(0) vec4<f32> {
+fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
     let tex = textureSample(sprite_texture, sprite_sampler, in.uv);
-    let color = tex * sprite.tint;
+    let color = tex * in.tint;
 
-    if (color.a < sprite.alpha_cutoff) {
+    if (color.a < in.alpha_cutoff) {
         discard;
     }
 
