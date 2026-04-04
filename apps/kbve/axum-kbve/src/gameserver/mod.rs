@@ -643,10 +643,8 @@ fn run_bevy_app(
         let entity = trigger.entity;
         tracing::info!("[diag] LinkOf ADDED on entity {entity:?}");
     });
-    app.add_observer(|trigger: On<Add, aeronet_io::Session>| {
-        let entity = trigger.entity;
-        tracing::info!("[diag] Session ADDED on entity {entity:?}");
-    });
+    // aeronet_io::Session observer removed — crate not a direct dependency.
+    // Session tracking is handled internally by lightyear.
     app.add_observer(|trigger: On<Add, ReplicationSender>| {
         let entity = trigger.entity;
         tracing::info!("[diag] ReplicationSender ADDED on entity {entity:?}");
