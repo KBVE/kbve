@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
     name: firecracker-ctl-ingress
-    namespace: kilobase
+    namespace: firecracker
 spec:
     podSelector:
         matchLabels:
@@ -11,7 +11,10 @@ spec:
         - Ingress
     ingress:
         - from:
-              - podSelector:
+              - namespaceSelector:
+                    matchLabels:
+                        app: kilobase
+                podSelector:
                     matchLabels:
                         app: functions
           ports:

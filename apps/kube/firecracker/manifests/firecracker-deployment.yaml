@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
     name: firecracker-ctl
-    namespace: kilobase
+    namespace: firecracker
     labels:
         app: firecracker-ctl
 spec:
@@ -33,6 +33,9 @@ spec:
                           cpu: '2'
                           memory: 2Gi
                           devices.kubevirt.io/kvm: '1'
+                  securityContext:
+                      capabilities:
+                          add: ['NET_ADMIN']
                   volumeMounts:
                       - name: rootfs-cache
                         mountPath: /var/lib/firecracker/rootfs
