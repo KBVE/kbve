@@ -114,7 +114,7 @@ impl Plugin for CreaturesPlugin {
                 // Stags (SpriteAtlasMaterial + SSBO, 4-directional, daytime)
                 stag::spawn_stags.run_if(|pool: Res<CreaturePool>| !pool.stags_spawned),
                 stag::animate_stags.run_if(any_with_component::<stag::StagMarker>),
-                // --- Generic sprite creatures (boar migrated) ---
+                // --- Generic sprite creatures (boar + badger) ---
                 generic::spawn::spawn_sprite_creatures,
                 generic::animate::animate_sprite_creatures
                     .after(generic::spawn::spawn_sprite_creatures)

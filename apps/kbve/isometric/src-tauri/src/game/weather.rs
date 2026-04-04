@@ -574,6 +574,7 @@ fn tint_boars_for_daynight(
     }
 }
 
+
 /// Copy the current DayCycle hour and server creature seed into the shared GameTime resource.
 /// Creature modules read GameTime instead of DayCycle directly.
 fn sync_game_time(
