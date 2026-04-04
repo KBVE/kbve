@@ -5,7 +5,7 @@ metadata:
     name: vector-config
     namespace: vector
     annotations:
-        kbve.sh/last-updated: '2026-03-23T18:00:00Z'
+        kbve.sh/last-updated: '2026-04-04T09:00:00Z'
 data:
     vector.yml: |
         api:
