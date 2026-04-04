@@ -23,6 +23,17 @@ spec:
                 app.kubernetes.io/part-of: kasm
                 app.kubernetes.io/component: workspace
         spec:
+            # KASM workspace runs as uid 1000 (kasm-user).
+            # fsGroup ensures the PVC is group-writable.
+            securityContext:
+                fsGroup: 1000
+            initContainers:
+                - name: fix-pvc-perms
+                  image: busybox:1.37
+                  command: ['sh', '-c', 'chown -R 1000:1000 /home/kasm-user']
+                  volumeMounts:
+                      - name: discord-profile
+                        mountPath: /home/kasm-user
             containers:
                 # ── Gluetun VPN sidecar ──
                 # Establishes WireGuard tunnel. KASM container routes through it.
@@ -69,13 +80,15 @@ spec:
                           port: 9999
                       initialDelaySeconds: 30
                       periodSeconds: 30
-                      failureThreshold: 3
+                      timeoutSeconds: 5
+                      failureThreshold: 5
                   readinessProbe:
                       httpGet:
                           path: /
                           port: 9999
                       initialDelaySeconds: 10
                       periodSeconds: 10
+                      timeoutSeconds: 5
                   resources:
                       requests:
                           memory: '64Mi'
