@@ -3,6 +3,7 @@ pub mod common;
 pub mod creature;
 mod firefly;
 mod frog;
+pub mod sprite_material;
 mod wraith;
 
 use bevy::prelude::*;
@@ -13,7 +14,7 @@ pub use creature::{
     Creature, CreatureConfig, CreaturePoolIndex, CreatureRegistry, CreatureState, EmissiveData,
     RenderKind, TimeSchedule,
 };
-pub use frog::FrogMaterials;
+pub use frog::FrogAtlasResources;
 pub use wraith::WraithMaterials;
 
 /// Build creature meshes once at Startup to avoid allocating during spawn.
@@ -56,13 +57,15 @@ pub struct CreaturesPlugin;
 
 impl Plugin for CreaturesPlugin {
     fn build(&self, app: &mut App) {
+        app.add_plugins(MaterialPlugin::<sprite_material::SpriteAtlasMaterial>::default());
+
         // --- Unified NpcDb-driven registry ---
         app.add_systems(Startup, setup_creature_registry);
 
         // --- Legacy per-type resources ---
         app.init_resource::<CreaturePool>();
         app.init_resource::<common::GameTime>();
-        app.init_resource::<FrogMaterials>();
+        app.init_resource::<FrogAtlasResources>();
         app.init_resource::<WraithMaterials>();
         app.init_resource::<firefly::FireflyState>();
         app.add_systems(Startup, setup_creature_meshes);
