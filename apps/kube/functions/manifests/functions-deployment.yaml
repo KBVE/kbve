@@ -13,7 +13,7 @@ spec:
             labels:
                 app: functions
             annotations:
-                rollout-restart: '2026-02-28T00:00:00Z'
+                rollout-restart: '2026-04-04T09:00:00Z'
         spec:
             containers:
                 - name: edge-functions
@@ -60,7 +60,7 @@ spec:
                       - name: VERIFY_JWT
                         value: 'true'
                       - name: FIRECRACKER_URL
-                        value: 'http://firecracker-ctl:9001'
+                        value: 'http://firecracker-ctl.firecracker.svc.cluster.local:9001'
                       - name: CLICKHOUSE_ENDPOINT
                         valueFrom:
                             secretKeyRef:

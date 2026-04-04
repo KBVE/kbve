@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
     name: firecracker-rootfs-init
-    namespace: kilobase
+    namespace: firecracker
     labels:
         app: firecracker-ctl
     annotations:

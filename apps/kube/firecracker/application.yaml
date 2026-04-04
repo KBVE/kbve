@@ -14,12 +14,12 @@ spec:
         kustomize: {}
     destination:
         server: https://kubernetes.default.svc
-        namespace: kilobase
+        namespace: firecracker
     syncPolicy:
         automated:
             prune: true
             selfHeal: false
         syncOptions:
-            - CreateNamespace=false
+            - CreateNamespace=true
             - ServerSideApply=true
             - RespectIgnoreDifferences=true

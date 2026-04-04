@@ -2,7 +2,7 @@ apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
     name: firecracker-ctl-scaler
-    namespace: kilobase
+    namespace: firecracker
 spec:
     scaleTargetRef:
         name: firecracker-ctl

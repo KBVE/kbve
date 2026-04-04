@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-04-03T08:28:37Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-04-04T08:21:55Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**32** critical/high severity findings across the monorepo.
+**33** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,7 +26,7 @@ Last generated: **2026-04-03T08:28:37Z** — updated daily by `ci-dashboard`.
   <Card title="1 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="31 High" icon="error">
+  <Card title="32 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
   <Card title="37 Medium" icon="information">
@@ -41,7 +41,7 @@ Last generated: **2026-04-03T08:28:37Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **72** advisories
+    **73** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **27** advisories
@@ -63,7 +63,7 @@ Last generated: **2026-04-03T08:28:37Z** — updated daily by `ci-dashboard`.
 pie showData
     title Findings by Severity
     "Critical" : 1
-    "High" : 31
+    "High" : 32
     "Medium" : 37
     "Low" : 5
 ```
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 72
+    "npm" : 73
     "Cargo" : 27
 ```
 
@@ -82,12 +82,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 1 | 31 | 35 | 5 | 72 |
+| **npm** | 1 | 32 | 35 | 5 | 73 |
 | **Cargo** | 0 | 0 | 2 | 0 | 27 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 31 | 37 | 5 | 99 |
+| **Total** | 1 | 32 | 37 | 5 | 100 |
 
   </TabItem>
   <TabItem label="npm">
@@ -126,6 +126,7 @@ pie showData
 | High | `@xmldom/xmldom` | xmldom: XML injection via unsafe CDATA serialization allo... | [Details](https://github.com/advisories/GHSA-wh4c-j3r5-mjhp) |
 | High | `lodash-es` | lodash vulnerable to Code Injection via `_.template` impo... | [Details](https://github.com/advisories/GHSA-r5fr-rjxr-66jc) |
 | High | `lodash` | lodash vulnerable to Code Injection via `_.template` impo... | [Details](https://github.com/advisories/GHSA-r5fr-rjxr-66jc) |
+| High | `defu` | defu: Prototype pollution via `__proto__` key in defaults... | [Details](https://github.com/advisories/GHSA-737v-mqg7-c878) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `lodash-es` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |

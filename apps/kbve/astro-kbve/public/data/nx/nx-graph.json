@@ -6700,6 +6700,22 @@
               "configurations": {},
               "parallelism": true
             },
+            "wasm": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "lsof -ti:1420 | xargs kill 2>/dev/null || true",
+                  "mkdir -p certificates && (openssl x509 -checkend 86400 -noout -in certificates/cert.pem 2>/dev/null || mkcert -cert-file certificates/cert.pem -key-file certificates/key.pem localhost 127.0.0.1)",
+                  "export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm build:wasm",
+                  "GAME_API_TARGET=https://kbve.com pnpm dev"
+                ],
+                "cwd": "apps/kbve/isometric"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "quick": {
               "executor": "nx:run-commands",
               "options": {
