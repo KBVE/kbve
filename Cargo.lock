@@ -1166,7 +1166,7 @@ dependencies = [
 
 [[package]]
 name = "axum-cryptothrone"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "anyhow",
  "askama",
@@ -1192,7 +1192,7 @@ dependencies = [
 
 [[package]]
 name = "axum-discordsh"
-version = "0.1.42"
+version = "0.1.43"
 dependencies = [
  "anyhow",
  "askama",
@@ -1250,7 +1250,7 @@ dependencies = [
 
 [[package]]
 name = "axum-herbmail"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "askama",
@@ -1276,7 +1276,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.90"
+version = "1.0.91"
 dependencies = [
  "anyhow",
  "askama",
@@ -1334,7 +1334,7 @@ dependencies = [
 
 [[package]]
 name = "axum-memes"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "anyhow",
  "askama",
@@ -2172,6 +2172,9 @@ dependencies = [
  "bevy",
  "bevy_npc",
  "bytes",
+ "getrandom 0.2.17",
+ "getrandom 0.3.4",
+ "getrandom 0.4.2",
  "hex",
  "js-sys",
  "lightyear",
@@ -4661,7 +4664,7 @@ dependencies = [
 
 [[package]]
 name = "discordsh-bot"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "askama",
@@ -5498,7 +5501,7 @@ checksum = "5baebc0774151f905a1a2cc41989300b1e6fbb29aff0ceffa1064fdd3088d582"
 
 [[package]]
 name = "firecracker-ctl"
-version = "0.1.0"
+version = "0.1.22"
 dependencies = [
  "axum",
  "dashmap 6.1.0",
@@ -6092,11 +6095,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0de51e6874e94e7bf76d726fc5d13ba782deca734ff60d5bb2fb2607c7406555"
 dependencies = [
  "cfg-if",
+ "js-sys",
  "libc",
  "r-efi 6.0.0",
  "rand_core 0.10.0",
  "wasip2",
  "wasip3",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -7661,7 +7666,7 @@ checksum = "d98f6fed1fde3f8c21bc40a1abb88dd75e67924f9cffc3ef95607bad8017f8e2"
 
 [[package]]
 name = "irc-gateway"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "anyhow",
  "axum",
