@@ -10,13 +10,22 @@ spec:
     policyTypes:
         - Ingress
     ingress:
+        # Edge functions (kilobase/functions) → firecracker-ctl
         - from:
               - namespaceSelector:
                     matchLabels:
-                        app: kilobase
+                        kubernetes.io/metadata.name: kilobase
                 podSelector:
                     matchLabels:
                         app: functions
+          ports:
+              - protocol: TCP
+                port: 9001
+        # Dashboard proxy (kbve/kbve-deployment) → firecracker-ctl
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: kbve
           ports:
               - protocol: TCP
                 port: 9001
