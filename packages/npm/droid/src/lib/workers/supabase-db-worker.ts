@@ -109,8 +109,12 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 						...authOverrides,
 						storage: memoryStorage,
 						storageKey: 'sb-auth-token',
-						autoRefreshToken: true,
-						persistSession: true,
+						// DB pool workers are stateless (memoryStorage) — token
+						// refresh is handled by the SharedWorker which owns the
+						// IDB-backed session. Disabling here avoids SDK-internal
+						// callbacks that produce non-cloneable objects.
+						autoRefreshToken: false,
+						persistSession: false,
 						detectSessionInUrl: false,
 					},
 				});
