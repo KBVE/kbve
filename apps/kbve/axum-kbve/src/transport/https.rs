@@ -27,6 +27,32 @@ use crate::db::{
     validate_username,
 };
 
+/// Static table of simple permanent redirects handled by Axum before hitting Astro.
+const PERMANENT_REDIRECTS: &[(&'static str, &'static str)] = &[
+    ("/application/kube", "/application/kubernetes/"),
+    ("/application/kubectl", "/application/kubernetes/"),
+    ("/application/bevy", "/application/rust/#bevy"),
+    ("/application/bevy/", "/application/rust/#bevy"),
+];
+
+fn mount_permanent_redirects<S>(
+    router: Router<S>,
+    redirects: &[(&'static str, &'static str)],
+) -> Router<S>
+where
+    S: Clone + Send + Sync + 'static,
+{
+    redirects
+        .iter()
+        .copied()
+        .fold(router, |router, (source, target)| {
+            router.route(
+                source,
+                get(move || async move { Redirect::permanent(target) }),
+            )
+        })
+}
+
 #[derive(Clone)]
 pub struct AppState {
     pub inner: Arc<AppStateInner>,
@@ -174,24 +200,10 @@ fn router(state: AppState) -> Router {
         )
         .route("/@{username}", get(profile_handler))
         .route("/osrs/{item}", get(osrs_item_handler))
-        .route("/osrs/{item}/", get(osrs_item_handler_trailing))
-        .route(
-            "/application/kube",
-            get(|| async { Redirect::permanent("/application/kubernetes/") }),
-        )
-        .route(
-            "/application/kubectl",
-            get(|| async { Redirect::permanent("/application/kubernetes/") }),
-        )
-        .route(
-            "/application/bevy",
-            get(|| async { Redirect::permanent("/application/rust/#bevy") }),
-        )
-        .route(
-            "/application/bevy/",
-            get(|| async { Redirect::permanent("/application/rust/#bevy") }),
-        )
-        .with_state(state.clone());
+        .route("/osrs/{item}/", get(osrs_item_handler_trailing));
+
+    let public_router =
+        mount_permanent_redirects(public_router, PERMANENT_REDIRECTS).with_state(state.clone());
 
     let main_app = static_router.merge(public_router).layer(middleware);
 
