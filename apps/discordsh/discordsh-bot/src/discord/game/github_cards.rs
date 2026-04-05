@@ -4,6 +4,7 @@
 //! Askama SVG template → resvg PNG rendering via `spawn_blocking`.
 
 use askama::Template;
+use chrono::Datelike;
 use jedi::entity::github::{GitHubCommit, GitHubIssue, GitHubPull, GitHubRepo};
 use std::collections::HashMap;
 
@@ -1038,6 +1039,421 @@ pub fn render_activity_chart_blocking(
         .render()
         .map_err(|e| format!("Activity chart SVG: {e}"))?;
     kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("Activity chart PNG: {e}"))
+}
+
+// ── PR Status Chart ────────────────────────────────────────────────
+
+pub struct PrStatusRow {
+    pub number: u64,
+    pub title: String,
+    pub status_color: String,
+    pub age_bar: f64,
+    pub age_color: String,
+    pub age_text: String,
+    pub age_label_x: f64,
+    pub y: u32,
+}
+
+#[derive(Template)]
+#[template(path = "github/pr_status_chart.svg")]
+pub struct PrStatusChartTemplate {
+    pub repo_name: String,
+    pub total_prs: usize,
+    pub draft_count: usize,
+    pub ready_count: usize,
+    pub ready_width: f64,
+    pub draft_width: f64,
+    pub prs: Vec<PrStatusRow>,
+    pub height: u32,
+    pub footer_y: u32,
+    pub brand_y: u32,
+}
+
+pub fn build_pr_status_chart(pulls: &[GitHubPull], repo_name: &str) -> PrStatusChartTemplate {
+    let now = chrono::Utc::now();
+    let draft_count = pulls.iter().filter(|p| p.draft).count();
+    let ready_count = pulls.len() - draft_count;
+    let bar_total = 744.0;
+
+    let (ready_width, draft_width) = if !pulls.is_empty() {
+        let rw = (ready_count as f64 / pulls.len() as f64) * bar_total;
+        (rw, bar_total - rw)
+    } else {
+        (0.0, 0.0)
+    };
+
+    let max_age_days = pulls
+        .iter()
+        .filter_map(|p| {
+            chrono::DateTime::parse_from_rfc3339(&p.created_at)
+                .ok()
+                .map(|dt| (now - dt.with_timezone(&chrono::Utc)).num_days().max(0) as f64)
+        })
+        .fold(1.0_f64, f64::max);
+
+    let prs: Vec<PrStatusRow> = pulls
+        .iter()
+        .take(12)
+        .enumerate()
+        .map(|(i, pr)| {
+            let age_days = chrono::DateTime::parse_from_rfc3339(&pr.created_at)
+                .ok()
+                .map(|dt| (now - dt.with_timezone(&chrono::Utc)).num_days().max(0))
+                .unwrap_or(0);
+
+            let age_frac = age_days as f64 / max_age_days;
+            let age_bar = (age_frac * 240.0).max(4.0);
+            let age_color = if age_days > 14 {
+                "#da3633".to_owned()
+            } else if age_days > 7 {
+                "#e3b341".to_owned()
+            } else {
+                "#238636".to_owned()
+            };
+
+            PrStatusRow {
+                number: pr.number,
+                title: truncate(&pr.title, 50),
+                status_color: if pr.draft {
+                    "#8b949e".to_owned()
+                } else {
+                    "#238636".to_owned()
+                },
+                age_bar,
+                age_color,
+                age_text: format!("{}d", age_days),
+                age_label_x: 500.0 + age_bar + 8.0,
+                y: 125 + (i as u32 * 28),
+            }
+        })
+        .collect();
+
+    let row_count = prs.len() as u32;
+    let height = 125 + row_count * 28 + 30;
+
+    PrStatusChartTemplate {
+        repo_name: repo_name.to_owned(),
+        total_prs: pulls.len(),
+        draft_count,
+        ready_count,
+        ready_width,
+        draft_width,
+        prs,
+        height,
+        footer_y: height - 8,
+        brand_y: height - 14,
+    }
+}
+
+pub fn render_pr_status_chart_blocking(
+    pulls: &[GitHubPull],
+    repo_name: &str,
+    fontdb: &kbve::FontDb,
+) -> Result<Vec<u8>, String> {
+    let template = build_pr_status_chart(pulls, repo_name);
+    let svg = template
+        .render()
+        .map_err(|e| format!("PR status chart SVG: {e}"))?;
+    kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("PR status chart PNG: {e}"))
+}
+
+// ── Commit Frequency Chart ─────────────────────────────────────────
+
+pub struct HeatmapCell {
+    pub x: f64,
+    pub y: f64,
+    pub color: String,
+}
+
+pub struct WeekLabel {
+    pub x: f64,
+    pub text: String,
+}
+
+pub struct TopAuthor {
+    pub name: String,
+    pub count: usize,
+    pub x: u32,
+}
+
+pub struct LegendSwatch {
+    pub x: u32,
+    pub color: String,
+}
+
+#[derive(Template)]
+#[template(path = "github/commit_frequency_chart.svg")]
+pub struct CommitFrequencyChartTemplate {
+    pub repo_name: String,
+    pub total_commits: usize,
+    pub day_count: usize,
+    pub avg_per_day: String,
+    pub cells: Vec<HeatmapCell>,
+    pub week_labels: Vec<WeekLabel>,
+    pub legend_swatches: Vec<LegendSwatch>,
+    pub legend_more_x: u32,
+    pub top_authors: Vec<TopAuthor>,
+}
+
+pub fn build_commit_frequency_chart(
+    commits: &[GitHubCommit],
+    repo_name: &str,
+) -> CommitFrequencyChartTemplate {
+    let now = chrono::Utc::now();
+    let weeks = 8usize;
+    let day_count = weeks * 7;
+
+    // Count commits per day slot (row=weekday, col=week)
+    let mut grid = vec![vec![0u32; weeks]; 7];
+    let mut author_counts: HashMap<String, usize> = HashMap::new();
+
+    for c in commits {
+        if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(&c.commit.author.date) {
+            let days_ago = (now - dt.with_timezone(&chrono::Utc)).num_days();
+            if days_ago >= 0 && (days_ago as usize) < day_count {
+                let weekday = dt.weekday().num_days_from_monday() as usize; // 0=Mon
+                let week_idx = weeks - 1 - (days_ago as usize / 7);
+                if week_idx < weeks {
+                    grid[weekday][week_idx] += 1;
+                }
+            }
+            *author_counts
+                .entry(c.commit.author.name.clone())
+                .or_default() += 1;
+        }
+    }
+
+    let max_count = grid
+        .iter()
+        .flat_map(|r| r.iter())
+        .copied()
+        .max()
+        .unwrap_or(1)
+        .max(1);
+    let cell_size = 18.0;
+    let gap = 2.0;
+
+    // Heatmap cells
+    let cells: Vec<HeatmapCell> = (0..7)
+        .flat_map(|row| {
+            let grid_ref = &grid;
+            (0..weeks).map(move |col| {
+                let count = grid_ref[row][col];
+                let intensity = count as f64 / max_count as f64;
+                let color = heatmap_color(intensity);
+                HeatmapCell {
+                    x: col as f64 * (cell_size + gap),
+                    y: row as f64 * (cell_size + gap),
+                    color,
+                }
+            })
+        })
+        .collect();
+
+    // Week labels
+    let week_labels: Vec<WeekLabel> = (0..weeks)
+        .filter(|w| w % 2 == 0)
+        .map(|w| {
+            let date = now - chrono::Duration::days(((weeks - 1 - w) * 7) as i64);
+            WeekLabel {
+                x: w as f64 * (cell_size + gap) + cell_size / 2.0,
+                text: date.format("%m/%d").to_string(),
+            }
+        })
+        .collect();
+
+    // Legend
+    let legend_swatches: Vec<LegendSwatch> = (0..5)
+        .map(|i| LegendSwatch {
+            x: 36 + i * 20,
+            color: heatmap_color(i as f64 / 4.0),
+        })
+        .collect();
+
+    // Top authors
+    let mut sorted_authors: Vec<_> = author_counts.into_iter().collect();
+    sorted_authors.sort_by(|a, b| b.1.cmp(&a.1));
+    let top_authors: Vec<TopAuthor> = sorted_authors
+        .iter()
+        .take(4)
+        .enumerate()
+        .map(|(i, (name, count))| TopAuthor {
+            name: truncate(name, 15),
+            count: *count,
+            x: i as u32 * 180,
+        })
+        .collect();
+
+    let avg = if day_count > 0 {
+        format!("{:.1}", commits.len() as f64 / day_count as f64)
+    } else {
+        "0".to_owned()
+    };
+
+    CommitFrequencyChartTemplate {
+        repo_name: repo_name.to_owned(),
+        total_commits: commits.len(),
+        day_count,
+        avg_per_day: avg,
+        cells,
+        week_labels,
+        legend_swatches,
+        legend_more_x: 36 + 5 * 20 + 4,
+        top_authors,
+    }
+}
+
+fn heatmap_color(intensity: f64) -> String {
+    match intensity {
+        x if x <= 0.0 => "#161b22".to_owned(),
+        x if x <= 0.25 => "#0e4429".to_owned(),
+        x if x <= 0.5 => "#006d32".to_owned(),
+        x if x <= 0.75 => "#26a641".to_owned(),
+        _ => "#39d353".to_owned(),
+    }
+}
+
+pub fn render_commit_frequency_chart_blocking(
+    commits: &[GitHubCommit],
+    repo_name: &str,
+    fontdb: &kbve::FontDb,
+) -> Result<Vec<u8>, String> {
+    let template = build_commit_frequency_chart(commits, repo_name);
+    let svg = template
+        .render()
+        .map_err(|e| format!("Commit frequency SVG: {e}"))?;
+    kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("Commit frequency PNG: {e}"))
+}
+
+// ── Health History Chart ───────────────────────────────────────────
+
+pub struct HealthGridLine {
+    pub y: f64,
+    pub label_y: f64,
+    pub value: u32,
+}
+
+pub struct HealthTimeLabel {
+    pub x: f64,
+    pub text: String,
+}
+
+#[derive(Template)]
+#[template(path = "github/health_chart.svg")]
+pub struct HealthChartTemplate {
+    pub sample_count: usize,
+    pub uptime: String,
+    pub memory_path: String,
+    pub cpu_path: String,
+    pub grid_lines: Vec<HealthGridLine>,
+    pub time_labels: Vec<HealthTimeLabel>,
+    pub current_memory: String,
+    pub current_cpu: String,
+    pub current_threads: usize,
+    pub current_pid: u32,
+}
+
+pub fn build_health_chart(
+    history: &[crate::health::HealthSnapshot],
+    uptime: &str,
+) -> HealthChartTemplate {
+    let chart_width = 680.0;
+    let chart_height = 180.0;
+    let sample_count = history.len();
+
+    // Build polyline paths
+    let step = if sample_count > 1 {
+        chart_width / (sample_count - 1) as f64
+    } else {
+        chart_width
+    };
+
+    let memory_path: String = history
+        .iter()
+        .enumerate()
+        .map(|(i, s)| {
+            let x = i as f64 * step;
+            let y = chart_height - (s.memory_percent / 100.0) * chart_height;
+            format!("{:.1},{:.1}", x, y)
+        })
+        .collect::<Vec<_>>()
+        .join(" ");
+
+    let cpu_path: String = history
+        .iter()
+        .enumerate()
+        .map(|(i, s)| {
+            let x = i as f64 * step;
+            let y = chart_height - (s.cpu_percent / 100.0) * chart_height;
+            format!("{:.1},{:.1}", x, y)
+        })
+        .collect::<Vec<_>>()
+        .join(" ");
+
+    // Grid lines at 0%, 25%, 50%, 75%, 100%
+    let grid_lines: Vec<HealthGridLine> = (0..=4)
+        .map(|i| {
+            let pct = (4 - i) * 25;
+            let y = (i as f64 / 4.0) * chart_height;
+            HealthGridLine {
+                y,
+                label_y: y + 4.0,
+                value: pct,
+            }
+        })
+        .collect();
+
+    // Time labels
+    let time_labels: Vec<HealthTimeLabel> = if sample_count > 4 {
+        let step_label = sample_count / 4;
+        (0..=4)
+            .map(|i| {
+                let idx = (i * step_label).min(sample_count - 1);
+                let mins_ago = (sample_count - 1 - idx) as u32;
+                HealthTimeLabel {
+                    x: idx as f64 * step,
+                    text: if mins_ago == 0 {
+                        "now".to_owned()
+                    } else {
+                        format!("-{}m", mins_ago)
+                    },
+                }
+            })
+            .collect()
+    } else {
+        vec![]
+    };
+
+    let last = history.last();
+
+    HealthChartTemplate {
+        sample_count,
+        uptime: uptime.to_owned(),
+        memory_path,
+        cpu_path,
+        grid_lines,
+        time_labels,
+        current_memory: last
+            .map(|s| format!("{:.1}", s.memory_percent))
+            .unwrap_or_default(),
+        current_cpu: last
+            .map(|s| format!("{:.1}", s.cpu_percent))
+            .unwrap_or_default(),
+        current_threads: last.map(|s| s.thread_count).unwrap_or(0),
+        current_pid: last.map(|s| s.pid).unwrap_or(0),
+    }
+}
+
+pub fn render_health_chart_blocking(
+    history: &[crate::health::HealthSnapshot],
+    uptime: &str,
+    fontdb: &kbve::FontDb,
+) -> Result<Vec<u8>, String> {
+    let template = build_health_chart(history, uptime);
+    let svg = template
+        .render()
+        .map_err(|e| format!("Health chart SVG: {e}"))?;
+    kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("Health chart PNG: {e}"))
 }
 
 #[cfg(test)]

@@ -58,7 +58,17 @@ pub async fn health(ctx: Context<'_>) -> Result<(), Error> {
         .footer(serenity::CreateEmbedFooter::new(branding::footer_text()))
         .timestamp(serenity::Timestamp::now());
 
-    let reply = poise::CreateReply::default().embed(embed);
+    // Health history chart button
+    let chart_row = serenity::CreateActionRow::Buttons(vec![
+        serenity::CreateButton::new("chart|health|history")
+            .label("History")
+            .style(serenity::ButtonStyle::Secondary)
+            .emoji(serenity::ReactionType::Unicode("\u{1F4C8}".to_owned())),
+    ]);
+
+    let reply = poise::CreateReply::default()
+        .embed(embed)
+        .components(vec![chart_row]);
     ctx.send(reply).await?;
     Ok(())
 }
