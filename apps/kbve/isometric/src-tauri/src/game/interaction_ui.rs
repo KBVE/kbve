@@ -9,6 +9,7 @@
 use bevy::prelude::*;
 
 use super::actions;
+use super::pause_menu::UiOverlay;
 use super::phase::GamePhase;
 use super::player::Player;
 use super::scene_objects::InteractableKind;
@@ -282,6 +283,7 @@ fn spawn_interaction_panel(mut commands: Commands) {
 /// Check for new object selections (reads snapshot directly, no polling delay).
 fn poll_selection(
     mut active: ResMut<ActiveInteraction>,
+    mut overlay: ResMut<UiOverlay>,
     mut panel_q: Query<&mut Visibility, With<InteractionPanel>>,
     mut title_q: Query<
         &mut Text,
@@ -308,7 +310,7 @@ fn poll_selection(
         ),
     >,
 ) {
-    if active.open {
+    if active.open || overlay.is_open() {
         return;
     }
 
@@ -319,6 +321,7 @@ fn poll_selection(
     let info = lookup_object_info(selected.kind, selected.sub_kind.as_deref());
 
     active.open = true;
+    *overlay = UiOverlay::Interaction;
     active.entity_id = selected.entity_id;
     active.object_pos = Vec3::new(
         selected.position[0],
@@ -345,6 +348,7 @@ fn poll_selection(
 /// Auto-close if player walks too far from the object.
 fn check_distance_close(
     mut active: ResMut<ActiveInteraction>,
+    mut overlay: ResMut<UiOverlay>,
     mut panel_q: Query<&mut Visibility, With<InteractionPanel>>,
     player_q: Query<&Transform, With<Player>>,
 ) {
@@ -362,6 +366,7 @@ fn check_distance_close(
 
     if dist > MODAL_CLOSE_DIST {
         active.open = false;
+        *overlay = UiOverlay::None;
         for mut vis in &mut panel_q {
             *vis = Visibility::Hidden;
         }
@@ -371,6 +376,7 @@ fn check_distance_close(
 /// Handle action button press.
 fn handle_action_button(
     mut active: ResMut<ActiveInteraction>,
+    mut overlay: ResMut<UiOverlay>,
     mut commands: Commands,
     mut panel_q: Query<&mut Visibility, With<InteractionPanel>>,
     btn_q: Query<&Interaction, (Changed<Interaction>, With<InteractionBtn>)>,
@@ -389,6 +395,7 @@ fn handle_action_button(
             if dist > ACTION_DIST {
                 commands.trigger(Toast::warn("You are too far away."));
                 active.open = false;
+                *overlay = UiOverlay::None;
                 for mut vis in &mut panel_q {
                     *vis = Visibility::Hidden;
                 }
@@ -412,6 +419,7 @@ fn handle_action_button(
         }
 
         active.open = false;
+        *overlay = UiOverlay::None;
         for mut vis in &mut panel_q {
             *vis = Visibility::Hidden;
         }

@@ -12,6 +12,7 @@ pub mod mushrooms;
 pub mod net;
 pub mod object_registry;
 pub mod orb_hud;
+pub mod pause_menu;
 pub mod phase;
 pub mod pixelate;
 pub mod player;
@@ -42,6 +43,7 @@ use inventory_ui::InventoryUiPlugin;
 use net::NetPlugin;
 use object_registry::ObjectRegistryPlugin;
 use orb_hud::OrbHudPlugin;
+use pause_menu::PauseMenuPlugin;
 use phase::PhasePlugin;
 use pixelate::PixelatePlugin;
 use player::PlayerPlugin;
@@ -97,5 +99,6 @@ impl PluginGroup for GamePluginGroup {
             .add(toast::ToastPlugin)
             .add(InteractionUiPlugin)
             .add(InventoryUiPlugin)
+            .add(PauseMenuPlugin)
     }
 }

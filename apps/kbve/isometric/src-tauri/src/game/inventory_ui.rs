@@ -8,6 +8,7 @@ use bevy::prelude::*;
 use bevy_inventory::ItemKind as ItemKindTrait;
 
 use super::inventory::ItemKind;
+use super::pause_menu::UiOverlay;
 use super::phase::GamePhase;
 use super::ui_color;
 
@@ -281,6 +282,7 @@ fn spawn_inventory_ui(mut commands: Commands) {
 fn toggle_inventory(
     keys: Res<ButtonInput<KeyCode>>,
     mut state: ResMut<InventoryUiState>,
+    mut overlay: ResMut<UiOverlay>,
     mut grid_q: Query<&mut Visibility, With<InventoryGrid>>,
     mut label_q: Query<&mut Text, With<ToggleBtnLabel>>,
     btn_q: Query<&Interaction, (Changed<Interaction>, With<InventoryToggleBtn>)>,
@@ -297,18 +299,30 @@ fn toggle_inventory(
         }
     }
 
-    if toggle {
-        state.open = !state.open;
-        for mut vis in &mut grid_q {
-            *vis = if state.open {
-                Visibility::Visible
-            } else {
-                Visibility::Hidden
-            };
-        }
-        for mut txt in &mut label_q {
-            **txt = if state.open { "Close" } else { "Bag" }.to_string();
-        }
+    if !toggle {
+        return;
+    }
+
+    // Don't open if another overlay is active (unless it's inventory itself)
+    if !state.open && overlay.is_open() && *overlay != UiOverlay::Inventory {
+        return;
+    }
+
+    state.open = !state.open;
+    *overlay = if state.open {
+        UiOverlay::Inventory
+    } else {
+        UiOverlay::None
+    };
+    for mut vis in &mut grid_q {
+        *vis = if state.open {
+            Visibility::Visible
+        } else {
+            Visibility::Hidden
+        };
+    }
+    for mut txt in &mut label_q {
+        **txt = if state.open { "Close" } else { "Bag" }.to_string();
     }
 }
 
