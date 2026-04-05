@@ -6,11 +6,7 @@ use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
 
 use super::camera::IsometricCamera;
-use super::creatures::sprite_material::SpriteAtlasMaterial;
-use super::creatures::{
-    BoarAtlasResources, FrogAtlasResources, GameTime, StagAtlasResources, WolfAtlasResources,
-    WraithAtlasResources,
-};
+use super::creatures::GameTime;
 use super::net::ServerTime;
 use super::tilemap::TileMaterials;
 use super::trees::TreeWindSway;
@@ -461,120 +457,6 @@ fn tint_trees_for_daynight(
     }
 }
 
-/// Tint frogs via SpriteAtlasMaterial tint uniform (same curve as trees).
-fn tint_frogs_for_daynight(
-    day: Res<DayCycle>,
-    frog_res: Option<Res<FrogAtlasResources>>,
-    mut atlas_materials: ResMut<Assets<SpriteAtlasMaterial>>,
-) {
-    let Some(frog_res) = frog_res else {
-        return;
-    };
-    let params = sun_params(day.hour);
-    let h = params.sun_height;
-
-    let r = 0.18 + h * 0.92;
-    let g = 0.20 + h * 0.90;
-    let b = 0.28 + h * 0.75;
-
-    if let Some(mat) = atlas_materials.get_mut(&frog_res.material) {
-        mat.tint = LinearRgba::new(r, g, b, 1.0);
-    }
-}
-
-/// Tint wraith SpriteAtlasMaterial based on time of day.
-/// Wraiths are always visible: fully opaque at night, semi-transparent (ghostly) during day.
-fn tint_wraiths_for_daynight(
-    day: Res<DayCycle>,
-    wraith_res: Option<Res<WraithAtlasResources>>,
-    mut atlas_materials: ResMut<Assets<SpriteAtlasMaterial>>,
-) {
-    let Some(wraith_res) = wraith_res else {
-        return;
-    };
-    let params = sun_params(day.hour);
-    let h = params.sun_height;
-
-    let r = 0.18 + h * 0.92;
-    let g = 0.20 + h * 0.90;
-    let b = 0.28 + h * 0.75;
-
-    // Ghostly transparency during daytime: fully opaque at night, semi-transparent at day
-    let alpha = if h < 0.01 {
-        1.0
-    } else {
-        0.35 + (1.0 - h) * 0.15
-    };
-
-    if let Some(mat) = atlas_materials.get_mut(&wraith_res.material) {
-        mat.tint = LinearRgba::new(r, g, b, alpha);
-    }
-}
-
-/// Tint wolf atlas material based on time of day (same curve as frogs).
-fn tint_wolves_for_daynight(
-    day: Res<DayCycle>,
-    wolf_res: Option<Res<WolfAtlasResources>>,
-    mut atlas_materials: ResMut<Assets<SpriteAtlasMaterial>>,
-) {
-    let Some(wolf_res) = wolf_res else {
-        return;
-    };
-    let params = sun_params(day.hour);
-    let h = params.sun_height;
-
-    let r = 0.18 + h * 0.92;
-    let g = 0.20 + h * 0.90;
-    let b = 0.28 + h * 0.75;
-
-    if let Some(mat) = atlas_materials.get_mut(&wolf_res.material) {
-        mat.tint = LinearRgba::new(r, g, b, 1.0);
-    }
-}
-
-/// Tint stag atlas material based on time of day (same curve as frogs).
-fn tint_stags_for_daynight(
-    day: Res<DayCycle>,
-    stag_res: Option<Res<StagAtlasResources>>,
-    mut atlas_materials: ResMut<Assets<SpriteAtlasMaterial>>,
-) {
-    let Some(stag_res) = stag_res else {
-        return;
-    };
-    let params = sun_params(day.hour);
-    let h = params.sun_height;
-
-    let r = 0.18 + h * 0.92;
-    let g = 0.20 + h * 0.90;
-    let b = 0.28 + h * 0.75;
-
-    if let Some(mat) = atlas_materials.get_mut(&stag_res.material) {
-        mat.tint = LinearRgba::new(r, g, b, 1.0);
-    }
-}
-
-/// Tint boar atlas material based on time of day (same curve as frogs).
-fn tint_boars_for_daynight(
-    day: Res<DayCycle>,
-    boar_res: Option<Res<BoarAtlasResources>>,
-    mut atlas_materials: ResMut<Assets<SpriteAtlasMaterial>>,
-) {
-    let Some(boar_res) = boar_res else {
-        return;
-    };
-    let params = sun_params(day.hour);
-    let h = params.sun_height;
-
-    let r = 0.18 + h * 0.92;
-    let g = 0.20 + h * 0.90;
-    let b = 0.28 + h * 0.75;
-
-    if let Some(mat) = atlas_materials.get_mut(&boar_res.material) {
-        mat.tint = LinearRgba::new(r, g, b, 1.0);
-    }
-}
-
-
 /// Copy the current DayCycle hour and server creature seed into the shared GameTime resource.
 /// Creature modules read GameTime instead of DayCycle directly.
 fn sync_game_time(
@@ -789,11 +671,6 @@ impl Plugin for WeatherPlugin {
                 sync_game_time.after(update_day_cycle),
                 update_sun_position,
                 tint_trees_for_daynight.run_if(resource_changed::<DayCycle>),
-                tint_frogs_for_daynight.run_if(resource_changed::<DayCycle>),
-                tint_wraiths_for_daynight.run_if(resource_changed::<DayCycle>),
-                tint_wolves_for_daynight.run_if(resource_changed::<DayCycle>),
-                tint_stags_for_daynight.run_if(resource_changed::<DayCycle>),
-                tint_boars_for_daynight.run_if(resource_changed::<DayCycle>),
                 super::creatures::generic::tint::tint_sprite_creatures
                     .run_if(resource_changed::<DayCycle>),
                 update_blob_shadows.run_if(any_with_component::<BlobShadow>),
