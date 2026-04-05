@@ -92,9 +92,13 @@ impl HealthSnapshot {
 ///
 /// Owns a persistent `sysinfo::System` for accurate CPU delta measurement
 /// and exposes the latest `HealthSnapshot` via an `Arc<RwLock<>>`.
+/// Maximum number of historical snapshots to retain (60 = ~1 hour at 60s intervals).
+const HISTORY_CAPACITY: usize = 60;
+
 pub struct HealthMonitor {
     sys: RwLock<System>,
     snapshot: RwLock<Option<HealthSnapshot>>,
+    history: RwLock<std::collections::VecDeque<HealthSnapshot>>,
     start_time: Instant,
     pid: sysinfo::Pid,
 }
@@ -110,6 +114,7 @@ impl HealthMonitor {
         Self {
             sys: RwLock::new(sys),
             snapshot: RwLock::new(None),
+            history: RwLock::new(std::collections::VecDeque::with_capacity(HISTORY_CAPACITY)),
             start_time: Instant::now(),
             pid,
         }
@@ -129,6 +134,11 @@ impl HealthMonitor {
         self.snapshot.read().await.clone()
     }
 
+    /// Read the rolling history of snapshots (oldest first).
+    pub async fn history(&self) -> Vec<HealthSnapshot> {
+        self.history.read().await.iter().cloned().collect()
+    }
+
     /// Force an immediate metric refresh (used by the Refresh button).
     pub async fn force_refresh(&self) {
         let snap = self.collect_inner().await;
@@ -141,7 +151,8 @@ impl HealthMonitor {
         tokio::time::sleep(Duration::from_secs(1)).await;
 
         let snap = self.collect_inner().await;
-        *self.snapshot.write().await = Some(snap);
+        *self.snapshot.write().await = Some(snap.clone());
+        self.push_history(snap).await;
         info!("Initial health snapshot collected");
 
         let mut interval = tokio::time::interval(Duration::from_secs(60));
@@ -150,8 +161,18 @@ impl HealthMonitor {
         loop {
             interval.tick().await;
             let snap = self.collect_inner().await;
-            *self.snapshot.write().await = Some(snap);
+            *self.snapshot.write().await = Some(snap.clone());
+            self.push_history(snap).await;
         }
+    }
+
+    /// Push a snapshot into the rolling history, evicting the oldest if at capacity.
+    async fn push_history(&self, snap: HealthSnapshot) {
+        let mut history = self.history.write().await;
+        if history.len() >= HISTORY_CAPACITY {
+            history.pop_front();
+        }
+        history.push_back(snap);
     }
 
     /// Refresh the persistent System and extract a snapshot.

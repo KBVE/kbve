@@ -1,85 +1,95 @@
-//! Generic animate system for all sprite-sheet creatures.
+//! Shared simulation logic for generic sprite creatures.
+//!
+//! This system runs on both client and server — it contains NO rendering code
+//! (no SSBO, billboard, shadow, visibility-component, or camera queries).
+//! Rendering is handled by [`super::render::render_sprite_creatures`].
 
 use bevy::prelude::*;
-use bevy::render::storage::ShaderStorageBuffer;
 
-use super::super::common::{GameTime, day_factor, hash_f32, patrol_seed, scene_center};
+use super::super::common::{GameTime, day_factor, hash_f32, patrol_seed};
 use super::super::creature::{
     Creature, CreaturePoolIndex, CreatureState, SpriteData, SpriteHopState,
 };
-use super::super::sprite_material::SpriteAnimData;
 use super::behavior::CreatureIntent;
 use super::brain::CreatureBrain;
 use super::types::*;
-use crate::game::camera::IsometricCamera;
 use crate::game::terrain::TerrainMap;
-use crate::game::weather::BlobShadow;
 
-/// Single animate system for all generic sprite creatures.
-pub fn animate_sprite_creatures(
+// ---------------------------------------------------------------------------
+// Resource
+// ---------------------------------------------------------------------------
+
+/// The center point used for creature spawn-ring and recycle distance checks.
+///
+/// On **client**: set from the camera position each frame (via
+/// [`super::render::render_sprite_creatures`]).
+/// On **server**: set from average player position or world origin.
+/// Both sides use the same deterministic seed, so identical center → identical
+/// creature placement.
+#[derive(Resource)]
+pub struct SimulationCenter(pub Vec3);
+
+impl Default for SimulationCenter {
+    fn default() -> Self {
+        Self(Vec3::ZERO)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// System
+// ---------------------------------------------------------------------------
+
+/// Shared simulation system for all generic sprite creatures.
+///
+/// Handles: visibility-schedule culling (sets anchor.y = -100 instead of
+/// Visibility component), recycle/respawn ring, frame advance, terrain snap,
+/// state machine (idle → intent → airborne → landing), direction updates.
+pub fn simulate_sprite_creatures(
     time: Res<Time>,
     game_time: Res<GameTime>,
     mut terrain: ResMut<TerrainMap>,
-    camera_q: Query<&Transform, With<IsometricCamera>>,
-    mut buffers: ResMut<Assets<ShaderStorageBuffer>>,
-    mut atlas_pool: ResMut<SpriteAtlasPool>,
+    sim_center: Res<SimulationCenter>,
     types: Res<SpriteCreatureTypes>,
-    mut creature_q: Query<
-        (
-            &mut Transform,
-            &mut Creature,
-            &mut SpriteData,
-            &mut Visibility,
-            &CreaturePoolIndex,
-            &mut SpriteCreatureMarker,
-            Option<&CreatureShadowLink>,
-            Option<&mut CreatureBrain>,
-        ),
-        Without<IsometricCamera>,
-    >,
-    mut shadow_q: Query<(&mut BlobShadow, &mut Visibility), Without<Creature>>,
+    mut creature_q: Query<(
+        &mut Transform,
+        &mut Creature,
+        &mut SpriteData,
+        &CreaturePoolIndex,
+        &mut SpriteCreatureMarker,
+        Option<&mut CreatureBrain>,
+    )>,
 ) {
-    let Ok(cam_tf) = camera_q.single() else {
-        return;
-    };
     let dt = time.delta_secs();
-    let t = time.elapsed_secs();
+    let _t = time.elapsed_secs();
     let cseed = game_time.creature_seed;
-    let cam_pos = cam_tf.translation;
-    let center = scene_center(cam_pos);
+    let center = sim_center.0;
 
-    for (mut tf, mut cr, mut sd, mut vis, pool_idx, mut marker, shadow, mut brain) in
-        &mut creature_q
-    {
+    for (mut tf, mut cr, mut sd, _pool_idx, mut marker, mut brain) in &mut creature_q {
         // Look up type descriptor
         let Some(ctype) = types.types.iter().find(|ct| ct.npc_ref == marker.type_key) else {
             continue;
         };
 
-        // --- Visibility schedule ---
+        // --- Visibility schedule (hide by moving off-screen, no Visibility component) ---
         match ctype.visibility {
             VisibilitySchedule::Day => {
                 if day_factor(game_time.hour) < 0.01 {
-                    *vis = Visibility::Hidden;
                     tf.translation.y = -100.0;
                     cr.anchor.y = -100.0;
-                    hide_shadow(shadow, &mut shadow_q);
                     continue;
                 }
             }
             VisibilitySchedule::Night => {
                 if day_factor(game_time.hour) > 0.99 {
-                    *vis = Visibility::Hidden;
                     tf.translation.y = -100.0;
                     cr.anchor.y = -100.0;
-                    hide_shadow(shadow, &mut shadow_q);
                     continue;
                 }
             }
             VisibilitySchedule::Always => {}
         }
 
-        // --- Recycle if too far ---
+        // --- Recycle if too far from simulation center ---
         let dist = Vec2::new(cr.anchor.x - center.x, cr.anchor.z - center.z).length();
         if dist > ctype.recycle_dist || cr.anchor.y < -50.0 {
             marker.patrol_step = marker.patrol_step.wrapping_add(1);
@@ -107,9 +117,7 @@ pub fn animate_sprite_creatures(
                 ctype.idle_min + hash_f32(ps + 500) * (ctype.idle_max - ctype.idle_min);
             sd.hop_state = SpriteHopState::Idle { timer: idle_timer };
             cr.state = CreatureState::Active;
-            *vis = Visibility::Hidden;
             tf.translation.y = -100.0;
-            hide_shadow(shadow, &mut shadow_q);
             continue;
         }
 
@@ -289,6 +297,7 @@ pub fn animate_sprite_creatures(
                         hover_frequency,
                         ..
                     } => {
+                        let t = time.elapsed_secs();
                         let pos = start.lerp(target, p);
                         let hover = (t * hover_frequency + cr.phase * 6.28).sin() * hover_amplitude;
                         tf.translation = Vec3::new(pos.x, pos.y + hover_base + hover, pos.z);
@@ -317,8 +326,6 @@ pub fn animate_sprite_creatures(
             }
 
             SpriteHopState::JumpWindup { target } => {
-                // For HopArc: wait for airborne frame, then transition
-                // For others: skip straight to Airborne
                 let dx = target.x - cr.anchor.x;
                 let dz = target.z - cr.anchor.z;
                 match &ctype.direction_model {
@@ -366,72 +373,6 @@ pub fn animate_sprite_creatures(
             }
         }
         sd.hop_state = state;
-
-        // --- SSBO update ---
-        let entry = atlas_pool
-            .entries
-            .iter_mut()
-            .find(|e| e.type_key == marker.type_key);
-        if let Some(entry) = entry {
-            let idx = pool_idx.0 as usize;
-            if idx < entry.anim_data.len() {
-                let col = sd.current_frame % ctype.sheet_cols;
-                let row = sd.anim_row;
-                let flip = match &ctype.direction_model {
-                    DirectionModel::Flip => {
-                        if sd.facing_left {
-                            1
-                        } else {
-                            0
-                        }
-                    }
-                    DirectionModel::FourWay { .. } => 0,
-                };
-                entry.anim_data[idx] = SpriteAnimData {
-                    frame: col + row * ctype.sheet_cols,
-                    flip,
-                    _pad1: 0,
-                    _pad2: 0,
-                };
-            }
-        }
-
-        // --- Billboard ---
-        tf.look_to(cam_tf.forward().as_vec3(), Vec3::Y);
-
-        // --- Glide hover for idle/landing (wraith-style) ---
-        if let MovementProfile::Glide {
-            hover_base,
-            hover_amplitude,
-            hover_frequency,
-            ..
-        } = &ctype.movement
-        {
-            if matches!(
-                sd.hop_state,
-                SpriteHopState::Idle { .. } | SpriteHopState::Landing { .. }
-            ) {
-                let hover = (t * hover_frequency + cr.phase * 6.28).sin() * hover_amplitude;
-                tf.translation.y = cr.anchor.y + hover_base + hover;
-            }
-        }
-
-        // --- Shadow sync ---
-        if let Some(CreatureShadowLink(se)) = shadow {
-            if let Ok((mut bs, mut sv)) = shadow_q.get_mut(*se) {
-                bs.anchor = Vec3::new(cr.anchor.x, cr.anchor.y + 0.01, cr.anchor.z);
-                *sv = Visibility::Visible;
-            }
-        }
-
-        *vis = Visibility::Visible;
-    }
-
-    // --- Flush all SSBO buffers ---
-    for entry in &atlas_pool.entries {
-        if let Some(buffer) = buffers.get_mut(&entry.anim_buffer) {
-            buffer.set_data(entry.anim_data.as_slice());
-        }
     }
 }
 
@@ -440,7 +381,7 @@ pub fn animate_sprite_creatures(
 // ---------------------------------------------------------------------------
 
 /// Set the active animation on a sprite creature, resetting frame on anim change.
-fn set_anim(sd: &mut SpriteData, marker: &mut SpriteCreatureMarker, anim: &AnimDef) {
+pub(super) fn set_anim(sd: &mut SpriteData, marker: &mut SpriteCreatureMarker, anim: &AnimDef) {
     if marker.anim_base_row != anim.base_row {
         marker.anim_base_row = anim.base_row;
         marker.anim_frame_count = anim.frame_count;
@@ -457,19 +398,6 @@ fn set_anim(sd: &mut SpriteData, marker: &mut SpriteCreatureMarker, anim: &AnimD
     }
 }
 
-/// Hide a creature's blob shadow.
-fn hide_shadow(
-    shadow: Option<&CreatureShadowLink>,
-    shadow_q: &mut Query<(&mut BlobShadow, &mut Visibility), Without<Creature>>,
-) {
-    if let Some(CreatureShadowLink(se)) = shadow {
-        if let Ok((mut bs, mut sv)) = shadow_q.get_mut(*se) {
-            bs.anchor.y = -100.0;
-            *sv = Visibility::Hidden;
-        }
-    }
-}
-
 /// Convert a legacy `BehaviorAction` to a `CreatureIntent` (fallback path for
 /// creatures without a behavior tree).
 fn legacy_action_to_intent(
@@ -477,7 +405,7 @@ fn legacy_action_to_intent(
     ps: u32,
     anchor: Vec3,
     terrain: &mut TerrainMap,
-    ctype: &SpriteCreatureType,
+    _ctype: &SpriteCreatureType,
 ) -> CreatureIntent {
     match action {
         BehaviorAction::Move {

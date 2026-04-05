@@ -534,6 +534,19 @@ async fn pulls(
                         reply = reply.embed(detail_embed);
                     }
                 }
+                // Chart buttons
+                let chart_row = poise::serenity_prelude::CreateActionRow::Buttons(vec![
+                    poise::serenity_prelude::CreateButton::new(format!(
+                        "chart|{full_name}|pr_status"
+                    ))
+                    .label("PR Status")
+                    .style(poise::serenity_prelude::ButtonStyle::Secondary)
+                    .emoji(poise::serenity_prelude::ReactionType::Unicode(
+                        "\u{1F4CA}".to_owned(),
+                    )),
+                ]);
+                reply = reply.components(vec![chart_row]);
+
                 ctx.send(reply).await.map_err(|e| e.to_string())?;
                 Ok(())
             }
@@ -735,6 +748,19 @@ async fn commits(
                         reply = reply.embed(detail_embed);
                     }
                 }
+                // Chart buttons
+                let chart_row = poise::serenity_prelude::CreateActionRow::Buttons(vec![
+                    poise::serenity_prelude::CreateButton::new(format!(
+                        "chart|{full_name}|commit_freq"
+                    ))
+                    .label("Heatmap")
+                    .style(poise::serenity_prelude::ButtonStyle::Secondary)
+                    .emoji(poise::serenity_prelude::ReactionType::Unicode(
+                        "\u{1F525}".to_owned(),
+                    )),
+                ]);
+                reply = reply.components(vec![chart_row]);
+
                 ctx.send(reply).await.map_err(|e| e.to_string())?;
                 Ok(())
             }

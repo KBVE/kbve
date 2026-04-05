@@ -26,3 +26,8 @@ pub use protocol::{
     SetUsernameResponse, TimeChannel, TimeSyncMessage,
 };
 pub use worldgen::{TileKey, WorldObjectKind, hash2d, object_at_tile};
+
+pub mod terrain;
+
+#[cfg(feature = "creatures")]
+pub mod creatures;

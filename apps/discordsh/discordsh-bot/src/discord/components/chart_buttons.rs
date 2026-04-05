@@ -1,5 +1,5 @@
 //! Chart button interaction handler — renders on-demand SVG charts
-//! when users click chart buttons on `/github` embeds.
+//! when users click chart buttons on `/github` and `/health` embeds.
 
 use poise::serenity_prelude as serenity;
 use std::sync::Arc;
@@ -12,8 +12,8 @@ use crate::state::AppState;
 
 /// Handle a component interaction whose `custom_id` starts with `"chart|"`.
 ///
-/// Custom ID format: `chart|<owner/repo>|<chart_type>`
-/// Chart types: `languages`, `activity`, `labels`
+/// Custom ID format: `chart|<owner/repo>|<chart_type>` or `chart|health|history`
+/// Chart types: `languages`, `activity`, `labels`, `pr_status`, `commit_freq`, `history`
 pub async fn handle_chart_component(
     ctx: &serenity::Context,
     component: &serenity::ComponentInteraction,
@@ -25,7 +25,7 @@ pub async fn handle_chart_component(
         return;
     }
 
-    let repo = parts[1].to_owned();
+    let target = parts[1].to_owned();
     let chart_type = parts[2].to_owned();
 
     // Defer with ephemeral — chart is shown only to the requester
@@ -42,7 +42,13 @@ pub async fn handle_chart_component(
         return;
     }
 
-    let result = render_chart(ctx, component, app, &repo, &chart_type).await;
+    // Health chart is special — no GitHub API needed
+    if target == "health" && chart_type == "history" {
+        handle_health_chart(ctx, component, app).await;
+        return;
+    }
+
+    let result = render_github_chart(ctx, component, app, &target, &chart_type).await;
 
     match result {
         Ok((png_bytes, filename, title, full_name)) => {
@@ -76,7 +82,80 @@ pub async fn handle_chart_component(
     }
 }
 
-async fn render_chart(
+async fn handle_health_chart(
+    ctx: &serenity::Context,
+    component: &serenity::ComponentInteraction,
+    app: &Arc<AppState>,
+) {
+    let history = app.health_monitor.history().await;
+
+    if history.len() < 2 {
+        let _ = component
+            .edit_response(
+                &ctx.http,
+                serenity::EditInteractionResponse::new()
+                    .content("Not enough health data yet — try again in a few minutes."),
+            )
+            .await;
+        return;
+    }
+
+    let uptime = app
+        .health_monitor
+        .snapshot()
+        .await
+        .map(|s| s.uptime_formatted.clone())
+        .unwrap_or_else(|| "unknown".to_owned());
+
+    let fontdb = app.fontdb.clone();
+
+    let result = tokio::task::spawn_blocking(move || {
+        github_cards::render_health_chart_blocking(&history, &uptime, &fontdb)
+    })
+    .await;
+
+    match result {
+        Ok(Ok(png_bytes)) => {
+            let attachment = serenity::CreateAttachment::bytes(png_bytes, "health.png");
+            let embed = serenity::CreateEmbed::new()
+                .title("System Health History")
+                .image("attachment://health.png")
+                .color(0x57F287)
+                .author(branding::embed_author())
+                .footer(branding::embed_footer(None));
+
+            let _ = component
+                .edit_response(
+                    &ctx.http,
+                    serenity::EditInteractionResponse::new()
+                        .embed(embed)
+                        .new_attachment(attachment),
+                )
+                .await;
+        }
+        Ok(Err(e)) => {
+            warn!(error = %e, "Health chart render error");
+            let _ = component
+                .edit_response(
+                    &ctx.http,
+                    serenity::EditInteractionResponse::new()
+                        .content(format!("Chart render failed: {e}")),
+                )
+                .await;
+        }
+        Err(e) => {
+            warn!(error = %e, "Health chart task panicked");
+            let _ = component
+                .edit_response(
+                    &ctx.http,
+                    serenity::EditInteractionResponse::new().content("Chart render failed"),
+                )
+                .await;
+        }
+    }
+}
+
+async fn render_github_chart(
     _ctx: &serenity::Context,
     component: &serenity::ComponentInteraction,
     app: &Arc<AppState>,
@@ -165,6 +244,46 @@ async fn render_chart(
                 png,
                 "labels.png".to_owned(),
                 "Label Distribution".to_owned(),
+                full_name,
+            ))
+        }
+        "pr_status" => {
+            let pulls = gh
+                .list_pulls(&owner, &repo_name, Some("open"), Some(25))
+                .await
+                .map_err(|e| format!("Failed to fetch PRs: {e}"))?;
+
+            let full_clone = full_name.clone();
+            let png = tokio::task::spawn_blocking(move || {
+                github_cards::render_pr_status_chart_blocking(&pulls, &full_clone, &fontdb)
+            })
+            .await
+            .map_err(|e| format!("Task panicked: {e}"))??;
+
+            Ok((
+                png,
+                "pr_status.png".to_owned(),
+                "PR Status".to_owned(),
+                full_name,
+            ))
+        }
+        "commit_freq" => {
+            let commits = gh
+                .list_commits(&owner, &repo_name, None, Some(100))
+                .await
+                .map_err(|e| format!("Failed to fetch commits: {e}"))?;
+
+            let full_clone = full_name.clone();
+            let png = tokio::task::spawn_blocking(move || {
+                github_cards::render_commit_frequency_chart_blocking(&commits, &full_clone, &fontdb)
+            })
+            .await
+            .map_err(|e| format!("Task panicked: {e}"))??;
+
+            Ok((
+                png,
+                "commit_freq.png".to_owned(),
+                "Commit Frequency".to_owned(),
                 full_name,
             ))
         }

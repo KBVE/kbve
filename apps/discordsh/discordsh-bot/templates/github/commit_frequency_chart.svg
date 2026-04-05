@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="340" viewBox="0 0 800 340">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#161b22"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="340" fill="url(#bg)" rx="12"/>
+  <rect x="0" y="0" width="4" height="340" fill="#2EA043" rx="2"/>
+
+  <!-- Title -->
+  <text x="28" y="38" font-family="sans-serif" font-size="18" font-weight="bold" fill="#e6edf3">Commit Frequency -- {{ repo_name }}</text>
+  <text x="28" y="58" font-family="sans-serif" font-size="12" fill="#8b949e">{{ total_commits }} commits over {{ day_count }} days | avg {{ avg_per_day }} / day</text>
+
+  <!-- Heatmap grid (7 rows x N cols) -->
+  <g transform="translate(80, 80)">
+    <!-- Day labels -->
+    <text x="-12" y="16" font-family="sans-serif" font-size="10" fill="#484f58" text-anchor="end">Mon</text>
+    <text x="-12" y="36" font-family="sans-serif" font-size="10" fill="#484f58" text-anchor="end">Tue</text>
+    <text x="-12" y="56" font-family="sans-serif" font-size="10" fill="#484f58" text-anchor="end">Wed</text>
+    <text x="-12" y="76" font-family="sans-serif" font-size="10" fill="#484f58" text-anchor="end">Thu</text>
+    <text x="-12" y="96" font-family="sans-serif" font-size="10" fill="#484f58" text-anchor="end">Fri</text>
+    <text x="-12" y="116" font-family="sans-serif" font-size="10" fill="#484f58" text-anchor="end">Sat</text>
+    <text x="-12" y="136" font-family="sans-serif" font-size="10" fill="#484f58" text-anchor="end">Sun</text>
+
+    <!-- Heatmap cells -->
+    {% for cell in cells %}
+    <rect x="{{ cell.x }}" y="{{ cell.y }}" width="16" height="16" fill="{{ cell.color }}" rx="3"/>
+    {% endfor %}
+
+    <!-- Week labels -->
+    {% for wl in week_labels %}
+    <text x="{{ wl.x }}" y="-6" font-family="sans-serif" font-size="9" fill="#484f58" text-anchor="middle">{{ wl.text }}</text>
+    {% endfor %}
+  </g>
+
+  <!-- Color legend -->
+  <g transform="translate(80, 240)">
+    <text x="0" y="12" font-family="sans-serif" font-size="11" fill="#484f58">Less</text>
+    {% for swatch in legend_swatches %}
+    <rect x="{{ swatch.x }}" y="0" width="16" height="16" fill="{{ swatch.color }}" rx="3"/>
+    {% endfor %}
+    <text x="{{ legend_more_x }}" y="12" font-family="sans-serif" font-size="11" fill="#484f58">More</text>
+  </g>
+
+  <!-- Top authors -->
+  <g transform="translate(28, 275)">
+    <text x="0" y="0" font-family="sans-serif" font-size="12" font-weight="600" fill="#8b949e">Top contributors</text>
+    {% for author in top_authors %}
+    <text x="{{ author.x }}" y="20" font-family="sans-serif" font-size="12" fill="#e6edf3">{{ author.name }} ({{ author.count }})</text>
+    {% endfor %}
+  </g>
+
+  <!-- Footer -->
+  <rect x="0" y="332" width="800" height="8" fill="#2EA043" opacity="0.3"/>
+  <text x="760" y="326" font-family="sans-serif" font-size="10" fill="#30363d" text-anchor="end">discord.sh</text>
+</svg>
