@@ -5,11 +5,14 @@ pub mod creatures;
 pub mod grass;
 pub mod hover_bvh;
 pub mod input_bridge;
+pub mod interaction_ui;
 pub mod inventory;
+pub mod inventory_ui;
 pub mod mushrooms;
 pub mod net;
 pub mod object_registry;
 pub mod orb_hud;
+pub mod pause_menu;
 pub mod phase;
 pub mod pixelate;
 pub mod player;
@@ -34,10 +37,13 @@ use actions::ActionsPlugin;
 use camera::IsometricCameraPlugin;
 use creatures::CreaturesPlugin;
 use input_bridge::InputBridgePlugin;
+use interaction_ui::InteractionUiPlugin;
 use inventory::{BevyItemsPlugin, InventoryPlugin, ItemKind};
+use inventory_ui::InventoryUiPlugin;
 use net::NetPlugin;
 use object_registry::ObjectRegistryPlugin;
 use orb_hud::OrbHudPlugin;
+use pause_menu::PauseMenuPlugin;
 use phase::PhasePlugin;
 use pixelate::PixelatePlugin;
 use player::PlayerPlugin;
@@ -91,5 +97,8 @@ impl PluginGroup for GamePluginGroup {
             .add(ActionsPlugin)
             .add(PixelatePlugin)
             .add(toast::ToastPlugin)
+            .add(InteractionUiPlugin)
+            .add(InventoryUiPlugin)
+            .add(PauseMenuPlugin)
     }
 }
