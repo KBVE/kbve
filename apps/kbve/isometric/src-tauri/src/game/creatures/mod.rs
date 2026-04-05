@@ -10,9 +10,15 @@ use bevy::prelude::*;
 pub use common::GameTime;
 use common::{CreatureMeshes, CreaturePool};
 pub use creature::{
-    Creature, CreatureConfig, CreaturePoolIndex, CreatureRegistry, CreatureState, EmissiveData,
-    RenderKind, TimeSchedule,
+    ClientCreature, CreatureConfig, CreaturePoolIndex, CreatureState, EmissiveData, RenderKind,
+    TimeSchedule,
 };
+
+// Re-export shared Creature from bevy_kbve_net for generic sprite creatures
+pub use bevy_kbve_net::creatures::types::Creature;
+
+// Re-export CreatureRegistry for use by spawn and other systems
+pub use creature::CreatureRegistry;
 
 /// Build creature meshes once at Startup to avoid allocating during spawn.
 fn setup_creature_meshes(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>) {
@@ -42,14 +48,14 @@ fn setup_creature_registry(mut commands: Commands) {
 ///
 /// ## Architecture
 ///
-/// 1. **NpcDb registry** ([`CreatureRegistry`]) — game-agnostic NPC definitions
+/// 1. **NpcDb registry** ([`CreatureRegistry`]) -- game-agnostic NPC definitions
 ///    from proto + game-specific spawn/render configs. Loaded at startup.
 ///
-/// 2. **Generic sprite system** — data-driven spawn/animate/tint for all sprite
+/// 2. **Generic sprite system** -- data-driven spawn/animate/tint for all sprite
 ///    creatures (boar, badger, wolf, stag, frog, wraith). Behavior trees evaluated
-///    off-thread via `bevy_tasker`.
+///    off-thread via `bevy_tasker`. Shared simulation from `bevy_kbve_net::creatures`.
 ///
-/// 3. **Legacy non-sprite systems** — fireflies (emissive) and butterflies
+/// 3. **Legacy non-sprite systems** -- fireflies (emissive) and butterflies
 ///    (billboard) still use per-type modules.
 pub struct CreaturesPlugin;
 
@@ -65,11 +71,13 @@ impl Plugin for CreaturesPlugin {
         app.init_resource::<common::GameTime>();
         app.init_resource::<firefly::FireflyState>();
 
-        // --- Generic sprite creature system ---
-        app.insert_resource(generic::definitions::build_sprite_creature_types());
-        app.init_resource::<generic::SpriteAtlasPool>();
-        app.init_resource::<generic::SimulationCenter>();
-        app.init_resource::<generic::physics_lod::PhysicsLodTimer>();
+        // --- Generic sprite creature system (shared resources from bevy_kbve_net) ---
+        app.insert_resource(bevy_kbve_net::creatures::definitions::build_sprite_creature_types());
+        app.init_resource::<generic::render::ClientSpriteAtlasPool>();
+        app.init_resource::<bevy_kbve_net::creatures::simulate::SimulationCenter>();
+        app.init_resource::<bevy_kbve_net::creatures::physics_lod::PhysicsLodTimer>();
+        app.init_resource::<bevy_kbve_net::creatures::types::PlayerPositions>();
+        app.init_resource::<bevy_kbve_net::terrain::TerrainMap>();
 
         app.add_systems(Startup, setup_creature_meshes);
 
@@ -90,21 +98,21 @@ impl Plugin for CreaturesPlugin {
                     .run_if(|pool: Res<CreaturePool>| !pool.butterflies_spawned),
                 butterfly::animate_butterflies
                     .run_if(any_with_component::<creature::BillboardData>),
-                // --- Generic sprite creatures (all sprite types) ---
+                // --- Generic sprite creatures (shared simulation from bevy_kbve_net) ---
                 generic::spawn::spawn_sprite_creatures,
-                generic::brain::dispatch_behavior_trees
+                bevy_kbve_net::creatures::brain::dispatch_behavior_trees
                     .after(generic::spawn::spawn_sprite_creatures)
                     .run_if(any_with_component::<generic::CreatureBrain>),
-                generic::brain::poll_behavior_results
-                    .after(generic::brain::dispatch_behavior_trees)
+                bevy_kbve_net::creatures::brain::poll_behavior_results
+                    .after(bevy_kbve_net::creatures::brain::dispatch_behavior_trees)
                     .run_if(any_with_component::<generic::CreatureBrain>),
-                generic::simulate::simulate_sprite_creatures
-                    .after(generic::brain::poll_behavior_results)
+                bevy_kbve_net::creatures::simulate::simulate_sprite_creatures
+                    .after(bevy_kbve_net::creatures::brain::poll_behavior_results)
                     .run_if(any_with_component::<generic::SpriteCreatureMarker>),
                 generic::render::render_sprite_creatures
-                    .after(generic::simulate::simulate_sprite_creatures)
+                    .after(bevy_kbve_net::creatures::simulate::simulate_sprite_creatures)
                     .run_if(any_with_component::<generic::SpriteCreatureMarker>),
-                generic::physics_lod::update_physics_lod
+                bevy_kbve_net::creatures::physics_lod::update_physics_lod
                     .run_if(any_with_component::<generic::PhysicsLod>),
                 generic::net_events::receive_creature_events,
             ),

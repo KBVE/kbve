@@ -1,17 +1,38 @@
 //! Client-only rendering system for generic sprite creatures.
 //!
-//! Runs after [`super::simulate::simulate_sprite_creatures`] and handles:
-//! SSBO updates, billboard look_to, glide hover (idle/landing), shadow sync,
-//! Visibility component management, and the SimulationCenter update from camera.
+//! Runs after [`bevy_kbve_net::creatures::simulate::simulate_sprite_creatures`]
+//! and handles: SSBO updates, billboard look_to, glide hover (idle/landing),
+//! shadow sync, Visibility component management, and the SimulationCenter
+//! update from camera.
 
 use bevy::prelude::*;
 use bevy::render::storage::ShaderStorageBuffer;
 
-use super::super::common::{GameTime, day_factor};
-use super::super::creature::{Creature, CreaturePoolIndex, SpriteData, SpriteHopState};
-use super::types::*;
 use crate::game::camera::IsometricCamera;
 use crate::game::weather::BlobShadow;
+use bevy_kbve_net::creatures::common::{GameTime, day_factor};
+use bevy_kbve_net::creatures::types::*;
+
+// ---------------------------------------------------------------------------
+// Client-only atlas pool with GPU handles
+// ---------------------------------------------------------------------------
+
+/// Per-creature-type GPU resources (material + SSBO). One entry per type.
+/// This is client-only — the server uses the simpler `SpriteAtlasPool` from
+/// bevy_kbve_net which has no GPU handles.
+#[derive(Resource, Default)]
+pub struct ClientSpriteAtlasPool {
+    pub entries: Vec<ClientSpriteAtlasEntry>,
+}
+
+/// GPU resources for a single creature type.
+pub struct ClientSpriteAtlasEntry {
+    pub type_key: &'static str,
+    pub material: Handle<super::super::sprite_material::SpriteAtlasMaterial>,
+    pub anim_buffer: Handle<ShaderStorageBuffer>,
+    pub anim_data: Vec<super::super::sprite_material::SpriteAnimData>,
+    pub spawned: bool,
+}
 
 // ---------------------------------------------------------------------------
 // System
@@ -27,7 +48,7 @@ pub fn render_sprite_creatures(
     game_time: Res<GameTime>,
     camera_q: Query<&Transform, With<IsometricCamera>>,
     mut buffers: ResMut<Assets<ShaderStorageBuffer>>,
-    mut atlas_pool: ResMut<SpriteAtlasPool>,
+    mut atlas_pool: ResMut<ClientSpriteAtlasPool>,
     types: Res<SpriteCreatureTypes>,
     mut creature_q: Query<
         (

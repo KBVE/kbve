@@ -704,8 +704,58 @@ fn run_bevy_app(
     app.add_systems(Update, server_debug_link_buffers);
     app.add_systems(Update, server_debug_netcode_collection);
 
+    // --- Creature simulation (server-authoritative) ---
+    {
+        use bevy_kbve_net::creatures;
+        app.insert_resource(creatures::definitions::build_sprite_creature_types());
+        app.init_resource::<creatures::types::SpriteAtlasPool>();
+        app.init_resource::<creatures::simulate::SimulationCenter>();
+        app.init_resource::<creatures::common::GameTime>();
+        app.init_resource::<bevy_kbve_net::terrain::TerrainMap>();
+        app.init_resource::<creatures::physics_lod::PhysicsLodTimer>();
+        app.init_resource::<creatures::types::PlayerPositions>();
+
+        app.add_systems(
+            Update,
+            (
+                sync_creature_game_time,
+                update_server_player_positions,
+                creatures::simulate::simulate_sprite_creatures.after(sync_creature_game_time),
+                creatures::brain::dispatch_behavior_trees
+                    .after(creatures::simulate::simulate_sprite_creatures),
+                creatures::brain::poll_behavior_results
+                    .after(creatures::brain::dispatch_behavior_trees),
+                creatures::physics_lod::update_physics_lod,
+            ),
+        );
+    }
+
     tracing::info!("game server Bevy app running");
     app.run();
+}
+
+// ---------------------------------------------------------------------------
+// Creature simulation helpers (server side)
+// ---------------------------------------------------------------------------
+
+/// Sync the server's DayCycle/CreatureSeed into the shared GameTime resource
+/// used by creature simulation systems.
+fn sync_creature_game_time(
+    day: Res<DayCycle>,
+    seed: Res<CreatureSeed>,
+    mut game_time: ResMut<bevy_kbve_net::creatures::common::GameTime>,
+) {
+    game_time.hour = day.hour;
+    game_time.creature_seed = seed.0;
+}
+
+/// Populate the shared PlayerPositions resource from server player entities.
+fn update_server_player_positions(
+    player_q: Query<&Transform, With<bevy_kbve_net::PlayerId>>,
+    mut positions: ResMut<bevy_kbve_net::creatures::types::PlayerPositions>,
+) {
+    positions.0.clear();
+    positions.0.extend(player_q.iter().map(|t| t.translation));
 }
 
 /// Pending WebTransport identity — taken once during Startup.

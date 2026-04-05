@@ -1,20 +1,17 @@
-//! Generic data-driven sprite creature system.
+//! Generic creature system — client wrapper.
 //!
-//! Replaces per-creature modules (frog, wolf, etc.) with a single set of
-//! spawn/animate/tint systems driven by `SpriteCreatureType` descriptors.
+//! Shared simulation logic lives in `bevy_kbve_net::creatures`.
+//! This module adds client-only rendering, spawning, tinting, and network events.
 
-pub mod behavior;
-pub mod brain;
-pub mod definitions;
 pub mod net_events;
-pub mod physics_lod;
 pub mod render;
-pub mod simulate;
 pub mod spawn;
 pub mod tint;
-pub mod types;
 
-pub use brain::CreatureBrain;
-pub use physics_lod::{PhysicsLod, PlayerProximity};
-pub use simulate::SimulationCenter;
-pub use types::{CreatureShadowLink, SpriteAtlasPool, SpriteCreatureMarker, SpriteCreatureTypes};
+// Re-export shared types from bevy_kbve_net for convenience
+pub use bevy_kbve_net::creatures::brain::CreatureBrain;
+pub use bevy_kbve_net::creatures::physics_lod::{PhysicsLod, PlayerProximity};
+pub use bevy_kbve_net::creatures::simulate::SimulationCenter;
+pub use bevy_kbve_net::creatures::types::{
+    CreatureShadowLink, SpriteCreatureMarker, SpriteCreatureTypes,
+};

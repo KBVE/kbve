@@ -6,10 +6,11 @@
 use bevy::prelude::*;
 use lightyear::prelude::*;
 
-use super::super::creature::{CreaturePoolIndex, SpriteData, SpriteHopState};
-use super::behavior::CreatureIntent;
-use super::brain::CreatureBrain;
-use super::types::SpriteCreatureMarker;
+use bevy_kbve_net::creatures::behavior::CreatureIntent;
+use bevy_kbve_net::creatures::brain::CreatureBrain;
+use bevy_kbve_net::creatures::types::{
+    CreaturePoolIndex, SpriteCreatureMarker, SpriteData, SpriteHopState,
+};
 use bevy_kbve_net::{CreatureEventKind, CreatureStateEvent, GameChannel};
 
 /// System that receives `CreatureStateEvent` messages from the server and
@@ -36,7 +37,7 @@ pub fn receive_creature_events(
                 // Apply the server's correction
                 match &event.event {
                     CreatureEventKind::TakeDamage { .. } => {
-                        // Force flee intent — creature was hit
+                        // Force flee intent -- creature was hit
                         if let Some(mut brain) = brain {
                             brain.intent = CreatureIntent::Flee {
                                 direction: Vec3::new(0.0, 0.0, -1.0), // flee south
@@ -45,7 +46,7 @@ pub fn receive_creature_events(
                             };
                         }
                         info!(
-                            "[creature-net] {} #{} took damage — forcing flee",
+                            "[creature-net] {} #{} took damage -- forcing flee",
                             event.npc_ref, event.creature_index
                         );
                     }

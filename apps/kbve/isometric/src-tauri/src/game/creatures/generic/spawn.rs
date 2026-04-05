@@ -6,16 +6,14 @@ use bevy::mesh::MeshTag;
 use bevy::prelude::*;
 use bevy::render::storage::ShaderStorageBuffer;
 
-use super::super::common::{CreaturePool, build_billboard_quad, hash_f32};
-use super::super::creature::{
-    Creature, CreaturePoolIndex, CreatureRegistry, CreatureState, RenderKind, SpriteData,
-    SpriteHopState,
-};
+use super::super::common::CreaturePool;
 use super::super::sprite_material::{SpriteAnimData, SpriteAtlasMaterial};
-use super::brain::CreatureBrain;
-use super::physics_lod::{PhysicsLod, PlayerProximity};
-use super::types::*;
+use super::render::{ClientSpriteAtlasEntry, ClientSpriteAtlasPool};
 use crate::game::weather::BlobShadowAssets;
+use bevy_kbve_net::creatures::brain::CreatureBrain;
+use bevy_kbve_net::creatures::common::hash_f32;
+use bevy_kbve_net::creatures::physics_lod::{PhysicsLod, PlayerProximity};
+use bevy_kbve_net::creatures::types::*;
 
 /// Single spawn system that spawns all generic sprite creature types.
 pub fn spawn_sprite_creatures(
@@ -25,9 +23,9 @@ pub fn spawn_sprite_creatures(
     mut buffers: ResMut<Assets<ShaderStorageBuffer>>,
     asset_server: Res<AssetServer>,
     pool: Res<CreaturePool>,
-    registry: Res<CreatureRegistry>,
+    registry: Res<super::super::creature::CreatureRegistry>,
     types: Res<SpriteCreatureTypes>,
-    mut atlas_pool: ResMut<SpriteAtlasPool>,
+    mut atlas_pool: ResMut<ClientSpriteAtlasPool>,
     blob_shadow: Option<Res<BlobShadowAssets>>,
 ) {
     for creature_type in &types.types {
@@ -43,7 +41,7 @@ pub fn spawn_sprite_creatures(
         // Look up pool size from registry
         let Some(config) = registry.config_by_ref(creature_type.npc_ref) else {
             warn!(
-                "[generic] no registry config for '{}' — skipping",
+                "[generic] no registry config for '{}' -- skipping",
                 creature_type.npc_ref
             );
             continue;
@@ -56,7 +54,9 @@ pub fn spawn_sprite_creatures(
 
         // Build shared resources
         let texture: Handle<Image> = asset_server.load(creature_type.texture_path);
-        let quad_mesh = meshes.add(build_billboard_quad(creature_type.sprite_size));
+        let quad_mesh = meshes.add(bevy_kbve_net::creatures::common::build_billboard_quad(
+            creature_type.sprite_size,
+        ));
 
         let anim_data: Vec<SpriteAnimData> =
             (0..count).map(|_| SpriteAnimData::default()).collect();
@@ -71,7 +71,7 @@ pub fn spawn_sprite_creatures(
 
         // Store in atlas pool
         let entry_idx = atlas_pool.entries.len();
-        atlas_pool.entries.push(SpriteAtlasEntry {
+        atlas_pool.entries.push(ClientSpriteAtlasEntry {
             type_key: creature_type.npc_ref,
             material: material.clone(),
             anim_buffer: anim_buffer.clone(),
@@ -131,14 +131,12 @@ pub fn spawn_sprite_creatures(
                 NoFrustumCulling,
                 NotShadowCaster,
                 Creature {
-                    npc_id,
-                    render_kind: RenderKind::Sprite,
+                    npc_ref: creature_type.npc_ref,
                     state: CreatureState::Pooled,
                     slot_seed: seed,
                     assigned_slot: None,
                     anchor: Vec3::new(0.0, -100.0, 0.0),
                     phase,
-                    mat_handle: Handle::default(),
                 },
                 SpriteData {
                     frame_timer: hash_f32(seed * 83 + 13) * frame_duration,
@@ -172,7 +170,7 @@ pub fn spawn_sprite_creatures(
                 entity.insert(CreatureBrain::new());
             }
 
-            // Add physics LOD (starts as Ghost — no physics components)
+            // Add physics LOD (starts as Ghost -- no physics components)
             if creature_type.physics_lod.is_some() {
                 entity.insert((PhysicsLod::Ghost, PlayerProximity::default()));
             }

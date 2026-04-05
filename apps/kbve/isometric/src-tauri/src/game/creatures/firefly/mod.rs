@@ -13,7 +13,8 @@ use std::collections::HashSet;
 
 use super::common::{CreatureMeshes, CreaturePool, GameTime, night_factor, scene_center};
 use super::creature::{
-    self, Creature, CreaturePoolIndex, CreatureRegistry, CreatureState, EmissiveData, RenderKind,
+    self, ClientCreature, CreaturePoolIndex, CreatureRegistry, CreatureState, EmissiveData,
+    RenderKind,
 };
 use crate::game::camera::IsometricCamera;
 use crate::game::weather::WindState;
@@ -89,7 +90,7 @@ pub(super) fn spawn_fireflies(
             MeshMaterial3d(mat),
             Transform::from_xyz(0.0, -100.0, 0.0),
             Visibility::Hidden,
-            Creature {
+            ClientCreature {
                 npc_id,
                 render_kind: RenderKind::Emissive,
                 state: CreatureState::Pooled,
@@ -120,8 +121,13 @@ pub(super) fn assign_firefly_slots(
     camera_q: Query<&Transform, With<IsometricCamera>>,
     registry: Res<CreatureRegistry>,
     mut state: ResMut<FireflyState>,
-    mut fly_q: Query<(Entity, &mut Creature, &mut EmissiveData, &mut Visibility)>,
-    mut light_vis_q: Query<&mut Visibility, (Without<Creature>, Without<IsometricCamera>)>,
+    mut fly_q: Query<(
+        Entity,
+        &mut ClientCreature,
+        &mut EmissiveData,
+        &mut Visibility,
+    )>,
+    mut light_vis_q: Query<&mut Visibility, (Without<ClientCreature>, Without<IsometricCamera>)>,
 ) {
     let Ok(cam_tf) = camera_q.single() else {
         return;
@@ -238,7 +244,7 @@ pub(super) fn animate_fireflies(
     mut fly_q: Query<
         (
             &mut Transform,
-            &mut Creature,
+            &mut ClientCreature,
             &mut EmissiveData,
             &mut Visibility,
         ),
@@ -246,7 +252,7 @@ pub(super) fn animate_fireflies(
     >,
     mut light_q: Query<
         (&mut PointLight, &mut Transform, &mut Visibility),
-        (Without<IsometricCamera>, Without<Creature>),
+        (Without<IsometricCamera>, Without<ClientCreature>),
     >,
 ) {
     let dt = time.delta_secs();

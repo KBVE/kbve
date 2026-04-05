@@ -350,11 +350,13 @@ pub enum CreatureState {
     Pooled,
     /// Assigned to a chunk slot and actively simulated.
     Active,
+    /// Captured by a player. Slot is blocked across all clients.
+    Captured,
 }
 
 /// Pool index component — tracks which pool slot this entity occupies.
 #[derive(Component)]
-pub struct CreaturePoolIndex(pub usize);
+pub struct CreaturePoolIndex(pub u32);
 
 // ---------------------------------------------------------------------------
 // Atlas pool (simulation-only tracking, no GPU handles)

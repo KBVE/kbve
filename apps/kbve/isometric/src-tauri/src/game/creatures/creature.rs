@@ -13,20 +13,21 @@ pub use bevy_kbve_net::npcdb::{
 };
 
 // Re-export game-agnostic creature types from bevy_npc::creature.
-pub use bevy_kbve_net::npcdb::creature::{
-    CapturedCreatures, CreatureCaptureEvent, CreaturePoolIndex, CreatureState,
-};
+pub use bevy_kbve_net::npcdb::creature::{CapturedCreatures, CreatureCaptureEvent};
+
+// Re-export shared creature types from bevy_kbve_net::creatures
+// (used by generic sprite system).
+pub use bevy_kbve_net::creatures::types::CreaturePoolIndex;
+pub use bevy_kbve_net::creatures::types::CreatureState;
 
 // ---------------------------------------------------------------------------
-// Core component — shared by ALL creature types (client-side ECS)
+// Client-only creature component (butterfly/firefly legacy systems)
 // ---------------------------------------------------------------------------
 
-/// Unified creature component for NpcDb-driven ambient creatures.
-///
-/// Contains shared pool/slot data. Render-specific state lives in companion
-/// components ([`EmissiveData`], [`BillboardData`], [`SpriteData`]).
+/// Client-only creature component for non-sprite creature types (firefly, butterfly).
+/// Generic sprite creatures use `bevy_kbve_net::creatures::types::Creature` instead.
 #[derive(Component)]
-pub struct Creature {
+pub struct ClientCreature {
     /// NPC definition ID from NpcDb.
     pub npc_id: ProtoNpcId,
     /// How this creature is rendered (selects which animate system runs).
@@ -46,7 +47,7 @@ pub struct Creature {
 }
 
 // ---------------------------------------------------------------------------
-// Render-specific companion components
+// Render-specific companion components (client-only)
 // ---------------------------------------------------------------------------
 
 /// Emissive render data (firefly-style: glow sphere + point light).
@@ -88,52 +89,17 @@ pub enum BillboardFlightState {
     },
 }
 
-/// Sprite render data (frog-style: sprite sheet UV animation + hop arcs).
-#[derive(Component)]
-pub struct SpriteData {
-    pub frame_timer: f32,
-    pub frame_duration: f32,
-    pub current_frame: u32,
-    pub anim_row: u32,
-    pub anim_frames: u32,
-    pub facing_left: bool,
-    pub hop_state: SpriteHopState,
-}
-
-/// Sprite creature hop/idle state machine.
-#[derive(Clone, Copy, PartialEq)]
-pub enum SpriteHopState {
-    Idle {
-        timer: f32,
-    },
-    Emote {
-        remaining_frames: u32,
-    },
-    JumpWindup {
-        target: Vec3,
-    },
-    Airborne {
-        start: Vec3,
-        target: Vec3,
-        progress: f32,
-    },
-    Landing {
-        timer: f32,
-    },
-}
-
-impl Default for SpriteHopState {
-    fn default() -> Self {
-        Self::Idle { timer: 3.0 }
-    }
-}
-
 // ---------------------------------------------------------------------------
 // Client-only slot helpers (depend on ECS components)
 // ---------------------------------------------------------------------------
 
 /// Apply slot-derived animation parameters to shared creature fields.
-pub fn apply_slot_base(creature: &mut Creature, seed: u32, anchor: Vec3, slot: (i32, i32, u16)) {
+pub fn apply_slot_base(
+    creature: &mut ClientCreature,
+    seed: u32,
+    anchor: Vec3,
+    slot: (i32, i32, u16),
+) {
     creature.slot_seed = seed;
     creature.anchor = anchor;
     creature.phase = hash_f32(seed.wrapping_mul(7).wrapping_add(1));

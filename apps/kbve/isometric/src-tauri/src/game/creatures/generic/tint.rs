@@ -3,14 +3,15 @@
 use bevy::prelude::*;
 
 use super::super::sprite_material::SpriteAtlasMaterial;
-use super::types::{SpriteAtlasPool, SpriteCreatureTypes, TintProfile};
+use super::render::ClientSpriteAtlasPool;
 use crate::game::weather::{DayCycle, sun_params};
+use bevy_kbve_net::creatures::types::{SpriteCreatureTypes, TintProfile};
 
 /// Single system that tints all sprite creature materials based on time of day.
 /// Replaces per-creature `tint_xyz_for_daynight` functions.
 pub fn tint_sprite_creatures(
     day: Res<DayCycle>,
-    atlas_pool: Res<SpriteAtlasPool>,
+    atlas_pool: Res<ClientSpriteAtlasPool>,
     types: Res<SpriteCreatureTypes>,
     mut atlas_materials: ResMut<Assets<SpriteAtlasMaterial>>,
 ) {

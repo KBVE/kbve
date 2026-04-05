@@ -24,7 +24,7 @@ use bevy_kbve_net::{
 };
 
 use super::actions::{ChoppingTree, CollectingForageable, MiningRock};
-use super::creatures::{Creature, CreaturePoolIndex, CreatureState, RenderKind};
+use super::creatures::{ClientCreature, Creature, CreaturePoolIndex, CreatureState, RenderKind};
 use super::inventory::{ITEM_LOG, ITEM_PORCINI, ITEM_STONE, ITEM_WILDFLOWER, ItemKind, LootEvent};
 use super::player::{FallDamageEvent, Player};
 use super::scene_objects::CollectEvent;
@@ -1808,24 +1808,44 @@ fn creature_kind_to_npc_id(kind: CreatureKind) -> ProtoNpcId {
     }
 }
 
+/// Map a protocol `CreatureKind` to the NPC ref string for matching.
+fn creature_kind_to_npc_ref(kind: CreatureKind) -> &'static str {
+    match kind {
+        CreatureKind::Firefly => "meadow-firefly",
+        CreatureKind::Butterfly => "woodland-butterfly",
+        CreatureKind::Frog => "green-toad",
+    }
+}
+
 /// Receive CreatureCaptured messages from the server and mark matching pool entities.
+///
+/// Generic sprite creatures use the shared `Creature` component (matched by `npc_ref`).
+/// Fireflies/butterflies use the client-only `ClientCreature` (matched by `render_kind`).
 fn receive_creature_captured(
     mut captured: ResMut<CapturedCreatures>,
     mut query: Query<(Entity, &mut MessageReceiver<CreatureCaptured>)>,
-    mut creatures: Query<(&mut Creature, &CreaturePoolIndex, &mut Visibility)>,
+    mut sprite_creatures: Query<
+        (&mut Creature, &CreaturePoolIndex, &mut Visibility),
+        Without<ClientCreature>,
+    >,
+    mut client_creatures: Query<
+        (&mut ClientCreature, &CreaturePoolIndex, &mut Visibility),
+        Without<Creature>,
+    >,
 ) {
     for (_entity, mut receiver) in &mut query {
         for msg in receiver.receive() {
+            let npc_ref = creature_kind_to_npc_ref(msg.kind);
             let render_kind = creature_kind_to_render_kind(msg.kind);
             let npc_id = creature_kind_to_npc_id(msg.kind);
 
             // Record in shared capture tracker
             captured.insert(npc_id, msg.creature_index);
 
-            // Find the matching pool entity and mark as captured
+            // Try matching generic sprite creatures (shared Creature component)
             let mut found = false;
-            for (mut creature, pool_idx, mut vis) in &mut creatures {
-                if creature.render_kind == render_kind && pool_idx.0 == msg.creature_index {
+            for (mut creature, pool_idx, mut vis) in &mut sprite_creatures {
+                if creature.npc_ref == npc_ref && pool_idx.0 == msg.creature_index {
                     creature.state = CreatureState::Captured;
                     creature.assigned_slot = None;
                     *vis = Visibility::Hidden;
@@ -1835,6 +1855,23 @@ fn receive_creature_captured(
                         msg.kind, msg.creature_index, msg.captor_player_id
                     );
                     break;
+                }
+            }
+
+            // Try matching client-only creatures (firefly/butterfly)
+            if !found {
+                for (mut creature, pool_idx, mut vis) in &mut client_creatures {
+                    if creature.render_kind == render_kind && pool_idx.0 == msg.creature_index {
+                        creature.state = CreatureState::Captured;
+                        creature.assigned_slot = None;
+                        *vis = Visibility::Hidden;
+                        found = true;
+                        info!(
+                            "[net] creature captured: {:?} index={} by player={}",
+                            msg.kind, msg.creature_index, msg.captor_player_id
+                        );
+                        break;
+                    }
                 }
             }
 

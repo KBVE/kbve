@@ -12,7 +12,7 @@ use super::common::{
     CreatureMeshes, CreaturePool, GameTime, day_factor, flutter_offset, hash_f32, scene_center,
 };
 use super::creature::{
-    BillboardData, BillboardFlightState, Creature, CreaturePoolIndex, CreatureRegistry,
+    BillboardData, BillboardFlightState, ClientCreature, CreaturePoolIndex, CreatureRegistry,
     CreatureState, EmissiveData, RenderKind,
 };
 use crate::game::camera::IsometricCamera;
@@ -186,7 +186,7 @@ pub(super) fn spawn_butterflies(
             MeshMaterial3d(mat),
             Transform::from_xyz(0.0, -100.0, 0.0),
             Visibility::Hidden,
-            Creature {
+            ClientCreature {
                 npc_id,
                 render_kind: RenderKind::Billboard,
                 state: CreatureState::Pooled,
@@ -221,7 +221,7 @@ pub(super) fn animate_butterflies(
     mut bfly_q: Query<
         (
             &mut Transform,
-            &mut Creature,
+            &mut ClientCreature,
             &mut BillboardData,
             &mut Visibility,
         ),
