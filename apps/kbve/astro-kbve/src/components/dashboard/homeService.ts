@@ -1,6 +1,12 @@
 import { atom, computed } from 'nanostores';
 import { initSupa, getSupa } from '@/lib/supa';
-import { $auth, AuthFlags, hasAuthFlag } from '@kbve/droid';
+import {
+	$auth,
+	AuthFlags,
+	AuthPresets,
+	hasAuthFlag,
+	setAuth,
+} from '@kbve/droid';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -674,14 +680,27 @@ class HomeService {
 			this.$accessToken.set(session.access_token as string);
 			this.$authState.set('authenticated');
 
-			// Sync staff flag from the global $auth store.
-			// The staff_permissions RPC may resolve after the initial session,
-			// so we subscribe to catch the late upgrade.
+			// Check staff permissions directly via Supabase RPC.
+			// Don't rely on profile-controller setting $auth.flags —
+			// it runs on the main site shell, not on dashboard pages.
+			try {
+				const perms = await supa.rpc('staff_permissions');
+				const hasStaff = typeof perms === 'number' && perms > 0;
+				this.$isStaff.set(hasStaff);
+				if (hasStaff) {
+					setAuth({ flags: AuthPresets.STAFF });
+				}
+			} catch {
+				// Non-critical — staff panels just won't show
+			}
+
+			// Also subscribe in case profile-controller sets it later
 			const syncStaff = () => {
 				const { flags } = $auth.get();
-				this.$isStaff.set(hasAuthFlag(flags, AuthFlags.STAFF));
+				if (hasAuthFlag(flags, AuthFlags.STAFF)) {
+					this.$isStaff.set(true);
+				}
 			};
-			syncStaff();
 			$auth.subscribe(syncStaff);
 		} catch {
 			this.$authState.set('unauthenticated');
