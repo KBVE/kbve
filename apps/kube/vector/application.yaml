@@ -11,7 +11,7 @@ spec:
         path: apps/kube/vector/manifests
     destination:
         server: https://kubernetes.default.svc
-        namespace: kilobase
+        namespace: vector
     syncPolicy:
         automated:
             selfHeal: true
