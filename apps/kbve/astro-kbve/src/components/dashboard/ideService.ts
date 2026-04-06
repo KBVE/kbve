@@ -15,13 +15,97 @@ export interface RunResult {
 
 export type RunPhase = 'idle' | 'creating' | 'running' | 'completed' | 'failed';
 
+export interface RuntimePreset {
+	id: string;
+	label: string;
+	description: string;
+	rootfs: string;
+	language: string;
+	vcpu_count: number;
+	mem_size_mib: number;
+	timeout_ms: number;
+	entrypoint: string;
+}
+
+// ---------------------------------------------------------------------------
+// Preset inventory
+// ---------------------------------------------------------------------------
+
+export const PRESETS: RuntimePreset[] = [
+	{
+		id: 'python-quick',
+		label: 'Python Quick',
+		description: '15s · 128 MiB · Fast scripts',
+		rootfs: 'alpine-python',
+		language: 'python',
+		vcpu_count: 1,
+		mem_size_mib: 128,
+		timeout_ms: 15_000,
+		entrypoint: '/usr/bin/python3',
+	},
+	{
+		id: 'python-standard',
+		label: 'Python Standard',
+		description: '60s · 256 MiB · General purpose',
+		rootfs: 'alpine-python',
+		language: 'python',
+		vcpu_count: 1,
+		mem_size_mib: 256,
+		timeout_ms: 60_000,
+		entrypoint: '/usr/bin/python3',
+	},
+	{
+		id: 'python-heavy',
+		label: 'Python Heavy',
+		description: '120s · 512 MiB · Data processing',
+		rootfs: 'alpine-python',
+		language: 'python',
+		vcpu_count: 2,
+		mem_size_mib: 512,
+		timeout_ms: 120_000,
+		entrypoint: '/usr/bin/python3',
+	},
+	{
+		id: 'node-quick',
+		label: 'Node.js Quick',
+		description: '15s · 128 MiB · Fast scripts',
+		rootfs: 'alpine-node',
+		language: 'javascript',
+		vcpu_count: 1,
+		mem_size_mib: 128,
+		timeout_ms: 15_000,
+		entrypoint: '/usr/bin/node',
+	},
+	{
+		id: 'node-standard',
+		label: 'Node.js Standard',
+		description: '60s · 256 MiB · General purpose',
+		rootfs: 'alpine-node',
+		language: 'javascript',
+		vcpu_count: 1,
+		mem_size_mib: 256,
+		timeout_ms: 60_000,
+		entrypoint: '/usr/bin/node',
+	},
+	{
+		id: 'shell-minimal',
+		label: 'Shell',
+		description: '30s · 64 MiB · Busybox shell',
+		rootfs: 'alpine-minimal',
+		language: 'shell',
+		vcpu_count: 1,
+		mem_size_mib: 64,
+		timeout_ms: 30_000,
+		entrypoint: '/bin/sh',
+	},
+];
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
 const FC_PROXY = '/dashboard/firecracker/proxy';
 const POLL_INTERVAL_MS = 500;
-const DEFAULT_TIMEOUT_MS = 15000;
 
 // ---------------------------------------------------------------------------
 // API helpers
@@ -61,18 +145,37 @@ async function fcFetch<T>(
 // Service
 // ---------------------------------------------------------------------------
 
+const DEFAULT_CODES: Record<string, string> = {
+	python: '# Write Python code here\nprint("Hello from Firecracker!")\n',
+	javascript:
+		'// Write JavaScript code here\nconsole.log("Hello from Firecracker!");\n',
+	shell: '#!/bin/sh\necho "Hello from Firecracker!"\n',
+};
+
 class IDEService {
 	public readonly $phase = atom<RunPhase>('idle');
 	public readonly $result = atom<RunResult | null>(null);
 	public readonly $error = atom<string | null>(null);
-	public readonly $code = atom<string>(
-		'# Write Python code here\nprint("Hello from Firecracker!")\n',
-	);
+	public readonly $preset = atom<RuntimePreset>(PRESETS[0]);
+	public readonly $code = atom<string>(DEFAULT_CODES.python);
 
 	private _abortController: AbortController | null = null;
 
+	public selectPreset(presetId: string): void {
+		const preset = PRESETS.find((p) => p.id === presetId);
+		if (!preset) return;
+		this.$preset.set(preset);
+		// Reset code to default for the new language if current code is a default
+		const currentCode = this.$code.get();
+		const isDefault = Object.values(DEFAULT_CODES).some(
+			(d) => d.trim() === currentCode.trim(),
+		);
+		if (isDefault) {
+			this.$code.set(DEFAULT_CODES[preset.language] ?? '');
+		}
+	}
+
 	public async run(token: string): Promise<void> {
-		// Cancel any in-flight run
 		this._abortController?.abort();
 		this._abortController = new AbortController();
 
@@ -82,23 +185,23 @@ class IDEService {
 			return;
 		}
 
+		const preset = this.$preset.get();
 		this.$phase.set('creating');
 		this.$result.set(null);
 		this.$error.set(null);
 
 		try {
-			// Create a VM that writes the code to a temp file and runs it
 			const createResp = await fcFetch<{ vm_id: string; status: string }>(
 				token,
 				'/vm/create',
 				'POST',
 				{
-					rootfs: 'alpine-python',
-					vcpu_count: 1,
-					mem_size_mib: 128,
-					timeout_ms: DEFAULT_TIMEOUT_MS,
-					entrypoint: '/usr/bin/python3',
-					env: { PYTHON_CODE: code },
+					rootfs: preset.rootfs,
+					vcpu_count: preset.vcpu_count,
+					mem_size_mib: preset.mem_size_mib,
+					timeout_ms: preset.timeout_ms,
+					entrypoint: preset.entrypoint,
+					env: { CODE: code },
 					boot_args: 'console=ttyS0 reboot=k panic=1',
 				},
 			);
@@ -106,8 +209,7 @@ class IDEService {
 			const vmId = createResp.vm_id;
 			this.$phase.set('running');
 
-			// Poll for result
-			const deadline = Date.now() + DEFAULT_TIMEOUT_MS + 5000;
+			const deadline = Date.now() + preset.timeout_ms + 5000;
 			while (Date.now() < deadline) {
 				if (this._abortController.signal.aborted) return;
 
@@ -137,7 +239,6 @@ class IDEService {
 				await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
 			}
 
-			// Timeout — try to get whatever result exists
 			try {
 				const result = await fcFetch<RunResult>(
 					token,
@@ -148,7 +249,9 @@ class IDEService {
 				// ignore
 			}
 			this.$phase.set('failed');
-			this.$error.set('Execution timed out');
+			this.$error.set(
+				`Execution timed out after ${preset.timeout_ms / 1000}s`,
+			);
 		} catch (e) {
 			this.$phase.set('failed');
 			this.$error.set(e instanceof Error ? e.message : 'Unknown error');

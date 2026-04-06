@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useStore } from '@nanostores/react';
-import { ideService, type RunResult } from './ideService';
+import { ideService, PRESETS, type RunResult } from './ideService';
 import { vmService } from './vmService';
 import {
 	Play,
@@ -135,6 +135,7 @@ export default function ReactCodeIDE() {
 	const phase = useStore(ideService.$phase);
 	const result = useStore(ideService.$result);
 	const error = useStore(ideService.$error);
+	const preset = useStore(ideService.$preset);
 	const editorRef = useRef<HTMLDivElement>(null);
 	const viewRef = useRef<EditorView | null>(null);
 
@@ -221,16 +222,27 @@ export default function ReactCodeIDE() {
 						}}>
 						Firecracker IDE
 					</h2>
-					<span
+					<select
+						value={preset.id}
+						onChange={(e) =>
+							ideService.selectPreset(e.target.value)
+						}
+						disabled={phase === 'creating' || phase === 'running'}
 						style={{
 							fontSize: '0.75rem',
-							color: 'rgba(255,255,255,0.4)',
+							color: 'rgba(255,255,255,0.8)',
 							background: 'rgba(255,255,255,0.05)',
-							padding: '0.15rem 0.5rem',
-							borderRadius: '4px',
+							border: '1px solid rgba(255,255,255,0.1)',
+							padding: '0.25rem 0.5rem',
+							borderRadius: '6px',
+							cursor: 'pointer',
 						}}>
-						Python 3 · alpine-python · 128 MiB
-					</span>
+						{PRESETS.map((p) => (
+							<option key={p.id} value={p.id}>
+								{p.label} — {p.description}
+							</option>
+						))}
+					</select>
 				</div>
 				<PhaseIndicator phase={phase} />
 			</div>
@@ -311,8 +323,9 @@ export default function ReactCodeIDE() {
 							fontSize: '0.7rem',
 							color: 'rgba(255,255,255,0.3)',
 						}}>
-						Code runs in a Firecracker microVM with full hardware
-						isolation
+						{preset.rootfs} · {preset.vcpu_count} vCPU ·{' '}
+						{preset.mem_size_mib} MiB · {preset.timeout_ms / 1000}s
+						timeout
 					</span>
 				</div>
 
