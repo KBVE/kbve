@@ -9,4 +9,5 @@ pub mod common;
 pub mod definitions;
 pub mod physics_lod;
 pub mod simulate;
+pub mod spawn;
 pub mod types;
