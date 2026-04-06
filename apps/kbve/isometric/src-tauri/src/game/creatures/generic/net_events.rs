@@ -86,17 +86,21 @@ pub fn receive_creature_events(
     }
 }
 
-/// How quickly the client lerps toward the server anchor (per second).
-/// 0.0 = never correct, 1.0 = snap instantly.
-const SYNC_LERP_RATE: f32 = 0.3;
-
 /// System that receives periodic `CreaturePositionSync` messages from the server
-/// and smoothly corrects local creature positions to match. Only corrects creatures
-/// that are idle — airborne/moving creatures finish their current action first.
+/// and corrects local creature simulation state to match.
+///
+/// Strategy:
+/// - **Idle creatures**: snap anchor to server position so the next hop starts
+///   from the correct spot. Sync patrol_step so future decisions align.
+/// - **Moving/airborne creatures**: do NOT touch anchor or hop state — let the
+///   current animation finish naturally. Only sync patrol_step so the *next*
+///   decision after landing will match the server.
+/// - **Large drift (>15u)**: force-snap regardless of state (creature recycled
+///   on server but not on client).
 pub fn receive_creature_sync(
     mut receiver_q: Query<&mut MessageReceiver<CreaturePositionSync>, With<Connected>>,
     mut creature_q: Query<(
-        &SpriteCreatureMarker,
+        &mut SpriteCreatureMarker,
         &CreaturePoolIndex,
         &mut Creature,
         &mut SpriteData,
@@ -105,7 +109,7 @@ pub fn receive_creature_sync(
     for mut receiver in &mut receiver_q {
         for sync in receiver.receive() {
             for snapshot in &sync.snapshots {
-                for (marker, pool_idx, mut cr, mut sd) in &mut creature_q {
+                for (mut marker, pool_idx, mut cr, mut sd) in &mut creature_q {
                     if marker.type_key != sync.npc_ref.as_str() {
                         continue;
                     }
@@ -114,17 +118,33 @@ pub fn receive_creature_sync(
                     }
 
                     let server_pos = Vec3::new(snapshot.x, snapshot.y, snapshot.z);
+
+                    // Always sync the deterministic patrol counter so future
+                    // decisions align even if we skip the position correction.
+                    marker.patrol_step = snapshot.patrol_step;
+
                     let dist = cr.anchor.distance(server_pos);
 
-                    // Hard snap if very far off (>5 units), smooth lerp otherwise
-                    if dist > 5.0 {
+                    // Force-snap if very far off (creature recycled on server)
+                    if dist > 15.0 {
                         cr.anchor = server_pos;
-                    } else if dist > 0.1 {
-                        cr.anchor = cr.anchor.lerp(server_pos, SYNC_LERP_RATE);
+                        sd.facing_left = snapshot.facing_left;
+                        sd.hop_state = SpriteHopState::Idle { timer: 0.5 };
+                        break;
                     }
 
-                    // Sync facing direction
-                    sd.facing_left = snapshot.facing_left;
+                    // Only correct position for idle/landing creatures.
+                    // Airborne creatures finish their hop naturally — the
+                    // patrol_step sync above ensures the next hop aligns.
+                    match sd.hop_state {
+                        SpriteHopState::Idle { .. } | SpriteHopState::Landing { .. } => {
+                            cr.anchor = cr.anchor.lerp(server_pos, 0.5);
+                            sd.facing_left = snapshot.facing_left;
+                        }
+                        _ => {
+                            // Moving — don't touch position or facing
+                        }
+                    }
 
                     break; // Found the creature
                 }
