@@ -71,7 +71,7 @@ impl WaypointGraph {
     /// Skips already-built chunks. Call after NavGrid chunks are loaded.
     pub fn build_for_region(
         &mut self,
-        nav: &mut NavGrid,
+        nav: &NavGrid,
         cx_min: i32,
         cx_max: i32,
         cz_min: i32,
@@ -109,7 +109,7 @@ impl WaypointGraph {
     }
 
     /// Connect waypoints within 12 tiles (Chebyshev) of each other.
-    fn connect_edges(&mut self, nav: &mut NavGrid) {
+    fn connect_edges(&mut self, nav: &NavGrid) {
         let max_dist = 12;
         let n = self.waypoints.len();
 
@@ -291,7 +291,7 @@ impl WaypointGraph {
 
 /// Extract ~4 waypoints from a chunk by dividing into 4 quadrants (8×8 each)
 /// and picking the most "interesting" walkable tile per quadrant.
-fn extract_chunk_waypoints(nav: &mut NavGrid, cx: i32, cz: i32, id_start: u32) -> Vec<Waypoint> {
+fn extract_chunk_waypoints(nav: &NavGrid, cx: i32, cz: i32, id_start: u32) -> Vec<Waypoint> {
     let base_tx = cx * NAV_CHUNK;
     let base_tz = cz * NAV_CHUNK;
     let mut waypoints = Vec::new();
@@ -345,7 +345,7 @@ fn extract_chunk_waypoints(nav: &mut NavGrid, cx: i32, cz: i32, id_start: u32) -
 }
 
 /// Compute an "interest score" for a tile based on local features.
-fn interest_score(nav: &mut NavGrid, tx: i32, tz: i32) -> f32 {
+fn interest_score(nav: &NavGrid, tx: i32, tz: i32) -> f32 {
     let center = nav.tile_nav(tx, tz);
     let mut score = 0.0f32;
 
@@ -379,7 +379,7 @@ fn interest_score(nav: &mut NavGrid, tx: i32, tz: i32) -> f32 {
 }
 
 /// Classify zone tag from local 3×3 neighborhood.
-fn classify_zone(nav: &mut NavGrid, tx: i32, tz: i32) -> ZoneTag {
+fn classify_zone(nav: &NavGrid, tx: i32, tz: i32) -> ZoneTag {
     let center = nav.tile_nav(tx, tz);
 
     let mut tree_count = 0u32;
@@ -423,7 +423,7 @@ fn classify_zone(nav: &mut NavGrid, tx: i32, tz: i32) -> ZoneTag {
 }
 
 /// Vegetation density in 3×3 neighborhood (trees, rocks, flowers, mushrooms).
-fn vegetation_density(nav: &mut NavGrid, tx: i32, tz: i32) -> f32 {
+fn vegetation_density(nav: &NavGrid, tx: i32, tz: i32) -> f32 {
     let mut count = 0u32;
     for dz in -1..=1 {
         for dx in -1..=1 {

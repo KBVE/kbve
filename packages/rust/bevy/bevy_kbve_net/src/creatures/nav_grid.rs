@@ -1,11 +1,13 @@
 //! Layer 1: NavGrid — per-tile walkability and traversal cost.
 //!
-//! Computed lazily per 16×16 chunk from deterministic terrain data.
-//! Both client and server produce identical results from the same seed.
+//! Uses `DashMap` for lock-free concurrent read/write — background tasks insert
+//! new chunks directly without cloning or merging. Both client and server produce
+//! identical results from the same seed.
 
-use std::collections::HashMap;
+use std::sync::Arc;
 
 use bevy::prelude::*;
+use dashmap::DashMap;
 
 use crate::terrain::{MAX_HEIGHT, NOISE_SCALE, TERRAIN_SEED, hash2d, terrain_height};
 
@@ -135,53 +137,59 @@ impl ChunkNav {
 }
 
 // ---------------------------------------------------------------------------
-// NavGrid resource
+// NavGrid resource — DashMap for lock-free concurrent access
 // ---------------------------------------------------------------------------
 
-/// Lazily-computed navigation grid. Deterministic from terrain seed.
-#[derive(Resource)]
+/// Lazily-computed navigation grid backed by `DashMap` for concurrent
+/// reads from the game thread and writes from background tasks.
+#[derive(Resource, Clone)]
 pub struct NavGrid {
-    chunks: HashMap<(i32, i32), ChunkNav>,
+    chunks: Arc<DashMap<(i32, i32), ChunkNav>>,
 }
 
 impl Default for NavGrid {
     fn default() -> Self {
         Self {
-            chunks: HashMap::new(),
+            chunks: Arc::new(DashMap::new()),
         }
     }
 }
 
 impl NavGrid {
+    /// Get a shared handle for background tasks. Cheap (Arc clone).
+    pub fn shared(&self) -> Arc<DashMap<(i32, i32), ChunkNav>> {
+        Arc::clone(&self.chunks)
+    }
+
     /// Ensure chunk nav data is computed and cached.
-    pub fn ensure_chunk(&mut self, cx: i32, cz: i32) {
-        self.chunks
-            .entry((cx, cz))
-            .or_insert_with(|| ChunkNav::generate(cx, cz));
+    pub fn ensure_chunk(&self, cx: i32, cz: i32) {
+        if !self.chunks.contains_key(&(cx, cz)) {
+            self.chunks.insert((cx, cz), ChunkNav::generate(cx, cz));
+        }
     }
 
     /// Get tile navigation data at world tile coords.
-    pub fn tile_nav(&mut self, tx: i32, tz: i32) -> TileNav {
+    pub fn tile_nav(&self, tx: i32, tz: i32) -> TileNav {
         let cx = tx.div_euclid(NAV_CHUNK);
         let cz = tz.div_euclid(NAV_CHUNK);
         self.ensure_chunk(cx, cz);
         let lx = tx.rem_euclid(NAV_CHUNK);
         let lz = tz.rem_euclid(NAV_CHUNK);
-        *self.chunks[&(cx, cz)].get(lx, lz)
+        *self.chunks.get(&(cx, cz)).unwrap().get(lx, lz)
     }
 
     /// Is the tile walkable?
-    pub fn is_walkable(&mut self, tx: i32, tz: i32) -> bool {
+    pub fn is_walkable(&self, tx: i32, tz: i32) -> bool {
         self.tile_nav(tx, tz).walkable
     }
 
     /// Traversal cost for entering the tile.
-    pub fn cost(&mut self, tx: i32, tz: i32) -> f32 {
+    pub fn cost(&self, tx: i32, tz: i32) -> f32 {
         self.tile_nav(tx, tz).cost
     }
 
     /// Return walkable 8-connected neighbors where height delta <= MAX_STEP_HEIGHT.
-    pub fn walkable_neighbors(&mut self, tx: i32, tz: i32) -> Vec<(i32, i32)> {
+    pub fn walkable_neighbors(&self, tx: i32, tz: i32) -> Vec<(i32, i32)> {
         let center = self.tile_nav(tx, tz);
         if !center.walkable {
             return Vec::new();
@@ -211,35 +219,15 @@ impl NavGrid {
         result
     }
 
+    /// Check if a chunk is already loaded.
+    pub fn has_chunk(&self, cx: i32, cz: i32) -> bool {
+        self.chunks.contains_key(&(cx, cz))
+    }
+
     /// Evict chunks farther than `keep_radius` from center chunk.
-    pub fn evict_far(&mut self, center_cx: i32, center_cz: i32, keep_radius: i32) {
+    pub fn evict_far(&self, center_cx: i32, center_cz: i32, keep_radius: i32) {
         self.chunks.retain(|&(cx, cz), _| {
             (cx - center_cx).abs() <= keep_radius && (cz - center_cz).abs() <= keep_radius
         });
-    }
-
-    // --- Off-thread support ---
-
-    /// Set of currently loaded chunk coords (for the async dispatch to know what's missing).
-    pub fn built_chunk_set(&self) -> std::collections::HashSet<(i32, i32)> {
-        self.chunks.keys().copied().collect()
-    }
-
-    /// Lightweight clone for sending to a background task.
-    /// Only copies the chunk coordinate set — the task will recompute tile data.
-    pub fn clone_for_task(&self) -> Self {
-        Self {
-            chunks: self.chunks.iter().map(|(&k, v)| (k, v.clone())).collect(),
-        }
-    }
-
-    /// Insert a pre-computed chunk (used by the task-local copy).
-    pub fn insert_chunk(&mut self, cx: i32, cz: i32, chunk: &ChunkNav) {
-        self.chunks.insert((cx, cz), chunk.clone());
-    }
-
-    /// Merge a chunk from a background task into the main-thread NavGrid.
-    pub fn merge_chunk(&mut self, cx: i32, cz: i32, chunk: ChunkNav) {
-        self.chunks.entry((cx, cz)).or_insert(chunk);
     }
 }

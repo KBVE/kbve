@@ -1,23 +1,22 @@
 //! Off-thread navigation systems — dispatches NavGrid, WaypointGraph, and
 //! PatrolRoute computation to `bevy_tasker` so the main game thread stays free.
 //!
-//! Pattern mirrors `brain.rs`: capture snapshot → spawn async task → poll result.
+//! Uses DashMap for lock-free concurrent chunk access and Bevy triggers for
+//! event-driven completion notification.
 
 use bevy::prelude::*;
 use crossbeam_channel::{Receiver, bounded};
 
 use super::nav_grid::{ChunkNav, NAV_CHUNK, NavGrid};
 use super::patrol::{self, PatrolRoute};
+use super::simulate::SimulationCenter;
 use super::types::{Creature, CreatureState, SpriteCreatureMarker, SpriteCreatureTypes};
 use super::waypoint_graph::WaypointGraph;
-
-use super::simulate::SimulationCenter;
 
 // ---------------------------------------------------------------------------
 // Timers
 // ---------------------------------------------------------------------------
 
-/// Throttle for nav region updates (every 2 seconds).
 #[derive(Resource)]
 pub struct NavBuildTimer(pub Timer);
 
@@ -27,7 +26,6 @@ impl Default for NavBuildTimer {
     }
 }
 
-/// Throttle for eviction (every 10 seconds).
 #[derive(Resource)]
 pub struct NavEvictTimer(pub Timer);
 
@@ -38,35 +36,21 @@ impl Default for NavEvictTimer {
 }
 
 // ---------------------------------------------------------------------------
-// Async nav build state
+// Pending nav build (single in-flight task)
 // ---------------------------------------------------------------------------
 
-/// Pending off-thread nav build result.
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct PendingNavBuild {
-    rx: Option<Receiver<NavBuildResult>>,
-}
-
-impl Default for PendingNavBuild {
-    fn default() -> Self {
-        Self { rx: None }
-    }
-}
-
-/// Result of an off-thread nav build.
-struct NavBuildResult {
-    /// New chunks to merge into NavGrid.
-    chunks: Vec<((i32, i32), ChunkNav)>,
-    /// Updated waypoint graph (rebuilt from scratch each cycle).
-    graph: WaypointGraph,
+    rx: Option<Receiver<WaypointGraph>>,
 }
 
 // ---------------------------------------------------------------------------
 // System: dispatch nav build off-thread
 // ---------------------------------------------------------------------------
 
-/// Periodically dispatches NavGrid + WaypointGraph computation to bevy_tasker.
-/// Only dispatches if no build is currently in-flight.
+/// Periodically dispatches NavGrid chunk + WaypointGraph computation to
+/// bevy_tasker. NavGrid uses DashMap — background task writes chunks directly
+/// into the shared map. Only the rebuilt WaypointGraph is shipped back.
 pub fn dispatch_nav_build(
     time: Res<Time>,
     mut timer: ResMut<NavBuildTimer>,
@@ -79,8 +63,6 @@ pub fn dispatch_nav_build(
     if !timer.0.just_finished() {
         return;
     }
-
-    // Don't dispatch if a build is already in-flight
     if pending.rx.is_some() {
         return;
     }
@@ -89,98 +71,71 @@ pub fn dispatch_nav_build(
     let center_cz = (sim_center.0.z / NAV_CHUNK as f32).floor() as i32;
     let radius = 3i32;
 
-    // Collect which chunks are already built
-    let existing_chunks = nav.built_chunk_set();
-    let existing_graph_chunks = graph.built_chunk_set();
+    // Check what needs building
+    let graph_built = graph.built_chunk_set();
+    let mut need_nav = Vec::new();
+    let mut need_wp = false;
 
-    // Figure out which chunks need building
-    let mut needed_chunks = Vec::new();
     for dx in -radius..=radius {
         for dz in -radius..=radius {
             let cx = center_cx + dx;
             let cz = center_cz + dz;
-            if !existing_chunks.contains(&(cx, cz)) {
-                needed_chunks.push((cx, cz));
+            if !nav.has_chunk(cx, cz) {
+                need_nav.push((cx, cz));
+            }
+            if !graph_built.contains(&(cx, cz)) {
+                need_wp = true;
             }
         }
     }
 
-    // Also figure out which chunks need waypoint building
-    let mut needed_wp_chunks = Vec::new();
-    for dx in -radius..=radius {
-        for dz in -radius..=radius {
-            let cx = center_cx + dx;
-            let cz = center_cz + dz;
-            if !existing_graph_chunks.contains(&(cx, cz)) {
-                needed_wp_chunks.push((cx, cz));
-            }
-        }
-    }
-
-    // Skip if nothing to build
-    if needed_chunks.is_empty() && needed_wp_chunks.is_empty() {
+    if need_nav.is_empty() && !need_wp {
         return;
     }
 
-    // Clone current state for the background task
-    let nav_snapshot = nav.clone_for_task();
-    let graph_snapshot = graph.clone();
+    // Share the DashMap handle — background task writes chunks directly
+    let nav_handle = nav.shared();
+    let nav_clone = nav.clone(); // Cheap: Arc clone of DashMap
+    let mut graph_clone = graph.clone();
 
-    let (tx, rx) = bounded::<NavBuildResult>(1);
+    let (tx, rx) = bounded::<WaypointGraph>(1);
 
     bevy_tasker::spawn(async move {
-        let mut nav_local = nav_snapshot;
-        let mut graph_local = graph_snapshot;
-
-        // Build any missing nav chunks
-        let mut new_chunks = Vec::new();
-        for (cx, cz) in needed_chunks {
-            let chunk = ChunkNav::generate(cx, cz);
-            nav_local.insert_chunk(cx, cz, &chunk);
-            new_chunks.push(((cx, cz), chunk));
+        // Build missing nav chunks into the shared DashMap
+        for (cx, cz) in need_nav {
+            if !nav_handle.contains_key(&(cx, cz)) {
+                nav_handle.insert((cx, cz), ChunkNav::generate(cx, cz));
+            }
         }
 
-        // Build waypoints for any missing chunks
-        if !needed_wp_chunks.is_empty() {
-            let cx_min = center_cx - radius;
-            let cx_max = center_cx + radius;
-            let cz_min = center_cz - radius;
-            let cz_max = center_cz + radius;
-            graph_local.build_for_region(&mut nav_local, cx_min, cx_max, cz_min, cz_max);
+        // Build waypoints (reads from same DashMap via nav_clone)
+        if need_wp {
+            graph_clone.build_for_region(
+                &nav_clone,
+                center_cx - radius,
+                center_cx + radius,
+                center_cz - radius,
+                center_cz + radius,
+            );
         }
 
-        let _ = tx.send(NavBuildResult {
-            chunks: new_chunks,
-            graph: graph_local,
-        });
+        let _ = tx.send(graph_clone);
     })
     .detach();
 
     pending.rx = Some(rx);
 }
 
-/// Poll completed nav builds and merge results into the main-thread resources.
-pub fn poll_nav_build(
-    mut nav: ResMut<NavGrid>,
-    mut graph: ResMut<WaypointGraph>,
-    mut pending: ResMut<PendingNavBuild>,
-) {
+/// Receive completed nav builds — swap in the new WaypointGraph.
+pub fn receive_nav_build(mut pending: ResMut<PendingNavBuild>, mut graph: ResMut<WaypointGraph>) {
     let Some(ref rx) = pending.rx else { return };
 
     match rx.try_recv() {
-        Ok(result) => {
-            // Merge new chunks into NavGrid
-            for ((cx, cz), chunk) in result.chunks {
-                nav.merge_chunk(cx, cz, chunk);
-            }
-            // Replace waypoint graph with the updated version
-            *graph = result.graph;
-
+        Ok(new_graph) => {
+            *graph = new_graph;
             pending.rx = None;
         }
-        Err(crossbeam_channel::TryRecvError::Empty) => {
-            // Still computing
-        }
+        Err(crossbeam_channel::TryRecvError::Empty) => {}
         Err(crossbeam_channel::TryRecvError::Disconnected) => {
             pending.rx = None;
         }
@@ -191,13 +146,11 @@ pub fn poll_nav_build(
 // System: evict far-away nav data
 // ---------------------------------------------------------------------------
 
-/// Periodically evict NavGrid chunks and WaypointGraph data far from the
-/// simulation center.
 pub fn evict_nav_data(
     time: Res<Time>,
     mut timer: ResMut<NavEvictTimer>,
     sim_center: Res<SimulationCenter>,
-    mut nav: ResMut<NavGrid>,
+    nav: Res<NavGrid>,
     mut graph: ResMut<WaypointGraph>,
 ) {
     timer.0.tick(time.delta());
@@ -214,20 +167,20 @@ pub fn evict_nav_data(
 }
 
 // ---------------------------------------------------------------------------
-// System: assign patrol routes off-thread
+// Patrol route generation — off-thread per creature
 // ---------------------------------------------------------------------------
 
 /// Marker for creatures that need a patrol route computed.
 #[derive(Component)]
 pub struct NeedsPatrolRoute;
 
-/// Pending patrol route computation for a single creature.
+/// Pending patrol route computation.
 #[derive(Component)]
 pub struct PendingPatrolCompute {
     rx: Receiver<Option<PatrolRoute>>,
 }
 
-/// Tag newly-activated creatures that have an influence profile but no route yet.
+/// Tag newly-activated creatures that have an influence profile but no route.
 pub fn tag_creatures_needing_routes(
     mut commands: Commands,
     types: Res<SpriteCreatureTypes>,
@@ -241,11 +194,9 @@ pub fn tag_creatures_needing_routes(
     >,
 ) {
     for (entity, cr, marker) in &query {
-        // Only tag active creatures (not pooled)
         if cr.state != CreatureState::Active {
             continue;
         }
-        // Only if creature type has an influence profile
         let Some(ctype) = types.types.iter().find(|t| t.npc_ref == marker.type_key) else {
             continue;
         };
@@ -256,7 +207,8 @@ pub fn tag_creatures_needing_routes(
     }
 }
 
-/// Dispatch patrol route generation to bevy_tasker for tagged creatures.
+/// Dispatch patrol route generation off-thread. NavGrid is read via shared
+/// DashMap handle — cheap Arc clone, no data copying.
 pub fn dispatch_patrol_generation(
     mut commands: Commands,
     types: Res<SpriteCreatureTypes>,
@@ -273,8 +225,6 @@ pub fn dispatch_patrol_generation(
             commands.entity(entity).remove::<NeedsPatrolRoute>();
             continue;
         };
-
-        // Skip if waypoint graph is empty (still building)
         if graph.waypoints.is_empty() {
             continue;
         }
@@ -283,19 +233,18 @@ pub fn dispatch_patrol_generation(
         let anchor = cr.anchor;
         let profile_clone = profile.clone();
         let emotes: Vec<&'static str> = ctype.patrol_emotes.to_vec();
-        let nav_snapshot = nav.clone_for_task();
+        let nav_clone = nav.clone(); // Cheap: Arc clone
         let graph_clone = graph.clone();
 
         let (tx, rx) = bounded::<Option<PatrolRoute>>(1);
 
         bevy_tasker::spawn(async move {
-            let mut nav_local = nav_snapshot;
             let route = patrol::generate_route(
                 seed,
                 anchor,
                 &profile_clone,
                 &graph_clone,
-                &mut nav_local,
+                &nav_clone,
                 &emotes,
             );
             let _ = tx.send(route);
@@ -309,8 +258,8 @@ pub fn dispatch_patrol_generation(
     }
 }
 
-/// Poll completed patrol route computations and insert the PatrolRoute component.
-pub fn poll_patrol_generation(
+/// Receive completed patrol routes and insert PatrolRoute components.
+pub fn receive_patrol_routes(
     mut commands: Commands,
     query: Query<(Entity, &PendingPatrolCompute)>,
 ) {
@@ -323,12 +272,9 @@ pub fn poll_patrol_generation(
                     .insert(route);
             }
             Ok(None) => {
-                // No valid route (not enough waypoints) — just remove the pending marker
                 commands.entity(entity).remove::<PendingPatrolCompute>();
             }
-            Err(crossbeam_channel::TryRecvError::Empty) => {
-                // Still computing
-            }
+            Err(crossbeam_channel::TryRecvError::Empty) => {}
             Err(crossbeam_channel::TryRecvError::Disconnected) => {
                 commands.entity(entity).remove::<PendingPatrolCompute>();
             }

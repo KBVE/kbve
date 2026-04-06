@@ -116,7 +116,7 @@ pub fn generate_route(
     anchor: Vec3,
     profile: &InfluenceProfile,
     graph: &WaypointGraph,
-    _nav: &mut NavGrid,
+    _nav: &NavGrid,
     emote_anims: &[&'static str],
 ) -> Option<PatrolRoute> {
     // 1. Gather candidate waypoints within patrol_radius * 1.5
@@ -267,7 +267,7 @@ fn generate_dwell(seed: u32, emote_anims: &[&'static str]) -> DwellAction {
 /// Returns the path as a vec of `(tx, tz)` from start to goal (inclusive),
 /// or `None` if no path found within budget.
 pub fn astar_tiles(
-    nav: &mut NavGrid,
+    nav: &NavGrid,
     start: (i32, i32),
     goal: (i32, i32),
     max_steps: u32,
