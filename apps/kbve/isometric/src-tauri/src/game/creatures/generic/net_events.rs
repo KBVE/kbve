@@ -6,7 +6,7 @@
 use bevy::prelude::*;
 use lightyear::prelude::*;
 
-use super::super::creature::{Creature, CreaturePoolIndex, SpriteData, SpriteHopState};
+use super::super::creature::{Creature, CreaturePoolIndex, RenderKind, SpriteData, SpriteHopState};
 use super::behavior::CreatureIntent;
 use super::brain::CreatureBrain;
 use super::types::SpriteCreatureMarker;
@@ -150,6 +150,49 @@ pub fn receive_creature_sync(
                     }
 
                     break; // Found the creature
+                }
+            }
+        }
+    }
+}
+
+/// Map NPC ref strings to the client's RenderKind for ambient creatures.
+fn ambient_npc_ref_to_render_kind(npc_ref: &str) -> Option<RenderKind> {
+    match npc_ref {
+        "meadow-firefly" => Some(RenderKind::Emissive),
+        "woodland-butterfly" => Some(RenderKind::Billboard),
+        _ => None,
+    }
+}
+
+/// System that receives `CreaturePositionSync` for ambient creatures (fireflies,
+/// butterflies) and smoothly corrects their anchors. Ambient creatures don't have
+/// `SpriteCreatureMarker`, so this is a separate query.
+pub fn receive_ambient_creature_sync(
+    mut receiver_q: Query<&mut MessageReceiver<CreaturePositionSync>, With<Connected>>,
+    mut creature_q: Query<(&mut Creature, &CreaturePoolIndex), Without<SpriteCreatureMarker>>,
+) {
+    for mut receiver in &mut receiver_q {
+        for sync in receiver.receive() {
+            let Some(kind) = ambient_npc_ref_to_render_kind(&sync.npc_ref) else {
+                continue; // Not an ambient creature — handled by sprite sync
+            };
+
+            for snapshot in &sync.snapshots {
+                for (mut cr, pool_idx) in &mut creature_q {
+                    if cr.render_kind != kind {
+                        continue;
+                    }
+                    if pool_idx.0 != snapshot.index {
+                        continue;
+                    }
+
+                    let server_pos = Vec3::new(snapshot.x, snapshot.y, snapshot.z);
+                    // Snap anchor — ambient creatures don't have hop state,
+                    // their animate systems will smoothly use the new anchor.
+                    cr.anchor = server_pos;
+
+                    break;
                 }
             }
         }
