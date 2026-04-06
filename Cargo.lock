@@ -7749,6 +7749,7 @@ dependencies = [
  "dashmap 6.1.0",
  "getrandom 0.2.17",
  "js-sys",
+ "libm",
  "lightyear",
  "log",
  "pollster",
