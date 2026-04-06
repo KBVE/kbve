@@ -13,7 +13,8 @@ use crate::state::AppState;
 /// Handle a component interaction whose `custom_id` starts with `"chart|"`.
 ///
 /// Custom ID format: `chart|<owner/repo>|<chart_type>` or `chart|health|history`
-/// Chart types: `languages`, `activity`, `labels`, `pr_status`, `commit_freq`, `history`
+/// Chart types: `languages`, `activity`, `labels`, `pr_status`, `commit_freq`,
+/// `contributors`, `workflow_runs`, `history`
 pub async fn handle_chart_component(
     ctx: &serenity::Context,
     component: &serenity::ComponentInteraction,
@@ -284,6 +285,54 @@ async fn render_github_chart(
                 png,
                 "commit_freq.png".to_owned(),
                 "Commit Frequency".to_owned(),
+                full_name,
+            ))
+        }
+        "contributors" => {
+            let contribs = gh
+                .get_contributors(&owner, &repo_name, Some(25))
+                .await
+                .map_err(|e| format!("Failed to fetch contributors: {e}"))?;
+
+            if contribs.is_empty() {
+                return Err("No contributors found.".to_owned());
+            }
+
+            let full_clone = full_name.clone();
+            let png = tokio::task::spawn_blocking(move || {
+                github_cards::render_contributors_chart_blocking(&contribs, &full_clone, &fontdb)
+            })
+            .await
+            .map_err(|e| format!("Task panicked: {e}"))??;
+
+            Ok((
+                png,
+                "contributors.png".to_owned(),
+                "Top Contributors".to_owned(),
+                full_name,
+            ))
+        }
+        "workflow_runs" => {
+            let runs = gh
+                .list_workflow_runs(&owner, &repo_name, Some(30))
+                .await
+                .map_err(|e| format!("Failed to fetch workflow runs: {e}"))?;
+
+            if runs.is_empty() {
+                return Err("No workflow runs found.".to_owned());
+            }
+
+            let full_clone = full_name.clone();
+            let png = tokio::task::spawn_blocking(move || {
+                github_cards::render_workflow_runs_chart_blocking(&runs, &full_clone, &fontdb)
+            })
+            .await
+            .map_err(|e| format!("Task panicked: {e}"))??;
+
+            Ok((
+                png,
+                "workflow_runs.png".to_owned(),
+                "Workflow Runs".to_owned(),
                 full_name,
             ))
         }
