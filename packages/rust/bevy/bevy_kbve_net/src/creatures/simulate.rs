@@ -291,7 +291,8 @@ pub fn simulate_sprite_creatures(
                     } => {
                         let t = time.elapsed_secs();
                         let pos = start.lerp(target, p);
-                        let hover = (t * hover_frequency + cr.phase * 6.28).sin() * hover_amplitude;
+                        let hover = (t * hover_frequency + cr.phase * std::f32::consts::TAU).sin()
+                            * hover_amplitude;
                         tf.translation = Vec3::new(pos.x, pos.y + hover_base + hover, pos.z);
                     }
                 }
