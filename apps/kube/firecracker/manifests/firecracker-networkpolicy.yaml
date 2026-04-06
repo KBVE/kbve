@@ -60,3 +60,32 @@ spec:
         - Egress
     # No ingress or egress rules = deny everything by default.
     # The firecracker-ctl-ingress policy above adds explicit exceptions.
+---
+# Allow rootfs init job to reach the internet for downloading packages/kernel.
+# This pod only runs during ArgoCD PostSync hooks and is short-lived.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: firecracker-rootfs-init-egress
+    namespace: firecracker
+spec:
+    podSelector:
+        matchLabels:
+            app: firecracker-rootfs-init
+    policyTypes:
+        - Egress
+    egress:
+        # DNS resolution
+        - to:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: kube-system
+          ports:
+              - protocol: UDP
+                port: 53
+              - protocol: TCP
+                port: 53
+        # HTTPS for downloading Alpine packages and vmlinux kernel
+        - ports:
+              - protocol: TCP
+                port: 443
