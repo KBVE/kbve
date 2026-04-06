@@ -43,6 +43,7 @@ data:
                 - Accept
                 - Accept-Version
                 - Accept-Profile
+                - Content-Profile
                 - Authorization
                 - Content-Length
                 - Content-MD5
