@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	ideService,
@@ -13,9 +13,11 @@ import {
 	Flame,
 	Clock,
 	AlertCircle,
+	Trash2,
 	CheckCircle2,
 } from 'lucide-react';
 import { EditorView, basicSetup } from 'codemirror';
+import { keymap } from '@codemirror/view';
 import { EditorState, Compartment } from '@codemirror/state';
 import { python } from '@codemirror/lang-python';
 import { javascript } from '@codemirror/lang-javascript';
@@ -33,7 +35,17 @@ function langExtension(language: string): Extension {
 	}
 }
 
-function PhaseIndicator({ phase }: { phase: string }) {
+function PhaseIndicator({
+	phase,
+	elapsed,
+}: {
+	phase: string;
+	elapsed: number;
+}) {
+	const timer =
+		elapsed > 0 && (phase === 'creating' || phase === 'running')
+			? ` ${(elapsed / 1000).toFixed(1)}s`
+			: '';
 	const config: Record<
 		string,
 		{ icon: React.ReactNode; color: string; label: string }
@@ -42,12 +54,12 @@ function PhaseIndicator({ phase }: { phase: string }) {
 		creating: {
 			icon: <Clock size={14} />,
 			color: '#f59e0b',
-			label: 'Creating VM...',
+			label: `Creating VM...${timer}`,
 		},
 		running: {
 			icon: <Clock size={14} />,
 			color: '#3b82f6',
-			label: 'Running...',
+			label: `Running...${timer}`,
 		},
 		completed: {
 			icon: <CheckCircle2 size={14} />,
@@ -157,6 +169,35 @@ export default function ReactCodeIDE() {
 	const editorRef = useRef<HTMLDivElement>(null);
 	const viewRef = useRef<EditorView | null>(null);
 	const langCompartment = useRef(new Compartment());
+	const [elapsed, setElapsed] = useState(0);
+	const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null);
+	const runRef = useRef<(() => void) | null>(null);
+
+	// Keep runRef current so the keymap closure always calls the latest handler
+	runRef.current = () => {
+		if (token && phase !== 'creating' && phase !== 'running') {
+			ideService.run(token);
+		}
+	};
+
+	// Elapsed timer — ticks every 100ms while running
+	useEffect(() => {
+		if (phase === 'creating' || phase === 'running') {
+			const start = Date.now();
+			setElapsed(0);
+			elapsedRef.current = setInterval(() => {
+				setElapsed(Date.now() - start);
+			}, 100);
+		} else {
+			if (elapsedRef.current) {
+				clearInterval(elapsedRef.current);
+				elapsedRef.current = null;
+			}
+		}
+		return () => {
+			if (elapsedRef.current) clearInterval(elapsedRef.current);
+		};
+	}, [phase]);
 
 	// Initialize CodeMirror
 	useEffect(() => {
@@ -168,6 +209,15 @@ export default function ReactCodeIDE() {
 				basicSetup,
 				langCompartment.current.of(langExtension(preset.language)),
 				oneDark,
+				keymap.of([
+					{
+						key: 'Mod-Enter',
+						run: () => {
+							runRef.current?.();
+							return true;
+						},
+					},
+				]),
 				EditorView.updateListener.of((update) => {
 					if (update.docChanged) {
 						ideService.$code.set(update.state.doc.toString());
@@ -275,7 +325,7 @@ export default function ReactCodeIDE() {
 						))}
 					</select>
 				</div>
-				<PhaseIndicator phase={phase} />
+				<PhaseIndicator phase={phase} elapsed={elapsed} />
 			</div>
 
 			{/* Editor + Output split */}
@@ -329,24 +379,50 @@ export default function ReactCodeIDE() {
 								Cancel
 							</button>
 						) : (
-							<button
-								onClick={handleRun}
-								style={{
-									display: 'inline-flex',
-									alignItems: 'center',
-									gap: '0.3rem',
-									padding: '0.4rem 1rem',
-									background: '#22c55e22',
-									border: '1px solid #22c55e44',
-									borderRadius: '6px',
-									color: '#22c55e',
-									fontSize: '0.85rem',
-									cursor: 'pointer',
-									fontWeight: 500,
-								}}>
-								<Play size={14} />
-								Run
-							</button>
+							<>
+								<button
+									onClick={handleRun}
+									style={{
+										display: 'inline-flex',
+										alignItems: 'center',
+										gap: '0.3rem',
+										padding: '0.4rem 1rem',
+										background: '#22c55e22',
+										border: '1px solid #22c55e44',
+										borderRadius: '6px',
+										color: '#22c55e',
+										fontSize: '0.85rem',
+										cursor: 'pointer',
+										fontWeight: 500,
+									}}>
+									<Play size={14} />
+									Run
+								</button>
+								{(result || error) && (
+									<button
+										onClick={() => {
+											ideService.$result.set(null);
+											ideService.$error.set(null);
+											ideService.$phase.set('idle');
+										}}
+										style={{
+											display: 'inline-flex',
+											alignItems: 'center',
+											gap: '0.3rem',
+											padding: '0.4rem 0.75rem',
+											background:
+												'rgba(255,255,255,0.03)',
+											border: '1px solid rgba(255,255,255,0.08)',
+											borderRadius: '6px',
+											color: 'rgba(255,255,255,0.5)',
+											fontSize: '0.85rem',
+											cursor: 'pointer',
+										}}>
+										<Trash2 size={14} />
+										Clear
+									</button>
+								)}
+							</>
 						)}
 					</div>
 					<span
@@ -356,7 +432,7 @@ export default function ReactCodeIDE() {
 						}}>
 						{preset.rootfs} · {preset.vcpu_count} vCPU ·{' '}
 						{preset.mem_size_mib} MiB · {preset.timeout_ms / 1000}s
-						timeout
+						· ⌘/Ctrl+Enter to run
 					</span>
 				</div>
 
