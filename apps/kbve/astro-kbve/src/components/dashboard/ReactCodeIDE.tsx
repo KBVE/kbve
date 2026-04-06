@@ -3,6 +3,7 @@ import { useStore } from '@nanostores/react';
 import {
 	ideService,
 	PRESETS,
+	EXAMPLES,
 	type RunResult,
 	type HistoryEntry,
 } from './ideService';
@@ -14,6 +15,7 @@ import {
 	Clock,
 	AlertCircle,
 	Trash2,
+	Copy,
 	CheckCircle2,
 } from 'lucide-react';
 import { EditorView, basicSetup } from 'codemirror';
@@ -88,6 +90,34 @@ function PhaseIndicator({
 	);
 }
 
+function CopyButton({ text }: { text: string }) {
+	const [copied, setCopied] = useState(false);
+	return (
+		<button
+			onClick={() => {
+				navigator.clipboard.writeText(text);
+				setCopied(true);
+				setTimeout(() => setCopied(false), 2000);
+			}}
+			title="Copy to clipboard"
+			style={{
+				display: 'inline-flex',
+				alignItems: 'center',
+				gap: '0.25rem',
+				padding: '0.2rem 0.5rem',
+				background: 'rgba(255,255,255,0.05)',
+				border: '1px solid rgba(255,255,255,0.1)',
+				borderRadius: '4px',
+				color: copied ? '#22c55e' : 'rgba(255,255,255,0.4)',
+				fontSize: '0.7rem',
+				cursor: 'pointer',
+			}}>
+			<Copy size={12} />
+			{copied ? 'Copied' : 'Copy'}
+		</button>
+	);
+}
+
 function OutputPanel({
 	result,
 	error,
@@ -122,6 +152,10 @@ function OutputPanel({
 		);
 	}
 
+	const fullOutput = [result.stdout, result.stderr]
+		.filter(Boolean)
+		.join('\n');
+
 	return (
 		<div
 			style={{
@@ -129,7 +163,16 @@ function OutputPanel({
 				fontFamily: 'monospace',
 				fontSize: '0.85rem',
 				whiteSpace: 'pre-wrap',
+				position: 'relative',
 			}}>
+			<div
+				style={{
+					position: 'absolute',
+					top: '0.5rem',
+					right: '0.5rem',
+				}}>
+				<CopyButton text={fullOutput} />
+			</div>
 			{result.stdout && (
 				<div
 					style={{
@@ -324,6 +367,53 @@ export default function ReactCodeIDE() {
 							</option>
 						))}
 					</select>
+					{(() => {
+						const langExamples = EXAMPLES.filter(
+							(ex) => ex.language === preset.language,
+						);
+						if (langExamples.length === 0) return null;
+						return (
+							<select
+								value=""
+								onChange={(e) => {
+									const ex = EXAMPLES.find(
+										(x) => x.id === e.target.value,
+									);
+									if (ex) {
+										ideService.$code.set(ex.code);
+										if (viewRef.current) {
+											viewRef.current.dispatch({
+												changes: {
+													from: 0,
+													to: viewRef.current.state
+														.doc.length,
+													insert: ex.code,
+												},
+											});
+										}
+									}
+								}}
+								disabled={isRunning}
+								style={{
+									fontSize: '0.75rem',
+									color: 'rgba(255,255,255,0.8)',
+									background: 'rgba(255,255,255,0.05)',
+									border: '1px solid rgba(255,255,255,0.1)',
+									padding: '0.25rem 0.5rem',
+									borderRadius: '6px',
+									cursor: 'pointer',
+								}}>
+								<option value="" disabled>
+									📖 Examples…
+								</option>
+								{langExamples.map((ex) => (
+									<option key={ex.id} value={ex.id}>
+										{ex.label}
+									</option>
+								))}
+							</select>
+						);
+					})()}
 				</div>
 				<PhaseIndicator phase={phase} elapsed={elapsed} />
 			</div>
