@@ -35,7 +35,7 @@ spec:
             serviceAccountName: discordsh-sa
             containers:
                 - name: discordsh-bot
-                  image: ghcr.io/kbve/discordsh-bot:0.1.4
+                  image: ghcr.io/kbve/discordsh-bot:0.1.5
                   imagePullPolicy: Always
                   envFrom:
                       - configMapRef:
