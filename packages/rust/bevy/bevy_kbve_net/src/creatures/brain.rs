@@ -6,6 +6,7 @@ use crossbeam_channel::{Receiver, bounded};
 
 use super::behavior::{CreatureIntent, WorldSnapshot, evaluate};
 use super::common::{GameTime, patrol_seed};
+use super::patrol::PatrolRoute;
 use super::physics_lod::PlayerProximity;
 use super::types::{
     Creature, SpriteCreatureMarker, SpriteCreatureTypes, SpriteData, SpriteHopState,
@@ -52,9 +53,10 @@ pub fn dispatch_behavior_trees(
         &mut SpriteCreatureMarker,
         &mut CreatureBrain,
         Option<&PlayerProximity>,
+        Option<&mut PatrolRoute>,
     )>,
 ) {
-    for (cr, sd, mut marker, mut brain, proximity) in &mut brain_q {
+    for (cr, sd, mut marker, mut brain, proximity, mut patrol) in &mut brain_q {
         // Skip if already has a pending evaluation or active intent
         if brain.pending {
             continue;
@@ -87,6 +89,26 @@ pub fn dispatch_behavior_trees(
         marker.patrol_step = marker.patrol_step.wrapping_add(1);
         let ps = patrol_seed(cr.slot_seed, marker.patrol_step, game_time.creature_seed);
 
+        // Build patrol snapshot from PatrolRoute component (if present)
+        let (patrol_target, patrol_dwell) = if let Some(ref mut route) = patrol {
+            if let Some(step) = route.current_step() {
+                let dist =
+                    Vec2::new(cr.anchor.x - step.target.x, cr.anchor.z - step.target.z).length();
+                if dist < 0.5 {
+                    // Arrived at waypoint — provide dwell action, then advance
+                    let dwell = step.dwell;
+                    route.advance();
+                    (None, Some(dwell))
+                } else {
+                    (Some(step.target), None)
+                }
+            } else {
+                (None, None)
+            }
+        } else {
+            (None, None)
+        };
+
         let snap = WorldSnapshot {
             creature_pos: cr.anchor,
             nearest_player_dist: nearest_dist,
@@ -95,6 +117,8 @@ pub fn dispatch_behavior_trees(
             patrol_seed: ps,
             is_idle: true,
             ground_at_anchor: cr.anchor.y,
+            patrol_target,
+            patrol_dwell,
         };
 
         // Clone the tree for the async task (it's just enums, cheap)

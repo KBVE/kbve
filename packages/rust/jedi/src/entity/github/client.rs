@@ -628,6 +628,57 @@ impl GitHubClient {
         }
     }
 
+    // ── Contributors ──────────────────────────────────────────────────
+
+    /// Fetch top contributors for a repository (sorted by commit count).
+    pub async fn get_contributors(
+        &self,
+        owner: &str,
+        repo: &str,
+        per_page: Option<u8>,
+    ) -> Result<Vec<GitHubContributor>, JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!("{}/repos/{}/{}/contributors", self.base_url, owner, repo);
+
+        let resp = self
+            .client
+            .get(&url)
+            .bearer_auth(&self.token)
+            .query(&[("per_page", per_page.unwrap_or(25).to_string())])
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        self.parse_response(resp).await
+    }
+
+    // ── Workflow Runs ───────────────────────────────────────────────
+
+    /// Fetch recent workflow runs for a repository.
+    pub async fn list_workflow_runs(
+        &self,
+        owner: &str,
+        repo: &str,
+        per_page: Option<u8>,
+    ) -> Result<Vec<GitHubWorkflowRun>, JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!("{}/repos/{}/{}/actions/runs", self.base_url, owner, repo);
+
+        let resp = self
+            .client
+            .get(&url)
+            .bearer_auth(&self.token)
+            .query(&[("per_page", per_page.unwrap_or(30).to_string())])
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        let wrapper: GitHubWorkflowRunsResponse = self.parse_response(resp).await?;
+        Ok(wrapper.workflow_runs)
+    }
+
     // ── Merge Pull Request ──────────────────────────────────────────
 
     /// Merge a pull request.

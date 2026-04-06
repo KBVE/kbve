@@ -1,0 +1,46 @@
+---
+import ReactVMAuth from './ReactVMAuth';
+import ReactCodeIDE from './ReactCodeIDE';
+---
+
+<section
+	id="ide-dashboard-wrapper"
+	class="ide-dashboard-wrapper"
+	aria-label="Firecracker IDE dashboard">
+	<div id="dashboard-content" class="dashboard-content">
+		<ReactVMAuth client:only="react">
+			<div class="not-content ide-dashboard">
+				<ReactCodeIDE client:only="react" />
+			</div>
+		</ReactVMAuth>
+	</div>
+</section>
+
+<style>
+	.ide-dashboard-wrapper {
+		background: transparent;
+		min-height: 100vh;
+		position: relative;
+		width: 100vw;
+		margin-left: calc(-50vw + 50%);
+	}
+
+	.dashboard-content {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 2rem 1rem;
+	}
+
+	@media (min-width: 768px) {
+		.dashboard-content {
+			padding: 2rem 1.5rem;
+		}
+	}
+
+	.ide-dashboard {
+		display: flex;
+		flex-direction: column;
+		color: var(--sl-color-text, #e6edf3);
+		min-height: 60vh;
+	}
+</style>

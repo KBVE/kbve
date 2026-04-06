@@ -239,6 +239,42 @@ pub struct GitHubMergeResult {
     pub message: String,
 }
 
+// ── Contributors ───────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct GitHubContributor {
+    pub login: String,
+    pub contributions: u64,
+    #[serde(default)]
+    pub avatar_url: String,
+    #[serde(default)]
+    pub html_url: String,
+}
+
+// ── Workflow Runs ──────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct GitHubWorkflowRunsResponse {
+    pub total_count: u64,
+    pub workflow_runs: Vec<GitHubWorkflowRun>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct GitHubWorkflowRun {
+    pub id: u64,
+    pub name: Option<String>,
+    pub status: String,
+    #[serde(default)]
+    pub conclusion: Option<String>,
+    pub run_number: u64,
+    pub created_at: String,
+    #[serde(default)]
+    pub updated_at: String,
+    pub html_url: String,
+    #[serde(default)]
+    pub head_branch: Option<String>,
+}
+
 // ── Rate Limit ──────────────────────────────────────────────────────
 
 #[derive(Debug, Clone)]

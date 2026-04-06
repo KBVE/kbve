@@ -46,6 +46,7 @@ bevy = { version = "0.18", default-features = false, features = [
     "bevy_gizmos",
     "default_font",
 ] }
+libm = "0.2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 avian3d = { version = "0.5", default-features = false, features = ["3d", "f32", "parry-f32", "debug-plugin"] }
