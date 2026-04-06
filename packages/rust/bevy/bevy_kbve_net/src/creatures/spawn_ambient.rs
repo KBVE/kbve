@@ -7,7 +7,7 @@ use bevy::prelude::*;
 
 use super::ambient_types::*;
 use super::common::hash_f32;
-use super::types::{Creature, CreaturePoolIndex, CreatureState, CreatureVitals};
+use super::types::{Creature, CreatureId, CreaturePoolIndex, CreatureState, CreatureVitals};
 
 /// NPC ref slug for fireflies.
 const FIREFLY_REF: &str = "meadow-firefly";
@@ -33,6 +33,7 @@ pub fn spawn_fireflies_headless(
 
     for i in 0..count {
         commands.spawn((
+            CreatureId::new(),
             Transform::from_xyz(0.0, -100.0, 0.0),
             Creature {
                 npc_ref: FIREFLY_REF,
@@ -81,6 +82,7 @@ pub fn spawn_butterflies_headless(
         let phase = hash_f32(seed * 11 + 1);
 
         commands.spawn((
+            CreatureId::new(),
             Transform::from_xyz(0.0, -100.0, 0.0),
             Creature {
                 npc_ref: BUTTERFLY_REF,
