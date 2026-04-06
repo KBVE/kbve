@@ -315,7 +315,7 @@ data:
               - ch_normalize
             endpoint: "${CLICKHOUSE_ENDPOINT}"
             database: observability
-            table: logs_raw
+            table: logs_distributed
             auth:
               strategy: basic
               user: "${CLICKHOUSE_USER}"
