@@ -18,6 +18,28 @@ pub extern "C" fn force_tls_anchor() -> u32 {
     TLS_ANCHOR.get()
 }
 
+// Provide libm implementations of C math functions that naga needs on WASM.
+// With `-Z build-std`, the standard library doesn't always bundle these.
+#[cfg(target_arch = "wasm32")]
+mod wasm_math_shims {
+    #[unsafe(no_mangle)]
+    pub extern "C" fn asinh(x: f64) -> f64 {
+        libm::asinh(x)
+    }
+    #[unsafe(no_mangle)]
+    pub extern "C" fn asinhf(x: f32) -> f32 {
+        libm::asinhf(x)
+    }
+    #[unsafe(no_mangle)]
+    pub extern "C" fn acosh(x: f64) -> f64 {
+        libm::acosh(x)
+    }
+    #[unsafe(no_mangle)]
+    pub extern "C" fn acoshf(x: f32) -> f32 {
+        libm::acoshf(x)
+    }
+}
+
 pub mod commands;
 pub mod game;
 
