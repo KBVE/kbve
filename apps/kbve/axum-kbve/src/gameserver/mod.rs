@@ -610,6 +610,10 @@ fn run_bevy_app(
     app.init_resource::<bevy_kbve_net::creatures::physics_lod::PhysicsLodTimer>();
     app.init_resource::<bevy_kbve_net::creatures::types::PlayerPositions>();
 
+    // --- Ambient creature simulation (fireflies, butterflies) ---
+    app.init_resource::<bevy_kbve_net::creatures::ambient_types::AmbientCreaturePool>();
+    app.init_resource::<bevy_kbve_net::creatures::ambient_types::FireflySlotState>();
+
     // Profile bridge resources
     app.insert_resource(ProfileBridgeTx(profile_tx));
     app.insert_resource(ProfileBridgeRx(std::sync::Mutex::new(profile_rx)));
@@ -730,6 +734,21 @@ fn run_bevy_app(
             bevy_kbve_net::creatures::brain::poll_behavior_results
                 .after(bevy_kbve_net::creatures::brain::dispatch_behavior_trees),
             bevy_kbve_net::creatures::physics_lod::update_physics_lod,
+        ),
+    );
+
+    // --- Ambient creature simulation (fireflies, butterflies) ---
+    app.add_systems(
+        Update,
+        (
+            bevy_kbve_net::creatures::spawn_ambient::spawn_fireflies_headless,
+            bevy_kbve_net::creatures::spawn_ambient::spawn_butterflies_headless,
+            bevy_kbve_net::creatures::simulate_firefly::assign_firefly_slots
+                .after(bevy_kbve_net::creatures::spawn_ambient::spawn_fireflies_headless),
+            bevy_kbve_net::creatures::simulate_firefly::simulate_fireflies
+                .after(bevy_kbve_net::creatures::simulate_firefly::assign_firefly_slots),
+            bevy_kbve_net::creatures::simulate_butterfly::simulate_butterflies
+                .after(bevy_kbve_net::creatures::spawn_ambient::spawn_butterflies_headless),
         ),
     );
 
@@ -1887,6 +1906,11 @@ fn broadcast_creature_sync(
         &bevy_kbve_net::creatures::types::CreaturePoolIndex,
         &bevy_kbve_net::creatures::types::SpriteCreatureMarker,
     )>,
+    ambient_q: Query<(
+        &bevy_kbve_net::creatures::types::Creature,
+        &bevy_kbve_net::creatures::types::CreaturePoolIndex,
+        &bevy_kbve_net::creatures::ambient_types::AmbientCreatureMarker,
+    )>,
     types: Res<bevy_kbve_net::creatures::types::SpriteCreatureTypes>,
     player_positions: Res<bevy_kbve_net::creatures::types::PlayerPositions>,
     mut senders: Query<&mut MessageSender<CreaturePositionSync>, With<Connected>>,
@@ -1903,14 +1927,13 @@ fn broadcast_creature_sync(
 
     let sync_radius_sq = CREATURE_SYNC_RADIUS * CREATURE_SYNC_RADIUS;
 
-    // Build one sync message per creature type
+    // --- Sprite creatures ---
     for ctype in &types.types {
         let mut snapshots = Vec::new();
         for (cr, sd, pool_idx, marker) in &creature_q {
             if marker.type_key != ctype.npc_ref {
                 continue;
             }
-            // Only include creatures near at least one player
             let near_player = player_positions.0.iter().any(|p| {
                 let dx = cr.anchor.x - p.x;
                 let dz = cr.anchor.z - p.z;
@@ -1938,15 +1961,51 @@ fn broadcast_creature_sync(
             });
         }
 
-        if snapshots.is_empty() {
+        if !snapshots.is_empty() {
+            let msg = CreaturePositionSync {
+                npc_ref: ctype.npc_ref.to_string(),
+                snapshots,
+            };
+            for mut sender in &mut senders {
+                sender.send::<CreatureSyncChannel>(msg.clone());
+            }
+        }
+    }
+
+    // --- Ambient creatures (fireflies, butterflies) ---
+    // Group by npc_ref
+    let mut ambient_groups: std::collections::HashMap<&str, Vec<CreatureSnapshot>> =
+        std::collections::HashMap::new();
+    for (cr, pool_idx, marker) in &ambient_q {
+        if cr.state != bevy_kbve_net::creatures::types::CreatureState::Active {
             continue;
         }
-
+        let near_player = player_positions.0.iter().any(|p| {
+            let dx = cr.anchor.x - p.x;
+            let dz = cr.anchor.z - p.z;
+            dx * dx + dz * dz <= sync_radius_sq
+        });
+        if !near_player {
+            continue;
+        }
+        ambient_groups
+            .entry(marker.type_key)
+            .or_default()
+            .push(CreatureSnapshot {
+                index: pool_idx.0 as u32,
+                x: cr.anchor.x,
+                y: cr.anchor.y,
+                z: cr.anchor.z,
+                hop_state: 0,
+                patrol_step: 0,
+                facing_left: false,
+            });
+    }
+    for (npc_ref, snapshots) in ambient_groups {
         let msg = CreaturePositionSync {
-            npc_ref: ctype.npc_ref.to_string(),
+            npc_ref: npc_ref.to_string(),
             snapshots,
         };
-
         for mut sender in &mut senders {
             sender.send::<CreatureSyncChannel>(msg.clone());
         }
