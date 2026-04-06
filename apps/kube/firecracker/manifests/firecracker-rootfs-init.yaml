@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-    name: firecracker-rootfs-init
+    name: firecracker-rootfs-init-v2
     namespace: firecracker
     labels:
         app: firecracker-ctl
@@ -10,7 +10,7 @@ metadata:
         argocd.argoproj.io/hook-delete-policy: HookSucceeded
 spec:
     backoffLimit: 2
-    ttlSecondsAfterFinished: 600
+    ttlSecondsAfterFinished: 3600
     template:
         metadata:
             labels:
@@ -19,30 +19,102 @@ spec:
             restartPolicy: OnFailure
             containers:
                 - name: init
-                  image: curlimages/curl:8.12.1
+                  image: alpine:3.21
+                  securityContext:
+                      runAsUser: 0
                   command:
                       - /bin/sh
                       - -c
                       - |
                           set -eu
-                          FC_VERSION=1.10.1
-                          KERNEL_URL="https://github.com/firecracker-microvm/firecracker/releases/download/v${FC_VERSION}/vmlinux-5.10.bin"
-                          OUTPUT_DIR="/rootfs"
+                          OUTPUT="/rootfs"
+                          FC_VERSION="1.10.1"
 
                           echo "=== Firecracker rootfs init ==="
 
-                          # Download kernel if not present
-                          if [ ! -f "${OUTPUT_DIR}/vmlinux" ]; then
-                              echo "Downloading vmlinux kernel..."
-                              curl -fSL "${KERNEL_URL}" -o "${OUTPUT_DIR}/vmlinux"
-                              chmod 644 "${OUTPUT_DIR}/vmlinux"
-                              echo "Kernel downloaded ($(wc -c < "${OUTPUT_DIR}/vmlinux") bytes)"
+                          apk add --no-cache curl e2fsprogs
+
+                          # --- vmlinux kernel ---
+                          if [ ! -f "${OUTPUT}/vmlinux" ]; then
+                              echo "[1/4] Downloading vmlinux kernel..."
+                              curl -fSL "https://github.com/firecracker-microvm/firecracker/releases/download/v${FC_VERSION}/vmlinux-5.10.bin" \
+                                  -o "${OUTPUT}/vmlinux"
+                              chmod 644 "${OUTPUT}/vmlinux"
+                              echo "  Kernel: $(wc -c < "${OUTPUT}/vmlinux") bytes"
                           else
-                              echo "Kernel already exists, skipping"
+                              echo "[1/4] vmlinux already exists, skipping"
                           fi
 
+                          # --- Helper: build an ext4 rootfs from an apk package list ---
+                          build_rootfs() {
+                              NAME="$1"
+                              SIZE_MB="$2"
+                              shift 2
+                              PKGS="$*"
+                              TARGET="${OUTPUT}/${NAME}.ext4"
+
+                              if [ -f "${TARGET}" ]; then
+                                  echo "  ${NAME}.ext4 already exists, skipping"
+                                  return
+                              fi
+
+                              echo "  Building ${NAME} rootfs (${SIZE_MB}MB, packages: ${PKGS})..."
+                              TMPDIR=$(mktemp -d)
+                              ROOTFS="${TMPDIR}/rootfs"
+                              mkdir -p "${ROOTFS}"
+
+                              # Install Alpine packages into rootfs
+                              apk add --root "${ROOTFS}" --initdb --no-cache \
+                                  alpine-baselayout busybox musl ca-certificates-bundle ${PKGS}
+
+                              # Create required directories
+                              mkdir -p "${ROOTFS}/dev" "${ROOTFS}/proc" "${ROOTFS}/sys" \
+                                       "${ROOTFS}/tmp" "${ROOTFS}/run" "${ROOTFS}/var/log"
+
+                              # Init script — mounts filesystems and runs entrypoint or shell
+                              cat > "${ROOTFS}/init" << 'INITEOF'
+                          #!/bin/sh
+                          mount -t proc proc /proc
+                          mount -t sysfs sys /sys
+                          mount -t devtmpfs dev /dev
+                          if [ -x /entrypoint ]; then
+                              exec /entrypoint
+                          else
+                              exec /bin/sh
+                          fi
+                          INITEOF
+                              chmod +x "${ROOTFS}/init"
+
+                              # Create sparse ext4 image
+                              dd if=/dev/zero of="${TARGET}" bs=1M count=0 seek="${SIZE_MB}" 2>/dev/null
+                              mkfs.ext4 -F -d "${ROOTFS}" "${TARGET}" >/dev/null 2>&1
+                              resize2fs -M "${TARGET}" >/dev/null 2>&1
+
+                              rm -rf "${TMPDIR}"
+                              echo "  ${NAME}.ext4: $(du -h "${TARGET}" | cut -f1)"
+                          }
+
+                          # --- alpine-minimal ---
+                          echo "[2/4] alpine-minimal..."
+                          build_rootfs "alpine-minimal" 32
+
+                          # --- alpine-python ---
+                          echo "[3/4] alpine-python..."
+                          build_rootfs "alpine-python" 128 python3
+
+                          # --- alpine-node ---
+                          echo "[4/4] alpine-node..."
+                          build_rootfs "alpine-node" 128 nodejs
+
                           echo "=== Done ==="
-                          ls -lh "${OUTPUT_DIR}/"
+                          ls -lh "${OUTPUT}/"
+                  resources:
+                      requests:
+                          cpu: 250m
+                          memory: 512Mi
+                      limits:
+                          cpu: '1'
+                          memory: 1Gi
                   volumeMounts:
                       - name: rootfs
                         mountPath: /rootfs
