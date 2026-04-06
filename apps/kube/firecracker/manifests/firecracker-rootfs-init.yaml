@@ -1,15 +1,15 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-    name: firecracker-rootfs-init-v2
+    name: firecracker-rootfs-init-v3
     namespace: firecracker
     labels:
-        app: firecracker-ctl
+        app: firecracker-rootfs-init
     annotations:
         argocd.argoproj.io/hook: PostSync
         argocd.argoproj.io/hook-delete-policy: HookSucceeded
 spec:
-    backoffLimit: 2
+    backoffLimit: 3
     ttlSecondsAfterFinished: 3600
     template:
         metadata:
@@ -22,13 +22,12 @@ spec:
                   image: alpine:3.21
                   securityContext:
                       runAsUser: 0
-                  command:
-                      - /bin/sh
-                      - -c
+                  command: ['/bin/sh', '-c']
+                  args:
                       - |
                           set -eu
                           OUTPUT="/rootfs"
-                          FC_VERSION="1.10.1"
+                          KERNEL_URL="https://s3.amazonaws.com/spec.ccfc.min/firecracker-ci/v1.11/x86_64/vmlinux-5.10.225"
 
                           echo "=== Firecracker rootfs init ==="
 
@@ -37,15 +36,14 @@ spec:
                           # --- vmlinux kernel ---
                           if [ ! -f "${OUTPUT}/vmlinux" ]; then
                               echo "[1/4] Downloading vmlinux kernel..."
-                              curl -fSL "https://github.com/firecracker-microvm/firecracker/releases/download/v${FC_VERSION}/vmlinux-5.10.bin" \
-                                  -o "${OUTPUT}/vmlinux"
+                              curl -fSL "${KERNEL_URL}" -o "${OUTPUT}/vmlinux"
                               chmod 644 "${OUTPUT}/vmlinux"
-                              echo "  Kernel: $(wc -c < "${OUTPUT}/vmlinux") bytes"
+                              echo "  Kernel: $(wc -c < ${OUTPUT}/vmlinux) bytes"
                           else
                               echo "[1/4] vmlinux already exists, skipping"
                           fi
 
-                          # --- Helper: build an ext4 rootfs from an apk package list ---
+                          # --- Helper: build an ext4 rootfs ---
                           build_rootfs() {
                               NAME="$1"
                               SIZE_MB="$2"
@@ -59,9 +57,15 @@ spec:
                               fi
 
                               echo "  Building ${NAME} rootfs (${SIZE_MB}MB, packages: ${PKGS})..."
-                              TMPDIR=$(mktemp -d)
-                              ROOTFS="${TMPDIR}/rootfs"
+                              WORK=$(mktemp -d)
+                              ROOTFS="${WORK}/rootfs"
                               mkdir -p "${ROOTFS}"
+
+                              # Configure Alpine repos and keys in the chroot
+                              mkdir -p "${ROOTFS}/etc/apk"
+                              cp -a /etc/apk/keys "${ROOTFS}/etc/apk/"
+                              echo "https://dl-cdn.alpinelinux.org/alpine/v3.21/main" > "${ROOTFS}/etc/apk/repositories"
+                              echo "https://dl-cdn.alpinelinux.org/alpine/v3.21/community" >> "${ROOTFS}/etc/apk/repositories"
 
                               # Install Alpine packages into rootfs
                               apk add --root "${ROOTFS}" --initdb --no-cache \
@@ -72,26 +76,15 @@ spec:
                                        "${ROOTFS}/tmp" "${ROOTFS}/run" "${ROOTFS}/var/log"
 
                               # Init script — mounts filesystems and runs entrypoint or shell
-                              cat > "${ROOTFS}/init" << 'INITEOF'
-                          #!/bin/sh
-                          mount -t proc proc /proc
-                          mount -t sysfs sys /sys
-                          mount -t devtmpfs dev /dev
-                          if [ -x /entrypoint ]; then
-                              exec /entrypoint
-                          else
-                              exec /bin/sh
-                          fi
-                          INITEOF
+                              printf '#!/bin/sh\nmount -t proc proc /proc\nmount -t sysfs sys /sys\nmount -t devtmpfs dev /dev\nif [ -x /entrypoint ]; then\n    exec /entrypoint\nelse\n    exec /bin/sh\nfi\n' > "${ROOTFS}/init"
                               chmod +x "${ROOTFS}/init"
 
-                              # Create sparse ext4 image
+                              # Create sparse ext4 image and populate from rootfs directory
                               dd if=/dev/zero of="${TARGET}" bs=1M count=0 seek="${SIZE_MB}" 2>/dev/null
-                              mkfs.ext4 -F -d "${ROOTFS}" "${TARGET}" >/dev/null 2>&1
-                              resize2fs -M "${TARGET}" >/dev/null 2>&1
+                              mkfs.ext4 -F -d "${ROOTFS}" "${TARGET}"
 
-                              rm -rf "${TMPDIR}"
-                              echo "  ${NAME}.ext4: $(du -h "${TARGET}" | cut -f1)"
+                              rm -rf "${WORK}"
+                              echo "  ${NAME}.ext4: $(du -h ${TARGET} | cut -f1)"
                           }
 
                           # --- alpine-minimal ---
