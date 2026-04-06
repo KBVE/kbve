@@ -107,13 +107,12 @@ pub fn receive_creature_sync(
         &CreaturePoolIndex,
         &mut Creature,
         &mut SpriteData,
-        Option<&mut CreatureBrain>,
     )>,
 ) {
     for mut receiver in &mut receiver_q {
         for sync in receiver.receive() {
             for snapshot in &sync.snapshots {
-                for (mut marker, pool_idx, mut cr, mut sd, brain) in &mut creature_q {
+                for (mut marker, pool_idx, mut cr, mut sd) in &mut creature_q {
                     if marker.type_key != sync.npc_ref.as_str() {
                         continue;
                     }
@@ -142,20 +141,12 @@ pub fn receive_creature_sync(
                         break;
                     }
 
-                    // Only correct idle creatures — inject a MoveTo so the
-                    // creature hops to the server position using its normal
-                    // animation instead of teleporting.
+                    // Only correct idle creatures — set JumpWindup so
+                    // simulate_sprite_creatures picks the correct move anim
+                    // and speed from the creature type's behavior definition.
+                    // Frogs will hop, stags/wolves will run, etc.
                     if let SpriteHopState::Idle { .. } = sd.hop_state {
-                        if let Some(mut brain) = brain {
-                            brain.intent = CreatureIntent::MoveTo {
-                                target: server_pos,
-                                speed: 3.0,
-                                anim_name: "run",
-                            };
-                        } else {
-                            // No brain — use JumpWindup which simulate picks up
-                            sd.hop_state = SpriteHopState::JumpWindup { target: server_pos };
-                        }
+                        sd.hop_state = SpriteHopState::JumpWindup { target: server_pos };
                     }
 
                     break; // Found the creature
