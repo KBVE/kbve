@@ -3,40 +3,37 @@
 ## Overview
 
 Extend the KBVE edge platform with Firecracker microVM support, enabling edge
-functions to dispatch workloads into hardware-isolated virtual machines with
-sub-second boot times (~125 ms) and minimal overhead (~5 MB per VMM process).
-
-## Problem
-
-The current Supabase edge-runtime provides Deno V8 worker isolation (150 MB
-memory, 60 s timeout). This is sufficient for TypeScript functions but cannot
-run arbitrary binaries, long-running processes, or untrusted code that requires
-full OS-level isolation.
+functions and a browser-based IDE to dispatch workloads into hardware-isolated
+virtual machines with sub-second boot times (~125 ms) and minimal overhead
+(~5 MB per VMM process).
 
 ## Architecture
 
 ```
-                    ┌──────────────────────────────────┐
-                    │        Edge Runtime Pod           │
-                    │   (supabase/edge-runtime:v1.73)   │
-                    │                                    │
-                    │  Deno workers (Tier 1 — isolates)  │
-                    │    health, meme, vault, argo ...   │
-                    └────────────┬─────────────────────┘
-                                 │ HTTP/gRPC (internal)
-                                 ▼
-                    ┌──────────────────────────────────┐
-                    │     Firecracker Service Pod       │
-                    │   (kbve/firecracker-ctl:latest)   │
-                    │                                    │
-                    │  REST API → Firecracker VMM        │
-                    │  /dev/kvm mounted via device plugin │
-                    │                                    │
-                    │  Tier 2 — microVM workloads        │
-                    │  ┌─────┐ ┌─────┐ ┌─────┐         │
-                    │  │ VM1 │ │ VM2 │ │ VM3 │         │
-                    │  └─────┘ └─────┘ └─────┘         │
-                    └──────────────────────────────────┘
+Browser (dashboard/ide/)
+  ┌──────────────────────────┐
+  │ CodeMirror 6 Editor      │  Python / JavaScript / Shell
+  ├──────────────────────────┤
+  │ [Run]  preset selector   │  Configurable timeout/memory/vCPU
+  ├──────────────────────────┤
+  │ stdout / stderr / stats  │  Execution history (last 20 runs)
+  └──────────────────────────┘
+           │ /dashboard/firecracker/proxy/*
+           ▼
+  ┌──────────────────────────┐     ┌──────────────────────────┐
+  │ axum-kbve (kbve ns)      │     │ Edge Runtime (kilobase)  │
+  │ JWT auth + proxy         │     │ Deno workers (Tier 1)    │
+  └──────────────────────────┘     └──────────────────────────┘
+           │                                │
+           └────────────┬───────────────────┘
+                        ▼ HTTP :9001
+           ┌──────────────────────────┐
+           │ firecracker-ctl           │  Rust Axum REST API
+           │ (firecracker ns)          │  /dev/kvm via device plugin
+           │ ┌────┐ ┌────┐ ┌────┐    │
+           │ │VM1 │ │VM2 │ │VM3 │    │  alpine-python / alpine-node / alpine-minimal
+           │ └────┘ └────┘ └────┘    │
+           └──────────────────────────┘
 ```
 
 ### Two-tier isolation model
@@ -46,182 +43,93 @@ full OS-level isolation.
 | 1    | V8 isolates | ~10ms  | TypeScript edge functions          |
 | 2    | Firecracker | ~125ms | Arbitrary binaries, untrusted code |
 
-### Communication flow
+## Components
 
-1. Edge function receives HTTP request
-2. For VM-eligible workloads, the function POSTs to the Firecracker service
-3. Firecracker service creates/reuses a microVM
-4. microVM executes the workload and returns result
-5. Edge function forwards response to caller
+### firecracker-ctl (Rust Axum)
 
-## Infrastructure Requirements
+- **Source:** `apps/vm/firecracker-ctl/`
+- **Image:** `ghcr.io/kbve/firecracker-ctl`
+- **API:** `GET /health`, `POST /vm/create`, `GET /vm`, `GET /vm/{id}`, `GET /vm/{id}/result`, `DELETE /vm/{id}`
+- **Dockerfile:** chisel-ubuntu-axum builder + Firecracker v1.10.1 binary + jailer
 
-### Node requirements
+### Kubernetes (firecracker namespace)
 
-- Linux kernel with KVM support (Intel VT-x / AMD-V)
-- `/dev/kvm` exposed via Kubernetes device plugin
-    - Option A: `kubevirt/device-plugin-kvm` (already in cluster for KubeVirt)
-    - Option B: `smarter-project/smarter-device-manager`
-- Bare metal nodes preferred (nested virt adds latency)
+- **Manifests:** `apps/kube/firecracker/manifests/`
+- **Namespace:** `firecracker` (privileged PodSecurity for KVM + NET_ADMIN)
+- **Deployment:** `devices.kubevirt.io/kvm: 1`, `nodeSelector: kvm: true`
+- **NetworkPolicy:** Default-deny + ingress from kilobase/functions and kbve/app:kbve only, egress DNS-only
+- **PVC:** 2Gi Longhorn for rootfs images + vmlinux kernel
+- **Init Job:** Builds alpine-minimal/python/node ext4 images + downloads vmlinux in-cluster
+- **KEDA:** Scale-to-zero outside business hours, CPU-based scale-out
 
-### Kubernetes resources
+### Rootfs Images
 
-- **Namespace:** `kilobase` (co-located with edge-runtime)
-- **Device plugin:** KVM device request in pod spec
-- **Node affinity:** Schedule on nodes with `kvm=true` label
-- **RBAC:** Minimal — only needs KVM device access, no cluster-admin
+Built in-cluster by the init Job (`alpine:3.21` + `e2fsprogs` + `mkfs.ext4`):
 
-### Firecracker service pod spec (draft)
+| Image            | Size   | Contents          |
+| ---------------- | ------ | ----------------- |
+| `alpine-minimal` | ~8 MB  | Alpine + busybox  |
+| `alpine-python`  | ~45 MB | Alpine + Python 3 |
+| `alpine-node`    | ~40 MB | Alpine + Node.js  |
 
-```yaml
-containers:
-    - name: firecracker-ctl
-      image: ghcr.io/kbve/firecracker-ctl:latest
-      resources:
-          requests:
-              cpu: 250m
-              memory: 512Mi
-              devices.kubevirt.io/kvm: '1'
-          limits:
-              cpu: '2'
-              memory: 2Gi
-              devices.kubevirt.io/kvm: '1'
-      securityContext:
-          capabilities:
-              add: ['NET_ADMIN'] # for TAP device networking
-      volumeMounts:
-          - name: rootfs-cache
-            mountPath: /var/lib/firecracker/rootfs
-```
+### Dashboard IDE (`/dashboard/ide/`)
 
-## Integration Paths (evaluated)
+- **CodeMirror 6** editor with Python/JavaScript/Shell syntax switching
+- **Preset inventory:** 6 presets (Python Quick/Standard/Heavy, Node.js Quick/Standard, Shell)
+- **Execution history:** Last 20 runs with click-to-reload
+- **Proxy:** axum-kbve `/dashboard/firecracker/proxy/*` → firecracker-ctl
 
-### Path 1: Kata Containers (rejected)
+### Dashboard VM Panel (`/dashboard/vm/`)
 
-- Transparent CRI integration — every pod gets VM isolation
-- Too coarse-grained; we want selective VM dispatch, not all-pods-in-VMs
-- Adds latency to pods that don't need VM isolation
+- Firecracker section shows service health, version, active VM cards
+- Alongside KubeVirt and KASM panels
 
-### Path 2: Custom Firecracker service (selected)
+### Edge Function Integration
 
-- Dedicated service with REST API
-- Edge functions call it explicitly for VM workloads
-- Fine-grained control over rootfs images, networking, lifecycle
-- Clean separation of concerns
+- `_shared/firecracker.ts` client library
+- OWS function `firecracker.*` commands (status, create, list, destroy)
+- `FIRECRACKER_URL` env wired in functions deployment
 
-### Path 3: Fork Supabase edge-runtime (rejected)
+### Observability
 
-- Maximum integration but high maintenance burden
-- Couples VM lifecycle to Deno process — failure domains overlap
-- Upstream updates become painful to rebase
+- **Vector:** `firecracker` route → ClickHouse `observability.logs_raw`
+- **ClickHouse:** `firecracker.vm_events` + `vm_stats_1m` materialized view
+- **E2E tests:** `edge-e2e/e2e/firecracker.spec.ts`
 
-## API Design (draft)
+### CI/CD
 
-### POST /vm/create
-
-```json
-{
-	"rootfs": "alpine-minimal",
-	"vcpu_count": 1,
-	"mem_size_mib": 128,
-	"boot_args": "console=ttyS0 reboot=k panic=1",
-	"timeout_ms": 30000,
-	"env": { "TASK": "compute", "INPUT": "..." },
-	"entrypoint": "/usr/local/bin/worker"
-}
-```
-
-### Response
-
-```json
-{
-	"vm_id": "fc-a1b2c3",
-	"status": "running",
-	"created_at": "2026-04-02T12:00:00Z"
-}
-```
-
-### GET /vm/{vm_id}/result
-
-Returns the stdout/stderr and exit code once the VM completes.
-
-### DELETE /vm/{vm_id}
-
-Force-terminates a running VM.
-
-## Rootfs Images
-
-Pre-built minimal root filesystems stored as OCI artifacts in GHCR:
-
-| Image            | Size    | Contents                             |
-| ---------------- | ------- | ------------------------------------ |
-| `alpine-minimal` | ~8 MB   | Alpine + busybox, no package manager |
-| `alpine-python`  | ~45 MB  | Alpine + Python 3.12 minimal         |
-| `alpine-node`    | ~40 MB  | Alpine + Node.js 22 LTS              |
-| `ubuntu-rust`    | ~120 MB | Ubuntu minimal + Rust toolchain      |
-
-## Networking
-
-- **Option A (simple):** No networking — stdin/stdout pipe via MMDS (Firecracker metadata service)
-- **Option B (advanced):** TAP device with CNI bridge — microVM gets a routable IP
-
-Start with Option A (MMDS) — sufficient for request/response workloads. Graduate to TAP networking when persistent connections or service-to-service calls are needed.
+- CI dispatch manifest entry (`firecracker_ctl`)
+- Docker build: chisel-ubuntu-axum builder + sccache
+- Version gated via `version.toml`
 
 ## Security
 
-- Firecracker's jailer enforces cgroup + seccomp + chroot per VM
-- No root inside microVMs — drop all capabilities
-- Read-only rootfs with tmpfs overlay for scratch space
-- Network policy: only allow traffic from edge-runtime pods
-- VM timeout enforced both client-side (edge function) and server-side (firecracker-ctl)
+- Firecracker namespace: `privileged` PodSecurity (KVM + NET_ADMIN)
+- Default-deny NetworkPolicy: all pods start with zero network access
+- firecracker-ctl egress: DNS only (no access to databases, Supabase, secrets)
+- Ingress: only kilobase/functions + kbve/app:kbve on port 9001
+- Firecracker jailer: cgroup + seccomp + chroot per VM
+- Read-only rootfs with tmpfs overlay
+- Staff-only dashboard permission required
 
-## Phased Rollout
+## Completed Phases
 
-### Phase 1: Foundation (complete)
+- **Phase 1:** Design document, K8s manifests, ArgoCD app
+- **Phase 2:** Edge function client, env wiring, documentation (edge.mdx, kubernetes.mdx)
+- **Phase 3:** OWS integration, e2e tests, ClickHouse schema, KEDA scaling
+- **Phase 4:** firecracker-ctl binary, Dockerfile, rootfs Dockerfiles, Nx project
+- **Phase 5:** CI pipeline, ArgoCD registration, Vector routing, vmlinux init Job
+- **Phase 6:** Dedicated namespace (privileged), NetworkPolicy hardening, Talos kvm label
+- **Phase 7:** Dashboard VM panel, Firecracker cards component
+- **Phase 8:** Browser IDE (CodeMirror, preset inventory, execution history)
+- **Phase 9:** Rootfs init Job rewrite (build ext4 in-cluster), Docker build fixes
 
-- [x] Design document (this file)
-- [ ] Firecracker binary packaging (Dockerfile)
-- [x] Kubernetes manifests (deployment, service, PVC, NetworkPolicy)
-- [ ] Health check endpoint
+## Remaining Work
 
-### Phase 2: Core API & Integration (complete)
-
-- [ ] VM lifecycle API (create, status, result, delete)
-- [ ] MMDS-based stdin/stdout communication
-- [ ] Alpine-minimal rootfs build pipeline
-- [x] Edge function client library (`_shared/firecracker.ts`)
-- [x] FIRECRACKER_URL env wired in functions-deployment.yaml
-- [x] Main router env allowlist updated for `ows` function
-- [x] Documentation: edge.mdx expanded with Firecracker design
-- [x] Documentation: kubernetes.mdx Firecracker reference section
-
-### Phase 3: Integration (complete)
-
-- [x] Wire edge function → Firecracker via OWS module (`ows/firecracker.ts`)
-- [x] E2E tests (`edge-e2e/e2e/firecracker.spec.ts`)
-- [x] ClickHouse schema (`firecracker.vm_events` + `vm_stats_1m` materialized view)
-- [x] KEDA ScaledObject (cron + CPU-based autoscaling, scale-to-zero)
-
-### Phase 4: Production (complete)
-
-- [x] `firecracker-ctl` Rust Axum binary (`apps/vm/firecracker-ctl/`)
-- [x] Dockerfile with Firecracker v1.10.1 binary + jailer
-- [x] Nx project.json with build/test/lint/container targets
-- [x] Registered in workspace Cargo.toml
-- [x] Rootfs Dockerfiles: alpine-minimal, alpine-node, alpine-python
-
-### Phase 5: Deployment & CI (complete)
-
-- [x] CI dispatch manifest entry (`firecracker_ctl` in `ci-dispatch-manifest.json`)
-- [x] ArgoCD application registered in `kustomization.yaml`
-- [x] Vector log routing for `firecracker-ctl` → ClickHouse
-- [x] vmlinux kernel download script + K8s init Job (PostSync hook)
-- [x] version.toml for CI pipeline version gating
-
-### Phase 6: Deployment fixes & hardening (current)
-
-- [x] Remove redundant `nodeSelector` removal — keep `kvm: "true"` as defense-in-depth
-- [x] Talos machine config patch for `kvm=true` node label (`talos/patches/kvm-node-label.yaml`)
-- [ ] TAP networking (deferred — MMDS sufficient for now)
-- [ ] Warm pool (pre-booted VMs for <50ms dispatch)
+- [ ] TAP networking (deferred — MMDS sufficient for current workloads)
+- [ ] Warm VM pool (pre-booted VMs for <50ms dispatch)
 - [ ] Multi-node scheduling
+- [ ] Additional rootfs images (ubuntu-rust, alpine-go)
+- [ ] File upload to VMs (code injection via MMDS instead of env vars)
+- [ ] IDE: real-time streaming output (WebSocket)
+- [ ] IDE: file tree / multi-file support
