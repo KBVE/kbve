@@ -15,6 +15,15 @@ export interface RunResult {
 
 export type RunPhase = 'idle' | 'creating' | 'running' | 'completed' | 'failed';
 
+export interface HistoryEntry {
+	id: string;
+	preset_id: string;
+	code: string;
+	result: RunResult | null;
+	error: string | null;
+	timestamp: number;
+}
+
 export interface RuntimePreset {
 	id: string;
 	label: string;
@@ -152,14 +161,30 @@ const DEFAULT_CODES: Record<string, string> = {
 	shell: '#!/bin/sh\necho "Hello from Firecracker!"\n',
 };
 
+const MAX_HISTORY = 20;
+
 class IDEService {
 	public readonly $phase = atom<RunPhase>('idle');
 	public readonly $result = atom<RunResult | null>(null);
 	public readonly $error = atom<string | null>(null);
 	public readonly $preset = atom<RuntimePreset>(PRESETS[0]);
 	public readonly $code = atom<string>(DEFAULT_CODES.python);
+	public readonly $history = atom<HistoryEntry[]>([]);
 
 	private _abortController: AbortController | null = null;
+
+	private _pushHistory(result: RunResult | null, error: string | null): void {
+		const entry: HistoryEntry = {
+			id: result?.vm_id ?? `err-${Date.now()}`,
+			preset_id: this.$preset.get().id,
+			code: this.$code.get(),
+			result,
+			error,
+			timestamp: Date.now(),
+		};
+		const prev = this.$history.get();
+		this.$history.set([entry, ...prev].slice(0, MAX_HISTORY));
+	}
 
 	public selectPreset(presetId: string): void {
 		const preset = PRESETS.find((p) => p.id === presetId);
@@ -228,6 +253,7 @@ class IDEService {
 						`/vm/${vmId}/result`,
 					);
 					this.$result.set(result);
+					this._pushHistory(result, null);
 					this.$phase.set(
 						result.status === 'completed' && result.exit_code === 0
 							? 'completed'
@@ -248,13 +274,15 @@ class IDEService {
 			} catch {
 				// ignore
 			}
+			const timeoutErr = `Execution timed out after ${preset.timeout_ms / 1000}s`;
 			this.$phase.set('failed');
-			this.$error.set(
-				`Execution timed out after ${preset.timeout_ms / 1000}s`,
-			);
+			this.$error.set(timeoutErr);
+			this._pushHistory(this.$result.get(), timeoutErr);
 		} catch (e) {
+			const errMsg = e instanceof Error ? e.message : 'Unknown error';
 			this.$phase.set('failed');
-			this.$error.set(e instanceof Error ? e.message : 'Unknown error');
+			this.$error.set(errMsg);
+			this._pushHistory(null, errMsg);
 		}
 	}
 

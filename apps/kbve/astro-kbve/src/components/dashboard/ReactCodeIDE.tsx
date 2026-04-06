@@ -1,6 +1,11 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useStore } from '@nanostores/react';
-import { ideService, PRESETS, type RunResult } from './ideService';
+import {
+	ideService,
+	PRESETS,
+	type RunResult,
+	type HistoryEntry,
+} from './ideService';
 import { vmService } from './vmService';
 import {
 	Play,
@@ -11,9 +16,22 @@ import {
 	CheckCircle2,
 } from 'lucide-react';
 import { EditorView, basicSetup } from 'codemirror';
-import { EditorState } from '@codemirror/state';
+import { EditorState, Compartment } from '@codemirror/state';
 import { python } from '@codemirror/lang-python';
+import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
+import type { Extension } from '@codemirror/state';
+
+function langExtension(language: string): Extension {
+	switch (language) {
+		case 'python':
+			return python();
+		case 'javascript':
+			return javascript();
+		default:
+			return [];
+	}
+}
 
 function PhaseIndicator({ phase }: { phase: string }) {
 	const config: Record<
@@ -138,6 +156,7 @@ export default function ReactCodeIDE() {
 	const preset = useStore(ideService.$preset);
 	const editorRef = useRef<HTMLDivElement>(null);
 	const viewRef = useRef<EditorView | null>(null);
+	const langCompartment = useRef(new Compartment());
 
 	// Initialize CodeMirror
 	useEffect(() => {
@@ -147,7 +166,7 @@ export default function ReactCodeIDE() {
 			doc: ideService.$code.get(),
 			extensions: [
 				basicSetup,
-				python(),
+				langCompartment.current.of(langExtension(preset.language)),
 				oneDark,
 				EditorView.updateListener.of((update) => {
 					if (update.docChanged) {
@@ -173,7 +192,19 @@ export default function ReactCodeIDE() {
 			view.destroy();
 			viewRef.current = null;
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
+
+	// Switch language when preset changes
+	useEffect(() => {
+		if (viewRef.current) {
+			viewRef.current.dispatch({
+				effects: langCompartment.current.reconfigure(
+					langExtension(preset.language),
+				),
+			});
+		}
+	}, [preset.language]);
 
 	const handleRun = useCallback(() => {
 		if (token && phase !== 'creating' && phase !== 'running') {
@@ -339,6 +370,120 @@ export default function ReactCodeIDE() {
 					}}>
 					<OutputPanel result={result} error={error} />
 				</div>
+			</div>
+
+			{/* Execution History */}
+			<HistoryPanel />
+		</div>
+	);
+}
+
+function HistoryPanel() {
+	const history = useStore(ideService.$history);
+	if (history.length === 0) return null;
+
+	return (
+		<div style={{ marginTop: '1.5rem' }}>
+			<h3
+				style={{
+					fontSize: '0.95rem',
+					fontWeight: 600,
+					marginBottom: '0.75rem',
+					color: 'var(--sl-color-text, #e6edf3)',
+					display: 'flex',
+					alignItems: 'center',
+					gap: '0.4rem',
+				}}>
+				<Clock size={16} />
+				History
+				<span
+					style={{
+						fontSize: '0.75rem',
+						color: 'rgba(255,255,255,0.4)',
+						fontWeight: 400,
+					}}>
+					({history.length})
+				</span>
+			</h3>
+			<div
+				style={{
+					display: 'flex',
+					flexDirection: 'column',
+					gap: '0.5rem',
+				}}>
+				{history.map((entry: HistoryEntry) => {
+					const ok =
+						entry.result?.exit_code === 0 &&
+						entry.result?.status === 'completed';
+					const presetLabel =
+						PRESETS.find((p) => p.id === entry.preset_id)?.label ??
+						entry.preset_id;
+					const time = new Date(entry.timestamp).toLocaleTimeString();
+					return (
+						<div
+							key={entry.id + entry.timestamp}
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'space-between',
+								padding: '0.5rem 0.75rem',
+								background: 'rgba(255,255,255,0.02)',
+								border: '1px solid rgba(255,255,255,0.06)',
+								borderRadius: '8px',
+								fontSize: '0.8rem',
+								cursor: 'pointer',
+							}}
+							onClick={() => {
+								ideService.$code.set(entry.code);
+							}}
+							title="Click to load code">
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									gap: '0.5rem',
+								}}>
+								{ok ? (
+									<CheckCircle2
+										size={14}
+										style={{ color: '#22c55e' }}
+									/>
+								) : (
+									<AlertCircle
+										size={14}
+										style={{ color: '#ef4444' }}
+									/>
+								)}
+								<span
+									style={{
+										color: 'rgba(255,255,255,0.6)',
+										fontFamily: 'monospace',
+										maxWidth: 300,
+										overflow: 'hidden',
+										textOverflow: 'ellipsis',
+										whiteSpace: 'nowrap',
+									}}>
+									{entry.code
+										.split('\n')
+										.find((l) => l.trim()) ?? '(empty)'}
+								</span>
+							</div>
+							<div
+								style={{
+									display: 'flex',
+									gap: '0.75rem',
+									color: 'rgba(255,255,255,0.35)',
+									fontSize: '0.7rem',
+								}}>
+								<span>{presetLabel}</span>
+								{entry.result && (
+									<span>{entry.result.duration_ms}ms</span>
+								)}
+								<span>{time}</span>
+							</div>
+						</div>
+					);
+				})}
 			</div>
 		</div>
 	);
