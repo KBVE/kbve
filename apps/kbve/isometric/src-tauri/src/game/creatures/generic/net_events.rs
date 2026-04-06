@@ -86,17 +86,20 @@ pub fn receive_creature_events(
     }
 }
 
+/// Minimum drift to trigger a correction hop (ignore tiny differences).
+const SYNC_MIN_DRIFT: f32 = 0.5;
+/// Above this distance, force-snap (creature recycled on server).
+const SYNC_FORCE_SNAP: f32 = 15.0;
+
 /// System that receives periodic `CreaturePositionSync` messages from the server
-/// and corrects local creature simulation state to match.
+/// and corrects local creature positions using the movement system.
 ///
 /// Strategy:
-/// - **Idle creatures**: snap anchor to server position so the next hop starts
-///   from the correct spot. Sync patrol_step so future decisions align.
-/// - **Moving/airborne creatures**: do NOT touch anchor or hop state — let the
-///   current animation finish naturally. Only sync patrol_step so the *next*
-///   decision after landing will match the server.
-/// - **Large drift (>15u)**: force-snap regardless of state (creature recycled
-///   on server but not on client).
+/// - **Idle + drifted**: inject a `MoveTo` intent so the creature naturally
+///   hops toward the server position using existing animation.
+/// - **Moving/airborne**: let the current action finish. Only sync patrol_step.
+/// - **Large drift (>15u)**: force-snap (creature recycled on server).
+/// - **Small drift (<0.5u)**: ignore — close enough.
 pub fn receive_creature_sync(
     mut receiver_q: Query<&mut MessageReceiver<CreaturePositionSync>, With<Connected>>,
     mut creature_q: Query<(
@@ -104,12 +107,13 @@ pub fn receive_creature_sync(
         &CreaturePoolIndex,
         &mut Creature,
         &mut SpriteData,
+        Option<&mut CreatureBrain>,
     )>,
 ) {
     for mut receiver in &mut receiver_q {
         for sync in receiver.receive() {
             for snapshot in &sync.snapshots {
-                for (mut marker, pool_idx, mut cr, mut sd) in &mut creature_q {
+                for (mut marker, pool_idx, mut cr, mut sd, brain) in &mut creature_q {
                     if marker.type_key != sync.npc_ref.as_str() {
                         continue;
                     }
@@ -126,23 +130,31 @@ pub fn receive_creature_sync(
                     let dist = cr.anchor.distance(server_pos);
 
                     // Force-snap if very far off (creature recycled on server)
-                    if dist > 15.0 {
+                    if dist > SYNC_FORCE_SNAP {
                         cr.anchor = server_pos;
                         sd.facing_left = snapshot.facing_left;
                         sd.hop_state = SpriteHopState::Idle { timer: 0.5 };
                         break;
                     }
 
-                    // Only correct position for idle/landing creatures.
-                    // Airborne creatures finish their hop naturally — the
-                    // patrol_step sync above ensures the next hop aligns.
-                    match sd.hop_state {
-                        SpriteHopState::Idle { .. } | SpriteHopState::Landing { .. } => {
-                            cr.anchor = cr.anchor.lerp(server_pos, 0.5);
-                            sd.facing_left = snapshot.facing_left;
-                        }
-                        _ => {
-                            // Moving — don't touch position or facing
+                    // Ignore tiny drift
+                    if dist < SYNC_MIN_DRIFT {
+                        break;
+                    }
+
+                    // Only correct idle creatures — inject a MoveTo so the
+                    // creature hops to the server position using its normal
+                    // animation instead of teleporting.
+                    if let SpriteHopState::Idle { .. } = sd.hop_state {
+                        if let Some(mut brain) = brain {
+                            brain.intent = CreatureIntent::MoveTo {
+                                target: server_pos,
+                                speed: 3.0,
+                                anim_name: "run",
+                            };
+                        } else {
+                            // No brain — use JumpWindup which simulate picks up
+                            sd.hop_state = SpriteHopState::JumpWindup { target: server_pos };
                         }
                     }
 
