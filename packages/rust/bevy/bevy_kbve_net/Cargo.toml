@@ -8,7 +8,7 @@ description = "Shared lightyear protocol for KBVE multiplayer — replicated com
 default = []
 npcdb = ["bevy_npc/creature"]
 client = ["lightyear/client", "lightyear/websocket", "lightyear/webtransport", "lightyear/udp", "dep:aeronet_webtransport", "dep:lightyear_aeronet"]
-creatures = ["dep:bevy_tasker", "dep:crossbeam-channel"]
+creatures = ["npcdb", "dep:bevy_tasker", "dep:crossbeam-channel"]
 
 [dependencies]
 bevy = { version = "0.18", default-features = false, features = ["bevy_state", "bevy_render"] }

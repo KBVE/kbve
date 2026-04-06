@@ -590,6 +590,15 @@ fn run_bevy_app(
     app.insert_resource(npcdb::build_creature_registry());
     app.init_resource::<TimeSyncTimer>();
 
+    // --- Server-authoritative creature simulation ---
+    app.insert_resource(bevy_kbve_net::creatures::definitions::build_sprite_creature_types());
+    app.init_resource::<bevy_kbve_net::creatures::types::SpriteAtlasPool>();
+    app.init_resource::<bevy_kbve_net::creatures::simulate::SimulationCenter>();
+    app.init_resource::<bevy_kbve_net::creatures::common::GameTime>();
+    app.init_resource::<bevy_kbve_net::terrain::TerrainMap>();
+    app.init_resource::<bevy_kbve_net::creatures::physics_lod::PhysicsLodTimer>();
+    app.init_resource::<bevy_kbve_net::creatures::types::PlayerPositions>();
+
     // Profile bridge resources
     app.insert_resource(ProfileBridgeTx(profile_tx));
     app.insert_resource(ProfileBridgeRx(std::sync::Mutex::new(profile_rx)));
@@ -695,6 +704,23 @@ fn run_bevy_app(
 
     // Send captured creatures state to newly connected clients
     app.add_systems(Update, send_captured_state_to_new_clients);
+
+    // --- Server creature simulation (same logic as client) ---
+    app.add_systems(Update, sync_creature_game_time);
+    app.add_systems(Update, update_server_player_positions);
+    app.add_systems(
+        Update,
+        (
+            bevy_kbve_net::creatures::spawn::spawn_creatures_headless,
+            bevy_kbve_net::creatures::simulate::simulate_sprite_creatures
+                .after(bevy_kbve_net::creatures::spawn::spawn_creatures_headless),
+            bevy_kbve_net::creatures::brain::dispatch_behavior_trees
+                .after(bevy_kbve_net::creatures::simulate::simulate_sprite_creatures),
+            bevy_kbve_net::creatures::brain::poll_behavior_results
+                .after(bevy_kbve_net::creatures::brain::dispatch_behavior_trees),
+            bevy_kbve_net::creatures::physics_lod::update_physics_lod,
+        ),
+    );
 
     // Timeout clients that never authenticate
     app.add_systems(Update, timeout_pending_auth);
@@ -1810,6 +1836,27 @@ fn update_server_day_cycle(time: Res<Time>, mut day: ResMut<DayCycle>) {
     if day.hour >= 24.0 {
         day.hour -= 24.0;
     }
+}
+
+/// Sync the server's DayCycle + CreatureSeed into the shared GameTime resource
+/// so creature simulation uses the authoritative clock.
+fn sync_creature_game_time(
+    day: Res<DayCycle>,
+    seed: Res<CreatureSeed>,
+    mut game_time: ResMut<bevy_kbve_net::creatures::common::GameTime>,
+) {
+    game_time.hour = day.hour;
+    game_time.creature_seed = seed.0;
+}
+
+/// Populate the shared PlayerPositions resource from server player entities
+/// so creature physics LOD and behavior trees can sense player proximity.
+fn update_server_player_positions(
+    player_q: Query<&Transform, With<bevy_kbve_net::PlayerId>>,
+    mut positions: ResMut<bevy_kbve_net::creatures::types::PlayerPositions>,
+) {
+    positions.0.clear();
+    positions.0.extend(player_q.iter().map(|t| t.translation));
 }
 
 /// Every 5 seconds, broadcast the canonical game time to all connected clients.
