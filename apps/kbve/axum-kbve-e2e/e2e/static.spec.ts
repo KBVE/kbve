@@ -90,3 +90,65 @@ describe('Static file serving', () => {
 		expect(body).toHaveProperty('status', 'ok');
 	});
 });
+
+describe('Isometric WASM asset integrity', () => {
+	beforeAll(async () => {
+		await waitForReady();
+	});
+
+	it('serves isometric_game.js wasm-bindgen glue', async () => {
+		const res = await fetch(
+			`${BASE_URL}/isometric/assets/isometric_game.js`,
+		);
+		expect(res.status).toBe(200);
+		const ct = res.headers.get('content-type') ?? '';
+		expect(ct).toContain('javascript');
+		const body = await res.text();
+		// Must contain wasm-bindgen glue (initSync, worker_entry_point exports)
+		expect(body).toContain('initSync');
+	});
+
+	it('isometric_game.js snippet imports resolve', async () => {
+		const res = await fetch(
+			`${BASE_URL}/isometric/assets/isometric_game.js`,
+		);
+		if (res.status !== 200) return;
+		const body = await res.text();
+		// Extract all relative snippet imports (e.g. ./snippets/bevy_tasker-.../inline0.js)
+		const importPaths = [...body.matchAll(/from\s+['"](\.\/.+?)['"]/g)].map(
+			(m) => m[1],
+		);
+		expect(importPaths.length).toBeGreaterThan(0);
+		for (const relPath of importPaths) {
+			const url = `${BASE_URL}/isometric/assets/${relPath}`;
+			const snippet = await fetch(url);
+			expect(
+				snippet.status,
+				`snippet ${relPath} should exist at ${url}`,
+			).toBe(200);
+		}
+	});
+
+	it('serves WASM binary (precompressed)', async () => {
+		const res = await fetch(
+			`${BASE_URL}/isometric/assets/isometric_game_bg.wasm`,
+			{ headers: { 'Accept-Encoding': 'br, gzip' } },
+		);
+		// Server should serve the precompressed variant
+		expect(res.status).toBe(200);
+	});
+
+	it('serves wasm-worker.js for pthread spawning', async () => {
+		const res = await fetch(`${BASE_URL}/isometric/wasm-worker.js`);
+		expect(res.status).toBe(200);
+		const body = await res.text();
+		expect(body).toContain('worker_entry_point');
+	});
+
+	it('serves index.js entry point', async () => {
+		const res = await fetch(`${BASE_URL}/isometric/assets/index.js`);
+		expect(res.status).toBe(200);
+		const ct = res.headers.get('content-type') ?? '';
+		expect(ct).toContain('javascript');
+	});
+});
