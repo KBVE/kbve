@@ -678,11 +678,11 @@ class HomeService {
 			}
 
 			this.$accessToken.set(session.access_token as string);
-			this.$authState.set('authenticated');
 
-			// Check staff permissions directly via Supabase RPC.
-			// Don't rely on profile-controller setting $auth.flags —
-			// it runs on the main site shell, not on dashboard pages.
+			// Check staff permissions BEFORE setting authenticated.
+			// The status banner's useEffect fires fetchAll() on
+			// authState change — if isStaff isn't resolved yet,
+			// staff panels get permanently marked 'unavailable'.
 			try {
 				const perms = await supa.rpc('staff_permissions');
 				const hasStaff = typeof perms === 'number' && perms > 0;
@@ -694,11 +694,15 @@ class HomeService {
 				// Non-critical — staff panels just won't show
 			}
 
+			this.$authState.set('authenticated');
+
 			// Also subscribe in case profile-controller sets it later
 			const syncStaff = () => {
 				const { flags } = $auth.get();
 				if (hasAuthFlag(flags, AuthFlags.STAFF)) {
-					this.$isStaff.set(true);
+					if (!this.$isStaff.get()) {
+						this.$isStaff.set(true);
+					}
 				}
 			};
 			$auth.subscribe(syncStaff);
