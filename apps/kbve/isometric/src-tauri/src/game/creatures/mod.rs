@@ -107,6 +107,7 @@ impl Plugin for CreaturesPlugin {
                 generic::physics_lod::update_physics_lod
                     .run_if(any_with_component::<generic::PhysicsLod>),
                 generic::net_events::receive_creature_events,
+                generic::net_events::receive_creature_sync,
             ),
         );
     }

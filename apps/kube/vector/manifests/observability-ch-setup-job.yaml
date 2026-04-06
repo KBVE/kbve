@@ -1,0 +1,135 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: observability-ch-setup-script
+    namespace: vector
+data:
+    setup.sh: |
+        #!/bin/sh
+        set -eu
+
+        echo "Verifying ClickHouse connectivity..."
+        CH_TEST=$(curl -sf --max-time 10 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "SELECT 1" 2>&1) || {
+          echo "ERROR: Cannot connect to ClickHouse at ${CLICKHOUSE_ENDPOINT}"
+          exit 1
+        }
+        echo "ClickHouse connection OK."
+
+        echo "Creating observability database..."
+        curl -sf --max-time 10 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "CREATE DATABASE IF NOT EXISTS observability ON CLUSTER 'cluster'" || {
+          echo "ERROR: Failed to create observability database"
+          exit 1
+        }
+        echo "Database 'observability' ready."
+
+        echo "Creating logs_raw table (ReplicatedMergeTree)..."
+        curl -sf --max-time 30 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "
+        CREATE TABLE IF NOT EXISTS observability.logs_raw ON CLUSTER 'cluster'
+        (
+            timestamp       DateTime64(3, 'UTC'),
+            service         LowCardinality(String),
+            level           LowCardinality(String),
+            message         String,
+            metadata        String DEFAULT '{}',
+            pod_name        String DEFAULT '',
+            pod_namespace   LowCardinality(String) DEFAULT '',
+            ingested_at     DateTime64(3, 'UTC') DEFAULT now64(3)
+        )
+        ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/observability/logs_raw', '{replica}')
+        ORDER BY (service, timestamp)
+        PARTITION BY toYYYYMMDD(timestamp)
+        TTL toDateTime(timestamp) + INTERVAL 45 DAY
+        " || {
+          echo "ERROR: Failed to create logs_raw table"
+          exit 1
+        }
+        echo "Table 'observability.logs_raw' ready."
+
+        echo "Creating logs_distributed table (Distributed)..."
+        curl -sf --max-time 30 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "
+        CREATE TABLE IF NOT EXISTS observability.logs_distributed ON CLUSTER 'cluster'
+        AS observability.logs_raw
+        ENGINE = Distributed('cluster', 'observability', 'logs_raw', rand())
+        " || {
+          echo "ERROR: Failed to create logs_distributed table"
+          exit 1
+        }
+        echo "Table 'observability.logs_distributed' ready."
+
+        echo ""
+        echo "Observability schema setup complete."
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: observability-ch-setup
+    namespace: vector
+    labels:
+        app: observability-ch-setup
+        component: vector
+    annotations:
+        kbve.sh/last-updated: '2026-04-05'
+        argocd.argoproj.io/hook: PostSync
+spec:
+    ttlSecondsAfterFinished: 86400
+    backoffLimit: 3
+    template:
+        metadata:
+            labels:
+                app: observability-ch-setup
+        spec:
+            restartPolicy: OnFailure
+            containers:
+                - name: setup
+                  image: curlimages/curl:8.12.1
+                  command: ['/bin/sh', '/scripts/setup.sh']
+                  env:
+                      - name: CLICKHOUSE_ENDPOINT
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-vector-credentials
+                                key: endpoint
+                      - name: CLICKHOUSE_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-vector-credentials
+                                key: username
+                      - name: CLICKHOUSE_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-vector-credentials
+                                key: password
+                  volumeMounts:
+                      - name: setup-script
+                        mountPath: /scripts
+                        readOnly: true
+                  resources:
+                      requests:
+                          memory: '32Mi'
+                          cpu: '50m'
+                      limits:
+                          memory: '64Mi'
+                          cpu: '100m'
+                  securityContext:
+                      runAsNonRoot: true
+                      runAsUser: 1000
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+            volumes:
+                - name: setup-script
+                  configMap:
+                      name: observability-ch-setup-script
+                      defaultMode: 0555
