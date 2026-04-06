@@ -18,9 +18,9 @@ use lightyear::prelude::*;
 use bevy_kbve_net::npcdb::{self, CreatureRegistry, ProtoNpcId, creature::CapturedCreatures};
 use bevy_kbve_net::{
     AuthAck, AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
-    CreatureKind, DamageEvent, GameChannel, ObjectRemoved, ObjectRespawned, PlayerName,
-    PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse, TileKey, TimeChannel,
-    TimeSyncMessage,
+    CreatureKind, CreaturePositionSync, CreatureSnapshot, CreatureSyncChannel, DamageEvent,
+    GameChannel, ObjectRemoved, ObjectRespawned, PlayerName, PositionUpdate, ProtocolPlugin,
+    SetUsernameRequest, SetUsernameResponse, TileKey, TimeChannel, TimeSyncMessage,
 };
 
 /// Server tick rate: 20 Hz (matching client).
@@ -149,6 +149,16 @@ struct TimeSyncTimer(Timer);
 impl Default for TimeSyncTimer {
     fn default() -> Self {
         Self(Timer::from_seconds(5.0, TimerMode::Repeating))
+    }
+}
+
+/// Timer for periodic creature position sync broadcasts (every 2 seconds).
+#[derive(Resource)]
+struct CreatureSyncTimer(Timer);
+
+impl Default for CreatureSyncTimer {
+    fn default() -> Self {
+        Self(Timer::from_seconds(2.0, TimerMode::Repeating))
     }
 }
 
@@ -589,6 +599,7 @@ fn run_bevy_app(
     app.init_resource::<CapturedCreatures>();
     app.insert_resource(npcdb::build_creature_registry());
     app.init_resource::<TimeSyncTimer>();
+    app.init_resource::<CreatureSyncTimer>();
 
     // --- Server-authoritative creature simulation ---
     app.insert_resource(bevy_kbve_net::creatures::definitions::build_sprite_creature_types());
@@ -721,6 +732,9 @@ fn run_bevy_app(
             bevy_kbve_net::creatures::physics_lod::update_physics_lod,
         ),
     );
+
+    // Broadcast creature positions to clients periodically
+    app.add_systems(Update, broadcast_creature_sync);
 
     // Timeout clients that never authenticate
     app.add_systems(Update, timeout_pending_auth);
@@ -1857,6 +1871,86 @@ fn update_server_player_positions(
 ) {
     positions.0.clear();
     positions.0.extend(player_q.iter().map(|t| t.translation));
+}
+
+/// Maximum distance from any player to include a creature in the sync broadcast.
+const CREATURE_SYNC_RADIUS: f32 = 80.0;
+
+/// Periodically broadcast server creature positions to all clients.
+/// Only sends creatures within `CREATURE_SYNC_RADIUS` of at least one player.
+fn broadcast_creature_sync(
+    time: Res<Time>,
+    mut timer: ResMut<CreatureSyncTimer>,
+    creature_q: Query<(
+        &bevy_kbve_net::creatures::types::Creature,
+        &bevy_kbve_net::creatures::types::SpriteData,
+        &bevy_kbve_net::creatures::types::CreaturePoolIndex,
+        &bevy_kbve_net::creatures::types::SpriteCreatureMarker,
+    )>,
+    types: Res<bevy_kbve_net::creatures::types::SpriteCreatureTypes>,
+    player_positions: Res<bevy_kbve_net::creatures::types::PlayerPositions>,
+    mut senders: Query<&mut MessageSender<CreaturePositionSync>, With<Connected>>,
+) {
+    timer.0.tick(time.delta());
+    if !timer.0.just_finished() {
+        return;
+    }
+
+    // No players connected — nothing to sync
+    if player_positions.0.is_empty() {
+        return;
+    }
+
+    let sync_radius_sq = CREATURE_SYNC_RADIUS * CREATURE_SYNC_RADIUS;
+
+    // Build one sync message per creature type
+    for ctype in &types.types {
+        let mut snapshots = Vec::new();
+        for (cr, sd, pool_idx, marker) in &creature_q {
+            if marker.type_key != ctype.npc_ref {
+                continue;
+            }
+            // Only include creatures near at least one player
+            let near_player = player_positions.0.iter().any(|p| {
+                let dx = cr.anchor.x - p.x;
+                let dz = cr.anchor.z - p.z;
+                dx * dx + dz * dz <= sync_radius_sq
+            });
+            if !near_player {
+                continue;
+            }
+
+            let hop_state = match sd.hop_state {
+                bevy_kbve_net::creatures::types::SpriteHopState::Idle { .. } => 0,
+                bevy_kbve_net::creatures::types::SpriteHopState::Emote { .. } => 1,
+                bevy_kbve_net::creatures::types::SpriteHopState::JumpWindup { .. } => 2,
+                bevy_kbve_net::creatures::types::SpriteHopState::Airborne { .. } => 3,
+                bevy_kbve_net::creatures::types::SpriteHopState::Landing { .. } => 4,
+            };
+            snapshots.push(CreatureSnapshot {
+                index: pool_idx.0 as u32,
+                x: cr.anchor.x,
+                y: cr.anchor.y,
+                z: cr.anchor.z,
+                hop_state,
+                patrol_step: marker.patrol_step,
+                facing_left: sd.facing_left,
+            });
+        }
+
+        if snapshots.is_empty() {
+            continue;
+        }
+
+        let msg = CreaturePositionSync {
+            npc_ref: ctype.npc_ref.to_string(),
+            snapshots,
+        };
+
+        for mut sender in &mut senders {
+            sender.send::<CreatureSyncChannel>(msg.clone());
+        }
+    }
 }
 
 /// Every 5 seconds, broadcast the canonical game time to all connected clients.
