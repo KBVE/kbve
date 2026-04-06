@@ -9,6 +9,7 @@ pub mod common;
 pub mod definitions;
 pub mod influence;
 pub mod nav_grid;
+pub mod nav_systems;
 pub mod patrol;
 pub mod physics_lod;
 pub mod simulate;

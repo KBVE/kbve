@@ -80,13 +80,14 @@ pub struct TileNav {
 // Per-chunk navigation data (16×16 = 256 tiles)
 // ---------------------------------------------------------------------------
 
+#[derive(Clone)]
 pub struct ChunkNav {
     pub tiles: [TileNav; 256],
 }
 
 impl ChunkNav {
     /// Generate nav data for a chunk. Pure function of seed + chunk coords.
-    fn generate(cx: i32, cz: i32) -> Self {
+    pub fn generate(cx: i32, cz: i32) -> Self {
         let mut tiles = [TileNav {
             height: 0.0,
             band: TerrainBand::Water,
@@ -215,5 +216,30 @@ impl NavGrid {
         self.chunks.retain(|&(cx, cz), _| {
             (cx - center_cx).abs() <= keep_radius && (cz - center_cz).abs() <= keep_radius
         });
+    }
+
+    // --- Off-thread support ---
+
+    /// Set of currently loaded chunk coords (for the async dispatch to know what's missing).
+    pub fn built_chunk_set(&self) -> std::collections::HashSet<(i32, i32)> {
+        self.chunks.keys().copied().collect()
+    }
+
+    /// Lightweight clone for sending to a background task.
+    /// Only copies the chunk coordinate set — the task will recompute tile data.
+    pub fn clone_for_task(&self) -> Self {
+        Self {
+            chunks: self.chunks.iter().map(|(&k, v)| (k, v.clone())).collect(),
+        }
+    }
+
+    /// Insert a pre-computed chunk (used by the task-local copy).
+    pub fn insert_chunk(&mut self, cx: i32, cz: i32, chunk: &ChunkNav) {
+        self.chunks.insert((cx, cz), chunk.clone());
+    }
+
+    /// Merge a chunk from a background task into the main-thread NavGrid.
+    pub fn merge_chunk(&mut self, cx: i32, cz: i32, chunk: ChunkNav) {
+        self.chunks.entry((cx, cz)).or_insert(chunk);
     }
 }

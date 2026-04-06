@@ -50,7 +50,7 @@ pub struct Waypoint {
 // ---------------------------------------------------------------------------
 
 /// Regional waypoint graph built from NavGrid data.
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Clone)]
 pub struct WaypointGraph {
     pub waypoints: Vec<Waypoint>,
     /// Adjacency list indexed by waypoint id: `(neighbor_id, edge_cost)`.
@@ -62,6 +62,11 @@ pub struct WaypointGraph {
 }
 
 impl WaypointGraph {
+    /// Set of chunks that already have waypoints built.
+    pub fn built_chunk_set(&self) -> HashSet<(i32, i32)> {
+        self.built_chunks.clone()
+    }
+
     /// Build waypoints for all chunks in the given region.
     /// Skips already-built chunks. Call after NavGrid chunks are loaded.
     pub fn build_for_region(
