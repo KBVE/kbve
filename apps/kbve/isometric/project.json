@@ -57,7 +57,9 @@
 				"commands": [
 					"rm -rf ../astro-kbve/public/isometric",
 					"mkdir -p ../astro-kbve/public",
-					"cp -r dist ../astro-kbve/public/isometric"
+					"cp -r dist ../astro-kbve/public/isometric",
+					"git add ../astro-kbve/public/isometric",
+					"git commit -m 'chore|build: isometric client.'"
 				],
 				"cwd": "apps/kbve/isometric"
 			}
