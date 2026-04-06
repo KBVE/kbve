@@ -84,6 +84,7 @@ COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
 COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
 COPY packages/rust/bevy/bevy_kbve_net/Cargo.toml packages/rust/bevy/bevy_kbve_net/Cargo.toml
 COPY packages/rust/bevy/bevy_npc/Cargo.toml packages/rust/bevy/bevy_npc/Cargo.toml
+COPY packages/rust/bevy/bevy_tasker/Cargo.toml packages/rust/bevy/bevy_tasker/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
@@ -91,7 +92,8 @@ RUN mkdir -p apps/kbve/axum-kbve/src && echo "fn main() {}" > apps/kbve/axum-kbv
     mkdir -p packages/rust/jedi/src && echo "" > packages/rust/jedi/src/lib.rs && \
     mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_kbve_net/src && echo "" > packages/rust/bevy/bevy_kbve_net/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_npc/src && echo "" > packages/rust/bevy/bevy_npc/src/lib.rs
+    mkdir -p packages/rust/bevy/bevy_npc/src && echo "" > packages/rust/bevy/bevy_npc/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_tasker/src && echo "" > packages/rust/bevy/bevy_tasker/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -130,11 +132,12 @@ COPY packages/rust/jedi packages/rust/jedi
 COPY packages/rust/kbve packages/rust/kbve
 COPY packages/rust/bevy/bevy_kbve_net packages/rust/bevy/bevy_kbve_net
 COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
+COPY packages/rust/bevy/bevy_tasker packages/rust/bevy/bevy_tasker
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    cargo build --release -p kbve -p jedi -p bevy_kbve_net -p bevy_npc
+    cargo build --release -p kbve -p jedi -p bevy_kbve_net -p bevy_npc -p bevy_tasker
 
 # ============================================================================
 # [STAGE F] - Build Application
@@ -154,6 +157,7 @@ COPY packages/rust/jedi packages/rust/jedi
 COPY packages/rust/kbve packages/rust/kbve
 COPY packages/rust/bevy/bevy_kbve_net packages/rust/bevy/bevy_kbve_net
 COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
+COPY packages/rust/bevy/bevy_tasker packages/rust/bevy/bevy_tasker
 
 # Application source (most frequently changing — placed last for cache)
 COPY apps/kbve/axum-kbve apps/kbve/axum-kbve
