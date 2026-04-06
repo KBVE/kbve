@@ -1276,7 +1276,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.98"
+version = "1.0.99"
 dependencies = [
  "anyhow",
  "askama",
@@ -7771,6 +7771,7 @@ dependencies = [
  "base64 0.22.1",
  "bevy",
  "bevy_cam",
+ "bevy_db",
  "bevy_inventory",
  "bevy_items",
  "bevy_kbve_net",

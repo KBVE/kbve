@@ -142,7 +142,7 @@ struct OwnReplicatedPlayer;
 
 /// Server-authoritative time received via TimeSyncMessage.
 /// When present and `active` is true, weather.rs defers to this instead of local DayCycle.
-#[derive(Resource)]
+#[derive(Resource, serde::Serialize, serde::Deserialize)]
 pub struct ServerTime {
     pub game_hour: f32,
     pub day_speed: f32,
