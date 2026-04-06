@@ -108,6 +108,7 @@ impl Plugin for CreaturesPlugin {
                     .run_if(any_with_component::<generic::PhysicsLod>),
                 generic::net_events::receive_creature_events,
                 generic::net_events::receive_creature_sync,
+                generic::net_events::receive_ambient_creature_sync,
             ),
         );
     }
