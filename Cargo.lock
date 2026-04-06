@@ -1276,7 +1276,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.96"
+version = "1.0.97"
 dependencies = [
  "anyhow",
  "askama",
@@ -2175,6 +2175,7 @@ dependencies = [
  "bevy_tasker",
  "bytes",
  "crossbeam-channel",
+ "dashmap 6.1.0",
  "getrandom 0.2.17",
  "getrandom 0.3.4",
  "getrandom 0.4.2",
@@ -4667,7 +4668,7 @@ dependencies = [
 
 [[package]]
 name = "discordsh-bot"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "anyhow",
  "askama",

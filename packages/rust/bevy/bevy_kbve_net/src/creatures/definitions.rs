@@ -1,6 +1,7 @@
 //! Creature type descriptors — the data that drives the generic system.
 
 use super::behavior::BehaviorNode;
+use super::influence;
 use super::types::*;
 
 /// Build all sprite creature type descriptors.
@@ -78,6 +79,8 @@ fn boar() -> SpriteCreatureType {
             max_mana: 0.0,
             max_energy: 50.0,
         },
+        influence: Some(influence::BOAR_INFLUENCE.clone()),
+        patrol_emotes: &[],
     }
 }
 
@@ -90,21 +93,20 @@ fn boar_tree() -> BehaviorNode {
                 anim: "run",
             },
         ]),
-        BehaviorNode::Selector(vec![
-            BehaviorNode::Chance {
-                probability: 0.4,
-                child: Box::new(BehaviorNode::Wander {
-                    min_dist: 2.0,
-                    max_dist: 5.0,
-                    speed: 3.5,
-                    anim: "run",
-                }),
-            },
-            BehaviorNode::Idle {
-                min: 3.0,
-                max: 10.0,
-            },
-        ]),
+        BehaviorNode::FollowPatrol {
+            speed: 3.5,
+            anim: "run",
+        },
+        BehaviorNode::Wander {
+            min_dist: 2.0,
+            max_dist: 5.0,
+            speed: 3.5,
+            anim: "run",
+        },
+        BehaviorNode::Idle {
+            min: 3.0,
+            max: 10.0,
+        },
     ])
 }
 
@@ -194,14 +196,35 @@ fn badger() -> SpriteCreatureType {
                 },
             ],
         },
-        behavior_tree: None,
+        behavior_tree: Some(badger_tree()),
         physics_lod: None,
         vitals: VitalsConfig {
             max_health: 15.0,
             max_mana: 0.0,
             max_energy: 40.0,
         },
+        influence: Some(influence::BADGER_INFLUENCE.clone()),
+        patrol_emotes: &["burrow", "unburrow"],
     }
+}
+
+fn badger_tree() -> BehaviorNode {
+    BehaviorNode::Selector(vec![
+        BehaviorNode::FollowPatrol {
+            speed: 1.5,
+            anim: "walk",
+        },
+        BehaviorNode::Wander {
+            min_dist: 1.0,
+            max_dist: 3.0,
+            speed: 1.5,
+            anim: "walk",
+        },
+        BehaviorNode::Idle {
+            min: 3.0,
+            max: 10.0,
+        },
+    ])
 }
 
 // ---------------------------------------------------------------------------
@@ -297,6 +320,8 @@ fn wolf() -> SpriteCreatureType {
             max_mana: 0.0,
             max_energy: 60.0,
         },
+        influence: Some(influence::WOLF_INFLUENCE.clone()),
+        patrol_emotes: &["howl", "bite"],
     }
 }
 
@@ -309,21 +334,20 @@ fn wolf_tree() -> BehaviorNode {
                 anim: "run",
             },
         ]),
-        BehaviorNode::Selector(vec![
-            BehaviorNode::Chance {
-                probability: 0.4,
-                child: Box::new(BehaviorNode::Wander {
-                    min_dist: 2.0,
-                    max_dist: 5.0,
-                    speed: 3.0,
-                    anim: "run",
-                }),
-            },
-            BehaviorNode::Idle {
-                min: 3.0,
-                max: 10.0,
-            },
-        ]),
+        BehaviorNode::FollowPatrol {
+            speed: 3.0,
+            anim: "run",
+        },
+        BehaviorNode::Wander {
+            min_dist: 2.0,
+            max_dist: 5.0,
+            speed: 3.0,
+            anim: "run",
+        },
+        BehaviorNode::Idle {
+            min: 3.0,
+            max: 10.0,
+        },
     ])
 }
 
@@ -408,6 +432,8 @@ fn stag() -> SpriteCreatureType {
             max_mana: 0.0,
             max_energy: 70.0,
         },
+        influence: Some(influence::STAG_INFLUENCE.clone()),
+        patrol_emotes: &[],
     }
 }
 
@@ -420,30 +446,20 @@ fn stag_tree() -> BehaviorNode {
                 anim: "run",
             },
         ]),
-        BehaviorNode::Selector(vec![
-            BehaviorNode::Chance {
-                probability: 0.35,
-                child: Box::new(BehaviorNode::Wander {
-                    min_dist: 1.5,
-                    max_dist: 3.5,
-                    speed: 1.8,
-                    anim: "walk",
-                }),
-            },
-            BehaviorNode::Chance {
-                probability: 0.15,
-                child: Box::new(BehaviorNode::Wander {
-                    min_dist: 3.0,
-                    max_dist: 7.0,
-                    speed: 4.0,
-                    anim: "run",
-                }),
-            },
-            BehaviorNode::Idle {
-                min: 4.0,
-                max: 12.0,
-            },
-        ]),
+        BehaviorNode::FollowPatrol {
+            speed: 1.8,
+            anim: "walk",
+        },
+        BehaviorNode::Wander {
+            min_dist: 1.5,
+            max_dist: 3.5,
+            speed: 1.8,
+            anim: "walk",
+        },
+        BehaviorNode::Idle {
+            min: 4.0,
+            max: 12.0,
+        },
     ])
 }
 
@@ -506,14 +522,35 @@ fn frog() -> SpriteCreatureType {
                 },
             ],
         },
-        behavior_tree: None,
+        behavior_tree: Some(frog_tree()),
         physics_lod: None,
         vitals: VitalsConfig {
             max_health: 5.0,
             max_mana: 0.0,
             max_energy: 20.0,
         },
+        influence: Some(influence::FROG_INFLUENCE.clone()),
+        patrol_emotes: &[],
     }
+}
+
+fn frog_tree() -> BehaviorNode {
+    BehaviorNode::Selector(vec![
+        BehaviorNode::FollowPatrol {
+            speed: 2.0,
+            anim: "jump",
+        },
+        BehaviorNode::Wander {
+            min_dist: 0.5,
+            max_dist: 2.0,
+            speed: 2.0,
+            anim: "jump",
+        },
+        BehaviorNode::Idle {
+            min: 3.0,
+            max: 10.0,
+        },
+    ])
 }
 
 // ---------------------------------------------------------------------------
@@ -626,19 +663,22 @@ fn wraith() -> SpriteCreatureType {
             max_mana: 30.0,
             max_energy: 40.0,
         },
+        influence: Some(influence::WRAITH_INFLUENCE.clone()),
+        patrol_emotes: &["attack", "skill", "summon"],
     }
 }
 
 fn wraith_tree() -> BehaviorNode {
     BehaviorNode::Selector(vec![
-        BehaviorNode::Chance {
-            probability: 0.3,
-            child: Box::new(BehaviorNode::Wander {
-                min_dist: 1.5,
-                max_dist: 4.0,
-                speed: 1.2,
-                anim: "idle2",
-            }),
+        BehaviorNode::FollowPatrol {
+            speed: 1.2,
+            anim: "idle2",
+        },
+        BehaviorNode::Wander {
+            min_dist: 1.5,
+            max_dist: 4.0,
+            speed: 1.2,
+            anim: "idle2",
         },
         BehaviorNode::Idle {
             min: 4.0,

@@ -408,6 +408,11 @@ pub struct SpriteCreatureType {
     pub physics_lod: Option<super::physics_lod::PhysicsLodConfig>,
     /// Vitals configuration (health, mana, energy). Every creature gets vitals.
     pub vitals: VitalsConfig,
+    /// Optional influence profile for waypoint-based patrol routing.
+    /// When present, creatures get a `PatrolRoute` component at spawn.
+    pub influence: Option<super::influence::InfluenceProfile>,
+    /// Emote animation names available for dwell actions during patrol.
+    pub patrol_emotes: &'static [&'static str],
 }
 
 // ---------------------------------------------------------------------------

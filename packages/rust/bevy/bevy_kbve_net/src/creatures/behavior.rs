@@ -53,6 +53,9 @@ pub enum BehaviorNode {
     Emote { anim: &'static str, repeat: u32 },
     /// Enter idle state for a random duration.
     Idle { min: f32, max: f32 },
+    /// Follow the creature's pre-computed patrol route.
+    /// Reads `patrol_target` / `patrol_dwell` from the snapshot.
+    FollowPatrol { speed: f32, anim: &'static str },
 }
 
 // ---------------------------------------------------------------------------
@@ -70,6 +73,10 @@ pub struct WorldSnapshot {
     pub is_idle: bool,
     /// Terrain height at the creature's anchor.
     pub ground_at_anchor: f32,
+    /// Next patrol waypoint target (if creature has a patrol route).
+    pub patrol_target: Option<Vec3>,
+    /// Dwell action at current waypoint (if creature just arrived).
+    pub patrol_dwell: Option<super::patrol::DwellAction>,
 }
 
 // ---------------------------------------------------------------------------
@@ -230,6 +237,37 @@ fn eval_node(node: &BehaviorNode, snap: &WorldSnapshot) -> NodeResult {
         BehaviorNode::Idle { min, max } => {
             let duration = min + hash_f32(snap.patrol_seed.wrapping_add(300)) * (max - min);
             NodeResult::Success(CreatureIntent::SetIdle { duration })
+        }
+
+        // --- Patrol ---
+        BehaviorNode::FollowPatrol { speed, anim } => {
+            // If we have a dwell action, execute it (we just arrived at a waypoint)
+            if let Some(ref dwell) = snap.patrol_dwell {
+                return match dwell {
+                    super::patrol::DwellAction::Idle { duration } => {
+                        NodeResult::Success(CreatureIntent::SetIdle {
+                            duration: *duration,
+                        })
+                    }
+                    super::patrol::DwellAction::Emote { anim, repeat } => {
+                        NodeResult::Success(CreatureIntent::Emote {
+                            anim_name: anim,
+                            repeat: *repeat,
+                        })
+                    }
+                };
+            }
+            // If we have a patrol target, move toward it
+            if let Some(target) = snap.patrol_target {
+                NodeResult::Success(CreatureIntent::MoveTo {
+                    target,
+                    speed: *speed,
+                    anim_name: anim,
+                })
+            } else {
+                // No patrol route — fall through to next behavior
+                NodeResult::Failure
+            }
         }
     }
 }
