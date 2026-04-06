@@ -10,6 +10,7 @@ homepage = "https://kbve.com/"
 repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_tasker"
 keywords = ["bevy", "async", "wasm", "tasks", "gamedev"]
 categories = ["game-development", "asynchronous"]
+readme = "README.md"
 
 [dependencies]
 async-task = { version = "4.7", default-features = false }
