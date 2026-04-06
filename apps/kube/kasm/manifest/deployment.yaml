@@ -71,6 +71,18 @@ spec:
                         value: '6901'
                       - name: FIREWALL_OUTBOUND_SUBNETS
                         value: '10.0.0.0/8,172.16.0.0/12'
+                      # Disable DNS-over-TLS — port 853 is blocked
+                      # through the WireGuard tunnel, causing gluetun's
+                      # internal healthcheck to fail every 6s.
+                      - name: DOT
+                        value: 'off'
+                      # Use plaintext DNS through the tunnel instead
+                      - name: DNS_ADDRESS
+                        value: '1.1.1.1'
+                      # Give VPN tunnel time to stabilize before
+                      # gluetun's internal healthcheck starts checking
+                      - name: HEALTH_VPN_DURATION_INITIAL
+                        value: '30s'
                       # Health check server
                       - name: HEALTH_SERVER_ADDRESS
                         value: '0.0.0.0:9999'
