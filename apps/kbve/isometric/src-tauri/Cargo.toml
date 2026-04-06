@@ -54,6 +54,7 @@ bevy_inventory = { path = "../../../../packages/rust/bevy/bevy_inventory" }
 bevy_items = { path = "../../../../packages/rust/bevy/bevy_items", features = ["inventory"] }
 bevy_cam = { path = "../../../../packages/rust/bevy/bevy_cam" }
 bevy_kbve_net = { path = "../../../../packages/rust/bevy/bevy_kbve_net", features = ["npcdb", "client"] }
+bevy_db = { path = "../../../../packages/rust/bevy/bevy_db" }
 lightyear = { version = "0.26", default-features = false, features = [
     "client",
     "replication",
