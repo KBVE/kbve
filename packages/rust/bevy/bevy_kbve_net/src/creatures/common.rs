@@ -79,6 +79,25 @@ pub fn night_factor(hour: f32) -> f32 {
 // Shared animation helpers
 // ---------------------------------------------------------------------------
 
+/// Reusable flutter offset — overlapping sine waves for erratic insect motion.
+/// `amp` scales the overall amplitude (1.0 = full wander, 0.3 = subtle entry flutter).
+pub fn flutter_offset(t: f32, phase: f32, speed: f32, radius: f32, amp: f32) -> Vec3 {
+    let p = phase;
+    let spd = speed;
+    let r = radius * amp;
+    let ox = (t * spd * 0.6 + p * 6.28).sin() * r
+        + (t * spd * 1.7 + p * 2.1).sin() * r * 0.3
+        + (t * spd * 3.1 + p * 4.5).cos() * r * 0.1;
+    let oy = ((t * spd * 0.8 + p * 3.14).sin() * 0.25
+        + (t * spd * 2.3 + p * 1.57).cos() * 0.12
+        + (t * spd * 4.0 + p * 5.0).sin() * 0.06)
+        * amp;
+    let oz = (t * spd * 0.5 + p * 4.71).cos() * r
+        + (t * spd * 1.9 + p * 3.3).cos() * r * 0.25
+        + (t * spd * 2.8 + p * 0.7).sin() * r * 0.08;
+    Vec3::new(ox, oy, oz)
+}
+
 /// Compute scene center from camera position (isometric offset convention).
 pub fn scene_center(cam_pos: Vec3) -> Vec3 {
     Vec3::new(cam_pos.x - 15.0, 0.0, cam_pos.z - 15.0)
