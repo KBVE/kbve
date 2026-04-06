@@ -101,8 +101,10 @@ const SYNC_FORCE_SNAP: f32 = 15.0;
 /// - **Large drift (>15u)**: force-snap (creature recycled on server).
 /// - **Small drift (<0.5u)**: ignore — close enough.
 pub fn receive_creature_sync(
+    mut commands: Commands,
     mut receiver_q: Query<&mut MessageReceiver<CreaturePositionSync>, With<Connected>>,
     mut creature_q: Query<(
+        Entity,
         &mut SpriteCreatureMarker,
         &CreaturePoolIndex,
         &mut Creature,
@@ -112,12 +114,21 @@ pub fn receive_creature_sync(
     for mut receiver in &mut receiver_q {
         for sync in receiver.receive() {
             for snapshot in &sync.snapshots {
-                for (mut marker, pool_idx, mut cr, mut sd) in &mut creature_q {
+                for (entity, mut marker, pool_idx, mut cr, mut sd) in &mut creature_q {
                     if marker.type_key != sync.npc_ref.as_str() {
                         continue;
                     }
                     if pool_idx.0 as u32 != snapshot.index {
                         continue;
+                    }
+
+                    // Store server-assigned ULID on this entity
+                    if snapshot.creature_id != 0 {
+                        commands.entity(entity).insert(
+                            bevy_kbve_net::creatures::types::CreatureId::from_u128(
+                                snapshot.creature_id,
+                            ),
+                        );
                     }
 
                     let server_pos = Vec3::new(snapshot.x, snapshot.y, snapshot.z);

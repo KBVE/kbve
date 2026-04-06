@@ -1905,11 +1905,13 @@ fn broadcast_creature_sync(
         &bevy_kbve_net::creatures::types::SpriteData,
         &bevy_kbve_net::creatures::types::CreaturePoolIndex,
         &bevy_kbve_net::creatures::types::SpriteCreatureMarker,
+        &bevy_kbve_net::creatures::types::CreatureId,
     )>,
     ambient_q: Query<(
         &bevy_kbve_net::creatures::types::Creature,
         &bevy_kbve_net::creatures::types::CreaturePoolIndex,
         &bevy_kbve_net::creatures::ambient_types::AmbientCreatureMarker,
+        &bevy_kbve_net::creatures::types::CreatureId,
     )>,
     types: Res<bevy_kbve_net::creatures::types::SpriteCreatureTypes>,
     player_positions: Res<bevy_kbve_net::creatures::types::PlayerPositions>,
@@ -1930,7 +1932,7 @@ fn broadcast_creature_sync(
     // --- Sprite creatures ---
     for ctype in &types.types {
         let mut snapshots = Vec::new();
-        for (cr, sd, pool_idx, marker) in &creature_q {
+        for (cr, sd, pool_idx, marker, cid) in &creature_q {
             if marker.type_key != ctype.npc_ref {
                 continue;
             }
@@ -1951,6 +1953,7 @@ fn broadcast_creature_sync(
                 bevy_kbve_net::creatures::types::SpriteHopState::Landing { .. } => 4,
             };
             snapshots.push(CreatureSnapshot {
+                creature_id: cid.as_u128(),
                 index: pool_idx.0 as u32,
                 x: cr.anchor.x,
                 y: cr.anchor.y,
@@ -1976,7 +1979,7 @@ fn broadcast_creature_sync(
     // Group by npc_ref
     let mut ambient_groups: std::collections::HashMap<&str, Vec<CreatureSnapshot>> =
         std::collections::HashMap::new();
-    for (cr, pool_idx, marker) in &ambient_q {
+    for (cr, pool_idx, marker, cid) in &ambient_q {
         if cr.state != bevy_kbve_net::creatures::types::CreatureState::Active {
             continue;
         }
@@ -1992,6 +1995,7 @@ fn broadcast_creature_sync(
             .entry(marker.type_key)
             .or_default()
             .push(CreatureSnapshot {
+                creature_id: cid.as_u128(),
                 index: pool_idx.0 as u32,
                 x: cr.anchor.x,
                 y: cr.anchor.y,

@@ -50,13 +50,16 @@ pub fn simulate_sprite_creatures(
         &CreaturePoolIndex,
         &mut SpriteCreatureMarker,
         Option<&mut CreatureBrain>,
+        Option<&mut CreatureId>,
     )>,
 ) {
     let dt = time.delta_secs();
     let cseed = game_time.creature_seed;
     let center = sim_center.0;
 
-    for (mut tf, mut cr, mut sd, _pool_idx, mut marker, mut brain) in &mut creature_q {
+    for (mut tf, mut cr, mut sd, _pool_idx, mut marker, mut brain, mut creature_id) in
+        &mut creature_q
+    {
         // Look up type descriptor
         let Some(ctype) = types.types.iter().find(|ct| ct.npc_ref == marker.type_key) else {
             continue;
@@ -109,6 +112,10 @@ pub fn simulate_sprite_creatures(
                 ctype.idle_min + hash_f32(ps + 500) * (ctype.idle_max - ctype.idle_min);
             sd.hop_state = SpriteHopState::Idle { timer: idle_timer };
             cr.state = CreatureState::Active;
+            // Assign new ULID — this is a recycled creature instance
+            if let Some(ref mut cid) = creature_id {
+                **cid = CreatureId::new();
+            }
             tf.translation.y = -100.0;
             continue;
         }

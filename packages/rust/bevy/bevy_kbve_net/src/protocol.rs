@@ -236,7 +236,9 @@ pub struct CreatureSyncChannel;
 /// Single creature's server-authoritative state snapshot.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct CreatureSnapshot {
-    /// Pool index within this creature type.
+    /// Server-assigned ULID for this creature instance (0 = not yet assigned).
+    pub creature_id: u128,
+    /// Pool index within this creature type (kept for backward compat, Phase 1).
     pub index: u32,
     /// World-space anchor position.
     pub x: f32,

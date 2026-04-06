@@ -6,7 +6,7 @@ use bevy::prelude::*;
 
 use super::brain::CreatureBrain;
 use super::common::hash_f32;
-use super::types::*;
+use super::types::{self, *};
 
 /// Headless spawn system — creates creature entities with simulation components.
 /// Runs on both server and client (client adds visuals separately).
@@ -63,6 +63,7 @@ pub fn spawn_creatures_headless(
             };
 
             let mut entity = commands.spawn((
+                types::CreatureId::new(),
                 Transform::from_xyz(0.0, -100.0, 0.0),
                 Creature {
                     npc_ref: creature_type.npc_ref,
