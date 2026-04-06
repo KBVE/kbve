@@ -3,28 +3,31 @@
 
 use bevy::prelude::*;
 use bevy_db::{Db, DbRequest};
+use bevy_inventory::Inventory;
 
+use super::inventory::ItemKind;
+use super::net::ServerTime;
 use super::state::PlayerState;
 use super::tilemap::CollectedTiles;
 
 // ---------------------------------------------------------------------------
-// Tables
+// Tables + keys
 // ---------------------------------------------------------------------------
 
-/// bevy_db table names — all persistence goes through these.
 const TABLE_PLAYER: &str = "player";
 const TABLE_WORLD: &str = "world";
 
-/// Fixed keys within each table.
 const KEY_PLAYER_STATE: &str = "state";
-const KEY_COLLECTED_TILES: &str = "collected_tiles";
 const KEY_LAST_POSITION: &str = "last_position";
+const KEY_INVENTORY: &str = "inventory";
+const KEY_COLLECTED_TILES: &str = "collected_tiles";
+const KEY_SERVER_TIME: &str = "server_time";
 
 // ---------------------------------------------------------------------------
 // Timers
 // ---------------------------------------------------------------------------
 
-/// Throttle for player state saves (every 5 seconds).
+/// Throttle for periodic saves (every 5 seconds).
 #[derive(Resource)]
 struct PersistTimer(Timer);
 
@@ -43,6 +46,8 @@ struct PendingLoads {
     player_state: Option<DbRequest<Option<PlayerState>>>,
     collected_tiles: Option<DbRequest<Option<Vec<(i32, i32)>>>>,
     last_position: Option<DbRequest<Option<[f32; 3]>>>,
+    inventory: Option<DbRequest<Option<Inventory<ItemKind>>>>,
+    server_time: Option<DbRequest<Option<ServerTime>>>,
     done: bool,
 }
 
@@ -61,31 +66,37 @@ impl Plugin for PersistPlugin {
             Update,
             (
                 receive_loads,
-                save_player_state,
+                save_periodic,
                 save_collected_tiles_on_change,
+                save_server_time_on_change,
+                save_inventory_on_change,
             ),
         );
     }
 }
 
 // ---------------------------------------------------------------------------
-// Startup: kick off load requests
+// Startup: kick off all load requests in parallel
 // ---------------------------------------------------------------------------
 
 fn kick_off_loads(db: Res<Db>, mut pending: ResMut<PendingLoads>) {
     pending.player_state = Some(db.get::<PlayerState>(TABLE_PLAYER, KEY_PLAYER_STATE));
     pending.collected_tiles = Some(db.get::<Vec<(i32, i32)>>(TABLE_WORLD, KEY_COLLECTED_TILES));
     pending.last_position = Some(db.get::<[f32; 3]>(TABLE_PLAYER, KEY_LAST_POSITION));
+    pending.inventory = Some(db.get::<Inventory<ItemKind>>(TABLE_PLAYER, KEY_INVENTORY));
+    pending.server_time = Some(db.get::<ServerTime>(TABLE_WORLD, KEY_SERVER_TIME));
 }
 
 // ---------------------------------------------------------------------------
-// Receive cached data and apply to ECS
+// Receive cached data and apply to ECS resources
 // ---------------------------------------------------------------------------
 
 fn receive_loads(
     mut pending: ResMut<PendingLoads>,
     mut player_state: ResMut<PlayerState>,
     mut collected: ResMut<CollectedTiles>,
+    mut server_time: ResMut<ServerTime>,
+    inventory_q: Option<ResMut<Inventory<ItemKind>>>,
 ) {
     if pending.done {
         return;
@@ -97,7 +108,6 @@ fn receive_loads(
     if let Some(ref req) = pending.player_state {
         if let Some(result) = req.try_recv() {
             if let Ok(Some(cached)) = result {
-                // Restore cached vitals (position restored separately after spawn)
                 player_state.health = cached.health;
                 player_state.max_health = cached.max_health;
                 player_state.mana = cached.mana;
@@ -126,10 +136,46 @@ fn receive_loads(
         }
     }
 
-    // Last position (just store it — player spawn system will use it)
+    // Last position
     if let Some(ref req) = pending.last_position {
-        if let Some(_result) = req.try_recv() {
+        if let Some(result) = req.try_recv() {
+            if let Ok(Some(pos)) = result {
+                player_state.position = pos;
+            }
             pending.last_position = None;
+        } else {
+            all_done = false;
+        }
+    }
+
+    // Inventory
+    if let Some(ref req) = pending.inventory {
+        if let Some(result) = req.try_recv() {
+            if let Ok(Some(cached_inv)) = result {
+                if let Some(mut inv) = inventory_q {
+                    *inv = cached_inv;
+                }
+            }
+            pending.inventory = None;
+        } else {
+            all_done = false;
+        }
+    }
+
+    // Server time (creature_seed, game_hour, etc.)
+    if let Some(ref req) = pending.server_time {
+        if let Some(result) = req.try_recv() {
+            if let Ok(Some(cached)) = result {
+                // Restore cached time sync — will be overwritten once server connects
+                if !server_time.active {
+                    server_time.game_hour = cached.game_hour;
+                    server_time.creature_seed = cached.creature_seed;
+                    server_time.wind_speed_mph = cached.wind_speed_mph;
+                    server_time.wind_direction = cached.wind_direction;
+                    // Don't set active=true — that's for live server sync only
+                }
+            }
+            pending.server_time = None;
         } else {
             all_done = false;
         }
@@ -141,10 +187,10 @@ fn receive_loads(
 }
 
 // ---------------------------------------------------------------------------
-// Save: player state (throttled)
+// Save: player state + inventory (throttled every 5s)
 // ---------------------------------------------------------------------------
 
-fn save_player_state(
+fn save_periodic(
     time: Res<Time>,
     mut timer: ResMut<PersistTimer>,
     db: Res<Db>,
@@ -155,9 +201,21 @@ fn save_player_state(
         return;
     }
 
-    // Fire-and-forget writes
     let _ = db.put(TABLE_PLAYER, KEY_PLAYER_STATE, &*player_state);
     let _ = db.put(TABLE_PLAYER, KEY_LAST_POSITION, &player_state.position);
+}
+
+// ---------------------------------------------------------------------------
+// Save: inventory (on change)
+// ---------------------------------------------------------------------------
+
+fn save_inventory_on_change(db: Res<Db>, inventory: Option<Res<Inventory<ItemKind>>>) {
+    let Some(inv) = inventory else { return };
+    if !inv.is_changed() {
+        return;
+    }
+
+    let _ = db.put(TABLE_PLAYER, KEY_INVENTORY, &*inv);
 }
 
 // ---------------------------------------------------------------------------
@@ -171,4 +229,16 @@ fn save_collected_tiles_on_change(db: Res<Db>, collected: Res<CollectedTiles>) {
 
     let tiles: Vec<(i32, i32)> = collected.0.iter().copied().collect();
     let _ = db.put(TABLE_WORLD, KEY_COLLECTED_TILES, &tiles);
+}
+
+// ---------------------------------------------------------------------------
+// Save: server time sync (on change)
+// ---------------------------------------------------------------------------
+
+fn save_server_time_on_change(db: Res<Db>, server_time: Res<ServerTime>) {
+    if !server_time.is_changed() || !server_time.active {
+        return;
+    }
+
+    let _ = db.put(TABLE_WORLD, KEY_SERVER_TIME, &*server_time);
 }
