@@ -5,7 +5,9 @@
 
 use askama::Template;
 use chrono::Datelike;
-use jedi::entity::github::{GitHubCommit, GitHubIssue, GitHubPull, GitHubRepo};
+use jedi::entity::github::{
+    GitHubCommit, GitHubContributor, GitHubIssue, GitHubPull, GitHubRepo, GitHubWorkflowRun,
+};
 use std::collections::HashMap;
 
 use crate::discord::embeds::notice_board_embed::NoticeItem;
@@ -1454,6 +1456,217 @@ pub fn render_health_chart_blocking(
         .render()
         .map_err(|e| format!("Health chart SVG: {e}"))?;
     kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("Health chart PNG: {e}"))
+}
+
+// ── Contributors Chart ─────────────────────────────────────────────
+
+pub struct ContributorRow {
+    pub rank: usize,
+    pub login: String,
+    pub contributions: u64,
+    pub bar_width: f64,
+    pub count_x: f64,
+    pub y: u32,
+}
+
+#[derive(Template)]
+#[template(path = "github/contributors_chart.svg")]
+pub struct ContributorsChartTemplate {
+    pub repo_name: String,
+    pub total_contributors: usize,
+    pub total_commits: u64,
+    pub contributors: Vec<ContributorRow>,
+    pub height: u32,
+    pub footer_y: u32,
+    pub brand_y: u32,
+}
+
+pub fn build_contributors_chart(
+    contribs: &[GitHubContributor],
+    repo_name: &str,
+) -> ContributorsChartTemplate {
+    let top = &contribs[..contribs.len().min(15)];
+    let max_count = top.first().map(|c| c.contributions).unwrap_or(1);
+    let total_commits: u64 = top.iter().map(|c| c.contributions).sum();
+    let max_bar = 480.0;
+
+    let contributors: Vec<ContributorRow> = top
+        .iter()
+        .enumerate()
+        .map(|(i, c)| {
+            let bw = (c.contributions as f64 / max_count as f64) * max_bar;
+            ContributorRow {
+                rank: i + 1,
+                login: truncate(&c.login, 25),
+                contributions: c.contributions,
+                bar_width: bw.max(4.0),
+                count_x: 200.0 + bw.max(4.0) + 8.0,
+                y: 75 + (i as u32 * 28),
+            }
+        })
+        .collect();
+
+    let row_count = contributors.len() as u32;
+    let height = 75 + row_count * 28 + 30;
+
+    ContributorsChartTemplate {
+        repo_name: repo_name.to_owned(),
+        total_contributors: contribs.len(),
+        total_commits,
+        contributors,
+        height,
+        footer_y: height - 8,
+        brand_y: height - 14,
+    }
+}
+
+pub fn render_contributors_chart_blocking(
+    contribs: &[GitHubContributor],
+    repo_name: &str,
+    fontdb: &kbve::FontDb,
+) -> Result<Vec<u8>, String> {
+    let template = build_contributors_chart(contribs, repo_name);
+    let svg = template
+        .render()
+        .map_err(|e| format!("Contributors chart SVG: {e}"))?;
+    kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("Contributors chart PNG: {e}"))
+}
+
+// ── Workflow Runs Chart ───────────────────────────────────────────
+
+pub struct WorkflowRunRow {
+    pub name: String,
+    pub branch: String,
+    pub run_number: u64,
+    pub status_color: String,
+    pub age: String,
+    pub y: u32,
+}
+
+#[derive(Template)]
+#[template(path = "github/workflow_runs_chart.svg")]
+pub struct WorkflowRunsChartTemplate {
+    pub repo_name: String,
+    pub total_runs: usize,
+    pub success_count: usize,
+    pub failure_count: usize,
+    pub success_width: f64,
+    pub failure_width: f64,
+    pub failure_x: f64,
+    pub other_width: f64,
+    pub other_x: f64,
+    pub runs: Vec<WorkflowRunRow>,
+    pub height: u32,
+    pub footer_y: u32,
+    pub brand_y: u32,
+}
+
+fn run_age(created_at: &str) -> String {
+    let Ok(dt) = chrono::DateTime::parse_from_rfc3339(created_at) else {
+        return "?".to_owned();
+    };
+    let diff = chrono::Utc::now() - dt.with_timezone(&chrono::Utc);
+    let mins = diff.num_minutes();
+    if mins < 60 {
+        format!("{mins}m ago")
+    } else if mins < 1440 {
+        format!("{}h ago", mins / 60)
+    } else {
+        format!("{}d ago", mins / 1440)
+    }
+}
+
+fn run_status_color(conclusion: Option<&str>, status: &str) -> String {
+    match conclusion {
+        Some("success") => "#238636".to_owned(),
+        Some("failure") | Some("timed_out") => "#da3633".to_owned(),
+        Some("cancelled") => "#8b949e".to_owned(),
+        Some("skipped") => "#484f58".to_owned(),
+        _ if status == "in_progress" || status == "queued" => "#d29922".to_owned(),
+        _ => "#8b949e".to_owned(),
+    }
+}
+
+pub fn build_workflow_runs_chart(
+    runs: &[GitHubWorkflowRun],
+    repo_name: &str,
+) -> WorkflowRunsChartTemplate {
+    let display_runs = &runs[..runs.len().min(20)];
+    let total = display_runs.len();
+
+    let success_count = display_runs
+        .iter()
+        .filter(|r| r.conclusion.as_deref() == Some("success"))
+        .count();
+    let failure_count = display_runs
+        .iter()
+        .filter(|r| matches!(r.conclusion.as_deref(), Some("failure") | Some("timed_out")))
+        .count();
+    let other_count = total.saturating_sub(success_count + failure_count);
+
+    let bar_width = 744.0;
+    let success_width = if total > 0 {
+        (success_count as f64 / total as f64) * bar_width
+    } else {
+        0.0
+    };
+    let failure_width = if total > 0 {
+        (failure_count as f64 / total as f64) * bar_width
+    } else {
+        0.0
+    };
+    let other_width = if total > 0 {
+        (other_count as f64 / total as f64) * bar_width
+    } else {
+        0.0
+    };
+
+    let run_rows: Vec<WorkflowRunRow> = display_runs
+        .iter()
+        .enumerate()
+        .map(|(i, r)| {
+            let name = r.name.as_deref().unwrap_or("unknown");
+            WorkflowRunRow {
+                name: truncate(name, 45),
+                branch: truncate(r.head_branch.as_deref().unwrap_or("?"), 18),
+                run_number: r.run_number,
+                status_color: run_status_color(r.conclusion.as_deref(), &r.status),
+                age: run_age(&r.created_at),
+                y: 120 + (i as u32 * 24),
+            }
+        })
+        .collect();
+
+    let row_count = run_rows.len() as u32;
+    let height = 120 + row_count * 24 + 30;
+
+    WorkflowRunsChartTemplate {
+        repo_name: repo_name.to_owned(),
+        total_runs: total,
+        success_count,
+        failure_count,
+        success_width,
+        failure_width,
+        failure_x: success_width,
+        other_width,
+        other_x: success_width + failure_width,
+        runs: run_rows,
+        height,
+        footer_y: height - 8,
+        brand_y: height - 14,
+    }
+}
+
+pub fn render_workflow_runs_chart_blocking(
+    runs: &[GitHubWorkflowRun],
+    repo_name: &str,
+    fontdb: &kbve::FontDb,
+) -> Result<Vec<u8>, String> {
+    let template = build_workflow_runs_chart(runs, repo_name);
+    let svg = template
+        .render()
+        .map_err(|e| format!("Workflow runs chart SVG: {e}"))?;
+    kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("Workflow runs chart PNG: {e}"))
 }
 
 #[cfg(test)]

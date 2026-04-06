@@ -188,6 +188,25 @@ async fn noticeboard(
                     }
                 }
 
+                // Chart buttons
+                let chart_row = poise::serenity_prelude::CreateActionRow::Buttons(vec![
+                    poise::serenity_prelude::CreateButton::new(format!(
+                        "chart|{full_name}|activity"
+                    ))
+                    .label("Activity")
+                    .style(poise::serenity_prelude::ButtonStyle::Secondary)
+                    .emoji(poise::serenity_prelude::ReactionType::Unicode(
+                        "\u{1F4C8}".to_owned(),
+                    )),
+                    poise::serenity_prelude::CreateButton::new(format!("chart|{full_name}|labels"))
+                        .label("Labels")
+                        .style(poise::serenity_prelude::ButtonStyle::Secondary)
+                        .emoji(poise::serenity_prelude::ReactionType::Unicode(
+                            "\u{1F3F7}".to_owned(),
+                        )),
+                ]);
+                reply = reply.components(vec![chart_row]);
+
                 ctx.send(reply).await.map_err(|e| e.to_string())?;
                 Ok(())
             }
@@ -290,6 +309,26 @@ async fn taskboard(
                         reply = reply.embed(detail_embed);
                     }
                 }
+
+                // Chart buttons
+                let chart_row = poise::serenity_prelude::CreateActionRow::Buttons(vec![
+                    poise::serenity_prelude::CreateButton::new(format!("chart|{full_name}|labels"))
+                        .label("Labels")
+                        .style(poise::serenity_prelude::ButtonStyle::Secondary)
+                        .emoji(poise::serenity_prelude::ReactionType::Unicode(
+                            "\u{1F3F7}".to_owned(),
+                        )),
+                    poise::serenity_prelude::CreateButton::new(format!(
+                        "chart|{full_name}|activity"
+                    ))
+                    .label("Activity")
+                    .style(poise::serenity_prelude::ButtonStyle::Secondary)
+                    .emoji(poise::serenity_prelude::ReactionType::Unicode(
+                        "\u{1F4C8}".to_owned(),
+                    )),
+                ]);
+                reply = reply.components(vec![chart_row]);
+
                 ctx.send(reply).await.map_err(|e| e.to_string())?;
                 Ok(())
             }
@@ -644,6 +683,14 @@ async fn repo(
                     .style(poise::serenity_prelude::ButtonStyle::Secondary)
                     .emoji(poise::serenity_prelude::ReactionType::Unicode(
                         "\u{1F4CA}".to_owned(),
+                    )),
+                    poise::serenity_prelude::CreateButton::new(format!(
+                        "chart|{full_name}|contributors"
+                    ))
+                    .label("Contributors")
+                    .style(poise::serenity_prelude::ButtonStyle::Secondary)
+                    .emoji(poise::serenity_prelude::ReactionType::Unicode(
+                        "\u{1F465}".to_owned(),
                     )),
                 ]);
                 reply = reply.components(vec![chart_row]);
@@ -1657,9 +1704,25 @@ async fn workflows(
                     ))));
                 }
 
-                ctx.send(poise::CreateReply::default().embed(embed))
-                    .await
-                    .map_err(|e| e.to_string())?;
+                // Chart button for workflow runs
+                let chart_row = poise::serenity_prelude::CreateActionRow::Buttons(vec![
+                    poise::serenity_prelude::CreateButton::new(format!(
+                        "chart|{full_name}|workflow_runs"
+                    ))
+                    .label("Run History")
+                    .style(poise::serenity_prelude::ButtonStyle::Secondary)
+                    .emoji(poise::serenity_prelude::ReactionType::Unicode(
+                        "\u{1F4CA}".to_owned(),
+                    )),
+                ]);
+
+                ctx.send(
+                    poise::CreateReply::default()
+                        .embed(embed)
+                        .components(vec![chart_row]),
+                )
+                .await
+                .map_err(|e| e.to_string())?;
                 Ok(())
             }
             Err(e) => {
