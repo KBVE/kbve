@@ -92,22 +92,22 @@ spec:
                           port: 9999
                       initialDelaySeconds: 30
                       periodSeconds: 30
-                      timeoutSeconds: 5
+                      timeoutSeconds: 10
                       failureThreshold: 5
                   readinessProbe:
                       httpGet:
                           path: /
                           port: 9999
-                      initialDelaySeconds: 10
-                      periodSeconds: 10
-                      timeoutSeconds: 5
+                      initialDelaySeconds: 15
+                      periodSeconds: 15
+                      timeoutSeconds: 10
                   resources:
                       requests:
-                          memory: '64Mi'
-                          cpu: '50m'
+                          memory: '128Mi'
+                          cpu: '100m'
                       limits:
-                          memory: '256Mi'
-                          cpu: '200m'
+                          memory: '384Mi'
+                          cpu: '500m'
 
                 # ── KASM Discord workspace ──
                 # Uses Gluetun's network namespace — all traffic exits via VPN.

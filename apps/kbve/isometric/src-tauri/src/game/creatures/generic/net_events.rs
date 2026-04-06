@@ -6,7 +6,7 @@
 use bevy::prelude::*;
 use lightyear::prelude::*;
 
-use super::super::creature::{Creature, CreaturePoolIndex, SpriteData, SpriteHopState};
+use super::super::creature::{Creature, CreaturePoolIndex, RenderKind, SpriteData, SpriteHopState};
 use super::behavior::CreatureIntent;
 use super::brain::CreatureBrain;
 use super::types::SpriteCreatureMarker;
@@ -86,17 +86,24 @@ pub fn receive_creature_events(
     }
 }
 
-/// How quickly the client lerps toward the server anchor (per second).
-/// 0.0 = never correct, 1.0 = snap instantly.
-const SYNC_LERP_RATE: f32 = 0.3;
+/// Minimum drift to trigger a correction hop (ignore tiny differences).
+const SYNC_MIN_DRIFT: f32 = 0.5;
+/// Above this distance, force-snap (creature recycled on server).
+const SYNC_FORCE_SNAP: f32 = 15.0;
 
 /// System that receives periodic `CreaturePositionSync` messages from the server
-/// and smoothly corrects local creature positions to match. Only corrects creatures
-/// that are idle — airborne/moving creatures finish their current action first.
+/// and corrects local creature positions using the movement system.
+///
+/// Strategy:
+/// - **Idle + drifted**: inject a `MoveTo` intent so the creature naturally
+///   hops toward the server position using existing animation.
+/// - **Moving/airborne**: let the current action finish. Only sync patrol_step.
+/// - **Large drift (>15u)**: force-snap (creature recycled on server).
+/// - **Small drift (<0.5u)**: ignore — close enough.
 pub fn receive_creature_sync(
     mut receiver_q: Query<&mut MessageReceiver<CreaturePositionSync>, With<Connected>>,
     mut creature_q: Query<(
-        &SpriteCreatureMarker,
+        &mut SpriteCreatureMarker,
         &CreaturePoolIndex,
         &mut Creature,
         &mut SpriteData,
@@ -105,7 +112,7 @@ pub fn receive_creature_sync(
     for mut receiver in &mut receiver_q {
         for sync in receiver.receive() {
             for snapshot in &sync.snapshots {
-                for (marker, pool_idx, mut cr, mut sd) in &mut creature_q {
+                for (mut marker, pool_idx, mut cr, mut sd) in &mut creature_q {
                     if marker.type_key != sync.npc_ref.as_str() {
                         continue;
                     }
@@ -114,19 +121,78 @@ pub fn receive_creature_sync(
                     }
 
                     let server_pos = Vec3::new(snapshot.x, snapshot.y, snapshot.z);
+
+                    // Always sync the deterministic patrol counter so future
+                    // decisions align even if we skip the position correction.
+                    marker.patrol_step = snapshot.patrol_step;
+
                     let dist = cr.anchor.distance(server_pos);
 
-                    // Hard snap if very far off (>5 units), smooth lerp otherwise
-                    if dist > 5.0 {
+                    // Force-snap if very far off (creature recycled on server)
+                    if dist > SYNC_FORCE_SNAP {
                         cr.anchor = server_pos;
-                    } else if dist > 0.1 {
-                        cr.anchor = cr.anchor.lerp(server_pos, SYNC_LERP_RATE);
+                        sd.facing_left = snapshot.facing_left;
+                        sd.hop_state = SpriteHopState::Idle { timer: 0.5 };
+                        break;
                     }
 
-                    // Sync facing direction
-                    sd.facing_left = snapshot.facing_left;
+                    // Ignore tiny drift
+                    if dist < SYNC_MIN_DRIFT {
+                        break;
+                    }
+
+                    // Only correct idle creatures — set JumpWindup so
+                    // simulate_sprite_creatures picks the correct move anim
+                    // and speed from the creature type's behavior definition.
+                    // Frogs will hop, stags/wolves will run, etc.
+                    if let SpriteHopState::Idle { .. } = sd.hop_state {
+                        sd.hop_state = SpriteHopState::JumpWindup { target: server_pos };
+                    }
 
                     break; // Found the creature
+                }
+            }
+        }
+    }
+}
+
+/// Map NPC ref strings to the client's RenderKind for ambient creatures.
+fn ambient_npc_ref_to_render_kind(npc_ref: &str) -> Option<RenderKind> {
+    match npc_ref {
+        "meadow-firefly" => Some(RenderKind::Emissive),
+        "woodland-butterfly" => Some(RenderKind::Billboard),
+        _ => None,
+    }
+}
+
+/// System that receives `CreaturePositionSync` for ambient creatures (fireflies,
+/// butterflies) and smoothly corrects their anchors. Ambient creatures don't have
+/// `SpriteCreatureMarker`, so this is a separate query.
+pub fn receive_ambient_creature_sync(
+    mut receiver_q: Query<&mut MessageReceiver<CreaturePositionSync>, With<Connected>>,
+    mut creature_q: Query<(&mut Creature, &CreaturePoolIndex), Without<SpriteCreatureMarker>>,
+) {
+    for mut receiver in &mut receiver_q {
+        for sync in receiver.receive() {
+            let Some(kind) = ambient_npc_ref_to_render_kind(&sync.npc_ref) else {
+                continue; // Not an ambient creature — handled by sprite sync
+            };
+
+            for snapshot in &sync.snapshots {
+                for (mut cr, pool_idx) in &mut creature_q {
+                    if cr.render_kind != kind {
+                        continue;
+                    }
+                    if pool_idx.0 != snapshot.index {
+                        continue;
+                    }
+
+                    let server_pos = Vec3::new(snapshot.x, snapshot.y, snapshot.z);
+                    // Snap anchor — ambient creatures don't have hop state,
+                    // their animate systems will smoothly use the new anchor.
+                    cr.anchor = server_pos;
+
+                    break;
                 }
             }
         }
