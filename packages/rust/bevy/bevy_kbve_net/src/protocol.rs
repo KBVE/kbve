@@ -225,6 +225,41 @@ pub enum CreatureEventKind {
 /// Unreliable sequenced channel for time sync (avoids clogging ordered-reliable GameChannel).
 pub struct TimeChannel;
 
+/// Unreliable unordered channel for creature position sync.
+/// Separate from TimeChannel so large batches don't block time sync.
+pub struct CreatureSyncChannel;
+
+// ---------------------------------------------------------------------------
+// Creature position sync
+// ---------------------------------------------------------------------------
+
+/// Single creature's server-authoritative state snapshot.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct CreatureSnapshot {
+    /// Pool index within this creature type.
+    pub index: u32,
+    /// World-space anchor position.
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    /// Current hop state discriminant (0=Idle, 1=Emote, 2=JumpWindup, 3=Airborne, 4=Landing).
+    pub hop_state: u8,
+    /// Patrol step counter (for deterministic re-sync).
+    pub patrol_step: u32,
+    /// Facing left flag.
+    pub facing_left: bool,
+}
+
+/// Server periodically broadcasts creature position snapshots.
+/// Sent per creature type to keep packets manageable.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct CreaturePositionSync {
+    /// NPC ref key (e.g. "wild-boar").
+    pub npc_ref: String,
+    /// Snapshots for all creatures of this type.
+    pub snapshots: Vec<CreatureSnapshot>,
+}
+
 // ---------------------------------------------------------------------------
 // Channels
 // ---------------------------------------------------------------------------
@@ -257,6 +292,12 @@ impl Plugin for ProtocolPlugin {
         .add_direction(NetworkDirection::Bidirectional);
 
         app.add_channel::<TimeChannel>(ChannelSettings {
+            mode: ChannelMode::UnorderedUnreliable,
+            ..default()
+        })
+        .add_direction(NetworkDirection::ServerToClient);
+
+        app.add_channel::<CreatureSyncChannel>(ChannelSettings {
             mode: ChannelMode::UnorderedUnreliable,
             ..default()
         })
@@ -303,6 +344,10 @@ impl Plugin for ProtocolPlugin {
             .add_direction(NetworkDirection::ClientToServer);
         // CreatureStateEvent: server → all clients (determinism corrections)
         app.register_message::<CreatureStateEvent>()
+            .add_direction(NetworkDirection::ServerToClient);
+
+        // CreaturePositionSync: server → all clients (periodic position corrections)
+        app.register_message::<CreaturePositionSync>()
             .add_direction(NetworkDirection::ServerToClient);
 
         // --- Replicated components (custom game components) ---
