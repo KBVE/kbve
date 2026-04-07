@@ -37,6 +37,7 @@ impl Default for SimulationCenter {
 /// Handles: visibility-schedule culling (sets anchor.y = -100 instead of
 /// Visibility component), recycle/respawn ring, frame advance, terrain snap,
 /// state machine (idle -> intent -> airborne -> landing), direction updates.
+#[allow(clippy::type_complexity)]
 pub fn simulate_sprite_creatures(
     time: Res<Time>,
     game_time: Res<GameTime>,

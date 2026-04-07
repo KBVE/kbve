@@ -56,6 +56,7 @@ impl TokenInfo {
     }
 
     /// Check if user is any kind of staff member (has any permission).
+    #[allow(dead_code)]
     pub fn is_staff(&self) -> bool {
         self.staff_permissions > 0
     }
