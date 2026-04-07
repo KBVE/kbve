@@ -19,7 +19,7 @@ spec:
                 kvm: 'true'
             containers:
                 - name: firecracker-ctl
-                  image: ghcr.io/kbve/firecracker-ctl:0.1.23
+                  image: ghcr.io/kbve/firecracker-ctl:0.1.24
                   ports:
                       - containerPort: 9001
                         name: api
