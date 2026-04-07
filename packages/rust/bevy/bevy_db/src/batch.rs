@@ -49,11 +49,10 @@ impl WriteBatch {
         let store = self.store;
         let ops = self.ops;
 
-        bevy_tasker::spawn(async move {
+        crate::task::spawn_db(async move {
             let result = store.write_batch(ops).await;
             let _ = tx.send(result);
-        })
-        .detach();
+        });
 
         DbRequest { rx }
     }
