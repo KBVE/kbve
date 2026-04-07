@@ -1825,6 +1825,7 @@ fn process_chunk_spawns_and_despawns(
     player_query: Query<&Transform, With<Player>>,
     collected_tiles: Res<CollectedTiles>,
     terrain_ready: Option<Res<TerrainReady>>,
+    perf_tier: Res<super::PerfTier>,
 ) {
     let Some(tile_materials) = tile_materials else {
         return;
@@ -1924,11 +1925,13 @@ fn process_chunk_spawns_and_despawns(
     // Sort near chunks first so they get priority.
     results.sort_by_key(|g| if g.is_near { 0i32 } else { 1 });
 
-    // With pthreads, workers produce results faster — increase finalization budget.
-    #[cfg(target_arch = "wasm32")]
-    const MAX_DISTANT_FINALIZES: usize = 4;
-    #[cfg(not(target_arch = "wasm32"))]
-    const MAX_DISTANT_FINALIZES: usize = 8;
+    // Finalization budget: each chunk spawns dozens of entities + colliders.
+    // On mobile WASM, limit to 1 distant chunk per frame to avoid frame spikes.
+    let max_distant_finalizes: usize = match *perf_tier {
+        super::PerfTier::Low => 1,
+        super::PerfTier::Medium => 2,
+        super::PerfTier::High => 8,
+    };
 
     let mut far_finalized = 0usize;
     let mut had_near = false;
@@ -1943,7 +1946,7 @@ fn process_chunk_spawns_and_despawns(
 
         if !geometry.is_near {
             far_finalized += 1;
-            if far_finalized > MAX_DISTANT_FINALIZES {
+            if far_finalized > max_distant_finalizes {
                 // Re-queue for next frame via the channel.
                 let _ = chunk_channel.tx.send(geometry);
                 continue;
@@ -2132,23 +2135,30 @@ fn process_chunk_spawns_and_despawns(
                         8 => FlowerArchetype::Allium,
                         _ => FlowerArchetype::BlueOrchid,
                     };
-                    let flower_entity = commands
-                        .spawn((
-                            Mesh3d(tile_materials.flower_meshes[arch_idx].clone()),
-                            MeshMaterial3d(tile_materials.flower_mat.clone()),
-                            Transform::from_xyz(world_x, flower_y, world_z),
+                    let mut flower_cmd = commands.spawn((
+                        Mesh3d(tile_materials.flower_meshes[arch_idx].clone()),
+                        MeshMaterial3d(tile_materials.flower_mat.clone()),
+                        Transform::from_xyz(world_x, flower_y, world_z),
+                        HoverOutline {
+                            half_extents: Vec3::new(0.2, 0.25, 0.2),
+                        },
+                        Interactable {
+                            kind: InteractableKind::Flower,
+                        },
+                        archetype,
+                        TileCoord { tx, tz },
+                    ));
+                    // Only add physics colliders on High tier (desktop native).
+                    // WASM hover uses tile-based HoverMap, not avian3d raycasts,
+                    // so sensor colliders are pure overhead on the physics broadphase.
+                    if *perf_tier == super::PerfTier::High {
+                        flower_cmd.insert((
                             RigidBody::Static,
                             Collider::cuboid(0.4, 0.5, 0.4),
                             Sensor,
-                            HoverOutline {
-                                half_extents: Vec3::new(0.2, 0.25, 0.2),
-                            },
-                            Interactable {
-                                kind: InteractableKind::Flower,
-                            },
-                            archetype,
-                            TileCoord { tx, tz },
-                        ))
+                        ));
+                    }
+                    let flower_entity = flower_cmd
                         .observe(on_pointer_over)
                         .observe(on_pointer_out)
                         .id();
@@ -2166,24 +2176,28 @@ fn process_chunk_spawns_and_despawns(
                     let params = mushrooms::MushroomParams { tx, tz, kind };
                     let (mush_mesh, max_hw, total_h) =
                         mushrooms::build_mushroom(&params, &mut meshes);
-                    let mush_entity = commands
-                        .spawn((
-                            Mesh3d(mush_mesh),
-                            MeshMaterial3d(tile_materials.tree_body_mat.clone()),
-                            Transform::from_xyz(world_x, mush_y, world_z)
-                                .with_rotation(Quat::from_rotation_y(rot_y)),
+                    let mut mush_cmd = commands.spawn((
+                        Mesh3d(mush_mesh),
+                        MeshMaterial3d(tile_materials.tree_body_mat.clone()),
+                        Transform::from_xyz(world_x, mush_y, world_z)
+                            .with_rotation(Quat::from_rotation_y(rot_y)),
+                        HoverOutline {
+                            half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
+                        },
+                        Interactable {
+                            kind: InteractableKind::Mushroom,
+                        },
+                        kind,
+                        TileCoord { tx, tz },
+                    ));
+                    if *perf_tier == super::PerfTier::High {
+                        mush_cmd.insert((
                             RigidBody::Static,
                             Collider::cuboid(max_hw * 1.6, total_h, max_hw * 1.6),
                             Sensor,
-                            HoverOutline {
-                                half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
-                            },
-                            Interactable {
-                                kind: InteractableKind::Mushroom,
-                            },
-                            kind,
-                            TileCoord { tx, tz },
-                        ))
+                        ));
+                    }
+                    let mush_entity = mush_cmd
                         .observe(on_pointer_over)
                         .observe(on_pointer_out)
                         .id();

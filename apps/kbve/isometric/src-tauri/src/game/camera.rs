@@ -50,11 +50,24 @@ impl Plugin for IsometricCameraPlugin {
 }
 
 /// One-shot: attach `PixelateSettings` to the display camera.
+/// On Low perf tier, use coarser pixels and disable edge detection to save
+/// mobile GPU fill rate.
 fn attach_pixelate_settings(
     mut commands: Commands,
     display_query: Query<Entity, (With<DisplayCamera>, Without<PixelateSettings>)>,
+    perf_tier: Res<super::PerfTier>,
 ) {
+    let settings = match *perf_tier {
+        super::PerfTier::Low => PixelateSettings {
+            pixel_size: 3.0,
+            highlight_strength: 0.0,
+            shadow_strength: 0.0,
+            color_noise: 0.0,
+            ..PixelateSettings::default()
+        },
+        _ => PixelateSettings::default(),
+    };
     for entity in &display_query {
-        commands.entity(entity).insert(PixelateSettings::default());
+        commands.entity(entity).insert(settings);
     }
 }
