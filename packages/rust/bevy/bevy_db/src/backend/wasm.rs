@@ -3,8 +3,7 @@
 //! Uses a single object store with composite keys (`"table\0key"`) to avoid
 //! needing to know all table names at IndexedDB open time.
 
-use std::sync::Arc;
-
+use once_cell::sync::OnceCell;
 use rexie::{ObjectStore, Rexie, TransactionMode};
 use wasm_bindgen::JsValue;
 
@@ -32,7 +31,7 @@ fn js_err(e: rexie::Error) -> DbError {
 pub(crate) struct WasmStore {
     db_name: String,
     /// Lazily initialized. First operation triggers the IndexedDB open.
-    db: tokio::sync::OnceCell<Rexie>,
+    db: OnceCell<Rexie>,
 }
 
 // Safety: WASM is single-threaded. Rexie handles are !Send but we never
@@ -45,21 +44,23 @@ impl WasmStore {
     pub fn new(db_name: String) -> Self {
         Self {
             db_name,
-            db: tokio::sync::OnceCell::new(),
+            db: OnceCell::new(),
         }
     }
 
     async fn get_db(&self) -> Result<&Rexie, DbError> {
-        self.db
-            .get_or_try_init(|| async {
-                Rexie::builder(&self.db_name)
-                    .version(DB_VERSION)
-                    .add_object_store(ObjectStore::new(STORE_NAME))
-                    .build()
-                    .await
-                    .map_err(js_err)
-            })
+        if let Some(db) = self.db.get() {
+            return Ok(db);
+        }
+        let db = Rexie::builder(&self.db_name)
+            .version(DB_VERSION)
+            .add_object_store(ObjectStore::new(STORE_NAME))
+            .build()
             .await
+            .map_err(js_err)?;
+        // If another call raced and initialized first, that's fine — use theirs.
+        let _ = self.db.set(db);
+        Ok(self.db.get().unwrap())
     }
 }
 
@@ -73,7 +74,7 @@ impl DbStore for WasmStore {
             .map_err(js_err)?;
         let store = tx.store(STORE_NAME).map_err(js_err)?;
 
-        let result = store.get(&JsValue::from_str(&ck)).await.map_err(js_err)?;
+        let result = store.get(JsValue::from_str(&ck)).await.map_err(js_err)?;
 
         tx.done().await.map_err(js_err)?;
 
@@ -96,7 +97,7 @@ impl DbStore for WasmStore {
         let store = tx.store(STORE_NAME).map_err(js_err)?;
 
         let js_key = JsValue::from_str(&ck);
-        let js_val = js_sys::Uint8Array::from(value.as_slice()).into();
+        let js_val: JsValue = js_sys::Uint8Array::from(value.as_slice()).into();
 
         store.put(&js_val, Some(&js_key)).await.map_err(js_err)?;
 
@@ -113,10 +114,7 @@ impl DbStore for WasmStore {
             .map_err(js_err)?;
         let store = tx.store(STORE_NAME).map_err(js_err)?;
 
-        store
-            .delete(&JsValue::from_str(&ck))
-            .await
-            .map_err(js_err)?;
+        store.delete(JsValue::from_str(&ck)).await.map_err(js_err)?;
 
         tx.done().await.map_err(js_err)?;
         Ok(())
@@ -132,13 +130,10 @@ impl DbStore for WasmStore {
         let store = tx.store(STORE_NAME).map_err(js_err)?;
 
         // Get all keys and filter by prefix (IndexedDB doesn't support prefix scans natively)
-        let all_keys = store
-            .get_all(None, None, None, None)
-            .await
-            .map_err(js_err)?;
+        let all_keys = store.get_all_keys(None, None).await.map_err(js_err)?;
 
         let mut keys = Vec::new();
-        for (js_key, _) in &all_keys {
+        for js_key in &all_keys {
             if let Some(s) = js_key.as_string() {
                 if s.starts_with(&scan_prefix) {
                     if let Some(k) = extract_key(&s, table) {
@@ -169,11 +164,11 @@ impl DbStore for WasmStore {
 
             match value {
                 Some(bytes) => {
-                    let js_val = js_sys::Uint8Array::from(bytes.as_slice()).into();
+                    let js_val: JsValue = js_sys::Uint8Array::from(bytes.as_slice()).into();
                     store.put(&js_val, Some(&js_key)).await.map_err(js_err)?;
                 }
                 None => {
-                    store.delete(&js_key).await.map_err(js_err)?;
+                    store.delete(js_key).await.map_err(js_err)?;
                 }
             }
         }

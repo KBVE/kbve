@@ -66,9 +66,9 @@ spec:
                         value: 'on'
                       - name: HTTPPROXY_LOG
                         value: 'off'
-                      # Firewall — only allow KASM port + DNS
+                      # Firewall — allow KASM port + health check port + DNS
                       - name: FIREWALL_INPUT_PORTS
-                        value: '6901'
+                        value: '6901,9999'
                       - name: FIREWALL_OUTBOUND_SUBNETS
                         value: '10.0.0.0/8,172.16.0.0/12'
                       # Disable DNS-over-TLS — port 853 is blocked

@@ -86,7 +86,8 @@ pub(crate) fn sun_params(hour: f32) -> SunParams {
 
     // Illuminance: gentle accent — pixel-art style relies on ambient, not harsh shadows.
     // ~2:1 ratio with ambient keeps valleys readable.
-    let illuminance = 35.0 + sun_height * 1780.0;
+    // Night floor raised ~35% for brighter moonlight.
+    let illuminance = 48.0 + sun_height * 1767.0;
 
     // Light color: warm golden near horizon, white at zenith, cool blue at night.
     let lr = 0.4 + sun_height * 0.6;
@@ -96,7 +97,8 @@ pub(crate) fn sun_params(hour: f32) -> SunParams {
 
     // Ambient: dominant fill — the main brightness source in a stylized world.
     // Shadowed areas (valleys) should be tinted, never crushed to dark.
-    let ambient_brightness = 420.0 + sun_height * 580.0;
+    // Night floor raised ~35% for brighter moonlit ambiance.
+    let ambient_brightness = 570.0 + sun_height * 430.0;
     let ambient_color = Color::srgb(
         0.55 + sun_height * 0.35,
         0.60 + sun_height * 0.32,
@@ -209,6 +211,20 @@ fn build_streak_mesh() -> Mesh {
     .with_inserted_attribute(Mesh::ATTRIBUTE_COLOR, vec![[1.0_f32, 1.0, 1.0, 1.0]; 4])
     .with_inserted_indices(Indices::U32(vec![0, 1, 2, 0, 2, 3]))
 }
+
+// ---------------------------------------------------------------------------
+// Throttle timers (used on Low/Medium perf tiers)
+// ---------------------------------------------------------------------------
+
+/// Throttle timer for wind animation systems. On Low tier, wind updates at
+/// ~15 Hz instead of every frame — saves hundreds of sin/cos calls per tick.
+#[derive(Resource)]
+pub struct WindAnimThrottle(pub Timer);
+
+/// Throttle timer for blob shadow position updates. On Low tier, shadows
+/// update at ~10 Hz — shadows follow the sun angle which changes very slowly.
+#[derive(Resource)]
+pub struct ShadowUpdateThrottle(pub Timer);
 
 // ---------------------------------------------------------------------------
 // Systems
@@ -324,9 +340,15 @@ fn stabilize_shadow_cascades(
 /// Shadow offset = light direction projected onto ground plane, scaled by object height.
 /// Shadow also stretches along the light direction for a natural elongated look.
 fn update_blob_shadows(
+    time: Res<Time>,
+    mut throttle: ResMut<ShadowUpdateThrottle>,
     light_query: Query<&GlobalTransform, With<DirectionalLight>>,
     mut shadow_query: Query<(&mut Transform, &BlobShadow)>,
 ) {
+    throttle.0.tick(time.delta());
+    if !throttle.0.just_finished() {
+        return;
+    }
     let Ok(light_gt) = light_query.single() else {
         return;
     };
@@ -475,8 +497,14 @@ fn sync_game_time(
 fn animate_veg_wind(
     time: Res<Time>,
     wind: Res<WindState>,
+    mut throttle: ResMut<WindAnimThrottle>,
     mut query: Query<(&mut Transform, &WindSway)>,
 ) {
+    throttle.0.tick(time.delta());
+    if !throttle.0.just_finished() {
+        return;
+    }
+
     let t = time.elapsed_secs();
     let spd = wind.speed_mph;
     if spd < 0.5 {
@@ -502,8 +530,15 @@ fn animate_veg_wind(
 fn animate_tree_wind(
     time: Res<Time>,
     wind: Res<WindState>,
+    throttle: Res<WindAnimThrottle>,
     mut query: Query<(&mut Transform, &TreeWindSway)>,
 ) {
+    // Share the same throttle cadence as vegetation wind — the timer was
+    // already ticked by animate_veg_wind which runs in the same system set.
+    if !throttle.0.just_finished() {
+        return;
+    }
+
     let t = time.elapsed_secs();
     let spd = wind.speed_mph;
     if spd < 0.5 {
@@ -663,6 +698,33 @@ impl Plugin for WeatherPlugin {
         app.init_resource::<DayCycle>();
         app.init_resource::<WindState>();
         app.init_resource::<WindStreakPool>();
+
+        // Throttle timers — interval depends on perf tier.
+        // High = every frame (essentially no throttle), Low = reduced Hz.
+        let tier = app
+            .world()
+            .get_resource::<super::PerfTier>()
+            .copied()
+            .unwrap_or(super::PerfTier::High);
+        let wind_interval = match tier {
+            super::PerfTier::Low => 1.0 / 15.0,    // 15 Hz
+            super::PerfTier::Medium => 1.0 / 30.0, // 30 Hz
+            super::PerfTier::High => 0.0,          // every frame
+        };
+        let shadow_interval = match tier {
+            super::PerfTier::Low => 1.0 / 10.0,    // 10 Hz
+            super::PerfTier::Medium => 1.0 / 20.0, // 20 Hz
+            super::PerfTier::High => 0.0,          // every frame
+        };
+        app.insert_resource(WindAnimThrottle(Timer::from_seconds(
+            wind_interval,
+            TimerMode::Repeating,
+        )));
+        app.insert_resource(ShadowUpdateThrottle(Timer::from_seconds(
+            shadow_interval,
+            TimerMode::Repeating,
+        )));
+
         app.add_systems(Startup, (setup_weather, spawn_lighting));
         app.add_systems(
             Update,
@@ -675,7 +737,9 @@ impl Plugin for WeatherPlugin {
                     .run_if(resource_changed::<DayCycle>),
                 update_blob_shadows.run_if(any_with_component::<BlobShadow>),
                 animate_veg_wind.run_if(any_with_component::<WindSway>),
-                animate_tree_wind.run_if(any_with_component::<TreeWindSway>),
+                animate_tree_wind
+                    .after(animate_veg_wind)
+                    .run_if(any_with_component::<TreeWindSway>),
                 spawn_wind_streaks.run_if(|pool: Res<WindStreakPool>| !pool.initialized),
                 animate_wind_streaks.run_if(any_with_component::<WindStreak>),
             ),

@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-04-06T08:39:00.719Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-04-07T08:33:45.989Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -42,10 +42,10 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **4** items
   </Card>
   <Card title="Review" icon="approve-check">
-    **0** items
+    **1** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **360** items
+    **263** items
   </Card>
 </CardGrid>
 
@@ -61,15 +61,16 @@ pie showData
     "Backlog" : 7
     "Error" : 11
     "Staging" : 4
-    "Done" : 360
+    "Review" : 1
+    "Done" : 263
 ```
 
 ```mermaid
 pie showData
     title Work State
-    "Active (Todo+Staging+Review)" : 10
+    "Active (Todo+Staging+Review)" : 11
     "Blocked (Error+Support)" : 11
-    "Done" : 360
+    "Done" : 263
     "Planning (Theory+AI+Backlog)" : 30
 ```
 
@@ -96,9 +97,9 @@ flowchart LR
     Support --> Staging
     Staging["Staging<br/><strong>4</strong>"]
     Staging --> Review
-    Review["Review<br/><strong>0</strong>"]
+    Review["Review<br/><strong>1</strong>"]
     Review --> Done
-    Done["Done<br/><strong>360</strong>"]
+    Done["Done<br/><strong>263</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -115,18 +116,18 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 355
-    "Issue" : 56
+    "Pull Request" : 260
+    "Issue" : 55
 ```
 
 #### Top Labels
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 355 |
-| dev→main | 165 |
-| atomic | 147 |
-| enhancement | 29 |
+| auto-pr | 260 |
+| dev→main | 132 |
+| atomic | 90 |
+| enhancement | 28 |
 | 0 | 20 |
 | unity | 16 |
 | bug | 13 |
@@ -218,124 +219,19 @@ pie showData
 | [#3396](https://github.com/KBVE/kbve/issues/3396) | [Concept] : [Unity] : Adding Quirky Character Pack by Noiryt | — | h0lybyte | 4, unity |
 | [#6943](https://github.com/KBVE/kbve/issues/6943) | Phase 2: Frontend - Orchestration Tab | — | — | todo |
 
-### Done (360)
+### Review (1)
+
+| # | Title | Priority | Assignees | Labels |
+|---|-------|----------|-----------|--------|
+| [#9760](https://github.com/KBVE/kbve/pull/9760) | Release: 1 feature, 4 fixes, 2 perfs, 1 refactor, 1 chore → Main | — | — | auto-pr, dev→main |
+
+### Done (263)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
 | [#7956](https://github.com/KBVE/kbve/issues/7956) | chore(astro-kbve): re-enable starlight-site-graph after Zod 4 / Astro 6 support | — | — | 1, bug, backlog |
 | [#8341](https://github.com/KBVE/kbve/issues/8341) | [PROTO] Zod codegen for 10 uncovered proto schemas | — | — | 6, enhancement |
-| [#8550](https://github.com/KBVE/kbve/pull/8550) | Atomic: fix ows kubectl | — | — | auto-pr, atomic |
-| [#8659](https://github.com/KBVE/kbve/pull/8659) | Release: 3 features, 8 fixes, 1 test → Main | — | — | auto-pr, dev→main |
-| [#8667](https://github.com/KBVE/kbve/pull/8667) | Atomic: fix ows valkey creds | — | — | auto-pr, atomic |
-| [#8668](https://github.com/KBVE/kbve/pull/8668) | Atomic: fix ows auth middleware | — | — | auto-pr, atomic |
-| [#8671](https://github.com/KBVE/kbve/pull/8671) | Atomic: fix ows rabbitmq ack | — | — | auto-pr, atomic |
-| [#8674](https://github.com/KBVE/kbve/pull/8674) | Atomic: fix ows thread sleep | — | — | auto-pr, atomic |
-| [#8676](https://github.com/KBVE/kbve/pull/8676) | Atomic: ows test suite | — | — | auto-pr, atomic |
-| [#8680](https://github.com/KBVE/kbve/pull/8680) | Atomic: fix ows drawing cve | — | — | auto-pr, atomic |
-| [#8685](https://github.com/KBVE/kbve/pull/8685) | Atomic: kube edge v0.1.21 | — | — | auto-pr, atomic |
-| [#8690](https://github.com/KBVE/kbve/pull/8690) | Release: 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#8697](https://github.com/KBVE/kbve/pull/8697) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
-| [#8701](https://github.com/KBVE/kbve/pull/8701) | Release: 1 feature → Main | — | — | auto-pr, dev→main |
-| [#8708](https://github.com/KBVE/kbve/pull/8708) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
-| [#8715](https://github.com/KBVE/kbve/pull/8715) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
-| [#8722](https://github.com/KBVE/kbve/pull/8722) | Release: 1 feature → Main | — | — | auto-pr, dev→main |
-| [#8729](https://github.com/KBVE/kbve/pull/8729) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
-| [#8731](https://github.com/KBVE/kbve/pull/8731) | Atomic: kube ows-characterpersistence v0.1.8 | — | — | auto-pr, atomic |
-| [#8733](https://github.com/KBVE/kbve/pull/8733) | Atomic: kube ows-instancemanagement v0.1.8 | — | — | auto-pr, atomic |
-| [#8736](https://github.com/KBVE/kbve/pull/8736) | Atomic: kube ows-globaldata v0.1.8 | — | — | auto-pr, atomic |
-| [#8737](https://github.com/KBVE/kbve/pull/8737) | Atomic: kube ows-publicapi v0.1.8 | — | — | auto-pr, atomic |
-| [#8739](https://github.com/KBVE/kbve/pull/8739) | Atomic: kube ows-management v0.1.8 | — | — | auto-pr, atomic |
-| [#8740](https://github.com/KBVE/kbve/pull/8740) | Release: 10 chores → Main | — | — | auto-pr, dev→main |
-| [#8742](https://github.com/KBVE/kbve/pull/8742) | Release: 1 feature → Main | — | — | auto-pr, dev→main |
-| [#8745](https://github.com/KBVE/kbve/pull/8745) | Atomic: kube ows-globaldata v0.1.9 | — | — | auto-pr, atomic |
-| [#8746](https://github.com/KBVE/kbve/pull/8746) | Atomic: kube ows-publicapi v0.1.9 | — | — | auto-pr, atomic |
-| [#8748](https://github.com/KBVE/kbve/pull/8748) | Atomic: kube ows-instancemanagement v0.1.9 | — | — | auto-pr, atomic |
-| [#8750](https://github.com/KBVE/kbve/pull/8750) | Atomic: kube ows-management v0.1.9 | — | — | auto-pr, atomic |
-| [#8752](https://github.com/KBVE/kbve/pull/8752) | Atomic: kube ows-characterpersistence v0.1.9 | — | — | auto-pr, atomic |
-| [#8754](https://github.com/KBVE/kbve/pull/8754) | Release: 1 fix, 10 chores → Main | — | — | auto-pr, dev→main |
-| [#8760](https://github.com/KBVE/kbve/pull/8760) | Release: 1 feature, 1 fix, 11 chores → Main | — | — | auto-pr, dev→main |
-| [#8765](https://github.com/KBVE/kbve/pull/8765) | Atomic: kube ows-instancemanagement v0.10.0 | — | — | auto-pr, atomic |
-| [#8767](https://github.com/KBVE/kbve/pull/8767) | Atomic: kube ows-globaldata v0.10.0 | — | — | auto-pr, atomic |
-| [#8768](https://github.com/KBVE/kbve/pull/8768) | Atomic: kube ows-management v0.10.0 | — | — | auto-pr, atomic |
-| [#8770](https://github.com/KBVE/kbve/pull/8770) | Atomic: kube ows-characterpersistence v0.10.0 | — | — | auto-pr, atomic |
-| [#8771](https://github.com/KBVE/kbve/pull/8771) | Atomic: kube ows-publicapi v0.10.0 | — | — | auto-pr, atomic |
-| [#8776](https://github.com/KBVE/kbve/pull/8776) | Release: 2 features, 2 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#8786](https://github.com/KBVE/kbve/pull/8786) | Release: 1 feature, 2 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#8787](https://github.com/KBVE/kbve/pull/8787) | Atomic: bump discord sdk | — | — | auto-pr, atomic |
-| [#8790](https://github.com/KBVE/kbve/pull/8790) | Atomic: bump ows versions | — | — | auto-pr, atomic |
-| [#8791](https://github.com/KBVE/kbve/pull/8791) | Release: 3 features → Main | — | — | auto-pr, dev→main |
-| [#8792](https://github.com/KBVE/kbve/pull/8792) | chore(dashboard): daily sync — 2026-03-23 | — | — | auto-pr |
-| [#8794](https://github.com/KBVE/kbve/pull/8794) | chore(discordsh): update version.toml to 0.1.35 | — | — | auto-pr |
-| [#8795](https://github.com/KBVE/kbve/pull/8795) | Atomic: kube discordsh v0.1.35 | — | — | auto-pr, atomic |
-| [#8798](https://github.com/KBVE/kbve/pull/8798) | chore(ows-publicapi): update version.toml to 0.10.1 | — | — | auto-pr |
-| [#8799](https://github.com/KBVE/kbve/pull/8799) | Atomic: kube ows-publicapi v0.10.1 | — | — | auto-pr, atomic |
-| [#8800](https://github.com/KBVE/kbve/pull/8800) | chore(ows-characterpersistence): update version.toml to 0.10.1 | — | — | auto-pr |
-| [#8801](https://github.com/KBVE/kbve/pull/8801) | Atomic: kube ows-characterpersistence v0.10.1 | — | — | auto-pr, atomic |
-| [#8802](https://github.com/KBVE/kbve/pull/8802) | chore(ows-instancemanagement): update version.toml to 0.10.1 | — | — | auto-pr |
-| [#8803](https://github.com/KBVE/kbve/pull/8803) | Atomic: kube ows-instancemanagement v0.10.1 | — | — | auto-pr, atomic |
-| [#8804](https://github.com/KBVE/kbve/pull/8804) | chore(ows-globaldata): update version.toml to 0.10.1 | — | — | auto-pr |
-| [#8805](https://github.com/KBVE/kbve/pull/8805) | Atomic: kube ows-globaldata v0.10.1 | — | — | auto-pr, atomic |
-| [#8807](https://github.com/KBVE/kbve/pull/8807) | Release: 3 features, 4 fixes, 11 chores → Main | — | — | auto-pr, dev→main |
-| [#8819](https://github.com/KBVE/kbve/pull/8819) | chore(axum-kbve): update version.toml to 1.0.72 | — | — | auto-pr |
-| [#8820](https://github.com/KBVE/kbve/pull/8820) | Atomic: kube axum-kbve v1.0.72 | — | — | auto-pr, atomic |
-| [#8822](https://github.com/KBVE/kbve/pull/8822) | Release: 2 features, 1 doc, 2 tests, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#8830](https://github.com/KBVE/kbve/pull/8830) | Release: 1 refactor, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#8834](https://github.com/KBVE/kbve/pull/8834) | Atomic: bump axum kbve | — | — | auto-pr, atomic |
-| [#8836](https://github.com/KBVE/kbve/pull/8836) | Release: 1 feature, 3 fixes → Main | — | — | auto-pr, dev→main |
-| [#8845](https://github.com/KBVE/kbve/pull/8845) | Release: 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#8847](https://github.com/KBVE/kbve/pull/8847) | Atomic: kube axum-kbve v1.0.73 | — | — | auto-pr, atomic |
-| [#8849](https://github.com/KBVE/kbve/pull/8849) | Release: 4 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#8853](https://github.com/KBVE/kbve/pull/8853) | Release: 4 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#8860](https://github.com/KBVE/kbve/pull/8860) | Atomic: fix chuckrpg trivy | — | — | auto-pr, atomic |
-| [#8861](https://github.com/KBVE/kbve/pull/8861) | Atomic: fix chuckrpg tls | — | — | auto-pr, atomic |
-| [#8871](https://github.com/KBVE/kbve/pull/8871) | chore(axum-kbve): update version.toml to 1.0.73 | — | — | auto-pr |
-| [#8873](https://github.com/KBVE/kbve/pull/8873) | Atomic: fix chuckrpg e2e image | — | — | auto-pr, atomic |
-| [#8877](https://github.com/KBVE/kbve/pull/8877) | Release: 1 feature, 3 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#8887](https://github.com/KBVE/kbve/pull/8887) | Release: 3 fixes → Main | — | — | auto-pr, dev→main |
-| [#8890](https://github.com/KBVE/kbve/pull/8890) | Atomic: fix chuckrpg e2e tag | — | — | auto-pr, atomic |
-| [#8892](https://github.com/KBVE/kbve/pull/8892) | Atomic: ows-globaldata v0.10.4 post-publish sync | — | — | auto-pr, atomic |
-| [#8893](https://github.com/KBVE/kbve/pull/8893) | Atomic: ows-management v0.10.4 post-publish sync | — | — | auto-pr, atomic |
-| [#8894](https://github.com/KBVE/kbve/pull/8894) | Atomic: ows-instancemanagement v0.10.4 post-publish sync | — | — | auto-pr, atomic |
-| [#8895](https://github.com/KBVE/kbve/pull/8895) | Atomic: ows-characterpersistence v0.10.4 post-publish sync | — | — | auto-pr, atomic |
-| [#8896](https://github.com/KBVE/kbve/pull/8896) | Atomic: ows-instancelauncher v0.10.4 post-publish sync | — | — | auto-pr, atomic |
-| [#8897](https://github.com/KBVE/kbve/pull/8897) | Atomic: ows-publicapi v0.10.4 post-publish sync | — | — | auto-pr, atomic |
-| [#8900](https://github.com/KBVE/kbve/pull/8900) | Release: 1 feature, 1 fix, 1 doc, 6 chores → Main | — | — | auto-pr, dev→main |
-| [#8906](https://github.com/KBVE/kbve/pull/8906) | Atomic: fix chuckrpg image name | — | — | auto-pr, atomic |
-| [#8908](https://github.com/KBVE/kbve/pull/8908) | Release: 3 features, 3 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#8917](https://github.com/KBVE/kbve/pull/8917) | Atomic: ows-globaldata v0.10.5 post-publish sync | — | — | auto-pr, atomic |
-| [#8918](https://github.com/KBVE/kbve/pull/8918) | Atomic: ows-instancelauncher v0.10.5 post-publish sync | — | — | auto-pr, atomic |
-| [#8919](https://github.com/KBVE/kbve/pull/8919) | Atomic: ows-characterpersistence v0.10.5 post-publish sync | — | — | auto-pr, atomic |
-| [#8920](https://github.com/KBVE/kbve/pull/8920) | Atomic: ows-instancemanagement v0.10.5 post-publish sync | — | — | auto-pr, atomic |
-| [#8922](https://github.com/KBVE/kbve/pull/8922) | Atomic: ows-publicapi v0.10.5 post-publish sync | — | — | auto-pr, atomic |
-| [#8921](https://github.com/KBVE/kbve/pull/8921) | Atomic: ows-management v0.10.5 post-publish sync | — | — | auto-pr, atomic |
-| [#8923](https://github.com/KBVE/kbve/pull/8923) | Atomic: axum-chuckrpg v0.1.1 post-publish sync | — | — | auto-pr, atomic |
-| [#8925](https://github.com/KBVE/kbve/pull/8925) | Release: 5 chores → Main | — | — | auto-pr, dev→main |
-| [#8928](https://github.com/KBVE/kbve/pull/8928) | Release: 2 fixes → Main | — | — | auto-pr, dev→main |
-| [#8929](https://github.com/KBVE/kbve/pull/8929) | Atomic: ows-instancelauncher v0.10.6 post-publish sync | — | — | auto-pr, atomic |
-| [#8930](https://github.com/KBVE/kbve/issues/8930) | [UE5] [OWS] Add Agones readiness validation at launcher startup | — | — | enhancement |
 | [#8934](https://github.com/KBVE/kbve/issues/8934) | [UE5] [OWS] Fix blocking async calls in Agones allocation handlers | — | — | enhancement |
-| [#8936](https://github.com/KBVE/kbve/pull/8936) | Release: 1 doc → Main | — | — | auto-pr, dev→main |
-| [#8939](https://github.com/KBVE/kbve/pull/8939) | Release: 3 fixes → Main | — | — | auto-pr, dev→main |
-| [#8942](https://github.com/KBVE/kbve/pull/8942) | Atomic: ows-instancelauncher v0.10.7 post-publish sync | — | — | auto-pr, atomic |
-| [#8943](https://github.com/KBVE/kbve/pull/8943) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
-| [#8946](https://github.com/KBVE/kbve/pull/8946) | Release: 2 features → Main | — | — | auto-pr, dev→main |
-| [#8951](https://github.com/KBVE/kbve/pull/8951) | Release: 2 features → Main | — | — | auto-pr, dev→main |
-| [#8954](https://github.com/KBVE/kbve/pull/8954) | Atomic: ows-characterpersistence v0.10.6 post-publish sync | — | — | auto-pr, atomic |
-| [#8953](https://github.com/KBVE/kbve/pull/8953) | Atomic: ows-publicapi v0.10.6 post-publish sync | — | — | auto-pr, atomic |
-| [#8955](https://github.com/KBVE/kbve/pull/8955) | Atomic: ows-globaldata v0.10.6 post-publish sync | — | — | auto-pr, atomic |
-| [#8956](https://github.com/KBVE/kbve/pull/8956) | Atomic: ows-management v0.10.6 post-publish sync | — | — | auto-pr, atomic |
-| [#8957](https://github.com/KBVE/kbve/pull/8957) | Atomic: ows-instancelauncher v0.10.8 post-publish sync | — | — | auto-pr, atomic |
-| [#8958](https://github.com/KBVE/kbve/pull/8958) | Atomic: ows-instancemanagement v0.10.6 post-publish sync | — | — | auto-pr, atomic |
-| [#8960](https://github.com/KBVE/kbve/pull/8960) | Release: 1 feature, 6 chores → Main | — | — | auto-pr, dev→main |
-| [#8963](https://github.com/KBVE/kbve/pull/8963) | Release: 1 feature → Main | — | — | auto-pr, dev→main |
-| [#8964](https://github.com/KBVE/kbve/pull/8964) | Atomic: fix certmgr gateway | — | — | auto-pr, atomic |
-| [#8966](https://github.com/KBVE/kbve/pull/8966) | Release: 1 fix, 1 perf → Main | — | — | auto-pr, dev→main |
-| [#8968](https://github.com/KBVE/kbve/pull/8968) | Release: 1 refactor → Main | — | — | auto-pr, dev→main |
-| [#8969](https://github.com/KBVE/kbve/pull/8969) | Atomic: fix certmgr gateway | — | — | auto-pr, atomic |
-| [#8970](https://github.com/KBVE/kbve/pull/8970) | Atomic: fix certmgr enable gw | — | — | auto-pr, atomic |
-| [#8972](https://github.com/KBVE/kbve/pull/8972) | Release: 1 refactor → Main | — | — | auto-pr, dev→main |
-| [#8976](https://github.com/KBVE/kbve/pull/8976) | Release: 5 features, 1 fix, 2 docs → Main | — | — | auto-pr, dev→main |
-| [#8987](https://github.com/KBVE/kbve/pull/8987) | Release: 6 features, 1 doc → Main | — | — | auto-pr, dev→main |
 | [#8999](https://github.com/KBVE/kbve/pull/8999) | Release: 2 features, 2 fixes → Main | — | — | auto-pr, dev→main |
 | [#9005](https://github.com/KBVE/kbve/pull/9005) | Atomic: axum-chuckrpg v0.1.2 post-publish sync | — | — | auto-pr, atomic |
 | [#9008](https://github.com/KBVE/kbve/pull/9008) | Release: 1 feature, 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
@@ -582,6 +478,20 @@ pie showData
 | [#9706](https://github.com/KBVE/kbve/pull/9706) | Atomic: discordsh-bot v0.1.5 post-publish sync | — | — | auto-pr, atomic |
 | [#9707](https://github.com/KBVE/kbve/pull/9707) | Release: 4 chores → Main | — | — | auto-pr, dev→main |
 | [#9709](https://github.com/KBVE/kbve/pull/9709) | Atomic: axum-kbve v1.0.97 post-publish sync | — | — | auto-pr, atomic |
+| [#9711](https://github.com/KBVE/kbve/pull/9711) | chore(dashboard): daily sync — 2026-04-06 | — | — | auto-pr |
+| [#9712](https://github.com/KBVE/kbve/pull/9712) | Release: 4 features, 3 fixes, 2 docs, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#9725](https://github.com/KBVE/kbve/pull/9725) | Release: 1 feature, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#9726](https://github.com/KBVE/kbve/pull/9726) | deploy(isometric): update WASM build | — | — | auto-pr |
+| [#9727](https://github.com/KBVE/kbve/pull/9727) | Atomic: discordsh-bot v0.1.6 post-publish sync | — | — | auto-pr, atomic |
+| [#9728](https://github.com/KBVE/kbve/pull/9728) | Atomic: axum-kbve v1.0.98 post-publish sync | — | — | auto-pr, atomic |
+| [#9729](https://github.com/KBVE/kbve/pull/9729) | Release: 5 features, 5 fixes, 1 test, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#9743](https://github.com/KBVE/kbve/pull/9743) | deploy(isometric): update WASM build | — | — | auto-pr |
+| [#9744](https://github.com/KBVE/kbve/pull/9744) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#9745](https://github.com/KBVE/kbve/pull/9745) | Atomic: axum-kbve v1.0.99 post-publish sync | — | — | auto-pr, atomic |
+| [#9750](https://github.com/KBVE/kbve/pull/9750) | Release: 7 features, 2 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#9758](https://github.com/KBVE/kbve/pull/9758) | Atomic: axum-kbve v1.0.100 post-publish sync | — | — | auto-pr, atomic |
+| [#9759](https://github.com/KBVE/kbve/pull/9759) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#9768](https://github.com/KBVE/kbve/pull/9768) | Atomic: fix waypoint panic | — | — | auto-pr, atomic |
 
 ---
 

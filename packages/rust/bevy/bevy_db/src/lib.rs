@@ -30,6 +30,7 @@ pub mod batch;
 pub mod error;
 pub mod handle;
 pub(crate) mod store;
+pub(crate) mod task;
 
 pub use error::DbError;
 pub use handle::{Db, DbRequest};

@@ -1276,7 +1276,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.99"
+version = "1.0.100"
 dependencies = [
  "anyhow",
  "askama",
@@ -1749,6 +1749,7 @@ dependencies = [
  "crossbeam-channel",
  "dirs",
  "js-sys",
+ "once_cell",
  "redb",
  "rexie",
  "serde",

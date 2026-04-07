@@ -1298,22 +1298,14 @@ struct RawMeshDataUV {
 }
 
 /// Vegetation spawn decision (computed off-thread, materialized on main thread).
+/// Rocks and mushrooms are merged into per-chunk meshes — only trees and
+/// flowers remain as individual entity spawns.
 #[allow(dead_code)]
 enum VegetationSpawn {
     Tree {
         tx: i32,
         tz: i32,
         column_h: f32,
-    },
-    Rock {
-        tx: i32,
-        tz: i32,
-        column_h: f32,
-        world_x: f32,
-        world_z: f32,
-        rock_y: f32,
-        rot_y: f32,
-        kind: RockKind,
     },
     Flower {
         tx: i32,
@@ -1323,15 +1315,31 @@ enum VegetationSpawn {
         world_z: f32,
         flower_y: f32,
     },
-    Mushroom {
-        tx: i32,
-        tz: i32,
-        world_x: f32,
-        world_z: f32,
-        mush_y: f32,
-        rot_y: f32,
-        kind: MushroomKind,
-    },
+}
+
+/// Interaction metadata for a rock whose mesh is merged into the chunk.
+/// Spawned as a lightweight invisible entity (no Mesh3d, no Collider).
+struct RockMeta {
+    tx: i32,
+    tz: i32,
+    world_x: f32,
+    world_z: f32,
+    rock_y: f32,
+    kind: RockKind,
+    max_hw: f32,
+    total_h: f32,
+}
+
+/// Interaction metadata for a mushroom whose mesh is merged into the chunk.
+struct MushroomMeta {
+    tx: i32,
+    tz: i32,
+    world_x: f32,
+    world_z: f32,
+    mush_y: f32,
+    kind: MushroomKind,
+    max_hw: f32,
+    total_h: f32,
 }
 
 /// Complete geometry for one chunk, computed off the main thread.
@@ -1343,9 +1351,17 @@ struct ChunkGeometry {
     cap: RawMeshData,
     grass: RawMeshDataUV,
     water: RawMeshData,
+    /// Merged rock mesh — all rocks in this chunk baked into one draw call.
+    rock_body: RawMeshData,
+    /// Merged mushroom mesh — all mushrooms baked into one draw call.
+    mushroom_body: RawMeshData,
     /// Collider sub-shapes: (position, full_extents) in chunk-local space.
     colliders: Vec<(Vec3, Vec3)>,
     vegetation: Vec<VegetationSpawn>,
+    /// Interaction metadata for merged rocks (lightweight entities, no mesh).
+    rock_metas: Vec<RockMeta>,
+    /// Interaction metadata for merged mushrooms.
+    mushroom_metas: Vec<MushroomMeta>,
 }
 
 /// Crossbeam MPSC channel for completed chunk geometries.
@@ -1406,8 +1422,12 @@ fn compute_chunk_geometry(
     };
     let mut grass = RawMeshDataUV::default();
     let mut water = RawMeshData::default();
+    let mut rock_body = RawMeshData::default();
+    let mut mushroom_body = RawMeshData::default();
     let mut colliders: Vec<(Vec3, Vec3)> = Vec::with_capacity(tile_count);
     let mut vegetation = Vec::new();
+    let mut rock_metas = Vec::new();
+    let mut mushroom_metas = Vec::new();
 
     for dx in 0..CHUNK_SIZE {
         for dz in 0..CHUNK_SIZE {
@@ -1555,7 +1575,7 @@ fn compute_chunk_geometry(
                     }
                 }
 
-                // Rocks
+                // Rocks — merge vertices into per-chunk mesh
                 if !tile_occupied {
                     let rock_noise = hash2d(tx + 19457, tz + 12391);
                     if rock_noise < 0.025 {
@@ -1573,15 +1593,31 @@ fn compute_chunk_geometry(
                             let kind = rocks::rock_kind_from_hash(tx, tz);
                             let rot_y =
                                 hash2d(tx * 8311 + 2477, tz * 7193 + 3319) * std::f32::consts::TAU;
-                            vegetation.push(VegetationSpawn::Rock {
+                            let params = rocks::RockParams {
+                                world_x,
+                                world_z,
+                                base_y: rock_y,
+                                kind,
                                 tx,
                                 tz,
-                                column_h,
+                            };
+                            let (max_hw, total_h) = rocks::push_rock_vertices(
+                                &params,
+                                rot_y,
+                                &mut rock_body.positions,
+                                &mut rock_body.normals,
+                                &mut rock_body.colors,
+                                &mut rock_body.indices,
+                            );
+                            rock_metas.push(RockMeta {
+                                tx,
+                                tz,
                                 world_x,
                                 world_z,
                                 rock_y,
-                                rot_y,
                                 kind,
+                                max_hw,
+                                total_h,
                             });
                         }
                     }
@@ -1617,7 +1653,7 @@ fn compute_chunk_geometry(
                     }
                 }
 
-                // Mushrooms
+                // Mushrooms — merge vertices into per-chunk mesh
                 if !tile_occupied {
                     let mush_noise = hash2d(tx + 23017, tz + 17293);
                     if mush_noise < 0.04 {
@@ -1634,14 +1670,27 @@ fn compute_chunk_geometry(
                             let kind = mushrooms::mushroom_kind_from_hash(tx, tz);
                             let rot_y =
                                 hash2d(tx * 9311 + 3477, tz * 8193 + 4319) * std::f32::consts::TAU;
-                            vegetation.push(VegetationSpawn::Mushroom {
+                            let params = mushrooms::MushroomParams { tx, tz, kind };
+                            let (max_hw, total_h) = mushrooms::push_mushroom_vertices(
+                                &params,
+                                world_x,
+                                world_z,
+                                mush_y,
+                                rot_y,
+                                &mut mushroom_body.positions,
+                                &mut mushroom_body.normals,
+                                &mut mushroom_body.colors,
+                                &mut mushroom_body.indices,
+                            );
+                            mushroom_metas.push(MushroomMeta {
                                 tx,
                                 tz,
                                 world_x,
                                 world_z,
                                 mush_y,
-                                rot_y,
                                 kind,
+                                max_hw,
+                                total_h,
                             });
                         }
                     }
@@ -1658,8 +1707,12 @@ fn compute_chunk_geometry(
         cap,
         grass,
         water,
+        rock_body,
+        mushroom_body,
         colliders,
         vegetation,
+        rock_metas,
+        mushroom_metas,
     }
 }
 
@@ -1825,6 +1878,7 @@ fn process_chunk_spawns_and_despawns(
     player_query: Query<&Transform, With<Player>>,
     collected_tiles: Res<CollectedTiles>,
     terrain_ready: Option<Res<TerrainReady>>,
+    perf_tier: Res<super::PerfTier>,
 ) {
     let Some(tile_materials) = tile_materials else {
         return;
@@ -1924,11 +1978,13 @@ fn process_chunk_spawns_and_despawns(
     // Sort near chunks first so they get priority.
     results.sort_by_key(|g| if g.is_near { 0i32 } else { 1 });
 
-    // With pthreads, workers produce results faster — increase finalization budget.
-    #[cfg(target_arch = "wasm32")]
-    const MAX_DISTANT_FINALIZES: usize = 4;
-    #[cfg(not(target_arch = "wasm32"))]
-    const MAX_DISTANT_FINALIZES: usize = 8;
+    // Finalization budget: each chunk spawns dozens of entities + colliders.
+    // On mobile WASM, limit to 1 distant chunk per frame to avoid frame spikes.
+    let max_distant_finalizes: usize = match *perf_tier {
+        super::PerfTier::Low => 1,
+        super::PerfTier::Medium => 2,
+        super::PerfTier::High => 8,
+    };
 
     let mut far_finalized = 0usize;
     let mut had_near = false;
@@ -1943,7 +1999,7 @@ fn process_chunk_spawns_and_despawns(
 
         if !geometry.is_near {
             far_finalized += 1;
-            if far_finalized > MAX_DISTANT_FINALIZES {
+            if far_finalized > max_distant_finalizes {
                 // Re-queue for next frame via the channel.
                 let _ = chunk_channel.tx.send(geometry);
                 continue;
@@ -2038,7 +2094,121 @@ fn process_chunk_spawns_and_despawns(
             entities.push(water_entity);
         }
 
-        // ── Vegetation entities (main-thread only — needs Commands) ────
+        // ── Merged rock mesh (single draw call per chunk) ──────────────
+        if !geometry.rock_body.positions.is_empty() {
+            let rock_mesh = meshes.add(build_chunk_mesh(
+                geometry.rock_body.positions,
+                geometry.rock_body.normals,
+                geometry.rock_body.colors,
+                geometry.rock_body.indices,
+            ));
+            let rock_mesh_entity = commands
+                .spawn((
+                    Mesh3d(rock_mesh),
+                    MeshMaterial3d(tile_materials.rock_body_mat.clone()),
+                    Transform::IDENTITY,
+                    Pickable::IGNORE,
+                ))
+                .id();
+            entities.push(rock_mesh_entity);
+        }
+
+        // Lightweight interaction entities for each rock (no mesh, no collider).
+        for rm in geometry.rock_metas {
+            let mut rock_cmd = commands.spawn((
+                Transform::from_xyz(rm.world_x, rm.rock_y, rm.world_z),
+                Visibility::Hidden,
+                HoverOutline {
+                    half_extents: Vec3::new(rm.max_hw, rm.total_h / 2.0, rm.max_hw),
+                },
+                Interactable {
+                    kind: InteractableKind::Rock,
+                },
+                rm.kind,
+                TileCoord {
+                    tx: rm.tx,
+                    tz: rm.tz,
+                },
+            ));
+            if *perf_tier == super::PerfTier::High {
+                rock_cmd.insert((
+                    RigidBody::Static,
+                    Collider::cuboid(rm.max_hw * 1.6, rm.total_h, rm.max_hw * 1.6),
+                ));
+            }
+            let rock_entity = rock_cmd
+                .observe(on_pointer_over)
+                .observe(on_pointer_out)
+                .id();
+            entities.push(rock_entity);
+
+            let shadow_entity = commands
+                .spawn((
+                    Mesh3d(blob_shadow.mesh.clone()),
+                    MeshMaterial3d(blob_shadow.material.clone()),
+                    Transform::from_xyz(rm.world_x, rm.rock_y + 0.001, rm.world_z),
+                    BlobShadow {
+                        anchor: Vec3::new(rm.world_x, rm.rock_y + 0.001, rm.world_z),
+                        radius: rm.max_hw * 1.4,
+                        object_height: rm.total_h,
+                    },
+                    Pickable::IGNORE,
+                ))
+                .id();
+            entities.push(shadow_entity);
+        }
+
+        // ── Merged mushroom mesh (single draw call per chunk) ─────────
+        if !geometry.mushroom_body.positions.is_empty() {
+            let mush_mesh = meshes.add(build_chunk_mesh(
+                geometry.mushroom_body.positions,
+                geometry.mushroom_body.normals,
+                geometry.mushroom_body.colors,
+                geometry.mushroom_body.indices,
+            ));
+            let mush_mesh_entity = commands
+                .spawn((
+                    Mesh3d(mush_mesh),
+                    MeshMaterial3d(tile_materials.tree_body_mat.clone()),
+                    Transform::IDENTITY,
+                    Pickable::IGNORE,
+                ))
+                .id();
+            entities.push(mush_mesh_entity);
+        }
+
+        // Lightweight interaction entities for each mushroom.
+        for mm in geometry.mushroom_metas {
+            let mut mush_cmd = commands.spawn((
+                Transform::from_xyz(mm.world_x, mm.mush_y, mm.world_z),
+                Visibility::Hidden,
+                HoverOutline {
+                    half_extents: Vec3::new(mm.max_hw, mm.total_h / 2.0, mm.max_hw),
+                },
+                Interactable {
+                    kind: InteractableKind::Mushroom,
+                },
+                mm.kind,
+                TileCoord {
+                    tx: mm.tx,
+                    tz: mm.tz,
+                },
+            ));
+            if *perf_tier == super::PerfTier::High {
+                mush_cmd.insert((
+                    RigidBody::Static,
+                    Collider::cuboid(mm.max_hw * 1.6, mm.total_h, mm.max_hw * 1.6),
+                    Sensor,
+                ));
+            }
+            let mush_entity = mush_cmd
+                .observe(on_pointer_over)
+                .observe(on_pointer_out)
+                .id();
+            entities.push(mush_entity);
+        }
+
+        // ── Vegetation entities (trees + flowers — still individual) ──
         for veg in geometry.vegetation {
             match veg {
                 VegetationSpawn::Tree { tx, tz, column_h } => {
@@ -2054,62 +2224,6 @@ fn process_chunk_spawns_and_despawns(
                     );
                     commands.entity(tree_entity).insert(TileCoord { tx, tz });
                     entities.push(tree_entity);
-                    entities.push(shadow_entity);
-                }
-                VegetationSpawn::Rock {
-                    tx,
-                    tz,
-                    column_h: _,
-                    world_x,
-                    world_z,
-                    rock_y,
-                    rot_y,
-                    kind,
-                } => {
-                    let params = rocks::RockParams {
-                        world_x,
-                        world_z,
-                        base_y: rock_y,
-                        kind,
-                        tx,
-                        tz,
-                    };
-                    let (rock_mesh, max_hw, total_h) = rocks::build_rock(&params, &mut meshes);
-                    let rock_entity = commands
-                        .spawn((
-                            Mesh3d(rock_mesh),
-                            MeshMaterial3d(tile_materials.rock_body_mat.clone()),
-                            Transform::from_xyz(world_x, rock_y, world_z)
-                                .with_rotation(Quat::from_rotation_y(rot_y)),
-                            RigidBody::Static,
-                            Collider::cuboid(max_hw * 1.6, total_h, max_hw * 1.6),
-                            HoverOutline {
-                                half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
-                            },
-                            Interactable {
-                                kind: InteractableKind::Rock,
-                            },
-                            kind,
-                            TileCoord { tx, tz },
-                        ))
-                        .observe(on_pointer_over)
-                        .observe(on_pointer_out)
-                        .id();
-                    entities.push(rock_entity);
-
-                    let shadow_entity = commands
-                        .spawn((
-                            Mesh3d(blob_shadow.mesh.clone()),
-                            MeshMaterial3d(blob_shadow.material.clone()),
-                            Transform::from_xyz(world_x, rock_y + 0.001, world_z),
-                            BlobShadow {
-                                anchor: Vec3::new(world_x, rock_y + 0.001, world_z),
-                                radius: max_hw * 1.4,
-                                object_height: total_h,
-                            },
-                            Pickable::IGNORE,
-                        ))
-                        .id();
                     entities.push(shadow_entity);
                 }
                 VegetationSpawn::Flower {
@@ -2132,62 +2246,34 @@ fn process_chunk_spawns_and_despawns(
                         8 => FlowerArchetype::Allium,
                         _ => FlowerArchetype::BlueOrchid,
                     };
-                    let flower_entity = commands
-                        .spawn((
-                            Mesh3d(tile_materials.flower_meshes[arch_idx].clone()),
-                            MeshMaterial3d(tile_materials.flower_mat.clone()),
-                            Transform::from_xyz(world_x, flower_y, world_z),
+                    let mut flower_cmd = commands.spawn((
+                        Mesh3d(tile_materials.flower_meshes[arch_idx].clone()),
+                        MeshMaterial3d(tile_materials.flower_mat.clone()),
+                        Transform::from_xyz(world_x, flower_y, world_z),
+                        HoverOutline {
+                            half_extents: Vec3::new(0.2, 0.25, 0.2),
+                        },
+                        Interactable {
+                            kind: InteractableKind::Flower,
+                        },
+                        archetype,
+                        TileCoord { tx, tz },
+                    ));
+                    // Only add physics colliders on High tier (desktop native).
+                    // WASM hover uses tile-based HoverMap, not avian3d raycasts,
+                    // so sensor colliders are pure overhead on the physics broadphase.
+                    if *perf_tier == super::PerfTier::High {
+                        flower_cmd.insert((
                             RigidBody::Static,
                             Collider::cuboid(0.4, 0.5, 0.4),
                             Sensor,
-                            HoverOutline {
-                                half_extents: Vec3::new(0.2, 0.25, 0.2),
-                            },
-                            Interactable {
-                                kind: InteractableKind::Flower,
-                            },
-                            archetype,
-                            TileCoord { tx, tz },
-                        ))
+                        ));
+                    }
+                    let flower_entity = flower_cmd
                         .observe(on_pointer_over)
                         .observe(on_pointer_out)
                         .id();
                     entities.push(flower_entity);
-                }
-                VegetationSpawn::Mushroom {
-                    tx,
-                    tz,
-                    world_x,
-                    world_z,
-                    mush_y,
-                    rot_y,
-                    kind,
-                } => {
-                    let params = mushrooms::MushroomParams { tx, tz, kind };
-                    let (mush_mesh, max_hw, total_h) =
-                        mushrooms::build_mushroom(&params, &mut meshes);
-                    let mush_entity = commands
-                        .spawn((
-                            Mesh3d(mush_mesh),
-                            MeshMaterial3d(tile_materials.tree_body_mat.clone()),
-                            Transform::from_xyz(world_x, mush_y, world_z)
-                                .with_rotation(Quat::from_rotation_y(rot_y)),
-                            RigidBody::Static,
-                            Collider::cuboid(max_hw * 1.6, total_h, max_hw * 1.6),
-                            Sensor,
-                            HoverOutline {
-                                half_extents: Vec3::new(max_hw, total_h / 2.0, max_hw),
-                            },
-                            Interactable {
-                                kind: InteractableKind::Mushroom,
-                            },
-                            kind,
-                            TileCoord { tx, tz },
-                        ))
-                        .observe(on_pointer_over)
-                        .observe(on_pointer_out)
-                        .id();
-                    entities.push(mush_entity);
                 }
             }
         }
