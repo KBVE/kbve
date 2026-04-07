@@ -181,6 +181,7 @@ pub struct PendingPatrolCompute {
 }
 
 /// Tag newly-activated creatures that have an influence profile but no route.
+#[allow(clippy::type_complexity)]
 pub fn tag_creatures_needing_routes(
     mut commands: Commands,
     types: Res<SpriteCreatureTypes>,

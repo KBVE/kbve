@@ -15,7 +15,7 @@ use bevy::prelude::*;
 use lightyear::prelude::server::*;
 use lightyear::prelude::*;
 
-use bevy_kbve_net::npcdb::{self, CreatureRegistry, ProtoNpcId, creature::CapturedCreatures};
+use bevy_kbve_net::npcdb::{self, ProtoNpcId, creature::CapturedCreatures};
 use bevy_kbve_net::{
     AuthAck, AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
     CreatureKind, CreaturePositionSync, CreatureSnapshot, CreatureSyncChannel, DamageEvent,
@@ -99,7 +99,7 @@ struct CreatureSeed(u64);
 
 impl Default for CreatureSeed {
     fn default() -> Self {
-        Self(0x4B_BE_F0_2026)
+        Self(0x4BBEF02026)
     }
 }
 
@@ -120,6 +120,7 @@ impl Default for WindState {
 }
 
 /// Map a protocol `CreatureKind` to its NPC ref string.
+#[allow(dead_code)]
 fn creature_kind_to_npc_ref(kind: CreatureKind) -> &'static str {
     match kind {
         CreatureKind::Firefly => "meadow-firefly",
@@ -129,11 +130,13 @@ fn creature_kind_to_npc_ref(kind: CreatureKind) -> &'static str {
 }
 
 /// Map a protocol `CreatureKind` to a `ProtoNpcId`.
+#[allow(dead_code)]
 fn creature_kind_to_npc_id(kind: CreatureKind) -> ProtoNpcId {
     ProtoNpcId::from_ref(creature_kind_to_npc_ref(kind))
 }
 
 /// Map a `ProtoNpcId` back to a protocol `CreatureKind` (for wire messages).
+#[allow(dead_code)]
 fn npc_id_to_creature_kind(npc_id: ProtoNpcId) -> Option<CreatureKind> {
     if npc_id == ProtoNpcId::from_ref("meadow-firefly") {
         Some(CreatureKind::Firefly)
@@ -566,7 +569,7 @@ fn run_bevy_app(
 
     // Minimal headless Bevy — no window, no renderer
     app.add_plugins(MinimalPlugins);
-    app.add_plugins(bevy::transform::TransformPlugin::default());
+    app.add_plugins(bevy::transform::TransformPlugin);
 
     // avian3d physics (headless — disable transform sync plugins,
     // lightyear_avian handles that)
@@ -973,6 +976,7 @@ fn load_pem_identity(
 /// Diagnostic: log Link buffer states every tick for entities in the Server collection.
 /// If the server's Netcode receive system processes packets, link.recv will be empty
 /// after Update. If packets pile up, they're not being consumed.
+#[allow(clippy::type_complexity)]
 fn debug_link_packet_flow(
     server_q: Query<(Entity, &Server), Without<Stopped>>,
     link_q: Query<(Entity, &Link, Has<Linked>, Has<Linking>, Option<&Name>)>,
@@ -1013,6 +1017,7 @@ fn debug_link_packet_flow(
 }
 
 /// Diagnostic: log ALL Link entities to detect orphans not in Server collection.
+#[allow(clippy::type_complexity)]
 fn debug_all_links(
     all_links: Query<(
         Entity,
@@ -1188,6 +1193,7 @@ fn server_debug_link_buffers(
 
 /// Diagnostic: logs per-NetcodeServer collection() size every ~2s.
 /// This reveals whether WT/WS connections produce Link entities visible to the Netcode layer.
+#[allow(clippy::type_complexity)]
 fn server_debug_netcode_collection(
     time: Res<Time>,
     mut timer: Local<Option<Timer>>,
@@ -1305,6 +1311,7 @@ fn game_time_challenge(day: &DayCycle) -> u64 {
 /// On success, sends AuthResponse with a `server_time` challenge (game clock)
 /// and inserts PendingAck — the client must echo server_time in AuthAck to
 /// complete the 4-step handshake.
+#[allow(clippy::too_many_arguments, clippy::type_complexity)]
 fn process_auth_messages(
     mut commands: Commands,
     jwt_secret: Res<JwtSecret>,

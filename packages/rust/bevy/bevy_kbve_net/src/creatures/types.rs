@@ -15,6 +15,12 @@ use ulid::Ulid;
 #[derive(Component, Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct CreatureId(pub Ulid);
 
+impl Default for CreatureId {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CreatureId {
     /// Generate a new ULID (server-side only).
     pub fn new() -> Self {

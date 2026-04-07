@@ -721,11 +721,7 @@ async fn vnc_bridge(
         while let Some(msg) = browser_rx.next().await {
             match msg {
                 Ok(AxumMsg::Binary(data)) => {
-                    if upstream_tx
-                        .send(TungMsg::Binary(data.into()))
-                        .await
-                        .is_err()
-                    {
+                    if upstream_tx.send(TungMsg::Binary(data)).await.is_err() {
                         break;
                     }
                 }
@@ -747,7 +743,7 @@ async fn vnc_bridge(
         while let Some(msg) = upstream_rx.next().await {
             match msg {
                 Ok(TungMsg::Binary(data)) => {
-                    if browser_tx.send(AxumMsg::Binary(data.into())).await.is_err() {
+                    if browser_tx.send(AxumMsg::Binary(data)).await.is_err() {
                         break;
                     }
                 }
@@ -1154,11 +1150,7 @@ async fn guacamole_ws_bridge(
                     }
                 }
                 Ok(AxumMsg::Binary(data)) => {
-                    if upstream_tx
-                        .send(TungMsg::Binary(data.into()))
-                        .await
-                        .is_err()
-                    {
+                    if upstream_tx.send(TungMsg::Binary(data)).await.is_err() {
                         break;
                     }
                 }
@@ -1180,7 +1172,7 @@ async fn guacamole_ws_bridge(
                     }
                 }
                 Ok(TungMsg::Binary(data)) => {
-                    if browser_tx.send(AxumMsg::Binary(data.into())).await.is_err() {
+                    if browser_tx.send(AxumMsg::Binary(data)).await.is_err() {
                         break;
                     }
                 }

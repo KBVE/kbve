@@ -28,7 +28,7 @@ use crate::db::{
 };
 
 /// Static table of simple permanent redirects handled by Axum before hitting Astro.
-const PERMANENT_REDIRECTS: &[(&'static str, &'static str)] = &[
+const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/application/kube", "/application/kubernetes/"),
     ("/application/kubectl", "/application/kubernetes/"),
     ("/application/bevy", "/application/rust/#bevy"),
