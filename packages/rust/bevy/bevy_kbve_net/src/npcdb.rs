@@ -72,7 +72,7 @@ pub struct CreatureConfig {
 ///
 /// Populated at startup with creature definitions + game-specific configs.
 /// Systems read this to know how to spawn, assign, and animate each creature type.
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct CreatureRegistry {
     /// The NPC database with proto-defined creature data.
     pub npc_db: NpcDb,
@@ -80,16 +80,6 @@ pub struct CreatureRegistry {
     pub configs: HashMap<ProtoNpcId, CreatureConfig>,
     /// Ordered list of creature NPC IDs for deterministic iteration.
     pub creature_ids: Vec<ProtoNpcId>,
-}
-
-impl Default for CreatureRegistry {
-    fn default() -> Self {
-        Self {
-            npc_db: NpcDb::default(),
-            configs: HashMap::new(),
-            creature_ids: Vec::new(),
-        }
-    }
 }
 
 impl CreatureRegistry {

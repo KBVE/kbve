@@ -27,6 +27,12 @@ pub struct CreatureBrain {
     pending: bool,
 }
 
+impl Default for CreatureBrain {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CreatureBrain {
     pub fn new() -> Self {
         Self {
@@ -44,6 +50,7 @@ impl CreatureBrain {
 /// Capture world snapshots for idle creatures and dispatch behavior tree
 /// evaluation to bevy_tasker. Only evaluates when the creature is idle
 /// (no pending intent and not currently moving/emoting).
+#[allow(clippy::type_complexity)]
 pub fn dispatch_behavior_trees(
     game_time: Res<GameTime>,
     types: Res<SpriteCreatureTypes>,

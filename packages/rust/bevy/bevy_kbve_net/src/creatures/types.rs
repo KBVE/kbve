@@ -2,6 +2,46 @@
 //! client and server.
 
 use bevy::prelude::*;
+use serde::{Deserialize, Serialize};
+use ulid::Ulid;
+
+// ---------------------------------------------------------------------------
+// Creature instance identity
+// ---------------------------------------------------------------------------
+
+/// Globally unique creature instance identifier assigned by the server.
+/// Embeds creation timestamp in the ULID's upper 48 bits, so you can tell
+/// when a creature was spawned from its ID alone.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct CreatureId(pub Ulid);
+
+impl Default for CreatureId {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl CreatureId {
+    /// Generate a new ULID (server-side only).
+    pub fn new() -> Self {
+        Self(Ulid::new())
+    }
+
+    /// Reconstruct from wire u128.
+    pub fn from_u128(v: u128) -> Self {
+        Self(Ulid::from(v))
+    }
+
+    /// Serialize to u128 for wire protocol.
+    pub fn as_u128(&self) -> u128 {
+        self.0.into()
+    }
+
+    /// Millisecond timestamp embedded in the ULID.
+    pub fn timestamp_ms(&self) -> u64 {
+        self.0.timestamp_ms()
+    }
+}
 
 // ---------------------------------------------------------------------------
 // Per-entity components

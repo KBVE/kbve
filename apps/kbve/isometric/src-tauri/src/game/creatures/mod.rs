@@ -70,6 +70,7 @@ impl Plugin for CreaturesPlugin {
         app.init_resource::<generic::SpriteAtlasPool>();
         app.init_resource::<generic::SimulationCenter>();
         app.init_resource::<generic::physics_lod::PhysicsLodTimer>();
+        app.init_resource::<generic::net_events::CreatureIdIndex>();
 
         app.add_systems(Startup, setup_creature_meshes);
 
@@ -106,9 +107,13 @@ impl Plugin for CreaturesPlugin {
                     .run_if(any_with_component::<generic::SpriteCreatureMarker>),
                 generic::physics_lod::update_physics_lod
                     .run_if(any_with_component::<generic::PhysicsLod>),
-                generic::net_events::receive_creature_events,
-                generic::net_events::receive_creature_sync,
-                generic::net_events::receive_ambient_creature_sync,
+                generic::net_events::update_creature_id_index,
+                generic::net_events::receive_creature_events
+                    .after(generic::net_events::update_creature_id_index),
+                generic::net_events::receive_creature_sync
+                    .after(generic::net_events::update_creature_id_index),
+                generic::net_events::receive_ambient_creature_sync
+                    .after(generic::net_events::update_creature_id_index),
             ),
         );
     }

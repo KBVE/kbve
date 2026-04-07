@@ -142,7 +142,7 @@ struct OwnReplicatedPlayer;
 
 /// Server-authoritative time received via TimeSyncMessage.
 /// When present and `active` is true, weather.rs defers to this instead of local DayCycle.
-#[derive(Resource)]
+#[derive(Resource, serde::Serialize, serde::Deserialize)]
 pub struct ServerTime {
     pub game_hour: f32,
     pub day_speed: f32,
@@ -1350,13 +1350,13 @@ fn forward_creature_capture_to_server(
         return;
     };
     info!(
-        "[net] sending creature capture request: {:?} index={}",
-        kind, event.creature_index
+        "[net] sending creature capture request: {:?} ulid={}",
+        kind, event.creature_id
     );
     for mut sender in &mut senders {
         sender.send::<GameChannel>(CreatureCaptureRequest {
+            creature_id: event.creature_id,
             kind,
-            creature_index: event.creature_index,
         });
     }
 }
@@ -1811,37 +1811,32 @@ fn creature_kind_to_npc_id(kind: CreatureKind) -> ProtoNpcId {
 /// Receive CreatureCaptured messages from the server and mark matching pool entities.
 fn receive_creature_captured(
     mut captured: ResMut<CapturedCreatures>,
+    creature_index: Res<crate::game::creatures::generic::net_events::CreatureIdIndex>,
     mut query: Query<(Entity, &mut MessageReceiver<CreatureCaptured>)>,
-    mut creatures: Query<(&mut Creature, &CreaturePoolIndex, &mut Visibility)>,
+    mut creatures: Query<(&mut Creature, &mut Visibility)>,
 ) {
     for (_entity, mut receiver) in &mut query {
         for msg in receiver.receive() {
-            let render_kind = creature_kind_to_render_kind(msg.kind);
-            let npc_id = creature_kind_to_npc_id(msg.kind);
-
             // Record in shared capture tracker
-            captured.insert(npc_id, msg.creature_index);
+            captured.insert(msg.creature_id);
 
-            // Find the matching pool entity and mark as captured
-            let mut found = false;
-            for (mut creature, pool_idx, mut vis) in &mut creatures {
-                if creature.render_kind == render_kind && pool_idx.0 == msg.creature_index {
+            // Find by ULID
+            let entity = creature_index.0.get(&msg.creature_id).copied();
+
+            if let Some(entity) = entity {
+                if let Ok((mut creature, mut vis)) = creatures.get_mut(entity) {
                     creature.state = CreatureState::Captured;
                     creature.assigned_slot = None;
                     *vis = Visibility::Hidden;
-                    found = true;
                     info!(
-                        "[net] creature captured: {:?} index={} by player={}",
-                        msg.kind, msg.creature_index, msg.captor_player_id
+                        "[net] creature captured: {:?} ulid={} by player={}",
+                        msg.kind, msg.creature_id, msg.captor_player_id
                     );
-                    break;
                 }
-            }
-
-            if !found {
+            } else {
                 warn!(
-                    "[net] received CreatureCaptured for {:?} index={} but no matching pool entity found",
-                    msg.kind, msg.creature_index
+                    "[net] received CreatureCaptured for {:?} ulid={} but no matching entity found",
+                    msg.kind, msg.creature_id
                 );
             }
         }

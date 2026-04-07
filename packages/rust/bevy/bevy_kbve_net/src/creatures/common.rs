@@ -55,7 +55,7 @@ const NIGHT_BAND: f32 = 1.5;
 
 /// Daytime visibility factor: 0.0 at night, 1.0 during full day.
 pub fn day_factor(hour: f32) -> f32 {
-    if hour >= DAY_START && hour <= DAY_END {
+    if (DAY_START..=DAY_END).contains(&hour) {
         let fade_in = ((hour - DAY_START) / DAY_BAND).clamp(0.0, 1.0);
         let fade_out = ((DAY_END - hour) / DAY_BAND).clamp(0.0, 1.0);
         fade_in.min(fade_out)
@@ -85,10 +85,10 @@ pub fn flutter_offset(t: f32, phase: f32, speed: f32, radius: f32, amp: f32) -> 
     let p = phase;
     let spd = speed;
     let r = radius * amp;
-    let ox = (t * spd * 0.6 + p * 6.28).sin() * r
+    let ox = (t * spd * 0.6 + p * std::f32::consts::TAU).sin() * r
         + (t * spd * 1.7 + p * 2.1).sin() * r * 0.3
         + (t * spd * 3.1 + p * 4.5).cos() * r * 0.1;
-    let oy = ((t * spd * 0.8 + p * 3.14).sin() * 0.25
+    let oy = ((t * spd * 0.8 + p * std::f32::consts::PI).sin() * 0.25
         + (t * spd * 2.3 + p * 1.57).cos() * 0.12
         + (t * spd * 4.0 + p * 5.0).sin() * 0.06)
         * amp;

@@ -13,6 +13,7 @@ pub mod net;
 pub mod object_registry;
 pub mod orb_hud;
 pub mod pause_menu;
+pub mod persist;
 pub mod phase;
 pub mod pixelate;
 pub mod player;
@@ -44,6 +45,7 @@ use net::NetPlugin;
 use object_registry::ObjectRegistryPlugin;
 use orb_hud::OrbHudPlugin;
 use pause_menu::PauseMenuPlugin;
+use persist::PersistPlugin;
 use phase::PhasePlugin;
 use pixelate::PixelatePlugin;
 use player::PlayerPlugin;
@@ -73,7 +75,9 @@ pub struct GamePluginGroup;
 impl PluginGroup for GamePluginGroup {
     fn build(self) -> PluginGroupBuilder {
         PluginGroupBuilder::start::<Self>()
-            // Phase must be first — other plugins depend on GamePhase state
+            // Database must be first — persist plugin reads cached state at startup
+            .add(bevy_db::BevyDbPlugin::default())
+            // Phase must be early — other plugins depend on GamePhase state
             .add(PhasePlugin)
             .add(TitleScreenPlugin)
             .add(NetPlugin)
@@ -100,5 +104,6 @@ impl PluginGroup for GamePluginGroup {
             .add(InteractionUiPlugin)
             .add(InventoryUiPlugin)
             .add(PauseMenuPlugin)
+            .add(PersistPlugin)
     }
 }

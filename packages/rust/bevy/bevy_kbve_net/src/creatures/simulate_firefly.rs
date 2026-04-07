@@ -81,6 +81,7 @@ pub fn assign_firefly_slots(
         candidates.iter().take(pool_size).map(|c| c.0).collect();
 
     // Snapshot entities — collect (Entity-free) to avoid borrow issues
+    #[allow(clippy::type_complexity)]
     let snapshot: Vec<(usize, Option<(i32, i32, u16)>)> = fly_q
         .iter()
         .enumerate()
@@ -94,11 +95,13 @@ pub fn assign_firefly_slots(
         if let Some(slot) = assigned {
             if !target_set.contains(&slot) {
                 slot_state.active_slots.remove(&slot);
-                if let Some((mut cr, _)) = fly_q.iter_mut().nth(idx) {
-                    if cr.npc_ref == NPC_REF {
-                        cr.assigned_slot = None;
-                        cr.state = CreatureState::Pooled;
-                    }
+                if let Some((mut cr, _)) = fly_q
+                    .iter_mut()
+                    .nth(idx)
+                    .filter(|(cr, _)| cr.npc_ref == NPC_REF)
+                {
+                    cr.assigned_slot = None;
+                    cr.state = CreatureState::Pooled;
                 }
                 free_indices.push(idx);
             }
@@ -118,16 +121,18 @@ pub fn assign_firefly_slots(
         }
         let entity_idx = free_indices[free_idx];
         free_idx += 1;
-        if let Some((mut cr, mut fs)) = fly_q.iter_mut().nth(entity_idx) {
-            if cr.npc_ref == NPC_REF {
-                cr.slot_seed = ss;
-                cr.anchor = anchor;
-                cr.phase = hash_f32(ss.wrapping_mul(7).wrapping_add(1));
-                cr.assigned_slot = Some(slot);
-                cr.state = CreatureState::Active;
-                *fs = FireflySimState::from_seed(ss);
-                slot_state.active_slots.insert(slot);
-            }
+        if let Some((mut cr, mut fs)) = fly_q
+            .iter_mut()
+            .nth(entity_idx)
+            .filter(|(cr, _)| cr.npc_ref == NPC_REF)
+        {
+            cr.slot_seed = ss;
+            cr.anchor = anchor;
+            cr.phase = hash_f32(ss.wrapping_mul(7).wrapping_add(1));
+            cr.assigned_slot = Some(slot);
+            cr.state = CreatureState::Active;
+            *fs = FireflySimState::from_seed(ss);
+            slot_state.active_slots.insert(slot);
         }
     }
 }
@@ -171,7 +176,8 @@ pub fn simulate_fireflies(
         let p = cr.phase;
         let spd = fs.orbit_speed;
         let r = fs.orbit_radius;
-        let ox = (t * spd * 0.7 + p * 6.28).sin() * r + (t * spd * 1.3 + p * 3.14).sin() * r * 0.4;
+        let ox = (t * spd * 0.7 + p * std::f32::consts::TAU).sin() * r
+            + (t * spd * 1.3 + p * std::f32::consts::PI).sin() * r * 0.4;
         let oy = (t * spd * 0.5 + p * 4.71).sin() * 0.3 + (t * spd * 1.1 + p * 2.09).cos() * 0.15;
         let oz = (t * spd * 0.9 + p * 5.24).cos() * r + (t * spd * 1.7 + p * 1.57).cos() * r * 0.3;
 

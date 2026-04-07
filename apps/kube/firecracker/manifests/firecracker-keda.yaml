@@ -8,20 +8,14 @@ spec:
         name: firecracker-ctl
     pollingInterval: 15
     cooldownPeriod: 300
-    minReplicaCount: 0
+    minReplicaCount: 1
     maxReplicaCount: 3
     triggers:
-        # Scale from 0→1 on a cron schedule (business hours UTC).
-        # When no VMs are expected, scale to zero to save resources.
+        # Cron-based scale-up during peak hours (2 replicas).
+        # Outside this window, minReplicaCount keeps 1 replica alive.
         - type: cron
           metadata:
               timezone: UTC
               start: 0 6 * * *
               end: 0 22 * * *
-              desiredReplicas: '1'
-        # Scale 1→N based on CPU utilization of the firecracker-ctl pod.
-        # High CPU means many concurrent VM spawns — scale out.
-        - type: cpu
-          metricType: Utilization
-          metadata:
-              value: '70'
+              desiredReplicas: '2'
