@@ -1,5 +1,5 @@
 import { atom, computed } from 'nanostores';
-import { initSupa, getSupa } from '@/lib/supa';
+import { initSupa, getSupa, SUPABASE_ANON_KEY } from '@/lib/supa';
 import {
 	$auth,
 	AuthFlags,
@@ -683,12 +683,32 @@ class HomeService {
 			// The status banner's useEffect fires fetchAll() on
 			// authState change — if isStaff isn't resolved yet,
 			// staff panels get permanently marked 'unavailable'.
+			//
+			// Call PostgREST directly with the user's JWT — the droid
+			// db-worker pool runs as anon (no session injection), so
+			// supa.rpc() fails with "permission denied".
 			try {
-				const perms = await supa.rpc('staff_permissions');
-				const hasStaff = typeof perms === 'number' && perms > 0;
-				this.$isStaff.set(hasStaff);
-				if (hasStaff) {
-					setAuth({ flags: AuthPresets.STAFF });
+				const token = session.access_token as string;
+				const res = await fetch(
+					`${SUPABASE_URL}/rest/v1/rpc/staff_permissions`,
+					{
+						method: 'POST',
+						headers: {
+							Authorization: `Bearer ${token}`,
+							apikey: SUPABASE_ANON_KEY,
+							'Content-Type': 'application/json',
+						},
+						body: '{}',
+						signal: AbortSignal.timeout(8000),
+					},
+				);
+				if (res.ok) {
+					const perms = await res.json();
+					const hasStaff = typeof perms === 'number' && perms > 0;
+					this.$isStaff.set(hasStaff);
+					if (hasStaff) {
+						setAuth({ flags: AuthPresets.STAFF });
+					}
 				}
 			} catch {
 				// Non-critical — staff panels just won't show
