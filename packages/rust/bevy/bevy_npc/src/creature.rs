@@ -29,8 +29,8 @@ use crate::ProtoNpcId;
 
 /// Pool index identifying a creature entity within its type pool.
 ///
-/// Assigned once at spawn (0..pool_size). Used to match network messages
-/// (capture requests/broadcasts) to the correct ECS entity.
+/// Assigned once at spawn (0..pool_size). Used internally for pool management.
+/// Network identification uses `CreatureId` (ULID) instead.
 #[derive(Component, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct CreaturePoolIndex(pub u32);
 
@@ -53,30 +53,28 @@ pub enum CreatureState {
 // Resources
 // ---------------------------------------------------------------------------
 
-/// Tracks which creatures have been captured, keyed by `(ProtoNpcId, pool_index)`.
+/// Tracks which creatures have been captured, keyed by ULID (u128).
 ///
 /// Shared between server and client — both maintain their own instance.
-/// Uses `ProtoNpcId` instead of a hardcoded enum so new creature types
-/// don't require protocol changes.
 #[derive(Resource, Default, Debug)]
 pub struct CapturedCreatures {
-    captured: HashSet<(ProtoNpcId, u32)>,
+    captured: HashSet<u128>,
 }
 
 impl CapturedCreatures {
-    /// Record a creature as captured.
-    pub fn insert(&mut self, npc_id: ProtoNpcId, pool_index: u32) {
-        self.captured.insert((npc_id, pool_index));
+    /// Record a creature as captured by its ULID.
+    pub fn insert(&mut self, creature_id: u128) {
+        self.captured.insert(creature_id);
     }
 
     /// Check if a specific creature is captured.
-    pub fn is_captured(&self, npc_id: ProtoNpcId, pool_index: u32) -> bool {
-        self.captured.contains(&(npc_id, pool_index))
+    pub fn is_captured(&self, creature_id: u128) -> bool {
+        self.captured.contains(&creature_id)
     }
 
     /// Remove a capture record (e.g. on respawn or disconnect reset).
-    pub fn remove(&mut self, npc_id: ProtoNpcId, pool_index: u32) {
-        self.captured.remove(&(npc_id, pool_index));
+    pub fn remove(&mut self, creature_id: u128) {
+        self.captured.remove(&creature_id);
     }
 
     /// Clear all captured creatures (e.g. on disconnect/reconnect).
@@ -94,8 +92,8 @@ impl CapturedCreatures {
         self.captured.is_empty()
     }
 
-    /// Iterate over all captured `(npc_id, pool_index)` pairs.
-    pub fn iter(&self) -> impl Iterator<Item = &(ProtoNpcId, u32)> {
+    /// Iterate over all captured creature ULIDs.
+    pub fn iter(&self) -> impl Iterator<Item = &u128> {
         self.captured.iter()
     }
 }
@@ -108,13 +106,12 @@ impl CapturedCreatures {
 ///
 /// Game code should trigger this event (e.g. on click, proximity, or item use).
 /// The networking layer observes it and sends the appropriate server message.
-/// Uses `ProtoNpcId` so it works with any NPC type without protocol changes.
 #[derive(Event, Clone, Debug)]
 pub struct CreatureCaptureEvent {
-    /// NPC definition ID of the creature being captured.
+    /// Server-assigned ULID of the creature being captured.
+    pub creature_id: u128,
+    /// NPC definition ID of the creature type.
     pub npc_id: ProtoNpcId,
-    /// Pool index of the creature entity.
-    pub creature_index: u32,
 }
 
 // ---------------------------------------------------------------------------
@@ -124,8 +121,7 @@ pub struct CreatureCaptureEvent {
 /// Registers creature ECS resources and events.
 ///
 /// Add this plugin to your Bevy app to get `CapturedCreatures` resource
-/// and `CreatureCaptureEvent` event type. Does NOT add any systems —
-/// capture handling, networking, and interaction are game-specific.
+/// and `CreatureCaptureEvent` event automatically.
 pub struct CreaturePlugin;
 
 impl Plugin for CreaturePlugin {
