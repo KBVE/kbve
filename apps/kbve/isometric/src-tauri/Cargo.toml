@@ -98,7 +98,7 @@ js-sys = "0.3"
 wasm-bindgen = "=0.2.114"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [
-    "Document", "Window", "Location", "Storage", "HtmlCanvasElement",
+    "Document", "Window", "Navigator", "Location", "Storage", "HtmlCanvasElement",
     "Request", "RequestInit", "RequestMode", "Response", "Headers",
 ] }
 serde-wasm-bindgen = "0.6"
