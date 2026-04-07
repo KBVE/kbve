@@ -1,0 +1,70 @@
+---
+title: Firecracker CTL
+description: |
+    REST API service for managing Firecracker microVMs.
+sidebar:
+    label: Firecracker CTL
+    order: 54
+tags:
+    - docker
+    - firecracker
+    - rust
+key: firecracker_ctl
+pipeline: docker
+app_name: firecracker-ctl
+version: "0.1.24"
+source_path: apps/vm/firecracker-ctl
+version_toml: apps/vm/firecracker-ctl/version.toml
+version_target: apps/vm/firecracker-ctl/Cargo.toml
+runner: arc-runner-set
+image: kbve/firecracker-ctl
+deployment_yaml: apps/kube/firecracker/manifests/firecracker-deployment.yaml
+has_test: false
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Overview
+
+Rust Axum REST API for managing Firecracker microVMs. Provides VM lifecycle management (create, poll, destroy) with per-VM timeout enforcement and in-memory state tracking via DashMap.
+
+### API Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/vm/create` | Create and start a microVM |
+| `GET` | `/vm/{vm_id}` | Get VM status |
+| `GET` | `/vm/{vm_id}/result` | Get stdout/stderr/exit_code after completion |
+| `DELETE` | `/vm/{vm_id}` | Force-terminate a running VM |
+| `GET` | `/vm` | List all VMs |
+| `GET` | `/health` | Service health check |
+
+### Code Execution Flow
+
+1. User code arrives via `env.CODE` in the create request
+2. Code is written to a raw block file (512-byte padded)
+3. Block file attached as second Firecracker drive (`/dev/vdb`)
+4. Entrypoint passed via `boot_args` (`fc_entrypoint=/usr/bin/python3`)
+5. VM init script reads code from `/dev/vdb`, writes to `/tmp/code`, execs entrypoint
+
+### Rootfs Images
+
+Pre-built ext4 root filesystems built in-cluster via ArgoCD PostSync hook:
+
+| Image | Size | Contents |
+|-------|------|----------|
+| `alpine-minimal` | 32 MB | Alpine + busybox |
+| `alpine-python` | 128 MB | Alpine + Python 3.12 |
+| `alpine-node` | 128 MB | Alpine + Node.js |
+
+### Kubernetes Resources
+
+All manifests in `apps/kube/firecracker/manifests/`:
+
+- **Deployment** — `firecracker-ctl` with `/dev/kvm` device plugin, `kvm=true` node selector
+- **Service** — ClusterIP on port 9001
+- **PVC** — 2Gi Longhorn volume for rootfs + vmlinux kernel
+- **NetworkPolicy** — Ingress from edge-runtime + dashboard proxy only
+- **KEDA ScaledObject** — minReplicas=1, cron scales to 2 during peak hours
+- **Rootfs Init Job** — ArgoCD PostSync hook, builds ext4 images in-cluster
