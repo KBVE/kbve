@@ -1,7 +1,7 @@
 // src/lib/supa.ts
 // Unified Supabase gateway — powered by @kbve/droid
 import { SupabaseGateway } from '@kbve/droid';
-import { bootAuth } from '@kbve/astro';
+import { bootAuth, resolveStaffFlag } from '@kbve/astro';
 import { migrateAuthStorage } from './storage-migration';
 
 // Vite ?worker&url imports — resolves to hashed URLs at build time
@@ -47,6 +47,10 @@ export function initSupa(options?: Record<string, unknown>): Promise<void> {
 
 		// Populate droid's $auth nanostore for reactive auth state
 		await bootAuth(gateway);
+
+		// Upgrade $auth.flags to STAFF if the user has staff permissions.
+		// Must run after bootAuth so the session is available.
+		await resolveStaffFlag(gateway);
 	})()
 		.then(() => {})
 		.catch((e) => {

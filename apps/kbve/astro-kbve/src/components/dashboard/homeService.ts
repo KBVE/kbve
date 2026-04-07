@@ -1,12 +1,6 @@
 import { atom, computed } from 'nanostores';
-import { initSupa, getSupa, SUPABASE_ANON_KEY } from '@/lib/supa';
-import {
-	$auth,
-	AuthFlags,
-	AuthPresets,
-	hasAuthFlag,
-	setAuth,
-} from '@kbve/droid';
+import { initSupa, getSupa } from '@/lib/supa';
+import { $auth, AuthFlags, hasAuthFlag } from '@kbve/droid';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -679,40 +673,12 @@ class HomeService {
 
 			this.$accessToken.set(session.access_token as string);
 
-			// Check staff permissions BEFORE setting authenticated.
-			// The status banner's useEffect fires fetchAll() on
-			// authState change — if isStaff isn't resolved yet,
-			// staff panels get permanently marked 'unavailable'.
-			//
-			// Call PostgREST directly with the user's JWT — the droid
-			// db-worker pool runs as anon (no session injection), so
-			// supa.rpc() fails with "permission denied".
-			try {
-				const token = session.access_token as string;
-				const res = await fetch(
-					`${SUPABASE_URL}/rest/v1/rpc/staff_permissions`,
-					{
-						method: 'POST',
-						headers: {
-							Authorization: `Bearer ${token}`,
-							apikey: SUPABASE_ANON_KEY,
-							'Content-Type': 'application/json',
-						},
-						body: '{}',
-						signal: AbortSignal.timeout(8000),
-					},
-				);
-				if (res.ok) {
-					const perms = await res.json();
-					const hasStaff = typeof perms === 'number' && perms > 0;
-					this.$isStaff.set(hasStaff);
-					if (hasStaff) {
-						setAuth({ flags: AuthPresets.STAFF });
-					}
-				}
-			} catch {
-				// Non-critical — staff panels just won't show
-			}
+			// Read staff flag from $auth — resolveStaffFlag() in supa.ts
+			// already upgraded flags to STAFF during initSupa() if the
+			// user has staff permissions.
+			const { flags } = $auth.get();
+			const isStaff = hasAuthFlag(flags, AuthFlags.STAFF);
+			this.$isStaff.set(isStaff);
 
 			this.$authState.set('authenticated');
 
