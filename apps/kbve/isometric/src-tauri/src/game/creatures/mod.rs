@@ -10,7 +10,8 @@ use bevy::prelude::*;
 pub use common::GameTime;
 use common::{CreatureMeshes, CreaturePool};
 pub use creature::{
-    Creature, CreatureConfig, CreaturePoolIndex, CreatureRegistry, CreatureState, EmissiveData,
+    AmbientCreatureMarker, AmbientRenderData, ButterflySimState, Creature, CreatureConfig,
+    CreaturePoolIndex, CreatureRegistry, CreatureState, FireflySimState, FireflySlotState,
     RenderKind, TimeSchedule,
 };
 
@@ -63,7 +64,7 @@ impl Plugin for CreaturesPlugin {
         // --- Shared resources ---
         app.init_resource::<CreaturePool>();
         app.init_resource::<common::GameTime>();
-        app.init_resource::<firefly::FireflyState>();
+        app.init_resource::<FireflySlotState>();
 
         // --- Generic sprite creature system ---
         app.insert_resource(generic::definitions::build_sprite_creature_types());
@@ -78,19 +79,26 @@ impl Plugin for CreaturesPlugin {
         app.add_systems(
             Update,
             (
-                // Fireflies (Creature + EmissiveData)
+                // Fireflies (Creature + FireflySimState + AmbientRenderData)
                 firefly::spawn_fireflies.run_if(|pool: Res<CreaturePool>| !pool.fireflies_spawned),
                 firefly::assign_firefly_slots
                     .after(firefly::spawn_fireflies)
-                    .run_if(any_with_component::<creature::EmissiveData>),
-                firefly::animate_fireflies
+                    .run_if(any_with_component::<FireflySimState>),
+                firefly::simulate_fireflies
                     .after(firefly::assign_firefly_slots)
-                    .run_if(any_with_component::<creature::EmissiveData>),
-                // Butterflies (Creature + BillboardData)
+                    .run_if(any_with_component::<FireflySimState>),
+                firefly::render_fireflies
+                    .after(firefly::simulate_fireflies)
+                    .run_if(any_with_component::<FireflySimState>),
+                // Butterflies (Creature + ButterflySimState + AmbientRenderData)
                 butterfly::spawn_butterflies
                     .run_if(|pool: Res<CreaturePool>| !pool.butterflies_spawned),
-                butterfly::animate_butterflies
-                    .run_if(any_with_component::<creature::BillboardData>),
+                butterfly::simulate_butterflies
+                    .after(butterfly::spawn_butterflies)
+                    .run_if(any_with_component::<ButterflySimState>),
+                butterfly::render_butterflies
+                    .after(butterfly::simulate_butterflies)
+                    .run_if(any_with_component::<ButterflySimState>),
                 // --- Generic sprite creatures (all sprite types) ---
                 generic::spawn::spawn_sprite_creatures,
                 generic::brain::dispatch_behavior_trees
