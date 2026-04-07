@@ -442,6 +442,163 @@ pub fn build_mushroom(
     (mesh_handle, max_hw, total_h)
 }
 
+/// Generate mushroom vertices in world space and push them into the provided
+/// raw buffers. Used by `compute_chunk_geometry` to merge mushrooms into a
+/// per-chunk mesh (single draw call).
+///
+/// Returns `(max_half_width, total_height)` for interaction bounding boxes.
+pub fn push_mushroom_vertices(
+    params: &MushroomParams,
+    world_x: f32,
+    world_z: f32,
+    mush_y: f32,
+    rot_y: f32,
+    positions: &mut Vec<[f32; 3]>,
+    normals: &mut Vec<[f32; 3]>,
+    colors: &mut Vec<[f32; 4]>,
+    indices: &mut Vec<u32>,
+) -> (f32, f32) {
+    let seed_base = params.tx * 31337 + params.tz * 21493;
+    let size = 0.12 + hash2d(seed_base + 100, 9100) * 0.14;
+    let bright = 0.88 + hash2d(seed_base + 200, 9200) * 0.24;
+    let hj = (hash2d(seed_base + 201, 9201) - 0.5) * 0.05;
+    let jitter = |c: &(f32, f32, f32)| -> (f32, f32, f32) {
+        (
+            ((c.0 + hj) * bright).clamp(0.0, 1.0),
+            ((c.1 + hj * 0.3) * bright).clamp(0.0, 1.0),
+            ((c.2 - hj * 0.5) * bright).clamp(0.0, 1.0),
+        )
+    };
+
+    let mut lp = Vec::with_capacity(128);
+    let mut ln = Vec::with_capacity(128);
+    let mut lc = Vec::with_capacity(128);
+    let mut li = Vec::with_capacity(256);
+
+    let (max_hw, total_h) = match params.kind {
+        MushroomKind::Porcini => {
+            let pal = &PORCINI_CAP;
+            let hl = jitter(&pal[0]);
+            let md = jitter(&pal[1]);
+            let sh = jitter(&pal[2]);
+            let st = jitter(&PORCINI_STEM);
+            let cap_rx = size * 1.3;
+            let cap_ry = size * 0.7;
+            let cap_rz = size * 1.2;
+            let stem_r = size * 0.35;
+            let stem_h = size * 0.8;
+            push_stem(
+                &mut lp,
+                &mut ln,
+                &mut lc,
+                &mut li,
+                Vec3::ZERO,
+                stem_r,
+                stem_h,
+                srgb_color(st.0, st.1, st.2),
+            );
+            push_dome_cap(
+                &mut lp,
+                &mut ln,
+                &mut lc,
+                &mut li,
+                Vec3::new(0.0, stem_h, 0.0),
+                cap_rx,
+                cap_ry,
+                cap_rz,
+                srgb_color(hl.0, hl.1, hl.2),
+                srgb_color(md.0, md.1, md.2),
+                srgb_color(sh.0, sh.1, sh.2),
+                None,
+                0.0,
+            );
+            (cap_rx.max(cap_rz), stem_h + cap_ry)
+        }
+        MushroomKind::Chanterelle => {
+            let pal = &CHANTERELLE_CAP;
+            let hl = jitter(&pal[0]);
+            let md = jitter(&pal[1]);
+            let sh = jitter(&pal[2]);
+            let bot_r = size * 0.25;
+            let top_r = size * 1.4;
+            let height = size * 1.6;
+            push_funnel(
+                &mut lp,
+                &mut ln,
+                &mut lc,
+                &mut li,
+                Vec3::ZERO,
+                bot_r,
+                top_r,
+                height,
+                srgb_color(hl.0, hl.1, hl.2),
+                srgb_color(md.0, md.1, md.2),
+                srgb_color(sh.0, sh.1, sh.2),
+            );
+            (top_r, height)
+        }
+        MushroomKind::FlyAgaric => {
+            let pal = &FLY_AGARIC_CAP;
+            let hl = jitter(&pal[0]);
+            let md = jitter(&pal[1]);
+            let sh = jitter(&pal[2]);
+            let sp = jitter(&FLY_AGARIC_SPOT);
+            let st = jitter(&FLY_AGARIC_STEM);
+            let cap_rx = size * 1.2;
+            let cap_ry = size * 0.55;
+            let cap_rz = size * 1.15;
+            let stem_r = size * 0.28;
+            let stem_h = size * 1.1;
+            push_stem(
+                &mut lp,
+                &mut ln,
+                &mut lc,
+                &mut li,
+                Vec3::ZERO,
+                stem_r,
+                stem_h,
+                srgb_color(st.0, st.1, st.2),
+            );
+            push_dome_cap(
+                &mut lp,
+                &mut ln,
+                &mut lc,
+                &mut li,
+                Vec3::new(0.0, stem_h, 0.0),
+                cap_rx,
+                cap_ry,
+                cap_rz,
+                srgb_color(hl.0, hl.1, hl.2),
+                srgb_color(md.0, md.1, md.2),
+                srgb_color(sh.0, sh.1, sh.2),
+                Some(srgb_color(sp.0, sp.1, sp.2)),
+                seed_base as f32,
+            );
+            (cap_rx.max(cap_rz), stem_h + cap_ry)
+        }
+    };
+
+    // Transform to world space: rotate by rot_y then translate.
+    let (sin_r, cos_r) = rot_y.sin_cos();
+    let base_idx = positions.len() as u32;
+    for p in &lp {
+        let rx = p[0] * cos_r - p[2] * sin_r;
+        let rz = p[0] * sin_r + p[2] * cos_r;
+        positions.push([world_x + rx, mush_y + p[1], world_z + rz]);
+    }
+    for n in &ln {
+        let rx = n[0] * cos_r - n[2] * sin_r;
+        let rz = n[0] * sin_r + n[2] * cos_r;
+        normals.push([rx, n[1], rz]);
+    }
+    colors.extend_from_slice(&lc);
+    for i in &li {
+        indices.push(base_idx + i);
+    }
+
+    (max_hw, total_h)
+}
+
 /// Determine mushroom kind from tile hash.
 pub fn mushroom_kind_from_hash(tx: i32, tz: i32) -> MushroomKind {
     let v = hash2d(tx + 25001, tz + 18001);
