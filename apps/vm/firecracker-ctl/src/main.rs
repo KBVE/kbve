@@ -233,29 +233,68 @@ async fn run_vm_lifecycle(
     }
 
     let rootfs_path = format!("{}/{}.ext4", rootfs_dir, req.rootfs);
+    let scratch_dir = "/var/lib/firecracker/scratch";
+
+    // Write user code to a raw block file that the VM reads from /dev/vdb.
+    // Padded to 512-byte boundary so Firecracker accepts it as a drive.
+    let code_path = format!("{}/{}.code", scratch_dir, vm_id);
+    let code = req
+        .env
+        .get("CODE")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+    {
+        let mut buf = code.as_bytes().to_vec();
+        let pad = (512 - (buf.len() % 512)) % 512;
+        buf.resize(buf.len() + pad, 0);
+        if let Err(e) = tokio::fs::write(&code_path, &buf).await {
+            tracing::error!("Failed to write code file: {}", e);
+            set_vm_failed(
+                &vms,
+                &vm_id,
+                start,
+                -1,
+                "".into(),
+                format!("Code write failed: {}", e),
+            );
+            return;
+        }
+    }
+
+    // Append entrypoint to boot_args so the init script knows what to exec
+    let boot_args = format!("{} fc_entrypoint={}", req.boot_args, req.entrypoint);
 
     // Build firecracker config and launch via the Firecracker binary.
     // The Firecracker binary communicates over a Unix socket; we create
     // a per-VM socket in the scratch directory.
-    let socket_path = format!("/var/lib/firecracker/scratch/{}.sock", vm_id);
+    let socket_path = format!("{}/{}.sock", scratch_dir, vm_id);
     let config = serde_json::json!({
         "boot-source": {
             "kernel_image_path": format!("{}/vmlinux", rootfs_dir),
-            "boot_args": req.boot_args,
+            "boot_args": boot_args,
         },
-        "drives": [{
-            "drive_id": "rootfs",
-            "path_on_host": rootfs_path,
-            "is_root_device": true,
-            "is_read_only": true,
-        }],
+        "drives": [
+            {
+                "drive_id": "rootfs",
+                "path_on_host": rootfs_path,
+                "is_root_device": true,
+                "is_read_only": true,
+            },
+            {
+                "drive_id": "code",
+                "path_on_host": code_path.clone(),
+                "is_root_device": false,
+                "is_read_only": true,
+            },
+        ],
         "machine-config": {
             "vcpu_count": req.vcpu_count,
             "mem_size_mib": req.mem_size_mib,
         },
     });
 
-    let config_path = format!("/var/lib/firecracker/scratch/{}.json", vm_id);
+    let config_path = format!("{}/{}.json", scratch_dir, vm_id);
 
     // Write config
     if let Err(e) = tokio::fs::write(&config_path, config.to_string()).await {
@@ -291,7 +330,7 @@ async fn run_vm_lifecycle(
                 "".into(),
                 format!("Spawn failed: {}", e),
             );
-            cleanup_files(&config_path, &socket_path).await;
+            cleanup_files(&config_path, &socket_path, &code_path).await;
             return;
         }
     };
@@ -366,7 +405,7 @@ async fn run_vm_lifecycle(
         }
     }
 
-    cleanup_files(&config_path, &socket_path).await;
+    cleanup_files(&config_path, &socket_path, &code_path).await;
 }
 
 fn set_vm_failed(
@@ -390,9 +429,10 @@ fn set_vm_failed(
     }
 }
 
-async fn cleanup_files(config_path: &str, socket_path: &str) {
+async fn cleanup_files(config_path: &str, socket_path: &str, code_path: &str) {
     let _ = tokio::fs::remove_file(config_path).await;
     let _ = tokio::fs::remove_file(socket_path).await;
+    let _ = tokio::fs::remove_file(code_path).await;
 }
 
 // ---------------------------------------------------------------------------

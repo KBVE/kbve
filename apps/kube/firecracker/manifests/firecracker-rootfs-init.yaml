@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-    name: firecracker-rootfs-init-v3
+    name: firecracker-rootfs-init-v4
     namespace: firecracker
     labels:
         app: firecracker-rootfs-init
@@ -75,8 +75,9 @@ spec:
                               mkdir -p "${ROOTFS}/dev" "${ROOTFS}/proc" "${ROOTFS}/sys" \
                                        "${ROOTFS}/tmp" "${ROOTFS}/run" "${ROOTFS}/var/log"
 
-                              # Init script — mounts filesystems and runs entrypoint or shell
-                              printf '#!/bin/sh\nmount -t proc proc /proc\nmount -t sysfs sys /sys\nmount -t devtmpfs dev /dev\nif [ -x /entrypoint ]; then\n    exec /entrypoint\nelse\n    exec /bin/sh\nfi\n' > "${ROOTFS}/init"
+                              # Init script — mounts filesystems, reads code from /dev/vdb,
+                              # parses entrypoint from kernel cmdline, and executes.
+                              printf '#!/bin/sh\nmount -t proc proc /proc\nmount -t sysfs sys /sys\nmount -t devtmpfs dev /dev\nmkdir -p /tmp\nENTRYPOINT="/bin/sh"\nfor param in $(cat /proc/cmdline); do\n  case "$param" in\n    fc_entrypoint=*) ENTRYPOINT="${param#fc_entrypoint=}" ;;\n  esac\ndone\nif [ -b /dev/vdb ]; then\n  dd if=/dev/vdb bs=4096 2>/dev/null | tr -d \"\\\\0\" > /tmp/code\n  exec $ENTRYPOINT /tmp/code\nelse\n  exec /bin/sh\nfi\n' > "${ROOTFS}/init"
                               chmod +x "${ROOTFS}/init"
 
                               # Create sparse ext4 image and populate from rootfs directory
