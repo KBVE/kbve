@@ -64,7 +64,7 @@ impl Db {
         let table = table.to_owned();
         let key = key.to_owned();
 
-        bevy_tasker::spawn(async move {
+        crate::task::spawn_db(async move {
             let result = store.get(&table, &key).await;
             let typed = result.and_then(|opt| {
                 opt.map(|bytes| {
@@ -73,8 +73,7 @@ impl Db {
                 .transpose()
             });
             let _ = tx.send(typed);
-        })
-        .detach();
+        });
 
         DbRequest { rx }
     }
@@ -100,11 +99,10 @@ impl Db {
         let table = table.to_owned();
         let key = key.to_owned();
 
-        bevy_tasker::spawn(async move {
+        crate::task::spawn_db(async move {
             let result = store.put(&table, &key, bytes).await;
             let _ = tx.send(result);
-        })
-        .detach();
+        });
 
         DbRequest { rx }
     }
@@ -116,11 +114,10 @@ impl Db {
         let table = table.to_owned();
         let key = key.to_owned();
 
-        bevy_tasker::spawn(async move {
+        crate::task::spawn_db(async move {
             let result = store.delete(&table, &key).await;
             let _ = tx.send(result);
-        })
-        .detach();
+        });
 
         DbRequest { rx }
     }
@@ -132,11 +129,10 @@ impl Db {
         let table = table.to_owned();
         let prefix = prefix.to_owned();
 
-        bevy_tasker::spawn(async move {
+        crate::task::spawn_db(async move {
             let result = store.list_keys(&table, &prefix).await;
             let _ = tx.send(result);
-        })
-        .detach();
+        });
 
         DbRequest { rx }
     }
