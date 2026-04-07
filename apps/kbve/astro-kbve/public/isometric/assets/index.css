@@ -369,6 +369,9 @@
 	.collapse {
 		visibility: collapse;
 	}
+	.invisible {
+		visibility: hidden;
+	}
 	.visible {
 		visibility: visible;
 	}
@@ -480,6 +483,9 @@
 	}
 	.hidden {
 		display: none;
+	}
+	.table {
+		display: table;
 	}
 	.h-3 {
 		height: calc(var(--spacing) * 3);
