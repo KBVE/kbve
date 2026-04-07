@@ -17,7 +17,7 @@ bevy = { version = "0.18", default-features = false, features = [
     "bevy_state",
 ] }
 serde = { version = "1", features = ["derive"] }
-rand = "0.9"
+rand = "0.10"
 
 [package.metadata.docs.rs]
 all-features = true
