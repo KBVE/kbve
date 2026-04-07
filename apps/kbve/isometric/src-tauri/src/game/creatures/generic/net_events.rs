@@ -1,7 +1,10 @@
 //! Client-side handler for server creature state corrections.
 //!
-//! When the server sends a `CreatureStateEvent`, it overrides the local
-//! deterministic behavior with a correction (damage, death, forced flee, etc.).
+//! Creatures are matched by server-assigned ULID (`CreatureId`) for reliable
+//! identification. Falls back to `(npc_ref, pool_index)` for entities that
+//! haven't received a ULID yet (first sync after spawn).
+
+use std::collections::HashMap;
 
 use bevy::prelude::*;
 use lightyear::prelude::*;
@@ -10,7 +13,34 @@ use super::super::creature::{Creature, CreaturePoolIndex, RenderKind, SpriteData
 use super::behavior::CreatureIntent;
 use super::brain::CreatureBrain;
 use super::types::SpriteCreatureMarker;
+use bevy_kbve_net::creatures::types::CreatureId;
 use bevy_kbve_net::{CreatureEventKind, CreaturePositionSync, CreatureStateEvent};
+
+// ---------------------------------------------------------------------------
+// ULID → Entity index
+// ---------------------------------------------------------------------------
+
+/// O(1) lookup from server-assigned creature ULID to local ECS entity.
+/// Built incrementally as sync messages arrive.
+#[derive(Resource, Default)]
+pub struct CreatureIdIndex(pub HashMap<u128, Entity>);
+
+/// Rebuild the index from all entities that have a `CreatureId`.
+/// Runs once per frame before sync reception to stay current.
+pub fn update_creature_id_index(
+    mut index: ResMut<CreatureIdIndex>,
+    q: Query<(Entity, &CreatureId)>,
+) {
+    index.0.clear();
+    for (entity, cid) in &q {
+        let key: u128 = cid.as_u128();
+        index.0.insert(key, entity);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// State event corrections (damage, death, flee, capture)
+// ---------------------------------------------------------------------------
 
 /// System that receives `CreatureStateEvent` messages from the server and
 /// overrides the local creature's behavior intent.
@@ -33,29 +63,18 @@ pub fn receive_creature_events(
                     continue;
                 }
 
-                // Apply the server's correction
                 match &event.event {
                     CreatureEventKind::TakeDamage { .. } => {
-                        // Force flee intent — creature was hit
                         if let Some(mut brain) = brain {
                             brain.intent = CreatureIntent::Flee {
-                                direction: Vec3::new(0.0, 0.0, -1.0), // flee south
+                                direction: Vec3::new(0.0, 0.0, -1.0),
                                 speed: 5.0,
                                 anim_name: "run",
                             };
                         }
-                        info!(
-                            "[creature-net] {} #{} took damage — forcing flee",
-                            event.npc_ref, event.creature_index
-                        );
                     }
                     CreatureEventKind::Die => {
-                        // Hide the creature (death animation future work)
                         sd.hop_state = SpriteHopState::Idle { timer: f32::MAX };
-                        info!(
-                            "[creature-net] {} #{} died",
-                            event.npc_ref, event.creature_index
-                        );
                     }
                     CreatureEventKind::ForceFlee { from_x, from_z } => {
                         if let Some(mut brain) = brain {
@@ -66,42 +85,33 @@ pub fn receive_creature_events(
                                 anim_name: "run",
                             };
                         }
-                        info!(
-                            "[creature-net] {} #{} forced flee",
-                            event.npc_ref, event.creature_index
-                        );
                     }
-                    CreatureEventKind::Captured { by_player_id } => {
+                    CreatureEventKind::Captured { .. } => {
                         sd.hop_state = SpriteHopState::Idle { timer: f32::MAX };
-                        info!(
-                            "[creature-net] {} #{} captured by player {}",
-                            event.npc_ref, event.creature_index, by_player_id
-                        );
                     }
                 }
 
-                break; // Found the creature, no need to keep searching
+                break;
             }
         }
     }
 }
 
-/// Minimum drift to trigger a correction hop (ignore tiny differences).
+// ---------------------------------------------------------------------------
+// Position sync (sprite creatures)
+// ---------------------------------------------------------------------------
+
+/// Minimum drift to trigger a correction hop.
 const SYNC_MIN_DRIFT: f32 = 0.5;
 /// Above this distance, force-snap (creature recycled on server).
 const SYNC_FORCE_SNAP: f32 = 15.0;
 
-/// System that receives periodic `CreaturePositionSync` messages from the server
-/// and corrects local creature positions using the movement system.
-///
-/// Strategy:
-/// - **Idle + drifted**: inject a `MoveTo` intent so the creature naturally
-///   hops toward the server position using existing animation.
-/// - **Moving/airborne**: let the current action finish. Only sync patrol_step.
-/// - **Large drift (>15u)**: force-snap (creature recycled on server).
-/// - **Small drift (<0.5u)**: ignore — close enough.
+/// Receives `CreaturePositionSync` for sprite creatures.
+/// Matches by ULID first (O(1) via `CreatureIdIndex`), falls back to
+/// `(npc_ref, pool_index)` for entities that haven't received a ULID yet.
 pub fn receive_creature_sync(
     mut commands: Commands,
+    index: Res<CreatureIdIndex>,
     mut receiver_q: Query<&mut MessageReceiver<CreaturePositionSync>, With<Connected>>,
     mut creature_q: Query<(
         Entity,
@@ -113,61 +123,75 @@ pub fn receive_creature_sync(
 ) {
     for mut receiver in &mut receiver_q {
         for sync in receiver.receive() {
+            // Skip ambient creatures — handled by receive_ambient_creature_sync
+            if ambient_npc_ref_to_render_kind(&sync.npc_ref).is_some() {
+                continue;
+            }
+
             for snapshot in &sync.snapshots {
-                for (entity, mut marker, pool_idx, mut cr, mut sd) in &mut creature_q {
-                    if marker.type_key != sync.npc_ref.as_str() {
-                        continue;
-                    }
-                    if pool_idx.0 as u32 != snapshot.index {
-                        continue;
-                    }
+                // Try ULID-first lookup (O(1))
+                let matched_entity = if snapshot.creature_id != 0 {
+                    index.0.get(&snapshot.creature_id).copied()
+                } else {
+                    None
+                };
 
-                    // Store server-assigned ULID on this entity
-                    if snapshot.creature_id != 0 {
-                        commands.entity(entity).insert(
-                            bevy_kbve_net::creatures::types::CreatureId::from_u128(
-                                snapshot.creature_id,
-                            ),
-                        );
-                    }
+                // Fall back to (npc_ref, pool_index) scan if no ULID match
+                let entity = matched_entity.or_else(|| {
+                    creature_q.iter().find_map(|(e, marker, pool_idx, _, _)| {
+                        if marker.type_key == sync.npc_ref.as_str()
+                            && pool_idx.0 as u32 == snapshot.index
+                        {
+                            Some(e)
+                        } else {
+                            None
+                        }
+                    })
+                });
 
-                    let server_pos = Vec3::new(snapshot.x, snapshot.y, snapshot.z);
+                let Some(entity) = entity else {
+                    continue;
+                };
 
-                    // Always sync the deterministic patrol counter so future
-                    // decisions align even if we skip the position correction.
-                    marker.patrol_step = snapshot.patrol_step;
+                let Ok((_, mut marker, _, mut cr, mut sd)) = creature_q.get_mut(entity) else {
+                    continue;
+                };
 
-                    let dist = cr.anchor.distance(server_pos);
+                // Assign/update ULID on this entity
+                if snapshot.creature_id != 0 {
+                    commands
+                        .entity(entity)
+                        .insert(CreatureId::from_u128(snapshot.creature_id));
+                }
 
-                    // Force-snap if very far off (creature recycled on server)
-                    if dist > SYNC_FORCE_SNAP {
-                        cr.anchor = server_pos;
-                        sd.facing_left = snapshot.facing_left;
-                        sd.hop_state = SpriteHopState::Idle { timer: 0.5 };
-                        break;
-                    }
+                let server_pos = Vec3::new(snapshot.x, snapshot.y, snapshot.z);
+                marker.patrol_step = snapshot.patrol_step;
 
-                    // Ignore tiny drift
-                    if dist < SYNC_MIN_DRIFT {
-                        break;
-                    }
+                let dist = cr.anchor.distance(server_pos);
 
-                    // Only correct idle creatures — set JumpWindup so
-                    // simulate_sprite_creatures picks the correct move anim
-                    // and speed from the creature type's behavior definition.
-                    // Frogs will hop, stags/wolves will run, etc.
-                    if let SpriteHopState::Idle { .. } = sd.hop_state {
-                        sd.hop_state = SpriteHopState::JumpWindup { target: server_pos };
-                    }
+                if dist > SYNC_FORCE_SNAP {
+                    cr.anchor = server_pos;
+                    sd.facing_left = snapshot.facing_left;
+                    sd.hop_state = SpriteHopState::Idle { timer: 0.5 };
+                    continue;
+                }
 
-                    break; // Found the creature
+                if dist < SYNC_MIN_DRIFT {
+                    continue;
+                }
+
+                if let SpriteHopState::Idle { .. } = sd.hop_state {
+                    sd.hop_state = SpriteHopState::JumpWindup { target: server_pos };
                 }
             }
         }
     }
 }
 
-/// Map NPC ref strings to the client's RenderKind for ambient creatures.
+// ---------------------------------------------------------------------------
+// Position sync (ambient creatures: fireflies, butterflies)
+// ---------------------------------------------------------------------------
+
 fn ambient_npc_ref_to_render_kind(npc_ref: &str) -> Option<RenderKind> {
     match npc_ref {
         "meadow-firefly" => Some(RenderKind::Emissive),
@@ -176,35 +200,57 @@ fn ambient_npc_ref_to_render_kind(npc_ref: &str) -> Option<RenderKind> {
     }
 }
 
-/// System that receives `CreaturePositionSync` for ambient creatures (fireflies,
-/// butterflies) and smoothly corrects their anchors. Ambient creatures don't have
-/// `SpriteCreatureMarker`, so this is a separate query.
+/// Receives `CreaturePositionSync` for ambient creatures.
+/// Uses ULID-first matching, falls back to `(render_kind, pool_index)`.
 pub fn receive_ambient_creature_sync(
+    mut commands: Commands,
+    index: Res<CreatureIdIndex>,
     mut receiver_q: Query<&mut MessageReceiver<CreaturePositionSync>, With<Connected>>,
-    mut creature_q: Query<(&mut Creature, &CreaturePoolIndex), Without<SpriteCreatureMarker>>,
+    mut creature_q: Query<
+        (Entity, &mut Creature, &CreaturePoolIndex),
+        Without<SpriteCreatureMarker>,
+    >,
 ) {
     for mut receiver in &mut receiver_q {
         for sync in receiver.receive() {
             let Some(kind) = ambient_npc_ref_to_render_kind(&sync.npc_ref) else {
-                continue; // Not an ambient creature — handled by sprite sync
+                continue;
             };
 
             for snapshot in &sync.snapshots {
-                for (mut cr, pool_idx) in &mut creature_q {
-                    if cr.render_kind != kind {
-                        continue;
-                    }
-                    if pool_idx.0 != snapshot.index {
-                        continue;
-                    }
+                // ULID-first lookup
+                let matched_entity = if snapshot.creature_id != 0 {
+                    index.0.get(&snapshot.creature_id).copied()
+                } else {
+                    None
+                };
 
-                    let server_pos = Vec3::new(snapshot.x, snapshot.y, snapshot.z);
-                    // Snap anchor — ambient creatures don't have hop state,
-                    // their animate systems will smoothly use the new anchor.
-                    cr.anchor = server_pos;
+                // Fall back to (render_kind, pool_index)
+                let entity = matched_entity.or_else(|| {
+                    creature_q.iter().find_map(|(e, cr, pool_idx)| {
+                        if cr.render_kind == kind && pool_idx.0 == snapshot.index {
+                            Some(e)
+                        } else {
+                            None
+                        }
+                    })
+                });
 
-                    break;
+                let Some(entity) = entity else {
+                    continue;
+                };
+
+                let Ok((_, mut cr, _)) = creature_q.get_mut(entity) else {
+                    continue;
+                };
+
+                if snapshot.creature_id != 0 {
+                    commands
+                        .entity(entity)
+                        .insert(CreatureId::from_u128(snapshot.creature_id));
                 }
+
+                cr.anchor = Vec3::new(snapshot.x, snapshot.y, snapshot.z);
             }
         }
     }
