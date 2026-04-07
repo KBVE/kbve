@@ -1749,6 +1749,7 @@ dependencies = [
  "crossbeam-channel",
  "dirs",
  "js-sys",
+ "once_cell",
  "redb",
  "rexie",
  "serde",
