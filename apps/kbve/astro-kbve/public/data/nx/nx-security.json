@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-04-06T08:42:43Z",
+  "generated_at": "2026-04-07T08:37:45Z",
   "summary": {
     "critical": 1,
-    "high": 32,
-    "medium": 37,
+    "high": 35,
+    "medium": 39,
     "low": 5,
     "info": 25
   },
   "ecosystems": {
     "npm": {
-      "total": 73,
+      "total": 78,
       "severities": {
         "critical": 1,
-        "high": 32,
-        "medium": 35,
+        "high": 35,
+        "medium": 37,
         "low": 5,
         "info": 0
       },
@@ -474,13 +474,6 @@
           "url": "https://github.com/advisories/GHSA-qj8w-gfj5-8c6v"
         },
         {
-          "id": "1115765",
-          "title": "xmldom: XML injection via unsafe CDATA serialization allows attacker-controlled markup insertion",
-          "severity": "high",
-          "package": "@xmldom/xmldom",
-          "url": "https://github.com/advisories/GHSA-wh4c-j3r5-mjhp"
-        },
-        {
           "id": "1115805",
           "title": "lodash vulnerable to Code Injection via `_.template` imports key names",
           "severity": "high",
@@ -523,7 +516,49 @@
           "url": "https://github.com/advisories/GHSA-cj63-jhhr-wcxv"
         },
         {
-          "id": "1115969",
+          "id": "1115997",
+          "title": "xmldom: XML injection via unsafe CDATA serialization allows attacker-controlled markup insertion",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-wh4c-j3r5-mjhp"
+        },
+        {
+          "id": "1116005",
+          "title": "Vite Vulnerable to Path Traversal in Optimized Deps `.map` Handling",
+          "severity": "medium",
+          "package": "vite",
+          "url": "https://github.com/advisories/GHSA-4w7w-66w2-5vf9"
+        },
+        {
+          "id": "1116006",
+          "title": "Vite Vulnerable to Path Traversal in Optimized Deps `.map` Handling",
+          "severity": "medium",
+          "package": "vite",
+          "url": "https://github.com/advisories/GHSA-4w7w-66w2-5vf9"
+        },
+        {
+          "id": "1116008",
+          "title": "Vite: `server.fs.deny` bypassed with queries",
+          "severity": "high",
+          "package": "vite",
+          "url": "https://github.com/advisories/GHSA-v2wj-q39q-566r"
+        },
+        {
+          "id": "1116099",
+          "title": "Vite Vulnerable to Arbitrary File Read via Vite Dev Server WebSocket",
+          "severity": "high",
+          "package": "vite",
+          "url": "https://github.com/advisories/GHSA-p9ff-h696-f583"
+        },
+        {
+          "id": "1116100",
+          "title": "Vite Vulnerable to Arbitrary File Read via Vite Dev Server WebSocket",
+          "severity": "high",
+          "package": "vite",
+          "url": "https://github.com/advisories/GHSA-p9ff-h696-f583"
+        },
+        {
+          "id": "1116102",
           "title": "defu: Prototype pollution via `__proto__` key in defaults argument",
           "severity": "high",
           "package": "defu",
