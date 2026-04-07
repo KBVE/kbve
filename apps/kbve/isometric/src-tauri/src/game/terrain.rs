@@ -147,6 +147,14 @@ pub struct ChunkData {
 }
 
 impl ChunkData {
+    /// Restore a chunk from cached height data (skips noise computation).
+    pub fn from_cached_heights(heights: HashMap<(i32, i32), f32>) -> Self {
+        Self {
+            heights,
+            tile_entities: Vec::new(),
+        }
+    }
+
     fn generate(chunk_x: i32, chunk_z: i32, seed: u32) -> Self {
         let mut heights = HashMap::new();
         let base_x = chunk_x * CHUNK_SIZE;
@@ -261,6 +269,18 @@ impl TerrainMap {
         if let Some(chunk) = self.chunks.get_mut(&(chunk_x, chunk_z)) {
             chunk.tile_entities = entities;
         }
+    }
+
+    /// Insert a pre-computed chunk (e.g., from bevy_db cache). No-op if already loaded.
+    pub fn insert_cached_chunk(&mut self, cx: i32, cz: i32, heights: HashMap<(i32, i32), f32>) {
+        self.chunks
+            .entry((cx, cz))
+            .or_insert_with(|| ChunkData::from_cached_heights(heights));
+    }
+
+    /// Get the heights for a loaded chunk (for caching to bevy_db).
+    pub fn chunk_heights(&self, cx: i32, cz: i32) -> Option<&HashMap<(i32, i32), f32>> {
+        self.chunks.get(&(cx, cz)).map(|c| &c.heights)
     }
 
     /// Check if a chunk is loaded (has data).

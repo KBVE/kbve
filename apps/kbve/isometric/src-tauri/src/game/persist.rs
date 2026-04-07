@@ -5,9 +5,12 @@ use bevy::prelude::*;
 use bevy_db::{Db, DbRequest};
 use bevy_inventory::Inventory;
 
+use std::collections::{HashMap, HashSet};
+
 use super::inventory::ItemKind;
 use super::net::ServerTime;
 use super::state::PlayerState;
+use super::terrain::TerrainMap;
 use super::tilemap::CollectedTiles;
 
 // ---------------------------------------------------------------------------
@@ -16,12 +19,18 @@ use super::tilemap::CollectedTiles;
 
 const TABLE_PLAYER: &str = "player";
 const TABLE_WORLD: &str = "world";
+const TABLE_TERRAIN: &str = "terrain";
 
 const KEY_PLAYER_STATE: &str = "state";
 const KEY_LAST_POSITION: &str = "last_position";
 const KEY_INVENTORY: &str = "inventory";
 const KEY_COLLECTED_TILES: &str = "collected_tiles";
 const KEY_SERVER_TIME: &str = "server_time";
+
+/// Format a terrain chunk key: "cx:cz"
+fn chunk_key(cx: i32, cz: i32) -> String {
+    format!("{cx}:{cz}")
+}
 
 // ---------------------------------------------------------------------------
 // Timers
@@ -61,6 +70,7 @@ impl Plugin for PersistPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<PersistTimer>();
         app.init_resource::<PendingLoads>();
+        app.init_resource::<TerrainCacheState>();
         app.add_systems(Startup, kick_off_loads);
         app.add_systems(
             Update,
@@ -70,6 +80,9 @@ impl Plugin for PersistPlugin {
                 save_collected_tiles_on_change,
                 save_server_time_on_change,
                 save_inventory_on_change,
+                load_cached_terrain_chunks,
+                receive_cached_terrain_chunks,
+                cache_new_terrain_chunks,
             ),
         );
     }
@@ -241,4 +254,98 @@ fn save_server_time_on_change(db: Res<Db>, server_time: Res<ServerTime>) {
     }
 
     let _ = db.put(TABLE_WORLD, KEY_SERVER_TIME, &*server_time);
+}
+
+// ---------------------------------------------------------------------------
+// Terrain chunk caching
+// ---------------------------------------------------------------------------
+
+/// Tracks which chunks have been written to / loaded from the cache,
+/// so we don't re-save or re-request them every frame.
+#[derive(Resource, Default)]
+struct TerrainCacheState {
+    /// Chunks we've already saved to bevy_db.
+    saved: HashSet<(i32, i32)>,
+    /// Chunks we've dispatched a load request for.
+    pending_loads: HashMap<(i32, i32), DbRequest<Option<Vec<((i32, i32), f32)>>>>,
+    /// Chunks that have been fully resolved (loaded or generated).
+    resolved: HashSet<(i32, i32)>,
+}
+
+/// Cache newly-generated terrain chunks to bevy_db (fire-and-forget).
+fn cache_new_terrain_chunks(
+    db: Res<Db>,
+    terrain: Res<TerrainMap>,
+    mut cache_state: ResMut<TerrainCacheState>,
+) {
+    // Look at chunks_to_spawn — these are freshly generated chunks that need
+    // tile entities. If we haven't cached them yet, save their height maps.
+    for &(cx, cz) in &terrain.chunks_to_spawn {
+        if cache_state.saved.contains(&(cx, cz)) {
+            continue;
+        }
+        if let Some(heights) = terrain.chunk_heights(cx, cz) {
+            let data: Vec<((i32, i32), f32)> = heights.iter().map(|(&k, &v)| (k, v)).collect();
+            let key = chunk_key(cx, cz);
+            let _ = db.put(TABLE_TERRAIN, &key, &data);
+            cache_state.saved.insert((cx, cz));
+        }
+    }
+}
+
+/// Before terrain generates a chunk, try to load it from cache.
+/// This runs every frame and checks if there are chunks that terrain wants
+/// to generate that we could satisfy from bevy_db instead.
+fn load_cached_terrain_chunks(
+    db: Res<Db>,
+    terrain: Res<TerrainMap>,
+    mut cache_state: ResMut<TerrainCacheState>,
+) {
+    // Check chunks_to_spawn for any we haven't resolved yet
+    for &(cx, cz) in &terrain.chunks_to_spawn {
+        if cache_state.resolved.contains(&(cx, cz)) {
+            continue;
+        }
+        if cache_state.pending_loads.contains_key(&(cx, cz)) {
+            continue;
+        }
+        // Only request from cache if we haven't already saved it this session
+        // (if we saved it, it was generated fresh and doesn't need loading)
+        if cache_state.saved.contains(&(cx, cz)) {
+            cache_state.resolved.insert((cx, cz));
+            continue;
+        }
+
+        let key = chunk_key(cx, cz);
+        let req = db.get::<Vec<((i32, i32), f32)>>(TABLE_TERRAIN, &key);
+        cache_state.pending_loads.insert((cx, cz), req);
+    }
+}
+
+/// Receive cached terrain chunks and inject them into TerrainMap.
+fn receive_cached_terrain_chunks(
+    mut terrain: ResMut<TerrainMap>,
+    mut cache_state: ResMut<TerrainCacheState>,
+) {
+    // Collect completed keys first to avoid borrow conflict
+    let completed: Vec<((i32, i32), Option<Vec<((i32, i32), f32)>>)> = cache_state
+        .pending_loads
+        .iter()
+        .filter_map(|(&key, req)| {
+            req.try_recv().map(|result| {
+                let data = result.ok().flatten();
+                (key, data)
+            })
+        })
+        .collect();
+
+    for ((cx, cz), data) in completed {
+        if let Some(heights_vec) = data {
+            let heights: HashMap<(i32, i32), f32> = heights_vec.into_iter().collect();
+            terrain.insert_cached_chunk(cx, cz, heights);
+            cache_state.saved.insert((cx, cz));
+        }
+        cache_state.resolved.insert((cx, cz));
+        cache_state.pending_loads.remove(&(cx, cz));
+    }
 }
