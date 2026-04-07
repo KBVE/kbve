@@ -47,6 +47,10 @@ struct AuthenticatedClients(HashMap<Entity, String>);
 #[derive(Resource, Default)]
 struct ClientPlayerMap(HashMap<Entity, Entity>);
 
+/// Log of captured creature broadcasts — replayed to newly connected clients.
+#[derive(Resource, Default)]
+struct CapturedCreatureLog(Vec<CreatureCaptured>);
+
 /// Marker: client has not yet sent a valid AuthMessage.
 #[derive(Component)]
 struct PendingAuth;
@@ -597,6 +601,7 @@ fn run_bevy_app(
     app.init_resource::<CreatureSeed>();
     app.init_resource::<WindState>();
     app.init_resource::<CapturedCreatures>();
+    app.init_resource::<CapturedCreatureLog>();
     app.insert_resource(npcdb::build_creature_registry());
     app.init_resource::<TimeSyncTimer>();
     app.init_resource::<CreatureSyncTimer>();
@@ -1673,9 +1678,9 @@ fn tick_respawns(
 
 /// Process creature capture requests: validate against CreatureRegistry, track, broadcast.
 fn process_creature_captures(
-    registry: Res<CreatureRegistry>,
     client_player_map: Res<ClientPlayerMap>,
     mut captured: ResMut<CapturedCreatures>,
+    mut capture_log: ResMut<CapturedCreatureLog>,
     mut receivers: Query<
         (Entity, &mut MessageReceiver<CreatureCaptureRequest>),
         Without<PendingAuth>,
@@ -1685,40 +1690,18 @@ fn process_creature_captures(
 ) {
     for (client_entity, mut receiver) in &mut receivers {
         for msg in receiver.receive() {
-            let npc_id = creature_kind_to_npc_id(msg.kind);
-
             // Already captured?
-            if captured.is_captured(npc_id, msg.creature_index) {
+            if captured.is_captured(msg.creature_id) {
                 tracing::warn!(
-                    "[gameserver] creature {:?} #{} already captured — ignoring",
+                    "[gameserver] creature {:?} (ulid={}) already captured — ignoring",
                     msg.kind,
-                    msg.creature_index
-                );
-                continue;
-            }
-
-            // Validate creature_index against registry pool_size
-            let npc_ref = creature_kind_to_npc_ref(msg.kind);
-            if let Some(config) = registry.config_by_ref(npc_ref) {
-                if msg.creature_index as usize >= config.pool_size {
-                    tracing::warn!(
-                        "[gameserver] invalid creature_index {} for {:?} (pool_size={})",
-                        msg.creature_index,
-                        msg.kind,
-                        config.pool_size
-                    );
-                    continue;
-                }
-            } else {
-                tracing::warn!(
-                    "[gameserver] unknown creature ref '{npc_ref}' for {:?}",
-                    msg.kind
+                    msg.creature_id
                 );
                 continue;
             }
 
             // Track the capture
-            captured.insert(npc_id, msg.creature_index);
+            captured.insert(msg.creature_id);
 
             let captor_id = client_player_map
                 .0
@@ -1728,17 +1711,18 @@ fn process_creature_captures(
                 .unwrap_or(0);
 
             tracing::info!(
-                "[gameserver] creature captured: {:?} #{} by player {captor_id}",
+                "[gameserver] creature captured: {:?} (ulid={}) by player {captor_id}",
                 msg.kind,
-                msg.creature_index
+                msg.creature_id
             );
 
-            // Broadcast to all connected clients
+            // Broadcast to all connected clients and log for replay
             let broadcast = CreatureCaptured {
+                creature_id: msg.creature_id,
                 kind: msg.kind,
-                creature_index: msg.creature_index,
                 captor_player_id: captor_id,
             };
+            capture_log.0.push(broadcast.clone());
             for mut sender in &mut senders {
                 sender.send::<GameChannel>(broadcast.clone());
             }
@@ -1903,13 +1887,11 @@ fn broadcast_creature_sync(
     creature_q: Query<(
         &bevy_kbve_net::creatures::types::Creature,
         &bevy_kbve_net::creatures::types::SpriteData,
-        &bevy_kbve_net::creatures::types::CreaturePoolIndex,
         &bevy_kbve_net::creatures::types::SpriteCreatureMarker,
         &bevy_kbve_net::creatures::types::CreatureId,
     )>,
     ambient_q: Query<(
         &bevy_kbve_net::creatures::types::Creature,
-        &bevy_kbve_net::creatures::types::CreaturePoolIndex,
         &bevy_kbve_net::creatures::ambient_types::AmbientCreatureMarker,
         &bevy_kbve_net::creatures::types::CreatureId,
     )>,
@@ -1932,7 +1914,7 @@ fn broadcast_creature_sync(
     // --- Sprite creatures ---
     for ctype in &types.types {
         let mut snapshots = Vec::new();
-        for (cr, sd, pool_idx, marker, cid) in &creature_q {
+        for (cr, sd, marker, cid) in &creature_q {
             if marker.type_key != ctype.npc_ref {
                 continue;
             }
@@ -1954,7 +1936,6 @@ fn broadcast_creature_sync(
             };
             snapshots.push(CreatureSnapshot {
                 creature_id: cid.as_u128(),
-                index: pool_idx.0 as u32,
                 x: cr.anchor.x,
                 y: cr.anchor.y,
                 z: cr.anchor.z,
@@ -1979,7 +1960,7 @@ fn broadcast_creature_sync(
     // Group by npc_ref
     let mut ambient_groups: std::collections::HashMap<&str, Vec<CreatureSnapshot>> =
         std::collections::HashMap::new();
-    for (cr, pool_idx, marker, cid) in &ambient_q {
+    for (cr, marker, cid) in &ambient_q {
         if cr.state != bevy_kbve_net::creatures::types::CreatureState::Active {
             continue;
         }
@@ -1996,7 +1977,6 @@ fn broadcast_creature_sync(
             .or_default()
             .push(CreatureSnapshot {
                 creature_id: cid.as_u128(),
-                index: pool_idx.0 as u32,
                 x: cr.anchor.x,
                 y: cr.anchor.y,
                 z: cr.anchor.z,
@@ -2077,10 +2057,10 @@ fn send_time_sync_to_new_clients(
 /// so they know which ones are unavailable.
 fn send_captured_state_to_new_clients(
     authenticated: Res<AuthenticatedClients>,
-    captured: Res<CapturedCreatures>,
+    capture_log: Res<CapturedCreatureLog>,
     mut senders: Query<(Entity, &mut MessageSender<CreatureCaptured>), Added<ReplicationSender>>,
 ) {
-    if captured.is_empty() {
+    if capture_log.0.is_empty() {
         return;
     }
 
@@ -2091,18 +2071,11 @@ fn send_captured_state_to_new_clients(
 
         tracing::info!(
             "[gameserver] sending {} captured creatures to new client {entity:?}",
-            captured.len()
+            capture_log.0.len()
         );
 
-        for &(npc_id, creature_index) in captured.iter() {
-            let Some(kind) = npc_id_to_creature_kind(npc_id) else {
-                continue;
-            };
-            sender.send::<GameChannel>(CreatureCaptured {
-                kind,
-                creature_index,
-                captor_player_id: 0,
-            });
+        for msg in &capture_log.0 {
+            sender.send::<GameChannel>(msg.clone());
         }
     }
 }

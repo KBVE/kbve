@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use bevy::prelude::*;
 use lightyear::prelude::*;
 
-use super::super::creature::{Creature, CreaturePoolIndex, RenderKind, SpriteData, SpriteHopState};
+use super::super::creature::{Creature, RenderKind, SpriteData, SpriteHopState};
 use super::behavior::CreatureIntent;
 use super::brain::CreatureBrain;
 use super::types::SpriteCreatureMarker;
@@ -45,53 +45,56 @@ pub fn update_creature_id_index(
 /// System that receives `CreatureStateEvent` messages from the server and
 /// overrides the local creature's behavior intent.
 pub fn receive_creature_events(
+    index: Res<CreatureIdIndex>,
     mut receiver_q: Query<&mut MessageReceiver<CreatureStateEvent>, With<Connected>>,
     mut creature_q: Query<(
+        Entity,
         &SpriteCreatureMarker,
-        &CreaturePoolIndex,
         &mut SpriteData,
         Option<&mut CreatureBrain>,
     )>,
 ) {
     for mut receiver in &mut receiver_q {
         for event in receiver.receive() {
-            for (marker, pool_idx, mut sd, brain) in &mut creature_q {
-                if marker.type_key != event.npc_ref.as_str() {
-                    continue;
-                }
-                if pool_idx.0 != event.creature_index {
-                    continue;
-                }
+            // Find entity by ULID
+            let entity = if event.creature_id != 0 {
+                index.0.get(&event.creature_id).copied()
+            } else {
+                None
+            };
+            let Some(entity) = entity else {
+                continue;
+            };
+            let Ok((_, _marker, mut sd, brain)) = creature_q.get_mut(entity) else {
+                continue;
+            };
 
-                match &event.event {
-                    CreatureEventKind::TakeDamage { .. } => {
-                        if let Some(mut brain) = brain {
-                            brain.intent = CreatureIntent::Flee {
-                                direction: Vec3::new(0.0, 0.0, -1.0),
-                                speed: 5.0,
-                                anim_name: "run",
-                            };
-                        }
-                    }
-                    CreatureEventKind::Die => {
-                        sd.hop_state = SpriteHopState::Idle { timer: f32::MAX };
-                    }
-                    CreatureEventKind::ForceFlee { from_x, from_z } => {
-                        if let Some(mut brain) = brain {
-                            let flee_dir = Vec3::new(-from_x, 0.0, -from_z).normalize_or_zero();
-                            brain.intent = CreatureIntent::Flee {
-                                direction: flee_dir,
-                                speed: 5.0,
-                                anim_name: "run",
-                            };
-                        }
-                    }
-                    CreatureEventKind::Captured { .. } => {
-                        sd.hop_state = SpriteHopState::Idle { timer: f32::MAX };
+            match &event.event {
+                CreatureEventKind::TakeDamage { .. } => {
+                    if let Some(mut brain) = brain {
+                        brain.intent = CreatureIntent::Flee {
+                            direction: Vec3::new(0.0, 0.0, -1.0),
+                            speed: 5.0,
+                            anim_name: "run",
+                        };
                     }
                 }
-
-                break;
+                CreatureEventKind::Die => {
+                    sd.hop_state = SpriteHopState::Idle { timer: f32::MAX };
+                }
+                CreatureEventKind::ForceFlee { from_x, from_z } => {
+                    if let Some(mut brain) = brain {
+                        let flee_dir = Vec3::new(-from_x, 0.0, -from_z).normalize_or_zero();
+                        brain.intent = CreatureIntent::Flee {
+                            direction: flee_dir,
+                            speed: 5.0,
+                            anim_name: "run",
+                        };
+                    }
+                }
+                CreatureEventKind::Captured { .. } => {
+                    sd.hop_state = SpriteHopState::Idle { timer: f32::MAX };
+                }
             }
         }
     }
@@ -116,7 +119,6 @@ pub fn receive_creature_sync(
     mut creature_q: Query<(
         Entity,
         &mut SpriteCreatureMarker,
-        &CreaturePoolIndex,
         &mut Creature,
         &mut SpriteData,
     )>,
@@ -129,18 +131,18 @@ pub fn receive_creature_sync(
             }
 
             for snapshot in &sync.snapshots {
-                // Try ULID-first lookup (O(1))
-                let matched_entity = if snapshot.creature_id != 0 {
+                // ULID lookup (O(1))
+                let entity = if snapshot.creature_id != 0 {
                     index.0.get(&snapshot.creature_id).copied()
                 } else {
                     None
                 };
 
-                // Fall back to (npc_ref, pool_index) scan if no ULID match
-                let entity = matched_entity.or_else(|| {
-                    creature_q.iter().find_map(|(e, marker, pool_idx, _, _)| {
+                // Fall back: find an unassigned creature of the same type
+                let entity = entity.or_else(|| {
+                    creature_q.iter().find_map(|(e, marker, _, _)| {
                         if marker.type_key == sync.npc_ref.as_str()
-                            && pool_idx.0 as u32 == snapshot.index
+                            && !index.0.values().any(|&existing| existing == e)
                         {
                             Some(e)
                         } else {
@@ -153,7 +155,7 @@ pub fn receive_creature_sync(
                     continue;
                 };
 
-                let Ok((_, mut marker, _, mut cr, mut sd)) = creature_q.get_mut(entity) else {
+                let Ok((_, mut marker, mut cr, mut sd)) = creature_q.get_mut(entity) else {
                     continue;
                 };
 
@@ -206,10 +208,7 @@ pub fn receive_ambient_creature_sync(
     mut commands: Commands,
     index: Res<CreatureIdIndex>,
     mut receiver_q: Query<&mut MessageReceiver<CreaturePositionSync>, With<Connected>>,
-    mut creature_q: Query<
-        (Entity, &mut Creature, &CreaturePoolIndex),
-        Without<SpriteCreatureMarker>,
-    >,
+    mut creature_q: Query<(Entity, &mut Creature), Without<SpriteCreatureMarker>>,
 ) {
     for mut receiver in &mut receiver_q {
         for sync in receiver.receive() {
@@ -218,17 +217,19 @@ pub fn receive_ambient_creature_sync(
             };
 
             for snapshot in &sync.snapshots {
-                // ULID-first lookup
-                let matched_entity = if snapshot.creature_id != 0 {
+                // ULID lookup
+                let entity = if snapshot.creature_id != 0 {
                     index.0.get(&snapshot.creature_id).copied()
                 } else {
                     None
                 };
 
-                // Fall back to (render_kind, pool_index)
-                let entity = matched_entity.or_else(|| {
-                    creature_q.iter().find_map(|(e, cr, pool_idx)| {
-                        if cr.render_kind == kind && pool_idx.0 == snapshot.index {
+                // Fall back: find unassigned creature of matching render kind
+                let entity = entity.or_else(|| {
+                    creature_q.iter().find_map(|(e, cr)| {
+                        if cr.render_kind == kind
+                            && !index.0.values().any(|&existing| existing == e)
+                        {
                             Some(e)
                         } else {
                             None
@@ -240,7 +241,7 @@ pub fn receive_ambient_creature_sync(
                     continue;
                 };
 
-                let Ok((_, mut cr, _)) = creature_q.get_mut(entity) else {
+                let Ok((_, mut cr)) = creature_q.get_mut(entity) else {
                     continue;
                 };
 

@@ -169,16 +169,17 @@ pub enum CreatureKind {
 /// Client requests to capture a creature.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct CreatureCaptureRequest {
+    /// Server-assigned ULID identifying the creature instance.
+    pub creature_id: u128,
     pub kind: CreatureKind,
-    /// Index in the deterministic creature pool (0..N).
-    pub creature_index: u32,
 }
 
 /// Server broadcasts that a creature was captured.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct CreatureCaptured {
+    /// Server-assigned ULID identifying the creature instance.
+    pub creature_id: u128,
     pub kind: CreatureKind,
-    pub creature_index: u32,
     pub captor_player_id: u64,
 }
 
@@ -189,10 +190,10 @@ pub struct CreatureCaptured {
 /// Client requests to attack/interact with a creature.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct CreatureAttackRequest {
+    /// Server-assigned ULID identifying the creature instance.
+    pub creature_id: u128,
     /// NPC ref string (e.g. "wild-boar") to identify the creature type.
     pub npc_ref: String,
-    /// Pool index of the targeted creature.
-    pub creature_index: u32,
     /// Damage amount (server validates).
     pub damage: f32,
 }
@@ -201,10 +202,10 @@ pub struct CreatureAttackRequest {
 /// Overrides local deterministic behavior when external events occur.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct CreatureStateEvent {
+    /// Server-assigned ULID identifying the creature instance.
+    pub creature_id: u128,
     /// NPC ref string identifying the creature type.
     pub npc_ref: String,
-    /// Pool index of the affected creature.
-    pub creature_index: u32,
     /// What happened to the creature.
     pub event: CreatureEventKind,
 }
@@ -236,10 +237,8 @@ pub struct CreatureSyncChannel;
 /// Single creature's server-authoritative state snapshot.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct CreatureSnapshot {
-    /// Server-assigned ULID for this creature instance (0 = not yet assigned).
+    /// Server-assigned ULID for this creature instance.
     pub creature_id: u128,
-    /// Pool index within this creature type (kept for backward compat, Phase 1).
-    pub index: u32,
     /// World-space anchor position.
     pub x: f32,
     pub y: f32,
