@@ -5,8 +5,11 @@ use bevy::prelude::*;
 use bevy_db::{Db, DbRequest};
 use bevy_inventory::Inventory;
 use bevy_kbve_net::creatures::influence::PatrolMode;
+use bevy_kbve_net::creatures::nav_systems::NeedsPatrolRoute;
 use bevy_kbve_net::creatures::patrol::{DwellAction, PatrolRoute, PatrolStep};
-use bevy_kbve_net::creatures::types::{Creature, CreatureState, SpriteCreatureMarker};
+use bevy_kbve_net::creatures::types::{
+    Creature, CreatureState, SpriteCreatureMarker, SpriteCreatureTypes, SpriteData,
+};
 use bevy_kbve_net::creatures::waypoint_graph::WaypointGraph;
 
 use std::collections::{HashMap, HashSet};
@@ -26,7 +29,10 @@ const TABLE_WORLD: &str = "world";
 const TABLE_TERRAIN: &str = "terrain";
 const TABLE_NAV: &str = "nav";
 
+const TABLE_CREATURES: &str = "creatures";
+
 const KEY_WAYPOINT_GRAPH: &str = "waypoint_graph";
+const KEY_CACHE_SEED: &str = "cache_seed";
 
 const KEY_PLAYER_STATE: &str = "state";
 const KEY_LAST_POSITION: &str = "last_position";
@@ -79,21 +85,39 @@ impl Plugin for PersistPlugin {
         app.init_resource::<PendingLoads>();
         app.init_resource::<TerrainCacheState>();
         app.init_resource::<WaypointGraphCacheState>();
-        app.add_systems(Startup, (kick_off_loads, kick_off_waypoint_graph_load));
+        app.init_resource::<CacheSeedCheck>();
+        app.add_systems(
+            Startup,
+            (
+                kick_off_loads,
+                kick_off_waypoint_graph_load,
+                kick_off_cache_seed_check,
+            ),
+        );
         app.add_systems(
             Update,
             (
+                // Core state
                 receive_loads,
                 save_periodic,
                 save_collected_tiles_on_change,
                 save_server_time_on_change,
                 save_inventory_on_change,
+                // Terrain cache
                 load_cached_terrain_chunks,
                 receive_cached_terrain_chunks,
                 cache_new_terrain_chunks,
+                // Navigation cache
                 receive_waypoint_graph_cache,
                 cache_waypoint_graph_on_change,
                 cache_new_patrol_routes,
+                // Patrol route cache loading (intercepts before generation)
+                try_load_patrol_from_cache,
+                receive_cached_patrol_routes,
+                // Creature state
+                save_creature_states,
+                // Cache invalidation
+                receive_cache_seed_check,
             ),
         );
     }
@@ -522,5 +546,169 @@ fn cache_new_patrol_routes(
         let key = patrol_key(marker.type_key, cr.slot_seed);
         let cached = CachedPatrolRoute::from_route(route);
         let _ = db.put(TABLE_NAV, &key, &cached);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// PatrolRoute cache loading — try cache before generating
+// ---------------------------------------------------------------------------
+
+/// Pending cache load for a patrol route.
+#[derive(Component)]
+struct PendingPatrolCacheLoad {
+    req: DbRequest<Option<CachedPatrolRoute>>,
+}
+
+/// For creatures tagged NeedsPatrolRoute, try loading from cache first.
+/// If we dispatch a cache load, remove NeedsPatrolRoute so the generation
+/// pipeline doesn't also fire. If cache misses, we re-add NeedsPatrolRoute.
+fn try_load_patrol_from_cache(
+    mut commands: Commands,
+    db: Res<Db>,
+    query: Query<
+        (Entity, &Creature, &SpriteCreatureMarker),
+        (With<NeedsPatrolRoute>, Without<PendingPatrolCacheLoad>),
+    >,
+) {
+    for (entity, cr, marker) in &query {
+        let key = patrol_key(marker.type_key, cr.slot_seed);
+        let req = db.get::<CachedPatrolRoute>(TABLE_NAV, &key);
+        commands
+            .entity(entity)
+            .remove::<NeedsPatrolRoute>()
+            .insert(PendingPatrolCacheLoad { req });
+    }
+}
+
+/// Receive cached patrol routes. On hit, insert PatrolRoute directly.
+/// On miss, re-add NeedsPatrolRoute so the generation pipeline picks it up.
+fn receive_cached_patrol_routes(
+    mut commands: Commands,
+    types: Res<SpriteCreatureTypes>,
+    query: Query<(Entity, &SpriteCreatureMarker, &PendingPatrolCacheLoad)>,
+) {
+    for (entity, marker, pending) in &query {
+        match pending.req.try_recv() {
+            Some(Ok(Some(cached))) => {
+                // Look up emote anims for the anim_lookup table
+                let anim_lookup: Vec<&'static str> = types
+                    .types
+                    .iter()
+                    .find(|t| t.npc_ref == marker.type_key)
+                    .map(|t| t.patrol_emotes.to_vec())
+                    .unwrap_or_default();
+                let route = cached.to_route(&anim_lookup);
+                commands
+                    .entity(entity)
+                    .remove::<PendingPatrolCacheLoad>()
+                    .insert(route);
+            }
+            Some(_) => {
+                // Cache miss or error — fall back to generation
+                commands
+                    .entity(entity)
+                    .remove::<PendingPatrolCacheLoad>()
+                    .insert(NeedsPatrolRoute);
+            }
+            None => {} // Still loading
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Creature state caching — save/restore active creature positions
+// ---------------------------------------------------------------------------
+
+/// Serializable snapshot of one creature's state.
+#[derive(serde::Serialize, serde::Deserialize)]
+struct CachedCreatureState {
+    anchor: [f32; 3],
+    facing_left: bool,
+    patrol_step: u32,
+}
+
+/// Format creature state key: "type_key:pool_index"
+fn creature_state_key(type_key: &str, slot_seed: u32) -> String {
+    format!("{type_key}:{slot_seed}")
+}
+
+/// Periodically save active creature positions (runs on the same 5s timer).
+fn save_creature_states(
+    time: Res<Time>,
+    timer: Res<PersistTimer>,
+    db: Res<Db>,
+    query: Query<(&Creature, &SpriteCreatureMarker, &SpriteData)>,
+) {
+    // Piggyback on the persist timer (already ticked by save_periodic)
+    if !timer.0.just_finished() {
+        return;
+    }
+
+    for (cr, marker, sd) in &query {
+        if cr.state != CreatureState::Active {
+            continue;
+        }
+        // Skip pooled creatures (y < -50)
+        if cr.anchor.y < -50.0 {
+            continue;
+        }
+
+        let key = creature_state_key(marker.type_key, cr.slot_seed);
+        let state = CachedCreatureState {
+            anchor: [cr.anchor.x, cr.anchor.y, cr.anchor.z],
+            facing_left: sd.facing_left,
+            patrol_step: marker.patrol_step,
+        };
+        let _ = db.put(TABLE_CREATURES, &key, &state);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Cache invalidation — detect terrain seed changes
+// ---------------------------------------------------------------------------
+
+/// Resource tracking whether we've validated the cache seed.
+#[derive(Resource, Default)]
+struct CacheSeedCheck {
+    req: Option<DbRequest<Option<u32>>>,
+    done: bool,
+}
+
+fn kick_off_cache_seed_check(db: Res<Db>, mut check: ResMut<CacheSeedCheck>) {
+    if check.done || check.req.is_some() {
+        return;
+    }
+    check.req = Some(db.get::<u32>(TABLE_WORLD, KEY_CACHE_SEED));
+}
+
+fn receive_cache_seed_check(
+    db: Res<Db>,
+    terrain: Res<TerrainMap>,
+    mut check: ResMut<CacheSeedCheck>,
+    mut terrain_cache: ResMut<TerrainCacheState>,
+    mut wp_cache: ResMut<WaypointGraphCacheState>,
+) {
+    if check.done {
+        return;
+    }
+    let Some(ref req) = check.req else { return };
+
+    if let Some(result) = req.try_recv() {
+        let cached_seed = result.ok().flatten();
+        let current_seed = terrain.seed;
+
+        if cached_seed != Some(current_seed) {
+            // Seed changed — invalidate terrain and nav caches
+            // Clear local tracking so everything gets re-cached
+            terrain_cache.saved.clear();
+            terrain_cache.resolved.clear();
+            wp_cache.saved_version = 0;
+
+            // Overwrite the stored seed
+            let _ = db.put(TABLE_WORLD, KEY_CACHE_SEED, &current_seed);
+        }
+
+        check.req = None;
+        check.done = true;
     }
 }
