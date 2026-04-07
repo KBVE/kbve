@@ -334,6 +334,7 @@ pub fn wasm_wt_hostname_link(
         .remove::<lightyear::webtransport::prelude::client::WebTransportClientIo>();
 }
 
+#[allow(clippy::type_complexity)]
 pub fn check_handshake_timeout(
     mut commands: Commands,
     time: Res<Time>,
