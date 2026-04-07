@@ -17,7 +17,7 @@ use crate::terrain::hash2d;
 // ---------------------------------------------------------------------------
 
 /// Terrain zone tag derived from local features around a waypoint.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum ZoneTag {
     Meadow,
     Forest,
@@ -33,7 +33,7 @@ pub enum ZoneTag {
 // ---------------------------------------------------------------------------
 
 /// A navigation waypoint in the graph.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct Waypoint {
     pub id: u32,
     pub pos: IVec2,
@@ -50,7 +50,7 @@ pub struct Waypoint {
 // ---------------------------------------------------------------------------
 
 /// Regional waypoint graph built from NavGrid data.
-#[derive(Resource, Default, Clone)]
+#[derive(Resource, Default, Clone, serde::Serialize, serde::Deserialize)]
 pub struct WaypointGraph {
     pub waypoints: Vec<Waypoint>,
     /// Adjacency list indexed by waypoint id: `(neighbor_id, edge_cost)`.

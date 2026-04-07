@@ -12,7 +12,7 @@ use super::waypoint_graph::{Waypoint, ZoneTag};
 // ---------------------------------------------------------------------------
 
 /// How a creature traverses its patrol route.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum PatrolMode {
     /// A → B → C → D → A → B → ...
     Loop,
