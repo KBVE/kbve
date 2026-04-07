@@ -469,7 +469,7 @@ jobs:
                       printf '%s\n' '  <TabItem label="Coverage">'
                       printf '\n'
                       printf '%s\n' '```'
-                      cat /tmp/coverage-report.txt
+                      sed 's/<\([/a-zA-Z]\)/\&lt;\1/g' /tmp/coverage-report.txt
                       printf '%s\n' '```'
                       printf '\n'
                       printf '%s\n' '  </TabItem>'
