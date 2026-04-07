@@ -470,6 +470,7 @@ jobs:
                       printf '\n'
                       printf '%s\n' '```'
                       sed 's/<\([/a-zA-Z]\)/\&lt;\1/g' /tmp/coverage-report.txt
+                      echo ""
                       printf '%s\n' '```'
                       printf '\n'
                       printf '%s\n' '  </TabItem>'
