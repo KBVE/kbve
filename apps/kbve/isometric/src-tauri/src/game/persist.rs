@@ -409,8 +409,10 @@ fn kick_off_waypoint_graph_load(db: Res<Db>, mut state: ResMut<WaypointGraphCach
 }
 
 /// Receive cached WaypointGraph and inject into ECS.
+/// `WaypointGraph` may not exist yet at startup (inserted by another plugin),
+/// so we accept `Option<ResMut<..>>` and skip if absent.
 fn receive_waypoint_graph_cache(
-    mut graph: ResMut<WaypointGraph>,
+    graph: Option<ResMut<WaypointGraph>>,
     mut state: ResMut<WaypointGraphCacheState>,
 ) {
     if state.load_done {
@@ -422,7 +424,9 @@ fn receive_waypoint_graph_cache(
     if let Some(result) = req.try_recv() {
         if let Ok(Some(cached)) = result {
             if !cached.waypoints.is_empty() {
-                *graph = cached;
+                if let Some(mut graph) = graph {
+                    *graph = cached;
+                }
             }
         }
         state.load_pending = None;
@@ -433,9 +437,10 @@ fn receive_waypoint_graph_cache(
 /// Cache the WaypointGraph when it changes (new waypoints built by nav_systems).
 fn cache_waypoint_graph_on_change(
     db: Res<Db>,
-    graph: Res<WaypointGraph>,
+    graph: Option<Res<WaypointGraph>>,
     mut state: ResMut<WaypointGraphCacheState>,
 ) {
+    let Some(graph) = graph else { return };
     if !graph.is_changed() {
         return;
     }
