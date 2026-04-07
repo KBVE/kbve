@@ -86,7 +86,8 @@ pub(crate) fn sun_params(hour: f32) -> SunParams {
 
     // Illuminance: gentle accent — pixel-art style relies on ambient, not harsh shadows.
     // ~2:1 ratio with ambient keeps valleys readable.
-    let illuminance = 35.0 + sun_height * 1780.0;
+    // Night floor raised ~35% for brighter moonlight.
+    let illuminance = 48.0 + sun_height * 1767.0;
 
     // Light color: warm golden near horizon, white at zenith, cool blue at night.
     let lr = 0.4 + sun_height * 0.6;
@@ -96,7 +97,8 @@ pub(crate) fn sun_params(hour: f32) -> SunParams {
 
     // Ambient: dominant fill — the main brightness source in a stylized world.
     // Shadowed areas (valleys) should be tinted, never crushed to dark.
-    let ambient_brightness = 420.0 + sun_height * 580.0;
+    // Night floor raised ~35% for brighter moonlit ambiance.
+    let ambient_brightness = 570.0 + sun_height * 430.0;
     let ambient_color = Color::srgb(
         0.55 + sun_height * 0.35,
         0.60 + sun_height * 0.32,

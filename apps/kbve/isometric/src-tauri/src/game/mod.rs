@@ -1,5 +1,7 @@
 pub mod actions;
 pub mod camera;
+pub mod campfire;
+pub mod candle;
 pub mod client_profile;
 pub mod creatures;
 pub mod grass;
@@ -36,6 +38,8 @@ use bevy::prelude::*;
 
 use actions::ActionsPlugin;
 use camera::IsometricCameraPlugin;
+use campfire::CampfirePlugin;
+use candle::CandlePlugin;
 use creatures::CreaturesPlugin;
 use input_bridge::InputBridgePlugin;
 use interaction_ui::InteractionUiPlugin;
@@ -147,6 +151,8 @@ impl PluginGroup for GamePluginGroup {
             .add(ItemDbLoaderPlugin)
             .add(InventoryPlugin::<ItemKind>::new(16))
             .add(WeatherPlugin)
+            .add(CampfirePlugin)
+            .add(CandlePlugin)
             .add(CreaturesPlugin)
             .add(VirtualJoystickPlugin)
             .add(OrbHudPlugin)

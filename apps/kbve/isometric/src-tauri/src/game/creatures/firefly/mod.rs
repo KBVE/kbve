@@ -344,18 +344,18 @@ pub(super) fn render_fireflies(
             0.0
         };
 
-        let glow = 0.18 + pulse * 0.82;
+        let glow = 0.35 + pulse * 0.65;
         let intensity = glow * nf;
 
         if let Some(mat) = materials.get_mut(&rd.mat_handle) {
-            let emit = intensity * 35.0;
+            let emit = intensity * 55.0;
             mat.emissive = LinearRgba::new(0.3 * emit, 0.85 * emit, 0.15 * emit, 1.0);
-            mat.base_color = Color::srgba(0.5, 0.9, 0.3, intensity * 0.95 + 0.2 * nf);
+            mat.base_color = Color::srgba(0.5, 0.9, 0.3, intensity * 0.95 + 0.3 * nf);
         }
 
         if let Some(le) = rd.light_entity {
             if let Ok((mut pl, mut ltf, mut lvis)) = light_q.get_mut(le) {
-                pl.intensity = intensity * 8000.0;
+                pl.intensity = intensity * 14000.0;
                 ltf.translation = pos;
                 *lvis = if intensity > 0.01 {
                     Visibility::Visible

@@ -589,9 +589,10 @@ fn try_load_patrol_from_cache(
 /// On miss, re-add NeedsPatrolRoute so the generation pipeline picks it up.
 fn receive_cached_patrol_routes(
     mut commands: Commands,
-    types: Res<SpriteCreatureTypes>,
+    types: Option<Res<SpriteCreatureTypes>>,
     query: Query<(Entity, &SpriteCreatureMarker, &PendingPatrolCacheLoad)>,
 ) {
+    let Some(types) = types else { return };
     for (entity, marker, pending) in &query {
         match pending.req.try_recv() {
             Some(Ok(Some(cached))) => {
