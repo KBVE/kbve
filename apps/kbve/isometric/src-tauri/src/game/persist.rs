@@ -4,6 +4,10 @@
 use bevy::prelude::*;
 use bevy_db::{Db, DbRequest};
 use bevy_inventory::Inventory;
+use bevy_kbve_net::creatures::influence::PatrolMode;
+use bevy_kbve_net::creatures::patrol::{DwellAction, PatrolRoute, PatrolStep};
+use bevy_kbve_net::creatures::types::{Creature, CreatureState, SpriteCreatureMarker};
+use bevy_kbve_net::creatures::waypoint_graph::WaypointGraph;
 
 use std::collections::{HashMap, HashSet};
 
@@ -20,6 +24,9 @@ use super::tilemap::CollectedTiles;
 const TABLE_PLAYER: &str = "player";
 const TABLE_WORLD: &str = "world";
 const TABLE_TERRAIN: &str = "terrain";
+const TABLE_NAV: &str = "nav";
+
+const KEY_WAYPOINT_GRAPH: &str = "waypoint_graph";
 
 const KEY_PLAYER_STATE: &str = "state";
 const KEY_LAST_POSITION: &str = "last_position";
@@ -71,7 +78,8 @@ impl Plugin for PersistPlugin {
         app.init_resource::<PersistTimer>();
         app.init_resource::<PendingLoads>();
         app.init_resource::<TerrainCacheState>();
-        app.add_systems(Startup, kick_off_loads);
+        app.init_resource::<WaypointGraphCacheState>();
+        app.add_systems(Startup, (kick_off_loads, kick_off_waypoint_graph_load));
         app.add_systems(
             Update,
             (
@@ -83,6 +91,9 @@ impl Plugin for PersistPlugin {
                 load_cached_terrain_chunks,
                 receive_cached_terrain_chunks,
                 cache_new_terrain_chunks,
+                receive_waypoint_graph_cache,
+                cache_waypoint_graph_on_change,
+                cache_new_patrol_routes,
             ),
         );
     }
@@ -347,5 +358,169 @@ fn receive_cached_terrain_chunks(
         }
         cache_state.resolved.insert((cx, cz));
         cache_state.pending_loads.remove(&(cx, cz));
+    }
+}
+
+// ---------------------------------------------------------------------------
+// WaypointGraph caching
+// ---------------------------------------------------------------------------
+
+/// Tracks whether we've saved/loaded the waypoint graph this session.
+#[derive(Resource, Default)]
+struct WaypointGraphCacheState {
+    saved_version: usize,
+    load_pending: Option<DbRequest<Option<WaypointGraph>>>,
+    load_done: bool,
+}
+
+/// On startup, try to load a cached WaypointGraph.
+fn kick_off_waypoint_graph_load(db: Res<Db>, mut state: ResMut<WaypointGraphCacheState>) {
+    if state.load_done {
+        return;
+    }
+    if state.load_pending.is_some() {
+        return;
+    }
+    state.load_pending = Some(db.get::<WaypointGraph>(TABLE_NAV, KEY_WAYPOINT_GRAPH));
+}
+
+/// Receive cached WaypointGraph and inject into ECS.
+fn receive_waypoint_graph_cache(
+    mut graph: ResMut<WaypointGraph>,
+    mut state: ResMut<WaypointGraphCacheState>,
+) {
+    if state.load_done {
+        return;
+    }
+    let Some(ref req) = state.load_pending else {
+        return;
+    };
+    if let Some(result) = req.try_recv() {
+        if let Ok(Some(cached)) = result {
+            if !cached.waypoints.is_empty() {
+                *graph = cached;
+            }
+        }
+        state.load_pending = None;
+        state.load_done = true;
+    }
+}
+
+/// Cache the WaypointGraph when it changes (new waypoints built by nav_systems).
+fn cache_waypoint_graph_on_change(
+    db: Res<Db>,
+    graph: Res<WaypointGraph>,
+    mut state: ResMut<WaypointGraphCacheState>,
+) {
+    if !graph.is_changed() {
+        return;
+    }
+    let version = graph.waypoints.len();
+    if version == state.saved_version || graph.waypoints.is_empty() {
+        return;
+    }
+    state.saved_version = version;
+    let _ = db.put(TABLE_NAV, KEY_WAYPOINT_GRAPH, &*graph);
+}
+
+// ---------------------------------------------------------------------------
+// PatrolRoute caching — serializable DTO
+// ---------------------------------------------------------------------------
+
+/// Serializable version of PatrolStep (replaces &'static str with String).
+#[derive(serde::Serialize, serde::Deserialize)]
+struct CachedDwell {
+    kind: u8, // 0 = Idle, 1 = Emote
+    duration: f32,
+    anim: String,
+    repeat: u32,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct CachedPatrolStep {
+    target: [f32; 3],
+    dwell: CachedDwell,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct CachedPatrolRoute {
+    steps: Vec<CachedPatrolStep>,
+    mode: PatrolMode,
+}
+
+impl CachedPatrolRoute {
+    fn from_route(route: &PatrolRoute) -> Self {
+        Self {
+            steps: route
+                .steps
+                .iter()
+                .map(|s| CachedPatrolStep {
+                    target: [s.target.x, s.target.y, s.target.z],
+                    dwell: match s.dwell {
+                        DwellAction::Idle { duration } => CachedDwell {
+                            kind: 0,
+                            duration,
+                            anim: String::new(),
+                            repeat: 0,
+                        },
+                        DwellAction::Emote { anim, repeat } => CachedDwell {
+                            kind: 1,
+                            duration: 0.0,
+                            anim: anim.to_string(),
+                            repeat,
+                        },
+                    },
+                })
+                .collect(),
+            mode: route.mode,
+        }
+    }
+
+    fn to_route(&self, anim_lookup: &[&'static str]) -> PatrolRoute {
+        PatrolRoute {
+            steps: self
+                .steps
+                .iter()
+                .map(|s| PatrolStep {
+                    target: Vec3::new(s.target[0], s.target[1], s.target[2]),
+                    dwell: if s.dwell.kind == 0 {
+                        DwellAction::Idle {
+                            duration: s.dwell.duration,
+                        }
+                    } else {
+                        // Find the static str that matches, or fall back to idle
+                        let anim = anim_lookup
+                            .iter()
+                            .find(|&&a| a == s.dwell.anim)
+                            .copied()
+                            .unwrap_or("idle");
+                        DwellAction::Emote {
+                            anim,
+                            repeat: s.dwell.repeat,
+                        }
+                    },
+                })
+                .collect(),
+            current: 0,
+            mode: self.mode,
+            forward: true,
+        }
+    }
+}
+
+/// Format patrol route key: "type_key:slot_seed"
+fn patrol_key(type_key: &str, slot_seed: u32) -> String {
+    format!("{type_key}:{slot_seed}")
+}
+
+/// Cache newly-created patrol routes (fire-and-forget).
+fn cache_new_patrol_routes(
+    db: Res<Db>,
+    query: Query<(&Creature, &SpriteCreatureMarker, &PatrolRoute), Added<PatrolRoute>>,
+) {
+    for (cr, marker, route) in &query {
+        let key = patrol_key(marker.type_key, cr.slot_seed);
+        let cached = CachedPatrolRoute::from_route(route);
+        let _ = db.put(TABLE_NAV, &key, &cached);
     }
 }
