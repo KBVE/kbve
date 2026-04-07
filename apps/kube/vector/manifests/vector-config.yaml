@@ -5,7 +5,8 @@ metadata:
     name: vector-config
     namespace: vector
     annotations:
-        kbve.sh/last-updated: '2026-04-06T17:00:00Z'
+        kbve.sh/last-updated: '2026-04-07T05:30:00Z'
+        kbve.sh/config-version: 'v2-fix-vrl-coalescing'
 data:
     vector.yml: |
         api:

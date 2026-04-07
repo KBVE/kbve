@@ -45,7 +45,7 @@ data:
         ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/observability/logs_raw', '{replica}')
         ORDER BY (service, timestamp)
         PARTITION BY toYYYYMMDD(timestamp)
-        TTL toDateTime(timestamp) + INTERVAL 45 DAY
+        TTL toDateTime(timestamp) + INTERVAL 7 DAY
         " || {
           echo "ERROR: Failed to create logs_raw table"
           exit 1
