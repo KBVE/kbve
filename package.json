@@ -35,7 +35,7 @@
 		"@nx/workspace": "22.6.1",
 		"@nxlv/python": "22.0.5",
 		"@playform/compress": "^0.2.1",
-		"@playwright/test": "^1.48.1",
+		"@playwright/test": "^1.59.1",
 		"@swc-node/register": "1.11.1",
 		"@swc/cli": "0.7.10",
 		"@swc/core": "1.15.21",
