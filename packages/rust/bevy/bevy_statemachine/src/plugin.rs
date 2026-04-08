@@ -99,7 +99,8 @@ fn snapshot_system<T: Resource + Clone + serde::Serialize + 'static>(resource: R
         let json = serde_json::to_string(resource.as_ref()).ok();
 
         #[cfg(feature = "bincode")]
-        let binary = bincode::serialize(resource.as_ref()).ok();
+        let binary =
+            bincode::serde::encode_to_vec(resource.as_ref(), bincode::config::standard()).ok();
 
         store::write_snapshot::<T>(
             #[cfg(feature = "serde")]
