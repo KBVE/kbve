@@ -39,7 +39,13 @@ fn setup_candles(
     mut std_materials: ResMut<Assets<StandardMaterial>>,
     mut fire_materials: ResMut<Assets<FireMaterial>>,
     mut terrain: ResMut<TerrainMap>,
+    perf_tier: Res<super::PerfTier>,
 ) {
+    let quality = match *perf_tier {
+        super::PerfTier::Low => 0.0,
+        super::PerfTier::Medium => 0.5,
+        super::PerfTier::High => 1.0,
+    };
     let flame_quad = meshes.add(build_candle_flame_quad(0.45, 0.7));
     let candle_body = meshes.add(build_candle_body(0.10, 0.45, 8));
 
@@ -68,7 +74,7 @@ fn setup_candles(
                 time: 0.0,
                 intensity: 0.9,
                 pixel_size: 16.0,
-                _pad: 0.0,
+                quality,
                 color_core: Vec4::new(1.0, 0.95, 0.70, 1.0),
                 color_mid: Vec4::new(1.0, 0.65, 0.10, 1.0),
                 color_outer: Vec4::new(0.90, 0.30, 0.02, 1.0),
@@ -84,19 +90,21 @@ fn setup_candles(
             CandleFlame,
         ));
 
-        // Small warm point light
-        commands.spawn((
-            PointLight {
-                color: Color::srgb(1.0, 0.75, 0.35),
-                intensity: 4000.0,
-                radius: 0.1,
-                range: 6.0,
-                shadows_enabled: false,
-                ..default()
-            },
-            Transform::from_xyz(wx, candle_top + 0.3, wz),
-            CandleLight,
-        ));
+        // Small warm point light — skip on Low tier
+        if *perf_tier != super::PerfTier::Low {
+            commands.spawn((
+                PointLight {
+                    color: Color::srgb(1.0, 0.75, 0.35),
+                    intensity: 4000.0,
+                    radius: 0.1,
+                    range: 6.0,
+                    shadows_enabled: false,
+                    ..default()
+                },
+                Transform::from_xyz(wx, candle_top + 0.3, wz),
+                CandleLight,
+            ));
+        }
     }
 }
 
