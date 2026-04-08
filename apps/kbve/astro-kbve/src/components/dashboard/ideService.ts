@@ -347,7 +347,7 @@ class IDEService {
 					timeout_ms: preset.timeout_ms,
 					entrypoint: preset.entrypoint,
 					env: { CODE: code },
-					boot_args: 'console=ttyS0 reboot=k panic=1',
+					boot_args: 'console=ttyS0 reboot=k panic=1 init=/init',
 				},
 			);
 
