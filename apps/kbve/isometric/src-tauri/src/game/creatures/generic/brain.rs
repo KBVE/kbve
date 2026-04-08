@@ -42,9 +42,14 @@ impl CreatureBrain {
 /// Capture world snapshots for idle creatures and dispatch behavior tree
 /// evaluation to bevy_tasker. Only evaluates when the creature is idle
 /// (no pending intent and not currently moving/emoting).
+///
+/// On mobile (PerfTier::Low), each creature only dispatches every 4th
+/// frame (staggered by slot_seed) to reduce async task pressure.
 pub fn dispatch_behavior_trees(
     game_time: Res<GameTime>,
     types: Res<SpriteCreatureTypes>,
+    time: Res<Time>,
+    perf_tier: Option<Res<crate::game::PerfTier>>,
     mut brain_q: Query<(
         &Creature,
         &SpriteData,
@@ -53,6 +58,12 @@ pub fn dispatch_behavior_trees(
         Option<&PlayerProximity>,
     )>,
 ) {
+    let is_low = perf_tier
+        .map(|t| *t == crate::game::PerfTier::Low)
+        .unwrap_or(false);
+    // Approximate frame counter from elapsed time (good enough for staggering)
+    let frame = (time.elapsed_secs() * 60.0) as u32;
+
     for (cr, sd, mut marker, mut brain, proximity) in &mut brain_q {
         // Skip if already has a pending evaluation or active intent
         if brain.pending {
@@ -67,6 +78,12 @@ pub fn dispatch_behavior_trees(
         }
         // Skip pooled/hidden creatures
         if cr.anchor.y < -50.0 {
+            continue;
+        }
+
+        // On Low tier, stagger dispatches: each creature fires every 4th
+        // frame, offset by slot_seed so they don't all fire on the same frame.
+        if is_low && (frame + cr.slot_seed) % 4 != 0 {
             continue;
         }
 

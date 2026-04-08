@@ -21,6 +21,7 @@ pub mod pixelate;
 pub mod player;
 pub mod rocks;
 pub mod scene_objects;
+pub mod skills;
 pub mod state;
 pub mod telemetry;
 pub mod terrain;
@@ -161,6 +162,7 @@ impl PluginGroup for GamePluginGroup {
             .add(toast::ToastPlugin)
             .add(InteractionUiPlugin)
             .add(InventoryUiPlugin)
+            .add(skills::SkillsPlugin)
             .add(PauseMenuPlugin)
             .add(PersistPlugin)
     }

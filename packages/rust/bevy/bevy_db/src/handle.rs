@@ -68,7 +68,9 @@ impl Db {
             let result = store.get(&table, &key).await;
             let typed = result.and_then(|opt| {
                 opt.map(|bytes| {
-                    bincode::deserialize(&bytes).map_err(|e| DbError::Serialization(e.to_string()))
+                    bincode::serde::decode_from_slice(&bytes, bincode::config::standard())
+                        .map(|(val, _)| val)
+                        .map_err(|e| DbError::Serialization(e.to_string()))
                 })
                 .transpose()
             });
@@ -85,7 +87,7 @@ impl Db {
         key: &str,
         value: &T,
     ) -> DbRequest<()> {
-        let bytes = match bincode::serialize(value) {
+        let bytes = match bincode::serde::encode_to_vec(value, bincode::config::standard()) {
             Ok(b) => b,
             Err(e) => {
                 let (tx, rx) = bounded(1);

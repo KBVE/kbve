@@ -113,6 +113,7 @@ fn spawn_player(
         })),
         Transform::from_xyz(spawn_x, spawn_y, spawn_z),
         Player,
+        bevy_skills::SkillProfile::default(),
         CameraFollowTarget,
         PlayerPhysics::default(),
         // Avian3d components

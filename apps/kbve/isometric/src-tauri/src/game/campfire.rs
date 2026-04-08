@@ -21,7 +21,8 @@ pub struct FireUniforms {
     pub time: f32,
     pub intensity: f32,
     pub pixel_size: f32,
-    pub _pad: f32,
+    /// Shader quality: 0.0 = low (mobile), 1.0 = high (desktop).
+    pub quality: f32,
     pub color_core: Vec4,
     pub color_mid: Vec4,
     pub color_outer: Vec4,
@@ -76,8 +77,14 @@ fn setup_campfires(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut fire_materials: ResMut<Assets<FireMaterial>>,
     mut terrain: ResMut<TerrainMap>,
+    perf_tier: Res<super::PerfTier>,
 ) {
-    let quad = meshes.add(build_fire_quad(1.8, 2.4));
+    let quality = match *perf_tier {
+        super::PerfTier::Low => 0.0,
+        super::PerfTier::Medium => 0.5,
+        super::PerfTier::High => 1.0,
+    };
+    let quad = meshes.add(build_fire_quad(1.3, 1.7));
 
     // Shared unlit material for stone ring + logs (vertex-colored)
     let pit_mat = materials.add(StandardMaterial {
@@ -95,8 +102,8 @@ fn setup_campfires(
             uniforms: FireUniforms {
                 time: 0.0,
                 intensity: 1.0,
-                pixel_size: 24.0,
-                _pad: 0.0,
+                pixel_size: if quality < 0.5 { 16.0 } else { 24.0 },
+                quality,
                 color_core: Vec4::new(1.0, 0.92, 0.55, 1.0),
                 color_mid: Vec4::new(1.0, 0.55, 0.0, 1.0),
                 color_outer: Vec4::new(0.85, 0.12, 0.0, 1.0),
@@ -134,19 +141,21 @@ fn setup_campfires(
             },
         ));
 
-        // Warm point light — big pool of light around the campfire
-        commands.spawn((
-            PointLight {
-                color: Color::srgb(1.0, 0.62, 0.18),
-                intensity: 120000.0,
-                radius: 1.0,
-                range: 40.0,
-                shadows_enabled: false,
-                ..default()
-            },
-            Transform::from_xyz(wx, ground_y + 1.4, wz),
-            CampfireLight,
-        ));
+        // Warm point light — skip on Low tier (PointLights are expensive on mobile)
+        if *perf_tier != super::PerfTier::Low {
+            commands.spawn((
+                PointLight {
+                    color: Color::srgb(1.0, 0.62, 0.18),
+                    intensity: 120000.0,
+                    radius: 1.0,
+                    range: 40.0,
+                    shadows_enabled: false,
+                    ..default()
+                },
+                Transform::from_xyz(wx, ground_y + 1.4, wz),
+                CampfireLight,
+            ));
+        }
     }
 }
 

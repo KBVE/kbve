@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-07T08:37:45Z",
+  "generated_at": "2026-04-08T08:36:43Z",
   "summary": {
     "critical": 1,
     "high": 35,
@@ -523,46 +523,46 @@
           "url": "https://github.com/advisories/GHSA-wh4c-j3r5-mjhp"
         },
         {
-          "id": "1116005",
+          "id": "1116102",
+          "title": "defu: Prototype pollution via `__proto__` key in defaults argument",
+          "severity": "high",
+          "package": "defu",
+          "url": "https://github.com/advisories/GHSA-737v-mqg7-c878"
+        },
+        {
+          "id": "1116229",
           "title": "Vite Vulnerable to Path Traversal in Optimized Deps `.map` Handling",
           "severity": "medium",
           "package": "vite",
           "url": "https://github.com/advisories/GHSA-4w7w-66w2-5vf9"
         },
         {
-          "id": "1116006",
+          "id": "1116230",
           "title": "Vite Vulnerable to Path Traversal in Optimized Deps `.map` Handling",
           "severity": "medium",
           "package": "vite",
           "url": "https://github.com/advisories/GHSA-4w7w-66w2-5vf9"
         },
         {
-          "id": "1116008",
+          "id": "1116232",
           "title": "Vite: `server.fs.deny` bypassed with queries",
           "severity": "high",
           "package": "vite",
           "url": "https://github.com/advisories/GHSA-v2wj-q39q-566r"
         },
         {
-          "id": "1116099",
+          "id": "1116234",
           "title": "Vite Vulnerable to Arbitrary File Read via Vite Dev Server WebSocket",
           "severity": "high",
           "package": "vite",
           "url": "https://github.com/advisories/GHSA-p9ff-h696-f583"
         },
         {
-          "id": "1116100",
+          "id": "1116235",
           "title": "Vite Vulnerable to Arbitrary File Read via Vite Dev Server WebSocket",
           "severity": "high",
           "package": "vite",
           "url": "https://github.com/advisories/GHSA-p9ff-h696-f583"
-        },
-        {
-          "id": "1116102",
-          "title": "defu: Prototype pollution via `__proto__` key in defaults argument",
-          "severity": "high",
-          "package": "defu",
-          "url": "https://github.com/advisories/GHSA-737v-mqg7-c878"
         }
       ]
     },

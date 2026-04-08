@@ -172,6 +172,16 @@
 			"image": "kbve/firecracker-ctl",
 			"deployment_yaml": "apps/kube/firecracker/manifests/firecracker-deployment.yaml",
 			"has_test": false
+		},
+		{
+			"key": "mc",
+			"app_name": "mc",
+			"version": "1.0.0",
+			"version_toml": "apps/mc/version.toml",
+			"source_path": "apps/mc",
+			"runner": "ubuntu-latest",
+			"image": "kbve/mc",
+			"has_test": false
 		}
 	],
 	"npm": [

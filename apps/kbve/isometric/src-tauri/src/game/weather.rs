@@ -339,33 +339,50 @@ fn stabilize_shadow_cascades(
 /// Reposition blob shadows each frame based on the directional light angle.
 /// Shadow offset = light direction projected onto ground plane, scaled by object height.
 /// Shadow also stretches along the light direction for a natural elongated look.
+/// Frame counter for blob shadow staggering.
+#[derive(Resource, Default)]
+struct ShadowFrameCounter(u32);
+
 fn update_blob_shadows(
     time: Res<Time>,
     mut throttle: ResMut<ShadowUpdateThrottle>,
+    mut frame_counter: ResMut<ShadowFrameCounter>,
+    perf_tier: Option<Res<super::PerfTier>>,
     light_query: Query<&GlobalTransform, With<DirectionalLight>>,
-    mut shadow_query: Query<(&mut Transform, &BlobShadow)>,
+    mut shadow_query: Query<(Entity, &mut Transform, &BlobShadow)>,
 ) {
     throttle.0.tick(time.delta());
     if !throttle.0.just_finished() {
         return;
     }
+    frame_counter.0 = frame_counter.0.wrapping_add(1);
+
     let Ok(light_gt) = light_query.single() else {
         return;
     };
-    // Light forward vector (direction light is pointing)
     let light_dir = light_gt.forward().as_vec3();
-    // Project onto ground plane (XZ), normalize
     let ground_dir = Vec2::new(light_dir.x, light_dir.z);
     let ground_len = ground_dir.length();
     if ground_len < 0.001 {
         return;
     }
     let ground_norm = ground_dir / ground_len;
-    // How steep the light is — steeper = shorter shadow (sun overhead),
-    // shallower = longer shadow (sunrise/sunset)
     let slope = (ground_len / (-light_dir.y).max(0.01)).min(3.0);
 
-    for (mut tf, shadow) in &mut shadow_query {
+    // On Low/Medium tier, only update 1/4 of shadows per tick (staggered
+    // by entity index). Shadows follow the sun angle which changes slowly
+    // — full update every ~4 ticks is visually identical.
+    let is_high = perf_tier
+        .map(|t| *t == super::PerfTier::High)
+        .unwrap_or(true);
+    let bucket = frame_counter.0 % 4;
+
+    for (entity, mut tf, shadow) in &mut shadow_query {
+        // On non-High tier, only process this shadow if it's in the current bucket
+        if !is_high && (entity.index_u32() % 4) != bucket {
+            continue;
+        }
+
         let offset_len = shadow.object_height * slope * 0.5;
         let offset_x = ground_norm.x * offset_len;
         let offset_z = ground_norm.y * offset_len;
@@ -374,7 +391,6 @@ fn update_blob_shadows(
         tf.translation.y = shadow.anchor.y;
         tf.translation.z = shadow.anchor.z + offset_z;
 
-        // Stretch shadow along light direction: 1.0 cross-wise, up to 1.5 lengthwise
         let stretch = 1.0 + slope * 0.15;
         let angle = ground_norm.y.atan2(ground_norm.x);
         tf.rotation = Quat::from_rotation_y(-angle);
@@ -527,17 +543,22 @@ fn animate_veg_wind(
     }
 }
 
+/// Frame counter for tree wind staggering.
+#[derive(Resource, Default)]
+struct TreeWindFrameCounter(u32);
+
 fn animate_tree_wind(
     time: Res<Time>,
     wind: Res<WindState>,
     throttle: Res<WindAnimThrottle>,
-    mut query: Query<(&mut Transform, &TreeWindSway)>,
+    mut frame_counter: ResMut<TreeWindFrameCounter>,
+    perf_tier: Option<Res<super::PerfTier>>,
+    mut query: Query<(Entity, &mut Transform, &TreeWindSway)>,
 ) {
-    // Share the same throttle cadence as vegetation wind — the timer was
-    // already ticked by animate_veg_wind which runs in the same system set.
     if !throttle.0.just_finished() {
         return;
     }
+    frame_counter.0 = frame_counter.0.wrapping_add(1);
 
     let t = time.elapsed_secs();
     let spd = wind.speed_mph;
@@ -545,12 +566,25 @@ fn animate_tree_wind(
         return;
     }
 
+    // On Low tier, only update 1/4 of trees per tick.
+    // On Medium, update 1/2. On High, update all.
+    let tier = perf_tier.map(|t| *t).unwrap_or(super::PerfTier::High);
+    let (divisor, bucket) = match tier {
+        super::PerfTier::Low => (4u32, frame_counter.0 % 4),
+        super::PerfTier::Medium => (2, frame_counter.0 % 2),
+        super::PerfTier::High => (1, 0),
+    };
+
     let base_amp = (spd / 10.0).sqrt() * 0.025;
     let lean = (spd / 10.0).min(3.0) * 0.005;
     let gust_speed = 0.5 + spd * 0.03;
     let (dx, dz) = wind.direction;
 
-    for (mut tf, tree) in &mut query {
+    for (entity, mut tf, tree) in &mut query {
+        if divisor > 1 && (entity.index_u32() % divisor) != bucket {
+            continue;
+        }
+
         let amp = base_amp / tree.stiffness;
         let gust = (t * gust_speed + tree.phase).sin() * amp
             + (t * gust_speed * 2.1 + tree.phase * 2.3).sin() * amp * 0.3;
@@ -698,6 +732,8 @@ impl Plugin for WeatherPlugin {
         app.init_resource::<DayCycle>();
         app.init_resource::<WindState>();
         app.init_resource::<WindStreakPool>();
+        app.init_resource::<ShadowFrameCounter>();
+        app.init_resource::<TreeWindFrameCounter>();
 
         // Throttle timers — interval depends on perf tier.
         // High = every frame (essentially no throttle), Low = reduced Hz.

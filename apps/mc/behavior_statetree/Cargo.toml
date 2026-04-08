@@ -1,0 +1,29 @@
+[package]
+name = "behavior_statetree"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+publish = false
+description = "Hybrid Tokio/JNI NPC AI planner for Fabric Minecraft — behavior trees computed async, applied on server tick."
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# JNI bridge — Rust ↔ JVM interop
+jni = "0.21"
+
+# Async runtime — single Tokio runtime for all NPC planning
+tokio = { version = "1", features = ["rt-multi-thread", "sync", "time"] }
+
+# Bounded channels for message passing (observation → intent)
+crossbeam-channel = "0.5"
+
+# Serialization for snapshot/intent DTOs
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Logging
+tracing = "0.1"

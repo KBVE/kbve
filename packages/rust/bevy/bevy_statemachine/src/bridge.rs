@@ -137,7 +137,7 @@ where
         let json = serde_json::to_string(&snapshot).ok();
 
         #[cfg(feature = "bincode")]
-        let binary = bincode::serialize(&snapshot).ok();
+        let binary = bincode::serde::encode_to_vec(&snapshot, bincode::config::standard()).ok();
 
         store::write_snapshot::<FsmSnapshot<S>>(
             #[cfg(feature = "serde")]
@@ -232,7 +232,8 @@ where
         let json = serde_json::to_string(resource.as_ref()).ok();
 
         #[cfg(feature = "bincode")]
-        let binary = bincode::serialize(resource.as_ref()).ok();
+        let binary =
+            bincode::serde::encode_to_vec(resource.as_ref(), bincode::config::standard()).ok();
 
         store::write_snapshot::<R>(
             #[cfg(feature = "serde")]

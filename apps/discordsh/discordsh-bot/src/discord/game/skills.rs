@@ -44,21 +44,27 @@ pub fn dungeon_xp_curve() -> XpCurve {
 
 /// Grant combat XP based on enemy level (scaled: 10 + 5*level).
 pub fn grant_combat_xp(profile: &mut SkillProfile, enemy_level: u8) {
+    let id = combat_id();
     let xp = 10 + 5 * enemy_level as u64;
-    profile.grant_xp_direct(combat_id(), xp);
+    let total = profile.grant_xp_direct(id, xp);
+    profile.set_level_direct(id, dungeon_xp_curve().level_for_xp(total));
 }
 
 /// Grant exploration XP for clearing a room (flat 15 XP + depth bonus).
 pub fn grant_exploration_xp(profile: &mut SkillProfile, depth: u32) {
+    let id = exploration_id();
     let xp = 15 + depth as u64 * 2;
-    profile.grant_xp_direct(exploration_id(), xp);
+    let total = profile.grant_xp_direct(id, xp);
+    profile.set_level_direct(id, dungeon_xp_curve().level_for_xp(total));
 }
 
 /// Grant foraging XP for looting (flat 8 XP per item picked up).
 pub fn grant_foraging_xp(profile: &mut SkillProfile, item_count: u32) {
+    let id = foraging_id();
     let xp = 8 * item_count as u64;
     if xp > 0 {
-        profile.grant_xp_direct(foraging_id(), xp);
+        let total = profile.grant_xp_direct(id, xp);
+        profile.set_level_direct(id, dungeon_xp_curve().level_for_xp(total));
     }
 }
 

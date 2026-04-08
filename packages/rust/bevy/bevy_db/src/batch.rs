@@ -31,7 +31,8 @@ impl WriteBatch {
         key: &str,
         value: &T,
     ) -> Result<&mut Self, DbError> {
-        let bytes = bincode::serialize(value).map_err(|e| DbError::Serialization(e.to_string()))?;
+        let bytes = bincode::serde::encode_to_vec(value, bincode::config::standard())
+            .map_err(|e| DbError::Serialization(e.to_string()))?;
         self.ops
             .push((table.to_owned(), key.to_owned(), Some(bytes)));
         Ok(self)
