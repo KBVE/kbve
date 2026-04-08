@@ -33,9 +33,20 @@ spec:
                           cpu: '2'
                           memory: 2Gi
                           devices.kubevirt.io/kvm: '1'
+                  env:
+                      - name: FC_USE_JAILER
+                        value: 'true'
+                      - name: FC_JAILER_UID
+                        value: '10001'
+                      - name: FC_JAILER_GID
+                        value: '10001'
                   securityContext:
                       capabilities:
-                          add: ['NET_ADMIN']
+                          add:
+                              - NET_ADMIN
+                              - SYS_ADMIN
+                              - SYS_CHROOT
+                              - MKNOD
                   volumeMounts:
                       - name: rootfs-cache
                         mountPath: /var/lib/firecracker/rootfs
@@ -60,4 +71,4 @@ spec:
                       claimName: firecracker-rootfs
                 - name: vm-scratch
                   emptyDir:
-                      sizeLimit: 4Gi
+                      sizeLimit: 8Gi
