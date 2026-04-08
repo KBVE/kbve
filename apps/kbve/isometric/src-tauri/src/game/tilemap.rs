@@ -1355,6 +1355,8 @@ struct ChunkGeometry {
     rock_body: RawMeshData,
     /// Merged mushroom mesh — all mushrooms baked into one draw call.
     mushroom_body: RawMeshData,
+    /// Merged tree mesh — all trees in this chunk (Low/Medium tier only).
+    tree_body: RawMeshData,
     /// Collider sub-shapes: (position, full_extents) in chunk-local space.
     colliders: Vec<(Vec3, Vec3)>,
     vegetation: Vec<VegetationSpawn>,
@@ -1362,6 +1364,8 @@ struct ChunkGeometry {
     rock_metas: Vec<RockMeta>,
     /// Interaction metadata for merged mushrooms.
     mushroom_metas: Vec<MushroomMeta>,
+    /// Interaction metadata for merged trees (Low/Medium tier only).
+    tree_metas: Vec<super::trees::TreeMeta>,
 }
 
 /// Crossbeam MPSC channel for completed chunk geometries.
@@ -1400,6 +1404,7 @@ fn compute_chunk_geometry(
     cz: i32,
     is_near: bool,
     collected: HashSet<(i32, i32)>,
+    merge_trees: bool,
 ) -> ChunkGeometry {
     let base_x = cx * CHUNK_SIZE;
     let base_z = cz * CHUNK_SIZE;
@@ -1424,10 +1429,12 @@ fn compute_chunk_geometry(
     let mut water = RawMeshData::default();
     let mut rock_body = RawMeshData::default();
     let mut mushroom_body = RawMeshData::default();
+    let mut tree_body = RawMeshData::default();
     let mut colliders: Vec<(Vec3, Vec3)> = Vec::with_capacity(tile_count);
     let mut vegetation = Vec::new();
     let mut rock_metas = Vec::new();
     let mut mushroom_metas = Vec::new();
+    let mut tree_metas: Vec<super::trees::TreeMeta> = Vec::new();
 
     for dx in 0..CHUNK_SIZE {
         for dz in 0..CHUNK_SIZE {
@@ -1571,7 +1578,20 @@ fn compute_chunk_geometry(
                 if tree_noise < 0.055 {
                     tile_occupied = true;
                     if !collected.contains(&(tx, tz)) {
-                        vegetation.push(VegetationSpawn::Tree { tx, tz, column_h });
+                        if merge_trees {
+                            let meta = super::trees::push_tree_vertices(
+                                tx,
+                                tz,
+                                column_h,
+                                &mut tree_body.positions,
+                                &mut tree_body.normals,
+                                &mut tree_body.colors,
+                                &mut tree_body.indices,
+                            );
+                            tree_metas.push(meta);
+                        } else {
+                            vegetation.push(VegetationSpawn::Tree { tx, tz, column_h });
+                        }
                     }
                 }
 
@@ -1709,10 +1729,12 @@ fn compute_chunk_geometry(
         water,
         rock_body,
         mushroom_body,
+        tree_body,
         colliders,
         vegetation,
         rock_metas,
         mushroom_metas,
+        tree_metas,
     }
 }
 
@@ -1725,6 +1747,7 @@ fn dispatch_chunk_task(
     collected: HashSet<(i32, i32)>,
     tx: Sender<ChunkGeometry>,
     in_flight: &DashSet<(i32, i32)>,
+    merge_trees: bool,
 ) {
     // Skip if already in-flight.
     if !in_flight.insert((cx, cz)) {
@@ -1732,7 +1755,7 @@ fn dispatch_chunk_task(
     }
 
     bevy_tasker::spawn(async move {
-        let geometry = compute_chunk_geometry(seed, cx, cz, is_near, collected);
+        let geometry = compute_chunk_geometry(seed, cx, cz, is_near, collected, merge_trees);
         let _ = tx.send(geometry);
     })
     .detach();
@@ -1906,6 +1929,7 @@ fn process_chunk_spawns_and_despawns(
     let seed = terrain.seed;
     let collected = collected_tiles.0.clone();
     let tx = chunk_channel.tx.clone();
+    let merge_trees = *perf_tier != super::PerfTier::High;
 
     for (cx, cz) in terrain.chunks_to_spawn.drain(..) {
         let is_near = player_chunk
@@ -1923,6 +1947,7 @@ fn process_chunk_spawns_and_despawns(
             collected.clone(),
             tx.clone(),
             &in_flight.0,
+            merge_trees,
         );
     }
 
@@ -1958,6 +1983,7 @@ fn process_chunk_spawns_and_despawns(
                                 collected.clone(),
                                 tx.clone(),
                                 &in_flight.0,
+                                merge_trees,
                             );
                         }
                     }
@@ -2206,6 +2232,68 @@ fn process_chunk_spawns_and_despawns(
                 .observe(on_pointer_out)
                 .id();
             entities.push(mush_entity);
+        }
+
+        // ── Merged tree mesh (single draw call per chunk, Low/Medium) ──
+        if !geometry.tree_body.positions.is_empty() {
+            let tree_mesh = meshes.add(build_chunk_mesh(
+                geometry.tree_body.positions,
+                geometry.tree_body.normals,
+                geometry.tree_body.colors,
+                geometry.tree_body.indices,
+            ));
+            let tree_mesh_entity = commands
+                .spawn((
+                    Mesh3d(tree_mesh),
+                    MeshMaterial3d(tile_materials.tree_body_mat.clone()),
+                    Transform::IDENTITY,
+                    Pickable::IGNORE,
+                ))
+                .id();
+            entities.push(tree_mesh_entity);
+        }
+
+        // Lightweight interaction entities for each merged tree.
+        for tm in geometry.tree_metas {
+            let mut tree_cmd = commands.spawn((
+                Transform::from_xyz(tm.world_x, tm.tree_y, tm.world_z),
+                Visibility::Hidden,
+                HoverOutline {
+                    half_extents: Vec3::new(tm.max_hw, tm.total_h / 2.0, tm.max_hw),
+                },
+                Interactable {
+                    kind: InteractableKind::Tree,
+                },
+                TileCoord {
+                    tx: tm.tx,
+                    tz: tm.tz,
+                },
+            ));
+            // Merged trees still need player collision on all tiers.
+            tree_cmd.insert((
+                RigidBody::Static,
+                Collider::cuboid(tm.trunk_r * 2.0, tm.trunk_h, tm.trunk_r * 2.0),
+            ));
+            let tree_entity = tree_cmd
+                .observe(on_pointer_over)
+                .observe(on_pointer_out)
+                .id();
+            entities.push(tree_entity);
+
+            let shadow_entity = commands
+                .spawn((
+                    Mesh3d(blob_shadow.mesh.clone()),
+                    MeshMaterial3d(blob_shadow.material.clone()),
+                    Transform::from_xyz(tm.world_x, tm.tree_y + 0.001, tm.world_z),
+                    BlobShadow {
+                        anchor: Vec3::new(tm.world_x, tm.tree_y + 0.001, tm.world_z),
+                        radius: tm.shadow_radius,
+                        object_height: tm.shadow_height,
+                    },
+                    Pickable::IGNORE,
+                ))
+                .id();
+            entities.push(shadow_entity);
         }
 
         // ── Vegetation entities (trees + flowers — still individual) ──

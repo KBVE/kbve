@@ -1100,6 +1100,104 @@ pub fn spawn_tree_entity(
 }
 
 // ---------------------------------------------------------------------------
+// Chunk-merged tree vertex generation (for Low/Medium PerfTier)
+// ---------------------------------------------------------------------------
+
+/// Metadata for a tree whose mesh was merged into the chunk.
+/// Used to spawn a lightweight interaction entity (no Mesh3d).
+pub struct TreeMeta {
+    pub tx: i32,
+    pub tz: i32,
+    pub world_x: f32,
+    pub world_z: f32,
+    pub tree_y: f32,
+    pub max_hw: f32,
+    pub total_h: f32,
+    pub trunk_r: f32,
+    pub trunk_h: f32,
+    pub shadow_radius: f32,
+    pub shadow_height: f32,
+}
+
+/// Generate tree vertices in world space and push into provided raw buffers.
+/// Pre-applies the tree's base rotation and world position so the result
+/// can be merged directly into a per-chunk mesh (single draw call).
+pub fn push_tree_vertices(
+    tx: i32,
+    tz: i32,
+    column_h: f32,
+    positions: &mut Vec<[f32; 3]>,
+    normals: &mut Vec<[f32; 3]>,
+    colors: &mut Vec<[f32; 4]>,
+    indices: &mut Vec<u32>,
+) -> TreeMeta {
+    let size_scale = 1.10 + hash2d(tx + 11717, tz + 5871) * 1.10;
+    let geo = build_tree_geometry(tx, tz, size_scale);
+
+    let pixel_snap = 1.0 / 32.0;
+    let jx = ((hash2d(tx + 11417, tz + 5471) - 0.5) * 0.3 / pixel_snap).round() * pixel_snap;
+    let jz = ((hash2d(tx + 11317, tz + 5571) - 0.5) * 0.3 / pixel_snap).round() * pixel_snap;
+    let world_x = tx as f32 * TILE_SIZE + jx;
+    let world_z = tz as f32 * TILE_SIZE + jz;
+    let tree_y = column_h + 0.002;
+
+    // Extract raw vertex data from the mesh
+    let mesh = &geo.mesh;
+    let src_positions: &[[f32; 3]] = mesh
+        .attribute(Mesh::ATTRIBUTE_POSITION)
+        .and_then(|a| a.as_float3())
+        .expect("tree mesh missing positions");
+    let src_normals: &[[f32; 3]] = mesh
+        .attribute(Mesh::ATTRIBUTE_NORMAL)
+        .and_then(|a| a.as_float3())
+        .expect("tree mesh missing normals");
+    let src_colors: &[[f32; 4]] = mesh
+        .attribute(Mesh::ATTRIBUTE_COLOR)
+        .and_then(|a| match a {
+            bevy::mesh::VertexAttributeValues::Float32x4(v) => Some(v.as_slice()),
+            _ => None,
+        })
+        .expect("tree mesh missing colors");
+    let src_indices: Vec<u32> = match mesh.indices() {
+        Some(bevy::mesh::Indices::U32(v)) => v.clone(),
+        _ => panic!("tree mesh missing u32 indices"),
+    };
+
+    // Pre-apply base_rot + world translation
+    let rot = geo.base_rot;
+    let base_idx = positions.len() as u32;
+
+    for p in src_positions {
+        let local = Vec3::from(*p);
+        let rotated = rot * local;
+        positions.push([world_x + rotated.x, tree_y + rotated.y, world_z + rotated.z]);
+    }
+    for n in src_normals {
+        let local = Vec3::from(*n);
+        let rotated = rot * local;
+        normals.push([rotated.x, rotated.y, rotated.z]);
+    }
+    colors.extend_from_slice(src_colors);
+    for i in &src_indices {
+        indices.push(base_idx + i);
+    }
+
+    TreeMeta {
+        tx,
+        tz,
+        world_x,
+        world_z,
+        tree_y,
+        max_hw: geo.max_hw,
+        total_h: geo.total_h,
+        trunk_r: geo.trunk_r,
+        trunk_h: geo.trunk_h,
+        shadow_radius: geo.max_hw * 1.2,
+        shadow_height: geo.total_h,
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Plugin
 // ---------------------------------------------------------------------------
 
