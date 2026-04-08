@@ -1,5 +1,6 @@
 export {
 	$auth,
+	$isStaff,
 	setAuth,
 	resetAuth,
 	AuthFlags,
