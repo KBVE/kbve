@@ -7,8 +7,12 @@ use axum::{
 };
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
-use std::{net::SocketAddr, sync::Arc, time::Instant};
-use tokio::process::Command;
+use std::{
+    net::SocketAddr,
+    sync::Arc,
+    time::{Duration, Instant},
+};
+use tokio::sync::Notify;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use uuid::Uuid;
@@ -81,7 +85,8 @@ pub struct VmResult {
 struct VmRecord {
     info: VmInfo,
     result: Option<VmResult>,
-    _created: Instant,
+    created: Instant,
+    kill_signal: Arc<Notify>,
 }
 
 // ---------------------------------------------------------------------------
@@ -92,6 +97,29 @@ struct VmRecord {
 struct AppState {
     vms: Arc<DashMap<String, VmRecord>>,
     rootfs_dir: String,
+    max_concurrent_vms: usize,
+}
+
+// ---------------------------------------------------------------------------
+// Validation
+// ---------------------------------------------------------------------------
+
+/// Reject entrypoints that could inject extra kernel boot parameters.
+/// Must be an absolute path with no whitespace or shell metacharacters.
+fn validate_entrypoint(ep: &str) -> Result<(), String> {
+    if ep.is_empty() {
+        return Err("entrypoint cannot be empty".into());
+    }
+    if !ep.starts_with('/') {
+        return Err("entrypoint must be an absolute path".into());
+    }
+    if ep.contains(|c: char| c.is_whitespace() || ";&|`$(){}[]<>\"'\\#!~".contains(c)) {
+        return Err(
+            "entrypoint must be a single binary path without arguments or special characters"
+                .into(),
+        );
+    }
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------
@@ -103,7 +131,7 @@ async fn health() -> impl IntoResponse {
         "status": "ok",
         "service": "firecracker-ctl",
         "version": env!("CARGO_PKG_VERSION"),
-        "timestamp": chrono_now(),
+        "timestamp": iso8601_now(),
     }))
 }
 
@@ -111,6 +139,14 @@ async fn create_vm(
     State(state): State<AppState>,
     Json(req): Json<CreateVmRequest>,
 ) -> impl IntoResponse {
+    // Validate entrypoint (prevents boot_args injection)
+    if let Err(msg) = validate_entrypoint(&req.entrypoint) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": msg})),
+        );
+    }
+
     // Validate rootfs exists
     let rootfs_path = format!("{}/{}.ext4", state.rootfs_dir, req.rootfs);
     if !tokio::fs::try_exists(&rootfs_path).await.unwrap_or(false) {
@@ -123,8 +159,31 @@ async fn create_vm(
         );
     }
 
+    // Enforce max concurrent VMs to prevent resource exhaustion
+    let active_count = state
+        .vms
+        .iter()
+        .filter(|e| {
+            matches!(
+                e.value().info.status,
+                VmStatus::Creating | VmStatus::Running
+            )
+        })
+        .count();
+    if active_count >= state.max_concurrent_vms {
+        return (
+            StatusCode::TOO_MANY_REQUESTS,
+            Json(serde_json::json!({
+                "error": "Too many concurrent VMs",
+                "active": active_count,
+                "limit": state.max_concurrent_vms,
+            })),
+        );
+    }
+
     let vm_id = format!("fc-{}", Uuid::new_v4().as_simple());
-    let now = chrono_now();
+    let now = iso8601_now();
+    let kill_signal = Arc::new(Notify::new());
 
     let info = VmInfo {
         vm_id: vm_id.clone(),
@@ -140,7 +199,8 @@ async fn create_vm(
         VmRecord {
             info: info.clone(),
             result: None,
-            _created: Instant::now(),
+            created: Instant::now(),
+            kill_signal: kill_signal.clone(),
         },
     );
 
@@ -148,7 +208,7 @@ async fn create_vm(
     let vms = state.vms.clone();
     let rootfs_dir = state.rootfs_dir.clone();
     tokio::spawn(async move {
-        run_vm_lifecycle(vms, vm_id, req, rootfs_dir).await;
+        run_vm_lifecycle(vms, vm_id, req, rootfs_dir, kill_signal).await;
     });
 
     (StatusCode::CREATED, Json(serde_json::json!(info)))
@@ -191,9 +251,15 @@ async fn get_vm_result(
 }
 
 async fn destroy_vm(State(state): State<AppState>, Path(vm_id): Path<String>) -> impl IntoResponse {
-    match state.vms.get_mut(&vm_id) {
-        Some(mut record) => {
-            record.info.status = VmStatus::Destroyed;
+    match state.vms.get(&vm_id) {
+        Some(record) => {
+            // Signal the lifecycle task to kill the firecracker process
+            record.kill_signal.notify_one();
+            drop(record);
+            // Eagerly set status so the API reflects the destroy immediately
+            if let Some(mut record) = state.vms.get_mut(&vm_id) {
+                record.info.status = VmStatus::Destroyed;
+            }
             (
                 StatusCode::OK,
                 Json(serde_json::json!({"vm_id": vm_id, "status": "destroyed"})),
@@ -219,11 +285,19 @@ async fn list_vms(State(state): State<AppState>) -> impl IntoResponse {
 // VM Lifecycle
 // ---------------------------------------------------------------------------
 
+enum VmOutcome {
+    Exited(std::process::ExitStatus),
+    ProcessError(std::io::Error),
+    Timeout,
+    Killed,
+}
+
 async fn run_vm_lifecycle(
     vms: Arc<DashMap<String, VmRecord>>,
     vm_id: String,
     req: CreateVmRequest,
     rootfs_dir: String,
+    kill_signal: Arc<Notify>,
 ) {
     let start = Instant::now();
 
@@ -315,7 +389,7 @@ async fn run_vm_lifecycle(
 
     // Launch firecracker process
     let timeout = tokio::time::Duration::from_millis(req.timeout_ms);
-    let child = Command::new("firecracker")
+    let child = tokio::process::Command::new("firecracker")
         .args(["--api-sock", &socket_path, "--config-file", &config_path])
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
@@ -338,30 +412,50 @@ async fn run_vm_lifecycle(
         }
     };
 
-    // Wait with timeout. Use wait() + take stdout/stderr separately to
-    // allow killing the child on timeout (wait_with_output takes ownership).
+    // Take stdout/stderr handles before waiting so we can read after exit.
     let child_stdout = child.stdout.take();
     let child_stderr = child.stderr.take();
-    let result = tokio::time::timeout(timeout, child.wait()).await;
 
-    match result {
-        Ok(Ok(exit_status)) => {
+    // Wait with timeout, but also listen for a kill signal from destroy_vm.
+    let outcome = tokio::select! {
+        biased;
+        _ = kill_signal.notified() => {
+            let _ = child.kill().await;
+            VmOutcome::Killed
+        }
+        result = tokio::time::timeout(timeout, child.wait()) => {
+            match result {
+                Ok(Ok(status)) => VmOutcome::Exited(status),
+                Ok(Err(e)) => VmOutcome::ProcessError(e),
+                Err(_) => {
+                    let _ = child.kill().await;
+                    VmOutcome::Timeout
+                }
+            }
+        }
+    };
+
+    // Read captured output (available after process exits or is killed)
+    let stdout = if let Some(mut out) = child_stdout {
+        let mut buf = Vec::new();
+        let _ = tokio::io::AsyncReadExt::read_to_end(&mut out, &mut buf).await;
+        String::from_utf8_lossy(&buf).to_string()
+    } else {
+        String::new()
+    };
+    let stderr = if let Some(mut err) = child_stderr {
+        let mut buf = Vec::new();
+        let _ = tokio::io::AsyncReadExt::read_to_end(&mut err, &mut buf).await;
+        String::from_utf8_lossy(&buf).to_string()
+    } else {
+        String::new()
+    };
+
+    let duration_ms = start.elapsed().as_millis() as u64;
+
+    match outcome {
+        VmOutcome::Exited(exit_status) => {
             let exit_code = exit_status.code().unwrap_or(-1);
-            let stdout = if let Some(mut out) = child_stdout {
-                let mut buf = Vec::new();
-                let _ = tokio::io::AsyncReadExt::read_to_end(&mut out, &mut buf).await;
-                String::from_utf8_lossy(&buf).to_string()
-            } else {
-                String::new()
-            };
-            let stderr = if let Some(mut err) = child_stderr {
-                let mut buf = Vec::new();
-                let _ = tokio::io::AsyncReadExt::read_to_end(&mut err, &mut buf).await;
-                String::from_utf8_lossy(&buf).to_string()
-            } else {
-                String::new()
-            };
-            let duration_ms = start.elapsed().as_millis() as u64;
             let status = if exit_code == 0 {
                 VmStatus::Completed
             } else {
@@ -380,29 +474,42 @@ async fn run_vm_lifecycle(
                 });
             }
         }
-        Ok(Err(e)) => {
+        VmOutcome::ProcessError(e) => {
             tracing::error!("VM {} process error: {}", vm_id, e);
             set_vm_failed(
                 &vms,
                 &vm_id,
                 start,
                 -1,
-                "".into(),
+                stdout,
                 format!("Process error: {}", e),
             );
         }
-        Err(_) => {
+        VmOutcome::Timeout => {
             tracing::warn!("VM {} timed out after {}ms", vm_id, req.timeout_ms);
-            let _ = child.kill().await;
             if let Some(mut record) = vms.get_mut(&vm_id) {
                 record.info.status = VmStatus::Timeout;
                 record.result = Some(VmResult {
                     vm_id: vm_id.clone(),
                     status: VmStatus::Timeout,
                     exit_code: -1,
-                    stdout: String::new(),
+                    stdout,
                     stderr: format!("VM timed out after {}ms", req.timeout_ms),
-                    duration_ms: start.elapsed().as_millis() as u64,
+                    duration_ms,
+                });
+            }
+        }
+        VmOutcome::Killed => {
+            tracing::info!("VM {} destroyed via kill signal", vm_id);
+            if let Some(mut record) = vms.get_mut(&vm_id) {
+                record.info.status = VmStatus::Destroyed;
+                record.result = Some(VmResult {
+                    vm_id: vm_id.clone(),
+                    status: VmStatus::Destroyed,
+                    exit_code: -1,
+                    stdout,
+                    stderr: "VM destroyed by user".into(),
+                    duration_ms,
                 });
             }
         }
@@ -439,17 +546,62 @@ async fn cleanup_files(config_path: &str, socket_path: &str, code_path: &str) {
 }
 
 // ---------------------------------------------------------------------------
+// Reaper — evicts completed/failed/destroyed/timed-out VM records after TTL
+// ---------------------------------------------------------------------------
+
+async fn reaper_task(vms: Arc<DashMap<String, VmRecord>>, ttl: Duration) {
+    let mut interval = tokio::time::interval(Duration::from_secs(60));
+    loop {
+        interval.tick().await;
+        let before = vms.len();
+        vms.retain(|_, record| {
+            // Always keep VMs that are still active
+            if matches!(record.info.status, VmStatus::Creating | VmStatus::Running) {
+                return true;
+            }
+            // Evict finished VMs older than TTL
+            record.created.elapsed() < ttl
+        });
+        let evicted = before - vms.len();
+        if evicted > 0 {
+            tracing::info!(
+                "Reaper: evicted {} stale VM records ({} remaining)",
+                evicted,
+                vms.len()
+            );
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-fn chrono_now() -> String {
-    // Simple ISO 8601 without pulling in chrono crate
-    let dur = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default();
-    let secs = dur.as_secs();
-    // Return epoch seconds as string — proper formatting can come later
-    format!("{}Z", secs)
+fn iso8601_now() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let secs = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
+
+    // Civil date from unix timestamp (Hinnant algorithm)
+    let z = secs.div_euclid(86400) + 719468;
+    let era = z.div_euclid(146097);
+    let doe = (z - era * 146097) as u32;
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    let y = yoe as i64 + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let y = if m <= 2 { y + 1 } else { y };
+
+    let day_secs = secs.rem_euclid(86400);
+    let h = day_secs / 3600;
+    let min = (day_secs % 3600) / 60;
+    let s = day_secs % 60;
+
+    format!("{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z", y, m, d, h, min, s)
 }
 
 async fn list_rootfs(dir: &str) -> Vec<String> {
@@ -487,10 +639,32 @@ async fn main() {
     let rootfs_dir = std::env::var("FC_ROOTFS_DIR")
         .unwrap_or_else(|_| "/var/lib/firecracker/rootfs".to_string());
 
+    let max_concurrent_vms: usize = std::env::var("FC_MAX_CONCURRENT_VMS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(10);
+
+    let vm_ttl_secs: u64 = std::env::var("FC_VM_TTL_SECS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(600);
+
+    let vms = Arc::new(DashMap::new());
+
+    // Background reaper evicts finished VM records after TTL
+    tokio::spawn(reaper_task(vms.clone(), Duration::from_secs(vm_ttl_secs)));
+
     let state = AppState {
-        vms: Arc::new(DashMap::new()),
+        vms,
         rootfs_dir,
+        max_concurrent_vms,
     };
+
+    tracing::info!(
+        "FC_MAX_CONCURRENT_VMS={}, FC_VM_TTL_SECS={}",
+        max_concurrent_vms,
+        vm_ttl_secs,
+    );
 
     let app = Router::new()
         .route("/health", get(health))
