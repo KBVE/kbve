@@ -7778,6 +7778,7 @@ dependencies = [
  "bevy_inventory",
  "bevy_items",
  "bevy_kbve_net",
+ "bevy_skills",
  "bevy_tasker",
  "console_error_panic_hook",
  "console_log",
