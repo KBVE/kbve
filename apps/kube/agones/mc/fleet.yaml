@@ -1,0 +1,90 @@
+# MC Fabric Server Fleet — managed by Agones
+# Spawns Fabric Minecraft server instances from the itzg/minecraft-server image.
+# Fleet starts at 0 replicas — FleetAutoscaler or manual allocation spins up servers.
+#
+# Performance mods: c2me, vmp, lithium, ferritecore, servercore
+# Chunk pre-gen: Chunky (run via RCON after first boot)
+# Port: TCP 25565 (Agones Dynamic policy, mapped to host port range 7000-8000)
+apiVersion: agones.dev/v1
+kind: Fleet
+metadata:
+    name: mc-fabric
+    namespace: arc-runners
+    labels:
+        app: mc-gameserver
+        app.kubernetes.io/part-of: mc
+spec:
+    replicas: 0
+    scheduling: Packed
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 25%
+            maxUnavailable: 25%
+    template:
+        metadata:
+            labels:
+                app: mc-gameserver
+                app.kubernetes.io/part-of: mc
+        spec:
+            ports:
+                - name: mc
+                  portPolicy: Dynamic
+                  containerPort: 25565
+                  protocol: TCP
+            health:
+                # Java + Fabric startup is slower than native binaries
+                initialDelaySeconds: 90
+                periodSeconds: 30
+                failureThreshold: 5
+            template:
+                spec:
+                    nodeSelector:
+                        node.kbve.com/type: dedicated-server
+                    containers:
+                        - name: mc-server
+                          image: ghcr.io/kbve/mc:1.0.0
+                          env:
+                              - name: TYPE
+                                value: FABRIC
+                              - name: VERSION
+                                value: '1.21.4'
+                              - name: EULA
+                                value: 'TRUE'
+                              - name: MEMORY
+                                value: '3G'
+                              - name: ENABLE_RCON
+                                value: 'true'
+                              - name: RCON_PASSWORD
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: mc-gameserver-secrets
+                                        key: rcon-password
+                              - name: MOTD
+                                value: 'KBVE Minecraft Server'
+                              - name: MAX_PLAYERS
+                                value: '50'
+                              - name: DIFFICULTY
+                                value: 'normal'
+                              - name: VIEW_DISTANCE
+                                value: '12'
+                              - name: SIMULATION_DISTANCE
+                                value: '8'
+                              - name: ONLINE_MODE
+                                value: 'true'
+                              - name: SERVER_PORT
+                                value: '25565'
+                          resources:
+                              requests:
+                                  memory: 2Gi
+                                  cpu: '1'
+                              limits:
+                                  memory: 4Gi
+                                  cpu: '2'
+                          volumeMounts:
+                              - name: world-data
+                                mountPath: /data/world
+                    volumes:
+                        - name: world-data
+                          persistentVolumeClaim:
+                              claimName: mc-world-data

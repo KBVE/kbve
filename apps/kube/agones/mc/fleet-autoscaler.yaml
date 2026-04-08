@@ -1,0 +1,23 @@
+# MC FleetAutoscaler — conservative scaling for stateful MC servers.
+# Buffer policy: maintain 1 ready server for allocation.
+# Min: 0 (scale to zero when idle), Max: 3 (cluster capacity).
+apiVersion: autoscaling.agones.dev/v1
+kind: FleetAutoscaler
+metadata:
+    name: mc-fabric-autoscaler
+    namespace: arc-runners
+    labels:
+        app: mc-gameserver
+        app.kubernetes.io/part-of: mc
+spec:
+    fleetName: mc-fabric
+    policy:
+        type: Buffer
+        buffer:
+            bufferSize: 1
+            minReplicas: 0
+            maxReplicas: 3
+    sync:
+        type: FixedInterval
+        fixedInterval:
+            seconds: 60
