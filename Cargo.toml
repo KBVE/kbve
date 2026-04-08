@@ -33,6 +33,7 @@ members = [
 	'packages/rust/bevy/bevy_tasker',
 	'packages/rust/bevy/bevy_db',
 	'apps/vm/firecracker-ctl',
+	'apps/mc/behavior_statetree',
 ]
 
 [profile.dev]

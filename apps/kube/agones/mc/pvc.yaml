@@ -1,0 +1,18 @@
+# MC world data — persists across pod restarts.
+# Pre-generate chunks before fleet goes live:
+#   /chunky corners -10000 -10000 10000 10000
+#   /chunky start
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: mc-world-data
+    namespace: arc-runners
+    labels:
+        app: mc-gameserver
+        app.kubernetes.io/part-of: mc
+spec:
+    accessModes:
+        - ReadWriteOnce
+    resources:
+        requests:
+            storage: 10Gi

@@ -1,0 +1,22 @@
+{
+	"schemaVersion": 1,
+	"id": "behavior_statetree",
+	"version": "0.1.0",
+	"name": "Behavior State Tree",
+	"description": "Hybrid Rust/Tokio NPC AI planner — async behavior trees with epoch-guarded intents.",
+	"authors": ["KBVE", "h0lybyte"],
+	"contact": {
+		"homepage": "https://kbve.com/",
+		"sources": "https://github.com/KBVE/kbve/tree/main/apps/mc/behavior_statetree"
+	},
+	"license": "MIT",
+	"environment": "server",
+	"entrypoints": {
+		"main": ["com.kbve.statetree.BehaviorStateTreeMod"]
+	},
+	"depends": {
+		"fabricloader": ">=0.16.0",
+		"fabric-api": "*",
+		"minecraft": "~1.21"
+	}
+}

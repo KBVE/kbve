@@ -1,0 +1,32 @@
+plugins {
+    id 'fabric-loom' version '1.9-SNAPSHOT'
+}
+
+version = '0.1.0'
+group = 'com.kbve'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:1.21.4"
+    mappings "net.fabricmc:yarn:1.21.4+build.1:v2"
+    modImplementation "net.fabricmc:fabric-loader:0.16.14"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:0.119.5+1.21.4"
+}
+
+// Copy the Rust native library into the JAR resources
+processResources {
+    from("../../target/release") {
+        include "libbehavior_statetree.so"
+        include "libbehavior_statetree.dylib"
+        include "behavior_statetree.dll"
+        into "natives"
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}

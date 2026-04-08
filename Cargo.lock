@@ -1276,7 +1276,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.101"
+version = "1.0.102"
 dependencies = [
  "anyhow",
  "askama",
@@ -1455,6 +1455,18 @@ dependencies = [
  "bb8",
  "tokio",
  "tokio-postgres",
+]
+
+[[package]]
+name = "behavior_statetree"
+version = "0.1.0"
+dependencies = [
+ "crossbeam-channel",
+ "jni 0.21.1",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
