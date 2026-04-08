@@ -1,4 +1,5 @@
 use crate::AVERAGE_FRAME_RATE;
+#[cfg(not(target_arch = "wasm32"))]
 use crate::game::inventory::get_inventory_snapshot_json;
 use crate::game::object_registry::get_registry_snapshot;
 use crate::game::scene_objects::{get_hovered_snapshot, get_selected_snapshot};
@@ -127,12 +128,6 @@ pub fn get_selected_object_json() -> Option<String> {
 #[wasm_bindgen]
 pub fn get_hovered_object_json() -> Option<String> {
     get_hovered_snapshot().map(|s| serde_json::to_string(&s).unwrap_or_default())
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
-pub fn get_inventory_json() -> Option<String> {
-    get_inventory_snapshot_json()
 }
 
 #[cfg(target_arch = "wasm32")]

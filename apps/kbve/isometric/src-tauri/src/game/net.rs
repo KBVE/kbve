@@ -1378,6 +1378,7 @@ fn forward_fall_damage_to_server(
 /// Receive ObjectRemoved messages from the server.
 /// For entities not already animating locally, attach the appropriate animation
 /// component. If we are the collector, grant loot (server-confirmed).
+#[allow(clippy::too_many_arguments)]
 fn receive_object_removed(
     mut commands: Commands,
     my_player_id: Res<MyPlayerId>,
@@ -1391,6 +1392,8 @@ fn receive_object_removed(
             Without<CollectingForageable>,
         ),
     >,
+    player_q: Query<Entity, With<Player>>,
+    mut xp_writer: MessageWriter<bevy_skills::GrantXpMsg>,
 ) {
     for (_entity, mut receiver) in &mut query {
         for msg in receiver.receive() {
@@ -1419,6 +1422,11 @@ fn receive_object_removed(
                     "[net] server confirmed loot: {:?} x{qty} at ({tx},{tz})",
                     kind
                 );
+
+                // Grant gathering XP
+                if let Ok(player_entity) = player_q.single() {
+                    super::skills::grant_collection_xp(&mut xp_writer, player_entity, &msg.kind);
+                }
             }
 
             // Start removal animation for entities not already animating.
