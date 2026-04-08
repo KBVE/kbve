@@ -21,6 +21,7 @@ export {
 	AuthBridge,
 	useAuthBridge,
 	bootAuth,
+	resolveStaffFlag,
 	IDBStorage,
 	setSharedToken,
 	getSharedToken,
