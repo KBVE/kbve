@@ -44,6 +44,9 @@ pub struct DungeonProfile {
     pub armor_gear: Option<String>,
     pub inventory: serde_json::Value,
     pub completed_quests: Vec<String>,
+    /// Serialized `SkillProfile` (JSONB). Empty/null for legacy profiles.
+    #[serde(default)]
+    pub skills: serde_json::Value,
     pub created_at: Option<String>,
     pub updated_at: Option<String>,
 }
@@ -280,6 +283,14 @@ pub fn apply_profile_to_player(
         }
     }
 
+    // Restore skill profile from JSONB (empty object = fresh profile)
+    if !profile.skills.is_null() && profile.skills != serde_json::json!({}) {
+        if let Ok(sp) = serde_json::from_value::<bevy_skills::SkillProfile>(profile.skills.clone())
+        {
+            player.skills = sp;
+        }
+    }
+
     // Restore completed quests
     for ref_slug in &profile.completed_quests {
         if !journal.is_completed(ref_slug) {
@@ -384,6 +395,7 @@ pub fn extract_save_payload(
         armor_gear: player.armor_gear.clone(),
         inventory: final_inventory,
         completed_quests: journal.completed.clone(),
+        skills: serde_json::to_value(&player.skills).unwrap_or_default(),
         created_at: None,
         updated_at: None,
     };
@@ -534,6 +546,7 @@ mod tests {
             armor_gear: None,
             inventory: serde_json::json!([]),
             completed_quests: Vec::new(),
+            skills: serde_json::json!({}),
             created_at: None,
             updated_at: None,
         };
@@ -587,6 +600,7 @@ mod tests {
             armor_gear: None,
             inventory: serde_json::json!([]),
             completed_quests: Vec::new(),
+            skills: serde_json::json!({}),
             created_at: None,
             updated_at: None,
         };

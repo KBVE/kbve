@@ -8,6 +8,7 @@ pub mod proto_bridge;
 pub mod render;
 pub mod router;
 pub mod session;
+pub mod skills;
 pub mod types;
 
 pub use persistence::ProfileStore;

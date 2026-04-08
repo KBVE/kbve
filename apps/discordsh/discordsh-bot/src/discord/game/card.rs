@@ -2,7 +2,6 @@ use askama::Template;
 use bevy_battle::snapshot::CombatSnapshot;
 use kbve::{FontDb, render_svg_to_png};
 
-use super::battle_bridge::{from_bb_class, from_bb_effect, from_bb_intent};
 use super::types::*;
 
 // ── Pre-computed display values ─────────────────────────────────────
@@ -554,7 +553,7 @@ impl GameCardTemplate {
                 let xp_to_next = session_player.map(|p| p.xp_to_next).unwrap_or(100);
                 let class_label = session_player
                     .map(|p| p.class.label().to_string())
-                    .unwrap_or_else(|| from_bb_class(&sp.class).label().to_string());
+                    .unwrap_or_else(|| sp.class.label().to_string());
 
                 // Build weapon/armor display strings from session
                 let weapon_display = session_player
@@ -568,12 +567,11 @@ impl GameCardTemplate {
                     .map(|g| format!("\u{1F6E1} {}", g.name))
                     .unwrap_or_default();
 
-                // Convert snapshot effects to session EffectInstances for badge building
                 let effects: Vec<EffectInstance> = sp
                     .effects
                     .iter()
                     .map(|e| EffectInstance {
-                        kind: from_bb_effect(&e.kind),
+                        kind: e.kind,
                         stacks: e.stacks,
                         turns_left: e.turns_left,
                     })
@@ -668,8 +666,7 @@ impl GameCardTemplate {
                     let y_intent = y_def + 20;
                     let y_effects = y_intent + 30;
 
-                    let session_intent = from_bb_intent(&se.intent);
-                    let (icon, text) = intent_to_icon_and_text(&session_intent);
+                    let (icon, text) = intent_to_icon_and_text(&se.intent);
                     let display_name = if se.enraged {
                         format!("{} \u{1F525}", se.name)
                     } else {
@@ -680,7 +677,7 @@ impl GameCardTemplate {
                         .effects
                         .iter()
                         .map(|e| EffectInstance {
-                            kind: from_bb_effect(&e.kind),
+                            kind: e.kind,
                             stacks: e.stacks,
                             turns_left: e.turns_left,
                         })
