@@ -221,11 +221,17 @@ async function fetchRepos(token: string): Promise<ForgejoRepo[]> {
 }
 
 async function fetchUsers(token: string): Promise<ForgejoUser[]> {
-	return apiFetch(token, '/api/v1/admin/users?limit=50', [] as ForgejoUser[]);
+	// Use search endpoint — /admin/users requires site admin privileges
+	// which the deploy token doesn't have.
+	const data = await apiFetch(token, '/api/v1/users/search?limit=50', {
+		data: [] as ForgejoUser[],
+	});
+	return data.data ?? [];
 }
 
 async function fetchOrgs(token: string): Promise<ForgejoOrg[]> {
-	return apiFetch(token, '/api/v1/admin/orgs?limit=50', [] as ForgejoOrg[]);
+	// Use public orgs endpoint — /admin/orgs requires site admin
+	return apiFetch(token, '/api/v1/orgs?limit=50', [] as ForgejoOrg[]);
 }
 
 // ---------------------------------------------------------------------------
