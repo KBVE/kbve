@@ -283,6 +283,8 @@ jobs:
                           - 'apps/memes/**'
                       irc_gateway:
                           - 'apps/irc/**'
+                      mc:
+                          - 'apps/mc/**'
                       discordsh:
                           - 'apps/discordsh/**'
                       discordsh_bot:
