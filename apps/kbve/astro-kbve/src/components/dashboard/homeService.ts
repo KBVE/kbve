@@ -276,20 +276,25 @@ async function fetchEdgeSummary(): Promise<EdgeSummary | null> {
 	const cached = getCache<EdgeSummary>('cache:dashboard:edge-summary');
 	if (cached) return cached;
 
-	const functions = [
-		'health',
-		'meme',
-		'discordsh',
-		'user-vault',
-		'guild-vault',
-		'vault-reader',
-	];
-	const total = functions.length;
-	const start = performance.now();
-
 	try {
+		// Fetch function list from the health endpoint manifest
+		// instead of hardcoding — the manifest is the source of truth.
+		const manifestResp = await fetch(
+			`${SUPABASE_URL}/functions/v1/health`,
+			{ signal: AbortSignal.timeout(8000) },
+		);
+		if (!manifestResp.ok) return null;
+		const manifest = await manifestResp.json();
+		const functionNames: string[] = (manifest.functions ?? []).map(
+			(f: { name: string }) => f.name,
+		);
+		if (functionNames.length === 0) return null;
+
+		const total = functionNames.length;
+		const start = performance.now();
+
 		const results = await Promise.allSettled(
-			functions.map(async (fn) => {
+			functionNames.map(async (fn) => {
 				const method = fn === 'health' ? 'GET' : 'OPTIONS';
 				const resp = await fetch(`${SUPABASE_URL}/functions/v1/${fn}`, {
 					method,
