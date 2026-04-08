@@ -1,6 +1,6 @@
 import { atom, computed } from 'nanostores';
 import { initSupa, getSupa } from '@/lib/supa';
-import { $auth, AuthFlags, hasAuthFlag } from '@kbve/droid';
+import { $auth, AuthFlags, hasAuthFlag, addToast } from '@kbve/droid';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -672,6 +672,12 @@ class HomeService {
 
 			if (!session?.access_token) {
 				this.$authState.set('unauthenticated');
+				addToast({
+					id: `auth-anon-${Date.now()}`,
+					message: 'Please sign in to access the dashboard.',
+					severity: 'info',
+					duration: 4000,
+				});
 				return;
 			}
 
@@ -686,18 +692,40 @@ class HomeService {
 
 			this.$authState.set('authenticated');
 
+			const authName = $auth.get().name;
+			addToast({
+				id: `auth-ok-${Date.now()}`,
+				message: authName
+					? `Welcome back, ${authName}`
+					: 'Signed in successfully',
+				severity: 'success',
+				duration: 4000,
+			});
+
 			// Also subscribe in case profile-controller sets it later
 			const syncStaff = () => {
 				const { flags } = $auth.get();
 				if (hasAuthFlag(flags, AuthFlags.STAFF)) {
 					if (!this.$isStaff.get()) {
 						this.$isStaff.set(true);
+						addToast({
+							id: `staff-ok-${Date.now()}`,
+							message: 'Staff access enabled',
+							severity: 'info',
+							duration: 3000,
+						});
 					}
 				}
 			};
 			$auth.subscribe(syncStaff);
 		} catch {
 			this.$authState.set('unauthenticated');
+			addToast({
+				id: `auth-err-${Date.now()}`,
+				message: 'Session expired — please sign in again.',
+				severity: 'warning',
+				duration: 5000,
+			});
 		}
 	}
 
@@ -803,6 +831,35 @@ class HomeService {
 		await Promise.all(allPromises);
 		this.$lastUpdated.set(new Date());
 		this.$loading.set(false);
+
+		// Notify on service failures — collect unavailable staff services
+		if (isStaff) {
+			const failures: string[] = [];
+			if (this.$grafanaStatus.get() === 'unavailable')
+				failures.push('Grafana');
+			if (this.$argoStatus.get() === 'unavailable')
+				failures.push('ArgoCD');
+			if (this.$clickhouseStatus.get() === 'unavailable')
+				failures.push('ClickHouse');
+			if (this.$rowsStatus.get() === 'unavailable') failures.push('ROWS');
+			if (failures.length > 0) {
+				addToast({
+					id: `svc-err-${Date.now()}`,
+					message: `${failures.join(', ')} unavailable`,
+					severity: 'warning',
+					duration: 5000,
+				});
+			}
+		}
+
+		if (this.$edgeStatus.get() === 'unavailable') {
+			addToast({
+				id: `edge-err-${Date.now()}`,
+				message: 'Edge service unavailable',
+				severity: 'warning',
+				duration: 5000,
+			});
+		}
 	}
 }
 
