@@ -31,7 +31,7 @@ pub struct BattleRng(pub StdRng);
 
 impl Default for BattleRng {
     fn default() -> Self {
-        Self(StdRng::from_os_rng())
+        Self(rand::make_rng())
     }
 }
 
