@@ -62,6 +62,11 @@ struct PendingAck {
     server_time: u64,
 }
 
+/// Marker: client just completed authentication and needs world state sync
+/// (collected objects, captured creatures, etc.). Removed after sync is sent.
+#[derive(Component)]
+struct NeedsWorldSync;
+
 /// How long (in seconds) before a collected object respawns.
 const RESPAWN_COOLDOWN_SECS: f64 = 300.0; // 5 minutes
 
@@ -1446,7 +1451,10 @@ fn verify_auth_ack(
                     "[gameserver] AuthAck OK — client {entity:?} echoed server_time={} — handshake complete",
                     ack.server_time
                 );
-                commands.entity(entity).remove::<PendingAck>();
+                commands
+                    .entity(entity)
+                    .remove::<PendingAck>()
+                    .insert(NeedsWorldSync);
             } else {
                 tracing::warn!(
                     "[gameserver] AuthAck MISMATCH — client {entity:?} sent {} but expected {} — disconnecting",
@@ -1740,35 +1748,32 @@ fn process_creature_captures(
 /// When a new client authenticates, send them all currently collected objects
 /// so they know which ones to skip when loading chunks.
 fn send_collected_state_to_new_clients(
-    authenticated: Res<AuthenticatedClients>,
+    mut commands: Commands,
     collected: Res<CollectedObjects>,
-    mut senders: Query<(Entity, &mut MessageSender<ObjectRemoved>), Added<ReplicationSender>>,
+    mut senders: Query<(Entity, &mut MessageSender<ObjectRemoved>), With<NeedsWorldSync>>,
 ) {
-    if collected.0.is_empty() {
-        return;
-    }
-
     for (entity, mut sender) in &mut senders {
-        if !authenticated.0.contains_key(&entity) {
-            continue;
-        }
+        if !collected.0.is_empty() {
+            tracing::info!(
+                "[gameserver] sending {} collected objects to new client {entity:?}",
+                collected.0.len()
+            );
 
-        tracing::info!(
-            "[gameserver] sending {} collected objects to new client {entity:?}",
-            collected.0.len()
-        );
-
-        for &tile in collected.0.keys() {
-            if let Some(kind) = bevy_kbve_net::object_at_tile(tile.tx, tile.tz) {
-                // collector_id=0 for catch-up messages — new client just skips spawning,
-                // no loot is granted.
-                sender.send::<bevy_kbve_net::GameChannel>(ObjectRemoved {
-                    tile,
-                    kind,
-                    collector_id: 0,
-                });
+            for &tile in collected.0.keys() {
+                if let Some(kind) = bevy_kbve_net::object_at_tile(tile.tx, tile.tz) {
+                    // collector_id=0 for catch-up messages — new client just skips spawning,
+                    // no loot is granted.
+                    sender.send::<bevy_kbve_net::GameChannel>(ObjectRemoved {
+                        tile,
+                        kind,
+                        collector_id: 0,
+                    });
+                }
             }
         }
+
+        // Remove marker — world state has been sent.
+        commands.entity(entity).remove::<NeedsWorldSync>();
     }
 }
 
@@ -2033,17 +2038,12 @@ fn broadcast_time_sync(
 /// Immediately send the current time sync to newly authenticated clients
 /// so they don't have to wait up to 5 seconds for the first broadcast.
 fn send_time_sync_to_new_clients(
-    authenticated: Res<AuthenticatedClients>,
     day: Res<DayCycle>,
     seed: Res<CreatureSeed>,
     wind: Res<WindState>,
-    mut senders: Query<(Entity, &mut MessageSender<TimeSyncMessage>), Added<ReplicationSender>>,
+    mut senders: Query<(Entity, &mut MessageSender<TimeSyncMessage>), With<NeedsWorldSync>>,
 ) {
     for (entity, mut sender) in &mut senders {
-        if !authenticated.0.contains_key(&entity) {
-            continue;
-        }
-
         let msg = TimeSyncMessage {
             game_hour: day.hour,
             day_speed: day.speed,
@@ -2063,19 +2063,14 @@ fn send_time_sync_to_new_clients(
 /// When a new client authenticates, send them all currently captured creatures
 /// so they know which ones are unavailable.
 fn send_captured_state_to_new_clients(
-    authenticated: Res<AuthenticatedClients>,
     capture_log: Res<CapturedCreatureLog>,
-    mut senders: Query<(Entity, &mut MessageSender<CreatureCaptured>), Added<ReplicationSender>>,
+    mut senders: Query<(Entity, &mut MessageSender<CreatureCaptured>), With<NeedsWorldSync>>,
 ) {
     if capture_log.0.is_empty() {
         return;
     }
 
     for (entity, mut sender) in &mut senders {
-        if !authenticated.0.contains_key(&entity) {
-            continue;
-        }
-
         tracing::info!(
             "[gameserver] sending {} captured creatures to new client {entity:?}",
             capture_log.0.len()

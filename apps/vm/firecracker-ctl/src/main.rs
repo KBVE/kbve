@@ -237,12 +237,15 @@ async fn run_vm_lifecycle(
 
     // Write user code to a raw block file that the VM reads from /dev/vdb.
     // Padded to 512-byte boundary so Firecracker accepts it as a drive.
+    // If CODE env var is set (IDE mode), use that; otherwise fall back
+    // to the entrypoint string (dashboard presets).
     let code_path = format!("{}/{}.code", scratch_dir, vm_id);
     let code = req
         .env
         .get("CODE")
         .and_then(|v| v.as_str())
-        .unwrap_or("")
+        .filter(|s| !s.is_empty())
+        .unwrap_or(&req.entrypoint)
         .to_string();
     {
         let mut buf = code.as_bytes().to_vec();
