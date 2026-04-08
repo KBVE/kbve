@@ -1,0 +1,48 @@
+---
+# PostSync hook: purge Cloudflare cache for kbve.com after each ArgoCD sync.
+# Waits 30s for new pods to become ready, then calls the Cloudflare API.
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: cf-cache-purge
+    namespace: kbve
+    annotations:
+        argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+    ttlSecondsAfterFinished: 120
+    backoffLimit: 1
+    template:
+        spec:
+            restartPolicy: Never
+            containers:
+                - name: purge
+                  image: curlimages/curl:8.12.1
+                  command:
+                      - /bin/sh
+                      - -c
+                      - |
+                          echo "Waiting 30s for rollout to stabilize..."
+                          sleep 30
+                          echo "Purging Cloudflare cache for kbve.com..."
+                          HTTP_CODE=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
+                            -X POST \
+                            "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
+                            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+                            -H "Content-Type: application/json" \
+                            --data '{"purge_everything":true}')
+                          cat /tmp/resp.json
+                          echo ""
+                          if [ "$HTTP_CODE" -ne 200 ]; then
+                            echo "ERROR: Cloudflare returned HTTP $HTTP_CODE"
+                            exit 1
+                          fi
+                          echo "Cache purge successful."
+                  env:
+                      - name: CF_ZONE_ID
+                        value: fd91a229c151a7af5c93ffa409c1b91c
+                      - name: CF_API_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: cloudflare-cache-purge
+                                key: api-token
