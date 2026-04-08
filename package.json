@@ -92,7 +92,7 @@
 		"nx": "22.6.1",
 		"postcss": "^8.5.3",
 		"postcss-merge-rules": "^7.0.8",
-		"prettier": "^3.3.3",
+		"prettier": "^3.8.1",
 		"prettier-plugin-astro": "^0.14.1",
 		"react": "19.2.4",
 		"react-dom": "19.2.4",
