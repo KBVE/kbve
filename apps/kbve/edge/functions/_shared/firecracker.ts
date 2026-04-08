@@ -17,7 +17,8 @@
  */
 
 const FIRECRACKER_URL =
-  Deno.env.get("FIRECRACKER_URL") ?? "http://firecracker-ctl:9001";
+  Deno.env.get("FIRECRACKER_URL") ??
+  "http://firecracker-ctl.firecracker.svc.cluster.local:9001";
 
 export interface CreateVMRequest {
   rootfs: string;

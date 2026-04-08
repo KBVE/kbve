@@ -23,6 +23,6 @@ data:
         if [ -b /dev/vdb ]; then
           dd if=/dev/vdb of=/tmp/code.raw bs=4096 2>/dev/null
           tr -d '\0' < /tmp/code.raw > /tmp/code
-          exec $ENTRYPOINT /tmp/code
+          exec "$ENTRYPOINT" /tmp/code
         fi
         exec /bin/sh
