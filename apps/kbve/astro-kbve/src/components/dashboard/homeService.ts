@@ -279,7 +279,6 @@ async function fetchEdgeSummary(): Promise<EdgeSummary | null> {
 	const functions = [
 		'health',
 		'meme',
-		'mc',
 		'discordsh',
 		'user-vault',
 		'guild-vault',
