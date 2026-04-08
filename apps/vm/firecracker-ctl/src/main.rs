@@ -43,7 +43,7 @@ fn default_timeout() -> u64 {
     30000
 }
 fn default_boot_args() -> String {
-    "console=ttyS0 reboot=k panic=1".to_string()
+    "console=ttyS0 reboot=k panic=1 init=/init".to_string()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
