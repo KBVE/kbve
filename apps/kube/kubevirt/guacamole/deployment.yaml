@@ -102,8 +102,10 @@ spec:
                         value: guacd.angelscript.svc.cluster.local
                       - name: GUACD_PORT
                         value: '4822'
-                      # user-mapping.xml provides auth + connection config.
-                      # For production, switch to PostgreSQL backend.
+                      # GUACAMOLE_HOME tells Guacamole where to find
+                      # user-mapping.xml and other config files.
+                      - name: GUACAMOLE_HOME
+                        value: /etc/guacamole
                   ports:
                       - containerPort: 8080
                         name: http
