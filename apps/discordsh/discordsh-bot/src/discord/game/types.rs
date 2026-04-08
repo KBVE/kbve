@@ -6,6 +6,9 @@ use std::time::Instant;
 use poise::serenity_prelude as serenity;
 use serde::ser::SerializeMap;
 
+// ── Re-exports from bevy_battle (canonical game types) ────────────
+pub use bevy_battle::{ClassType, EffectInstance, EffectKind, Intent, Personality, UseEffect};
+
 // ── Map types ──────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize)]
@@ -220,53 +223,10 @@ pub enum RoomType {
 }
 
 // ── Effects ─────────────────────────────────────────────────────────
-
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
-pub enum EffectKind {
-    Poison,
-    Burning,
-    Bleed,
-    Shielded,
-    Weakened,
-    Stunned,
-    Sharpened,
-    Thorns,
-}
-
-#[derive(Debug, Clone, serde::Serialize)]
-pub struct EffectInstance {
-    pub kind: EffectKind,
-    pub stacks: u8,
-    pub turns_left: u8,
-}
+// EffectKind and EffectInstance are re-exported from bevy_battle above.
 
 // ── Enemy intent (telegraph) ────────────────────────────────────────
-
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
-pub enum Intent {
-    Attack {
-        dmg: i32,
-    },
-    HeavyAttack {
-        dmg: i32,
-    },
-    Defend {
-        armor: i32,
-    },
-    Charge,
-    Flee,
-    Debuff {
-        effect: EffectKind,
-        stacks: u8,
-        turns: u8,
-    },
-    AoeAttack {
-        dmg: i32,
-    },
-    HealSelf {
-        amount: i32,
-    },
-}
+// Intent is re-exported from bevy_battle above.
 
 // ── Items ───────────────────────────────────────────────────────────
 
@@ -274,46 +234,10 @@ pub const MAX_INVENTORY_SLOTS: usize = 16;
 
 pub type ItemId = String;
 
-#[derive(Debug, Clone, serde::Serialize)]
-pub enum UseEffect {
-    Heal {
-        amount: i32,
-    },
-    DamageEnemy {
-        amount: i32,
-    },
-    ApplyEffect {
-        kind: EffectKind,
-        stacks: u8,
-        turns: u8,
-    },
-    RemoveEffect {
-        kind: EffectKind,
-    },
-    GuaranteedFlee,
-    FullHeal,
-    RemoveAllNegativeEffects,
-    /// Rest all alive party members: heal % of max HP, clear negative effects.
-    CampfireRest {
-        heal_percent: u8,
-    },
-    /// Teleport the entire party back to the origin city tile.
-    TeleportCity,
-    /// Deal damage to an enemy and apply a status effect.
-    DamageAndApply {
-        damage: i32,
-        kind: EffectKind,
-        stacks: u8,
-        turns: u8,
-    },
-    /// Revive a dead party member at a percentage of their max HP.
-    ReviveAlly {
-        heal_percent: u8,
-    },
-}
+// UseEffect is re-exported from bevy_battle above.
 
 // ── Item rarity ────────────────────────────────────────────────────
-
+// TODO: migrate ItemRarity to a shared crate (bevy_items) in a follow-up.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, serde::Serialize)]
 pub enum ItemRarity {
     Common,
@@ -467,16 +391,16 @@ pub struct GearDef {
 }
 
 // ── Player class ────────────────────────────────────────────────────
+// ClassType is re-exported from bevy_battle above.
+// Presentation helpers via extension trait (emoji/label are Discord-specific).
 
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
-pub enum ClassType {
-    Warrior,
-    Rogue,
-    Cleric,
+pub trait ClassTypeExt {
+    fn emoji(&self) -> &'static str;
+    fn label(&self) -> &'static str;
 }
 
-impl ClassType {
-    pub fn emoji(&self) -> &'static str {
+impl ClassTypeExt for ClassType {
+    fn emoji(&self) -> &'static str {
         match self {
             ClassType::Warrior => "\u{2694}",
             ClassType::Rogue => "\u{1F5E1}",
@@ -484,7 +408,7 @@ impl ClassType {
         }
     }
 
-    pub fn label(&self) -> &'static str {
+    fn label(&self) -> &'static str {
         match self {
             ClassType::Warrior => "Warrior",
             ClassType::Rogue => "Rogue",
@@ -523,6 +447,8 @@ pub struct PlayerState {
     pub lifetime_gold_earned: u32,
     pub lifetime_rooms_cleared: u32,
     pub lifetime_bosses_defeated: u32,
+    /// Skill progression (combat, exploration, foraging, etc.).
+    pub skills: bevy_skills::SkillProfile,
     /// Snapshot of the loaded profile at session start (for death penalty diff).
     #[serde(skip)]
     pub saved_snapshot: Option<super::persistence::DungeonProfile>,
@@ -557,6 +483,7 @@ impl Default for PlayerState {
             lifetime_gold_earned: 0,
             lifetime_rooms_cleared: 0,
             lifetime_bosses_defeated: 0,
+            skills: bevy_skills::SkillProfile::default(),
             saved_snapshot: None,
         }
     }
@@ -604,32 +531,7 @@ impl PlayerState {
 
 // ── Enemy personality ───────────────────────────────────────────────
 
-/// Personality archetype that drives flavor text selection for enemy actions.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
-pub enum Personality {
-    /// Relentless, rage-fueled — loves to taunt and charge.
-    Aggressive,
-    /// Calculating, deceptive — comments on strategy, mocks mistakes.
-    Cunning,
-    /// Cowardly, desperate — panics at low HP, hesitates before attacking.
-    Fearful,
-    /// Silent, disciplined — minimal dialogue, matter-of-fact.
-    Stoic,
-    /// Bestial, instinct-driven — growls, hisses, no real speech.
-    Feral,
-    /// Ancient, weary — speaks in riddles, references the past.
-    Ancient,
-    /// Cheerful, upbeat — jokes mid-combat, stays positive.
-    Cheerful,
-    /// Mysterious, enigmatic — cryptic remarks, veiled threats.
-    Mysterious,
-    /// Cowardly, skittish — flees early, begs for mercy.
-    Cowardly,
-    /// Noble, honorable — fights with dignity, respects foes.
-    Noble,
-    /// Passive, docile — ambient creatures, rarely aggressive.
-    Passive,
-}
+// Personality is re-exported from bevy_battle above.
 
 // ── Enemy state ─────────────────────────────────────────────────────
 

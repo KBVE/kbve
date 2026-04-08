@@ -21,166 +21,20 @@ use super::content;
 use super::proto_bridge as pb;
 use super::types::*;
 
-// ── Type conversion helpers ────────────────────────────────────────
+// ── Type helpers ──────────────────────────────────────────────────
+// EffectKind, EffectInstance, Intent, ClassType, Personality, and UseEffect
+// are now re-exported from bevy_battle via types.rs — no conversion needed.
 
-/// Convert session EffectKind → bevy_battle EffectKind.
-fn to_bb_effect(kind: &EffectKind) -> bevy_battle::EffectKind {
-    match kind {
-        EffectKind::Poison => bevy_battle::EffectKind::Poison,
-        EffectKind::Burning => bevy_battle::EffectKind::Burning,
-        EffectKind::Bleed => bevy_battle::EffectKind::Bleed,
-        EffectKind::Shielded => bevy_battle::EffectKind::Shielded,
-        EffectKind::Weakened => bevy_battle::EffectKind::Weakened,
-        EffectKind::Stunned => bevy_battle::EffectKind::Stunned,
-        EffectKind::Sharpened => bevy_battle::EffectKind::Sharpened,
-        EffectKind::Thorns => bevy_battle::EffectKind::Thorns,
-    }
-}
-
-/// Convert bevy_battle EffectKind → session EffectKind.
-pub(super) fn from_bb_effect(kind: &bevy_battle::EffectKind) -> EffectKind {
-    match kind {
-        bevy_battle::EffectKind::Poison => EffectKind::Poison,
-        bevy_battle::EffectKind::Burning => EffectKind::Burning,
-        bevy_battle::EffectKind::Bleed => EffectKind::Bleed,
-        bevy_battle::EffectKind::Shielded => EffectKind::Shielded,
-        bevy_battle::EffectKind::Weakened => EffectKind::Weakened,
-        bevy_battle::EffectKind::Stunned => EffectKind::Stunned,
-        bevy_battle::EffectKind::Sharpened => EffectKind::Sharpened,
-        bevy_battle::EffectKind::Thorns => EffectKind::Thorns,
-    }
-}
-
-/// Convert session EffectInstance → bevy_battle EffectInstance.
-fn to_bb_effect_instance(e: &EffectInstance) -> bevy_battle::EffectInstance {
-    bevy_battle::EffectInstance {
-        kind: to_bb_effect(&e.kind),
-        stacks: e.stacks,
-        turns_left: e.turns_left,
-    }
-}
-
-/// Convert session Intent → bevy_battle Intent.
-fn to_bb_intent(intent: &Intent) -> bevy_battle::Intent {
-    match intent {
-        Intent::Attack { dmg } => bevy_battle::Intent::Attack { dmg: *dmg },
-        Intent::HeavyAttack { dmg } => bevy_battle::Intent::HeavyAttack { dmg: *dmg },
-        Intent::Defend { armor } => bevy_battle::Intent::Defend { armor: *armor },
-        Intent::Charge => bevy_battle::Intent::Charge,
-        Intent::Flee => bevy_battle::Intent::Flee,
-        Intent::Debuff {
-            effect,
-            stacks,
-            turns,
-        } => bevy_battle::Intent::Debuff {
-            effect: to_bb_effect(effect),
-            stacks: *stacks,
-            turns: *turns,
-        },
-        Intent::AoeAttack { dmg } => bevy_battle::Intent::AoeAttack { dmg: *dmg },
-        Intent::HealSelf { amount } => bevy_battle::Intent::HealSelf { amount: *amount },
-    }
-}
-
-/// Convert bevy_battle Intent → session Intent.
-pub(super) fn from_bb_intent(intent: &bevy_battle::Intent) -> Intent {
-    match intent {
-        bevy_battle::Intent::Attack { dmg } => Intent::Attack { dmg: *dmg },
-        bevy_battle::Intent::HeavyAttack { dmg } => Intent::HeavyAttack { dmg: *dmg },
-        bevy_battle::Intent::Defend { armor } => Intent::Defend { armor: *armor },
-        bevy_battle::Intent::Charge => Intent::Charge,
-        bevy_battle::Intent::Flee => Intent::Flee,
-        bevy_battle::Intent::Debuff {
-            effect,
-            stacks,
-            turns,
-        } => Intent::Debuff {
-            effect: from_bb_effect(effect),
-            stacks: *stacks,
-            turns: *turns,
-        },
-        bevy_battle::Intent::AoeAttack { dmg } => Intent::AoeAttack { dmg: *dmg },
-        bevy_battle::Intent::HealSelf { amount } => Intent::HealSelf { amount: *amount },
-    }
-}
-
-/// Convert session ClassType → bevy_battle ClassType.
-fn to_bb_class(class: &ClassType) -> bevy_battle::ClassType {
-    match class {
-        ClassType::Warrior => bevy_battle::ClassType::Warrior,
-        ClassType::Rogue => bevy_battle::ClassType::Rogue,
-        ClassType::Cleric => bevy_battle::ClassType::Cleric,
-    }
-}
-
-/// Convert bevy_battle ClassType → session ClassType.
-pub(super) fn from_bb_class(class: &bevy_battle::ClassType) -> ClassType {
-    match class {
-        bevy_battle::ClassType::Warrior => ClassType::Warrior,
-        bevy_battle::ClassType::Rogue => ClassType::Rogue,
-        bevy_battle::ClassType::Cleric => ClassType::Cleric,
-    }
-}
-
-/// Convert session Personality → bevy_battle Personality.
-fn to_bb_personality(p: &Personality) -> bevy_battle::Personality {
-    match p {
-        Personality::Aggressive => bevy_battle::Personality::Aggressive,
-        Personality::Cunning => bevy_battle::Personality::Cunning,
-        Personality::Fearful => bevy_battle::Personality::Fearful,
-        Personality::Stoic => bevy_battle::Personality::Stoic,
-        Personality::Feral => bevy_battle::Personality::Feral,
-        Personality::Ancient => bevy_battle::Personality::Ancient,
-        Personality::Cheerful => bevy_battle::Personality::Cheerful,
-        Personality::Mysterious => bevy_battle::Personality::Mysterious,
-        Personality::Cowardly => bevy_battle::Personality::Cowardly,
-        Personality::Noble => bevy_battle::Personality::Noble,
-        Personality::Passive => bevy_battle::Personality::Passive,
-    }
-}
-
-/// Convert a session UseEffect → bevy_battle UseEffect for combat-relevant variants.
-///
-/// Returns `None` for session-level effects (GuaranteedFlee, CampfireRest,
-/// TeleportCity, ReviveAlly) that must be handled in logic.rs.
-pub fn to_bb_use_effect(effect: &UseEffect) -> Option<bevy_battle::UseEffect> {
+/// Filter combat-relevant UseEffect variants. Returns `None` for session-level
+/// effects (GuaranteedFlee, CampfireRest, TeleportCity, ReviveAlly) that must
+/// be handled in logic.rs.
+pub fn combat_use_effect(effect: &UseEffect) -> Option<&UseEffect> {
     match effect {
-        UseEffect::Heal { amount } => Some(bevy_battle::UseEffect::Heal { amount: *amount }),
-        UseEffect::DamageEnemy { amount } => {
-            Some(bevy_battle::UseEffect::DamageEnemy { amount: *amount })
-        }
-        UseEffect::ApplyEffect {
-            kind,
-            stacks,
-            turns,
-        } => Some(bevy_battle::UseEffect::ApplyEffect {
-            kind: to_bb_effect(kind),
-            stacks: *stacks,
-            turns: *turns,
-        }),
-        UseEffect::RemoveEffect { kind } => Some(bevy_battle::UseEffect::RemoveEffect {
-            kind: to_bb_effect(kind),
-        }),
-        UseEffect::FullHeal => Some(bevy_battle::UseEffect::FullHeal),
-        UseEffect::RemoveAllNegativeEffects => {
-            Some(bevy_battle::UseEffect::RemoveAllNegativeEffects)
-        }
-        UseEffect::DamageAndApply {
-            damage,
-            kind,
-            stacks,
-            turns,
-        } => Some(bevy_battle::UseEffect::DamageAndApply {
-            damage: *damage,
-            kind: to_bb_effect(kind),
-            stacks: *stacks,
-            turns: *turns,
-        }),
-        // Session-level effects — not handled by bevy_battle
         UseEffect::GuaranteedFlee
         | UseEffect::CampfireRest { .. }
         | UseEffect::TeleportCity
         | UseEffect::ReviveAlly { .. } => None,
+        _ => Some(effect),
     }
 }
 
@@ -375,8 +229,6 @@ impl CombatWorld {
             }
             // Sync inventory into ECS format
             inventories.insert(*uid, session_inventory_to_ecs(&ps.inventory));
-            let effects: Vec<bevy_battle::EffectInstance> =
-                ps.effects.iter().map(to_bb_effect_instance).collect();
 
             let entity = app
                 .world_mut()
@@ -384,7 +236,7 @@ impl CombatWorld {
                     CombatName(ps.name.clone()),
                     Health::new(ps.hp, ps.max_hp),
                     Armor { value: ps.armor },
-                    ActiveEffects(effects),
+                    ActiveEffects(ps.effects.clone()),
                     CombatStats {
                         accuracy: ps.accuracy,
                         crit_chance: ps.crit_chance,
@@ -393,7 +245,7 @@ impl CombatWorld {
                         first_attack_in_combat: ps.first_attack_in_combat,
                         heals_used_this_combat: ps.heals_used_this_combat,
                     },
-                    PlayerClass(to_bb_class(&ps.class)),
+                    PlayerClass(ps.class),
                     resolve_equipped_gear(ps),
                     Combatant,
                     PlayerTag,
@@ -407,24 +259,21 @@ impl CombatWorld {
             if es.hp <= 0 {
                 continue;
             }
-            let effects: Vec<bevy_battle::EffectInstance> =
-                es.effects.iter().map(to_bb_effect_instance).collect();
-
             let entity = app
                 .world_mut()
                 .spawn((
                     CombatName(es.name.clone()),
                     Health::new(es.hp, es.max_hp),
                     Armor { value: es.armor },
-                    ActiveEffects(effects),
+                    ActiveEffects(es.effects.clone()),
                     EnemyAI {
                         level: es.level,
                         charged: es.charged,
                         enraged: es.enraged,
                         first_strike: es.first_strike,
-                        personality: to_bb_personality(&es.personality),
+                        personality: es.personality,
                     },
-                    CurrentIntent(to_bb_intent(&es.intent)),
+                    CurrentIntent(es.intent.clone()),
                     CombatIndex(es.index),
                     Combatant,
                     EnemyTag,
@@ -588,15 +437,7 @@ impl CombatWorld {
             }
 
             if let Some(effects) = world.get::<ActiveEffects>(*entity) {
-                player.effects = effects
-                    .0
-                    .iter()
-                    .map(|e| EffectInstance {
-                        kind: from_bb_effect(&e.kind),
-                        stacks: e.stacks,
-                        turns_left: e.turns_left,
-                    })
-                    .collect();
+                player.effects = effects.0.clone();
             }
 
             // Sync inventory back from bridge
@@ -624,15 +465,7 @@ impl CombatWorld {
             }
 
             if let Some(effects) = world.get::<ActiveEffects>(*entity) {
-                enemy.effects = effects
-                    .0
-                    .iter()
-                    .map(|e| EffectInstance {
-                        kind: from_bb_effect(&e.kind),
-                        stacks: e.stacks,
-                        turns_left: e.turns_left,
-                    })
-                    .collect();
+                enemy.effects = effects.0.clone();
             }
 
             if let Some(ai) = world.get::<EnemyAI>(*entity) {
@@ -641,7 +474,7 @@ impl CombatWorld {
             }
 
             if let Some(intent) = world.get::<CurrentIntent>(*entity) {
-                enemy.intent = from_bb_intent(&intent.0);
+                enemy.intent = intent.0.clone();
             }
         }
     }
@@ -1039,6 +872,7 @@ mod tests {
                 lifetime_gold_earned: 0,
                 lifetime_rooms_cleared: 0,
                 lifetime_bosses_defeated: 0,
+                skills: bevy_skills::SkillProfile::default(),
                 saved_snapshot: None,
             },
         );
@@ -1157,45 +991,15 @@ mod tests {
     }
 
     #[test]
-    fn type_conversion_roundtrip() {
-        let effects = vec![
-            EffectKind::Poison,
-            EffectKind::Burning,
-            EffectKind::Bleed,
-            EffectKind::Shielded,
-            EffectKind::Weakened,
-            EffectKind::Stunned,
-            EffectKind::Sharpened,
-            EffectKind::Thorns,
-        ];
-        for e in &effects {
-            let bb = to_bb_effect(e);
-            let back = from_bb_effect(&bb);
-            assert_eq!(*e, back, "Roundtrip failed for {:?}", e);
-        }
-    }
+    fn shared_types_are_bevy_battle() {
+        // After migration, session types ARE bevy_battle types — no conversion layer.
+        let effect = EffectKind::Poison;
+        let bb_effect: bevy_battle::EffectKind = effect;
+        assert_eq!(bb_effect, EffectKind::Poison);
 
-    #[test]
-    fn intent_conversion_roundtrip() {
-        let intents = vec![
-            Intent::Attack { dmg: 10 },
-            Intent::HeavyAttack { dmg: 20 },
-            Intent::Defend { armor: 5 },
-            Intent::Charge,
-            Intent::Flee,
-            Intent::AoeAttack { dmg: 8 },
-            Intent::HealSelf { amount: 15 },
-            Intent::Debuff {
-                effect: EffectKind::Poison,
-                stacks: 2,
-                turns: 3,
-            },
-        ];
-        for i in &intents {
-            let bb = to_bb_intent(i);
-            let back = from_bb_intent(&bb);
-            assert_eq!(*i, back, "Roundtrip failed for {:?}", i);
-        }
+        let intent = Intent::Attack { dmg: 10 };
+        let bb_intent: bevy_battle::Intent = intent.clone();
+        assert_eq!(bb_intent, Intent::Attack { dmg: 10 });
     }
 
     #[test]
