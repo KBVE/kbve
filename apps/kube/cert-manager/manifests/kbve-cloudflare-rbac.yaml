@@ -1,0 +1,26 @@
+---
+# Role: Allow kbve ExternalSecrets SA to read Cloudflare API token
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: kbve-cloudflare-access
+    namespace: cert-manager
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['cloudflare-api-token-secret']
+      verbs: ['get']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: kbve-cloudflare-access-binding
+    namespace: cert-manager
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: kbve-cloudflare-access
+subjects:
+    - kind: ServiceAccount
+      name: kbve-external-secrets
+      namespace: kbve

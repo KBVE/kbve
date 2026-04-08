@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-    name: firecracker-rootfs-init-v4
+    name: firecracker-rootfs-init-v5
     namespace: firecracker
     labels:
         app: firecracker-rootfs-init
@@ -75,9 +75,8 @@ spec:
                               mkdir -p "${ROOTFS}/dev" "${ROOTFS}/proc" "${ROOTFS}/sys" \
                                        "${ROOTFS}/tmp" "${ROOTFS}/run" "${ROOTFS}/var/log"
 
-                              # Init script — mounts filesystems, reads code from /dev/vdb,
-                              # parses entrypoint from kernel cmdline, and executes.
-                              printf '#!/bin/sh\nmount -t proc proc /proc\nmount -t sysfs sys /sys\nmount -t devtmpfs dev /dev\nmkdir -p /tmp\nif [ -b /dev/vdb ]; then\n  dd if=/dev/vdb bs=4096 2>/dev/null | tr -d \"\\\\0\" > /tmp/code\n  chmod +x /tmp/code\n  exec sh /tmp/code\nfi\nexec /bin/sh\n' > "${ROOTFS}/init"
+                              # Copy init script from ConfigMap
+                              cp /vm-init/init "${ROOTFS}/init"
                               chmod +x "${ROOTFS}/init"
 
                               # Create sparse ext4 image and populate from rootfs directory
@@ -112,7 +111,13 @@ spec:
                   volumeMounts:
                       - name: rootfs
                         mountPath: /rootfs
+                      - name: vm-init
+                        mountPath: /vm-init
+                        readOnly: true
             volumes:
                 - name: rootfs
                   persistentVolumeClaim:
                       claimName: firecracker-rootfs
+                - name: vm-init
+                  configMap:
+                      name: firecracker-vm-init

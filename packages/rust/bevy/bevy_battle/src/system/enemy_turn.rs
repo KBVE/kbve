@@ -1,7 +1,7 @@
 //! Enemy AI turn system — execute intents, roll new intents.
 
 use bevy::prelude::*;
-use rand::Rng;
+use rand::RngExt;
 
 use crate::component::*;
 use crate::event::*;
@@ -249,7 +249,7 @@ pub fn enemy_turn_system(
     }
 }
 
-fn roll_and_set_intent(ai: &mut EnemyAI, intent: &mut CurrentIntent, rng: &mut impl Rng) {
+fn roll_and_set_intent(ai: &mut EnemyAI, intent: &mut CurrentIntent, rng: &mut impl RngExt) {
     if ai.charged {
         ai.charged = false;
         let mut heavy_dmg = 12 + ai.level as i32 * 3;
@@ -263,7 +263,7 @@ fn roll_and_set_intent(ai: &mut EnemyAI, intent: &mut CurrentIntent, rng: &mut i
 }
 
 /// Generate a random intent based on enemy level tier.
-pub fn roll_new_intent(level: u8, is_enraged: bool, rng: &mut impl Rng) -> Intent {
+pub fn roll_new_intent(level: u8, is_enraged: bool, rng: &mut impl RngExt) -> Intent {
     let mut intent = if level >= 4 {
         match rng.random_range(0..10) {
             0 => Intent::Attack {

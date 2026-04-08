@@ -59,6 +59,21 @@ impl SkillProfile {
         }
     }
 
+    /// Grant XP directly without going through the ECS message pipeline.
+    ///
+    /// Useful for headless or non-ECS consumers (e.g. Discord bot sessions).
+    /// The caller is responsible for recomputing levels afterward.
+    pub fn grant_xp_direct(&mut self, id: SkillId, amount: u64) -> u64 {
+        self.grant_xp(id, amount)
+    }
+
+    /// Set the cached level directly without going through the ECS system.
+    ///
+    /// Useful for headless consumers that compute levels externally.
+    pub fn set_level_direct(&mut self, id: SkillId, level: u32) {
+        self.set_level(id, level);
+    }
+
     /// Iterate over all trained skills.
     pub fn iter(&self) -> impl Iterator<Item = (SkillId, &SkillEntry)> {
         self.skills.iter().map(|(&id, entry)| (id, entry))

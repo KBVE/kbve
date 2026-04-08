@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: firecracker-vm-init
+    namespace: firecracker
+    labels:
+        app: firecracker-ctl
+data:
+    init: |
+        #!/bin/sh
+        mount -t proc proc /proc
+        mount -t sysfs sys /sys
+        mount -t devtmpfs dev /dev 2>/dev/null
+        mount -t tmpfs tmpfs /tmp
+
+        ENTRYPOINT="/bin/sh"
+        for param in $(cat /proc/cmdline); do
+          case "$param" in
+            fc_entrypoint=*) ENTRYPOINT="${param#fc_entrypoint=}" ;;
+          esac
+        done
+
+        if [ -b /dev/vdb ]; then
+          dd if=/dev/vdb of=/tmp/code.raw bs=4096 2>/dev/null
+          tr -d '\0' < /tmp/code.raw > /tmp/code
+          exec $ENTRYPOINT /tmp/code
+        fi
+        exec /bin/sh

@@ -221,11 +221,36 @@ async function fetchRepos(token: string): Promise<ForgejoRepo[]> {
 }
 
 async function fetchUsers(token: string): Promise<ForgejoUser[]> {
-	return apiFetch(token, '/api/v1/admin/users?limit=50', [] as ForgejoUser[]);
+	// Try repo collaborators — the deploy token has repo scope.
+	// Extract unique users from all accessible repos' collaborators.
+	const repos = await fetchRepos(token);
+	const users: ForgejoUser[] = [];
+	const seen = new Set<number>();
+	for (const repo of repos) {
+		const collabs = await apiFetch(
+			token,
+			`/api/v1/repos/${repo.full_name}/collaborators?limit=50`,
+			[] as ForgejoUser[],
+		);
+		for (const u of collabs) {
+			if (!seen.has(u.id)) {
+				seen.add(u.id);
+				users.push(u);
+			}
+		}
+	}
+	// Also include repo owners
+	for (const repo of repos) {
+		if (repo.owner && !seen.has(repo.owner.id)) {
+			seen.add(repo.owner.id);
+			users.push(repo.owner as ForgejoUser);
+		}
+	}
+	return users;
 }
 
 async function fetchOrgs(token: string): Promise<ForgejoOrg[]> {
-	return apiFetch(token, '/api/v1/admin/orgs?limit=50', [] as ForgejoOrg[]);
+	return apiFetch(token, '/api/v1/orgs?limit=50', [] as ForgejoOrg[]);
 }
 
 // ---------------------------------------------------------------------------

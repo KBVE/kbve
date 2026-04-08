@@ -1,7 +1,7 @@
 //! Player attack and item-use systems.
 
 use bevy::prelude::*;
-use rand::Rng;
+use rand::RngExt;
 
 use crate::component::*;
 use crate::event::*;
