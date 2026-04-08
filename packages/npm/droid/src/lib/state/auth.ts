@@ -1,4 +1,4 @@
-import { map } from 'nanostores';
+import { map, computed } from 'nanostores';
 
 export type AuthTone = 'loading' | 'auth' | 'anon' | 'error';
 
@@ -55,6 +55,10 @@ const DEFAULT_AUTH: AuthState = {
 };
 
 export const $auth = map<AuthState>({ ...DEFAULT_AUTH });
+
+export const $isStaff = computed($auth, (s) =>
+	hasAuthFlag(s.flags, AuthFlags.STAFF),
+);
 
 export function setAuth(state: Partial<AuthState>) {
 	const current = $auth.get();

@@ -181,6 +181,8 @@ export async function bootAuth(
  */
 export async function resolveStaffFlag(
 	gateway: SupabaseGateway,
+	supabaseUrl: string,
+	supabaseAnonKey: string,
 ): Promise<void> {
 	const state = $auth.get();
 	if (state.tone !== 'auth' || !state.id) return;
@@ -188,15 +190,10 @@ export async function resolveStaffFlag(
 	try {
 		const session = await gateway.getSession().catch(() => null);
 		const token = session?.session?.access_token;
-		if (!token) return;
-
-		// Call the Supabase RPC that returns the user's staff permission bitmask.
-		// This is the same RPC the axum-kbve backend uses via PostgREST.
-		const supabaseUrl =
-			(typeof import.meta !== 'undefined' &&
-				(import.meta as any).env?.PUBLIC_SUPABASE_URL) ||
-			'';
-		if (!supabaseUrl) return;
+		if (!token) {
+			console.warn('[resolveStaffFlag] No access token available');
+			return;
+		}
 
 		const res = await fetch(
 			`${supabaseUrl}/rest/v1/rpc/staff_permissions`,
@@ -205,17 +202,24 @@ export async function resolveStaffFlag(
 				headers: {
 					Authorization: `Bearer ${token}`,
 					'Content-Type': 'application/json',
-					apikey: token,
+					apikey: supabaseAnonKey,
 				},
 				body: '{}',
 			},
 		);
 
-		if (!res.ok) return;
+		if (!res.ok) {
+			console.warn('[resolveStaffFlag] RPC failed:', res.status);
+			return;
+		}
 
 		const permissions = await res.json();
 		// staff_permissions returns an integer bitmask; any non-zero value means staff
 		if (typeof permissions === 'number' && permissions > 0) {
+			console.log(
+				'[resolveStaffFlag] Staff permissions resolved:',
+				permissions,
+			);
 			$auth.set({
 				...state,
 				flags: AuthPresets.STAFF,
