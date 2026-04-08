@@ -18,4 +18,4 @@ bincode = ["dep:serde", "dep:bincode"]
 bevy = { version = "0.18", default-features = false, features = ["bevy_state"] }
 serde = { version = "1", features = ["derive"], optional = true }
 serde_json = { version = "1", optional = true }
-bincode = { version = "1", optional = true }
+bincode = { version = "2", features = ["serde"], optional = true }
