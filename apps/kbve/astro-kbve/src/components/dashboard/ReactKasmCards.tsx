@@ -184,9 +184,7 @@ function KasmCard({ info }: { info: KasmInfo }) {
 				)}
 				{canConnect && (
 					<a
-						href={`https://${window.location.host}/dashboard/vm/kasm/${workspace.name}`}
-						target="_blank"
-						rel="noopener noreferrer"
+						href={`/dashboard/vm/kasm/?workspace=${encodeURIComponent(workspace.name)}`}
 						style={{
 							display: 'inline-flex',
 							alignItems: 'center',
