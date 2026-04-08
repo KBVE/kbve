@@ -1,0 +1,41 @@
+---
+import ReactVMAuth from './ReactVMAuth';
+import ReactKasmViewer from './ReactKasmViewer';
+---
+
+<section
+	id="kasm-dashboard-wrapper"
+	class="kasm-dashboard-wrapper"
+	aria-label="KASM Workspace Viewer">
+	<div id="kasm-content" class="kasm-content">
+		<ReactVMAuth client:only="react">
+			<div class="not-content kasm-dashboard">
+				<ReactKasmViewer client:only="react" />
+			</div>
+		</ReactVMAuth>
+	</div>
+</section>
+
+<style>
+	.kasm-dashboard-wrapper {
+		background: transparent;
+		min-height: 100vh;
+		position: relative;
+		width: 100vw;
+		margin-left: calc(-50vw + 50%);
+	}
+
+	.kasm-content {
+		max-width: 100%;
+		margin: 0 auto;
+		padding: 1rem;
+	}
+
+	.kasm-dashboard {
+		display: flex;
+		flex-direction: column;
+		color: var(--sl-color-text, #e6edf3);
+		min-height: 80vh;
+		gap: 0.5rem;
+	}
+</style>
