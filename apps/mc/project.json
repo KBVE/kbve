@@ -9,7 +9,7 @@
 			"defaultConfiguration": "local",
 			"options": {
 				"engine": "docker",
-				"context": "apps/mc",
+				"context": ".",
 				"file": "apps/mc/Dockerfile",
 				"load": true
 			},
