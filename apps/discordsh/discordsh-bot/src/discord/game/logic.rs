@@ -6,6 +6,7 @@ use tracing::debug;
 use super::battle_bridge;
 use super::content;
 use super::proto_bridge;
+use super::skills;
 use super::types::*;
 
 /// Result of applying a game action, including optional ECS combat snapshot.
@@ -984,6 +985,11 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
         // Increment lifetime kills for the actor
         session.player_mut(actor).lifetime_kills += 1;
 
+        // Grant combat skill XP to all alive players
+        for &uid in &alive_ids {
+            skills::grant_combat_xp(&mut session.player_mut(uid).skills, *enemy_level);
+        }
+
         // Advance kill quest objectives — derive ref slug from display name
         let enemy_ref = enemy_name.to_lowercase().replace(' ', "-");
         advance_kill_objectives(session, &enemy_ref, &mut logs);
@@ -997,6 +1003,7 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
         let recipient_name = session.player(loot_recipient).name.clone();
 
         // Roll item loot drop
+        let mut items_looted: u32 = 0;
         if i < dead_loot_tables.len() {
             let loot_id = dead_loot_tables[i];
             let mut item_was_rare = false;
@@ -1014,6 +1021,7 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
                             item_id,
                         ) {
                             logs.push(format!("Dropped: {}!", def.name));
+                            items_looted += 1;
                         } else {
                             logs.push(format!("Inventory full! Dropped: {}", def.name));
                         }
@@ -1050,6 +1058,7 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
                                 logs.push(format!("Dropped gear: {}!", gear.name));
                             }
                         }
+                        items_looted += 1;
                     } else if let Some(gear) = content::find_gear(gear_id) {
                         logs.push(format!("Inventory full! Lost gear: {}", gear.name));
                     }
@@ -1058,6 +1067,11 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
                     }
                 }
             }
+        }
+
+        // Grant foraging XP for items actually picked up
+        if items_looted > 0 {
+            skills::grant_foraging_xp(&mut session.player_mut(loot_recipient).skills, items_looted);
         }
 
         if xp_per_player > 0 {
@@ -1916,8 +1930,11 @@ fn arrive_at_tile(session: &mut SessionState, pos: MapPos) -> Vec<String> {
 
     // Increment lifetime_rooms_cleared for all alive players
     let alive_ids = session.alive_player_ids();
+    let depth = pos.depth();
     for &uid in &alive_ids {
-        session.player_mut(uid).lifetime_rooms_cleared += 1;
+        let player = session.player_mut(uid);
+        player.lifetime_rooms_cleared += 1;
+        skills::grant_exploration_xp(&mut player.skills, depth);
     }
 
     // Advance explore quest objectives
@@ -2593,6 +2610,7 @@ fn apply_treasure_choice(
         if let Some(&uid) = alive_ids.first() {
             let player = session.player_mut(uid);
             add_item_to_inventory(&mut player.inventory, item_id);
+            skills::grant_foraging_xp(&mut player.skills, 1);
             let emoji = super::content::find_item(item_id)
                 .map(|d| d.emoji.as_ref())
                 .unwrap_or("📦");
@@ -2606,6 +2624,7 @@ fn apply_treasure_choice(
         if let Some(&uid) = alive_ids.first() {
             let player = session.player_mut(uid);
             add_item_to_inventory(&mut player.inventory, gear_id);
+            skills::grant_foraging_xp(&mut player.skills, 1);
             let emoji = super::content::find_gear(gear_id)
                 .map(|d| d.emoji.as_ref())
                 .unwrap_or("⚔️");

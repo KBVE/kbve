@@ -4,6 +4,7 @@ pub(crate) mod gh;
 pub(crate) mod github_board;
 mod health;
 mod ping;
+mod skills;
 mod status;
 
 use crate::discord::bot::{Data, Error};
@@ -19,5 +20,6 @@ pub fn all() -> Vec<poise::Command<Data, Error>> {
         dungeon::dungeon(),
         github_board::github(),
         gh::gh(),
+        skills::skills(),
     ]
 }
