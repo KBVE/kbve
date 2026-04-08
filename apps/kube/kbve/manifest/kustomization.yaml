@@ -14,3 +14,5 @@ resources:
     - kbve-gateway.yaml
     - kbve-wt-lb.yaml
     - kbve-wt-selfsigned-cronjob.yaml
+    - cf-cache-purge-externalsecret.yaml
+    - cf-cache-purge-postsync.yaml
