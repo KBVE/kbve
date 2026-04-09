@@ -3,11 +3,11 @@
  *
  * This script creates MDX files for NEW items only — items whose ID
  * doesn't already exist in any MDX file's frontmatter. Existing MDX
- * files are the single source of truth and are never overwritten.
+ * files are the single source of truth and are NEVER overwritten.
  * Slugs in existing files are preserved to protect SEO.
  *
- * Run: node scripts/generate-osrs-items.mjs [--force]
- *   --force: regenerate ALL items (overwrites existing files — destructive)
+ * Run: node scripts/generate-osrs-items.mjs [--audit]
+ *   --audit: report which existing items have stale data vs Wiki API (no writes)
  */
 
 import { writeFile, mkdir, readdir, readFile } from 'fs/promises';
@@ -19,7 +19,7 @@ const USER_AGENT = 'KBVE item_tracker - @h0lybyte on Discord';
 const OUTPUT_DIR = './src/content/docs/osrs';
 
 const args = process.argv.slice(2);
-const forceAll = args.includes('--force');
+const auditMode = args.includes('--audit');
 
 const TODAY = new Date().toISOString().slice(0, 10);
 
@@ -151,7 +151,7 @@ import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 async function main() {
 	console.log(
-		`🎮 OSRS item bootstrap${forceAll ? ' (FORCE mode — overwrites all)' : ''}`,
+		`🎮 OSRS item bootstrap${auditMode ? ' (AUDIT mode — read only)' : ''}`,
 	);
 	console.log('  Fetching item mapping from Wiki API...');
 
@@ -169,18 +169,12 @@ async function main() {
 	// Ensure output directory exists
 	await mkdir(OUTPUT_DIR, { recursive: true });
 
-	// Build ID index from existing MDX files (unless --force)
-	let existingIds = new Set();
-	let existingSlugs = new Map();
-	if (!forceAll) {
-		const index = await buildExistingIdIndex();
-		existingIds = index.ids;
-		existingSlugs = index.slugsById;
-	}
+	// Build ID index from existing MDX files
+	const { ids: existingIds, slugsById: existingSlugs } =
+		await buildExistingIdIndex();
 
 	// Track slugs to handle duplicates within this run
 	const usedSlugs = new Set();
-	// Pre-populate with existing slugs so we don't collide
 	for (const slug of existingSlugs.values()) {
 		usedSlugs.add(slug);
 	}
@@ -188,6 +182,7 @@ async function main() {
 	let created = 0;
 	let skippedNoName = 0;
 	let skippedExisting = 0;
+	const staleItems = [];
 
 	for (const item of items) {
 		if (!item.name) {
@@ -195,18 +190,39 @@ async function main() {
 			continue;
 		}
 
-		// Skip if this item ID already has an MDX file
-		if (!forceAll && existingIds.has(item.id)) {
+		// Item already has an MDX file — never overwrite
+		if (existingIds.has(item.id)) {
 			skippedExisting++;
+
+			// In audit mode, flag items where Wiki name differs from slug
+			if (auditMode) {
+				const existingSlug = existingSlugs.get(item.id);
+				const wikiSlug = nameToSlug(item.name);
+				if (existingSlug && existingSlug !== wikiSlug && !existingSlug.endsWith(`-${item.id}`)) {
+					staleItems.push({
+						id: item.id,
+						wikiName: item.name,
+						wikiSlug,
+						existingSlug,
+					});
+				}
+			}
 			continue;
 		}
 
-		// Generate slug, avoid collisions with existing slugs
+		// New item — generate slug, avoid collisions
 		let slug = nameToSlug(item.name);
 		if (usedSlugs.has(slug)) slug = `${slug}-${item.id}`;
 		usedSlugs.add(slug);
 
 		const filename = `${slug}.mdx`;
+
+		if (auditMode) {
+			console.log(`  [new] ${filename} (id: ${item.id})`);
+			created++;
+			continue;
+		}
+
 		const mdx = generateNewItemMdx(item, slug);
 		await writeFile(join(OUTPUT_DIR, filename), mdx, 'utf-8');
 		created++;
@@ -219,9 +235,19 @@ async function main() {
 	}
 
 	console.log(`\n✨ Done!`);
-	console.log(`  Created: ${created} new items`);
+	console.log(`  ${auditMode ? 'Would create' : 'Created'}: ${created} new items`);
 	console.log(`  Skipped (existing ID): ${skippedExisting}`);
 	console.log(`  Skipped (no name): ${skippedNoName}`);
+
+	if (auditMode && staleItems.length > 0) {
+		console.log(`\n⚠️  ${staleItems.length} items with slug/name mismatch (existing slug preserved for SEO):`);
+		for (const s of staleItems.slice(0, 20)) {
+			console.log(`  id:${s.id} wiki:"${s.wikiName}" slug:${s.existingSlug} (wiki would be: ${s.wikiSlug})`);
+		}
+		if (staleItems.length > 20) {
+			console.log(`  ... and ${staleItems.length - 20} more`);
+		}
+	}
 }
 
 main().catch((err) => {
