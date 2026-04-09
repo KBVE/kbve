@@ -48,8 +48,8 @@
 			"options": {
 				"commands": [
 					"docker rm -f mc-e2e 2>/dev/null || true",
-					"docker run -d --name mc-e2e -p 25575:25575 -p 25565:25565 -e EULA=TRUE -e RCON_PASSWORD=test -e ENABLE_RCON=true kbve/mc:latest",
-					"echo 'Waiting for MC server RCON...' && for i in $(seq 1 300); do if docker logs mc-e2e 2>&1 | grep -q 'RCON running'; then echo 'RCON ready after '\"$i\"'s'; break; fi; if [ $i -eq 300 ]; then echo 'Server did not start in 300s'; docker logs mc-e2e 2>&1 | tail -50; docker rm -f mc-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+					"docker run -d --name mc-e2e -p 25575:25575 -p 25565:25565 -e EULA=TRUE -e RCON_PASSWORD=test -e ENABLE_RCON=true -e ONLINE_MODE=false kbve/mc:latest",
+					"echo 'Waiting for MC server RCON...' && for i in $(seq 1 300); do if docker logs mc-e2e 2>&1 | grep -q 'RCON running'; then echo 'RCON ready after '\"$i\"'s'; break; fi; if docker logs mc-e2e 2>&1 | grep -q 'Multiple garbage collectors'; then echo 'JVM GC conflict detected'; docker logs mc-e2e 2>&1 | tail -20; docker rm -f mc-e2e 2>/dev/null || true; exit 1; fi; if [ $i -eq 300 ]; then echo 'Server did not start in 300s'; docker logs mc-e2e 2>&1 | tail -50; docker rm -f mc-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
 					"RCON_PASSWORD=test npx vitest run; EC=$?; echo '--- container logs ---'; docker logs mc-e2e 2>&1 | tail -50; docker rm -f mc-e2e 2>/dev/null || true; exit $EC"
 				],
 				"parallel": false,
