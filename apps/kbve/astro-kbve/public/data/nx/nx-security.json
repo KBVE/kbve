@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-04-08T08:36:43Z",
+  "generated_at": "2026-04-09T08:43:05Z",
   "summary": {
     "critical": 1,
-    "high": 35,
+    "high": 34,
     "medium": 39,
     "low": 5,
-    "info": 25
+    "info": 24
   },
   "ecosystems": {
     "npm": {
-      "total": 78,
+      "total": 77,
       "severities": {
         "critical": 1,
-        "high": 35,
+        "high": 34,
         "medium": 37,
         "low": 5,
         "info": 0
@@ -24,13 +24,6 @@
           "severity": "medium",
           "package": "got",
           "url": "https://github.com/advisories/GHSA-pfrx-2q88-qq97"
-        },
-        {
-          "id": "1109208",
-          "title": "Playwright downloads and installs browsers without verifying the authenticity of the SSL certificate",
-          "severity": "high",
-          "package": "playwright",
-          "url": "https://github.com/advisories/GHSA-7mvr-c777-76hp"
         },
         {
           "id": "1109842",
@@ -567,13 +560,13 @@
       ]
     },
     "cargo": {
-      "total": 27,
+      "total": 26,
       "severities": {
         "critical": 0,
         "high": 0,
         "medium": 2,
         "low": 0,
-        "info": 25
+        "info": 24
       },
       "advisories": [
         {
@@ -603,13 +596,6 @@
           "severity": "info",
           "package": "atk-sys",
           "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2025-0141",
-          "title": "Bincode is unmaintained",
-          "severity": "info",
-          "package": "bincode",
-          "url": "https://git.sr.ht/~stygianentity/bincode/tree/v3.0/item/README.md"
         },
         {
           "id": "RUSTSEC-2025-0141",
