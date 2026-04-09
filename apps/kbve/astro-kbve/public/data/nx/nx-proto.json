@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-04-08T08:33:20.618Z",
+  "generated_at": "2026-04-09T08:39:49.159Z",
   "summary": {
     "total_protos": 26,
     "registered": 22,
     "orphaned": 3,
     "utility_only": 1,
-    "total_messages": 491,
-    "total_enums": 87
+    "total_messages": 507,
+    "total_enums": 86
   },
   "protos": [
     {
@@ -472,6 +472,22 @@
         "OSRSSkillingSource",
         "OSRSTreasureTrail",
         "OSRSRelatedItem",
+        "OSRSAbout",
+        "OSRSMarketStep",
+        "OSRSMarketStrategy",
+        "OSRSMaterial",
+        "OSRSPrayer",
+        "OSRSGathering",
+        "OSRSTeleportDestination",
+        "OSRSTeleport",
+        "OSRSQuestRequirement",
+        "OSRSQuestData",
+        "OSRSFarming",
+        "OSRSCharges",
+        "OSRSSlayer",
+        "OSRSConstruction",
+        "OSRSPassiveEffect",
+        "OSRSAmmunition",
         "OSRSItemProperties",
         "OSRSMeta",
         "OSRSPrice",
@@ -489,13 +505,12 @@
         "OSRSSlot",
         "OSRSWeaponType",
         "OSRSSkill",
-        "OSRSRecipeSkill",
         "OSRSFacility",
         "OSRSRarity",
         "OSRSRelationship"
       ],
-      "message_count": 31,
-      "enum_count": 7,
+      "message_count": 47,
+      "enum_count": 6,
       "codegen": {
         "registered": true,
         "name": "osrs",
@@ -1023,7 +1038,31 @@
     "packages/data/proto/kbve/kbve.proto",
     "packages/data/proto/kbve/kbveproto.proto"
   ],
-  "checked_at": "2026-04-08T08:33:20Z",
-  "drift_detected": false,
-  "drift_files": []
+  "checked_at": "2026-04-09T08:39:49Z",
+  "drift_detected": true,
+  "drift_files": [
+    "packages/data/codegen/generated/ci_registry-schema.ts",
+    "packages/data/codegen/generated/clickhouse-schema.ts",
+    "packages/data/codegen/generated/discordsh-schema.ts",
+    "packages/data/codegen/generated/forum-schema.ts",
+    "packages/data/codegen/generated/github-schema.ts",
+    "packages/data/codegen/generated/groq-schema.ts",
+    "packages/data/codegen/generated/itemdb-schema.ts",
+    "packages/data/codegen/generated/jedi-schema.ts",
+    "packages/data/codegen/generated/kbveproto-schema.ts",
+    "packages/data/codegen/generated/mapdb-schema.ts",
+    "packages/data/codegen/generated/meme-schema.ts",
+    "packages/data/codegen/generated/npcdb-schema.ts",
+    "packages/data/codegen/generated/osrs-schema.ts",
+    "packages/data/codegen/generated/ows-schema.ts",
+    "packages/data/codegen/generated/pool-schema.ts",
+    "packages/data/codegen/generated/profile-schema.ts",
+    "packages/data/codegen/generated/questdb-schema.ts",
+    "packages/data/codegen/generated/redis-schema.ts",
+    "packages/data/codegen/generated/rows-schema.ts",
+    "packages/data/codegen/generated/schema-schema.ts",
+    "packages/data/codegen/generated/snapshot-schema.ts",
+    "packages/data/codegen/generated/staff-schema.ts",
+    "packages/data/codegen/generated/twitch-schema.ts"
+  ]
 }

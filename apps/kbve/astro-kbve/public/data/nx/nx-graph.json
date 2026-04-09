@@ -3162,6 +3162,124 @@
           "implicitDependencies": []
         }
       },
+      "firecracker-ctl-e2e": {
+        "name": "firecracker-ctl-e2e",
+        "type": "e2e",
+        "data": {
+          "root": "apps/vm/firecracker-ctl-e2e",
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "firecracker-ctl-e2e",
+              "packageVersion": "0.0.0",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "targets": {
+            "test": {
+              "executor": "nx:noop",
+              "cache": false,
+              "options": {},
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "options": {
+                "cwd": "apps/vm/firecracker-ctl-e2e",
+                "command": "tsc --noEmit -p tsconfig.json"
+              },
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects firecracker-ctl-e2e --includeDependentProjects -- pnpm exec nx build-deps firecracker-ctl-e2e"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker rm -f firecracker-ctl-e2e 2>/dev/null || true",
+                  "docker buildx build --platform linux/amd64 -f apps/vm/firecracker-ctl-e2e/mock/Dockerfile.mock -t kbve/firecracker-ctl:mock --load .",
+                  "docker run -d --name firecracker-ctl-e2e -p 19001:9001 -e FC_USE_JAILER=false -e RUST_LOG=info -e FC_MAX_CONCURRENT_VMS=5 -e FC_VM_TTL_SECS=60 kbve/firecracker-ctl:mock",
+                  "echo 'Waiting for firecracker-ctl container to become ready...' && for i in $(seq 1 60); do if curl -sf http://127.0.0.1:19001/health >/dev/null 2>&1; then echo 'Container ready after '\"$i\"'s'; break; fi; if [ $i -eq 60 ]; then echo 'Container did not become ready in 60s'; docker logs firecracker-ctl-e2e 2>&1 | tail -30; docker rm -f firecracker-ctl-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+                  "npx vitest run; EC=$?; echo '--- container logs ---'; docker logs firecracker-ctl-e2e 2>&1 | tail -50; docker rm -f firecracker-ctl-e2e 2>/dev/null || true; exit $EC"
+                ],
+                "parallel": false,
+                "cwd": "apps/vm/firecracker-ctl-e2e"
+              },
+              "configurations": {
+                "ci": {}
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            }
+          },
+          "projectType": "application",
+          "name": "firecracker-ctl-e2e",
+          "tags": [
+            "npm:private",
+            "scope:vm",
+            "firecracker",
+            "e2e"
+          ],
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/vm/firecracker-ctl-e2e/e2e",
+          "implicitDependencies": [
+            "firecracker-ctl"
+          ]
+        }
+      },
       "khashvault-e2e": {
         "name": "khashvault-e2e",
         "type": "e2e",
@@ -9622,6 +9740,152 @@
           "targets": {}
         }
       },
+      "mc": {
+        "name": "mc",
+        "type": "app",
+        "data": {
+          "root": "apps/mc",
+          "metadata": {},
+          "targets": {
+            "test": {
+              "executor": "nx:noop",
+              "cache": false,
+              "options": {},
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "options": {
+                "cwd": "apps/mc",
+                "command": "tsc --noEmit -p tsconfig.e2e.json"
+              },
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.e2e.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects mc --includeDependentProjects -- pnpm exec nx build-deps mc"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "container": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/mc/Dockerfile",
+                "load": true
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/mc:latest"
+                  ]
+                },
+                "production": {
+                  "push": true,
+                  "tags": [
+                    "ghcr.io/kbve/mc:latest"
+                  ],
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/mc:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/mc:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                {
+                  "target": "container",
+                  "projects": [
+                    "mc"
+                  ],
+                  "params": "forward"
+                }
+              ],
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker rm -f mc-e2e 2>/dev/null || true",
+                  "docker run -d --name mc-e2e -p 25575:25575 -p 25565:25565 -e EULA=TRUE -e RCON_PASSWORD=test -e ENABLE_RCON=true kbve/mc:latest",
+                  "echo 'Waiting for MC server RCON...' && for i in $(seq 1 300); do if docker logs mc-e2e 2>&1 | grep -q 'RCON running'; then echo 'RCON ready after '\"$i\"'s'; break; fi; if [ $i -eq 300 ]; then echo 'Server did not start in 300s'; docker logs mc-e2e 2>&1 | tail -50; docker rm -f mc-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+                  "RCON_PASSWORD=test npx vitest run; EC=$?; echo '--- container logs ---'; docker logs mc-e2e 2>&1 | tail -50; docker rm -f mc-e2e 2>/dev/null || true; exit $EC"
+                ],
+                "parallel": false,
+                "cwd": "apps/mc"
+              },
+              "configurations": {
+                "ci": {}
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            }
+          },
+          "projectType": "application",
+          "name": "mc",
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/mc",
+          "tags": [
+            "scope:mc"
+          ],
+          "implicitDependencies": []
+        }
+      },
       "@kbve/source": {
         "name": "@kbve/source",
         "type": "app",
@@ -9778,6 +10042,13 @@
       "axum-herbmail": [],
       "bevy_cam": [],
       "bevy_npc": [],
+      "firecracker-ctl-e2e": [
+        {
+          "source": "firecracker-ctl-e2e",
+          "target": "firecracker-ctl",
+          "type": "implicit"
+        }
+      ],
       "khashvault-e2e": [
         {
           "source": "khashvault-e2e",
@@ -10011,6 +10282,7 @@
           "type": "implicit"
         }
       ],
+      "mc": [],
       "@kbve/source": [
         {
           "source": "@kbve/source",
