@@ -1,0 +1,33 @@
+#!/bin/bash
+# Mock firecracker binary for e2e testing.
+# Reads the config JSON, finds the code drive, and prints its content to stdout.
+# Exits 0 to simulate a successful VM run.
+
+CONFIG_FILE=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --config-file) CONFIG_FILE="$2"; shift 2 ;;
+        --api-sock)    shift 2 ;;  # ignore
+        *)             shift ;;
+    esac
+done
+
+if [[ -z "$CONFIG_FILE" || ! -f "$CONFIG_FILE" ]]; then
+    echo "mock-firecracker: no config file found" >&2
+    exit 1
+fi
+
+# Extract the code drive path from the config JSON using grep/sed.
+# The config has a "drives" array; we find the entry after "drive_id":"code"
+# and extract its "path_on_host" value.
+CODE_PATH=$(grep -o '"path_on_host":"[^"]*"' "$CONFIG_FILE" | tail -1 | sed 's/"path_on_host":"//;s/"//')
+
+if [[ -z "$CODE_PATH" || ! -f "$CODE_PATH" ]]; then
+    echo "mock-firecracker: code drive not found (path=$CODE_PATH)" >&2
+    exit 1
+fi
+
+# Read the code content (strip null padding added by firecracker-ctl)
+tr -d '\0' < "$CODE_PATH"
+
+exit 0
