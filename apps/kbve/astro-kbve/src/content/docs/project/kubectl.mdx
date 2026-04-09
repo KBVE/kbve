@@ -19,7 +19,9 @@ version_toml: apps/vm/kubectl/version.toml
 version_target: apps/vm/kubectl/Cargo.toml
 runner: arc-runner-set
 image: kbve/kubectl
-has_test: false
+has_test: true
+e2e_name: kubectl-e2e
+test_framework: typescript
 author: h0lybyte
 license: KBVE
 status: active
