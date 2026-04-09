@@ -56,10 +56,13 @@ spec:
                           drop:
                               - ALL
                           add:
+                              - CHOWN
+                              - DAC_OVERRIDE
+                              - FOWNER
+                              - MKNOD
                               - NET_ADMIN
                               - SYS_ADMIN
                               - SYS_CHROOT
-                              - MKNOD
                   volumeMounts:
                       - name: rootfs-cache
                         mountPath: /var/lib/firecracker/rootfs
