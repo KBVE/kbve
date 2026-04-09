@@ -46,6 +46,32 @@ lore: |
     Dust Mites thrive in forgotten ruins, feeding on magical residue left behind by ancient civilizations.
 credits: |
     Ported from KBVE DiscordSH dungeon crawler.
+loot:
+    entries:
+        - item_ref: 'potion'
+          drop_rate: 0.3
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'rations'
+          drop_rate: 0.18
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'vitality-potion'
+          drop_rate: 0.06
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'whetstone'
+          drop_rate: 0.06
+          min_quantity: 1
+          max_quantity: 1
+    max_drops: 1
+    gold_min: 3
+    gold_max: 8
+    xp_reward: 15
+abilities:
+    - id: 'attack'
+      name: 'Gnaw'
+      damage: 6
 ---
 
 import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';

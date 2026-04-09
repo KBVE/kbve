@@ -63,6 +63,14 @@ spec:
                                 key: service-role-key
                       - name: SHARD_COUNT
                         value: '1'
+                      - name: IRC_HOST
+                        value: 'ergo-irc-service.irc.svc.cluster.local'
+                      - name: IRC_PORT
+                        value: '6667'
+                      - name: IRC_NICK
+                        value: 'mud-discordsh'
+                      - name: IRC_CHANNELS
+                        value: '#global,#world-events,#dungeon'
                   resources:
                       requests:
                           memory: '256Mi'
