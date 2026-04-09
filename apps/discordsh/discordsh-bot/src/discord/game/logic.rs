@@ -930,11 +930,19 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
     let mut rng = rand::rng();
 
     // Collect info about dead enemies before removing them
-    let dead_enemies: Vec<(String, &'static str, u8, Personality)> = session
+    let dead_enemies: Vec<(String, &'static str, &'static str, u8, Personality)> = session
         .enemies
         .iter()
         .filter(|e| e.hp <= 0)
-        .map(|e| (e.name.clone(), e.loot_table_id, e.level, e.personality))
+        .map(|e| {
+            (
+                e.name.clone(),
+                e.loot_table_id,
+                e.npc_ref,
+                e.level,
+                e.personality,
+            )
+        })
         .collect();
 
     if dead_enemies.is_empty() {
@@ -951,9 +959,16 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
     let max_rare_drops: u32 = 1;
     let mut rare_drops_this_encounter: u32 = 0;
 
-    for (i, (enemy_name, _loot_table, enemy_level, personality)) in dead_enemies.iter().enumerate()
+    for (i, (enemy_name, _loot_table, npc_ref, enemy_level, personality)) in
+        dead_enemies.iter().enumerate()
     {
-        let gold = rng.random_range(5..=15);
+        // Try proto gold first, fall back to random 5-15
+        let proto_gold = super::proto_bridge::roll_npc_gold(npc_ref);
+        let gold = if proto_gold > 0 {
+            proto_gold
+        } else {
+            rng.random_range(5..=15)
+        };
         let gold_per_player = (gold as f32 / alive_count as f32).ceil() as i32;
         let xp = content::xp_for_enemy(*enemy_level);
         let xp_per_player = xp / alive_ids.len().max(1) as u32;
@@ -1002,9 +1017,24 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
         };
         let recipient_name = session.player(loot_recipient).name.clone();
 
-        // Roll item loot drop
+        // Roll item loot drop — try proto loot table first, fall back to legacy
         let mut items_looted: u32 = 0;
-        if i < dead_loot_tables.len() {
+        let proto_drops = super::proto_bridge::roll_npc_loot(npc_ref);
+        if !proto_drops.is_empty() {
+            for (item_id, qty) in &proto_drops {
+                for _ in 0..*qty {
+                    if add_item_to_inventory(
+                        &mut session.player_mut(loot_recipient).inventory,
+                        item_id,
+                    ) {
+                        if let Some(def) = content::find_item(item_id) {
+                            logs.push(format!("Dropped: {}!", def.name));
+                        }
+                        items_looted += 1;
+                    }
+                }
+            }
+        } else if i < dead_loot_tables.len() {
             let loot_id = dead_loot_tables[i];
             let mut item_was_rare = false;
 
@@ -2842,6 +2872,7 @@ mod tests {
             intent: Intent::Attack { dmg: 5 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -3435,6 +3466,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -3512,6 +3544,7 @@ mod tests {
             intent: Intent::Attack { dmg: 20 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -3527,6 +3560,7 @@ mod tests {
             intent: Intent::Attack { dmg: 20 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 1,
             first_strike: false,
@@ -3573,6 +3607,7 @@ mod tests {
             intent: Intent::Attack { dmg: 5 },
             charged: false,
             loot_table_id: "boss",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -3620,6 +3655,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -3635,6 +3671,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 1,
             first_strike: false,
@@ -3754,6 +3791,7 @@ mod tests {
                 intent: Intent::Attack { dmg: 3 },
                 charged: false,
                 loot_table_id: "slime",
+                npc_ref: "",
                 enraged: false,
                 index: 1,
                 first_strike: false,
@@ -3880,6 +3918,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -4481,6 +4520,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -4496,6 +4536,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 1,
             first_strike: false,
@@ -4545,6 +4586,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -4560,6 +4602,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 1,
             first_strike: false,
@@ -4748,6 +4791,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -4763,6 +4807,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 1,
             first_strike: false,
@@ -5694,6 +5739,7 @@ mod tests {
             intent: Intent::Attack { dmg: 5 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: true,
@@ -7728,6 +7774,7 @@ mod tests {
                     intent: Intent::Attack { dmg: 10 },
                     charged: false,
                     loot_table_id: "boss",
+                    npc_ref: "",
                     enraged: false,
                     index: idx as u8,
                     first_strike: false,
@@ -7781,6 +7828,7 @@ mod tests {
                     intent: Intent::Attack { dmg: 10 },
                     charged: false,
                     loot_table_id: "boss",
+                    npc_ref: "",
                     enraged: false,
                     index: idx as u8,
                     first_strike: false,
@@ -7826,6 +7874,7 @@ mod tests {
                 intent: Intent::Attack { dmg: 10 },
                 charged: false,
                 loot_table_id: "boss",
+                npc_ref: "",
                 enraged: false,
                 index: 0,
                 first_strike: false,
@@ -7868,6 +7917,7 @@ mod tests {
             intent: Intent::Attack { dmg: 5 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,

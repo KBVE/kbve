@@ -318,8 +318,10 @@ pub fn find_npc_by_ref(r: &str) -> Option<&'static bevy_npc::Npc> {
 /// Convert a proto NPC into an [`EnemyState`] ready for combat.
 ///
 /// Stats (HP, armor, personality, first_strike) come from the proto definition.
-/// The initial intent is looked up from a static table keyed by NPC ref.
-/// The loot table is derived from the NPC's level tier.
+/// The initial intent is derived from proto abilities when available, with a
+/// hardcoded fallback table for NPCs that haven't been migrated yet.
+/// The loot table ID is kept for legacy compatibility; proto loot is resolved
+/// at drop time via [`roll_npc_loot`].
 pub fn proto_to_enemy_state(npc: &bevy_npc::Npc) -> EnemyState {
     let stats = npc.stats.as_ref();
     let behavior = npc.behavior.as_ref();
@@ -336,9 +338,10 @@ pub fn proto_to_enemy_state(npc: &bevy_npc::Npc) -> EnemyState {
         max_hp: hp,
         armor,
         effects: Vec::new(),
-        intent: npc_initial_intent(&npc.r#ref, attack),
+        intent: proto_initial_intent(npc, attack),
         charged: false,
         loot_table_id: loot_table_for_level(npc.level as u8),
+        npc_ref: leak(npc.r#ref.clone()),
         enraged: false,
         index: 0,
         first_strike,
@@ -364,7 +367,7 @@ fn proto_personality(p: i32) -> Personality {
     }
 }
 
-/// Derive the loot table ID from enemy level tier.
+/// Derive the loot table ID from enemy level tier (legacy fallback).
 fn loot_table_for_level(level: u8) -> &'static str {
     match level {
         0..=1 => "slime",
@@ -374,11 +377,145 @@ fn loot_table_for_level(level: u8) -> &'static str {
     }
 }
 
-/// Look up the initial combat intent for an NPC by ref.
-/// Falls back to a basic Attack using the NPC's attack stat.
-fn npc_initial_intent(npc_ref: &str, attack: i32) -> Intent {
+// ── Proto-driven loot rolling ─────────────────────────────────────────
+
+/// Roll loot from an NPC's proto loot table. Returns a list of (game_id, qty) pairs.
+/// If the NPC has no proto loot entries, returns an empty Vec (caller should
+/// fall back to legacy `content::roll_loot`).
+pub fn roll_npc_loot(npc_ref: &str) -> Vec<(&'static str, u32)> {
+    use rand::{Rng, RngExt};
+
+    let npc = match find_npc_by_ref(npc_ref) {
+        Some(n) => n,
+        None => return Vec::new(),
+    };
+    let loot = match npc.loot.as_ref() {
+        Some(l) if !l.entries.is_empty() => l,
+        _ => return Vec::new(),
+    };
+
+    let max_drops = loot.max_drops.unwrap_or(2) as usize;
+    let mut rng = rand::rng();
+    let mut drops = Vec::new();
+
+    for entry in &loot.entries {
+        if entry.drop_rate <= 0.0 || entry.item_ref.is_empty() {
+            continue;
+        }
+        if rng.random_range(0.0f32..1.0) >= entry.drop_rate {
+            continue;
+        }
+        let qty = if entry.max_quantity > entry.min_quantity {
+            rng.random_range(entry.min_quantity..=entry.max_quantity) as u32
+        } else {
+            entry.min_quantity.max(1) as u32
+        };
+        // Convert slug (hyphenated) to game_id (underscored)
+        let game_id = slug_to_game_id(&entry.item_ref);
+        drops.push((game_id, qty));
+        if drops.len() >= max_drops {
+            break;
+        }
+    }
+    drops
+}
+
+/// Roll gold from an NPC's proto loot table. Returns 0 if no proto gold defined.
+pub fn roll_npc_gold(npc_ref: &str) -> i32 {
+    use rand::{Rng, RngExt};
+
+    let npc = match find_npc_by_ref(npc_ref) {
+        Some(n) => n,
+        None => return 0,
+    };
+    let loot = match npc.loot.as_ref() {
+        Some(l) => l,
+        None => return 0,
+    };
+    let gold_min = loot.gold_min.unwrap_or(0);
+    let gold_max = loot.gold_max.unwrap_or(0);
+    if gold_max <= 0 {
+        return 0;
+    }
+    if gold_max <= gold_min {
+        return gold_min;
+    }
+    rand::rng().random_range(gold_min..=gold_max)
+}
+
+/// Get XP reward from proto loot table. Returns 0 if not defined.
+pub fn npc_xp_reward(npc_ref: &str) -> i32 {
+    find_npc_by_ref(npc_ref)
+        .and_then(|n| n.loot.as_ref())
+        .and_then(|l| l.xp_reward)
+        .unwrap_or(0)
+}
+
+// ── Proto-driven initial intent ───────────────────────────────────────
+
+/// Derive the NPC's initial combat intent. Reads from proto abilities first;
+/// falls back to the hardcoded table for NPCs that haven't been migrated yet.
+fn proto_initial_intent(npc: &bevy_npc::Npc, attack: i32) -> Intent {
+    // Try proto abilities: use the first ability (highest priority opener).
+    if let Some(ability) = npc.abilities.first() {
+        if let Some(intent) = ability_to_intent(ability, attack) {
+            return intent;
+        }
+    }
+    // Fallback: hardcoded table keyed by NPC ref slug.
+    legacy_initial_intent(&npc.r#ref, attack)
+}
+
+/// Convert a proto NpcAbility to a game Intent.
+fn ability_to_intent(ability: &bevy_npc::NpcAbility, fallback_dmg: i32) -> Option<Intent> {
+    let id = ability.id.as_str();
+    match id {
+        "attack" | "bite" | "slash" | "claw" | "smash" | "sting" | "shoot" => {
+            Some(Intent::Attack {
+                dmg: ability.damage.unwrap_or(fallback_dmg),
+            })
+        }
+        "heavy-attack" | "heavy_attack" | "crush" | "slam" => Some(Intent::HeavyAttack {
+            dmg: ability.damage.unwrap_or(fallback_dmg),
+        }),
+        "defend" | "shield" | "harden" => Some(Intent::Defend {
+            armor: ability.damage.unwrap_or(3),
+        }),
+        "charge" => Some(Intent::Charge),
+        "aoe-attack" | "aoe_attack" | "cleave" | "shockwave" => Some(Intent::AoeAttack {
+            dmg: ability.damage.unwrap_or(fallback_dmg),
+        }),
+        "heal" | "heal-self" | "heal_self" | "regenerate" => Some(Intent::HealSelf {
+            amount: ability.heal_amount.unwrap_or(ability.damage.unwrap_or(10)),
+        }),
+        "poison" | "venom" | "toxic" => Some(Intent::Debuff {
+            effect: EffectKind::Poison,
+            stacks: 1,
+            turns: ability.cooldown_turns.unwrap_or(2) as u8,
+        }),
+        "burn" | "fire" | "ignite" => Some(Intent::Debuff {
+            effect: EffectKind::Burning,
+            stacks: 1,
+            turns: ability.cooldown_turns.unwrap_or(3) as u8,
+        }),
+        "stun" | "daze" | "paralyze" => Some(Intent::Debuff {
+            effect: EffectKind::Stunned,
+            stacks: 1,
+            turns: 1,
+        }),
+        "weaken" | "curse" => Some(Intent::Debuff {
+            effect: EffectKind::Weakened,
+            stacks: 1,
+            turns: ability.cooldown_turns.unwrap_or(2) as u8,
+        }),
+        "flee" | "escape" => Some(Intent::Flee),
+        _ => None,
+    }
+}
+
+/// Hardcoded initial intents — legacy fallback for NPCs without proto abilities.
+fn legacy_initial_intent(npc_ref: &str, attack: i32) -> Intent {
     match npc_ref {
-        // Level 1 — tier "slime"
         "glass-slime" => Intent::Attack { dmg: 5 },
         "crystal-bat" => Intent::Attack { dmg: 4 },
         "mushroom-sprite" => Intent::Attack { dmg: 4 },
@@ -389,8 +526,6 @@ fn npc_initial_intent(npc_ref: &str, attack: i32) -> Intent {
             turns: 2,
         },
         "crumbling-statue" => Intent::Defend { armor: 3 },
-
-        // Level 2 — tier "skeleton"
         "skeleton-guard" => Intent::Defend { armor: 5 },
         "bone-archer" => Intent::Attack { dmg: 7 },
         "cursed-knight" => Intent::Defend { armor: 5 },
@@ -402,8 +537,6 @@ fn npc_initial_intent(npc_ref: &str, attack: i32) -> Intent {
             stacks: 1,
             turns: 3,
         },
-
-        // Level 3 — tier "wraith"
         "shadow-wraith" => Intent::HeavyAttack { dmg: 12 },
         "phantom-knight" => Intent::Charge,
         "void-walker" => Intent::HeavyAttack { dmg: 10 },
@@ -415,13 +548,9 @@ fn npc_initial_intent(npc_ref: &str, attack: i32) -> Intent {
             turns: 3,
         },
         "crystal-golem" => Intent::Charge,
-
-        // Level 5 — tier "boss"
         "glass-golem" => Intent::Charge,
         "corrupted-warden" => Intent::Charge,
         "the-shattered-king" => Intent::AoeAttack { dmg: 8 },
-
-        // Fallback: basic attack using proto attack stat
         _ => Intent::Attack { dmg: attack },
     }
 }

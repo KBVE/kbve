@@ -546,6 +546,10 @@ pub struct EnemyState {
     pub intent: Intent,
     pub charged: bool,
     pub loot_table_id: &'static str,
+    /// NPC ref slug (e.g. "glass-slime") for proto loot table lookup.
+    /// Defaults to `""` for test/mock enemies (falls back to legacy loot tables).
+    #[serde(default)]
+    pub npc_ref: &'static str,
     pub enraged: bool,
     pub index: u8,
     pub first_strike: bool,
@@ -1093,6 +1097,7 @@ mod tests {
                     intent: Intent::Attack { dmg: 5 },
                     charged: false,
                     loot_table_id: "slime",
+                    npc_ref: "",
                     enraged: false,
                     index: 0,
                     first_strike: false,
@@ -1108,6 +1113,7 @@ mod tests {
                     intent: Intent::Attack { dmg: 4 },
                     charged: false,
                     loot_table_id: "slime",
+                    npc_ref: "",
                     enraged: false,
                     index: 1,
                     first_strike: false,
@@ -1344,6 +1350,7 @@ mod tests {
                 intent: Intent::HeavyAttack { dmg: 12 },
                 charged: false,
                 loot_table_id: "skeleton",
+                npc_ref: "",
                 enraged: false,
                 index: 0,
                 first_strike: false,
