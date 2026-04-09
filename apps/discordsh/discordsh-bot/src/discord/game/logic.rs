@@ -219,6 +219,112 @@ fn check_quest_completions(session: &mut SessionState, logs: &mut Vec<String>) {
     }
 }
 
+/// Handle a crafting action. Consumes ingredients from the actor's inventory,
+/// produces the output item, and grants skill XP.
+fn handle_craft(
+    session: &mut SessionState,
+    item_ref: &str,
+    actor: serenity::UserId,
+) -> Vec<String> {
+    let mut logs = Vec::new();
+    let player = session.player_mut(actor);
+
+    match proto_bridge::execute_craft(&mut player.inventory, item_ref) {
+        Ok((output_name, qty, xp)) => {
+            if qty > 1 {
+                logs.push(format!("\u{2692} Crafted {}x {}!", qty, output_name));
+            } else {
+                logs.push(format!("\u{2692} Crafted {}!", output_name));
+            }
+            if xp > 0 {
+                skills::grant_foraging_xp(&mut player.skills, xp);
+                logs.push(format!("+{} crafting XP", xp));
+            }
+        }
+        Err(e) => {
+            logs.push(format!("Cannot craft: {}", e));
+        }
+    }
+    logs
+}
+
+/// Handle dialogue tree navigation. When a player selects a dialogue option,
+/// this function advances the conversation to the target node. If the node has
+/// no options (leaf node), the dialogue ends and returns to the room phase.
+fn handle_dialogue_navigate(
+    session: &mut SessionState,
+    node_id: &str,
+    _actor: serenity::UserId,
+) -> Vec<String> {
+    let mut logs = Vec::new();
+
+    // If there's no active dialogue, this is the start of a new conversation.
+    // The node_id is actually the NPC ref in this case — we start at entry_node.
+    let (npc_ref, target_node_id) = if let Some(ref dlg) = session.active_dialogue {
+        (dlg.npc_ref.clone(), node_id.to_owned())
+    } else {
+        // node_id is the NPC ref — start a new dialogue
+        let npc_ref = node_id.to_owned();
+        let tree = match proto_bridge::get_npc_dialogue_tree(&npc_ref) {
+            Some(t) => t,
+            None => {
+                logs.push("This NPC has nothing to say.".to_owned());
+                return logs;
+            }
+        };
+        let npc_name = proto_bridge::find_npc_by_ref(&npc_ref)
+            .map(|n| n.name.clone())
+            .unwrap_or_else(|| npc_ref.clone());
+        session.active_dialogue = Some(super::types::ActiveDialogue {
+            npc_ref: npc_ref.clone(),
+            npc_name,
+            current_node_id: tree.entry_node_id.clone(),
+        });
+        (npc_ref, tree.entry_node_id.clone())
+    };
+
+    // Look up the dialogue tree and target node
+    let tree = match proto_bridge::get_npc_dialogue_tree(&npc_ref) {
+        Some(t) => t,
+        None => {
+            session.active_dialogue = None;
+            logs.push("Dialogue tree not found.".to_owned());
+            return logs;
+        }
+    };
+
+    let node = match proto_bridge::get_dialogue_node(tree, &target_node_id) {
+        Some(n) => n,
+        None => {
+            session.active_dialogue = None;
+            logs.push("Conversation ended.".to_owned());
+            return logs;
+        }
+    };
+
+    // Update current node
+    if let Some(ref mut dlg) = session.active_dialogue {
+        dlg.current_node_id = target_node_id.clone();
+    }
+
+    // Display the node's text
+    let speaker = session
+        .active_dialogue
+        .as_ref()
+        .map(|d| d.npc_name.as_str())
+        .unwrap_or("???");
+    logs.push(format!("**{}**: {}", speaker, node.text));
+
+    // If the node has no options, end the dialogue
+    if node.options.is_empty() {
+        session.active_dialogue = None;
+        logs.push("*The conversation ends.*".to_owned());
+    }
+    // Otherwise, the render layer will show option buttons based on active_dialogue
+
+    logs
+}
+
 /// Handle the AcceptQuest action.
 fn handle_accept_quest(
     session: &mut SessionState,
@@ -439,6 +545,19 @@ fn validate_action(
         GameAction::AbandonQuest(_) | GameAction::ViewQuests => {
             // Allowed anytime except GameOver (already checked above)
         }
+        GameAction::DialogueTalk(_) => {
+            if session.phase != GamePhase::City
+                && session.phase != GamePhase::Merchant
+                && session.active_dialogue.is_none()
+            {
+                return Err("You can only talk to NPCs in a city or at a merchant.".to_owned());
+            }
+        }
+        GameAction::Craft(_) => {
+            if session.phase != GamePhase::City && session.phase != GamePhase::Merchant {
+                return Err("You can only craft in a city or at a merchant.".to_owned());
+            }
+        }
     }
 
     // WaitingForActions phase: only allow Attack, AttackTarget, Defend, UseItem, ToggleItems
@@ -625,6 +744,12 @@ pub fn apply_action(
                 }
             }
             ActionResult::logs_only(lines)
+        }
+        GameAction::DialogueTalk(ref node_id) => {
+            ActionResult::logs_only(handle_dialogue_navigate(session, node_id, actor))
+        }
+        GameAction::Craft(ref item_ref) => {
+            ActionResult::logs_only(handle_craft(session, item_ref, actor))
         }
     };
 
@@ -2858,6 +2983,7 @@ mod tests {
             pending_destination: None,
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
+            active_dialogue: None,
         }
     }
 

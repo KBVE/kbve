@@ -451,6 +451,205 @@ pub fn npc_xp_reward(npc_ref: &str) -> i32 {
         .unwrap_or(0)
 }
 
+// ── Proto-driven dialogue trees ───────────────────────────────────────
+
+/// Look up an NPC's dialogue tree. Returns None if the NPC has no dialogue tree,
+/// or if the NPC ref is not found in the database.
+pub fn get_npc_dialogue_tree(npc_ref: &str) -> Option<&'static bevy_npc::DialogueTree> {
+    let npc = find_npc_by_ref(npc_ref)?;
+    npc.dialogue_tree.as_ref().filter(|dt| !dt.nodes.is_empty())
+}
+
+/// Find a specific dialogue node within an NPC's dialogue tree.
+pub fn get_dialogue_node<'a>(
+    tree: &'a bevy_npc::DialogueTree,
+    node_id: &str,
+) -> Option<&'a bevy_npc::DialogueNode> {
+    tree.nodes.iter().find(|n| n.id == node_id)
+}
+
+/// Check if an NPC has any dialogue tree defined.
+pub fn npc_has_dialogue(npc_ref: &str) -> bool {
+    get_npc_dialogue_tree(npc_ref).is_some()
+}
+
+// ── Proto-driven faction reputation ───────────────────────────────────
+
+/// Faction reputation tier thresholds.
+pub const FACTION_HOSTILE: i32 = -50;
+pub const FACTION_UNFRIENDLY: i32 = 0;
+pub const FACTION_FRIENDLY: i32 = 50;
+pub const FACTION_HONORED: i32 = 100;
+
+/// Get the faction ID for an NPC (if assigned). Returns None if no faction.
+pub fn npc_faction(npc_ref: &str) -> Option<&'static str> {
+    let npc = find_npc_by_ref(npc_ref)?;
+    let faction = npc.faction.as_ref()?;
+    if faction.faction_id.is_empty() {
+        return None;
+    }
+    Some(leak(faction.faction_id.clone()))
+}
+
+/// Get the merchant price modifier based on faction standing.
+/// Returns a multiplier: 0.9 = 10% discount, 1.1 = 10% markup.
+pub fn faction_price_modifier(standing: i32) -> f32 {
+    if standing >= FACTION_HONORED {
+        0.85 // 15% discount
+    } else if standing >= FACTION_FRIENDLY {
+        0.90 // 10% discount
+    } else if standing < FACTION_HOSTILE {
+        1.15 // 15% markup
+    } else if standing < FACTION_UNFRIENDLY {
+        1.10 // 10% markup
+    } else {
+        1.0 // neutral
+    }
+}
+
+/// Get faction reputation tier label.
+pub fn faction_tier_label(standing: i32) -> &'static str {
+    if standing >= FACTION_HONORED {
+        "Honored"
+    } else if standing >= FACTION_FRIENDLY {
+        "Friendly"
+    } else if standing >= FACTION_UNFRIENDLY {
+        "Neutral"
+    } else if standing >= FACTION_HOSTILE {
+        "Unfriendly"
+    } else {
+        "Hostile"
+    }
+}
+
+// ── Proto-driven crafting recipes ─────────────────────────────────────
+
+/// A resolved crafting recipe ready for display and execution.
+#[derive(Debug, Clone)]
+pub struct ResolvedRecipe {
+    /// Output item ref slug (e.g. "health-potion").
+    pub output_ref: &'static str,
+    /// Output display name.
+    pub output_name: &'static str,
+    /// Output quantity per craft.
+    pub output_qty: u32,
+    /// Ingredients: (game_id, display_name, required_amount).
+    pub ingredients: Vec<(&'static str, &'static str, u32)>,
+    /// Skill required (optional).
+    pub skill_name: Option<&'static str>,
+    /// Minimum skill level required.
+    pub skill_level: u32,
+    /// XP granted on craft.
+    pub xp_reward: u32,
+}
+
+/// Find all craftable recipes for items tagged "discordsh".
+/// Filters by player inventory (has all ingredients) and skill level.
+pub fn available_recipes(
+    inventory: &super::types::GameInventory,
+    _skills: &bevy_skills::SkillProfile,
+) -> Vec<ResolvedRecipe> {
+    let db = item_db();
+    let mut recipes = Vec::new();
+
+    for (_id, item) in db.iter() {
+        if !item.tags.iter().any(|t| t == "discordsh") {
+            continue;
+        }
+        for recipe in &item.recipes {
+            if recipe.ingredients.is_empty() {
+                continue;
+            }
+
+            // Check if player has all ingredients
+            let mut can_craft = true;
+            let mut resolved_ingredients = Vec::new();
+            for ing in &recipe.ingredients {
+                let game_id = leak(ing.item_ref.replace('-', "_"));
+                let name = ing
+                    .name
+                    .as_deref()
+                    .map(|n| leak(n.to_owned()))
+                    .unwrap_or(game_id);
+                let required = ing.amount.max(1) as u32;
+                let have = super::types::inv_count(inventory, game_id);
+                if have < required {
+                    can_craft = false;
+                }
+                resolved_ingredients.push((game_id, name, required));
+            }
+
+            if !can_craft {
+                continue;
+            }
+
+            let output_ref = slug_to_game_id(&item.r#ref);
+            let output_name = leak(item.name.clone());
+            let output_qty = recipe.output_quantity.unwrap_or(1).max(1) as u32;
+            let xp_reward = recipe.xp_reward.unwrap_or(0.0) as u32;
+
+            let skill_name: Option<&'static str> = recipe.skill.as_deref().and_then(|s| match s {
+                "cooking" => Some("Cooking"),
+                "smithing" => Some("Smithing"),
+                "crafting" => Some("Crafting"),
+                "alchemy" => Some("Alchemy"),
+                "woodcutting" => Some("Woodcutting"),
+                "mining" => Some("Mining"),
+                "foraging" => Some("Foraging"),
+                _ => None,
+            });
+            let skill_level = recipe.skill_level.unwrap_or(0) as u32;
+
+            recipes.push(ResolvedRecipe {
+                output_ref,
+                output_name,
+                output_qty,
+                ingredients: resolved_ingredients,
+                skill_name,
+                skill_level,
+                xp_reward,
+            });
+        }
+    }
+    recipes
+}
+
+/// Execute a craft: consume ingredients, return the output item ref + qty.
+/// Returns Err if the recipe isn't found or ingredients are missing.
+pub fn execute_craft(
+    inventory: &mut super::types::GameInventory,
+    output_game_id: &str,
+) -> Result<(&'static str, u32, u32), String> {
+    let db = item_db();
+    let slug = output_game_id.replace('_', "-");
+    let item = db
+        .get_by_ref(&slug)
+        .ok_or_else(|| format!("Item '{}' not found", output_game_id))?;
+    let recipe = item
+        .recipes
+        .first()
+        .ok_or_else(|| format!("No recipe for '{}'", output_game_id))?;
+
+    // Verify and consume ingredients
+    for ing in &recipe.ingredients {
+        let game_id = &ing.item_ref.replace('-', "_");
+        let required = ing.amount.max(1) as u32;
+        let consumed = ing.consumed.unwrap_or(true);
+        if consumed && !super::types::inv_remove_qty(inventory, game_id, required) {
+            return Err(format!("Missing ingredient: {}", ing.item_ref));
+        }
+    }
+
+    // Add output
+    let output_ref = slug_to_game_id(&item.r#ref);
+    let output_name = leak(item.name.clone());
+    let output_qty = recipe.output_quantity.unwrap_or(1).max(1) as u32;
+    super::types::inv_add_qty(inventory, output_ref, output_qty);
+
+    let xp = recipe.xp_reward.unwrap_or(0.0) as u32;
+    Ok((output_name, output_qty, xp))
+}
+
 // ── Proto-driven initial intent ───────────────────────────────────────
 
 /// Derive the NPC's initial combat intent. Reads from proto abilities first;

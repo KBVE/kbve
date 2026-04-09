@@ -664,6 +664,7 @@ mod tests {
             pending_destination: None,
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
+            active_dialogue: None,
         }
     }
 }
