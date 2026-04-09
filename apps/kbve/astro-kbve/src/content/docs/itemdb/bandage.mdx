@@ -18,6 +18,16 @@ tags:
 use_effects:
   - { type: 'heal', amount: 5 }
   - { type: 'remove_effect', status_effect: 'bleed' }
+recipes:
+    - skill: 'crafting'
+      skill_level: 1
+      xp_reward: 8
+      output_quantity: 2
+      ingredients:
+          - item_ref: 'wildflower'
+            amount: 1
+          - item_ref: 'log'
+            amount: 1
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';

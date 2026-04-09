@@ -17,6 +17,18 @@ tags:
   - discordsh
 use_effects:
   - { type: 'full_heal' }
+recipes:
+    - skill: 'alchemy'
+      skill_level: 30
+      xp_reward: 80
+      output_quantity: 1
+      ingredients:
+          - item_ref: 'crystal-ore'
+            amount: 1
+          - item_ref: 'rose'
+            amount: 3
+          - item_ref: 'chanterelle'
+            amount: 2
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';

@@ -17,6 +17,16 @@ tags:
   - discordsh
 use_effects:
   - { type: 'apply_effect', status_effect: 'sharpened', stacks: 2, turns: 4 }
+recipes:
+    - skill: 'alchemy'
+      skill_level: 20
+      xp_reward: 55
+      output_quantity: 1
+      ingredients:
+          - item_ref: 'fly-agaric'
+            amount: 2
+          - item_ref: 'sunflower'
+            amount: 1
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
