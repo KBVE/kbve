@@ -6,11 +6,13 @@ import ReactHomeServiceCards from './ReactHomeServiceCards';
 
 <section
 	id="dashboard-home-wrapper"
-	class="dashboard-home-wrapper"
+	class="relative min-h-screen w-screen bg-transparent ml-[calc(-50vw+50%)]"
 	aria-label="Dashboard home">
-	<div id="dashboard-home-content" class="dashboard-home-content">
+	<div
+		id="dashboard-home-content"
+		class="mx-auto w-full max-w-[1200px] px-4 py-8 md:px-6">
 		<ReactHomeAuth client:only="react">
-			<div class="not-content home-dashboard">
+			<div class="not-content flex min-h-[60vh] flex-col gap-5">
 				<!-- Island: Header + System Status Banner -->
 				<div id="home-status-banner">
 					<ReactHomeStatusBanner client:only="react" />
@@ -24,38 +26,3 @@ import ReactHomeServiceCards from './ReactHomeServiceCards';
 		</ReactHomeAuth>
 	</div>
 </section>
-
-<style>
-	.dashboard-home-wrapper {
-		background: transparent;
-		min-height: 100vh;
-		position: relative;
-		width: 100vw;
-		margin-left: calc(-50vw + 50%);
-	}
-
-	.dashboard-home-content {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 2rem 1rem;
-	}
-
-	@media (min-width: 768px) {
-		.dashboard-home-content {
-			padding: 2rem 1.5rem;
-		}
-	}
-
-	.home-dashboard {
-		display: flex;
-		flex-direction: column;
-		gap: 1.25rem;
-		min-height: 60vh;
-	}
-
-	:global(@keyframes spin) {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-</style>

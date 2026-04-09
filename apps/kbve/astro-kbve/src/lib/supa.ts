@@ -50,7 +50,7 @@ export function initSupa(options?: Record<string, unknown>): Promise<void> {
 
 		// Upgrade $auth.flags to STAFF if the user has staff permissions.
 		// Must run after bootAuth so the session is available.
-		await resolveStaffFlag(gateway);
+		await resolveStaffFlag(gateway, SUPABASE_URL, SUPABASE_ANON_KEY);
 	})()
 		.then(() => {})
 		.catch((e) => {

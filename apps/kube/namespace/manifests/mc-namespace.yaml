@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: mc
+    labels:
+        name: mc
+        purpose: minecraft
+        managed-by: argocd
