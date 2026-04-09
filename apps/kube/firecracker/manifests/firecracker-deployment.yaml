@@ -17,6 +17,7 @@ spec:
         spec:
             nodeSelector:
                 kvm: 'true'
+            automountServiceAccountToken: false
             containers:
                 - name: firecracker-ctl
                   image: ghcr.io/kbve/firecracker-ctl:0.1.27
@@ -41,7 +42,19 @@ spec:
                       - name: FC_JAILER_GID
                         value: '10001'
                   securityContext:
+                      # The jailer's pivot_root syscall is blocked by the default
+                      # seccomp profile. Unconfined is required because:
+                      #   - Talos does not support Localhost seccomp profiles
+                      #   - No Security Profiles Operator is installed
+                      # Mitigations: NetworkPolicy default-deny, KVM hardware
+                      # isolation, jailer per-VM cgroup+chroot+PID namespace,
+                      # read-only rootfs, no outbound network for VMs.
+                      seccompProfile:
+                          type: Unconfined
+                      readOnlyRootFilesystem: true
                       capabilities:
+                          drop:
+                              - ALL
                           add:
                               - NET_ADMIN
                               - SYS_ADMIN
@@ -53,6 +66,8 @@ spec:
                         readOnly: true
                       - name: vm-scratch
                         mountPath: /var/lib/firecracker/scratch
+                      - name: tmp
+                        mountPath: /tmp
                   livenessProbe:
                       httpGet:
                           path: /health
@@ -72,3 +87,6 @@ spec:
                 - name: vm-scratch
                   emptyDir:
                       sizeLimit: 8Gi
+                - name: tmp
+                  emptyDir:
+                      sizeLimit: 64Mi

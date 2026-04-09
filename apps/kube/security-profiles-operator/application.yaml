@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: security-profiles-operator
+    namespace: argocd
+spec:
+    project: default
+    sources:
+        - repoURL: https://github.com/kubernetes-sigs/security-profiles-operator
+          targetRevision: v0.9.1
+          path: deploy/helm
+          helm:
+              releaseName: security-profiles-operator
+              valueFiles:
+                  - $values/apps/kube/security-profiles-operator/manifests/values.yaml
+        - repoURL: https://github.com/kbve/kbve
+          targetRevision: main
+          ref: values
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: security-profiles-operator
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+            - RespectIgnoreDifferences=true
+        retry:
+            limit: 3
+            backoff:
+                duration: 30s
+                factor: 2
+                maxDuration: 3m

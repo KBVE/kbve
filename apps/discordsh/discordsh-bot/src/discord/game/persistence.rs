@@ -47,6 +47,9 @@ pub struct DungeonProfile {
     /// Serialized `SkillProfile` (JSONB). Empty/null for legacy profiles.
     #[serde(default)]
     pub skills: serde_json::Value,
+    /// Faction reputation standing (JSONB). Empty/null for legacy profiles.
+    #[serde(default)]
+    pub faction_standing: serde_json::Value,
     pub created_at: Option<String>,
     pub updated_at: Option<String>,
 }
@@ -185,6 +188,8 @@ impl ProfileStore {
                 "p_armor_gear": profile.armor_gear,
                 "p_inventory": profile.inventory,
                 "p_completed_quests": profile.completed_quests,
+                "p_skills": profile.skills,
+                "p_faction_standing": profile.faction_standing,
                 "p_run_outcome": run.outcome,
                 "p_run_rooms_cleared": run.rooms_cleared,
                 "p_run_kills": run.kills,
@@ -288,6 +293,15 @@ pub fn apply_profile_to_player(
         if let Ok(sp) = serde_json::from_value::<bevy_skills::SkillProfile>(profile.skills.clone())
         {
             player.skills = sp;
+        }
+    }
+
+    // Restore faction standing from JSONB
+    if !profile.faction_standing.is_null() && profile.faction_standing != serde_json::json!({}) {
+        if let Ok(factions) = serde_json::from_value::<std::collections::HashMap<String, i32>>(
+            profile.faction_standing.clone(),
+        ) {
+            player.faction_standing = factions;
         }
     }
 
@@ -396,6 +410,7 @@ pub fn extract_save_payload(
         inventory: final_inventory,
         completed_quests: journal.completed.clone(),
         skills: serde_json::to_value(&player.skills).unwrap_or_default(),
+        faction_standing: serde_json::to_value(&player.faction_standing).unwrap_or_default(),
         created_at: None,
         updated_at: None,
     };
@@ -547,6 +562,7 @@ mod tests {
             inventory: serde_json::json!([]),
             completed_quests: Vec::new(),
             skills: serde_json::json!({}),
+            faction_standing: serde_json::json!({}),
             created_at: None,
             updated_at: None,
         };
@@ -601,6 +617,7 @@ mod tests {
             inventory: serde_json::json!([]),
             completed_quests: Vec::new(),
             skills: serde_json::json!({}),
+            faction_standing: serde_json::json!({}),
             created_at: None,
             updated_at: None,
         };
