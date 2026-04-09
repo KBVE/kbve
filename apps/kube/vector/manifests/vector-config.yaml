@@ -5,8 +5,8 @@ metadata:
     name: vector-config
     namespace: vector
     annotations:
-        kbve.sh/last-updated: '2026-04-07T05:30:00Z'
-        kbve.sh/config-version: 'v2-fix-vrl-coalescing'
+        kbve.sh/last-updated: '2026-04-09T04:50:00Z'
+        kbve.sh/config-version: 'v3-fix-vrl-warnings'
 data:
     vector.yml: |
         api:
@@ -52,7 +52,7 @@ data:
               if match(msg, r'^(record|Trace)$') { abort }
 
               # Strip ANSI escape codes
-              .event_message = replace!(string!(.event_message), r'\x1b\[[0-9;]*m', "")
+              .event_message = replace(string!(.event_message), r'\x1b\[[0-9;]*m', "")
 
               # Try parsing JSON messages (argocd, etc.) to extract level/msg
               parsed, err = parse_json(.event_message)
@@ -297,7 +297,7 @@ data:
                       .level = "info"
                   }
               }
-              .level = downcase!(.level)
+              .level = downcase(.level)
 
               .service = string(.appname) ?? "unknown"
               .message = string(.event_message) ?? ""

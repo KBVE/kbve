@@ -81,6 +81,12 @@ export interface RowsSummary {
 	checks: Record<string, { ok: boolean; latency_ms?: number }>;
 }
 
+export interface VmSummary {
+	total: number;
+	running: number;
+	stopped: number;
+}
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -90,6 +96,8 @@ const CACHE_TTL_MS = 2 * 60 * 1000;
 const PROXY_BASE = '/dashboard/grafana/proxy';
 const DS_CACHE_KEY = 'cache:grafana:ds-id';
 const CH_PROXY_BASE = '/dashboard/clickhouse/proxy';
+const VM_PROXY_BASE = '/dashboard/vm/proxy';
+const VM_NAMESPACE = 'angelscript';
 
 // ---------------------------------------------------------------------------
 // Cache helpers
@@ -499,10 +507,52 @@ async function fetchRowsSummary(token: string): Promise<RowsSummary | null> {
 			headers: { Authorization: `Bearer ${token}` },
 			signal: AbortSignal.timeout(8000),
 		});
-		if (!resp.ok) return null;
+		if (!resp.ok) {
+			if (resp.status === 503)
+				console.warn('[ROWS] Proxy not configured (503)');
+			else if (resp.status === 502)
+				console.warn('[ROWS] Service unreachable (502)');
+			else console.warn(`[ROWS] Fetch failed (${resp.status})`);
+			return null;
+		}
 		const data: RowsSummary = await resp.json();
 		setCache('cache:dashboard:rows-summary', data);
 		return data;
+	} catch {
+		console.warn('[ROWS] Network error or timeout');
+		return null;
+	}
+}
+
+async function fetchVmSummary(token: string): Promise<VmSummary | null> {
+	const cached = getCache<VmSummary>('cache:dashboard:vm-summary');
+	if (cached) return cached;
+
+	try {
+		const resp = await fetch(
+			`${VM_PROXY_BASE}/apis/kubevirt.io/v1/namespaces/${VM_NAMESPACE}/virtualmachines`,
+			{
+				headers: { Authorization: `Bearer ${token}` },
+				signal: AbortSignal.timeout(10000),
+			},
+		);
+		if (!resp.ok) return null;
+		const data = await resp.json();
+		const items: Array<{
+			spec?: { running?: boolean };
+			status?: { printableStatus?: string };
+		}> = data.items ?? [];
+
+		const total = items.length;
+		const running = items.filter(
+			(vm) =>
+				vm.spec?.running === true ||
+				vm.status?.printableStatus === 'Running',
+		).length;
+
+		const summary: VmSummary = { total, running, stopped: total - running };
+		setCache('cache:dashboard:vm-summary', summary);
+		return summary;
 	} catch {
 		return null;
 	}
@@ -590,6 +640,7 @@ class HomeService {
 	public readonly $report = atom<ReportSummary | null>(null);
 	public readonly $graph = atom<GraphSummary | null>(null);
 	public readonly $rows = atom<RowsSummary | null>(null);
+	public readonly $vm = atom<VmSummary | null>(null);
 
 	// Loading
 	public readonly $loading = atom<boolean>(true);
@@ -605,6 +656,7 @@ class HomeService {
 	public readonly $reportStatus = atom<ServiceStatus>('loading');
 	public readonly $graphStatus = atom<ServiceStatus>('loading');
 	public readonly $rowsStatus = atom<ServiceStatus>('loading');
+	public readonly $vmStatus = atom<ServiceStatus>('loading');
 
 	// Computed — staff-aware: exclude infrastructure services for regular users
 	public readonly $allOk = computed(
@@ -759,11 +811,13 @@ class HomeService {
 			this.$argoStatus.set('loading');
 			this.$clickhouseStatus.set('loading');
 			this.$rowsStatus.set('loading');
+			this.$vmStatus.set('loading');
 		} else {
 			this.$grafanaStatus.set('unavailable');
 			this.$argoStatus.set('unavailable');
 			this.$clickhouseStatus.set('unavailable');
 			this.$rowsStatus.set('unavailable');
+			this.$vmStatus.set('unavailable');
 		}
 
 		// Static JSON fetches (no auth required)
@@ -825,6 +879,10 @@ class HomeService {
 						this.$rowsStatus.set('unavailable');
 					}
 				}),
+				fetchVmSummary(token).then((vm) => {
+					this.$vm.set(vm);
+					this.$vmStatus.set(vm ? 'ok' : 'unavailable');
+				}),
 			);
 		}
 
@@ -842,6 +900,7 @@ class HomeService {
 			if (this.$clickhouseStatus.get() === 'unavailable')
 				failures.push('ClickHouse');
 			if (this.$rowsStatus.get() === 'unavailable') failures.push('ROWS');
+			if (this.$vmStatus.get() === 'unavailable') failures.push('VMs');
 			if (failures.length > 0) {
 				addToast({
 					id: `svc-err-${Date.now()}`,

@@ -22,6 +22,7 @@ import {
 	FileText,
 	Network,
 	Gamepad2,
+	Server,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -379,6 +380,7 @@ export default function ReactHomeServiceCards() {
 	const report = useStore(homeService.$report);
 	const graph = useStore(homeService.$graph);
 	const rows = useStore(homeService.$rows);
+	const vm = useStore(homeService.$vm);
 
 	const grafanaStatus = useStore(homeService.$grafanaStatus);
 	const argoStatus = useStore(homeService.$argoStatus);
@@ -389,6 +391,7 @@ export default function ReactHomeServiceCards() {
 	const reportStatus = useStore(homeService.$reportStatus);
 	const graphStatus = useStore(homeService.$graphStatus);
 	const rowsStatus = useStore(homeService.$rowsStatus);
+	const vmStatus = useStore(homeService.$vmStatus);
 
 	return (
 		<div
@@ -517,6 +520,41 @@ export default function ReactHomeServiceCards() {
 								label="Version"
 								value={`v${rows.version}`}
 								color="var(--sl-color-gray-3, #8b949e)"
+							/>
+						</>
+					) : (
+						<UnavailableMessage />
+					)}
+				</ServiceCard>
+			)}
+
+			{/* KubeVirt VMs (staff only) */}
+			{isStaff && (
+				<ServiceCard
+					title="Virtual Machines"
+					description="KubeVirt build & dev VMs"
+					href="/dashboard/vm/"
+					icon={<Server size={18} />}
+					accentColor="#6366f1"
+					status={vmStatus}>
+					{vmStatus === 'loading' ? (
+						<LoadingPlaceholder />
+					) : vm ? (
+						<>
+							<MetricValue
+								label="Running"
+								value={vm.running}
+								color={vm.running > 0 ? '#22c55e' : '#6b7280'}
+							/>
+							<MetricValue
+								label="Stopped"
+								value={vm.stopped}
+								color={vm.stopped > 0 ? '#f59e0b' : '#6b7280'}
+							/>
+							<MetricValue
+								label="Total"
+								value={vm.total}
+								color="#6366f1"
 							/>
 						</>
 					) : (

@@ -1,0 +1,54 @@
+---
+title: Minecraft Server
+description: |
+    Fabric Minecraft server on Agones with performance mods, Old Combat Mod, and a Rust JNI AI behavior tree plugin.
+sidebar:
+    label: Minecraft
+    order: 450
+tags:
+    - minecraft
+    - agones
+    - fabric
+key: mc
+pipeline: docker
+app_name: mc
+version: "1.0.0"
+source_path: apps/mc
+version_toml: apps/mc/version.toml
+runner: ubuntu-latest
+image: kbve/mc
+has_test: false
+---
+
+## Overview
+
+Fabric Minecraft 1.21.11 server deployed via Agones on Kubernetes. Multi-stage Docker build compiles a Rust JNI behavior tree mod and bundles it with performance mods from Modrinth.
+
+### Mod Stack
+
+| Mod | Purpose |
+|-----|---------|
+| Fabric API | Required dependency |
+| C2ME | Concurrent chunk management |
+| VMP | Very many players optimization |
+| Lithium | General server optimization |
+| FerriteCore | Memory usage optimization |
+| ServerCore | Server-side performance tweaks |
+| Chunky | Chunk pre-generation |
+| Old Combat Mod | 1.8-style combat mechanics |
+| behavior_statetree | Rust/Tokio NPC AI via JNI |
+
+### Architecture
+
+```
+Rust cdylib (behavior_statetree)
+    └─► Gradle/Fabric Loom bundles .so into JAR
+         └─► Docker multi-stage build
+              └─► itzg/minecraft-server:java21
+                   └─► Agones Fleet (arc-runners namespace)
+```
+
+### Related
+
+- [Agones MC Fleet](/project/mc/) — Kubernetes deployment
+- [behavior_statetree](https://github.com/KBVE/kbve/tree/main/apps/mc/behavior_statetree) — Rust AI mod source
