@@ -56,7 +56,13 @@ const storageAPI = {
 			string,
 			unknown
 		>;
-		await db.ws_messages.put({ key, message: decoded });
+		// FlexBuffers toObject() may return objects containing typed array
+		// views (Uint8Array) that reference the original ArrayBuffer.
+		// Dexie broadcasts changes via BroadcastChannel.postMessage() for
+		// multi-tab sync, which throws DataCloneError on such views.
+		// JSON round-trip produces a plain, cloneable object.
+		const safe = JSON.parse(JSON.stringify(decoded));
+		await db.ws_messages.put({ key, message: safe });
 	},
 
 	async getWsMessage(key: string) {
