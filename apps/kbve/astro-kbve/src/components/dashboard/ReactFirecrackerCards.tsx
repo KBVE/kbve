@@ -452,6 +452,7 @@ function ScriptPresetsPanel({ token }: { token: string }) {
 									vcpu_count: preset.vcpu_count,
 									mem_size_mib: preset.mem_size_mib,
 									timeout_ms: preset.timeout_ms,
+									env: { CODE: preset.code },
 								})
 							}
 							style={{

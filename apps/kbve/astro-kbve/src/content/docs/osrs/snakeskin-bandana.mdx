@@ -15,16 +15,20 @@ osrs:
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSContentWrap from '@/components/osrs/OSRSContentWrap.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
+<OSRSContentWrap>
 ## About {frontmatter.osrs.name}
 
 **{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
 
 > "{frontmatter.osrs.examine}"
+</OSRSContentWrap>
 
+<OSRSContentWrap>
 ## Item Details
 
 - **Item ID:** {frontmatter.osrs.id}
@@ -33,5 +37,6 @@ import { Adsense } from '@/components/astropad';
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
 - **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+</OSRSContentWrap>
 
-<Adsense />
+<OSRSAdsenseCard />

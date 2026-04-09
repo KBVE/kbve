@@ -96,16 +96,20 @@ osrs:
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSContentWrap from '@/components/osrs/OSRSContentWrap.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
+<OSRSContentWrap>
 ## About {frontmatter.osrs.name}
 
 **{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
 
 > "{frontmatter.osrs.examine}"
+</OSRSContentWrap>
 
+<OSRSContentWrap>
 ## Item Details
 
 - **Item ID:** {frontmatter.osrs.id}
@@ -114,7 +118,9 @@ import { Adsense } from '@/components/astropad';
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
 - **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+</OSRSContentWrap>
 
+<OSRSContentWrap>
 ## Fletching
 
 Use a [Knife](/osrs/knife/) on **Magic logs** to create unstrung bows or arrow shafts.
@@ -125,7 +131,11 @@ Use a [Knife](/osrs/knife/) on **Magic logs** to create unstrung bows or arrow s
 | [Magic shortbow (u)](/osrs/magic-shortbow-u/) | 80 | 83.3 | 1 |
 | [Magic longbow (u)](/osrs/magic-longbow-u/) | 85 | 91.5 | 1 |
 | [Magic stock](/osrs/magic-stock/) | 78 | 70 | 1 |
+</OSRSContentWrap>
 
+<OSRSAdsenseCard />
+
+<OSRSContentWrap>
 ## Market Flip Strategy
 
 **Magic Longbow Processing:**
@@ -137,5 +147,4 @@ Use a [Knife](/osrs/knife/) on **Magic logs** to create unstrung bows or arrow s
 **Profit Calculation:**
 - `1,536 - Magic log - Bow string - Nature rune = Alch profit`
 - Higher margins than yew, but slower sell speed
-
-<Adsense />
+</OSRSContentWrap>
