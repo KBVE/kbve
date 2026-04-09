@@ -49,6 +49,41 @@ lore: |
     Ember Wisps are fragments of dying fire elementals, flickering between existence and oblivion.
 credits: |
     Ported from KBVE DiscordSH dungeon crawler.
+loot:
+    entries:
+        - item_ref: 'bandage'
+          drop_rate: 0.27
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'bomb'
+          drop_rate: 0.13
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'fire-flask'
+          drop_rate: 0.13
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'iron-skin-potion'
+          drop_rate: 0.07
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'trap-kit'
+          drop_rate: 0.07
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'whetstone'
+          drop_rate: 0.13
+          min_quantity: 1
+          max_quantity: 1
+    max_drops: 1
+    gold_min: 5
+    gold_max: 12
+    xp_reward: 30
+abilities:
+    - id: 'burn'
+      name: 'Ignite'
+      damage: 4
+      cooldown_turns: 3
 ---
 
 import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
