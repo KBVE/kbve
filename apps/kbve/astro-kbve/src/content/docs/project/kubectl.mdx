@@ -1,0 +1,69 @@
+---
+title: KBVE Kubectl
+description: |
+    Chiseled Ubuntu kubectl container image with Rust CLI extensions for KubeVirt VM lifecycle management.
+sidebar:
+    label: Kubectl
+    order: 55
+tags:
+    - docker
+    - rust
+    - kubernetes
+    - kubevirt
+key: kubectl
+pipeline: docker
+app_name: kbve-kubectl
+version: "0.1.0"
+source_path: apps/vm/kubectl
+version_toml: apps/vm/kubectl/version.toml
+version_target: apps/vm/kubectl/Cargo.toml
+runner: arc-runner-set
+image: kbve/kubectl
+has_test: true
+e2e_name: kubectl-e2e
+test_framework: typescript
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Overview
+
+Chiseled Ubuntu kubectl image with a Rust CLI wrapper for KubeVirt VM management. Built from scratch using Canonical's chisel tool to produce a minimal rootfs with busybox, curl, and CA certs. Replaces the distroless `registry.k8s.io/kubectl` image which lacks `/bin/sh` and breaks Kubernetes Job scripts.
+
+### CLI Subcommands
+
+| Command | Description |
+|---------|-------------|
+| `kbve-kubectl info` | Print version and check available tools |
+| `kbve-kubectl run <script>` | Execute a shell script (passthrough to `/bin/sh`) |
+| `kbve-kubectl guest-exec --vm <name> --command <cmd>` | Run a command inside a KubeVirt VM via QEMU Guest Agent |
+
+### Bundled Tools
+
+| Tool | Purpose |
+|------|---------|
+| `kubectl` | Kubernetes API access |
+| `curl` | HTTP requests (Ubuntu chisel slice) |
+| `wget` | HTTP requests (busybox built-in) |
+| `jq` | JSON processing |
+| `/bin/sh` | Shell script execution |
+
+### Usage in Jobs
+
+```yaml
+containers:
+    - name: task
+      image: ghcr.io/kbve/kubectl:0.1.0
+      command: ['/bin/sh', '/scripts/my-script.sh']
+```
+
+Or using the Rust CLI directly:
+
+```yaml
+containers:
+    - name: task
+      image: ghcr.io/kbve/kubectl:0.1.0
+      command: ['kbve-kubectl', 'guest-exec']
+      args: ['--vm', 'windows-builder', '--command', 'powershell.exe']
+```

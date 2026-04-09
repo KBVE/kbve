@@ -54,8 +54,8 @@ metadata:
         app: angelscript
         component: macos-builder
 spec:
-    # Default to stopped — start manually after uploading the install image
-    running: false
+    # Manual — start/stop via virtctl after uploading the install image
+    runStrategy: Manual
     template:
         metadata:
             labels:
@@ -63,7 +63,7 @@ spec:
                 component: macos-builder
                 kubevirt.io/domain: macos-builder
         spec:
-            evictionStrategy: LiveMigrate
+            evictionStrategy: None
             domain:
                 cpu:
                     cores: 8
@@ -72,8 +72,6 @@ spec:
                     model: Penryn
                     features:
                         - name: invtsc
-                          policy: require
-                        - name: vmx
                           policy: require
                         - name: ssse3
                           policy: require

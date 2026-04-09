@@ -49,8 +49,10 @@ ENV SPAWN_PROTECTION=0
 ENV ONLINE_MODE=true
 ENV SERVER_PORT=25565
 
-ENV USE_AIKAR_FLAGS=true
-ENV JVM_XX_OPTS="-XX:+UseZGC -XX:+ZGenerational"
+# ZGC with generational mode — lower pause times than G1GC for MC servers.
+# Aikar flags disabled to avoid GC conflict (Aikar sets G1GC).
+ENV USE_AIKAR_FLAGS=false
+ENV JVM_XX_OPTS="-XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch -XX:+DisableExplicitGC -XX:+ParallelRefProcEnabled"
 
 # ── Modrinth mods (downloaded + sha1 verified in single layer) ────────
 # Modrinth only provides sha1/sha512; Docker ADD --checksum requires sha256.

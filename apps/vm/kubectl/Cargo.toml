@@ -1,0 +1,18 @@
+[package]
+name = "kbve-kubectl"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "KBVE kubectl wrapper — chiseled Ubuntu kubectl with Rust CLI extensions for KubeVirt VM lifecycle management"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.0", features = ["full", "rt-multi-thread", "process"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[features]
+default = []

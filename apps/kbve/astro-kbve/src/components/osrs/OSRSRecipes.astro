@@ -83,7 +83,11 @@ function getSkillColor(skill: string | null | undefined): string {
 								{recipe.product_id ? (
 									<a
 										href={`/osrs/${recipe.product.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/`}
-										class="osrs-recipe__link">
+										class="osrs-recipe__link"
+										data-osrs-tooltip
+										data-osrs-name={recipe.product}
+										data-osrs-icon={`${recipe.product}.png`}
+										data-osrs-relationship="product">
 										{recipe.product}
 									</a>
 								) : (
@@ -107,7 +111,11 @@ function getSkillColor(skill: string | null | undefined): string {
 										{mat.item_id ? (
 											<a
 												href={`/osrs/${mat.item_name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/`}
-												class="osrs-recipe__link">
+												class="osrs-recipe__link"
+												data-osrs-tooltip
+												data-osrs-name={mat.item_name}
+												data-osrs-icon={`${mat.item_name}.png`}
+												data-osrs-relationship="component">
 												{mat.item_name}
 											</a>
 										) : (

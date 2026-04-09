@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
  * <p>Lifecycle:
  * <ol>
  *   <li>Server start → init native Tokio runtime</li>
- *   <li>Each server tick → gather NPC observations, submit jobs, poll intents, validate + apply</li>
+ *   <li>Each server tick → manage AI skeletons, gather observations, submit jobs, poll intents, apply</li>
  *   <li>Server stop → shutdown native runtime</li>
  * </ol>
  */
@@ -30,11 +30,11 @@ public class BehaviorStateTreeMod implements ModInitializer {
 
         // Start the Tokio runtime when the server starts
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            LOGGER.info("[{}] Starting NPC AI runtime", MOD_ID);
+            LOGGER.info("[{}] Starting NPC AI runtime — AI Skeletons enabled", MOD_ID);
             NativeRuntime.init();
         });
 
-        // Each server tick: submit observations and apply intents
+        // Each server tick: manage skeletons, submit observations, apply intents
         ServerTickEvents.END_SERVER_TICK.register(new NpcTickHandler());
 
         // Shutdown the runtime when the server stops
@@ -43,6 +43,6 @@ public class BehaviorStateTreeMod implements ModInitializer {
             NativeRuntime.shutdown();
         });
 
-        LOGGER.info("[{}] Mod initialized — waiting for server start", MOD_ID);
+        LOGGER.info("[{}] Mod initialized — AI Skeleton system ready", MOD_ID);
     }
 }

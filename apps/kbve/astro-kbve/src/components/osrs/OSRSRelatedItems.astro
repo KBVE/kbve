@@ -71,7 +71,16 @@ function getItemUrl(item: OSRSRelatedItem): string {
 					item.relationship ?? 'alternative',
 				);
 				return (
-					<a href={getItemUrl(item)} class="osrs-related__item">
+					<a
+						href={getItemUrl(item)}
+						class="osrs-related__item"
+						data-osrs-tooltip
+						data-osrs-name={item.item_name}
+						data-osrs-slug={item.slug}
+						data-osrs-icon={
+							item.item_name ? `${item.item_name}.png` : ''
+						}
+						data-osrs-relationship={item.relationship}>
 						<div class="osrs-related__item-main">
 							<span class="osrs-related__item-name">
 								{item.item_name}

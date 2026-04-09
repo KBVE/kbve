@@ -1,0 +1,87 @@
+{
+	"name": "kubectl",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/vm/kubectl/src",
+	"targets": {
+		"build": {
+			"executor": "@monodon/rust:build",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/kbve-kubectl"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"test": {
+			"executor": "@monodon/rust:test",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/kbve-kubectl"
+			}
+		},
+		"lint": {
+			"executor": "@monodon/rust:lint",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/kbve-kubectl"
+			}
+		},
+		"container": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx kubectl:containerx",
+						"VERSION=$(grep '^version' apps/vm/kubectl/version.toml | sed 's/version = \"\\(.*\\)\"/\\1/') && docker tag kbve/kubectl:latest kbve/kubectl:$VERSION && echo \"Tagged kbve/kubectl:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx kubectl:containerx --configuration=production",
+						"VERSION=$(grep '^version' apps/vm/kubectl/version.toml | sed 's/version = \"\\(.*\\)\"/\\1/') && docker tag kbve/kubectl:latest kbve/kubectl:$VERSION && docker tag kbve/kubectl:latest ghcr.io/kbve/kubectl:latest && docker tag kbve/kubectl:latest ghcr.io/kbve/kubectl:$VERSION && echo \"Tagged ghcr.io/kbve/kubectl:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/vm/kubectl/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/kubectl:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": ["ghcr.io/kbve/kubectl", "kbve/kubectl"],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/kubectl:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/kubectl:buildcache,mode=max"
+					]
+				}
+			}
+		}
+	},
+	"tags": ["scope:vm", "kubectl", "infrastructure"]
+}
