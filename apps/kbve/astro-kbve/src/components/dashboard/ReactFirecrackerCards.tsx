@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	firecrackerService,
@@ -45,8 +45,26 @@ function phaseColor(phase: string): string {
 // VM Result Viewer — shows stdout/stderr after completion
 // ---------------------------------------------------------------------------
 
+const FC_OUTPUT_START = '---FC_OUTPUT_START---';
+const FC_OUTPUT_END = '---FC_OUTPUT_END---';
+
+function parseUserOutput(stdout: string): string | null {
+	const startIdx = stdout.indexOf(FC_OUTPUT_START);
+	const endIdx = stdout.indexOf(FC_OUTPUT_END);
+	if (startIdx === -1) return null;
+	const start = startIdx + FC_OUTPUT_START.length;
+	const end = endIdx === -1 ? stdout.length : endIdx;
+	const output = stdout.slice(start, end).replace(/^\n/, '');
+	return output || null;
+}
+
 function ResultViewer({ result }: { result: VmResult }) {
+	const [showFullLog, setShowFullLog] = useState(false);
 	const exitColor = result.exit_code === 0 ? '#22c55e' : '#ef4444';
+	const userOutput = result.stdout ? parseUserOutput(result.stdout) : null;
+	const hasMarkers = userOutput !== null;
+	const displayStdout =
+		showFullLog || !hasMarkers ? result.stdout : userOutput;
 
 	return (
 		<div
@@ -81,10 +99,26 @@ function ResultViewer({ result }: { result: VmResult }) {
 						{result.duration_ms}ms
 					</span>
 				)}
+				{hasMarkers && (
+					<button
+						onClick={() => setShowFullLog(!showFullLog)}
+						style={{
+							marginLeft: 'auto',
+							padding: '0.15rem 0.5rem',
+							fontSize: '0.65rem',
+							border: '1px solid rgba(255,255,255,0.15)',
+							borderRadius: '4px',
+							background: 'none',
+							color: 'rgba(255,255,255,0.5)',
+							cursor: 'pointer',
+						}}>
+						{showFullLog ? 'Output' : 'Full Log'}
+					</button>
+				)}
 			</div>
 
 			{/* stdout */}
-			{result.stdout && (
+			{displayStdout && (
 				<div style={{ padding: '0.5rem 0.75rem' }}>
 					<div
 						style={{
@@ -94,7 +128,7 @@ function ResultViewer({ result }: { result: VmResult }) {
 							color: 'rgba(255,255,255,0.35)',
 							marginBottom: '0.25rem',
 						}}>
-						stdout
+						{showFullLog || !hasMarkers ? 'stdout' : 'output'}
 					</div>
 					<pre
 						style={{
@@ -109,7 +143,7 @@ function ResultViewer({ result }: { result: VmResult }) {
 							whiteSpace: 'pre-wrap',
 							wordBreak: 'break-all',
 						}}>
-						{result.stdout}
+						{displayStdout}
 					</pre>
 				</div>
 			)}
