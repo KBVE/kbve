@@ -6,7 +6,7 @@ on:
     workflow_dispatch:
         inputs:
             package_type:
-                description: 'Package type: npm | crates | python | unreal'
+                description: 'Package type: npm | crates | python | unreal | unreal-win64'
                 required: true
                 type: string
             package_name:
@@ -165,6 +165,11 @@ jobs:
                       VTOML="packages/python/${PYPI}/version.toml"
                       ;;
                     unreal)
+                      UPLUGIN="${{ inputs.unreal_plugin_path }}/${NAME}.uplugin"
+                      LOCAL=$(jq -r '.VersionName' "$UPLUGIN" 2>/dev/null || echo "0.0.0")
+                      VTOML="${{ inputs.unreal_plugin_path }}/version.toml"
+                      ;;
+                    unreal-win64)
                       UPLUGIN="${{ inputs.unreal_plugin_path }}/${NAME}.uplugin"
                       LOCAL=$(jq -r '.VersionName' "$UPLUGIN" 2>/dev/null || echo "0.0.0")
                       VTOML="${{ inputs.unreal_plugin_path }}/version.toml"
@@ -335,6 +340,31 @@ jobs:
             epic_pat: ${{ secrets.UNITY_PAT }}
             butler_api: ${{ secrets.butler_api }}
 
+    # ===========================================================================
+    # Unreal Win64 — native Windows build on KubeVirt VM
+    # (only runs when package_type == 'unreal-win64')
+    # ===========================================================================
+    publish_unreal_win64:
+        name: Publish Unreal Win64 — ${{ inputs.package_name }}
+        needs: [queue_guard, version_gate]
+        if: inputs.package_type == 'unreal-win64' && needs.version_gate.outputs.should_publish == 'true'
+        permissions:
+            contents: write
+            issues: write
+            pull-requests: write
+        uses: ./.github/workflows/utils-unreal-plugin-win-cicd.yml
+        with:
+            plugin_path: ${{ inputs.unreal_plugin_path }}
+            plugin_name: ${{ inputs.package_name }}
+            target_platforms: Win64
+            deploy_to_itch: ${{ inputs.deploy_to_itch }}
+            itch_username: kbve
+            itch_game_id: ${{ inputs.itch_game_id }}
+            itch_channel: plugin-win64
+            dependency_plugin_paths: ${{ inputs.unreal_dependency_plugins }}
+        secrets:
+            butler_api: ${{ secrets.butler_api }}
+
     # ---------------------------------------------------------------------------
     # Post-publish — update version.toml after successful publish.
     # Uses the version_gate output to know what version was published.
@@ -405,6 +435,7 @@ jobs:
                 test_python,
                 publish_python,
                 publish_unreal,
+                publish_unreal_win64,
             ]
         permissions:
             issues: write

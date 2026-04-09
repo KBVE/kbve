@@ -28,6 +28,13 @@ rules:
     - apiGroups: ['']
       resources: ['pods/exec']
       verbs: ['create']
+    # Deployment scaling for file-server (runner install stages packages)
+    - apiGroups: ['apps']
+      resources: ['deployments']
+      verbs: ['get', 'list', 'patch']
+    - apiGroups: ['apps']
+      resources: ['deployments/scale']
+      verbs: ['get', 'patch']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
