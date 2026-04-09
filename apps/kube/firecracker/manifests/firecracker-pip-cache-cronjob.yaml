@@ -1,0 +1,84 @@
+# CronJob: refreshes the pip package cache (pip-cache.ext4) weekly.
+# Downloads latest wheels for kbve + fudster and rebuilds the ext4 image.
+# Uses the same PVC and network policy as the rootfs init job.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: firecracker-pip-cache-refresh
+    namespace: firecracker
+    labels:
+        app: firecracker-pip-cache
+spec:
+    schedule: '0 4 * * 0' # Weekly: Sunday 04:00 UTC
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        spec:
+            backoffLimit: 2
+            ttlSecondsAfterFinished: 86400
+            template:
+                metadata:
+                    labels:
+                        # Reuse the rootfs-init label for network policy egress
+                        app: firecracker-rootfs-init
+                spec:
+                    restartPolicy: OnFailure
+                    containers:
+                        - name: pip-refresh
+                          image: alpine:3.21
+                          securityContext:
+                              runAsUser: 0
+                          command: ['/bin/sh', '-c']
+                          args:
+                              - |
+                                  set -eu
+                                  OUTPUT="/rootfs"
+                                  TARGET="${OUTPUT}/pip-cache.ext4"
+
+                                  echo "=== Pip cache refresh ==="
+
+                                  apk add --no-cache python3 py3-pip e2fsprogs
+
+                                  PIPCACHE=$(mktemp -d)
+                                  mkdir -p "${PIPCACHE}/pip"
+
+                                  echo "Downloading latest wheels..."
+                                  pip3 download --dest "${PIPCACHE}/pip" \
+                                      kbve fudster 2>&1 || true
+
+                                  WHEEL_COUNT=$(ls "${PIPCACHE}/pip/"*.whl "${PIPCACHE}/pip/"*.tar.gz 2>/dev/null | wc -l)
+
+                                  if [ "$WHEEL_COUNT" -eq 0 ]; then
+                                      echo "WARNING: No packages downloaded, keeping existing cache"
+                                      rm -rf "${PIPCACHE}"
+                                      exit 0
+                                  fi
+
+                                  echo "Downloaded ${WHEEL_COUNT} packages"
+
+                                  # Build new cache image to a temp file first, then atomic swap
+                                  TMPIMG=$(mktemp -p "${OUTPUT}" pip-cache.XXXXXX)
+                                  dd if=/dev/zero of="${TMPIMG}" bs=1M count=0 seek=256 2>/dev/null
+                                  mkfs.ext4 -F -d "${PIPCACHE}" "${TMPIMG}"
+
+                                  # Atomic replace — prevents partial reads by firecracker-ctl
+                                  mv "${TMPIMG}" "${TARGET}"
+
+                                  rm -rf "${PIPCACHE}"
+                                  echo "pip-cache.ext4 refreshed: $(du -h ${TARGET} | cut -f1) (${WHEEL_COUNT} packages)"
+                                  echo "=== Done ==="
+                          resources:
+                              requests:
+                                  cpu: 250m
+                                  memory: 256Mi
+                              limits:
+                                  cpu: 500m
+                                  memory: 512Mi
+                          volumeMounts:
+                              - name: rootfs
+                                mountPath: /rootfs
+                    volumes:
+                        - name: rootfs
+                          persistentVolumeClaim:
+                              claimName: firecracker-rootfs
