@@ -2,8 +2,34 @@
 	"name": "kubectl",
 	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
-	"sourceRoot": "apps/vm/kubectl",
+	"sourceRoot": "apps/vm/kubectl/src",
 	"targets": {
+		"build": {
+			"executor": "@monodon/rust:build",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/kbve-kubectl"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"test": {
+			"executor": "@monodon/rust:test",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/kbve-kubectl"
+			}
+		},
+		"lint": {
+			"executor": "@monodon/rust:lint",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/kbve-kubectl"
+			}
+		},
 		"container": {
 			"executor": "nx:run-commands",
 			"defaultConfiguration": "local",
@@ -55,14 +81,6 @@
 					]
 				}
 			}
-		},
-		"test": {
-			"executor": "nx:noop",
-			"cache": false
-		},
-		"lint": {
-			"executor": "nx:noop",
-			"cache": false
 		}
 	},
 	"tags": ["scope:vm", "kubectl", "infrastructure"]
