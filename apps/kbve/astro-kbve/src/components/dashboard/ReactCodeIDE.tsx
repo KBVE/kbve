@@ -118,6 +118,19 @@ function CopyButton({ text }: { text: string }) {
 	);
 }
 
+const FC_OUTPUT_START = '---FC_OUTPUT_START---';
+const FC_OUTPUT_END = '---FC_OUTPUT_END---';
+
+function parseUserOutput(stdout: string): string | null {
+	const startIdx = stdout.indexOf(FC_OUTPUT_START);
+	const endIdx = stdout.indexOf(FC_OUTPUT_END);
+	if (startIdx === -1) return null;
+	const start = startIdx + FC_OUTPUT_START.length;
+	const end = endIdx === -1 ? stdout.length : endIdx;
+	const output = stdout.slice(start, end).replace(/^\n/, '');
+	return output || null;
+}
+
 function OutputPanel({
 	result,
 	error,
@@ -125,6 +138,8 @@ function OutputPanel({
 	result: RunResult | null;
 	error: string | null;
 }) {
+	const [tab, setTab] = useState<'output' | 'log'>('output');
+
 	if (error) {
 		return (
 			<div
@@ -152,14 +167,26 @@ function OutputPanel({
 		);
 	}
 
-	const fullOutput = [result.stdout, result.stderr]
-		.filter(Boolean)
-		.join('\n');
+	const userOutput = result.stdout ? parseUserOutput(result.stdout) : null;
+	const hasMarkers = userOutput !== null;
+	const displayText =
+		tab === 'output' && hasMarkers
+			? userOutput
+			: [result.stdout, result.stderr].filter(Boolean).join('\n');
+
+	const tabStyle = (active: boolean) => ({
+		padding: '0.25rem 0.75rem',
+		fontSize: '0.75rem',
+		border: 'none',
+		borderBottom: active ? '2px solid #58a6ff' : '2px solid transparent',
+		background: 'none',
+		color: active ? '#e6edf3' : 'rgba(255,255,255,0.4)',
+		cursor: 'pointer' as const,
+	});
 
 	return (
 		<div
 			style={{
-				padding: '1rem',
 				fontFamily: 'monospace',
 				fontSize: '0.85rem',
 				whiteSpace: 'pre-wrap',
@@ -167,37 +194,70 @@ function OutputPanel({
 			}}>
 			<div
 				style={{
-					position: 'absolute',
-					top: '0.5rem',
-					right: '0.5rem',
+					display: 'flex',
+					gap: '0.25rem',
+					borderBottom: '1px solid rgba(255,255,255,0.08)',
+					padding: '0 1rem',
 				}}>
-				<CopyButton text={fullOutput} />
+				<button
+					style={tabStyle(tab === 'output')}
+					onClick={() => setTab('output')}>
+					Output
+				</button>
+				<button
+					style={tabStyle(tab === 'log')}
+					onClick={() => setTab('log')}>
+					Full Log
+				</button>
+				<div style={{ flex: 1 }} />
+				<div style={{ padding: '0.25rem 0' }}>
+					<CopyButton text={displayText ?? ''} />
+				</div>
 			</div>
-			{result.stdout && (
+			<div style={{ padding: '1rem' }}>
+				{tab === 'output' && hasMarkers && userOutput && (
+					<div style={{ color: '#e6edf3' }}>{userOutput}</div>
+				)}
+				{tab === 'output' && !hasMarkers && result.stdout && (
+					<div style={{ color: '#e6edf3' }}>{result.stdout}</div>
+				)}
+				{tab === 'log' && (
+					<>
+						{result.stdout && (
+							<div
+								style={{
+									color: '#e6edf3',
+									marginBottom: result.stderr ? '0.75rem' : 0,
+								}}>
+								{result.stdout}
+							</div>
+						)}
+						{result.stderr && (
+							<div style={{ color: '#f97316' }}>
+								{result.stderr}
+							</div>
+						)}
+					</>
+				)}
+				{tab === 'output' && !hasMarkers && !result.stdout && (
+					<div style={{ color: 'rgba(255,255,255,0.3)' }}>
+						No output captured.
+					</div>
+				)}
 				<div
 					style={{
-						color: '#e6edf3',
-						marginBottom: result.stderr ? '0.75rem' : 0,
+						marginTop: '0.75rem',
+						paddingTop: '0.5rem',
+						borderTop: '1px solid rgba(255,255,255,0.08)',
+						fontSize: '0.75rem',
+						color: 'rgba(255,255,255,0.4)',
+						display: 'flex',
+						gap: '1rem',
 					}}>
-					{result.stdout}
+					<span>Exit: {result.exit_code}</span>
+					<span>Duration: {result.duration_ms}ms</span>
+					<span>VM: {result.vm_id.slice(0, 15)}</span>
 				</div>
-			)}
-			{result.stderr && (
-				<div style={{ color: '#f97316' }}>{result.stderr}</div>
-			)}
-			<div
-				style={{
-					marginTop: '0.75rem',
-					paddingTop: '0.5rem',
-					borderTop: '1px solid rgba(255,255,255,0.08)',
-					fontSize: '0.75rem',
-					color: 'rgba(255,255,255,0.4)',
-					display: 'flex',
-					gap: '1rem',
-				}}>
-				<span>Exit: {result.exit_code}</span>
-				<span>Duration: {result.duration_ms}ms</span>
-				<span>VM: {result.vm_id.slice(0, 15)}</span>
 			</div>
 		</div>
 	);
