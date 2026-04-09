@@ -41,61 +41,28 @@ osrs:
       slug: greater-teleport-focus
       relationship: product
       description: Used to craft the Greater teleport focus facility
+  about: |-
+    "The container shakes violently, thrumming with magical energy. You reckon it might be useful for shipbuilding."
+
+    The Bottled storm is a crafting material used to create the Greater teleport focus facility on boats.
+
+    Crafting Uses:
+    - Required component for Greater teleport focus (requires 75 Sailing, 69 Construction)
+    - Combined with Ironwood planks, Rune nails, Cupronickel bars, and Magic stones
+  market_strategy:
+    notes:
+      - Very valuable crafting material
+      - Vampyre krakens have better drop rate than Armoured krakens
+      - Required for high-level teleport facility
+      - High demand due to Greater teleport focus utility
+      - Consider selling if not building teleport facilities
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Obtaining
-
-"A violently shaking container with the furious power of the sea inside."
-
-The Bottled storm is dropped by krakens encountered while Sailing.
-
-**Drop Sources:**
-| Source | Drop Rate |
-|--------|-----------|
-| Vampyre kraken | 1/512 |
-| Armoured kraken | 1/1,024 |
-
-## Usage
-
-"The container shakes violently, thrumming with magical energy. You reckon it might be useful for shipbuilding."
-
-The Bottled storm is a crafting material used to create the Greater teleport focus facility on boats.
-
-**Crafting Uses:**
-- Required component for Greater teleport focus (requires 75 Sailing, 69 Construction)
-- Combined with Ironwood planks, Rune nails, Cupronickel bars, and Magic stones
-
-## Market Strategy
-
-**Grand Exchange Price:** Approximately 1,990,057 gp
-
-**Buy Limit:** Check GE for current limits
-
-**Tips:**
-- Very valuable crafting material
-- Vampyre krakens have better drop rate than Armoured krakens
-- Required for high-level teleport facility
-- High demand due to Greater teleport focus utility
-- Consider selling if not building teleport facilities
-
-<Adsense />
+<OSRSAdsenseCard />

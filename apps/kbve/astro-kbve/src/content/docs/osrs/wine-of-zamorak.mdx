@@ -76,62 +76,26 @@ osrs:
       slug: grapes
       relationship: component
       description: Cooking ingredient
+  market_strategy:
+    notes:
+      - High demand for ranging pots
+      - Telegrab money maker
+      - Cooking alternative
+      - Ranging potions (PvM essential)
+      - Bastion potions (raids)
+      - Ironman accounts
+      - F2P money making
+      - Telegrab at Chaos Temple
+      - Wilderness spawns risky
+      - Cooking method viable
+      - Price tied to ranging pot demand
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Source | Method |
-|--------|--------|
-| Chaos Temple | Telegrab |
-| Cooking | 65 (Zamorak's grapes) |
-| Deep Wilderness Dungeon | Spawn |
-
-## Herblore
-
-| Potion | Level | Other Ingredient |
-|--------|-------|------------------|
-| Ranging potion | 72 | Dwarf weed |
-| Bastion potion | 80 | Cadantine blood |
-
-## Market Flip Strategy
-
-**Ranging Potion Secondary:**
-- High demand for ranging pots
-- Telegrab money maker
-- Cooking alternative
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Ranging potions (PvM essential)
-- Bastion potions (raids)
-- Ironman accounts
-- F2P money making
-
-**Tips:**
-- Telegrab at Chaos Temple
-- Wilderness spawns risky
-- Cooking method viable
-- Price tied to ranging pot demand
-
-<Adsense />
+<OSRSAdsenseCard />

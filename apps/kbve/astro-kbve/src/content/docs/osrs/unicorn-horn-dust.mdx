@@ -82,53 +82,26 @@ osrs:
       slug: pestle-and-mortar
       relationship: component
       description: Tool for grinding
+  about: |-
+    Grind a unicorn horn with a pestle and mortar:
+    - No skill requirement
+    - Unicorn horns from unicorns (level 15)
+  market_strategy:
+    title: Sanfew Serum Chain
+    notes:
+      - Kill unicorns (common locations)
+      - Buy unicorn horns on GE
+      - Grind into dust for profit
+      - Most valuable use of unicorn horn dust
+      - Sanfew serum = Super restore + antipoison effects
+      - Popular for CoX and high-level PvM
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Grind a unicorn horn with a pestle and mortar:
-- No skill requirement
-- Unicorn horns from unicorns (level 15)
-
-## Herblore Uses
-
-| Potion | Secondary | Level | XP |
-|--------|-----------|-------|-----|
-| Super antipoison(3) | Irit potion (unf) | 48 | 100 |
-| Sanfew serum(4) | Super restore + more | 65 | 192 |
-
-## Market Strategy
-
-**Supply Sources:**
-- Kill unicorns (common locations)
-- Buy unicorn horns on GE
-- Grind into dust for profit
-
-**Sanfew Serum Chain:**
-- Most valuable use of unicorn horn dust
-- Sanfew serum = Super restore + antipoison effects
-- Popular for CoX and high-level PvM
-
-**Buy Limit:** 13,000 per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

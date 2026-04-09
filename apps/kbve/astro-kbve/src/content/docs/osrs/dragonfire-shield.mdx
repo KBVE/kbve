@@ -37,70 +37,14 @@ osrs:
       slug: anti-dragon-shield
       relationship: component
       description: Base shield for creating dragonfire shield
+  about: Absorbs dragonfire. Charges increase defence bonuses.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Off Hand |
-| Type | Shield |
-| Tradeable | Yes |
-| Weight | 7.257 kg |
-| Requirements | 75 Defence |
-
-## Combat Stats
-
-| Stat | Bonus |
-|------|-------|
-| Stab Defence | +20 |
-| Slash Defence | +25 |
-| Crush Defence | +22 |
-| Magic Defence | +10 |
-| Ranged Defence | +22 |
-| Strength | +7 |
-
-## Obtaining
-
-**Smithing:** Combine anti-dragon shield + draconic visage (90 Smithing).
-
-**Service:** Oziach for 1.25M gp after Dragon Slayer I.
-
-## Features
-
-Absorbs dragonfire. Charges increase defence bonuses.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~3,737,784 gp
-
-Best dragonfire protection shield. Popular for dragons.
-
-## Related Items
-
-- [Draconic visage](/osrs/draconic-visage/) - Component
-- [Anti-dragon shield](/osrs/anti-dragon-shield/) - Component
-
-<Adsense />
+<OSRSAdsenseCard />

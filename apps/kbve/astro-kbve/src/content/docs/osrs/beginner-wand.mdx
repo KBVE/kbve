@@ -1,6 +1,6 @@
 ---
 title: Beginner wand | OSRS Price Data
-description: "Beginner wand: A beginner level wand.. High alch: 720 GP, GE limit: 125."
+description: "Beginner wand is a members weapon slot item requiring 45 Magic. High alch: 720 GP, GE limit: 125."
 osrs:
   id: 6908
   name: Beginner wand
@@ -12,26 +12,100 @@ osrs:
   lowalch: 480
   highalch: 720
   limit: 125
+  equipment:
+    slot: weapon
+    type: wand
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 5
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 5
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      magic: 45
+    weight: 0.283
+    attack_speed: 4
+    combat_style: staff
+    autocast: standard
+  shop:
+    currency: pizazz_points
+    cost:
+      telekinetic: 30
+      alchemist: 30
+      enchantment: 300
+      graveyard: 30
+  related_items:
+    - item_id: 6910
+      item_name: Apprentice wand
+      slug: apprentice-wand
+      relationship: upgrade
+      description: Next tier MTA wand (50 Magic)
+    - item_id: 6912
+      item_name: Teacher wand
+      slug: teacher-wand
+      relationship: upgrade
+      description: Third tier MTA wand (55 Magic)
+    - item_id: 6914
+      item_name: Master wand
+      slug: master-wand
+      relationship: upgrade
+      description: Highest tier MTA wand (60 Magic)
+    - item_id: 11998
+      item_name: Kodai wand
+      slug: kodai-wand
+      relationship: upgrade
+      description: Best-in-slot wand from Chambers of Xeric
+  about: |-
+    | Stat | Attack | Defence |
+    |------|--------|---------|
+    | Stab | 0 | 0 |
+    | Slash | 0 | 0 |
+    | Crush | 0 | 0 |
+    | Magic | +5 | +5 |
+    | Ranged | 0 | 0 |
+
+    Requirements: 45 Magic | Weight: 0.28 kg | Speed: 4 ticks (2.4s)
+
+    The beginner wand supports Standard Spellbook autocast with both offensive and defensive casting styles. It cannot autocast Ancient Magicks or Arceuus spells. As a one-handed weapon, it allows a shield or book in the off-hand slot.
+
+    The beginner wand is the first tier in the Mage Training Arena wand line:
+
+    | Wand | Magic Atk | Magic Def | Req | Notes |
+    |------|----------|----------|-----|-------|
+    | Beginner wand | +5 | +5 | 45 | This item |
+    | Apprentice wand | +10 | +10 | 50 | Requires beginner wand trade-in |
+    | Teacher wand | +15 | +15 | 55 | Requires apprentice wand |
+    | Master wand | +20 | +20 | 60 | Best MTA wand |
+    | Kodai wand | +28 | +20 | 75 | Best-in-slot, Chambers of Xeric |
+
+    The beginner wand offers modest stats. Its primary value is as the starting point for the wand upgrade chain.
+
+    The beginner wand is the cheapest MTA reward, requiring only 30 points in three categories and 300 enchantment points. Players typically acquire it early in the MTA grind and trade it in for the apprentice wand shortly after. Each subsequent upgrade requires trading in the previous tier plus additional points.
+  market_strategy:
+    notes:
+      - GE price (~176K gp) reflects the time spent at MTA rather than raw stats
+      - Most buyers purchase it to skip early MTA grinding
+      - Demand is steady from players progressing through the wand chain
+      - Significantly cheaper than higher-tier wands
+      - One-handed slot is the main mechanical advantage over staves
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

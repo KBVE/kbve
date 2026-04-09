@@ -74,55 +74,26 @@ osrs:
       slug: lantadyme
       relationship: alternative
       description: Similar tier herb
+  market_strategy:
+    notes:
+      - Ranging potions essential
+      - High-level herb
+      - Consistent demand
+      - Ranging potions (PvM/PvP)
+      - Ancient brews (raids)
+      - Menaphite remedy (ToA)
+      - High-level content
+      - Ranging pots always needed
+      - Wine of Zamorak expensive
+      - Ancient brew for mage builds
+      - High farm profit
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Herblore
-
-| Potion | Level | Secondary |
-|--------|-------|-----------|
-| Ranging potion | 72 | Wine of zamorak |
-| Ancient brew | 85 | Nihil dust |
-| Menaphite remedy | 88 | Lily of the sands |
-
-## Market Flip Strategy
-
-**Ranging Herb:**
-- Ranging potions essential
-- High-level herb
-- Consistent demand
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Ranging potions (PvM/PvP)
-- Ancient brews (raids)
-- Menaphite remedy (ToA)
-- High-level content
-
-**Tips:**
-- Ranging pots always needed
-- Wine of Zamorak expensive
-- Ancient brew for mage builds
-- High farm profit
-
-<Adsense />
+<OSRSAdsenseCard />

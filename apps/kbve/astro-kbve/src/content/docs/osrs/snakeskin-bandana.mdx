@@ -1,6 +1,6 @@
 ---
 title: Snakeskin bandana | OSRS Price Data
-description: "Snakeskin bandana: Lightweight head protection.. High alch: 180 GP, GE limit: 125."
+description: "Snakeskin bandana is a members head slot item requiring 30 Defence. High alch: 180 GP, GE limit: 125."
 osrs:
   id: 6326
   name: Snakeskin bandana
@@ -12,31 +12,85 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 125
+  equipment:
+    slot: head
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -1
+      ranged: 3
+    defence_bonus:
+      stab: 3
+      slash: 2
+      crush: 4
+      magic: 1
+      ranged: 2
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      ranged: 30
+      defence: 30
+    weight: 0.907
+  recipes:
+    - skill: crafting
+      level: 48
+      xp: 45
+      inputs:
+        - item_name: Snakeskin
+          quantity: 5
+      output_quantity: 1
+  related_items:
+    - item_id: 6322
+      item_name: Snakeskin body
+      slug: snakeskin-body
+      relationship: set-piece
+      description: Matching body armour
+    - item_id: 6324
+      item_name: Snakeskin chaps
+      slug: snakeskin-chaps
+      relationship: set-piece
+      description: Matching leg armour
+    - item_id: 6328
+      item_name: Snakeskin boots
+      slug: snakeskin-boots
+      relationship: set-piece
+      description: Matching boots
+  about: |-
+    | Attack | Value |
+    |--------|-------|
+    | Ranged | +3 |
+
+    | Defence | Value |
+    |---------|-------|
+    | Crush | +4 |
+    | Stab | +3 |
+
+    Requirements: 30 Ranged, 30 Defence | Weight: 0.91 kg
+
+    | Piece | Ranged Atk | Crafting | Snakeskins |
+    |-------|-----------|----------|------------|
+    | Snakeskin bandana | +3 | 48 | 5 |
+    | Snakeskin body | +2 | 53 | 15 |
+    | Snakeskin chaps | +1 | 51 | 12 |
+    | Snakeskin boots | +3 | 45 | 6 |
+
+    The full set requires 38 snakeskins and provides modest ranged bonuses at 30 Ranged/Defence.
+  market_strategy:
+    notes:
+      - Budget ranged headgear
+      - Crafting training material
+      - Outclassed by coifs and Fremennik helms
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import OSRSContentWrap from '@/components/osrs/OSRSContentWrap.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
-
-<OSRSContentWrap>
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-</OSRSContentWrap>
-
-<OSRSContentWrap>
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-</OSRSContentWrap>
 
 <OSRSAdsenseCard />

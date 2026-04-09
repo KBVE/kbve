@@ -1,6 +1,6 @@
 ---
 title: Camphor blowpipe (empty) | OSRS Price Data
-description: "Camphor blowpipe (empty): Breath powered dart delivering system with a hint of camphor.. High alch: 1,320 GP."
+description: "Camphor blowpipe (empty): Breath powered dart delivering system with a hint of camphor.. High alch: 1,320 GP, GE limit: 8."
 osrs:
   id: 31577
   name: Camphor blowpipe (empty)
@@ -11,7 +11,7 @@ osrs:
   value: 2200
   lowalch: 880
   highalch: 1320
-  limit: null
+  limit: 8
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

@@ -1,6 +1,6 @@
 ---
 title: Facility bottle (empty) | OSRS Price Data
-description: "Facility bottle (empty) is a members-only OSRS item. High alch: 34,615 GP."
+description: "Facility bottle (empty) is a members-only OSRS item. High alch: 34,615 GP, GE limit: 100."
 osrs:
   id: 33074
   name: Facility bottle (empty)
@@ -11,7 +11,7 @@ osrs:
   value: 57693
   lowalch: 23077
   highalch: 34615
-  limit: null
+  limit: 100
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

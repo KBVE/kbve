@@ -79,70 +79,43 @@ osrs:
       slug: dragonstone
       relationship: component
       description: Gem component
+  about: |-
+    | Stat | Bonus |
+    |------|-------|
+    | All attack styles | +10 |
+    | All defences | +3 |
+    | Strength | +6 |
+    | Prayer | +3 |
+
+    - Edgeville
+    - Karamja (Musa Point)
+    - Draynor Village
+    - Al Kharid
+
+    | Effect | Description |
+    |--------|-------------|
+    | Gem chance | Increased while mining |
+    | Charges | 4 (6 at Fountain of Rune) |
+  market_strategy:
+    notes:
+      - Edgeville teleport popular
+      - Mining gem bonus
+      - Hybrid combat stats
+      - Teleportation
+      - Mining gem chance
+      - Hybrid PvM
+      - New accounts
+      - Recharge at Fountain of Rune
+      - Mount in POH for unlimited
+      - Edgeville most used teleport
+      - Eternal glory rare upgrade
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Stats
-
-| Stat | Bonus |
-|------|-------|
-| All attack styles | +10 |
-| All defences | +3 |
-| Strength | +6 |
-| Prayer | +3 |
-
-## Teleport Locations
-
-- Edgeville
-- Karamja (Musa Point)
-- Draynor Village
-- Al Kharid
-
-## Effects
-
-| Effect | Description |
-|--------|-------------|
-| Gem chance | Increased while mining |
-| Charges | 4 (6 at Fountain of Rune) |
-
-## Market Flip Strategy
-
-**Essential Teleport Amulet:**
-- Edgeville teleport popular
-- Mining gem bonus
-- Hybrid combat stats
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Demand Drivers:**
-- Teleportation
-- Mining gem chance
-- Hybrid PvM
-- New accounts
-
-**Tips:**
-- Recharge at Fountain of Rune
-- Mount in POH for unlimited
-- Edgeville most used teleport
-- Eternal glory rare upgrade
-
-<Adsense />
+<OSRSAdsenseCard />

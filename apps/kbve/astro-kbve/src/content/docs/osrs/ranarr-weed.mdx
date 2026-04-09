@@ -66,57 +66,33 @@ osrs:
       slug: vial-of-water
       relationship: component
       description: Required for potion
+  market_strategy:
+    steps:
+      - order: 1
+        action: Buy Grimy ranarr weed or clean Ranarr weed
+      - order: 2
+        action: Buy Snape grass
+      - order: 3
+        action: Make Prayer potion(4)
+      - order: 4
+        action: "Calculate: `Prayer potion price - Ranarr price - Snape grass price - Vial = Profit`"
+    profit_formulas:
+      - Prayer potion price - Ranarr price - Snape grass price - Vial = Profit
+    notes:
+      - Buy grimy → Clean → Sell clean
+      - Small margin but high volume
+      - Ranarr seed → Grow → Harvest
+      - One of the most profitable herbs to farm
+      - Prayer potions used by every account
+      - Essential for all PvM content
+      - High volume, stable prices
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Herblore
-
-Clean Grimy ranarr weed to get Ranarr weed, then create potions:
-
-| Potion | Secondary | Herblore Level | XP |
-|--------|-----------|----------------|-----|
-| Prayer potion(3) | Snape grass | 38 | 87.5 |
-
-## Market Flip Strategy
-
-**Potion Making:**
-1. Buy Grimy ranarr weed or clean Ranarr weed
-2. Buy Snape grass
-3. Make Prayer potion(4)
-4. Calculate: `Prayer potion price - Ranarr price - Snape grass price - Vial = Profit`
-
-**Cleaning Profit:**
-- Buy grimy → Clean → Sell clean
-- Small margin but high volume
-
-**Herb Farming:**
-- Ranarr seed → Grow → Harvest
-- One of the most profitable herbs to farm
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Prayer potions used by every account
-- Essential for all PvM content
-- High volume, stable prices
-
-<Adsense />
+<OSRSAdsenseCard />

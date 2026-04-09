@@ -46,68 +46,30 @@ osrs:
       slug: volatile-nightmare-staff
       relationship: product
       description: Created PvP spec weapon
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Upgrade Material |
+    | Tradeable | Yes |
+    | Weight | 0.1 kg |
+
+    | Item Created | Materials |
+    |--------------|-----------|
+    | Volatile nightmare staff | Nightmare staff + Volatile orb |
+
+    Creates powerful magic spec weapon with high burst damage special attack.
+  market_strategy:
+    notes:
+      - Farm Nightmare/Phosani's
+      - Creates PvP spec weapon
+      - Great for burst damage
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Upgrade Material |
-| Tradeable | Yes |
-| Weight | 0.1 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| The Nightmare | 1/960 to 1/548.7 |
-| Phosani's Nightmare | 1/1,600 |
-
-## Uses
-
-| Item Created | Materials |
-|--------------|-----------|
-| Volatile nightmare staff | Nightmare staff + Volatile orb |
-
-## Effect on Staff
-
-Creates powerful magic spec weapon with high burst damage special attack.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~39.3M gp
-
-**Tips:**
-- Farm Nightmare/Phosani's
-- Creates PvP spec weapon
-- Great for burst damage
-
-## Related Items
-
-- [The Nightmare](/osrs/the-nightmare/) - Boss source
-- [Nightmare staff](/osrs/nightmare-staff/) - Base weapon
-- [Volatile nightmare staff](/osrs/volatile-nightmare-staff/) - Created weapon
-
-<Adsense />
+<OSRSAdsenseCard />

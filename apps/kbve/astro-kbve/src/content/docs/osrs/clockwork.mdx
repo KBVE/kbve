@@ -43,68 +43,35 @@ osrs:
     - slug: redwood-birdhouse
       name: Redwood birdhouse
       relation: product
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Crafting Material |
+    | Tradeable | Yes |
+    | Weight | 1 kg |
+
+    Crafting (8 Crafting):
+    - Steel bar + Crafting table 2+
+    - 15 XP per clockwork
+    - Takes 3 ticks (1.8s)
+
+    Made in POH workshop.
+
+    | Category | Items |
+    |----------|-------|
+    | Bird houses | All tiers (Oak through Redwood) |
+    | Clocks | Oak, Teak, Gilded clocks |
+    | Toys | Toy soldier, doll, mouse, cat |
+    | Other | Clockwork suit, Watch, Trapdoor |
+
+    ~765K gp/hr profit crafting clockwork.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Crafting Material |
-| Tradeable | Yes |
-| Weight | 1 kg |
-
-## Creating
-
-**Crafting (8 Crafting):**
-- Steel bar + Crafting table 2+
-- 15 XP per clockwork
-- Takes 3 ticks (1.8s)
-
-Made in POH workshop.
-
-## Uses
-
-| Category | Items |
-|----------|-------|
-| Bird houses | All tiers (Oak through Redwood) |
-| Clocks | Oak, Teak, Gilded clocks |
-| Toys | Toy soldier, doll, mouse, cat |
-| Other | Clockwork suit, Watch, Trapdoor |
-
-## Money Making
-
-~765K gp/hr profit crafting clockwork.
-
-## Market Strategy
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Price:** ~950 gp
-
-## Related Items
-
-- [Steel bar](/osrs/steel-bar/) - Creation material
-- [Crafting table 2](/osrs/crafting-table-2/) - Required furniture
-- [Redwood birdhouse](/osrs/redwood-birdhouse/) - Use
-
-<Adsense />
+<OSRSAdsenseCard />

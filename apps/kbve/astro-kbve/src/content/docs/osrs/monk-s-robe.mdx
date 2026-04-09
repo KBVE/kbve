@@ -38,69 +38,38 @@ osrs:
       slug: initiate-cuisse
       relationship: upgrade
       description: Defence and prayer (+5)
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | Legs |
+    | Prayer Bonus | +5 |
+    | Requirements | None |
+    | Members | No |
+
+    - F2P prayer training gear
+    - Budget prayer bonus equipment
+    - Clue scroll outfit
+
+    | Piece | Prayer Bonus |
+    |-------|--------------|
+    | Monk's robe top | +6 |
+    | Monk's robe (legs) | +5 |
+    | Total | +11 |
+  market_strategy:
+    notes:
+      - Essentially worthless
+      - Can pick up at Monastery
+      - No real market value
+      - Not worth flipping
+      - Free to obtain
+      - Used for fashion/clues only
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Legs |
-| Prayer Bonus | +5 |
-| Requirements | None |
-| Members | No |
-
-## Obtaining
-
-**Spawns:** Monastery (2nd floor)
-
-**NPCs:** Monks drop occasionally
-
-## Usage
-
-- F2P prayer training gear
-- Budget prayer bonus equipment
-- Clue scroll outfit
-
-## Set Bonus
-
-| Piece | Prayer Bonus |
-|-------|--------------|
-| Monk's robe top | +6 |
-| Monk's robe (legs) | +5 |
-| **Total** | **+11** |
-
-## Market Flip Strategy
-
-**Free Spawn:**
-- Essentially worthless
-- Can pick up at Monastery
-- No real market value
-
-**Buy Limit:** 125 per 4 hours
-
-**Tips:**
-- Not worth flipping
-- Free to obtain
-- Used for fashion/clues only
-
-<Adsense />
+<OSRSAdsenseCard />

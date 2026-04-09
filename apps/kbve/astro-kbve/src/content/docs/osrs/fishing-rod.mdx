@@ -12,26 +12,28 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 40
+  related_items:
+    - item_id: 309
+      item_name: Fly fishing rod
+      slug: fly-fishing-rod
+      relationship: variant
+      description: For trout and salmon
+    - item_id: 313
+      item_name: Fishing bait
+      slug: fishing-bait
+      relationship: used-with
+      description: Required bait
+  about: |-
+    > _"Useful for catching sardine or herring."_
+
+    The fishing rod is used with fishing bait at net/bait fishing spots to catch sardines (5 Fishing) and herring (10 Fishing). One of the earliest fishing tools.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

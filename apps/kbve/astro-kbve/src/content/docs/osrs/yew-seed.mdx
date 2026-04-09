@@ -64,69 +64,29 @@ osrs:
       slug: magic-seed
       relationship: upgrade
       description: Higher tier option
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Tree Seed |
+    | Tradeable | Yes |
+    | Weight | 0 kg |
+    | Requirements | 60 Farming |
+
+    Plant in tree patches to grow yew trees.
+
+    Growth Time: ~6.5 hours
+
+    Payment: 10 cactus spines (optional protection)
+
+    XP: 81 (planting) + 7,069.9 (check-health)
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Tree Seed |
-| Tradeable | Yes |
-| Weight | 0 kg |
-| Requirements | 60 Farming |
-
-## Obtaining
-
-Common sources:
-- Bird nests (Woodcutting, Bird houses)
-- Managing Miscellania
-- Giant Mole (via Wyson exchange)
-- Boss drops (Kree'arra, Vorkath, Hespori)
-- Reward caskets
-
-## Usage
-
-Plant in **tree patches** to grow yew trees.
-
-**Growth Time:** ~6.5 hours
-
-**Payment:** 10 cactus spines (optional protection)
-
-**XP:** 81 (planting) + 7,069.9 (check-health)
-
-## Market Strategy
-
-**Buy Limit:** 200 per 4 hours
-
-**Price:** ~16k gp
-
-Popular mid-level tree seed. Good balance of cost and Farming XP.
-
-## Related Items
-
-- [Yew logs](/osrs/yew-logs/) - Woodcutting product
-- [Cactus spine](/osrs/cactus-spine/) - Protection payment
-- [Magic seed](/osrs/magic-seed/) - Higher tier option
-
-<Adsense />
+<OSRSAdsenseCard />

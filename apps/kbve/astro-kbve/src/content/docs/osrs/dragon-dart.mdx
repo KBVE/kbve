@@ -58,61 +58,36 @@ osrs:
       slug: amethyst-dart
       relationship: alternative
       description: Alternative
+  about: |-
+    | Method | Level | XP |
+    |--------|-------|-----|
+    | Fletching | 95 | 25 (per dart) |
+    | Materials | Dragon dart tip + Feather | - |
+
+    | Stat | Value |
+    |------|-------|
+    | Ranged requirement | 60 |
+    | Ranged strength | +35 |
+  market_strategy:
+    notes:
+      - Highest damage darts
+      - Toxic blowpipe meta
+      - High demand always
+      - Toxic blowpipe users
+      - High-level PvM
+      - Raids (CoX/ToB/ToA)
+      - Inferno attempts
+      - Best DPS for blowpipe
+      - Dragon dart tips from bosses
+      - 95 Fletching to make
+      - Always in demand
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creating
-
-| Method | Level | XP |
-|--------|-------|-----|
-| Fletching | 95 | 25 (per dart) |
-| Materials | Dragon dart tip + Feather | - |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged requirement | 60 |
-| Ranged strength | +35 |
-
-## Market Flip Strategy
-
-**Best Blowpipe Ammo:**
-- Highest damage darts
-- Toxic blowpipe meta
-- High demand always
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Toxic blowpipe users
-- High-level PvM
-- Raids (CoX/ToB/ToA)
-- Inferno attempts
-
-**Tips:**
-- Best DPS for blowpipe
-- Dragon dart tips from bosses
-- 95 Fletching to make
-- Always in demand
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -1,6 +1,6 @@
 ---
 title: Zamorak robe legs | OSRS Price Data
-description: "Zamorak robe legs: Leggings from the Zamorak Vestments.. High alch: 4,200 GP, GE limit: 8."
+description: "Zamorak robe legs is a members legs slot item. High alch: 4,200 GP, GE limit: 8."
 osrs:
   id: 10468
   name: Zamorak robe legs
@@ -12,26 +12,35 @@ osrs:
   lowalch: 2800
   highalch: 4200
   limit: 8
+  equipment:
+    slot: legs
+    requirements:
+      prayer: 20
+    other_bonus:
+      prayer: 5
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        tier: Easy
+        drop_rate: 1/1,404
+        description: Rare reward from easy clue scrolls
+  related_items:
+    - item_id: 10460
+      item_name: Zamorak robe top
+      slug: zamorak-robe-top
+      relationship: set-piece
+      description: Matching Zamorak vestment top
+  about: |-
+    > *"Leggings from the Zamorak Vestments."*
+
+    The Zamorak robe legs are the legs piece of the Zamorak vestment set, obtained from easy treasure trails. They provide a +5 Prayer bonus and require 20 Prayer to equip. Part of the god vestment sets, useful in the God Wars Dungeon for Zamorak protection.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

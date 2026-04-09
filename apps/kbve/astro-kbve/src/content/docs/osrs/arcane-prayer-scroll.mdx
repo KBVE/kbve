@@ -50,76 +50,39 @@ osrs:
       slug: chambers-of-xeric
       relationship: component
       description: Drop source
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Prayer Scroll |
+    | Tradeable | Yes |
+    | Weight | 0.015 kg |
+
+    Augury Prayer:
+    - +25% Magic Attack
+    - +25% Magic Defence
+    - +25% Defence
+
+    Requirements: 77 Prayer, 70 Defence
+
+    Essential for:
+    - All magic PvM
+    - Raids
+    - Inferno
+    - Any magic combat
+
+    Most important magic upgrade.
+  market_strategy:
+    notes:
+      - One-time unlock
+      - Priority magic upgrade
+      - Much cheaper than Rigour
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Prayer Scroll |
-| Tradeable | Yes |
-| Weight | 0.015 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Chambers of Xeric | ~29% (from ancient chest) |
-
-## Unlocks
-
-**Augury Prayer:**
-- +25% Magic Attack
-- +25% Magic Defence
-- +25% Defence
-
-**Requirements:** 77 Prayer, 70 Defence
-
-## Usage
-
-Essential for:
-- All magic PvM
-- Raids
-- Inferno
-- Any magic combat
-
-**Most important magic upgrade.**
-
-## Market Strategy
-
-**Buy Limit:** 5 per 4 hours
-
-**Price:** ~6.1M gp
-
-**Tips:**
-- One-time unlock
-- Priority magic upgrade
-- Much cheaper than Rigour
-
-## Related Items
-
-- [Dexterous prayer scroll](/osrs/dexterous-prayer-scroll/) - Rigour unlock
-- [Torn prayer scroll](/osrs/torn-prayer-scroll/) - Preserve unlock
-- [Chambers of Xeric](/osrs/chambers-of-xeric/) - Drop source
-
-<Adsense />
+<OSRSAdsenseCard />

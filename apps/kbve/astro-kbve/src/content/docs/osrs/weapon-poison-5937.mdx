@@ -81,79 +81,40 @@ osrs:
       slug: coconut-milk
       relationship: component
       description: Alternative recipe base
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Weapon Poison |
+    | Tradeable | Yes |
+    | Weight | 0.025 kg |
+    | Requirements | 73 Herblore |
+
+    Apply to weapons to add poison damage:
+    - Applies 5 starting poison damage
+    - Works on melee weapons, arrows, bolts, darts, javelins, knives
+    - Stronger than basic weapon poison
+
+    | Version | Starting Damage | Herblore Level |
+    |---------|-----------------|----------------|
+    | Weapon poison | 4 | 60 |
+    | Weapon poison(+) | 5 | 73 |
+    | Weapon poison(++) | 6 | 82 |
+  market_strategy:
+    notes:
+      - PvP combat
+      - Mid-tier poison option
+      - Herblore training
+      - Middle ground between basic and ++
+      - Two creation methods available
+      - Cactus spines from farming
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Weapon Poison |
-| Tradeable | Yes |
-| Weight | 0.025 kg |
-| Requirements | 73 Herblore |
-
-## Obtaining
-
-**Method 1:** Mix cactus spine with weapon poison (73 Herblore, 165 XP).
-
-**Method 2:** Mix coconut milk + cactus spine + red spiders' eggs (73 Herblore, 165 XP).
-
-**Alternative:** Purchase from Grand Exchange.
-
-## Usage
-
-Apply to weapons to add poison damage:
-- Applies 5 starting poison damage
-- Works on melee weapons, arrows, bolts, darts, javelins, knives
-- Stronger than basic weapon poison
-
-## Weapon Poison Tiers
-
-| Version | Starting Damage | Herblore Level |
-|---------|-----------------|----------------|
-| Weapon poison | 4 | 60 |
-| Weapon poison(+) | 5 | 73 |
-| Weapon poison(++) | 6 | 82 |
-
-## Market Strategy
-
-**Buy Limit:** 2,000 per 4 hours
-
-**Demand Drivers:**
-- PvP combat
-- Mid-tier poison option
-- Herblore training
-
-**Tips:**
-- Middle ground between basic and ++
-- Two creation methods available
-- Cactus spines from farming
-
-## Related Items
-
-- [Weapon poison](/osrs/weapon-poison/) - Weaker version
-- [Weapon poison(++)](/osrs/weapon-poison-plus-plus/) - Strongest version
-- [Cactus spine](/osrs/cactus-spine/) - Key ingredient
-
-<Adsense />
+<OSRSAdsenseCard />

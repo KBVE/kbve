@@ -1,6 +1,6 @@
 ---
 title: Amulet of glory (t4) | OSRS Price Data
-description: "Amulet of glory (t4): A very powerful dragonstone amulet.. High alch: 10,575 GP, GE limit: 5."
+description: "Amulet of glory (t4) is a members neck slot item with +6 melee strength. High alch: 10,575 GP, GE limit: 5."
 osrs:
   id: 10354
   name: Amulet of glory (t4)
@@ -12,26 +12,97 @@ osrs:
   lowalch: 7050
   highalch: 10575
   limit: 5
+  equipment:
+    slot: neck
+    weight: 0.01
+    attack_bonus:
+      stab: 10
+      slash: 10
+      crush: 10
+      magic: 10
+      ranged: 10
+    defence_bonus:
+      stab: 3
+      slash: 3
+      crush: 3
+      magic: 3
+      ranged: 3
+    other_bonus:
+      melee_strength: 6
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 3
+  charges:
+    current: 4
+    max: 6
+    recharge: Fountain of Rune
+  special_effect:
+    name: Glory Effect
+    description: Teleports to Edgeville, Karamja, Draynor, Al Kharid. Increases gem mining chance.
+    triggers: on_use
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        tier: Hard
+        drop_rate: 1/1,625
+        description: Rare reward from hard clue scrolls
+  related_items:
+    - item_id: 1704
+      item_name: Amulet of glory(4)
+      slug: amulet-of-glory-4
+      relationship: variant
+      description: Standard (untrimmed) version with 4 charges
+    - item_id: 10362
+      item_name: Amulet of glory (t)
+      slug: amulet-of-glory-t
+      relationship: variant
+      description: Uncharged trimmed version
+    - item_id: 11964
+      item_name: Amulet of glory (t6)
+      slug: amulet-of-glory-t6
+      relationship: variant
+      description: Fully charged trimmed version (6 charges)
+    - item_id: 6585
+      item_name: Amulet of fury
+      slug: amulet-of-fury
+      relationship: upgrade
+      description: Superior combat amulet
+  about: |-
+    > *"A very powerful dragonstone amulet."*
+
+    - Edgeville
+    - Karamja (Musa Point)
+    - Draynor Village
+    - Al Kharid
+
+    | Property | Glory (4) | Glory (t4) |
+    |----------|-----------|------------|
+    | All Attack | +10 | +10 |
+    | All Defence | +3 | +3 |
+    | Strength | +6 | +6 |
+    | Prayer | +3 | +3 |
+    | Teleports | Yes (4) | Yes (4) |
+    | Appearance | Standard | Gold trimmed |
+    | Source | Enchanting | Hard clue |
+
+    Stats are identical. The trimmed version is purely a cosmetic upgrade obtained through Treasure Trails.
+  market_strategy:
+    title: Investment Notes
+    notes:
+      - Hard clue exclusive cosmetic
+      - Functions identically to regular glory with 4 charges
+      - Fashionscape demand drives pricing
+      - Recharge at Fountain of Rune for 6 charges (becomes t6)
+      - Can be recharged just like a regular glory
+      - All charge variants (t1 through t6) maintain the trimmed appearance
+      - Popular among players who want a premium look for everyday teleporting
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

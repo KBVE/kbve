@@ -53,76 +53,24 @@ osrs:
       slug: unholy-blessing
       relationship: variant
       description: Zamorak variant
+  about: |-
+    | Other | Bonus |
+    |-------|-------|
+    | Prayer | +1 |
+
+    Provides protection from Saradomin followers in God Wars Dungeon.
+
+    Used for:
+    - Free prayer bonus
+    - Ammo slot when not using arrows
+    - Saradomin GWD protection
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Ammunition |
-| Type | Blessing |
-| Tradeable | Yes |
-| Weight | 0.51 kg |
-
-## Obtaining
-
-Treasure Trails reward (all levels except beginner):
-
-| Difficulty | Drop Rate |
-|------------|-----------|
-| Medium | 10/6,820 |
-| Hard | 1/541.7 |
-| Elite | 1/645.8 |
-| Master | 1/606.4 |
-| Easy | 11/23,760 |
-
-## Stats
-
-| Other | Bonus |
-|-------|-------|
-| Prayer | +1 |
-
-## GWD Effect
-
-Provides protection from Saradomin followers in God Wars Dungeon.
-
-## Usage
-
-Used for:
-- Free prayer bonus
-- Ammo slot when not using arrows
-- Saradomin GWD protection
-
-## Market Strategy
-
-**Buy Limit:** 5 per 4 hours
-
-**Price:** ~10.9K gp
-
-## Related Items
-
-- [Rada's blessing 4](/osrs/radas-blessing-4/) - BiS blessing
-- [War blessing](/osrs/war-blessing/) - Bandos variant
-- [Unholy blessing](/osrs/unholy-blessing/) - Zamorak variant
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -52,69 +52,42 @@ osrs:
       slug: dragonfire-shield
       relationship: alternative
       description: Alternative shield
+  about: |-
+    | Stat | Value |
+    |------|-------|
+    | Crush attack | +124 |
+    | Stab defence | +106 |
+    | Slash defence | +109 |
+    | Crush defence | +109 |
+    | Ranged defence | +148 |
+    | Strength | +38 |
+
+    Strongest shield in-game.
+
+    Shield Bash (50% energy):
+    - Hits up to 10 enemies in 11x11 area
+    - Primary target: 2 hits
+    - Other targets: 1 hit
+    - Reduces enemy offensive stats by 5%
+
+    Best For:
+    - Wilderness tank gear (anti-PK)
+    - Multicombat Slayer (dust devils, nechryaels)
+    - Tanking in dangerous situations
+
+    Strategy: Pair with defensive armor for maximum survivability.
+  market_strategy:
+    notes:
+      - Niche but powerful defensive item
+      - Popular for wilderness activities
+      - Two-handed (no weapon)
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Rare reward from Chambers of Xeric (3/69 from Ancient chest).
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Crush attack | +124 |
-| Stab defence | +106 |
-| Slash defence | +109 |
-| Crush defence | +109 |
-| Ranged defence | +148 |
-| Strength | +38 |
-
-**Strongest shield in-game.**
-
-## Special Attack
-
-**Shield Bash** (50% energy):
-- Hits up to 10 enemies in 11x11 area
-- Primary target: 2 hits
-- Other targets: 1 hit
-- Reduces enemy offensive stats by 5%
-
-## Usage
-
-**Best For:**
-- Wilderness tank gear (anti-PK)
-- Multicombat Slayer (dust devils, nechryaels)
-- Tanking in dangerous situations
-
-**Strategy:** Pair with defensive armor for maximum survivability.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Niche but powerful defensive item
-- Popular for wilderness activities
-- Two-handed (no weapon)
-
-<Adsense />
+<OSRSAdsenseCard />

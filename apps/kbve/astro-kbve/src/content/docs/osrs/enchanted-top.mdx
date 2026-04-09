@@ -1,6 +1,6 @@
 ---
 title: Enchanted top | OSRS Price Data
-description: "Enchanted top: Enchanted Wizards robes.. High alch: 72,000 GP, GE limit: 8."
+description: "Enchanted top is a members body slot item requiring 20 Defence. High alch: 72,000 GP, GE limit: 8."
 osrs:
   id: 7399
   name: Enchanted top
@@ -12,26 +12,84 @@ osrs:
   lowalch: 48000
   highalch: 72000
   limit: 8
+  equipment:
+    slot: body
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 20
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 20
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      magic: 40
+      defence: 20
+  related_items:
+    - item_id: 7400
+      item_name: Enchanted hat
+      slug: enchanted-hat
+      relationship: set-piece
+      description: Enchanted set hat
+    - item_id: 7398
+      item_name: Enchanted robe
+      slug: enchanted-robe
+      relationship: set-piece
+      description: Enchanted set legs
+    - item_id: 4091
+      item_name: Mystic robe top
+      slug: mystic-robe-top
+      relationship: alternative
+      description: Same stats, easier to obtain
+  about: |-
+    > *"Enchanted Wizards robes."*
+
+    | Attack | Value |
+    |--------|-------|
+    | Magic | +20 |
+
+    | Defence | Value |
+    |---------|-------|
+    | Magic | +20 |
+
+    Requirements: 40 Magic, 20 Defence
+
+    Weight: 2.721 kg
+
+    | Stat | Enchanted Top | Mystic Robe Top | Ahrim's Robetop | Infinity Top |
+    |------|--------------|-----------------|-----------------|-------------|
+    | Magic Atk | +20 | +20 | +30 | +22 |
+    | Magic Def | +20 | +20 | +30 | +22 |
+    | Req | 40 Mage/20 Def | 40 Mage/20 Def | 70 Mage/70 Def | 50 Mage/25 Def |
+
+    The enchanted top is statistically identical to the mystic robe top. The only difference is visual appearance and source. It trades at a different price due to its rarity from Treasure Trails.
+
+    - Cosmetic alternative to the mystic robe top
+    - Treasure Trails fashionscape outfit
+    - Can be stored in POH costume room
+    - Same combat utility as mystic robe top in every scenario
+  market_strategy:
+    notes:
+      - Hard clue rarity gives it collector value
+      - Typically trades above mystic robe top due to cosmetic demand
+      - Storable in costume room for outfit collectors
+      - Part of the complete enchanted robes set (hat, top, robe)
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -85,65 +85,36 @@ osrs:
       slug: nature-rune
       relationship: component
       description: For Plank Make
+  about: |-
+    | XP per plank | 140 |
+    |--------------|-----|
+    | Mahogany Homes avg | ~346 XP per plank |
+    | Buy limit | 13,000 per 4 hours |
+    | Min Construction level | 40 |
+
+    Best XP methods:
+    - Mahogany tables (6 planks, 840 XP)
+    - Mahogany Homes contracts (most efficient)
+    - Gnome benches (6 planks, 840 XP)
+  market_strategy:
+    profit_formulas:
+      - Mahogany plank price - Mahogany log price - 1,500 GP = Profit
+    notes:
+      - Buy Mahogany logs → Sawmill → Sell planks
+      - "Calculate:"
+      - 86 Magic required
+      - Only 1,050 GP per plank (saves 450 GP vs sawmill)
+      - Higher profit margin than oak planks
+      - Highest XP/plank for Construction
+      - Premium price = higher margins
+      - Popular for 99 Construction rushes
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Convert [Mahogany logs](/osrs/mahogany-logs/) at a Sawmill:
-
-| Method | Cost |
-|--------|------|
-| Sawmill operator | 1,500 GP per plank |
-| Plank Make spell | 1,050 GP + runes |
-| Woodcutting Guild sawmill | 1,350 GP per plank |
-
-## Construction
-
-| XP per plank | 140 |
-|--------------|-----|
-| Mahogany Homes avg | ~346 XP per plank |
-| Buy limit | 13,000 per 4 hours |
-| Min Construction level | 40 |
-
-**Best XP methods:**
-- Mahogany tables (6 planks, 840 XP)
-- Mahogany Homes contracts (most efficient)
-- Gnome benches (6 planks, 840 XP)
-
-## Market Flip Strategy
-
-**Plank Making Profit:**
-- Buy [Mahogany logs](/osrs/mahogany-logs/) → Sawmill → Sell planks
-- Calculate: `Mahogany plank price - Mahogany log price - 1,500 GP = Profit`
-
-**Plank Make Spell:**
-- 86 Magic required
-- Only 1,050 GP per plank (saves 450 GP vs sawmill)
-- Higher profit margin than oak planks
-
-**Tips:**
-- Highest XP/plank for Construction
-- Premium price = higher margins
-- Popular for 99 Construction rushes
-
-<Adsense />
+<OSRSAdsenseCard />

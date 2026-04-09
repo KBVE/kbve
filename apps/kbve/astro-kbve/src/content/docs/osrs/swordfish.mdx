@@ -53,61 +53,31 @@ osrs:
       slug: cooking-gauntlets
       relationship: alternative
       description: Reduce burn
+  about: |-
+    | Effect | Value |
+    |--------|-------|
+    | Heals | 14 HP |
+    | Buy limit | 6,000 |
+  market_strategy:
+    notes:
+      - Best F2P food option
+      - Solid mid-tier healing
+      - High burn rate
+      - F2P PvM/PvP
+      - Mid-level combat
+      - Budget healing
+      - Cooking training
+      - Burns often until 86 Cooking
+      - Cooking gauntlets essential
+      - Popular F2P staple
+      - Caught alongside tuna
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Method | Level | XP |
-|--------|-------|-----|
-| Cooking raw swordfish | 45 Cooking | 140 |
-| Stop burning | 86 (76 with gauntlets) | - |
-
-## Stats
-
-| Effect | Value |
-|--------|-------|
-| Heals | 14 HP |
-| Buy limit | 6,000 |
-
-## Market Flip Strategy
-
-**F2P Combat Food:**
-- Best F2P food option
-- Solid mid-tier healing
-- High burn rate
-
-**Buy Limit:** 6,000 per 4 hours
-
-**Demand Drivers:**
-- F2P PvM/PvP
-- Mid-level combat
-- Budget healing
-- Cooking training
-
-**Tips:**
-- Burns often until 86 Cooking
-- Cooking gauntlets essential
-- Popular F2P staple
-- Caught alongside tuna
-
-<Adsense />
+<OSRSAdsenseCard />

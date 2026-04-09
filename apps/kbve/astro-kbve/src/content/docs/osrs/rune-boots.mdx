@@ -57,78 +57,33 @@ osrs:
       slug: ranger-boots
       relationship: alternative
       description: Best-in-slot ranged boots
+  about: |-
+    | Defence | Value |
+    |---------|-------|
+    | Stab | +9 |
+    | Slash | +10 |
+    | Crush | +11 |
+
+    Requirements: None
+
+    Budget boots used for:
+    - Iron accounts before Dragon boots
+    - Low-level melee setups
+    - F2P-style builds (still members only)
+
+    No requirements make them accessible to any account.
+  market_strategy:
+    notes:
+      - Very affordable
+      - Used mainly by early-game ironmen
+      - Outclassed by Dragon boots in most scenarios
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Feet |
-| Type | Armor |
-| Tradeable | Yes |
-| Weight | 1 kg |
-
-## Obtaining
-
-Drop from Nechryael in Slayer dungeons.
-
-**Requirements:** 80 Slayer to kill Nechryael
-
-**Locations:**
-- Slayer Tower
-- Catacombs of Kourend
-
-| Monster | Drop Rate |
-|---------|-----------|
-| Nechryael | 1/128 |
-| Greater Nechryael | 1/128 |
-
-## Stats
-
-| Defence | Value |
-|---------|-------|
-| Stab | +9 |
-| Slash | +10 |
-| Crush | +11 |
-
-**Requirements:** None
-
-## Usage
-
-Budget boots used for:
-- Iron accounts before Dragon boots
-- Low-level melee setups
-- F2P-style builds (still members only)
-
-**No requirements make them accessible to any account.**
-
-## Market Strategy
-
-**Buy Limit:** 125 per 4 hours
-
-**Tips:**
-- Very affordable
-- Used mainly by early-game ironmen
-- Outclassed by Dragon boots in most scenarios
-
-<Adsense />
+<OSRSAdsenseCard />

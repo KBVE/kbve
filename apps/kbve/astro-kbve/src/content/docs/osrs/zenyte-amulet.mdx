@@ -1,6 +1,6 @@
 ---
 title: Zenyte amulet | OSRS Price Data
-description: "Zenyte amulet: A fiery glow emanates from this amulet.. High alch: 121,200 GP, GE limit: 8."
+description: "Zenyte amulet is a members neck slot item. High alch: 121,200 GP, GE limit: 8."
 osrs:
   id: 19541
   name: Zenyte amulet
@@ -12,26 +12,59 @@ osrs:
   lowalch: 80800
   highalch: 121200
   limit: 8
+  equipment:
+    slot: neck
+    requirements:
+      crafting: 98
+  recipes:
+    - skill: crafting
+      level: 98
+      xp: 200
+      inputs:
+        - item_name: Zenyte
+          quantity: 1
+        - item_name: Gold bar
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 6581
+      item_name: Onyx amulet
+      slug: onyx-amulet
+      relationship: downgrade
+      description: Previous tier amulet
+  about: |-
+    Crafting (Level 98): Zenyte + Gold bar at a furnace with amulet mould (200 XP). String with ball of wool.
+
+    The highest Crafting requirement of any jewelry piece.
+
+    > *"A zenyte amulet."*
+
+    Lvl-7 Enchant (93 Magic): 1 cosmic rune + 20 soul runes + 20 blood runes (110 XP)
+
+    The Amulet of torture is the best-in-slot melee amulet:
+    - +15 Stab/Slash/Crush attack
+    - +10 Strength
+    - +2 Prayer
+    - Highest melee accuracy and Strength bonus of any neck slot item
+
+    | Jewelry | Slot | Enchanted | Combat Style |
+    |---------|------|-----------|-------------|
+    | Zenyte amulet | Neck | Amulet of torture | Melee BiS |
+    | Zenyte necklace | Neck | Necklace of anguish | Ranged BiS |
+    | Zenyte bracelet | Hands | Tormented bracelet | Magic BiS |
+    | Zenyte ring | Ring | Ring of suffering | Defensive BiS |
+  market_strategy:
+    notes:
+      - Zenyte shard (Demonic gorillas 1/300) + onyx = zenyte
+      - 98 Crafting is very high — limits supply
+      - Torture has permanent BiS demand
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

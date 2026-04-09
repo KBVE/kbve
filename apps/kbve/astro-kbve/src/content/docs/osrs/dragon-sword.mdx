@@ -48,60 +48,33 @@ osrs:
       slug: kodai-wand
       relationship: alternative
       description: BiS magic weapon
+  about: |-
+    | Stat | Value |
+    |------|-------|
+    | Magic attack | +8 |
+    | Magic defence | +8 |
+    | Magic damage | +2% |
+    | Requirements | 75 Magic, Defence |
+
+    Best-in-slot magic helm.
+
+    BiS magic helm for:
+    - All magic combat
+    - Raids
+    - Bossing
+    - When not using Slayer helm
+  market_strategy:
+    notes:
+      - Chambers of Xeric drop
+      - Part of Ancestral set
+      - Cheapest Ancestral piece
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Rare reward from Chambers of Xeric (CoX).
-
-3/69 chance from Ancient chest.
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Magic attack | +8 |
-| Magic defence | +8 |
-| Magic damage | +2% |
-| Requirements | 75 Magic, Defence |
-
-**Best-in-slot magic helm.**
-
-## Usage
-
-BiS magic helm for:
-- All magic combat
-- Raids
-- Bossing
-- When not using Slayer helm
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Chambers of Xeric drop
-- Part of Ancestral set
-- Cheapest Ancestral piece
-
-<Adsense />
+<OSRSAdsenseCard />

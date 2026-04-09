@@ -72,58 +72,19 @@ osrs:
       slug: blood-rune
       relationship: component
       description: Spell component
+  market_strategy:
+    notes:
+      - Best ensouled head XP
+      - 93 Magic required
+      - Dark Altar location
+      - Combat XP alongside Prayer
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Dropped by various dragon enemies.
-
-| Source | Drop Rate |
-|--------|-----------|
-| Black dragons | Varies |
-| Blue dragons | Varies |
-| Red dragons | Varies |
-| King Black Dragon | Varies |
-| Vorkath | Varies |
-
-## Prayer Training
-
-| Requirement | Value |
-|-------------|-------|
-| Magic Level | 93 (Master Reanimation) |
-| Prayer XP | 1,560 |
-| Arceuus favour | 100% |
-
-**Best ensouled head XP.**
-
-## Market Strategy
-
-**Buy Limit:** 7,500 per 4 hours
-
-**Tips:**
-- Best ensouled head XP
-- 93 Magic required
-- Dark Altar location
-- Combat XP alongside Prayer
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -65,58 +65,33 @@ osrs:
       slug: forestry-basket
       relationship: product
       description: Created combined storage item
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Crafting Material |
+    | Tradeable | No |
+    | Weight | 0.907 kg |
+
+    Requirements: 75 Smithing, 75 Woodcutting
+
+    Materials:
+    - 1 Log brace
+    - 45 Steel nails
+    - 2 Ropes
+    - 3 Adamantite bars
+
+    | Item Created | Materials |
+    |--------------|-----------|
+    | Forestry basket | Forestry kit + Log basket + Sturdy harness |
+
+    Combination is reversible via Forestry basket settings.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Crafting Material |
-| Tradeable | No |
-| Weight | 0.907 kg |
-
-## Creating
-
-**Requirements:** 75 Smithing, 75 Woodcutting
-
-**Materials:**
-- 1 Log brace
-- 45 Steel nails
-- 2 Ropes
-- 3 Adamantite bars
-
-## Uses
-
-| Item Created | Materials |
-|--------------|-----------|
-| Forestry basket | Forestry kit + Log basket + Sturdy harness |
-
-Combination is reversible via Forestry basket settings.
-
-## Related Items
-
-- [Forestry kit](/osrs/forestry-kit/) - Combine material
-- [Log basket](/osrs/log-basket/) - Combine material
-- [Forestry basket](/osrs/forestry-basket/) - Created item
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -49,54 +49,33 @@ osrs:
       slug: harralander-seed
       relationship: upgrade
       description: Next tier herb seed
+  about: |-
+    Plant in a herb patch to grow Grimy tarromin.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Farming Level | 19 |
+    | Growth time | 80 minutes |
+    | XP (plant) | 16 |
+    | XP (harvest) | 18 per herb |
+  market_strategy:
+    notes:
+      - Low-tier herb seed
+      - Used for strength potions and serum 207
+      - Low profit margin
+      - Ultracompost (essential)
+      - Magic secateurs (10% more yield)
+      - Farming cape (5% more yield)
+      - 9 herb patches available
+      - ~10 minute runs, 80 minute regrowth
+      - Serum 207 used for Shades of Mort'ton minigame
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Farming
-
-Plant in a herb patch to grow Grimy tarromin.
-
-| Requirement | Value |
-|-------------|-------|
-| Farming Level | 19 |
-| Growth time | 80 minutes |
-| XP (plant) | 16 |
-| XP (harvest) | 18 per herb |
-
-## Market Strategy
-
-**Herb Farming:**
-- Low-tier herb seed
-- Used for strength potions and serum 207
-- Low profit margin
-
-**Yield Boosters:**
-- Ultracompost (essential)
-- Magic secateurs (10% more yield)
-- Farming cape (5% more yield)
-
-**Tips:**
-- 9 herb patches available
-- ~10 minute runs, 80 minute regrowth
-- Serum 207 used for Shades of Mort'ton minigame
-
-<Adsense />
+<OSRSAdsenseCard />

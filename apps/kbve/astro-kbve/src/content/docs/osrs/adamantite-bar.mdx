@@ -90,59 +90,30 @@ osrs:
       slug: adamant-dart-tip
       relationship: product
       description: Popular product
+  about: |-
+    Smelt 1 Adamantite ore + 6 Coal (3 coal at Blast Furnace).
+
+    | Method | Coal Required | Smithing Level | XP |
+    |--------|---------------|----------------|-----|
+    | Regular furnace | 6 | 70 | 37.5 |
+    | Blast Furnace | 3 | 70 | 37.5 |
+  market_strategy:
+    profit_formulas:
+      - Adamant bar - Adamantite ore - (Coal × 3) = Profit
+    notes:
+      - Half coal = significant savings
+      - "Calculate:"
+      - Popular mid-level Blast Furnace method
+      - 1 bar = 10 Adamant dart tips
+      - High demand for Fletching training
+      - Check dart tip vs bar margins
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Smelt 1 [Adamantite ore](/osrs/adamantite-ore/) + 6 [Coal](/osrs/coal/) (3 coal at Blast Furnace).
-
-| Method | Coal Required | Smithing Level | XP |
-|--------|---------------|----------------|-----|
-| Regular furnace | 6 | 70 | 37.5 |
-| Blast Furnace | 3 | 70 | 37.5 |
-
-## Smithing Products
-
-| Item | Bars | Smithing Level | High Alch |
-|------|------|----------------|-----------|
-| [Adamant dagger](/osrs/adamant-dagger/) | 1 | 70 | 960 GP |
-| [Adamant scimitar](/osrs/adamant-scimitar/) | 2 | 75 | 1,920 GP |
-| [Adamant platebody](/osrs/adamant-platebody/) | 5 | 88 | 4,800 GP |
-| [Adamant platelegs](/osrs/adamant-platelegs/) | 3 | 86 | 2,880 GP |
-| [Adamant dart tip](/osrs/adamant-dart-tip/) | 1 | 74 | N/A |
-
-## Market Flip Strategy
-
-**Blast Furnace Smelting:**
-- Half coal = significant savings
-- Calculate: `Adamant bar - Adamantite ore - (Coal × 3) = Profit`
-- Popular mid-level Blast Furnace method
-
-**Dart Tip Making:**
-- 1 bar = 10 [Adamant dart tips](/osrs/adamant-dart-tip/)
-- High demand for Fletching training
-- Check dart tip vs bar margins
-
-**Buy Limit:** 10,000 per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

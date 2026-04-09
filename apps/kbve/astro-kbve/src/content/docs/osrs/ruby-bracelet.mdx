@@ -1,6 +1,6 @@
 ---
 title: Ruby bracelet | OSRS Price Data
-description: "Ruby bracelet: I wonder if this is valuable.. High alch: 1,395 GP, GE limit: 10,000."
+description: "Ruby bracelet is a members hands slot item. High alch: 1,395 GP, GE limit: 10,000."
 osrs:
   id: 11085
   name: Ruby bracelet
@@ -12,26 +12,54 @@ osrs:
   lowalch: 930
   highalch: 1395
   limit: 10000
+  equipment:
+    slot: hands
+    requirements:
+      crafting: 42
+  recipes:
+    - skill: crafting
+      level: 42
+      xp: 80
+      inputs:
+        - item_name: Ruby
+          quantity: 1
+        - item_name: Gold bar
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 11076
+      item_name: Emerald bracelet
+      slug: emerald-bracelet
+      relationship: downgrade
+      description: Previous tier bracelet
+    - item_id: 11092
+      item_name: Diamond bracelet
+      slug: diamond-bracelet
+      relationship: upgrade
+      description: Next tier bracelet
+  about: |-
+    Crafting (Level 42): Ruby + Gold bar at a furnace with bracelet mould (80 XP)
+
+    > *"A ruby bracelet."*
+
+    Lvl-3 Enchant (49 Magic): 1 cosmic rune + 5 fire runes (59 XP)
+
+    The Inoculation bracelet provides poison immunity until it absorbs 500 total poison damage, then crumbles. Unlike antipoisons which cure existing poison, this prevents poison from being applied. Useful for:
+    - Wilderness activities where re-poisoning is frequent
+    - Budget alternative to antidote++ or serpentine helm
+    - Single charge of prevention vs repeated potion doses
+  market_strategy:
+    notes:
+      - Niche poison immunity item
+      - Most players prefer antipoison potions
+      - Consumed after 500 poison damage absorbed
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

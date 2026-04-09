@@ -79,58 +79,38 @@ osrs:
       slug: iron-arrowtips
       relationship: component
       description: Common tips
+  about: |-
+    Use a Knife on any logs to create Arrow shafts.
+
+    | Log Type | Shafts per Log | Fletching Level |
+    |----------|----------------|-----------------|
+    | Logs | 15 | 1 |
+    | Oak logs | 30 | 15 |
+    | Willow logs | 45 | 30 |
+    | Maple logs | 60 | 45 |
+    | Yew logs | 75 | 60 |
+    | Magic logs | 90 | 75 |
+
+    Add feathers and arrowtips to create arrows:
+
+    1. Arrow shaft + Feather = Headless arrow
+    2. Headless arrow + Arrowtips = Finished arrows
+  market_strategy:
+    title: Bulk Processing
+    notes:
+      - High volume, low margin item
+      - "Compare:  vs"
+      - Best margins often with regular Logs
+      - Buy Arrow shafts + Feathers
+      - Fletch into Headless arrows
+      - Sell to fletchers making finished arrows
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Use a Knife on any logs to create Arrow shafts.
-
-| Log Type | Shafts per Log | Fletching Level |
-|----------|----------------|-----------------|
-| Logs | 15 | 1 |
-| Oak logs | 30 | 15 |
-| Willow logs | 45 | 30 |
-| Maple logs | 60 | 45 |
-| Yew logs | 75 | 60 |
-| Magic logs | 90 | 75 |
-
-## Usage
-
-Add feathers and arrowtips to create arrows:
-
-1. Arrow shaft + Feather = Headless arrow
-2. Headless arrow + Arrowtips = Finished arrows
-
-## Market Flip Strategy
-
-**Bulk Processing:**
-- High volume, low margin item
-- Compare: `Log price` vs `Arrow shaft price × shafts per log`
-- Best margins often with regular Logs
-
-**Headless Arrow Flipping:**
-- Buy Arrow shafts + Feathers
-- Fletch into Headless arrows
-- Sell to fletchers making finished arrows
-
-<Adsense />
+<OSRSAdsenseCard />

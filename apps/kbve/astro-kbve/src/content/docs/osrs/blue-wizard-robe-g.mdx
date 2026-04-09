@@ -1,6 +1,6 @@
 ---
 title: Blue wizard robe (g) | OSRS Price Data
-description: "Blue wizard robe (g): I can do magic better in this.. High alch: 9 GP, GE limit: 4."
+description: "Blue wizard robe (g) is a F2P body slot item. High alch: 9 GP, GE limit: 4."
 osrs:
   id: 7390
   name: Blue wizard robe (g)
@@ -12,26 +12,35 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 4
+  equipment:
+    slot: body
+    requirements: {}
+    attack_bonus:
+      magic: 3
+    defence_bonus:
+      magic: 3
+  related_items:
+    - item_id: 7394
+      item_name: Blue wizard hat (g)
+      slug: blue-wizard-hat-g
+      relationship: set-piece
+      description: Matching gold-trimmed wizard hat
+    - item_id: 7392
+      item_name: Blue wizard robe (t)
+      slug: blue-wizard-robe-t
+      relationship: variant
+      description: Trimmed variant
+  about: |-
+    > *"I can do magic better in this."*
+
+    The blue wizard robe (g) is a gold-trimmed cosmetic variant of the standard blue wizard robe. It provides identical stats (+3 magic attack and defence) but with decorative gold trim. No requirements to equip, making it popular with pure accounts. F2P item.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

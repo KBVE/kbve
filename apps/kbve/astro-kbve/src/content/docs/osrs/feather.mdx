@@ -58,63 +58,48 @@ osrs:
       slug: raw-trout
       relationship: alternative
       description: Caught with feathers
+  about: |-
+    Feathers are used in multiple skills:
+
+    Fletching:
+    - Arrow shaft + Feather = Headless arrow
+    - 10 feathers per 10 arrow shafts
+
+    Fishing:
+    - Fly fishing for Raw trout and Raw salmon
+    - Barbarian fishing
+
+    Herblore:
+    - Some potion recipes require feathers
+  market_strategy:
+    title: |-
+      - Fletching training
+      - Fly fishing
+      - Arrow production chains
+    steps:
+      - order: 1
+        action: Buy Arrow shaft + Feathers
+      - order: 2
+        action: Fletch into Headless arrow
+      - order: 3
+        action: Sell to arrow makers
+    notes:
+      - Chicken killing (common bot activity)
+      - Shop purchases (limited stock)
+      - Fishing drops
+      - Fletching training
+      - Fly fishing
+      - Arrow production chains
+      - "Buy limit: 13,000 per 4 hours"
+      - Very stable price, high volume
+      - Cheap but essential item
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Usage
-
-Feathers are used in multiple skills:
-
-**Fletching:**
-- Arrow shaft + Feather = Headless arrow
-- 10 feathers per 10 arrow shafts
-
-**Fishing:**
-- Fly fishing for Raw trout and Raw salmon
-- Barbarian fishing
-
-**Herblore:**
-- Some potion recipes require feathers
-
-## Market Flip Strategy
-
-**Headless Arrow Production:**
-1. Buy Arrow shaft + Feathers
-2. Fletch into Headless arrow
-3. Sell to arrow makers
-
-**Supply Sources:**
-- Chicken killing (common bot activity)
-- Shop purchases (limited stock)
-- Fishing drops
-
-**Demand Drivers:**
-- Fletching training
-- Fly fishing
-- Arrow production chains
-
-**Tips:**
-- Buy limit: 13,000 per 4 hours
-- Very stable price, high volume
-- Cheap but essential item
-
-<Adsense />
+<OSRSAdsenseCard />

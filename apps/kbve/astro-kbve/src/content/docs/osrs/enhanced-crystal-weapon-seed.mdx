@@ -69,79 +69,42 @@ osrs:
       slug: crystal-shard
       relationship: component
       description: Corruption material
+  about: |-
+    | Stat | Value |
+    |------|-------|
+    | Slash attack | +94 |
+    | Strength | +89 |
+    | Requirements | 75 Attack, Agility |
+
+    Highest slash accuracy in-game.
+
+    Corrupted version:
+    - Never degrades
+    - Cannot be reverted
+    - Untradeable
+
+    Charged version (uncorrupted):
+    - Requires crystal shards to charge
+    - 20,000 charges per 100 shards
+
+    BiS for slash-weak enemies:
+    - Graardor
+    - Cerberus
+    - General melee combat
+
+    Tied with Ghrazi rapier for general DPS.
+  market_strategy:
+    notes:
+      - Enhanced crystal weapon seed from CG
+      - Corrupt to save long-term costs
+      - Song of the Elves required
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Created by corrupting [Blade of saeldor](/osrs/blade-of-saeldor/) with 1,000 crystal shards.
-
-Base blade from Gauntlet.
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Slash attack | +94 |
-| Strength | +89 |
-| Requirements | 75 Attack, Agility |
-
-**Highest slash accuracy in-game.**
-
-## Effects
-
-**Corrupted version:**
-- Never degrades
-- Cannot be reverted
-- Untradeable
-
-**Charged version (uncorrupted):**
-- Requires crystal shards to charge
-- 20,000 charges per 100 shards
-
-## Usage
-
-BiS for slash-weak enemies:
-- Graardor
-- Cerberus
-- General melee combat
-
-**Tied with Ghrazi rapier for general DPS.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~105M gp (uncharged)
-
-**Tips:**
-- Enhanced crystal weapon seed from CG
-- Corrupt to save long-term costs
-- Song of the Elves required
-
-## Related Items
-
-- [Ghrazi rapier](/osrs/ghrazi-rapier/) - Stab equivalent
-- [Bow of faerdhinen](/osrs/bow-of-faerdhinen/) - Ranged crystal weapon
-- [Crystal armour](/osrs/crystal-armour/) - Pairs for set bonus
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -84,64 +84,35 @@ osrs:
       slug: astral-rune
       relationship: component
       description: For Plank Make
+  about: |-
+    | XP per plank | 60 |
+    |--------------|-----|
+    | Buy limit | 13,000 per 4 hours |
+
+    Common builds:
+    - Oak larders (8 planks, 480 XP) - popular training method
+    - Oak dungeon doors (10 planks, 600 XP)
+    - Mahogany Homes contracts (~variable XP)
+  market_strategy:
+    profit_formulas:
+      - Oak plank price - Oak log price - 250 GP = Profit
+    notes:
+      - Buy Oak logs → Sawmill → Sell Oak planks
+      - "Calculate:"
+      - 86 Magic required
+      - "Uses: 2 Astral rune, 1 Nature rune, 15 Earth rune"
+      - Only 175 GP per plank (cheaper than sawmill)
+      - Can profit if rune costs are lower than 75 GP savings
+      - High volume item for Construction training
+      - Steady demand from Mahogany Homes
+      - Compare sawmill vs Plank Make profitability
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Convert [Oak logs](/osrs/oak-logs/) at a Sawmill:
-
-| Method | Cost |
-|--------|------|
-| Sawmill operator | 250 GP per plank |
-| Plank Make spell | 175 GP + runes |
-| Woodcutting Guild sawmill | 225 GP per plank |
-
-## Construction
-
-| XP per plank | 60 |
-|--------------|-----|
-| Buy limit | 13,000 per 4 hours |
-
-**Common builds:**
-- Oak larders (8 planks, 480 XP) - popular training method
-- Oak dungeon doors (10 planks, 600 XP)
-- Mahogany Homes contracts (~variable XP)
-
-## Market Flip Strategy
-
-**Plank Making Profit:**
-- Buy [Oak logs](/osrs/oak-logs/) → Sawmill → Sell Oak planks
-- Calculate: `Oak plank price - Oak log price - 250 GP = Profit`
-
-**Plank Make Spell:**
-- 86 Magic required
-- Uses: 2 [Astral rune](/osrs/astral-rune/), 1 [Nature rune](/osrs/nature-rune/), 15 [Earth rune](/osrs/earth-rune/)
-- Only 175 GP per plank (cheaper than sawmill)
-- Can profit if rune costs are lower than 75 GP savings
-
-**Tips:**
-- High volume item for Construction training
-- Steady demand from Mahogany Homes
-- Compare sawmill vs Plank Make profitability
-
-<Adsense />
+<OSRSAdsenseCard />

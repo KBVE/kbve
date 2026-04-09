@@ -12,26 +12,28 @@ osrs:
   lowalch: 4
   highalch: 7
   limit: 11000
+  related_items:
+    - item_id: 45
+      item_name: Opal bolt tips
+      slug: opal-bolt-tips
+      relationship: variant
+      description: Lower tier bolt tips
+    - item_id: 47
+      item_name: Barb bolttips
+      slug: barb-bolttips
+      relationship: variant
+      description: Barbed bolt tips
+  about: |-
+    > _"Pearl bolt tips."_
+
+    Pearl bolt tips are members-only Fletching supplies. Attach to iron bolts at 41 Fletching to create pearl bolts. Pearl bolts can be enchanted to create pearl bolts (e) which have a special effect against fiery creatures.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

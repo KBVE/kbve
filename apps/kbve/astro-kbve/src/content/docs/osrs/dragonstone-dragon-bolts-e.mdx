@@ -1,6 +1,6 @@
 ---
 title: Dragonstone dragon bolts (e) | OSRS Price Data
-description: "Dragonstone dragon bolts (e): Enchanted Dragon crossbow bolts, tipped with dragonstone. Double dragon!. High alch: 690 GP, GE limit: 11,000."
+description: "Dragonstone dragon bolts (e) is a members ammo slot item with +122 ranged strength. High alch: 690 GP, GE limit: 11,000."
 osrs:
   id: 21948
   name: Dragonstone dragon bolts (e)
@@ -12,26 +12,66 @@ osrs:
   lowalch: 460
   highalch: 690
   limit: 11000
+  equipment:
+    slot: ammo
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      ranged_strength: 122
+      prayer: 0
+    requirements: {}
+  recipes:
+    - skill: magic
+      level: 68
+      xp: 78
+      inputs:
+        - item_name: Dragonstone dragon bolts
+          quantity: 10
+      output_quantity: 10
+  related_items:
+    - item_id: 9244
+      item_name: Dragonstone bolts (e)
+      slug: dragonstone-bolts-e
+      relationship: downgrade
+      description: Regular crossbow version
+  about: |-
+    > *"Enchanted Dragon crossbow bolts, tipped with dragonstone. Double dragon!"*
+
+    Dragonstone dragon bolts (e) carry the Dragon's Breath enchantment. On a successful hit, there is a 6% chance to trigger a dragonfire attack on the target, dealing extra damage equal to 20% of the attacker's visible Ranged level (rounded down). When used with the Zaryte crossbow passive effect, this bonus increases to 22%. The dragonfire effect can be mitigated by anti-dragon shields and antifire potions, making it less effective against prepared targets.
+
+    Enchant Crossbow Bolt (Dragonstone) requires Magic level 68 and grants 78 XP per cast. Each cast enchants 10 bolts at a time.
+
+    | Component | Quantity |
+    |-----------|----------|
+    | Dragonstone dragon bolts | 10 |
+    | Cosmic rune | 1 |
+    | Soul rune | 1 |
+    | Earth rune | 15 |
+
+    | Stat | Dragon (e) | Regular (e) |
+    |------|-----------|-------------|
+    | Ranged Str | +122 | +117 |
+    | Base bolt | Dragon crossbow bolt | Runite bolt |
+
+    While both variants have similar ranged strength, the dragon bolt base still provides a modest edge.
+  market_strategy:
+    notes:
+      - One of the best all-around bolt enchantments for PvM
+      - Enhanced by Zaryte crossbow passive (22% instead of 20%)
+      - Can be mitigated by anti-dragon shields and antifire potions
+      - High Magic requirement (68) but excellent XP per cast
+      - Most commonly used enchanted dragon bolt
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

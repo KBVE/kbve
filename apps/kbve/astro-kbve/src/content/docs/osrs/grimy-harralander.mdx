@@ -58,65 +58,28 @@ osrs:
       slug: harralander-seed
       relationship: component
       description: Farming seed
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Grimy Herb |
+    | Tradeable | Yes |
+    | Weight | 0.007 kg |
+    | Herblore Level | 20 (to clean) |
+
+    Clean to produce harralander for Herblore.
+
+    Harralander used for:
+    - Compost potion
+    - Restore potion
+    - Energy potion
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Grimy Herb |
-| Tradeable | Yes |
-| Weight | 0.007 kg |
-| Herblore Level | 20 (to clean) |
-
-## Obtaining
-
-Common sources:
-- Farming harralander (26 Farming)
-- Monster drops
-- Master farmers
-
-## Usage
-
-Clean to produce **harralander** for Herblore.
-
-Harralander used for:
-- **Compost potion**
-- **Restore potion**
-- **Energy potion**
-
-## Market Strategy
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Price:** ~526 gp
-
-Low-level herb. 6.3 XP from cleaning.
-
-## Related Items
-
-- [Harralander](/osrs/harralander/) - Cleaned form
-- [Energy potion](/osrs/energy-potion/) - Common use
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -94,72 +94,36 @@ osrs:
       slug: crystal-pickaxe
       relationship: product
       description: Created tool
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Crafting Material |
+    | Tradeable | Yes |
+    | Weight | 0 kg |
+
+    Craft at singing bowl with 120 crystal shards + dragon tool:
+
+    | Tool Created | Requirements |
+    |--------------|--------------|
+    | Crystal axe | 76 Smithing, 76 Crafting |
+    | Crystal pickaxe | 76 Smithing, 76 Crafting |
+    | Crystal harpoon | 76 Smithing, 76 Crafting |
+    | Crystal felling axe | 76 Smithing, 76 Crafting |
+
+    Grants 6,000 Smithing and 6,000 Crafting XP per tool.
+
+    Alternatives:
+    - Exchange for 100 crystal shards (Amrod)
+    - Convert to crystal acorn
+
+    Note: Pay 60 extra shards for NPC crafting if lacking requirements.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Crafting Material |
-| Tradeable | Yes |
-| Weight | 0 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Zalcano | 39/8,000 (~1/205) |
-
-## Uses
-
-Craft at singing bowl with 120 crystal shards + dragon tool:
-
-| Tool Created | Requirements |
-|--------------|--------------|
-| Crystal axe | 76 Smithing, 76 Crafting |
-| Crystal pickaxe | 76 Smithing, 76 Crafting |
-| Crystal harpoon | 76 Smithing, 76 Crafting |
-| Crystal felling axe | 76 Smithing, 76 Crafting |
-
-Grants 6,000 Smithing and 6,000 Crafting XP per tool.
-
-**Alternatives:**
-- Exchange for 100 crystal shards (Amrod)
-- Convert to crystal acorn
-
-**Note:** Pay 60 extra shards for NPC crafting if lacking requirements.
-
-## Market Strategy
-
-**Buy Limit:** 200 per 4 hours
-
-**Price:** ~8.5K gp
-
-## Related Items
-
-- [Zalcano](/osrs/zalcano/) - Source
-- [Crystal shard](/osrs/crystal-shard/) - Required material
-- [Dragon axe](/osrs/dragon-axe/) - Required base
-- [Dragon pickaxe](/osrs/dragon-pickaxe/) - Required base
-
-<Adsense />
+<OSRSAdsenseCard />

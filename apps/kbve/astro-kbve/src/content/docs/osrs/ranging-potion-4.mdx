@@ -60,63 +60,38 @@ osrs:
       slug: divine-ranging-potion-3
       relationship: alternative
       description: Variant
+  about: |-
+    | Requirement | Value |
+    |-------------|-------|
+    | Herblore Level | 72 |
+    | XP | 162.5 |
+    | Ingredients | Dwarf weed + Wine of zamorak |
+
+    | Effect | Value |
+    |--------|-------|
+    | Ranged boost | +4 to +13 (10% + 4) |
+    | Duration | 60s per level lost |
+    | Preserve prayer | 90s per level lost |
+  market_strategy:
+    notes:
+      - Required for Ranged combat
+      - High demand always
+      - Wine of zamorak expensive
+      - Ranged PvM
+      - Raids preparation
+      - Slayer tasks
+      - Bossing
+      - Low buy limit (2,000)
+      - Dwarf weed herb
+      - Wine of zamorak secondary
+      - Always in demand
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creating
-
-| Requirement | Value |
-|-------------|-------|
-| Herblore Level | 72 |
-| XP | 162.5 |
-| Ingredients | Dwarf weed + Wine of zamorak |
-
-## Effects
-
-| Effect | Value |
-|--------|-------|
-| Ranged boost | +4 to +13 (10% + 4) |
-| Duration | 60s per level lost |
-| Preserve prayer | 90s per level lost |
-
-## Market Flip Strategy
-
-**Essential PvM Potion:**
-- Required for Ranged combat
-- High demand always
-- Wine of zamorak expensive
-
-**Buy Limit:** 2,000 per 4 hours
-
-**Demand Drivers:**
-- Ranged PvM
-- Raids preparation
-- Slayer tasks
-- Bossing
-
-**Tips:**
-- Low buy limit (2,000)
-- Dwarf weed herb
-- Wine of zamorak secondary
-- Always in demand
-
-<Adsense />
+<OSRSAdsenseCard />

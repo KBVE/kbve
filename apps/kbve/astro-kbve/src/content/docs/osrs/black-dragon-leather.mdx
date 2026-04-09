@@ -61,63 +61,26 @@ osrs:
       slug: blue-dragon-leather
       relationship: alternative
       description: Lower tier
+  market_strategy:
+    notes:
+      - Best dragonhide leather
+      - Good Crafting XP
+      - Tan Leather profit
+      - Crafting training
+      - D'hide armor production
+      - Tan Leather profit
+      - High alch targets
+      - Tan Leather spell efficient
+      - 20 GP tanner fee
+      - Black dragons drop hide
+      - Bodies best XP
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Method | Cost |
-|--------|------|
-| Tanner | 20 GP + Black dragonhide |
-| Tan Leather spell | 78 Magic, runes |
-
-## Crafting
-
-| Product | Level | Leather | XP |
-|---------|-------|---------|-----|
-| Black d'hide vambraces | 79 | 1 | 86 |
-| Black d'hide chaps | 82 | 2 | 172 |
-| Black d'hide shield | 83 | 2 | 172 |
-| Black d'hide body | 84 | 3 | 258 |
-
-## Market Flip Strategy
-
-**High-Tier Crafting Material:**
-- Best dragonhide leather
-- Good Crafting XP
-- Tan Leather profit
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Crafting training
-- D'hide armor production
-- Tan Leather profit
-- High alch targets
-
-**Tips:**
-- Tan Leather spell efficient
-- 20 GP tanner fee
-- Black dragons drop hide
-- Bodies best XP
-
-<Adsense />
+<OSRSAdsenseCard />

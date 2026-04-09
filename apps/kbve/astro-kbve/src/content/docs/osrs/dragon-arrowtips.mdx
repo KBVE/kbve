@@ -46,74 +46,26 @@ osrs:
       slug: vorkath
       relationship: alternative
       description: Boss that drops dragon arrowtips
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Ammunition Component |
+    | Tradeable | Yes |
+    | Stackable | Yes |
+    | Weight | 0 kg |
+
+    | Arrow Created | Materials | Requirements |
+    |---------------|-----------|--------------|
+    | Dragon arrows | Headless arrows + Dragon arrowtips | 90 Fletching |
+
+    225 XP per 15 arrows.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Ammunition Component |
-| Tradeable | Yes |
-| Stackable | Yes |
-| Weight | 0 kg |
-
-## Obtaining
-
-**Monster Drops:**
-- King Black Dragon
-- Vorkath
-- Grotesque Guardians
-- Brutal dragons
-- Tormented demons
-- Frost dragons
-
-**Chests:**
-- Brimstone Chest
-- Larran's chests
-- Grubby Chest
-
-**Other:** Dragon implings (83-93 Hunter)
-
-## Uses
-
-| Arrow Created | Materials | Requirements |
-|---------------|-----------|--------------|
-| Dragon arrows | Headless arrows + Dragon arrowtips | 90 Fletching |
-
-225 XP per 15 arrows.
-
-## Market Strategy
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Price:** ~1,957 gp
-
-**Daily Volume:** ~2M trades
-
-## Related Items
-
-- [Headless arrow](/osrs/headless-arrow/) - Base item
-- [Dragon arrow](/osrs/dragon-arrow/) - Created item
-- [Vorkath](/osrs/vorkath/) - Source
-
-<Adsense />
+<OSRSAdsenseCard />

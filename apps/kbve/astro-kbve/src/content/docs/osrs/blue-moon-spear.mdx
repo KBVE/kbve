@@ -65,74 +65,43 @@ osrs:
       slug: blue-moon-tassets
       relationship: set-piece
       description: Required for Frostweaver effect
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Attack speed | 5 ticks (3.0s) |
+    | Attack range | 1 tile |
+    | Combat style | Bladed Staff |
+
+    Unique hybrid weapon with both melee and magic capabilities.
+
+    When wearing full Blue moon armour:
+    - Frostweaver: After casting a bind or freeze spell, 20% chance for next melee attack to be unaffected by action delays
+
+    Allows instant follow-up melee attacks after freeze spells.
+
+    | Bonus | Value |
+    |-------|-------|
+    | Stab | +70 |
+    | Magic | +30 |
+    | Strength | +71 |
+    | Magic damage | +5% |
+
+    Powerful for magic-melee hybrid combat:
+    - Freeze then stab combos
+    - Neypotzli content
+    - PvP hybrid builds
+  market_strategy:
+    notes:
+      - Best used with Blue moon armour
+      - Unique hybrid playstyle
+      - High value for set synergy
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-The Blue moon spear is obtained from the Lunar Chest in Neypotzli with a 1/224 drop rate.
-
-**Requirements:** 70 Attack, 75 Magic to equip
-
-## Combat Mechanics
-
-| Property | Value |
-|----------|-------|
-| Attack speed | 5 ticks (3.0s) |
-| Attack range | 1 tile |
-| Combat style | Bladed Staff |
-
-Unique hybrid weapon with both melee and magic capabilities.
-
-## Set Effect
-
-When wearing full Blue moon armour:
-- **Frostweaver:** After casting a bind or freeze spell, 20% chance for next melee attack to be unaffected by action delays
-
-Allows instant follow-up melee attacks after freeze spells.
-
-## Stats
-
-| Bonus | Value |
-|-------|-------|
-| Stab | +70 |
-| Magic | +30 |
-| Strength | +71 |
-| Magic damage | +5% |
-
-## Usage
-
-Powerful for magic-melee hybrid combat:
-- Freeze then stab combos
-- Neypotzli content
-- PvP hybrid builds
-
-## Market Strategy
-
-**Buy Limit:** 15 per 4 hours
-
-**Tips:**
-- Best used with Blue moon armour
-- Unique hybrid playstyle
-- High value for set synergy
-
-<Adsense />
+<OSRSAdsenseCard />

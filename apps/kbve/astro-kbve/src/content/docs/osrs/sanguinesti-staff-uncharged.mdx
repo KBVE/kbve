@@ -45,83 +45,36 @@ osrs:
       slug: trident-of-the-swamp
       relationship: downgrade
       description: Budget alternative powered staff
+  about: |-
+    | Offence | Bonus |
+    |---------|-------|
+    | Magic | +25 |
+    | Ranged | -4 |
+
+    | Defence | Bonus |
+    |---------|-------|
+    | Stab | +2 |
+    | Slash | +3 |
+    | Crush | +1 |
+    | Magic | +15 |
+
+    Life Leech: 1/6 chance (~16.6%) to heal half the damage dealt. Averages ~8.3% healing per damage overall.
+
+    Built-in Spell: 4-tick attack speed, 7-tile range. No runes required to cast but consumes charges.
+
+    | Cost | Result |
+    |------|--------|
+    | 3 Blood runes | 1 charge |
+    | Max charges | 20,000 |
+
+    ~618 gp per cast. Full charge: ~12.4M gp.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Main hand |
-| Type | Powered Staff |
-| Tradeable | Yes |
-| Weight | 1.5 kg |
-| Requirements | 82 Magic |
-
-## Obtaining
-
-| Source | Notes |
-|--------|-------|
-| Theatre of Blood | Rare drop from completion |
-
-## Stats
-
-| Offence | Bonus |
-|---------|-------|
-| Magic | +25 |
-| Ranged | -4 |
-
-| Defence | Bonus |
-|---------|-------|
-| Stab | +2 |
-| Slash | +3 |
-| Crush | +1 |
-| Magic | +15 |
-
-## Passive Effect
-
-**Life Leech:** 1/6 chance (~16.6%) to heal half the damage dealt. Averages ~8.3% healing per damage overall.
-
-**Built-in Spell:** 4-tick attack speed, 7-tile range. No runes required to cast but consumes charges.
-
-## Charging
-
-| Cost | Result |
-|------|--------|
-| 3 Blood runes | 1 charge |
-| Max charges | 20,000 |
-
-~618 gp per cast. Full charge: ~12.4M gp.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~19.4M gp (uncharged)
-
-## Related Items
-
-- [Theatre of Blood](/osrs/theatre-of-blood/) - Source
-- [Scythe of vitur](/osrs/scythe-of-vitur/) - ToB melee weapon
-- [Trident of the swamp](/osrs/trident-of-the-swamp/) - Budget alternative
-
-<Adsense />
+<OSRSAdsenseCard />

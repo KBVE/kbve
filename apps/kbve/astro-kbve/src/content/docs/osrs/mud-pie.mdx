@@ -12,26 +12,58 @@ osrs:
   lowalch: 21
   highalch: 32
   limit: 11000
+  recipes:
+    - skill: cooking
+      level: 29
+      xp: 128
+      inputs:
+        - item_name: Pastry dough
+          quantity: 1
+        - item_name: Pie dish
+          quantity: 1
+        - item_name: Compost
+          quantity: 1
+        - item_name: Bucket of water
+          quantity: 1
+        - item_name: Clay
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 7208
+      item_name: Wild pie
+      slug: wild-pie
+      relationship: alternative
+      description: +5 Slayer boost pie
+    - item_id: 7198
+      item_name: Admiral pie
+      slug: admiral-pie
+      relationship: alternative
+      description: +5 Fishing boost pie
+  about: |-
+    The mud pie is a throwable weapon that drains the target's run energy by 25% (rounded down). It deals no damage and only works on other players.
+
+    Ranged stats: Thrown weapon, 4-tick speed, 6-tile range
+
+    Mud pies are used in PvP to slow fleeing targets:
+    - Drains 25% run energy per throw
+    - 4 pies = nearly all run energy depleted
+    - Forces targets to walk, making them easier to catch
+    - Used by teams in multi-combat to lock down targets
+    - No combat requirements to throw
+
+    The pie dish drops at the target's feet after throwing.
+  market_strategy:
+    notes:
+      - PvP demand drives pricing
+      - Ingredients are cheap and easy to gather
+      - Only useful against players, not NPCs
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

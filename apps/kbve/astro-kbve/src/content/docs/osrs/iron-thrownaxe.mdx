@@ -1,6 +1,6 @@
 ---
 title: Iron thrownaxe | OSRS Price Data
-description: "Iron thrownaxe: A finely balanced throwing axe.. High alch: 4 GP, GE limit: 7,000."
+description: "Iron thrownaxe is a members weapon slot item requiring 1 Ranged. High alch: 4 GP, GE limit: 7,000."
 osrs:
   id: 801
   name: Iron thrownaxe
@@ -12,26 +12,36 @@ osrs:
   lowalch: 2
   highalch: 4
   limit: 7000
+  equipment:
+    slot: weapon
+    attack_speed: 5
+    requirements:
+      ranged: 1
+    attack_bonus:
+      ranged: 5
+    ranged_strength: 7
+  related_items:
+    - item_id: 800
+      item_name: Bronze thrownaxe
+      slug: bronze-thrownaxe
+      relationship: variant
+      description: Lower tier thrownaxe
+    - item_id: 802
+      item_name: Steel thrownaxe
+      slug: steel-thrownaxe
+      relationship: variant
+      description: Higher tier thrownaxe
+  about: |-
+    > _"A finely balanced throwing axe."_
+
+    The iron thrownaxe requires 1 Ranged. Features the thrownaxe special attack that bounces between multiple targets.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

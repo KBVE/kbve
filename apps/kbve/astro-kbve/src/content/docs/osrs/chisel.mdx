@@ -50,65 +50,33 @@ osrs:
       slug: amethyst
       relationship: component
       description: High-level cutting
+  about: |-
+    Essential tool for Crafting skill:
+
+    | Activity | Skill | Notes |
+    |----------|-------|-------|
+    | Cut gems | Crafting | All uncut gems → cut gems |
+    | Limestone bricks | Crafting | Construction material |
+    | Amethyst | Crafting | Arrow/bolt tips, dart tips |
+    | Dense essence | Runecraft | Blood/Soul runecrafting |
+
+    | Gem | Level | XP |
+    |-----|-------|-----|
+    | Opal | 1 | 15 |
+    | Sapphire | 20 | 50 |
+    | Emerald | 27 | 67.5 |
+    | Ruby | 63 | 85 |
+    | Diamond | 43 | 107.5 |
+    | Dragonstone | 55 | 137.5 |
+    | Onyx | 67 | 167.5 |
+    | Zenyte | 89 | 200 |
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-**Shops:**
-- Dommik's Crafting Store (Al Kharid) - 1 gp
-- Rommik's Crafty Supplies (Rimmington) - 1 gp
-- Most general stores - 1 gp
-
-**Spawns:**
-- Crafting Guild (F2P)
-- Dense essence mine
-- Prifddinas
-
-**Construction:**
-- Tool store 1 (level 15) provides unlimited chisels
-
-## Uses
-
-Essential tool for Crafting skill:
-
-| Activity | Skill | Notes |
-|----------|-------|-------|
-| Cut gems | Crafting | All uncut gems → cut gems |
-| Limestone bricks | Crafting | Construction material |
-| Amethyst | Crafting | Arrow/bolt tips, dart tips |
-| Dense essence | Runecraft | Blood/Soul runecrafting |
-
-## Gem Cutting
-
-| Gem | Level | XP |
-|-----|-------|-----|
-| Opal | 1 | 15 |
-| Sapphire | 20 | 50 |
-| Emerald | 27 | 67.5 |
-| Ruby | 63 | 85 |
-| Diamond | 43 | 107.5 |
-| Dragonstone | 55 | 137.5 |
-| Onyx | 67 | 167.5 |
-| Zenyte | 89 | 200 |
-
-<Adsense />
+<OSRSAdsenseCard />

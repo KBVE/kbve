@@ -73,64 +73,32 @@ osrs:
       slug: avantoe
       relationship: component
       description: Fishing potion herb
+  about: |-
+    Secondary ingredient for potions:
+
+    | Potion | Herb | Herblore Level |
+    |--------|------|----------------|
+    | Prayer potion | Ranarr weed | 38 |
+    | Fishing potion | Avantoe | 50 |
+  market_strategy:
+    notes:
+      - Grow Snape grass seed at 61 Farming
+      - ~6 grass per patch
+      - Fast growth time
+      - Essential for prayer potion production
+      - Price tied to ranarr market
+      - High consistent demand
+      - Prayer potion chain drives demand
+      - Waterbirth collection popular
+      - Fossil Island farming patches
+      - Check seed vs grass prices
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Usage
-
-Secondary ingredient for potions:
-
-| Potion | Herb | Herblore Level |
-|--------|------|----------------|
-| [Prayer potion](/osrs/prayer-potion-4/) | [Ranarr weed](/osrs/ranarr-weed/) | 38 |
-| [Fishing potion](/osrs/fishing-potion-4/) | [Avantoe](/osrs/avantoe/) | 50 |
-
-## Obtaining
-
-| Method | Notes |
-|--------|-------|
-| Farming | 61 Farming, [Snape grass seed](/osrs/snape-grass-seed/) |
-| Waterbirth Island | 27 spawns |
-| Hosidius | Multiple spawns |
-| Monster drops | Chaos druids, waterfiends |
-
-## Market Flip Strategy
-
-**Farming Profit:**
-- Grow [Snape grass seed](/osrs/snape-grass-seed/) at 61 Farming
-- ~6 grass per patch
-- Fast growth time
-
-**Volume Trading:**
-- Essential for prayer potion production
-- Price tied to ranarr market
-- High consistent demand
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Tips:**
-- Prayer potion chain drives demand
-- Waterbirth collection popular
-- Fossil Island farming patches
-- Check seed vs grass prices
-
-<Adsense />
+<OSRSAdsenseCard />

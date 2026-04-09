@@ -61,82 +61,40 @@ osrs:
       slug: sapphire-ring
       relationship: component
       description: Base item for enchantment
+  about: |-
+    Enchant Sapphire ring with Lvl-1 Enchant.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 7 |
+    | Cosmic rune | 1 |
+    | Water rune | 1 |
+
+    All bonuses +0
+
+    Damage Recoil:
+    - Reflects 10% + 1 of damage received
+    - 40 charges before shattering
+    - Rounds down
+
+    Essential for:
+    - Zulrah (pre-suffering)
+    - Low-level bossing
+    - AFK combat
+
+    Cheap recoil damage.
+  market_strategy:
+    notes:
+      - Very cheap to make
+      - Shatters after 40 recoil damage
+      - Check charges in worn equipment
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Ring |
-| Type | Combat Ring |
-| Tradeable | Yes |
-| Weight | 0.003 kg |
-
-## Creation
-
-Enchant [Sapphire ring](/osrs/sapphire-ring/) with Lvl-1 Enchant.
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 7 |
-| Cosmic rune | 1 |
-| Water rune | 1 |
-
-## Stats
-
-All bonuses +0
-
-## Passive Effect
-
-**Damage Recoil:**
-- Reflects 10% + 1 of damage received
-- 40 charges before shattering
-- Rounds down
-
-## Usage
-
-Essential for:
-- Zulrah (pre-suffering)
-- Low-level bossing
-- AFK combat
-
-**Cheap recoil damage.**
-
-## Market Strategy
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Price:** ~672 gp
-
-**Tips:**
-- Very cheap to make
-- Shatters after 40 recoil damage
-- Check charges in worn equipment
-
-## Related Items
-
-- [Ring of suffering](/osrs/ring-of-suffering/) - Stores recoils
-- [Sapphire ring](/osrs/sapphire-ring/) - Base item
-- [Zulrah](/osrs/zulrah/) - Common use
-
-<Adsense />
+<OSRSAdsenseCard />

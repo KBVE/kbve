@@ -40,64 +40,25 @@ osrs:
       slug: summer-pie
       relationship: alternative
       description: Cooking use
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Farming Product |
+    | Tradeable | Yes |
+    | Weight | 0.113 kg |
+    | Requirements | 47 Farming |
+
+    Composting: Used to make supercompost
+
+    Cooking: Ingredient for summer pies
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Farming Product |
-| Tradeable | Yes |
-| Weight | 0.113 kg |
-| Requirements | 47 Farming |
-
-## Obtaining
-
-**Primary:** Harvest from allotment patches (47 Farming)
-
-**Other sources:**
-- Farming shops
-- Gryphon monster drops
-
-## Usage
-
-**Composting:** Used to make supercompost
-
-**Cooking:** Ingredient for summer pies
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~20 gp
-
-Very cheap, high volume. Essential for supercompost production.
-
-## Related Items
-
-- [Watermelon seed](/osrs/watermelon-seed/) - Farming source
-- [Supercompost](/osrs/supercompost/) - Primary use
-- [Summer pie](/osrs/summer-pie/) - Cooking use
-
-<Adsense />
+<OSRSAdsenseCard />

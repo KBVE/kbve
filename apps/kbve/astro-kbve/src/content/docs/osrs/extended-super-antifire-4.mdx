@@ -67,53 +67,32 @@ osrs:
       slug: antifire-4
       relationship: alternative
       description: Basic antifire option
+  about: |-
+    Extended super antifire provides complete dragonfire immunity for 6 minutes per dose, making it essential for:
+    - Vorkath (elite void method)
+    - King Black Dragon
+    - Brutal black dragons
+    - Any dragon without requiring anti-dragon shield
+
+    Two methods available at 98 Herblore:
+
+    | Method | Base Potion | Secondary |
+    |--------|-------------|-----------|
+    | Lava scale | Super antifire(4) | 4 Lava scale shards |
+    | Dragon bone | Extended antifire(4) | 1 Crushed superior dragon bones |
+  market_strategy:
+    notes:
+      - Essential for efficient Vorkath kills
+      - Compare ingredient costs between both methods
+      - Lava scale shards from lava dragons/infernal eels
+      - Superior dragon bones from fossil island wyverns
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Usage
-
-Extended super antifire provides **complete dragonfire immunity** for 6 minutes per dose, making it essential for:
-- Vorkath (elite void method)
-- King Black Dragon
-- Brutal black dragons
-- Any dragon without requiring anti-dragon shield
-
-## Creation Methods
-
-Two methods available at 98 Herblore:
-
-| Method | Base Potion | Secondary |
-|--------|-------------|-----------|
-| Lava scale | Super antifire(4) | 4 Lava scale shards |
-| Dragon bone | Extended antifire(4) | 1 Crushed superior dragon bones |
-
-## Market Strategy
-
-**PvM Demand:**
-- Essential for efficient Vorkath kills
-- Compare ingredient costs between both methods
-- Lava scale shards from lava dragons/infernal eels
-- Superior dragon bones from fossil island wyverns
-
-**Buy Limit:** 2,000 per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

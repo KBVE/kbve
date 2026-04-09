@@ -64,67 +64,44 @@ osrs:
       slug: amulet-of-fury
       relationship: downgrade
       description: Budget option
+  about: |-
+    Enchant Zenyte necklace with Lvl-7 Enchant spell (93 Magic).
+
+    | Material | Quantity |
+    |----------|----------|
+    | Zenyte necklace | 1 |
+    | Soul rune | 20 |
+    | Blood rune | 20 |
+    | Cosmic rune | 1 |
+
+    | Stat | Value |
+    |------|-------|
+    | Ranged attack | +15 |
+    | Ranged strength | +5 |
+    | Prayer bonus | +2 |
+    | Requirements | 75 Hitpoints |
+
+    PvM:
+    - Best-in-slot ranged necklace
+    - Essential for max ranged setups
+    - All ranged content
+
+    Best For:
+    - Bossing
+    - Slayer
+    - Chinchompas
+  market_strategy:
+    notes:
+      - Zenyte from demonic gorillas
+      - BiS ranged neck slot
+      - Always in demand
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Enchant Zenyte necklace with Lvl-7 Enchant spell (93 Magic).
-
-| Material | Quantity |
-|----------|----------|
-| Zenyte necklace | 1 |
-| Soul rune | 20 |
-| Blood rune | 20 |
-| Cosmic rune | 1 |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged attack | +15 |
-| Ranged strength | +5 |
-| Prayer bonus | +2 |
-| Requirements | 75 Hitpoints |
-
-## Usage
-
-**PvM:**
-- Best-in-slot ranged necklace
-- Essential for max ranged setups
-- All ranged content
-
-**Best For:**
-- Bossing
-- Slayer
-- Chinchompas
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Zenyte from demonic gorillas
-- BiS ranged neck slot
-- Always in demand
-
-<Adsense />
+<OSRSAdsenseCard />

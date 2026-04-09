@@ -60,64 +60,35 @@ osrs:
       slug: green-dragonhide
       relationship: alternative
       description: Entry level
+  about: |-
+    Take to a tanner to convert into Black dragon leather.
+
+    | Cost | Location |
+    |------|----------|
+    | 20 GP | Most tanners |
+    | 45 GP | Canifis tanner |
+
+    Buy Limit: 11,000 per 4 hours
+  market_strategy:
+    profit_formulas:
+      - Black dragon leather - Black dragonhide - 20 GP = Profit
+    notes:
+      - Buy hide → Tan (20 GP) → Sell leather
+      - "Calculate:"
+      - Highest tier dragonhide = best margins
+      - Tans 5 hides per cast
+      - Faster than running to tanner
+      - Factor in rune costs
+      - Black dragons (Taverley Dungeon, Catacombs)
+      - King Black Dragon
+      - Brutal black dragons
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Tanning
-
-Take to a tanner to convert into [Black dragon leather](/osrs/black-dragon-leather/).
-
-| Cost | Location |
-|------|----------|
-| 20 GP | Most tanners |
-| 45 GP | Canifis tanner |
-
-**Buy Limit:** 11,000 per 4 hours
-
-## Crafting
-
-[Black dragon leather](/osrs/black-dragon-leather/) can be crafted into:
-
-| Item | Leather | Crafting Level | XP |
-|------|---------|----------------|-----|
-| [Black d'hide vambraces](/osrs/black-dhide-vambraces/) | 1 | 79 | 86 |
-| [Black d'hide chaps](/osrs/black-dhide-chaps/) | 2 | 82 | 172 |
-| [Black d'hide body](/osrs/black-dhide-body/) | 3 | 84 | 258 |
-
-## Market Flip Strategy
-
-**Tanning Profit:**
-- Buy hide → Tan (20 GP) → Sell leather
-- Calculate: `Black dragon leather - Black dragonhide - 20 GP = Profit`
-- Highest tier dragonhide = best margins
-
-**Tan Leather Spell (78 Magic):**
-- Tans 5 hides per cast
-- Faster than running to tanner
-- Factor in rune costs
-
-**Drop Sources:**
-- Black dragons (Taverley Dungeon, Catacombs)
-- King Black Dragon
-- Brutal black dragons
-
-<Adsense />
+<OSRSAdsenseCard />

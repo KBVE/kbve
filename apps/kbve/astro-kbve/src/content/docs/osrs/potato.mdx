@@ -44,69 +44,32 @@ osrs:
       slug: onion
       relationship: alternative
       description: Alternative allotment produce
+  about: |-
+    | Requirement | Value |
+    |-------------|-------|
+    | Farming Level | 1 |
+    | Growth time | 40 minutes |
+    | XP (plant) | 8 |
+    | XP (harvest) | 9 per potato |
+  market_strategy:
+    title: Ironman Notes
+    notes:
+      - Starter crop for new farmers
+      - Very low value
+      - Good for learning farming mechanics
+      - Baked potatoes are cheap training
+      - Toppings add value
+      - Used in some quests
+      - Easy to obtain early game
+      - Good starting farming crop
+      - Stock up for cooking training
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-**Farming:** Harvest from allotment patches after planting potato seeds (1 Farming).
-
-**Other Sources:**
-- Various monster drops
-- Spawn locations around Gielinor
-- Stealing from market stalls
-
-## Farming Info
-
-| Requirement | Value |
-|-------------|-------|
-| Farming Level | 1 |
-| Growth time | 40 minutes |
-| XP (plant) | 8 |
-| XP (harvest) | 9 per potato |
-
-## Cooking Uses
-
-| Product | Level | XP |
-|---------|-------|-----|
-| Baked potato | 7 | 15 |
-| Potato with butter | 39 | 40 |
-| Potato with cheese | 47 | 40 |
-
-## Market Strategy
-
-**Allotment Farming:**
-- Starter crop for new farmers
-- Very low value
-- Good for learning farming mechanics
-
-**Cooking:**
-- Baked potatoes are cheap training
-- Toppings add value
-- Used in some quests
-
-**Ironman Notes:**
-- Easy to obtain early game
-- Good starting farming crop
-- Stock up for cooking training
-
-<Adsense />
+<OSRSAdsenseCard />

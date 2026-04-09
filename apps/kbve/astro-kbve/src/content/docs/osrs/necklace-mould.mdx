@@ -72,62 +72,34 @@ osrs:
       slug: games-necklace
       relationship: product
       description: Enchanted product
+  about: |-
+    Make necklaces at a furnace:
+
+    | Necklace | Level | XP | Gem Required |
+    |----------|-------|-----|--------------|
+    | Gold necklace | 6 | 20 | None |
+    | Sapphire necklace | 22 | 55 | Sapphire |
+    | Emerald necklace | 29 | 60 | Emerald |
+    | Ruby necklace | 40 | 75 | Ruby |
+    | Diamond necklace | 56 | 90 | Diamond |
+    | Dragon necklace | 72 | 105 | Dragonstone |
+    | Onyx necklace | 82 | 120 | Onyx |
+    | Zenyte necklace | 92 | 165 | Zenyte |
+  market_strategy:
+    notes:
+      - Necklace crafting
+      - Jewelry production
+      - One-time purchase
+      - Not consumed on use
+      - Essential for jewelry
+      - Buy from shop
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Source | Price |
-|--------|-------|
-| Crafting shops | 5 gp |
-| Grand Exchange | Market price |
-
-## Usage
-
-Make necklaces at a furnace:
-
-| Necklace | Level | XP | Gem Required |
-|----------|-------|-----|--------------|
-| Gold necklace | 6 | 20 | None |
-| Sapphire necklace | 22 | 55 | Sapphire |
-| Emerald necklace | 29 | 60 | Emerald |
-| Ruby necklace | 40 | 75 | Ruby |
-| Diamond necklace | 56 | 90 | Diamond |
-| Dragon necklace | 72 | 105 | Dragonstone |
-| Onyx necklace | 82 | 120 | Onyx |
-| Zenyte necklace | 92 | 165 | Zenyte |
-
-## Market Strategy
-
-**Buy Limit:** 40 per 4 hours
-
-**Demand Drivers:**
-- Necklace crafting
-- Jewelry production
-
-**Tips:**
-- One-time purchase
-- Not consumed on use
-- Essential for jewelry
-- Buy from shop
-
-<Adsense />
+<OSRSAdsenseCard />

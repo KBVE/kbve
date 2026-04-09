@@ -49,60 +49,29 @@ osrs:
       slug: armadyl-crossbow
       relationship: alternative
       description: Higher tier crossbow
+  about: |-
+    Creates Dragon crossbow:
+    - Attach to Magic stock
+    - Requires 78 Fletching
+    - Grants 70 Fletching XP
+
+    Dragon crossbow stats:
+    - +94 Ranged attack
+    - Can fire dragon bolts
+    - Special attack for increased accuracy
+  market_strategy:
+    notes:
+      - Primary value from Dragon crossbow crafting
+      - Rune dragons more profitable source
+      - Also obtainable from Brimstone chest
+      - Part of Dragon Slayer II content
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Dropped by high-level metal dragons.
-
-**Best sources:**
-- Rune dragon (1/800 drop rate)
-- Adamant dragon (1/1,000 drop rate)
-
-**Requirements:**
-- Dragon Slayer II for Rune dragons
-- 331+ combat stats recommended
-
-## Usage
-
-**Creates Dragon crossbow:**
-- Attach to Magic stock
-- Requires 78 Fletching
-- Grants 70 Fletching XP
-
-**Dragon crossbow stats:**
-- +94 Ranged attack
-- Can fire dragon bolts
-- Special attack for increased accuracy
-
-## Market Strategy
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Tips:**
-- Primary value from Dragon crossbow crafting
-- Rune dragons more profitable source
-- Also obtainable from Brimstone chest
-- Part of Dragon Slayer II content
-
-<Adsense />
+<OSRSAdsenseCard />

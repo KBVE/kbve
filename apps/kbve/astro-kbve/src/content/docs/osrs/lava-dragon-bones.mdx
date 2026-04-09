@@ -50,64 +50,24 @@ osrs:
       slug: lava-scale
       relationship: alternative
       description: Used for extended antifires
+  market_strategy:
+    notes:
+      - Supply limited by PKer risk
+      - Slightly better than dragon bones
+      - Price includes risk premium
+      - Wilderness activity
+      - PKer presence
+      - Anti-PK meta changes
+      - Often cheaper per XP than dragon bones
+      - Risk factor limits supply
+      - Good for Ironmen near Chaos altar
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Prayer Training
-
-Lava dragon bones provide good Prayer XP:
-
-| Method | XP per bone |
-|--------|-------------|
-| Bury | 85 |
-| Gilded altar (2 burners) | 297.5 |
-| Chaos altar (Wilderness) | 297.5 (50% saved) |
-| Ectofuntus | 340 |
-| Sinister Offering | 255 |
-
-## Obtaining
-
-Exclusively dropped by Lava dragons in the Wilderness:
-- Located in Lava Dragon Isle (deep Wilderness)
-- Combat level 252
-- PKer risk area
-
-## Market Flip Strategy
-
-**Wilderness Content:**
-- Supply limited by PKer risk
-- Slightly better than dragon bones
-- Price includes risk premium
-
-**Buy Limit:** 7,500 per 4 hours
-
-**Price Drivers:**
-- Wilderness activity
-- PKer presence
-- Anti-PK meta changes
-
-**Tips:**
-- Often cheaper per XP than dragon bones
-- Risk factor limits supply
-- Good for Ironmen near Chaos altar
-
-<Adsense />
+<OSRSAdsenseCard />

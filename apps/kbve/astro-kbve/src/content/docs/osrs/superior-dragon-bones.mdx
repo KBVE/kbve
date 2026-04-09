@@ -50,55 +50,19 @@ osrs:
       slug: marrentill
       relationship: component
       description: For incense
+  market_strategy:
+    notes:
+      - Best GP/XP ratio at altar
+      - Vorkath makes them common
+      - Wilderness altar doubles XP
+      - Price tied to Vorkath activity
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Vorkath | 2 (always) |
-| Frost dragons | 3/130 |
-
-## Prayer XP
-
-| Method | XP per bone |
-|--------|-------------|
-| Bury | 150 |
-| Gilded altar | 525 |
-| Chaos Temple | 525 |
-| Ectofuntus | 600 |
-| Sinister Offering | 450 |
-
-**Best Prayer XP bones in the game.**
-
-## Market Strategy
-
-**Buy Limit:** 7,500 per 4 hours
-
-**Tips:**
-- Best GP/XP ratio at altar
-- Vorkath makes them common
-- Wilderness altar doubles XP
-- Price tied to Vorkath activity
-
-<Adsense />
+<OSRSAdsenseCard />

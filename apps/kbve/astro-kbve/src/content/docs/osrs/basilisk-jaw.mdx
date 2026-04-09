@@ -43,65 +43,28 @@ osrs:
       slug: neitiznot-faceguard
       relationship: product
       description: BiS melee helm created
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Upgrade Material |
+    | Tradeable | Yes |
+    | Weight | 1 kg |
+
+    | Item Created | Materials |
+    |--------------|-----------|
+    | Neitiznot faceguard | Helm of neitiznot + Basilisk jaw |
+  market_strategy:
+    notes:
+      - Basilisk Knights only source
+      - Requires Fremennik Exiles
+      - Creates BiS melee helm
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Upgrade Material |
-| Tradeable | Yes |
-| Weight | 1 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Basilisk Knight | 1/1,000 |
-
-**Requires 60 Slayer and completion of The Fremennik Exiles.**
-
-## Uses
-
-| Item Created | Materials |
-|--------------|-----------|
-| Neitiznot faceguard | Helm of neitiznot + Basilisk jaw |
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~5.5M gp
-
-**Tips:**
-- Basilisk Knights only source
-- Requires Fremennik Exiles
-- Creates BiS melee helm
-
-## Related Items
-
-- [Basilisk Knight](/osrs/basilisk-knight/) - Drop source
-- [Helm of neitiznot](/osrs/helm-of-neitiznot/) - Base helm
-- [Neitiznot faceguard](/osrs/neitiznot-faceguard/) - Created helm
-
-<Adsense />
+<OSRSAdsenseCard />

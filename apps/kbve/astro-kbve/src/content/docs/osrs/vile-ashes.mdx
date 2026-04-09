@@ -52,56 +52,21 @@ osrs:
       slug: infernal-ashes
       relationship: upgrade
       description: Highest XP (110 base)
+  market_strategy:
+    notes:
+      - Common from demon tasks
+      - Good volume from Bloodveld tasks
+      - Moderate demand
+      - Better than fiendish ashes
+      - Common Slayer drop
+      - Check GP/XP vs other ashes
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Prayer Training
-
-Vile ashes are a mid-low tier demonic ash:
-
-| Method | XP per ash |
-|--------|------------|
-| Scatter | 25 |
-| Demonic Offering spell | 75 |
-
-## Obtaining
-
-Dropped by medium-level demons:
-- Greater demons (always)
-- Bloodvelds (always)
-- Hellhounds (always)
-
-## Market Flip Strategy
-
-**Slayer Byproduct:**
-- Common from demon tasks
-- Good volume from Bloodveld tasks
-- Moderate demand
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Tips:**
-- Better than fiendish ashes
-- Common Slayer drop
-- Check GP/XP vs other ashes
-
-<Adsense />
+<OSRSAdsenseCard />

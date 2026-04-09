@@ -55,55 +55,34 @@ osrs:
       slug: leather-body
       relationship: product
       description: Crafted from leather
+  about: |-
+    Take to a tanner to convert into leather:
+
+    | Product | Cost | Location |
+    |---------|------|----------|
+    | Leather | 1 GP | Any tanner |
+    | Hard leather | 3 GP | Any tanner |
+  market_strategy:
+    profit_formulas:
+      - Leather price - Cowhide price - 1 GP = Profit
+    notes:
+      - Buy Cowhide → Tan → Sell Leather or Hard leather
+      - "Calculate:"
+      - Very high volume, consistent margins
+      - Al Kharid (closest to bank)
+      - Canifis (requires Priest in Peril)
+      - Crafting Guild (requires 40 Crafting)
+      - Hard leather has better margin but lower volume
+      - Popular botted activity
+      - Cowhide supply from Lumbridge cow farm
+      - Cow Hide
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Tanning
-
-Take to a tanner to convert into leather:
-
-| Product | Cost | Location |
-|---------|------|----------|
-| [Leather](/osrs/leather/) | 1 GP | Any tanner |
-| [Hard leather](/osrs/hard-leather/) | 3 GP | Any tanner |
-
-## Market Flip Strategy
-
-**Tanning Profit:**
-- Buy [Cowhide](/osrs/cowhide/) → Tan → Sell [Leather](/osrs/leather/) or [Hard leather](/osrs/hard-leather/)
-- Calculate: `Leather price - Cowhide price - 1 GP = Profit`
-- Very high volume, consistent margins
-
-**Best Tanning Locations:**
-- Al Kharid (closest to bank)
-- Canifis (requires Priest in Peril)
-- Crafting Guild (requires 40 Crafting)
-
-**Tips:**
-- Hard leather has better margin but lower volume
-- Popular botted activity
-- Cowhide supply from Lumbridge cow farm
-
-**Similar Names:**
-- Cow Hide
-
-<Adsense />
+<OSRSAdsenseCard />

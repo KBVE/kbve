@@ -53,84 +53,42 @@ osrs:
       slug: ruby-dragon-bolts
       relationship: downgrade
       description: Unenchanted
+  about: |-
+    Enchant Ruby dragon bolts with Enchant Crossbow Bolt.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 49 |
+
+    | Offense | Value |
+    |---------|-------|
+    | Ranged Strength | +122 |
+
+    Blood Forfeit:
+    - Removes 20% of target's current HP
+    - Capped at 100 damage
+    - Costs 10% of your HP
+    - 6% proc (PvM), 11% proc (PvP)
+    - +10% with Hard Kandarin Diary
+
+    BiS for:
+    - High-HP bosses (start of fight)
+    - Nex
+    - Corp
+
+    Best bolts for high-HP targets.
+  market_strategy:
+    notes:
+      - Switch to diamond at low HP
+      - Amazing for boss starts
+      - Kandarin Diary helps
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Ammunition |
-| Type | Crossbow Bolt |
-| Tradeable | Yes |
-| Weight | 0 kg |
-
-## Creation
-
-Enchant [Ruby dragon bolts](/osrs/ruby-dragon-bolts/) with Enchant Crossbow Bolt.
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 49 |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Ranged Strength | +122 |
-
-## Passive Effect
-
-**Blood Forfeit:**
-- Removes 20% of target's current HP
-- Capped at 100 damage
-- Costs 10% of your HP
-- 6% proc (PvM), 11% proc (PvP)
-- +10% with Hard Kandarin Diary
-
-## Usage
-
-BiS for:
-- High-HP bosses (start of fight)
-- Nex
-- Corp
-
-**Best bolts for high-HP targets.**
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~3,938 gp each
-
-**Tips:**
-- Switch to diamond at low HP
-- Amazing for boss starts
-- Kandarin Diary helps
-
-## Related Items
-
-- [Diamond dragon bolts (e)](/osrs/diamond-dragon-bolts-e/) - Low HP switch
-- [Zaryte crossbow](/osrs/zaryte-crossbow/) - Guaranteed proc spec
-- [Ruby dragon bolts](/osrs/ruby-dragon-bolts/) - Unenchanted
-
-<Adsense />
+<OSRSAdsenseCard />

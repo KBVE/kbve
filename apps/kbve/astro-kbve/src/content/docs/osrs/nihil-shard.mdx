@@ -65,66 +65,26 @@ osrs:
       slug: ancient-brew
       relationship: alternative
       description: Herblore use
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Crafting Material |
+    | Tradeable | Yes |
+    | Stackable | Yes |
+    | Weight | 0 kg |
+
+    | Use | Materials |
+    |-----|-----------|
+    | Zaryte crossbow | 250 shards + ACB + Nihil horn |
+    | Nihil dust | 1 shard (pestle and mortar) |
+    | Ancient brew | Nihil dust + Dwarf weed potion (85 Herblore) |
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Crafting Material |
-| Tradeable | Yes |
-| Stackable | Yes |
-| Weight | 0 kg |
-
-## Obtaining
-
-| Source | Drop Rate | Quantity |
-|--------|-----------|----------|
-| Nex | 5/82 - 8/209 | 80-95 |
-| Spiritual mage (Zaros) | 1/128 | 5-9 |
-| Spiritual ranger (Zaros) | 1/128 | 2-7 |
-| Spiritual warrior (Zaros) | 1/128 | 2-5 |
-| Blood Reaver | 1/128 | 2-7 |
-
-## Uses
-
-| Use | Materials |
-|-----|-----------|
-| Zaryte crossbow | 250 shards + ACB + Nihil horn |
-| Nihil dust | 1 shard (pestle and mortar) |
-| Ancient brew | Nihil dust + Dwarf weed potion (85 Herblore) |
-
-## Market Strategy
-
-**Buy Limit:** 30,000 per 4 hours
-
-**Price:** ~7.8K gp
-
-## Related Items
-
-- [Nex](/osrs/nex/) - Source
-- [Nihil horn](/osrs/nihil-horn/) - Crafting partner
-- [Zaryte crossbow](/osrs/zaryte-crossbow/) - Created item
-- [Ancient brew](/osrs/ancient-brew/) - Herblore use
-
-<Adsense />
+<OSRSAdsenseCard />

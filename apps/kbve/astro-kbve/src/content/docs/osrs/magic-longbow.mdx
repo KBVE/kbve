@@ -79,59 +79,43 @@ osrs:
       slug: yew-longbow
       relationship: alternative
       description: Lower tier alternative
+  about: |-
+    String a Magic longbow (u) with a Bow string.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Fletching Level | 85 |
+    | XP gained | 91.5 |
+
+    | Alch Type | Value |
+    |-----------|-------|
+    | High Alch | 1,536 GP |
+    | Low Alch | 1,024 GP |
+  market_strategy:
+    title: Full Processing Chain
+    steps:
+      - order: 1
+        action: Magic logs → Magic longbow (u) → Magic longbow → High Alch
+      - order: 2
+        action: "Total cost: Magic log + Bow string + Nature rune"
+      - order: 3
+        action: "Revenue: 1,536 GP"
+    profit_formulas:
+      - 1,536 - Magic longbow price - Nature rune price = Profit
+    notes:
+      - "High Alch value: **1,536 GP**"
+      - "Calculate:"
+      - Higher profit per alch than yew longbows
+      - "Buy limit: 18,000 per 4 hours"
+      - Less competition than yew longbows
+      - Good for high-level fletchers
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-String a [Magic longbow (u)](/osrs/magic-longbow-u/) with a [Bow string](/osrs/bow-string/).
-
-| Requirement | Value |
-|-------------|-------|
-| Fletching Level | 85 |
-| XP gained | 91.5 |
-
-## High Alchemy
-
-| Alch Type | Value |
-|-----------|-------|
-| **High Alch** | **1,536 GP** |
-| Low Alch | 1,024 GP |
-
-## Market Flip Strategy
-
-**Alch Flipping (Best Margins):**
-- High Alch value: **1,536 GP**
-- Calculate: `1,536 - Magic longbow price - Nature rune price = Profit`
-- Higher profit per alch than yew longbows
-
-**Full Processing Chain:**
-1. [Magic logs](/osrs/magic-logs/) → [Magic longbow (u)](/osrs/magic-longbow-u/) → [Magic longbow](/osrs/magic-longbow/) → High Alch
-2. Total cost: Magic log + Bow string + Nature rune
-3. Revenue: 1,536 GP
-
-**Tips:**
-- Buy limit: 18,000 per 4 hours
-- Less competition than yew longbows
-- Good for high-level fletchers
-
-<Adsense />
+<OSRSAdsenseCard />

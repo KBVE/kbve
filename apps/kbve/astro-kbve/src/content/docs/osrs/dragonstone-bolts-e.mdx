@@ -51,64 +51,33 @@ osrs:
       slug: armadyl-crossbow
       relationship: alternative
       description: Compatible weapon
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Ammunition |
+    | Tradeable | Yes |
+    | Weight | 0 kg |
+    | Requirements | 61 Ranged |
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 68 |
+    | Base item | Dragonstone bolts (10) |
+    | Runes | 15 Earth, 1 Soul, 1 Cosmic |
+
+    Enchant Crossbow Bolt (Dragonstone) spell. Enchants 10 bolts per cast.
+
+    Dragon's Breath:
+    - 6% activation chance
+    - Deals 20% of visible Ranged level as dragonfire (+22% with Zaryte crossbow)
+    - Blocked by Protect from Magic or dragonfire immunity
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Ammunition |
-| Tradeable | Yes |
-| Weight | 0 kg |
-| Requirements | 61 Ranged |
-
-## Creating
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 68 |
-| Base item | Dragonstone bolts (10) |
-| Runes | 15 Earth, 1 Soul, 1 Cosmic |
-
-Enchant Crossbow Bolt (Dragonstone) spell. Enchants 10 bolts per cast.
-
-## Effect
-
-**Dragon's Breath:**
-- 6% activation chance
-- Deals 20% of visible Ranged level as dragonfire (+22% with Zaryte crossbow)
-- Blocked by Protect from Magic or dragonfire immunity
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~500 gp each
-
-## Related Items
-
-- [Dragonstone bolts](/osrs/dragonstone-bolts/) - Base item
-- [Dragonstone dragon bolts (e)](/osrs/dragonstone-dragon-bolts-e/) - Dragon variant
-- [Armadyl crossbow](/osrs/armadyl-crossbow/) - Compatible
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -12,26 +12,33 @@ osrs:
   lowalch: 75000
   highalch: 112500
   limit: 70
+  related_items:
+    - item_id: 6
+      item_name: Cannon base
+      slug: cannon-base
+      relationship: set-piece
+      description: Multicannon base component
+    - item_id: 10
+      item_name: Cannon barrels
+      slug: cannon-barrels
+      relationship: set-piece
+      description: Multicannon barrels component
+    - item_id: 12
+      item_name: Cannon furnace
+      slug: cannon-furnace
+      relationship: set-piece
+      description: Multicannon furnace component
+  about: |-
+    > _"The mounting for the multicannon."_
+
+    The cannon stand is the second component placed when assembling a dwarf multicannon. Requires completion of the Dwarf Cannon quest to use. Placed on top of the cannon base. Tradeable on the Grand Exchange.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

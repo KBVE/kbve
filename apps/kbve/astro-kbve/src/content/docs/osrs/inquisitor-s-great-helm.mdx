@@ -65,70 +65,38 @@ osrs:
       slug: crystal-helm
       relationship: alternative
       description: Helm slot
+  about: |-
+    | Stat | Value |
+    |------|-------|
+    | Ranged attack | +0 |
+    | Stab defence | +32 |
+    | Slash defence | +24 |
+    | Crush defence | +48 |
+    | Magic defence | -4 |
+    | Ranged defence | +36 |
+    | Requirements | 70 Ranged, Defence |
+
+    With Bow of faerdhinen:
+    - Each piece: +3% accuracy, +6% damage
+    - Full set: +15% accuracy, +30% damage
+
+    BiS for Bow of faerdhinen builds:
+    - Inferno
+    - Fight Caves
+    - Slayer
+    - General ranged combat
+  market_strategy:
+    notes:
+      - Crystal seeds from Gauntlet
+      - Best with corrupted bow
+      - Shards from Prifddinas
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Upgrade Crystal armour components at a singing bowl.
-
-Requires:
-- Crystal armour seed (Gauntlet/CG)
-- 1,500 crystal shards
-- 70 Crafting, Smithing
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged attack | +0 |
-| Stab defence | +32 |
-| Slash defence | +24 |
-| Crush defence | +48 |
-| Magic defence | -4 |
-| Ranged defence | +36 |
-| Requirements | 70 Ranged, Defence |
-
-## Set Bonus
-
-**With Bow of faerdhinen:**
-- Each piece: +3% accuracy, +6% damage
-- Full set: +15% accuracy, +30% damage
-
-## Usage
-
-BiS for Bow of faerdhinen builds:
-- Inferno
-- Fight Caves
-- Slayer
-- General ranged combat
-
-## Market Strategy
-
-**Untradeable** - Must craft with shards.
-
-**Tips:**
-- Crystal seeds from Gauntlet
-- Best with corrupted bow
-- Shards from Prifddinas
-
-<Adsense />
+<OSRSAdsenseCard />

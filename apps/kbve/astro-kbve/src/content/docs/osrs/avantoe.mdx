@@ -96,48 +96,23 @@ osrs:
       slug: mort-myre-fungus
       relationship: component
       description: Super energy secondary
+  market_strategy:
+    profit_formulas:
+      - Super energy - Avantoe - Mort myre fungus - Vial
+    notes:
+      - Most common use for avantoe
+      - "Calculate:"
+      - Base ingredient for stamina potions
+      - 50 Farming to grow
+      - Moderate profit per run
+      - Consider disease risk vs profit
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Herblore Uses
-
-| Potion | Secondary | Level | XP |
-|--------|-----------|-------|-----|
-| Fishing potion(3) | Snape grass | 50 | 100 |
-| Super energy(3) | Mort myre fungus | 52 | 117.5 |
-| Hunter potion(3) | Kebbit teeth dust | 66 | 155 |
-
-## Market Strategy
-
-**Super Energy Profit:**
-- Most common use for avantoe
-- Calculate: `Super energy - Avantoe - Mort myre fungus - Vial`
-- Base ingredient for stamina potions
-
-**Herb Farming:**
-- 50 Farming to grow
-- Moderate profit per run
-- Consider disease risk vs profit
-
-**Buy Limit:** 11,000 per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

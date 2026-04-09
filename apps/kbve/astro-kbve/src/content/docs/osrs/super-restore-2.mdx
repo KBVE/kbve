@@ -53,60 +53,31 @@ osrs:
       slug: saradomin-brew-4
       relationship: alternative
       description: Paired consumable (3:1 ratio)
+  about: |-
+    2-dose variant of Super restore(4).
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Herblore Level | 63 |
+    | XP gained | 142.5 (when making 3-dose) |
+
+    Per dose restores:
+    - All stats except Hitpoints
+    - Prayer points: 8 + 25% of level
+    - Other stats: 8 + 25% of level
+
+    At 99 Prayer: Restores 32 prayer points per dose.
+
+    Used with Saradomin brew at 3:1 brew-to-restore ratio.
+
+    Note: Decants to/from 4-dose version at Bob Barter (GE).
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-2-dose variant of [Super restore(4)](/osrs/super-restore4/).
-
-| Requirement | Value |
-|-------------|-------|
-| Herblore Level | 63 |
-| XP gained | 142.5 (when making 3-dose) |
-
-## Effects
-
-Per dose restores:
-- All stats except Hitpoints
-- Prayer points: 8 + 25% of level
-- Other stats: 8 + 25% of level
-
-**At 99 Prayer:** Restores 32 prayer points per dose.
-
-## Usage
-
-Used with [Saradomin brew](/osrs/saradomin-brew4/) at 3:1 brew-to-restore ratio.
-
-**Note:** Decants to/from 4-dose version at Bob Barter (GE).
-
-## Market Strategy
-
-**Buy Limit:** 2,000 per 4 hours
-
-## Related Items
-
-- [Super restore(4)](/osrs/super-restore4/) - Full dose variant
-- [Saradomin brew(4)](/osrs/saradomin-brew4/) - Paired consumable
-- [Snapdragon](/osrs/snapdragon/) - Primary herb
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -62,63 +62,34 @@ osrs:
       slug: eclipse-moon-tassets
       relationship: set-piece
       description: Leg armour in set
+  about: |-
+    When wearing the full Eclipse moon armour set with the Eclipse atlatl:
+    - Successful attacks have a 20% chance to inflict burn damage on non-immune targets
+
+    | Property | Value |
+    |----------|-------|
+    | Total charges | 3,000 |
+    | Charge rate | 1 per 54 seconds |
+    | Combat duration | ~45 hours |
+    | NPC repair cost | 1,500,000 coins |
+    | Repair at 99 Smithing | 757,500 coins |
+
+    Part of the Eclipse moon armour set for ranged combat:
+    - Strong magic defence (+55)
+    - Good ranged attack bonus (+31)
+    - Strength bonus for melee damage calculation with atlatl
+  market_strategy:
+    notes:
+      - Core piece for Eclipse atlatl builds
+      - High magic defence makes it versatile
+      - Consider repair costs for sustained use
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-The Eclipse moon chestplate is obtained from the Lunar Chest in Neypotzli with a 1/224 drop rate.
-
-**Requirements:** 75 Ranged, 50 Defence to equip
-
-## Set Effect
-
-When wearing the full Eclipse moon armour set with the Eclipse atlatl:
-- Successful attacks have a 20% chance to inflict burn damage on non-immune targets
-
-## Degradation
-
-| Property | Value |
-|----------|-------|
-| Total charges | 3,000 |
-| Charge rate | 1 per 54 seconds |
-| Combat duration | ~45 hours |
-| NPC repair cost | 1,500,000 coins |
-| Repair at 99 Smithing | 757,500 coins |
-
-## Usage
-
-Part of the Eclipse moon armour set for ranged combat:
-- Strong magic defence (+55)
-- Good ranged attack bonus (+31)
-- Strength bonus for melee damage calculation with atlatl
-
-## Market Strategy
-
-**Buy Limit:** 15 per 4 hours
-
-**Tips:**
-- Core piece for Eclipse atlatl builds
-- High magic defence makes it versatile
-- Consider repair costs for sustained use
-
-<Adsense />
+<OSRSAdsenseCard />

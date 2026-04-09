@@ -64,63 +64,26 @@ osrs:
       slug: feather
       relationship: component
       description: Bait
+  market_strategy:
+    notes:
+      - First fly fishing catch
+      - High volume training
+      - F2P accessible
+      - Cooking training
+      - F2P fishing
+      - Ironman early game
+      - Wintertodt food
+      - Caught with fly fishing rod
+      - Feathers as bait
+      - Caught alongside salmon
+      - Often power-fished
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Method | Level | XP |
-|--------|-------|-----|
-| Fly fishing | 20 Fishing | 50 |
-| Barbarian fishing | 20 Fishing | 50 |
-| Location | Rivers (Barbarian Village, Shilo) | - |
-
-## Cooking
-
-| Requirement | Value |
-|-------------|-------|
-| Cooking Level | 15 |
-| XP per fish | 70 |
-| Stop burning | 50 (40 with gauntlets) |
-
-## Market Flip Strategy
-
-**Entry-Level Fish:**
-- First fly fishing catch
-- High volume training
-- F2P accessible
-
-**Buy Limit:** 15,000 per 4 hours
-
-**Demand Drivers:**
-- Cooking training
-- F2P fishing
-- Ironman early game
-- Wintertodt food
-
-**Tips:**
-- Caught with fly fishing rod
-- Feathers as bait
-- Caught alongside salmon
-- Often power-fished
-
-<Adsense />
+<OSRSAdsenseCard />

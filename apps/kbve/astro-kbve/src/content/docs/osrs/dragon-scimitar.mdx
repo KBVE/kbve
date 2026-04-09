@@ -77,57 +77,29 @@ osrs:
       slug: granite-hammer
       relationship: alternative
       description: 50 Attack option
+  about: |-
+    - Monkey Madness I required to wield
+    - Must complete quest to access Ape Atoll shop
+
+    Best-in-slot for:
+    - 60 Attack builds
+    - F2P-to-members transition
+    - PvP (prayer disable)
+    - Training to 70 Attack
+
+    Training Note: Best Strength training weapon until 70 Attack
+  market_strategy:
+    notes:
+      - Shop is cheapest source
+      - Scorpia drop is wilderness risk
+      - Essential for pures
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-**Shop:** Daga's Scimitar Smithy (Ape Atoll) - 100,000 gp
-- Requires Monkey Madness I completion
-
-**Drop:** Scorpia (1/128 drop rate, Wilderness)
-
-## Quest Requirements
-
-- **Monkey Madness I** required to wield
-- Must complete quest to access Ape Atoll shop
-
-## Usage
-
-Best-in-slot for:
-- 60 Attack builds
-- F2P-to-members transition
-- PvP (prayer disable)
-- Training to 70 Attack
-
-**Training Note:** Best Strength training weapon until 70 Attack
-
-## Market Strategy
-
-**Buy Limit:** 70 per 4 hours
-
-**Tips:**
-- Shop is cheapest source
-- Scorpia drop is wilderness risk
-- Essential for pures
-
-<Adsense />
+<OSRSAdsenseCard />

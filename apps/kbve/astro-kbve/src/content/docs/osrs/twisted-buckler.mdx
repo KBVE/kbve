@@ -50,80 +50,40 @@ osrs:
       slug: armadyl-crossbow
       relationship: alternative
       description: Pairs well
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Ranged attack | +18 |
+
+    | Defence | Value |
+    |---------|-------|
+    | Stab | +22 |
+    | Slash | +24 |
+    | Crush | +22 |
+    | Magic | +26 |
+    | Ranged | +58 |
+
+    Requirements: 75 Ranged, 75 Defence
+
+    BiS ranged shield for:
+    - All ranged combat (non-dragon)
+    - Raids
+    - Bossing
+    - Slayer
+
+    Best ranged attack bonus from shield slot.
+  market_strategy:
+    notes:
+      - CoX is only source
+      - Best offensive ranged shield
+      - Use DFW for dragons
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Shield |
-| Type | Ranged Shield |
-| Tradeable | Yes |
-| Weight | 5.443 kg |
-
-## Obtaining
-
-Rare reward from Chambers of Xeric.
-
-| Source | Rate |
-|--------|------|
-| CoX reward | Rare |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Ranged attack | +18 |
-
-| Defence | Value |
-|---------|-------|
-| Stab | +22 |
-| Slash | +24 |
-| Crush | +22 |
-| Magic | +26 |
-| Ranged | +58 |
-
-**Requirements:** 75 Ranged, 75 Defence
-
-## Usage
-
-BiS ranged shield for:
-- All ranged combat (non-dragon)
-- Raids
-- Bossing
-- Slayer
-
-**Best ranged attack bonus from shield slot.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~4.5M gp
-
-**Tips:**
-- CoX is only source
-- Best offensive ranged shield
-- Use DFW for dragons
-
-<Adsense />
+<OSRSAdsenseCard />

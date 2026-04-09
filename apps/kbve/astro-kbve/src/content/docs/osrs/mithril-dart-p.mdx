@@ -1,6 +1,6 @@
 ---
 title: Mithril dart(p) | OSRS Price Data
-description: "Mithril dart(p): A deadly poisoned dart with a mithril tip.. High alch: 15 GP, GE limit: 7,000."
+description: "Mithril dart(p) is a members weapon slot item requiring 20 Ranged. High alch: 15 GP, GE limit: 7,000."
 osrs:
   id: 815
   name: Mithril dart(p)
@@ -12,26 +12,31 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 7000
+  equipment:
+    slot: weapon
+    attack_speed: 3
+    requirements:
+      ranged: 20
+    attack_bonus:
+      ranged: 8
+    ranged_strength: 9
+  related_items:
+    - item_id: 814
+      item_name: Steel dart (p)
+      slug: steel-dart-p
+      relationship: variant
+      description: Lower tier poisoned dart
+  about: |-
+    > _"A mithril tipped dart with a poisoned tip."_
+
+    A mithril dart tipped with basic weapon poison. Requires 20 Ranged. Poison deals 2-4 damage over time.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

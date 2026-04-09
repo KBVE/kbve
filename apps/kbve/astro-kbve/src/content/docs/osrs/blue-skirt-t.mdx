@@ -1,6 +1,6 @@
 ---
 title: Blue skirt (t) | OSRS Price Data
-description: "Blue skirt (t): Leg covering favoured by women and wizards. With a colourful trim!. High alch: 1 GP, GE limit: 4."
+description: "Blue skirt (t) is a F2P legs slot item. High alch: 1 GP, GE limit: 4."
 osrs:
   id: 7388
   name: Blue skirt (t)
@@ -12,26 +12,31 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
+  equipment:
+    slot: legs
+    requirements: {}
+  related_items:
+    - item_id: 7386
+      item_name: Blue skirt (g)
+      slug: blue-skirt-g
+      relationship: variant
+      description: Gold-trimmed variant
+    - item_id: 7392
+      item_name: Blue wizard robe (t)
+      slug: blue-wizard-robe-t
+      relationship: set-piece
+      description: Matching trimmed wizard robe
+  about: |-
+    > *"Leg covering favoured by women and wizards. With a colourful trim!"*
+
+    The blue skirt (t) is a trimmed cosmetic variant of the blue wizard skirt. No requirements. F2P item.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

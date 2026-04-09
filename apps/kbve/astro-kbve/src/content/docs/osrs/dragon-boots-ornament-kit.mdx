@@ -12,26 +12,34 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: rare
+        members_only: true
+  related_items:
+    - item_id: 11840
+      item_name: Dragon boots
+      slug: dragon-boots
+      relationship: component
+      description: Base item for the ornament kit
+  about: |-
+    Apply to Dragon boots to create Dragon boots (g) — a cosmetic gold-trimmed variant with identical stats. The ornament kit is purely cosmetic.
+
+    The kit can be removed at any time to recover both the base boots and the kit.
+  market_strategy:
+    notes:
+      - Fashionscape item — price driven by cosmetic demand
+      - Hard clue exclusive
+      - Can be applied/removed freely
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

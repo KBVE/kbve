@@ -68,102 +68,64 @@ osrs:
       slug: skills-necklace
       relationship: alternative
       description: Different teleports
+  about: |-
+    Enchant Dragonstone amulet with Lvl-5 Enchant.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 68 (boostable) |
+    | Runes | 15 water, 15 earth, 1 cosmic |
+
+    | Offense | Value |
+    |---------|-------|
+    | Stab | +10 |
+    | Slash | +10 |
+    | Crush | +10 |
+    | Magic | +10 |
+    | Ranged | +10 |
+    | Strength | +6 |
+
+    | Defence | Value |
+    |---------|-------|
+    | All | +3 |
+
+    | Other | Value |
+    |-------|-------|
+    | Prayer | +3 |
+
+    | Destination | Charges |
+    |-------------|---------|
+    | Edgeville | 1 |
+    | Karamja | 1 |
+    | Draynor Village | 1 |
+    | Al Kharid | 1 |
+
+    Recharge: Fountain of Heroes (4), Fountain of Rune (6)
+
+    Popular for:
+    - Early-mid game teleports
+    - Gem mining (dragonstone chance)
+    - Budget combat amulet
+
+    Required for upgrade:
+    - 8x Amulet of glory(4)
+    - 8x Ring of wealth (5)
+    - 2x Gold leaf
+    - 91 Construction
+
+    Provides unlimited teleports to all glory destinations from POH.
+  market_strategy:
+    notes:
+      - Very affordable
+      - Buy 8 for ornate jewellery box
+      - Upgrade to fury for combat later
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Neck |
-| Type | Jewelry (Teleport) |
-| Tradeable | Yes |
-| Weight | 0.01 kg |
-
-## Creation
-
-Enchant [Dragonstone amulet](/osrs/dragonstone-amulet/) with Lvl-5 Enchant.
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 68 (boostable) |
-| Runes | 15 water, 15 earth, 1 cosmic |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Stab | +10 |
-| Slash | +10 |
-| Crush | +10 |
-| Magic | +10 |
-| Ranged | +10 |
-| Strength | +6 |
-
-| Defence | Value |
-|---------|-------|
-| All | +3 |
-
-| Other | Value |
-|-------|-------|
-| Prayer | +3 |
-
-## Teleports
-
-| Destination | Charges |
-|-------------|---------|
-| Edgeville | 1 |
-| Karamja | 1 |
-| Draynor Village | 1 |
-| Al Kharid | 1 |
-
-**Recharge:** Fountain of Heroes (4), Fountain of Rune (6)
-
-## Usage
-
-Popular for:
-- Early-mid game teleports
-- Gem mining (dragonstone chance)
-- Budget combat amulet
-
-## POH Ornate Jewellery Box
-
-**Required for upgrade:**
-- 8x Amulet of glory(4)
-- 8x [Ring of wealth (5)](/osrs/ring-of-wealth-5/)
-- 2x [Gold leaf](/osrs/gold-leaf/)
-- 91 Construction
-
-Provides unlimited teleports to all glory destinations from POH.
-
-## Market Strategy
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Price:** ~11K gp (4)
-
-**Tips:**
-- Very affordable
-- Buy 8 for ornate jewellery box
-- Upgrade to fury for combat later
-
-<Adsense />
+<OSRSAdsenseCard />

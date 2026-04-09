@@ -60,53 +60,26 @@ osrs:
       slug: ultracompost
       relationship: component
       description: Better yields
+  about: |-
+    | Product | Requirement |
+    |---------|-------------|
+    | Dragonfruit pie | 73 Cooking |
+    | Bottled dragonbreath | 10 fruits per vial |
+    | Redwood tree payment | 6 fruits |
+    | Food | Heals 10 HP |
+  market_strategy:
+    notes:
+      - Plant in Farming Guild
+      - Ultracompost for yield
+      - 6 fruit max per harvest
+      - Passive income source
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Method | Level | XP |
-|--------|-------|-----|
-| Farming dragonfruit tree | 81 | Variable |
-| Yield | 6 per tree max | - |
-| Regrowth | 30 minutes | - |
-
-## Uses
-
-| Product | Requirement |
-|---------|-------------|
-| Dragonfruit pie | 73 Cooking |
-| Bottled dragonbreath | 10 fruits per vial |
-| Redwood tree payment | 6 fruits |
-| Food | Heals 10 HP |
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Tips:**
-- Plant in Farming Guild
-- Ultracompost for yield
-- 6 fruit max per harvest
-- Passive income source
-
-<Adsense />
+<OSRSAdsenseCard />

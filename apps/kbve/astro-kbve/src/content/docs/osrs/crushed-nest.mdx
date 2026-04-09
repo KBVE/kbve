@@ -52,60 +52,31 @@ osrs:
       slug: pestle-and-mortar
       relationship: component
       description: Tool
+  about: |-
+    | Method | Requirements |
+    |--------|--------------|
+    | Pestle and mortar | Empty bird nest |
+    | No skill required | - |
+  market_strategy:
+    notes:
+      - Essential for Saradomin brews
+      - High demand consumable
+      - Woodcutting byproduct
+      - Saradomin brew production
+      - PvM consumable demand
+      - Raids preparation
+      - Bossing supplies
+      - Crush empty nests
+      - Woodcutting provides nests
+      - Birdhouse runs supply
+      - High volume trading
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creating
-
-| Method | Requirements |
-|--------|--------------|
-| Pestle and mortar | Empty bird nest |
-| No skill required | - |
-
-## Herblore
-
-| Potion | Level | Other Ingredient |
-|--------|-------|------------------|
-| Saradomin brew | 81 | Toadflax |
-
-## Market Flip Strategy
-
-**Sara Brew Component:**
-- Essential for Saradomin brews
-- High demand consumable
-- Woodcutting byproduct
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Saradomin brew production
-- PvM consumable demand
-- Raids preparation
-- Bossing supplies
-
-**Tips:**
-- Crush empty nests
-- Woodcutting provides nests
-- Birdhouse runs supply
-- High volume trading
-
-<Adsense />
+<OSRSAdsenseCard />

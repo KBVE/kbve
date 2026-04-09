@@ -76,64 +76,34 @@ osrs:
       slug: granite-maul
       relationship: alternative
       description: Different granite weapon
+  about: |-
+    Special properties:
+    - Acts as rock hammer (auto-finishes Gargoyles)
+    - 30% damage and accuracy bonus vs golems
+    - 4-tick attack speed (same as scimitar)
+
+    Special attack - Hammer Blow:
+    - 60% special energy
+    - 10% increased damage
+    - 50% increased accuracy
+
+    Combat comparison:
+    - Lower DPS than Dragon scimitar
+    - Useful for Gargoyle tasks
+    - Convenient for finishing blows
+  market_strategy:
+    notes:
+      - Quality of life for Gargoyle tasks
+      - Saves inventory space (no rock hammer)
+      - Niche PvM use for golem creatures
+      - Part of Grotesque Guardian collection
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Dropped by Grotesque Guardians on the Slayer Tower rooftop.
-
-**Requirements:**
-- 75 Slayer
-- Brittle key (dropped by Gargoyles)
-- Access to Slayer Tower
-
-**Drop rate:** 2 x 1/750 (effectively 1/375 per kill)
-
-## Usage
-
-**Special properties:**
-- Acts as rock hammer (auto-finishes Gargoyles)
-- 30% damage and accuracy bonus vs golems
-- 4-tick attack speed (same as scimitar)
-
-**Special attack - Hammer Blow:**
-- 60% special energy
-- 10% increased damage
-- 50% increased accuracy
-
-**Combat comparison:**
-- Lower DPS than Dragon scimitar
-- Useful for Gargoyle tasks
-- Convenient for finishing blows
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Quality of life for Gargoyle tasks
-- Saves inventory space (no rock hammer)
-- Niche PvM use for golem creatures
-- Part of Grotesque Guardian collection
-
-<Adsense />
+<OSRSAdsenseCard />

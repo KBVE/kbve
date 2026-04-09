@@ -59,92 +59,44 @@ osrs:
       slug: toktz-xil-ak
       relationship: alternative
       description: Obsidian sword
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Strength | +3 |
+
+    | Defence | Value |
+    |---------|-------|
+    | Stab | +55 |
+    | Slash | +78 |
+    | Crush | +56 |
+    | Magic | -15 |
+    | Ranged | +60 |
+
+    Requirements: 60 Defence
+
+    Full Obsidian Set + Obsidian Weapon:
+    - +10% damage bonus
+    - +10% accuracy bonus
+    - Stacks with Berserker necklace (+20%)
+
+    Popular for:
+    - Training at TzHaar
+    - Budget melee training
+    - Fight Caves
+
+    Core piece of the Obsidian training set.
+  market_strategy:
+    notes:
+      - Most expensive obsidian piece
+      - Buy with Tokkul or GE
+      - Good for training
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Body |
-| Type | Melee Armor |
-| Tradeable | Yes |
-| Weight | 9.979 kg |
-
-## Obtaining
-
-Purchase from TzHaar-Hur-Zal in Mor Ul Rek for Tokkul.
-
-| Shop | Price |
-|------|-------|
-| TzHaar-Hur-Zal | 270,000 Tokkul |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Strength | +3 |
-
-| Defence | Value |
-|---------|-------|
-| Stab | +55 |
-| Slash | +78 |
-| Crush | +56 |
-| Magic | -15 |
-| Ranged | +60 |
-
-**Requirements:** 60 Defence
-
-## Set Bonus
-
-**Full Obsidian Set + Obsidian Weapon:**
-- +10% damage bonus
-- +10% accuracy bonus
-- Stacks with [Berserker necklace](/osrs/berserker-necklace/) (+20%)
-
-## Usage
-
-Popular for:
-- Training at TzHaar
-- Budget melee training
-- Fight Caves
-
-**Core piece of the Obsidian training set.**
-
-## Market Strategy
-
-**Buy Limit:** 70 per 4 hours
-
-**Price:** ~2.4M gp
-
-**Tips:**
-- Most expensive obsidian piece
-- Buy with Tokkul or GE
-- Good for training
-
-## Related Items
-
-- [Obsidian helmet](/osrs/obsidian-helmet/) - Helm slot
-- [Obsidian platelegs](/osrs/obsidian-platelegs/) - Leg armor
-- [Toktz-xil-ak](/osrs/toktz-xil-ak/) - Obsidian sword
-
-<Adsense />
+<OSRSAdsenseCard />

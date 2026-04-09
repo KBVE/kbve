@@ -51,73 +51,27 @@ osrs:
       slug: dragon-dart
       relationship: alternative
       description: Alternative dragon thrown
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | Weapon |
+    | Type | Thrown |
+    | Tradeable | Yes |
+    | Weight | 0.006 kg |
+    | Requirements | 60 Ranged |
+
+    Draconic Puncture:
+    - 25% special energy
+    - Two rapid attacks
+    - 5% increased accuracy per hit
+    - Popular for PvP combos
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon |
-| Type | Thrown |
-| Tradeable | Yes |
-| Weight | 0.006 kg |
-| Requirements | 60 Ranged |
-
-## Obtaining
-
-**Drops:**
-- Hydra (Karuulm Slayer Dungeon)
-- Alchemical Hydra (rare drop)
-
-**Cannot be smithed.**
-
-## Combat Stats
-
-| Stat | Bonus |
-|------|-------|
-| Ranged Attack | +28 |
-| Ranged Strength | +30 |
-
-## Special Attack
-
-**Draconic Puncture:**
-- 25% special energy
-- Two rapid attacks
-- 5% increased accuracy per hit
-- Popular for PvP combos
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~800 gp
-
-Best throwing knife in game. Excellent for PvP with special attack.
-
-## Related Items
-
-- [Rune knife](/osrs/rune-knife/) - Budget alternative
-- [Dragon knife (p++)](/osrs/dragon-knife-p++/) - Poisoned version
-- [Dragon dart](/osrs/dragon-dart/) - Alternative dragon thrown
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -93,58 +93,28 @@ osrs:
       slug: nature-rune
       relationship: component
       description: For High Alchemy
+  market_strategy:
+    title: Magic Longbow Processing
+    steps:
+      - order: 1
+        action: Buy Magic logs on GE
+      - order: 2
+        action: Fletch into Magic longbow (u)
+      - order: 3
+        action: Add Bow string for Magic longbow
+      - order: 4
+        action: High Alch for 1,536 GP
+    profit_formulas:
+      - 1,536 - Magic log - Bow string - Nature rune = Alch profit
+    notes:
+      - Higher margins than yew, but slower sell speed
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import OSRSContentWrap from '@/components/osrs/OSRSContentWrap.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-<OSRSContentWrap>
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-</OSRSContentWrap>
-
-<OSRSContentWrap>
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-</OSRSContentWrap>
-
-<OSRSContentWrap>
-## Fletching
-
-Use a [Knife](/osrs/knife/) on **Magic logs** to create unstrung bows or arrow shafts.
-
-| Output | Fletching Level | XP | Qty |
-|--------|-----------------|-----|-----|
-| [Arrow shaft](/osrs/arrow-shaft/) | 75 | 5 | 90 |
-| [Magic shortbow (u)](/osrs/magic-shortbow-u/) | 80 | 83.3 | 1 |
-| [Magic longbow (u)](/osrs/magic-longbow-u/) | 85 | 91.5 | 1 |
-| [Magic stock](/osrs/magic-stock/) | 78 | 70 | 1 |
-</OSRSContentWrap>
-
 <OSRSAdsenseCard />
-
-<OSRSContentWrap>
-## Market Flip Strategy
-
-**Magic Longbow Processing:**
-1. Buy [Magic logs](/osrs/magic-logs/) on GE
-2. Fletch into [Magic longbow (u)](/osrs/magic-longbow-u/)
-3. Add [Bow string](/osrs/bow-string/) for [Magic longbow](/osrs/magic-longbow/)
-4. High Alch for 1,536 GP
-
-**Profit Calculation:**
-- `1,536 - Magic log - Bow string - Nature rune = Alch profit`
-- Higher margins than yew, but slower sell speed
-</OSRSContentWrap>

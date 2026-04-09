@@ -61,81 +61,41 @@ osrs:
       slug: venator-vestige
       relationship: component
       description: From The Leviathan
+  about: |-
+    1. Combine Archer icon + Venator vestige + 500 blood runes
+    2. Craft at furnace with 3 chromium ingots + ring mould
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 90 (boostable) |
+    | Crafting | 80 (boostable) |
+    | Kill The Leviathan | 1 time |
+
+    | Offense | Value |
+    |---------|-------|
+    | Ranged | +10 |
+    | Ranged Strength | +2 |
+
+    Requirements: The Leviathan kill
+
+    BiS for:
+    - All ranged combat
+    - Maximum ranged DPS
+    - Raids
+
+    Only ring with ranged strength bonus.
+  market_strategy:
+    notes:
+      - Vestige from The Leviathan
+      - Cannot be imbued
+      - DT2 content
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Ring |
-| Type | Ranged Ring |
-| Tradeable | Yes |
-| Weight | 0.012 kg |
-
-## Creation
-
-1. Combine [Archer icon](/osrs/archer-icon/) + [Venator vestige](/osrs/venator-vestige/) + 500 blood runes
-2. Craft at furnace with 3 chromium ingots + ring mould
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 90 (boostable) |
-| Crafting | 80 (boostable) |
-| Kill The Leviathan | 1 time |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Ranged | +10 |
-| Ranged Strength | +2 |
-
-**Requirements:** The Leviathan kill
-
-## Usage
-
-BiS for:
-- All ranged combat
-- Maximum ranged DPS
-- Raids
-
-**Only ring with ranged strength bonus.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~41M gp
-
-**Tips:**
-- Vestige from The Leviathan
-- Cannot be imbued
-- DT2 content
-
-## Related Items
-
-- [Archers ring (i)](/osrs/archers-ring-i/) - Budget alternative
-- [Magus ring](/osrs/magus-ring/) - Magic equivalent
-- [The Leviathan](/osrs/the-leviathan/) - Vestige source
-
-<Adsense />
+<OSRSAdsenseCard />

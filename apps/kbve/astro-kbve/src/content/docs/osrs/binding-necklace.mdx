@@ -65,80 +65,47 @@ osrs:
       slug: emerald-necklace
       relationship: component
       description: Base item for enchantment
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | Neck |
+    | Type | Runecraft Necklace |
+    | Tradeable | Yes |
+    | Weight | 0.01 kg |
+
+    Enchant Emerald necklace with Lvl-2 Enchant.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 27 |
+    | Cosmic rune | 1 |
+    | Air rune | 3 |
+
+    Alternative: Abyss monster drops
+
+    Combination Rune Success:
+    - 100% success rate on combo runes
+    - 16 charges total
+    - 1 charge per craft
+
+    Essential for:
+    - Lava runes (best RC XP)
+    - All combination runes
+    - Runecraft training
+
+    Required for combo rune crafting.
+  market_strategy:
+    notes:
+      - Essential for lava runes
+      - Very cheap
+      - 16 uses per necklace
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Neck |
-| Type | Runecraft Necklace |
-| Tradeable | Yes |
-| Weight | 0.01 kg |
-
-## Creation
-
-Enchant [Emerald necklace](/osrs/emerald-necklace/) with Lvl-2 Enchant.
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 27 |
-| Cosmic rune | 1 |
-| Air rune | 3 |
-
-Alternative: Abyss monster drops
-
-## Passive Effect
-
-**Combination Rune Success:**
-- 100% success rate on combo runes
-- 16 charges total
-- 1 charge per craft
-
-## Usage
-
-Essential for:
-- Lava runes (best RC XP)
-- All combination runes
-- Runecraft training
-
-**Required for combo rune crafting.**
-
-## Market Strategy
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Price:** ~200 gp
-
-**Tips:**
-- Essential for lava runes
-- Very cheap
-- 16 uses per necklace
-
-## Related Items
-
-- [Lava rune](/osrs/lava-rune/) - Common combo rune
-- [Emerald necklace](/osrs/emerald-necklace/) - Base item
-- [Runecraft](/osrs/runecraft/) - Related skill
-
-<Adsense />
+<OSRSAdsenseCard />

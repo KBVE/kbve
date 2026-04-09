@@ -48,69 +48,34 @@ osrs:
       slug: cosmic-rune
       relationship: product
       description: Mid-level rune
+  about: |-
+    Pure essence can craft ALL runes. Required for:
+    - Cosmic rune (27 RC)
+    - Chaos rune (35 RC)
+    - Astral rune (40 RC)
+    - Nature rune (44 RC)
+    - Law rune (54 RC)
+    - Death rune (65 RC)
+    - Blood rune (77 RC)
+    - Wrath rune (95 RC)
+
+    Rune essence can only craft basic runes (air, mind, water, earth, fire, body).
+  market_strategy:
+    notes:
+      - Trade essence to runecrafters at altars
+      - They craft runes and give you a cut
+      - Popular at Nature and Law altars
+      - Very cheap (~2 GP each)
+      - Massive volume
+      - Essential for Runecrafting training
+      - Price tied to rune prices
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-- Mine at Rune Essence Mine (30+ Mining, Rune Mysteries quest)
-- Nightmare Zone rewards
-- Monster drops (gargoyles, abyssal demons, etc.)
-- Temple Trekking
-
-**Mining Rate:** ~2,100/hour with best pickaxe
-
-## Usage
-
-Pure essence can craft ALL runes. Required for:
-- [Cosmic rune](/osrs/cosmic-rune/) (27 RC)
-- [Chaos rune](/osrs/chaos-rune/) (35 RC)
-- [Astral rune](/osrs/astral-rune/) (40 RC)
-- [Nature rune](/osrs/nature-rune/) (44 RC)
-- [Law rune](/osrs/law-rune/) (54 RC)
-- [Death rune](/osrs/death-rune/) (65 RC)
-- [Blood rune](/osrs/blood-rune/) (77 RC)
-- [Wrath rune](/osrs/wrath-rune/) (95 RC)
-
-[Rune essence](/osrs/rune-essence/) can only craft basic runes (air, mind, water, earth, fire, body).
-
-## Market Info
-
-| Stat | Value |
-|------|-------|
-| Buy limit | 30,000 per 4 hours |
-| Daily volume | ~354M traded |
-
-## Market Flip Strategy
-
-**Essence Running:**
-- Trade essence to runecrafters at altars
-- They craft runes and give you a cut
-- Popular at Nature and Law altars
-
-**Tips:**
-- Very cheap (~2 GP each)
-- Massive volume
-- Essential for Runecrafting training
-- Price tied to rune prices
-
-<Adsense />
+<OSRSAdsenseCard />

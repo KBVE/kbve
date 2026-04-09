@@ -53,64 +53,32 @@ osrs:
       slug: kodai-wand
       relationship: alternative
       description: +15% magic damage
+  about: |-
+    | Stat | Value |
+    |------|-------|
+    | Magic attack | +12 |
+    | Magic damage | +5% |
+    | Prayer | +2 |
+    | Requirements | 70 Magic |
+
+    Only amulet with magic damage bonus.
+
+    Essential for magic DPS:
+    - Stacks with other magic damage bonuses
+    - BiS neck slot for magic
+    - Used in all endgame magic content
+  market_strategy:
+    notes:
+      - High demand, consistent price
+      - Required for efficient magic setups
+      - Thermy task is faster source
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Dropped by Smoke devils:
-
-| Monster | Combat | Drop Rate |
-|---------|--------|-----------|
-| Smoke devil | 160 | 1/512 |
-| Thermonuclear smoke devil | 301 | 1/350 |
-
-**Requires:** 93 Slayer
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Magic attack | +12 |
-| Magic damage | +5% |
-| Prayer | +2 |
-| Requirements | 70 Magic |
-
-**Only amulet with magic damage bonus.**
-
-## Usage
-
-Essential for magic DPS:
-- Stacks with other magic damage bonuses
-- BiS neck slot for magic
-- Used in all endgame magic content
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- High demand, consistent price
-- Required for efficient magic setups
-- Thermy task is faster source
-
-<Adsense />
+<OSRSAdsenseCard />

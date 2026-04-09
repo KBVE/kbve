@@ -68,98 +68,55 @@ osrs:
       slug: hydras-claw
       relationship: component
       description: Required component
+  about: |-
+    Combine Zamorakian hasta + Hydra's claw.
+
+    Process is irreversible.
+
+    | Component | Source | Price |
+    |-----------|--------|-------|
+    | Zamorakian hasta | K'ril Tsutsaroth | ~10M |
+    | Hydra's claw | Alchemical Hydra | ~48M |
+
+    | Offense | Value |
+    |---------|-------|
+    | Stab | +85 |
+    | Slash | +65 |
+    | Crush | +65 |
+    | Strength | +70 |
+
+    | Defence | Value |
+    |---------|-------|
+    | All | +0 |
+
+    Requirements: 78 Attack, Barbarian Training
+
+    Dragon Bane:
+    - +20% accuracy vs dragons/draconic creatures
+    - +20% damage vs dragons/draconic creatures
+    - Stacks with Void and Slayer helm
+
+    Works on: Dragons, wyverns, Great Olm, hydras
+
+    BiS for dragons:
+    - Vorkath
+    - Alchemical Hydra
+    - Chambers of Xeric (Olm)
+    - All dragon Slayer tasks
+
+    Essential for dragon content.
+  market_strategy:
+    notes:
+      - Hydra claw from Alchemical Hydra
+      - 95 Slayer to obtain claw
+      - Best dragon-killing weapon
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Main-hand) |
-| Type | Melee - Stab |
-| Tradeable | Yes |
-| Weight | 3 kg |
-| Attack Speed | 4 tick (2.4s) |
-
-## Creation
-
-Combine [Zamorakian hasta](/osrs/zamorakian-hasta/) + [Hydra's claw](/osrs/hydras-claw/).
-
-**Process is irreversible.**
-
-| Component | Source | Price |
-|-----------|--------|-------|
-| Zamorakian hasta | K'ril Tsutsaroth | ~10M |
-| Hydra's claw | Alchemical Hydra | ~48M |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Stab | +85 |
-| Slash | +65 |
-| Crush | +65 |
-| Strength | +70 |
-
-| Defence | Value |
-|---------|-------|
-| All | +0 |
-
-**Requirements:** 78 Attack, Barbarian Training
-
-## Passive Effect
-
-**Dragon Bane:**
-- +20% accuracy vs dragons/draconic creatures
-- +20% damage vs dragons/draconic creatures
-- Stacks with Void and Slayer helm
-
-**Works on:** Dragons, wyverns, Great Olm, hydras
-
-## Usage
-
-BiS for dragons:
-- Vorkath
-- Alchemical Hydra
-- Chambers of Xeric (Olm)
-- All dragon Slayer tasks
-
-**Essential for dragon content.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~58M gp
-
-**Tips:**
-- Hydra claw from Alchemical Hydra
-- 95 Slayer to obtain claw
-- Best dragon-killing weapon
-
-## Related Items
-
-- [Dragonhunter crossbow](/osrs/dragonhunter-crossbow/) - Ranged equivalent
-- [Zamorakian hasta](/osrs/zamorakian-hasta/) - Base weapon
-- [Hydra's claw](/osrs/hydras-claw/) - Required component
-
-<Adsense />
+<OSRSAdsenseCard />

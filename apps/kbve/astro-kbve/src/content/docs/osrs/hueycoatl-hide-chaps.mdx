@@ -64,96 +64,47 @@ osrs:
       slug: hueycoatl-hide-vambraces
       relationship: set-piece
       description: Gloves
+  about: |-
+    - 40 Defence
+    - 70 Ranged
+
+    | Stat | Bonus |
+    |------|-------|
+    | Ranged Attack | +17 |
+    | Magic Attack | -10 |
+    | Stab Defence | +31 |
+    | Slash Defence | +25 |
+    | Crush Defence | +33 |
+    | Ranged Defence | +31 |
+    | Magic Defence | +30 |
+    | Prayer | +2 |
+
+    The Hueycoatl hide chaps complement the body armor with:
+
+    - Solid ranged attack: +17 ranged attack bonus
+    - Balanced defences: Good protection for leg slot
+    - Prayer bonus: +2 prayer for sustain
+
+    Best used with:
+    - Hueycoatl hide coif
+    - Hueycoatl hide body
+    - Hueycoatl hide vambraces
+
+    Full set synergy: Combined with other pieces, provides strong overall stats and +8 total prayer bonus.
+  market_strategy:
+    notes:
+      - Mid-tier crafting requirement (77)
+      - Same hide cost as coif (2 hides)
+      - Often purchased alongside body for core setup
+      - Prayer bonus adds value over alternatives
+      - Check crafting profitability before making
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Equipment Info
-
-The Hueycoatl hide chaps are the leg armor of the Hueycoatl hide armor set. They provide solid ranged attack, balanced defences, and a prayer bonus.
-
-**Slot:** Legs
-**Weight:** 3.0 kg
-**Tradeable:** Yes
-
-## Requirements
-
-- 40 Defence
-- 70 Ranged
-
-## Stats
-
-| Stat | Bonus |
-|------|-------|
-| Ranged Attack | +17 |
-| Magic Attack | -10 |
-| Stab Defence | +31 |
-| Slash Defence | +25 |
-| Crush Defence | +33 |
-| Ranged Defence | +31 |
-| Magic Defence | +30 |
-| Prayer | +2 |
-
-## Crafting
-
-| Requirement | Value |
-|-------------|-------|
-| Skill | Crafting |
-| Level | 77 |
-| Experience | 238 XP |
-
-**Materials:**
-- 2x Hueycoatl hide
-- 1x Thread
-
-## Obtaining
-
-**Method 1:** Craft from Hueycoatl hides (77 Crafting required)
-**Method 2:** Buy from Grand Exchange or other players
-
-## Usage
-
-The Hueycoatl hide chaps complement the body armor with:
-
-- **Solid ranged attack:** +17 ranged attack bonus
-- **Balanced defences:** Good protection for leg slot
-- **Prayer bonus:** +2 prayer for sustain
-
-**Best used with:**
-- Hueycoatl hide coif
-- Hueycoatl hide body
-- Hueycoatl hide vambraces
-
-**Full set synergy:** Combined with other pieces, provides strong overall stats and +8 total prayer bonus.
-
-## Market Strategy
-
-**Buy Limit:** 70 per 4 hours
-**Estimated Price:** ~1.1M GP
-
-**Tips:**
-- Mid-tier crafting requirement (77)
-- Same hide cost as coif (2 hides)
-- Often purchased alongside body for core setup
-- Prayer bonus adds value over alternatives
-- Check crafting profitability before making
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -44,77 +44,38 @@ osrs:
       slug: magic-secateurs
       relationship: alternative
       description: Yield boost tool
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Farming Level | 38 |
+    | Growth Time | 80 minutes |
+    | Plant XP | 34 |
+    | Harvest XP | 38.5 per herb |
+
+    | Compost Type | Min Harvest | Avg at 99 |
+    |--------------|-------------|-----------|
+    | None | 3 | ~5 herbs |
+    | Compost | 4 | ~6 herbs |
+    | Supercompost | 5 | ~7.5 herbs |
+    | Ultracompost | 6 | ~9.2 herbs |
+
+    Tip: Use magic secateurs and attas plant for maximum yield.
+
+    Toadflax is used to create:
+    - Saradomin brew(4) - Essential PvM potion
+    - Agility potion(4) - Run restoration
+  market_strategy:
+    notes:
+      - Profitable herb to farm
+      - Saradomin brew demand drives price
+      - Often farmed alongside other valuable herbs
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-**Common Sources:**
-- Master Farmer pickpocketing (1/302)
-- Aberrant spectres (1/78)
-- Nechryael (1/78)
-- Herbiboar hunting
-- Giant Mole (with Falador hard diary)
-
-## Farming Info
-
-| Property | Value |
-|----------|-------|
-| Farming Level | 38 |
-| Growth Time | 80 minutes |
-| Plant XP | 34 |
-| Harvest XP | 38.5 per herb |
-
-## Yield
-
-| Compost Type | Min Harvest | Avg at 99 |
-|--------------|-------------|-----------|
-| None | 3 | ~5 herbs |
-| Compost | 4 | ~6 herbs |
-| Supercompost | 5 | ~7.5 herbs |
-| Ultracompost | 6 | ~9.2 herbs |
-
-**Tip:** Use magic secateurs and attas plant for maximum yield.
-
-## Usage
-
-[Toadflax](/osrs/toadflax/) is used to create:
-- [Saradomin brew(4)](/osrs/saradomin-brew4/) - Essential PvM potion
-- [Agility potion(4)](/osrs/agility-potion4/) - Run restoration
-
-## Market Strategy
-
-**Buy Limit:** 200 per 4 hours
-
-**Tips:**
-- Profitable herb to farm
-- Saradomin brew demand drives price
-- Often farmed alongside other valuable herbs
-
-## Related Items
-
-- [Toadflax](/osrs/toadflax/) - Harvested herb
-- [Saradomin brew(4)](/osrs/saradomin-brew4/) - End product
-- [Ultracompost](/osrs/ultracompost/) - Best compost
-- [Magic secateurs](/osrs/magic-secateurs/) - Yield boost
-
-<Adsense />
+<OSRSAdsenseCard />

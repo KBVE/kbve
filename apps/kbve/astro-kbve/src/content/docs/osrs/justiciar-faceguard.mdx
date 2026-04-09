@@ -54,90 +54,44 @@ osrs:
       slug: elysian-spirit-shield
       relationship: alternative
       description: Stacking defence
+  about: |-
+    | Defence | Value |
+    |---------|-------|
+    | Stab | +67 |
+    | Slash | +66 |
+    | Crush | +63 |
+    | Magic | -12 |
+    | Ranged | +69 |
+
+    | Other | Value |
+    |-------|-------|
+    | Prayer | +4 |
+
+    Requirements: 75 Defence
+
+    Damage Reduction (full set):
+    - Formula: Defence bonus / 3000
+    - Minimum 1 damage reduction
+    - Stacks with Elysian spirit shield
+
+    BiS for:
+    - Tanking roles
+    - Corp tanking
+    - Any designated tank
+
+    Best tank armour in the game.
+  market_strategy:
+    notes:
+      - Full set required for bonus
+      - From Theatre of Blood
+      - Massive defensive stats
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Head |
-| Type | Tank Armour |
-| Tradeable | Yes |
-| Weight | 3.175 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Theatre of Blood | Rare |
-
-## Stats
-
-| Defence | Value |
-|---------|-------|
-| Stab | +67 |
-| Slash | +66 |
-| Crush | +63 |
-| Magic | -12 |
-| Ranged | +69 |
-
-| Other | Value |
-|-------|-------|
-| Prayer | +4 |
-
-**Requirements:** 75 Defence
-
-## Set Bonus
-
-**Damage Reduction (full set):**
-- Formula: Defence bonus / 3000
-- Minimum 1 damage reduction
-- Stacks with Elysian spirit shield
-
-## Usage
-
-BiS for:
-- Tanking roles
-- Corp tanking
-- Any designated tank
-
-**Best tank armour in the game.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~16.9M gp
-
-**Tips:**
-- Full set required for bonus
-- From Theatre of Blood
-- Massive defensive stats
-
-## Related Items
-
-- [Justiciar chestguard](/osrs/justiciar-chestguard/) - Body piece
-- [Justiciar legguards](/osrs/justiciar-legguards/) - Legs piece
-- [Elysian spirit shield](/osrs/elysian-spirit-shield/) - Stacking defence
-
-<Adsense />
+<OSRSAdsenseCard />

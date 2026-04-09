@@ -86,56 +86,27 @@ osrs:
       slug: dragon-scimitar
       relationship: alternative
       description: Similar tier weapon without Slayer requirement
+  about: |-
+    Essential for killing:
+    - Turoth (requires leaf-bladed weapon or magic dart)
+    - Kurask (requires leaf-bladed weapon or magic dart)
+
+    Combat stats:
+    - 4-tick attack speed (same as scimitar)
+    - Decent stab and slash bonuses
+    - Lower strength than leaf-bladed battleaxe
+  market_strategy:
+    notes:
+      - Budget option for Slayer tasks
+      - Many players prefer leaf-bladed battleaxe for higher damage
+      - Good for accounts with 50 Attack
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Dropped by Kurask, Turoth, and their superior variants.
-
-**Requirements:** 55 Slayer to kill these monsters
-
-**Locations:**
-- Fremennik Slayer Dungeon (Kurask, Turoth)
-- Kourend Catacombs
-
-## Usage
-
-**Essential for killing:**
-- Turoth (requires leaf-bladed weapon or magic dart)
-- Kurask (requires leaf-bladed weapon or magic dart)
-
-**Combat stats:**
-- 4-tick attack speed (same as scimitar)
-- Decent stab and slash bonuses
-- Lower strength than leaf-bladed battleaxe
-
-## Market Strategy
-
-**Buy Limit:** 70 per 4 hours
-
-**Tips:**
-- Budget option for Slayer tasks
-- Many players prefer leaf-bladed battleaxe for higher damage
-- Good for accounts with 50 Attack
-
-<Adsense />
+<OSRSAdsenseCard />

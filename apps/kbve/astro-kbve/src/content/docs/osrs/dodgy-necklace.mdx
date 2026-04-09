@@ -52,79 +52,46 @@ osrs:
       slug: ardougne-cloak
       relationship: alternative
       description: Thieving bonus
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | Neck |
+    | Type | Thieving Necklace |
+    | Tradeable | Yes |
+    | Weight | 0.01 kg |
+
+    Enchant Opal necklace with Lvl-1 Enchant.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 7 |
+    | Cosmic rune | 1 |
+    | Water rune | 1 |
+
+    Stun Prevention:
+    - 25% chance to avoid stun/damage
+    - Works on all pickpocketing
+    - 10 charges
+    - Stacks with Shadow Veil (36.25% total)
+
+    Essential for:
+    - All pickpocketing
+    - Ardy Knights
+    - Master Farmers
+
+    Must-have for thieving.
+  market_strategy:
+    notes:
+      - Very high volume item
+      - Essential for thieving
+      - Stacks with other bonuses
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Neck |
-| Type | Thieving Necklace |
-| Tradeable | Yes |
-| Weight | 0.01 kg |
-
-## Creation
-
-Enchant [Opal necklace](/osrs/opal-necklace/) with Lvl-1 Enchant.
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 7 |
-| Cosmic rune | 1 |
-| Water rune | 1 |
-
-## Passive Effect
-
-**Stun Prevention:**
-- 25% chance to avoid stun/damage
-- Works on all pickpocketing
-- 10 charges
-- Stacks with Shadow Veil (36.25% total)
-
-## Usage
-
-Essential for:
-- All pickpocketing
-- Ardy Knights
-- Master Farmers
-
-**Must-have for thieving.**
-
-## Market Strategy
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Price:** ~1,592 gp
-
-**Tips:**
-- Very high volume item
-- Essential for thieving
-- Stacks with other bonuses
-
-## Related Items
-
-- [Rogue equipment](/osrs/rogue-equipment/) - Double loot
-- [Shadow veil](/osrs/shadow-veil/) - Stacking protection
-- [Ardougne cloak](/osrs/ardougne-cloak/) - Thieving bonus
-
-<Adsense />
+<OSRSAdsenseCard />

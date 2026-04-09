@@ -1,6 +1,6 @@
 ---
 title: Gold elegant legs | OSRS Price Data
-description: "Gold elegant legs: A rather elegant pair of men's gold pantaloons.. High alch: 1,200 GP, GE limit: 4."
+description: "Gold elegant legs is a members legs slot item. High alch: 1,200 GP, GE limit: 4."
 osrs:
   id: 12349
   name: Gold elegant legs
@@ -12,26 +12,26 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 4
+  equipment:
+    slot: legs
+    requirements: {}
+  related_items:
+    - item_id: 12347
+      item_name: Gold elegant shirt
+      slug: gold-elegant-shirt
+      relationship: set-piece
+      description: Matching elegant shirt
+  about: |-
+    > *"A rather elegant pair of men's gold pantaloons."*
+
+    Purely cosmetic treasure trail reward with no combat stats. Part of the gold elegant clothing set.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

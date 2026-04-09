@@ -47,58 +47,28 @@ osrs:
       slug: jar-of-souls
       relationship: alternative
       description: Cerberus jar drop
+  about: |-
+    POH display:
+    - Place in Boss Lair Display
+    - Shows Grotesque Guardians model
+    - Requires Achievement Gallery
+
+    Collection item:
+    - Part of boss jar collection
+    - Rare trophy from Slayer boss
+  market_strategy:
+    notes:
+      - Very rare drop (1/5,000)
+      - Primarily a collection item
+      - No practical combat use
+      - Shows dedication to boss
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Dropped by Grotesque Guardians on the Slayer Tower rooftop.
-
-**Drop rate:** 1/5,000
-
-**Requirements:**
-- 75 Slayer
-- Brittle key (dropped by Gargoyles)
-- Gargoyle Slayer task
-
-## Usage
-
-**POH display:**
-- Place in Boss Lair Display
-- Shows Grotesque Guardians model
-- Requires Achievement Gallery
-
-**Collection item:**
-- Part of boss jar collection
-- Rare trophy from Slayer boss
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Very rare drop (1/5,000)
-- Primarily a collection item
-- No practical combat use
-- Shows dedication to boss
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -79,74 +79,49 @@ osrs:
       slug: battlemage-potion-4
       relationship: product
       description: Magic/Defence boost
+  about: |-
+    Mix Cadantine + Vial of blood.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Herblore Level | 80 |
+
+    Add secondary ingredient to create finished potions:
+
+    | Add | Creates | Level | XP |
+    |-----|---------|-------|-----|
+    | Wine of zamorak | Bastion potion (3) | 80 | 155 |
+    | Potato cactus | Battlemage potion (3) | 80 | 155 |
+
+    Boosts Ranged and Defence:
+    - Ranged: +4 to +13 (level dependent)
+    - Defence: +5 to +19 (level dependent)
+
+    Used for:
+    - Raids (CoX, ToB, ToA)
+    - Bossing with ranged
+    - Inferno attempts
+
+    Boosts Magic and Defence:
+    - Magic: +4
+    - Defence: +5 to +19 (level dependent)
+
+    Used for:
+    - Magic-based bossing
+    - Raids support role
+    - Ancient Magicks
+  market_strategy:
+    notes:
+      - Blood vials from Theatre of Blood
+      - Often made for personal use rather than profit
+      - Check which finished potion is more profitable
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Mix Cadantine + Vial of blood.
-
-| Requirement | Value |
-|-------------|-------|
-| Herblore Level | 80 |
-
-## Completing the Potion
-
-Add secondary ingredient to create finished potions:
-
-| Add | Creates | Level | XP |
-|-----|---------|-------|-----|
-| Wine of zamorak | Bastion potion (3) | 80 | 155 |
-| Potato cactus | Battlemage potion (3) | 80 | 155 |
-
-## Bastion Potion
-
-Boosts Ranged and Defence:
-- Ranged: +4 to +13 (level dependent)
-- Defence: +5 to +19 (level dependent)
-
-Used for:
-- Raids (CoX, ToB, ToA)
-- Bossing with ranged
-- Inferno attempts
-
-## Battlemage Potion
-
-Boosts Magic and Defence:
-- Magic: +4
-- Defence: +5 to +19 (level dependent)
-
-Used for:
-- Magic-based bossing
-- Raids support role
-- Ancient Magicks
-
-## Market Strategy
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Tips:**
-- Blood vials from Theatre of Blood
-- Often made for personal use rather than profit
-- Check which finished potion is more profitable
-
-<Adsense />
+<OSRSAdsenseCard />

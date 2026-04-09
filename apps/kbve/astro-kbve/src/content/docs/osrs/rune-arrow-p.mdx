@@ -1,6 +1,6 @@
 ---
 title: Rune arrow(p) | OSRS Price Data
-description: "Rune arrow(p): Venomous-looking arrows.. High alch: 240 GP, GE limit: 11,000."
+description: "Rune arrow(p) is a members ammo slot item. High alch: 240 GP, GE limit: 11,000."
 osrs:
   id: 893
   name: Rune arrow(p)
@@ -12,26 +12,21 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 11000
+  equipment:
+    slot: ammo
+    ranged_strength: 49
+  related_items: []
+  about: |-
+    > _"Rune arrows with a poisoned tip."_
+
+    Rune arrows tipped with basic weapon poison. The highest standard tier of poisoned arrow. Poison deals 2-4 damage over time.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

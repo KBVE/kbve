@@ -64,76 +64,49 @@ osrs:
       slug: ring-of-recoil
       relationship: component
       description: Absorb charges from
+  about: |-
+    Enchant Zenyte ring with Lvl-7 Enchant.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 93 |
+    | Components | Zenyte ring + Soul rune (20) + Blood rune (20) |
+
+    | Stat | Value |
+    |------|-------|
+    | All defence | +20 |
+    | Requirements | 75 Hitpoints |
+
+    Best-in-slot defensive ring.
+
+    Recoil absorption:
+    - Can absorb Ring of recoil charges
+    - Up to 100,000 charges stored
+    - Reflects damage to attackers when charged
+
+    Imbue at Soul Wars or Nightmare Zone for doubled stats:
+
+    | Stat | Imbued |
+    |------|--------|
+    | All defence | +20 (no change, adds prayer bonus +4) |
+
+    BiS for:
+    - Tank setups
+    - Inferno
+    - PvM where defence matters
+    - Recoil-focused content
+  market_strategy:
+    notes:
+      - Zenyte from demonic gorillas
+      - Best defensive ring
+      - Popular for Inferno
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Enchant Zenyte ring with Lvl-7 Enchant.
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 93 |
-| Components | Zenyte ring + Soul rune (20) + Blood rune (20) |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| All defence | +20 |
-| Requirements | 75 Hitpoints |
-
-**Best-in-slot defensive ring.**
-
-## Effects
-
-**Recoil absorption:**
-- Can absorb Ring of recoil charges
-- Up to 100,000 charges stored
-- Reflects damage to attackers when charged
-
-## Imbue
-
-Imbue at Soul Wars or Nightmare Zone for doubled stats:
-
-| Stat | Imbued |
-|------|--------|
-| All defence | +20 (no change, adds prayer bonus +4) |
-
-## Usage
-
-BiS for:
-- Tank setups
-- Inferno
-- PvM where defence matters
-- Recoil-focused content
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Zenyte from demonic gorillas
-- Best defensive ring
-- Popular for Inferno
-
-<Adsense />
+<OSRSAdsenseCard />

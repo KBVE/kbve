@@ -67,73 +67,31 @@ osrs:
       slug: volcanic-mine
       relationship: alternative
       description: Access use
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Currency |
+    | Tradeable | Yes |
+    | Stackable | Yes |
+    | Weight | 0 kg |
+
+    | Use | Cost |
+    |-----|------|
+    | Giant seaweed patch protection | 200 per patch |
+    | Fish shoal access (daily) | 200 |
+    | Fish shoal access (permanent) | 20,000 |
+    | Volcanic Mine entry | 30 |
+    | Volcanic Mine access (permanent) | 3,000 |
+    | Ancient wyvern shield charge | 500 per charge |
+    | Volcanic Mine item recovery | 150 |
+    | Stone chest unlock | 100 |
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Currency |
-| Tradeable | Yes |
-| Stackable | Yes |
-| Weight | 0 kg |
-
-## Obtaining
-
-**Fossil Island Activities:**
-- Killing wyverns and crabs
-- Chopping sulliusceps
-- Tracking herbiboars
-- Mining in Volcanic Mine
-- Digging soil at Museum Camp
-- Looting underwater chests/clams
-- Trading fossils with Fossil Collector
-
-Ring of wealth auto-collects drops.
-
-## Uses
-
-| Use | Cost |
-|-----|------|
-| Giant seaweed patch protection | 200 per patch |
-| Fish shoal access (daily) | 200 |
-| Fish shoal access (permanent) | 20,000 |
-| Volcanic Mine entry | 30 |
-| Volcanic Mine access (permanent) | 3,000 |
-| Ancient wyvern shield charge | 500 per charge |
-| Volcanic Mine item recovery | 150 |
-| Stone chest unlock | 100 |
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~16 gp
-
-## Related Items
-
-- [Fossil Island](/osrs/fossil-island/) - Location
-- [Ancient wyvern shield](/osrs/ancient-wyvern-shield/) - Charging use
-- [Volcanic Mine](/osrs/volcanic-mine/) - Access use
-
-<Adsense />
+<OSRSAdsenseCard />

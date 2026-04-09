@@ -42,71 +42,27 @@ osrs:
       slug: diamond-dragon-bolts
       relationship: alternative
       description: Dragon variant
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Ammunition Component |
+    | Tradeable | Yes |
+    | Stackable | Yes |
+    | Weight | 0 kg |
+
+    | Bolt Created | Materials | Fletching |
+    |--------------|-----------|-----------|
+    | Diamond bolts | Adamant bolts + Diamond bolt tips | 65 |
+    | Diamond dragon bolts | Dragon bolts + Diamond bolt tips | 84 |
+
+    Can be enchanted after attachment.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Ammunition Component |
-| Tradeable | Yes |
-| Stackable | Yes |
-| Weight | 0 kg |
-
-## Obtaining
-
-**Crafting (65 Fletching):**
-- Cut diamond with chisel -> 12 tips
-- 7 XP per gem
-
-**Monster Drops:**
-- Vorkath
-- Hydra
-- Grotesque Guardians
-- Lava strykewyrm
-- Vyrewatch
-
-**Other:** Stone chests (64 Thieving)
-
-## Uses
-
-| Bolt Created | Materials | Fletching |
-|--------------|-----------|-----------|
-| Diamond bolts | Adamant bolts + Diamond bolt tips | 65 |
-| Diamond dragon bolts | Dragon bolts + Diamond bolt tips | 84 |
-
-Can be enchanted after attachment.
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~400 gp
-
-## Related Items
-
-- [Diamond bolts](/osrs/diamond-bolts/) - Created item
-- [Diamond bolts (e)](/osrs/diamond-bolts-e/) - Enchanted version
-- [Diamond dragon bolts](/osrs/diamond-dragon-bolts/) - Dragon variant
-
-<Adsense />
+<OSRSAdsenseCard />

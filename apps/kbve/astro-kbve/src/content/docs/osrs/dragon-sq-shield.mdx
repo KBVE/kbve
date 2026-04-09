@@ -63,64 +63,33 @@ osrs:
       slug: dragon-defender
       relationship: alternative
       description: Offensive alternative
+  about: |-
+    Defensive Shield:
+    - Good defensive stats for level 60 gear
+    - Outclassed by Dragonfire shield and defenders
+
+    Mostly Cosmetic:
+    - Popular for fashionscape
+    - Classic dragon equipment look
+
+    | Defence | Bonus |
+    |---------|-------|
+    | Stab | +50 |
+    | Slash | +52 |
+    | Crush | +48 |
+    | Ranged | +50 |
+
+    - One of the rarest shield combinations in game
+    - Left half is much rarer than right half
+    - Dragon defender provides better offensive stats
+    - Mostly used for collection/fashionscape
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-**Creation:** Combine Dragon sq shield left half and right half with 60 Smithing.
-
-**Requirements:**
-- Legends' Quest completion
-- 60 Smithing
-
-**Component Sources:**
-- Left half: Rare drop from various monsters, Gorak
-- Right half: Very rare drop from high-level monsters
-
-## Usage
-
-**Defensive Shield:**
-- Good defensive stats for level 60 gear
-- Outclassed by Dragonfire shield and defenders
-
-**Mostly Cosmetic:**
-- Popular for fashionscape
-- Classic dragon equipment look
-
-## Stats
-
-| Defence | Bonus |
-|---------|-------|
-| Stab | +50 |
-| Slash | +52 |
-| Crush | +48 |
-| Ranged | +50 |
-
-## Notes
-
-- One of the rarest shield combinations in game
-- Left half is much rarer than right half
-- Dragon defender provides better offensive stats
-- Mostly used for collection/fashionscape
-
-<Adsense />
+<OSRSAdsenseCard />

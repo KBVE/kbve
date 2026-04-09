@@ -72,56 +72,24 @@ osrs:
       slug: green-dragonhide
       relationship: alternative
       description: Co-drop from green dragons
+  market_strategy:
+    notes:
+      - Players pay for bones to be used on their altar
+      - "Track:"
+      - Compare to alternative training methods
+      - New player influx
+      - Green dragon bots (major supply)
+      - Green dragons (most common)
+      - Blue dragons
+      - Various dragon bosses (KBD, Vorkath, etc.)
+      - Zulrah, Cerberus, Alchemical Hydra
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Prayer Training
-
-Bury or use on altar for Prayer XP:
-
-| Method | XP per bone |
-|--------|-------------|
-| Bury | 72 |
-| Gilded altar (2 burners) | 252 |
-| Chaos altar (Wilderness) | 252 (50% saved) |
-| Ectofuntus | 288 |
-
-## Market Flip Strategy
-
-**Gilded Altar Service:**
-- Players pay for bones to be used on their altar
-- Track: `Dragon bones price vs XP gained`
-- Compare to alternative training methods
-
-**Price Drivers:**
-- New player influx
-- Green dragon bots (major supply)
-
-**Supply Sources:**
-- Green dragons (most common)
-- Blue dragons
-- Various dragon bosses (KBD, Vorkath, etc.)
-- Zulrah, Cerberus, Alchemical Hydra
-
-**Buy Limit:** 7,500 per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -12,26 +12,28 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 10000
+  related_items:
+    - item_id: 48
+      item_name: Longbow (u)
+      slug: longbow-u
+      relationship: variant
+      description: Lower tier unstrung longbow
+    - item_id: 54
+      item_name: Oak shortbow (u)
+      slug: oak-shortbow-u
+      relationship: variant
+      description: Matching unstrung oak shortbow
+  about: |-
+    > _"An unstrung oak longbow; I need a bowstring for this."_
+
+    The oak longbow (u) is an unstrung longbow made from oak logs. String with a bowstring at 25 Fletching to create an oak longbow. Members only.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

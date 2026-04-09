@@ -1,6 +1,6 @@
 ---
 title: Snakeskin chaps | OSRS Price Data
-description: "Snakeskin chaps: Made from 100% real snake.. High alch: 705 GP, GE limit: 125."
+description: "Snakeskin chaps is a members legs slot item requiring 30 Defence. High alch: 705 GP, GE limit: 125."
 osrs:
   id: 6324
   name: Snakeskin chaps
@@ -12,26 +12,89 @@ osrs:
   lowalch: 470
   highalch: 705
   limit: 125
+  equipment:
+    slot: legs
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -5
+      ranged: 6
+    defence_bonus:
+      stab: 8
+      slash: 8
+      crush: 10
+      magic: 4
+      ranged: 10
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      ranged: 30
+      defence: 30
+    weight: 3.628
+  recipes:
+    - skill: crafting
+      level: 51
+      xp: 50
+      inputs:
+        - item_name: Snakeskin
+          quantity: 12
+        - item_name: Thread
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 6322
+      item_name: Snakeskin body
+      slug: snakeskin-body
+      relationship: set
+      description: Matching body piece
+    - item_id: 6328
+      item_name: Snakeskin boots
+      slug: snakeskin-boots
+      relationship: set
+      description: Matching boots
+  about: |-
+    | Ranged | Value |
+    |--------|-------|
+    | Ranged Attack | +6 |
+
+    | Defence | Value |
+    |---------|-------|
+    | Stab/Slash | +8 |
+    | Crush | +10 |
+    | Magic | +4 |
+    | Ranged | +10 |
+
+    Requirements: 30 Ranged, 30 Defence
+
+    | Stat | Snakeskin Chaps | Studded Chaps | Green D'hide Chaps |
+    |------|----------------|---------------|---------------------|
+    | Ranged Atk | +6 | +6 | +8 |
+    | Stab Def | +8 | +6 | +22 |
+    | Magic Def | +4 | +2 | +8 |
+    | Req | 30 Rng/Def | 20 Rng/Def | 40 Rng/Def |
+
+    Moderate upgrade from studded chaps. The ranged attack bonus is the same, but snakeskin chaps offer slightly better defensive stats across the board.
+
+    - Budget ranged legs for 30 Def bracket
+    - Crafting training product (51-53 range)
+    - Ironman progression piece
+    - 12 snakeskin per pair (~600 GP in materials)
+  market_strategy:
+    notes:
+      - Low demand — quickly replaced by green d'hide chaps
+      - Crafting XP is the main reason to make these
+      - Low margins
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

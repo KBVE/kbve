@@ -12,26 +12,23 @@ osrs:
   lowalch: 2
   highalch: 4
   limit: 11000
+  related_items:
+    - item_id: 46
+      item_name: Pearl bolt tips
+      slug: pearl-bolt-tips
+      relationship: variant
+      description: Higher tier bolt tips
+  about: |-
+    > _"Opal bolt tips."_
+
+    Opal bolt tips are members-only Fletching supplies. Attach to bronze bolts at 11 Fletching to create opal bolts. The lowest tier of gem-tipped bolt tips.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

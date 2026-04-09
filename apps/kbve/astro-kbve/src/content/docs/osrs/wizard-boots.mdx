@@ -69,72 +69,30 @@ osrs:
       slug: holy-sandals
       relationship: alternative
       description: Prayer equivalent from same clue tier
+  about: |-
+    | Bonus | Value |
+    |-------|-------|
+    | Magic attack | +4 |
+    | Magic defence | +4 |
+
+    Budget magic boots option:
+    - Early game magic training
+    - F2P-style mage builds
+    - Much cheaper than Eternal boots
+
+    Note: Infinity boots (+5 magic) are better but require Mage Training Arena.
+  market_strategy:
+    notes:
+      - Medium clue reward
+      - Budget option for magic setups
+      - Often stocked by clue hunters
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Reward from medium Treasure Trails.
-
-**Drop Rate:** 1/1,133 from reward casket (medium)
-
-## Equipment Info
-
-| Stat | Value |
-|------|-------|
-| Slot | Feet |
-| Magic requirement | 20 |
-| Weight | 0.5 kg |
-
-## Stats
-
-| Bonus | Value |
-|-------|-------|
-| Magic attack | +4 |
-| Magic defence | +4 |
-
-## Usage
-
-Budget magic boots option:
-- Early game magic training
-- F2P-style mage builds
-- Much cheaper than [Eternal boots](/osrs/eternal-boots/)
-
-**Note:** [Infinity boots](/osrs/infinity-boots/) (+5 magic) are better but require Mage Training Arena.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Medium clue reward
-- Budget option for magic setups
-- Often stocked by clue hunters
-
-## Related Items
-
-- [Ranger boots](/osrs/ranger-boots/) - Ranged equivalent (same clue tier)
-- [Holy sandals](/osrs/holy-sandals/) - Prayer equivalent
-- [Infinity boots](/osrs/infinity-boots/) - Upgrade option
-- [Eternal boots](/osrs/eternal-boots/) - BiS magic boots
-
-<Adsense />
+<OSRSAdsenseCard />

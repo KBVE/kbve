@@ -41,64 +41,14 @@ osrs:
       slug: magic-fang
       relationship: component
       description: Upgrade component
+  about: Built-in spell with venom. Charges with runes and scales.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Main Hand |
-| Type | Staff |
-| Tradeable | Yes |
-| Weight | 1.814 kg |
-| Requirements | 75 Magic |
-
-## Combat Stats
-
-| Stat | Bonus |
-|------|-------|
-| Magic Attack | +25 |
-| Magic Defence | +15 |
-
-## Obtaining
-
-**Crafting:** Attach magic fang to uncharged trident (59 Crafting).
-
-## Features
-
-Built-in spell with venom. Charges with runes and scales.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~4,093,374 gp
-
-Best powered staff before Sang. 25% venom chance.
-
-## Related Items
-
-- [Trident of the seas](/osrs/trident-of-the-seas/) - Base version
-- [Magic fang](/osrs/magic-fang/) - Upgrade component
-
-<Adsense />
+<OSRSAdsenseCard />

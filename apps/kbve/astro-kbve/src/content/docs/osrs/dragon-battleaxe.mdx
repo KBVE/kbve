@@ -62,62 +62,34 @@ osrs:
       slug: dragon-scimitar
       relationship: alternative
       description: Popular alternative dragon weapon
+  about: |-
+    Special Attack - Rampage:
+    - Uses 100% special attack energy
+    - Drains your Attack, Defence, Ranged, and Magic
+    - Boosts Strength significantly
+    - Used as a strength potion alternative
+
+    Common Uses:
+    - Super Combat replacement for Strength boost
+    - Budget Strength training with spec
+    - Ironman accounts before Strength potions
+
+    | Stat | Bonus |
+    |------|-------|
+    | Slash | +70 |
+    | Crush | +65 |
+    | Strength | +85 |
+
+    - Slower than scimitar (6 tick vs 4 tick)
+    - Special attack popular for Strength boosting
+    - Often carried just for the spec
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-**Shop:** Purchased from the Happy Heroes' Hemporium in the Heroes' Guild for 200,000 coins.
-
-**Requirements:**
-- Heroes' Quest completion
-
-**Drops:** Various monsters (Brutal black dragons, Kalphite Queen, etc.)
-
-## Usage
-
-**Special Attack - Rampage:**
-- Uses 100% special attack energy
-- Drains your Attack, Defence, Ranged, and Magic
-- Boosts Strength significantly
-- Used as a strength potion alternative
-
-**Common Uses:**
-- Super Combat replacement for Strength boost
-- Budget Strength training with spec
-- Ironman accounts before Strength potions
-
-## Stats
-
-| Stat | Bonus |
-|------|-------|
-| Slash | +70 |
-| Crush | +65 |
-| Strength | +85 |
-
-## Notes
-
-- Slower than scimitar (6 tick vs 4 tick)
-- Special attack popular for Strength boosting
-- Often carried just for the spec
-
-<Adsense />
+<OSRSAdsenseCard />

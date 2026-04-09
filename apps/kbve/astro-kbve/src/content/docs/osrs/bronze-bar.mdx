@@ -74,79 +74,32 @@ osrs:
       slug: hammer
       relationship: component
       description: For Smithing
+  about: |-
+    | Method | Time | XP |
+    |--------|------|-----|
+    | Furnace | 5 ticks (3s) | 6.2 |
+    | Blast Furnace | 11 ticks (6.6s) | 6.2 |
+    | Superheat Item | 3 ticks (1.8s) | 6.2 + 53 Magic |
+  market_strategy:
+    notes:
+      - First bar for Smithing
+      - Low value but consistent
+      - Tutorial Island creates supply
+      - New player equipment
+      - Ironman early game
+      - Bronze nails for Construction
+      - F2P Smithing training
+      - Tutorial Island floods market
+      - Very low profit margins
+      - Bronze wire for crossbows
+      - Nails for early Construction
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Method | Requirements |
-|--------|--------------|
-| Smelting | 1 Smithing, 1 copper + 1 tin ore |
-| Blast Furnace | Half coal requirement |
-| Buying | Various shops |
-| Monster drops | Common |
-
-## Smelting
-
-| Method | Time | XP |
-|--------|------|-----|
-| Furnace | 5 ticks (3s) | 6.2 |
-| Blast Furnace | 11 ticks (6.6s) | 6.2 |
-| Superheat Item | 3 ticks (1.8s) | 6.2 + 53 Magic |
-
-## Smithing
-
-| Product | Bars | Level | XP |
-|---------|------|-------|-----|
-| Bronze dagger | 1 | 1 | 12.5 |
-| Bronze axe | 1 | 1 | 12.5 |
-| Bronze mace | 1 | 2 | 12.5 |
-| Bronze med helm | 1 | 3 | 12.5 |
-| Bronze sword | 1 | 4 | 12.5 |
-| Bronze wire | 1 | 4 | 12.5 |
-| Bronze nails (15) | 1 | 4 | 12.5 |
-| Bronze scimitar | 2 | 5 | 25 |
-| Bronze platelegs | 3 | 16 | 37.5 |
-| Bronze platebody | 5 | 18 | 62.5 |
-
-## Market Flip Strategy
-
-**Training Material:**
-- First bar for Smithing
-- Low value but consistent
-- Tutorial Island creates supply
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Demand Drivers:**
-- New player equipment
-- Ironman early game
-- Bronze nails for Construction
-- F2P Smithing training
-
-**Tips:**
-- Tutorial Island floods market
-- Very low profit margins
-- Bronze wire for crossbows
-- Nails for early Construction
-
-<Adsense />
+<OSRSAdsenseCard />

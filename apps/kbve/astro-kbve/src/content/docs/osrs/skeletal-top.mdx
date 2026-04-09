@@ -1,6 +1,6 @@
 ---
 title: Skeletal top | OSRS Price Data
-description: "Skeletal top: The bones in this armour seem to vibrate with a magical quality.... High alch: 27,000 GP, GE limit: 70."
+description: "Skeletal top is a members body slot item requiring 40 Defence. High alch: 27,000 GP, GE limit: 70."
 osrs:
   id: 6139
   name: Skeletal top
@@ -12,26 +12,92 @@ osrs:
   lowalch: 18000
   highalch: 27000
   limit: 70
+  equipment:
+    slot: body
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 8
+      ranged: -10
+    defence_bonus:
+      stab: 35
+      slash: 25
+      crush: 42
+      magic: 15
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      defence: 40
+      magic: 40
+    weight: 4.989
+  drop_table:
+    sources:
+      - source: Dagannoth Prime
+        combat_level: 303
+        quantity: "1"
+        rarity: uncommon
+        drop_rate: 1/128
+        members_only: true
+  related_items:
+    - item_id: 6137
+      item_name: Skeletal helm
+      slug: skeletal-helm
+      relationship: set
+      description: Matching helm piece
+    - item_id: 6141
+      item_name: Skeletal bottoms
+      slug: skeletal-bottoms
+      relationship: set
+      description: Matching leg piece
+    - item_id: 3387
+      item_name: Splitbark body
+      slug: splitbark-body
+      relationship: alternative
+      description: Slightly superior alternative
+  about: |-
+    | Attack | Value |
+    |--------|-------|
+    | Magic | +8 |
+
+    | Defence | Value |
+    |---------|-------|
+    | Stab | +35 |
+    | Slash | +25 |
+    | Crush | +42 |
+    | Magic | +15 |
+
+    Requirements: 40 Defence, 40 Magic
+
+    | Stat | Skeletal Top | Splitbark Body |
+    |------|-------------|----------------|
+    | Magic Atk | +8 | +10 |
+    | Stab Def | +35 | +36 |
+    | Slash Def | +25 | +26 |
+    | Crush Def | +42 | +42 |
+    | Magic Def | +15 | +15 |
+
+    Slightly inferior across the board — splitbark body has +2 more magic attack and +1-2 more melee defence. The skeletal top exists mainly as a Dagannoth Prime drop and Fremennik lore piece.
+
+    Prime (mage DK) drops the skeletal top at 1/128. Players killing DKs will accumulate these passively. Since splitbark requires Shades of Mort'ton materials, the skeletal top can be easier to obtain for players already farming DKs.
+
+    Storable in a Costume Room armour case as part of the complete skeletal set.
+  market_strategy:
+    notes:
+      - Dagannoth Prime drop (passive from DK farming)
+      - Splitbark body is generally preferred for stats
+      - Low trade volume — niche item
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

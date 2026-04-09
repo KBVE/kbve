@@ -61,66 +61,41 @@ osrs:
       slug: necklace-of-anguish
       relationship: alternative
       description: Ranged equivalent
+  about: |-
+    Enchant Zenyte amulet with Lvl-7 Enchant.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 93 |
+    | Runes | 20 soul, 20 blood, 1 cosmic |
+    | XP | 110 Magic |
+
+    | Stat | Value |
+    |------|-------|
+    | Stab/Slash/Crush attack | +15 |
+    | Strength | +10 |
+    | Prayer | +2 |
+    | Requirements | 75 Hitpoints |
+
+    Second-best melee amulet (behind Blood fury for sustain)
+
+    BiS offensive melee amulet for:
+    - All melee combat
+    - Slayer tasks
+    - Bossing
+    - Raids
+  market_strategy:
+    notes:
+      - Zenyte jewelry always in demand
+      - Higher offensive bonus than fury
+      - No defensive stats
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Enchant Zenyte amulet with Lvl-7 Enchant.
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 93 |
-| Runes | 20 soul, 20 blood, 1 cosmic |
-| XP | 110 Magic |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Stab/Slash/Crush attack | +15 |
-| Strength | +10 |
-| Prayer | +2 |
-| Requirements | 75 Hitpoints |
-
-**Second-best melee amulet** (behind Blood fury for sustain)
-
-## Usage
-
-BiS offensive melee amulet for:
-- All melee combat
-- Slayer tasks
-- Bossing
-- Raids
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~22.4M gp
-
-**Tips:**
-- Zenyte jewelry always in demand
-- Higher offensive bonus than fury
-- No defensive stats
-
-<Adsense />
+<OSRSAdsenseCard />

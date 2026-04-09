@@ -59,58 +59,22 @@ osrs:
       slug: dragon-bones
       relationship: alternative
       description: Bone alternative (72 XP)
+  market_strategy:
+    notes:
+      - High-end bosses produce supply
+      - Best ashes for Prayer XP
+      - Price reflects boss difficulty
+      - Best ashes in game
+      - Compare to superior dragon bones
+      - Demonic Offering very efficient
+      - Boss activity drives supply
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Prayer Training
-
-Infernal ashes are the highest tier demonic ash:
-
-| Method | XP per ash |
-|--------|------------|
-| Scatter | 110 |
-| Demonic Offering spell | 330 |
-
-## Obtaining
-
-Dropped by boss-level demons:
-- K'ril Tsutsaroth (Zamorak GWD)
-- Cerberus (91 Slayer)
-- Skotizo (totem boss)
-- Demonic Gorillas
-
-## Market Flip Strategy
-
-**Boss Drops:**
-- High-end bosses produce supply
-- Best ashes for Prayer XP
-- Price reflects boss difficulty
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Tips:**
-- Best ashes in game
-- Compare to superior dragon bones
-- Demonic Offering very efficient
-- Boss activity drives supply
-
-<Adsense />
+<OSRSAdsenseCard />

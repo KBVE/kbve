@@ -67,67 +67,40 @@ osrs:
       slug: skills-necklace-6
       relationship: variant
       description: Fully charged version
+  about: |-
+    No combat bonuses - utility item for teleportation to skilling locations.
+
+    - Fishing Guild
+    - Mining Guild
+    - Crafting Guild
+    - Cooking Guild
+    - Woodcutting Guild
+    - Farming Guild
+
+    | State | Charges |
+    |-------|---------|
+    | Current | 4 |
+    | Maximum | 6 (Fountain of Rune) |
+  market_strategy:
+    notes:
+      - Access to all skill guilds
+      - Popular for efficient skilling
+      - Mining Guild teleport highly valued
+      - Skilling efficiency
+      - Guild access
+      - Mining Guild teleport
+      - Farming runs
+      - Recharge at Legends' Guild or Fountain of Rune
+      - Mining Guild teleport very popular
+      - Farming Guild teleport useful for contracts
+      - Essential for efficient skillers
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Stats
-
-No combat bonuses - utility item for teleportation to skilling locations.
-
-## Teleport Locations
-
-- Fishing Guild
-- Mining Guild
-- Crafting Guild
-- Cooking Guild
-- Woodcutting Guild
-- Farming Guild
-
-## Charges
-
-| State | Charges |
-|-------|---------|
-| Current | 4 |
-| Maximum | 6 (Fountain of Rune) |
-
-## Market Flip Strategy
-
-**Essential Skilling Teleport:**
-- Access to all skill guilds
-- Popular for efficient skilling
-- Mining Guild teleport highly valued
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Demand Drivers:**
-- Skilling efficiency
-- Guild access
-- Mining Guild teleport
-- Farming runs
-
-**Tips:**
-- Recharge at Legends' Guild or Fountain of Rune
-- Mining Guild teleport very popular
-- Farming Guild teleport useful for contracts
-- Essential for efficient skillers
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -65,81 +65,32 @@ osrs:
       slug: ancient-essence
       relationship: alternative
       description: Charge material
+  about: |-
+    | Offence | Bonus |
+    |---------|-------|
+    | Ranged | +90 |
+    | Ranged strength | +25 |
+
+    Attack Speed: 5-tick (3.0s) standard, 4-tick (2.4s) rapid
+
+    Range: 6 tiles (8 with Longrange)
+
+    Multi-Bounce: In multicombat, arrows bounce to nearby targets (up to 2 additional hits). Secondary hits deal 66% damage.
+
+    Requires ancient essence charges.
+
+    | Property | Value |
+    |----------|-------|
+    | Max charges | 50,000 |
+    | Charge source | Ancient essence |
+    | Cost per attack | ~18 gp |
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Two-handed |
-| Type | Bow |
-| Tradeable | Yes |
-| Weight | 4.5 kg |
-| Requirements | 80 Ranged |
-
-## Obtaining
-
-**Crafting:** Combine 5 Venator shards
-
-| Source | Drop |
-|--------|------|
-| Leviathan | Venator shard |
-
-## Stats
-
-| Offence | Bonus |
-|---------|-------|
-| Ranged | +90 |
-| Ranged strength | +25 |
-
-**Attack Speed:** 5-tick (3.0s) standard, 4-tick (2.4s) rapid
-
-**Range:** 6 tiles (8 with Longrange)
-
-## Passive Effect
-
-**Multi-Bounce:** In multicombat, arrows bounce to nearby targets (up to 2 additional hits). Secondary hits deal 66% damage.
-
-Requires ancient essence charges.
-
-## Charging
-
-| Property | Value |
-|----------|-------|
-| Max charges | 50,000 |
-| Charge source | Ancient essence |
-| Cost per attack | ~18 gp |
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~69.5M gp
-
-## Related Items
-
-- [Leviathan](/osrs/leviathan/) - Shard source
-- [Venator shard](/osrs/venator-shard/) - Component
-- [Ancient essence](/osrs/ancient-essence/) - Charge material
-
-<Adsense />
+<OSRSAdsenseCard />

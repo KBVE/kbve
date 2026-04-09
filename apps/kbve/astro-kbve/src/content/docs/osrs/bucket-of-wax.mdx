@@ -12,26 +12,23 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 15
+  related_items:
+    - item_id: 28
+      item_name: Insect repellent
+      slug: insect-repellent
+      relationship: used-with
+      description: Used on beehive to safely collect wax
+  about: |-
+    > _"It's a bucket of wax."_
+
+    A bucket of wax is a members-only quest item. Used in Merlin's Crystal (given to the candle maker in Catherby to create a black candle) and Troll Romance (combined with swamp tar and cake tin to wax a sled).
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

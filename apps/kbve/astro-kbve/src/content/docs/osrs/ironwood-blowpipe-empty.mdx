@@ -1,6 +1,6 @@
 ---
 title: Ironwood blowpipe (empty) | OSRS Price Data
-description: "Ironwood blowpipe (empty): Breath powered dart delivering system with a hint of ironwood.. High alch: 2,160 GP."
+description: "Ironwood blowpipe (empty): Breath powered dart delivering system with a hint of ironwood.. High alch: 2,160 GP, GE limit: 8."
 osrs:
   id: 31581
   name: Ironwood blowpipe (empty)
@@ -11,7 +11,7 @@ osrs:
   value: 3600
   lowalch: 1440
   highalch: 2160
-  limit: null
+  limit: 8
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

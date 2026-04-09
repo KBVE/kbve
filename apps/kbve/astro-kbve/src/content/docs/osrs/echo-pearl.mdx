@@ -41,58 +41,27 @@ osrs:
       slug: fathom-pearl
       relationship: product
       description: Used to craft the Fathom pearl facility
+  about: |-
+    "A glowing pearl, as you stare into it you can hear sounds of the ocean."
+
+    The Echo pearl is a crafting material primarily used in Sailing and Construction to create the Fathom pearl facility.
+
+    Crafting Uses:
+    - Required component for Fathom pearl (requires 91 Sailing, 83 Construction)
+    - Combined with Rosewood planks, Dragon nails, and Dragon metal sheets
+  market_strategy:
+    notes:
+      - Orcas provide much better drop rate than dolphins
+      - Required for Fathom pearl - high-level trawling upgrade
+      - Price fluctuates based on Sailing skill demand
+      - Consider farming orcas for more efficient acquisition
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Obtaining
-
-The Echo pearl is dropped by sea creatures encountered while Sailing.
-
-**Drop Sources:**
-| Source | Drop Rate |
-|--------|-----------|
-| Orca | 1/65.5 |
-| Dolphin | 1/927 |
-
-## Usage
-
-"A glowing pearl, as you stare into it you can hear sounds of the ocean."
-
-The Echo pearl is a crafting material primarily used in Sailing and Construction to create the Fathom pearl facility.
-
-**Crafting Uses:**
-- Required component for Fathom pearl (requires 91 Sailing, 83 Construction)
-- Combined with Rosewood planks, Dragon nails, and Dragon metal sheets
-
-## Market Strategy
-
-**Grand Exchange Price:** Approximately 131,589 gp
-
-**Buy Limit:** Check GE for current limits
-
-**Tips:**
-- Orcas provide much better drop rate than dolphins
-- Required for Fathom pearl - high-level trawling upgrade
-- Price fluctuates based on Sailing skill demand
-- Consider farming orcas for more efficient acquisition
-
-<Adsense />
+<OSRSAdsenseCard />

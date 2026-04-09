@@ -55,72 +55,35 @@ osrs:
       slug: enhanced-crystal-weapon-seed
       relationship: upgrade
       description: For Blade of Saeldor and Bow of Faerdhinen
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Seed |
+    | Tradeable | Yes |
+    | Weight | 0.014 kg |
+
+    Creates crystal weapons:
+    - Crystal bow
+    - Crystal shield
+    - Crystal halberd (requires Hard Western Provinces Diary)
+
+    Via Singing Bowl (78 Smithing/Crafting): 40 crystal shards per weapon.
+
+    Via Ilfeen: 150K-900K gp (no skill req).
+
+    Can exchange for 10 crystal shards or crystal acorn.
+  market_strategy:
+    notes:
+      - Farm Corrupted Gauntlet
+      - Cheaper than enhanced seed
+      - Good for ironmen
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Seed |
-| Tradeable | Yes |
-| Weight | 0.014 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| The Gauntlet | 1/120 |
-| Corrupted Gauntlet | 1/50 |
-| LMS shop | 12 points |
-
-## Uses
-
-Creates crystal weapons:
-- Crystal bow
-- Crystal shield
-- Crystal halberd (requires Hard Western Provinces Diary)
-
-**Via Singing Bowl (78 Smithing/Crafting):** 40 crystal shards per weapon.
-
-**Via Ilfeen:** 150K-900K gp (no skill req).
-
-Can exchange for 10 crystal shards or crystal acorn.
-
-## Market Strategy
-
-**Buy Limit:** 70 per 4 hours
-
-**Price:** ~376K gp
-
-**Tips:**
-- Farm Corrupted Gauntlet
-- Cheaper than enhanced seed
-- Good for ironmen
-
-## Related Items
-
-- [The Gauntlet](/osrs/the-gauntlet/) - Source
-- [Crystal bow](/osrs/crystal-bow/) - Created weapon
-- [Enhanced crystal weapon seed](/osrs/enhanced-crystal-weapon-seed/) - Upgrade
-
-<Adsense />
+<OSRSAdsenseCard />

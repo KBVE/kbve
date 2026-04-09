@@ -52,77 +52,19 @@ osrs:
     - slug: nightmare-staff
       name: Nightmare staff
       relation: best_upgrade
+  about: |-
+    1. Beginner wand (level 45)
+    2. Apprentice wand (level 50)
+    3. Teacher wand (level 55)
+    4. Master wand (level 60)
+    5. Kodai wand (level 75)
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon |
-| Type | Wand |
-| Tradeable | Yes |
-| Weight | 0.907 kg |
-| Attack Speed | 4 |
-| Requirements | 60 Magic |
-
-## Combat Stats
-
-| Stat | Bonus |
-|------|-------|
-| Magic Attack | +20 |
-| Magic Defence | +0 |
-
-## Obtaining
-
-**Mage Training Arena:** Exchange pizazz points for Teacher wand, then upgrade.
-
-| Room | Points |
-|------|--------|
-| Telekinetic | 240 |
-| Alchemist | 240 |
-| Enchantment | 2,400 |
-| Graveyard | 240 |
-
-**Note:** Must first obtain Teacher wand, then upgrade at MTA.
-
-## Market Strategy
-
-**Buy Limit:** 125 per 4 hours
-
-Required component for Kodai wand. Primary demand comes from Kodai creation.
-
-## Upgrade Path
-
-1. [Beginner wand](/osrs/beginner-wand/) (level 45)
-2. [Apprentice wand](/osrs/apprentice-wand/) (level 50)
-3. [Teacher wand](/osrs/teacher-wand/) (level 55)
-4. **Master wand** (level 60)
-5. [Kodai wand](/osrs/kodai-wand/) (level 75)
-
-## Related Items
-
-- [Kodai wand](/osrs/kodai-wand/) - Best-in-slot upgrade (Master wand + Kodai insignia)
-- [Nightmare staff](/osrs/nightmare-staff/) - Alternative high-tier staff
-- [Teacher wand](/osrs/teacher-wand/) - Lower tier wand
-
-<Adsense />
+<OSRSAdsenseCard />

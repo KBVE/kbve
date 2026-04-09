@@ -1,6 +1,6 @@
 ---
 title: Black platebody (t) | OSRS Price Data
-description: "Black platebody (t): Black platebody with trim.. High alch: 2,304 GP, GE limit: 8."
+description: "Black platebody (t) is a F2P body slot item requiring 10 Defence. High alch: 2,304 GP, GE limit: 8."
 osrs:
   id: 2583
   name: Black platebody (t)
@@ -12,26 +12,38 @@ osrs:
   lowalch: 1536
   highalch: 2304
   limit: 8
+  equipment:
+    slot: body
+    requirements:
+      defence: 10
+    defence_bonus:
+      stab: 41
+      slash: 40
+      crush: 30
+      magic: -6
+      ranged: 40
+  related_items:
+    - item_id: 2585
+      item_name: Black platelegs (t)
+      slug: black-platelegs-t
+      relationship: set-piece
+      description: Matching trimmed platelegs
+    - item_id: 2591
+      item_name: Black platebody (g)
+      slug: black-platebody-g
+      relationship: variant
+      description: Gold-trimmed variant
+  about: |-
+    > *"Black platebody with trim."*
+
+    The black platebody (t) is a trimmed cosmetic variant of the standard black platebody. Identical stats, requiring 10 Defence. Cannot be made through Smithing — clue scroll exclusive. Popular with low-level fashionscape builds.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

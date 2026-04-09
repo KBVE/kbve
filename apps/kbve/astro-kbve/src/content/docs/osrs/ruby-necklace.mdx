@@ -1,6 +1,6 @@
 ---
 title: Ruby necklace | OSRS Price Data
-description: "Ruby necklace: I wonder if this is valuable.. High alch: 1,305 GP, GE limit: 18,000."
+description: "Ruby necklace is a F2P neck slot item. High alch: 1,305 GP, GE limit: 18,000."
 osrs:
   id: 1660
   name: Ruby necklace
@@ -12,26 +12,61 @@ osrs:
   lowalch: 870
   highalch: 1305
   limit: 18000
+  equipment:
+    slot: neck
+    requirements:
+      crafting: 40
+  recipes:
+    - skill: crafting
+      level: 40
+      xp: 75
+      inputs:
+        - item_name: Ruby
+          quantity: 1
+        - item_name: Gold bar
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 1662
+      item_name: Diamond necklace
+      slug: diamond-necklace
+      relationship: upgrade
+      description: Next tier necklace
+  about: |-
+    Crafting (Level 40): Ruby + Gold bar at a furnace with necklace mould (75 XP)
+
+    > *"I wonder if this is valuable."*
+
+    Lvl-3 Enchant (49 Magic): 1 cosmic rune + 5 fire runes (59 XP)
+
+    The Digsite pendant provides 5 charges of teleportation to:
+    - Digsite — near the Exam Centre
+    - House on the Hill — requires Bone Voyage completion (Fossil Island access)
+    - Lithkren — requires Dragon Slayer II (partial)
+
+    The House on the Hill teleport is particularly valuable — it's the primary way to reach Fossil Island for birdhouse runs, volcanic mine, and herbiboar.
+
+    Note: The enchantment must be learned from the archaeologists at the Varrock Museum before it can be cast.
+
+    | Necklace | Crafting | Gem | Enchant | Enchanted Version |
+    |----------|----------|-----|---------|------------------|
+    | Sapphire necklace | 22 | Sapphire | Lvl-1 (7) | Games necklace |
+    | Emerald necklace | 29 | Emerald | Lvl-2 (27) | Binding necklace |
+    | Ruby necklace | 40 | Ruby | Lvl-3 (49) | Digsite pendant |
+    | Diamond necklace | 56 | Diamond | Lvl-4 (57) | Phoenix necklace |
+    | Dragon necklace | 72 | Dragonstone | Lvl-5 (68) | Skills necklace |
+  market_strategy:
+    notes:
+      - Digsite pendant demand drives steady enchanting profits
+      - Fossil Island access makes this essential for birdhouse runs
+      - Enchantment requires museum mini-quest first
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

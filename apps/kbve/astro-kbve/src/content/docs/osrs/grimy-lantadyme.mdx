@@ -41,64 +41,27 @@ osrs:
       slug: magic-potion-4
       relationship: product
       description: Secondary potion use
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Grimy Herb |
+    | Tradeable | Yes |
+    | Weight | 0.007 kg |
+    | Herblore Level | 67 (to clean) |
+
+    Clean to produce lantadyme for Herblore.
+
+    Lantadyme used for:
+    - Antifire
+    - Magic potion
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Grimy Herb |
-| Tradeable | Yes |
-| Weight | 0.007 kg |
-| Herblore Level | 67 (to clean) |
-
-## Obtaining
-
-Common sources:
-- Farming lantadyme (73 Farming)
-- Monster drops
-- Slayer creatures
-
-## Usage
-
-Clean to produce **lantadyme** for Herblore.
-
-Lantadyme used for:
-- **Antifire**
-- **Magic potion**
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~2,484 gp
-
-Mid-high level herb. Essential for antifire production.
-
-## Related Items
-
-- [Lantadyme](/osrs/lantadyme/) - Cleaned form
-- [Antifire potion](/osrs/antifire-potion/) - Primary use
-
-<Adsense />
+<OSRSAdsenseCard />

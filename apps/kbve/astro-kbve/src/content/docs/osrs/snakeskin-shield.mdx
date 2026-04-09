@@ -12,26 +12,55 @@ osrs:
   lowalch: 368
   highalch: 552
   limit: 125
+  item_id: 22272
+  item_type: armor
+  slot: shield
+  type: shield
+  tradeable: true
+  weight: 8
+  requirements:
+    ranged: 30
+    defence: 30
+  stats:
+    stab_attack: -15
+    slash_attack: -15
+    crush_attack: -11
+    magic_attack: -10
+    ranged_attack: 3
+    stab_defence: 10
+    slash_defence: 9
+    crush_defence: 8
+    magic_defence: 7
+    ranged_defence: 10
+  recipes:
+    - skill: crafting
+      level: 56
+      xp: 100
+      materials:
+        - item: Snakeskin
+          quantity: 2
+        - item: Willow shield
+          quantity: 1
+        - item: Iron nails
+          quantity: 15
+      tools:
+        - Hammer
+  related_items:
+    - slug: snakeskin-body
+    - slug: snakeskin-chaps
+    - slug: green-dhide-shield
+    - slug: snakeskin
+  about: |-
+    *A solid willow shield covered in snakeskin leather.*
+
+    The snakeskin shield provides a small +3 ranged attack bonus, making it one of few shields that does not penalize ranged accuracy. However, its defensive stats are modest and it is very heavy at 8 kg. The Green d'hide shield (at 40 Ranged/Defence) is a direct upgrade with better stats all around. The snakeskin shield pairs with the Snakeskin body and Snakeskin chaps for a budget mid-level ranged set.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

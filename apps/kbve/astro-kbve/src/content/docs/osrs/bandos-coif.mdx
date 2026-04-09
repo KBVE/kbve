@@ -1,6 +1,6 @@
 ---
 title: Bandos coif | OSRS Price Data
-description: "Bandos coif: Bandos blessed dragonhide coif.. High alch: 1,200 GP, GE limit: 8."
+description: "Bandos coif is a members head slot item requiring 40 Defence. High alch: 1,200 GP, GE limit: 8."
 osrs:
   id: 12504
   name: Bandos coif
@@ -12,26 +12,65 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 8
+  equipment:
+    slot: head
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -1
+      ranged: 7
+    defence_bonus:
+      stab: 4
+      slash: 7
+      crush: 10
+      magic: 4
+      ranged: 8
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+    requirements:
+      ranged: 70
+      defence: 40
+  related_items:
+    - item_id: 10382
+      item_name: Guthix coif
+      slug: guthix-coif
+      relationship: variant
+      description: God blessed coif variant
+    - item_id: 10374
+      item_name: Zamorak coif
+      slug: zamorak-coif
+      relationship: variant
+      description: God blessed coif variant
+    - item_id: 12512
+      item_name: Armadyl coif
+      slug: armadyl-coif
+      relationship: variant
+      description: God blessed coif variant
+    - item_id: 12496
+      item_name: Ancient coif
+      slug: ancient-coif
+      relationship: variant
+      description: God blessed coif variant
+  about: |-
+    > *"A Bandos blessed dragonhide coif."*
+
+    All blessed coifs share identical stats. They offer a +1 prayer bonus over a standard coif while maintaining the same defensive profile. The choice between god variants is purely cosmetic.
+  market_strategy:
+    notes:
+      - Hard clue exclusive — supply tied to clue completion rates
+      - Price differences between gods are cosmetic preference only
+      - Armadyl and Ancient tend to command slight premiums
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

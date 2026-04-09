@@ -59,81 +59,43 @@ osrs:
       slug: soft-clay
       relationship: component
       description: Tablet base
+  about: |-
+    Teleport to POH:
+    - Teleports to your player-owned house portal
+    - One-click teleport without runes
+    - Popular for quick banking and POH utilities
+
+    POH Portal Locations:
+    - Rimmington (default)
+    - Taverley
+    - Pollnivneach
+    - Hosidius
+    - Rellekka
+    - Brimhaven
+    - Yanille
+    - Prifddinas (75 Construction)
+
+    Use Scroll of redirection to redirect tablets:
+
+    | Destination | Requirements |
+    |-------------|--------------|
+    | Various house portals | 50 Construction |
+    | Prifddinas | 75 Construction, Song of the Elves |
+
+    NMZ Points: 775 per scroll
+  market_strategy:
+    notes:
+      - Essential utility item
+      - Cheaper than casting spell repeatedly
+      - Make in bulk at POH lectern for profit
+      - Popular for PvM banking
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-**Crafting at Lectern:**
-- Requires 40 Magic
-- Study: Oak lectern or higher in POH
-- Materials: 1 [Soft clay](/osrs/soft-clay/), 1 [Law rune](/osrs/law-rune/), 1 [Air rune](/osrs/air-rune/), 1 [Earth rune](/osrs/earth-rune/)
-- Grants 30 Magic XP
-
-**Grand Exchange:**
-- Tradeable at ~500-600 GP each
-
-## Usage
-
-**Teleport to POH:**
-- Teleports to your player-owned house portal
-- One-click teleport without runes
-- Popular for quick banking and POH utilities
-
-**POH Portal Locations:**
-- Rimmington (default)
-- Taverley
-- Pollnivneach
-- Hosidius
-- Rellekka
-- Brimhaven
-- Yanille
-- Prifddinas (75 Construction)
-
-## Redirection
-
-Use [Scroll of redirection](/osrs/scroll-of-redirection/) to redirect tablets:
-
-| Destination | Requirements |
-|-------------|--------------|
-| Various house portals | 50 Construction |
-| Prifddinas | 75 Construction, Song of the Elves |
-
-**NMZ Points:** 775 per scroll
-
-## Market Strategy
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Tips:**
-- Essential utility item
-- Cheaper than casting spell repeatedly
-- Make in bulk at POH lectern for profit
-- Popular for PvM banking
-
-## Related Items
-
-- [Scroll of redirection](/osrs/scroll-of-redirection/) - Redirect destination
-- [Construction cape](/osrs/construction-cape/) - Unlimited teleports
-- [Max cape](/osrs/max-cape/) - Includes house teleport
-
-<Adsense />
+<OSRSAdsenseCard />

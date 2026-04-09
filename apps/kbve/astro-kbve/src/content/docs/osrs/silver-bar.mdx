@@ -73,65 +73,32 @@ osrs:
       slug: unstrung-symbol
       relationship: product
       description: Intermediate
+  about: |-
+    | Method | Level | XP |
+    |--------|-------|-----|
+    | Furnace smelting | 20 Smithing | 13.7 |
+    | Blast Furnace | 20 Smithing | 13.7 |
+    | Materials | Silver ore | - |
+  market_strategy:
+    notes:
+      - Holy symbol production
+      - Tiara making for RC
+      - Moderate demand
+      - Holy symbol crafting
+      - Tiara production
+      - RC training (bind tiaras)
+      - Silver bolts
+      - Lower value than gold
+      - Holy symbols for Prayer
+      - Tiaras popular for ironmen
+      - Quick to smelt
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creating
-
-| Method | Level | XP |
-|--------|-------|-----|
-| Furnace smelting | 20 Smithing | 13.7 |
-| Blast Furnace | 20 Smithing | 13.7 |
-| Materials | Silver ore | - |
-
-## Crafting Products
-
-| Product | Level | XP |
-|---------|-------|-----|
-| Unstrung symbol | 16 | 50 |
-| Silver sickle | 18 | 50 |
-| Tiara | 23 | 52.5 |
-| Silver bolts (10) | 21 | 50 |
-| Lightning rod | 20 | 50 |
-
-## Market Flip Strategy
-
-**Crafting Material:**
-- Holy symbol production
-- Tiara making for RC
-- Moderate demand
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Demand Drivers:**
-- Holy symbol crafting
-- Tiara production
-- RC training (bind tiaras)
-- Silver bolts
-
-**Tips:**
-- Lower value than gold
-- Holy symbols for Prayer
-- Tiaras popular for ironmen
-- Quick to smelt
-
-<Adsense />
+<OSRSAdsenseCard />

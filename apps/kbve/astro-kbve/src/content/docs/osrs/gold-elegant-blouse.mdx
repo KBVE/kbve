@@ -1,6 +1,6 @@
 ---
 title: Gold elegant blouse | OSRS Price Data
-description: "Gold elegant blouse: A well made elegant ladies' gold blouse.. High alch: 1,200 GP, GE limit: 4."
+description: "Gold elegant blouse is a members body slot item. High alch: 1,200 GP, GE limit: 4."
 osrs:
   id: 12343
   name: Gold elegant blouse
@@ -12,26 +12,26 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 4
+  equipment:
+    slot: body
+    requirements: {}
+  related_items:
+    - item_id: 12345
+      item_name: Gold elegant skirt
+      slug: gold-elegant-skirt
+      relationship: set-piece
+      description: Matching elegant skirt
+  about: |-
+    > *"A well made elegant ladies' gold blouse."*
+
+    Purely cosmetic treasure trail reward with no combat stats. Part of the gold elegant clothing set (women's variant). Pairs with the gold elegant skirt.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

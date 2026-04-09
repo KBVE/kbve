@@ -57,67 +57,29 @@ osrs:
       slug: orange-tree-seed
       relationship: upgrade
       description: Higher tier option
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Fruit Tree Seed |
+    | Tradeable | Yes |
+    | Weight | 0 kg |
+    | Requirements | 33 Farming |
+
+    Plant in fruit tree patches to grow banana trees.
+
+    Growth Time: 16 hours
+
+    Payment: 4 baskets of apples (optional protection)
+
+    XP: 28 (planting) + 1,750.5 (check-health)
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Fruit Tree Seed |
-| Tradeable | Yes |
-| Weight | 0 kg |
-| Requirements | 33 Farming |
-
-## Obtaining
-
-Common sources:
-- Bird nests (Woodcutting, Bird houses)
-- Wintertodt supply crates
-- Monster drops
-
-## Usage
-
-Plant in **fruit tree patches** to grow banana trees.
-
-**Growth Time:** 16 hours
-
-**Payment:** 4 baskets of apples (optional protection)
-
-**XP:** 28 (planting) + 1,750.5 (check-health)
-
-## Market Strategy
-
-**Buy Limit:** 200 per 4 hours
-
-**Price:** ~5 gp
-
-Low-tier fruit tree seed. Bananas used in cooking and some quests. Good for Farming XP at lower levels.
-
-## Related Items
-
-- [Banana](/osrs/banana/) - Harvested fruit
-- [Basket of apples](/osrs/basket-of-apples/) - Protection payment
-- [Orange tree seed](/osrs/orange-tree-seed/) - Higher tier option
-
-<Adsense />
+<OSRSAdsenseCard />
