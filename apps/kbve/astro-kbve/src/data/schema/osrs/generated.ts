@@ -1002,10 +1002,6 @@ export const OSRSExtendedSchema = z.object({
 
 	// Ammunition — proto: ammunition (39)
 	ammunition: OSRSAmmunitionSchema.optional(),
-
-	// MDX content versioning — proto: mdx_version (40), mdx_updated (41)
-	mdx_version: z.number().optional(), // 1 = original, 2 = data-driven
-	mdx_updated: z.string().optional(), // ISO date YYYY-MM-DD
 });
 
 export type OSRSExtended = z.infer<typeof OSRSExtendedSchema>;
