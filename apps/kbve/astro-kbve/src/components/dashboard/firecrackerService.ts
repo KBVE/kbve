@@ -63,6 +63,7 @@ export interface ScriptPreset {
 	description: string;
 	rootfs: string;
 	entrypoint: string;
+	code: string;
 	vcpu_count: number;
 	mem_size_mib: number;
 	timeout_ms: number;
@@ -73,7 +74,8 @@ export const SCRIPT_PRESETS: ScriptPreset[] = [
 		name: 'System Info',
 		description: 'Print kernel, CPU, and memory info',
 		rootfs: 'alpine-minimal',
-		entrypoint: 'uname -a && cat /proc/cpuinfo | head -20 && free -m',
+		entrypoint: '/bin/sh',
+		code: 'uname -a\ncat /proc/cpuinfo | head -20\nfree -m\n',
 		vcpu_count: 1,
 		mem_size_mib: 128,
 		timeout_ms: 15000,
@@ -82,8 +84,8 @@ export const SCRIPT_PRESETS: ScriptPreset[] = [
 		name: 'Disk Benchmark',
 		description: 'Write/read 64MB to measure I/O speed',
 		rootfs: 'alpine-minimal',
-		entrypoint:
-			'dd if=/dev/zero of=/tmp/bench bs=1M count=64 2>&1 && dd if=/tmp/bench of=/dev/null bs=1M 2>&1 && rm /tmp/bench',
+		entrypoint: '/bin/sh',
+		code: 'dd if=/dev/zero of=/tmp/bench bs=1M count=64 2>&1\ndd if=/tmp/bench of=/dev/null bs=1M 2>&1\nrm /tmp/bench\n',
 		vcpu_count: 1,
 		mem_size_mib: 128,
 		timeout_ms: 30000,
@@ -92,8 +94,8 @@ export const SCRIPT_PRESETS: ScriptPreset[] = [
 		name: 'Network Test',
 		description: 'Check DNS resolution and HTTP connectivity',
 		rootfs: 'alpine-minimal',
-		entrypoint:
-			'nslookup kbve.com 2>&1 || echo "DNS failed"; wget -qO- --timeout=5 http://ifconfig.me 2>&1 || echo "HTTP failed"',
+		entrypoint: '/bin/sh',
+		code: 'nslookup kbve.com 2>&1 || echo "DNS failed"\nwget -qO- --timeout=5 http://ifconfig.me 2>&1 || echo "HTTP failed"\n',
 		vcpu_count: 1,
 		mem_size_mib: 128,
 		timeout_ms: 20000,
@@ -102,8 +104,8 @@ export const SCRIPT_PRESETS: ScriptPreset[] = [
 		name: 'Python Hello',
 		description: 'Run a basic Python script',
 		rootfs: 'alpine-python',
-		entrypoint:
-			"python3 -c \"import sys,platform; print(f'Python {sys.version}'); print(f'Platform: {platform.platform()}')\"",
+		entrypoint: '/usr/bin/python3',
+		code: "import sys, platform\nprint(f'Python {sys.version}')\nprint(f'Platform: {platform.platform()}')\n",
 		vcpu_count: 1,
 		mem_size_mib: 256,
 		timeout_ms: 15000,
@@ -112,8 +114,8 @@ export const SCRIPT_PRESETS: ScriptPreset[] = [
 		name: 'Node.js Hello',
 		description: 'Run a basic Node.js script',
 		rootfs: 'alpine-node',
-		entrypoint:
-			"node -e \"console.log('Node', process.version); console.log('Arch:', process.arch); console.log('Memory:', Math.round(require('os').totalmem()/1024/1024), 'MiB')\"",
+		entrypoint: '/usr/bin/node',
+		code: "console.log('Node', process.version);\nconsole.log('Arch:', process.arch);\nconsole.log('Memory:', Math.round(require('os').totalmem()/1024/1024), 'MiB');\n",
 		vcpu_count: 1,
 		mem_size_mib: 256,
 		timeout_ms: 15000,
