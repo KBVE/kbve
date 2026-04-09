@@ -34,6 +34,18 @@ scripts:
       vars:
             buffDuration: 180
             traits: 'sea-affinity'
+recipes:
+    - skill: 'cooking'
+      skill_level: 20
+      xp_reward: 50
+      output_quantity: 1
+      ingredients:
+          - item_ref: 'lobster'
+            amount: 1
+          - item_ref: 'butter'
+            amount: 1
+          - item_ref: 'allium'
+            amount: 1
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';

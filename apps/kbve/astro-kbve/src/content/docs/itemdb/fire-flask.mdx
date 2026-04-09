@@ -17,6 +17,16 @@ tags:
   - discordsh
 use_effects:
   - { type: 'damage_and_apply', amount: 8, status_effect: 'burning', stacks: 2, turns: 3 }
+recipes:
+    - skill: 'crafting'
+      skill_level: 10
+      xp_reward: 25
+      output_quantity: 1
+      ingredients:
+          - item_ref: 'copper-ore'
+            amount: 1
+          - item_ref: 'sunflower'
+            amount: 2
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';

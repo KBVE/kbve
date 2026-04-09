@@ -17,6 +17,16 @@ tags:
   - discordsh
 use_effects:
   - { type: 'campfire_rest', percent: 50 }
+recipes:
+    - skill: 'crafting'
+      skill_level: 1
+      xp_reward: 10
+      output_quantity: 1
+      ingredients:
+          - item_ref: 'log'
+            amount: 3
+          - item_ref: 'stone'
+            amount: 1
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';

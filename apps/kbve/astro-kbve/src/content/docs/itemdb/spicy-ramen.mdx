@@ -36,6 +36,16 @@ scripts:
             fireResist: 5
             braveryBoost: 3
             duration: 150
+recipes:
+    - skill: 'cooking'
+      skill_level: 10
+      xp_reward: 30
+      output_quantity: 1
+      ingredients:
+          - item_ref: 'salmon'
+            amount: 1
+          - item_ref: 'allium'
+            amount: 1
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';

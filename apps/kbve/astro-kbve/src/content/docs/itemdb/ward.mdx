@@ -17,6 +17,16 @@ tags:
   - discordsh
 use_effects:
   - { type: 'apply_effect', status_effect: 'shielded', stacks: 1, turns: 2 }
+recipes:
+    - skill: 'crafting'
+      skill_level: 15
+      xp_reward: 35
+      output_quantity: 1
+      ingredients:
+          - item_ref: 'crystal-ore'
+            amount: 1
+          - item_ref: 'lavender'
+            amount: 2
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';

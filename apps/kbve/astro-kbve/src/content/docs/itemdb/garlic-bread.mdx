@@ -34,6 +34,16 @@ scripts:
             healAmount: 10
             moraleBoost: 2
             aroma: 'garlic'
+recipes:
+    - skill: 'cooking'
+      skill_level: 5
+      xp_reward: 20
+      output_quantity: 1
+      ingredients:
+          - item_ref: 'allium'
+            amount: 2
+          - item_ref: 'butter'
+            amount: 1
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
