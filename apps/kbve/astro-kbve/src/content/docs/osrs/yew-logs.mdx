@@ -89,16 +89,20 @@ osrs:
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSContentWrap from '@/components/osrs/OSRSContentWrap.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
+<OSRSContentWrap>
 ## About {frontmatter.osrs.name}
 
 **{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
 
 > "{frontmatter.osrs.examine}"
+</OSRSContentWrap>
 
+<OSRSContentWrap>
 ## Item Details
 
 - **Item ID:** {frontmatter.osrs.id}
@@ -107,7 +111,9 @@ import { Adsense } from '@/components/astropad';
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
 - **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+</OSRSContentWrap>
 
+<OSRSContentWrap>
 ## Fletching
 
 Use a [Knife](/osrs/knife/) on **Yew logs** to create unstrung bows.
@@ -117,7 +123,11 @@ Use a [Knife](/osrs/knife/) on **Yew logs** to create unstrung bows.
 | [Yew shortbow (u)](/osrs/yew-shortbow-u/) | 65 | 67.5 |
 | [Yew longbow (u)](/osrs/yew-longbow-u/) | 70 | 75 |
 | [Yew stock](/osrs/yew-stock/) | 72 | 50 |
+</OSRSContentWrap>
 
+<OSRSAdsenseCard />
+
+<OSRSContentWrap>
 ## Market Flip Strategy
 
 **Yew Longbow (u) Processing:**
@@ -132,5 +142,4 @@ Use a [Knife](/osrs/knife/) on **Yew logs** to create unstrung bows.
 **Tips:**
 - Yew longbows alch for 768 GP - compare to crafting cost
 - High volume item, consistent demand from alchers
-
-<Adsense />
+</OSRSContentWrap>
