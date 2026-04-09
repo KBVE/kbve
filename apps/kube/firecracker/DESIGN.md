@@ -50,7 +50,7 @@ Browser (dashboard/ide/)
 - **Source:** `apps/vm/firecracker-ctl/`
 - **Image:** `ghcr.io/kbve/firecracker-ctl`
 - **API:** `GET /health`, `POST /vm/create`, `GET /vm`, `GET /vm/{id}`, `GET /vm/{id}/result`, `DELETE /vm/{id}`
-- **Dockerfile:** chisel-ubuntu-axum builder + Firecracker v1.10.1 binary + jailer
+- **Dockerfile:** chisel-ubuntu-axum builder + Firecracker v1.15.1 binary + jailer
 
 ### Kubernetes (firecracker namespace)
 

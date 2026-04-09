@@ -63,7 +63,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends curl ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-ARG FC_VERSION=1.10.1
+ARG FC_VERSION=1.15.1
 RUN curl -fSL "https://github.com/firecracker-microvm/firecracker/releases/download/v${FC_VERSION}/firecracker-v${FC_VERSION}-x86_64.tgz" \
     -o /tmp/fc.tgz && \
     tar -xzf /tmp/fc.tgz -C /tmp && \
