@@ -1,0 +1,149 @@
+---
+interface Props {
+	id: number;
+	members: boolean;
+	value: number;
+	highalch: number | null;
+	lowalch: number | null;
+	limit: number | null;
+}
+
+const { id, members, value, highalch, lowalch, limit } = Astro.props;
+
+function formatGP(v: number | null | undefined): string {
+	if (v === undefined || v === null) return '—';
+	return v.toLocaleString();
+}
+---
+
+<div class="osrs-details">
+	<div class="osrs-details__header">
+		<span class="osrs-details__icon">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+				<path
+					d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z">
+				</path>
+			</svg>
+		</span>
+		<h4 class="osrs-details__title">Item Details</h4>
+	</div>
+	<div class="osrs-details__grid">
+		<div class="osrs-details__row">
+			<span class="osrs-details__label">Item ID</span>
+			<span class="osrs-details__value osrs-details__value--mono">
+				{id}
+			</span>
+		</div>
+		<div class="osrs-details__row">
+			<span class="osrs-details__label">Members</span>
+			<span
+				class={`osrs-details__value ${members ? 'osrs-details__value--p2p' : ''}`}>
+				{members ? 'Yes' : 'No'}
+			</span>
+		</div>
+		<div class="osrs-details__row">
+			<span class="osrs-details__label">Store Value</span>
+			<span class="osrs-details__value">
+				{formatGP(value)}
+				<span class="osrs-details__gp">gp</span>
+			</span>
+		</div>
+		<div class="osrs-details__row">
+			<span class="osrs-details__label">High Alch</span>
+			<span class="osrs-details__value">
+				{formatGP(highalch)}
+				<span class="osrs-details__gp">gp</span>
+			</span>
+		</div>
+		<div class="osrs-details__row">
+			<span class="osrs-details__label">Low Alch</span>
+			<span class="osrs-details__value">
+				{formatGP(lowalch)}
+				<span class="osrs-details__gp">gp</span>
+			</span>
+		</div>
+		<div class="osrs-details__row">
+			<span class="osrs-details__label">GE Limit</span>
+			<span class="osrs-details__value">
+				{limit ? `${formatGP(limit)} / 4h` : '—'}
+			</span>
+		</div>
+	</div>
+</div>
+
+<style>
+	.osrs-details {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-details__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-details__icon {
+		color: var(--sl-color-accent);
+	}
+
+	.osrs-details__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+	}
+
+	.osrs-details__grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1px;
+		background: var(--sl-color-gray-5);
+	}
+
+	@media (min-width: 640px) {
+		.osrs-details__grid {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+
+	.osrs-details__row {
+		background: var(--sl-color-bg-nav);
+		padding: 0.5rem 0.75rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+	}
+
+	.osrs-details__label {
+		font-size: 0.5rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-details__value {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+
+	.osrs-details__value--mono {
+		font-family: monospace;
+	}
+	.osrs-details__value--p2p {
+		color: var(--sl-color-accent);
+	}
+
+	.osrs-details__gp {
+		font-size: 0.625rem;
+		font-weight: 400;
+		color: var(--sl-color-accent);
+	}
+</style>

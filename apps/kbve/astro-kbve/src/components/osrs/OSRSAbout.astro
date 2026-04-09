@@ -1,0 +1,87 @@
+---
+interface Props {
+	text: string;
+	name: string;
+	examine?: string;
+}
+
+const { text, name, examine } = Astro.props;
+const paragraphs = text.split('\n\n').filter((p) => p.trim().length > 0);
+---
+
+<div class="osrs-about">
+	<div class="osrs-about__header">
+		<span class="osrs-about__icon">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+				<path
+					d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z">
+				</path>
+			</svg>
+		</span>
+		<h4 class="osrs-about__title">About {name}</h4>
+	</div>
+	<div class="osrs-about__content">
+		{
+			examine && (
+				<blockquote class="osrs-about__examine">"{examine}"</blockquote>
+			)
+		}
+		{paragraphs.map((p) => <p class="osrs-about__text">{p}</p>)}
+	</div>
+</div>
+
+<style>
+	.osrs-about {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-about__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-about__icon {
+		color: var(--sl-color-accent);
+	}
+
+	.osrs-about__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+	}
+
+	.osrs-about__content {
+		padding: 0.625rem 0.75rem;
+	}
+
+	.osrs-about__examine {
+		margin: 0 0 0.5rem;
+		padding: 0.375rem 0.625rem;
+		border-left: 3px solid var(--sl-color-accent);
+		background: var(--sl-color-gray-6);
+		border-radius: 0 0.25rem 0.25rem 0;
+		font-style: italic;
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-2);
+	}
+
+	.osrs-about__text {
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-2);
+		line-height: 1.6;
+		margin: 0.375rem 0;
+	}
+
+	.osrs-about__text:last-child {
+		margin-bottom: 0;
+	}
+</style>

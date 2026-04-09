@@ -1,0 +1,154 @@
+---
+import type { OSRSPotion } from '@/data/schema';
+
+interface Props {
+	potion: OSRSPotion;
+}
+
+const { potion } = Astro.props;
+---
+
+<div class="osrs-potion">
+	<div class="osrs-potion__header">
+		<span class="osrs-potion__icon">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+				<path
+					d="M6 3h12v2H6V3zm11 18H7c-1.1 0-2-.9-2-2V8c0-.55.22-1.05.59-1.41l.01-.01C5.97 6.21 6.46 6 7 6h10c.55 0 1.05.22 1.41.59C18.78 6.95 19 7.45 19 8v11c0 1.1-.9 2-2 2zM7 8v11h10V8H7zm2 5h6v2H9v-2z">
+				</path>
+			</svg>
+		</span>
+		<h4 class="osrs-potion__title">Potion Info</h4>
+		{
+			potion.doses && (
+				<span class="osrs-potion__doses">
+					{potion.doses} dose{potion.doses > 1 ? 's' : ''}
+				</span>
+			)
+		}
+	</div>
+	<div class="osrs-potion__content">
+		{
+			potion.herblore_level && (
+				<div class="osrs-potion__stat">
+					<span class="osrs-potion__label">Herblore Level</span>
+					<span class="osrs-potion__value">
+						{potion.herblore_level}
+					</span>
+				</div>
+			)
+		}
+		{
+			potion.herblore_xp && (
+				<div class="osrs-potion__stat">
+					<span class="osrs-potion__label">XP</span>
+					<span class="osrs-potion__value">{potion.herblore_xp}</span>
+				</div>
+			)
+		}
+		{
+			potion.effects && potion.effects.length > 0 && (
+				<div class="osrs-potion__effects">
+					<span class="osrs-potion__effects-label">Effects:</span>
+					{potion.effects.map((effect) => (
+						<span class="osrs-potion__effect">
+							{effect.stat}:{' '}
+							{effect.boost_formula ||
+								(effect.boost_type === 'percentage'
+									? `${effect.boost_value}%`
+									: `+${effect.boost_value}`)}
+						</span>
+					))}
+				</div>
+			)
+		}
+	</div>
+</div>
+
+<style>
+	.osrs-potion {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-potion__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-potion__icon {
+		color: #22c55e;
+	}
+
+	.osrs-potion__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+		flex: 1;
+	}
+
+	.osrs-potion__doses {
+		font-size: 0.625rem;
+		font-weight: 500;
+		padding: 0.125rem 0.375rem;
+		border-radius: 0.25rem;
+		background: rgba(34, 197, 94, 0.2);
+		color: #22c55e;
+	}
+
+	.osrs-potion__content {
+		padding: 0.625rem 0.75rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 1rem;
+	}
+
+	.osrs-potion__stat {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+	}
+
+	.osrs-potion__label {
+		font-size: 0.5625rem;
+		text-transform: uppercase;
+		letter-spacing: 0.025em;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-potion__value {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+
+	.osrs-potion__effects {
+		width: 100%;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.25rem;
+		padding-top: 0.375rem;
+		border-top: 1px solid var(--sl-color-gray-6);
+	}
+
+	.osrs-potion__effects-label {
+		font-size: 0.625rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-potion__effect {
+		font-size: 0.625rem;
+		padding: 0.125rem 0.375rem;
+		border-radius: 0.25rem;
+		background: var(--sl-color-gray-6);
+		color: var(--sl-color-gray-2);
+	}
+</style>

@@ -1,0 +1,173 @@
+---
+import type { OSRSMarketStrategy } from '@/data/schema';
+
+interface Props {
+	strategy: OSRSMarketStrategy;
+}
+
+const { strategy } = Astro.props;
+---
+
+<div class="osrs-strategy">
+	<div class="osrs-strategy__header">
+		<span class="osrs-strategy__icon">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+				<path
+					d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z">
+				</path>
+			</svg>
+		</span>
+		<h4 class="osrs-strategy__title">Market Strategy</h4>
+		{
+			strategy.title && (
+				<span class="osrs-strategy__badge">{strategy.title}</span>
+			)
+		}
+	</div>
+	<div class="osrs-strategy__content">
+		{
+			strategy.steps && strategy.steps.length > 0 && (
+				<ol class="osrs-strategy__steps">
+					{strategy.steps
+						.sort((a, b) => a.order - b.order)
+						.map((step) => (
+							<li class="osrs-strategy__step">
+								{step.item_slug ? (
+									<a
+										href={`/osrs/${step.item_slug}/`}
+										class="osrs-strategy__link">
+										{step.action}
+									</a>
+								) : (
+									step.action
+								)}
+							</li>
+						))}
+				</ol>
+			)
+		}
+		{
+			strategy.profit_formulas && strategy.profit_formulas.length > 0 && (
+				<div class="osrs-strategy__formulas">
+					{strategy.profit_formulas.map((formula) => (
+						<code class="osrs-strategy__formula">{formula}</code>
+					))}
+				</div>
+			)
+		}
+		{
+			strategy.notes && strategy.notes.length > 0 && (
+				<ul class="osrs-strategy__notes">
+					{strategy.notes.map((note) => (
+						<li class="osrs-strategy__note">{note}</li>
+					))}
+				</ul>
+			)
+		}
+	</div>
+</div>
+
+<style>
+	.osrs-strategy {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-strategy__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-strategy__icon {
+		color: #eab308;
+	}
+
+	.osrs-strategy__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+		flex: 1;
+	}
+
+	.osrs-strategy__badge {
+		font-size: 0.5625rem;
+		font-weight: 500;
+		padding: 0.125rem 0.375rem;
+		border-radius: 0.25rem;
+		background: rgba(234, 179, 8, 0.2);
+		color: #eab308;
+	}
+
+	.osrs-strategy__content {
+		padding: 0.625rem 0.75rem;
+	}
+
+	.osrs-strategy__steps {
+		margin: 0;
+		padding-left: 1.25rem;
+		display: grid;
+		gap: 0.25rem;
+	}
+
+	.osrs-strategy__step {
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-2);
+		line-height: 1.5;
+	}
+
+	.osrs-strategy__link {
+		color: var(--sl-color-accent-high);
+		text-decoration: none;
+	}
+
+	.osrs-strategy__link:hover {
+		color: var(--sl-color-accent);
+		text-decoration: underline;
+	}
+
+	.osrs-strategy__formulas {
+		margin-top: 0.5rem;
+		display: grid;
+		gap: 0.25rem;
+	}
+
+	.osrs-strategy__formula {
+		font-size: 0.6875rem;
+		padding: 0.25rem 0.5rem;
+		background: var(--sl-color-gray-6);
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.25rem;
+		color: var(--sl-color-accent-high);
+		font-family: monospace;
+	}
+
+	.osrs-strategy__notes {
+		margin: 0.5rem 0 0;
+		padding: 0;
+		list-style: none;
+		display: grid;
+		gap: 0.25rem;
+	}
+
+	.osrs-strategy__note {
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-3);
+		padding-left: 0.75rem;
+		position: relative;
+	}
+
+	.osrs-strategy__note::before {
+		content: '•';
+		position: absolute;
+		left: 0;
+		color: var(--sl-color-gray-4);
+	}
+</style>
