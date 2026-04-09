@@ -334,9 +334,35 @@ pub async fn handle_game_component(
     // Apply action (now safe — we already acknowledged the interaction)
     match logic::apply_action(&mut session, action.clone(), actor) {
         Ok(result) => {
-            // Check if game just ended — save all players
+            // Check if game just ended — save all players + emit IRC events
             if let GamePhase::GameOver(ref reason) = session.phase {
                 persistence::save_all_players(&data.app.profiles, &session, reason);
+                let player_name = session.owner_player().name.clone();
+                match reason {
+                    super::types::GameOverReason::Victory => {
+                        super::irc_events::emit_victory(
+                            &data.app.irc,
+                            &player_name,
+                            session.map.position.depth(),
+                        );
+                    }
+                    super::types::GameOverReason::Defeated => {
+                        super::irc_events::emit_player_death(
+                            &data.app.irc,
+                            &player_name,
+                            "defeated in the dungeon",
+                        );
+                    }
+                    _ => {}
+                }
+            }
+
+            // Emit boss kill events (check log for boss defeat message)
+            if result.logs.iter().any(|l| l.contains("boss is defeated")) {
+                let player_name = session.owner_player().name.clone();
+                // Extract boss name from the room if available
+                let boss_name = session.room.name.clone();
+                super::irc_events::emit_boss_killed(&data.app.irc, &player_name, &boss_name);
             }
 
             // Render components while we still hold the lock

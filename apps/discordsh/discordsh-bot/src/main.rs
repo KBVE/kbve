@@ -39,7 +39,7 @@ async fn main() -> anyhow::Result<()> {
 
     let tracker = tracker::ShardTracker::from_env();
 
-    let app_state = Arc::new(state::AppState::new(health_monitor, tracker));
+    let app_state = Arc::new(state::AppState::new(health_monitor, tracker).await);
 
     // Minimal health HTTP server for k8s probes and e2e tests
     let health_http = tokio::spawn(health_server::serve(Arc::clone(&app_state)));

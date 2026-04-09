@@ -7,6 +7,8 @@ use tokio::sync::{Notify, RwLock};
 
 use kbve::{FontDb, MemberCache};
 
+use bevy_chat::ChatClient;
+
 use crate::discord::game::{ProfileStore, SessionStore};
 use crate::discord::github_cache::GitHubCache;
 use crate::discord::github_permissions::GitHubCommandGuard;
@@ -65,6 +67,10 @@ pub struct AppState {
 
     /// Cached GitHub labels and issues for reduced API calls.
     pub github_cache: GitHubCache,
+
+    /// Optional IRC client for cross-platform chat and world events.
+    /// `None` if IRC is unavailable or not configured.
+    pub irc: Option<ChatClient>,
 }
 
 /// Resolve the default GitHub repo from env vars (checked once at startup).
@@ -81,7 +87,7 @@ fn resolve_default_repo() -> (String, String) {
 }
 
 impl AppState {
-    pub fn new(health_monitor: Arc<HealthMonitor>, tracker: Option<ShardTracker>) -> Self {
+    pub async fn new(health_monitor: Arc<HealthMonitor>, tracker: Option<ShardTracker>) -> Self {
         let mut fontdb = FontDb::new();
 
         fontdb.load_system_fonts();
@@ -109,6 +115,23 @@ impl AppState {
 
         tracing::info!(fonts = fontdb.len(), "Font database initialized");
 
+        // Attempt IRC connection (graceful: None if unavailable)
+        let irc = if std::env::var("IRC_HOST").is_ok() {
+            match ChatClient::from_env().await {
+                Ok(client) => {
+                    tracing::info!("IRC connected");
+                    Some(client)
+                }
+                Err(e) => {
+                    tracing::warn!(error = %e, "IRC connection failed — world events disabled");
+                    None
+                }
+            }
+        } else {
+            tracing::info!("IRC not configured (set IRC_HOST to enable)");
+            None
+        };
+
         Self {
             health_monitor,
             tracker,
@@ -125,6 +148,7 @@ impl AppState {
             github_repo_policy: jedi::entity::github::RepoPolicy::from_env(),
             github_guard: GitHubCommandGuard::from_env(),
             github_cache: GitHubCache::new(),
+            irc,
         }
     }
 }
