@@ -698,6 +698,24 @@ async fn init_jailer(
     let bin_dir = format!("{}/bin", scratch_dir);
     let chroot_base = format!("{}/jails", scratch_dir);
 
+    // Kubernetes emptyDir mounts inherit shared propagation from the kubelet.
+    // The jailer's pivot_root() syscall requires a private mount — it fails with
+    // EPERM on shared mounts. Remount the scratch dir as private (needs CAP_SYS_ADMIN,
+    // already granted) so pivot_root works without requiring privileged: true.
+    let mount_status = tokio::process::Command::new("mount")
+        .args(["--make-private", scratch_dir])
+        .status()
+        .await
+        .map_err(|e| format!("Failed to run mount --make-private: {}", e))?;
+    if !mount_status.success() {
+        return Err(format!(
+            "mount --make-private {} failed with exit code {:?}",
+            scratch_dir,
+            mount_status.code()
+        ));
+    }
+    tracing::info!("Remounted {} as private propagation", scratch_dir);
+
     tokio::fs::create_dir_all(&bin_dir)
         .await
         .map_err(|e| format!("Failed to create bin dir: {}", e))?;
