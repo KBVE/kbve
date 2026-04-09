@@ -4,6 +4,10 @@
 	"projectType": "application",
 	"sourceRoot": "apps/mc",
 	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
 		"container": {
 			"executor": "@nx-tools/nx-container:build",
 			"defaultConfiguration": "local",
