@@ -94,6 +94,26 @@ spec:
                 app: guacamole
                 component: guacamole
         spec:
+            # Init container injects the RDP password from Secret into
+            # user-mapping.xml at runtime — password never stored in ConfigMap.
+            initContainers:
+                - name: inject-rdp-password
+                  image: busybox:1.37
+                  command: ['sh', '-c']
+                  args:
+                      - |
+                          PASSWORD=$(cat /secrets/password)
+                          sed "s|</connection>|<param name=\"password\">${PASSWORD}</param>\n</connection>|" \
+                            /template/user-mapping.xml > /config/user-mapping.xml
+                  volumeMounts:
+                      - name: user-mapping-template
+                        mountPath: /template
+                        readOnly: true
+                      - name: admin-password
+                        mountPath: /secrets
+                        readOnly: true
+                      - name: user-mapping-rendered
+                        mountPath: /config
             containers:
                 - name: guacamole
                   image: guacamole/guacamole:1.5.5
@@ -111,7 +131,7 @@ spec:
                         name: http
                         protocol: TCP
                   volumeMounts:
-                      - name: user-mapping
+                      - name: user-mapping-rendered
                         mountPath: /etc/guacamole/user-mapping.xml
                         subPath: user-mapping.xml
                         readOnly: true
@@ -123,9 +143,14 @@ spec:
                           cpu: '1'
                           memory: 512Mi
             volumes:
-                - name: user-mapping
+                - name: user-mapping-template
                   configMap:
                       name: guacamole-user-mapping
+                - name: admin-password
+                  secret:
+                      secretName: windows-builder-admin
+                - name: user-mapping-rendered
+                  emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
