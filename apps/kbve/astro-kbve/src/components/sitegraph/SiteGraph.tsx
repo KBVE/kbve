@@ -14,6 +14,8 @@ interface SiteGraphNode {
 	title: string;
 	links: string[];
 	backlinks: string[];
+	/** OSRS relationship metadata: target slug → relationship type */
+	osrsEdges?: Record<string, string>;
 }
 
 type SiteGraphData = Record<string, SiteGraphNode>;
@@ -22,11 +24,27 @@ interface GraphNode extends SimulationNodeDatum {
 	id: string;
 	title: string;
 	isCurrent: boolean;
+	/** True if this is an OSRS item page */
+	isOsrs: boolean;
 }
+
+/** OSRS relationship type → edge color */
+const EDGE_COLORS: Record<string, string> = {
+	upgrade: '#22c55e',
+	downgrade: '#ef4444',
+	product: '#3b82f6',
+	component: '#f97316',
+	variant: '#a855f7',
+	'set-piece': '#eab308',
+	alternative: '#64748b',
+	'drop-source': '#ec4899',
+};
 
 interface GraphLink extends SimulationLinkDatum<GraphNode> {
 	source: GraphNode;
 	target: GraphNode;
+	/** OSRS relationship type if available */
+	relationship?: string;
 }
 
 interface SiteGraphProps {
@@ -82,6 +100,7 @@ function getNeighborhood(
 			id: slug,
 			title: entry.title,
 			isCurrent: slug === startSlug,
+			isOsrs: slug.startsWith('osrs/'),
 		});
 	}
 
@@ -94,6 +113,7 @@ function getNeighborhood(
 				links.push({
 					source: nodeMap.get(slug)!,
 					target: nodeMap.get(target)!,
+					relationship: entry.osrsEdges?.[target],
 				});
 			}
 		}
@@ -428,13 +448,18 @@ export default function SiteGraph({
 				<g
 					transform={`translate(${width / 2 + panX},${height / 2 + panY}) scale(${zoom}) translate(${-width / 2},${-height / 2})`}>
 					{/* Links */}
-					{links.map((link, i) => (
+					{links.map((l, i) => (
 						<line
 							key={`link-${i}`}
 							className="sg-link"
-							stroke="var(--sl-color-gray-5)"
-							strokeWidth={1 / zoom}
-							strokeOpacity={0.4}
+							stroke={
+								l.relationship
+									? EDGE_COLORS[l.relationship] ||
+										'var(--sl-color-gray-4)'
+									: 'var(--sl-color-gray-5)'
+							}
+							strokeWidth={l.relationship ? 1.5 / zoom : 1 / zoom}
+							strokeOpacity={l.relationship ? 0.6 : 0.4}
 						/>
 					))}
 
@@ -457,20 +482,24 @@ export default function SiteGraph({
 								closeTooltip(`sg-node-${node.id}`);
 							}}>
 							<circle
-								r={node.isCurrent ? 6 : 4}
+								r={node.isCurrent ? 6 : node.isOsrs ? 4.5 : 4}
 								fill={
 									node.isCurrent
 										? 'var(--sl-color-accent)'
 										: hoveredId === node.id
 											? 'var(--sl-color-accent)'
-											: 'var(--sl-color-white)'
+											: node.isOsrs
+												? '#eab308'
+												: 'var(--sl-color-white)'
 								}
 								stroke={
 									node.isCurrent
 										? 'var(--sl-color-accent-high)'
 										: hoveredId === node.id
 											? 'var(--sl-color-accent-high)'
-											: 'var(--sl-color-gray-4)'
+											: node.isOsrs
+												? '#a16207'
+												: 'var(--sl-color-gray-4)'
 								}
 								strokeWidth={node.isCurrent ? 2 : 1}
 								style={{

@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.104",
+			"version": "1.0.105",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -77,12 +77,14 @@
 			"source_path": "apps/discordsh/discordsh-bot",
 			"runner": "ubuntu-latest",
 			"image": "kbve/discordsh-bot",
-			"deployment_yaml": "apps/kube/discordsh/manifest/discordsh-bot-deployment.yaml"
+			"e2e_name": "discordsh-bot-e2e",
+			"deployment_yaml": "apps/kube/discordsh/manifest/discordsh-bot-deployment.yaml",
+			"has_test": true
 		},
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.26",
+			"version": "0.1.27",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -96,7 +98,7 @@
 		{
 			"key": "firecracker_ctl",
 			"app_name": "firecracker-ctl",
-			"version": "0.1.26",
+			"version": "0.1.27",
 			"version_toml": "apps/vm/firecracker-ctl/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-ctl.mdx",
 			"version_target": "apps/vm/firecracker-ctl/Cargo.toml",
