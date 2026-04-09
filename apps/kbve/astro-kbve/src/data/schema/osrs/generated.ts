@@ -751,7 +751,10 @@ export type OSRSTeleportDestination = z.infer<
 
 export const OSRSTeleportSchema = z
 	.object({
-		destinations: z.array(OSRSTeleportDestinationSchema).optional(),
+		// Accepts both string[] ("Edgeville") and object[] ({ name: "Edgeville" })
+		destinations: z
+			.array(z.union([z.string(), OSRSTeleportDestinationSchema]))
+			.optional(),
 		charges: z.number().optional(), // 0 = unlimited
 		recharge_method: z.string().optional(),
 		recharge_cost: z.number().optional(),
