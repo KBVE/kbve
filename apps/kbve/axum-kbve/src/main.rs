@@ -76,6 +76,13 @@ async fn main() -> anyhow::Result<()> {
         info!("RentEarth service not configured - character data enrichment disabled");
     }
 
+    // Initialize MC service (optional - needs MC_RCON_HOST env var)
+    if db::init_mc_service() {
+        info!("MC service initialized - player list + texture proxy enabled");
+    } else {
+        info!("MC service not configured (set MC_RCON_HOST to enable)");
+    }
+
     // Initialize OSRS cache actor (loads item mapping + prices)
     let _osrs_cache = db::init_osrs_cache().await;
     info!("OSRS cache actor started");
