@@ -1,6 +1,7 @@
 ---
 import OSRSPriceWidget from './OSRSPriceWidget.tsx';
 import OSRSCharts from './OSRSCharts.tsx';
+import OSRSLinkTooltip from './OSRSLinkTooltip.tsx';
 import OSRSEquipmentStats from './OSRSEquipmentStats.astro';
 import OSRSDropSources from './OSRSDropSources.astro';
 import OSRSRecipes from './OSRSRecipes.astro';
@@ -311,6 +312,9 @@ const showTradingTips = hasTradingTips(item);
 				)
 			}
 		</div>
+
+		<!-- Global tooltip for OSRS item link hovers -->
+		<OSRSLinkTooltip client:idle />
 	</div>
 </section>
 
