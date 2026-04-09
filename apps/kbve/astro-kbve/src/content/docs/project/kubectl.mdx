@@ -1,7 +1,7 @@
 ---
 title: KBVE Kubectl
 description: |
-    Alpine-based kubectl container image with Rust CLI extensions for KubeVirt VM lifecycle management.
+    Chiseled Ubuntu kubectl container image with Rust CLI extensions for KubeVirt VM lifecycle management.
 sidebar:
     label: Kubectl
     order: 55
@@ -27,7 +27,7 @@ status: active
 
 ## Overview
 
-Alpine-based kubectl image with a Rust CLI wrapper for KubeVirt VM management. Replaces the distroless `registry.k8s.io/kubectl` image which lacks `/bin/sh` and breaks Kubernetes Job scripts.
+Chiseled Ubuntu kubectl image with a Rust CLI wrapper for KubeVirt VM management. Built from scratch using Canonical's chisel tool to produce a minimal rootfs with busybox, curl, and CA certs. Replaces the distroless `registry.k8s.io/kubectl` image which lacks `/bin/sh` and breaks Kubernetes Job scripts.
 
 ### CLI Subcommands
 
@@ -42,7 +42,8 @@ Alpine-based kubectl image with a Rust CLI wrapper for KubeVirt VM management. R
 | Tool | Purpose |
 |------|---------|
 | `kubectl` | Kubernetes API access |
-| `curl` / `wget` | HTTP requests |
+| `curl` | HTTP requests (Ubuntu chisel slice) |
+| `wget` | HTTP requests (busybox built-in) |
 | `jq` | JSON processing |
 | `/bin/sh` | Shell script execution |
 
