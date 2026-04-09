@@ -175,7 +175,7 @@ const showTradingTips = hasTradingTips(item);
 			</div>
 		</div>
 
-		<!-- Live GE Prices -->
+		<!-- Live GE Prices — full width -->
 		<div class="osrs-section">
 			<div class="osrs-section__header">
 				<span class="osrs-section__dot"></span>
@@ -184,92 +184,133 @@ const showTradingTips = hasTradingTips(item);
 			<OSRSPriceWidget itemId={item.id} client:load />
 		</div>
 
-		<!-- Price History Chart -->
+		<!-- Price History Chart — full width -->
 		<OSRSCharts itemId={item.id} client:load />
 
-		<!-- Equipment Stats (if available) -->
-		{
-			showEquipment && item.equipment && (
-				<OSRSEquipmentStats
-					equipment={item.equipment}
-					specialAttack={
-						showSpecialAttack ? item.special_attack : undefined
-					}
+		<!-- Bento Grid: cards flow into responsive columns -->
+		<div class="osrs-bento">
+			<!-- About (if available) -->
+			{
+				showAbout && (
+					<div class="osrs-bento__item">
+						<OSRSAbout
+							text={getAboutText(item)!}
+							name={item.name}
+							examine={item.examine}
+						/>
+					</div>
+				)
+			}
+
+			<!-- Item Details -->
+			<div class="osrs-bento__item">
+				<OSRSItemDetails
+					id={item.id}
+					members={item.members}
+					value={item.value}
+					highalch={item.highalch}
+					lowalch={item.lowalch}
+					limit={item.limit}
 				/>
-			)
-		}
+			</div>
 
-		<!-- Drop Sources (if available) -->
-		{
-			showDropSources && item.drop_table && (
-				<OSRSDropSources dropTable={item.drop_table} />
-			)
-		}
+			<!-- Equipment Stats -->
+			{
+				showEquipment && item.equipment && (
+					<div class="osrs-bento__item osrs-bento__item--wide">
+						<OSRSEquipmentStats
+							equipment={item.equipment}
+							specialAttack={
+								showSpecialAttack
+									? item.special_attack
+									: undefined
+							}
+						/>
+					</div>
+				)
+			}
 
-		<!-- Creation Recipes (if available) -->
-		{showRecipes && item.recipes && <OSRSRecipes recipes={item.recipes} />}
+			<!-- Gathering Info -->
+			{
+				showGathering && gatheringData && (
+					<div class="osrs-bento__item">
+						<OSRSGatheringInfo gathering={gatheringData} />
+					</div>
+				)
+			}
 
-		<!-- Potion Info (if available) -->
-		{showPotion && item.potion && <OSRSPotionInfo potion={item.potion} />}
+			<!-- Potion Info -->
+			{
+				showPotion && item.potion && (
+					<div class="osrs-bento__item">
+						<OSRSPotionInfo potion={item.potion} />
+					</div>
+				)
+			}
 
-		<!-- Food Info (if available) -->
-		{showFood && item.food && <OSRSFoodInfo food={item.food} />}
+			<!-- Food Info -->
+			{
+				showFood && item.food && (
+					<div class="osrs-bento__item">
+						<OSRSFoodInfo food={item.food} />
+					</div>
+				)
+			}
 
-		<!-- Prayer Info (if available) -->
-		{
-			showPrayer && item.prayer && (
-				<OSRSPrayerInfo prayer={item.prayer} name={item.name} />
-			)
-		}
+			<!-- Prayer Info -->
+			{
+				showPrayer && item.prayer && (
+					<div class="osrs-bento__item">
+						<OSRSPrayerInfo prayer={item.prayer} name={item.name} />
+					</div>
+				)
+			}
 
-		<!-- Gathering Info (if available) -->
-		{
-			showGathering && gatheringData && (
-				<OSRSGatheringInfo gathering={gatheringData} />
-			)
-		}
+			<!-- Creation Recipes -->
+			{
+				showRecipes && item.recipes && (
+					<div class="osrs-bento__item osrs-bento__item--wide">
+						<OSRSRecipes recipes={item.recipes} />
+					</div>
+				)
+			}
 
-		<!-- Related Items (if available) -->
-		{
-			showRelatedItems && item.related_items && (
-				<OSRSRelatedItems relatedItems={item.related_items} />
-			)
-		}
+			<!-- Drop Sources -->
+			{
+				showDropSources && item.drop_table && (
+					<div class="osrs-bento__item osrs-bento__item--wide">
+						<OSRSDropSources dropTable={item.drop_table} />
+					</div>
+				)
+			}
 
-		<!-- About (if available in frontmatter) -->
-		{
-			showAbout && (
-				<OSRSAbout
-					text={getAboutText(item)!}
-					name={item.name}
-					examine={item.examine}
-				/>
-			)
-		}
+			<!-- Related Items -->
+			{
+				showRelatedItems && item.related_items && (
+					<div class="osrs-bento__item osrs-bento__item--wide">
+						<OSRSRelatedItems relatedItems={item.related_items} />
+					</div>
+				)
+			}
 
-		<!-- Item Details -->
-		<OSRSItemDetails
-			id={item.id}
-			members={item.members}
-			value={item.value}
-			highalch={item.highalch}
-			lowalch={item.lowalch}
-			limit={item.limit}
-		/>
+			<!-- Market Strategy -->
+			{
+				showMarketStrategy && item.market_strategy && (
+					<div class="osrs-bento__item">
+						<OSRSMarketStrategy strategy={item.market_strategy} />
+					</div>
+				)
+			}
 
-		<!-- Market Strategy (if available) -->
-		{
-			showMarketStrategy && item.market_strategy && (
-				<OSRSMarketStrategy strategy={item.market_strategy} />
-			)
-		}
-
-		<!-- Trading Tips (if available) -->
-		{
-			showTradingTips && item.trading_tips && (
-				<OSRSTradingTips tips={item.trading_tips} />
-			)
-		}
+			<!-- Trading Tips -->
+			{
+				showTradingTips && item.trading_tips && (
+					<div class="osrs-bento__item">
+						<OSRSTradingTips tips={item.trading_tips} />
+					</div>
+				)
+			}
+		</div>
 	</div>
 </section>
 
@@ -536,5 +577,48 @@ const showTradingTips = hasTradingTips(item);
 		font-weight: 600;
 		color: var(--sl-color-gray-2);
 		margin: 0;
+	}
+
+	/* Bento Grid */
+	.osrs-bento {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 0;
+		margin-top: 0.5rem;
+	}
+
+	@media (min-width: 768px) {
+		.osrs-bento {
+			grid-template-columns: repeat(2, 1fr);
+			gap: 0.75rem;
+		}
+	}
+
+	@media (min-width: 1200px) {
+		.osrs-bento {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+
+	.osrs-bento__item {
+		min-width: 0;
+	}
+
+	/* Reset child component top margins inside bento — grid gap handles spacing */
+	.osrs-bento__item :global(> *) {
+		margin-top: 0 !important;
+	}
+
+	/* Wide items span 2 columns on tablet, full row on 3-col */
+	@media (min-width: 768px) {
+		.osrs-bento__item--wide {
+			grid-column: span 2;
+		}
+	}
+
+	@media (min-width: 1200px) {
+		.osrs-bento__item--wide {
+			grid-column: span 2;
+		}
 	}
 </style>
