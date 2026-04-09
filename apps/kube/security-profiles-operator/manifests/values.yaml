@@ -1,0 +1,15 @@
+# Security Profiles Operator Helm values
+# Manages SeccompProfile CRDs so pods can reference custom profiles
+# without placing files on node filesystems (required for Talos).
+
+enableLogEnricher: false
+enableRecordingHook: false
+
+# Resource limits for the operator
+resources:
+    limits:
+        cpu: 250m
+        memory: 256Mi
+    requests:
+        cpu: 50m
+        memory: 64Mi
