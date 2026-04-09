@@ -16,7 +16,8 @@ describe('Input Validation', () => {
 				mem_size_mib: 128,
 			}),
 		});
-		expect(res.status).toBe(400);
+		// Axum returns 422 for missing required fields (serde deserialization)
+		expect(res.status).toBe(422);
 	});
 
 	it('should reject create with nonexistent rootfs', async () => {
