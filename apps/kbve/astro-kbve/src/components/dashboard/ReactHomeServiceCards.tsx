@@ -23,6 +23,7 @@ import {
 	Network,
 	Gamepad2,
 	Server,
+	GitFork,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -381,6 +382,7 @@ export default function ReactHomeServiceCards() {
 	const graph = useStore(homeService.$graph);
 	const rows = useStore(homeService.$rows);
 	const vm = useStore(homeService.$vm);
+	const forgejo = useStore(homeService.$forgejo);
 
 	const grafanaStatus = useStore(homeService.$grafanaStatus);
 	const argoStatus = useStore(homeService.$argoStatus);
@@ -392,6 +394,7 @@ export default function ReactHomeServiceCards() {
 	const graphStatus = useStore(homeService.$graphStatus);
 	const rowsStatus = useStore(homeService.$rowsStatus);
 	const vmStatus = useStore(homeService.$vmStatus);
+	const forgejoStatus = useStore(homeService.$forgejoStatus);
 
 	return (
 		<div
@@ -555,6 +558,57 @@ export default function ReactHomeServiceCards() {
 								label="Total"
 								value={vm.total}
 								color="#6366f1"
+							/>
+						</>
+					) : (
+						<UnavailableMessage />
+					)}
+				</ServiceCard>
+			)}
+
+			{/* Forgejo — Git hosting (staff only) */}
+			{isStaff && (
+				<ServiceCard
+					title="Forgejo"
+					description="Self-hosted Git repositories"
+					href="/dashboard/forgejo/"
+					icon={<GitFork size={18} />}
+					accentColor="#e85d04"
+					status={forgejoStatus}>
+					{forgejoStatus === 'loading' ? (
+						<LoadingPlaceholder />
+					) : forgejo ? (
+						<>
+							<MetricValue
+								label="Repos"
+								value={forgejo.totalRepos}
+								color="#e85d04"
+							/>
+							<MetricValue
+								label="Private"
+								value={forgejo.privateRepos}
+								color="#8b5cf6"
+							/>
+							<MetricValue
+								label="Mirrors"
+								value={forgejo.mirrors}
+								color="#06b6d4"
+							/>
+							<MetricValue
+								label="Issues"
+								value={forgejo.openIssues}
+								color={
+									forgejo.openIssues > 0
+										? '#f59e0b'
+										: '#22c55e'
+								}
+							/>
+							<MetricValue
+								label="PRs"
+								value={forgejo.openPRs}
+								color={
+									forgejo.openPRs > 0 ? '#3b82f6' : '#6b7280'
+								}
 							/>
 						</>
 					) : (

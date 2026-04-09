@@ -87,6 +87,15 @@ export interface VmSummary {
 	stopped: number;
 }
 
+export interface ForgejoSummary {
+	totalRepos: number;
+	publicRepos: number;
+	privateRepos: number;
+	mirrors: number;
+	openIssues: number;
+	openPRs: number;
+}
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -98,6 +107,7 @@ const DS_CACHE_KEY = 'cache:grafana:ds-id';
 const CH_PROXY_BASE = '/dashboard/clickhouse/proxy';
 const VM_PROXY_BASE = '/dashboard/vm/proxy';
 const VM_NAMESPACE = 'angelscript';
+const FORGEJO_PROXY_BASE = '/dashboard/forgejo/proxy';
 
 // ---------------------------------------------------------------------------
 // Cache helpers
@@ -558,6 +568,60 @@ async function fetchVmSummary(token: string): Promise<VmSummary | null> {
 	}
 }
 
+async function fetchForgejoSummary(
+	token: string,
+): Promise<ForgejoSummary | null> {
+	const cached = getCache<ForgejoSummary>('cache:dashboard:forgejo-summary');
+	if (cached) return cached;
+
+	try {
+		const resp = await fetch(
+			`${FORGEJO_PROXY_BASE}/api/v1/repos/search?limit=50&sort=updated`,
+			{
+				headers: { Authorization: `Bearer ${token}` },
+				signal: AbortSignal.timeout(10000),
+			},
+		);
+		if (!resp.ok) {
+			if (resp.status === 503)
+				console.warn('[Forgejo] Proxy not configured (503)');
+			else console.warn(`[Forgejo] Fetch failed (${resp.status})`);
+			return null;
+		}
+		const data = await resp.json();
+		const repos: Array<{
+			private?: boolean;
+			mirror?: boolean;
+			open_issues_count?: number;
+			open_pr_counter?: number;
+		}> = Array.isArray(data) ? data : (data.data ?? []);
+
+		const totalRepos = repos.length;
+		const privateRepos = repos.filter((r) => r.private).length;
+		const mirrors = repos.filter((r) => r.mirror).length;
+		let openIssues = 0;
+		let openPRs = 0;
+		for (const r of repos) {
+			openIssues += r.open_issues_count ?? 0;
+			openPRs += r.open_pr_counter ?? 0;
+		}
+
+		const summary: ForgejoSummary = {
+			totalRepos,
+			publicRepos: totalRepos - privateRepos,
+			privateRepos,
+			mirrors,
+			openIssues,
+			openPRs,
+		};
+		setCache('cache:dashboard:forgejo-summary', summary);
+		return summary;
+	} catch {
+		console.warn('[Forgejo] Network error or timeout');
+		return null;
+	}
+}
+
 async function fetchGraphSummary(): Promise<GraphSummary | null> {
 	const cached = getCache<GraphSummary>('cache:dashboard:graph-summary');
 	if (cached) return cached;
@@ -641,6 +705,7 @@ class HomeService {
 	public readonly $graph = atom<GraphSummary | null>(null);
 	public readonly $rows = atom<RowsSummary | null>(null);
 	public readonly $vm = atom<VmSummary | null>(null);
+	public readonly $forgejo = atom<ForgejoSummary | null>(null);
 
 	// Loading
 	public readonly $loading = atom<boolean>(true);
@@ -657,6 +722,7 @@ class HomeService {
 	public readonly $graphStatus = atom<ServiceStatus>('loading');
 	public readonly $rowsStatus = atom<ServiceStatus>('loading');
 	public readonly $vmStatus = atom<ServiceStatus>('loading');
+	public readonly $forgejoStatus = atom<ServiceStatus>('loading');
 
 	// Computed — staff-aware: exclude infrastructure services for regular users
 	public readonly $allOk = computed(
@@ -812,12 +878,14 @@ class HomeService {
 			this.$clickhouseStatus.set('loading');
 			this.$rowsStatus.set('loading');
 			this.$vmStatus.set('loading');
+			this.$forgejoStatus.set('loading');
 		} else {
 			this.$grafanaStatus.set('unavailable');
 			this.$argoStatus.set('unavailable');
 			this.$clickhouseStatus.set('unavailable');
 			this.$rowsStatus.set('unavailable');
 			this.$vmStatus.set('unavailable');
+			this.$forgejoStatus.set('unavailable');
 		}
 
 		// Static JSON fetches (no auth required)
@@ -883,6 +951,10 @@ class HomeService {
 					this.$vm.set(vm);
 					this.$vmStatus.set(vm ? 'ok' : 'unavailable');
 				}),
+				fetchForgejoSummary(token).then((f) => {
+					this.$forgejo.set(f);
+					this.$forgejoStatus.set(f ? 'ok' : 'unavailable');
+				}),
 			);
 		}
 
@@ -901,6 +973,8 @@ class HomeService {
 				failures.push('ClickHouse');
 			if (this.$rowsStatus.get() === 'unavailable') failures.push('ROWS');
 			if (this.$vmStatus.get() === 'unavailable') failures.push('VMs');
+			if (this.$forgejoStatus.get() === 'unavailable')
+				failures.push('Forgejo');
 			if (failures.length > 0) {
 				addToast({
 					id: `svc-err-${Date.now()}`,
