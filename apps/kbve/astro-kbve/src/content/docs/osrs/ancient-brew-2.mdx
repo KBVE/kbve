@@ -39,39 +39,19 @@ osrs:
       slug: ancient-brew-1
       relationship: variant
       description: 1-dose version
+  about: 2-dose variant of Ancient brew.
+  market_strategy:
+    notes:
+      - Compare to 4-dose price
+      - Decanting can profit
+      - Use decanting NPC in GE
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Usage
-
-2-dose variant of Ancient brew.
-
-## Market Flip Strategy
-
-**Dose Manipulation:**
-- Compare to 4-dose price
-- Decanting can profit
-- Use decanting NPC in GE
-
-**Buy Limit:** 2,000 per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

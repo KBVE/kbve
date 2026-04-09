@@ -60,78 +60,38 @@ osrs:
       slug: ancient-wyvern-shield
       relationship: alternative
       description: Wyvern protection variant
+  about: |-
+    | Defence | Bonus |
+    |---------|-------|
+    | Stab | +7 |
+    | Slash | +8 |
+    | Crush | +7 |
+    | Magic | +2 |
+
+    Provides partial protection against dragonfire.
+
+    Usage: Essential for fighting dragons without antifire potions.
+
+    Combine with antifire for full protection.
+  market_strategy:
+    notes:
+      - Required for Dragon Slayer
+      - Cheap and accessible
+      - Component for DFS
+      - New players
+      - Dragon Slayer quest
+      - Ironmen
+      - DFS creation
+      - Free from Duke Horacio
+      - Combine with draconic visage for DFS
+      - Keep one for dragon tasks
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Shield |
-| Requirements | None |
-| Tradeable | Yes |
-| Weight | 2.721 kg |
-
-## Stats
-
-| Defence | Bonus |
-|---------|-------|
-| Stab | +7 |
-| Slash | +8 |
-| Crush | +7 |
-| Magic | +2 |
-
-## Obtaining
-
-- **Duke Horacio** - Lumbridge Castle (free during Dragon Slayer)
-- **Oziach** - Edgeville (purchase)
-- **Grand Exchange**
-
-## Dragonfire Protection
-
-Provides partial protection against dragonfire.
-
-**Usage:** Essential for fighting dragons without antifire potions.
-
-**Combine with antifire** for full protection.
-
-## Market Flip Strategy
-
-**Essential Dragon Fighting Item:**
-- Required for Dragon Slayer
-- Cheap and accessible
-- Component for DFS
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Demand Drivers:**
-- New players
-- Dragon Slayer quest
-- Ironmen
-- DFS creation
-
-**Tips:**
-- Free from Duke Horacio
-- Combine with draconic visage for DFS
-- Keep one for dragon tasks
-
-<Adsense />
+<OSRSAdsenseCard />

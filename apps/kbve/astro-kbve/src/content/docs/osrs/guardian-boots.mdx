@@ -58,88 +58,54 @@ osrs:
       slug: bandos-boots
       relationship: component
       description: Base component
+  about: |-
+    Combine Bandos boots + Black tourmaline core.
+
+    Process is irreversible.
+
+    | Component | Source | Price |
+    |-----------|--------|-------|
+    | Bandos boots | General Graardor | ~130K |
+    | Black tourmaline core | Grotesque Guardians | ~2.9M |
+
+    | Offense | Value |
+    |---------|-------|
+    | Magic | -3 |
+    | Ranged | -1 |
+    | Strength | +3 |
+
+    | Defence | Value |
+    |---------|-------|
+    | Stab | +32 |
+    | Slash | +32 |
+    | Crush | +32 |
+    | Magic | -3 |
+    | Ranged | +24 |
+
+    | Other | Value |
+    |-------|-------|
+    | Prayer | +2 |
+
+    Requirements: 75 Defence
+
+    BiS tank boots for:
+    - Tanking roles
+    - High defence situations
+    - PvM where defence matters
+
+    Trade-off: +1 less strength than Primordial, much more defence.
+  market_strategy:
+    notes:
+      - Tourmaline core from Grotesque Guardians
+      - Best defence boots in game
+      - Niche but useful
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Feet |
-| Type | Melee Armor (Tank) |
-| Tradeable | Yes |
-| Weight | 7 kg |
-
-## Creation
-
-Combine [Bandos boots](/osrs/bandos-boots/) + [Black tourmaline core](/osrs/black-tourmaline-core/).
-
-**Process is irreversible.**
-
-| Component | Source | Price |
-|-----------|--------|-------|
-| Bandos boots | General Graardor | ~130K |
-| Black tourmaline core | Grotesque Guardians | ~2.9M |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Magic | -3 |
-| Ranged | -1 |
-| Strength | +3 |
-
-| Defence | Value |
-|---------|-------|
-| Stab | +32 |
-| Slash | +32 |
-| Crush | +32 |
-| Magic | -3 |
-| Ranged | +24 |
-
-| Other | Value |
-|-------|-------|
-| Prayer | +2 |
-
-**Requirements:** 75 Defence
-
-## Usage
-
-BiS tank boots for:
-- Tanking roles
-- High defence situations
-- PvM where defence matters
-
-**Trade-off: +1 less strength than Primordial, much more defence.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~3M gp
-
-**Tips:**
-- Tourmaline core from Grotesque Guardians
-- Best defence boots in game
-- Niche but useful
-
-<Adsense />
+<OSRSAdsenseCard />

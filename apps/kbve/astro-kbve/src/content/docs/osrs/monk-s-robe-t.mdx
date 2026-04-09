@@ -1,6 +1,6 @@
 ---
 title: Monk's robe (t) | OSRS Price Data
-description: "Monk's robe (t): I feel the gods don't enjoy my materialistic obsessions.. High alch: 300 GP, GE limit: 4."
+description: "Monk's robe (t) is a F2P legs slot item. High alch: 300 GP, GE limit: 4."
 osrs:
   id: 23306
   name: Monk's robe (t)
@@ -12,26 +12,28 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 4
+  equipment:
+    slot: legs
+    requirements: {}
+    other_bonus:
+      prayer: 5
+  related_items:
+    - item_id: 23303
+      item_name: Monk's robe top (t)
+      slug: monks-robe-top-t
+      relationship: set-piece
+      description: Matching trimmed monk's robe top
+  about: |-
+    > *"A \"holy\" robe, now with a \"fashionable\" trim."*
+
+    The monk's robe (t) is a trimmed cosmetic variant of monk's robes. Provides +5 Prayer bonus with no requirements. F2P item.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

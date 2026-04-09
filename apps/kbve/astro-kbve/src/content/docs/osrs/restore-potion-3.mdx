@@ -12,26 +12,28 @@ osrs:
   lowalch: 35
   highalch: 52
   limit: 2000
+  related_items:
+    - item_id: 129
+      item_name: Restore potion(2)
+      slug: restore-potion-2
+      relationship: variant
+      description: 2-dose version
+    - item_id: 131
+      item_name: Restore potion(1)
+      slug: restore-potion-1
+      relationship: variant
+      description: 1-dose version
+  about: |-
+    > _"3 doses of restore potion."_
+
+    The restore potion restores temporarily reduced Attack, Strength, Defence, Ranged, and Magic by 10 + 30% of the stat's max level. Does not restore Prayer or boost above base level.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

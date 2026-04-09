@@ -1,6 +1,6 @@
 ---
 title: Dragonstone bracelet | OSRS Price Data
-description: "Dragonstone bracelet: I wonder if this is valuable.. High alch: 11,475 GP, GE limit: 10,000."
+description: "Dragonstone bracelet is a members hands slot item. High alch: 11,475 GP, GE limit: 10,000."
 osrs:
   id: 11115
   name: Dragonstone bracelet
@@ -12,26 +12,62 @@ osrs:
   lowalch: 7650
   highalch: 11475
   limit: 10000
+  equipment:
+    slot: hands
+    requirements:
+      crafting: 74
+  recipes:
+    - skill: crafting
+      level: 74
+      xp: 110
+      inputs:
+        - item_name: Dragonstone
+          quantity: 1
+        - item_name: Gold bar
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 11092
+      item_name: Diamond bracelet
+      slug: diamond-bracelet
+      relationship: downgrade
+      description: Previous tier bracelet
+    - item_id: 11130
+      item_name: Onyx bracelet
+      slug: onyx-bracelet
+      relationship: upgrade
+      description: Next tier bracelet
+    - item_id: 11126
+      item_name: Combat bracelet
+      slug: combat-bracelet
+      relationship: enchanted
+      description: Enchanted version (combat teleports)
+  about: |-
+    Crafting (Level 74): Dragonstone + Gold bar at a furnace with bracelet mould (110 XP)
+
+    > *"A dragonstone bracelet."*
+
+    Lvl-5 Enchant (68 Magic): 1 cosmic rune + 15 earth runes + 15 water runes (78 XP)
+
+    The Combat bracelet provides combat bonuses (+7 melee attack, +6 Str) and 4 teleport charges:
+    - Warriors' Guild — defender farming
+    - Champions' Guild — south of Varrock
+    - Edgeville Monastery — near Black Knights
+    - Ranging Guild — archery minigame
+
+    Rechargeable at the Legends' Guild fountain.
+  market_strategy:
+    notes:
+      - Combat bracelet widely used for Warriors' Guild teleport
+      - Dragonstone cost drives price
+      - Enchanting often profitable
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

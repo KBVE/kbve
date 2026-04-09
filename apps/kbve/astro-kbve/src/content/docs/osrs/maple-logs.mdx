@@ -90,63 +90,32 @@ osrs:
       slug: yew-logs
       relationship: alternative
       description: Higher tier
+  about: |-
+    | Requirement | Value |
+    |-------------|-------|
+    | Woodcutting Level | 45 |
+    | XP per log | 100 |
+  market_strategy:
+    title: Arrow Shaft Processing
+    profit_formulas:
+      - (Arrow shaft × 60) - Maple log = Profit
+    notes:
+      - 1 Maple log = 60 arrow shafts
+      - "Calculate:"
+      - Good volume, mid-tier processing
+      - Maple longbow (u) + Bow string = Maple longbow
+      - "High Alch: 576 GP"
+      - Compare crafting cost to alch value
+      - Popular F2P Woodcutting training
+      - Seers' Village maple trees
+      - Mid-tier fletching option
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Woodcutting
-
-| Requirement | Value |
-|-------------|-------|
-| Woodcutting Level | 45 |
-| XP per log | 100 |
-
-## Fletching
-
-Use a [Knife](/osrs/knife/) on Maple logs:
-
-| Output | Qty | Fletching Level | XP |
-|--------|-----|-----------------|-----|
-| [Arrow shaft](/osrs/arrow-shaft/) | 60 | 45 | 20 |
-| [Maple shortbow (u)](/osrs/maple-shortbow-u/) | 1 | 50 | 50 |
-| [Maple longbow (u)](/osrs/maple-longbow-u/) | 1 | 55 | 58.3 |
-| [Maple stock](/osrs/maple-stock/) | 1 | 54 | 32 |
-
-## Market Flip Strategy
-
-**Arrow Shaft Processing:**
-- 1 Maple log = 60 arrow shafts
-- Calculate: `(Arrow shaft × 60) - Maple log = Profit`
-- Good volume, mid-tier processing
-
-**Bow Making:**
-- Maple longbow (u) + [Bow string](/osrs/bow-string/) = [Maple longbow](/osrs/maple-longbow/)
-- High Alch: 576 GP
-- Compare crafting cost to alch value
-
-**Buy Limit:** 15,000 per 4 hours
-
-**Tips:**
-- Popular F2P Woodcutting training
-- Seers' Village maple trees
-- Mid-tier fletching option
-
-<Adsense />
+<OSRSAdsenseCard />

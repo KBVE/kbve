@@ -1,6 +1,6 @@
 ---
 title: Studded chaps | OSRS Price Data
-description: "Studded chaps: Those studs should provide a bit more protection.. High alch: 450 GP, GE limit: 125."
+description: "Studded chaps is a F2P legs slot item requiring 20 Ranged. High alch: 450 GP, GE limit: 125."
 osrs:
   id: 1097
   name: Studded chaps
@@ -12,26 +12,102 @@ osrs:
   lowalch: 300
   highalch: 450
   limit: 125
+  equipment:
+    slot: legs
+    type: ranged_armour
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -5
+      ranged: 6
+    defence_bonus:
+      stab: 15
+      slash: 16
+      crush: 17
+      magic: 6
+      ranged: 16
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      ranged: 20
+    weight: 4.535
+  recipes:
+    - skill: crafting
+      level: 44
+      xp: 42
+      materials:
+        - item_name: Leather chaps
+          item_id: 1095
+          quantity: 1
+        - item_name: Steel studs
+          item_id: 2370
+          quantity: 1
+      product: Studded chaps
+      product_id: 1097
+      product_quantity: 1
+      ticks: 3
+  related_items:
+    - item_id: 1095
+      item_name: Leather chaps
+      slug: leather-chaps
+      relationship: component
+      description: Base chaps before studding
+    - item_id: 2370
+      item_name: Steel studs
+      slug: steel-studs
+      relationship: component
+      description: Studs added to leather chaps
+    - item_id: 1133
+      item_name: Studded body
+      slug: studded-body
+      relationship: alternative
+      description: Matching body slot armour
+    - item_id: 1099
+      item_name: Green d'hide chaps
+      slug: green-dhide-chaps
+      relationship: upgrade
+      description: Next tier ranged legs (40 Ranged)
+  about: |-
+    | Stat | Attack | Defence |
+    |------|--------|---------|
+    | Stab | 0 | +15 |
+    | Slash | 0 | +16 |
+    | Crush | 0 | +17 |
+    | Magic | -5 | +6 |
+    | Ranged | +6 | +16 |
+
+    Requirements: 20 Ranged | Weight: 4.54 kg
+
+    The studded chaps are the best F2P ranged leg armour:
+
+    | Armour | Ranged Atk | Ranged Def | Req |
+    |--------|-----------|-----------|-----|
+    | Leather chaps | +4 | +8 | 1 Ranged |
+    | Studded chaps | +6 | +16 | 20 Ranged |
+    | Green d'hide chaps | +8 | +22 | 40 Ranged (P2P) |
+
+    Studded chaps fill an important role in F2P:
+    - Best ranged legs for free players
+    - No Defence requirement unlike the studded body
+    - PKing staple for F2P ranged and hybrid setups
+    - Pairs with studded body for full studded leather set
+  market_strategy:
+    notes:
+      - Low GE price (~290 gp), high alch at 450 gp offers alch profit
+      - Steady F2P demand for ranged training and PKing
+      - Crafting at level 44 is slightly higher than studded body
+      - No Defence requirement makes them popular with pures
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

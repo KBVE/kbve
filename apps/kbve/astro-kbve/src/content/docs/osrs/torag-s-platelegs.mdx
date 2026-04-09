@@ -57,82 +57,37 @@ osrs:
       slug: torags-hammers
       relationship: set-piece
       description: Weapon set piece
+  about: |-
+    | Bonus | Value |
+    |-------|-------|
+    | Stab defence | +85 |
+    | Slash defence | +82 |
+    | Crush defence | +83 |
+    | Magic defence | -4 |
+    | Ranged defence | +92 |
+    | Magic attack | -21 |
+
+    Corruption:
+    When wearing full Torag's (helm, platebody, platelegs, hammers):
+    - 25% chance to lower opponent's run energy by 20%
+
+    With Amulet of the Damned:
+    - Defence is increased by 1% for every 1 HP missing
+
+    Best For:
+    - Budget tank legs
+    - Identical stats to Dharok's platelegs
+    - Cheaper alternative for defence
+
+    - 15 hours of combat use
+    - Repair at Bob in Lumbridge or POH armor stand
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Obtained from the Barrows minigame (1/102.17 for any specific Barrows item).
-
-**Location:** Barrows mounds, east of Mort'ton in Morytania
-
-## Equipment Info
-
-| Stat | Value |
-|------|-------|
-| Slot | Legs |
-| Weight | 9.0 kg |
-| Requirements | 70 Defence |
-
-## Stats
-
-| Bonus | Value |
-|-------|-------|
-| Stab defence | +85 |
-| Slash defence | +82 |
-| Crush defence | +83 |
-| Magic defence | -4 |
-| Ranged defence | +92 |
-| Magic attack | -21 |
-
-## Set Effect
-
-**Corruption:**
-When wearing full Torag's (helm, platebody, platelegs, hammers):
-- 25% chance to lower opponent's run energy by 20%
-
-**With Amulet of the Damned:**
-- Defence is increased by 1% for every 1 HP missing
-
-## Usage
-
-**Best For:**
-- Budget tank legs
-- Identical stats to Dharok's platelegs
-- Cheaper alternative for defence
-
-## Degradation
-
-- 15 hours of combat use
-- Repair at Bob in Lumbridge or POH armor stand
-
-## Market Strategy
-
-**Buy Limit:** 10 per 4 hours
-
-## Related Items
-
-- [Torag's helm](/osrs/torags-helm/) - Head slot
-- [Torag's platebody](/osrs/torags-platebody/) - Body slot
-- [Torag's hammers](/osrs/torags-hammers/) - Weapon
-
-<Adsense />
+<OSRSAdsenseCard />

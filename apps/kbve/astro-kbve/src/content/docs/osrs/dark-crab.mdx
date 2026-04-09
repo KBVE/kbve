@@ -63,55 +63,32 @@ osrs:
       slug: dark-fishing-bait
       relationship: component
       description: Required bait for fishing
+  about: |-
+    Heals 22 HP - tied for second highest instant heal.
+
+    | Food | Heal | Notes |
+    |------|------|-------|
+    | Dark crab | 22 | Wilderness only fishing |
+    | Manta ray | 22 | No overheal |
+    | Anglerfish | 22 | Has overheal |
+  market_strategy:
+    notes:
+      - Buy Raw dark crab → Cook → Sell
+      - 90 Cooking required (high barrier)
+      - Caught in Wilderness only
+      - PKer risk while fishing
+      - Premium price for safe cooked version
+      - Elite Wilderness Diary required for best rates
+      - Alternative to manta rays
+      - Wilderness fishing = risky supply
+      - Price volatile with PvP activity
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Healing
-
-Heals **22 HP** - tied for second highest instant heal.
-
-| Food | Heal | Notes |
-|------|------|-------|
-| Dark crab | 22 | Wilderness only fishing |
-| Manta ray | 22 | No overheal |
-| Anglerfish | 22 | Has overheal |
-
-## Market Flip Strategy
-
-**Cooking Profit:**
-- Buy Raw dark crab → Cook → Sell
-- 90 Cooking required (high barrier)
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Risk vs Reward:**
-- Caught in Wilderness only
-- PKer risk while fishing
-- Premium price for safe cooked version
-
-**Tips:**
-- Elite Wilderness Diary required for best rates
-- Alternative to manta rays
-- Wilderness fishing = risky supply
-- Price volatile with PvP activity
-
-<Adsense />
+<OSRSAdsenseCard />

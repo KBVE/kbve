@@ -1,6 +1,6 @@
 ---
 title: Opal dragon bolts (e) | OSRS Price Data
-description: "Opal dragon bolts (e): Enchanted Dragon crossbow bolts, tipped with opal.. High alch: 348 GP, GE limit: 11,000."
+description: "Opal dragon bolts (e) is a members ammo slot item with +122 ranged strength. High alch: 348 GP, GE limit: 11,000."
 osrs:
   id: 21932
   name: Opal dragon bolts (e)
@@ -12,26 +12,63 @@ osrs:
   lowalch: 232
   highalch: 348
   limit: 11000
+  equipment:
+    slot: ammo
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      ranged_strength: 122
+      prayer: 0
+    requirements: {}
+  recipes:
+    - skill: magic
+      level: 4
+      xp: 9
+      inputs:
+        - item_name: Opal dragon bolts
+          quantity: 10
+      output_quantity: 10
+  related_items:
+    - item_id: 9236
+      item_name: Opal bolts (e)
+      slug: opal-bolts-e
+      relationship: downgrade
+      description: Regular crossbow version
+  about: |-
+    > *"Enchanted Dragon crossbow bolts, tipped with opal."*
+
+    Opal dragon bolts (e) carry the Lucky Lightning enchantment. On a successful hit, there is a 5% chance (5.5% with the hard Kandarin Diary completed) that a lightning bolt strikes the opponent, dealing extra damage equal to 10% of the attacker's visible Ranged level. This effect triggers independently of the normal damage roll, providing a small but consistent damage boost over time.
+
+    Enchant Crossbow Bolt (Opal) requires Magic level 4 and grants 9 XP per cast. Each cast enchants 10 bolts at a time.
+
+    | Component | Quantity |
+    |-----------|----------|
+    | Opal dragon bolts | 10 |
+    | Cosmic rune | 1 |
+    | Air rune | 2 |
+
+    | Stat | Dragon (e) | Regular (e) |
+    |------|-----------|-------------|
+    | Ranged Str | +122 | +14 |
+    | Base bolt | Dragon crossbow bolt | Bronze–Runite bolt |
+
+    The dragon bolt base provides significantly higher ranged strength, making enchanted dragon bolts the top-tier ammunition choice for crossbow users.
+  market_strategy:
+    notes:
+      - Lowest enchant level of any bolt enchantment (Magic 4)
+      - Cheapest dragon bolt (e) variant to produce
+      - Effect is minor compared to higher-tier enchantments
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

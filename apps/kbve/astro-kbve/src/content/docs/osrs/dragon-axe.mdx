@@ -69,81 +69,39 @@ osrs:
       slug: smouldering-stone
       relationship: component
       description: Infernal component
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Stab | -2 |
+    | Slash | +38 |
+    | Crush | +32 |
+    | Strength | +42 |
+
+    Requirements: 60 Attack, 61 Woodcutting
+
+    Lumber Up (100% energy):
+    - +3 Woodcutting levels
+    - Lasts 60 seconds
+    - Preserve extends by 50%
+
+    Essential for:
+    - All high-level woodcutting
+    - Upgrade to crystal/infernal
+    - Best base axe
+
+    Best axe (base) in the game.
+  market_strategy:
+    notes:
+      - DKs are easy source
+      - Very affordable
+      - Upgrade to crystal or infernal
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Main-hand) |
-| Type | Axe |
-| Tradeable | Yes |
-| Weight | 1.36 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Dagannoth Rex/Supreme/Prime | 1/128 each |
-| Wintertodt Reward Cart | 1/10,000 |
-| Master clues | Rare |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Stab | -2 |
-| Slash | +38 |
-| Crush | +32 |
-| Strength | +42 |
-
-**Requirements:** 60 Attack, 61 Woodcutting
-
-## Special Attack
-
-**Lumber Up** (100% energy):
-- +3 Woodcutting levels
-- Lasts 60 seconds
-- Preserve extends by 50%
-
-## Usage
-
-Essential for:
-- All high-level woodcutting
-- Upgrade to crystal/infernal
-- Best base axe
-
-**Best axe (base) in the game.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~50K gp
-
-**Tips:**
-- DKs are easy source
-- Very affordable
-- Upgrade to crystal or infernal
-
-<Adsense />
+<OSRSAdsenseCard />

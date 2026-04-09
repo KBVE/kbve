@@ -1,6 +1,6 @@
 ---
 title: Inky paint | OSRS Price Data
-description: "Inky paint: An inky black paint. This might look good on a boat.. High alch: 1 GP."
+description: "Inky paint: An inky black paint. This might look good on a boat.. High alch: 1 GP, GE limit: 5."
 osrs:
   id: 32093
   name: Inky paint
@@ -11,7 +11,7 @@ osrs:
   value: 1
   lowalch: 1
   highalch: 1
-  limit: null
+  limit: 5
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

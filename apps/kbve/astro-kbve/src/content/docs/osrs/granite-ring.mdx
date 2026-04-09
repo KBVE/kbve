@@ -67,63 +67,33 @@ osrs:
       slug: granite-ring-i
       relationship: upgrade
       description: Imbued version with doubled stats
+  about: |-
+    Best ranged defence ring:
+    - +12 Ranged defence (highest of any ring)
+    - Can be imbued to double all stats
+
+    Imbuing methods:
+    - Nightmare Zone: 500,000 points
+    - Soul Wars: 200 Zeal Tokens
+    - PvP Arena: Scroll of imbuing
+
+    When imbued:
+    - +4 Stab/Slash/Crush defence
+    - -4 Magic defence
+    - +24 Ranged defence
+  market_strategy:
+    notes:
+      - Niche tanking ring
+      - Best for ranged defence specifically
+      - Consider imbuing for doubled stats
+      - Part of Grotesque Guardian collection
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Dropped by Grotesque Guardians on the Slayer Tower rooftop.
-
-**Requirements:**
-- 75 Slayer
-- Brittle key (dropped by Gargoyles)
-- Access to Slayer Tower
-
-**Drop rate:** 2 x 1/500 (effectively 1/250 per kill)
-
-## Usage
-
-**Best ranged defence ring:**
-- +12 Ranged defence (highest of any ring)
-- Can be imbued to double all stats
-
-**Imbuing methods:**
-- Nightmare Zone: 500,000 points
-- Soul Wars: 200 Zeal Tokens
-- PvP Arena: Scroll of imbuing
-
-**When imbued:**
-- +4 Stab/Slash/Crush defence
-- -4 Magic defence
-- +24 Ranged defence
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Niche tanking ring
-- Best for ranged defence specifically
-- Consider imbuing for doubled stats
-- Part of Grotesque Guardian collection
-
-<Adsense />
+<OSRSAdsenseCard />

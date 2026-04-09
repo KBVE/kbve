@@ -62,83 +62,42 @@ osrs:
       slug: bandos-godsword
       relationship: alternative
       description: Defence draining spec
+  about: |-
+    | Stat | Value |
+    |------|-------|
+    | Stab attack | +41 |
+    | Slash attack | +57 |
+    | Crush attack | -4 |
+    | Stab defence | +13 |
+    | Slash defence | +26 |
+    | Crush defence | +7 |
+    | Strength | +56 |
+    | Requirements | 60 Attack |
+
+    Slice and Dice (50% energy):
+    - 4 rapid hits in sequence
+    - Each hit has ~10% reduced accuracy
+    - Can deal massive burst damage
+
+    Extremely powerful for PvP and spec-focused PvM.
+
+    BiS spec weapon for:
+    - PvP (combo specs)
+    - ToB Maiden
+    - CoX Tekton
+    - General burst damage
+  market_strategy:
+    notes:
+      - Tormented Demons are best source
+      - Iconic PvP spec weapon
+      - 4 hits can stack huge damage
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Main-hand) |
-| Type | Melee - Slash |
-| Tradeable | Yes |
-| Weight | 0.907 kg |
-| Attack Speed | 4 tick (2.4s) |
-
-## Obtaining
-
-Rare drop from Tormented Demons in the Demon Slayer quest (post-quest drop).
-
-Also obtainable from Chambers of Xeric (very rare).
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Stab attack | +41 |
-| Slash attack | +57 |
-| Crush attack | -4 |
-| Stab defence | +13 |
-| Slash defence | +26 |
-| Crush defence | +7 |
-| Strength | +56 |
-| Requirements | 60 Attack |
-
-## Special Attack
-
-**Slice and Dice** (50% energy):
-- 4 rapid hits in sequence
-- Each hit has ~10% reduced accuracy
-- Can deal massive burst damage
-
-**Extremely powerful for PvP and spec-focused PvM.**
-
-## Usage
-
-BiS spec weapon for:
-- PvP (combo specs)
-- ToB Maiden
-- CoX Tekton
-- General burst damage
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~53M gp
-
-**Tips:**
-- Tormented Demons are best source
-- Iconic PvP spec weapon
-- 4 hits can stack huge damage
-
-<Adsense />
+<OSRSAdsenseCard />

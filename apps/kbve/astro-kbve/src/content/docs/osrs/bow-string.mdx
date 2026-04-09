@@ -57,64 +57,43 @@ osrs:
       slug: magic-longbow
       relationship: product
       description: Strung magic bow
+  about: |-
+    Spin Flax on a spinning wheel to create Bow string.
+
+    | Action | Crafting Level | XP |
+    |--------|----------------|-----|
+    | Spin flax | 1 | 15 |
+
+    Bow strings are used to string unstrung bows:
+
+    | Bow | Fletching Level |
+    |-----|-----------------|
+    | Shortbow | 5 |
+    | Longbow | 10 |
+    | Oak shortbow | 20 |
+    | Oak longbow | 25 |
+    | Willow shortbow | 35 |
+    | Willow longbow | 40 |
+    | Maple shortbow | 50 |
+    | Maple longbow | 55 |
+    | Yew shortbow | 65 |
+    | Yew longbow | 70 |
+    | Magic shortbow | 80 |
+    | Magic longbow | 85 |
+  market_strategy:
+    notes:
+      - Buy Flax → Spin → Sell Bow string
+      - Low effort, decent GP/hr for low levels
+      - Buy unstrung bows + bow strings
+      - String and sell finished bows
+      - Works well with Yew longbow (u)
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Spin [Flax](/osrs/flax/) on a spinning wheel to create Bow string.
-
-| Action | Crafting Level | XP |
-|--------|----------------|-----|
-| Spin flax | 1 | 15 |
-
-## Usage
-
-Bow strings are used to string unstrung bows:
-
-| Bow | Fletching Level |
-|-----|-----------------|
-| [Shortbow](/osrs/shortbow/) | 5 |
-| [Longbow](/osrs/longbow/) | 10 |
-| [Oak shortbow](/osrs/oak-shortbow/) | 20 |
-| [Oak longbow](/osrs/oak-longbow/) | 25 |
-| [Willow shortbow](/osrs/willow-shortbow/) | 35 |
-| [Willow longbow](/osrs/willow-longbow/) | 40 |
-| [Maple shortbow](/osrs/maple-shortbow/) | 50 |
-| [Maple longbow](/osrs/maple-longbow/) | 55 |
-| [Yew shortbow](/osrs/yew-shortbow/) | 65 |
-| [Yew longbow](/osrs/yew-longbow/) | 70 |
-| [Magic shortbow](/osrs/magic-shortbow/) | 80 |
-| [Magic longbow](/osrs/magic-longbow/) | 85 |
-
-## Market Flip Strategy
-
-**Flax to Bow String:**
-- Buy [Flax](/osrs/flax/) → Spin → Sell Bow string
-- Low effort, decent GP/hr for low levels
-
-**Stringing Service:**
-- Buy unstrung bows + bow strings
-- String and sell finished bows
-- Works well with [Yew longbow (u)](/osrs/yew-longbow-u/)
-
-<Adsense />
+<OSRSAdsenseCard />

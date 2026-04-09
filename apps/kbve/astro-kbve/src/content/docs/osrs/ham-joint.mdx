@@ -1,6 +1,6 @@
 ---
 title: Ham joint | OSRS Price Data
-description: "Ham joint: A delicious joint of ham.. High alch: 900 GP, GE limit: 100."
+description: "Ham joint is a F2P weapon slot item. High alch: 900 GP, GE limit: 100."
 osrs:
   id: 23360
   name: Ham joint
@@ -12,26 +12,59 @@ osrs:
   lowalch: 600
   highalch: 900
   limit: 100
+  equipment:
+    slot: weapon
+    attack_speed: 3
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements: {}
+    weight: 2
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: very rare
+        drop_rate: 1/1404
+        members_only: false
+  about: |-
+    All bonuses are +0 — the ham joint has no combat stats whatsoever.
+
+    Requirements: None | Speed: 3 tick (1.8s) | Weight: 2 kg
+
+    At 3-tick attack speed (1.8 seconds), the ham joint is tied for the fastest melee weapon in the game. Despite having zero stats, the speed makes it theoretically interesting for niche uses.
+
+    The ham joint is primarily a fashionscape item and collectible:
+    - Rare easy clue reward (1/1,404)
+    - Tradeable and F2P accessible
+    - Can be stored in the costume room treasure chest
+    - One-handed crush weapon — three styles (Pound, Pummel, Block)
+  market_strategy:
+    notes:
+      - Rare cosmetic — price driven by collectors
+      - Easy clue farming is the only source
+      - F2P accessible, so broader market
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

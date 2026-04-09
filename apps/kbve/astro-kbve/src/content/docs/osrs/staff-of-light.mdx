@@ -76,70 +76,38 @@ osrs:
       slug: occult-necklace
       relationship: alternative
       description: Stacks magic damage bonus
+  about: |-
+    Identical to Staff of the dead:
+    - +17 Magic attack
+    - +15% Magic damage
+    - 1/7 chance to negate rune cost
+
+    Autocasts:
+    - Saradomin Strike
+    - All standard spells
+    - Crumble Undead
+
+    Special attack - Power of Death:
+    - 100% special energy
+    - Halves melee damage for 60 seconds
+    - Stacks with Protect from Melee
+
+    GWD protection:
+    - Counts as Saradomin item
+    - Also counts as Zamorak item
+  market_strategy:
+    notes:
+      - Cosmetic upgrade from Staff of the dead
+      - Same stats, different appearance
+      - Popular for fashionscape
+      - Useful for GWD protection
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Created by combining Staff of the dead with Saradomin's light.
-
-**Process:**
-- Use Saradomin's light on Staff of the dead
-- Irreversible combination
-- Instantly creates Staff of light
-
-**Components:**
-- Staff of the dead (~7.2M)
-- Saradomin's light (~2M)
-
-## Usage
-
-**Identical to Staff of the dead:**
-- +17 Magic attack
-- +15% Magic damage
-- 1/7 chance to negate rune cost
-
-**Autocasts:**
-- Saradomin Strike
-- All standard spells
-- Crumble Undead
-
-**Special attack - Power of Death:**
-- 100% special energy
-- Halves melee damage for 60 seconds
-- Stacks with Protect from Melee
-
-**GWD protection:**
-- Counts as Saradomin item
-- Also counts as Zamorak item
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Cosmetic upgrade from Staff of the dead
-- Same stats, different appearance
-- Popular for fashionscape
-- Useful for GWD protection
-
-<Adsense />
+<OSRSAdsenseCard />

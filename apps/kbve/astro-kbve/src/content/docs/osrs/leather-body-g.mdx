@@ -1,6 +1,6 @@
 ---
 title: Leather body (g) | OSRS Price Data
-description: "Leather body (g): Better than no armour! Nice trim too!. High alch: 510 GP, GE limit: 8."
+description: "Leather body (g) is a F2P body slot item. High alch: 510 GP, GE limit: 8."
 osrs:
   id: 23381
   name: Leather body (g)
@@ -12,26 +12,26 @@ osrs:
   lowalch: 340
   highalch: 510
   limit: 8
+  equipment:
+    slot: body
+    requirements: {}
+  related_items:
+    - item_id: 23384
+      item_name: Leather chaps (g)
+      slug: leather-chaps-g
+      relationship: set-piece
+      description: Matching gold-trimmed chaps
+  about: |-
+    > *"Better than no armour! Nice trim too!"*
+
+    The leather body (g) is a gold-trimmed cosmetic variant of the leather body. Identical stats with no requirements to equip. F2P item. Clue scroll exclusive.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

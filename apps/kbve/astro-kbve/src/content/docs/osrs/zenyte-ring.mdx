@@ -1,6 +1,6 @@
 ---
 title: Zenyte ring | OSRS Price Data
-description: "Zenyte ring: A fiery glow emanates from this ring.. High alch: 120,600 GP, GE limit: 8."
+description: "Zenyte ring is a members ring slot item. High alch: 120,600 GP, GE limit: 8."
 osrs:
   id: 19538
   name: Zenyte ring
@@ -12,26 +12,76 @@ osrs:
   lowalch: 80400
   highalch: 120600
   limit: 8
+  equipment:
+    slot: ring
+    requirements:
+      crafting: 89
+  recipes:
+    - skill: crafting
+      level: 89
+      xp: 150
+      inputs:
+        - item_id: 19493
+          item_name: Zenyte
+          quantity: 1
+        - item_id: 2357
+          item_name: Gold bar
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 6575
+      item_name: Onyx ring
+      slug: onyx-ring
+      relationship: downgrade
+      description: Previous tier ring
+    - item_id: 19550
+      item_name: Ring of suffering
+      slug: ring-of-suffering
+      relationship: enchanted
+      description: Enchanted version (BiS defensive ring)
+    - item_id: 19493
+      item_name: Zenyte
+      slug: zenyte
+      relationship: component
+      description: Key component from demonic gorillas
+  about: |-
+    Crafting (Level 89): Zenyte + Gold bar at a furnace (150 XP)
+
+    > *"A zenyte ring."*
+
+    Lvl-7 Enchant (93 Magic): 1 cosmic rune + 20 blood runes + 20 soul runes (110 XP)
+
+    The Ring of suffering is the best-in-slot defensive ring:
+    - +20 to all defence styles (highest of any ring)
+    - +4 Prayer bonus
+    - Can store up to 100,000 ring of recoil charges — automatically reflects damage without consuming individual recoil rings
+    - Can be imbued at the Nightmare Zone for doubled stats (+20 → +20 stays, but adds offensive bonuses)
+
+    Zenyte is crafted from:
+    1. Zenyte shard — dropped by Demonic gorillas (1/300, after Monkey Madness II)
+    2. Combine with an Onyx at a furnace using the Crafting skill (89 Crafting)
+
+    This makes zenyte jewelry the most valuable craftable jewelry in the game.
+
+    | Jewelry | Slot | Key Stat | Enchanted |
+    |---------|------|----------|-----------|
+    | Zenyte ring | Ring | → Ring of suffering | BiS defensive ring |
+    | Zenyte necklace | Neck | → Necklace of anguish | BiS ranged necklace |
+    | Zenyte bracelet | Hands | → Tormented bracelet | BiS magic bracelet |
+    | Zenyte amulet | Neck | → Amulet of torture | BiS melee amulet |
+  market_strategy:
+    notes:
+      - Zenyte shard from Demonic gorillas (requires MM2)
+      - Very high value enchant — check margins
+      - Ring of suffering has permanent demand as BiS defensive ring
+      - Blood and soul runes for Lvl-7 Enchant add to enchant cost
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -77,53 +77,26 @@ osrs:
       slug: amethyst-dart-tip
       relationship: alternative
       description: Alternative dart tip
+  market_strategy:
+    notes:
+      - Up to 2.25M XP/hour
+      - Requires feathers
+      - High demand tips
+      - Fletching training (99 grind)
+      - Dragon dart production
+      - Toxic blowpipe ammo
+      - High-level PvM
+      - Best Fletching XP method
+      - Vorkath primary source
+      - Expensive but fast
+      - 10 darts per action
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Fletching
-
-| Product | Level | XP per 10 |
-|---------|-------|-----------|
-| Dragon dart | 95 | 250 |
-
-## Market Flip Strategy
-
-**Fastest Fletching XP:**
-- Up to 2.25M XP/hour
-- Requires feathers
-- High demand tips
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Fletching training (99 grind)
-- Dragon dart production
-- Toxic blowpipe ammo
-- High-level PvM
-
-**Tips:**
-- Best Fletching XP method
-- Vorkath primary source
-- Expensive but fast
-- 10 darts per action
-
-<Adsense />
+<OSRSAdsenseCard />

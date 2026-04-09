@@ -70,78 +70,49 @@ osrs:
       slug: serpentine-helm
       relationship: alternative
       description: 100% venom
+  about: |-
+    Use chisel on Tanzanite fang (78 Fletching, 120 XP).
+
+    | Stat | Value |
+    |------|-------|
+    | Ranged attack | +30 |
+    | Ranged strength | +20 |
+    | Attack speed | 3 tick (1.8s) PvM / 4 tick PvP |
+    | Range | 5 tiles (7 with Longrange) |
+    | Requirements | 75 Ranged |
+
+    Requires:
+    - Zulrah's scales (max 16,383)
+    - Any unpoisoned darts (max 16,383)
+
+    Scale Usage:
+    - 2/3 chance to consume scale per shot
+    - Average: 2 scales per 3 shots
+
+    - 25% chance to inflict venom per hit
+    - 100% chance with Serpentine helm vs NPCs
+
+    Toxic Siphon (50% energy):
+    - Heals 50% of damage dealt
+    - No accuracy/damage boost
+
+    Best For:
+    - Fast attack speed content
+    - Slayer tasks
+    - Fight Caves/Inferno
+    - General PvM
+  market_strategy:
+    notes:
+      - Factor in scale + dart costs
+      - High DPS but expensive to use
+      - Tanzanite fang from Zulrah
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Use chisel on Tanzanite fang (78 Fletching, 120 XP).
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged attack | +30 |
-| Ranged strength | +20 |
-| Attack speed | 3 tick (1.8s) PvM / 4 tick PvP |
-| Range | 5 tiles (7 with Longrange) |
-| Requirements | 75 Ranged |
-
-## Charging
-
-**Requires:**
-- Zulrah's scales (max 16,383)
-- Any unpoisoned darts (max 16,383)
-
-**Scale Usage:**
-- 2/3 chance to consume scale per shot
-- Average: 2 scales per 3 shots
-
-## Venom Effect
-
-- 25% chance to inflict venom per hit
-- 100% chance with Serpentine helm vs NPCs
-
-## Special Attack
-
-**Toxic Siphon** (50% energy):
-- Heals 50% of damage dealt
-- No accuracy/damage boost
-
-## Usage
-
-**Best For:**
-- Fast attack speed content
-- Slayer tasks
-- Fight Caves/Inferno
-- General PvM
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours (empty)
-
-**Tips:**
-- Factor in scale + dart costs
-- High DPS but expensive to use
-- Tanzanite fang from Zulrah
-
-<Adsense />
+<OSRSAdsenseCard />

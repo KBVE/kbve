@@ -42,62 +42,13 @@ osrs:
     - slug: bronze-bolts
       name: Bronze bolts
       relation: compatible_ammo
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Main Hand |
-| Type | Crossbow |
-| Tradeable | Yes |
-| Weight | 4 kg |
-| Requirements | 1 Ranged |
-
-## Combat Stats
-
-| Stat | Bonus |
-|------|-------|
-| Ranged Attack | +18 |
-| Attack Range | 7 |
-
-## Obtaining
-
-**Fletching:** 9 Fletching with bronze crossbow (u) + crossbow string.
-
-**Shop:** Crossbow Shop, Keldagrim.
-
-## Market Strategy
-
-**Buy Limit:** 125 per 4 hours
-
-**Price:** ~428 gp
-
-Starter crossbow. Uses bronze bolts.
-
-## Related Items
-
-- [Iron crossbow](/osrs/iron-crossbow/) - Upgrade
-- [Bronze bolts](/osrs/bronze-bolts/) - Compatible ammo
-
-<Adsense />
+<OSRSAdsenseCard />

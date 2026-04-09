@@ -57,63 +57,26 @@ osrs:
       slug: amethyst-broad-bolts
       relationship: product
       description: Created item
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Ammunition Component |
+    | Tradeable | Yes |
+    | Stackable | Yes |
+    | Weight | 0 kg |
+
+    | Bolt Created | Materials | Requirements |
+    |--------------|-----------|--------------|
+    | Amethyst broad bolts | Broad bolts + Amethyst bolt tips | 76 Fletching + Broader fletching |
+
+    106 Fletching XP per 10 bolts.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Ammunition Component |
-| Tradeable | Yes |
-| Stackable | Yes |
-| Weight | 0 kg |
-
-## Obtaining
-
-**Crafting (83 Crafting):**
-- Cut amethyst with chisel → 15 tips
-- 60 XP per gem
-
-## Uses
-
-| Bolt Created | Materials | Requirements |
-|--------------|-----------|--------------|
-| Amethyst broad bolts | Broad bolts + Amethyst bolt tips | 76 Fletching + Broader fletching |
-
-106 Fletching XP per 10 bolts.
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~202 gp
-
-**Daily Volume:** ~343K trades
-
-## Related Items
-
-- [Amethyst](/osrs/amethyst/) - Raw material
-- [Broad bolts](/osrs/broad-bolts/) - Base item
-- [Amethyst broad bolts](/osrs/amethyst-broad-bolts/) - Created item
-
-<Adsense />
+<OSRSAdsenseCard />

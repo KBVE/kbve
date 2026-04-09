@@ -26,61 +26,25 @@ osrs:
       slug: blood-rune
       relationship: alternative
       description: Crafted product at Blood Altar
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Runecraft Talisman |
+    | Tradeable | Yes |
+    | Weight | 0.015 kg |
+    | Requirements | Sins of the Father |
+
+    Grants access to Blood Altar in Meiyerditch (77 Runecraft).
+
+    Can create blood tiara for headslot access.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Runecraft Talisman |
-| Tradeable | Yes |
-| Weight | 0.015 kg |
-| Requirements | Sins of the Father |
-
-## Obtaining
-
-**Shop:** Temple Supplies at Guardians of the Rift (100 Abyssal Pearls).
-
-**Quest:** Requires Sins of the Father completion.
-
-## Usage
-
-Grants access to Blood Altar in Meiyerditch (77 Runecraft).
-
-Can create blood tiara for headslot access.
-
-## Market Strategy
-
-**Buy Limit:** Limited/Rare
-
-**Price:** ~104,352 gp
-
-Very rare and valuable. Niche demand for runecrafting.
-
-## Related Items
-
-- [Blood tiara](/osrs/blood-tiara/) - Combined form
-- [Blood rune](/osrs/blood-rune/) - Crafted product
-
-<Adsense />
+<OSRSAdsenseCard />

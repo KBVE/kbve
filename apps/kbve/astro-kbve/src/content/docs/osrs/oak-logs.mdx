@@ -82,65 +82,25 @@ osrs:
       slug: oak-shortbow-u
       relationship: product
       description: Fletching output
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Logs |
+    | Tradeable | Yes |
+    | Weight | 2 kg |
+    | Requirements | 15 Woodcutting |
+
+    Convert to oak planks for Construction (250 gp at sawmill).
+
+    Popular for low-level Construction training.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Logs |
-| Tradeable | Yes |
-| Weight | 2 kg |
-| Requirements | 15 Woodcutting |
-
-## Obtaining
-
-**Woodcutting:** Cut oak trees (15 WC, 37.5 XP).
-
-**Locations:** Varrock, Draynor, Lumbridge, Grand Exchange area.
-
-**Drops:** Ents.
-
-**Farming:** Grow oak trees (15 Farming).
-
-## Usage
-
-Convert to oak planks for Construction (250 gp at sawmill).
-
-Popular for low-level Construction training.
-
-## Market Strategy
-
-**Buy Limit:** 15,000 per 4 hours
-
-**Price:** ~26 gp
-
-Budget Construction material. F2P accessible.
-
-## Related Items
-
-- [Oak plank](/osrs/oak-plank/) - Processed form
-- [Willow logs](/osrs/willow-logs/) - Higher tier
-
-<Adsense />
+<OSRSAdsenseCard />

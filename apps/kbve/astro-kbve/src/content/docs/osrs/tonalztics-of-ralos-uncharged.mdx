@@ -69,79 +69,46 @@ osrs:
       slug: sunfire-splinters
       relationship: component
       description: Charging material
+  about: |-
+    | Stat | Bonus |
+    |------|-------|
+    | Ranged Attack | +115 |
+    | Ranged Strength | +55 |
+    | Prayer | +2 |
+
+    Division (50% special attack energy)
+
+    The special attack reduces the target's Defence by 10% of their Magic level with each hit. This makes it particularly effective against high-Magic opponents in PvP and certain PvM encounters.
+
+    The Tonalztics of ralos can be charged using Sunfire splinters:
+
+    - Maximum Charges: 20,000
+    - Material Required: Sunfire splinters (Item ID: 28924)
+    - Charged Version: Tonalztics of ralos (charged) (Item ID: 28922)
+
+    When charged, the weapon gains additional power and hits twice per attack, making it significantly more effective.
+
+    Best uses for the Tonalztics of ralos:
+
+    - High-level bossing where Defence reduction is valuable
+    - PvP encounters against mages
+    - Fortis Colosseum speed runs
+    - General ranged combat with prayer bonus
+
+    Note: The uncharged version only hits once. Charge with Sunfire splinters for double hits.
+  market_strategy:
+    notes:
+      - Price fluctuates based on Colosseum popularity
+      - Sunfire splinters needed for charging add to total cost
+      - Consider buying during off-peak hours
+      - Check charged version price for comparison
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Equipment Info
-
-The Tonalztics of ralos is a powerful ranged weapon obtained from the Fortis Colosseum. This uncharged version requires 75 Ranged to wield and serves as one of the best-in-slot throwing weapons in Old School RuneScape.
-
-**Weapon Type:** Thrown
-**Attack Speed:** 7 (same as longbow)
-
-## Stats
-
-| Stat | Bonus |
-|------|-------|
-| Ranged Attack | +115 |
-| Ranged Strength | +55 |
-| Prayer | +2 |
-
-## Special Attack
-
-**Division** (50% special attack energy)
-
-The special attack reduces the target's Defence by 10% of their Magic level with each hit. This makes it particularly effective against high-Magic opponents in PvP and certain PvM encounters.
-
-## Charging
-
-The Tonalztics of ralos can be charged using Sunfire splinters:
-
-- **Maximum Charges:** 20,000
-- **Material Required:** Sunfire splinters (Item ID: 28924)
-- **Charged Version:** Tonalztics of ralos (charged) (Item ID: 28922)
-
-When charged, the weapon gains additional power and hits twice per attack, making it significantly more effective.
-
-## Usage
-
-Best uses for the Tonalztics of ralos:
-
-- High-level bossing where Defence reduction is valuable
-- PvP encounters against mages
-- Fortis Colosseum speed runs
-- General ranged combat with prayer bonus
-
-**Note:** The uncharged version only hits once. Charge with Sunfire splinters for double hits.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-**Estimated Price:** ~44.2M GP
-
-**Tips:**
-- Price fluctuates based on Colosseum popularity
-- Sunfire splinters needed for charging add to total cost
-- Consider buying during off-peak hours
-- Check charged version price for comparison
-
-<Adsense />
+<OSRSAdsenseCard />

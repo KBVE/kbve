@@ -1,6 +1,6 @@
 ---
 title: Black platelegs (g) | OSRS Price Data
-description: "Black platelegs (g): Black platelegs with gold trim.. High alch: 1,152 GP, GE limit: 8."
+description: "Black platelegs (g) is a F2P legs slot item requiring 10 Defence. High alch: 1,152 GP, GE limit: 8."
 osrs:
   id: 2593
   name: Black platelegs (g)
@@ -12,26 +12,32 @@ osrs:
   lowalch: 768
   highalch: 1152
   limit: 8
+  equipment:
+    slot: legs
+    requirements:
+      defence: 10
+  related_items:
+    - item_id: 2591
+      item_name: Black platebody (g)
+      slug: black-platebody-g
+      relationship: set-piece
+      description: Matching gold-trimmed platebody
+    - item_id: 2585
+      item_name: Black platelegs (t)
+      slug: black-platelegs-t
+      relationship: variant
+      description: Trimmed variant
+  about: |-
+    > *"Black platelegs with gold trim."*
+
+    The black platelegs (g) are a gold-trimmed cosmetic variant of standard black platelegs. Identical stats, requiring 10 Defence. Clue scroll exclusive.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

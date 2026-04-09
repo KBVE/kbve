@@ -60,68 +60,37 @@ osrs:
       slug: green-dragonhide
       relationship: alternative
       description: Lower tier
+  about: |-
+    Take to any tanner to convert to Blue dragon leather.
+
+    | Tanner | Cost |
+    |--------|------|
+    | Regular | 20 GP |
+    | Canifis | 45 GP |
+  market_strategy:
+    profit_formulas:
+      - Blue dragon leather - Blue dragonhide - 20 = Profit
+      - Body price - (Leather × 3) = Profit
+    notes:
+      - Buy hides → Tan → Sell leather
+      - "Calculate:"
+      - High volume F2P equivalent
+      - Blue d'hide body most common
+      - "Check:"
+      - Popular mid-level training
+      - Blue dragons (Taverley Dungeon, Heroes' Guild)
+      - Brutal blue dragons
+      - Vorkath (noted drops)
+      - Mid-tier dragonhide
+      - Highest F2P ranged body
+      - Good crafting XP/GP
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Tanning
-
-Take to any tanner to convert to [Blue dragon leather](/osrs/blue-dragon-leather/).
-
-| Tanner | Cost |
-|--------|------|
-| Regular | 20 GP |
-| Canifis | 45 GP |
-
-## Crafting Products
-
-| Item | Leather | Crafting Level | XP |
-|------|---------|----------------|-----|
-| [Blue d'hide vambraces](/osrs/blue-d-hide-vambraces/) | 1 | 66 | 70 |
-| [Blue d'hide chaps](/osrs/blue-d-hide-chaps/) | 2 | 68 | 140 |
-| [Blue d'hide body](/osrs/blue-d-hide-body/) | 3 | 71 | 210 |
-| [Blue d'hide shield](/osrs/blue-d-hide-shield/) | 2 | 69 | 140 |
-
-## Market Flip Strategy
-
-**Tanning Profit:**
-- Buy hides → Tan → Sell leather
-- Calculate: `Blue dragon leather - Blue dragonhide - 20 = Profit`
-- High volume F2P equivalent
-
-**Crafting Profit:**
-- [Blue d'hide body](/osrs/blue-d-hide-body/) most common
-- Check: `Body price - (Leather × 3) = Profit`
-- Popular mid-level training
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Drop Sources:**
-- Blue dragons (Taverley Dungeon, Heroes' Guild)
-- Brutal blue dragons
-- Vorkath (noted drops)
-
-**Tips:**
-- Mid-tier dragonhide
-- Highest F2P ranged body
-- Good crafting XP/GP
-
-<Adsense />
+<OSRSAdsenseCard />

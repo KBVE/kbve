@@ -37,67 +37,29 @@ osrs:
       slug: tome-of-water
       relationship: alternative
       description: Charging target
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Charging Material |
+    | Tradeable | Yes |
+    | Stackable | Yes |
+    | Weight | 0 kg |
+
+    | Use | Effect |
+    |-----|--------|
+    | Tome of water | 20 charges per page |
+
+    Spell Effects (per charge):
+    - Damaging spells: +10% accuracy/damage
+    - Non-damaging spells: +20% accuracy
+    - Curse spells: +50% stat drain
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Charging Material |
-| Tradeable | Yes |
-| Stackable | Yes |
-| Weight | 0 kg |
-
-## Obtaining
-
-| Source | Notes |
-|--------|-------|
-| Tempoross reward pool | Fishing with permits |
-| Book of Storms | Desiccated pages + 50 Runecraft |
-| Retired sailor exchange | 25 for various items |
-
-## Uses
-
-| Use | Effect |
-|-----|--------|
-| Tome of water | 20 charges per page |
-
-**Spell Effects (per charge):**
-- Damaging spells: +10% accuracy/damage
-- Non-damaging spells: +20% accuracy
-- Curse spells: +50% stat drain
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~1.9K gp
-
-**Daily Volume:** ~168K trades
-
-## Related Items
-
-- [Tempoross](/osrs/tempoross/) - Source
-- [Tome of water](/osrs/tome-of-water/) - Charging target
-
-<Adsense />
+<OSRSAdsenseCard />

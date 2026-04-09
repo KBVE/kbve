@@ -74,76 +74,33 @@ osrs:
       slug: chisel
       relationship: component
       description: For cutting
+  about: |-
+    | Item | Enchantment | Effect |
+    |------|-------------|--------|
+    | Sapphire ring | Ring of recoil | Reflect 10% damage |
+    | Sapphire necklace | Games necklace | Minigame teleports |
+    | Sapphire amulet | Amulet of magic | +10 Magic |
+    | Sapphire bolts | Sapphire bolts (e) | Mana drain |
+  market_strategy:
+    notes:
+      - Most common uncut gem
+      - Buy uncut → Cut → Sell
+      - Good for Crafting training
+      - Games necklace (teleports)
+      - Ring of recoil (PvM)
+      - Crafting training
+      - Sapphire bolt tips
+      - Cheapest gem to process
+      - High volume trading
+      - Ring of recoil always needed
+      - Games necklace for minigames
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Gem rocks | Common |
-| Mining (gem bag) | Random |
-| Monster drops | Very common |
-| HAM members | Pickpocket |
-| Shooting Stars | Star fragments |
-
-## Crafting
-
-| Product | Level | XP |
-|---------|-------|-----|
-| Sapphire | 20 | 50 |
-| Sapphire ring | 20 | 40 |
-| Sapphire necklace | 22 | 55 |
-| Sapphire amulet | 24 | 65 |
-| Sapphire bolt tips (12) | 56 | 4 |
-
-## Market Flip Strategy
-
-**Entry-Level Gem:**
-- Most common uncut gem
-- Buy uncut → Cut → Sell
-- Good for Crafting training
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Demand Drivers:**
-- Games necklace (teleports)
-- Ring of recoil (PvM)
-- Crafting training
-- Sapphire bolt tips
-
-**Tips:**
-- Cheapest gem to process
-- High volume trading
-- Ring of recoil always needed
-- Games necklace for minigames
-
-## Enchanting
-
-| Item | Enchantment | Effect |
-|------|-------------|--------|
-| Sapphire ring | Ring of recoil | Reflect 10% damage |
-| Sapphire necklace | Games necklace | Minigame teleports |
-| Sapphire amulet | Amulet of magic | +10 Magic |
-| Sapphire bolts | Sapphire bolts (e) | Mana drain |
-
-<Adsense />
+<OSRSAdsenseCard />

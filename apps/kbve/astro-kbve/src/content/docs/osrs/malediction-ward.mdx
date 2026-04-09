@@ -66,81 +66,47 @@ osrs:
       slug: mages-book
       relationship: alternative
       description: Alternative
+  about: |-
+    Combine 3 shards at Volcanic Forge (NE Wilderness):
+
+    | Shard | Source |
+    |-------|--------|
+    | Malediction shard 1 | Chaos Fanatic |
+    | Malediction shard 2 | Crazy Archaeologist |
+    | Malediction shard 3 | Scorpia |
+
+    | Offense | Value |
+    |---------|-------|
+    | Magic attack | +12 |
+    | Magic damage | +2% |
+
+    | Defence | Value |
+    |---------|-------|
+    | Stab | +50 |
+    | Slash | +52 |
+    | Crush | +48 |
+    | Magic | +15 |
+
+    Requirements: 60 Defence
+
+    Budget magic shield for:
+    - Magic combat
+    - Slayer tasks
+    - Mid-game content
+
+    Only shield with +2% magic damage.
+  market_strategy:
+    notes:
+      - Wilderness bosses for shards
+      - Magic damage bonus is unique
+      - Budget option before arcane
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Shield |
-| Type | Magic Shield |
-| Tradeable | Yes |
-| Weight | 3.628 kg |
-
-## Creation
-
-Combine 3 shards at Volcanic Forge (NE Wilderness):
-
-| Shard | Source |
-|-------|--------|
-| Malediction shard 1 | Chaos Fanatic |
-| Malediction shard 2 | Crazy Archaeologist |
-| Malediction shard 3 | Scorpia |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Magic attack | +12 |
-| Magic damage | +2% |
-
-| Defence | Value |
-|---------|-------|
-| Stab | +50 |
-| Slash | +52 |
-| Crush | +48 |
-| Magic | +15 |
-
-**Requirements:** 60 Defence
-
-## Usage
-
-Budget magic shield for:
-- Magic combat
-- Slayer tasks
-- Mid-game content
-
-**Only shield with +2% magic damage.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~1.7M gp
-
-**Tips:**
-- Wilderness bosses for shards
-- Magic damage bonus is unique
-- Budget option before arcane
-
-<Adsense />
+<OSRSAdsenseCard />

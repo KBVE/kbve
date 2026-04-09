@@ -86,74 +86,40 @@ osrs:
       slug: steel-nails
       relationship: component
       description: Required for some builds
+  about: |-
+    | XP per plank | 29 |
+    |--------------|-----|
+    | Buy limit | 13,000 per 4 hours |
+    | Min Construction level | 1 |
+
+    Early Training (levels 1-33):
+    - Crude wooden chairs (2 planks, 58 XP)
+    - Wooden bookcases (4 planks, 115 XP)
+    - Exit room to reset furniture
+
+    Note: Requires nails for some furniture - bring extras as they can bend.
+  market_strategy:
+    steps:
+      - order: 1
+        action: Regular planks (29 XP) - levels 1-33
+      - order: 2
+        action: Oak planks (60 XP) - levels 33-52
+      - order: 3
+        action: Teak planks (90 XP) - levels 52-99
+      - order: 4
+        action: Mahogany planks (140 XP) - fastest 99
+    notes:
+      - Cheapest plank option
+      - Required for early Construction training
+      - Used in some Mahogany Homes contracts
+      - Required for Dragon Slayer I and other quests
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Convert [Logs](/osrs/logs/) at a Sawmill:
-
-| Method | Cost |
-|--------|------|
-| Sawmill operator | 100 GP per plank |
-| Plank Make spell | 70 GP + runes |
-| Woodcutting Guild sawmill | 90 GP per plank |
-
-**Spawns:** Port Khazard, Barbarian Outpost, various locations.
-
-**Note:** Regular planks are the only plank type that sometimes requires [nails](/osrs/steel-nails/) for construction.
-
-## Construction
-
-| XP per plank | 29 |
-|--------------|-----|
-| Buy limit | 13,000 per 4 hours |
-| Min Construction level | 1 |
-
-**Early Training (levels 1-33):**
-- Crude wooden chairs (2 planks, 58 XP)
-- Wooden bookcases (4 planks, 115 XP)
-- Exit room to reset furniture
-
-**Note:** Requires nails for some furniture - bring extras as they can bend.
-
-## Market Strategy
-
-**Why Use Regular Planks:**
-- Cheapest plank option
-- Required for early Construction training
-- Used in some Mahogany Homes contracts
-- Required for Dragon Slayer I and other quests
-
-**Upgrade Path:**
-1. Regular planks (29 XP) - levels 1-33
-2. [Oak planks](/osrs/oak-plank/) (60 XP) - levels 33-52
-3. [Teak planks](/osrs/teak-plank/) (90 XP) - levels 52-99
-4. [Mahogany planks](/osrs/mahogany-plank/) (140 XP) - fastest 99
-
-## Related Items
-
-- [Logs](/osrs/logs/) - Raw material for planks
-- [Steel nails](/osrs/steel-nails/) - Required for some furniture
-- [Oak plank](/osrs/oak-plank/) - Upgrade option
-
-<Adsense />
+<OSRSAdsenseCard />

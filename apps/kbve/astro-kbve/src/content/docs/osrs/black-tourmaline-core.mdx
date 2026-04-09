@@ -47,65 +47,28 @@ osrs:
       slug: guardian-boots
       relationship: product
       description: Created boots
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Upgrade Material |
+    | Tradeable | Yes |
+    | Weight | 0.001 kg |
+
+    | Item Created | Materials |
+    |--------------|-----------|
+    | Guardian boots | Bandos boots + Black tourmaline core |
+  market_strategy:
+    notes:
+      - From Grotesque Guardians only
+      - 75 Slayer required for boss
+      - Creates BiS tank boots
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Upgrade Material |
-| Tradeable | Yes |
-| Weight | 0.001 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Grotesque Guardians | 1/1,000 |
-
-**Requires 75 Slayer.**
-
-## Uses
-
-| Item Created | Materials |
-|--------------|-----------|
-| Guardian boots | Bandos boots + Black tourmaline core |
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~7.5M gp
-
-**Tips:**
-- From Grotesque Guardians only
-- 75 Slayer required for boss
-- Creates BiS tank boots
-
-## Related Items
-
-- [Grotesque Guardians](/osrs/grotesque-guardians/) - Boss drop
-- [Bandos boots](/osrs/bandos-boots/) - Base item
-- [Guardian boots](/osrs/guardian-boots/) - Created boots
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -1,6 +1,6 @@
 ---
 title: Steel plateskirt (g) | OSRS Price Data
-description: "Steel plateskirt (g): Steel plateskirt with a gold trim.. High alch: 600 GP, GE limit: 125."
+description: "Steel plateskirt (g) is a F2P legs slot item requiring 5 Defence. High alch: 600 GP, GE limit: 125."
 osrs:
   id: 20175
   name: Steel plateskirt (g)
@@ -12,26 +12,27 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 125
+  equipment:
+    slot: legs
+    requirements:
+      defence: 5
+  related_items:
+    - item_id: 20190
+      item_name: Steel plateskirt (t)
+      slug: steel-plateskirt-t
+      relationship: variant
+      description: Trimmed variant
+  about: |-
+    > *"Steel plateskirt with gold trim."*
+
+    The steel plateskirt (g) is a gold-trimmed cosmetic variant of the steel plateskirt. Requiring 5 Defence. Clue scroll exclusive.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

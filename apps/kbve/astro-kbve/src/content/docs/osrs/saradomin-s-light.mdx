@@ -47,50 +47,25 @@ osrs:
       slug: saradomin-sword
       relationship: alternative
       description: Another unique from Commander Zilyana
+  about: |-
+    Removes Zamorak's Fortress darkness:
+    - Can permanently remove darkness in Zamorak's Fortress
+
+    Creates Staff of light:
+    - Attach to Staff of the dead to create Staff of light
+    - Staff of light has identical stats but different appearance
+  market_strategy:
+    notes:
+      - More common than other GWD uniques (1/254 vs 1/508)
+      - Used for Staff of light cosmetic upgrade
+      - Niche utility item
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Dropped by Commander Zilyana in the God Wars Dungeon (1/254 drop rate).
-
-**Requirements:** 70 Agility to access Saradomin's Encampment
-
-## Usage
-
-**Removes Zamorak's Fortress darkness:**
-- Can permanently remove darkness in Zamorak's Fortress
-
-**Creates Staff of light:**
-- Attach to Staff of the dead to create Staff of light
-- Staff of light has identical stats but different appearance
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- More common than other GWD uniques (1/254 vs 1/508)
-- Used for Staff of light cosmetic upgrade
-- Niche utility item
-
-<Adsense />
+<OSRSAdsenseCard />

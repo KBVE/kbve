@@ -50,71 +50,40 @@ osrs:
       slug: saradomin-brew
       relationship: alternative
       description: Pairs well - negates stat drain
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Potion |
+    | Tradeable | Yes |
+    | Stackable | No |
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Herblore | 88 (boostable) |
+    | XP | 200 |
+
+    Ingredients:
+    - Dwarf weed potion (unf)
+    - Lily of the sands
+
+    Stat Renewal: Restores 6 + 16% of combat stats (excluding prayer) every 15 seconds for 5 minutes.
+
+    Special Properties:
+    - Negates Saradomin brew stat drain
+    - Removes divine potion effects
+    - Stats decrease at normal rates
+  market_strategy:
+    notes:
+      - Made with ToA ingredient
+      - Useful for extended fights
+      - Counters brew drain
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Potion |
-| Tradeable | Yes |
-| Stackable | No |
-
-## Creation
-
-| Requirement | Value |
-|-------------|-------|
-| Herblore | 88 (boostable) |
-| XP | 200 |
-
-**Ingredients:**
-- Dwarf weed potion (unf)
-- Lily of the sands
-
-## Effect
-
-**Stat Renewal:** Restores 6 + 16% of combat stats (excluding prayer) every 15 seconds for 5 minutes.
-
-**Special Properties:**
-- Negates Saradomin brew stat drain
-- Removes divine potion effects
-- Stats decrease at normal rates
-
-## Market Strategy
-
-**Buy Limit:** 2,000 per 4 hours
-
-**Price:** ~2.8K gp (4-dose)
-
-**Tips:**
-- Made with ToA ingredient
-- Useful for extended fights
-- Counters brew drain
-
-## Related Items
-
-- [Lily of the sands](/osrs/lily-of-the-sands/) - Ingredient
-- [Saradomin brew](/osrs/saradomin-brew/) - Pairs well
-- [Tombs of Amascut](/osrs/tombs-of-amascut/) - Ingredient source
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -1,6 +1,6 @@
 ---
 title: Ham gloves | OSRS Price Data
-description: "Ham gloves: HAM gloves as worn by the Humans Against Monsters group.. High alch: 45 GP, GE limit: 15."
+description: "Ham gloves is a members hands slot item. High alch: 45 GP, GE limit: 15."
 osrs:
   id: 4308
   name: Ham gloves
@@ -12,26 +12,36 @@ osrs:
   lowalch: 30
   highalch: 45
   limit: 15
+  equipment:
+    slot: hands
+    requirements: {}
+  related_items:
+    - item_id: 4302
+      item_name: Ham hood
+      slug: ham-hood
+      relationship: set-piece
+      description: H.A.M. head piece
+    - item_id: 4298
+      item_name: Ham shirt
+      slug: ham-shirt
+      relationship: set-piece
+      description: H.A.M. body piece
+    - item_id: 4310
+      item_name: Ham boots
+      slug: ham-boots
+      relationship: set-piece
+      description: H.A.M. feet piece
+  about: |-
+    > *"HAM gloves as worn by the Humans Against Monsters group."*
+
+    The ham gloves are the hands piece of the H.A.M. (Humans Against Monsters) robes set. Wearing more pieces reduces the chance of being ejected from the H.A.M. Hideout when caught pickpocketing. A members-only item with no combat stats.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

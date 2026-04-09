@@ -48,85 +48,38 @@ osrs:
       slug: leaf-bladed-battleaxe
       relationship: alternative
       description: Alternative
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Stab | +30 |
+    | Crush | +70 |
+    | Strength | +70 |
+
+    | Defence | Value |
+    |---------|-------|
+    | All | +0 |
+
+    Requirements: 65 Attack
+
+    Budget crush weapon for:
+    - Sarachnis
+    - Gargoyles
+    - Mid-game crush content
+    - Kalphite tasks
+
+    Does not degrade - no maintenance cost.
+  market_strategy:
+    notes:
+      - Easy boss to farm
+      - No Slayer requirement
+      - Good mid-game weapon
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Main-hand) |
-| Type | Melee - Crush |
-| Tradeable | Yes |
-| Weight | 0.453 kg |
-| Attack Speed | 4 tick (2.4s) |
-
-## Obtaining
-
-Drop from Sarachnis in Forthos Dungeon.
-
-| Boss | Drop Rate |
-|------|-----------|
-| Sarachnis | 1/384 |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Stab | +30 |
-| Crush | +70 |
-| Strength | +70 |
-
-| Defence | Value |
-|---------|-------|
-| All | +0 |
-
-**Requirements:** 65 Attack
-
-## Usage
-
-Budget crush weapon for:
-- Sarachnis
-- Gargoyles
-- Mid-game crush content
-- Kalphite tasks
-
-**Does not degrade - no maintenance cost.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~135K gp
-
-**Tips:**
-- Easy boss to farm
-- No Slayer requirement
-- Good mid-game weapon
-
-## Related Items
-
-- [Abyssal bludgeon](/osrs/abyssal-bludgeon/) - Upgrade path
-- [Inquisitor's mace](/osrs/inquisitors-mace/) - BiS crush
-- [Leaf-bladed battleaxe](/osrs/leaf-bladed-battleaxe/) - Alternative
-
-<Adsense />
+<OSRSAdsenseCard />

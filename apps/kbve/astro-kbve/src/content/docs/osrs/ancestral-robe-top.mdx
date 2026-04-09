@@ -46,67 +46,40 @@ osrs:
       slug: ahrims-robetop
       relationship: alternative
       description: Budget option
+  about: |-
+    | Stat | Value |
+    |------|-------|
+    | Magic attack | +35 |
+    | Magic damage | +3% |
+    | Stab defence | +42 |
+    | Slash defence | +31 |
+    | Crush defence | +51 |
+    | Magic defence | +28 |
+    | Requirements | 75 Magic, 65 Defence |
+
+    Part of the Ancestral robes set:
+    - Ancestral hat (head)
+    - Ancestral robe top (body)
+    - Ancestral robe bottom (legs)
+
+    Total set bonus: +9% magic damage
+
+    PvM:
+    - Best-in-slot mage body
+    - Essential for max magic DPS
+    - All high-level magic content
+  market_strategy:
+    notes:
+      - Most expensive piece of set
+      - CoX completions affect supply
+      - Core for mage setups
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Obtained as a rare reward from the Chambers of Xeric raid.
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Magic attack | +35 |
-| Magic damage | +3% |
-| Stab defence | +42 |
-| Slash defence | +31 |
-| Crush defence | +51 |
-| Magic defence | +28 |
-| Requirements | 75 Magic, 65 Defence |
-
-## Set Information
-
-Part of the Ancestral robes set:
-- Ancestral hat (head)
-- Ancestral robe top (body)
-- Ancestral robe bottom (legs)
-
-Total set bonus: +9% magic damage
-
-## Usage
-
-**PvM:**
-- Best-in-slot mage body
-- Essential for max magic DPS
-- All high-level magic content
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Most expensive piece of set
-- CoX completions affect supply
-- Core for mage setups
-
-<Adsense />
+<OSRSAdsenseCard />

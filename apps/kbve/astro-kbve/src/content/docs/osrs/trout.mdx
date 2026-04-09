@@ -53,61 +53,31 @@ osrs:
       slug: cooking-gauntlets
       relationship: alternative
       description: Reduce burn
+  about: |-
+    | Effect | Value |
+    |--------|-------|
+    | Heals | 7 HP |
+    | Buy limit | 6,000 |
+  market_strategy:
+    notes:
+      - Cheapest useful food
+      - F2P accessible
+      - Very low level requirement
+      - Low-level combat
+      - F2P content
+      - Budget healing
+      - Wintertodt supplies
+      - Very cheap food
+      - First fly fishing catch
+      - Good for low HP content
+      - Often power-fished
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Method | Level | XP |
-|--------|-------|-----|
-| Cooking raw trout | 15 Cooking | 70 |
-| Stop burning | 50 (40 with gauntlets) | - |
-
-## Stats
-
-| Effect | Value |
-|--------|-------|
-| Heals | 7 HP |
-| Buy limit | 6,000 |
-
-## Market Flip Strategy
-
-**Entry-Level Food:**
-- Cheapest useful food
-- F2P accessible
-- Very low level requirement
-
-**Buy Limit:** 6,000 per 4 hours
-
-**Demand Drivers:**
-- Low-level combat
-- F2P content
-- Budget healing
-- Wintertodt supplies
-
-**Tips:**
-- Very cheap food
-- First fly fishing catch
-- Good for low HP content
-- Often power-fished
-
-<Adsense />
+<OSRSAdsenseCard />

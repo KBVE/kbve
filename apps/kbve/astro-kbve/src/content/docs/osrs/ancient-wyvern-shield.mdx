@@ -73,84 +73,48 @@ osrs:
       slug: dragonfire-ward
       relationship: alternative
       description: Ranged variant
+  about: |-
+    | Offence | Bonus |
+    |---------|-------|
+    | Magic | +5 |
+
+    | Defence | Bonus |
+    |---------|-------|
+    | Stab | +50 |
+    | Slash | +55 |
+    | Crush | +52 |
+    | Magic | +20 |
+    | Ranged | +52 |
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Smithing | 66 |
+    | Materials | Elemental shield + Wyvern visage |
+    | XP | 2,000 |
+
+    Provides full protection against wyvern icy breath when charged.
+
+    Charging: Absorb icy breath attacks to charge (max 50 charges).
+
+    Discharge: Right-click to release stored icy breath.
+  market_strategy:
+    notes:
+      - Required for ancient wyverns
+      - Good magic defence
+      - Niche but useful
+      - Ancient wyvern tasks
+      - Magic-focused builds
+      - Wyvern farming
+      - Uncharged is tradeable
+      - Charged version untradeable
+      - Create from wyvern visage for profit
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Shield |
-| Requirements | 75 Defence, 70 Magic |
-| Tradeable | Yes (uncharged) |
-| Weight | 6.803 kg |
-
-## Stats
-
-| Offence | Bonus |
-|---------|-------|
-| Magic | +5 |
-
-| Defence | Bonus |
-|---------|-------|
-| Stab | +50 |
-| Slash | +55 |
-| Crush | +52 |
-| Magic | +20 |
-| Ranged | +52 |
-
-## Creation
-
-| Requirement | Value |
-|-------------|-------|
-| Smithing | 66 |
-| Materials | Elemental shield + Wyvern visage |
-| XP | 2,000 |
-
-## Wyvern Protection
-
-Provides full protection against wyvern icy breath when charged.
-
-**Charging:** Absorb icy breath attacks to charge (max 50 charges).
-
-**Discharge:** Right-click to release stored icy breath.
-
-## Market Flip Strategy
-
-**Magic Shield for Wyverns:**
-- Required for ancient wyverns
-- Good magic defence
-- Niche but useful
-
-**Buy Limit:** 8 per 4 hours
-
-**Demand Drivers:**
-- Ancient wyvern tasks
-- Magic-focused builds
-- Wyvern farming
-
-**Tips:**
-- Uncharged is tradeable
-- Charged version untradeable
-- Create from wyvern visage for profit
-
-<Adsense />
+<OSRSAdsenseCard />

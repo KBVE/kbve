@@ -54,62 +54,13 @@ osrs:
       slug: adamant-bolts
       relationship: alternative
       description: Compatible ammo
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Main Hand |
-| Type | Crossbow |
-| Tradeable | Yes |
-| Weight | 6 kg |
-| Requirements | 46 Ranged |
-
-## Combat Stats
-
-| Stat | Bonus |
-|------|-------|
-| Ranged Attack | +78 |
-| Attack Range | 7 |
-
-## Obtaining
-
-**Fletching:** 61 Fletching with adamant crossbow (u) + crossbow string.
-
-**Drops:** Various monsters.
-
-## Market Strategy
-
-**Buy Limit:** 125 per 4 hours
-
-**Price:** ~1,043 gp
-
-High-tier crossbow. Uses up to adamant bolts.
-
-## Related Items
-
-- [Rune crossbow](/osrs/rune-crossbow/) - Upgrade
-- [Adamant bolts](/osrs/adamant-bolts/) - Compatible ammo
-
-<Adsense />
+<OSRSAdsenseCard />

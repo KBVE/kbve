@@ -109,74 +109,41 @@ osrs:
       slug: celastrus-bark
       relationship: component
       description: Fletching material
+  about: |-
+    | Stat | Value |
+    |------|-------|
+    | Attack requirement | 30 |
+    | Magic requirement | 30 |
+    | Magic attack | +12 |
+    | Crush attack | +25 |
+    | Strength bonus | +32 |
+
+    | Product | Additional Item |
+    |---------|-----------------|
+    | Air battlestaff | Air orb |
+    | Water battlestaff | Water orb |
+    | Earth battlestaff | Earth orb |
+    | Fire battlestaff | Fire orb |
+  market_strategy:
+    notes:
+      - Attach orbs for profit
+      - Daily Zaff stock
+      - High Crafting XP
+      - Elemental battlestaff crafting
+      - Crafting training
+      - Varrock diary reward
+      - Zaff daily stock
+      - Zaff sells discounted (diary)
+      - High Crafting XP per staff
+      - Orb charging profit chain
+      - Mystic staff upgrades
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Source | Method |
-|--------|--------|
-| Zaff's Superior Staffs | Daily stock |
-| Crafting | Celastrus bark (40 Fletching) |
-| Monster drops | Various |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Attack requirement | 30 |
-| Magic requirement | 30 |
-| Magic attack | +12 |
-| Crush attack | +25 |
-| Strength bonus | +32 |
-
-## Uses
-
-| Product | Additional Item |
-|---------|-----------------|
-| Air battlestaff | Air orb |
-| Water battlestaff | Water orb |
-| Earth battlestaff | Earth orb |
-| Fire battlestaff | Fire orb |
-
-## Market Flip Strategy
-
-**Elemental Staff Base:**
-- Attach orbs for profit
-- Daily Zaff stock
-- High Crafting XP
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Elemental battlestaff crafting
-- Crafting training
-- Varrock diary reward
-- Zaff daily stock
-
-**Tips:**
-- Zaff sells discounted (diary)
-- High Crafting XP per staff
-- Orb charging profit chain
-- Mystic staff upgrades
-
-<Adsense />
+<OSRSAdsenseCard />

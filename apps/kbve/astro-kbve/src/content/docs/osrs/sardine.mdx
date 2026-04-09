@@ -12,26 +12,28 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 6000
+  related_items:
+    - item_id: 327
+      item_name: Raw sardine
+      slug: raw-sardine
+      relationship: component
+      description: Uncooked version
+    - item_id: 347
+      item_name: Herring
+      slug: herring
+      relationship: variant
+      description: Next tier bait fish
+  about: |-
+    > _"Some nicely cooked sardines."_
+
+    Sardines heal 4 Hitpoints. Caught with a fishing rod and bait at 5 Fishing. A slight upgrade over shrimps for early-game food.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

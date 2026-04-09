@@ -53,75 +53,20 @@ osrs:
     - slug: tormented-bracelet
       name: Tormented bracelet
       relation: best_upgrade
+  about: |-
+    The full Infinity set includes:
+    - Infinity hat
+    - Infinity top
+    - Infinity bottoms
+    - Infinity boots
+    - Infinity gloves
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Hands |
-| Type | Magic Gloves |
-| Tradeable | Yes |
-| Weight | 0.226 kg |
-| Requirements | 50 Magic, 25 Defence |
-
-## Combat Stats
-
-| Stat | Bonus |
-|------|-------|
-| Magic Attack | +5 |
-| Magic Defence | +5 |
-
-## Obtaining
-
-**Mage Training Arena:** Requires pizazz points from all four rooms.
-
-| Room | Points |
-|------|--------|
-| Telekinetic | 175 |
-| Alchemist | 225 |
-| Enchantment | 2,250 |
-| Graveyard | 175 |
-
-## Market Strategy
-
-**Buy Limit:** 125 per 4 hours
-
-Mid-tier magic gloves. Part of the Infinity set from MTA.
-
-## Infinity Set
-
-The full Infinity set includes:
-- [Infinity hat](/osrs/infinity-hat/)
-- [Infinity top](/osrs/infinity-top/)
-- [Infinity bottoms](/osrs/infinity-bottoms/)
-- [Infinity boots](/osrs/infinity-boots/)
-- [Infinity gloves](/osrs/infinity-gloves/)
-
-## Related Items
-
-- [Tormented bracelet](/osrs/tormented-bracelet/) - Best-in-slot upgrade
-- [Barrows gloves](/osrs/barrows-gloves/) - Budget alternative
-- [Master wand](/osrs/master-wand/) - MTA weapon
-
-<Adsense />
+<OSRSAdsenseCard />

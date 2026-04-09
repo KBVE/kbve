@@ -49,65 +49,26 @@ osrs:
       slug: saturated-heart
       relationship: alternative
       description: Magic use - 150,000 essence
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Currency |
+    | Tradeable | Yes |
+    | Stackable | Yes |
+    | Weight | 0 kg |
+
+    | Use | Amount |
+    |-----|--------|
+    | Venator bow charges | Various |
+    | Forgotten brew (91 Herblore) | 20-80 per dose |
+    | Saturated heart | 150,000 |
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Currency |
-| Tradeable | Yes |
-| Stackable | Yes |
-| Weight | 0 kg |
-
-## Obtaining
-
-| Source | Amount |
-|--------|--------|
-| Phantom Muspah | 540-599 (60/100) |
-| Mining crystals (75 Mining) | 13.5 XP each |
-| Venator shard breakdown | 50,000 |
-| Ancient icon breakdown | 5,000 |
-
-## Uses
-
-| Use | Amount |
-|-----|--------|
-| Venator bow charges | Various |
-| Forgotten brew (91 Herblore) | 20-80 per dose |
-| Saturated heart | 150,000 |
-
-## Market Strategy
-
-**Buy Limit:** 25,000 per 4 hours
-
-**Price:** ~9 gp
-
-## Related Items
-
-- [Phantom Muspah](/osrs/phantom-muspah/) - Source
-- [Venator bow](/osrs/venator-bow/) - Charging use
-- [Forgotten brew](/osrs/forgotten-brew/) - Herblore use
-- [Saturated heart](/osrs/saturated-heart/) - Magic use
-
-<Adsense />
+<OSRSAdsenseCard />

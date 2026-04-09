@@ -70,73 +70,48 @@ osrs:
       slug: zamorak-godsword
       relationship: alternative
       description: Freeze spec
+  about: |-
+    Attach Saradomin hilt to Godsword blade.
+
+    | Component | Source | Price |
+    |-----------|--------|-------|
+    | Saradomin hilt | Commander Zilyana (1/508) | ~24M gp |
+    | Godsword blade | GWD bosses | ~526K gp |
+
+    | Stat | Value |
+    |------|-------|
+    | Slash attack | +132 |
+    | Crush attack | +80 |
+    | Strength | +132 |
+    | Prayer | +8 |
+    | Attack speed | 6 tick (3.6s) |
+    | Requirements | 75 Attack |
+
+    Healing Blade (50% energy):
+    - Doubled accuracy
+    - +10% max hit
+    - Heals HP equal to 50% of damage dealt
+    - Restores Prayer equal to 25% of damage dealt
+
+    Best For:
+    - Extended PvM trips (Slayer, bossing)
+    - Sustain without food/prayer pots
+    - GWD trips
+    - Budget Inferno attempts
+
+    Strategy: Swap to SGS for specs, use main weapon otherwise
+  market_strategy:
+    notes:
+      - Most "practical" godsword for PvM
+      - Reduces supply costs significantly
+      - Good for learning bosses
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Attach Saradomin hilt to Godsword blade.
-
-| Component | Source | Price |
-|-----------|--------|-------|
-| Saradomin hilt | Commander Zilyana (1/508) | ~24M gp |
-| Godsword blade | GWD bosses | ~526K gp |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Slash attack | +132 |
-| Crush attack | +80 |
-| Strength | +132 |
-| Prayer | +8 |
-| Attack speed | 6 tick (3.6s) |
-| Requirements | 75 Attack |
-
-## Special Attack
-
-**Healing Blade** (50% energy):
-- Doubled accuracy
-- +10% max hit
-- Heals HP equal to 50% of damage dealt
-- Restores Prayer equal to 25% of damage dealt
-
-## Usage
-
-**Best For:**
-- Extended PvM trips (Slayer, bossing)
-- Sustain without food/prayer pots
-- GWD trips
-- Budget Inferno attempts
-
-**Strategy:** Swap to SGS for specs, use main weapon otherwise
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Most "practical" godsword for PvM
-- Reduces supply costs significantly
-- Good for learning bosses
-
-<Adsense />
+<OSRSAdsenseCard />

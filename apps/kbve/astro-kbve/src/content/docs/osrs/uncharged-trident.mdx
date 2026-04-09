@@ -33,66 +33,14 @@ osrs:
       slug: kraken-tentacle
       relationship: alternative
       description: Upgrade component for swamp trident
+  about: Built-in spell. Charges with runes and coins (212 gp per cast).
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Main Hand |
-| Type | Staff |
-| Tradeable | Yes |
-| Weight | 1.814 kg |
-| Requirements | 75 Magic |
-
-## Combat Stats
-
-| Stat | Bonus |
-|------|-------|
-| Magic Attack | +15 |
-| Magic Defence | +15 |
-
-## Obtaining
-
-**Drops:** Cave krakens (1/200), Kraken boss (1/512).
-
-**Slayer:** Requires 87 Slayer.
-
-## Features
-
-Built-in spell. Charges with runes and coins (212 gp per cast).
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~49,767 gp
-
-Entry-level powered staff. Kraken drop.
-
-## Related Items
-
-- [Trident of the swamp](/osrs/trident-of-the-swamp/) - Upgrade
-- [Kraken tentacle](/osrs/kraken-tentacle/) - Upgrade component
-
-<Adsense />
+<OSRSAdsenseCard />

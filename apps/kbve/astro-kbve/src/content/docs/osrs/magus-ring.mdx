@@ -61,81 +61,41 @@ osrs:
       slug: magus-vestige
       relationship: component
       description: From Duke Sucellus
+  about: |-
+    1. Combine Seers icon + Magus vestige + 500 blood runes
+    2. Craft at furnace with 3 chromium ingots + ring mould
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 90 (boostable) |
+    | Crafting | 80 (boostable) |
+    | Kill Duke Sucellus | 1 time |
+
+    | Offense | Value |
+    |---------|-------|
+    | Magic | +15 |
+    | Magic Damage | +2% |
+
+    Requirements: Duke Sucellus kill
+
+    BiS for:
+    - All magic combat
+    - Maximum magic DPS
+    - Raids
+
+    Highest magic attack bonus ring.
+  market_strategy:
+    notes:
+      - Vestige from Duke Sucellus
+      - Cannot be imbued
+      - DT2 content
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Ring |
-| Type | Magic Ring |
-| Tradeable | Yes |
-| Weight | 0.012 kg |
-
-## Creation
-
-1. Combine [Seers icon](/osrs/seers-icon/) + [Magus vestige](/osrs/magus-vestige/) + 500 blood runes
-2. Craft at furnace with 3 chromium ingots + ring mould
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 90 (boostable) |
-| Crafting | 80 (boostable) |
-| Kill Duke Sucellus | 1 time |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Magic | +15 |
-| Magic Damage | +2% |
-
-**Requirements:** Duke Sucellus kill
-
-## Usage
-
-BiS for:
-- All magic combat
-- Maximum magic DPS
-- Raids
-
-**Highest magic attack bonus ring.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~37M gp
-
-**Tips:**
-- Vestige from Duke Sucellus
-- Cannot be imbued
-- DT2 content
-
-## Related Items
-
-- [Seers ring (i)](/osrs/seers-ring-i/) - Budget alternative
-- [Venator ring](/osrs/venator-ring/) - Ranged equivalent
-- [Duke Sucellus](/osrs/duke-sucellus/) - Vestige source
-
-<Adsense />
+<OSRSAdsenseCard />

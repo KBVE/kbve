@@ -43,62 +43,29 @@ osrs:
       slug: dragon-battleaxe
       relationship: alternative
       description: Alternative boost method
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Potion |
+    | Tradeable | Yes |
+    | Weight | 0.55 kg |
+
+    | Stat | Change |
+    |------|--------|
+    | Hitpoints | +1 |
+    | Smithing | +4 |
+    | Attack | -2 |
+    | Ranged | -2 |
+    | Magic | -2 |
+
+    Second-highest Smithing boost in-game.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Potion |
-| Tradeable | Yes |
-| Weight | 0.55 kg |
-
-## Obtaining
-
-Purchase from Giants' Foundry for 300 Foundry Reputation.
-
-## Effect
-
-| Stat | Change |
-|------|--------|
-| Hitpoints | +1 |
-| Smithing | +4 |
-| Attack | -2 |
-| Ranged | -2 |
-| Magic | -2 |
-
-**Second-highest Smithing boost in-game.**
-
-## Market Strategy
-
-**Buy Limit:** 2,000 per 4 hours
-
-**Price:** ~50K gp
-
-## Related Items
-
-- [Giants' Foundry](/osrs/giants-foundry/) - Source
-- [Dwarven stout](/osrs/dwarven-stout/) - Alternative (+1 Smithing)
-- [Dragon battleaxe](/osrs/dragon-battleaxe/) - Alternative boost method
-
-<Adsense />
+<OSRSAdsenseCard />

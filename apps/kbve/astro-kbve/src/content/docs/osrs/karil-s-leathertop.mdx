@@ -63,84 +63,38 @@ osrs:
       slug: armadyl-chestplate
       relationship: upgrade
       description: Upgrade path
+  about: |-
+    | Bonus | Value |
+    |-------|-------|
+    | Ranged attack | +30 |
+    | Stab defence | +47 |
+    | Slash defence | +42 |
+    | Crush defence | +50 |
+    | Magic defence | +65 |
+    | Ranged defence | +57 |
+    | Magic attack | -15 |
+
+    Tainted Shot:
+    When wearing full Karil's (coif, leathertop, leatherskirt, crossbow):
+    - 25% chance to lower opponent's Agility by 20%
+
+    With Amulet of the Damned:
+    - 25% chance to hit twice (second hit at 50% damage)
+
+    Best For:
+    - Budget ranged body before Armadyl
+    - High magic defence situations
+    - Barrows set bonus scenarios
+
+    - 15 hours of combat use
+    - Repair at Bob in Lumbridge or POH armor stand
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Obtained from the Barrows minigame (1/102.17 for any specific Barrows item).
-
-**Location:** Barrows mounds, east of Mort'ton in Morytania
-
-## Equipment Info
-
-| Stat | Value |
-|------|-------|
-| Slot | Body |
-| Weight | 6.8 kg |
-| Requirements | 70 Defence, 70 Ranged |
-
-## Stats
-
-| Bonus | Value |
-|-------|-------|
-| Ranged attack | +30 |
-| Stab defence | +47 |
-| Slash defence | +42 |
-| Crush defence | +50 |
-| Magic defence | +65 |
-| Ranged defence | +57 |
-| Magic attack | -15 |
-
-## Set Effect
-
-**Tainted Shot:**
-When wearing full Karil's (coif, leathertop, leatherskirt, crossbow):
-- 25% chance to lower opponent's Agility by 20%
-
-**With Amulet of the Damned:**
-- 25% chance to hit twice (second hit at 50% damage)
-
-## Usage
-
-**Best For:**
-- Budget ranged body before Armadyl
-- High magic defence situations
-- Barrows set bonus scenarios
-
-## Degradation
-
-- 15 hours of combat use
-- Repair at Bob in Lumbridge or POH armor stand
-
-## Market Strategy
-
-**Buy Limit:** 10 per 4 hours
-
-## Related Items
-
-- [Karil's coif](/osrs/karils-coif/) - Head slot
-- [Karil's leatherskirt](/osrs/karils-leatherskirt/) - Legs slot
-- [Karil's crossbow](/osrs/karils-crossbow/) - Weapon
-- [Armadyl chestplate](/osrs/armadyl-chestplate/) - Upgrade
-
-<Adsense />
+<OSRSAdsenseCard />

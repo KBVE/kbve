@@ -1,6 +1,6 @@
 ---
 title: Mithril thrownaxe | OSRS Price Data
-description: "Mithril thrownaxe: A finely balanced throwing axe.. High alch: 42 GP, GE limit: 7,000."
+description: "Mithril thrownaxe is a members weapon slot item requiring 20 Ranged. High alch: 42 GP, GE limit: 7,000."
 osrs:
   id: 803
   name: Mithril thrownaxe
@@ -12,26 +12,36 @@ osrs:
   lowalch: 28
   highalch: 42
   limit: 7000
+  equipment:
+    slot: weapon
+    attack_speed: 5
+    requirements:
+      ranged: 20
+    attack_bonus:
+      ranged: 12
+    ranged_strength: 16
+  related_items:
+    - item_id: 802
+      item_name: Steel thrownaxe
+      slug: steel-thrownaxe
+      relationship: variant
+      description: Lower tier thrownaxe
+    - item_id: 804
+      item_name: Adamant thrownaxe
+      slug: adamant-thrownaxe
+      relationship: variant
+      description: Higher tier thrownaxe
+  about: |-
+    > _"A finely balanced throwing axe."_
+
+    The mithril thrownaxe requires 20 Ranged. Mid-tier thrownaxe with the bouncing special attack.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

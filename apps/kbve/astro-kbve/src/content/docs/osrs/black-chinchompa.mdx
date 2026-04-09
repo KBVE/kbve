@@ -49,62 +49,25 @@ osrs:
       slug: avas-assembler
       relationship: component
       description: Ammo saver
+  about: |-
+    Best For:
+    - Ranged training (MM2 tunnels)
+    - Armadyl GWD
+    - AoE slayer tasks
+    - Speedrunning
+  market_strategy:
+    notes:
+      - Wilderness only catching
+      - PK risk while hunting
+      - 3x3 AoE damage
+      - Expensive but fast XP
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Method | Level | XP |
-|--------|-------|-----|
-| Catching (Wilderness) | 73 Hunter | 315 |
-| Location | Level 32-36 Wilderness | - |
-
-## Combat Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged requirement | 65 |
-| Ranged strength | +80 |
-| Attack range | 9 tiles |
-| AoE | 3x3 (up to 12 targets) |
-
-**Fastest Ranged XP method.**
-
-## Usage
-
-**Best For:**
-- Ranged training (MM2 tunnels)
-- Armadyl GWD
-- AoE slayer tasks
-- Speedrunning
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Tips:**
-- Wilderness only catching
-- PK risk while hunting
-- 3x3 AoE damage
-- Expensive but fast XP
-
-<Adsense />
+<OSRSAdsenseCard />

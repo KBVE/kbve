@@ -66,102 +66,56 @@ osrs:
       slug: revenant-ether
       relationship: alternative
       description: Revenant currency
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Stab | +10 |
+    | Slash | +10 |
+    | Crush | +10 |
+    | Magic | +10 |
+    | Ranged | +10 |
+    | Melee Strength | +6 |
+    | Prayer | +3 |
+
+    | Defense | Value |
+    |---------|-------|
+    | Stab | +3 |
+    | Slash | +3 |
+    | Crush | +3 |
+    | Magic | +3 |
+    | Ranged | +3 |
+
+    Revenant Boost:
+    - 20% accuracy increase vs revenants
+    - 20% damage increase vs revenants
+
+    Skull Effect:
+    - Wearing this amulet skulls you
+    - Risk all items on death
+
+    Noted Drops:
+    - Drops from Revenant Caves are noted
+    - Drops from Wilderness Slayer Cave are noted
+    - Drops from Chaos Temple are noted
+
+    Best for:
+    - Revenant hunting
+    - Wilderness money-making
+    - Extended trips with noted drops
+
+    Warning: Skulls the wearer.
+  market_strategy:
+    notes:
+      - Useful for rev hunting
+      - Be aware of skull risk
+      - Noted drops save inventory
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Neck |
-| Type | Amulet |
-| Tradeable | Yes |
-| Weight | 0.01 kg |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Stab | +10 |
-| Slash | +10 |
-| Crush | +10 |
-| Magic | +10 |
-| Ranged | +10 |
-| Melee Strength | +6 |
-| Prayer | +3 |
-
-| Defense | Value |
-|---------|-------|
-| Stab | +3 |
-| Slash | +3 |
-| Crush | +3 |
-| Magic | +3 |
-| Ranged | +3 |
-
-## Passive Effects
-
-**Revenant Boost:**
-- 20% accuracy increase vs revenants
-- 20% damage increase vs revenants
-
-**Skull Effect:**
-- Wearing this amulet skulls you
-- Risk all items on death
-
-**Noted Drops:**
-- Drops from Revenant Caves are noted
-- Drops from Wilderness Slayer Cave are noted
-- Drops from Chaos Temple are noted
-
-## Obtaining
-
-| Source | Location | Rate |
-|--------|----------|------|
-| Revenants | Revenant Caves | Rare |
-
-## Usage
-
-Best for:
-- Revenant hunting
-- Wilderness money-making
-- Extended trips with noted drops
-
-**Warning: Skulls the wearer.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~1M gp
-
-**Tips:**
-- Useful for rev hunting
-- Be aware of skull risk
-- Noted drops save inventory
-
-## Related Items
-
-- [Craw's bow](/osrs/craws-bow/) - Wilderness bow
-- [Viggora's chainmace](/osrs/viggoras-chainmace/) - Wilderness mace
-- [Bracelet of ethereum](/osrs/bracelet-of-ethereum/) - Revenant protection
-
-<Adsense />
+<OSRSAdsenseCard />

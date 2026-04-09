@@ -60,70 +60,28 @@ osrs:
       slug: hueycoatl-hide-vambraces
       relationship: product
       description: Crafted gloves
+  about: |-
+    This hide is used exclusively to craft the Hueycoatl hide armor set, which provides:
+    - Competitive ranged attack bonuses
+    - Strong defensive stats
+    - Prayer bonuses on each piece
+    - Requirements: 40 Defence, 70 Ranged
+
+    The armor set serves as a mid-to-high tier ranged option with unique prayer bonuses.
+  market_strategy:
+    notes:
+      - Price heavily depends on armor set demand
+      - Common drop relative to other Hueycoatl uniques
+      - Consider buying in bulk for crafting training
+      - Monitor prices after boss guides are released
+      - Crafting the armor may yield profit depending on hide and finished product prices
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Obtaining
-
-The Hueycoatl hide is a crafting material dropped by The Hueycoatl boss.
-
-**Drop Rate:** 11/315 (~1/30)
-**Quantity:** 3 hides per drop
-
-## Crafting Recipes
-
-Hueycoatl hide can be crafted into a full ranged armor set:
-
-| Product | Crafting Level | Hides Required |
-|---------|---------------|----------------|
-| Hueycoatl hide coif | 76 | 2 |
-| Hueycoatl hide vambraces | 76 | 1 |
-| Hueycoatl hide chaps | 77 | 2 |
-| Hueycoatl hide body | 78 | 3 |
-
-**Total for full set:** 8 Hueycoatl hides
-
-**Additional materials:** Thread is required for each piece.
-
-## Usage
-
-This hide is used exclusively to craft the Hueycoatl hide armor set, which provides:
-- Competitive ranged attack bonuses
-- Strong defensive stats
-- Prayer bonuses on each piece
-- Requirements: 40 Defence, 70 Ranged
-
-The armor set serves as a mid-to-high tier ranged option with unique prayer bonuses.
-
-## Market Strategy
-
-**Buy Limit:** 10,000 per 4 hours
-**Estimated Price:** ~442K GP
-
-**Tips:**
-- Price heavily depends on armor set demand
-- Common drop relative to other Hueycoatl uniques
-- Consider buying in bulk for crafting training
-- Monitor prices after boss guides are released
-- Crafting the armor may yield profit depending on hide and finished product prices
-
-<Adsense />
+<OSRSAdsenseCard />

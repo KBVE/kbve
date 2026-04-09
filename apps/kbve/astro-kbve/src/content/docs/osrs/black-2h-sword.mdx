@@ -45,64 +45,13 @@ osrs:
       slug: black-longsword
       relationship: alternative
       description: One-handed alternative
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Two-Handed |
-| Type | Two-Handed Sword |
-| Tradeable | Yes |
-| Weight | 3.628 kg |
-| Requirements | 10 Attack |
-
-## Combat Stats
-
-| Stat | Bonus |
-|------|-------|
-| Stab Attack | -4 |
-| Slash Attack | +27 |
-| Crush Attack | +21 |
-| Strength | +26 |
-
-## Obtaining
-
-**Shop:** Gaius's Two-Handed Shop, Taverley.
-
-**Drops:** Black knights, ice warriors.
-
-## Market Strategy
-
-**Buy Limit:** 125 per 4 hours
-
-**Price:** ~972 gp
-
-Cannot be smithed. F2P accessible.
-
-## Related Items
-
-- [Mithril 2h sword](/osrs/mithril-2h-sword/) - Upgrade
-- [Black longsword](/osrs/black-longsword/) - One-handed alternative
-
-<Adsense />
+<OSRSAdsenseCard />

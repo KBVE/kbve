@@ -83,53 +83,35 @@ osrs:
       slug: maple-longbow
       relationship: alternative
       description: Lower tier bow
+  about: |-
+    String a Yew longbow (u) with a Bow string.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Fletching Level | 70 |
+    | XP gained | 75 |
+
+    | Alch Type | Value |
+    |-----------|-------|
+    | High Alch | 768 GP |
+    | Low Alch | 512 GP |
+  market_strategy:
+    title: Bulk Buy Strategy
+    profit_formulas:
+      - 768 - Yew longbow price - Nature rune price = Alch profit
+    notes:
+      - "High Alch value: **768 GP**"
+      - "Calculate:"
+      - Popular item for magic training via alching
+      - "Buy limit: 18,000 per 4 hours"
+      - High volume item - check margins frequently
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-String a [Yew longbow (u)](/osrs/yew-longbow-u/) with a [Bow string](/osrs/bow-string/).
-
-| Requirement | Value |
-|-------------|-------|
-| Fletching Level | 70 |
-| XP gained | 75 |
-
-## High Alchemy
-
-| Alch Type | Value |
-|-----------|-------|
-| High Alch | 768 GP |
-| Low Alch | 512 GP |
-
-## Market Flip Strategy
-
-**Alch Flipping:**
-- High Alch value: **768 GP**
-- Calculate: `768 - Yew longbow price - Nature rune price = Alch profit`
-- Popular item for magic training via alching
-
-**Bulk Buy Strategy:**
-- Buy limit: 18,000 per 4 hours
-- High volume item - check margins frequently
-
-<Adsense />
+<OSRSAdsenseCard />

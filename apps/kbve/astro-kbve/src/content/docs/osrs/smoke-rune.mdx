@@ -60,64 +60,24 @@ osrs:
       slug: mist-rune
       relationship: alternative
       description: Air + Water combo rune
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Combination Rune |
+    | Tradeable | Yes |
+    | Stackable | Yes |
+    | Weight | 0 kg |
+
+    Counts as both air and fire rune.
+
+    Used in fire spells and smoke spells (Ancient Magicks).
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Combination Rune |
-| Tradeable | Yes |
-| Stackable | Yes |
-| Weight | 0 kg |
-
-## Obtaining
-
-**Runecraft (15 RC):**
-
-| Altar | Materials | XP |
-|-------|-----------|-----|
-| Air | Pure essence + Fire rune + Fire talisman | 8.5 |
-| Fire | Pure essence + Air rune + Air talisman | 9.5 |
-
-50% success rate (100% with binding necklace).
-
-## Function
-
-Counts as both air and fire rune.
-
-Used in fire spells and smoke spells (Ancient Magicks).
-
-## Market Strategy
-
-**Buy Limit:** 18,000 per 4 hours
-
-**Price:** ~99 gp
-
-## Related Items
-
-- [Steam rune](/osrs/steam-rune/) - Water + Fire combo
-- [Dust rune](/osrs/dust-rune/) - Air + Earth combo
-- [Mist rune](/osrs/mist-rune/) - Air + Water combo
-
-<Adsense />
+<OSRSAdsenseCard />

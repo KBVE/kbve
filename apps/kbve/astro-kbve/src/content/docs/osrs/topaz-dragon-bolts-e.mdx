@@ -1,6 +1,6 @@
 ---
 title: Topaz dragon bolts (e) | OSRS Price Data
-description: "Topaz dragon bolts (e): Enchanted Dragon crossbow bolts, tipped with red topaz.. High alch: 438 GP, GE limit: 11,000."
+description: "Topaz dragon bolts (e) is a members ammo slot item with +122 ranged strength. High alch: 438 GP, GE limit: 11,000."
 osrs:
   id: 21938
   name: Topaz dragon bolts (e)
@@ -12,26 +12,65 @@ osrs:
   lowalch: 292
   highalch: 438
   limit: 11000
+  equipment:
+    slot: ammo
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      ranged_strength: 122
+      prayer: 0
+    requirements: {}
+  recipes:
+    - skill: magic
+      level: 29
+      xp: 33
+      inputs:
+        - item_name: Topaz dragon bolts
+          quantity: 10
+      output_quantity: 10
+  related_items:
+    - item_id: 9239
+      item_name: Topaz bolts (e)
+      slug: topaz-bolts-e
+      relationship: downgrade
+      description: Regular crossbow version
+  about: |-
+    > *"Enchanted Dragon crossbow bolts, tipped with red topaz."*
+
+    Topaz dragon bolts (e) carry the Down to Earth enchantment. On activation, the target's Magic level is lowered by 1. The effect has a 4% trigger chance (4.4% with the hard Kandarin Diary completed). This effect only works against other players and activates regardless of whether the attack hits or misses. While the per-proc drain is small, repeated hits can gradually weaken an opponent's Magic level in PvP.
+
+    Enchant Crossbow Bolt (Topaz) requires Magic level 29 and grants 33 XP per cast. Each cast enchants 10 bolts at a time.
+
+    | Component | Quantity |
+    |-----------|----------|
+    | Topaz dragon bolts | 10 |
+    | Cosmic rune | 1 |
+    | Fire rune | 2 |
+    | Earth rune | 2 |
+
+    | Stat | Dragon (e) | Regular (e) |
+    |------|-----------|-------------|
+    | Ranged Str | +122 | +46 |
+    | Base bolt | Dragon crossbow bolt | Steel bolt |
+
+    The dragon bolt base provides significantly higher ranged strength while retaining the same Magic-draining enchantment.
+  market_strategy:
+    notes:
+      - PvP only - no effect on NPCs
+      - Low activation rate (4%)
+      - Activates regardless of hit/miss
+      - Niche use for Magic level draining in PvP
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -1,6 +1,6 @@
 ---
 title: Ancient bracers | OSRS Price Data
-description: "Ancient bracers: Ancient blessed dragonhide vambraces.. High alch: 2,400 GP, GE limit: 8."
+description: "Ancient bracers is a members hands slot item requiring 70 Ranged. High alch: 2,400 GP, GE limit: 8."
 osrs:
   id: 12490
   name: Ancient bracers
@@ -12,26 +12,72 @@ osrs:
   lowalch: 1600
   highalch: 2400
   limit: 8
+  equipment:
+    slot: hands
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 11
+    defence_bonus:
+      stab: 6
+      slash: 5
+      crush: 7
+      magic: 6
+      ranged: 8
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+    requirements:
+      ranged: 70
+  related_items:
+    - item_id: 10376
+      item_name: Guthix bracers
+      slug: guthix-bracers
+      relationship: variant
+    - item_id: 10368
+      item_name: Zamorak bracers
+      slug: zamorak-bracers
+      relationship: variant
+    - item_id: 12498
+      item_name: Bandos bracers
+      slug: bandos-bracers
+      relationship: variant
+    - item_id: 12506
+      item_name: Armadyl bracers
+      slug: armadyl-bracers
+      relationship: variant
+    - item_id: 2491
+      item_name: Black d'hide vambraces
+      slug: black-d-hide-vambraces
+      relationship: upgrade-from
+      description: Standard version requiring 40 Defence
+  about: |-
+    > *"Ancient blessed dragonhide vambraces."*
+
+    | Stat | Blessed | Black D'hide |
+    |------|--------:|-----------:|
+    | Ranged Attack | +11 | +11 |
+    | Prayer | +1 | 0 |
+    | Ranged Req | 70 | 70 |
+    | Defence Req | None | 40 |
+
+    No Defence requirement makes these ideal for 1-Defence pures. The +1 prayer bonus is an additional advantage.
+  market_strategy:
+    notes:
+      - Hard clue exclusive
+      - Best-in-slot ranged gloves for pures
+      - All god variants are functionally identical
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

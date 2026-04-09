@@ -54,102 +54,49 @@ osrs:
       slug: berserker-ring-i
       relationship: alternative
       description: Strength ring
+  about: |-
+    No combat stats. The Lightbearer provides no offensive or defensive bonuses.
+
+    Accelerated Spec Regen:
+    - Special attack energy regenerates twice as fast
+    - Normal: 10% per 50 seconds (5% per 25 seconds)
+    - With Lightbearer: 10% per 25 seconds
+
+    This means you gain back 50% spec energy per minute instead of 25%.
+
+    BiS for spec-heavy content:
+    - Any boss where specs matter (DWH, BGS)
+    - Theatre of Blood (DWH on Verzik)
+    - Chambers of Xeric (specs throughout)
+    - Solo bossing
+    - Slayer with spec weapons
+
+    | Content | Lightbearer? |
+    |---------|--------------|
+    | Spec-dependent bosses | Yes |
+    | General melee/ranged | Maybe (vs Berserker) |
+    | Magic content | No |
+    | Tanking | No (Ring of suffering) |
+
+    | Ring | Effect |
+    |------|--------|
+    | Lightbearer | 2x spec regen |
+    | Berserker ring (i) | +8 strength |
+    | Archers ring (i) | +8 ranged |
+    | Ring of suffering (i) | +20 all def, -10 damage |
+  market_strategy:
+    notes:
+      - Cheapest ToA unique
+      - Situationally BiS
+      - Great for learning bosses
+      - Worth having for spec content
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Ring |
-| Type | Combat Ring |
-| Tradeable | Yes |
-| Weight | 0.004 kg |
-| Requirements | None |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Tombs of Amascut | ~1/8 at 150+ invocation |
-
-Most common unique from ToA.
-
-## Stats
-
-**No combat stats.** The Lightbearer provides no offensive or defensive bonuses.
-
-## Special Effect
-
-**Accelerated Spec Regen:**
-- Special attack energy regenerates twice as fast
-- Normal: 10% per 50 seconds (5% per 25 seconds)
-- With Lightbearer: 10% per 25 seconds
-
-**This means you gain back 50% spec energy per minute instead of 25%.**
-
-## Usage
-
-BiS for spec-heavy content:
-- Any boss where specs matter (DWH, BGS)
-- Theatre of Blood (DWH on Verzik)
-- Chambers of Xeric (specs throughout)
-- Solo bossing
-- Slayer with spec weapons
-
-## When to Use
-
-| Content | Lightbearer? |
-|---------|--------------|
-| Spec-dependent bosses | Yes |
-| General melee/ranged | Maybe (vs Berserker) |
-| Magic content | No |
-| Tanking | No (Ring of suffering) |
-
-## Comparison
-
-| Ring | Effect |
-|------|--------|
-| **Lightbearer** | **2x spec regen** |
-| Berserker ring (i) | +8 strength |
-| Archers ring (i) | +8 ranged |
-| Ring of suffering (i) | +20 all def, -10 damage |
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~5.5M gp
-
-**Tips:**
-- Cheapest ToA unique
-- Situationally BiS
-- Great for learning bosses
-- Worth having for spec content
-
-## Related Items
-
-- [Osmumten's fang](/osrs/osmumtens-fang/) - Other ToA unique
-- [Dragon warhammer](/osrs/dragon-warhammer/) - Benefits from faster specs
-- [Berserker ring](/osrs/berserker-ring/) - Alternative for DPS
-
-<Adsense />
+<OSRSAdsenseCard />

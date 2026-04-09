@@ -36,68 +36,29 @@ osrs:
       slug: compost-bucket
       relationship: alternative
       description: Regular compost container
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Farming Tool |
+    | Tradeable | Yes (empty only) |
+    | Weight | 1 kg (empty), 3 kg (full) |
+
+    Capacity: 10,000 charges maximum (single compost type).
+
+    Efficiency: Each bucket added grants 2 charges (doubles compost).
+
+    Compatible: Compost, supercompost, ultracompost.
+
+    - Store with Tool Leprechaun in dedicated slot
+    - Cannot transfer compost back to empty buckets
+    - Untradeable when filled
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Farming Tool |
-| Tradeable | Yes (empty only) |
-| Weight | 1 kg (empty), 3 kg (full) |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Hespori | 1/35 |
-
-Requires 65 Farming to access Hespori.
-
-## Effect
-
-**Capacity:** 10,000 charges maximum (single compost type).
-
-**Efficiency:** Each bucket added grants 2 charges (doubles compost).
-
-**Compatible:** Compost, supercompost, ultracompost.
-
-## Usage
-
-- Store with Tool Leprechaun in dedicated slot
-- Cannot transfer compost back to empty buckets
-- Untradeable when filled
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~800K gp
-
-## Related Items
-
-- [Hespori](/osrs/hespori/) - Source boss
-- [Ultracompost](/osrs/ultracompost/) - Best compost
-- [Compost bucket](/osrs/compost-bucket/) - Regular version
-
-<Adsense />
+<OSRSAdsenseCard />

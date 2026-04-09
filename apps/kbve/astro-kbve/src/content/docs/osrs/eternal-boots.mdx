@@ -59,68 +59,43 @@ osrs:
       slug: eternal-crystal
       relationship: component
       description: From Cerberus
+  about: |-
+    Combine Infinity boots + Eternal crystal.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 60 |
+    | Runecraft | 60 |
+    | XP | 200 Magic, 200 Runecraft |
+
+    Process is irreversible.
+
+    | Stat | Value |
+    |------|-------|
+    | Magic attack | +8 |
+    | Magic defence | +8 |
+    | Magic damage | 1% |
+    | All defence | +5 |
+
+    Second-best magic boots (behind Avernic treads)
+
+    BiS magic boots for:
+    - All magic combat
+    - Raids
+    - Bossing
+    - Barrage Slayer
+  market_strategy:
+    notes:
+      - Crystal from Cerberus
+      - Infinity boots from MTA or GE
+      - Popular for magic setups
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Combine Infinity boots + Eternal crystal.
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 60 |
-| Runecraft | 60 |
-| XP | 200 Magic, 200 Runecraft |
-
-**Process is irreversible.**
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Magic attack | +8 |
-| Magic defence | +8 |
-| Magic damage | 1% |
-| All defence | +5 |
-
-**Second-best magic boots** (behind Avernic treads)
-
-## Usage
-
-BiS magic boots for:
-- All magic combat
-- Raids
-- Bossing
-- Barrage Slayer
-
-## Market Strategy
-
-**Buy Limit:** 15 per 4 hours
-
-**Price:** ~6.3M gp
-
-**Tips:**
-- Crystal from Cerberus
-- Infinity boots from MTA or GE
-- Popular for magic setups
-
-<Adsense />
+<OSRSAdsenseCard />

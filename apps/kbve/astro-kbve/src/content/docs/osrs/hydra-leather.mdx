@@ -56,69 +56,32 @@ osrs:
       slug: brimstone-ring
       relationship: alternative
       description: Created from Hydra ring pieces
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Crafting Material |
+    | Tradeable | Yes |
+    | Stackable | No |
+    | Weight | 0.01 kg |
+
+    | Item Created | Materials | Facility |
+    |--------------|-----------|----------|
+    | Ferocious gloves | 1 Hydra leather | Lithkren Vault machinery |
+
+    Requires completion of Dragon Slayer II to access the vault.
+  market_strategy:
+    notes:
+      - Only source is Alchemical Hydra
+      - Creates BiS melee gloves
+      - 95 Slayer requirement is significant
+      - Dragon Slayer II required for crafting
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Crafting Material |
-| Tradeable | Yes |
-| Stackable | No |
-| Weight | 0.01 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Alchemical Hydra | 1/514 |
-
-**Requires 95 Slayer and must be on a Hydra Slayer task.**
-
-**Location:** Karuulm Slayer Dungeon
-
-## Uses
-
-| Item Created | Materials | Facility |
-|--------------|-----------|----------|
-| Ferocious gloves | 1 Hydra leather | Lithkren Vault machinery |
-
-**Requires completion of Dragon Slayer II to access the vault.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Only source is Alchemical Hydra
-- Creates BiS melee gloves
-- 95 Slayer requirement is significant
-- Dragon Slayer II required for crafting
-
-## Related Items
-
-- [Ferocious gloves](/osrs/ferocious-gloves/) - BiS melee gloves
-- [Hydra's claw](/osrs/hydras-claw/) - Another rare Hydra drop
-- [Brimstone ring](/osrs/brimstone-ring/) - Created from Hydra ring pieces
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -41,73 +41,37 @@ osrs:
       slug: rune-platebody
       relationship: downgrade
       description: Non-gilded version
+  about: |-
+    | Defence | Value |
+    |---------|-------|
+    | Stab | +80 |
+    | Slash | +72 |
+    | Crush | +63 |
+    | Magic | -6 |
+    | Ranged | +80 |
+
+    Requirements: 40 Defence
+
+    Same stats as regular rune platebody with gold trim cosmetic.
+
+    | Property | Rune platebody | Rune platebody (g) |
+    |----------|----------------|-------------------|
+    | Stats | Same | Same |
+    | Appearance | Normal | Gold trimmed |
+    | Source | Smithing/Shop | Hard clue |
+  market_strategy:
+    notes:
+      - Hard clue exclusive
+      - Purely cosmetic upgrade
+      - Popular F2P fashionscape
+      - Collection log item
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Body |
-| Type | Melee Armour |
-| Tradeable | Yes |
-| Weight | 9.9 kg |
-
-## Obtaining
-
-Reward from hard Treasure Trails.
-
-**Drop Rate:** Rare from reward casket (hard)
-
-## Stats
-
-| Defence | Value |
-|---------|-------|
-| Stab | +80 |
-| Slash | +72 |
-| Crush | +63 |
-| Magic | -6 |
-| Ranged | +80 |
-
-**Requirements:** 40 Defence
-
-## Comparison
-
-Same stats as regular rune platebody with gold trim cosmetic.
-
-| Property | Rune platebody | Rune platebody (g) |
-|----------|----------------|-------------------|
-| Stats | Same | Same |
-| Appearance | Normal | Gold trimmed |
-| Source | Smithing/Shop | Hard clue |
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Hard clue exclusive
-- Purely cosmetic upgrade
-- Popular F2P fashionscape
-- Collection log item
-
-<Adsense />
+<OSRSAdsenseCard />

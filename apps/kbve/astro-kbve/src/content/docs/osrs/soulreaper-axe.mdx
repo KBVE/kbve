@@ -79,90 +79,38 @@ osrs:
       slug: scythe-of-vitur
       relationship: alternative
       description: Alternative BiS melee weapon
+  about: |-
+    | Offence | Bonus |
+    |---------|-------|
+    | Stab | +28 |
+    | Slash | +134 |
+    | Crush | +66 |
+    | Strength | +121 |
+
+    Soul Stacks: Each attack builds a stack (max 5).
+
+    | Stacks | Strength Bonus |
+    |--------|----------------|
+    | 1 | +6% |
+    | 5 | +30% |
+
+    Damage: Take 8 damage per attack while building stacks.
+
+    Behead: Consumes stacks for accuracy/damage boost and healing.
+
+    Used for:
+    - Maximum melee DPS
+    - Bossing with healing
+    - Strength training
+
+    Highest DPS melee weapon.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Two-handed |
-| Type | Axe |
-| Tradeable | Yes |
-| Weight | 2.825 kg |
-| Requirements | 80 Attack, 80 Strength |
-
-## Obtaining
-
-Created with 75 Magic (400 XP):
-- Executioner's axe head (Vardorvis)
-- Leviathan's lure (Leviathan)
-- Siren's staff (Whisperer)
-- Eye of the duke (Duke Sucellus)
-- 2,000 Blood runes
-
-## Stats
-
-| Offence | Bonus |
-|---------|-------|
-| Stab | +28 |
-| Slash | +134 |
-| Crush | +66 |
-| Strength | +121 |
-
-## Passive Effect
-
-**Soul Stacks:** Each attack builds a stack (max 5).
-
-| Stacks | Strength Bonus |
-|--------|----------------|
-| 1 | +6% |
-| 5 | +30% |
-
-**Damage:** Take 8 damage per attack while building stacks.
-
-## Special Attack
-
-**Behead:** Consumes stacks for accuracy/damage boost and healing.
-
-## Usage
-
-Used for:
-- Maximum melee DPS
-- Bossing with healing
-- Strength training
-
-**Highest DPS melee weapon.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~271M gp
-
-## Related Items
-
-- [Vardorvis](/osrs/vardorvis/) - Component source
-- [The Leviathan](/osrs/the-leviathan/) - Component source
-- [Scythe of vitur](/osrs/scythe-of-vitur/) - Alternative
-
-<Adsense />
+<OSRSAdsenseCard />

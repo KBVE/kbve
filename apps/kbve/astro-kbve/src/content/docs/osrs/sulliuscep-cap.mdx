@@ -39,62 +39,23 @@ osrs:
       slug: mushroom-pie
       relationship: product
       description: Created item
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Cooking Ingredient |
+    | Tradeable | Yes |
+    | Weight | 0.907 kg |
+
+    | Recipe | Boost |
+    |--------|-------|
+    | Mushroom pie | +4 Crafting |
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Cooking Ingredient |
-| Tradeable | Yes |
-| Weight | 0.907 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Sulliuscep chopping | 1/100 |
-
-Requires 65 Woodcutting.
-
-Location: Tar Swamp, Fossil Island.
-
-## Uses
-
-| Recipe | Boost |
-|--------|-------|
-| Mushroom pie | +4 Crafting |
-
-## Market Strategy
-
-**Buy Limit:** 100 per 4 hours
-
-**Price:** ~6.6K gp
-
-## Related Items
-
-- [Fossil Island](/osrs/fossil-island/) - Location
-- [Sulliuscep](/osrs/sulliuscep/) - Source
-- [Mushroom pie](/osrs/mushroom-pie/) - Created item
-
-<Adsense />
+<OSRSAdsenseCard />

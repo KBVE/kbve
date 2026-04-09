@@ -1,6 +1,6 @@
 ---
 title: Spiked manacles | OSRS Price Data
-description: "Spiked manacles is a members-only OSRS item. High alch: 1,500 GP, GE limit: 8."
+description: "Spiked manacles is a members feet slot item with +4 melee strength. High alch: 1,500 GP, GE limit: 8."
 osrs:
   id: 23389
   name: Spiked manacles
@@ -12,26 +12,77 @@ osrs:
   lowalch: 1000
   highalch: 1500
   limit: 8
+  equipment:
+    slot: feet
+    weight: 3
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -3
+      ranged: -1
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -4
+      ranged: 0
+    other_bonus:
+      melee_strength: 4
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        tier: Medium
+        drop_rate: 1/1,133
+        description: Rare reward from medium clue scrolls
+  related_items:
+    - item_id: 11840
+      item_name: Dragon boots
+      slug: dragon-boots
+      relationship: alternative
+      description: Best melee boots for mains (+4 str, requires 60 Defence)
+    - item_id: 13239
+      item_name: Primordial boots
+      slug: primordial-boots
+      relationship: upgrade
+      description: Best-in-slot melee boots (+5 str, requires 75 Defence)
+    - item_id: 4131
+      item_name: Rune boots
+      slug: rune-boots
+      relationship: alternative
+      description: Alternative boots for pures (+2 str, no requirements)
+  about: |-
+    > *"Some very spikey metal bands, better make sure I don't cut myself while walking."*
+
+    | Property | Spiked Manacles | Rune Boots | Dragon Boots | Primordial Boots |
+    |----------|----------------|------------|--------------|-----------------|
+    | Melee Strength | +4 | +2 | +4 | +5 |
+    | Defence Req | None | None | 60 | 75 |
+    | Magic Attack | -3 | 0 | 0 | 0 |
+    | Magic Defence | -4 | 0 | 0 | 0 |
+    | Source | Medium clue | Nechryael | Spiritual mages | Dragon boots + Primordial crystal |
+
+    Spiked manacles match dragon boots in strength bonus while having no Defence requirement, making them essential for pure builds. The trade-off is negative magic attack and defence bonuses and zero defensive stats.
+  market_strategy:
+    title: Investment Notes
+    notes:
+      - Best-in-slot strength boots for 1-Defence pures
+      - Medium clue exclusive with consistent demand from pure community
+      - No alternative provides the same strength bonus without Defence requirements
+      - Essential purchase for any melee pure build
+      - Price is driven by pure PvP meta demand
+      - Consider pairing with other no-requirement strength gear
+      - Medium clues are relatively fast to complete, keeping supply steady
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -1,6 +1,6 @@
 ---
 title: White beret | OSRS Price Data
-description: "White beret: Parlez-vous francais?. High alch: 48 GP, GE limit: 4."
+description: "White beret is a members head slot item. High alch: 48 GP, GE limit: 4."
 osrs:
   id: 2637
   name: White beret
@@ -12,26 +12,26 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 4
+  equipment:
+    slot: head
+    requirements: {}
+  related_items:
+    - item_id: 2635
+      item_name: Black beret
+      slug: black-beret
+      relationship: variant
+      description: Black colour variant
+  about: |-
+    > *"Parlez-vous francais?"*
+
+    The white beret is a purely cosmetic head slot item from easy treasure trails. No combat bonuses.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

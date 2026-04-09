@@ -61,63 +61,26 @@ osrs:
       slug: green-dragon-leather
       relationship: alternative
       description: Lower tier
+  market_strategy:
+    notes:
+      - Mid-tier dragonhide
+      - F2P armor accessible
+      - High volume trading
+      - Crafting training
+      - Blue d'hide production
+      - Tan Leather profit
+      - F2P ranged gear
+      - Tan Leather spell efficient
+      - Blue dragons very common
+      - Popular training leather
+      - F2P bodies usable
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Method | Cost |
-|--------|------|
-| Tanner | 20 GP + Blue dragonhide |
-| Tan Leather spell | 78 Magic, runes |
-
-## Crafting
-
-| Product | Level | Leather | XP |
-|---------|-------|---------|-----|
-| Blue d'hide vambraces | 66 | 1 | 70 |
-| Blue d'hide chaps | 68 | 2 | 140 |
-| Blue d'hide shield | 69 | 2 | 140 |
-| Blue d'hide body | 71 | 3 | 210 |
-
-## Market Flip Strategy
-
-**Popular Crafting Material:**
-- Mid-tier dragonhide
-- F2P armor accessible
-- High volume trading
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Demand Drivers:**
-- Crafting training
-- Blue d'hide production
-- Tan Leather profit
-- F2P ranged gear
-
-**Tips:**
-- Tan Leather spell efficient
-- Blue dragons very common
-- Popular training leather
-- F2P bodies usable
-
-<Adsense />
+<OSRSAdsenseCard />

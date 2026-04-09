@@ -83,65 +83,28 @@ osrs:
       slug: pestle-and-mortar
       relationship: component
       description: Processing tool
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Herblore Secondary |
+    | Tradeable | Yes |
+    | Weight | 0.007 kg |
+
+    Secondary ingredient for:
+    - Weapon poison (with kwuarm potion unf)
+    - Weapon poison+ (with cactus spine)
+    - Antifire (with lantadyme potion unf)
+    - Extended antifire (with lava scale shard)
+
+    Essential for antifire potion production.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Herblore Secondary |
-| Tradeable | Yes |
-| Weight | 0.007 kg |
-
-## Obtaining
-
-**Primary method:** Use pestle and mortar on blue dragon scale.
-
-**Alternative:** Wesley in Nardah crushes items for 50 gp each.
-
-## Usage
-
-Secondary ingredient for:
-- **Weapon poison** (with kwuarm potion unf)
-- **Weapon poison+** (with cactus spine)
-- **Antifire** (with lantadyme potion unf)
-- **Extended antifire** (with lava scale shard)
-
-Essential for antifire potion production.
-
-## Market Strategy
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Price:** ~73 gp
-
-Very high volume. Profit margin when crafting from blue dragon scales.
-
-## Related Items
-
-- [Blue dragon scale](/osrs/blue-dragon-scale/) - Raw material
-- [Antifire potion](/osrs/antifire-potion/) - Primary use
-- [Weapon poison](/osrs/weapon-poison/) - Combat use
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -54,76 +54,20 @@ osrs:
     - slug: ancestral-robe-top
       name: Ancestral robe top
       relation: best_upgrade
+  about: |-
+    The full Infinity set includes:
+    - Infinity hat
+    - Infinity top
+    - Infinity bottoms
+    - Infinity boots
+    - Infinity gloves
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Body |
-| Type | Magic Robe |
-| Tradeable | Yes |
-| Weight | 1.814 kg |
-| Requirements | 50 Magic, 25 Defence |
-
-## Combat Stats
-
-| Stat | Bonus |
-|------|-------|
-| Magic Attack | +22 |
-| Magic Defence | +17 |
-| Ranged Defence | -7 |
-
-## Obtaining
-
-**Mage Training Arena:** Requires significant pizazz points from all four rooms.
-
-| Room | Points |
-|------|--------|
-| Telekinetic | 400 |
-| Alchemist | 450 |
-| Enchantment | 4,500 |
-| Graveyard | 400 |
-
-## Market Strategy
-
-**Buy Limit:** 125 per 4 hours
-
-Mid-tier magic body. Part of the Infinity set from MTA.
-
-## Infinity Set
-
-The full Infinity set includes:
-- [Infinity hat](/osrs/infinity-hat/)
-- [Infinity top](/osrs/infinity-top/)
-- [Infinity bottoms](/osrs/infinity-bottoms/)
-- [Infinity boots](/osrs/infinity-boots/)
-- [Infinity gloves](/osrs/infinity-gloves/)
-
-## Related Items
-
-- [Ancestral robe top](/osrs/ancestral-robe-top/) - Best-in-slot upgrade
-- [Ahrim's robetop](/osrs/ahrims-robetop/) - Budget alternative with set bonus
-- [Master wand](/osrs/master-wand/) - MTA weapon
-
-<Adsense />
+<OSRSAdsenseCard />

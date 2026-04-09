@@ -1,6 +1,6 @@
 ---
 title: Hunters' crossbow | OSRS Price Data
-description: "Hunters' crossbow: A weapon made of bone and wood.. High alch: 780 GP, GE limit: 70."
+description: "Hunters' crossbow is a members weapon slot item requiring 50 Ranged. High alch: 780 GP, GE limit: 70."
 osrs:
   id: 10156
   name: Hunters' crossbow
@@ -12,26 +12,97 @@ osrs:
   lowalch: 520
   highalch: 780
   limit: 70
+  equipment:
+    slot: weapon
+    type: crossbow
+    attack_style: ranged
+    attack_speed: 4
+    requirements:
+      ranged: 50
+    stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: 0
+      attack_ranged: 55
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    weight: 5
+  obtaining:
+    methods:
+      - source: Leon's Prototype Crossbow shop
+        location: Yanille
+        cost: 1300
+      - source: Grand Exchange
+        notes: Tradeable
+  related_items:
+    - item_id: 10158
+      item_name: Kebbit bolts
+      slug: kebbit-bolts
+      relationship: ammo
+      description: Standard ammo for this crossbow
+    - item_id: 10159
+      item_name: Long kebbit bolts
+      slug: long-kebbit-bolts
+      relationship: ammo
+      description: Long-range ammo variant
+    - item_id: 9174
+      item_name: Adamant crossbow
+      slug: adamant-crossbow
+      relationship: alternative
+      description: Similar ranged requirement crossbow
+  about: |-
+    "A weapon made of bone and wood."
+
+    | Stat | Value |
+    |------|-------|
+    | Stab Attack | +0 |
+    | Slash Attack | +0 |
+    | Crush Attack | +0 |
+    | Magic Attack | +0 |
+    | Ranged Attack | +55 |
+    | Stab Defence | +0 |
+    | Slash Defence | +0 |
+    | Crush Defence | +0 |
+    | Magic Defence | +0 |
+    | Ranged Defence | +0 |
+    | Melee Strength | +0 |
+    | Ranged Strength | +0 |
+    | Magic Damage | +0% |
+    | Prayer | +0 |
+
+    Requirements: 50 Ranged
+
+    | Crossbow | Ranged Atk | Requirements | Ammo |
+    |----------|-----------|-------------|------|
+    | Hunter's crossbow | +55 | 50 Ranged | Kebbit bolts |
+    | Adamant crossbow | +46 | 46 Ranged | Bolts up to adamant |
+    | Rune crossbow | +90 | 61 Ranged | Bolts up to rune |
+
+    The hunter's crossbow has a high ranged attack bonus for its level but is limited to kebbit bolts, which have low ranged strength. This makes it a niche weapon primarily used for the Hunter skill rather than general combat.
+  market_strategy:
+    notes:
+      - Hunter skill training
+      - Niche PvM use with kebbit bolts
+      - Low overall demand
+      - Very cheap, available from NPC shop for 1,300 gp
+      - Only fires kebbit bolts and long kebbit bolts
+      - Not practical for general combat due to limited ammo
+      - Primarily a Hunter utility item
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

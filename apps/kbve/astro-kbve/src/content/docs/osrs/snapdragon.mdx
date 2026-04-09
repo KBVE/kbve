@@ -66,57 +66,33 @@ osrs:
       slug: ranarr-weed
       relationship: alternative
       description: Alternative herb for prayer pots
+  market_strategy:
+    steps:
+      - order: 1
+        action: Buy Grimy snapdragon or clean Snapdragon
+      - order: 2
+        action: Buy Red spiders' eggs
+      - order: 3
+        action: Make Super restore(4)
+      - order: 4
+        action: "Calculate: `Super restore price - Snapdragon price - Red spiders' eggs - Vial = Profit`"
+    profit_formulas:
+      - Super restore price - Snapdragon price - Red spiders' eggs - Vial = Profit
+    notes:
+      - Buy grimy → Clean (3 XP) → Sell clean
+      - Check margin between grimy and clean
+      - Snapdragon seed (67 Farming)
+      - Profitable alternative to ranarr
+      - Super restores essential for raids
+      - Paired with Sara brews (3:1 ratio)
+      - Universal stat recovery potion
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Herblore
-
-Clean Grimy snapdragon to get Snapdragon, then create potions:
-
-| Potion | Secondary | Herblore Level | XP |
-|--------|-----------|----------------|-----|
-| Super restore(3) | Red spiders' eggs | 63 | 142.5 |
-
-## Market Flip Strategy
-
-**Potion Making:**
-1. Buy Grimy snapdragon or clean Snapdragon
-2. Buy Red spiders' eggs
-3. Make Super restore(4)
-4. Calculate: `Super restore price - Snapdragon price - Red spiders' eggs - Vial = Profit`
-
-**Cleaning Profit:**
-- Buy grimy → Clean (3 XP) → Sell clean
-- Check margin between grimy and clean
-
-**Herb Farming:**
-- Snapdragon seed (67 Farming)
-- Profitable alternative to ranarr
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Super restores essential for raids
-- Paired with Sara brews (3:1 ratio)
-- Universal stat recovery potion
-
-<Adsense />
+<OSRSAdsenseCard />

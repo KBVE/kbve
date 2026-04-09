@@ -57,69 +57,46 @@ osrs:
       slug: bandos-tassets
       relationship: alternative
       description: Budget option
+  about: |-
+    Repair Torva platelegs (damaged) with Bandosian components at an anvil.
+
+    | Component | Source | Price |
+    |-----------|--------|-------|
+    | Torva platelegs (damaged) | Nex | ~260M gp |
+    | Bandosian components | Disassemble Bandos armour | N/A |
+
+    | Stat | Value |
+    |------|-------|
+    | Stab defence | +87 |
+    | Slash defence | +78 |
+    | Crush defence | +79 |
+    | Ranged defence | +102 |
+    | Magic defence | -9 |
+    | Strength bonus | +4 |
+    | Prayer bonus | +1 |
+    | Requirements | 80 Defence |
+
+    PvM:
+    - Best-in-slot strength legs
+    - Highest melee defence legs
+    - All high-level melee content
+
+    Best For:
+    - Max melee setups
+    - Solo bossing
+    - Slayer
+  market_strategy:
+    notes:
+      - Nex kills affect supply
+      - BiS melee legs
+      - +2 str over Bandos tassets
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Repair Torva platelegs (damaged) with Bandosian components at an anvil.
-
-| Component | Source | Price |
-|-----------|--------|-------|
-| Torva platelegs (damaged) | Nex | ~260M gp |
-| Bandosian components | Disassemble Bandos armour | N/A |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Stab defence | +87 |
-| Slash defence | +78 |
-| Crush defence | +79 |
-| Ranged defence | +102 |
-| Magic defence | -9 |
-| Strength bonus | +4 |
-| Prayer bonus | +1 |
-| Requirements | 80 Defence |
-
-## Usage
-
-**PvM:**
-- Best-in-slot strength legs
-- Highest melee defence legs
-- All high-level melee content
-
-**Best For:**
-- Max melee setups
-- Solo bossing
-- Slayer
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Nex kills affect supply
-- BiS melee legs
-- +2 str over Bandos tassets
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -44,66 +44,36 @@ osrs:
       slug: sweetcorn
       relationship: upgrade
       description: Higher tier allotment crop
+  about: |-
+    | Requirement | Value |
+    |-------------|-------|
+    | Farming Level | 12 |
+    | Growth time | 40 minutes |
+    | XP (plant) | 12.5 |
+    | XP (harvest) | 14 per tomato |
+
+    - Basket of tomatoes used for oak tree protection
+    - Ingredient in cooking recipes
+    - Can be thrown at players in pillory (cosmetic)
+  market_strategy:
+    title: Ironman Notes
+    notes:
+      - Low-tier crop
+      - Moderate value due to protection payment use
+      - Good for early-mid farming training
+      - 5 tomatoes make a basket
+      - Baskets used for tree protection payments
+      - Good passive income from farming
+      - Important for oak tree protection
+      - Stock up for tree runs
+      - Easy to farm in large quantities
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-**Farming:** Harvest from allotment patches after planting tomato seeds (12 Farming).
-
-**Other Sources:**
-- Monster drops
-- Market stalls
-
-## Farming Info
-
-| Requirement | Value |
-|-------------|-------|
-| Farming Level | 12 |
-| Growth time | 40 minutes |
-| XP (plant) | 12.5 |
-| XP (harvest) | 14 per tomato |
-
-## Uses
-
-- Basket of tomatoes used for oak tree protection
-- Ingredient in cooking recipes
-- Can be thrown at players in pillory (cosmetic)
-
-## Market Strategy
-
-**Allotment Farming:**
-- Low-tier crop
-- Moderate value due to protection payment use
-- Good for early-mid farming training
-
-**Basket Making:**
-- 5 tomatoes make a basket
-- Baskets used for tree protection payments
-- Good passive income from farming
-
-**Ironman Notes:**
-- Important for oak tree protection
-- Stock up for tree runs
-- Easy to farm in large quantities
-
-<Adsense />
+<OSRSAdsenseCard />

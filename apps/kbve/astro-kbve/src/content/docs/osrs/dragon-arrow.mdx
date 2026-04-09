@@ -85,58 +85,30 @@ osrs:
       slug: twisted-bow
       relationship: alternative
       description: Primary user of dragon arrows
+  market_strategy:
+    profit_formulas:
+      - (Dragon arrow × 15) - (Headless × 15) - (Dragon arrowtips × 15) = Profit
+    notes:
+      - "Calculate:"
+      - 90 Fletching required
+      - Check arrowtip vs arrow margins
+      - Dragon arrowtips from Vorkath, Zulrah
+      - High volume from boss farming
+      - Twisted bow primary ammo
+      - Dark bow spec attacks
+      - High-level ranged training
+      - Cox/ToB raids
+      - Best arrows in game
+      - Twisted bow users = huge demand
+      - Often cheaper than rune arrows
+      - Check Vorkath supply levels
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Combat Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged Strength | +60 |
-| Best with | Dark bow, Twisted bow |
-
-## Market Flip Strategy
-
-**Fletching Profit:**
-- Calculate: `(Dragon arrow × 15) - (Headless × 15) - (Dragon arrowtips × 15) = Profit`
-- 90 Fletching required
-- Check arrowtip vs arrow margins
-
-**Arrowtip Sources:**
-- Dragon arrowtips from Vorkath, Zulrah
-- High volume from boss farming
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Twisted bow primary ammo
-- Dark bow spec attacks
-- High-level ranged training
-- Cox/ToB raids
-
-**Tips:**
-- Best arrows in game
-- Twisted bow users = huge demand
-- Often cheaper than rune arrows
-- Check Vorkath supply levels
-
-<Adsense />
+<OSRSAdsenseCard />

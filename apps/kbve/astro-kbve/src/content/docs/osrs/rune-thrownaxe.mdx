@@ -1,6 +1,6 @@
 ---
 title: Rune thrownaxe | OSRS Price Data
-description: "Rune thrownaxe: A finely balanced throwing axe.. High alch: 264 GP, GE limit: 11,000."
+description: "Rune thrownaxe is a members weapon slot item requiring 40 Ranged. High alch: 264 GP, GE limit: 11,000."
 osrs:
   id: 805
   name: Rune thrownaxe
@@ -12,26 +12,31 @@ osrs:
   lowalch: 176
   highalch: 264
   limit: 11000
+  equipment:
+    slot: weapon
+    attack_speed: 5
+    requirements:
+      ranged: 40
+    attack_bonus:
+      ranged: 17
+    ranged_strength: 36
+  related_items:
+    - item_id: 804
+      item_name: Adamant thrownaxe
+      slug: adamant-thrownaxe
+      relationship: variant
+      description: Lower tier thrownaxe
+  about: |-
+    > _"A finely balanced throwing axe."_
+
+    The rune thrownaxe is the highest standard thrownaxe, requiring 40 Ranged. Has +36 ranged strength and the bouncing special attack that hits multiple adjacent targets — useful in multicombat areas.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

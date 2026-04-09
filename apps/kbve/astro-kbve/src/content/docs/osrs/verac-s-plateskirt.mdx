@@ -56,87 +56,42 @@ osrs:
       slug: veracs-flail
       relationship: set-piece
       description: Weapon set piece (+6 prayer)
+  about: |-
+    | Bonus | Value |
+    |-------|-------|
+    | Stab defence | +85 |
+    | Slash defence | +82 |
+    | Crush defence | +83 |
+    | Magic defence | +0 |
+    | Ranged defence | +84 |
+    | Prayer | +4 |
+    | Magic attack | -21 |
+
+    Note: Same melee defence as Dharok/Torag legs but with +4 prayer bonus.
+
+    Defiler:
+    When wearing full Verac's (helm, brassard, plateskirt, flail):
+    - 25% chance to ignore target's Defence and Protection prayers
+    - Hits through Protect from Melee
+
+    Best For:
+    - Prayer bonus legs option
+    - Same defence as other Barrows legs
+    - Lighter than other platelegs
+
+    - 15 hours of combat use
+    - Repair at Bob in Lumbridge or POH armor stand
+  market_strategy:
+    notes:
+      - Useful for prayer setups
+      - Combines well with Proselyte
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Obtained from the Barrows minigame (1/102.17 for any specific Barrows item).
-
-**Location:** Barrows mounds, east of Mort'ton in Morytania
-
-## Equipment Info
-
-| Stat | Value |
-|------|-------|
-| Slot | Legs |
-| Weight | 4.5 kg |
-| Requirements | 70 Defence |
-
-## Stats
-
-| Bonus | Value |
-|-------|-------|
-| Stab defence | +85 |
-| Slash defence | +82 |
-| Crush defence | +83 |
-| Magic defence | +0 |
-| Ranged defence | +84 |
-| Prayer | +4 |
-| Magic attack | -21 |
-
-**Note:** Same melee defence as Dharok/Torag legs but with +4 prayer bonus.
-
-## Set Effect
-
-**Defiler:**
-When wearing full Verac's (helm, brassard, plateskirt, flail):
-- 25% chance to ignore target's Defence and Protection prayers
-- Hits through Protect from Melee
-
-## Usage
-
-**Best For:**
-- Prayer bonus legs option
-- Same defence as other Barrows legs
-- Lighter than other platelegs
-
-## Degradation
-
-- 15 hours of combat use
-- Repair at Bob in Lumbridge or POH armor stand
-
-## Market Strategy
-
-**Buy Limit:** 10 per 4 hours
-
-**Tips:**
-- Useful for prayer setups
-- Combines well with Proselyte
-
-## Related Items
-
-- [Verac's helm](/osrs/veracs-helm/) - Head slot (+3 prayer)
-- [Verac's brassard](/osrs/veracs-brassard/) - Body slot (+5 prayer)
-- [Verac's flail](/osrs/veracs-flail/) - Weapon (+6 prayer)
-
-<Adsense />
+<OSRSAdsenseCard />

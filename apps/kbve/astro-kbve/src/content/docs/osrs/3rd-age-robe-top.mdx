@@ -51,80 +51,26 @@ osrs:
       slug: 3rd-age-amulet
       relationship: set-piece
       description: Neck slot of 3rd age mage set
+  about: |-
+    The 3rd age robe top is part of the 3rd age mage set, one of the rarest and most prestigious armour sets in Old School RuneScape. It requires 65 Magic and 30 Defence to wear.
+
+    3rd age equipment is highly sought after due to its extreme rarity and status symbol value. It can only be obtained from Treasure Trails, specifically from master clue scroll caskets at an exceptionally low drop rate.
+  market_strategy:
+    title: Investment Notes
+    notes:
+      - One of the most valuable items in OSRS
+      - Price driven by collector demand
+      - Often used as currency for high-value trades
+      - Verify authenticity when trading high-value items
+      - Use Grand Exchange for secure trades
+      - Monitor price trends before purchasing
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Body |
-| Type | Magic Armour |
-| Tradeable | Yes |
-| Members Only | Yes |
-| Weight | 2.721 kg |
-
-## Obtaining
-
-| Method | Details |
-|--------|---------|
-| Source | Master Clue Scrolls |
-| Rarity | Extremely Rare (1/313,168) |
-
-## Combat Stats
-
-| Stat | Value |
-|------|-------|
-| Magic Attack | +24 |
-| Stab Defence | +43 |
-| Slash Defence | +21 |
-| Crush Defence | +53 |
-| Magic Defence | +24 |
-| Ranged Defence | +0 |
-
-**Requirements:** 65 Magic, 30 Defence
-
-## About
-
-The 3rd age robe top is part of the 3rd age mage set, one of the rarest and most prestigious armour sets in Old School RuneScape. It requires 65 Magic and 30 Defence to wear.
-
-3rd age equipment is highly sought after due to its extreme rarity and status symbol value. It can only be obtained from Treasure Trails, specifically from master clue scroll caskets at an exceptionally low drop rate.
-
-## Market Strategy
-
-**Investment Notes:**
-- One of the most valuable items in OSRS
-- Price driven by collector demand
-- Often used as currency for high-value trades
-
-**Trading Tips:**
-- Verify authenticity when trading high-value items
-- Use Grand Exchange for secure trades
-- Monitor price trends before purchasing
-
-## Related Items
-
-- [3rd age mage hat](/osrs/3rd-age-mage-hat/) - Head slot of 3rd age mage set
-- [3rd age robe](/osrs/3rd-age-robe/) - Leg slot of 3rd age mage set
-- [3rd age amulet](/osrs/3rd-age-amulet/) - Neck slot of 3rd age mage set
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -51,80 +51,26 @@ osrs:
       slug: 3rd-age-vambraces
       relationship: set-piece
       description: Hands slot of 3rd age range set
+  about: |-
+    The 3rd age range legs are part of the 3rd age ranged set, one of the rarest and most prestigious armour sets in Old School RuneScape. They require 65 Ranged and 45 Defence to wear.
+
+    3rd age equipment is highly sought after due to its extreme rarity and status symbol value. It can only be obtained from Treasure Trails, specifically from master clue scroll caskets at an exceptionally low drop rate.
+  market_strategy:
+    title: Investment Notes
+    notes:
+      - Extremely valuable due to rarity
+      - Price fluctuates based on collector demand
+      - Consider set value vs individual pieces
+      - Verify authenticity when trading high-value items
+      - Use Grand Exchange for secure trades
+      - Monitor price trends before purchasing
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Legs |
-| Type | Ranged Armour |
-| Tradeable | Yes |
-| Members Only | Yes |
-| Weight | 4.535 kg |
-
-## Obtaining
-
-| Method | Details |
-|--------|---------|
-| Source | Master Clue Scrolls |
-| Rarity | Extremely Rare (1/313,168) |
-
-## Combat Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged Attack | +17 |
-| Stab Defence | +31 |
-| Slash Defence | +25 |
-| Crush Defence | +33 |
-| Magic Defence | +28 |
-| Ranged Defence | +33 |
-
-**Requirements:** 65 Ranged, 45 Defence
-
-## About
-
-The 3rd age range legs are part of the 3rd age ranged set, one of the rarest and most prestigious armour sets in Old School RuneScape. They require 65 Ranged and 45 Defence to wear.
-
-3rd age equipment is highly sought after due to its extreme rarity and status symbol value. It can only be obtained from Treasure Trails, specifically from master clue scroll caskets at an exceptionally low drop rate.
-
-## Market Strategy
-
-**Investment Notes:**
-- Extremely valuable due to rarity
-- Price fluctuates based on collector demand
-- Consider set value vs individual pieces
-
-**Trading Tips:**
-- Verify authenticity when trading high-value items
-- Use Grand Exchange for secure trades
-- Monitor price trends before purchasing
-
-## Related Items
-
-- [3rd age range coif](/osrs/3rd-age-range-coif/) - Head slot of 3rd age range set
-- [3rd age range top](/osrs/3rd-age-range-top/) - Body slot of 3rd age range set
-- [3rd age vambraces](/osrs/3rd-age-vambraces/) - Hands slot of 3rd age range set
-
-<Adsense />
+<OSRSAdsenseCard />

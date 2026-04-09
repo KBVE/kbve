@@ -1,6 +1,6 @@
 ---
 title: Onyx dragon bolts (e) | OSRS Price Data
-description: "Onyx dragon bolts (e): Enchanted Dragon crossbow bolts, tipped with onyx.. High alch: 9,480 GP, GE limit: 11,000."
+description: "Onyx dragon bolts (e) is a members ammo slot item with +122 ranged strength. High alch: 9,480 GP, GE limit: 11,000."
 osrs:
   id: 21950
   name: Onyx dragon bolts (e)
@@ -12,26 +12,67 @@ osrs:
   lowalch: 6320
   highalch: 9480
   limit: 11000
+  equipment:
+    slot: ammo
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      ranged_strength: 122
+      prayer: 0
+    requirements: {}
+  recipes:
+    - skill: magic
+      level: 87
+      xp: 97
+      inputs:
+        - item_name: Onyx dragon bolts
+          quantity: 10
+      output_quantity: 10
+  related_items:
+    - item_id: 9245
+      item_name: Onyx bolts (e)
+      slug: onyx-bolts-e
+      relationship: downgrade
+      description: Regular crossbow version
+  about: |-
+    > *"Enchanted Dragon crossbow bolts, tipped with onyx."*
+
+    Onyx dragon bolts (e) carry the Life Leech enchantment. On activation, the attack deals 20% extra damage and the attacker is healed for 25% of the total damage dealt. The activation chance is 11% in PvM and 10% in PvP (12.1% and 11% respectively with the hard Kandarin Diary completed). This effect does not work on undead monsters. Life Leech provides both offensive and sustain benefits, making it one of the most powerful bolt enchantments in the game.
+
+    Enchant Crossbow Bolt (Onyx) requires Magic level 87 and grants 97 XP per cast. Each cast enchants 10 bolts at a time.
+
+    | Component | Quantity |
+    |-----------|----------|
+    | Onyx dragon bolts | 10 |
+    | Cosmic rune | 1 |
+    | Death rune | 1 |
+    | Fire rune | 20 |
+
+    | Stat | Dragon (e) | Regular (e) |
+    |------|-----------|-------------|
+    | Ranged Str | +122 | +120 |
+    | Base bolt | Dragon crossbow bolt | Runite bolt |
+
+    Both variants have very similar ranged strength, but the dragon bolt base provides a slight edge.
+  market_strategy:
+    notes:
+      - Highest tier bolt enchantment (Magic 87)
+      - Most expensive enchanted dragon bolt variant
+      - 20% extra damage + 25% healing on proc
+      - Does not work on undead monsters
+      - Best for sustain-heavy PvM encounters
+      - Often used alongside dragonstone dragon bolts (e) as a switch
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

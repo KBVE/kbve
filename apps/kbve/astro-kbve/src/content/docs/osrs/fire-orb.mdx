@@ -64,61 +64,32 @@ osrs:
       slug: battlestaff
       relationship: component
       description: Attachment base
+  about: |-
+    | Method | Level | Runes |
+    |--------|-------|-------|
+    | Charge Fire Orb | 63 Magic | 30 Fire, 3 Cosmic |
+    | Location | Fire Obelisk (Taverley Dungeon) | - |
+    | XP | 73 Magic | - |
+  market_strategy:
+    notes:
+      - No Wilderness risk
+      - Taverley Dungeon location
+      - Fire battlestaff production
+      - Fire battlestaff crafting
+      - Crafting training
+      - Tome of fire combo
+      - Safe alternative to air orbs
+      - Safe location (no PKers)
+      - Lower Magic requirement
+      - Fire runes cheap
+      - Less profit than air orbs
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creating
-
-| Method | Level | Runes |
-|--------|-------|-------|
-| Charge Fire Orb | 63 Magic | 30 Fire, 3 Cosmic |
-| Location | Fire Obelisk (Taverley Dungeon) | - |
-| XP | 73 Magic | - |
-
-## Crafting
-
-| Product | Level | XP |
-|---------|-------|-----|
-| Fire battlestaff | 62 Crafting | 125 |
-
-## Market Flip Strategy
-
-**Safe Money Maker:**
-- No Wilderness risk
-- Taverley Dungeon location
-- Fire battlestaff production
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Fire battlestaff crafting
-- Crafting training
-- Tome of fire combo
-- Safe alternative to air orbs
-
-**Tips:**
-- Safe location (no PKers)
-- Lower Magic requirement
-- Fire runes cheap
-- Less profit than air orbs
-
-<Adsense />
+<OSRSAdsenseCard />

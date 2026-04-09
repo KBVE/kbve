@@ -1,6 +1,6 @@
 ---
 title: Saradomin crozier | OSRS Price Data
-description: "Saradomin crozier: A Saradomin crozier.. High alch: 3,000 GP, GE limit: 8."
+description: "Saradomin crozier is a members weapon slot item. High alch: 3,000 GP, GE limit: 8."
 osrs:
   id: 10440
   name: Saradomin crozier
@@ -12,26 +12,34 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 8
+  equipment:
+    slot: weapon
+    requirements:
+      prayer: 60
+    other_bonus:
+      prayer: 6
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        tier: Hard
+        description: Reward from hard clue scrolls
+  related_items:
+    - item_id: 10470
+      item_name: Saradomin stole
+      slug: saradomin-stole
+      relationship: set-piece
+      description: Saradomin vestment neck piece
+  about: |-
+    > *"A Saradomin crozier."*
+
+    The Saradomin crozier is a weapon slot staff from the Saradomin vestment set. It provides a +6 Prayer bonus and requires 60 Prayer to wield. As a Saradominist item, it counts for God Wars Dungeon protection. Primarily used for its prayer bonus and fashionscape rather than combat.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

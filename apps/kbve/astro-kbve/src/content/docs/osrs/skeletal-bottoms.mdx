@@ -1,6 +1,6 @@
 ---
 title: Skeletal bottoms | OSRS Price Data
-description: "Skeletal bottoms: A superior set of strengthened slacks for any self respecting seer.. High alch: 24,000 GP, GE limit: 70."
+description: "Skeletal bottoms is a members legs slot item requiring 40 Defence. High alch: 24,000 GP, GE limit: 70."
 osrs:
   id: 6141
   name: Skeletal bottoms
@@ -12,26 +12,98 @@ osrs:
   lowalch: 16000
   highalch: 24000
   limit: 70
+  equipment:
+    slot: legs
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 6
+      ranged: -7
+    defence_bonus:
+      stab: 22
+      slash: 20
+      crush: 24
+      magic: 10
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      defence: 40
+      magic: 40
+    weight: 4.082
+  drop_table:
+    sources:
+      - source: Dagannoth Prime
+        combat_level: 303
+        quantity: "1"
+        rarity: uncommon
+        drop_rate: 1/128
+        members_only: true
+  related_items:
+    - item_id: 6137
+      item_name: Skeletal helm
+      slug: skeletal-helm
+      relationship: set
+      description: Matching helm piece
+    - item_id: 6139
+      item_name: Skeletal top
+      slug: skeletal-top
+      relationship: set
+      description: Matching body piece
+    - item_id: 3389
+      item_name: Splitbark legs
+      slug: splitbark-legs
+      relationship: alternative
+      description: Craftable alternative
+  about: |-
+    | Attack | Value |
+    |--------|-------|
+    | Magic | +6 |
+
+    | Defence | Value |
+    |---------|-------|
+    | Stab | +22 |
+    | Slash | +20 |
+    | Crush | +24 |
+    | Magic | +10 |
+
+    Requirements: 40 Defence, 40 Magic
+
+    | Stat | Skeletal Bottoms | Splitbark Legs |
+    |------|-----------------|----------------|
+    | Magic Atk | +6 | +7 |
+    | Stab Def | +22 | +22 |
+    | Slash Def | +20 | +20 |
+    | Crush Def | +24 | +25 |
+    | Magic Def | +10 | +10 |
+
+    Nearly identical — splitbark has +1 magic attack and +1 crush defence. The difference is negligible.
+
+    | Stat | Total |
+    |------|-------|
+    | Magic Atk | +16 |
+    | Stab Def | +67 |
+    | Slash Def | +54 |
+    | Crush Def | +77 |
+    | Magic Def | +28 |
+
+    Compare to full splitbark: +20 magic attack, +68/+55/+78 melee def, +28 magic def. Splitbark is marginally better across the board.
+  market_strategy:
+    notes:
+      - Dagannoth Prime drop (passive from DK farming)
+      - Low trade volume
+      - Collector's piece — splitbark preferred for stats
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -52,87 +52,45 @@ osrs:
       slug: amulet-of-fury
       relationship: upgrade
       description: Better stats
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Stab | +10 |
+    | Slash | +10 |
+    | Crush | +10 |
+    | Magic | +10 |
+    | Ranged | +10 |
+    | Strength | +6 |
+
+    | Defence | Value |
+    |---------|-------|
+    | All | +3 |
+
+    | Other | Value |
+    |-------|-------|
+    | Prayer | +3 |
+
+    Unlimited Teleports:
+    - Edgeville
+    - Karamja
+    - Draynor Village
+    - Al Kharid
+
+    Gem Mining Boost: Same as regular glory
+
+    BiS for:
+    - Infinite Edgeville teleports
+    - Abyss runecrafting
+    - Flex item
+
+    Unlimited teleport glory.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Neck |
-| Type | Amulet |
-| Tradeable | Yes |
-| Weight | 0.01 kg |
-
-## Obtaining
-
-Charge amulet of glory at Fountain of Rune.
-
-**1/25,000 chance** to become eternal.
-
-**Requires:** Heroes' Quest
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Stab | +10 |
-| Slash | +10 |
-| Crush | +10 |
-| Magic | +10 |
-| Ranged | +10 |
-| Strength | +6 |
-
-| Defence | Value |
-|---------|-------|
-| All | +3 |
-
-| Other | Value |
-|-------|-------|
-| Prayer | +3 |
-
-## Passive Effects
-
-**Unlimited Teleports:**
-- Edgeville
-- Karamja
-- Draynor Village
-- Al Kharid
-
-**Gem Mining Boost:** Same as regular glory
-
-## Usage
-
-BiS for:
-- Infinite Edgeville teleports
-- Abyss runecrafting
-- Flex item
-
-**Unlimited teleport glory.**
-
-## Related Items
-
-- [Amulet of glory](/osrs/amulet-of-glory/) - Regular version
-- [Fountain of Rune](/osrs/fountain-of-rune/) - Creation location
-- [Amulet of fury](/osrs/amulet-of-fury/) - Better stats
-
-<Adsense />
+<OSRSAdsenseCard />

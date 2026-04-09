@@ -29,65 +29,13 @@ osrs:
   related_items:
     - slug: adamant-sq-shield
     - slug: mithril-kiteshield
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Off Hand |
-| Type | Square Shield |
-| Tradeable | Yes |
-| Weight | 3.175 kg |
-| Requirements | 20 Defence |
-
-## Combat Stats
-
-| Stat | Bonus |
-|------|-------|
-| Stab Defence | +17 |
-| Slash Defence | +19 |
-| Crush Defence | +15 |
-| Magic Defence | +0 |
-| Ranged Defence | +17 |
-
-## Obtaining
-
-**Smithing:** 58 Smithing with 2 mithril bars (100 XP).
-
-**Shop:** Cassie's Shield Shop, Falador.
-
-## Market Strategy
-
-**Buy Limit:** 125 per 4 hours
-
-**Price:** ~784 gp
-
-Mid-tier square shield. F2P accessible.
-
-## Related Items
-
-- [Adamant sq shield](/osrs/adamant-sq-shield/) - Upgrade
-- [Mithril kiteshield](/osrs/mithril-kiteshield/) - More defence
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -53,94 +53,46 @@ osrs:
       slug: bolt-rack
       relationship: component
       description: Required ammo
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Ranged attack | +84 |
+    | Ranged strength | +0 |
+
+    | Defence | Value |
+    |---------|-------|
+    | All | +0 |
+
+    Requirements: 70 Ranged
+
+    Full Karil's:
+    - Chance to lower target's Agility
+
+    With Amulet of the Damned:
+    - 25% chance for second hit at 50% damage
+
+    Uses Bolt racks - break on use, cannot be recovered.
+
+    Degrades over 15 hours of combat.
+
+    Niche uses:
+    - Set effect is unique
+    - Fast attack speed
+    - Barrows completion
+
+    Generally outclassed by other crossbows.
+  market_strategy:
+    notes:
+      - Barrows grind
+      - Bolt racks add cost
+      - Set effect is situational
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Two-handed) |
-| Type | Ranged - Crossbow |
-| Tradeable | Yes |
-| Weight | 3.628 kg |
-| Attack Speed | 4 tick (2.4s) |
-| Range | 8 tiles |
-
-## Obtaining
-
-Drop from Barrows reward chest.
-
-| Source | Drop Rate |
-|--------|-----------|
-| Barrows chest | 7 × 1/2,448 |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Ranged attack | +84 |
-| Ranged strength | +0 |
-
-| Defence | Value |
-|---------|-------|
-| All | +0 |
-
-**Requirements:** 70 Ranged
-
-## Set Effect
-
-**Full Karil's:**
-- Chance to lower target's Agility
-
-**With Amulet of the Damned:**
-- 25% chance for second hit at 50% damage
-
-## Ammunition
-
-Uses Bolt racks - break on use, cannot be recovered.
-
-## Degradation
-
-Degrades over 15 hours of combat.
-
-## Usage
-
-Niche uses:
-- Set effect is unique
-- Fast attack speed
-- Barrows completion
-
-**Generally outclassed by other crossbows.**
-
-## Market Strategy
-
-**Buy Limit:** 15 per 4 hours
-
-**Price:** ~120K gp
-
-**Tips:**
-- Barrows grind
-- Bolt racks add cost
-- Set effect is situational
-
-<Adsense />
+<OSRSAdsenseCard />

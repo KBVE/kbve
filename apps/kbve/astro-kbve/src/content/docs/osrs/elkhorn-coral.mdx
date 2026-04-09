@@ -1,6 +1,6 @@
 ---
 title: Elkhorn coral | OSRS Price Data
-description: "Elkhorn coral: No elks were harmed in the making of this coral.. High alch: 31 GP."
+description: "Elkhorn coral: No elks were harmed in the making of this coral.. High alch: 31 GP, GE limit: 13,000."
 osrs:
   id: 31481
   name: Elkhorn coral
@@ -11,7 +11,7 @@ osrs:
   value: 52
   lowalch: 20
   highalch: 31
-  limit: null
+  limit: 13000
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

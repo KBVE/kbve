@@ -1,6 +1,6 @@
 ---
 title: Rosewood blowpipe (empty) | OSRS Price Data
-description: "Rosewood blowpipe (empty): Breath powered dart delivering system with a hint of rosewood.. High alch: 2,880 GP."
+description: "Rosewood blowpipe (empty): Breath powered dart delivering system with a hint of rosewood.. High alch: 2,880 GP, GE limit: 8."
 osrs:
   id: 31585
   name: Rosewood blowpipe (empty)
@@ -11,7 +11,7 @@ osrs:
   value: 4800
   lowalch: 1920
   highalch: 2880
-  limit: null
+  limit: 8
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

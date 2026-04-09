@@ -1,6 +1,6 @@
 ---
 title: Druid's robe top | OSRS Price Data
-description: "Druid's robe top: I feel closer to the gods when I am wearing this.. High alch: 24 GP, GE limit: 125."
+description: "Druid's robe top is a members body slot item. High alch: 24 GP, GE limit: 125."
 osrs:
   id: 540
   name: Druid's robe top
@@ -12,26 +12,27 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 125
+  equipment:
+    slot: body
+    other_bonus:
+      prayer: 4
+  related_items:
+    - item_id: 538
+      item_name: Druid's robe
+      slug: druid-s-robe
+      relationship: set-piece
+      description: Matching bottom
+  about: |-
+    > _"I feel closer to the gods when I wear this."_
+
+    The druid's robe top provides +4 Prayer bonus with no requirements. Combined with the bottom, gives +8 Prayer bonus — excellent for low-level prayer setups.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

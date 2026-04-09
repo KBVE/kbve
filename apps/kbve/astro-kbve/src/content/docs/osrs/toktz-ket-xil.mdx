@@ -1,6 +1,6 @@
 ---
 title: Toktz-ket-xil | OSRS Price Data
-description: "Toktz-ket-xil: A spiked shield of obsidian.. High alch: 27,000 GP, GE limit: 70."
+description: "Toktz-ket-xil is a members shield slot item with +5 melee strength requiring 60 Defence. High alch: 27,000 GP, GE limit: 70."
 osrs:
   id: 6524
   name: Toktz-ket-xil
@@ -12,26 +12,87 @@ osrs:
   lowalch: 18000
   highalch: 27000
   limit: 70
+  equipment:
+    slot: shield
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -12
+      ranged: -8
+    defence_bonus:
+      stab: 40
+      slash: 42
+      crush: 38
+      magic: 0
+      ranged: 65
+    other_bonus:
+      melee_strength: 5
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      defence: 60
+    weight: 3.628
+  related_items:
+    - item_id: 3122
+      item_name: Granite shield
+      slug: granite-shield
+      relationship: alternative
+      description: Same defence stats, no Strength bonus
+    - item_id: 12954
+      item_name: Dragon defender
+      slug: dragon-defender
+      relationship: alternative
+      description: Offensive alternative with accuracy bonuses
+    - item_id: 6522
+      item_name: Toktz-xil-ul
+      slug: toktz-xil-ul
+      relationship: set
+      description: Obsidian throwing rings
+  about: |-
+    | Defence | Value |
+    |---------|-------|
+    | Stab | +40 |
+    | Slash | +42 |
+    | Crush | +38 |
+    | Ranged | +65 |
+
+    | Other | Value |
+    |-------|-------|
+    | Strength | +5 |
+
+    Requirements: 60 Defence | Weight: 3.6 kg
+
+    The Toktz-ket-xil is unique among shields — it provides +5 melee Strength while maintaining strong defensive stats. No other shield in the game offers this combination of Strength and defence.
+
+    | Stat | Toktz-ket-xil | Granite Shield | Dragon Defender | Rune Kiteshield |
+    |------|--------------|----------------|-----------------|-----------------|
+    | Stab Def | +40 | +40 | +25 | +44 |
+    | Slash Def | +42 | +42 | +24 | +48 |
+    | Crush Def | +38 | +38 | +23 | +42 |
+    | Ranged Def | +65 | +65 | +23 | +46 |
+    | Str Bonus | +5 | 0 | +5 | 0 |
+    | Atk Bonus | 0 | 0 | +20 stab/slash | 0 |
+    | Req | 60 Def | 50 Def/Str | 60 Def + quest | 40 Def |
+
+    The dragon defender trades defensive stats for offensive accuracy bonuses. The Toktz-ket-xil is the tanky alternative with the same +5 Strength.
+
+    - Defender — better for DPS (accuracy bonuses speed up kills)
+    - Toktz-ket-xil — better for tanking (superior defence with same Strength)
+    - Use the obsidian shield when survivability matters more than kill speed
+  market_strategy:
+    notes:
+      - Shop price is 67,500 Tokkul (farm Fight Caves/Inferno for Tokkul)
+      - Karamja gloves reduce shop cost to 58,500
+      - GE price significantly above alch value due to +5 Strength utility
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

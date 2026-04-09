@@ -49,86 +49,43 @@ osrs:
       slug: torva-full-helm-damaged
       relationship: alternative
       description: Damaged helm from Nex
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Damaged Armour |
+    | Tradeable | Yes |
+    | Weight | 9.525 kg |
+
+    | Component | Source | Price |
+    |-----------|--------|-------|
+    | Torva platebody (damaged) | Nex | ~290M |
+    | Bandos chestplate | God Wars Dungeon | ~15M |
+
+    No skill requirements to combine the items.
+
+    | Item Created | Materials |
+    |--------------|-----------|
+    | Torva platebody | Damaged piece + Bandos chestplate |
+
+    Warning: Bandos chestplate is permanently consumed.
+
+    Part of the Torva armour set, which provides:
+    - Best-in-slot melee stats
+    - +4 HP boost (body piece)
+    - +16 total HP with full set
+  market_strategy:
+    notes:
+      - Nex exclusive drop
+      - BCP consumed in repair
+      - Creates BiS melee body
+      - Second most valuable Nex unique
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Damaged Armour |
-| Tradeable | Yes |
-| Weight | 9.525 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Nex | 1/43 per unique roll |
-
-Nex has a chance to drop damaged Torva pieces as part of her unique drop table.
-
-## Repairing
-
-| Component | Source | Price |
-|-----------|--------|-------|
-| Torva platebody (damaged) | Nex | ~290M |
-| Bandos chestplate | God Wars Dungeon | ~15M |
-
-No skill requirements to combine the items.
-
-## Uses
-
-| Item Created | Materials |
-|--------------|-----------|
-| Torva platebody | Damaged piece + Bandos chestplate |
-
-**Warning:** Bandos chestplate is permanently consumed.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~290M gp
-
-**Tips:**
-- Nex exclusive drop
-- BCP consumed in repair
-- Creates BiS melee body
-- Second most valuable Nex unique
-
-## Torva Set
-
-Part of the Torva armour set, which provides:
-- Best-in-slot melee stats
-- +4 HP boost (body piece)
-- +16 total HP with full set
-
-## Related Items
-
-- [Nex](/osrs/nex/) - Boss source
-- [Bandos chestplate](/osrs/bandos-chestplate/) - Required to repair
-- [Torva platebody](/osrs/torva-platebody/) - Repaired version
-- [Torva full helm (damaged)](/osrs/torva-full-helm-damaged/) - Set helm
-- [Torva platelegs (damaged)](/osrs/torva-platelegs-damaged/) - Set legs
-
-<Adsense />
+<OSRSAdsenseCard />

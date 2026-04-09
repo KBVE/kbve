@@ -59,64 +59,37 @@ osrs:
       slug: ranarr-seed
       relationship: component
       description: Farming seed
+  about: |-
+    | Requirement | Value |
+    |-------------|-------|
+    | Herblore Level | 25 |
+    | XP | 7.5 |
+    | Product | Ranarr weed |
+  market_strategy:
+    title: |-
+      - Herb cleaning profit
+      - Ironman accounts
+      - Herblore XP (low)
+      - Prayer potion chain
+    notes:
+      - Buy grimy → Clean → Sell
+      - Calculate profit after cleaning
+      - High volume trading
+      - Herb cleaning profit
+      - Ironman accounts
+      - Herblore XP (low)
+      - Prayer potion chain
+      - Often cheaper than clean
+      - Quick to clean in bank
+      - Check price spread
+      - High demand herb
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Monster drops | Various |
-| Farming | 32 Farming |
-| Aberrant spectres | Common |
-| Chaos druids | Common |
-
-## Cleaning
-
-| Requirement | Value |
-|-------------|-------|
-| Herblore Level | 25 |
-| XP | 7.5 |
-| Product | Ranarr weed |
-
-## Market Flip Strategy
-
-**Herb Cleaning Profit:**
-- Buy grimy → Clean → Sell
-- Calculate profit after cleaning
-- High volume trading
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Herb cleaning profit
-- Ironman accounts
-- Herblore XP (low)
-- Prayer potion chain
-
-**Tips:**
-- Often cheaper than clean
-- Quick to clean in bank
-- Check price spread
-- High demand herb
-
-<Adsense />
+<OSRSAdsenseCard />

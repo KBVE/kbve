@@ -49,74 +49,37 @@ osrs:
       slug: twisted-bow
       relationship: alternative
       description: Other CoX unique
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Upgrade Material |
+    | Tradeable | Yes |
+    | Weight | 0.01 kg |
+
+    | Item Created | Materials |
+    |--------------|-----------|
+    | Kodai wand | Master wand + Kodai insignia |
+
+    Warning: Process cannot be reversed. Master wand is permanently consumed.
+
+    When combined with a Master wand, creates the Kodai wand which:
+    - Provides +28 magic attack bonus
+    - Grants +15% magic damage bonus
+    - Acts as infinite water rune source
+    - Autocasts both Standard and Ancient Magicks
+    - Has 15% chance to save runes when casting combat spells
+  market_strategy:
+    notes:
+      - Chambers of Xeric rare drop
+      - Creates BiS magic wand
+      - One-time permanent upgrade
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Upgrade Material |
-| Tradeable | Yes |
-| Weight | 0.01 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Chambers of Xeric | 3/69 from Ancient chest |
-
-## Uses
-
-| Item Created | Materials |
-|--------------|-----------|
-| Kodai wand | Master wand + Kodai insignia |
-
-**Warning:** Process cannot be reversed. Master wand is permanently consumed.
-
-## Effect
-
-When combined with a Master wand, creates the Kodai wand which:
-- Provides +28 magic attack bonus
-- Grants +15% magic damage bonus
-- Acts as infinite water rune source
-- Autocasts both Standard and Ancient Magicks
-- Has 15% chance to save runes when casting combat spells
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~80M gp
-
-**Tips:**
-- Chambers of Xeric rare drop
-- Creates BiS magic wand
-- One-time permanent upgrade
-
-## Related Items
-
-- [Kodai wand](/osrs/kodai-wand/) - Created weapon
-- [Master wand](/osrs/master-wand/) - Required base weapon
-- [Chambers of Xeric](/osrs/chambers-of-xeric/) - Drop source
-
-<Adsense />
+<OSRSAdsenseCard />

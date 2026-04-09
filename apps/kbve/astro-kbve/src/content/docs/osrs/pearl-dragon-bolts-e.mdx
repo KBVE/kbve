@@ -1,6 +1,6 @@
 ---
 title: Pearl dragon bolts (e) | OSRS Price Data
-description: "Pearl dragon bolts (e): Enchanted Dragon crossbow bolts, tipped with pearl.. High alch: 408 GP, GE limit: 11,000."
+description: "Pearl dragon bolts (e) is a members ammo slot item with +122 ranged strength. High alch: 408 GP, GE limit: 11,000."
 osrs:
   id: 21936
   name: Pearl dragon bolts (e)
@@ -12,26 +12,63 @@ osrs:
   lowalch: 272
   highalch: 408
   limit: 11000
+  equipment:
+    slot: ammo
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      ranged_strength: 122
+      prayer: 0
+    requirements: {}
+  recipes:
+    - skill: magic
+      level: 24
+      xp: 29.5
+      inputs:
+        - item_name: Pearl dragon bolts
+          quantity: 10
+      output_quantity: 10
+  related_items:
+    - item_id: 9238
+      item_name: Pearl bolts (e)
+      slug: pearl-bolts-e
+      relationship: downgrade
+      description: Regular crossbow version
+  about: |-
+    > *"Enchanted Dragon crossbow bolts, tipped with pearl."*
+
+    Pearl dragon bolts (e) carry the Sea Curse enchantment. On activation, a mighty bolt of water strikes the opponent. The effect deals extra damage equal to 1/15 of the attacker's visible Ranged level against fiery targets (fire-based monsters, players wielding fire staves or fire capes) and 1/20 against all other targets. The effect is negated if the target is wielding a water staff. This makes pearl bolts particularly effective against fire-themed enemies.
+
+    Enchant Crossbow Bolt (Pearl) requires Magic level 24 and grants 29.5 XP per cast. Each cast enchants 10 bolts at a time.
+
+    | Component | Quantity |
+    |-----------|----------|
+    | Pearl dragon bolts | 10 |
+    | Cosmic rune | 1 |
+    | Water rune | 2 |
+
+    | Stat | Dragon (e) | Regular (e) |
+    |------|-----------|-------------|
+    | Ranged Str | +122 | +48 |
+    | Base bolt | Dragon crossbow bolt | Iron bolt |
+
+    The dragon bolt base provides substantially higher ranged strength over the regular pearl bolt variant.
+  market_strategy:
+    notes:
+      - Extra effective against fire-themed monsters and fire staff/cape users
+      - Negated by water staves in PvP
+      - Mid-low tier enchant requirement (Magic 24)
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -73,64 +73,24 @@ osrs:
       slug: bucket-of-sand
       relationship: component
       description: Glass making partner
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Crafting Material |
+    | Tradeable | Yes |
+    | Weight | 0.2 kg |
+
+    Cook on range to create soda ash for glass making.
+
+    Also used directly in Superglass Make spell.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Crafting Material |
-| Tradeable | Yes |
-| Weight | 0.2 kg |
-
-## Obtaining
-
-**Common sources:**
-- Coastal spawns (Karamja, Kourend, Fremennik)
-- Monster drops (rock crabs, aquatic creatures)
-- Big net fishing (uncommon)
-- Trader Stan's Trading Posts (5 gp)
-- Baby implings
-
-## Usage
-
-Cook on range to create **soda ash** for glass making.
-
-Also used directly in Superglass Make spell.
-
-## Market Strategy
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Price:** ~8 gp
-
-Very cheap and high volume. Alternative to giant seaweed for glass.
-
-## Related Items
-
-- [Giant seaweed](/osrs/giant-seaweed/) - Superior variant
-- [Soda ash](/osrs/soda-ash/) - Cooked form
-- [Molten glass](/osrs/molten-glass/) - End product
-
-<Adsense />
+<OSRSAdsenseCard />

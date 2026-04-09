@@ -69,65 +69,40 @@ osrs:
       slug: shark
       relationship: alternative
       description: Lower tier food (20 HP)
+  about: |-
+    Add a pineapple ring to a plain pizza (no cooking required).
+
+    | Effect | Value |
+    |--------|-------|
+    | Total healing | 22 Hitpoints |
+    | Healing per bite | 11 Hitpoints |
+    | Bites | 2 |
+
+    Pineapple pizza is useful for:
+    - Budget high-healing food option
+    - Training activities where multiple bites are acceptable
+    - Ironman food source
+    - Situations where inventory space is less critical
+  market_strategy:
+    profit_formulas:
+      - Pineapple pizza - Plain pizza - Pineapple ring
+    notes:
+      - Plain pizza + Pineapple ring = Pineapple pizza
+      - "Calculate:"
+      - Members-only item
+      - Same total healing as manta ray, dark crab, tuna potato
+      - Requires 2 bites (slower in combat)
+      - Generally cheaper than single-bite alternatives
+      - Two bites makes it less ideal for high-intensity PvM
+      - Good for activities with downtime between combat
+      - Popular for training slayer on easier tasks
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Add a pineapple ring to a plain pizza (no cooking required).
-
-## Effects
-
-| Effect | Value |
-|--------|-------|
-| Total healing | 22 Hitpoints |
-| Healing per bite | 11 Hitpoints |
-| Bites | 2 |
-
-## Usage
-
-Pineapple pizza is useful for:
-- Budget high-healing food option
-- Training activities where multiple bites are acceptable
-- Ironman food source
-- Situations where inventory space is less critical
-
-## Market Flip Strategy
-
-**Pizza Making:**
-- Plain pizza + Pineapple ring = Pineapple pizza
-- Calculate: `Pineapple pizza - Plain pizza - Pineapple ring`
-- Members-only item
-
-**Comparison:**
-- Same total healing as manta ray, dark crab, tuna potato
-- Requires 2 bites (slower in combat)
-- Generally cheaper than single-bite alternatives
-
-**Buy Limit:** 6,000 per 4 hours
-
-**Tips:**
-- Two bites makes it less ideal for high-intensity PvM
-- Good for activities with downtime between combat
-- Popular for training slayer on easier tasks
-
-<Adsense />
+<OSRSAdsenseCard />

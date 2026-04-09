@@ -54,69 +54,44 @@ osrs:
       slug: air-rune
       relationship: component
       description: Elemental rune
+  about: |-
+    | Requirement | Value |
+    |-------------|-------|
+    | Runecraft Level | 20 |
+    | XP per rune | 7.5 |
+    | Altar location | Southwest of Barbarian Village |
+
+    Multipliers (every 46 levels):
+    - Level 46: 2x runes
+    - Level 92: 3x runes
+
+    | Spell | Body Runes | Other Runes |
+    |-------|------------|-------------|
+    | Curse | 2 | 3 Water, 1 Earth |
+    | Weaken | 3 | 2 Water, 1 Earth |
+    | Confuse | 3 | 3 Water, 2 Earth |
+    | Vulnerability | 5 | 5 Water, 5 Earth |
+    | Enfeeble | 8 | 8 Water, 8 Earth |
+    | Stun | 12 | 12 Water, 12 Earth |
+  market_strategy:
+    notes:
+      - Used for debuff spells
+      - Relatively low demand
+      - Primarily for quest requirements
+      - Quest requirements
+      - Debuff spells
+      - Early Runecrafting training
+      - Low value, low demand
+      - Often crafted for XP
+      - Body tiara useful for training
+      - Abyss runecrafting viable
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Runecrafting
-
-| Requirement | Value |
-|-------------|-------|
-| Runecraft Level | 20 |
-| XP per rune | 7.5 |
-| Altar location | Southwest of Barbarian Village |
-
-**Multipliers (every 46 levels):**
-- Level 46: 2x runes
-- Level 92: 3x runes
-
-## Key Spells
-
-| Spell | Body Runes | Other Runes |
-|-------|------------|-------------|
-| Curse | 2 | 3 Water, 1 Earth |
-| Weaken | 3 | 2 Water, 1 Earth |
-| Confuse | 3 | 3 Water, 2 Earth |
-| Vulnerability | 5 | 5 Water, 5 Earth |
-| Enfeeble | 8 | 8 Water, 8 Earth |
-| Stun | 12 | 12 Water, 12 Earth |
-
-## Market Flip Strategy
-
-**Curse Spells:**
-- Used for debuff spells
-- Relatively low demand
-- Primarily for quest requirements
-
-**Buy Limit:** 50,000 per 4 hours
-
-**Demand Drivers:**
-- Quest requirements
-- Debuff spells
-- Early Runecrafting training
-
-**Tips:**
-- Low value, low demand
-- Often crafted for XP
-- Body tiara useful for training
-- Abyss runecrafting viable
-
-<Adsense />
+<OSRSAdsenseCard />

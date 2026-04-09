@@ -73,85 +73,49 @@ osrs:
       slug: ancient-wyvern-shield
       relationship: alternative
       description: Wyvern protection variant
+  about: |-
+    | Offence | Bonus |
+    |---------|-------|
+    | Ranged | +18 |
+    | Ranged Strength | +5 |
+
+    | Defence | Bonus |
+    |---------|-------|
+    | Stab | +50 |
+    | Slash | +55 |
+    | Crush | +52 |
+    | Magic | +20 |
+    | Ranged | +45 |
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Smithing | 90 |
+    | Materials | Anti-dragon shield + Skeletal visage |
+    | XP | 2,000 |
+
+    Provides full dragonfire protection when charged.
+
+    Charging: Absorb dragonfire attacks to charge (max 50 charges).
+
+    Discharge: Right-click to release stored dragonfire.
+  market_strategy:
+    notes:
+      - Ranged dragonfire protection
+      - Best ranged attack shield
+      - From Vorkath
+      - Vorkath farming
+      - Ranged dragon killing
+      - High-level PvM
+      - Uncharged is tradeable
+      - Charged version untradeable
+      - Create from skeletal visage for profit
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Shield |
-| Requirements | 70 Defence, 70 Ranged |
-| Tradeable | Yes (uncharged) |
-| Weight | 2.267 kg |
-
-## Stats
-
-| Offence | Bonus |
-|---------|-------|
-| Ranged | +18 |
-| Ranged Strength | +5 |
-
-| Defence | Bonus |
-|---------|-------|
-| Stab | +50 |
-| Slash | +55 |
-| Crush | +52 |
-| Magic | +20 |
-| Ranged | +45 |
-
-## Creation
-
-| Requirement | Value |
-|-------------|-------|
-| Smithing | 90 |
-| Materials | Anti-dragon shield + Skeletal visage |
-| XP | 2,000 |
-
-## Dragonfire Protection
-
-Provides full dragonfire protection when charged.
-
-**Charging:** Absorb dragonfire attacks to charge (max 50 charges).
-
-**Discharge:** Right-click to release stored dragonfire.
-
-## Market Flip Strategy
-
-**Best-in-Slot Ranged Shield:**
-- Ranged dragonfire protection
-- Best ranged attack shield
-- From Vorkath
-
-**Buy Limit:** 8 per 4 hours
-
-**Demand Drivers:**
-- Vorkath farming
-- Ranged dragon killing
-- High-level PvM
-
-**Tips:**
-- Uncharged is tradeable
-- Charged version untradeable
-- Create from skeletal visage for profit
-
-<Adsense />
+<OSRSAdsenseCard />

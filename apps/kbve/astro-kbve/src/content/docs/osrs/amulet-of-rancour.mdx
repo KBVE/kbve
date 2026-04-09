@@ -62,67 +62,34 @@ osrs:
       slug: noxious-halberd
       relationship: alternative
       description: Another Araxxor reward
+  about: |-
+    | Stat | Torture | Rancour | Difference |
+    |------|---------|---------|------------|
+    | Melee attack | +15 | +25 | +10 |
+    | Strength | +10 | +12 | +2 |
+    | Prayer | +0 | +2 | +2 |
+    | Magic | +0 | -6 | -6 |
+    | Ranged | +0 | -8 | -8 |
+
+    Best-in-slot melee amulet for:
+    - All melee combat
+    - Bossing
+    - Slayer
+    - PvP
+
+    Note: Significant magic/ranged penalties make it unsuitable for hybrid setups.
+  market_strategy:
+    notes:
+      - Araxyte fang is untradeable, only the finished amulet is tradeable
+      - High demand as BiS melee neck
+      - 90 HP requirement limits some accounts
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-The Amulet of rancour is created by attaching an Araxyte fang to an Amulet of torture.
-
-**Requirements:**
-- 86 Crafting
-- 90 Hitpoints to equip
-
-**Components:**
-- Amulet of torture
-- Araxyte fang (1/600 from Araxxor)
-
-## Stats Comparison
-
-| Stat | Torture | Rancour | Difference |
-|------|---------|---------|------------|
-| Melee attack | +15 | +25 | +10 |
-| Strength | +10 | +12 | +2 |
-| Prayer | +0 | +2 | +2 |
-| Magic | +0 | -6 | -6 |
-| Ranged | +0 | -8 | -8 |
-
-## Usage
-
-**Best-in-slot melee amulet** for:
-- All melee combat
-- Bossing
-- Slayer
-- PvP
-
-**Note:** Significant magic/ranged penalties make it unsuitable for hybrid setups.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Araxyte fang is untradeable, only the finished amulet is tradeable
-- High demand as BiS melee neck
-- 90 HP requirement limits some accounts
-
-<Adsense />
+<OSRSAdsenseCard />

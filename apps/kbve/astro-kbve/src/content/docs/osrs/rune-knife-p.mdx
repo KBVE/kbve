@@ -1,6 +1,6 @@
 ---
 title: Rune knife(p) | OSRS Price Data
-description: "Rune knife(p): A finely balanced throwing knife.. High alch: 99 GP, GE limit: 7,000."
+description: "Rune knife(p) is a members weapon slot item requiring 40 Ranged. High alch: 99 GP, GE limit: 7,000."
 osrs:
   id: 876
   name: Rune knife(p)
@@ -12,26 +12,26 @@ osrs:
   lowalch: 66
   highalch: 99
   limit: 7000
+  equipment:
+    slot: weapon
+    attack_speed: 3
+    requirements:
+      ranged: 40
+    attack_bonus:
+      ranged: 15
+    ranged_strength: 24
+  related_items: []
+  about: |-
+    > _"A very sharp rune knife with a poisoned tip."_
+
+    A rune knife tipped with basic weapon poison. Requires 40 Ranged. The highest standard tier of poisoned knife. Poison deals 2-4 damage over time.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -41,64 +41,14 @@ osrs:
     - slug: berserker-ring
       name: Berserker ring
       relation: strength_alternative
+  about: Can be imbued at Nightmare Zone (650,000 points) to double bonuses.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Ring |
-| Type | Ring |
-| Tradeable | Yes |
-| Weight | 0.004 kg |
-| Requirements | None |
-
-## Combat Stats
-
-| Stat | Bonus |
-|------|-------|
-| Slash Attack | +4 |
-| Slash Defence | +4 |
-
-## Obtaining
-
-**Drops:** Dagannoth Rex (1/128).
-
-## Enhancement
-
-Can be imbued at Nightmare Zone (650,000 points) to double bonuses.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~48,560 gp
-
-Budget Fremennik ring. Lower demand than berserker.
-
-## Related Items
-
-- [Warrior ring (i)](/osrs/warrior-ring-i/) - Imbued version
-- [Berserker ring](/osrs/berserker-ring/) - Strength alternative
-
-<Adsense />
+<OSRSAdsenseCard />

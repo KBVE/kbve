@@ -1,6 +1,6 @@
 ---
 title: Adamant javelin(p) | OSRS Price Data
-description: "Adamant javelin(p): An adamant tipped javelin.. High alch: 96 GP, GE limit: 11,000."
+description: "Adamant javelin(p) is a members weapon slot item requiring 30 Ranged. High alch: 96 GP, GE limit: 11,000."
 osrs:
   id: 835
   name: Adamant javelin(p)
@@ -12,26 +12,31 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 11000
+  equipment:
+    slot: weapon
+    attack_speed: 6
+    requirements:
+      ranged: 30
+    attack_bonus:
+      ranged: 20
+    ranged_strength: 59
+  related_items:
+    - item_id: 829
+      item_name: Adamant javelin
+      slug: adamant-javelin
+      relationship: variant
+      description: Unpoisoned version
+  about: |-
+    > _"An adamant tipped javelin with a poisoned tip."_
+
+    An adamant javelin tipped with basic weapon poison. Poison deals 2-4 damage over time.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

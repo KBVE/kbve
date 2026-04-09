@@ -1,6 +1,6 @@
 ---
 title: Emerald amulet | OSRS Price Data
-description: "Emerald amulet: I wonder if I can get this enchanted.. High alch: 765 GP, GE limit: 10,000."
+description: "Emerald amulet is a F2P neck slot item. High alch: 765 GP, GE limit: 10,000."
 osrs:
   id: 1696
   name: Emerald amulet
@@ -12,26 +12,51 @@ osrs:
   lowalch: 510
   highalch: 765
   limit: 10000
+  equipment:
+    slot: neck
+    requirements:
+      crafting: 31
+  recipes:
+    - skill: crafting
+      level: 31
+      xp: 70
+      inputs:
+        - item_name: Emerald
+          quantity: 1
+        - item_name: Gold bar
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 1694
+      item_name: Sapphire amulet
+      slug: sapphire-amulet
+      relationship: downgrade
+      description: Previous tier amulet
+    - item_id: 1698
+      item_name: Ruby amulet
+      slug: ruby-amulet
+      relationship: upgrade
+      description: Next tier amulet
+  about: |-
+    Crafting (Level 31): Emerald + Gold bar at a furnace with amulet mould (70 XP). String with ball of wool.
+
+    > *"An emerald amulet."*
+
+    Lvl-2 Enchant (27 Magic): 1 cosmic rune + 3 air runes (37 XP)
+
+    The Amulet of defence provides +7 to all defence styles — the best pure-defence amulet without offensive bonuses. Niche use for tanks and skillers.
+  market_strategy:
+    notes:
+      - Amulet of defence has low demand (most prefer offensive amulets)
+      - Crafting training material
+      - Enchanting for Magic XP
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -72,62 +72,34 @@ osrs:
       slug: ring-of-recoil
       relationship: product
       description: Enchanted product
+  about: |-
+    Make rings at a furnace:
+
+    | Ring | Level | XP | Gem Required |
+    |------|-------|-----|--------------|
+    | Gold ring | 5 | 15 | None |
+    | Sapphire ring | 20 | 40 | Sapphire |
+    | Emerald ring | 27 | 55 | Emerald |
+    | Ruby ring | 34 | 70 | Ruby |
+    | Diamond ring | 43 | 85 | Diamond |
+    | Dragonstone ring | 55 | 100 | Dragonstone |
+    | Onyx ring | 67 | 115 | Onyx |
+    | Zenyte ring | 89 | 150 | Zenyte |
+  market_strategy:
+    notes:
+      - Ring crafting
+      - Jewelry production
+      - One-time purchase
+      - Not consumed on use
+      - Essential for jewelry
+      - Buy from shop
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Source | Price |
-|--------|-------|
-| Crafting shops | 5 gp |
-| Grand Exchange | Market price |
-
-## Usage
-
-Make rings at a furnace:
-
-| Ring | Level | XP | Gem Required |
-|------|-------|-----|--------------|
-| Gold ring | 5 | 15 | None |
-| Sapphire ring | 20 | 40 | Sapphire |
-| Emerald ring | 27 | 55 | Emerald |
-| Ruby ring | 34 | 70 | Ruby |
-| Diamond ring | 43 | 85 | Diamond |
-| Dragonstone ring | 55 | 100 | Dragonstone |
-| Onyx ring | 67 | 115 | Onyx |
-| Zenyte ring | 89 | 150 | Zenyte |
-
-## Market Strategy
-
-**Buy Limit:** 40 per 4 hours
-
-**Demand Drivers:**
-- Ring crafting
-- Jewelry production
-
-**Tips:**
-- One-time purchase
-- Not consumed on use
-- Essential for jewelry
-- Buy from shop
-
-<Adsense />
+<OSRSAdsenseCard />

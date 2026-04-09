@@ -67,51 +67,30 @@ osrs:
       slug: super-restore-3
       relationship: variant
       description: 3-dose version
+  about: |-
+    Super restore is preferred over prayer potions because it:
+    - Restores ALL reduced stats (not just prayer)
+    - Essential for raids where stats get drained
+    - Required for high-level PvM
+  market_strategy:
+    profit_formulas:
+      - Super restore(4) - Snapdragon - Red spiders' eggs - Vial
+    notes:
+      - "Calculate:"
+      - Higher margin than prayer potions
+      - Consistent raid demand
+      - Super restore costs more but restores stats
+      - Raid tax creates premium demand
+      - Check relative margins between both
+      - Compare 4-dose vs 3-dose prices
+      - Decanting can profit in either direction
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Usage
-
-Super restore is preferred over prayer potions because it:
-- Restores ALL reduced stats (not just prayer)
-- Essential for raids where stats get drained
-- Required for high-level PvM
-
-## Market Flip Strategy
-
-**Potion Making Profit:**
-- Calculate: `Super restore(4) - Snapdragon - Red spiders' eggs - Vial`
-- Higher margin than prayer potions
-- Consistent raid demand
-
-**Comparison to Prayer Potion:**
-- Super restore costs more but restores stats
-- Raid tax creates premium demand
-- Check relative margins between both
-
-**Dose Manipulation:**
-- Compare 4-dose vs 3-dose prices
-- Decanting can profit in either direction
-
-**Buy Limit:** 2,000 per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

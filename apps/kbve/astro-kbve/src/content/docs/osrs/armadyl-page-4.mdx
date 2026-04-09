@@ -38,47 +38,22 @@ osrs:
       slug: armadyl-page-3
       relationship: set-piece
       description: Page 3 of 4
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | God Page |
+    | God | Armadyl |
+    | Page | 4 of 4 |
+    | Tradeable | Yes |
+
+    Add to incomplete Book of law (Armadyl god book) to complete it.
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | God Page |
-| God | Armadyl |
-| Page | 4 of 4 |
-| Tradeable | Yes |
-
-## Obtaining
-
-Reward from Treasure Trails (hard and elite tiers).
-
-## Usage
-
-Add to incomplete Book of law (Armadyl god book) to complete it.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

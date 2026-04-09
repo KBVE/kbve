@@ -58,71 +58,44 @@ osrs:
       slug: ranarr-seed
       relationship: alternative
       description: Farming companion
+  about: |-
+    | Method | Requirements |
+    |--------|--------------|
+    | Volcanic ash + Supercompost | 1 ash per bucket |
+    | Bottomless bucket | Doubles doses |
+
+    | Effect | Value |
+    |--------|-------|
+    | Disease reduction | 90% per stage |
+    | Minimum herb yield | 6 |
+    | Average herb yield | ~8.6 |
+    | Works on | Allotments, hops, herbs |
+
+    | Compost | Disease Reduction | Min Herbs |
+    |---------|-------------------|-----------|
+    | Regular | 50% | 3 |
+    | Supercompost | 80% | 5 |
+    | Ultracompost | 90% | 6 |
+  market_strategy:
+    notes:
+      - Essential for herb runs
+      - Significantly better yields
+      - Volcanic ash crafting
+      - Herb run efficiency
+      - Farming profit maximization
+      - Ironman farming
+      - High-level farmers
+      - Bottomless bucket saves money
+      - Volcanic ash from Fossil Island
+      - ~20% more yield than super
+      - Low buy limit (2,000)
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creating
-
-| Method | Requirements |
-|--------|--------------|
-| Volcanic ash + Supercompost | 1 ash per bucket |
-| Bottomless bucket | Doubles doses |
-
-## Effects
-
-| Effect | Value |
-|--------|-------|
-| Disease reduction | 90% per stage |
-| Minimum herb yield | 6 |
-| Average herb yield | ~8.6 |
-| Works on | Allotments, hops, herbs |
-
-## Comparison
-
-| Compost | Disease Reduction | Min Herbs |
-|---------|-------------------|-----------|
-| Regular | 50% | 3 |
-| Supercompost | 80% | 5 |
-| Ultracompost | 90% | 6 |
-
-## Market Flip Strategy
-
-**Best Compost:**
-- Essential for herb runs
-- Significantly better yields
-- Volcanic ash crafting
-
-**Buy Limit:** 2,000 per 4 hours
-
-**Demand Drivers:**
-- Herb run efficiency
-- Farming profit maximization
-- Ironman farming
-- High-level farmers
-
-**Tips:**
-- Bottomless bucket saves money
-- Volcanic ash from Fossil Island
-- ~20% more yield than super
-- Low buy limit (2,000)
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -52,83 +52,48 @@ osrs:
       slug: saradomin-brew
       relationship: alternative
       description: Manual healing
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | Neck |
+    | Type | Combat Necklace |
+    | Tradeable | Yes |
+    | Weight | 0.01 kg |
+
+    Enchant Diamond necklace with Lvl-4 Enchant.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 57 |
+    | Cosmic rune | 1 |
+    | Earth rune | 10 |
+
+    All bonuses +0
+
+    Emergency Heal:
+    - Triggers at 20% HP or below
+    - Restores 30% of max HP
+    - Clears pending damage
+    - Destroys after use
+
+    Essential for:
+    - PvP survival
+    - Risky PvM
+    - Hardcore Ironmen
+
+    Auto-heal safety net.
+  market_strategy:
+    notes:
+      - Great for HCIM
+      - One-time use
+      - Clears damage queue
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Neck |
-| Type | Combat Necklace |
-| Tradeable | Yes |
-| Weight | 0.01 kg |
-
-## Creation
-
-Enchant [Diamond necklace](/osrs/diamond-necklace/) with Lvl-4 Enchant.
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 57 |
-| Cosmic rune | 1 |
-| Earth rune | 10 |
-
-## Stats
-
-All bonuses +0
-
-## Passive Effect
-
-**Emergency Heal:**
-- Triggers at 20% HP or below
-- Restores 30% of max HP
-- Clears pending damage
-- Destroys after use
-
-## Usage
-
-Essential for:
-- PvP survival
-- Risky PvM
-- Hardcore Ironmen
-
-**Auto-heal safety net.**
-
-## Market Strategy
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Price:** ~2.5K gp
-
-**Tips:**
-- Great for HCIM
-- One-time use
-- Clears damage queue
-
-## Related Items
-
-- [Ring of life](/osrs/ring-of-life/) - Teleport safety
-- [Diamond necklace](/osrs/diamond-necklace/) - Base item
-- [Saradomin brew](/osrs/saradomin-brew/) - Manual healing
-
-<Adsense />
+<OSRSAdsenseCard />

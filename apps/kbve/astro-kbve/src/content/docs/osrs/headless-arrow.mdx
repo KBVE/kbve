@@ -59,60 +59,41 @@ osrs:
       slug: logs
       relationship: component
       description: Source of arrow shafts
+  about: |-
+    Use Feather on Arrow shaft.
+
+    | Action | Fletching Level | XP |
+    |--------|-----------------|-----|
+    | Add feathers | 1 | 1 per arrow |
+
+    Add arrowtips to create finished arrows:
+
+    | Arrow Type | Tips Needed | Fletching Level |
+    |------------|-------------|-----------------|
+    | Bronze arrow | Bronze arrowtips | 1 |
+    | Iron arrow | Iron arrowtips | 15 |
+    | Steel arrow | Steel arrowtips | 30 |
+    | Mithril arrow | Mithril arrowtips | 45 |
+    | Adamant arrow | Adamant arrowtips | 60 |
+    | Rune arrow | Rune arrowtips | 75 |
+    | Amethyst arrow | Amethyst arrowtips | 82 |
+    | Dragon arrow | Dragon arrowtips | 90 |
+  market_strategy:
+    title: Bulk Processing
+    profit_formulas:
+      - Headless arrow price - Arrow shaft price - Feather price = Profit
+    notes:
+      - Buy Arrow shaft + Feather
+      - Fletch into Headless arrows
+      - Sell to arrow finishers
+      - High volume, low margin flip
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Use Feather on Arrow shaft.
-
-| Action | Fletching Level | XP |
-|--------|-----------------|-----|
-| Add feathers | 1 | 1 per arrow |
-
-## Usage
-
-Add arrowtips to create finished arrows:
-
-| Arrow Type | Tips Needed | Fletching Level |
-|------------|-------------|-----------------|
-| Bronze arrow | Bronze arrowtips | 1 |
-| Iron arrow | Iron arrowtips | 15 |
-| Steel arrow | Steel arrowtips | 30 |
-| Mithril arrow | Mithril arrowtips | 45 |
-| Adamant arrow | Adamant arrowtips | 60 |
-| Rune arrow | Rune arrowtips | 75 |
-| Amethyst arrow | Amethyst arrowtips | 82 |
-| Dragon arrow | Dragon arrowtips | 90 |
-
-## Market Flip Strategy
-
-**Bulk Processing:**
-- Buy Arrow shaft + Feather
-- Fletch into Headless arrows
-- Sell to arrow finishers
-
-**Calculation:**
-- `Headless arrow price - Arrow shaft price - Feather price = Profit`
-- High volume, low margin flip
-
-<Adsense />
+<OSRSAdsenseCard />

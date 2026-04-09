@@ -67,71 +67,46 @@ osrs:
       slug: tome-of-fire
       relationship: alternative
       description: Unlimited fire runes
+  about: |-
+    | Requirement | Value |
+    |-------------|-------|
+    | Runecraft Level | 14 |
+    | XP per rune | 7 |
+    | Runes per essence | 1 (7 at 91) |
+
+    Multipliers (every 35 levels):
+    - Level 35: 2x runes
+    - Level 70: 3x runes
+
+    | Spell | Fire Runes | Other Runes |
+    |-------|------------|-------------|
+    | Fire Strike | 3 | 2 Air, 1 Mind |
+    | Fire Bolt | 4 | 3 Air, 1 Chaos |
+    | Fire Blast | 5 | 4 Air, 1 Death |
+    | Fire Wave | 7 | 5 Air, 1 Blood |
+    | Fire Surge | 10 | 7 Air, 1 Wrath |
+    | High Alchemy | 5 | 1 Nature |
+    | Superheat Item | 4 | 1 Nature |
+  market_strategy:
+    notes:
+      - High Level Alchemy uses 5 per cast
+      - Fire Surge most popular combat spell
+      - Smithing via Superheat
+      - High Alchemy (money making)
+      - Fire Surge (PvM meta)
+      - Superheat Item (Smithing)
+      - Charge Fire Orb
+      - Tome of Fire provides unlimited
+      - Staff of fire saves runes
+      - TzHaar shops cheap with Tokkul
+      - Price stable due to high supply
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Runecrafting
-
-| Requirement | Value |
-|-------------|-------|
-| Runecraft Level | 14 |
-| XP per rune | 7 |
-| Runes per essence | 1 (7 at 91) |
-
-**Multipliers (every 35 levels):**
-- Level 35: 2x runes
-- Level 70: 3x runes
-
-## Key Spells
-
-| Spell | Fire Runes | Other Runes |
-|-------|------------|-------------|
-| Fire Strike | 3 | 2 Air, 1 Mind |
-| Fire Bolt | 4 | 3 Air, 1 Chaos |
-| Fire Blast | 5 | 4 Air, 1 Death |
-| Fire Wave | 7 | 5 Air, 1 Blood |
-| Fire Surge | 10 | 7 Air, 1 Wrath |
-| High Alchemy | 5 | 1 Nature |
-| Superheat Item | 4 | 1 Nature |
-
-## Market Flip Strategy
-
-**Essential Consumable:**
-- High Level Alchemy uses 5 per cast
-- Fire Surge most popular combat spell
-- Smithing via Superheat
-
-**Buy Limit:** 50,000 per 4 hours
-
-**Demand Drivers:**
-- High Alchemy (money making)
-- Fire Surge (PvM meta)
-- Superheat Item (Smithing)
-- Charge Fire Orb
-
-**Tips:**
-- Tome of Fire provides unlimited
-- Staff of fire saves runes
-- TzHaar shops cheap with Tokkul
-- Price stable due to high supply
-
-<Adsense />
+<OSRSAdsenseCard />

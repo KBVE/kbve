@@ -29,7 +29,7 @@ osrs:
         rate: 1/200
       - source: Other superiors
         rate: 1/200 - 1/1,376
-  truemarket:
+  market:
     buy_limit: 8
     price_estimate: 29000000
   related_items:
@@ -48,74 +48,38 @@ osrs:
       slug: ancient-essence
       relationship: component
       description: Upgrade material
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Magic Boost |
+    | Tradeable | Yes |
+    | Weight | 0.35 kg |
+
+    Invigorate:
+    - Boosts Magic by 1 + 10% of level
+    - At 99 Magic: +10 levels
+    - Cooldown: 7 minutes
+    - Resets on death
+
+    Essential for:
+    - Magic bossing
+    - Raids
+    - Any high-level magic content
+    - Unlimited uses
+
+    Best magic boost item in the game.
+  market_strategy:
+    notes:
+      - Farm superiors for drop
+      - Unlimited uses
+      - Upgrade to saturated
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Magic Boost |
-| Tradeable | Yes |
-| Weight | 0.35 kg |
-
-## Obtaining
-
-Drop from superior Slayer monsters.
-
-| Monster | Drop Rate |
-|---------|-----------|
-| Nuclear smoke devil | 1/200 |
-| Other superiors | 1/200 - 1/1,376 |
-
-**Requires:** Bigger and Badder (50 Slayer points)
-
-## Effect
-
-**Invigorate:**
-- Boosts Magic by 1 + 10% of level
-- At 99 Magic: +10 levels
-- Cooldown: 7 minutes
-- Resets on death
-
-## Usage
-
-Essential for:
-- Magic bossing
-- Raids
-- Any high-level magic content
-- Unlimited uses
-
-**Best magic boost item in the game.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~29M gp
-
-**Tips:**
-- Farm superiors for drop
-- Unlimited uses
-- Upgrade to saturated
-
-<Adsense />
+<OSRSAdsenseCard />

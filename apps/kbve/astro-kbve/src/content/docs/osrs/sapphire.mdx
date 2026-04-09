@@ -108,66 +108,28 @@ osrs:
       slug: emerald
       relationship: alternative
       description: Higher tier gem
+  about: |-
+    | Item | Effect |
+    |------|--------|
+    | Ring of recoil | Reflects 10% damage |
+    | Games necklace | Minigame teleports |
+    | Bracelet of clay | Soft clay mining |
+    | Amulet of magic | +10 Magic attack |
+  market_strategy:
+    notes:
+      - Ring of recoil production
+      - Games necklace production
+      - Crafting training
+      - Lowest tier cut gem
+      - High volume trading
+      - Ring of recoil always needed
+  mdx_version: 2
+  mdx_updated: 2026-04-09
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Source | Method |
-|--------|--------|
-| Cutting uncut sapphire | 20 Crafting, 50 XP |
-| Grand Exchange | Purchase |
-
-## Crafting Products
-
-| Product | Level | XP |
-|---------|-------|-----|
-| Sapphire ring | 20 | 40 |
-| Sapphire necklace | 22 | 55 |
-| Sapphire bracelet | 23 | 60 |
-| Sapphire amulet | 24 | 65 |
-| Sapphire bolt tips (12) | 56 Fletching | 4 |
-
-## Enchanted Jewelry
-
-| Item | Effect |
-|------|--------|
-| Ring of recoil | Reflects 10% damage |
-| Games necklace | Minigame teleports |
-| Bracelet of clay | Soft clay mining |
-| Amulet of magic | +10 Magic attack |
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Ring of recoil production
-- Games necklace production
-- Crafting training
-
-**Tips:**
-- Lowest tier cut gem
-- High volume trading
-- Ring of recoil always needed
-
-<Adsense />
+<OSRSAdsenseCard />
