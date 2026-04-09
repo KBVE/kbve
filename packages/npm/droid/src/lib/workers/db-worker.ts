@@ -1,7 +1,6 @@
 import { expose } from 'comlink';
 import Dexie, { type Table } from 'dexie';
 import type { DiscordServer, DiscordTag, Profile } from '../types/discord';
-import { toReference } from './flexbuilder';
 
 interface SharedWorkerGlobalScope extends Worker {
 	onconnect: (event: MessageEvent) => void;
@@ -16,7 +15,10 @@ class AppDexie extends Dexie {
 	servers!: Table<DiscordServer>;
 	tags!: Table<DiscordTag>;
 	profiles!: Table<Profile>;
-	ws_messages!: Table<{ key: string; message: Record<string, unknown> }>;
+	ws_messages!: Table<{
+		key: string;
+		message: Uint8Array | Record<string, unknown>;
+	}>;
 	auth_tokens!: Table<{ key: string; value: string; expires_at?: number }>;
 
 	constructor() {
@@ -36,6 +38,29 @@ class AppDexie extends Dexie {
 }
 const db = new AppDexie();
 
+// --- ws-worker → db-worker direct pipeline ---
+// Listen for WebSocket messages from the ws-worker via BroadcastChannel.
+// This keeps the main thread out of the data storage path entirely.
+if (typeof BroadcastChannel !== 'undefined') {
+	const wsChannel = new BroadcastChannel('kbve_ws_data');
+	wsChannel.onmessage = (e: MessageEvent) => {
+		const msg = e.data;
+		if (msg?.type !== 'ws.store') return;
+
+		const key = `ws:${msg.ts ?? Date.now()}`;
+		const message =
+			msg.format === 'text'
+				? new TextEncoder().encode(msg.data)
+				: msg.data instanceof Uint8Array
+					? msg.data
+					: new Uint8Array(msg.data ?? []);
+
+		db.ws_messages.put({ key, message }).catch((err) => {
+			console.error('[DB] Failed to store ws message:', err);
+		});
+	};
+}
+
 function renderHtmlForServer(server: DiscordServer): string {
 	return `
 		<div class="flex flex-col gap-2 p-2">
@@ -52,11 +77,12 @@ const storageAPI = {
 	// WebSocket
 
 	async storeWsMessage(key: string, buffer: ArrayBuffer) {
-		const decoded = toReference(buffer).toObject() as Record<
-			string,
-			unknown
-		>;
-		await db.ws_messages.put({ key, message: decoded });
+		// Store raw bytes — format-agnostic so the ws-worker can carry
+		// any protocol (IRC text, FlatBuffers, Protobuf, etc.).
+		// Uint8Array is natively supported by IndexedDB and safe for
+		// Dexie's BroadcastChannel multi-tab sync (no DataCloneError).
+		// Consumers decode on read using the appropriate deserializer.
+		await db.ws_messages.put({ key, message: new Uint8Array(buffer) });
 	},
 
 	async getWsMessage(key: string) {
@@ -64,7 +90,7 @@ const storageAPI = {
 	},
 
 	async getAllWsMessages(): Promise<
-		{ key: string; message: Record<string, unknown> }[]
+		{ key: string; message: Uint8Array | Record<string, unknown> }[]
 	> {
 		const raw = await db.ws_messages.toArray();
 		return raw.sort((a, b) => {

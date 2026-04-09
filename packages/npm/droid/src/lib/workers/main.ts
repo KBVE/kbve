@@ -1,4 +1,4 @@
-import { wrap, proxy } from 'comlink';
+import { wrap } from 'comlink';
 import type { Remote } from 'comlink';
 import { persistentMap } from '@nanostores/persistent';
 import type { LocalStorageAPI } from './db-worker';
@@ -582,22 +582,6 @@ function initSWComlink() {
 	channel.port1.start();
 }
 
-// --- Bridge ---
-export function bridgeWsToDb(
-	ws: Remote<WSInstance>,
-	db: Remote<LocalStorageAPI>,
-) {
-	const handler = proxy(async (data: string | ArrayBuffer) => {
-		if (typeof data === 'string') return;
-		dispatchAsync(() => {
-			const key = `ws:${Date.now()}`;
-			void db.storeWsMessage(key, data);
-		});
-	});
-
-	ws.onMessage(handler);
-}
-
 // --- MAIN ---
 export async function main(opts?: {
 	workerURLs?: Record<string, string>;
@@ -694,7 +678,8 @@ export async function main(opts?: {
 					});
 				}
 
-				bridgeWsToDb(ws, api);
+				// ws-worker → db-worker storage now happens directly via
+				// BroadcastChannel ('kbve_ws_data'), no main-thread bridge needed.
 
 				const data = scopeData;
 				i18n.api = api;

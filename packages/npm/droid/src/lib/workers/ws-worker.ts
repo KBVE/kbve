@@ -9,6 +9,14 @@ let ws: WebSocket | null = null;
 let onMessageCallback: ((data: string | ArrayBuffer) => void) | null = null;
 let onStatusCallback: ((status: string) => void) | null = null;
 
+// BroadcastChannel for direct ws-worker → db-worker communication.
+// The db-worker listens on this channel and writes to IndexedDB,
+// keeping the main thread out of the data pipeline entirely.
+const dbChannel =
+	typeof BroadcastChannel !== 'undefined'
+		? new BroadcastChannel('kbve_ws_data')
+		: null;
+
 // Heartbeat
 let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 let lastPongTime = 0;
@@ -118,10 +126,28 @@ const wsInstanceAPI = {
 					}
 				}
 
-				if (e.data instanceof ArrayBuffer) {
-					onMessageCallback?.(e.data);
-				} else {
-					onMessageCallback?.(e.data);
+				// Forward to main thread callback (UI rendering)
+				onMessageCallback?.(e.data);
+
+				// Forward to db-worker for storage (off main thread).
+				// BroadcastChannel requires structured-cloneable data,
+				// so we send text as-is and binary as a Uint8Array copy.
+				if (dbChannel) {
+					if (typeof e.data === 'string') {
+						dbChannel.postMessage({
+							type: 'ws.store',
+							format: 'text',
+							data: e.data,
+							ts: Date.now(),
+						});
+					} else if (e.data instanceof ArrayBuffer) {
+						dbChannel.postMessage({
+							type: 'ws.store',
+							format: 'binary',
+							data: new Uint8Array(e.data),
+							ts: Date.now(),
+						});
+					}
 				}
 			} catch (err) {
 				console.error('[WS] Failed to forward message', err);
