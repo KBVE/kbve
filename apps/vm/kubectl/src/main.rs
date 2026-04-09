@@ -4,9 +4,24 @@ use std::{borrow::Cow, process::ExitCode};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 // ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+const TOOLS: &[(&str, &[&str])] = &[
+    ("kubectl", &["kubectl", "version", "--client", "--short"]),
+    ("curl", &["curl", "--version"]),
+    ("wget", &["wget", "--version"]),
+    ("jq", &["jq", "--version"]),
+    ("virsh", &["virsh", "--version"]),
+];
+
+// ---------------------------------------------------------------------------
 // Tracing
 // ---------------------------------------------------------------------------
 
+#[inline]
 fn init_tracing(default_filter: &str) {
     tracing_subscriber::registry()
         .with(
@@ -71,6 +86,9 @@ enum Commands {
 // Helpers
 // ---------------------------------------------------------------------------
 
+/// Run kubectl with the given args and return trimmed stdout.
+/// Returns `Cow::Borrowed` for static error messages, `Cow::Owned` for dynamic ones.
+#[inline]
 async fn kubectl_output(args: &[&str]) -> Result<String, Cow<'static, str>> {
     let output = tokio::process::Command::new("kubectl")
         .args(args)
@@ -83,7 +101,41 @@ async fn kubectl_output(args: &[&str]) -> Result<String, Cow<'static, str>> {
         return Err(Cow::Owned(format!("kubectl failed: {stderr}")));
     }
 
-    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    // Avoid double allocation: if output is valid UTF-8, convert directly
+    match String::from_utf8(output.stdout) {
+        Ok(mut s) => {
+            let trimmed = s.trim().len();
+            let start = s.len() - s.trim_start().len();
+            s.drain(start + trimmed..);
+            s.drain(..start);
+            Ok(s)
+        }
+        Err(e) => Ok(String::from_utf8_lossy(e.as_bytes()).trim().to_string()),
+    }
+}
+
+/// Check if a tool binary is available by running it and checking exit status.
+#[inline]
+async fn check_tool(name: &'static str, cmd: &'static [&'static str]) -> (&'static str, bool) {
+    let status = tokio::process::Command::new(cmd[0])
+        .args(&cmd[1..])
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status()
+        .await;
+    (name, matches!(status, Ok(s) if s.success()))
+}
+
+/// Extract the first non-empty line from a multi-line string, in-place.
+#[inline]
+fn first_nonempty_line(mut s: String) -> Option<String> {
+    if let Some(line) = s.lines().find(|l| !l.trim().is_empty()) {
+        let trimmed = line.trim().to_string();
+        s.clear();
+        Some(trimmed)
+    } else {
+        None
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -91,37 +143,26 @@ async fn kubectl_output(args: &[&str]) -> Result<String, Cow<'static, str>> {
 // ---------------------------------------------------------------------------
 
 async fn cmd_info() -> ExitCode {
-    println!("kbve-kubectl v{}", env!("CARGO_PKG_VERSION"));
+    println!("kbve-kubectl v{VERSION}");
     println!();
 
-    let tools: &[(&str, &[&str])] = &[
-        ("kubectl", &["kubectl", "version", "--client", "--short"]),
-        ("curl", &["curl", "--version"]),
-        ("wget", &["wget", "--version"]),
-        ("jq", &["jq", "--version"]),
-        ("virsh", &["virsh", "--version"]),
-    ];
+    // Spawn all tool checks concurrently — no extra crate needed
+    let handles: Vec<_> = TOOLS
+        .iter()
+        .map(|&(name, cmd)| tokio::spawn(check_tool(name, cmd)))
+        .collect();
 
-    let checks = tools.iter().map(|(name, cmd)| async move {
-        let status = tokio::process::Command::new(cmd[0])
-            .args(&cmd[1..])
-            .stdout(std::process::Stdio::null())
-            .stderr(std::process::Stdio::null())
-            .status()
-            .await;
-        let ok = matches!(status, Ok(s) if s.success());
-        (*name, ok)
-    });
-
-    let results = futures::future::join_all(checks).await;
-    for (name, ok) in results {
-        let label = if ok { "available" } else { "not found" };
-        println!("  {name}: {label}");
+    for handle in handles {
+        if let Ok((name, ok)) = handle.await {
+            let label = if ok { "available" } else { "not found" };
+            println!("  {name}: {label}");
+        }
     }
 
     ExitCode::SUCCESS
 }
 
+#[inline]
 async fn cmd_run(script: &str, args: &[String]) -> ExitCode {
     let status = tokio::process::Command::new("/bin/sh")
         .arg(script)
@@ -164,25 +205,19 @@ async fn cmd_guest_exec(vm: &str, namespace: &str, command: &str, args: &[String
         }
     };
 
-    // Get libvirt domain name
+    // Get libvirt domain name — extract first non-empty line in-place
     let domain = match kubectl_output(&[
         "exec", &pod, "-n", namespace, "-c", "compute", "--", "virsh", "list", "--name",
     ])
     .await
     {
-        Ok(out) => {
-            let d = out
-                .lines()
-                .find(|l| !l.trim().is_empty())
-                .unwrap_or("")
-                .trim()
-                .to_string();
-            if d.is_empty() {
+        Ok(out) => match first_nonempty_line(out) {
+            Some(d) => d,
+            None => {
                 tracing::error!("no libvirt domain found in {pod}");
                 return ExitCode::FAILURE;
             }
-            d
-        }
+        },
         Err(e) => {
             tracing::error!("failed to get libvirt domain from {pod}: {e}");
             return ExitCode::FAILURE;
