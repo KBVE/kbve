@@ -86,6 +86,9 @@ resources:
     # Forgejo — Git LFS server + Actions runner, UE asset storage on sdb
     - forgejo/application.yaml
 
+    # Security Profiles Operator — SeccompProfile CRDs for Talos (no Localhost profiles)
+    - security-profiles-operator/application.yaml
+
     # Firecracker — microVM runtime service (edge function Tier 2 isolation)
     - firecracker/application.yaml
 
