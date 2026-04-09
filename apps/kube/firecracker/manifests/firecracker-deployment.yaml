@@ -17,6 +17,7 @@ spec:
         spec:
             nodeSelector:
                 kvm: 'true'
+            automountServiceAccountToken: false
             containers:
                 - name: firecracker-ctl
                   image: ghcr.io/kbve/firecracker-ctl:0.1.26
@@ -50,7 +51,10 @@ spec:
                       # read-only rootfs, no outbound network for VMs.
                       seccompProfile:
                           type: Unconfined
+                      readOnlyRootFilesystem: true
                       capabilities:
+                          drop:
+                              - ALL
                           add:
                               - NET_ADMIN
                               - SYS_ADMIN
@@ -62,6 +66,8 @@ spec:
                         readOnly: true
                       - name: vm-scratch
                         mountPath: /var/lib/firecracker/scratch
+                      - name: tmp
+                        mountPath: /tmp
                   livenessProbe:
                       httpGet:
                           path: /health
@@ -81,3 +87,6 @@ spec:
                 - name: vm-scratch
                   emptyDir:
                       sizeLimit: 8Gi
+                - name: tmp
+                  emptyDir:
+                      sizeLimit: 64Mi
