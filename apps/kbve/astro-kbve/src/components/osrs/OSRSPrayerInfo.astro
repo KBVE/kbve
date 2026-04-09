@@ -1,0 +1,118 @@
+---
+import type { OSRSPrayer } from '@/data/schema';
+import { getPrayerXP } from '@/data/schema';
+
+interface Props {
+	prayer: OSRSPrayer;
+	name: string;
+}
+
+const { prayer, name } = Astro.props;
+const xp = getPrayerXP(prayer);
+const methods = [
+	{ label: 'Bury / Scatter', value: xp.xp_bury },
+	{ label: 'Gilded Altar', value: xp.xp_gilded_altar },
+	{ label: 'Chaos Altar', value: xp.xp_chaos_altar },
+	{ label: 'Ectofuntus', value: xp.xp_ectofuntus },
+].filter((m) => m.value !== undefined);
+---
+
+{
+	methods.length > 0 && (
+		<div class="osrs-prayer">
+			<div class="osrs-prayer__header">
+				<span class="osrs-prayer__icon">
+					<svg
+						width="16"
+						height="16"
+						viewBox="0 0 24 24"
+						fill="currentColor">
+						<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+					</svg>
+				</span>
+				<h4 class="osrs-prayer__title">Prayer Training</h4>
+			</div>
+			<div class="osrs-prayer__grid">
+				{methods.map((m) => (
+					<div class="osrs-prayer__cell">
+						<span class="osrs-prayer__label">{m.label}</span>
+						<span class="osrs-prayer__value">
+							{m.value} <span class="osrs-prayer__xp">xp</span>
+						</span>
+					</div>
+				))}
+			</div>
+		</div>
+	)
+}
+
+<style>
+	.osrs-prayer {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-prayer__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-prayer__icon {
+		color: #a3e635;
+	}
+
+	.osrs-prayer__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+	}
+
+	.osrs-prayer__grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1px;
+		background: var(--sl-color-gray-5);
+	}
+
+	@media (min-width: 640px) {
+		.osrs-prayer__grid {
+			grid-template-columns: repeat(4, 1fr);
+		}
+	}
+
+	.osrs-prayer__cell {
+		background: var(--sl-color-bg-nav);
+		padding: 0.5rem 0.75rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+		text-align: center;
+	}
+
+	.osrs-prayer__label {
+		font-size: 0.5rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-prayer__value {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+
+	.osrs-prayer__xp {
+		font-size: 0.625rem;
+		font-weight: 400;
+		color: #a3e635;
+	}
+</style>
