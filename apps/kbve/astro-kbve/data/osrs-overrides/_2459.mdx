@@ -1,9 +1,9 @@
 ---
 potion:
   doses: 3
-  type: "combat"
-  boost_stat: "defence"
-  boost_formula: "3 + 10%"
+  type: combat
+  boost_stat: defence
+  boost_formula: 3 + 10%
 herblore:
   level: 30
   xp: 75
@@ -12,85 +12,77 @@ recipes:
     level: 30
     xp: 75
     materials:
-      - item_name: "Ranarr potion (unf)"
+      - item_name: Ranarr potion (unf)
         item_id: 99
         quantity: 1
-      - item_name: "White berries"
+      - item_name: White berries
         item_id: 239
         quantity: 1
-    product: "Defence potion(3)"
+    product: Defence potion(3)
     product_id: 2459
     product_quantity: 1
-    facility: "None"
+    facility: None
     members_only: true
 related_items:
   - item_id: 257
-    item_name: "Ranarr weed"
-    slug: "ranarr-weed"
+    item_name: Ranarr weed
+    slug: ranarr-weed
     relationship: component
-    description: "Primary herb"
+    description: Primary herb
   - item_id: 239
-    item_name: "White berries"
-    slug: "white-berries"
+    item_name: White berries
+    slug: white-berries
     relationship: component
-    description: "Secondary"
+    description: Secondary
   - item_id: 2442
-    item_name: "Super defence(3)"
-    slug: "super-defence-3"
+    item_name: Super defence(3)
+    slug: super-defence-3
     relationship: upgrade
-    description: "Stronger version"
+    description: Stronger version
   - item_id: 2434
-    item_name: "Prayer potion(3)"
-    slug: "prayer-potion-3"
+    item_name: Prayer potion(3)
+    slug: prayer-potion-3
     relationship: alternative
-    description: "Same herb"
+    description: Same herb
+about: |-
+  Mix Ranarr potion (unf) + White berries.
+
+  | Requirement | Value |
+  |-------------|-------|
+  | Herblore Level | 30 |
+  | XP gained | 75 |
+
+  Temporarily boosts Defence by 3 + 10% of level:
+
+  | Defence Level | Boost |
+  |---------------|-------|
+  | 1-9 | +3 |
+  | 10-19 | +4 |
+  | 50-59 | +8 |
+  | 90-99 | +12 |
+
+  Boost decays 1 point per minute.
+
+  Budget Defence boost for:
+  - Mid-game bossing
+  - Slayer tasks
+  - Training with protection
+
+  | Potion | Boost | Level |
+  |--------|-------|-------|
+  | Defence potion(4) | 3 + 10% | 30 |
+  | Super defence(4) | 5 + 15% | 66 |
+  | Super combat(4) | Combined | 90 |
+market_strategy:
+  profit_formulas:
+    - Defence potion - Ranarr - White berries = Profit
+  notes:
+    - Uses Ranarr weed - same as Prayer potions
+    - "Calculate:"
+    - "Buy limit: 2,000 per 4 hours"
+    - Competes with Prayer potions for Ranarr
+    - White berries are relatively cheap
+    - Most players prefer Super defence
+mdx_version: 2
+mdx_updated: 2026-04-09
 ---
-
-## Creation
-
-Mix Ranarr potion (unf) + White berries.
-
-| Requirement | Value |
-|-------------|-------|
-| Herblore Level | 30 |
-| XP gained | 75 |
-
-## Effect
-
-Temporarily boosts Defence by 3 + 10% of level:
-
-| Defence Level | Boost |
-|---------------|-------|
-| 1-9 | +3 |
-| 10-19 | +4 |
-| 50-59 | +8 |
-| 90-99 | +12 |
-
-Boost decays 1 point per minute.
-
-## Usage
-
-Budget Defence boost for:
-- Mid-game bossing
-- Slayer tasks
-- Training with protection
-
-## Upgrades
-
-| Potion | Boost | Level |
-|--------|-------|-------|
-| Defence potion(4) | 3 + 10% | 30 |
-| Super defence(4) | 5 + 15% | 66 |
-| Super combat(4) | Combined | 90 |
-
-## Market Strategy
-
-**Potion Making:**
-- Uses Ranarr weed - same as Prayer potions
-- Calculate: `Defence potion - Ranarr - White berries = Profit`
-- Buy limit: 2,000 per 4 hours
-
-**Tips:**
-- Competes with Prayer potions for Ranarr
-- White berries are relatively cheap
-- Most players prefer Super defence

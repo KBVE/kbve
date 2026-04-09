@@ -1,8 +1,8 @@
 ---
 potion:
   doses: 3
-  type: "skill"
-  boost_stat: "magic"
+  type: skill
+  boost_stat: magic
   boost_formula: "+4"
 herblore:
   level: 76
@@ -12,80 +12,72 @@ recipes:
     level: 76
     xp: 172.5
     materials:
-      - item_name: "Lantadyme potion (unf)"
+      - item_name: Lantadyme potion (unf)
         item_id: 2483
         quantity: 1
-      - item_name: "Potato cactus"
+      - item_name: Potato cactus
         item_id: 3138
         quantity: 1
-    product: "Magic potion(3)"
+    product: Magic potion(3)
     product_id: 3040
     product_quantity: 1
-    facility: "None"
+    facility: None
     members_only: true
 related_items:
   - item_id: 2481
-    item_name: "Lantadyme"
-    slug: "lantadyme"
+    item_name: Lantadyme
+    slug: lantadyme
     relationship: component
-    description: "Primary herb"
+    description: Primary herb
   - item_id: 3138
-    item_name: "Potato cactus"
-    slug: "potato-cactus"
+    item_name: Potato cactus
+    slug: potato-cactus
     relationship: component
-    description: "Secondary"
+    description: Secondary
   - item_id: 23739
-    item_name: "Divine magic potion(3)"
-    slug: "divine-magic-potion-3"
+    item_name: Divine magic potion(3)
+    slug: divine-magic-potion-3
     relationship: upgrade
-    description: "No-decay version"
+    description: No-decay version
   - item_id: 20724
-    item_name: "Imbued heart"
-    slug: "imbued-heart"
+    item_name: Imbued heart
+    slug: imbued-heart
     relationship: alternative
-    description: "Infinite magic boost"
+    description: Infinite magic boost
+about: |-
+  Mix Lantadyme potion (unf) + Potato cactus.
+
+  | Requirement | Value |
+  |-------------|-------|
+  | Herblore Level | 76 |
+  | XP gained | 172.5 |
+
+  Temporarily boosts Magic by +4 levels.
+
+  Note: Boosted Magic allows casting higher spells but NOT equipping gear above your base level.
+
+  Useful for:
+  - Casting spells above your level
+  - Enchanting jewelry
+  - Ancient Magicks
+  - Lunar spells
+
+  | Potion | Boost | Level |
+  |--------|-------|-------|
+  | Magic potion(4) | +4 | 76 |
+  | Super magic potion(4) | 5 + 15% | - |
+  | Divine magic potion(4) | +4 (no decay) | - |
+  | Imbued heart | 1 + 10% | - |
+market_strategy:
+  profit_formulas:
+    - Magic potion - Lantadyme - Potato cactus = Profit
+  notes:
+    - High Herblore level required (76)
+    - "Calculate:"
+    - "Buy limit: 2,000 per 4 hours"
+    - Often cheaper than Divine version
+    - Lantadyme is the expensive component
+    - Potato cactus from farming or GE
+mdx_version: 2
+mdx_updated: 2026-04-09
 ---
-
-## Creation
-
-Mix Lantadyme potion (unf) + Potato cactus.
-
-| Requirement | Value |
-|-------------|-------|
-| Herblore Level | 76 |
-| XP gained | 172.5 |
-
-## Effect
-
-Temporarily boosts Magic by +4 levels.
-
-**Note:** Boosted Magic allows casting higher spells but NOT equipping gear above your base level.
-
-## Usage
-
-Useful for:
-- Casting spells above your level
-- Enchanting jewelry
-- Ancient Magicks
-- Lunar spells
-
-## Upgrades
-
-| Potion | Boost | Level |
-|--------|-------|-------|
-| Magic potion(4) | +4 | 76 |
-| Super magic potion(4) | 5 + 15% | - |
-| Divine magic potion(4) | +4 (no decay) | - |
-| Imbued heart | 1 + 10% | - |
-
-## Market Strategy
-
-**Potion Making:**
-- High Herblore level required (76)
-- Calculate: `Magic potion - Lantadyme - Potato cactus = Profit`
-- Buy limit: 2,000 per 4 hours
-
-**Tips:**
-- Often cheaper than Divine version
-- Lantadyme is the expensive component
-- Potato cactus from farming or GE

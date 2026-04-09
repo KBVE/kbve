@@ -1,7 +1,7 @@
 ---
 equipment:
-  slot: "cape"
-  type: "ranged cape"
+  slot: cape
+  type: ranged cape
   tradeable: false
   weight: 5.896
   stats:
@@ -20,81 +20,59 @@ equipment:
     magic_damage: 0
     prayer: 0
 passive_effect:
-  name: "Ammo Recovery"
-  description: "Automatically retrieves fired ammunition (same as Ava's assembler)"
+  name: Ammo Recovery
+  description: Automatically retrieves fired ammunition (same as Ava's assembler)
 recipes:
-  - skill: "crafting"
+  - skill: crafting
     materials:
       - item_id: 22109
-        item_name: "Ava's assembler"
+        item_name: Ava's assembler
         quantity: 1
       - item_id: 27372
-        item_name: "Masori crafting kit"
+        item_name: Masori crafting kit
         quantity: 1
-    product: "Masori assembler"
+    product: Masori assembler
     product_id: 27374
 related_items:
   - item_id: 22109
-    item_name: "Ava's assembler"
-    slug: "avas-assembler"
+    item_name: Ava's assembler
+    slug: avas-assembler
     relationship: downgrade
-    description: "Base item for cosmetic upgrade"
+    description: Base item for cosmetic upgrade
   - item_id: 27372
-    item_name: "Masori crafting kit"
-    slug: "masori-crafting-kit"
+    item_name: Masori crafting kit
+    slug: masori-crafting-kit
     relationship: component
-    description: "Creation material from ToA"
+    description: Creation material from ToA
   - item_id: 27238
-    item_name: "Masori body (f)"
-    slug: "masori-body-f"
+    item_name: Masori body (f)
+    slug: masori-body-f
     relationship: set-piece
-    description: "Matching Masori armour set"
+    description: Matching Masori armour set
+about: |-
+  Combine with needle (no tick cost):
+  - Ava's assembler
+  - Masori crafting kit
+
+  | Offence | Bonus |
+  |---------|-------|
+  | Ranged | +8 |
+  | Ranged Strength | +2 |
+
+  | Defence | Bonus |
+  |---------|-------|
+  | Stab | +1 |
+  | Slash | +1 |
+  | Crush | +1 |
+  | Magic | +8 |
+
+  Ammo Recovery: Same as Ava's assembler - automatically retrieves fired ammunition.
+
+  Cosmetic Masori-themed variant.
+
+  | Item | Materials |
+  |------|-----------|
+  | Masori assembler max cape | Max cape + Masori assembler |
+mdx_version: 2
+mdx_updated: 2026-04-09
 ---
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Cape |
-| Type | Ranged Cape |
-| Tradeable | No |
-| Weight | 5.896 kg |
-
-## Creating
-
-Combine with needle (no tick cost):
-- Ava's assembler
-- Masori crafting kit
-
-## Stats
-
-| Offence | Bonus |
-|---------|-------|
-| Ranged | +8 |
-| Ranged Strength | +2 |
-
-| Defence | Bonus |
-|---------|-------|
-| Stab | +1 |
-| Slash | +1 |
-| Crush | +1 |
-| Magic | +8 |
-
-## Effect
-
-**Ammo Recovery:** Same as Ava's assembler - automatically retrieves fired ammunition.
-
-Cosmetic Masori-themed variant.
-
-## Upgrades
-
-| Item | Materials |
-|------|-----------|
-| Masori assembler max cape | Max cape + Masori assembler |
-
-## Related Items
-
-- [Ava's assembler](/osrs/avas-assembler/) - Base item
-- [Masori crafting kit](/osrs/masori-crafting-kit/) - Creation material
-- [Masori armour](/osrs/masori-armour/) - Set pieces
-

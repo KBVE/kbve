@@ -1,7 +1,7 @@
 ---
 material:
-  type: "pottery"
-  tier: "unfired"
+  type: pottery
+  tier: unfired
 crafting:
   level: 7
   xp: 15
@@ -10,62 +10,54 @@ recipes:
     level: 7
     xp: 15
     materials:
-      - item_name: "Soft clay"
+      - item_name: Soft clay
         item_id: 1761
         quantity: 1
-    product: "Unfired pie dish"
+    product: Unfired pie dish
     product_id: 1789
     product_quantity: 1
-    facility: "Potter's wheel"
+    facility: Potter's wheel
   - skill: crafting
     level: 1
     xp: 10
     materials:
-      - item_name: "Unfired pie dish"
+      - item_name: Unfired pie dish
         item_id: 1789
         quantity: 1
-    product: "Pie dish"
+    product: Pie dish
     product_id: 2313
     product_quantity: 1
-    facility: "Pottery oven"
+    facility: Pottery oven
 related_items:
   - item_id: 1761
-    item_name: "Soft clay"
-    slug: "soft-clay"
+    item_name: Soft clay
+    slug: soft-clay
     relationship: component
-    description: "Raw material"
+    description: Raw material
   - item_id: 2313
-    item_name: "Pie dish"
-    slug: "pie-dish"
+    item_name: Pie dish
+    slug: pie-dish
     relationship: product
-    description: "Fired version"
+    description: Fired version
+about: |-
+  | Method | Level | Materials |
+  |--------|-------|-----------|
+  | Potter's wheel | 7 | 1 Soft clay |
+  | XP | 15 | - |
+
+  | Method | Level | XP |
+  |--------|-------|-----|
+  | Pottery oven | 1 | 10 |
+  | Success rate | 100% | - |
+market_strategy:
+  notes:
+    - Pie dish crafting
+    - Cooking skill
+    - F2P accessible
+    - Higher XP than pots
+    - No failure rate for firing
+    - Used in Cooking
+    - F2P accessible
+mdx_version: 2
+mdx_updated: 2026-04-09
 ---
-
-## Creating
-
-| Method | Level | Materials |
-|--------|-------|-----------|
-| Potter's wheel | 7 | 1 Soft clay |
-| XP | 15 | - |
-
-## Firing
-
-| Method | Level | XP |
-|--------|-------|-----|
-| Pottery oven | 1 | 10 |
-| Success rate | 100% | - |
-
-## Market Strategy
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Demand Drivers:**
-- Pie dish crafting
-- Cooking skill
-- F2P accessible
-
-**Tips:**
-- Higher XP than pots
-- No failure rate for firing
-- Used in Cooking
-- F2P accessible

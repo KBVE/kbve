@@ -1,7 +1,7 @@
 ---
 equipment:
-  slot: "neck"
-  type: "amulet"
+  slot: neck
+  type: amulet
   tradeable: false
   weight: 0.02
   stats:
@@ -20,105 +20,80 @@ equipment:
     magic_damage: 0
     prayer: 5
 recipes:
-  - skill: "crafting"
+  - skill: crafting
     level: 1
     materials:
       - item_id: 6585
-        item_name: "Amulet of fury"
+        item_name: Amulet of fury
         quantity: 1
       - item_id: 24777
-        item_name: "Blood shard"
+        item_name: Blood shard
         quantity: 1
 charging:
   charges_per_shard: 10000
 effect:
   lifesteal:
-    chance: "20%"
-    amount: "30% of damage dealt"
-    average: "~6% healing per attack"
+    chance: 20%
+    amount: 30% of damage dealt
+    average: ~6% healing per attack
     melee_only: true
 related_items:
   - item_id: 6585
-    item_name: "Amulet of fury"
-    slug: "amulet-of-fury"
-    relationship: "component"
-    description: "Base amulet"
+    item_name: Amulet of fury
+    slug: amulet-of-fury
+    relationship: component
+    description: Base amulet
   - item_id: 24777
-    item_name: "Blood shard"
-    slug: "blood-shard"
-    relationship: "component"
-    description: "From Darkmeyer Vyres"
+    item_name: Blood shard
+    slug: blood-shard
+    relationship: component
+    description: From Darkmeyer Vyres
   - item_id: 19553
-    item_name: "Amulet of torture"
-    slug: "amulet-of-torture"
-    relationship: "alternative"
-    description: "DPS alternative without lifesteal"
+    item_name: Amulet of torture
+    slug: amulet-of-torture
+    relationship: alternative
+    description: DPS alternative without lifesteal
+about: |-
+  Combine Amulet of fury + Blood shard.
+
+  | Offense | Value |
+  |---------|-------|
+  | Stab | +10 |
+  | Slash | +10 |
+  | Crush | +10 |
+  | Magic | +10 |
+  | Ranged | +10 |
+  | Strength | +8 |
+
+  | Defence | Value |
+  |---------|-------|
+  | Stab | +15 |
+  | Slash | +15 |
+  | Crush | +15 |
+  | Magic | +15 |
+  | Ranged | +15 |
+
+  | Other | Value |
+  |-------|-------|
+  | Prayer | +5 |
+
+  Melee Lifesteal:
+  - 20% chance on melee hit
+  - Heals 30% of damage dealt
+  - Average: ~6% healing per attack
+  - 10,000 charges per blood shard
+
+  BiS for:
+  - Melee sustain
+  - Slayer
+  - AFK combat
+
+  Best sustain amulet for melee.
+market_strategy:
+  notes:
+    - Blood shard from Vyrewatch
+    - 10,000 charges = ~7-8 hours
+    - Great for extended trips
+mdx_version: 2
+mdx_updated: 2026-04-09
 ---
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Neck |
-| Type | Amulet |
-| Tradeable | No (untradeable) |
-| Weight | 0.02 kg |
-
-## Creation
-
-Combine [Amulet of fury](/osrs/amulet-of-fury/) + [Blood shard](/osrs/blood-shard/).
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Stab | +10 |
-| Slash | +10 |
-| Crush | +10 |
-| Magic | +10 |
-| Ranged | +10 |
-| Strength | +8 |
-
-| Defence | Value |
-|---------|-------|
-| Stab | +15 |
-| Slash | +15 |
-| Crush | +15 |
-| Magic | +15 |
-| Ranged | +15 |
-
-| Other | Value |
-|-------|-------|
-| Prayer | +5 |
-
-## Passive Effect
-
-**Melee Lifesteal:**
-- 20% chance on melee hit
-- Heals 30% of damage dealt
-- Average: ~6% healing per attack
-- 10,000 charges per blood shard
-
-## Usage
-
-BiS for:
-- Melee sustain
-- Slayer
-- AFK combat
-
-**Best sustain amulet for melee.**
-
-## Market Strategy
-
-**Untradeable** - Creation ~8.4M
-
-**Tips:**
-- Blood shard from Vyrewatch
-- 10,000 charges = ~7-8 hours
-- Great for extended trips
-
-## Related Items
-
-- [Amulet of fury](/osrs/amulet-of-fury/) - Base amulet
-- [Blood shard](/osrs/blood-shard/) - From Darkmeyer
-- [Amulet of torture](/osrs/amulet-of-torture/) - DPS alternative

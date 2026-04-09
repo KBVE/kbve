@@ -1,7 +1,7 @@
 ---
 equipment:
-  slot: "weapon"
-  type: "sword"
+  slot: weapon
+  type: sword
   tradeable: false
   weight: 0.907
   requirements:
@@ -22,94 +22,60 @@ equipment:
     magic_damage: 0
     prayer: 0
 passive_effect:
-  name: "Demonbane"
-  description: "+70% accuracy and damage vs demons. Does not degrade."
+  name: Demonbane
+  description: +70% accuracy and damage vs demons. Does not degrade.
 special_attack:
-  effect: "15% stat drain on demons (vs 10% for Arclight)"
-quest_requirement: "While Guthix Sleeps"
+  effect: 15% stat drain on demons (vs 10% for Arclight)
+quest_requirement: While Guthix Sleeps
 recipes:
-  - skill: "smithing"
+  - skill: smithing
     level: 74
     xp: 730
     materials:
       - item_id: 19675
-        item_name: "Arclight (fully charged)"
+        item_name: Arclight (fully charged)
         quantity: 1
       - item_id: 29580
-        item_name: "Tormented synapse"
+        item_name: Tormented synapse
         quantity: 1
-    product: "Emberlight"
+    product: Emberlight
     product_id: 29589
-    note: "Requires reading Duradel's notes"
+    note: Requires reading Duradel's notes
 related_items:
   - item_id: 19675
-    item_name: "Arclight"
-    slug: "arclight"
+    item_name: Arclight
+    slug: arclight
     relationship: downgrade
-    description: "Base weapon for upgrade"
+    description: Base weapon for upgrade
   - item_id: 29580
-    item_name: "Tormented synapse"
-    slug: "tormented-synapse"
+    item_name: Tormented synapse
+    slug: tormented-synapse
     relationship: component
-    description: "Upgrade material from Tormented demons"
+    description: Upgrade material from Tormented demons
   - item_id: 29591
-    item_name: "Scorching bow"
-    slug: "scorching-bow"
+    item_name: Scorching bow
+    slug: scorching-bow
     relationship: alternative
-    description: "Ranged demonbane equivalent"
+    description: Ranged demonbane equivalent
+about: |-
+  | Offence | Bonus |
+  |---------|-------|
+  | Stab | +63 |
+  | Slash | +70 |
+  | Strength | +13 |
+
+  Demonbane: +70% accuracy and damage vs demons.
+
+  Does not degrade.
+
+  15% stat drain on demons (vs 10% for Arclight).
+
+  Used for:
+  - All demon content
+  - Permanent upgrade from Arclight
+  - Duke Sucellus
+
+  Non-degrading BiS for demons.
+mdx_version: 2
+mdx_updated: 2026-04-09
 ---
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon |
-| Type | Sword |
-| Tradeable | No |
-| Weight | 0.907 kg |
-| Requirements | 77 Attack |
-
-## Obtaining
-
-Created at anvil with 74 Smithing:
-- Fully charged/infused Arclight
-- Tormented synapse
-- Hammer
-
-Requires reading Duradel's notes (While Guthix Sleeps).
-
-First creation: 730 Smithing XP.
-
-## Stats
-
-| Offence | Bonus |
-|---------|-------|
-| Stab | +63 |
-| Slash | +70 |
-| Strength | +13 |
-
-## Passive Effect
-
-**Demonbane:** +70% accuracy and damage vs demons.
-
-**Does not degrade.**
-
-## Special Attack
-
-15% stat drain on demons (vs 10% for Arclight).
-
-## Usage
-
-Used for:
-- All demon content
-- Permanent upgrade from Arclight
-- Duke Sucellus
-
-**Non-degrading BiS for demons.**
-
-## Related Items
-
-- [Arclight](/osrs/arclight/) - Base weapon
-- [Tormented synapse](/osrs/tormented-synapse/) - Upgrade material
-- [While Guthix Sleeps](/osrs/while-guthix-sleeps/) - Quest requirement
-

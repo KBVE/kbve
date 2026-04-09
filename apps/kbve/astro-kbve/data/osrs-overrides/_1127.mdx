@@ -33,56 +33,53 @@ recipes:
     level: 99
     xp: 375
     materials:
-      - item_name: "Runite bar"
+      - item_name: Runite bar
         item_id: 2363
         quantity: 5
-    product: "Rune platebody"
+    product: Rune platebody
     product_id: 1127
     product_quantity: 1
-    facility: "Anvil"
+    facility: Anvil
 related_items:
   - item_id: 2363
-    item_name: "Runite bar"
-    slug: "runite-bar"
+    item_name: Runite bar
+    slug: runite-bar
     relationship: component
-    description: "Raw material (×5)"
+    description: Raw material (×5)
   - item_id: 1079
-    item_name: "Rune platelegs"
-    slug: "rune-platelegs"
+    item_name: Rune platelegs
+    slug: rune-platelegs
     relationship: set-piece
-    description: "Alternative rune armor"
+    description: Alternative rune armor
   - item_id: 1319
-    item_name: "Rune 2h sword"
-    slug: "rune-2h-sword"
+    item_name: Rune 2h sword
+    slug: rune-2h-sword
     relationship: alternative
-    description: "Alternative alch item"
+    description: Alternative alch item
   - item_id: 561
-    item_name: "Nature rune"
-    slug: "nature-rune"
+    item_name: Nature rune
+    slug: nature-rune
     relationship: component
-    description: "For High Alchemy"
+    description: For High Alchemy
+about: |-
+  | Alch Type | Value |
+  |-----------|-------|
+  | High Alch | 39,000 GP |
+  | Low Alch | 26,000 GP |
+market_strategy:
+  profit_formulas:
+    - 39,000 - Rune platebody price - Nature rune = Profit
+    - 39,000 - (5 × Runite bar price) - Nature rune
+  notes:
+    - "High Alch value: **39,000 GP**"
+    - "Calculate:"
+    - One of the highest alch value items
+    - "Cost: 5 Runite bars"
+    - "Revenue: 39,000 GP (alch) or GE price"
+    - "Compare:"
+    - "Buy limit: 8 per 4 hours (low limit!)"
+    - Dragon Slayer 1 completion required to equip
+    - Popular PvM drop - check drop sources for supply
+mdx_version: 2
+mdx_updated: 2026-04-09
 ---
-
-## High Alchemy
-
-| Alch Type | Value |
-|-----------|-------|
-| **High Alch** | **39,000 GP** |
-| Low Alch | 26,000 GP |
-
-## Market Flip Strategy
-
-**Alch Flipping:**
-- High Alch value: **39,000 GP**
-- Calculate: `39,000 - Rune platebody price - Nature rune = Profit`
-- One of the highest alch value items
-
-**Smithing Profit:**
-- Cost: 5 Runite bars
-- Revenue: 39,000 GP (alch) or GE price
-- Compare: `39,000 - (5 × Runite bar price) - Nature rune`
-
-**Tips:**
-- Buy limit: 8 per 4 hours (low limit!)
-- Dragon Slayer 1 completion required to equip
-- Popular PvM drop - check drop sources for supply

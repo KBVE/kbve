@@ -1,8 +1,8 @@
 ---
 equipment:
-  slot: "weapon"
-  type: "powered_staff"
-  attack_style: "magic"
+  slot: weapon
+  type: powered_staff
+  attack_style: magic
   attack_speed: 4
   requirements:
     magic: 75
@@ -18,113 +18,82 @@ charging:
   max_charges: 2500
   charge_cost:
     - item_id: 560
-      item_name: "Death rune"
+      item_name: Death rune
       quantity: 1
     - item_id: 562
-      item_name: "Chaos rune"
+      item_name: Chaos rune
       quantity: 1
     - item_id: 554
-      item_name: "Fire rune"
+      item_name: Fire rune
       quantity: 5
-    - item_name: "Coins"
+    - item_name: Coins
       quantity: 10
 drop_table:
   sources:
-    - source: "Kraken boss"
+    - source: Kraken boss
       source_id: 494
       combat_level: 291
       quantity: "1"
-      rarity: "1/512"
+      rarity: 1/512
       members_only: true
-    - source: "Cave kraken"
+    - source: Cave kraken
       source_id: 492
       combat_level: 127
-      quantity: "1 (uncharged)"
-      rarity: "1/200"
+      quantity: 1 (uncharged)
+      rarity: 1/200
       members_only: true
 related_items:
   - item_id: 12899
-    item_name: "Trident of the swamp"
-    slug: "trident-of-the-swamp"
+    item_name: Trident of the swamp
+    slug: trident-of-the-swamp
     relationship: upgrade
-    description: "Venom upgrade"
+    description: Venom upgrade
   - item_id: 24225
-    item_name: "Sanguinesti staff"
-    slug: "sanguinesti-staff"
+    item_name: Sanguinesti staff
+    slug: sanguinesti-staff
     relationship: upgrade
-    description: "BiS upgrade"
+    description: BiS upgrade
   - item_id: 12655
-    item_name: "Kraken tentacle"
-    slug: "kraken-tentacle"
+    item_name: Kraken tentacle
+    slug: kraken-tentacle
     relationship: alternative
-    description: "Drop source"
+    description: Drop source
+about: |-
+  | Offense | Value |
+  |---------|-------|
+  | Magic attack | +15 |
+  | Magic damage | Scales with level |
+
+  | Defence | Value |
+  |---------|-------|
+  | All | +0 |
+
+  Requirements: 75 Magic, 87 Slayer (to obtain)
+
+  Max hit scales with Magic level:
+  - Base max at 99: 28
+
+  | Resource | Per Cast |
+  |----------|----------|
+  | Death rune | 1 |
+  | Chaos rune | 1 |
+  | Fire rune | 5 |
+  | Coins | 10 |
+
+  Capacity: 2,500 charges
+
+  Entry-level powered staff for:
+  - Barrows
+  - Zulrah
+  - Slayer
+  - Budget magic
+
+  Upgrade to Trident of the Swamp for venom.
+market_strategy:
+  notes:
+    - 87 Slayer for Kraken
+    - Cheap to charge
+    - Upgrade to swamp trident
+mdx_version: 2
+mdx_updated: 2026-04-09
 ---
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Main-hand) |
-| Type | Magic - Powered Staff |
-| Tradeable | Yes |
-| Weight | 1.814 kg |
-| Attack Speed | 4 tick (2.4s) |
-
-## Obtaining
-
-Drop from Kraken boss and Cave krakens.
-
-| Source | Drop Rate |
-|--------|-----------|
-| Kraken boss | 1/512 (full) |
-| Cave kraken | 1/200 (uncharged) |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Magic attack | +15 |
-| Magic damage | Scales with level |
-
-| Defence | Value |
-|---------|-------|
-| All | +0 |
-
-**Requirements:** 75 Magic, 87 Slayer (to obtain)
-
-## Built-in Spell
-
-Max hit scales with Magic level:
-- Base max at 99: 28
-
-## Charging
-
-| Resource | Per Cast |
-|----------|----------|
-| Death rune | 1 |
-| Chaos rune | 1 |
-| Fire rune | 5 |
-| Coins | 10 |
-
-**Capacity:** 2,500 charges
-
-## Usage
-
-Entry-level powered staff for:
-- Barrows
-- Zulrah
-- Slayer
-- Budget magic
-
-**Upgrade to Trident of the Swamp for venom.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~50K gp (uncharged)
-
-**Tips:**
-- 87 Slayer for Kraken
-- Cheap to charge
-- Upgrade to swamp trident

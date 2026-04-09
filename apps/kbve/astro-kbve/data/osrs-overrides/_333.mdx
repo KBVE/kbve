@@ -1,7 +1,7 @@
 ---
 food:
   heals: 7
-  type: "fish"
+  type: fish
 cooking:
   level: 15
   xp: 70
@@ -12,67 +12,52 @@ recipes:
     level: 15
     xp: 70
     materials:
-      - item_name: "Raw trout"
+      - item_name: Raw trout
         item_id: 335
         quantity: 1
-    product: "Trout"
+    product: Trout
     product_id: 333
     product_quantity: 1
-    facility: "Range/Fire"
+    facility: Range/Fire
 related_items:
   - item_id: 335
-    item_name: "Raw trout"
-    slug: "raw-trout"
+    item_name: Raw trout
+    slug: raw-trout
     relationship: component
-    description: "Uncooked version"
+    description: Uncooked version
   - item_id: 329
-    item_name: "Salmon"
-    slug: "salmon"
+    item_name: Salmon
+    slug: salmon
     relationship: alternative
-    description: "Upgrade food"
+    description: Upgrade food
   - item_id: 379
-    item_name: "Lobster"
-    slug: "lobster"
+    item_name: Lobster
+    slug: lobster
     relationship: alternative
-    description: "Better food"
+    description: Better food
   - item_id: 775
-    item_name: "Cooking gauntlets"
-    slug: "cooking-gauntlets"
+    item_name: Cooking gauntlets
+    slug: cooking-gauntlets
     relationship: alternative
-    description: "Reduce burn"
+    description: Reduce burn
+about: |-
+  | Effect | Value |
+  |--------|-------|
+  | Heals | 7 HP |
+  | Buy limit | 6,000 |
+market_strategy:
+  notes:
+    - Cheapest useful food
+    - F2P accessible
+    - Very low level requirement
+    - Low-level combat
+    - F2P content
+    - Budget healing
+    - Wintertodt supplies
+    - Very cheap food
+    - First fly fishing catch
+    - Good for low HP content
+    - Often power-fished
+mdx_version: 2
+mdx_updated: 2026-04-09
 ---
-
-## Obtaining
-
-| Method | Level | XP |
-|--------|-------|-----|
-| Cooking raw trout | 15 Cooking | 70 |
-| Stop burning | 50 (40 with gauntlets) | - |
-
-## Stats
-
-| Effect | Value |
-|--------|-------|
-| Heals | 7 HP |
-| Buy limit | 6,000 |
-
-## Market Flip Strategy
-
-**Entry-Level Food:**
-- Cheapest useful food
-- F2P accessible
-- Very low level requirement
-
-**Buy Limit:** 6,000 per 4 hours
-
-**Demand Drivers:**
-- Low-level combat
-- F2P content
-- Budget healing
-- Wintertodt supplies
-
-**Tips:**
-- Very cheap food
-- First fly fishing catch
-- Good for low HP content
-- Often power-fished

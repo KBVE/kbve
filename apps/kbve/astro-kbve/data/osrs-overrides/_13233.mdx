@@ -1,6 +1,6 @@
 ---
 item:
-  type: "upgrade_material"
+  type: upgrade_material
   tradeable: true
 effect:
   creates_infernal_tools: true
@@ -9,98 +9,78 @@ effect:
   charges_per_tool: 5000
 drop_table:
   sources:
-    - source: "Cerberus"
+    - source: Cerberus
       source_id: 5862
       combat_level: 318
       quantity: "1"
-      rarity: "1/520"
+      rarity: 1/520
       members_only: true
-    - source: "Hellhound (Wildy Slayer)"
+    - source: Hellhound (Wildy Slayer)
       source_id: 0
       combat_level: 0
       quantity: "1"
-      rarity: "1/16,384"
+      rarity: 1/16,384
       members_only: true
-    - source: "Hellhound (regular)"
+    - source: Hellhound (regular)
       source_id: 0
       combat_level: 0
       quantity: "1"
-      rarity: "1/32,768"
+      rarity: 1/32,768
       members_only: true
 recipes_creates:
   - product_id: 13241
-    product_name: "Infernal axe"
-    requirements: "85 FM, 61 WC"
+    product_name: Infernal axe
+    requirements: 85 FM, 61 WC
   - product_id: 13243
-    product_name: "Infernal pickaxe"
-    requirements: "85 Smith, 61 Mining"
+    product_name: Infernal pickaxe
+    requirements: 85 Smith, 61 Mining
   - product_id: 21031
-    product_name: "Infernal harpoon"
-    requirements: "85 Cook, 75 Fishing"
+    product_name: Infernal harpoon
+    requirements: 85 Cook, 75 Fishing
 related_items:
   - item_id: 13241
-    item_name: "Infernal axe"
-    slug: "infernal-axe"
+    item_name: Infernal axe
+    slug: infernal-axe
     relationship: product
-    description: "Created tool"
+    description: Created tool
   - item_id: 13243
-    item_name: "Infernal pickaxe"
-    slug: "infernal-pickaxe"
+    item_name: Infernal pickaxe
+    slug: infernal-pickaxe
     relationship: product
-    description: "Created tool"
+    description: Created tool
+about: |-
+  | Property | Value |
+  |----------|-------|
+  | Type | Upgrade Material |
+  | Tradeable | Yes |
+  | Weight | 0.05 kg |
+
+  Creates infernal tools:
+
+  | Base Tool | Result | Requirements |
+  |-----------|--------|--------------|
+  | Dragon axe | Infernal axe | 85 FM, 61 WC |
+  | Dragon pickaxe | Infernal pickaxe | 85 Smith, 61 Mining |
+  | Dragon harpoon | Infernal harpoon | 85 Cook, 75 Fishing |
+
+  All infernal tools have 5,000 charges.
+
+  Auto-Process:
+  - 33% chance to instantly process resource
+  - Grants ~50% of secondary skill XP
+  - Destroys the resource
+
+  Essential for:
+  - Creating infernal tools
+  - Recharging infernal tools
+  - Ironman progression
+
+  Key drop from Cerberus.
+market_strategy:
+  notes:
+    - Cerberus is best source
+    - 91 Slayer required
+    - Used for all infernal tools
+mdx_version: 2
+mdx_updated: 2026-04-09
 ---
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Upgrade Material |
-| Tradeable | Yes |
-| Weight | 0.05 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Cerberus | 1/520 |
-| Hellhound (Wildy Slayer) | 1/16,384 |
-| Hellhound (regular) | 1/32,768 |
-
-## Uses
-
-Creates infernal tools:
-
-| Base Tool | Result | Requirements |
-|-----------|--------|--------------|
-| Dragon axe | Infernal axe | 85 FM, 61 WC |
-| Dragon pickaxe | Infernal pickaxe | 85 Smith, 61 Mining |
-| Dragon harpoon | Infernal harpoon | 85 Cook, 75 Fishing |
-
-All infernal tools have 5,000 charges.
-
-## Effect on Tools
-
-**Auto-Process:**
-- 33% chance to instantly process resource
-- Grants ~50% of secondary skill XP
-- Destroys the resource
-
-## Usage
-
-Essential for:
-- Creating infernal tools
-- Recharging infernal tools
-- Ironman progression
-
-**Key drop from Cerberus.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~4.2M gp
-
-**Tips:**
-- Cerberus is best source
-- 91 Slayer required
-- Used for all infernal tools

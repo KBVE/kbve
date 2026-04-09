@@ -20,86 +20,67 @@ equipment:
     magic_damage: 0
     prayer: 0
 special_effect:
-  name: "Enhanced Salve Effect"
-  description: "20% accuracy and damage boost against undead monsters (does not stack with Slayer helmet)"
-  triggers: "passive"
+  name: Enhanced Salve Effect
+  description: 20% accuracy and damage boost against undead monsters (does not stack with Slayer helmet)
+  triggers: passive
 recipes:
   - skill: magic
     level: 0
     xp: 0
     materials:
-      - item_name: "Salve amulet"
+      - item_name: Salve amulet
         item_id: 4081
         quantity: 1
-      - item_name: "Tarn's diary"
+      - item_name: Tarn's diary
         item_id: 10587
         quantity: 1
-    facility: "Salve graveyard"
+    facility: Salve graveyard
     members_only: true
 related_items:
   - item_id: 4081
-    item_name: "Salve amulet"
-    slug: "salve-amulet"
+    item_name: Salve amulet
+    slug: salve-amulet
     relationship: downgrade
-    description: "Base version (15%)"
+    description: Base version (15%)
   - item_id: 12018
-    item_name: "Salve amulet(ei)"
-    slug: "salve-amulet-ei"
+    item_name: Salve amulet(ei)
+    slug: salve-amulet-ei
     relationship: upgrade
-    description: "Imbued enchanted version"
+    description: Imbued enchanted version
   - item_id: 10587
-    item_name: "Tarn's diary"
-    slug: "tarns-diary"
+    item_name: Tarn's diary
+    slug: tarns-diary
     relationship: component
-    description: "Required for enchantment"
+    description: Required for enchantment
+about: |-
+  Enhanced Salve Effect:
+  - +20% accuracy against undead
+  - +20% damage against undead
+  - Does NOT stack with Slayer helmet
+
+  Enchant Salve amulet at the stalagmite in Tarn's Lair after completing Haunted Mine.
+
+  Requires: Tarn's diary (obtained after killing Tarn Razorlor)
+
+  Works on undead including:
+  - Vorkath
+  - Skeletal Wyverns
+  - Revenants
+  - Zombies
+  - Ghosts
+  - Skeletons
+market_strategy:
+  notes:
+    - Essential for undead content
+    - Better than regular salve
+    - Worth imbuing for ranged/magic
+    - Vorkath farming
+    - Undead Slayer tasks
+    - Barrows
+    - Complete Haunted Mine first
+    - Enchant immediately after obtaining
+    - Consider imbuing for ranged/magic
+    - Does NOT stack with Slayer helm
+mdx_version: 2
+mdx_updated: 2026-04-09
 ---
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Neck |
-| Type | Amulet |
-| Tradeable | No |
-| Weight | 0.01 kg |
-
-## Special Effect
-
-**Enhanced Salve Effect:**
-- +20% accuracy against undead
-- +20% damage against undead
-- Does NOT stack with Slayer helmet
-
-## Creation
-
-Enchant Salve amulet at the stalagmite in Tarn's Lair after completing Haunted Mine.
-
-**Requires:** Tarn's diary (obtained after killing Tarn Razorlor)
-
-## Affected Monsters
-
-Works on undead including:
-- Vorkath
-- Skeletal Wyverns
-- Revenants
-- Zombies
-- Ghosts
-- Skeletons
-
-## Market Flip Strategy
-
-**Untradeable Undead Slayer:**
-- Essential for undead content
-- Better than regular salve
-- Worth imbuing for ranged/magic
-
-**Demand Drivers:**
-- Vorkath farming
-- Undead Slayer tasks
-- Barrows
-
-**Tips:**
-- Complete Haunted Mine first
-- Enchant immediately after obtaining
-- Consider imbuing for ranged/magic
-- Does NOT stack with Slayer helm

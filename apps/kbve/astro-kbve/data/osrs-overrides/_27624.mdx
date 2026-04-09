@@ -1,7 +1,7 @@
 ---
 equipment:
-  slot: "weapon"
-  type: "magic staff"
+  slot: weapon
+  type: magic staff
   tradeable: false
   weight: 2.267
   requirements:
@@ -24,85 +24,61 @@ equipment:
     magic_damage: 5
     prayer: 0
 passive_effect:
-  name: "Ancient Magicks Boost"
-  description: "+10% to all Ancient spell effects (enhanced poison/freeze/drain/healing)"
-quest_requirement: "Secrets of the North"
+  name: Ancient Magicks Boost
+  description: +10% to all Ancient spell effects (enhanced poison/freeze/drain/healing)
+quest_requirement: Secrets of the North
 recipes:
-  - skill: "crafting"
+  - skill: crafting
     materials:
       - item_id: 4675
-        item_name: "Ancient staff"
+        item_name: Ancient staff
         quantity: 1
       - item_id: 27627
-        item_name: "Ancient icon"
+        item_name: Ancient icon
         quantity: 1
-    product: "Ancient sceptre"
+    product: Ancient sceptre
     product_id: 27624
-    location: "Eblis"
+    location: Eblis
 related_items:
   - item_id: 27627
-    item_name: "Ancient icon"
-    slug: "ancient-icon"
+    item_name: Ancient icon
+    slug: ancient-icon
     relationship: component
-    description: "Upgrade material from Phantom Muspah"
+    description: Upgrade material from Phantom Muspah
   - item_id: 4675
-    item_name: "Ancient staff"
-    slug: "ancient-staff"
+    item_name: Ancient staff
+    slug: ancient-staff
     relationship: downgrade
-    description: "Base item for upgrade"
+    description: Base item for upgrade
   - item_id: 27630
-    item_name: "Shadow ancient sceptre"
-    slug: "shadow-ancient-sceptre"
+    item_name: Shadow ancient sceptre
+    slug: shadow-ancient-sceptre
     relationship: upgrade
-    description: "Enhanced shadow spell variant"
+    description: Enhanced shadow spell variant
+about: |-
+  Combine Ancient staff with Ancient icon at Eblis.
+
+  Warning: Irreversible process.
+
+  | Offence | Bonus |
+  |---------|-------|
+  | Magic | +20 |
+  | Magic Damage | +5% |
+
+  | Defence | Bonus |
+  |---------|-------|
+  | Magic | +15 |
+
+  Ancient Magicks Boost:
+  - +10% to all Ancient spell effects
+  - Enhanced poison/freeze/drain/healing
+
+  Used for:
+  - Ancient Magicks users
+  - Budget ancients weapon
+  - Upgrade to enhanced variants
+
+  Base for enhanced ancient sceptres.
+mdx_version: 2
+mdx_updated: 2026-04-09
 ---
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon |
-| Type | Magic Staff |
-| Tradeable | No (untradeable) |
-| Weight | 2.267 kg |
-| Requirements | 70 Magic, 60 Strength, 50 Attack |
-
-**Requires Secrets of the North.**
-
-## Creation
-
-Combine [Ancient staff](/osrs/ancient-staff/) with [Ancient icon](/osrs/ancient-icon/) at Eblis.
-
-**Warning:** Irreversible process.
-
-## Stats
-
-| Offence | Bonus |
-|---------|-------|
-| Magic | +20 |
-| Magic Damage | +5% |
-
-| Defence | Bonus |
-|---------|-------|
-| Magic | +15 |
-
-## Passive Effect
-
-**Ancient Magicks Boost:**
-- +10% to all Ancient spell effects
-- Enhanced poison/freeze/drain/healing
-
-## Usage
-
-Used for:
-- Ancient Magicks users
-- Budget ancients weapon
-- Upgrade to enhanced variants
-
-**Base for enhanced ancient sceptres.**
-
-## Related Items
-
-- [Ancient icon](/osrs/ancient-icon/) - From Phantom Muspah
-- [Ancient staff](/osrs/ancient-staff/) - Base item
-- [Shadow ancient sceptre](/osrs/shadow-ancient-sceptre/) - Enhanced variant
