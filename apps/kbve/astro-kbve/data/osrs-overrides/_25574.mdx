@@ -1,7 +1,7 @@
 ---
 equipment:
-  slot: "shield"
-  type: "magic book"
+  slot: shield
+  type: magic book
   tradeable: true
   weight: 1
   requirements:
@@ -22,88 +22,55 @@ equipment:
     magic_damage: 0
     prayer: 0
 obtaining:
-  - source: "Tempoross reward pool"
-    drop_rate: "1/1,600"
+  - source: Tempoross reward pool
+    drop_rate: 1/1,600
 charging:
-  material_name: "Soaked page"
+  material_name: Soaked page
   charges_per_page: 20
   max_charges: 20000
-  cost_per_charge: "~97 gp"
+  cost_per_charge: ~97 gp
 effect:
   infinite_water_runes: true
   water_spell_boost:
-    npcs: "+10% accuracy/damage"
-    players: "+20% accuracy/damage"
+    npcs: +10% accuracy/damage
+    players: +20% accuracy/damage
   curse_enhancement:
-    accuracy: "+20%"
-    stat_drain: "+50%"
+    accuracy: +20%
+    stat_drain: +50%
 related_items:
   - item_id: 25578
-    item_name: "Soaked page"
-    slug: "soaked-page"
-    relationship: "component"
-    description: "Charging material"
+    item_name: Soaked page
+    slug: soaked-page
+    relationship: component
+    description: Charging material
   - item_id: 20714
-    item_name: "Tome of fire"
-    slug: "tome-of-fire"
-    relationship: "alternative"
-    description: "Fire equivalent"
+    item_name: Tome of fire
+    slug: tome-of-fire
+    relationship: alternative
+    description: Fire equivalent
+about: |-
+  | Offence | Bonus |
+  |---------|-------|
+  | Magic | +8 |
+
+  | Defence | Bonus |
+  |---------|-------|
+  | Magic | +8 |
+
+  Infinite Water Runes: Acts as unlimited water rune source.
+
+  Water Spell Boost: +10% accuracy/damage vs NPCs, +20% vs players.
+
+  Curse Enhancement:
+  - +20% accuracy on curse spells
+  - +50% effectiveness on stat-draining curses
+
+  | Pages | Charges |
+  |-------|---------|
+  | Soaked page | 20 per page |
+  | Max charges | 20,000 |
+
+  ~97 gp per charge.
+mdx_version: 2
+mdx_updated: 2026-04-09
 ---
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Shield |
-| Type | Magic Book |
-| Tradeable | Yes |
-| Weight | 1 kg |
-| Requirements | 50 Magic |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Tempoross reward pool | 1/1,600 |
-
-## Stats
-
-| Offence | Bonus |
-|---------|-------|
-| Magic | +8 |
-
-| Defence | Bonus |
-|---------|-------|
-| Magic | +8 |
-
-## Passive Effect
-
-**Infinite Water Runes:** Acts as unlimited water rune source.
-
-**Water Spell Boost:** +10% accuracy/damage vs NPCs, +20% vs players.
-
-**Curse Enhancement:**
-- +20% accuracy on curse spells
-- +50% effectiveness on stat-draining curses
-
-## Charging
-
-| Pages | Charges |
-|-------|---------|
-| Soaked page | 20 per page |
-| Max charges | 20,000 |
-
-~97 gp per charge.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~2.1M gp (empty)
-
-## Related Items
-
-- [Tempoross](/osrs/tempoross/) - Source
-- [Soaked page](/osrs/soaked-page/) - Charging
-- [Tome of fire](/osrs/tome-of-fire/) - Fire equivalent
-

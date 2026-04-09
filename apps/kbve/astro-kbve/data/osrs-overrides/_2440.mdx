@@ -1,11 +1,11 @@
 ---
 potion:
   doses: 3
-  type: "boost"
-  skill: "strength"
+  type: boost
+  skill: strength
   boost_min: 5
   boost_max: 19
-  boost_formula: "15% + 5"
+  boost_formula: 15% + 5
   duration: 60
 herblore:
   level: 55
@@ -15,73 +15,63 @@ recipes:
     level: 55
     xp: 125
     materials:
-      - item_name: "Kwuarm potion (unf)"
+      - item_name: Kwuarm potion (unf)
         item_id: 105
         quantity: 1
-      - item_name: "Limpwurt root"
+      - item_name: Limpwurt root
         item_id: 225
         quantity: 1
-    product: "Super strength(3)"
+    product: Super strength(3)
     product_id: 2440
     product_quantity: 1
-    facility: "None"
+    facility: None
     members_only: true
 related_items:
   - item_id: 263
-    item_name: "Kwuarm"
-    slug: "kwuarm"
+    item_name: Kwuarm
+    slug: kwuarm
     relationship: component
-    description: "Primary herb"
+    description: Primary herb
   - item_id: 225
-    item_name: "Limpwurt root"
-    slug: "limpwurt-root"
+    item_name: Limpwurt root
+    slug: limpwurt-root
     relationship: component
-    description: "Secondary"
+    description: Secondary
   - item_id: 12695
-    item_name: "Super combat potion(4)"
-    slug: "super-combat-potion-4"
+    item_name: Super combat potion(4)
+    slug: super-combat-potion-4
     relationship: product
-    description: "Combined potion"
+    description: Combined potion
   - item_id: 115
-    item_name: "Strength potion(3)"
-    slug: "strength-potion-3"
+    item_name: Strength potion(3)
+    slug: strength-potion-3
     relationship: alternative
-    description: "Lower tier"
+    description: Lower tier
+about: |-
+  | Requirement | Value |
+  |-------------|-------|
+  | Herblore Level | 55 |
+  | XP | 125 |
+  | Ingredients | Kwuarm + Limpwurt root |
+
+  | Effect | Value |
+  |--------|-------|
+  | Strength boost | +5 to +19 (15% + 5) |
+  | Duration | 60s per level lost |
+  | Preserve prayer | 90s per level lost |
+market_strategy:
+  notes:
+    - Super combat ingredient
+    - Standalone strength boost
+    - Very high demand
+    - Super combat production
+    - Melee PvM
+    - Bossing preparation
+    - Slayer tasks
+    - Low buy limit (2,000)
+    - Kwuarm herb
+    - Limpwurt root secondary
+    - Component for super combat
+mdx_version: 2
+mdx_updated: 2026-04-09
 ---
-
-## Creating
-
-| Requirement | Value |
-|-------------|-------|
-| Herblore Level | 55 |
-| XP | 125 |
-| Ingredients | Kwuarm + Limpwurt root |
-
-## Effects
-
-| Effect | Value |
-|--------|-------|
-| Strength boost | +5 to +19 (15% + 5) |
-| Duration | 60s per level lost |
-| Preserve prayer | 90s per level lost |
-
-## Market Flip Strategy
-
-**Combat Potion Component:**
-- Super combat ingredient
-- Standalone strength boost
-- Very high demand
-
-**Buy Limit:** 2,000 per 4 hours
-
-**Demand Drivers:**
-- Super combat production
-- Melee PvM
-- Bossing preparation
-- Slayer tasks
-
-**Tips:**
-- Low buy limit (2,000)
-- Kwuarm herb
-- Limpwurt root secondary
-- Component for super combat

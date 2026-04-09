@@ -1,8 +1,8 @@
 ---
 equipment:
-  slot: "2h"
-  type: "blowpipe"
-  attack_style: "ranged"
+  slot: 2h
+  type: blowpipe
+  attack_style: ranged
   attack_speed: 3
   attack_range: 5
   requirements:
@@ -16,97 +16,83 @@ effect:
   venom_with_serp: 100
 charging:
   material_id: 12934
-  material_name: "Zulrah's scales"
+  material_name: Zulrah's scales
   max_scales: 16383
   requires_darts: true
 special_attack:
-  name: "Toxic Siphon"
+  name: Toxic Siphon
   energy: 50
-  effect: "Heals 50% of damage dealt"
+  effect: Heals 50% of damage dealt
 recipes:
   - skill: fletching
     level: 78
     xp: 120
     materials:
-      - item_name: "Tanzanite fang"
+      - item_name: Tanzanite fang
         item_id: 12922
         quantity: 1
-    product: "Toxic blowpipe (empty)"
+    product: Toxic blowpipe (empty)
     product_id: 12924
     product_quantity: 1
-    facility: "Chisel"
+    facility: Chisel
     members_only: true
 related_items:
   - item_id: 12934
-    item_name: "Zulrah's scales"
-    slug: "zulrahs-scales"
+    item_name: Zulrah's scales
+    slug: zulrahs-scales
     relationship: component
-    description: "Charging material"
+    description: Charging material
   - item_id: 12922
-    item_name: "Tanzanite fang"
-    slug: "tanzanite-fang"
+    item_name: Tanzanite fang
+    slug: tanzanite-fang
     relationship: component
-    description: "Creation material"
+    description: Creation material
   - item_id: 11230
-    item_name: "Dragon dart"
-    slug: "dragon-dart"
+    item_name: Dragon dart
+    slug: dragon-dart
     relationship: component
-    description: "Best ammo"
+    description: Best ammo
   - item_id: 12931
-    item_name: "Serpentine helm"
-    slug: "serpentine-helm"
+    item_name: Serpentine helm
+    slug: serpentine-helm
     relationship: alternative
-    description: "100% venom"
+    description: 100% venom
+about: |-
+  Use chisel on Tanzanite fang (78 Fletching, 120 XP).
+
+  | Stat | Value |
+  |------|-------|
+  | Ranged attack | +30 |
+  | Ranged strength | +20 |
+  | Attack speed | 3 tick (1.8s) PvM / 4 tick PvP |
+  | Range | 5 tiles (7 with Longrange) |
+  | Requirements | 75 Ranged |
+
+  Requires:
+  - Zulrah's scales (max 16,383)
+  - Any unpoisoned darts (max 16,383)
+
+  Scale Usage:
+  - 2/3 chance to consume scale per shot
+  - Average: 2 scales per 3 shots
+
+  - 25% chance to inflict venom per hit
+  - 100% chance with Serpentine helm vs NPCs
+
+  Toxic Siphon (50% energy):
+  - Heals 50% of damage dealt
+  - No accuracy/damage boost
+
+  Best For:
+  - Fast attack speed content
+  - Slayer tasks
+  - Fight Caves/Inferno
+  - General PvM
+market_strategy:
+  notes:
+    - Factor in scale + dart costs
+    - High DPS but expensive to use
+    - Tanzanite fang from Zulrah
+mdx_version: 2
+mdx_updated: 2026-04-09
 ---
-
-## Creation
-
-Use chisel on Tanzanite fang (78 Fletching, 120 XP).
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged attack | +30 |
-| Ranged strength | +20 |
-| Attack speed | 3 tick (1.8s) PvM / 4 tick PvP |
-| Range | 5 tiles (7 with Longrange) |
-| Requirements | 75 Ranged |
-
-## Charging
-
-**Requires:**
-- Zulrah's scales (max 16,383)
-- Any unpoisoned darts (max 16,383)
-
-**Scale Usage:**
-- 2/3 chance to consume scale per shot
-- Average: 2 scales per 3 shots
-
-## Venom Effect
-
-- 25% chance to inflict venom per hit
-- 100% chance with Serpentine helm vs NPCs
-
-## Special Attack
-
-**Toxic Siphon** (50% energy):
-- Heals 50% of damage dealt
-- No accuracy/damage boost
-
-## Usage
-
-**Best For:**
-- Fast attack speed content
-- Slayer tasks
-- Fight Caves/Inferno
-- General PvM
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours (empty)
-
-**Tips:**
-- Factor in scale + dart costs
-- High DPS but expensive to use
-- Tanzanite fang from Zulrah
