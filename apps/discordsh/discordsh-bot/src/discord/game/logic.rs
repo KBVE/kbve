@@ -219,6 +219,112 @@ fn check_quest_completions(session: &mut SessionState, logs: &mut Vec<String>) {
     }
 }
 
+/// Handle a crafting action. Consumes ingredients from the actor's inventory,
+/// produces the output item, and grants skill XP.
+fn handle_craft(
+    session: &mut SessionState,
+    item_ref: &str,
+    actor: serenity::UserId,
+) -> Vec<String> {
+    let mut logs = Vec::new();
+    let player = session.player_mut(actor);
+
+    match proto_bridge::execute_craft(&mut player.inventory, item_ref) {
+        Ok((output_name, qty, xp)) => {
+            if qty > 1 {
+                logs.push(format!("\u{2692} Crafted {}x {}!", qty, output_name));
+            } else {
+                logs.push(format!("\u{2692} Crafted {}!", output_name));
+            }
+            if xp > 0 {
+                skills::grant_foraging_xp(&mut player.skills, xp);
+                logs.push(format!("+{} crafting XP", xp));
+            }
+        }
+        Err(e) => {
+            logs.push(format!("Cannot craft: {}", e));
+        }
+    }
+    logs
+}
+
+/// Handle dialogue tree navigation. When a player selects a dialogue option,
+/// this function advances the conversation to the target node. If the node has
+/// no options (leaf node), the dialogue ends and returns to the room phase.
+fn handle_dialogue_navigate(
+    session: &mut SessionState,
+    node_id: &str,
+    _actor: serenity::UserId,
+) -> Vec<String> {
+    let mut logs = Vec::new();
+
+    // If there's no active dialogue, this is the start of a new conversation.
+    // The node_id is actually the NPC ref in this case — we start at entry_node.
+    let (npc_ref, target_node_id) = if let Some(ref dlg) = session.active_dialogue {
+        (dlg.npc_ref.clone(), node_id.to_owned())
+    } else {
+        // node_id is the NPC ref — start a new dialogue
+        let npc_ref = node_id.to_owned();
+        let tree = match proto_bridge::get_npc_dialogue_tree(&npc_ref) {
+            Some(t) => t,
+            None => {
+                logs.push("This NPC has nothing to say.".to_owned());
+                return logs;
+            }
+        };
+        let npc_name = proto_bridge::find_npc_by_ref(&npc_ref)
+            .map(|n| n.name.clone())
+            .unwrap_or_else(|| npc_ref.clone());
+        session.active_dialogue = Some(super::types::ActiveDialogue {
+            npc_ref: npc_ref.clone(),
+            npc_name,
+            current_node_id: tree.entry_node_id.clone(),
+        });
+        (npc_ref, tree.entry_node_id.clone())
+    };
+
+    // Look up the dialogue tree and target node
+    let tree = match proto_bridge::get_npc_dialogue_tree(&npc_ref) {
+        Some(t) => t,
+        None => {
+            session.active_dialogue = None;
+            logs.push("Dialogue tree not found.".to_owned());
+            return logs;
+        }
+    };
+
+    let node = match proto_bridge::get_dialogue_node(tree, &target_node_id) {
+        Some(n) => n,
+        None => {
+            session.active_dialogue = None;
+            logs.push("Conversation ended.".to_owned());
+            return logs;
+        }
+    };
+
+    // Update current node
+    if let Some(ref mut dlg) = session.active_dialogue {
+        dlg.current_node_id = target_node_id.clone();
+    }
+
+    // Display the node's text
+    let speaker = session
+        .active_dialogue
+        .as_ref()
+        .map(|d| d.npc_name.as_str())
+        .unwrap_or("???");
+    logs.push(format!("**{}**: {}", speaker, node.text));
+
+    // If the node has no options, end the dialogue
+    if node.options.is_empty() {
+        session.active_dialogue = None;
+        logs.push("*The conversation ends.*".to_owned());
+    }
+    // Otherwise, the render layer will show option buttons based on active_dialogue
+
+    logs
+}
+
 /// Handle the AcceptQuest action.
 fn handle_accept_quest(
     session: &mut SessionState,
@@ -439,6 +545,19 @@ fn validate_action(
         GameAction::AbandonQuest(_) | GameAction::ViewQuests => {
             // Allowed anytime except GameOver (already checked above)
         }
+        GameAction::DialogueTalk(_) => {
+            if session.phase != GamePhase::City
+                && session.phase != GamePhase::Merchant
+                && session.active_dialogue.is_none()
+            {
+                return Err("You can only talk to NPCs in a city or at a merchant.".to_owned());
+            }
+        }
+        GameAction::Craft(_) => {
+            if session.phase != GamePhase::City && session.phase != GamePhase::Merchant {
+                return Err("You can only craft in a city or at a merchant.".to_owned());
+            }
+        }
     }
 
     // WaitingForActions phase: only allow Attack, AttackTarget, Defend, UseItem, ToggleItems
@@ -625,6 +744,12 @@ pub fn apply_action(
                 }
             }
             ActionResult::logs_only(lines)
+        }
+        GameAction::DialogueTalk(ref node_id) => {
+            ActionResult::logs_only(handle_dialogue_navigate(session, node_id, actor))
+        }
+        GameAction::Craft(ref item_ref) => {
+            ActionResult::logs_only(handle_craft(session, item_ref, actor))
         }
     };
 
@@ -930,11 +1055,19 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
     let mut rng = rand::rng();
 
     // Collect info about dead enemies before removing them
-    let dead_enemies: Vec<(String, &'static str, u8, Personality)> = session
+    let dead_enemies: Vec<(String, &'static str, &'static str, u8, Personality)> = session
         .enemies
         .iter()
         .filter(|e| e.hp <= 0)
-        .map(|e| (e.name.clone(), e.loot_table_id, e.level, e.personality))
+        .map(|e| {
+            (
+                e.name.clone(),
+                e.loot_table_id,
+                e.npc_ref,
+                e.level,
+                e.personality,
+            )
+        })
         .collect();
 
     if dead_enemies.is_empty() {
@@ -951,9 +1084,16 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
     let max_rare_drops: u32 = 1;
     let mut rare_drops_this_encounter: u32 = 0;
 
-    for (i, (enemy_name, _loot_table, enemy_level, personality)) in dead_enemies.iter().enumerate()
+    for (i, (enemy_name, _loot_table, npc_ref, enemy_level, personality)) in
+        dead_enemies.iter().enumerate()
     {
-        let gold = rng.random_range(5..=15);
+        // Try proto gold first, fall back to random 5-15
+        let proto_gold = super::proto_bridge::roll_npc_gold(npc_ref);
+        let gold = if proto_gold > 0 {
+            proto_gold
+        } else {
+            rng.random_range(5..=15)
+        };
         let gold_per_player = (gold as f32 / alive_count as f32).ceil() as i32;
         let xp = content::xp_for_enemy(*enemy_level);
         let xp_per_player = xp / alive_ids.len().max(1) as u32;
@@ -1002,9 +1142,24 @@ fn handle_enemy_deaths(session: &mut SessionState, actor: serenity::UserId) -> V
         };
         let recipient_name = session.player(loot_recipient).name.clone();
 
-        // Roll item loot drop
+        // Roll item loot drop — try proto loot table first, fall back to legacy
         let mut items_looted: u32 = 0;
-        if i < dead_loot_tables.len() {
+        let proto_drops = super::proto_bridge::roll_npc_loot(npc_ref);
+        if !proto_drops.is_empty() {
+            for (item_id, qty) in &proto_drops {
+                for _ in 0..*qty {
+                    if add_item_to_inventory(
+                        &mut session.player_mut(loot_recipient).inventory,
+                        item_id,
+                    ) {
+                        if let Some(def) = content::find_item(item_id) {
+                            logs.push(format!("Dropped: {}!", def.name));
+                        }
+                        items_looted += 1;
+                    }
+                }
+            }
+        } else if i < dead_loot_tables.len() {
             let loot_id = dead_loot_tables[i];
             let mut item_was_rare = false;
 
@@ -2828,6 +2983,7 @@ mod tests {
             pending_destination: None,
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
+            active_dialogue: None,
         }
     }
 
@@ -2842,6 +2998,7 @@ mod tests {
             intent: Intent::Attack { dmg: 5 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -3435,6 +3592,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -3512,6 +3670,7 @@ mod tests {
             intent: Intent::Attack { dmg: 20 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -3527,6 +3686,7 @@ mod tests {
             intent: Intent::Attack { dmg: 20 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 1,
             first_strike: false,
@@ -3573,6 +3733,7 @@ mod tests {
             intent: Intent::Attack { dmg: 5 },
             charged: false,
             loot_table_id: "boss",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -3620,6 +3781,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -3635,6 +3797,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 1,
             first_strike: false,
@@ -3754,6 +3917,7 @@ mod tests {
                 intent: Intent::Attack { dmg: 3 },
                 charged: false,
                 loot_table_id: "slime",
+                npc_ref: "",
                 enraged: false,
                 index: 1,
                 first_strike: false,
@@ -3880,6 +4044,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -4481,6 +4646,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -4496,6 +4662,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 1,
             first_strike: false,
@@ -4545,6 +4712,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -4560,6 +4728,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 1,
             first_strike: false,
@@ -4748,6 +4917,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,
@@ -4763,6 +4933,7 @@ mod tests {
             intent: Intent::Attack { dmg: 1 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 1,
             first_strike: false,
@@ -5694,6 +5865,7 @@ mod tests {
             intent: Intent::Attack { dmg: 5 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: true,
@@ -7728,6 +7900,7 @@ mod tests {
                     intent: Intent::Attack { dmg: 10 },
                     charged: false,
                     loot_table_id: "boss",
+                    npc_ref: "",
                     enraged: false,
                     index: idx as u8,
                     first_strike: false,
@@ -7781,6 +7954,7 @@ mod tests {
                     intent: Intent::Attack { dmg: 10 },
                     charged: false,
                     loot_table_id: "boss",
+                    npc_ref: "",
                     enraged: false,
                     index: idx as u8,
                     first_strike: false,
@@ -7826,6 +8000,7 @@ mod tests {
                 intent: Intent::Attack { dmg: 10 },
                 charged: false,
                 loot_table_id: "boss",
+                npc_ref: "",
                 enraged: false,
                 index: 0,
                 first_strike: false,
@@ -7868,6 +8043,7 @@ mod tests {
             intent: Intent::Attack { dmg: 5 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,

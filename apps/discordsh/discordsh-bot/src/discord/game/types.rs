@@ -449,6 +449,10 @@ pub struct PlayerState {
     pub lifetime_bosses_defeated: u32,
     /// Skill progression (combat, exploration, foraging, etc.).
     pub skills: bevy_skills::SkillProfile,
+    /// Faction reputation standing. Keys are faction IDs (e.g. "crystal-order"),
+    /// values are rep points (negative = hostile, positive = friendly).
+    #[serde(default)]
+    pub faction_standing: std::collections::HashMap<String, i32>,
     /// Snapshot of the loaded profile at session start (for death penalty diff).
     #[serde(skip)]
     pub saved_snapshot: Option<super::persistence::DungeonProfile>,
@@ -484,6 +488,7 @@ impl Default for PlayerState {
             lifetime_rooms_cleared: 0,
             lifetime_bosses_defeated: 0,
             skills: bevy_skills::SkillProfile::default(),
+            faction_standing: std::collections::HashMap::new(),
             saved_snapshot: None,
         }
     }
@@ -546,6 +551,10 @@ pub struct EnemyState {
     pub intent: Intent,
     pub charged: bool,
     pub loot_table_id: &'static str,
+    /// NPC ref slug (e.g. "glass-slime") for proto loot table lookup.
+    /// Defaults to `""` for test/mock enemies (falls back to legacy loot tables).
+    #[serde(default)]
+    pub npc_ref: &'static str,
     pub enraged: bool,
     pub index: u8,
     pub first_strike: bool,
@@ -743,6 +752,19 @@ impl QuestJournal {
     }
 }
 
+// ── Active dialogue ────────────────────────────────────────────────
+
+/// Tracks an in-progress NPC dialogue conversation within a session.
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct ActiveDialogue {
+    /// NPC ref slug (e.g. "crystal-merchant") — used to look up the dialogue tree.
+    pub npc_ref: String,
+    /// NPC display name (for embed titles).
+    pub npc_name: String,
+    /// Current dialogue node ID within the tree.
+    pub current_node_id: String,
+}
+
 // ── Game action ─────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, PartialEq)]
@@ -770,6 +792,10 @@ pub enum GameAction {
     AcceptQuest(String),
     AbandonQuest(String),
     ViewQuests,
+    /// Start or advance a dialogue tree with an NPC. Arg is the node_id to navigate to.
+    DialogueTalk(String),
+    /// Craft an item by its ref slug. Requires ingredients in inventory + skill level.
+    Craft(String),
 }
 
 // ── Session mode ────────────────────────────────────────────────────
@@ -821,6 +847,9 @@ pub struct SessionState {
     pub pending_destination: Option<MapPos>,
     pub enemies_had_first_strike: bool,
     pub quest_journal: QuestJournal,
+    /// Active dialogue conversation (if player is talking to an NPC).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub active_dialogue: Option<ActiveDialogue>,
 }
 
 impl SessionState {
@@ -1037,6 +1066,7 @@ mod tests {
             pending_destination: None,
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
+            active_dialogue: None,
         };
         let roster = session.roster();
         assert_eq!(roster.len(), 2);
@@ -1093,6 +1123,7 @@ mod tests {
                     intent: Intent::Attack { dmg: 5 },
                     charged: false,
                     loot_table_id: "slime",
+                    npc_ref: "",
                     enraged: false,
                     index: 0,
                     first_strike: false,
@@ -1108,6 +1139,7 @@ mod tests {
                     intent: Intent::Attack { dmg: 4 },
                     charged: false,
                     loot_table_id: "slime",
+                    npc_ref: "",
                     enraged: false,
                     index: 1,
                     first_strike: false,
@@ -1124,6 +1156,7 @@ mod tests {
             pending_destination: None,
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
+            active_dialogue: None,
         };
 
         assert!(session.has_enemies());
@@ -1297,6 +1330,7 @@ mod tests {
             pending_destination: None,
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
+            active_dialogue: None,
         };
         assert!(!session.show_inventory);
     }
@@ -1344,6 +1378,7 @@ mod tests {
                 intent: Intent::HeavyAttack { dmg: 12 },
                 charged: false,
                 loot_table_id: "skeleton",
+                npc_ref: "",
                 enraged: false,
                 index: 0,
                 first_strike: false,
@@ -1359,6 +1394,7 @@ mod tests {
             pending_destination: Some(MapPos::new(1, 0)),
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
+            active_dialogue: None,
         };
 
         let json = serde_json::to_string(&session).unwrap();

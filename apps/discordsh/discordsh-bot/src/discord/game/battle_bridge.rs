@@ -873,6 +873,7 @@ mod tests {
                 lifetime_rooms_cleared: 0,
                 lifetime_bosses_defeated: 0,
                 skills: bevy_skills::SkillProfile::default(),
+                faction_standing: std::collections::HashMap::new(),
                 saved_snapshot: None,
             },
         );
@@ -900,6 +901,7 @@ mod tests {
                 intent: Intent::Attack { dmg: 5 },
                 charged: false,
                 loot_table_id: "slime",
+                npc_ref: "",
                 enraged: false,
                 index: 0,
                 first_strike: false,
@@ -931,6 +933,7 @@ mod tests {
             pending_destination: None,
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
+            active_dialogue: None,
         }
     }
 

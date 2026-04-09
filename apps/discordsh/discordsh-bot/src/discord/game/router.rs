@@ -194,6 +194,31 @@ pub async fn handle_game_component(
         } else {
             return send_ephemeral(component, ctx, "Invalid interaction.").await;
         }
+    } else if action_str == "craft" {
+        // Crafting — item_ref from select menu value
+        if let serenity::ComponentInteractionDataKind::StringSelect { values } =
+            &component.data.kind
+        {
+            if let Some(item_ref) = values.first() {
+                GameAction::Craft(item_ref.to_owned())
+            } else {
+                return send_ephemeral(component, ctx, "No recipe selected.").await;
+            }
+        } else {
+            // Button fallback: item_ref from parts[3]
+            let item_ref = parts.get(3).unwrap_or(&"").to_string();
+            if item_ref.is_empty() {
+                return send_ephemeral(component, ctx, "No recipe specified.").await;
+            }
+            GameAction::Craft(item_ref)
+        }
+    } else if action_str == "dlg" {
+        // Dialogue tree navigation — node_id is in parts[3]
+        let node_id = parts.get(3).unwrap_or(&"").to_string();
+        if node_id.is_empty() {
+            return send_ephemeral(component, ctx, "Invalid dialogue option.").await;
+        }
+        GameAction::DialogueTalk(node_id)
     } else if action_str == "room" {
         let idx_str = parts.get(3).unwrap_or(&"0");
         match idx_str.parse::<u8>() {
