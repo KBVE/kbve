@@ -1,4 +1,5 @@
 # RBAC for the VM scaler Job — needs permission to start/stop VMs
+# and exec into virt-launcher pods for guest-agent commands (autologon).
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -20,6 +21,13 @@ rules:
     - apiGroups: ['subresources.kubevirt.io']
       resources: ['virtualmachines/start', 'virtualmachines/stop']
       verbs: ['update']
+    # Pod access for guest-agent commands via virt-launcher exec
+    - apiGroups: ['']
+      resources: ['pods']
+      verbs: ['get', 'list']
+    - apiGroups: ['']
+      resources: ['pods/exec']
+      verbs: ['create']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

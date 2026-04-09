@@ -1,0 +1,124 @@
+# ConfigMap with the Windows autologon configuration script.
+#
+# Uses the QEMU Guest Agent (via virsh in the virt-launcher pod) to set
+# Windows registry keys for automatic Administrator login at boot.
+#
+# The admin password is injected as ADMIN_PASSWORD env var from a Secret —
+# it never appears in this ConfigMap or anywhere in the repo.
+#
+# Idempotent: safe to run multiple times (overwrites same registry keys).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: vm-autologon-script
+    namespace: angelscript
+    labels:
+        app: angelscript
+        component: vm-autologon
+data:
+    autologon.sh: |
+        #!/bin/sh
+        set -e
+        VM_NAME="${VM_NAME:?VM_NAME required}"
+        NAMESPACE="${NAMESPACE:-angelscript}"
+        ADMIN_PASSWORD="${ADMIN_PASSWORD:?ADMIN_PASSWORD required}"
+
+        echo "=== Configuring Windows autologon: ${VM_NAME} ==="
+
+        # ── Wait for VMI to be running ──
+        echo "Waiting for VM to be running..."
+        for i in $(seq 1 60); do
+            PHASE=$(kubectl get vmi "${VM_NAME}" -n "${NAMESPACE}" \
+                -o jsonpath='{.status.phase}' 2>/dev/null || echo "")
+            if [ "${PHASE}" = "Running" ]; then
+                echo "VM is running"
+                break
+            fi
+            if [ "$i" -eq 60 ]; then
+                echo "ERROR: VM not running after 10 minutes"
+                exit 1
+            fi
+            echo "  Phase: ${PHASE:-not found} (${i}/60)"
+            sleep 10
+        done
+
+        # ── Wait for QEMU Guest Agent ──
+        echo "Waiting for guest agent..."
+        for i in $(seq 1 30); do
+            AGENT=$(kubectl get vmi "${VM_NAME}" -n "${NAMESPACE}" \
+                -o jsonpath='{.status.conditions[?(@.type=="AgentConnected")].status}' \
+                2>/dev/null || echo "")
+            if [ "${AGENT}" = "True" ]; then
+                echo "Guest agent connected"
+                break
+            fi
+            if [ "$i" -eq 30 ]; then
+                echo "ERROR: Guest agent not connected after 5 minutes"
+                echo "Ensure QEMU Guest Agent is installed as a Windows service"
+                echo "(from virtio-win ISO: guest-agent/qemu-ga-x86_64.msi)"
+                exit 1
+            fi
+            echo "  Agent: ${AGENT:-not connected} (${i}/30)"
+            sleep 10
+        done
+
+        # ── Find the virt-launcher pod ──
+        POD=$(kubectl get pods -n "${NAMESPACE}" \
+            -l "vm.kubevirt.io/name=${VM_NAME}" \
+            -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+        if [ -z "${POD}" ]; then
+            echo "ERROR: virt-launcher pod not found for ${VM_NAME}"
+            exit 1
+        fi
+        echo "Virt-launcher pod: ${POD}"
+
+        # ── Get the libvirt domain name ──
+        DOMAIN=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
+            sh -c "virsh list --name 2>/dev/null | grep -v '^\s*$' | head -1")
+        if [ -z "${DOMAIN}" ]; then
+            echo "ERROR: no libvirt domain found in virt-launcher"
+            exit 1
+        fi
+        echo "Libvirt domain: ${DOMAIN}"
+
+        # ── Escape password for JSON ──
+        ESCAPED_PWD=$(printf '%s' "${ADMIN_PASSWORD}" | sed 's/\\/\\\\/g; s/"/\\"/g')
+
+        # ── Build PowerShell command ──
+        # Sets three Winlogon registry keys that enable automatic login:
+        #   AutoAdminLogon  = "1"        → enable auto-login
+        #   DefaultUserName = "Administrator"
+        #   DefaultPassword = <from secret>
+        PS_CMD="\$path = 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon'; Set-ItemProperty -Path \$path -Name AutoAdminLogon -Value '1' -Force; Set-ItemProperty -Path \$path -Name DefaultUserName -Value 'Administrator' -Force; Set-ItemProperty -Path \$path -Name DefaultPassword -Value '${ESCAPED_PWD}' -Force; Write-Output 'Autologon configured'"
+
+        # ── Execute via QEMU guest agent (virsh in compute container) ──
+        echo "Setting autologon registry keys via guest agent..."
+        RESULT=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
+            virsh qemu-agent-command "${DOMAIN}" \
+            "{\"execute\":\"guest-exec\",\"arguments\":{\"path\":\"powershell.exe\",\"arg\":[\"-NoProfile\",\"-Command\",\"${PS_CMD}\"],\"capture-output\":true}}" \
+            2>&1)
+        echo "Guest agent response: ${RESULT}"
+
+        # ── Check exec status ──
+        PID=$(echo "${RESULT}" | sed -n 's/.*"pid":\([0-9]*\).*/\1/p')
+        if [ -n "${PID}" ]; then
+            sleep 3
+            STATUS_RESULT=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
+                virsh qemu-agent-command "${DOMAIN}" \
+                "{\"execute\":\"guest-exec-status\",\"arguments\":{\"pid\":${PID}}}" \
+                2>&1)
+            echo "Exec status: ${STATUS_RESULT}"
+
+            EXITCODE=$(echo "${STATUS_RESULT}" | sed -n 's/.*"exitcode":\([0-9]*\).*/\1/p')
+            if [ "${EXITCODE}" = "0" ]; then
+                echo "=== SUCCESS: Autologon configured for ${VM_NAME} ==="
+                echo "Windows will auto-login as Administrator on next boot."
+            else
+                echo "WARNING: PowerShell exited with code ${EXITCODE}"
+                echo "Check the exec status output above for details."
+                exit 1
+            fi
+        else
+            echo "WARNING: Could not parse PID from guest-exec response"
+            echo "The command may still have succeeded — verify via VNC."
+        fi
