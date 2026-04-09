@@ -56,61 +56,30 @@ osrs:
       slug: extended-antifire-4
       relationship: alternative
       description: 12 min partial protection
+  about: |-
+    Super antifire provides complete dragonfire immunity for 3 minutes:
+    - No anti-dragon shield required
+    - Works against all dragonfire variants
+    - Essential for efficient dragon killing
+
+    | Input | Output | Herblore Level | XP |
+    |-------|--------|----------------|-----|
+    | Antifire(4) + Crushed superior dragon bones | Super antifire(4) | 92 | 130 |
+  market_strategy:
+    notes:
+      - Dropped by Fossil Island wyverns
+      - Must be crushed with pestle and mortar
+      - Primary cost driver
+      - Vorkath (2-handed weapons)
+      - KBD with max gear
+      - Any dragon with spec weapon
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Usage
-
-Super antifire provides **complete dragonfire immunity** for 3 minutes:
-- No anti-dragon shield required
-- Works against all dragonfire variants
-- Essential for efficient dragon killing
-
-## Creation
-
-| Input | Output | Herblore Level | XP |
-|-------|--------|----------------|-----|
-| Antifire(4) + Crushed superior dragon bones | Super antifire(4) | 92 | 130 |
-
-## Market Strategy
-
-**Superior Dragon Bones:**
-- Dropped by Fossil Island wyverns
-- Must be crushed with pestle and mortar
-- Primary cost driver
-
-**Comparison:**
-| Potion | Duration | Protection |
-|--------|----------|------------|
-| Antifire | 6 min | Partial (need shield) |
-| Extended antifire | 12 min | Partial (need shield) |
-| Super antifire | 3 min | Complete |
-| Extended super antifire | 6 min | Complete |
-
-**Best Use:**
-- Vorkath (2-handed weapons)
-- KBD with max gear
-- Any dragon with spec weapon
-
-**Buy Limit:** 2,000 per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -37,90 +37,48 @@ osrs:
       slug: dizanas-quiver
       relationship: product
       description: Uses for charging
+  about: |-
+    Sunfire splinters are stackable materials used to charge powerful ranged equipment from the Fortis Colosseum. These glowing shards contain concentrated solar energy and are essential for maintaining the Tonalztics of ralos and Dizana's quiver.
+
+    Type: Material
+    Stackable: Yes
+    Tradeable: Yes
+
+    Sunfire splinters are used to charge the following items:
+
+    ### Tonalztics of ralos
+    - Max Charges: 20,000
+    - Effect: Enables double hit mechanic
+    - Significantly increases DPS when charged
+
+    ### Dizana's quiver
+    - Max Charges: 20,000
+    - Charged Bonus: +1 Ranged Strength, +10 Ranged accuracy
+    - Enhances the quiver's combat effectiveness
+
+    To charge an item:
+    1. Have the uncharged item in your inventory
+    2. Use Sunfire splinters on the item
+    3. Select quantity to add
+
+    Cost Calculation:
+    - Tonalztics full charge: 20,000 x ~145 GP = ~2.9M GP
+    - Dizana's quiver full charge: 20,000 x ~145 GP = ~2.9M GP
+  market_strategy:
+    notes:
+      - High volume consumable item
+      - Price fluctuates with Colosseum activity
+      - Buy in bulk for charging needs
+      - Consider hunting as alternative to buying
+      - Watch for dips after Colosseum updates
+      - Essential consumable for ranged builds
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-Sunfire splinters are stackable materials used to charge powerful ranged equipment from the Fortis Colosseum. These glowing shards contain concentrated solar energy and are essential for maintaining the Tonalztics of ralos and Dizana's quiver.
-
-**Type:** Material
-**Stackable:** Yes
-**Tradeable:** Yes
-
-## Obtaining
-
-Sunfire splinters can be obtained from multiple sources:
-
-### Fortis Colosseum
-- Awarded as completion rewards
-- Quantity scales with wave reached
-- Primary source for bulk splinters
-
-### Sunlight Antelope
-- **Requirement:** 72 Hunter
-- Located in the Varlamore region
-- Provides a skilling alternative to combat
-
-### The Hueycoatl
-- Dropped by this Varlamore boss
-- Additional combat option for gathering
-
-## Usage
-
-Sunfire splinters are used to charge the following items:
-
-### Tonalztics of ralos
-- **Max Charges:** 20,000
-- **Effect:** Enables double hit mechanic
-- Significantly increases DPS when charged
-
-### Dizana's quiver
-- **Max Charges:** 20,000
-- **Charged Bonus:** +1 Ranged Strength, +10 Ranged accuracy
-- Enhances the quiver's combat effectiveness
-
-## Charging Guide
-
-To charge an item:
-1. Have the uncharged item in your inventory
-2. Use Sunfire splinters on the item
-3. Select quantity to add
-
-**Cost Calculation:**
-- Tonalztics full charge: 20,000 x ~145 GP = ~2.9M GP
-- Dizana's quiver full charge: 20,000 x ~145 GP = ~2.9M GP
-
-## Market Strategy
-
-**Buy Limit:** 30,000 per 4 hours
-**Estimated Price:** ~145 GP each
-
-**Tips:**
-- High volume consumable item
-- Price fluctuates with Colosseum activity
-- Buy in bulk for charging needs
-- Consider hunting as alternative to buying
-- Watch for dips after Colosseum updates
-- Essential consumable for ranged builds
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -75,65 +75,36 @@ osrs:
       slug: atlatl-dart
       relationship: component
       description: Required ammunition for Eclipse atlatl
+  about: |-
+    The Eclipse atlatl is unique among ranged weapons:
+    - Uses the player's melee strength bonus for damage calculation
+    - Ranged bonus still determines accuracy
+    - Attack speed: 4 ticks (3 ticks on rapid)
+
+    Set Effect: When wearing full eclipse moon armour, successful hits have a 20% chance to inflict burn damage on targets.
+
+    Eclipse (50% energy):
+    - Requires full eclipse moon armour set
+    - Magic-based attack at melee distance
+    - 50% accuracy bonus
+    - Consumes remaining burn damage on target to boost damage output
+
+    Best-in-slot for hybrid setups where melee strength gear is worn:
+    - Neypotzli content
+    - Unique DPS setups combining melee gear with ranged attacks
+    - Specialized boss strategies
+  market_strategy:
+    notes:
+      - Value tied to full set synergy
+      - Requires atlatl darts as ammunition
+      - Unique hybrid mechanics make it situational but powerful
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-The Eclipse atlatl is obtained from the Lunar Chest in Neypotzli with a 1/224 drop rate.
-
-**Requirements:** 75 Ranged, 50 Attack, 50 Strength to equip
-
-## Combat Mechanics
-
-The Eclipse atlatl is unique among ranged weapons:
-- Uses the player's **melee strength bonus** for damage calculation
-- Ranged bonus still determines accuracy
-- Attack speed: 4 ticks (3 ticks on rapid)
-
-**Set Effect:** When wearing full eclipse moon armour, successful hits have a 20% chance to inflict burn damage on targets.
-
-## Special Attack
-
-**Eclipse** (50% energy):
-- Requires full eclipse moon armour set
-- Magic-based attack at melee distance
-- 50% accuracy bonus
-- Consumes remaining burn damage on target to boost damage output
-
-## Usage
-
-Best-in-slot for hybrid setups where melee strength gear is worn:
-- Neypotzli content
-- Unique DPS setups combining melee gear with ranged attacks
-- Specialized boss strategies
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Value tied to full set synergy
-- Requires atlatl darts as ammunition
-- Unique hybrid mechanics make it situational but powerful
-
-<Adsense />
+<OSRSAdsenseCard />

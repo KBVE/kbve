@@ -53,82 +53,40 @@ osrs:
       slug: topaz-bracelet
       relationship: component
       description: Base item
+  about: |-
+    Enchant Topaz bracelet with Lvl-3 Enchant.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 49 |
+    | Cosmic rune | 1 |
+    | Fire rune | 5 |
+
+    All bonuses +0
+
+    Slayer Extension:
+    - 25% chance to not count kill
+    - Still grants XP
+    - 30 charges
+
+    Essential for:
+    - Extending good tasks
+    - Superior spawn chances
+    - Slayer point efficiency
+
+    Extends profitable slayer tasks.
+  market_strategy:
+    notes:
+      - "Elite CA: 10% recharge chance"
+      - Only for tasks you like
+      - Cheap and effective
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Hands |
-| Type | Slayer Bracelet |
-| Tradeable | Yes |
-| Weight | 0.007 kg |
-
-## Creation
-
-Enchant [Topaz bracelet](/osrs/topaz-bracelet/) with Lvl-3 Enchant.
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 49 |
-| Cosmic rune | 1 |
-| Fire rune | 5 |
-
-## Stats
-
-All bonuses +0
-
-## Passive Effect
-
-**Slayer Extension:**
-- 25% chance to not count kill
-- Still grants XP
-- 30 charges
-
-## Usage
-
-Essential for:
-- Extending good tasks
-- Superior spawn chances
-- Slayer point efficiency
-
-**Extends profitable slayer tasks.**
-
-## Market Strategy
-
-**Buy Limit:** 15,000 per 4 hours
-
-**Price:** ~6.4K gp
-
-**Tips:**
-- Elite CA: 10% recharge chance
-- Only for tasks you like
-- Cheap and effective
-
-## Related Items
-
-- [Expeditious bracelet](/osrs/expeditious-bracelet/) - Task shortening
-- [Slayer helmet](/osrs/slayer-helmet/) - Slayer gear
-- [Topaz bracelet](/osrs/topaz-bracelet/) - Base item
-
-<Adsense />
+<OSRSAdsenseCard />

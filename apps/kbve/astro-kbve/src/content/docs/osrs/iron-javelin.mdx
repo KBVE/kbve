@@ -1,6 +1,6 @@
 ---
 title: Iron javelin | OSRS Price Data
-description: "Iron javelin: An iron tipped javelin.. High alch: 3 GP, GE limit: 7,000."
+description: "Iron javelin is a members weapon slot item requiring 1 Ranged. High alch: 3 GP, GE limit: 7,000."
 osrs:
   id: 826
   name: Iron javelin
@@ -12,26 +12,36 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 7000
+  equipment:
+    slot: weapon
+    attack_speed: 6
+    requirements:
+      ranged: 1
+    attack_bonus:
+      ranged: 8
+    ranged_strength: 32
+  related_items:
+    - item_id: 825
+      item_name: Bronze javelin
+      slug: bronze-javelin
+      relationship: variant
+      description: Lower tier javelin
+    - item_id: 827
+      item_name: Steel javelin
+      slug: steel-javelin
+      relationship: variant
+      description: Higher tier javelin
+  about: |-
+    > _"An iron tipped javelin."_
+
+    The iron javelin requires 1 Ranged. Higher ranged strength than iron darts but slower attack speed.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

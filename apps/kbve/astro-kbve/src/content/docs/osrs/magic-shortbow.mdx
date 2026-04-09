@@ -62,65 +62,14 @@ osrs:
       slug: bow-string
       relationship: component
       description: Stringing material
+  about: "Snapshot: Fires 2 arrows quickly. Costs 55% spec."
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Two Hand |
-| Type | Shortbow |
-| Tradeable | Yes |
-| Weight | 1.36 kg |
-| Requirements | 50 Ranged |
-
-## Combat Stats
-
-| Stat | Bonus |
-|------|-------|
-| Ranged Attack | +69 |
-
-## Obtaining
-
-**Fletching:** 80 Fletching with magic shortbow (u) + bowstring.
-
-**Drops:** Spiritual rangers.
-
-## Special Attack
-
-**Snapshot:** Fires 2 arrows quickly. Costs 55% spec.
-
-## Market Strategy
-
-**Buy Limit:** 18,000 per 4 hours
-
-**Price:** ~908 gp
-
-Popular training bow. Can be imbued for +75 ranged.
-
-## Related Items
-
-- [Magic shortbow (i)](/osrs/magic-shortbow-i/) - Imbued version
-- [Amethyst arrows](/osrs/amethyst-arrows/) - Best ammo
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -49,6 +49,46 @@ lore: |
     Glass Assassins were created as perfect killers — transparent, silent, and razor-sharp.
 credits: |
     Ported from KBVE DiscordSH dungeon crawler.
+loot:
+    entries:
+        - item_ref: 'ward'
+          drop_rate: 0.25
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'bomb'
+          drop_rate: 0.25
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'campfire-kit'
+          drop_rate: 0.08
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'rage-draught'
+          drop_rate: 0.08
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'phoenix-feather'
+          drop_rate: 0.08
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'antidote'
+          drop_rate: 0.17
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'smoke-bomb'
+          drop_rate: 0.08
+          min_quantity: 1
+          max_quantity: 1
+    max_drops: 2
+    gold_min: 8
+    gold_max: 18
+    xp_reward: 50
+abilities:
+    - id: 'attack'
+      name: 'Crystal Blade'
+      damage: 10
+faction:
+    faction_id: 'crystal-order'
 ---
 
 import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';

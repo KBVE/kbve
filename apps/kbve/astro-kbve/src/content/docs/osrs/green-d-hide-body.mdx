@@ -66,64 +66,39 @@ osrs:
       slug: blue-dhide-body
       relationship: alternative
       description: Higher tier body
+  about: |-
+    | Method | Level | Materials |
+    |--------|-------|-----------|
+    | Crafting | 63 | 3 Green dragon leather |
+    | XP | 186 | - |
+
+    | Stat | Value |
+    |------|-------|
+    | Ranged requirement | 40 |
+    | Defence requirement | None |
+    | Ranged attack | +15 |
+    | Ranged defence | +40 |
+    | Magic defence | +20 |
+  market_strategy:
+    notes:
+      - First dragonhide body tier
+      - F2P accessible
+      - Popular alch item
+      - Crafting training (186 XP)
+      - High alchemy (4,680 gp)
+      - F2P ranged armor
+      - Budget gear
+      - Best F2P ranged body
+      - 3 leather per body
+      - Popular crafting method
+      - High alch profit potential
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creating
-
-| Method | Level | Materials |
-|--------|-------|-----------|
-| Crafting | 63 | 3 Green dragon leather |
-| XP | 186 | - |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged requirement | 40 |
-| Defence requirement | None |
-| Ranged attack | +15 |
-| Ranged defence | +40 |
-| Magic defence | +20 |
-
-## Market Strategy
-
-**Entry D'hide Body:**
-- First dragonhide body tier
-- F2P accessible
-- Popular alch item
-
-**Buy Limit:** 125 per 4 hours
-
-**Demand Drivers:**
-- Crafting training (186 XP)
-- High alchemy (4,680 gp)
-- F2P ranged armor
-- Budget gear
-
-**Tips:**
-- Best F2P ranged body
-- 3 leather per body
-- Popular crafting method
-- High alch profit potential
-
-<Adsense />
+<OSRSAdsenseCard />

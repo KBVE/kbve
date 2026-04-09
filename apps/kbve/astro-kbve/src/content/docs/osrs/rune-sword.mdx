@@ -1,6 +1,6 @@
 ---
 title: Rune sword | OSRS Price Data
-description: "Rune sword: A razor sharp sword.. High alch: 12,480 GP, GE limit: 70."
+description: "Rune sword is a F2P weapon slot item with +39 melee strength requiring 40 Attack. High alch: 12,480 GP, GE limit: 70."
 osrs:
   id: 1289
   name: Rune sword
@@ -12,26 +12,79 @@ osrs:
   lowalch: 8320
   highalch: 12480
   limit: 70
+  equipment:
+    slot: weapon
+    attack_bonus:
+      stab: 38
+      slash: 26
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 39
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      attack: 40
+    attack_speed: 4
+  related_items:
+    - item_id: 1333
+      item_name: Rune scimitar
+      slug: rune-scimitar
+      relationship: alternative
+      description: Higher slash, preferred for training
+    - item_id: 1373
+      item_name: Rune battleaxe
+      slug: rune-battleaxe
+      relationship: alternative
+      description: Higher strength, slower speed
+    - item_id: 1347
+      item_name: Rune warhammer
+      slug: rune-warhammer
+      relationship: alternative
+      description: Crush alternative
+  about: |-
+    | Attack | Value |
+    |--------|-------|
+    | Stab | +38 |
+    | Slash | +26 |
+
+    | Other | Value |
+    |-------|-------|
+    | Strength | +39 |
+
+    Requirements: 40 Attack | Speed: 4 tick (2.4s)
+
+    The rune sword is the best stab weapon available in F2P. While the rune scimitar has higher slash (+45) and is preferred for general training, the rune sword's +38 stab is valuable against stab-weak monsters.
+
+    | Stat | Rune Sword | Rune Scimitar | Rune Longsword |
+    |------|-----------|---------------|----------------|
+    | Stab | +38 | +7 | +38 |
+    | Slash | +26 | +45 | +40 |
+    | Strength | +39 | +44 | +49 |
+    | Speed | 4 tick | 4 tick | 5 tick |
+    | DPS Role | Stab | Slash (best) | Slow slash |
+
+    Same speed as the scimitar but lower overall DPS. Use it specifically when stab accuracy matters.
+  market_strategy:
+    notes:
+      - Commonly smithed for XP (2 runite bars)
+      - GE price tracks near alch value
+      - Niche F2P stab weapon demand
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

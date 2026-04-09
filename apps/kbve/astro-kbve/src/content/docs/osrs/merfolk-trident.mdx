@@ -55,73 +55,31 @@ osrs:
       slug: drift-net
       relationship: alternative
       description: Use with
+  about: |-
+    | Offence | Bonus |
+    |---------|-------|
+    | Stab | +8 |
+    | Slash | +8 |
+    | Crush | +8 |
+    | Strength | +4 |
+
+    | Defence | Bonus |
+    |---------|-------|
+    | Stab | +1 |
+    | Slash | +1 |
+
+    Drift Net Fishing: Increases chance to scare fish into nets.
+
+    Underwater Breathing: Charge with up to 10 pufferfish to regain breath.
+
+    Swimming: One of few weapons allowing swimming while wielding.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Two-handed |
-| Type | Spear |
-| Tradeable | Yes |
-| Weight | 0.907 kg |
-
-## Obtaining
-
-Purchase from Mairin's Market (underwater Fossil Island) for 400 mermaid tears.
-
-## Stats
-
-| Offence | Bonus |
-|---------|-------|
-| Stab | +8 |
-| Slash | +8 |
-| Crush | +8 |
-| Strength | +4 |
-
-| Defence | Bonus |
-|---------|-------|
-| Stab | +1 |
-| Slash | +1 |
-
-## Passive Effects
-
-**Drift Net Fishing:** Increases chance to scare fish into nets.
-
-**Underwater Breathing:** Charge with up to 10 pufferfish to regain breath.
-
-**Swimming:** One of few weapons allowing swimming while wielding.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~2.05M gp
-
-## Related Items
-
-- [Fossil Island](/osrs/fossil-island/) - Location
-- [Mermaid tear](/osrs/mermaid-tear/) - Currency
-- [Drift net](/osrs/drift-net/) - Use with
-
-<Adsense />
+<OSRSAdsenseCard />

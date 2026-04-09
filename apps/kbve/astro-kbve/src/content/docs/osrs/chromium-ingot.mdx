@@ -58,71 +58,32 @@ osrs:
       slug: bellator-ring
       relationship: product
       description: Created BiS melee accuracy ring
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Crafting Material |
+    | Tradeable | Yes |
+    | Weight | 3 kg |
+
+    Required for ancient rings (3 per ring):
+    - Ultor ring
+    - Bellator ring
+    - Magus ring
+    - Venator ring
+
+    All require 90 Magic, 80 Crafting.
+  market_strategy:
+    notes:
+      - Farm DT2 bosses for drops
+      - Smelting is massive loss
+      - Essential for BiS rings
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Crafting Material |
-| Tradeable | Yes |
-| Weight | 3 kg |
-
-## Obtaining
-
-| Method | Requirements |
-|--------|--------------|
-| Blast Furnace smelting | 85 Smithing |
-| DT2 boss drops | Any of the four |
-| Stranglewood fishing | Extremely rare |
-
-**Smelting Cost:** 40 adamantite ore + 40 runite ore + 170K gp.
-
-## Uses
-
-Required for ancient rings (3 per ring):
-- Ultor ring
-- Bellator ring
-- Magus ring
-- Venator ring
-
-All require 90 Magic, 80 Crafting.
-
-## Market Strategy
-
-**Buy Limit:** 1,000 per 4 hours
-
-**Price:** ~43.7K gp
-
-**Tips:**
-- Farm DT2 bosses for drops
-- Smelting is massive loss
-- Essential for BiS rings
-
-## Related Items
-
-- [Ultor ring](/osrs/ultor-ring/) - Created item
-- [Magus ring](/osrs/magus-ring/) - Created item
-- [The Leviathan](/osrs/the-leviathan/) - Drop source
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -73,60 +73,24 @@ osrs:
       slug: anglerfish
       relationship: alternative
       description: Overheal food
+  about: |-
+    Tick-Eating Staple:
+    - Can be eaten same tick as other food
+    - Essential for high-level PvM
+    - Quest locked fishing
+  market_strategy:
+    notes:
+      - Combo eat with shark/angler
+      - 1-tick karambwans for DPS
+      - Tai Bwo Wannai Trio required
+      - High demand, good prices
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Method | Level | XP |
-|--------|-------|-----|
-| Karambwan vessel fishing | 65 Fishing | 50 |
-| Requires Tai Bwo Wannai Trio | - | - |
-| Bait: Raw karambwanji | - | - |
-
-## Cooking
-
-| Method | Level | XP |
-|--------|-------|-----|
-| Thoroughly cooked | 30 Cooking | 190 |
-| Poison karambwan | 1 Cooking | 80 |
-
-**Heals:** 18 HP (cooked), Poison (raw/poison)
-
-## Usage
-
-**Tick-Eating Staple:**
-- Can be eaten same tick as other food
-- Essential for high-level PvM
-- Quest locked fishing
-
-## Market Strategy
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Tips:**
-- Combo eat with shark/angler
-- 1-tick karambwans for DPS
-- Tai Bwo Wannai Trio required
-- High demand, good prices
-
-<Adsense />
+<OSRSAdsenseCard />

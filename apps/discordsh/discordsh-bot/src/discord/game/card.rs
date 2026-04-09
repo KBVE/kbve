@@ -1228,6 +1228,7 @@ mod tests {
             pending_destination: None,
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
+            active_dialogue: None,
         }
     }
 
@@ -1745,6 +1746,7 @@ mod tests {
             intent: Intent::Attack { dmg: 5 },
             charged: false,
             loot_table_id: "slime",
+            npc_ref: "",
             enraged: false,
             index: 0,
             first_strike: false,

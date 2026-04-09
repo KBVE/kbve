@@ -1,6 +1,6 @@
 ---
 title: Emerald necklace | OSRS Price Data
-description: "Emerald necklace: I wonder if this is valuable.. High alch: 855 GP, GE limit: 18,000."
+description: "Emerald necklace is a F2P neck slot item. High alch: 855 GP, GE limit: 18,000."
 osrs:
   id: 1658
   name: Emerald necklace
@@ -12,26 +12,58 @@ osrs:
   lowalch: 570
   highalch: 855
   limit: 18000
+  equipment:
+    slot: neck
+    requirements:
+      crafting: 29
+  recipes:
+    - skill: crafting
+      level: 29
+      xp: 60
+      inputs:
+        - item_name: Emerald
+          quantity: 1
+        - item_name: Gold bar
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 1656
+      item_name: Sapphire necklace
+      slug: sapphire-necklace
+      relationship: downgrade
+      description: Previous tier necklace
+    - item_id: 1660
+      item_name: Ruby necklace
+      slug: ruby-necklace
+      relationship: upgrade
+      description: Next tier necklace
+  about: |-
+    Crafting (Level 29): Emerald + Gold bar at a furnace with necklace mould (60 XP)
+
+    > *"An emerald necklace."*
+
+    Lvl-2 Enchant (27 Magic): 1 cosmic rune + 3 air runes (37 XP)
+
+    The Binding necklace guarantees 100% success when crafting combination runes (lava, mud, mist, smoke, steam, dust runes). Without it, combination runecrafting has only a ~50% success rate.
+
+    16 charges per necklace — each combination rune craft uses one charge.
+
+    Essential for:
+    - Lava rune crafting (fastest Runecrafting XP method)
+    - Any combination rune crafting
+    - Ironman rune production
+  market_strategy:
+    notes:
+      - Extremely high demand — lava rune RC is the fastest XP method
+      - Consumed after 16 charges
+      - Enchanting is consistently profitable
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

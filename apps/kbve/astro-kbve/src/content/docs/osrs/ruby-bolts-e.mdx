@@ -46,63 +46,25 @@ osrs:
       slug: diamond-bolts-e
       relationship: alternative
       description: Alternative for low HP targets
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | Ammo |
+    | Type | Enchanted Bolts |
+    | Tradeable | Yes |
+    | Weight | 0 kg |
+    | Requirements | 46 Ranged |
+
+    Blood Forfeit: Deals 20% of target's current HP as damage.
+
+    Maximum 100 damage cap. Costs 10% of your HP.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Ammo |
-| Type | Enchanted Bolts |
-| Tradeable | Yes |
-| Weight | 0 kg |
-| Requirements | 46 Ranged |
-
-## Obtaining
-
-**Enchanting:** Cast Enchant Crossbow Bolt (Ruby) at 49 Magic.
-
-**Runes:** 5 fire, 1 blood, 1 cosmic per 10 bolts.
-
-**Alternative:** Purchase from Grand Exchange.
-
-## Effects
-
-**Blood Forfeit:** Deals 20% of target's current HP as damage.
-
-Maximum 100 damage cap. Costs 10% of your HP.
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~195 gp
-
-Essential for high HP bosses. Popular spec weapon ammo.
-
-## Related Items
-
-- [Ruby bolts](/osrs/ruby-bolts/) - Unenchanted version
-- [Diamond bolts (e)](/osrs/diamond-bolts-e/) - Alternative for low HP targets
-
-<Adsense />
+<OSRSAdsenseCard />

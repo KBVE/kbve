@@ -1,6 +1,6 @@
 ---
 title: Adamant plateskirt (t) | OSRS Price Data
-description: "Adamant plateskirt (t): Adamant plateskirt with trim.. High alch: 3,840 GP, GE limit: 8."
+description: "Adamant plateskirt (t) is a F2P legs slot item requiring 30 Defence. High alch: 3,840 GP, GE limit: 8."
 osrs:
   id: 3474
   name: Adamant plateskirt (t)
@@ -12,26 +12,27 @@ osrs:
   lowalch: 2560
   highalch: 3840
   limit: 8
+  equipment:
+    slot: legs
+    requirements:
+      defence: 30
+  related_items:
+    - item_id: 3475
+      item_name: Adamant plateskirt (g)
+      slug: adamant-plateskirt-g
+      relationship: variant
+      description: Gold-trimmed variant
+  about: |-
+    > *"Adamant plateskirt with trim."*
+
+    The adamant plateskirt (t) is a trimmed cosmetic variant of the adamant plateskirt. Identical stats to adamant platelegs with slightly less weight, requiring 30 Defence. Clue scroll exclusive.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

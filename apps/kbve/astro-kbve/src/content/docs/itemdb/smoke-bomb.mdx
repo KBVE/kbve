@@ -17,6 +17,16 @@ tags:
   - discordsh
 use_effects:
   - { type: 'guaranteed_flee' }
+recipes:
+    - skill: 'crafting'
+      skill_level: 20
+      xp_reward: 40
+      output_quantity: 1
+      ingredients:
+          - item_ref: 'fly-agaric'
+            amount: 2
+          - item_ref: 'copper-ore'
+            amount: 1
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';

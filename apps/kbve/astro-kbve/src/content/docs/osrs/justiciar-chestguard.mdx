@@ -40,82 +40,37 @@ osrs:
       slug: justiciar-legguards
       relationship: alternative
       description: Set legs for Justiciar armour
+  about: |-
+    | Defence | Bonus |
+    |---------|-------|
+    | Stab | +132 |
+    | Slash | +130 |
+    | Crush | +117 |
+    | Magic | -16 |
+    | Ranged | +142 |
+
+    | Other | Bonus |
+    |-------|-------|
+    | Prayer | +4 |
+
+    Damage Reduction (full set):
+    - Reduces all combat damage (PvM only)
+    - Formula: defence bonus / 3000
+    - Higher defence = more reduction
+
+    BiS for:
+    - Tanking
+    - Inferno
+    - Solo bossing
+
+    Part of Justiciar set.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Body |
-| Type | Tank Armour |
-| Tradeable | Yes |
-| Weight | 9.979 kg |
-| Requirements | 75 Defence |
-
-## Obtaining
-
-Rare drop from [Theatre of Blood](/osrs/theatre-of-blood/).
-
-## Stats
-
-| Defence | Bonus |
-|---------|-------|
-| Stab | +132 |
-| Slash | +130 |
-| Crush | +117 |
-| Magic | -16 |
-| Ranged | +142 |
-
-| Other | Bonus |
-|-------|-------|
-| Prayer | +4 |
-
-## Set Effect
-
-**Damage Reduction (full set):**
-- Reduces all combat damage (PvM only)
-- Formula: defence bonus / 3000
-- Higher defence = more reduction
-
-## Usage
-
-BiS for:
-- Tanking
-- Inferno
-- Solo bossing
-
-**Part of Justiciar set.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~15M gp
-
-## Related Items
-
-- [Theatre of Blood](/osrs/theatre-of-blood/) - Drop source
-- [Justiciar faceguard](/osrs/justiciar-faceguard/) - Set helm
-- [Justiciar legguards](/osrs/justiciar-legguards/) - Set legs
-
-<Adsense />
+<OSRSAdsenseCard />

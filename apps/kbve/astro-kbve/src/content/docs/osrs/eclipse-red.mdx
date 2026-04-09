@@ -1,6 +1,6 @@
 ---
 title: Eclipse red | OSRS Price Data
-description: "Eclipse red is a members-only OSRS item. High alch: 600 GP."
+description: "Eclipse red is a members-only OSRS item. High alch: 600 GP, GE limit: 2,000."
 osrs:
   id: 29415
   name: Eclipse red
@@ -11,7 +11,7 @@ osrs:
   value: 1000
   lowalch: 400
   highalch: 600
-  limit: null
+  limit: 2000
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

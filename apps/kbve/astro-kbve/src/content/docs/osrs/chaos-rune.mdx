@@ -76,71 +76,46 @@ osrs:
       slug: ibans-staff
       relationship: alternative
       description: Uses chaos runes
+  about: |-
+    | Requirement | Value |
+    |-------------|-------|
+    | Runecraft Level | 35 |
+    | XP per rune | 8.5 |
+    | Runes per essence | 1 (2 at 74) |
+    | Abyss recommended | Yes |
+
+    Multipliers:
+    - Level 74: 2x runes
+
+    | Spell | Chaos Runes | Other Runes |
+    |-------|-------------|-------------|
+    | Wind Bolt | 1 | 2 Air |
+    | Water Bolt | 1 | 2 Air, 2 Water |
+    | Earth Bolt | 1 | 2 Air, 3 Earth |
+    | Fire Bolt | 1 | 3 Air, 4 Fire |
+    | Crumble Undead | 2 | 2 Air, 2 Earth |
+    | Iban Blast | 1 | 5 Fire (Iban staff) |
+    | Saradomin Strike | 2 | 4 Fire, 2 Blood |
+  market_strategy:
+    notes:
+      - Bolt spells primary use
+      - Ironman training popular
+      - Wilderness chaos altar
+      - Fire Bolt training
+      - God spells (Mage Arena)
+      - Early-game Magic
+      - Ironman accounts
+      - Chaos druids drop frequently
+      - Wilderness altar doubles
+      - Bolt spells for Slayer
+      - Lower demand at high levels
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Runecrafting
-
-| Requirement | Value |
-|-------------|-------|
-| Runecraft Level | 35 |
-| XP per rune | 8.5 |
-| Runes per essence | 1 (2 at 74) |
-| Abyss recommended | Yes |
-
-**Multipliers:**
-- Level 74: 2x runes
-
-## Key Spells
-
-| Spell | Chaos Runes | Other Runes |
-|-------|-------------|-------------|
-| Wind Bolt | 1 | 2 Air |
-| Water Bolt | 1 | 2 Air, 2 Water |
-| Earth Bolt | 1 | 2 Air, 3 Earth |
-| Fire Bolt | 1 | 3 Air, 4 Fire |
-| Crumble Undead | 2 | 2 Air, 2 Earth |
-| Iban Blast | 1 | 5 Fire (Iban staff) |
-| Saradomin Strike | 2 | 4 Fire, 2 Blood |
-
-## Market Flip Strategy
-
-**Combat Essential:**
-- Bolt spells primary use
-- Ironman training popular
-- Wilderness chaos altar
-
-**Buy Limit:** 18,000 per 4 hours
-
-**Demand Drivers:**
-- Fire Bolt training
-- God spells (Mage Arena)
-- Early-game Magic
-- Ironman accounts
-
-**Tips:**
-- Chaos druids drop frequently
-- Wilderness altar doubles
-- Bolt spells for Slayer
-- Lower demand at high levels
-
-<Adsense />
+<OSRSAdsenseCard />

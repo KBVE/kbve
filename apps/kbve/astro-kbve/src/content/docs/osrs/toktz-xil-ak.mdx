@@ -1,6 +1,6 @@
 ---
 title: Toktz-xil-ak | OSRS Price Data
-description: "Toktz-xil-ak: A razor sharp sword of obsidian.. High alch: 24,000 GP, GE limit: 70."
+description: "Toktz-xil-ak is a members weapon slot item with +49 melee strength requiring 60 Attack. High alch: 24,000 GP, GE limit: 70."
 osrs:
   id: 6523
   name: Toktz-xil-ak
@@ -12,26 +12,62 @@ osrs:
   lowalch: 16000
   highalch: 24000
   limit: 70
+  equipment:
+    slot: weapon
+    attack_bonus:
+      stab: 36
+      slash: 55
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 49
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      attack: 60
+  related_items:
+    - item_id: 6525
+      item_name: Toktz-xil-ek
+      slug: toktz-xil-ek
+      relationship: alternative
+      description: Obsidian knife (ranged)
+    - item_id: 6527
+      item_name: Toktz-xil-ul
+      slug: toktz-xil-ul
+      relationship: alternative
+      description: Obsidian throwing ring
+    - item_id: 6528
+      item_name: Tzhaar-ket-om
+      slug: tzhaar-ket-om
+      relationship: alternative
+      description: Obsidian maul (crush)
+  about: |-
+    Strong 60 Attack weapon:
+    - Benefits from Obsidian armour set effect (+10% accuracy/damage)
+    - Good Strength training weapon
+    - Popular for low-level PvP
+
+    With full Obsidian set + Berserker necklace: Competitive DPS for training.
+  market_strategy:
+    notes:
+      - Tokkul farmable from TzHaar Fight Cave
+      - Popular for Strength training meta
+      - Obsidian set synergy drives demand
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

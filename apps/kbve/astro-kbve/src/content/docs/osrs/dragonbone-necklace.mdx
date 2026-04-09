@@ -51,89 +51,49 @@ osrs:
       slug: bonecrusher
       relationship: alternative
       description: Auto-crush bones
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Stab | +10 |
+    | Slash | +10 |
+    | Crush | +10 |
+    | Magic | +10 |
+    | Ranged | +10 |
+    | Strength | +2 |
+
+    | Defence | Value |
+    |---------|-------|
+    | All | +2 |
+
+    | Other | Value |
+    |-------|-------|
+    | Prayer | +12 |
+
+    Requirements: 70 Prayer
+
+    Prayer Restoration:
+    - Restores prayer when burying bones
+    - Works with bonecrusher
+    - 1-5 points per bone based on type
+
+    Great for:
+    - Slayer with bonecrusher
+    - Catacombs of Kourend
+    - Any bone-drop content
+
+    Best prayer necklace for slayer.
+  market_strategy:
+    notes:
+      - From Vorkath
+      - Combine into bonecrusher necklace
+      - DS2 required for Vorkath
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Neck |
-| Type | Necklace |
-| Tradeable | Yes |
-| Weight | 0.005 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Vorkath | 1/1,000 |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Stab | +10 |
-| Slash | +10 |
-| Crush | +10 |
-| Magic | +10 |
-| Ranged | +10 |
-| Strength | +2 |
-
-| Defence | Value |
-|---------|-------|
-| All | +2 |
-
-| Other | Value |
-|-------|-------|
-| Prayer | +12 |
-
-**Requirements:** 70 Prayer
-
-## Passive Effect
-
-**Prayer Restoration:**
-- Restores prayer when burying bones
-- Works with bonecrusher
-- 1-5 points per bone based on type
-
-## Usage
-
-Great for:
-- Slayer with bonecrusher
-- Catacombs of Kourend
-- Any bone-drop content
-
-**Best prayer necklace for slayer.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~101K gp
-
-**Tips:**
-- From Vorkath
-- Combine into bonecrusher necklace
-- DS2 required for Vorkath
-
-<Adsense />
+<OSRSAdsenseCard />

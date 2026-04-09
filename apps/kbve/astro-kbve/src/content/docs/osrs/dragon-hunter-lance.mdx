@@ -69,74 +69,47 @@ osrs:
       slug: sanguinesti-staff
       relationship: alternative
       description: ToB mage weapon
+  about: |-
+    | Stat | Charged | Uncharged |
+    |------|---------|-----------|
+    | Slash attack | +125 | +75 |
+    | Stab attack | +70 | +50 |
+    | Crush attack | +30 | +10 |
+    | Strength | +75 | +50 |
+
+    Requirements: 75 Attack, 75 Strength
+
+    3-Hit Attack:
+    - Attacks in 1x3 arc in front of player
+    - Hits multiple times on large enemies:
+      - 2x2 monsters: 2 hits
+      - 3x3+ monsters: 3 hits
+    - Each successive hit deals 50% less damage
+
+    Best Against:
+    - Large bosses (Verzik, Nightmare, Nex)
+    - Multi-target scenarios
+
+    | Resource | Amount | Charges |
+    |----------|--------|---------|
+    | Vial of blood | 1 | 100 |
+    | Blood rune | 200 | 100 |
+
+    - Max charges: 20,000
+    - Cost per attack: ~535 gp
+    - Only uses charges on successful hits
+  market_strategy:
+    notes:
+      - Most expensive melee weapon
+      - Essential for efficient ToB/high-level PvM
+      - Charging costs add up - factor into profit calcs
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Rare drop from Theatre of Blood raid.
-
-## Stats
-
-| Stat | Charged | Uncharged |
-|------|---------|-----------|
-| Slash attack | +125 | +75 |
-| Stab attack | +70 | +50 |
-| Crush attack | +30 | +10 |
-| Strength | +75 | +50 |
-
-**Requirements:** 75 Attack, 75 Strength
-
-## Special Mechanics
-
-**3-Hit Attack:**
-- Attacks in 1x3 arc in front of player
-- Hits multiple times on large enemies:
-  - 2x2 monsters: 2 hits
-  - 3x3+ monsters: 3 hits
-- Each successive hit deals 50% less damage
-
-**Best Against:**
-- Large bosses (Verzik, Nightmare, Nex)
-- Multi-target scenarios
-
-## Charging
-
-| Resource | Amount | Charges |
-|----------|--------|---------|
-| Vial of blood | 1 | 100 |
-| Blood rune | 200 | 100 |
-
-- Max charges: 20,000
-- Cost per attack: ~535 gp
-- Only uses charges on successful hits
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Most expensive melee weapon
-- Essential for efficient ToB/high-level PvM
-- Charging costs add up - factor into profit calcs
-
-<Adsense />
+<OSRSAdsenseCard />

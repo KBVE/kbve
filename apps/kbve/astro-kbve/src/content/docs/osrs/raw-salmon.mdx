@@ -64,63 +64,26 @@ osrs:
       slug: feather
       relationship: component
       description: Bait
+  market_strategy:
+    notes:
+      - Popular for Cooking training
+      - Caught alongside trout
+      - Low-level content
+      - Cooking training
+      - F2P content
+      - Ironman progression
+      - Budget food source
+      - Caught with fly fishing rod
+      - Feathers as bait
+      - Barbarian Village popular
+      - Often dropped for XP
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Method | Level | XP |
-|--------|-------|-----|
-| Fly fishing | 30 Fishing | 70 |
-| Barbarian fishing | 30 Fishing | 70 |
-| Location | Rivers (Barbarian Village, Shilo) | - |
-
-## Cooking
-
-| Requirement | Value |
-|-------------|-------|
-| Cooking Level | 25 |
-| XP per fish | 90 |
-| Stop burning | 58 (48 with gauntlets) |
-
-## Market Flip Strategy
-
-**F2P Training Fish:**
-- Popular for Cooking training
-- Caught alongside trout
-- Low-level content
-
-**Buy Limit:** 15,000 per 4 hours
-
-**Demand Drivers:**
-- Cooking training
-- F2P content
-- Ironman progression
-- Budget food source
-
-**Tips:**
-- Caught with fly fishing rod
-- Feathers as bait
-- Barbarian Village popular
-- Often dropped for XP
-
-<Adsense />
+<OSRSAdsenseCard />

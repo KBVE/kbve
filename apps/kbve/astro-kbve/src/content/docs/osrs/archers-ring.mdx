@@ -44,70 +44,39 @@ osrs:
       slug: ring-of-suffering
       relationship: alternative
       description: Defensive alternative
+  about: |-
+    | Stat | Value |
+    |------|-------|
+    | Ranged attack | +4 |
+    | Requirements | None |
+
+    Best-in-slot ranged accuracy ring.
+
+    Imbue at Soul Wars or Nightmare Zone for doubled stats:
+
+    | Stat | Imbued |
+    |------|--------|
+    | Ranged attack | +8 |
+
+    BiS ranged ring for:
+    - All ranged combat
+    - Bossing
+    - Slayer
+    - Max ranged setups
+
+    Imbue is essential - doubles the bonus.
+  market_strategy:
+    notes:
+      - DKs are efficient to farm
+      - Imbue immediately
+      - BiS for all ranged
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Drop from Dagannoth Supreme in the Waterbirth Island Dungeon.
-
-| Boss | Drop Rate |
-|------|-----------|
-| Dagannoth Supreme | 1/128 |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged attack | +4 |
-| Requirements | None |
-
-**Best-in-slot ranged accuracy ring.**
-
-## Imbue
-
-Imbue at Soul Wars or Nightmare Zone for doubled stats:
-
-| Stat | Imbued |
-|------|--------|
-| Ranged attack | +8 |
-
-## Usage
-
-BiS ranged ring for:
-- All ranged combat
-- Bossing
-- Slayer
-- Max ranged setups
-
-**Imbue is essential - doubles the bonus.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- DKs are efficient to farm
-- Imbue immediately
-- BiS for all ranged
-
-<Adsense />
+<OSRSAdsenseCard />

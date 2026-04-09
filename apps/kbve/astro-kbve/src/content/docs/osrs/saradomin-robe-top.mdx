@@ -1,6 +1,6 @@
 ---
 title: Saradomin robe top | OSRS Price Data
-description: "Saradomin robe top: Saradomin Vestments.. High alch: 4,200 GP, GE limit: 8."
+description: "Saradomin robe top is a members body slot item. High alch: 4,200 GP, GE limit: 8."
 osrs:
   id: 10458
   name: Saradomin robe top
@@ -12,26 +12,34 @@ osrs:
   lowalch: 2800
   highalch: 4200
   limit: 8
+  equipment:
+    slot: body
+    requirements:
+      prayer: 20
+    other_bonus:
+      prayer: 6
+  related_items:
+    - item_id: 10464
+      item_name: Saradomin robe legs
+      slug: saradomin-robe-legs
+      relationship: set-piece
+      description: Saradomin vestment legs
+    - item_id: 10452
+      item_name: Saradomin mitre
+      slug: saradomin-mitre
+      relationship: set-piece
+      description: Saradomin vestment head
+  about: |-
+    > *"Saradomin Vestments."*
+
+    The Saradomin robe top is the body piece of the Saradomin vestment set. It provides a +6 Prayer bonus and requires 20 Prayer to equip. Counts as a Saradominist item in the God Wars Dungeon, providing protection from Saradomin followers.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

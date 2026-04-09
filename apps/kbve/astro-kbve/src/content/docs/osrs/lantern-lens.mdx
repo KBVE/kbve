@@ -47,58 +47,35 @@ osrs:
       slug: bullseye-lantern
       relationship: product
       description: Final product
+  about: |-
+    | Method | Level | Materials |
+    |--------|-------|-----------|
+    | Glassblowing | 49 | 1 Molten glass |
+    | XP | 55 | - |
+
+    Used to make bullseye lanterns:
+
+    | Step | Item |
+    |------|------|
+    | 1 | Bullseye lantern (unf) + Lantern lens |
+    | 2 | Add oil |
+    | 3 | Light with tinderbox |
+  market_strategy:
+    notes:
+      - Bullseye lantern production
+      - Cave exploration
+      - Quest requirements
+      - Required for some quests
+      - Used in dark areas
+      - Good crafting XP
+      - Niche market
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creating
-
-| Method | Level | Materials |
-|--------|-------|-----------|
-| Glassblowing | 49 | 1 Molten glass |
-| XP | 55 | - |
-
-## Usage
-
-Used to make bullseye lanterns:
-
-| Step | Item |
-|------|------|
-| 1 | Bullseye lantern (unf) + Lantern lens |
-| 2 | Add oil |
-| 3 | Light with tinderbox |
-
-## Market Strategy
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Demand Drivers:**
-- Bullseye lantern production
-- Cave exploration
-- Quest requirements
-
-**Tips:**
-- Required for some quests
-- Used in dark areas
-- Good crafting XP
-- Niche market
-
-<Adsense />
+<OSRSAdsenseCard />

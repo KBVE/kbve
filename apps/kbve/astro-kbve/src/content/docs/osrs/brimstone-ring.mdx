@@ -75,98 +75,56 @@ osrs:
       slug: hydras-heart
       relationship: component
       description: Creation component
+  about: |-
+    Combine 3 components from Alchemical Hydra:
+    - Hydra's eye
+    - Hydra's fang
+    - Hydra's heart
+
+    All components untradeable. Ring is tradeable after creation.
+
+    | Offense | Value |
+    |---------|-------|
+    | Stab | +4 |
+    | Slash | +4 |
+    | Crush | +4 |
+    | Magic | +6 |
+    | Ranged | +4 |
+    | Strength | +4 |
+
+    | Defence | Value |
+    |---------|-------|
+    | Stab | +4 |
+    | Slash | +4 |
+    | Crush | +4 |
+    | Magic | +6 |
+    | Ranged | +4 |
+
+    Requirements: None
+
+    Magic Penetration:
+    - 25% chance on magic attacks
+    - Ignores 10% of target's magic defence
+    - Message: "Your attack ignored 10% of your opponent's magic defence."
+
+    BiS hybrid ring for:
+    - Content requiring style switching
+    - Magic-focused bossing
+    - CoX/ToB switches
+
+    Best all-around combat ring.
+  market_strategy:
+    notes:
+      - 95 Slayer for Hydra
+      - All 3 components needed
+      - Great hybrid option
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Ring |
-| Type | Hybrid Combat |
-| Tradeable | Yes |
-| Weight | 0.004 kg |
-
-## Creation
-
-Combine 3 components from Alchemical Hydra:
-- Hydra's eye
-- Hydra's fang
-- Hydra's heart
-
-All components untradeable. Ring is tradeable after creation.
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Stab | +4 |
-| Slash | +4 |
-| Crush | +4 |
-| Magic | +6 |
-| Ranged | +4 |
-| Strength | +4 |
-
-| Defence | Value |
-|---------|-------|
-| Stab | +4 |
-| Slash | +4 |
-| Crush | +4 |
-| Magic | +6 |
-| Ranged | +4 |
-
-**Requirements:** None
-
-## Passive Effect
-
-**Magic Penetration:**
-- 25% chance on magic attacks
-- Ignores 10% of target's magic defence
-- Message: "Your attack ignored 10% of your opponent's magic defence."
-
-## Usage
-
-BiS hybrid ring for:
-- Content requiring style switching
-- Magic-focused bossing
-- CoX/ToB switches
-
-**Best all-around combat ring.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~4.5M gp
-
-**Tips:**
-- 95 Slayer for Hydra
-- All 3 components needed
-- Great hybrid option
-
-## Related Items
-
-- [Berserker ring](/osrs/berserker-ring/) - Pure melee
-- [Seers ring](/osrs/seers-ring/) - Pure magic
-- [Alchemical Hydra](/osrs/alchemical-hydra/) - Component source
-
-<Adsense />
+<OSRSAdsenseCard />

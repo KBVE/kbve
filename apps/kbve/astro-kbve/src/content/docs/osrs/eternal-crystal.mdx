@@ -50,68 +50,33 @@ osrs:
       slug: primordial-crystal
       relationship: alternative
       description: Melee version
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Crafting Material |
+    | Tradeable | Yes |
+    | Stackable | No |
+
+    Combine with Infinity boots to create Eternal boots.
+
+    | Requirement | Level |
+    |-------------|-------|
+    | Magic | 60 |
+    | Runecraft | 60 |
+
+    Warning: Irreversible process.
+  market_strategy:
+    notes:
+      - Mid-value Cerberus crystal
+      - Creates BiS mage boots
+      - Farm Cerberus on task
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Crafting Material |
-| Tradeable | Yes |
-| Stackable | No |
-
-## Obtaining
-
-Drop from [Cerberus](/osrs/cerberus/) (1/520).
-
-**Requires 91 Slayer.**
-
-## Uses
-
-Combine with [Infinity boots](/osrs/infinity-boots/) to create [Eternal boots](/osrs/eternal-boots/).
-
-| Requirement | Level |
-|-------------|-------|
-| Magic | 60 |
-| Runecraft | 60 |
-
-**Warning:** Irreversible process.
-
-## Market Strategy
-
-**Buy Limit:** 15 per 4 hours
-
-**Price:** ~6M gp
-
-**Tips:**
-- Mid-value Cerberus crystal
-- Creates BiS mage boots
-- Farm Cerberus on task
-
-## Related Items
-
-- [Cerberus](/osrs/cerberus/) - Boss drop
-- [Eternal boots](/osrs/eternal-boots/) - Created item
-- [Primordial crystal](/osrs/primordial-crystal/) - Melee version
-
-<Adsense />
+<OSRSAdsenseCard />

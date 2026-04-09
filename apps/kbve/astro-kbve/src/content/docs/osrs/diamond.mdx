@@ -113,66 +113,28 @@ osrs:
       slug: dragonstone
       relationship: alternative
       description: Higher tier gem
+  about: |-
+    | Item | Effect |
+    |------|--------|
+    | Ring of life | Auto-teleport at 10% HP |
+    | Phoenix necklace | Heal when low HP |
+    | Abyssal bracelet | Skull protection |
+    | Amulet of power | +6 all combat |
+  market_strategy:
+    notes:
+      - Ring of life for safety
+      - Phoenix necklace for PvP
+      - Diamond bolts (e) for PvM
+      - High-tier common gem
+      - Ring of life essential
+      - Good bolt tips for bossing
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Source | Method |
-|--------|--------|
-| Cutting uncut diamond | 43 Crafting, 107.5 XP |
-| Grand Exchange | Purchase |
-
-## Crafting Products
-
-| Product | Level | XP |
-|---------|-------|-----|
-| Diamond ring | 43 | 85 |
-| Diamond necklace | 56 | 90 |
-| Diamond bracelet | 58 | 95 |
-| Diamond amulet | 70 | 100 |
-| Diamond bolt tips (12) | 65 Fletching | 7 |
-
-## Enchanted Jewelry
-
-| Item | Effect |
-|------|--------|
-| Ring of life | Auto-teleport at 10% HP |
-| Phoenix necklace | Heal when low HP |
-| Abyssal bracelet | Skull protection |
-| Amulet of power | +6 all combat |
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Ring of life for safety
-- Phoenix necklace for PvP
-- Diamond bolts (e) for PvM
-
-**Tips:**
-- High-tier common gem
-- Ring of life essential
-- Good bolt tips for bossing
-
-<Adsense />
+<OSRSAdsenseCard />

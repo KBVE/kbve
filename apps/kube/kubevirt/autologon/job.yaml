@@ -1,0 +1,60 @@
+# One-shot Job to configure Windows autologon on the builder VM.
+#
+# Uses the QEMU Guest Agent to set registry keys inside Windows so the
+# VM auto-logs in as Administrator on every boot — no VNC password prompt.
+#
+# Prerequisites:
+#   1. windows-builder VM is running with QEMU Guest Agent installed
+#   2. Secret 'windows-builder-admin' exists in angelscript namespace
+#      with key 'password' containing the Administrator password
+#   3. vm-scaler RBAC includes pod/exec permissions (auto-deployed via KEDA app)
+#
+# Apply manually (NOT managed by ArgoCD — this is a one-shot job):
+#   kubectl apply -f apps/kube/kubevirt/autologon/ -n angelscript
+#
+# Re-run (if the Job already completed):
+#   kubectl delete job vm-autologon-windows -n angelscript
+#   kubectl apply -f apps/kube/kubevirt/autologon/ -n angelscript
+#
+# The autologon config persists across reboots — only needs to run once.
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: vm-autologon-windows
+    namespace: angelscript
+    labels:
+        app: angelscript
+        component: vm-autologon
+spec:
+    backoffLimit: 3
+    ttlSecondsAfterFinished: 86400
+    template:
+        metadata:
+            labels:
+                app: angelscript
+                component: vm-autologon
+        spec:
+            serviceAccountName: vm-scaler
+            restartPolicy: OnFailure
+            containers:
+                - name: autologon
+                  image: registry.k8s.io/kubectl:v1.33.2
+                  command: ['/bin/sh', '/scripts/autologon.sh']
+                  env:
+                      - name: VM_NAME
+                        value: windows-builder
+                      - name: NAMESPACE
+                        value: angelscript
+                      - name: ADMIN_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: windows-builder-admin
+                                key: password
+                  volumeMounts:
+                      - name: script
+                        mountPath: /scripts
+            volumes:
+                - name: script
+                  configMap:
+                      name: vm-autologon-script
+                      defaultMode: 0755

@@ -75,63 +75,38 @@ osrs:
       slug: gold-bar
       relationship: component
       description: Crafting material
+  about: |-
+    | Effect | Description |
+    |--------|-------------|
+    | Rare drop table | Removes empty rolls |
+    | Coin collection | Auto-pickup coins/tokkul |
+    | Boss log | Tracks boss kills |
+    | Teleports | 5 charges when imbued |
+
+    - Grand Exchange
+    - Miscellania
+    - Falador Park
+    - Dondakan
+  market_strategy:
+    notes:
+      - Improves rare drops
+      - Coin collection useful
+      - Teleport charges
+      - Slayer tasks
+      - Bossing
+      - Money making
+      - Clue scrolls
+      - Charge at Fountain of Rune
+      - Imbue for permanent effect
+      - Auto coin pickup saves time
+      - Boss log tracking
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Effects
-
-| Effect | Description |
-|--------|-------------|
-| Rare drop table | Removes empty rolls |
-| Coin collection | Auto-pickup coins/tokkul |
-| Boss log | Tracks boss kills |
-| Teleports | 5 charges when imbued |
-
-## Teleport Locations
-
-- Grand Exchange
-- Miscellania
-- Falador Park
-- Dondakan
-
-## Market Flip Strategy
-
-**Essential Utility Ring:**
-- Improves rare drops
-- Coin collection useful
-- Teleport charges
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Demand Drivers:**
-- Slayer tasks
-- Bossing
-- Money making
-- Clue scrolls
-
-**Tips:**
-- Charge at Fountain of Rune
-- Imbue for permanent effect
-- Auto coin pickup saves time
-- Boss log tracking
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -74,54 +74,26 @@ osrs:
       slug: irit-leaf
       relationship: downgrade
       description: Lower tier herb
+  market_strategy:
+    notes:
+      - Super strength essential
+      - Weapon poison niche use
+      - Mid-tier pricing
+      - Super strength potions
+      - Combat training
+      - PvM preparation
+      - Divine potions
+      - Super strength always needed
+      - Often botted/farmed
+      - Stable prices
+      - Good farm profit
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Herblore
-
-| Potion | Level | Secondary |
-|--------|-------|-----------|
-| Super strength | 55 | Limpwurt root |
-| Weapon poison | 60 | Dragon scale dust |
-
-## Market Flip Strategy
-
-**Combat Herb:**
-- Super strength essential
-- Weapon poison niche use
-- Mid-tier pricing
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Demand Drivers:**
-- Super strength potions
-- Combat training
-- PvM preparation
-- Divine potions
-
-**Tips:**
-- Super strength always needed
-- Often botted/farmed
-- Stable prices
-- Good farm profit
-
-<Adsense />
+<OSRSAdsenseCard />

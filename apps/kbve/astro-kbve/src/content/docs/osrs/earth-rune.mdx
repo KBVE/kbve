@@ -64,72 +64,47 @@ osrs:
       slug: staff-of-earth
       relationship: alternative
       description: Unlimited earth runes
+  about: |-
+    | Requirement | Value |
+    |-------------|-------|
+    | Runecraft Level | 9 |
+    | XP per rune | 6.5 |
+    | Runes per essence | 1 (8 at 99) |
+
+    Multipliers (every 26 levels):
+    - Level 26: 2x runes
+    - Level 52: 3x runes
+    - Level 78: 4x runes
+
+    | Spell | Earth Runes | Other Runes |
+    |-------|-------------|-------------|
+    | Earth Strike | 2 | 1 Air, 1 Mind |
+    | Earth Bolt | 3 | 2 Air, 1 Chaos |
+    | Earth Blast | 4 | 3 Air, 1 Death |
+    | Earth Wave | 7 | 5 Air, 1 Blood |
+    | Earth Surge | 10 | 7 Air, 1 Wrath |
+    | Bones to Bananas | 2 | 1 Nature, 2 Water |
+    | Magic Imbue | 7 | 2 Astral, 1 Fire |
+  market_strategy:
+    notes:
+      - Used in many utility spells
+      - Charge earth orb
+      - Bones to Peaches tablets
+      - Charge Earth Orb
+      - Magic Imbue spell
+      - Earth spells
+      - Bones to Peaches
+      - Staff of earth saves runes
+      - Mud/Dust battlestaff combos
+      - Lower demand than fire/water
+      - Earth orbs for battlestaves
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Runecrafting
-
-| Requirement | Value |
-|-------------|-------|
-| Runecraft Level | 9 |
-| XP per rune | 6.5 |
-| Runes per essence | 1 (8 at 99) |
-
-**Multipliers (every 26 levels):**
-- Level 26: 2x runes
-- Level 52: 3x runes
-- Level 78: 4x runes
-
-## Key Spells
-
-| Spell | Earth Runes | Other Runes |
-|-------|-------------|-------------|
-| Earth Strike | 2 | 1 Air, 1 Mind |
-| Earth Bolt | 3 | 2 Air, 1 Chaos |
-| Earth Blast | 4 | 3 Air, 1 Death |
-| Earth Wave | 7 | 5 Air, 1 Blood |
-| Earth Surge | 10 | 7 Air, 1 Wrath |
-| Bones to Bananas | 2 | 1 Nature, 2 Water |
-| Magic Imbue | 7 | 2 Astral, 1 Fire |
-
-## Market Flip Strategy
-
-**Utility Rune:**
-- Used in many utility spells
-- Charge earth orb
-- Bones to Peaches tablets
-
-**Buy Limit:** 50,000 per 4 hours
-
-**Demand Drivers:**
-- Charge Earth Orb
-- Magic Imbue spell
-- Earth spells
-- Bones to Peaches
-
-**Tips:**
-- Staff of earth saves runes
-- Mud/Dust battlestaff combos
-- Lower demand than fire/water
-- Earth orbs for battlestaves
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -60,88 +60,51 @@ osrs:
       slug: glory-t
       relationship: alternative
       description: Trimmed cosmetic variant
+  about: |-
+    Lvl-5 Enchant on Dragonstone amulet.
+
+    | Runes Required |
+    |----------------|
+    | 1 Cosmic |
+    | 15 Water |
+    | 15 Earth |
+
+    | Offence | Bonus |
+    |---------|-------|
+    | Stab | +10 |
+    | Slash | +10 |
+    | Crush | +10 |
+    | Magic | +10 |
+    | Ranged | +10 |
+    | Strength | +6 |
+    | Prayer | +3 |
+
+    | Defence | Bonus |
+    |---------|-------|
+    | Stab | +3 |
+    | Slash | +3 |
+    | Crush | +3 |
+    | Magic | +3 |
+    | Ranged | +3 |
+
+    | Destination |
+    |-------------|
+    | Edgeville |
+    | Karamja |
+    | Draynor Village |
+    | Al Kharid |
+
+    | Method | Charges |
+    |--------|---------|
+    | Heroes' Guild | 4 |
+    | Fountain of Rune | 6 |
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Neck |
-| Type | Teleport Amulet |
-| Tradeable | Yes (only at 0, 4, or 6 charges) |
-| Weight | 0.01 kg |
-| Requirements | 68 Magic (to enchant) |
-
-## Creating
-
-Lvl-5 Enchant on Dragonstone amulet.
-
-| Runes Required |
-|----------------|
-| 1 Cosmic |
-| 15 Water |
-| 15 Earth |
-
-## Stats
-
-| Offence | Bonus |
-|---------|-------|
-| Stab | +10 |
-| Slash | +10 |
-| Crush | +10 |
-| Magic | +10 |
-| Ranged | +10 |
-| Strength | +6 |
-| Prayer | +3 |
-
-| Defence | Bonus |
-|---------|-------|
-| Stab | +3 |
-| Slash | +3 |
-| Crush | +3 |
-| Magic | +3 |
-| Ranged | +3 |
-
-## Teleport Locations
-
-| Destination |
-|-------------|
-| Edgeville |
-| Karamja |
-| Draynor Village |
-| Al Kharid |
-
-## Charges
-
-| Method | Charges |
-|--------|---------|
-| Heroes' Guild | 4 |
-| Fountain of Rune | 6 |
-
-## Related Items
-
-- [Amulet of eternal glory](/osrs/amulet-of-eternal-glory/) - Unlimited charges
-- [Amulet of fury](/osrs/amulet-of-fury/) - Upgrade
-- [Glory (t)](/osrs/glory-t/) - Trimmed cosmetic
-
-<Adsense />
+<OSRSAdsenseCard />

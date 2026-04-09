@@ -63,48 +63,23 @@ osrs:
       slug: lobster-pot
       relationship: alternative
       description: Used for fishing
+  market_strategy:
+    profit_formulas:
+      - Lobster price - Raw lobster price = Cooking profit
+    notes:
+      - Buy Raw lobster → Cook → Sell Lobster
+      - "Calculate:"
+      - Low burn rate at higher levels = consistent profit
+      - Great entry-level cooking flip
+      - Very high volume item
+      - Consistent margins
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Cooking
-
-Cook Raw lobster on a fire or range to get Lobster.
-
-| Stat | Value |
-|------|-------|
-| **Cooking Level** | 40 |
-| **Burn stop level** | 74 (64 with Cooking gauntlets + Hosidius range) |
-| **XP gained** | 120 |
-
-## Market Flip Strategy
-
-**Cook for Profit:**
-- Buy Raw lobster → Cook → Sell Lobster
-- Calculate: `Lobster price - Raw lobster price = Cooking profit`
-- Low burn rate at higher levels = consistent profit
-
-**Tips:**
-- Great entry-level cooking flip
-- Very high volume item
-- Consistent margins
-
-<Adsense />
+<OSRSAdsenseCard />

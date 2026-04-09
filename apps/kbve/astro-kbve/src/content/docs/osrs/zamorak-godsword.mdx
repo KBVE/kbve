@@ -70,74 +70,49 @@ osrs:
       slug: saradomin-godsword
       relationship: alternative
       description: Healing spec
+  about: |-
+    Attach Zamorak hilt to Godsword blade.
+
+    | Component | Source | Price |
+    |-----------|--------|-------|
+    | Zamorak hilt | K'ril Tsutsaroth (1/508) | ~18M gp |
+    | Godsword blade | GWD bosses | ~526K gp |
+
+    | Stat | Value |
+    |------|-------|
+    | Slash attack | +132 |
+    | Crush attack | +80 |
+    | Strength | +132 |
+    | Prayer | +8 |
+    | Attack speed | 6 tick (3.6s) |
+    | Requirements | 75 Attack |
+
+    Ice Cleave (50% energy):
+    - Doubled accuracy
+    - +10% max hit
+    - Freezes target for 19.2 seconds (same as Ice Barrage)
+
+    Best For:
+    - Castle Wars (freezing flag carriers)
+    - Barrows (freezing brothers)
+    - Chambers of Xeric (Muttadiles)
+    - PvP (freeze combos)
+
+    Niche Uses:
+    - Preventing boss mechanics (healing, moving)
+    - Controlling adds in multi-combat
+  market_strategy:
+    notes:
+      - Cheapest godsword
+      - Niche but useful freeze
+      - Good for specific content
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Attach Zamorak hilt to Godsword blade.
-
-| Component | Source | Price |
-|-----------|--------|-------|
-| Zamorak hilt | K'ril Tsutsaroth (1/508) | ~18M gp |
-| Godsword blade | GWD bosses | ~526K gp |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Slash attack | +132 |
-| Crush attack | +80 |
-| Strength | +132 |
-| Prayer | +8 |
-| Attack speed | 6 tick (3.6s) |
-| Requirements | 75 Attack |
-
-## Special Attack
-
-**Ice Cleave** (50% energy):
-- Doubled accuracy
-- +10% max hit
-- Freezes target for 19.2 seconds (same as Ice Barrage)
-
-## Usage
-
-**Best For:**
-- Castle Wars (freezing flag carriers)
-- Barrows (freezing brothers)
-- Chambers of Xeric (Muttadiles)
-- PvP (freeze combos)
-
-**Niche Uses:**
-- Preventing boss mechanics (healing, moving)
-- Controlling adds in multi-combat
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Cheapest godsword
-- Niche but useful freeze
-- Good for specific content
-
-<Adsense />
+<OSRSAdsenseCard />

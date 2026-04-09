@@ -85,58 +85,31 @@ osrs:
       slug: amethyst-arrow
       relationship: alternative
       description: Alternative high-tier arrow
+  market_strategy:
+    title: Component Chain
+    profit_formulas:
+      - (Rune arrow × 15) - (Headless arrow × 15) - (Rune arrowtips × 15) = Profit
+    notes:
+      - "Calculate:"
+      - 75 Fletching required
+      - Check arrowtip vs arrow margins
+      - Arrow shaft + Feather = Headless arrow
+      - Runite bar → Rune arrowtips
+      - High-level ranged training
+      - Crystal bow alternative ammo
+      - PKing (cheaper than dragon)
+      - General PvM
+      - Dragon arrows are often cheaper
+      - Popular for ironmen
+      - Check dragon arrow prices first
+      - Used in ballista
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Combat Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged Strength | +49 |
-| Best with | Shortbow or better |
-
-## Market Flip Strategy
-
-**Fletching Profit:**
-- Calculate: `(Rune arrow × 15) - (Headless arrow × 15) - (Rune arrowtips × 15) = Profit`
-- 75 Fletching required
-- Check arrowtip vs arrow margins
-
-**Component Chain:**
-- Arrow shaft + Feather = Headless arrow
-- Runite bar → Rune arrowtips
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- High-level ranged training
-- Crystal bow alternative ammo
-- PKing (cheaper than dragon)
-- General PvM
-
-**Tips:**
-- Dragon arrows are often cheaper
-- Popular for ironmen
-- Check dragon arrow prices first
-- Used in ballista
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -61,81 +61,48 @@ osrs:
       slug: sapphire-necklace
       relationship: component
       description: Base item for enchantment
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | Neck |
+    | Type | Teleport Jewelry |
+    | Tradeable | Yes |
+    | Weight | 0.01 kg |
+
+    Enchant Sapphire necklace with Lvl-1 Enchant.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 7 |
+    | Cosmic rune | 1 |
+    | Water rune | 1 |
+
+    - Burthorpe Games Room
+    - Barbarian Outpost
+    - Corporeal Beast
+    - Tears of Guthix (quest required)
+    - Wintertodt Camp (visited Zeah)
+
+    Charges: 8 (crumbles when depleted)
+
+    Essential for:
+    - Corp teleport
+    - Wintertodt access
+    - Barbarian Assault
+
+    Very useful utility teleport.
+  market_strategy:
+    notes:
+      - Best Corp teleport
+      - Good for Wintertodt
+      - Very cheap
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Neck |
-| Type | Teleport Jewelry |
-| Tradeable | Yes |
-| Weight | 0.01 kg |
-
-## Creation
-
-Enchant [Sapphire necklace](/osrs/sapphire-necklace/) with Lvl-1 Enchant.
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 7 |
-| Cosmic rune | 1 |
-| Water rune | 1 |
-
-## Teleport Locations
-
-- Burthorpe Games Room
-- Barbarian Outpost
-- Corporeal Beast
-- Tears of Guthix (quest required)
-- Wintertodt Camp (visited Zeah)
-
-**Charges:** 8 (crumbles when depleted)
-
-## Usage
-
-Essential for:
-- Corp teleport
-- Wintertodt access
-- Barbarian Assault
-
-**Very useful utility teleport.**
-
-## Market Strategy
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Price:** ~630 gp
-
-**Tips:**
-- Best Corp teleport
-- Good for Wintertodt
-- Very cheap
-
-## Related Items
-
-- [Ring of dueling](/osrs/ring-of-dueling/) - Alternative teleports
-- [Corporeal Beast](/osrs/corporeal-beast/) - Teleport destination
-- [Wintertodt](/osrs/wintertodt/) - Teleport destination
-
-<Adsense />
+<OSRSAdsenseCard />

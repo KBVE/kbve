@@ -1,6 +1,6 @@
 ---
 title: Dorgeshuun crossbow | OSRS Price Data
-description: "Dorgeshuun crossbow: This fires crossbow bolts.. High alch: 1,200 GP, GE limit: 70."
+description: "Dorgeshuun crossbow is a members weapon slot item requiring 28 Ranged. High alch: 1,200 GP, GE limit: 70."
 osrs:
   id: 8880
   name: Dorgeshuun crossbow
@@ -12,26 +12,71 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 70
+  equipment:
+    slot: weapon
+    attack_speed: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 42
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      ranged: 28
+    weight: 2.267
+  special_attack:
+    name: Snipe
+    energy: 75
+    description: Never misses unsuspecting targets. Reduces Defence by damage dealt.
+  related_items:
+    - item_id: 9185
+      item_name: Rune crossbow
+      slug: rune-crossbow
+      relationship: upgrade
+      description: Higher tier crossbow
+  about: |-
+    | Attack | Value |
+    |--------|-------|
+    | Ranged | +42 |
+
+    Requirements: 28 Ranged | Speed: 5 tick (3.0s), 4 tick on Rapid | Weight: 2.27 kg
+
+    The Dorgeshuun crossbow is the only crossbow that fires bone bolts — extremely cheap ammunition (~5 GP each) with damage comparable to iron bolts. This makes it one of the most cost-efficient ranged training weapons in the game.
+
+    Cost: 75% special attack energy
+
+    Never misses against "unsuspecting" targets (those you haven't damaged yet or that weren't last attacked by you). Additionally reduces the target's Defence by the damage dealt — sharing mechanics with the Bandos godsword and bone dagger.
+
+    | Crossbow | Ranged Atk | Ammo Cost | Speed |
+    |----------|-----------|-----------|-------|
+    | Dorgeshuun | +42 | ~5 GP (bone bolts) | 5 tick |
+    | Rune crossbow | +90 | ~100 GP (broad bolts) | 5 tick |
+    | Magic shortbow (i) | +69 | ~50 GP (rune arrows) | 3 tick |
+
+    For players on a budget or training low-level accounts, the Dorgeshuun crossbow + bone bolts offers the cheapest ranged XP per hour.
+  market_strategy:
+    notes:
+      - Extremely cheap training setup with bone bolts
+      - Popular with low-level pures and ironmen
+      - The Lost Tribe quest is short and easy
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

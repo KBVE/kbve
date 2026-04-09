@@ -75,108 +75,58 @@ osrs:
       slug: avernic-defender-hilt
       relationship: alternative
       description: Other ToB unique
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Stab | +70 |
+    | Slash | +125 |
+    | Crush | +30 |
+    | Strength | +75 |
+
+    Requirements: 80 Attack, 90 Strength
+
+    Multi-hit:
+    On targets 3x3 or larger, the Scythe hits up to 3 times per attack:
+    - 1st hit: 100% damage
+    - 2nd hit: 50% damage
+    - 3rd hit: 25% damage
+
+    Total: 175% of a normal hit on large targets.
+
+    | Resource | Per Hit | Cost |
+    |----------|---------|------|
+    | Blood rune | 1 | ~300 gp |
+    | Vial of blood | 0.003 | ~600 gp |
+
+    Total cost per hit: ~900 gp
+
+    | Charge Info | Value |
+    |-------------|-------|
+    | Max charges | 20,000 |
+    | Full charge cost | ~18M gp |
+
+    BiS for large targets:
+    - Theatre of Blood (all rooms except Maiden)
+    - Nightmare/Phosani's Nightmare
+    - Cerberus
+    - Abyssal Sire
+    - Thermonuclear Smoke Devil
+    - Duke Sucellus
+
+    NOT effective on small targets (1x1 or 2x2).
+  market_strategy:
+    notes:
+      - Expensive to maintain
+      - BiS for 3x3+ targets
+      - ToB is primary source
+      - Consider charge cost in DPS calculations
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Two-handed) |
-| Type | Scythe |
-| Tradeable | Yes |
-| Weight | 3.628 kg |
-| Attack Speed | 5 tick (3.0s) |
-| Attack Range | 1 tile |
-
-## Obtaining
-
-Rare drop from [Theatre of Blood](/osrs/theatre-of-blood/).
-
-Drop rate scales with raid performance and difficulty mode.
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Stab | +70 |
-| Slash | +125 |
-| Crush | +30 |
-| Strength | +75 |
-
-**Requirements:** 80 Attack, 90 Strength
-
-## Passive Effect
-
-**Multi-hit:**
-On targets 3x3 or larger, the Scythe hits up to 3 times per attack:
-- 1st hit: 100% damage
-- 2nd hit: 50% damage
-- 3rd hit: 25% damage
-
-**Total: 175% of a normal hit on large targets.**
-
-## Charging
-
-| Resource | Per Hit | Cost |
-|----------|---------|------|
-| Blood rune | 1 | ~300 gp |
-| Vial of blood | 0.003 | ~600 gp |
-
-**Total cost per hit:** ~900 gp
-
-| Charge Info | Value |
-|-------------|-------|
-| Max charges | 20,000 |
-| Full charge cost | ~18M gp |
-
-## Usage
-
-BiS for large targets:
-- Theatre of Blood (all rooms except Maiden)
-- Nightmare/Phosani's Nightmare
-- Cerberus
-- Abyssal Sire
-- Thermonuclear Smoke Devil
-- Duke Sucellus
-
-**NOT effective on small targets (1x1 or 2x2).**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~330M gp
-
-**Tips:**
-- Expensive to maintain
-- BiS for 3x3+ targets
-- ToB is primary source
-- Consider charge cost in DPS calculations
-
-## Related Items
-
-- [Ghrazi rapier](/osrs/ghrazi-rapier/) - Small target alternative
-- [Sanguinesti staff](/osrs/sanguinesti-staff/) - Magic equivalent
-- [Theatre of Blood](/osrs/theatre-of-blood/) - Source
-
-<Adsense />
+<OSRSAdsenseCard />

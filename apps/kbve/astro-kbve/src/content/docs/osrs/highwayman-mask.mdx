@@ -1,6 +1,6 @@
 ---
 title: Highwayman mask | OSRS Price Data
-description: "Highwayman mask: Your money or your life!. High alch: 24 GP, GE limit: 4."
+description: "Highwayman mask is a members head slot item. High alch: 24 GP, GE limit: 4."
 osrs:
   id: 2631
   name: Highwayman mask
@@ -12,26 +12,20 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 4
+  equipment:
+    slot: head
+    requirements: {}
+  about: |-
+    > *"Your money or your life!"*
+
+    The highwayman mask is a purely cosmetic head slot item from easy treasure trails. It provides no combat bonuses. Can be combined with a black cavalier at NPC Patchy to create a cavalier and mask.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

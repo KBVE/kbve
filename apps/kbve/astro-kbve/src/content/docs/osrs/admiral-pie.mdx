@@ -1,6 +1,6 @@
 ---
 title: Admiral pie | OSRS Price Data
-description: "Admiral pie: Much tastier than a normal fish pie.. High alch: 186 GP, GE limit: 10,000."
+description: "Admiral pie is a members food item healing 16 HP. High alch: 186 GP, GE limit: 10,000."
 osrs:
   id: 7198
   name: Admiral pie
@@ -12,26 +12,62 @@ osrs:
   lowalch: 124
   highalch: 186
   limit: 10000
+  food:
+    heals: 16
+    cooking_level: 70
+    cooking_xp: 210
+  recipes:
+    - skill: cooking
+      level: 70
+      xp: 210
+      inputs:
+        - item_name: Pastry dough
+          quantity: 1
+        - item_name: Pie dish
+          quantity: 1
+        - item_name: Salmon
+          quantity: 1
+        - item_name: Tuna
+          quantity: 1
+        - item_name: Potato
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 7208
+      item_name: Wild pie
+      slug: wild-pie
+      relationship: alternative
+      description: +5 Slayer boost
+    - item_id: 7170
+      item_name: Mud pie
+      slug: mud-pie
+      relationship: alternative
+      description: Run energy drain
+  about: |-
+    | Skill | Boost |
+    |-------|-------|
+    | Fishing | +5 levels |
+
+    Healing: 16 HP total (8 per bite, 2 bites)
+
+    The +5 Fishing boost is used for:
+    - Boosting to catch dark crabs (85 Fishing → 80 with pie)
+    - Accessing Minnows (82 Fishing → 77 with pie)
+    - Boosting for anglerfish (82 Fishing → 77 with pie)
+    - Completing diary tasks requiring high Fishing levels
+    - Reaching infernal eels (80 Fishing → 75 with pie)
+  market_strategy:
+    notes:
+      - Ingredients are cheap (salmon, tuna, potato)
+      - Demand from players boosting for diary tasks
+      - Bake Pie spell avoids burning
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

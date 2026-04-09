@@ -51,69 +51,42 @@ osrs:
       slug: harmonised-nightmare-staff
       relationship: alternative
       description: Best magic DPS
+  about: |-
+    | Stat | Value |
+    |------|-------|
+    | Magic attack | +17 |
+    | Magic damage | +15% |
+    | Stab attack | +55 |
+    | Slash attack | +70 |
+    | Strength bonus | +72 |
+    | Requirements | 75 Magic, 75 Attack |
+
+    Power of Death (100% energy):
+    - Halves melee damage received
+    - Lasts 1 minute
+    - Great for tanking
+
+    PvM:
+    - Hybrid magic/melee staff
+    - Good for Slayer
+    - Budget magic option
+
+    PvP:
+    - Melee defence spec
+    - Tribrid setups
+    - Staff bash damage
+  market_strategy:
+    notes:
+      - K'ril drop drives supply
+      - Component for toxic version
+      - Budget magic weapon
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Dropped by K'ril Tsutsaroth in the God Wars Dungeon at a rate of 1/508.
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Magic attack | +17 |
-| Magic damage | +15% |
-| Stab attack | +55 |
-| Slash attack | +70 |
-| Strength bonus | +72 |
-| Requirements | 75 Magic, 75 Attack |
-
-## Special Attack
-
-**Power of Death** (100% energy):
-- Halves melee damage received
-- Lasts 1 minute
-- Great for tanking
-
-## Usage
-
-**PvM:**
-- Hybrid magic/melee staff
-- Good for Slayer
-- Budget magic option
-
-**PvP:**
-- Melee defence spec
-- Tribrid setups
-- Staff bash damage
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- K'ril drop drives supply
-- Component for toxic version
-- Budget magic weapon
-
-<Adsense />
+<OSRSAdsenseCard />

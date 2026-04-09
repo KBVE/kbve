@@ -44,92 +44,49 @@ osrs:
       slug: dragon-warhammer
       relationship: alternative
       description: Spec alternative
+  about: |-
+    Combine 3 components at The Overseer (Abyssal Nexus):
+    - Bludgeon axon
+    - Bludgeon claw
+    - Bludgeon spine
+
+    All components from placing Unsired in Font of Consumption.
+
+    | Offense | Value |
+    |---------|-------|
+    | Crush | +102 |
+    | Strength | +85 |
+
+    | Defence | Value |
+    |---------|-------|
+    | All | +0 |
+
+    Requirements: 70 Attack, 70 Strength
+
+    Penance (50% energy):
+    - Damage increases by 0.5% per missing prayer point
+    - At 0 prayer (99 max): +49.5% damage
+    - Encourages low prayer combat
+
+    BiS crush weapon for:
+    - Cerberus
+    - Gargoyles
+    - Sarachnis
+    - Budget crush option
+
+    Best crush weapon until Inquisitor's mace.
+  market_strategy:
+    notes:
+      - Sire grind for components
+      - 3 specific drops needed
+      - Very RNG dependent
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Two-handed) |
-| Type | Melee - Crush |
-| Tradeable | Yes |
-| Weight | 6 kg |
-| Attack Speed | 4 tick (2.4s) |
-
-## Creation
-
-Combine 3 components at The Overseer (Abyssal Nexus):
-- Bludgeon axon
-- Bludgeon claw
-- Bludgeon spine
-
-All components from placing [Unsired](/osrs/unsired/) in Font of Consumption.
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Crush | +102 |
-| Strength | +85 |
-
-| Defence | Value |
-|---------|-------|
-| All | +0 |
-
-**Requirements:** 70 Attack, 70 Strength
-
-## Special Attack
-
-**Penance** (50% energy):
-- Damage increases by 0.5% per missing prayer point
-- At 0 prayer (99 max): +49.5% damage
-- Encourages low prayer combat
-
-## Usage
-
-BiS crush weapon for:
-- Cerberus
-- Gargoyles
-- Sarachnis
-- Budget crush option
-
-**Best crush weapon until Inquisitor's mace.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~22M gp
-
-**Tips:**
-- Sire grind for components
-- 3 specific drops needed
-- Very RNG dependent
-
-## Related Items
-
-- [Inquisitor's mace](/osrs/inquisitors-mace/) - BiS crush upgrade
-- [Abyssal dagger](/osrs/abyssal-dagger/) - From same boss
-- [Dragon warhammer](/osrs/dragon-warhammer/) - Spec alternative
-
-<Adsense />
+<OSRSAdsenseCard />

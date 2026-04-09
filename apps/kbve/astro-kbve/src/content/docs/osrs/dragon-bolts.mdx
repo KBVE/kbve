@@ -60,70 +60,33 @@ osrs:
       slug: diamond-dragon-bolts-e
       relationship: variant
       description: Popular variant
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Ammunition |
+    | Tradeable | Yes |
+    | Stackable | Yes |
+    | Weight | 0 kg |
+    | Requirements | 64 Ranged |
+
+    | Stat | Bonus |
+    |------|-------|
+    | Ranged strength | +122 |
+
+    | Type | Effect |
+    |------|--------|
+    | Dragon bolts (p) | Basic poison |
+    | Dragon bolts (p+) | Extra poison |
+    | Dragon bolts (p++) | Super poison |
+
+    Can be tipped with gem bolt tips and enchanted.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Ammunition |
-| Tradeable | Yes |
-| Stackable | Yes |
-| Weight | 0 kg |
-| Requirements | 64 Ranged |
-
-## Stats
-
-| Stat | Bonus |
-|------|-------|
-| Ranged strength | +122 |
-
-## Obtaining
-
-**Fletching (84 Fletching):**
-- 10 Dragon bolts (unfinished) + 10 Feathers
-- 12 XP per bolt
-
-## Variants
-
-| Type | Effect |
-|------|--------|
-| Dragon bolts (p) | Basic poison |
-| Dragon bolts (p+) | Extra poison |
-| Dragon bolts (p++) | Super poison |
-
-Can be tipped with gem bolt tips and enchanted.
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~3.5K gp
-
-## Related Items
-
-- [Dragon bolts (unf)](/osrs/dragon-bolts-unf/) - Base item
-- [Ruby dragon bolts (e)](/osrs/ruby-dragon-bolts-e/) - Popular variant
-- [Diamond dragon bolts (e)](/osrs/diamond-dragon-bolts-e/) - Popular variant
-
-<Adsense />
+<OSRSAdsenseCard />

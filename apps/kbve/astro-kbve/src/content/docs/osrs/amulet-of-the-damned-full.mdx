@@ -53,86 +53,46 @@ osrs:
       slug: shade-catacombs
       relationship: component
       description: Drop source
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Stab | +10 |
+    | Slash | +10 |
+    | Crush | +10 |
+    | Magic | +10 |
+    | Ranged | +10 |
+    | Strength | +6 |
+
+    | Defence | Value |
+    |---------|-------|
+    | All | +3 |
+
+    | Other | Value |
+    |-------|-------|
+    | Prayer | +3 |
+
+    | Set | Bonus |
+    |-----|-------|
+    | Dharok's | 25% reflect 15% damage |
+    | Verac's | +7 Prayer bonus |
+    | Torag's | +1% Def per missing HP |
+    | Guthan's | Heal up to +10 over max |
+    | Karil's | 25% double hit (half dmg) |
+    | Ahrim's | Autocast Ancients, +25% dmg |
+
+    Essential for:
+    - Barrows set bonuses
+    - Enhanced Barrows armour
+    - Niche uses
+
+    Unlocks unique Barrows set effects.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Neck |
-| Type | Amulet |
-| Tradeable | Yes (full only) |
-| Weight | 0.02 kg |
-
-## Obtaining
-
-| Source | Notes |
-|--------|-------|
-| Shade Catacombs | Silver/gold chests |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Stab | +10 |
-| Slash | +10 |
-| Crush | +10 |
-| Magic | +10 |
-| Ranged | +10 |
-| Strength | +6 |
-
-| Defence | Value |
-|---------|-------|
-| All | +3 |
-
-| Other | Value |
-|-------|-------|
-| Prayer | +3 |
-
-## Barrows Set Effects
-
-| Set | Bonus |
-|-----|-------|
-| Dharok's | 25% reflect 15% damage |
-| Verac's | +7 Prayer bonus |
-| Torag's | +1% Def per missing HP |
-| Guthan's | Heal up to +10 over max |
-| Karil's | 25% double hit (half dmg) |
-| Ahrim's | Autocast Ancients, +25% dmg |
-
-## Usage
-
-Essential for:
-- Barrows set bonuses
-- Enhanced Barrows armour
-- Niche uses
-
-**Unlocks unique Barrows set effects.**
-
-## Related Items
-
-- [Dharok's set](/osrs/dharoks-set/) - Reflect bonus
-- [Ahrim's set](/osrs/ahrims-set/) - Magic boost
-- [Shade Catacombs](/osrs/shade-catacombs/) - Drop source
-
-<Adsense />
+<OSRSAdsenseCard />

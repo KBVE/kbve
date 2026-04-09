@@ -52,55 +52,32 @@ osrs:
       slug: bowl
       relationship: product
       description: Fired version
+  about: |-
+    | Method | Level | Materials |
+    |--------|-------|-----------|
+    | Potter's wheel | 8 | 1 Soft clay |
+    | XP | 18 | - |
+
+    | Method | Level | XP |
+    |--------|-------|-----|
+    | Pottery oven | 1 | 15 |
+    | Success rate | 100% at 13+ | - |
+  market_strategy:
+    notes:
+      - Bowl crafting
+      - Cooking skill
+      - F2P accessible
+      - Highest XP pottery item
+      - May crack below level 13
+      - Guaranteed success at 13+
+      - F2P accessible
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creating
-
-| Method | Level | Materials |
-|--------|-------|-----------|
-| Potter's wheel | 8 | 1 Soft clay |
-| XP | 18 | - |
-
-## Firing
-
-| Method | Level | XP |
-|--------|-------|-----|
-| Pottery oven | 1 | 15 |
-| Success rate | 100% at 13+ | - |
-
-## Market Strategy
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Demand Drivers:**
-- Bowl crafting
-- Cooking skill
-- F2P accessible
-
-**Tips:**
-- Highest XP pottery item
-- May crack below level 13
-- Guaranteed success at 13+
-- F2P accessible
-
-<Adsense />
+<OSRSAdsenseCard />

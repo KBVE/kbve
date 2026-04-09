@@ -1,6 +1,6 @@
 ---
 title: Onyx ring | OSRS Price Data
-description: "Onyx ring: A valuable ring.. High alch: 120,600 GP, GE limit: 10,000."
+description: "Onyx ring is a members ring slot item. High alch: 120,600 GP, GE limit: 10,000."
 osrs:
   id: 6575
   name: Onyx ring
@@ -12,26 +12,51 @@ osrs:
   lowalch: 80400
   highalch: 120600
   limit: 10000
+  equipment:
+    slot: ring
+    requirements:
+      crafting: 67
+  recipes:
+    - skill: crafting
+      level: 67
+      xp: 115
+      inputs:
+        - item_id: 6573
+          item_name: Onyx
+          quantity: 1
+        - item_id: 2357
+          item_name: Gold bar
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 1645
+      item_name: Dragonstone ring
+      slug: dragonstone-ring
+      relationship: downgrade
+      description: Previous tier ring
+    - item_id: 19538
+      item_name: Zenyte ring
+      slug: zenyte-ring
+      relationship: upgrade
+      description: Next tier ring (zenyte)
+  about: |-
+    | Input | Skill | Level | XP |
+    |-------|-------|-------|----|
+    | Onyx + Gold bar | Crafting | 67 | 115 |
+
+    Enchant with Lvl-6 Enchant (Magic 87) to create Ring of stone (cosmetic transformation).
+  market_strategy:
+    notes:
+      - Onyx is expensive (~2.5M)
+      - Ring of stone is cosmetic only
+      - Niche crafting XP method
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

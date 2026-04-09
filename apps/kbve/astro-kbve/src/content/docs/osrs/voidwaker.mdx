@@ -70,94 +70,46 @@ osrs:
       slug: dragon-claws
       relationship: alternative
       description: Alternative spec weapon
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Stab | +70 |
+    | Slash | +80 |
+    | Crush | -2 |
+    | Magic | +5 |
+    | Melee Strength | +80 |
+
+    | Defense | Value |
+    |---------|-------|
+    | Slash | +1 |
+    | Magic | +2 |
+
+    Requirements: 75 Attack
+
+    Disrupt (50% spec):
+    - Deals guaranteed magic damage
+    - Hits between 50-150% of max melee hit
+    - Grants 2 Magic XP per damage dealt
+    - Cannot be blocked or reduced
+
+    Best for:
+    - PvP KO weapon
+    - Spec weapon for bossing
+    - Wilderness PKing
+
+    Top-tier special attack weapon.
+  market_strategy:
+    notes:
+      - Guaranteed damage makes it reliable
+      - Popular PvP spec weapon
+      - Components from Wilderness bosses
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Main-hand) |
-| Type | Sword |
-| Tradeable | Yes |
-| Weight | 1.814 kg |
-| Attack Speed | 4 tick (2.4s) |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Stab | +70 |
-| Slash | +80 |
-| Crush | -2 |
-| Magic | +5 |
-| Melee Strength | +80 |
-
-| Defense | Value |
-|---------|-------|
-| Slash | +1 |
-| Magic | +2 |
-
-**Requirements:** 75 Attack
-
-## Special Attack
-
-**Disrupt (50% spec):**
-- Deals guaranteed magic damage
-- Hits between 50-150% of max melee hit
-- Grants 2 Magic XP per damage dealt
-- Cannot be blocked or reduced
-
-## Obtaining
-
-Assemble with Madam Sikaro for 500,000 coins:
-- Voidwaker blade (Vet'ion/Calvar'ion)
-- Voidwaker hilt (Callisto/Artio)
-- Voidwaker gem (Venenatis/Spindel)
-
-## Usage
-
-Best for:
-- PvP KO weapon
-- Spec weapon for bossing
-- Wilderness PKing
-
-**Top-tier special attack weapon.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~37M gp
-
-**Tips:**
-- Guaranteed damage makes it reliable
-- Popular PvP spec weapon
-- Components from Wilderness bosses
-
-## Related Items
-
-- [Voidwaker blade](/osrs/voidwaker-blade/) - Component from Vet'ion
-- [Voidwaker hilt](/osrs/voidwaker-hilt/) - Component from Callisto
-- [Voidwaker gem](/osrs/voidwaker-gem/) - Component from Venenatis
-
-<Adsense />
+<OSRSAdsenseCard />

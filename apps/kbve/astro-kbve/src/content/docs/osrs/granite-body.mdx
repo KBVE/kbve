@@ -53,50 +53,23 @@ osrs:
       slug: rune-platebody
       relationship: downgrade
       description: Cheaper alternative
+  about: |-
+    - Heaviest body armour in the game (22.679 kg)
+    - High ranged defence (+97)
+    - Required for Hard Kandarin Diary
+
+    Diary Task: Wear granite body in the Barbarian Outpost agility area.
+  trading_tips:
+    - Buy from GE if you only need for diary
+    - Not commonly used due to extreme weight
+    - No strength bonus unlike Fighter torso
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Purchased from Commander Connad at the Barbarian Outpost for 95,000 coins after defeating the Penance Queen.
-
-**Requirements:**
-- 1 Penance Queen kill
-- 95,000 coins
-
-**Also tradeable on Grand Exchange.**
-
-## Usage
-
-- Heaviest body armour in the game (22.679 kg)
-- High ranged defence (+97)
-- Required for Hard Kandarin Diary
-
-**Diary Task:** Wear granite body in the Barbarian Outpost agility area.
-
-## Tips
-
-- Buy from GE if you only need for diary
-- Not commonly used due to extreme weight
-- No strength bonus unlike Fighter torso
-
-<Adsense />
+<OSRSAdsenseCard />

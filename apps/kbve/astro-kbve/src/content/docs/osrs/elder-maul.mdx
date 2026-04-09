@@ -39,61 +39,36 @@ osrs:
       slug: bandos-godsword
       relationship: alternative
       description: Defence drain spec
+  about: |-
+    | Stat | Value |
+    |------|-------|
+    | Attack style | Crush |
+    | Crush attack | +135 |
+    | Strength bonus | +147 |
+    | Attack speed | 6 tick (3.6s) |
+    | Requirements | 75 Attack, 75 Strength |
+
+    PvM:
+    - Highest crush bonus in the game
+    - Effective against crush-weak enemies
+    - Two-handed limits shield use
+
+    PvP:
+    - Devastating KO potential
+    - Slow attack speed is predictable
+    - Often used for combos
+  market_strategy:
+    notes:
+      - Raid reward drives supply
+      - Crush meta affects demand
+      - Popular for PKing
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Obtained as a rare reward from the Chambers of Xeric raid.
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Attack style | Crush |
-| Crush attack | +135 |
-| Strength bonus | +147 |
-| Attack speed | 6 tick (3.6s) |
-| Requirements | 75 Attack, 75 Strength |
-
-## Usage
-
-**PvM:**
-- Highest crush bonus in the game
-- Effective against crush-weak enemies
-- Two-handed limits shield use
-
-**PvP:**
-- Devastating KO potential
-- Slow attack speed is predictable
-- Often used for combos
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Raid reward drives supply
-- Crush meta affects demand
-- Popular for PKing
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -63,63 +63,25 @@ osrs:
       slug: headless-arrow
       relationship: component
       description: Fletching material
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | Ammo |
+    | Type | Arrows |
+    | Tradeable | Yes |
+    | Weight | 0 kg |
+    | Requirements | 20 Ranged |
+
+    Used with any shortbow or longbow.
+
+    Budget training ammunition.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Ammo |
-| Type | Arrows |
-| Tradeable | Yes |
-| Weight | 0 kg |
-| Requirements | 20 Ranged |
-
-## Obtaining
-
-**Fletching:** Combine mithril arrowtips with headless arrows (45 Fletching, 112.5 XP per 15).
-
-**Shops:** Lowe's Archery Emporium, various archery shops.
-
-**Drops:** Ice warriors, white knights, waterfiends.
-
-## Usage
-
-Used with any shortbow or longbow.
-
-Budget training ammunition.
-
-## Market Strategy
-
-**Buy Limit:** 7,000 per 4 hours
-
-**Price:** ~17 gp
-
-Cheap training option. High volume trading.
-
-## Related Items
-
-- [Mithril arrowtips](/osrs/mithril-arrowtips/) - Crafting material
-- [Adamant arrow](/osrs/adamant-arrow/) - Upgrade option
-
-<Adsense />
+<OSRSAdsenseCard />

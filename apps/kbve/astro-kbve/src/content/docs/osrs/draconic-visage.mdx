@@ -59,70 +59,30 @@ osrs:
       slug: vorkath
       relationship: component
       description: Best source
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Crafting Material |
+    | Tradeable | Yes |
+    | Weight | 1.814 kg |
+
+    | Item Created | Materials | Method |
+    |--------------|-----------|--------|
+    | Dragonfire shield | Anti-dragon shield + visage | 90 Smithing or Oziach (1.25M) |
+
+    Grants 2,000 Smithing XP when crafted.
+  market_strategy:
+    notes:
+      - Vorkath is best consistent source
+      - KBD for early game
+      - Required for Dragon Slayer I
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Crafting Material |
-| Tradeable | Yes |
-| Weight | 1.814 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| King Black Dragon | 1/5,000 |
-| Vorkath | 1/5,000 |
-| Black dragon (Wildy Slayer) | 1/5,000 |
-| Rune dragon | 1/8,000 |
-| Adamant dragon | 1/9,000 |
-| Most other dragons/wyverns | 1/10,000 |
-
-## Uses
-
-| Item Created | Materials | Method |
-|--------------|-----------|--------|
-| Dragonfire shield | Anti-dragon shield + visage | 90 Smithing or Oziach (1.25M) |
-
-Grants 2,000 Smithing XP when crafted.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~3.5M gp
-
-**Tips:**
-- Vorkath is best consistent source
-- KBD for early game
-- Required for Dragon Slayer I
-
-## Related Items
-
-- [Dragonfire shield](/osrs/dragonfire-shield/) - Created shield
-- [Anti-dragon shield](/osrs/anti-dragon-shield/) - Base material
-- [Vorkath](/osrs/vorkath/) - Best source
-
-<Adsense />
+<OSRSAdsenseCard />

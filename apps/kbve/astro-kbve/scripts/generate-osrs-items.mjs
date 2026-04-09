@@ -1,26 +1,30 @@
 /**
- * Generate OSRS item MDX files from Wiki API
- * Run this as a prebuild step: node scripts/generate-osrs-items.mjs
+ * Bootstrap new OSRS item MDX files from Wiki API
  *
- * Features:
- * - Fetches item data from OSRS Wiki API
- * - Merges override frontmatter from data/osrs-overrides/_ITEMID.mdx
- * - Supports extended schema fields (equipment, potions, drop tables, etc.)
+ * This script creates MDX files for NEW items only — items whose ID
+ * doesn't already exist in any MDX file's frontmatter. Existing MDX
+ * files are the single source of truth and are NEVER overwritten.
+ * Slugs in existing files are preserved to protect SEO.
+ *
+ * Run: node scripts/generate-osrs-items.mjs [--audit]
+ *   --audit: report which existing items have stale data vs Wiki API (no writes)
  */
 
-import { writeFile, mkdir, rm, readFile } from 'fs/promises';
-import { existsSync } from 'fs';
+import { writeFile, mkdir, readdir, readFile } from 'fs/promises';
 import { join } from 'path';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 
 const OSRS_MAPPING_URL = 'https://prices.runescape.wiki/api/v1/osrs/mapping';
 const USER_AGENT = 'KBVE item_tracker - @h0lybyte on Discord';
 const OUTPUT_DIR = './src/content/docs/osrs';
-const OVERRIDE_DIR = './data/osrs-overrides';
+
+const args = process.argv.slice(2);
+const auditMode = args.includes('--audit');
+
+const TODAY = new Date().toISOString().slice(0, 10);
 
 /**
  * Convert item name to URL-safe slug
- * "Dragon hunter crossbow" -> "dragon-hunter-crossbow"
  */
 function nameToSlug(name) {
 	return name
@@ -30,169 +34,89 @@ function nameToSlug(name) {
 }
 
 /**
- * Parse override file and return both frontmatter data and markdown content
- * Override files are stored in data/osrs-overrides/_ITEMID.mdx
- *
- * @returns {{ frontmatter: object | null, content: string | null }}
+ * Build an index of existing item IDs from MDX frontmatter.
+ * Returns a Set of numeric IDs that already have MDX files.
+ * This is the authoritative check — slug/filename doesn't matter.
  */
-async function parseOverrideFile(itemId) {
-	const overridePath = join(OVERRIDE_DIR, `_${itemId}.mdx`);
-	if (!existsSync(overridePath)) {
-		return { frontmatter: null, content: null };
-	}
+async function buildExistingIdIndex() {
+	const ids = new Set();
+	const slugsById = new Map();
 
-	const fileContent = await readFile(overridePath, 'utf-8');
+	const files = await readdir(OUTPUT_DIR);
+	const mdxFiles = files.filter((f) => f.endsWith('.mdx'));
 
-	// Check for frontmatter (content between --- markers)
-	const frontmatterMatch = fileContent.match(/^---\n([\s\S]*?)\n---\n?/);
+	console.log(`  Indexing ${mdxFiles.length} existing MDX files by osrs.id...`);
 
-	if (frontmatterMatch) {
+	let indexed = 0;
+	for (const file of mdxFiles) {
 		try {
-			const frontmatter = parseYaml(frontmatterMatch[1]);
-			const content = fileContent.slice(frontmatterMatch[0].length).trim();
-			return { frontmatter, content: content || null };
-		} catch (err) {
-			console.warn(`⚠️ Failed to parse YAML in override for item ${itemId}: ${err.message}`);
-			return { frontmatter: null, content: fileContent.trim() };
-		}
-	}
+			const content = await readFile(join(OUTPUT_DIR, file), 'utf-8');
+			const match = content.match(/^---\n([\s\S]*?)\n---/);
+			if (!match) continue;
 
-	return { frontmatter: null, content: fileContent.trim() };
-}
-
-/**
- * Deep merge two objects, with source values taking precedence
- */
-function deepMerge(target, source) {
-	const result = { ...target };
-
-	for (const key of Object.keys(source)) {
-		if (source[key] !== null && source[key] !== undefined) {
-			if (
-				typeof source[key] === 'object' &&
-				!Array.isArray(source[key]) &&
-				typeof target[key] === 'object' &&
-				!Array.isArray(target[key])
-			) {
-				result[key] = deepMerge(target[key], source[key]);
-			} else {
-				result[key] = source[key];
+			const fm = parseYaml(match[1]);
+			const id = fm?.osrs?.id;
+			if (id !== undefined && id !== null) {
+				ids.add(Number(id));
+				slugsById.set(Number(id), fm.osrs.slug || file.replace('.mdx', ''));
+				indexed++;
 			}
+		} catch {
+			// Skip files that can't be parsed
+		}
+
+		if (indexed % 1000 === 0 && indexed > 0) {
+			console.log(`    ... indexed ${indexed}`);
 		}
 	}
 
-	return result;
+	console.log(`  📋 Indexed ${ids.size} unique item IDs`);
+	return { ids, slugsById };
 }
 
 /**
- * Generate an SEO-optimized description for an item
- * Includes price data, item type info, and key stats
- * Target: 150-160 characters for optimal SEO
- *
- * @param {object} item - Wiki API item data
- * @param {object} osrsData - Merged OSRS data (base + overrides)
- * @returns {string} SEO-optimized description
+ * Generate SEO description from item data
  */
-function generateSEODescription(item, osrsData) {
-	// If there's a custom meta description from override, use it
-	if (osrsData.meta?.description) {
-		return osrsData.meta.description;
-	}
-
+function generateSEODescription(item) {
 	const parts = [];
-	const name = item.name;
 
-	// Determine item type and add type-specific info
-	if (osrsData.equipment) {
-		// Equipment item
-		const slot = osrsData.equipment.slot;
-		const slotName = slot === '2h' ? 'two-handed weapon' : slot ? `${slot} slot item` : 'equipment';
-		parts.push(`${name} is a ${item.members ? 'members' : 'F2P'} ${slotName}`);
-
-		// Add key stat if available
-		if (osrsData.equipment.other_bonus?.melee_strength) {
-			parts.push(`with +${osrsData.equipment.other_bonus.melee_strength} melee strength`);
-		} else if (osrsData.equipment.other_bonus?.ranged_strength) {
-			parts.push(`with +${osrsData.equipment.other_bonus.ranged_strength} ranged strength`);
-		} else if (osrsData.equipment.other_bonus?.magic_damage) {
-			parts.push(`with ${osrsData.equipment.other_bonus.magic_damage}% magic damage`);
-		}
-
-		// Add requirement if notable
-		const reqs = osrsData.equipment.requirements;
-		if (reqs) {
-			const reqLevel = reqs.attack || reqs.defence || reqs.ranged || reqs.magic;
-			const reqSkill = reqs.attack ? 'Attack' : reqs.defence ? 'Defence' : reqs.ranged ? 'Ranged' : reqs.magic ? 'Magic' : null;
-			if (reqLevel && reqSkill) {
-				parts.push(`requiring ${reqLevel} ${reqSkill}`);
-			}
-		}
-	} else if (osrsData.potion) {
-		// Potion item
-		const doses = osrsData.potion.doses || 4;
-		parts.push(`${name} is a ${doses}-dose ${item.members ? 'members' : 'F2P'} potion`);
-		if (osrsData.potion.effect) {
-			parts.push(`that ${osrsData.potion.effect.toLowerCase()}`);
-		}
-	} else if (osrsData.food) {
-		// Food item
-		const heals = osrsData.food.heals;
-		parts.push(`${name} is a ${item.members ? 'members' : 'F2P'} food item`);
-		if (heals) {
-			parts.push(`healing ${heals} HP`);
-		}
+	if (item.examine && item.examine.length < 80) {
+		parts.push(`${item.name}: ${item.examine}`);
 	} else {
-		// Generic item - use examine text or default
-		if (item.examine && item.examine.length < 80) {
-			parts.push(`${name}: ${item.examine}`);
-		} else {
-			parts.push(`${name} is ${item.members ? 'a members-only' : 'a free-to-play'} OSRS item`);
-		}
+		parts.push(
+			`${item.name} is ${item.members ? 'a members-only' : 'a free-to-play'} OSRS item`,
+		);
 	}
 
-	// Add price info
 	const priceInfo = [];
-	if (item.highalch) {
+	if (item.highalch)
 		priceInfo.push(`High alch: ${item.highalch.toLocaleString()} GP`);
-	}
-	if (item.limit) {
+	if (item.limit)
 		priceInfo.push(`GE limit: ${item.limit.toLocaleString()}`);
-	}
 
 	let description = parts.join(' ');
-
-	// Add price info if it fits within character limit
 	if (priceInfo.length > 0) {
 		const priceStr = `. ${priceInfo.join(', ')}.`;
 		if (description.length + priceStr.length <= 160) {
 			description += priceStr;
-		} else if (priceInfo[0] && description.length + priceInfo[0].length + 3 <= 160) {
-			// Just add high alch if full price info doesn't fit
-			description += `. ${priceInfo[0]}.`;
 		}
 	}
 
-	// Ensure description ends properly
-	if (!description.endsWith('.')) {
-		description += '.';
-	}
-
-	// Truncate if still too long (shouldn't happen often)
-	if (description.length > 160) {
+	if (!description.endsWith('.')) description += '.';
+	if (description.length > 160)
 		description = description.substring(0, 157) + '...';
-	}
 
 	return description;
 }
 
 /**
- * Build the base OSRS data object from Wiki API item
+ * Generate a v2 MDX file for a new item (bootstrap)
  */
-function buildBaseOsrsData(item, slug) {
-	return {
+function generateNewItemMdx(item, slug) {
+	const osrsData = {
 		id: item.id,
 		name: item.name,
-		slug: slug,
+		slug,
 		examine: item.examine || '',
 		members: item.members ?? false,
 		icon: item.icon || `${item.name}.png`,
@@ -200,72 +124,36 @@ function buildBaseOsrsData(item, slug) {
 		lowalch: item.lowalch ?? null,
 		highalch: item.highalch ?? null,
 		limit: item.limit ?? null,
+		mdx_version: 2,
+		mdx_updated: TODAY,
 	};
-}
 
-/**
- * Generate MDX content for an OSRS item
- * Merges base Wiki data with override frontmatter
- */
-async function generateMdx(item, overrideFrontmatter, overrideContent) {
-	const slug = nameToSlug(item.name);
-
-	// Build base OSRS data
-	const baseOsrsData = buildBaseOsrsData(item, slug);
-
-	// Merge with override frontmatter if present
-	const osrsData = overrideFrontmatter
-		? deepMerge(baseOsrsData, overrideFrontmatter)
-		: baseOsrsData;
-
-	// Generate SEO-optimized description
-	const description = generateSEODescription(item, osrsData);
-
-	// Build the complete frontmatter object
 	const frontmatter = {
 		title: `${item.name} | OSRS Price Data`,
-		description: description,
+		description: generateSEODescription(item),
 		osrs: osrsData,
 	};
 
-	// Convert frontmatter to YAML
-	const yamlContent = stringifyYaml(frontmatter, {
-		lineWidth: 0, // Don't wrap lines
-		nullStr: 'null',
-	});
+	const yaml = stringifyYaml(frontmatter, { lineWidth: 0, nullStr: 'null' });
 
 	return `---
-${yamlContent.trim()}
+${yaml.trim()}
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is ${item.members ? 'a members-only' : 'a free-to-play'} item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-${item.highalch ? `- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP` : ''}
-${item.lowalch ? `- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP` : ''}
-${item.limit ? `- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours` : ''}
-${overrideContent ? `
-${overrideContent}
-` : ''}
-<Adsense />
+<OSRSAdsenseCard />
 `;
 }
 
 async function main() {
-	console.log('🎮 Fetching OSRS item mapping from Wiki API...');
+	console.log(
+		`🎮 OSRS item bootstrap${auditMode ? ' (AUDIT mode — read only)' : ''}`,
+	);
+	console.log('  Fetching item mapping from Wiki API...');
 
 	const response = await fetch(OSRS_MAPPING_URL, {
 		headers: { 'User-Agent': USER_AGENT },
@@ -276,64 +164,90 @@ async function main() {
 	}
 
 	const items = await response.json();
-	console.log(`📦 Loaded ${items.length} items from API`);
+	console.log(`  📦 Loaded ${items.length} items from API`);
 
-	// Clean output directory
-	if (existsSync(OUTPUT_DIR)) {
-		console.log('🧹 Cleaning existing OSRS directory...');
-		await rm(OUTPUT_DIR, { recursive: true });
-	}
+	// Ensure output directory exists
 	await mkdir(OUTPUT_DIR, { recursive: true });
 
-	// Track slugs to handle duplicates
-	const usedSlugs = new Set();
-	let generated = 0;
-	let skipped = 0;
+	// Build ID index from existing MDX files
+	const { ids: existingIds, slugsById: existingSlugs } =
+		await buildExistingIdIndex();
 
-	let withOverrides = 0;
-	let withFrontmatter = 0;
+	// Track slugs to handle duplicates within this run
+	const usedSlugs = new Set();
+	for (const slug of existingSlugs.values()) {
+		usedSlugs.add(slug);
+	}
+
+	let created = 0;
+	let skippedNoName = 0;
+	let skippedExisting = 0;
+	const staleItems = [];
 
 	for (const item of items) {
 		if (!item.name) {
-			skipped++;
+			skippedNoName++;
 			continue;
 		}
 
-		let slug = nameToSlug(item.name);
+		// Item already has an MDX file — never overwrite
+		if (existingIds.has(item.id)) {
+			skippedExisting++;
 
-		// Handle duplicate slugs by appending item ID
-		if (usedSlugs.has(slug)) {
-			slug = `${slug}-${item.id}`;
+			// In audit mode, flag items where Wiki name differs from slug
+			if (auditMode) {
+				const existingSlug = existingSlugs.get(item.id);
+				const wikiSlug = nameToSlug(item.name);
+				if (existingSlug && existingSlug !== wikiSlug && !existingSlug.endsWith(`-${item.id}`)) {
+					staleItems.push({
+						id: item.id,
+						wikiName: item.name,
+						wikiSlug,
+						existingSlug,
+					});
+				}
+			}
+			continue;
 		}
+
+		// New item — generate slug, avoid collisions
+		let slug = nameToSlug(item.name);
+		if (usedSlugs.has(slug)) slug = `${slug}-${item.id}`;
 		usedSlugs.add(slug);
 
-		// Parse override file (extracts both frontmatter and content)
-		const { frontmatter: overrideFrontmatter, content: overrideContent } =
-			await parseOverrideFile(item.id);
+		const filename = `${slug}.mdx`;
 
-		if (overrideContent || overrideFrontmatter) {
-			withOverrides++;
-		}
-		if (overrideFrontmatter) {
-			withFrontmatter++;
+		if (auditMode) {
+			console.log(`  [new] ${filename} (id: ${item.id})`);
+			created++;
+			continue;
 		}
 
-		const mdxContent = await generateMdx(item, overrideFrontmatter, overrideContent);
-		const filePath = join(OUTPUT_DIR, `${slug}.mdx`);
+		const mdx = generateNewItemMdx(item, slug);
+		await writeFile(join(OUTPUT_DIR, filename), mdx, 'utf-8');
+		created++;
 
-		await writeFile(filePath, mdxContent, 'utf-8');
-		generated++;
-
-		// Progress indicator every 1000 items
-		if (generated % 1000 === 0) {
-			console.log(`  ✅ Generated ${generated} items...`);
+		if (created <= 10) {
+			console.log(`  + ${filename} (id: ${item.id})`);
+		} else if (created % 500 === 0) {
+			console.log(`  ... created ${created} so far`);
 		}
 	}
 
-	console.log(`\n✨ Done! Generated ${generated} MDX files, skipped ${skipped} invalid items`);
-	console.log(`📝 Items with overrides: ${withOverrides}`);
-	console.log(`📊 Items with extended frontmatter: ${withFrontmatter}`);
-	console.log(`📁 Output: ${OUTPUT_DIR}`);
+	console.log(`\n✨ Done!`);
+	console.log(`  ${auditMode ? 'Would create' : 'Created'}: ${created} new items`);
+	console.log(`  Skipped (existing ID): ${skippedExisting}`);
+	console.log(`  Skipped (no name): ${skippedNoName}`);
+
+	if (auditMode && staleItems.length > 0) {
+		console.log(`\n⚠️  ${staleItems.length} items with slug/name mismatch (existing slug preserved for SEO):`);
+		for (const s of staleItems.slice(0, 20)) {
+			console.log(`  id:${s.id} wiki:"${s.wikiName}" slug:${s.existingSlug} (wiki would be: ${s.wikiSlug})`);
+		}
+		if (staleItems.length > 20) {
+			console.log(`  ... and ${staleItems.length - 20} more`);
+		}
+	}
 }
 
 main().catch((err) => {

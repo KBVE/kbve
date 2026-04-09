@@ -1276,7 +1276,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.102"
+version = "1.0.104"
 dependencies = [
  "anyhow",
  "askama",
@@ -1704,6 +1704,18 @@ dependencies = [
  "smallvec",
  "thiserror 2.0.18",
  "wgpu-types 27.0.1",
+]
+
+[[package]]
+name = "bevy_chat"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "crossbeam-channel",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -4701,12 +4713,13 @@ dependencies = [
 
 [[package]]
 name = "discordsh-bot"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "anyhow",
  "askama",
  "axum",
  "bevy_battle",
+ "bevy_chat",
  "bevy_inventory",
  "bevy_items",
  "bevy_npc",
@@ -5539,7 +5552,7 @@ checksum = "5baebc0774151f905a1a2cc41989300b1e6fbb29aff0ceffa1064fdd3088d582"
 
 [[package]]
 name = "firecracker-ctl"
-version = "0.1.25"
+version = "0.1.26"
 dependencies = [
  "axum",
  "dashmap 6.1.0",

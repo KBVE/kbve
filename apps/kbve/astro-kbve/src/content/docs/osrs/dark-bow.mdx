@@ -52,83 +52,41 @@ osrs:
       slug: zaryte-crossbow
       relationship: alternative
       description: Modern alternative
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Ranged | +95 |
+
+    Requirements: 60 Ranged
+
+    Descent of Darkness (55% energy):
+    - +30% max hit
+    - Minimum 5 damage per arrow
+    - Fires 2 arrows
+
+    Descent of Dragons (55% energy, dragon arrows):
+    - +50% max hit
+    - Minimum 8 damage per arrow
+    - Max capped at 48 per arrow
+
+    Essential for:
+    - PvP KO weapon
+    - Bounty Hunter
+    - Castle Wars
+
+    Iconic PvP weapon, fires 2 arrows.
+  market_strategy:
+    notes:
+      - 90 Slayer for dark beasts
+      - Use dragon arrows for max spec
+      - PvP staple
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Two-handed) |
-| Type | Bow |
-| Tradeable | Yes |
-| Weight | 1.814 kg |
-| Attack Speed | 9 tick (5.4s) - Slowest weapon |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Dark beast | 1/512 |
-| Night beast | 3/512 |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Ranged | +95 |
-
-**Requirements:** 60 Ranged
-
-## Special Attack
-
-**Descent of Darkness** (55% energy):
-- +30% max hit
-- Minimum 5 damage per arrow
-- Fires 2 arrows
-
-**Descent of Dragons** (55% energy, dragon arrows):
-- +50% max hit
-- Minimum 8 damage per arrow
-- Max capped at 48 per arrow
-
-## Usage
-
-Essential for:
-- PvP KO weapon
-- Bounty Hunter
-- Castle Wars
-
-**Iconic PvP weapon, fires 2 arrows.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~1.2M gp
-
-**Tips:**
-- 90 Slayer for dark beasts
-- Use dragon arrows for max spec
-- PvP staple
-
-<Adsense />
+<OSRSAdsenseCard />

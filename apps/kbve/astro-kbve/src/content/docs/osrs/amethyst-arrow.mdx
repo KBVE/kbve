@@ -58,62 +58,37 @@ osrs:
       slug: rune-arrow
       relationship: downgrade
       description: Lower tier
+  about: |-
+    | Method | Level | XP |
+    |--------|-------|-----|
+    | Fletching | 82 | 202.5 (per 15) |
+    | Materials | Amethyst arrowtips + Headless arrow | - |
+
+    | Stat | Value |
+    |------|-------|
+    | Ranged requirement | 1 |
+    | Ranged strength | +55 |
+    | Bow requirement | Magic shortbow or better |
+  market_strategy:
+    notes:
+      - Between rune and dragon
+      - Popular PvM ammo
+      - No quest requirements
+      - Slayer tasks
+      - General PvM
+      - Cost-effective ammo
+      - Magic shortbow users
+      - +6 str over rune arrows
+      - Requires magic logs bow minimum
+      - Good balance of cost/damage
+      - Popular mid-game ammo
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creating
-
-| Method | Level | XP |
-|--------|-------|-----|
-| Fletching | 82 | 202.5 (per 15) |
-| Materials | Amethyst arrowtips + Headless arrow | - |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged requirement | 1 |
-| Ranged strength | +55 |
-| Bow requirement | Magic shortbow or better |
-
-## Market Flip Strategy
-
-**High-Tier Arrow:**
-- Between rune and dragon
-- Popular PvM ammo
-- No quest requirements
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Slayer tasks
-- General PvM
-- Cost-effective ammo
-- Magic shortbow users
-
-**Tips:**
-- +6 str over rune arrows
-- Requires magic logs bow minimum
-- Good balance of cost/damage
-- Popular mid-game ammo
-
-<Adsense />
+<OSRSAdsenseCard />

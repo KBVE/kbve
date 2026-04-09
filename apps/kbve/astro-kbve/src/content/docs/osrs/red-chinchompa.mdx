@@ -49,54 +49,19 @@ osrs:
       slug: avas-accumulator
       relationship: component
       description: Ammo saver
+  market_strategy:
+    notes:
+      - Feldip Hills safest spot
+      - No PK risk vs black chins
+      - Good Hunter money
+      - Lower Ranged strength
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Method | Level | XP |
-|--------|-------|-----|
-| Catching (Feldip Hills) | 63 Hunter | 265 |
-| Catching (Gwenith) | 63 Hunter | 265 |
-
-## Combat Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged requirement | 55 |
-| Ranged strength | +70 |
-| Attack range | 9 tiles |
-| AoE | 3x3 (up to 9 targets) |
-
-**Budget alternative to black chinchompas.**
-
-## Market Strategy
-
-**Buy Limit:** 7,000 per 4 hours
-
-**Tips:**
-- Feldip Hills safest spot
-- No PK risk vs black chins
-- Good Hunter money
-- Lower Ranged strength
-
-<Adsense />
+<OSRSAdsenseCard />

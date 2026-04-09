@@ -54,62 +54,13 @@ osrs:
       slug: steel-bolts
       relationship: alternative
       description: Compatible ammo
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Main Hand |
-| Type | Crossbow |
-| Tradeable | Yes |
-| Weight | 5 kg |
-| Requirements | 31 Ranged |
-
-## Combat Stats
-
-| Stat | Bonus |
-|------|-------|
-| Ranged Attack | +54 |
-| Attack Range | 7 |
-
-## Obtaining
-
-**Fletching:** 46 Fletching with steel crossbow (u) + crossbow string.
-
-**Shop:** Crossbow Shop, Keldagrim.
-
-## Market Strategy
-
-**Buy Limit:** 125 per 4 hours
-
-**Price:** ~120 gp
-
-Mid-level crossbow. Uses up to steel bolts.
-
-## Related Items
-
-- [Mithril crossbow](/osrs/mithril-crossbow/) - Upgrade
-- [Steel bolts](/osrs/steel-bolts/) - Compatible ammo
-
-<Adsense />
+<OSRSAdsenseCard />

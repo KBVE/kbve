@@ -50,65 +50,25 @@ osrs:
     - slug: teak-logs
       name: Teak logs
       relation: lower_tier
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Logs |
+    | Tradeable | Yes |
+    | Weight | 1.36 kg |
+    | Requirements | 50 Woodcutting |
+
+    Convert to mahogany planks for Construction (1,500 gp at sawmill).
+
+    Best XP/plank for Construction training.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Logs |
-| Tradeable | Yes |
-| Weight | 1.36 kg |
-| Requirements | 50 Woodcutting |
-
-## Obtaining
-
-**Woodcutting:** Cut mahogany trees (50 WC, 125 XP).
-
-**Locations:** Hardwood grove, Ape Atoll, Prifddinas.
-
-**Drops:** Cave horror, Callisto, Zulrah.
-
-**Farming:** Grow mahogany trees (55 Farming).
-
-## Usage
-
-Convert to mahogany planks for Construction (1,500 gp at sawmill).
-
-Best XP/plank for Construction training.
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~221 gp
-
-Premium Construction material. High demand.
-
-## Related Items
-
-- [Mahogany plank](/osrs/mahogany-plank/) - Processed form
-- [Teak logs](/osrs/teak-logs/) - Lower tier
-
-<Adsense />
+<OSRSAdsenseCard />

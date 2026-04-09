@@ -54,81 +54,35 @@ osrs:
       slug: wizard-boots
       relationship: alternative
       description: Magic equivalent
+  about: |-
+    | Bonus | Value |
+    |-------|-------|
+    | Prayer | +3 |
+
+    God Wars Protection:
+    - Counts as a Saradomin item
+    - Prevents Saradomin faction aggression in GWD
+
+    Combine with Drake's tooth to create Devout boots:
+    - Increases prayer bonus to +5
+    - Requires completion of upgrade process
+
+    Best prayer bonus boots option:
+    - Slayer tasks with prayer
+    - GWD as Saradomin item
+    - Budget option before Devout boots
+  market_strategy:
+    notes:
+      - Medium clue reward
+      - Upgrade to Devout when affordable
+      - Saradomin item utility adds value
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Reward from medium Treasure Trails.
-
-**Drop Rate:** 1/1,133 from reward casket (medium)
-
-## Equipment Info
-
-| Stat | Value |
-|------|-------|
-| Slot | Feet |
-| Prayer requirement | 31 |
-| Weight | 1 kg |
-
-## Stats
-
-| Bonus | Value |
-|-------|-------|
-| Prayer | +3 |
-
-## Effects
-
-**God Wars Protection:**
-- Counts as a Saradomin item
-- Prevents Saradomin faction aggression in GWD
-
-## Upgrade Path
-
-Combine with [Drake's tooth](/osrs/drakes-tooth/) to create [Devout boots](/osrs/devout-boots/):
-- Increases prayer bonus to +5
-- Requires completion of upgrade process
-
-## Usage
-
-Best prayer bonus boots option:
-- Slayer tasks with prayer
-- GWD as Saradomin item
-- Budget option before Devout boots
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Medium clue reward
-- Upgrade to Devout when affordable
-- Saradomin item utility adds value
-
-## Related Items
-
-- [Devout boots](/osrs/devout-boots/) - Upgraded version (+5 prayer)
-- [Drake's tooth](/osrs/drakes-tooth/) - Upgrade material
-- [Ranger boots](/osrs/ranger-boots/) - Same clue tier
-- [Wizard boots](/osrs/wizard-boots/) - Magic equivalent
-
-<Adsense />
+<OSRSAdsenseCard />

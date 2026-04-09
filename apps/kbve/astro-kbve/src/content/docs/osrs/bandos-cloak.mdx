@@ -1,6 +1,6 @@
 ---
 title: Bandos cloak | OSRS Price Data
-description: "Bandos cloak: A Bandos cloak.. High alch: 1,200 GP, GE limit: 8."
+description: "Bandos cloak is a members cape slot item. High alch: 1,200 GP, GE limit: 8."
 osrs:
   id: 12273
   name: Bandos cloak
@@ -12,26 +12,29 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 8
+  equipment:
+    slot: cape
+    requirements:
+      prayer: 40
+    other_bonus:
+      prayer: 3
+  related_items:
+    - item_id: 12265
+      item_name: Bandos robe top
+      slug: bandos-robe-top
+      relationship: set-piece
+      description: Bandos vestment body
+  about: |-
+    > *"A Bandos cloak."*
+
+    The Bandos cloak is the cape piece of the Bandos vestment set. It provides a +3 Prayer bonus and requires 40 Prayer to equip. Counts as a Bandosian item in the God Wars Dungeon. Required for certain master clue steps.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -1,6 +1,6 @@
 ---
 title: Mystic fire staff | OSRS Price Data
-description: "Mystic fire staff: It's a slightly magical stick.. High alch: 25,500 GP, GE limit: 18,000."
+description: "Mystic fire staff is a members weapon slot item with +50 melee strength requiring 40 Attack. High alch: 25,500 GP, GE limit: 18,000."
 osrs:
   id: 1401
   name: Mystic fire staff
@@ -12,26 +12,91 @@ osrs:
   lowalch: 17000
   highalch: 25500
   limit: 18000
+  equipment:
+    slot: weapon
+    attack_speed: 5
+    attack_bonus:
+      stab: 10
+      slash: -1
+      crush: 40
+      magic: 14
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 14
+      ranged: 0
+    other_bonus:
+      melee_strength: 50
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      attack: 40
+      magic: 40
+    weight: 2.267
+  related_items:
+    - item_id: 1403
+      item_name: Mystic water staff
+      slug: mystic-water-staff
+      relationship: set-piece
+      description: Water elemental mystic staff
+    - item_id: 1407
+      item_name: Mystic earth staff
+      slug: mystic-earth-staff
+      relationship: set-piece
+      description: Earth elemental mystic staff
+    - item_id: 3054
+      item_name: Mystic lava staff
+      slug: mystic-lava-staff
+      relationship: upgrade
+      description: Earth+Fire combination staff
+  about: |-
+    | Attack | Value |
+    |--------|-------|
+    | Magic | +14 |
+    | Crush | +40 |
+
+    | Defence | Value |
+    |---------|-------|
+    | Magic | +14 |
+
+    | Other | Value |
+    |-------|-------|
+    | Strength | +50 |
+
+    Requirements: 40 Attack, 40 Magic
+
+    Provides unlimited fire runes — the most universally useful elemental staff:
+    - High Level Alchemy — saves 5 fire runes per cast (most popular use)
+    - Superheat Item — saves 4 fire runes per cast
+    - All fire spells — saves runes for combat magic
+    - Autocast with standard spellbook
+
+    | Staff | Element | Notable Use |
+    |-------|---------|-------------|
+    | Mystic fire | Fire | High Alch, fire spells |
+    | Mystic water | Water | Water spells, ice barrage combo |
+    | Mystic earth | Earth | Earth spells |
+    | Mystic air | Air | Air spells, Charge Orb |
+    | Mystic mud | Water+Earth | Lunar spells, barrage |
+    | Mystic lava | Earth+Fire | Superheat, Enchant |
+
+    All share identical stats (+14 magic atk/def, +40 crush, +50 str). The difference is which rune(s) they provide.
+  market_strategy:
+    notes:
+      - Thormac upgrade profitable with diary discounts
+      - Multiple boss drop sources
+      - Most popular mystic staff due to fire rune utility
+      - High volume — frequently alched
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

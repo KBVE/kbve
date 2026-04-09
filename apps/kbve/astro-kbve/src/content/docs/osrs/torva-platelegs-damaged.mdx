@@ -49,86 +49,43 @@ osrs:
       slug: torva-full-helm-damaged
       relationship: alternative
       description: Damaged helm from Nex
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Damaged Armour |
+    | Tradeable | Yes |
+    | Weight | 9.071 kg |
+
+    | Component | Source | Price |
+    |-----------|--------|-------|
+    | Torva platelegs (damaged) | Nex | ~220M |
+    | Bandos tassets | God Wars Dungeon | ~22M |
+
+    No skill requirements to combine the items.
+
+    | Item Created | Materials |
+    |--------------|-----------|
+    | Torva platelegs | Damaged piece + Bandos tassets |
+
+    Warning: Bandos tassets are permanently consumed.
+
+    Part of the Torva armour set, which provides:
+    - Best-in-slot melee stats
+    - +6 HP boost (legs piece)
+    - +16 total HP with full set
+  market_strategy:
+    notes:
+      - Nex exclusive drop
+      - Tassets consumed in repair
+      - Creates BiS melee legs
+      - Part of Torva set
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Damaged Armour |
-| Tradeable | Yes |
-| Weight | 9.071 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Nex | 1/43 per unique roll |
-
-Nex has a chance to drop damaged Torva pieces as part of her unique drop table.
-
-## Repairing
-
-| Component | Source | Price |
-|-----------|--------|-------|
-| Torva platelegs (damaged) | Nex | ~220M |
-| Bandos tassets | God Wars Dungeon | ~22M |
-
-No skill requirements to combine the items.
-
-## Uses
-
-| Item Created | Materials |
-|--------------|-----------|
-| Torva platelegs | Damaged piece + Bandos tassets |
-
-**Warning:** Bandos tassets are permanently consumed.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~220M gp
-
-**Tips:**
-- Nex exclusive drop
-- Tassets consumed in repair
-- Creates BiS melee legs
-- Part of Torva set
-
-## Torva Set
-
-Part of the Torva armour set, which provides:
-- Best-in-slot melee stats
-- +6 HP boost (legs piece)
-- +16 total HP with full set
-
-## Related Items
-
-- [Nex](/osrs/nex/) - Boss source
-- [Bandos tassets](/osrs/bandos-tassets/) - Required to repair
-- [Torva platelegs](/osrs/torva-platelegs/) - Repaired version
-- [Torva full helm (damaged)](/osrs/torva-full-helm-damaged/) - Set helm
-- [Torva platebody (damaged)](/osrs/torva-platebody-damaged/) - Set body
-
-<Adsense />
+<OSRSAdsenseCard />

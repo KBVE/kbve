@@ -37,75 +37,37 @@ osrs:
       slug: holy-sandals
       relationship: set-piece
       description: Matching prayer boots
+  about: |-
+    | Bonus | Value |
+    |-------|-------|
+    | Prayer | +3 |
+
+    Requirements: 31 Prayer
+
+    Best prayer bonus gloves in game:
+    - +3 prayer bonus
+    - Master clue exclusive
+    - Saradomin-aligned item
+    - BiS for prayer setups
+
+    | Item | Prayer Bonus |
+    |------|--------------|
+    | Holy wraps | +3 |
+    | Barrows gloves | 0 |
+    | Combat bracelet | +1 |
+  market_strategy:
+    notes:
+      - Master clue exclusive
+      - BiS prayer gloves
+      - Part of prayer outfit
+      - Collection log item
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Hands |
-| Type | Gloves |
-| Tradeable | Yes |
-| Weight | 0.05 kg |
-
-## Obtaining
-
-Reward from master Treasure Trails.
-
-**Drop Rate:** Rare from reward casket (master)
-
-## Stats
-
-| Bonus | Value |
-|-------|-------|
-| Prayer | +3 |
-
-**Requirements:** 31 Prayer
-
-## Usage
-
-Best prayer bonus gloves in game:
-- +3 prayer bonus
-- Master clue exclusive
-- Saradomin-aligned item
-- BiS for prayer setups
-
-## Comparison
-
-| Item | Prayer Bonus |
-|------|--------------|
-| Holy wraps | +3 |
-| Barrows gloves | 0 |
-| Combat bracelet | +1 |
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Master clue exclusive
-- BiS prayer gloves
-- Part of prayer outfit
-- Collection log item
-
-<Adsense />
+<OSRSAdsenseCard />

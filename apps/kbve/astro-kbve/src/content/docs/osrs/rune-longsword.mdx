@@ -12,26 +12,38 @@ osrs:
   lowalch: 12800
   highalch: 19200
   limit: 70
+  item_id: 1303
+  item_type: equipment
+  slot: weapon
+  type: longsword
+  tradeable: true
+  weight: 1.814
+  requirements:
+    attack: 40
+  stats:
+    stab_attack: 38
+    slash_attack: 47
+    crush_attack: -2
+    slash_defence: 3
+    crush_defence: 2
+    melee_strength: 49
+  attack_speed: 5
+  related_items:
+    - slug: rune-scimitar
+    - slug: rune-sword
+    - slug: dragon-longsword
+    - slug: runite-bar
+  about: |-
+    *A razor sharp longsword.*
+
+    The rune longsword has higher slash and stab bonuses than the Rune sword but attacks 1 tick slower (5 vs 4). The Rune scimitar is generally preferred for training due to its faster attack speed and comparable DPS, making the longsword a niche pick for players who want higher max hits per swing. The Dragon longsword is the direct members upgrade with a useful special attack.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

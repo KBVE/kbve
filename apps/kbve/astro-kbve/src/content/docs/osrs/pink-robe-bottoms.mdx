@@ -1,6 +1,6 @@
 ---
 title: Pink robe bottoms | OSRS Price Data
-description: "Pink robe bottoms: Made by Tree Gnomes with a thing for pink.. High alch: 108 GP, GE limit: 150."
+description: "Pink robe bottoms is a members legs slot item. High alch: 108 GP, GE limit: 150."
 osrs:
   id: 646
   name: Pink robe bottoms
@@ -12,26 +12,30 @@ osrs:
   lowalch: 72
   highalch: 108
   limit: 150
+  equipment:
+    slot: legs
+  related_items:
+    - item_id: 636
+      item_name: Pink robe top
+      slug: pink-robe-top
+      relationship: set-piece
+      description: Matching top
+    - item_id: 656
+      item_name: Pink hat
+      slug: pink-hat
+      relationship: set-piece
+      description: Matching hat
+  about: |-
+    > _"A\"nice\" pair of pink robe bottoms."_
+
+    Pink robe bottoms are part of the gnome clothing set. Purely cosmetic with no stat bonuses.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

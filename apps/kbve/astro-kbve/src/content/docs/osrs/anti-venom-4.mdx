@@ -59,58 +59,36 @@ osrs:
       slug: serpentine-helm
       relationship: alternative
       description: Passive venom immunity
+  about: |-
+    Anti-venom provides:
+    - Instant venom cure
+    - 12 minutes of venom immunity per dose
+
+    Essential for fighting venomous creatures without serpentine helm.
+
+    | Input | Output | Herblore Level | XP |
+    |-------|--------|----------------|-----|
+    | Antidote++(4) + 20 Zulrah's scales | Anti-venom(4) | 87 | 120 |
+  market_strategy:
+    steps:
+      - order: 1
+        action: Anti-venom(4) (venom immunity)
+      - order: 2
+        action: Add Torstol for Anti-venom+(4) (super antipoison + venom)
+    notes:
+      - 20 scales per potion is significant
+      - Compare anti-venom cost vs serpentine helm charges
+      - Scale price drives potion economics
+      - Zulrah (if not using serp helm)
+      - Theatre of Blood (Maiden, Xarpus)
+      - Vorkath (post-acid phase)
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Usage
-
-Anti-venom provides:
-- Instant venom cure
-- 12 minutes of venom immunity per dose
-
-Essential for fighting venomous creatures without serpentine helm.
-
-## Creation
-
-| Input | Output | Herblore Level | XP |
-|-------|--------|----------------|-----|
-| Antidote++(4) + 20 Zulrah's scales | Anti-venom(4) | 87 | 120 |
-
-## Market Strategy
-
-**Zulrah Scale Cost:**
-- 20 scales per potion is significant
-- Compare anti-venom cost vs serpentine helm charges
-- Scale price drives potion economics
-
-**Upgrade Path:**
-1. Anti-venom(4) (venom immunity)
-2. Add Torstol for Anti-venom+(4) (super antipoison + venom)
-
-**Usage Scenarios:**
-- Zulrah (if not using serp helm)
-- Theatre of Blood (Maiden, Xarpus)
-- Vorkath (post-acid phase)
-
-**Buy Limit:** 2,000 per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

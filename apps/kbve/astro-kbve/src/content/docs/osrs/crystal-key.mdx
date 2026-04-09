@@ -31,64 +31,27 @@ osrs:
       slug: uncut-dragonstone
       relationship: alternative
       description: Guaranteed reward from crystal chest
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Key |
+    | Tradeable | Yes |
+    | Weight | 0.01 kg |
+    | Requirements | None |
+
+    Opens the Crystal Chest in Taverley.
+
+    Always contains uncut dragonstone plus bonus loot.
+
+    Key is consumed on use.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Key |
-| Tradeable | Yes |
-| Weight | 0.01 kg |
-| Requirements | None |
-
-## Obtaining
-
-**Creation:** Combine tooth half with loop half of key.
-
-**Alternative:** Purchase from Grand Exchange.
-
-## Usage
-
-Opens the Crystal Chest in Taverley.
-
-Always contains uncut dragonstone plus bonus loot.
-
-Key is consumed on use.
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~21,059 gp
-
-Popular for dragonstone farming. Decent profit per key.
-
-## Related Items
-
-- [Tooth half of key](/osrs/tooth-half-of-key/) - Component
-- [Loop half of key](/osrs/loop-half-of-key/) - Component
-- [Uncut dragonstone](/osrs/uncut-dragonstone/) - Guaranteed reward
-
-<Adsense />
+<OSRSAdsenseCard />

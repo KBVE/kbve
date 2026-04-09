@@ -1,0 +1,32 @@
+{
+	"name": "firecracker-ctl-e2e",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/vm/firecracker-ctl-e2e/e2e",
+	"implicitDependencies": ["firecracker-ctl"],
+	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": [
+					"docker rm -f firecracker-ctl-e2e 2>/dev/null || true",
+					"docker buildx build --platform linux/amd64 -f apps/vm/firecracker-ctl-e2e/mock/Dockerfile.mock -t kbve/firecracker-ctl:mock --load .",
+					"docker run -d --name firecracker-ctl-e2e -p 19001:9001 -e FC_USE_JAILER=false -e RUST_LOG=info -e FC_MAX_CONCURRENT_VMS=5 -e FC_VM_TTL_SECS=60 kbve/firecracker-ctl:mock",
+					"echo 'Waiting for firecracker-ctl container to become ready...' && for i in $(seq 1 60); do if curl -sf http://127.0.0.1:19001/health >/dev/null 2>&1; then echo 'Container ready after '\"$i\"'s'; break; fi; if [ $i -eq 60 ]; then echo 'Container did not become ready in 60s'; docker logs firecracker-ctl-e2e 2>&1 | tail -30; docker rm -f firecracker-ctl-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+					"npx vitest run; EC=$?; echo '--- container logs ---'; docker logs firecracker-ctl-e2e 2>&1 | tail -50; docker rm -f firecracker-ctl-e2e 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false,
+				"cwd": "apps/vm/firecracker-ctl-e2e"
+			},
+			"configurations": {
+				"ci": {}
+			}
+		}
+	},
+	"tags": ["scope:vm", "firecracker", "e2e"]
+}

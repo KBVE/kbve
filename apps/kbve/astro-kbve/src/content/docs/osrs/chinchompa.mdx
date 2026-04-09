@@ -48,87 +48,37 @@ osrs:
       slug: eagles-peak
       relationship: alternative
       description: Unlock quest
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Ranged | +45 |
+
+    Requirements: 45 Ranged
+
+    Multi-Target:
+    - Explodes on impact
+    - Hits up to 11 targets (3x3 area)
+    - Stackable ammo
+    - Not recovered by Ava's
+
+    Good for:
+    - Budget AoE training
+    - Early ranged training
+    - Learning chinning
+
+    Budget chinchompa option.
+  market_strategy:
+    notes:
+      - Eagles' Peak required
+      - Much cheaper than black
+      - Lower XP rates
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Main-hand) |
-| Type | Chinchompa |
-| Tradeable | Yes |
-| Weight | 0 kg |
-| Attack Speed | 4 tick (2.4s) |
-
-## Obtaining
-
-| Method | Requirements |
-|--------|--------------|
-| Box trapping | 53 Hunter |
-| Locations | Piscatoris, Kourend, Isle of Souls |
-| XP | 198.4 Hunter per catch |
-| Quest | Eagles' Peak |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Ranged | +45 |
-
-**Requirements:** 45 Ranged
-
-## Passive Effect
-
-**Multi-Target:**
-- Explodes on impact
-- Hits up to 11 targets (3x3 area)
-- Stackable ammo
-- Not recovered by Ava's
-
-## Usage
-
-Good for:
-- Budget AoE training
-- Early ranged training
-- Learning chinning
-
-**Budget chinchompa option.**
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~484 gp each
-
-**Tips:**
-- Eagles' Peak required
-- Much cheaper than black
-- Lower XP rates
-
-## Related Items
-
-- [Black chinchompa](/osrs/black-chinchompa/) - Best version
-- [Red chinchompa](/osrs/red-chinchompa/) - Mid-tier
-- [Eagles' Peak](/osrs/eagles-peak/) - Unlock quest
-
-<Adsense />
+<OSRSAdsenseCard />

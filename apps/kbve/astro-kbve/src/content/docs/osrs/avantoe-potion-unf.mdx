@@ -70,64 +70,28 @@ osrs:
       slug: fishing-potion-3
       relationship: product
       description: Boosts fishing
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Unfinished Potion |
+    | Tradeable | Yes |
+    | Weight | 0.056 kg |
+    | Requirements | 50 Herblore |
+
+    Add secondary ingredient to create:
+    - Super energy potion (+ mort myre fungus)
+    - Hunter potion (+ kebbit teeth dust)
+    - Fishing potion (+ snape grass)
+
+    Popular for super energy production.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Unfinished Potion |
-| Tradeable | Yes |
-| Weight | 0.056 kg |
-| Requirements | 50 Herblore |
-
-## Obtaining
-
-**Creation:** Add avantoe to vial of water (50 Herblore).
-
-**Alternative:** Purchase from Grand Exchange.
-
-## Usage
-
-Add secondary ingredient to create:
-- **Super energy potion** (+ mort myre fungus)
-- **Hunter potion** (+ kebbit teeth dust)
-- **Fishing potion** (+ snape grass)
-
-Popular for super energy production.
-
-## Market Strategy
-
-**Buy Limit:** 10,000 per 4 hours
-
-High demand for super energy potions. Very active GE trading.
-
-## Related Items
-
-- [Avantoe](/osrs/avantoe/) - Herb ingredient
-- [Mort myre fungus](/osrs/mort-myre-fungus/) - Secondary for super energy
-- [Super energy](/osrs/super-energy/) - Final product
-- [Hunter potion](/osrs/hunter-potion/) - Final product
-
-<Adsense />
+<OSRSAdsenseCard />

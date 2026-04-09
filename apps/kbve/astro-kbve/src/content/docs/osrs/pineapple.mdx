@@ -38,65 +38,24 @@ osrs:
       slug: pineapple-pizza
       relationship: product
       description: Cooking product
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Farming Product / Food |
+    | Tradeable | Yes |
+    | Weight | 0.15 kg |
+
+    Farming: Papaya tree protection payment (10 pineapples)
+
+    Cooking: Cut into rings or chunks for various recipes
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Farming Product / Food |
-| Tradeable | Yes |
-| Weight | 0.15 kg |
-
-## Obtaining
-
-**Primary:** Harvest from pineapple plants (51 Farming)
-
-**Other sources:**
-- Wild spawn south of Brimhaven
-- Trader Stan's Trading Posts
-- Fruit stall thieving (25 Thieving)
-- Monster drops (Jungle Horror, Jogre, Tortoise)
-
-## Usage
-
-**Farming:** Papaya tree protection payment (10 pineapples)
-
-**Cooking:** Cut into rings or chunks for various recipes
-
-## Market Strategy
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Price:** ~93 gp
-
-Very cheap and high volume. Used for tree protection.
-
-## Related Items
-
-- [Papaya tree seed](/osrs/papaya-tree-seed/) - Protection target
-- [Pineapple ring](/osrs/pineapple-ring/) - Processed form
-- [Pineapple pizza](/osrs/pineapple-pizza/) - Cooking use
-
-<Adsense />
+<OSRSAdsenseCard />

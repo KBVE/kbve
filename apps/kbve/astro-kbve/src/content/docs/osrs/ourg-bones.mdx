@@ -56,64 +56,23 @@ osrs:
       slug: hydra-bones
       relationship: alternative
       description: Alternative (110 base XP)
+  market_strategy:
+    notes:
+      - Supply from GWD and Zulrah
+      - Second highest XP bones after superior dragon
+      - Bandos and Zulrah activity
+      - Prayer training demand
+      - Often overlooked option
+      - Compare GP/XP to superior dragon bones
+      - Good value for high-XP training
+      - Lower supply than dragon bones
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Prayer Training
-
-Ourg bones provide very high Prayer XP:
-
-| Method | XP per bone |
-|--------|-------------|
-| Bury | 140 |
-| Gilded altar (2 burners) | 490 |
-| Chaos altar (Wilderness) | 490 (50% saved) |
-| Ectofuntus | 560 |
-| Sinister Offering | 420 |
-| Libation bowl | 575 |
-
-## Obtaining
-
-Primary sources:
-- General Graardor (Bandos GWD boss)
-- Zulrah (common drop)
-- Ourg bones spawn (Myths Guild)
-
-## Market Flip Strategy
-
-**Boss Byproduct:**
-- Supply from GWD and Zulrah
-- Second highest XP bones after superior dragon
-
-**Buy Limit:** 7,500 per 4 hours
-
-**Price Drivers:**
-- Bandos and Zulrah activity
-- Prayer training demand
-- Often overlooked option
-
-**Tips:**
-- Compare GP/XP to superior dragon bones
-- Good value for high-XP training
-- Lower supply than dragon bones
-
-<Adsense />
+<OSRSAdsenseCard />

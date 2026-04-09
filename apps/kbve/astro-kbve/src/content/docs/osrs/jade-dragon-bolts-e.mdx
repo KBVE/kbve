@@ -1,6 +1,6 @@
 ---
 title: Jade dragon bolts (e) | OSRS Price Data
-description: "Jade dragon bolts (e): Enchanted Dragon crossbow bolts, tipped with jade.. High alch: 378 GP, GE limit: 11,000."
+description: "Jade dragon bolts (e) is a members ammo slot item with +122 ranged strength. High alch: 378 GP, GE limit: 11,000."
 osrs:
   id: 21934
   name: Jade dragon bolts (e)
@@ -12,26 +12,64 @@ osrs:
   lowalch: 252
   highalch: 378
   limit: 11000
+  equipment:
+    slot: ammo
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      ranged_strength: 122
+      prayer: 0
+    requirements: {}
+  recipes:
+    - skill: magic
+      level: 14
+      xp: 19
+      inputs:
+        - item_name: Jade dragon bolts
+          quantity: 10
+      output_quantity: 10
+  related_items:
+    - item_id: 9237
+      item_name: Jade bolts (e)
+      slug: jade-bolts-e
+      relationship: downgrade
+      description: Regular crossbow version
+  about: |-
+    > *"Enchanted Dragon crossbow bolts, tipped with jade."*
+
+    Jade dragon bolts (e) carry the Earth's Fury enchantment. On activation, there is a 6% chance to knock the target to the ground for 8 ticks (4.8 seconds), temporarily stunning them. However, agile opponents may resist the knockdown effect. This makes jade bolts a crowd-control option, though the low activation rate limits reliability.
+
+    Enchant Crossbow Bolt (Jade) requires Magic level 14 and grants 19 XP per cast. Each cast enchants 10 bolts at a time.
+
+    | Component | Quantity |
+    |-----------|----------|
+    | Jade dragon bolts | 10 |
+    | Cosmic rune | 1 |
+    | Earth rune | 2 |
+
+    | Stat | Dragon (e) | Regular (e) |
+    |------|-----------|-------------|
+    | Ranged Str | +122 | +31 |
+    | Base bolt | Dragon crossbow bolt | Blurite bolt |
+
+    The dragon bolt base provides significantly higher ranged strength while retaining the same knockdown enchantment.
+  market_strategy:
+    notes:
+      - Stun effect lasts 4.8 seconds when triggered
+      - Only 6% activation rate
+      - Many opponents resist the knockdown
+      - Low enchant requirement (Magic 14)
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

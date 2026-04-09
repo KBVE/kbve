@@ -65,87 +65,42 @@ osrs:
       slug: skull-sceptre
       relationship: alternative
       description: Similar teleport sceptre item
+  about: |-
+    | Offence | Bonus |
+    |---------|-------|
+    | Stab | +7 |
+    | Slash | -1 |
+    | Crush | +25 |
+    | Magic | +10 |
+    | Strength | +32 |
+
+    | Defence | Bonus |
+    |---------|-------|
+    | Stab | +2 |
+    | Slash | +3 |
+    | Crush | +1 |
+    | Magic | +10 |
+
+    Attack Speed: 5-tick (3.0s)
+
+    | Destination | Location |
+    |-------------|----------|
+    | Jalsavrah | Pyramid Plunder lobby |
+    | Jaleustrophos | Simon Templeton's camp |
+    | Jaldraocht | Pyramid entrance |
+    | Jaltevas | Necropolis obelisk |
+
+    | Diary Tier | Capacity |
+    |------------|----------|
+    | None | 3 |
+    | Elite Desert | 100 |
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon |
-| Type | Staff |
-| Tradeable | Yes (uncharged only) |
-| Weight | 2 kg |
-| Requirements | 30 Attack, 30 Magic |
-
-## Obtaining
-
-Pyramid Plunder golden chests and sarcophagi.
-
-| Room | Drop Rate |
-|------|-----------|
-| Room 1-4 | 1/4,200 |
-| Room 5-6 | 1/1,250 |
-| Room 7-8 | 1/650 |
-
-## Stats
-
-| Offence | Bonus |
-|---------|-------|
-| Stab | +7 |
-| Slash | -1 |
-| Crush | +25 |
-| Magic | +10 |
-| Strength | +32 |
-
-| Defence | Bonus |
-|---------|-------|
-| Stab | +2 |
-| Slash | +3 |
-| Crush | +1 |
-| Magic | +10 |
-
-**Attack Speed:** 5-tick (3.0s)
-
-## Teleport Locations
-
-| Destination | Location |
-|-------------|----------|
-| Jalsavrah | Pyramid Plunder lobby |
-| Jaleustrophos | Simon Templeton's camp |
-| Jaldraocht | Pyramid entrance |
-| Jaltevas | Necropolis obelisk |
-
-## Charges
-
-| Diary Tier | Capacity |
-|------------|----------|
-| None | 3 |
-| Elite Desert | 100 |
-
-## Related Items
-
-- [Pyramid Plunder](/osrs/pyramid-plunder/) - Source
-- [Desert Diary](/osrs/desert-diary/) - Charge upgrade
-- [Skull sceptre](/osrs/skull-sceptre/) - Similar item
-
-<Adsense />
+<OSRSAdsenseCard />

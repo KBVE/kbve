@@ -45,96 +45,46 @@ osrs:
       slug: ghrazi-rapier
       relationship: upgrade
       description: BiS stab upgrade
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Stab | +75 |
+    | Slash | +40 |
+    | Crush | -4 |
+    | Magic | +1 |
+    | Strength | +75 |
+
+    | Defence | Value |
+    |---------|-------|
+    | All | +0 |
+
+    Requirements: 70 Attack
+
+    Abyssal Puncture (25% energy):
+    - Hits twice in rapid succession
+    - +25% accuracy per hit
+    - -15% damage per hit
+    - Max hit: 44-44 (PvP)
+
+    Popular for:
+    - PvP (double hit spec)
+    - Abyssal Sire
+    - Cerberus
+    - Budget stab weapon
+
+    Strong spec weapon with guaranteed double hit.
+  market_strategy:
+    notes:
+      - Sire is best source
+      - Good for PvP combos
+      - Cheaper than rapier alternatives
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Main-hand) |
-| Type | Melee - Stab |
-| Tradeable | Yes |
-| Weight | 0.453 kg |
-| Attack Speed | 4 tick (2.4s) |
-
-## Obtaining
-
-Rare reward from the Abyssal Sire boss.
-
-| Source | Drop Rate |
-|--------|-----------|
-| Unsired → Font of Consumption | 13/64 (~20.3%) |
-| Abyssal demons (direct) | 1/32,000 |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Stab | +75 |
-| Slash | +40 |
-| Crush | -4 |
-| Magic | +1 |
-| Strength | +75 |
-
-| Defence | Value |
-|---------|-------|
-| All | +0 |
-
-**Requirements:** 70 Attack
-
-## Special Attack
-
-**Abyssal Puncture** (25% energy):
-- Hits twice in rapid succession
-- +25% accuracy per hit
-- -15% damage per hit
-- Max hit: 44-44 (PvP)
-
-## Usage
-
-Popular for:
-- PvP (double hit spec)
-- Abyssal Sire
-- Cerberus
-- Budget stab weapon
-
-**Strong spec weapon with guaranteed double hit.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~3M gp
-
-**Tips:**
-- Sire is best source
-- Good for PvP combos
-- Cheaper than rapier alternatives
-
-## Related Items
-
-- [Abyssal bludgeon](/osrs/abyssal-bludgeon/) - Crush weapon from Sire
-- [Abyssal whip](/osrs/abyssal-whip/) - Slash weapon
-- [Ghrazi rapier](/osrs/ghrazi-rapier/) - BiS stab upgrade
-
-<Adsense />
+<OSRSAdsenseCard />

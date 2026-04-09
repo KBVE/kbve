@@ -57,75 +57,50 @@ osrs:
       slug: strength-potion-3
       relationship: alternative
       description: Pairs for combat
+  about: |-
+    Mix Guam potion (unf) + Eye of newt.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Herblore Level | 3 |
+    | XP gained | 25 |
+
+    Temporarily boosts Attack by 3 + 10% of level:
+
+    | Attack Level | Boost |
+    |--------------|-------|
+    | 1-9 | +3 |
+    | 10-19 | +4 |
+    | 50-59 | +8 |
+    | 90-99 | +12 |
+
+    Boost decays 1 point per minute.
+
+    Basic Attack boost for:
+    - Early-game combat
+    - F2P players (tradeable)
+    - Budget training
+
+    | Potion | Boost | Level |
+    |--------|-------|-------|
+    | Attack potion(4) | 3 + 10% | 3 |
+    | Super attack(4) | 5 + 15% | 45 |
+    | Super combat(4) | Combined | 90 |
+  market_strategy:
+    notes:
+      - Beginner Herblore training
+      - "Buy limit: 2,000 per 4 hours"
+      - Low profit margin - train for XP, not profit
+      - Add Roe or Caviar at level 4 Herblore
+      - Heals 3 HP + Attack boost
+      - Useful for Barbarian fishing
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Mix Guam potion (unf) + Eye of newt.
-
-| Requirement | Value |
-|-------------|-------|
-| Herblore Level | 3 |
-| XP gained | 25 |
-
-## Effect
-
-Temporarily boosts Attack by 3 + 10% of level:
-
-| Attack Level | Boost |
-|--------------|-------|
-| 1-9 | +3 |
-| 10-19 | +4 |
-| 50-59 | +8 |
-| 90-99 | +12 |
-
-Boost decays 1 point per minute.
-
-## Usage
-
-Basic Attack boost for:
-- Early-game combat
-- F2P players (tradeable)
-- Budget training
-
-## Upgrades
-
-| Potion | Boost | Level |
-|--------|-------|-------|
-| Attack potion(4) | 3 + 10% | 3 |
-| Super attack(4) | 5 + 15% | 45 |
-| Super combat(4) | Combined | 90 |
-
-## Market Strategy
-
-**Potion Making:**
-- Beginner Herblore training
-- Buy limit: 2,000 per 4 hours
-- Low profit margin - train for XP, not profit
-
-**Attack Mix:**
-- Add Roe or Caviar at level 4 Herblore
-- Heals 3 HP + Attack boost
-- Useful for Barbarian fishing
-
-<Adsense />
+<OSRSAdsenseCard />

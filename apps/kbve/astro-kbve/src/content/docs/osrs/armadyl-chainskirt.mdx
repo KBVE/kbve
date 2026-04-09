@@ -54,73 +54,39 @@ osrs:
       slug: masori-chaps-f
       relationship: upgrade
       description: BiS upgrade
+  about: |-
+    | Stat | Value |
+    |------|-------|
+    | Ranged attack | +20 |
+    | Stab defence | +32 |
+    | Slash defence | +26 |
+    | Crush defence | +34 |
+    | Magic defence | +40 |
+    | Ranged defence | +33 |
+    | Prayer bonus | +1 |
+    | Requirements | 70 Ranged, 70 Defence |
+
+    Part of the Armadyl armour set:
+    - Armadyl helmet (head)
+    - Armadyl chestplate (body)
+    - Armadyl chainskirt (legs)
+
+    PvM:
+    - Mid-tier ranged legs
+    - Budget option before Masori
+    - God Wars Dungeon protection
+  market_strategy:
+    notes:
+      - Kree'arra kills affect supply
+      - Budget BiS before Masori
+      - Armadylean plate source
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Dropped by Kree'arra and minions in the God Wars Dungeon.
-
-| Source | Drop Rate |
-|--------|-----------|
-| Kree'arra | 1/384 |
-| Flight Kilisa | 1/16,000 |
-| Wingman Skree | 1/16,000 |
-| Flockleader Geerin | 1/16,000 |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged attack | +20 |
-| Stab defence | +32 |
-| Slash defence | +26 |
-| Crush defence | +34 |
-| Magic defence | +40 |
-| Ranged defence | +33 |
-| Prayer bonus | +1 |
-| Requirements | 70 Ranged, 70 Defence |
-
-## Set Information
-
-Part of the Armadyl armour set:
-- Armadyl helmet (head)
-- Armadyl chestplate (body)
-- Armadyl chainskirt (legs)
-
-## Usage
-
-**PvM:**
-- Mid-tier ranged legs
-- Budget option before Masori
-- God Wars Dungeon protection
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Kree'arra kills affect supply
-- Budget BiS before Masori
-- Armadylean plate source
-
-<Adsense />
+<OSRSAdsenseCard />

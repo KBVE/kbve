@@ -70,80 +70,55 @@ osrs:
       slug: saradomin-godsword
       relationship: alternative
       description: Healing spec
+  about: |-
+    Attach Bandos hilt to Godsword blade.
+
+    | Component | Source | Price |
+    |-----------|--------|-------|
+    | Bandos hilt | General Graardor (1/508) | ~16M gp |
+    | Godsword blade | GWD bosses | ~526K gp |
+
+    | Stat | Value |
+    |------|-------|
+    | Attack style | Slash |
+    | Slash attack | +132 |
+    | Crush attack | +80 |
+    | Strength bonus | +132 |
+    | Prayer bonus | +8 |
+    | Attack speed | 6 tick (3.6s) |
+    | Requirements | 75 Attack |
+
+    Warstrike (50% energy):
+    - +100% accuracy (doubled)
+    - +21% damage boost
+    - Drains combat stats equal to damage dealt
+    - Drain order: Defence → Strength → Prayer → Attack → Magic → Ranged
+
+    PvM (Primary Use):
+    - Alternative to Dragon warhammer
+    - Defence reduction for bosses
+    - Double spec at start of kills
+
+    Best For:
+    - Corporeal Beast
+    - Nightmare
+    - Solo bossing
+    - Budget DWH alternative
+
+    PvP:
+    - Stat drain can be devastating
+    - Less burst than AGS
+  market_strategy:
+    notes:
+      - PvM utility drives price
+      - Good for ironmen (easier than DWH)
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Attach Bandos hilt to Godsword blade.
-
-| Component | Source | Price |
-|-----------|--------|-------|
-| Bandos hilt | General Graardor (1/508) | ~16M gp |
-| Godsword blade | GWD bosses | ~526K gp |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Attack style | Slash |
-| Slash attack | +132 |
-| Crush attack | +80 |
-| Strength bonus | +132 |
-| Prayer bonus | +8 |
-| Attack speed | 6 tick (3.6s) |
-| Requirements | 75 Attack |
-
-## Special Attack
-
-**Warstrike** (50% energy):
-- +100% accuracy (doubled)
-- +21% damage boost
-- Drains combat stats equal to damage dealt
-- Drain order: Defence → Strength → Prayer → Attack → Magic → Ranged
-
-## Usage
-
-**PvM (Primary Use):**
-- Alternative to Dragon warhammer
-- Defence reduction for bosses
-- Double spec at start of kills
-
-**Best For:**
-- Corporeal Beast
-- Nightmare
-- Solo bossing
-- Budget DWH alternative
-
-**PvP:**
-- Stat drain can be devastating
-- Less burst than AGS
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- PvM utility drives price
-- Good for ironmen (easier than DWH)
-
-<Adsense />
+<OSRSAdsenseCard />

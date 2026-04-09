@@ -1,6 +1,6 @@
 ---
 title: Ancient chaps | OSRS Price Data
-description: "Ancient chaps: Ancient blessed dragonhide chaps.. High alch: 3,600 GP, GE limit: 8."
+description: "Ancient chaps is a members legs slot item requiring 70 Ranged. High alch: 3,600 GP, GE limit: 8."
 osrs:
   id: 12494
   name: Ancient chaps
@@ -12,26 +12,78 @@ osrs:
   lowalch: 2400
   highalch: 3600
   limit: 8
+  equipment:
+    slot: legs
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -4
+      ranged: 8
+    defence_bonus:
+      stab: 17
+      slash: 20
+      crush: 16
+      magic: 18
+      ranged: 17
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+    requirements:
+      ranged: 70
+  related_items:
+    - item_id: 10380
+      item_name: Guthix chaps
+      slug: guthix-chaps
+      relationship: variant
+    - item_id: 10372
+      item_name: Zamorak chaps
+      slug: zamorak-chaps
+      relationship: variant
+    - item_id: 12502
+      item_name: Bandos chaps
+      slug: bandos-chaps
+      relationship: variant
+    - item_id: 12510
+      item_name: Armadyl chaps
+      slug: armadyl-chaps
+      relationship: variant
+    - item_id: 2497
+      item_name: Black d'hide chaps
+      slug: black-d-hide-chaps
+      relationship: downgrade
+      description: Standard version requiring 40 Defence
+  about: |-
+    > *"Ancient blessed dragonhide chaps."*
+
+    | Stat | Blessed | Black D'hide |
+    |------|--------:|-----------:|
+    | Ranged Attack | +8 | +8 |
+    | Stab Defence | +17 | +17 |
+    | Slash Defence | +20 | +20 |
+    | Crush Defence | +16 | +16 |
+    | Magic Defence | +18 | +18 |
+    | Ranged Defence | +17 | +17 |
+    | Prayer | +1 | 0 |
+    | Ranged Req | 70 | 70 |
+    | Defence Req | None | 40 |
+
+    The key advantage: blessed chaps have no Defence requirement, making them ideal for pures and ranged-focused accounts. They also offer a +1 prayer bonus.
+  market_strategy:
+    notes:
+      - Hard clue exclusive — supply tied to clue completion rates
+      - Popular with 1-Defence pures who need best-in-slot ranged legs
+      - All god variants are functionally identical
+      - Armadyl and Ancient variants tend to have slight premiums
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

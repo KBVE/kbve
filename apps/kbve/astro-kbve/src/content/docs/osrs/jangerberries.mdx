@@ -19,10 +19,6 @@ osrs:
     level: 48
     seed_id: 5104
     seed_name: Jangerberry seed
-  gathering:
-    locations:
-      - Island north of Gu'Tanoth
-      - Fruit stall thieving
   drop_table:
     sources:
       - source: Young impling
@@ -72,63 +68,24 @@ osrs:
       slug: snape-grass
       relationship: alternative
       description: Tree protection (10 jangerberries)
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Herblore Secondary |
+    | Tradeable | Yes |
+    | Weight | 0.007 kg |
+
+    Secondary ingredient for:
+    - Combat potion (with harralander potion unf)
+    - Snape grass protection (10 jangerberries)
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Herblore Secondary |
-| Tradeable | Yes |
-| Weight | 0.007 kg |
-
-## Obtaining
-
-Common sources:
-- Farming jangerberry bushes (48 Farming)
-- Young implings (Hunter 22-32)
-- Fruit stall thieving (25 Thieving)
-- Natural spawn on island north of Gu'Tanoth
-
-## Usage
-
-Secondary ingredient for:
-- **Combat potion** (with harralander potion unf)
-- **Snape grass protection** (10 jangerberries)
-
-## Market Strategy
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Price:** ~420 gp
-
-Moderate volume herblore ingredient. Used in combat potions.
-
-## Related Items
-
-- [Combat potion](/osrs/combat-potion/) - Primary use
-- [Harralander](/osrs/harralander/) - Partner herb
-- [Jangerberry seed](/osrs/jangerberry-seed/) - Farming source
-
-<Adsense />
+<OSRSAdsenseCard />

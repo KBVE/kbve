@@ -52,82 +52,40 @@ osrs:
       slug: opal-bracelet
       relationship: component
       description: Base item
+  about: |-
+    Enchant Opal bracelet with Lvl-1 Enchant.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 7 |
+    | Cosmic rune | 1 |
+    | Water rune | 1 |
+
+    All bonuses +0
+
+    Slayer Acceleration:
+    - 25% chance for kill to count as 2
+    - No extra XP granted
+    - 30 charges
+
+    Essential for:
+    - Skipping bad tasks
+    - Point boosting
+    - Task block alternatives
+
+    Speeds through unwanted tasks.
+  market_strategy:
+    notes:
+      - Very cheap to use
+      - Good for point tasks
+      - Combine with slaughter
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Hands |
-| Type | Slayer Bracelet |
-| Tradeable | Yes |
-| Weight | 0.007 kg |
-
-## Creation
-
-Enchant [Opal bracelet](/osrs/opal-bracelet/) with Lvl-1 Enchant.
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 7 |
-| Cosmic rune | 1 |
-| Water rune | 1 |
-
-## Stats
-
-All bonuses +0
-
-## Passive Effect
-
-**Slayer Acceleration:**
-- 25% chance for kill to count as 2
-- No extra XP granted
-- 30 charges
-
-## Usage
-
-Essential for:
-- Skipping bad tasks
-- Point boosting
-- Task block alternatives
-
-**Speeds through unwanted tasks.**
-
-## Market Strategy
-
-**Buy Limit:** 15,000 per 4 hours
-
-**Price:** ~1.6K gp
-
-**Tips:**
-- Very cheap to use
-- Good for point tasks
-- Combine with slaughter
-
-## Related Items
-
-- [Bracelet of slaughter](/osrs/bracelet-of-slaughter/) - Task extending
-- [Slayer ring](/osrs/slayer-ring/) - Teleports
-- [Opal bracelet](/osrs/opal-bracelet/) - Base item
-
-<Adsense />
+<OSRSAdsenseCard />

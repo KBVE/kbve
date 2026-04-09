@@ -81,79 +81,42 @@ osrs:
       slug: crystal-body
       relationship: set-piece
       description: Set bonus armor
+  about: |-
+    | Stat | Value |
+    |------|-------|
+    | Ranged attack | +128 |
+    | Ranged strength | +106 |
+    | Requirements | 75 Ranged, Agility |
+    | Attack speed | 5 tick (3s) |
+
+    Highest ranged accuracy in-game (excluding Twisted bow).
+
+    No ammo required - Uses own arrows.
+
+    Crystal armour bonus:
+    - Each piece adds +3% accuracy, +6% damage
+    - Full set: +15% accuracy, +30% damage
+
+    BiS ranged weapon for:
+    - Fight Caves
+    - Inferno
+    - Slayer
+    - Mid-tier bossing
+
+    Outperforms blowpipe with crystal armour.
+  market_strategy:
+    notes:
+      - Enhanced crystal weapon seed from CG
+      - Corrupt for permanent use
+      - Song of the Elves required
+      - Best with crystal armour
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Obtaining
-
-Created by corrupting with 2,000 crystal shards.
-
-Base bow from Gauntlet (Enhanced crystal weapon seed).
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged attack | +128 |
-| Ranged strength | +106 |
-| Requirements | 75 Ranged, Agility |
-| Attack speed | 5 tick (3s) |
-
-**Highest ranged accuracy in-game (excluding Twisted bow).**
-
-## Effects
-
-**No ammo required** - Uses own arrows.
-
-**Crystal armour bonus:**
-- Each piece adds +3% accuracy, +6% damage
-- Full set: +15% accuracy, +30% damage
-
-## Usage
-
-BiS ranged weapon for:
-- Fight Caves
-- Inferno
-- Slayer
-- Mid-tier bossing
-
-**Outperforms blowpipe with crystal armour.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~125M gp (uncharged)
-
-**Tips:**
-- Enhanced crystal weapon seed from CG
-- Corrupt for permanent use
-- Song of the Elves required
-- Best with crystal armour
-
-## Related Items
-
-- [Blade of saeldor](/osrs/blade-of-saeldor/) - Melee crystal weapon
-- [Crystal armour](/osrs/crystal-armour/) - Set bonus
-- [Twisted bow](/osrs/twisted-bow/) - High magic target alternative
-
-<Adsense />
+<OSRSAdsenseCard />

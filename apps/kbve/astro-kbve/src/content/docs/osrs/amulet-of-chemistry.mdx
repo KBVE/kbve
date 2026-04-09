@@ -53,78 +53,45 @@ osrs:
       slug: amulet-of-bounty
       relationship: alternative
       description: Farming equivalent
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | Neck |
+    | Type | Skilling Amulet |
+    | Tradeable | Yes |
+    | Weight | 0.015 kg |
+
+    Enchant Jade amulet with Lvl-2 Enchant.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 27 |
+    | Cosmic rune | 1 |
+    | Air rune | 3 |
+
+    Extra Dose:
+    - 5% chance to create 4-dose
+    - No extra XP
+    - 5 charges (~100 potions)
+
+    Great for:
+    - Herblore training
+    - Potion making profit
+    - Ironman efficiency
+
+    Effectively 5% more potions.
+  market_strategy:
+    notes:
+      - Very cheap
+      - Works on all potions
+      - ~5% profit increase
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Neck |
-| Type | Skilling Amulet |
-| Tradeable | Yes |
-| Weight | 0.015 kg |
-
-## Creation
-
-Enchant [Jade amulet](/osrs/jade-amulet/) with Lvl-2 Enchant.
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 27 |
-| Cosmic rune | 1 |
-| Air rune | 3 |
-
-## Passive Effect
-
-**Extra Dose:**
-- 5% chance to create 4-dose
-- No extra XP
-- 5 charges (~100 potions)
-
-## Usage
-
-Great for:
-- Herblore training
-- Potion making profit
-- Ironman efficiency
-
-**Effectively 5% more potions.**
-
-## Market Strategy
-
-**Buy Limit:** 15,000 per 4 hours
-
-**Price:** ~1.5K gp
-
-**Tips:**
-- Very cheap
-- Works on all potions
-- ~5% profit increase
-
-## Related Items
-
-- [Jade amulet](/osrs/jade-amulet/) - Base item
-- [Botanical pie](/osrs/botanical-pie/) - Herblore boost
-- [Amulet of bounty](/osrs/amulet-of-bounty/) - Farming equivalent
-
-<Adsense />
+<OSRSAdsenseCard />

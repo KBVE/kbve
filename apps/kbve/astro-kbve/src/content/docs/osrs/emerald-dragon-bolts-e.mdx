@@ -1,6 +1,6 @@
 ---
 title: Emerald dragon bolts (e) | OSRS Price Data
-description: "Emerald dragon bolts (e): Enchanted Dragon crossbow bolts, tipped with emerald.. High alch: 498 GP, GE limit: 11,000."
+description: "Emerald dragon bolts (e) is a members ammo slot item with +122 ranged strength. High alch: 498 GP, GE limit: 11,000."
 osrs:
   id: 21942
   name: Emerald dragon bolts (e)
@@ -12,26 +12,65 @@ osrs:
   lowalch: 332
   highalch: 498
   limit: 11000
+  equipment:
+    slot: ammo
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      ranged_strength: 122
+      prayer: 0
+    requirements: {}
+  recipes:
+    - skill: magic
+      level: 27
+      xp: 37
+      inputs:
+        - item_name: Emerald dragon bolts
+          quantity: 10
+      output_quantity: 10
+  related_items:
+    - item_id: 9241
+      item_name: Emerald bolts (e)
+      slug: emerald-bolts-e
+      relationship: downgrade
+      description: Regular crossbow version
+  about: |-
+    > *"Enchanted Dragon crossbow bolts, tipped with emerald."*
+
+    Emerald dragon bolts (e) carry the Magical Poison enchantment. On a successful hit, there is a 55% chance (54% against players) to inflict poison starting at 5 damage. When triggered, a green gas effect appears below the target. This is one of the highest activation rates among bolt enchantments, making it an extremely reliable way to apply poison without using a poisoned weapon.
+
+    Enchant Crossbow Bolt (Emerald) requires Magic level 27 and grants 37 XP per cast. Each cast enchants 10 bolts at a time.
+
+    | Component | Quantity |
+    |-----------|----------|
+    | Emerald dragon bolts | 10 |
+    | Cosmic rune | 1 |
+    | Nature rune | 1 |
+    | Air rune | 3 |
+
+    | Stat | Dragon (e) | Regular (e) |
+    |------|-----------|-------------|
+    | Ranged Str | +122 | +46 |
+    | Base bolt | Dragon crossbow bolt | Mithril bolt |
+
+    The dragon bolt base provides significantly higher ranged strength while retaining the same high-probability poison enchantment.
+  market_strategy:
+    notes:
+      - Highest activation rate of any bolt enchantment (55%)
+      - Poison starts at 5 damage, ticking down over time
+      - Excellent for bosses susceptible to poison
+      - Very cost-effective for sustained PvM
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

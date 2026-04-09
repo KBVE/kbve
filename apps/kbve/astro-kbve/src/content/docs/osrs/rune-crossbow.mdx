@@ -63,79 +63,36 @@ osrs:
       slug: zaryte-crossbow
       relationship: upgrade
       description: BiS crossbow
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Ranged attack | +90 |
+
+    | Defence | Value |
+    |---------|-------|
+    | All | +0 |
+
+    Requirements: 61 Ranged
+
+    Popular mid-game crossbow for:
+    - Fight Caves
+    - Early bossing
+    - Slayer tasks
+    - Budget ranged option
+
+    Can use all bolt types up to runite/dragon.
+  market_strategy:
+    notes:
+      - Very affordable
+      - Good stepping stone
+      - Upgrade to ACB/ZCB later
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Two-handed) |
-| Type | Ranged - Crossbow |
-| Tradeable | Yes |
-| Weight | 6 kg |
-| Attack Speed | 5 tick rapid / 6 tick accurate |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Kree'arra | 1/127 |
-| Crazy Archaeologist | 2/128 |
-| Elite clue casket | 1/32.3 |
-| Fletching (69) | Craftable |
-| Shops | ~50K gp |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Ranged attack | +90 |
-
-| Defence | Value |
-|---------|-------|
-| All | +0 |
-
-**Requirements:** 61 Ranged
-
-## Usage
-
-Popular mid-game crossbow for:
-- Fight Caves
-- Early bossing
-- Slayer tasks
-- Budget ranged option
-
-**Can use all bolt types up to runite/dragon.**
-
-## Market Strategy
-
-**Buy Limit:** 70 per 4 hours
-
-**Price:** ~9.4K gp
-
-**Tips:**
-- Very affordable
-- Good stepping stone
-- Upgrade to ACB/ZCB later
-
-<Adsense />
+<OSRSAdsenseCard />

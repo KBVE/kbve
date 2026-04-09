@@ -63,86 +63,52 @@ osrs:
       slug: amulet-of-fury
       relationship: alternative
       description: General alternative
+  about: |-
+    Enchant Onyx necklace with Lvl-6 Enchant.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 87 (boostable) |
+    | Runes | 20 fire, 20 earth, 1 cosmic |
+
+    | Offense | Value |
+    |---------|-------|
+    | All attack styles | -10 |
+    | Strength | +7 |
+
+    | Defence | Value |
+    |---------|-------|
+    | All | -20 |
+
+    | Other | Value |
+    |-------|-------|
+    | Prayer | +3 |
+
+    Obsidian Boost:
+    - +20% damage with obsidian melee weapons
+    - Stacks with full obsidian armor (+10%)
+    - Stacks with Slayer helm and Void
+
+    Total with armor: +30% damage bonus!
+
+    Essential for:
+    - Obsidian training setups
+    - TzHaar slayer tasks
+    - Fight Caves with obsidian
+
+    Core item for obsidian weapon builds.
+  market_strategy:
+    notes:
+      - Use with obsidian weapons
+      - Negative defences are significant
+      - Great for training
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Neck |
-| Type | Melee Jewelry |
-| Tradeable | Yes |
-| Weight | 0.01 kg |
-
-## Creation
-
-Enchant Onyx necklace with Lvl-6 Enchant.
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 87 (boostable) |
-| Runes | 20 fire, 20 earth, 1 cosmic |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| All attack styles | -10 |
-| Strength | +7 |
-
-| Defence | Value |
-|---------|-------|
-| All | -20 |
-
-| Other | Value |
-|-------|-------|
-| Prayer | +3 |
-
-## Passive Effect
-
-**Obsidian Boost:**
-- +20% damage with obsidian melee weapons
-- Stacks with full obsidian armor (+10%)
-- Stacks with Slayer helm and Void
-
-**Total with armor: +30% damage bonus!**
-
-## Usage
-
-Essential for:
-- Obsidian training setups
-- TzHaar slayer tasks
-- Fight Caves with obsidian
-
-**Core item for obsidian weapon builds.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Use with obsidian weapons
-- Negative defences are significant
-- Great for training
-
-<Adsense />
+<OSRSAdsenseCard />

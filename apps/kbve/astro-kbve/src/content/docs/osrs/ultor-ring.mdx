@@ -60,80 +60,40 @@ osrs:
       slug: ultor-vestige
       relationship: component
       description: From Vardorvis
+  about: |-
+    1. Combine Berserker icon + Ultor vestige + 500 blood runes
+    2. Craft at furnace with 3 chromium ingots + ring mould
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 90 (boostable) |
+    | Crafting | 80 (boostable) |
+    | Kill Vardorvis | 1 time |
+
+    | Offense | Value |
+    |---------|-------|
+    | Strength | +12 |
+
+    Requirements: Vardorvis kill
+
+    BiS for:
+    - All melee DPS
+    - Maximum hits
+    - Slayer
+
+    Highest strength bonus ring (+4 over berserker (i)).
+  market_strategy:
+    notes:
+      - Vestige from Vardorvis
+      - Cannot be imbued
+      - DT2 content
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Ring |
-| Type | Melee Ring |
-| Tradeable | Yes |
-| Weight | 0.012 kg |
-
-## Creation
-
-1. Combine [Berserker icon](/osrs/berserker-icon/) + [Ultor vestige](/osrs/ultor-vestige/) + 500 blood runes
-2. Craft at furnace with 3 chromium ingots + ring mould
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 90 (boostable) |
-| Crafting | 80 (boostable) |
-| Kill Vardorvis | 1 time |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Strength | +12 |
-
-**Requirements:** Vardorvis kill
-
-## Usage
-
-BiS for:
-- All melee DPS
-- Maximum hits
-- Slayer
-
-**Highest strength bonus ring (+4 over berserker (i)).**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~117M gp
-
-**Tips:**
-- Vestige from Vardorvis
-- Cannot be imbued
-- DT2 content
-
-## Related Items
-
-- [Berserker ring (i)](/osrs/berserker-ring-i/) - Budget alternative
-- [Bellator ring](/osrs/bellator-ring/) - Slash accuracy
-- [Vardorvis](/osrs/vardorvis/) - Vestige source
-
-<Adsense />
+<OSRSAdsenseCard />

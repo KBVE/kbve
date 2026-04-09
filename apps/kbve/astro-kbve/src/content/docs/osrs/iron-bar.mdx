@@ -41,65 +41,25 @@ osrs:
       slug: ring-of-forging
       relationship: alternative
       description: Guarantees 100% success rate
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Metal Bar |
+    | Tradeable | Yes |
+    | Weight | 1.814 kg |
+    | Requirements | 15 Smithing |
+
+    Used for Smithing iron equipment and cannonballs.
+
+    Popular for Blast Furnace money making.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Metal Bar |
-| Tradeable | Yes |
-| Weight | 1.814 kg |
-| Requirements | 15 Smithing |
-
-## Obtaining
-
-**Smelting:** Smelt iron ore (15 Smithing, 12.5 XP).
-
-**Success Rate:** 50% at regular furnace, 100% at Blast Furnace.
-
-**Ring of Forging:** Guarantees success for 140 ores.
-
-**Drops:** Iron dragons (5 bars), white knights.
-
-## Usage
-
-Used for Smithing iron equipment and cannonballs.
-
-Popular for Blast Furnace money making.
-
-## Market Strategy
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Price:** ~228 gp
-
-High volume smithing material.
-
-## Related Items
-
-- [Iron ore](/osrs/iron-ore/) - Raw material
-- [Steel bar](/osrs/steel-bar/) - Higher tier
-
-<Adsense />
+<OSRSAdsenseCard />

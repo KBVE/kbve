@@ -1,6 +1,6 @@
 ---
 title: Ham hood | OSRS Price Data
-description: "Ham hood: Light-weight head protection and eye shield.. High alch: 45 GP, GE limit: 15."
+description: "Ham hood is a members head slot item. High alch: 45 GP, GE limit: 15."
 osrs:
   id: 4302
   name: Ham hood
@@ -12,26 +12,46 @@ osrs:
   lowalch: 30
   highalch: 45
   limit: 15
+  equipment:
+    slot: head
+    requirements: {}
+  related_items:
+    - item_id: 4298
+      item_name: Ham shirt
+      slug: ham-shirt
+      relationship: set-piece
+      description: H.A.M. body piece
+    - item_id: 4300
+      item_name: Ham robe
+      slug: ham-robe
+      relationship: set-piece
+      description: H.A.M. legs piece
+    - item_id: 4304
+      item_name: Ham cloak
+      slug: ham-cloak
+      relationship: set-piece
+      description: H.A.M. cape piece
+    - item_id: 4308
+      item_name: Ham gloves
+      slug: ham-gloves
+      relationship: set-piece
+      description: H.A.M. hands piece
+    - item_id: 4310
+      item_name: Ham boots
+      slug: ham-boots
+      relationship: set-piece
+      description: H.A.M. feet piece
+  about: |-
+    > *"Light-weight head protection and eye shield."*
+
+    The ham hood is part of the H.A.M. (Humans Against Monsters) robes set. Wearing more pieces of the set reduces the chance of being ejected from the H.A.M. Hideout when caught pickpocketing, though it does not improve pickpocket success rates. Required for the Death to the Dorgeshuun quest.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

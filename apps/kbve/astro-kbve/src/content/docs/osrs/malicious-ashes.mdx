@@ -52,56 +52,21 @@ osrs:
       slug: fiendish-ashes
       relationship: downgrade
       description: Lowest XP (10 base)
+  market_strategy:
+    notes:
+      - Common from black demon tasks
+      - Nechryael barraging popular
+      - Steady supply and demand
+      - Good middle-ground ashes
+      - Popular Slayer task drops
+      - Compare to bone GP/XP ratios
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Prayer Training
-
-Malicious ashes are a mid-tier demonic ash:
-
-| Method | XP per ash |
-|--------|------------|
-| Scatter | 65 |
-| Demonic Offering spell | 195 |
-
-## Obtaining
-
-Dropped by high-level demons:
-- Black demons (always)
-- Nechryael (always)
-- Greater Nechryael (always)
-
-## Market Flip Strategy
-
-**Slayer Byproduct:**
-- Common from black demon tasks
-- Nechryael barraging popular
-- Steady supply and demand
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Tips:**
-- Good middle-ground ashes
-- Popular Slayer task drops
-- Compare to bone GP/XP ratios
-
-<Adsense />
+<OSRSAdsenseCard />

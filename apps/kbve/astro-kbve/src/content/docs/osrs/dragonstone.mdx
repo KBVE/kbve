@@ -112,74 +112,33 @@ osrs:
       slug: combat-bracelet
       relationship: product
       description: Bracelet product
+  about: |-
+    | Item | Effect |
+    |------|--------|
+    | Ring of wealth | Improved rare drops |
+    | Skills necklace | Skill teleports |
+    | Amulet of glory | Best-in-slot hybrid |
+    | Combat bracelet | Combat teleports |
+  market_strategy:
+    notes:
+      - Glory amulet production
+      - Ring of wealth crafting
+      - Combat bracelet crafting
+      - Amulet of glory
+      - Ring of wealth
+      - Combat bracelet
+      - Dragon bolts (e)
+      - Crystal chest supplies market
+      - Cut from uncut version
+      - High volume enchanting
+      - Good Crafting XP
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Source | Method |
-|--------|--------|
-| Cutting uncut dragonstone | 55 Crafting |
-| Crystal chest | Guaranteed |
-| Monster drops | Various bosses |
-
-## Crafting
-
-| Product | Level | XP |
-|---------|-------|-----|
-| Dragonstone ring | 55 | 100 |
-| Dragon necklace | 72 | 105 |
-| Dragonstone amulet | 80 | 150 |
-| Dragonstone bracelet | 74 | 110 |
-| Dragonstone bolt tips (12) | 71 | 8.2 |
-
-## Enchanted Jewelry
-
-| Item | Effect |
-|------|--------|
-| Ring of wealth | Improved rare drops |
-| Skills necklace | Skill teleports |
-| Amulet of glory | Best-in-slot hybrid |
-| Combat bracelet | Combat teleports |
-
-## Market Flip Strategy
-
-**High-Value Gem:**
-- Glory amulet production
-- Ring of wealth crafting
-- Combat bracelet crafting
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Amulet of glory
-- Ring of wealth
-- Combat bracelet
-- Dragon bolts (e)
-
-**Tips:**
-- Crystal chest supplies market
-- Cut from uncut version
-- High volume enchanting
-- Good Crafting XP
-
-<Adsense />
+<OSRSAdsenseCard />

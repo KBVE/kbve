@@ -54,64 +54,38 @@ osrs:
       slug: drift-net
       relationship: component
       description: Alternative source
+  about: |-
+    | Requirement | Value |
+    |-------------|-------|
+    | Farming Level | 23 |
+    | Location | Underwater seaweed patch |
+    | Growth time | 40 minutes |
+    | Yield | Giant seaweed |
+  market_strategy:
+    title: |-
+      - Giant seaweed farming
+      - Superglass Make chain
+      - Ironman accounts
+      - Crafting training
+    notes:
+      - Only way to farm giant seaweed
+      - Low buy limit
+      - Essential for Crafting
+      - Giant seaweed farming
+      - Superglass Make chain
+      - Ironman accounts
+      - Crafting training
+      - Very low buy limit (600)
+      - Spawn underwater on Fossil Island
+      - Harvest gives more spores
+      - 2 patches available
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Source | Method |
-|--------|--------|
-| Fossil Island underwater | Random spawns |
-| Seaweed patch harvesting | Chance while harvesting |
-| Drift net fishing | Random drops |
-
-## Farming
-
-| Requirement | Value |
-|-------------|-------|
-| Farming Level | 23 |
-| Location | Underwater seaweed patch |
-| Growth time | 40 minutes |
-| Yield | Giant seaweed |
-
-## Market Flip Strategy
-
-**Seaweed Farming Seed:**
-- Only way to farm giant seaweed
-- Low buy limit
-- Essential for Crafting
-
-**Buy Limit:** 600 per 4 hours
-
-**Demand Drivers:**
-- Giant seaweed farming
-- Superglass Make chain
-- Ironman accounts
-- Crafting training
-
-**Tips:**
-- Very low buy limit (600)
-- Spawn underwater on Fossil Island
-- Harvest gives more spores
-- 2 patches available
-
-<Adsense />
+<OSRSAdsenseCard />

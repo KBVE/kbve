@@ -63,65 +63,40 @@ osrs:
       slug: prayer-potion-4
       relationship: alternative
       description: Budget alternative
+  about: |-
+    | Requirement | Value |
+    |-------------|-------|
+    | Herblore Level | 65 |
+    | XP | 192 (4-dose) |
+    | Quest | Zogre Flesh Eaters (partial) |
+    | Ingredients | Super restore + Unicorn horn dust + Snake weed + Nail beast nails |
+
+    | Effect | Value |
+    |--------|-------|
+    | Stat restore | Floor(Level × 0.30) + 4 |
+    | Prayer restore | Floor(Prayer × 0.30) + 4 |
+    | Disease immunity | 15 minutes |
+    | Antipoison | 6 minutes |
+  market_strategy:
+    notes:
+      - Combines super restore + antipoison + disease cure
+      - Single inventory slot efficiency
+      - High-end PvM demand
+      - Theatre of Blood
+      - Nightmare boss
+      - General PvM
+      - Inventory optimization
+      - Low buy limit (2,000)
+      - Complex to make
+      - Higher restore than super restore
+      - Quest requirement limits supply
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creating
-
-| Requirement | Value |
-|-------------|-------|
-| Herblore Level | 65 |
-| XP | 192 (4-dose) |
-| Quest | Zogre Flesh Eaters (partial) |
-| Ingredients | Super restore + Unicorn horn dust + Snake weed + Nail beast nails |
-
-## Effects
-
-| Effect | Value |
-|--------|-------|
-| Stat restore | Floor(Level × 0.30) + 4 |
-| Prayer restore | Floor(Prayer × 0.30) + 4 |
-| Disease immunity | 15 minutes |
-| Antipoison | 6 minutes |
-
-## Market Flip Strategy
-
-**Premium Restoration:**
-- Combines super restore + antipoison + disease cure
-- Single inventory slot efficiency
-- High-end PvM demand
-
-**Buy Limit:** 2,000 per 4 hours
-
-**Demand Drivers:**
-- Theatre of Blood
-- Nightmare boss
-- General PvM
-- Inventory optimization
-
-**Tips:**
-- Low buy limit (2,000)
-- Complex to make
-- Higher restore than super restore
-- Quest requirement limits supply
-
-<Adsense />
+<OSRSAdsenseCard />

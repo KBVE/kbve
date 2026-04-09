@@ -64,48 +64,21 @@ osrs:
       slug: runite-ore
       relationship: alternative
       description: For rune bars
+  market_strategy:
+    profit_formulas:
+      - Bar price - (Ore price + Coal price × amount) = Smelting profit
+    notes:
+      - At Blast Furnace, coal requirement is halved
+      - "Steel: 1 coal, Mithril: 2 coal, Adamant: 3 coal, Rune: 4 coal"
+      - Major cost savings for bar production
+      - Check current coal prices vs bar margins
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Smithing
-
-Coal is required to smelt higher tier bars:
-
-| Bar | Coal Required | Other Ore | Smithing Level |
-|-----|---------------|-----------|----------------|
-| Steel bar | 2 | 1 Iron ore | 30 |
-| Mithril bar | 4 | 1 Mithril ore | 50 |
-| Adamantite bar | 6 | 1 Adamantite ore | 70 |
-| Runite bar | 8 | 1 Runite ore | 85 |
-
-## Market Flip Strategy
-
-**Blast Furnace Smelting:**
-- At Blast Furnace, coal requirement is halved
-- Steel: 1 coal, Mithril: 2 coal, Adamant: 3 coal, Rune: 4 coal
-- Major cost savings for bar production
-
-**Profit Calculation:**
-- `Bar price - (Ore price + Coal price × amount) = Smelting profit`
-- Check current coal prices vs bar margins
-
-<Adsense />
+<OSRSAdsenseCard />

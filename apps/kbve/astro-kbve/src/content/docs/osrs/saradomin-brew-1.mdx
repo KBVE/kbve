@@ -51,66 +51,37 @@ osrs:
     - slug: crushed-nest
       name: Crushed nest
       relation: creation_material
+  about: |-
+    1-dose variant of Saradomin brew(4).
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Herblore Level | 81 |
+    | XP gained | 180 (when making 4-dose) |
+
+    Per dose:
+    - Heals: 15% + 2 of max HP (max +16 at 99 HP)
+    - Boosts Defence: 20% + 2 of base level (max +21 at 99)
+    - Lowers: Attack, Strength, Magic, Ranged by 10% + 2
+
+    Single-dose potions useful for:
+    - Emergency healing in inventory-tight situations
+    - Combo eating (food + brew + karambwan)
+    - PvP burst healing
+
+    Brew to Restore Ratio: Use 3 doses of brew per 1 dose of super restore to maintain combat stats.
+  market_strategy:
+    notes:
+      - Decants to/from 4-dose version
+      - Single doses for specific inventory setups
+      - Bob Barter in GE can decant potions
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-1-dose variant of [Saradomin brew(4)](/osrs/saradomin-brew4/).
-
-| Requirement | Value |
-|-------------|-------|
-| Herblore Level | 81 |
-| XP gained | 180 (when making 4-dose) |
-
-## Effects
-
-Per dose:
-- **Heals:** 15% + 2 of max HP (max +16 at 99 HP)
-- **Boosts Defence:** 20% + 2 of base level (max +21 at 99)
-- **Lowers:** Attack, Strength, Magic, Ranged by 10% + 2
-
-## Usage
-
-Single-dose potions useful for:
-- Emergency healing in inventory-tight situations
-- Combo eating (food + brew + karambwan)
-- PvP burst healing
-
-**Brew to Restore Ratio:** Use 3 doses of brew per 1 dose of super restore to maintain combat stats.
-
-## Market Strategy
-
-**Buy Limit:** 2,000 per 4 hours
-
-**Tips:**
-- Decants to/from 4-dose version
-- Single doses for specific inventory setups
-- Bob Barter in GE can decant potions
-
-## Related Items
-
-- [Saradomin brew(4)](/osrs/saradomin-brew4/) - Full dose variant
-- [Super restore(4)](/osrs/super-restore4/) - Counters stat drain
-- [Crushed nest](/osrs/crushed-nest/) - Creation material
-
-<Adsense />
+<OSRSAdsenseCard />

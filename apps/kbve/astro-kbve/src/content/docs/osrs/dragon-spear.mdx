@@ -1,6 +1,6 @@
 ---
 title: Dragon spear | OSRS Price Data
-description: "Dragon spear: A dragon tipped spear.. High alch: 37,440 GP, GE limit: 70."
+description: "Dragon spear is a members weapon slot item with +60 melee strength requiring 60 Attack. High alch: 37,440 GP, GE limit: 70."
 osrs:
   id: 1249
   name: Dragon spear
@@ -12,26 +12,100 @@ osrs:
   lowalch: 24960
   highalch: 37440
   limit: 70
+  equipment:
+    slot: weapon
+    two_handed: true
+    attack_speed: 4
+    attack_bonus:
+      stab: 55
+      slash: 55
+      crush: 55
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 5
+      slash: 5
+      crush: 5
+      magic: 5
+      ranged: 5
+    other_bonus:
+      melee_strength: 60
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      attack: 60
+    weight: 2.267
+  special_attack:
+    name: Shove
+    energy: 25
+    description: Pushes target back one tile and stuns them for 3 seconds. Cannot be used on already-stunned targets.
+  drop_table:
+    sources:
+      - source: Brutal black dragon
+        combat_level: 318
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/512
+        members_only: true
+      - source: Rare drop table
+        combat_level: 0
+        quantity: "1"
+        rarity: very rare
+        members_only: true
+  related_items:
+    - item_id: 11824
+      item_name: Zamorakian spear
+      slug: zamorakian-spear
+      relationship: upgrade
+      description: Superior spear from K'ril
+    - item_id: 1347
+      item_name: Rune warhammer
+      slug: rune-warhammer
+      relationship: alternative
+      description: One-handed crush weapon
+  about: |-
+    | Attack | Value |
+    |--------|-------|
+    | Stab | +55 |
+    | Slash | +55 |
+    | Crush | +55 |
+
+    | Defence | Value |
+    |---------|-------|
+    | All styles | +5 |
+
+    | Other | Value |
+    |-------|-------|
+    | Strength | +60 |
+
+    Requirements: 60 Attack | Speed: 4 tick (2.4s) | Two-handed
+
+    The dragon spear has equal bonuses across all three attack styles (+55 each) — the only dragon weapon with this property. It also provides +5 to all defence stats, unusual for a weapon.
+
+    Cost: 25% special attack energy
+
+    Pushes the target back one tile and stuns them for 3 seconds (5 game ticks). Cannot be used on targets already stunned or on large NPCs (multi-tile).
+
+    The Shove spec is notorious in multi-combat PvP:
+    - Teams use coordinated dragon spear specs to chain-stun a single target
+    - The victim cannot eat, drink potions, or teleport while stunned
+    - Combined with smite, this can drain all Prayer points for item protection removal
+    - Known as "spear-speccing" or "spearing out" — a core multi-PK strategy
+
+    Two dragon spears are needed for certain Corporeal Beast team strategies — players use Shove specs to keep Corp pinned against a wall, preventing it from moving to heal at its spawn point.
+  market_strategy:
+    notes:
+      - Rare drop table item — obtainable from many bosses/monsters
+      - PvP demand drives price above alch value
+      - Ironmen need two for elite clue emote requirements
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

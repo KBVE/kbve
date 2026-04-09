@@ -1,6 +1,6 @@
 ---
 title: Emerald bolts (e) | OSRS Price Data
-description: "Emerald bolts (e): Enchanted Emerald tipped Mithril Crossbow Bolts.. High alch: 35 GP, GE limit: 11,000."
+description: "Emerald bolts (e) is a members ammo slot item with +85 ranged strength requiring 1 Ranged. High alch: 35 GP, GE limit: 11,000."
 osrs:
   id: 9241
   name: Emerald bolts (e)
@@ -12,26 +12,51 @@ osrs:
   lowalch: 23
   highalch: 35
   limit: 11000
+  equipment:
+    slot: ammo
+    other_bonus:
+      ranged_strength: 85
+    requirements:
+      ranged: 1
+    weight: 0
+  related_items:
+    - item_id: 9240
+      item_name: Sapphire bolts (e)
+      slug: sapphire-bolts-e
+      relationship: downgrade
+      description: Previous tier enchanted bolt
+  about: |-
+    | Other | Value |
+    |-------|-------|
+    | Ranged Strength | +85 |
+
+    Proc chance: 54% (59.4% with Kandarin hard diary)
+
+    On activation, applies 5 poison damage to the target through a cloud of poisonous gas. This is by far the highest proc rate of any enchanted bolt — over 10x more frequent than most others.
+
+    At 54-59% activation rate, emerald bolts (e) are the most reliable way to poison targets with crossbow bolts:
+    - First hit has >50% chance to poison
+    - 5 poison damage ticks down over time (5→4→3→2→1)
+    - Poison continues even after switching weapons
+    - Works in both PvP and PvM
+
+    | Method | Poison Dmg | Reliability |
+    |--------|-----------|-------------|
+    | Emerald bolts (e) | 5 | 54% per hit |
+    | Dragon dagger (p++) | 10 | On hit only |
+    | Toxic blowpipe | Venom (6+) | 25% per hit |
+  market_strategy:
+    notes:
+      - Highest proc rate of any enchanted bolt
+      - Popular for consistent poison application
+      - Cheap to enchant at 27 Magic
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

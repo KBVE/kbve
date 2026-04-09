@@ -75,68 +75,41 @@ osrs:
       slug: shark
       relationship: alternative
       description: Lower tier food (20 HP)
+  about: |-
+    Combine tuna and corn with a potato with butter.
+
+    Full Recipe Chain:
+    1. Bake a potato on a range/fire
+    2. Add butter to make potato with butter
+    3. Combine cooked tuna with cooked sweetcorn to make tuna and corn
+    4. Add tuna and corn to the potato with butter
+
+    | Effect | Value |
+    |--------|-------|
+    | Healing | 22 Hitpoints |
+
+    Tuna potato is one of the highest instant-healing foods:
+    - Tied with manta ray, dark crab, anglerfish, and bluefin at 22 HP
+    - Single-bite consumption
+    - Complex to make (many preparation steps)
+  market_strategy:
+    notes:
+      - Complex recipe = potential profit margins
+      - Requires multiple intermediate items
+      - Calculate full material costs vs sell price
+      - Same healing as manta ray and dark crab
+      - Heavier weight (0.5 kg) than alternatives
+      - Most complex preparation of any 22 HP food
+      - Low trade volume due to complex creation
+      - Ironman accounts may make these for efficient food
+      - Consider component flipping instead of full recipe
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Combine tuna and corn with a potato with butter.
-
-**Full Recipe Chain:**
-1. Bake a potato on a range/fire
-2. Add butter to make potato with butter
-3. Combine cooked tuna with cooked sweetcorn to make tuna and corn
-4. Add tuna and corn to the potato with butter
-
-## Effects
-
-| Effect | Value |
-|--------|-------|
-| Healing | 22 Hitpoints |
-
-## Usage
-
-Tuna potato is one of the highest instant-healing foods:
-- Tied with manta ray, dark crab, anglerfish, and bluefin at 22 HP
-- Single-bite consumption
-- Complex to make (many preparation steps)
-
-## Market Flip Strategy
-
-**Cooking Profit:**
-- Complex recipe = potential profit margins
-- Requires multiple intermediate items
-- Calculate full material costs vs sell price
-
-**Comparison to Alternatives:**
-- Same healing as manta ray and dark crab
-- Heavier weight (0.5 kg) than alternatives
-- Most complex preparation of any 22 HP food
-
-**Buy Limit:** 6,000 per 4 hours
-
-**Tips:**
-- Low trade volume due to complex creation
-- Ironman accounts may make these for efficient food
-- Consider component flipping instead of full recipe
-
-<Adsense />
+<OSRSAdsenseCard />

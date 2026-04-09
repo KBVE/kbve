@@ -45,60 +45,25 @@ osrs:
       slug: blessed-spirit-shield
       relationship: product
       description: Created item
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Crafting Material |
+    | Tradeable | Yes |
+    | Weight | 2 kg |
+
+    | Item Created | Materials | Requirements |
+    |--------------|-----------|--------------|
+    | Blessed spirit shield | Spirit shield + Holy elixir | 85 Prayer |
+
+    Blessed spirit shield can then be combined with sigils.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Crafting Material |
-| Tradeable | Yes |
-| Weight | 2 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Corporeal Beast | 3/512 (~1/171) |
-
-## Usage
-
-| Item Created | Materials | Requirements |
-|--------------|-----------|--------------|
-| Blessed spirit shield | Spirit shield + Holy elixir | 85 Prayer |
-
-Blessed spirit shield can then be combined with sigils.
-
-## Market Strategy
-
-**Buy Limit:** 5 per 4 hours
-
-**Price:** ~600K gp
-
-## Related Items
-
-- [Corporeal Beast](/osrs/corporeal-beast/) - Source
-- [Spirit shield](/osrs/spirit-shield/) - Required material
-- [Blessed spirit shield](/osrs/blessed-spirit-shield/) - Created item
-
-<Adsense />
+<OSRSAdsenseCard />

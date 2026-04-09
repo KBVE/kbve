@@ -64,70 +64,45 @@ osrs:
       slug: dragonfire-ward
       relationship: alternative
       description: Ranged alternative
+  about: |-
+    Combine Anti-dragon shield + Draconic visage:
+
+    | Method | Requirements | XP |
+    |--------|--------------|-----|
+    | Smithing | 90 Smithing + anvil + hammer | 2,000 |
+    | Oziach (NPC) | Dragon Slayer I + 1,250,000 gp | None |
+
+    | Stat | Uncharged | Charged (+50) |
+    |------|-----------|---------------|
+    | Stab defence | +20 | +70 |
+    | Slash defence | +25 | +75 |
+    | Crush defence | +22 | +72 |
+    | Ranged defence | +22 | +72 |
+    | Strength | +7 | +7 |
+
+    Dragonfire Protection:
+    - Same protection as anti-dragon shield
+    - Partial wyvern breath protection
+
+    Dragonfire Blast (right-click activate):
+    - Deals up to 25 damage
+    - Uses 1 charge
+    - 10-tile range
+    - ~2 minute cooldown
+
+    Charges from absorbing dragonfire attacks (max 50 charges).
+  market_strategy:
+    notes:
+      - Visage is the expensive component
+      - Required for some high-level dragon content
+      - Consider Dragonfire ward for ranged
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Combine Anti-dragon shield + Draconic visage:
-
-| Method | Requirements | XP |
-|--------|--------------|-----|
-| Smithing | 90 Smithing + anvil + hammer | 2,000 |
-| Oziach (NPC) | Dragon Slayer I + 1,250,000 gp | None |
-
-## Stats
-
-| Stat | Uncharged | Charged (+50) |
-|------|-----------|---------------|
-| Stab defence | +20 | +70 |
-| Slash defence | +25 | +75 |
-| Crush defence | +22 | +72 |
-| Ranged defence | +22 | +72 |
-| Strength | +7 | +7 |
-
-## Effects
-
-**Dragonfire Protection:**
-- Same protection as anti-dragon shield
-- Partial wyvern breath protection
-
-**Dragonfire Blast** (right-click activate):
-- Deals up to 25 damage
-- Uses 1 charge
-- 10-tile range
-- ~2 minute cooldown
-
-## Charging
-
-Charges from absorbing dragonfire attacks (max 50 charges).
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Visage is the expensive component
-- Required for some high-level dragon content
-- Consider Dragonfire ward for ranged
-
-<Adsense />
+<OSRSAdsenseCard />

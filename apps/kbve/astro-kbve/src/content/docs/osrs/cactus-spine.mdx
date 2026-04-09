@@ -50,68 +50,24 @@ osrs:
     - slug: yew-seed
       name: Yew seed
       relation: protection_target
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Farming Product |
+    | Tradeable | Yes |
+    | Weight | 0.028 kg |
+
+    Herblore: Weapon poison+ ingredient
+
+    Farming: Yew tree protection payment (10 spines)
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Farming Product |
-| Tradeable | Yes |
-| Weight | 0.028 kg |
-
-## Obtaining
-
-**Primary:** Harvest from cactus patches (55 Farming required)
-- Al Kharid
-- Farming Guild
-
-Yields ~10 spines per harvest. Regrowth every 75 minutes.
-
-**Other sources:**
-- Nature implings (Hunter 58-68)
-- Kalphite Queen (10 noted)
-- Tombs of Amascut chests
-
-## Usage
-
-**Herblore:** Weapon poison+ ingredient
-
-**Farming:** Yew tree protection payment (10 spines)
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~2,447 gp
-
-Moderate volume. Used for tree protection and Herblore.
-
-## Related Items
-
-- [Weapon poison+](/osrs/weapon-poison-plus/) - Herblore use
-- [Cactus seed](/osrs/cactus-seed/) - Farming source
-- [Yew seed](/osrs/yew-seed/) - Protection target
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -51,69 +51,40 @@ osrs:
       slug: ruby-dragon-bolts-e
       relationship: component
       description: Best bolt pairing
+  about: |-
+    | Stat | Value |
+    |------|-------|
+    | Ranged attack | +100 |
+    | Prayer | +1 |
+    | Attack speed | 6 tick (3.6s) |
+    | Range | 8 tiles (10 with Longrange) |
+    | Requirements | 70 Ranged |
+
+    Armadyl Eye (50% energy):
+    - Doubles accuracy
+    - Doubles enchanted bolt proc chance
+    - Great with ruby/diamond bolts
+
+    | Upgrade | Requirements |
+    |---------|--------------|
+    | Zaryte crossbow | + Nihil horn + 250 nihil shards |
+
+    Best For:
+    - Bossing with enchanted bolts
+    - Spec weapon for bolt procs
+    - Pre-Zaryte ranged option
+  market_strategy:
+    notes:
+      - Only crossbow with prayer bonus
+      - Great spec for ruby bolt procs
+      - Upgrade path to Zaryte
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Dropped by Commander Zilyana (1/508 drop rate) in God Wars Dungeon.
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged attack | +100 |
-| Prayer | +1 |
-| Attack speed | 6 tick (3.6s) |
-| Range | 8 tiles (10 with Longrange) |
-| Requirements | 70 Ranged |
-
-## Special Attack
-
-**Armadyl Eye** (50% energy):
-- Doubles accuracy
-- Doubles enchanted bolt proc chance
-- Great with ruby/diamond bolts
-
-## Upgrades
-
-| Upgrade | Requirements |
-|---------|--------------|
-| Zaryte crossbow | + Nihil horn + 250 nihil shards |
-
-## Usage
-
-**Best For:**
-- Bossing with enchanted bolts
-- Spec weapon for bolt procs
-- Pre-Zaryte ranged option
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Only crossbow with prayer bonus
-- Great spec for ruby bolt procs
-- Upgrade path to Zaryte
-
-<Adsense />
+<OSRSAdsenseCard />

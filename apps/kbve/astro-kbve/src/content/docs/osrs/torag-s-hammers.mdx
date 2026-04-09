@@ -56,96 +56,49 @@ osrs:
       slug: dharoks-greataxe
       relationship: alternative
       description: Better alternative
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Stab | -4 |
+    | Slash | -4 |
+    | Crush | +85 |
+    | Strength | +72 |
+
+    | Defence | Value |
+    |---------|-------|
+    | All | +0 |
+
+    Requirements: 70 Attack, 70 Strength
+
+    Full Torag's:
+    - Chance to lower target's run energy by 20%
+    - Relatively weak effect
+
+    Double Hit:
+    - Two independent hits per attack
+    - Damage split between both hits
+    - Useful vs negative armour targets
+
+    Degrades over 15 hours of combat.
+
+    Limited uses:
+    - Barrows set completion
+    - Double-hit mechanics
+    - Set effect is weak
+
+    Generally outclassed by other options.
+  market_strategy:
+    notes:
+      - Cheapest Barrows weapon
+      - Set effect is niche
+      - Collection purposes
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Two-handed) |
-| Type | Melee - Crush |
-| Tradeable | Yes |
-| Weight | 3.628 kg |
-| Attack Speed | 5 tick (3.0s) |
-
-## Obtaining
-
-Drop from Barrows reward chest.
-
-| Source | Drop Rate |
-|--------|-----------|
-| Barrows chest | 7 × 1/2,448 |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Stab | -4 |
-| Slash | -4 |
-| Crush | +85 |
-| Strength | +72 |
-
-| Defence | Value |
-|---------|-------|
-| All | +0 |
-
-**Requirements:** 70 Attack, 70 Strength
-
-## Set Effect
-
-**Full Torag's:**
-- Chance to lower target's run energy by 20%
-- Relatively weak effect
-
-## Special Mechanic
-
-**Double Hit:**
-- Two independent hits per attack
-- Damage split between both hits
-- Useful vs negative armour targets
-
-## Degradation
-
-Degrades over 15 hours of combat.
-
-## Usage
-
-Limited uses:
-- Barrows set completion
-- Double-hit mechanics
-- Set effect is weak
-
-**Generally outclassed by other options.**
-
-## Market Strategy
-
-**Buy Limit:** 15 per 4 hours
-
-**Price:** ~90K gp
-
-**Tips:**
-- Cheapest Barrows weapon
-- Set effect is niche
-- Collection purposes
-
-<Adsense />
+<OSRSAdsenseCard />

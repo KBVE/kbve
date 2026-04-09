@@ -55,69 +55,36 @@ osrs:
       slug: manta-ray
       relationship: alternative
       description: Alternative
+  about: |-
+    | Effect | Value |
+    |--------|-------|
+    | Heals | 18 HP |
+    | Buy limit | 10,000 |
+
+    Combo Eating:
+    - Eat same tick as other food
+    - Essential for high-level PvM
+    - Used with shark/anglerfish
+  market_strategy:
+    notes:
+      - Tick eating meta
+      - Raids/Inferno staple
+      - High demand always
+      - Combo eating (PvM/PvP)
+      - Theatre of Blood
+      - Inferno attempts
+      - Cox/ToA raids
+      - 1-tick karambwan technique
+      - Eat with shark for 38 HP
+      - Quest required to cook
+      - Always in demand
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Method | Level | XP |
-|--------|-------|-----|
-| Cooking raw karambwan | 30 Cooking | 190 |
-| Quest | Tai Bwo Wannai Trio | - |
-| Cook time | 4 ticks (2.4s) | - |
-
-## Stats
-
-| Effect | Value |
-|--------|-------|
-| Heals | 18 HP |
-| Buy limit | 10,000 |
-
-## Combat Use
-
-**Combo Eating:**
-- Eat same tick as other food
-- Essential for high-level PvM
-- Used with shark/anglerfish
-
-## Market Flip Strategy
-
-**PvM Essential:**
-- Tick eating meta
-- Raids/Inferno staple
-- High demand always
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Demand Drivers:**
-- Combo eating (PvM/PvP)
-- Theatre of Blood
-- Inferno attempts
-- Cox/ToA raids
-
-**Tips:**
-- 1-tick karambwan technique
-- Eat with shark for 38 HP
-- Quest required to cook
-- Always in demand
-
-<Adsense />
+<OSRSAdsenseCard />

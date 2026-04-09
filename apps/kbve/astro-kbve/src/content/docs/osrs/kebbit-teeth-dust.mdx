@@ -66,60 +66,25 @@ osrs:
       slug: pestle-and-mortar
       relationship: component
       description: Tool for grinding
+  market_strategy:
+    title: Ironman Notes
+    notes:
+      - Hunt sabre-toothed kebbits for teeth
+      - Good Hunter XP while gathering
+      - Grind teeth for herblore profit
+      - Compare teeth dust + avantoe cost vs potion price
+      - Potions used for high-level hunter catches
+      - Useful for herbiboar hunting
+      - Must hunt kebbits personally
+      - Stock up teeth while training Hunter
+      - Hunter potions helpful for black chins
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Grind kebbit teeth with pestle and mortar:
-- Kebbit teeth from hunting sabre-toothed kebbits
-- 51 Hunter required to catch kebbits
-- Location: Rellekka Hunter area (north of Rellekka)
-
-## Herblore Uses
-
-| Potion | Base | Level | XP |
-|--------|------|-------|-----|
-| Hunter potion(3) | Avantoe potion (unf) | 53 | 120 |
-
-Hunter potions boost Hunter by 3 levels.
-
-## Market Strategy
-
-**Hunter Training:**
-- Hunt sabre-toothed kebbits for teeth
-- Good Hunter XP while gathering
-- Grind teeth for herblore profit
-
-**Hunter Potion Economics:**
-- Compare teeth dust + avantoe cost vs potion price
-- Potions used for high-level hunter catches
-- Useful for herbiboar hunting
-
-**Ironman Notes:**
-- Must hunt kebbits personally
-- Stock up teeth while training Hunter
-- Hunter potions helpful for black chins
-
-**Buy Limit:** 10,000 per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

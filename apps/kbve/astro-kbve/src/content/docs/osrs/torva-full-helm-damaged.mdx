@@ -76,97 +76,43 @@ osrs:
       slug: bandosian-components
       relationship: component
       description: Required for repair
+  about: |-
+    | Bonus | Value |
+    |-------|-------|
+    | Stab defence | +103 |
+    | Slash defence | +96 |
+    | Crush defence | +102 |
+    | Magic defence | -22 |
+    | Ranged defence | +91 |
+    | Strength | +4 |
+
+    Best-in-slot legs for melee strength bonus.
+
+    HP Boost:
+    - Provides +6 max hitpoints when worn
+    - Stacks with other Torva pieces (+16 HP total for full set)
+
+    | Variant | Effect |
+    |---------|--------|
+    | Sanguine torva platelegs | Cosmetic (ancient blood ornament kit + 20k blood runes) |
+
+    BiS for all melee content:
+    - Bossing
+    - Raids (CoX, ToB, ToA)
+    - Slayer
+    - General PvM
+  market_strategy:
+    notes:
+      - Highest melee strength bonus legs in game
+      - HP boost makes it essential for high-level PvM
+      - Nex drops damaged version only
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Created by combining damaged Torva platelegs with two Bandosian components.
-
-| Drop Source | Rate |
-|-------------|------|
-| Nex | 1/43 per unique roll |
-
-**Requirements:**
-- 90 Smithing (or pay Abbot Langley 1,500,000 gp)
-- Bandos tassets deconstructed into components
-
-**Note:** This process is not reversible.
-
-## Equipment Info
-
-| Stat | Value |
-|------|-------|
-| Slot | Legs |
-| Defence requirement | 80 |
-| Weight | 9.9 kg |
-
-## Stats
-
-| Bonus | Value |
-|-------|-------|
-| Stab defence | +103 |
-| Slash defence | +96 |
-| Crush defence | +102 |
-| Magic defence | -22 |
-| Ranged defence | +91 |
-| Strength | +4 |
-
-**Best-in-slot legs for melee strength bonus.**
-
-## Effects
-
-**HP Boost:**
-- Provides +6 max hitpoints when worn
-- Stacks with other Torva pieces (+16 HP total for full set)
-
-## Variants
-
-| Variant | Effect |
-|---------|--------|
-| [Sanguine torva platelegs](/osrs/sanguine-torva-platelegs/) | Cosmetic (ancient blood ornament kit + 20k blood runes) |
-
-## Usage
-
-BiS for all melee content:
-- Bossing
-- Raids (CoX, ToB, ToA)
-- Slayer
-- General PvM
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Highest melee strength bonus legs in game
-- HP boost makes it essential for high-level PvM
-- Nex drops damaged version only
-
-## Related Items
-
-- [Torva full helm](/osrs/torva-full-helm/) - Head armor (+6 HP)
-- [Torva platebody](/osrs/torva-platebody/) - Body armor (+4 HP)
-- [Bandos tassets](/osrs/bandos-tassets/) - Budget alternative
-- [Nex](/osrs/nex/) - Drop source
-
-<Adsense />
+<OSRSAdsenseCard />

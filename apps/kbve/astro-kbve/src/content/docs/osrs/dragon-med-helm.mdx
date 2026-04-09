@@ -1,6 +1,6 @@
 ---
 title: Dragon med helm | OSRS Price Data
-description: "Dragon med helm: Makes the wearer pretty intimidating.. High alch: 60,000 GP, GE limit: 8."
+description: "Dragon med helm is a members head slot item requiring 60 Defence. High alch: 60,000 GP, GE limit: 8."
 osrs:
   id: 1149
   name: Dragon med helm
@@ -12,26 +12,85 @@ osrs:
   lowalch: 40000
   highalch: 60000
   limit: 8
+  equipment:
+    slot: head
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -3
+      ranged: -1
+    defence_bonus:
+      stab: 33
+      slash: 35
+      crush: 36
+      magic: -1
+      ranged: 34
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      defence: 60
+  drop_table:
+    primary_source: King Black Dragon
+    best_drop_rate: 1/128
+    sources:
+      - source: King Black Dragon
+        combat_level: 276
+        quantity: "1"
+        rarity: uncommon
+        drop_rate: 1/128
+        members_only: true
+      - source: Brutal black dragon
+        combat_level: 318
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/512
+        members_only: true
+  related_items:
+    - item_id: 11335
+      item_name: Dragon full helm
+      slug: dragon-full-helm
+      relationship: upgrade
+      description: Rare full helm upgrade
+    - item_id: 10828
+      item_name: Helm of neitiznot
+      slug: helm-of-neitiznot
+      relationship: alternative
+      description: Better combat stats
+    - item_id: 1163
+      item_name: Rune full helm
+      slug: rune-full-helm
+      relationship: downgrade
+      description: F2P alternative
+  about: |-
+    | Defence | Value |
+    |---------|-------|
+    | Stab | +33 |
+    | Slash | +35 |
+    | Crush | +36 |
+    | Ranged | +34 |
+
+    Requirements: 60 Defence
+
+    Mid-tier melee helm:
+    - Decent Defence stats
+    - No Strength or Prayer bonus
+    - Helm of neitiznot is generally preferred
+  market_strategy:
+    notes:
+      - Common dragon drop
+      - Low value due to better alternatives
+      - Entry-level dragon gear
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -67,88 +67,43 @@ osrs:
       slug: scythe-of-vitur
       relationship: upgrade
       description: BiS alternative
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Stab | +70 |
+    | Slash | +95 |
+    | Magic | -4 |
+    | Strength | +89 |
+
+    | Defence | Value |
+    |---------|-------|
+    | All | +0 |
+
+    Requirements: 60 Attack, 30 Strength, Regicide
+
+    Sweep (30% energy):
+    - +10% damage
+    - Second hit on large monsters (2x2+)
+    - Hits up to 10 NPCs / 3 players in multi
+
+    Popular for:
+    - CoX (Tekton)
+    - Large monster specs
+    - Multi-target situations
+
+    Budget alternative to Crystal halberd.
+  market_strategy:
+    notes:
+      - Regicide required
+      - Great spec weapon
+      - Upgrade to crystal halberd
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Two-handed) |
-| Type | Melee - Slash |
-| Tradeable | Yes |
-| Weight | 3.175 kg |
-| Attack Speed | 7 tick (4.2s) |
-| Range | 2 tiles |
-
-## Obtaining
-
-| Source | Method |
-|--------|--------|
-| Tyras Camp | 325K gp (post-Regicide) |
-| Zulrah | Drop |
-| The Gauntlet | Drop |
-| Master clues | Reward |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Stab | +70 |
-| Slash | +95 |
-| Magic | -4 |
-| Strength | +89 |
-
-| Defence | Value |
-|---------|-------|
-| All | +0 |
-
-**Requirements:** 60 Attack, 30 Strength, Regicide
-
-## Special Attack
-
-**Sweep** (30% energy):
-- +10% damage
-- Second hit on large monsters (2x2+)
-- Hits up to 10 NPCs / 3 players in multi
-
-## Usage
-
-Popular for:
-- CoX (Tekton)
-- Large monster specs
-- Multi-target situations
-
-**Budget alternative to Crystal halberd.**
-
-## Market Strategy
-
-**Buy Limit:** 70 per 4 hours
-
-**Price:** ~200K gp
-
-**Tips:**
-- Regicide required
-- Great spec weapon
-- Upgrade to crystal halberd
-
-<Adsense />
+<OSRSAdsenseCard />

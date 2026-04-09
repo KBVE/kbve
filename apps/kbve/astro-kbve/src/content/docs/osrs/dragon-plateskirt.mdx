@@ -1,6 +1,6 @@
 ---
 title: Dragon plateskirt | OSRS Price Data
-description: "Dragon plateskirt: This looks pretty heavy.. High alch: 162,000 GP, GE limit: 70."
+description: "Dragon plateskirt is a members legs slot item requiring 60 Defence. High alch: 162,000 GP, GE limit: 70."
 osrs:
   id: 4585
   name: Dragon plateskirt
@@ -12,26 +12,73 @@ osrs:
   lowalch: 108000
   highalch: 162000
   limit: 70
+  equipment:
+    slot: legs
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -21
+      ranged: -11
+    defence_bonus:
+      stab: 68
+      slash: 66
+      crush: 63
+      magic: -4
+      ranged: 65
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      defence: 60
+    weight: 9.071
+  drop_table:
+    sources:
+      - source: Chaos Elemental
+        combat_level: 305
+        quantity: "1"
+        rarity: uncommon
+        drop_rate: 1/128
+        members_only: true
+  related_items:
+    - item_id: 4087
+      item_name: Dragon platelegs
+      slug: dragon-platelegs
+      relationship: alternative
+      description: Identical stats, different appearance
+    - item_id: 21892
+      item_name: Dragon platebody
+      slug: dragon-platebody
+      relationship: set-piece
+      description: Matching body armour
+  about: |-
+    | Defence | Value |
+    |---------|-------|
+    | Stab | +68 |
+    | Slash | +66 |
+    | Crush | +63 |
+    | Ranged | +65 |
+    | Magic | -4 |
+
+    Requirements: 60 Defence | Weight: 9.07 kg
+
+    The dragon plateskirt has exactly the same stats as the Dragon platelegs. The only difference is cosmetic appearance. The plateskirt is typically cheaper on the GE due to lower demand.
+
+    An ornament kit from Treasure Trails can be applied for a cosmetic change without affecting stats.
+  market_strategy:
+    notes:
+      - Identical stats to platelegs but usually cheaper
+      - Budget option for 60 Defence leg armour
+      - Cosmetic preference drives the price difference
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

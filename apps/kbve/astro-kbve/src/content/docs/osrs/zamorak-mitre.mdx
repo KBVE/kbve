@@ -1,6 +1,6 @@
 ---
 title: Zamorak mitre | OSRS Price Data
-description: "Zamorak mitre: A Zamorak mitre.. High alch: 3,000 GP, GE limit: 8."
+description: "Zamorak mitre is a members head slot item requiring 40 Magic. High alch: 3,000 GP, GE limit: 8."
 osrs:
   id: 10456
   name: Zamorak mitre
@@ -12,26 +12,35 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 8
+  equipment:
+    slot: head
+    requirements:
+      prayer: 40
+      magic: 40
+    other_bonus:
+      prayer: 5
+  related_items:
+    - item_id: 10460
+      item_name: Zamorak robe top
+      slug: zamorak-robe-top
+      relationship: set-piece
+      description: Zamorak vestment body
+    - item_id: 10468
+      item_name: Zamorak robe legs
+      slug: zamorak-robe-legs
+      relationship: set-piece
+      description: Zamorak vestment legs
+  about: |-
+    > *"A Zamorak mitre."*
+
+    The Zamorak mitre is a head slot item from the Zamorak vestment set. It provides a +5 Prayer bonus and requires 40 Prayer and 40 Magic to equip. Offers the second-highest prayer bonus for head slot items while matching mystic hat magic bonuses. Counts as a Zamorakian item in the God Wars Dungeon.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

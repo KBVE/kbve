@@ -12,26 +12,23 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 3000
+  related_items:
+    - item_id: 530
+      item_name: Bat bones
+      slug: bat-bones
+      relationship: variant
+      description: Lower tier bones
+  about: |-
+    > _"Ew it's a pile of bones."_
+
+    Babydragon bones give 30 Prayer XP when buried. A cost-effective way to train Prayer, especially from blue baby dragons in Taverley Dungeon. Also usable on gilded altars (105 XP) or the Chaos Temple (210 XP).
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

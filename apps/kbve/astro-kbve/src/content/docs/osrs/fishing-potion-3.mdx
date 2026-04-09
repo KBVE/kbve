@@ -12,26 +12,28 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 2000
+  related_items:
+    - item_id: 153
+      item_name: Fishing potion(2)
+      slug: fishing-potion-2
+      relationship: variant
+      description: 2-dose version
+    - item_id: 155
+      item_name: Fishing potion(1)
+      slug: fishing-potion-1
+      relationship: variant
+      description: 1-dose version
+  about: |-
+    > _"3 doses of Fishing potion."_
+
+    The fishing potion provides a temporary +3 Fishing boost. Useful for catching fish slightly above your current level.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

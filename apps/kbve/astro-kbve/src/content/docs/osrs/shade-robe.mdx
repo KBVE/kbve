@@ -1,6 +1,6 @@
 ---
 title: Shade robe | OSRS Price Data
-description: "Shade robe: If a shade had knees, this would keep them nice and warm.. High alch: 18 GP, GE limit: 125."
+description: "Shade robe is a F2P legs slot item. High alch: 18 GP, GE limit: 125."
 osrs:
   id: 548
   name: Shade robe
@@ -12,26 +12,28 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 125
+  equipment:
+    slot: legs
+    requirements: {}
+    other_bonus:
+      prayer: 4
+  related_items:
+    - item_id: 546
+      item_name: Shade robe top
+      slug: shade-robe-top
+      relationship: set-piece
+      description: Matching shade robe top
+  about: |-
+    > *"If a shade had knees, this would keep them nice and warm."*
+
+    The shade robe is a free-to-play legs slot item that provides a +4 Prayer bonus. It is dropped by shades and is part of the shade robes set. No requirements to equip, making it useful for prayer-focused builds at any level.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

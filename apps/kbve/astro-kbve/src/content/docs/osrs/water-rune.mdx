@@ -64,74 +64,49 @@ osrs:
       slug: tome-of-water
       relationship: alternative
       description: Unlimited water runes
+  about: |-
+    | Requirement | Value |
+    |-------------|-------|
+    | Runecraft Level | 5 |
+    | XP per rune | 6 |
+    | Runes per essence | 1 (10 at 95) |
+
+    Multipliers (every 19 levels):
+    - Level 19: 2x runes
+    - Level 38: 3x runes
+    - Level 57: 4x runes
+    - Level 76: 5x runes
+    - Level 95: 6x runes
+
+    | Spell | Water Runes | Other Runes |
+    |-------|-------------|-------------|
+    | Water Strike | 1 | 1 Air, 1 Mind |
+    | Water Bolt | 2 | 2 Air, 1 Chaos |
+    | Water Blast | 3 | 3 Air, 1 Death |
+    | Water Wave | 7 | 5 Air, 1 Blood |
+    | Water Surge | 10 | 7 Air, 1 Wrath |
+    | Ice spells | 2-6 | Death/Blood |
+    | Charge Water Orb | 30 | 3 Cosmic |
+  market_strategy:
+    notes:
+      - Ancient Magicks ice spells
+      - Charge water orb for battlestaves
+      - Water spell training
+      - Ice Barrage (PvP/PvM)
+      - Ice Burst (Slayer)
+      - Water orb charging
+      - Humidify spell
+      - Tome of water provides unlimited
+      - Staff of water saves runes
+      - Ice spells drive demand
+      - Mud/Mist battlestaff combos
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Runecrafting
-
-| Requirement | Value |
-|-------------|-------|
-| Runecraft Level | 5 |
-| XP per rune | 6 |
-| Runes per essence | 1 (10 at 95) |
-
-**Multipliers (every 19 levels):**
-- Level 19: 2x runes
-- Level 38: 3x runes
-- Level 57: 4x runes
-- Level 76: 5x runes
-- Level 95: 6x runes
-
-## Key Spells
-
-| Spell | Water Runes | Other Runes |
-|-------|-------------|-------------|
-| Water Strike | 1 | 1 Air, 1 Mind |
-| Water Bolt | 2 | 2 Air, 1 Chaos |
-| Water Blast | 3 | 3 Air, 1 Death |
-| Water Wave | 7 | 5 Air, 1 Blood |
-| Water Surge | 10 | 7 Air, 1 Wrath |
-| Ice spells | 2-6 | Death/Blood |
-| Charge Water Orb | 30 | 3 Cosmic |
-
-## Market Flip Strategy
-
-**Steady Demand:**
-- Ancient Magicks ice spells
-- Charge water orb for battlestaves
-- Water spell training
-
-**Buy Limit:** 50,000 per 4 hours
-
-**Demand Drivers:**
-- Ice Barrage (PvP/PvM)
-- Ice Burst (Slayer)
-- Water orb charging
-- Humidify spell
-
-**Tips:**
-- Tome of water provides unlimited
-- Staff of water saves runes
-- Ice spells drive demand
-- Mud/Mist battlestaff combos
-
-<Adsense />
+<OSRSAdsenseCard />

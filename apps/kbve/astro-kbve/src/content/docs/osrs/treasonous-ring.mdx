@@ -52,81 +52,38 @@ osrs:
       slug: berserker-ring
       relationship: alternative
       description: Strength focus
+  about: |-
+    | Stat | Regular | Imbued |
+    |------|---------|--------|
+    | Stab attack | +4 | +8 |
+    | Stab defence | +4 | +8 |
+
+    Requirements: None
+
+    | Method | Cost |
+    |--------|------|
+    | NMZ | 650K points (325K with hard CA) |
+    | Soul Wars | 260 zeal |
+    | Scroll | 200 Emir's Arena points |
+
+    BiS stab ring for:
+    - Stab-focused combat
+    - Niche accuracy boost
+    - Wilderness PvM
+
+    Stab-specific alternative to Berserker ring.
+  market_strategy:
+    notes:
+      - Wilderness boss drop
+      - Imbue for full effect
+      - Niche use case
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Ring |
-| Type | Stab Ring |
-| Tradeable | Yes |
-| Weight | 0.4 kg |
-
-## Obtaining
-
-Drop from Wilderness bosses.
-
-| Boss | Drop Rate |
-|------|-----------|
-| Venenatis | 1/512 |
-| Spindel | 1/716 |
-
-## Stats
-
-| Stat | Regular | Imbued |
-|------|---------|--------|
-| Stab attack | +4 | +8 |
-| Stab defence | +4 | +8 |
-
-**Requirements:** None
-
-## Imbue
-
-| Method | Cost |
-|--------|------|
-| NMZ | 650K points (325K with hard CA) |
-| Soul Wars | 260 zeal |
-| Scroll | 200 Emir's Arena points |
-
-## Usage
-
-BiS stab ring for:
-- Stab-focused combat
-- Niche accuracy boost
-- Wilderness PvM
-
-**Stab-specific alternative to Berserker ring.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~175K gp
-
-**Tips:**
-- Wilderness boss drop
-- Imbue for full effect
-- Niche use case
-
-<Adsense />
+<OSRSAdsenseCard />

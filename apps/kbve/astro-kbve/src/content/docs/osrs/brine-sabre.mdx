@@ -1,6 +1,6 @@
 ---
 title: Brine sabre | OSRS Price Data
-description: "Brine sabre: A salty sword.. High alch: 15,600 GP, GE limit: 8."
+description: "Brine sabre is a members weapon slot item with +46 melee strength requiring 40 Attack. High alch: 15,600 GP, GE limit: 8."
 osrs:
   id: 11037
   name: Brine sabre
@@ -12,26 +12,101 @@ osrs:
   lowalch: 10400
   highalch: 15600
   limit: 8
+  equipment:
+    slot: weapon
+    attack_speed: 4
+    attack_bonus:
+      stab: 7
+      slash: 47
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 46
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      attack: 40
+    weight: 1.814
+  special_attack:
+    name: Liquify
+    energy: 75
+    description: Doubles accuracy and boosts Attack, Strength, and Defence by 25% of damage dealt. Only usable underwater.
+  drop_table:
+    primary_source: Brine rat
+    best_drop_rate: 1/512
+    sources:
+      - source: Brine rat
+        combat_level: 70
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/512
+        members_only: true
+  related_items:
+    - item_id: 4587
+      item_name: Dragon scimitar
+      slug: dragon-scimitar
+      relationship: upgrade
+      description: 60 Attack scimitar upgrade
+    - item_id: 1333
+      item_name: Rune scimitar
+      slug: rune-scimitar
+      relationship: alternative
+      description: F2P slash weapon
+  about: |-
+    | Attack | Value |
+    |--------|-------|
+    | Slash | +47 |
+    | Stab | +7 |
+
+    | Other | Value |
+    |-------|-------|
+    | Strength | +46 |
+
+    Requirements: 40 Attack | Speed: 4 tick (2.4s)
+
+    > *"A salty sword."*
+
+    | Stat | Brine Sabre | Rune Scimitar |
+    |------|-------------|---------------|
+    | Slash | +47 | +45 |
+    | Strength | +46 | +44 |
+    | Price | ~390K | ~15K |
+
+    The brine sabre has +2 higher slash and strength than the rune scimitar, but costs ~25x more. The granite hammer (+56 crush, +49 str) has since surpassed it as best-in-slot for 40 Attack pures.
+
+    Liquify (75% energy):
+    - Doubles accuracy
+    - Boosts Attack, Strength, and Defence by 25% of damage dealt
+    - Only usable underwater — extremely niche
+
+    Rockslug finishing: Can finish off rockslugs without needing a bag of salt. Also works on rocklings automatically.
+
+    Lobstrosities: One of the few weapons that can kill lobstrosities (underwater creatures).
+
+    - Former best-in-slot for 40 Attack pures on members worlds
+    - Now surpassed by granite hammer for pure DPS
+    - Collector's item due to rare, remote source
+    - Niche underwater content
+  market_strategy:
+    notes:
+      - Extremely low supply (brine rats are rarely killed)
+      - Price driven by rarity, not combat utility
+      - 40 Attack PvP bracket demand
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

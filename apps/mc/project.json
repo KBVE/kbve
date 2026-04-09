@@ -4,6 +4,10 @@
 	"projectType": "application",
 	"sourceRoot": "apps/mc",
 	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
 		"container": {
 			"executor": "@nx-tools/nx-container:build",
 			"defaultConfiguration": "local",
@@ -29,6 +33,30 @@
 						"type=registry,ref=ghcr.io/kbve/mc:buildcache,mode=max"
 					]
 				}
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"target": "container",
+					"projects": ["mc"],
+					"params": "forward"
+				}
+			],
+			"cache": false,
+			"options": {
+				"commands": [
+					"docker rm -f mc-e2e 2>/dev/null || true",
+					"docker run -d --name mc-e2e -p 25575:25575 -p 25565:25565 -e EULA=TRUE -e RCON_PASSWORD=test -e ENABLE_RCON=true kbve/mc:latest",
+					"echo 'Waiting for MC server RCON...' && for i in $(seq 1 300); do if docker logs mc-e2e 2>&1 | grep -q 'RCON running'; then echo 'RCON ready after '\"$i\"'s'; break; fi; if [ $i -eq 300 ]; then echo 'Server did not start in 300s'; docker logs mc-e2e 2>&1 | tail -50; docker rm -f mc-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+					"RCON_PASSWORD=test npx vitest run; EC=$?; echo '--- container logs ---'; docker logs mc-e2e 2>&1 | tail -50; docker rm -f mc-e2e 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false,
+				"cwd": "apps/mc"
+			},
+			"configurations": {
+				"ci": {}
 			}
 		}
 	},

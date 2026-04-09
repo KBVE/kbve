@@ -1,6 +1,6 @@
 ---
 title: Gilded coif | OSRS Price Data
-description: "Gilded coif: Made with 100% golden dragonhide.. High alch: 1,200 GP, GE limit: 8."
+description: "Gilded coif is a members head slot item requiring 40 Ranged. High alch: 1,200 GP, GE limit: 8."
 osrs:
   id: 23258
   name: Gilded coif
@@ -12,26 +12,99 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 8
+  equipment:
+    slot: head
+    type: ranged_armour
+    requirements:
+      ranged: 40
+    stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: -1
+      attack_ranged: 4
+      defence_stab: 4
+      defence_slash: 7
+      defence_crush: 8
+      defence_magic: 4
+      defence_ranged: 6
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    weight: 0.9
+  obtaining:
+    methods:
+      - source: Reward casket (elite)
+        drop_rate: 1/14,662.5
+      - source: Reward casket (master)
+        drop_rate: 1/13,616
+  related_items:
+    - item_id: 1169
+      item_name: Coif
+      slug: coif
+      relationship: alternative
+      description: Standard coif, same stats
+    - item_id: 23264
+      item_name: Gilded d'hide body
+      slug: gilded-dhide-body
+      relationship: alternative
+      description: Matching gilded body
+    - item_id: 23267
+      item_name: Gilded d'hide chaps
+      slug: gilded-dhide-chaps
+      relationship: alternative
+      description: Matching gilded legs
+    - item_id: 23261
+      item_name: Gilded d'hide vambraces
+      slug: gilded-dhide-vambraces
+      relationship: alternative
+      description: Matching gilded gloves
+  about: |-
+    "Made with 100% golden dragonhide."
+
+    | Stat | Value |
+    |------|-------|
+    | Stab Attack | +0 |
+    | Slash Attack | +0 |
+    | Crush Attack | +0 |
+    | Magic Attack | -1 |
+    | Ranged Attack | +4 |
+    | Stab Defence | +4 |
+    | Slash Defence | +7 |
+    | Crush Defence | +8 |
+    | Magic Defence | +4 |
+    | Ranged Defence | +6 |
+    | Melee Strength | +0 |
+    | Ranged Strength | +0 |
+    | Magic Damage | +0% |
+    | Prayer | +0 |
+
+    Requirements: 40 Ranged
+
+    | Item | Ranged Atk | Crush Def | Ranged Def | Source |
+    |------|-----------|----------|-----------|--------|
+    | Gilded coif | +4 | +8 | +6 | Elite/Master clues |
+    | Coif | +4 | +8 | +6 | Crafting (38) |
+
+    Stats are identical to the standard coif. The gilded version is purely cosmetic and significantly more expensive due to its rarity from Treasure Trails.
+  market_strategy:
+    notes:
+      - Fashionscape / cosmetic flex
+      - Elite clue reward rarity
+      - Collection log completionists
+      - Full gilded d'hide set completion
+      - Identical stats to standard coif
+      - Value is purely cosmetic rarity
+      - Completes the gilded d'hide set with body, chaps, and vambraces
+      - Low trade volume, watch for manipulation
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

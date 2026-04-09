@@ -60,82 +60,40 @@ osrs:
       slug: dragon-bolts-e
       relationship: component
       description: Best ammo
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Ranged attack | +94 |
+
+    | Defence | Value |
+    |---------|-------|
+    | All | +0 |
+
+    Requirements: 64 Ranged
+
+    Annihilate (60% energy):
+    - Hits up to 9 enemies in 3x3 area
+    - Primary target: +20% damage
+    - Others: -20% damage
+
+    Mid-game crossbow for:
+    - Slayer
+    - Early bossing
+    - Multi-target situations
+
+    Slight upgrade over rune crossbow.
+  market_strategy:
+    notes:
+      - Dragon limbs from dragons
+      - Craftable alternative
+      - Upgrade to ACB/ZCB
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Two-handed) |
-| Type | Ranged - Crossbow |
-| Tradeable | Yes |
-| Weight | 6 kg |
-| Attack Speed | 5 tick rapid / 6 tick accurate |
-
-## Obtaining
-
-| Source | Method |
-|--------|--------|
-| Fletching | 78 (dragon limbs + magic stock) |
-| Grand Exchange | ~800K gp |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Ranged attack | +94 |
-
-| Defence | Value |
-|---------|-------|
-| All | +0 |
-
-**Requirements:** 64 Ranged
-
-## Special Attack
-
-**Annihilate** (60% energy):
-- Hits up to 9 enemies in 3x3 area
-- Primary target: +20% damage
-- Others: -20% damage
-
-## Usage
-
-Mid-game crossbow for:
-- Slayer
-- Early bossing
-- Multi-target situations
-
-**Slight upgrade over rune crossbow.**
-
-## Market Strategy
-
-**Buy Limit:** 70 per 4 hours
-
-**Price:** ~800K gp
-
-**Tips:**
-- Dragon limbs from dragons
-- Craftable alternative
-- Upgrade to ACB/ZCB
-
-<Adsense />
+<OSRSAdsenseCard />

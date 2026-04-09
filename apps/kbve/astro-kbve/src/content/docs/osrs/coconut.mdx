@@ -52,64 +52,33 @@ osrs:
       slug: magic-seed
       relationship: alternative
       description: Protection payment
+  about: |-
+    | Purpose | Amount |
+    |---------|--------|
+    | Coconut milk | 1 (hammer) |
+    | Magic sapling protection | 25 |
+    | Dragonfruit protection | 15 |
+    | Supercompost | Shells |
+  market_strategy:
+    notes:
+      - Palm tree harvesting
+      - Coconut milk for potions
+      - Tree protection payments
+      - Coconut milk production
+      - Magic tree protection
+      - Dragonfruit tree protection
+      - Supercompost shells
+      - 6 coconuts max per harvest
+      - Use hammer for half coconuts
+      - Coconut milk for antidote+
+      - Passive farm income
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Source | Level |
-|--------|-------|
-| Farming palm trees | 68 |
-| Yield per tree | Up to 6 |
-| Regrowth | 40 minutes |
-
-## Uses
-
-| Purpose | Amount |
-|---------|--------|
-| Coconut milk | 1 (hammer) |
-| Magic sapling protection | 25 |
-| Dragonfruit protection | 15 |
-| Supercompost | Shells |
-
-## Market Flip Strategy
-
-**Farming Passive Income:**
-- Palm tree harvesting
-- Coconut milk for potions
-- Tree protection payments
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Coconut milk production
-- Magic tree protection
-- Dragonfruit tree protection
-- Supercompost shells
-
-**Tips:**
-- 6 coconuts max per harvest
-- Use hammer for half coconuts
-- Coconut milk for antidote+
-- Passive farm income
-
-<Adsense />
+<OSRSAdsenseCard />

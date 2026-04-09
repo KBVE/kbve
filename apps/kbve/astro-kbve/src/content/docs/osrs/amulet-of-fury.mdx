@@ -66,85 +66,53 @@ osrs:
       slug: occult-necklace
       relationship: upgrade
       description: Magic upgrade
+  about: |-
+    Enchant Onyx amulet with Lvl-6 Enchant.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Magic | 87 (boostable) |
+    | Runes | 20 fire, 20 earth, 1 cosmic |
+
+    | Offense | Value |
+    |---------|-------|
+    | Stab | +10 |
+    | Slash | +10 |
+    | Crush | +10 |
+    | Magic | +10 |
+    | Ranged | +10 |
+    | Strength | +8 |
+
+    | Defence | Value |
+    |---------|-------|
+    | Stab | +15 |
+    | Slash | +15 |
+    | Crush | +15 |
+    | Magic | +15 |
+    | Ranged | +15 |
+
+    | Other | Value |
+    |-------|-------|
+    | Prayer | +5 |
+
+    Best hybrid amulet for:
+    - All combat styles
+    - Switching between styles
+    - Budget all-around option
+
+    Outclassed by zenyte jewelry for specific styles.
+  market_strategy:
+    notes:
+      - Great all-around amulet
+      - Onyx from TzHaar or GE
+      - Still popular despite zenyte
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Neck |
-| Type | Jewelry (Hybrid) |
-| Tradeable | Yes |
-| Weight | 0.01 kg |
-
-## Creation
-
-Enchant Onyx amulet with Lvl-6 Enchant.
-
-| Requirement | Value |
-|-------------|-------|
-| Magic | 87 (boostable) |
-| Runes | 20 fire, 20 earth, 1 cosmic |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Stab | +10 |
-| Slash | +10 |
-| Crush | +10 |
-| Magic | +10 |
-| Ranged | +10 |
-| Strength | +8 |
-
-| Defence | Value |
-|---------|-------|
-| Stab | +15 |
-| Slash | +15 |
-| Crush | +15 |
-| Magic | +15 |
-| Ranged | +15 |
-
-| Other | Value |
-|-------|-------|
-| Prayer | +5 |
-
-## Usage
-
-Best hybrid amulet for:
-- All combat styles
-- Switching between styles
-- Budget all-around option
-
-**Outclassed by zenyte jewelry for specific styles.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Great all-around amulet
-- Onyx from TzHaar or GE
-- Still popular despite zenyte
-
-<Adsense />
+<OSRSAdsenseCard />

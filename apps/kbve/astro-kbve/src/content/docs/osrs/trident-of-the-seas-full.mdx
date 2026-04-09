@@ -64,83 +64,33 @@ osrs:
       slug: magic-fang
       relationship: component
       description: Upgrade material
+  about: |-
+    | Offence | Bonus |
+    |---------|-------|
+    | Magic | +15 |
+
+    | Resource | Amount |
+    |----------|--------|
+    | Death rune | 1 |
+    | Chaos rune | 1 |
+    | Fire rune | 5 |
+    | Coins | 10 |
+    | Cost per cast | ~220 gp |
+    | Max charges | 2,500 |
+
+    Used for:
+    - Budget powered staff
+    - Early Zulrah
+    - General magic
+
+    Upgrade to Trident of the swamp.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon |
-| Type | Powered Staff |
-| Tradeable | Yes |
-| Weight | 1.814 kg |
-| Requirements | 75 Magic |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Kraken (boss) | 1/512 (charged) |
-| Cave kraken | 1/200 (uncharged) |
-
-**Requires 87 Slayer.**
-
-## Stats
-
-| Offence | Bonus |
-|---------|-------|
-| Magic | +15 |
-
-## Charging
-
-| Resource | Amount |
-|----------|--------|
-| Death rune | 1 |
-| Chaos rune | 1 |
-| Fire rune | 5 |
-| Coins | 10 |
-| Cost per cast | ~220 gp |
-| Max charges | 2,500 |
-
-## Usage
-
-Used for:
-- Budget powered staff
-- Early Zulrah
-- General magic
-
-**Upgrade to Trident of the swamp.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~47K gp (uncharged)
-
-## Related Items
-
-- [Kraken](/osrs/kraken/) - Boss drop
-- [Trident of the swamp](/osrs/trident-of-the-swamp/) - Upgrade
-- [Magic fang](/osrs/magic-fang/) - Upgrade material
-
-<Adsense />
+<OSRSAdsenseCard />

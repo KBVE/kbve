@@ -56,86 +56,41 @@ osrs:
       slug: guthans-warspear
       relationship: set-piece
       description: Weapon set piece
+  about: |-
+    | Bonus | Value |
+    |-------|-------|
+    | Stab defence | +55 |
+    | Slash defence | +58 |
+    | Crush defence | +54 |
+    | Magic defence | -1 |
+    | Ranged defence | +62 |
+    | Magic attack | -6 |
+
+    Infestation:
+    When wearing full Guthan's (helm, platebody, chainskirt, warspear):
+    - 25% chance to heal HP equal to damage dealt
+    - No prayer or food needed for sustain
+    - Popular for AFK training
+
+    Best For:
+    - AFK Slayer tasks
+    - Extended trips without banking
+    - Gargoyles, Aberrant spectres
+    - NMZ AFK method
+
+    - 15 hours of combat use
+    - Repair at Bob in Lumbridge or POH armor stand
+  market_strategy:
+    notes:
+      - Popular for AFK methods
+      - Full set required for healing
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Obtained from the Barrows minigame (1/102.17 for any specific Barrows item).
-
-**Location:** Barrows mounds, east of Mort'ton in Morytania
-
-## Equipment Info
-
-| Stat | Value |
-|------|-------|
-| Slot | Head |
-| Weight | 1.8 kg |
-| Requirements | 70 Defence |
-
-## Stats
-
-| Bonus | Value |
-|-------|-------|
-| Stab defence | +55 |
-| Slash defence | +58 |
-| Crush defence | +54 |
-| Magic defence | -1 |
-| Ranged defence | +62 |
-| Magic attack | -6 |
-
-## Set Effect
-
-**Infestation:**
-When wearing full Guthan's (helm, platebody, chainskirt, warspear):
-- 25% chance to heal HP equal to damage dealt
-- No prayer or food needed for sustain
-- Popular for AFK training
-
-## Usage
-
-**Best For:**
-- AFK Slayer tasks
-- Extended trips without banking
-- Gargoyles, Aberrant spectres
-- NMZ AFK method
-
-## Degradation
-
-- 15 hours of combat use
-- Repair at Bob in Lumbridge or POH armor stand
-
-## Market Strategy
-
-**Buy Limit:** 10 per 4 hours
-
-**Tips:**
-- Popular for AFK methods
-- Full set required for healing
-
-## Related Items
-
-- [Guthan's platebody](/osrs/guthans-platebody/) - Body slot
-- [Guthan's chainskirt](/osrs/guthans-chainskirt/) - Legs slot
-- [Guthan's warspear](/osrs/guthans-warspear/) - Weapon
-
-<Adsense />
+<OSRSAdsenseCard />

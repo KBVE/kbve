@@ -52,68 +52,29 @@ osrs:
       slug: willow-seed
       relationship: upgrade
       description: Higher tier option
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Tree Seed |
+    | Tradeable | Yes |
+    | Weight | 0 kg |
+    | Requirements | 15 Farming |
+
+    Plant in tree patches to grow oak trees.
+
+    Growth Time: ~280 minutes (4.6 hours)
+
+    Payment: 1 basket of tomatoes (optional protection)
+
+    XP: 14 (planting) + 467.3 (check-health)
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Tree Seed |
-| Tradeable | Yes |
-| Weight | 0 kg |
-| Requirements | 15 Farming |
-
-## Obtaining
-
-Common sources:
-- Bird nests (Woodcutting, Bird houses)
-- Wintertodt supply crates
-- Managing Miscellania
-- Monster drops
-
-## Usage
-
-Plant in **tree patches** to grow oak trees.
-
-**Growth Time:** ~280 minutes (4.6 hours)
-
-**Payment:** 1 basket of tomatoes (optional protection)
-
-**XP:** 14 (planting) + 467.3 (check-health)
-
-## Market Strategy
-
-**Buy Limit:** 200 per 4 hours
-
-**Price:** ~20 gp
-
-Low-value tree seed. Good for early Farming training. Oak trees can be chopped for oak logs.
-
-## Related Items
-
-- [Oak logs](/osrs/oak-logs/) - Woodcutting product
-- [Basket of tomatoes](/osrs/basket-of-tomatoes/) - Protection payment
-- [Willow seed](/osrs/willow-seed/) - Higher tier option
-
-<Adsense />
+<OSRSAdsenseCard />

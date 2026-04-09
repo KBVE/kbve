@@ -1,6 +1,6 @@
 ---
 title: Amethyst javelin | OSRS Price Data
-description: "Amethyst javelin: An amethyst tipped javelin.. High alch: 252 GP, GE limit: 11,000."
+description: "Amethyst javelin is a members ammo slot item with +55 ranged strength requiring 50 Ranged. High alch: 252 GP, GE limit: 11,000."
 osrs:
   id: 21318
   name: Amethyst javelin
@@ -12,26 +12,59 @@ osrs:
   lowalch: 168
   highalch: 252
   limit: 11000
+  equipment:
+    slot: ammo
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 55
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      ranged: 50
+    weight: 0.02
+  related_items:
+    - item_id: 830
+      item_name: Rune javelin
+      slug: rune-javelin
+      relationship: downgrade
+      description: Lower tier javelin
+  about: |-
+    | Other | Value |
+    |-------|-------|
+    | Ranged Strength | +55 |
+
+    Requirements: 50 Ranged | Weight: 0.02 kg
+
+    The amethyst javelin is the strongest tradeable javelin below dragon tier. With +55 ranged strength, it provides a significant boost over rune javelins (+46) in Heavy ballista setups.
+
+    Amethyst javelins in a heavy ballista are a popular PKing setup:
+    - High single-hit damage potential (70+ with max gear)
+    - One of the best KO weapons in multi-combat
+    - Cheaper than dragon javelins with comparable performance
+  market_strategy:
+    notes:
+      - Consumed as ammo — steady PvP demand
+      - Amethyst mining at 92 Mining supplies the heads
+      - Good Fletching XP at level 84
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

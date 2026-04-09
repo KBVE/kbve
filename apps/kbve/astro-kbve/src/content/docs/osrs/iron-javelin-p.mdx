@@ -1,6 +1,6 @@
 ---
 title: Iron javelin(p) | OSRS Price Data
-description: "Iron javelin(p): An iron tipped javelin.. High alch: 3 GP, GE limit: 7,000."
+description: "Iron javelin(p) is a members weapon slot item requiring 1 Ranged. High alch: 3 GP, GE limit: 7,000."
 osrs:
   id: 832
   name: Iron javelin(p)
@@ -12,26 +12,31 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 7000
+  equipment:
+    slot: weapon
+    attack_speed: 6
+    requirements:
+      ranged: 1
+    attack_bonus:
+      ranged: 8
+    ranged_strength: 32
+  related_items:
+    - item_id: 826
+      item_name: Iron javelin
+      slug: iron-javelin
+      relationship: variant
+      description: Unpoisoned version
+  about: |-
+    > _"An iron tipped javelin with a poisoned tip."_
+
+    An iron javelin tipped with basic weapon poison. Poison deals 2-4 damage over time.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

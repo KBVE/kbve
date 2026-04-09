@@ -40,65 +40,32 @@ osrs:
       slug: bastion-potion
       relationship: product
       description: Potion created using vial of blood
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Crafting Material |
+    | Tradeable | Yes |
+    | Stackable | No |
+    | Weight | 0.1 kg |
+
+    Charging:
+    - Scythe of Vitur: 1 vial + 200 blood runes = 100 charges
+
+    Herblore (80):
+    - Bastion potion
+    - Battlemage potion
+  market_strategy:
+    notes:
+      - Farm Theatre of Blood
+      - Essential for Scythe users
+      - Used for high-level potions
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Crafting Material |
-| Tradeable | Yes |
-| Stackable | No |
-| Weight | 0.1 kg |
-
-## Obtaining
-
-Dropped from Theatre of Blood bosses.
-
-## Uses
-
-**Charging:**
-- Scythe of Vitur: 1 vial + 200 blood runes = 100 charges
-
-**Herblore (80):**
-- Bastion potion
-- Battlemage potion
-
-## Market Strategy
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Price:** ~12.8K gp
-
-**Tips:**
-- Farm Theatre of Blood
-- Essential for Scythe users
-- Used for high-level potions
-
-## Related Items
-
-- [Theatre of Blood](/osrs/theatre-of-blood/) - Source
-- [Scythe of vitur](/osrs/scythe-of-vitur/) - Charging target
-- [Bastion potion](/osrs/bastion-potion/) - Created potion
-
-<Adsense />
+<OSRSAdsenseCard />

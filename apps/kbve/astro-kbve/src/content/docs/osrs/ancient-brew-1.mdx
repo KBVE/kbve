@@ -49,70 +49,39 @@ osrs:
       slug: forgotten-brew
       relationship: upgrade
       description: Enhanced version
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Potion |
+    | Tradeable | Yes |
+    | Stackable | No |
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Herblore | 85 |
+    | XP | 190 |
+
+    Ingredients:
+    - Dwarf weed potion (unf)
+    - Nihil dust
+
+    Magic Boost: +2 + 5% of Magic level.
+
+    Prayer Restore: +2 + 10% of Prayer level.
+
+    Stat Drain: -2 - 10% to Attack, Strength, Defence.
+  market_strategy:
+    notes:
+      - Nihil dust from Nex
+      - Good for magic-only content
+      - Can upgrade to Forgotten brew
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Potion |
-| Tradeable | Yes |
-| Stackable | No |
-
-## Creation
-
-| Requirement | Value |
-|-------------|-------|
-| Herblore | 85 |
-| XP | 190 |
-
-**Ingredients:**
-- Dwarf weed potion (unf)
-- Nihil dust
-
-## Effect
-
-**Magic Boost:** +2 + 5% of Magic level.
-
-**Prayer Restore:** +2 + 10% of Prayer level.
-
-**Stat Drain:** -2 - 10% to Attack, Strength, Defence.
-
-## Market Strategy
-
-**Buy Limit:** 2,000 per 4 hours
-
-**Price:** ~777 gp (1-dose)
-
-**Tips:**
-- Nihil dust from Nex
-- Good for magic-only content
-- Can upgrade to Forgotten brew
-
-## Related Items
-
-- [Nihil dust](/osrs/nihil-dust/) - Ingredient
-- [Forgotten brew](/osrs/forgotten-brew/) - Upgrade
-- [Nex](/osrs/nex/) - Ingredient source
-
-<Adsense />
+<OSRSAdsenseCard />

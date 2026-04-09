@@ -60,77 +60,26 @@ osrs:
       slug: 3rd-age-axe
       relationship: alternative
       description: 3rd age skilling tool
+  about: |-
+    The 3rd age bow is a rare ranged weapon obtained from Treasure Trails. It requires 65 Ranged to wield and functions as a shortbow, attacking at the same speed as other shortbows while providing excellent accuracy.
+
+    3rd age weapons are highly sought after due to their extreme rarity and status symbol value. The bow can use any type of arrow.
+  market_strategy:
+    title: Investment Notes
+    notes:
+      - Extremely valuable due to rarity
+      - Price fluctuates based on collector demand
+      - More common than druidic but still very rare
+      - Verify authenticity when trading high-value items
+      - Use Grand Exchange for secure trades
+      - Monitor price trends before purchasing
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Two-handed) |
-| Type | Shortbow |
-| Attack Speed | 4 tick (2.4s) |
-| Tradeable | Yes |
-| Members Only | Yes |
-| Weight | 0.907 kg |
-
-## Obtaining
-
-| Method | Details |
-|--------|---------|
-| Source | Master Clue Scrolls |
-| Rarity | Extremely Rare (1/313,168) |
-
-## Combat Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged Attack | +65 |
-
-**Requirements:** 65 Ranged
-
-## About
-
-The 3rd age bow is a rare ranged weapon obtained from Treasure Trails. It requires 65 Ranged to wield and functions as a shortbow, attacking at the same speed as other shortbows while providing excellent accuracy.
-
-3rd age weapons are highly sought after due to their extreme rarity and status symbol value. The bow can use any type of arrow.
-
-## Market Strategy
-
-**Investment Notes:**
-- Extremely valuable due to rarity
-- Price fluctuates based on collector demand
-- More common than druidic but still very rare
-
-**Trading Tips:**
-- Verify authenticity when trading high-value items
-- Use Grand Exchange for secure trades
-- Monitor price trends before purchasing
-
-## Related Items
-
-- [3rd age longsword](/osrs/3rd-age-longsword/) - 3rd age melee weapon
-- [3rd age wand](/osrs/3rd-age-wand/) - 3rd age magic weapon
-- [3rd age pickaxe](/osrs/3rd-age-pickaxe/) - 3rd age skilling tool
-- [3rd age axe](/osrs/3rd-age-axe/) - 3rd age skilling tool
-
-<Adsense />
+<OSRSAdsenseCard />

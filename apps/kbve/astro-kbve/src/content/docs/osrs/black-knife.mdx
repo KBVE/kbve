@@ -1,6 +1,6 @@
 ---
 title: Black knife | OSRS Price Data
-description: "Black knife: A finely balanced throwing knife.. High alch: 11 GP, GE limit: 7,000."
+description: "Black knife is a members weapon slot item requiring 10 Ranged. High alch: 11 GP, GE limit: 7,000."
 osrs:
   id: 869
   name: Black knife
@@ -12,26 +12,31 @@ osrs:
   lowalch: 7
   highalch: 11
   limit: 7000
+  equipment:
+    slot: weapon
+    attack_speed: 3
+    requirements:
+      ranged: 10
+    attack_bonus:
+      ranged: 8
+    ranged_strength: 8
+  related_items:
+    - item_id: 874
+      item_name: Black knife (p)
+      slug: black-knife-p
+      relationship: variant
+      description: Poisoned version
+  about: |-
+    > _"A finely balanced throwing knife."_
+
+    The black knife requires 10 Ranged. Cannot be smithed — only obtained as drops. Slightly better stats than steel knives.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

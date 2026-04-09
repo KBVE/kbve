@@ -17,6 +17,16 @@ tags:
   - discordsh
 use_effects:
   - { type: 'remove_all_negative' }
+recipes:
+    - skill: 'alchemy'
+      skill_level: 5
+      xp_reward: 25
+      output_quantity: 1
+      ingredients:
+          - item_ref: 'lavender'
+            amount: 2
+          - item_ref: 'chanterelle'
+            amount: 1
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';

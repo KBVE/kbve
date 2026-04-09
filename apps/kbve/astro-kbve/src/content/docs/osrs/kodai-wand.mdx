@@ -57,75 +57,50 @@ osrs:
       slug: harmonised-nightmare-staff
       relationship: alternative
       description: Faster casting
+  about: |-
+    Attach Kodai insignia to Master wand.
+
+    | Component | Source | Price |
+    |-----------|--------|-------|
+    | Master wand | Mage Training Arena | ~1.5M gp |
+    | Kodai insignia | Chambers of Xeric | ~75M gp |
+
+    | Stat | Value |
+    |------|-------|
+    | Magic attack | +28 |
+    | Magic damage | +15% |
+    | Attack speed | 4 tick (2.4s) |
+    | Requirements | 80 Magic |
+
+    Unlimited Water Runes:
+    - Acts as infinite water rune source
+    - Great for ice spells
+
+    Rune Saving:
+    - 15% chance to not consume runes
+    - Works with all offensive spells
+
+    PvM:
+    - Best-in-slot for ice barrage
+    - Bursting/barraging slayer
+    - Chambers of Xeric
+    - Inferno
+
+    PvP:
+    - Ice barrage in tribrid fights
+    - Saves runes over time
+  market_strategy:
+    notes:
+      - Insignia from CoX drives price
+      - Essential for mage setups
+      - Always strong demand
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Attach Kodai insignia to Master wand.
-
-| Component | Source | Price |
-|-----------|--------|-------|
-| Master wand | Mage Training Arena | ~1.5M gp |
-| Kodai insignia | Chambers of Xeric | ~75M gp |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Magic attack | +28 |
-| Magic damage | +15% |
-| Attack speed | 4 tick (2.4s) |
-| Requirements | 80 Magic |
-
-## Effects
-
-**Unlimited Water Runes:**
-- Acts as infinite water rune source
-- Great for ice spells
-
-**Rune Saving:**
-- 15% chance to not consume runes
-- Works with all offensive spells
-
-## Usage
-
-**PvM:**
-- Best-in-slot for ice barrage
-- Bursting/barraging slayer
-- Chambers of Xeric
-- Inferno
-
-**PvP:**
-- Ice barrage in tribrid fights
-- Saves runes over time
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Insignia from CoX drives price
-- Essential for mage setups
-- Always strong demand
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -62,49 +62,35 @@ osrs:
       slug: magic-longbow-u
       relationship: upgrade
       description: Higher tier
+  about: |-
+    Use a Bow string on Yew longbow (u) to create a Yew longbow.
+
+    | Action | Fletching Level | XP |
+    |--------|-----------------|-----|
+    | String bow | 70 | 75 |
+  market_strategy:
+    steps:
+      - order: 1
+        action: Buy Yew longbow (u) on GE
+      - order: 2
+        action: Buy Bow string on GE
+      - order: 3
+        action: String into Yew longbow
+      - order: 4
+        action: Sell or High Alch
+    profit_formulas:
+      - Yew longbow price - (Yew longbow (u) + Bow string) = Stringing profit
+      - Yew longbow (u) + Bow string + Nature rune < 768 GP
+    notes:
+      - "High Alch value: 768 GP"
+      - If  = profit from alching
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Stringing
-
-Use a Bow string on Yew longbow (u) to create a Yew longbow.
-
-| Action | Fletching Level | XP |
-|--------|-----------------|-----|
-| String bow | 70 | 75 |
-
-## Market Flip Strategy
-
-**Buy Unstrung, Sell Strung:**
-1. Buy Yew longbow (u) on GE
-2. Buy Bow string on GE
-3. String into Yew longbow
-4. Sell or High Alch
-
-**Profit Calculation:**
-- `Yew longbow price - (Yew longbow (u) + Bow string) = Stringing profit`
-- High Alch value: 768 GP
-
-**Alch Flipping:**
-- If `Yew longbow (u) + Bow string + Nature rune < 768 GP` = profit from alching
-
-<Adsense />
+<OSRSAdsenseCard />

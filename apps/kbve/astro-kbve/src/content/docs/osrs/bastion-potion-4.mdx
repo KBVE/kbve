@@ -43,64 +43,27 @@ osrs:
       slug: divine-bastion-potion
       relationship: upgrade
       description: Enhanced version with maintained boost
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Combat Potion |
+    | Tradeable | Yes |
+    | Weight | 0.135 kg |
+    | Requirements | 80 Herblore |
+
+    Boosts Ranged by 4 + 10% of level.
+
+    Boosts Defence by 5 + 15% of level.
+
+    Decays 1 point/minute (90 seconds with Preserve).
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Combat Potion |
-| Tradeable | Yes |
-| Weight | 0.135 kg |
-| Requirements | 80 Herblore |
-
-## Obtaining
-
-**Creation:** Combine ranging potion with super defence.
-
-**Alternative:** Purchase from Grand Exchange.
-
-## Effects
-
-Boosts Ranged by 4 + 10% of level.
-
-Boosts Defence by 5 + 15% of level.
-
-Decays 1 point/minute (90 seconds with Preserve).
-
-## Market Strategy
-
-**Buy Limit:** 2,000 per 4 hours
-
-**Price:** ~21,918 gp
-
-Popular for ranged bossing. Combines two potions into one.
-
-## Related Items
-
-- [Ranging potion](/osrs/ranging-potion/) - Ingredient
-- [Super defence](/osrs/super-defence/) - Ingredient
-- [Divine bastion potion](/osrs/divine-bastion-potion/) - Enhanced version
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -53,72 +53,32 @@ osrs:
       slug: chisel
       relationship: alternative
       description: Required tool
+  about: |-
+    | Furniture | Bricks | Level | XP |
+    |-----------|--------|-------|-----|
+    | Stone fireplace | 2 | 33 | 40 |
+    | Limestone attack stone | 3 | 59 | 200 |
+
+    Budget Construction:
+    - Cheaper alternative to marble blocks
+    - Used for basic stone furniture
+    - Lower XP than premium materials
+  market_strategy:
+    profit_formulas:
+      - Brick price - Limestone price = Profit
+    notes:
+      - Buy limestone, craft into bricks, sell
+      - "Calculate:"
+      - Low demand construction material
+      - Marble blocks preferred for high-level builds
+      - Useful for Ironman construction
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-**Crafting:**
-- Use a [Chisel](/osrs/chisel/) on [Limestone](/osrs/limestone/)
-- Requires 12 Crafting
-- Grants 6 XP per brick
-
-**Mining Limestone:**
-- Limestone rocks in Silvarea (east of Varrock)
-- Silvarea mine near Paterdomus
-- Arandar mine (after Regicide)
-
-**Shop Purchase:**
-- Razmire Builders Merchants (Mort'ton) - 26 GP each
-
-## Construction Uses
-
-| Furniture | Bricks | Level | XP |
-|-----------|--------|-------|-----|
-| Stone fireplace | 2 | 33 | 40 |
-| Limestone attack stone | 3 | 59 | 200 |
-
-**Budget Construction:**
-- Cheaper alternative to marble blocks
-- Used for basic stone furniture
-- Lower XP than premium materials
-
-## Market Strategy
-
-**Crafting Profit:**
-- Buy limestone, craft into bricks, sell
-- Calculate: `Brick price - Limestone price = Profit`
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Tips:**
-- Low demand construction material
-- [Marble blocks](/osrs/marble-block/) preferred for high-level builds
-- Useful for Ironman construction
-
-## Related Items
-
-- [Limestone](/osrs/limestone/) - Raw material
-- [Marble block](/osrs/marble-block/) - Premium alternative
-- [Chisel](/osrs/chisel/) - Crafting tool
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -12,26 +12,28 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 10000
+  related_items:
+    - item_id: 64
+      item_name: Maple shortbow (u)
+      slug: maple-shortbow-u
+      relationship: variant
+      description: Lower tier unstrung shortbow
+    - item_id: 66
+      item_name: Yew longbow (u)
+      slug: yew-longbow-u
+      relationship: variant
+      description: Matching unstrung yew longbow
+  about: |-
+    > _"An unstrung yew shortbow; I need a bowstring for this."_
+
+    The yew shortbow (u) is an unstrung shortbow made from yew logs. String with a bowstring at 65 Fletching to create a yew shortbow. Members only.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

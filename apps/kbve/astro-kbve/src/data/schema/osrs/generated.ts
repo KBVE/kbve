@@ -751,7 +751,10 @@ export type OSRSTeleportDestination = z.infer<
 
 export const OSRSTeleportSchema = z
 	.object({
-		destinations: z.array(OSRSTeleportDestinationSchema).optional(),
+		// Accepts both string[] ("Edgeville") and object[] ({ name: "Edgeville" })
+		destinations: z
+			.array(z.union([z.string(), OSRSTeleportDestinationSchema]))
+			.optional(),
 		charges: z.number().optional(), // 0 = unlimited
 		recharge_method: z.string().optional(),
 		recharge_cost: z.number().optional(),
@@ -1002,6 +1005,10 @@ export const OSRSExtendedSchema = z.object({
 
 	// Ammunition — proto: ammunition (39)
 	ammunition: OSRSAmmunitionSchema.optional(),
+
+	// MDX content versioning — proto: mdx_version (40), mdx_updated (41)
+	mdx_version: z.number().optional(), // 1 = original, 2 = data-driven
+	mdx_updated: z.string().optional(), // ISO date YYYY-MM-DD
 });
 
 export type OSRSExtended = z.infer<typeof OSRSExtendedSchema>;

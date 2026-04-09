@@ -44,70 +44,39 @@ osrs:
       slug: ring-of-suffering
       relationship: alternative
       description: Defensive alternative
+  about: |-
+    | Stat | Value |
+    |------|-------|
+    | Strength | +4 |
+    | Requirements | None |
+
+    Best-in-slot strength bonus ring.
+
+    Imbue at Soul Wars or Nightmare Zone for doubled stats:
+
+    | Stat | Imbued |
+    |------|--------|
+    | Strength | +8 |
+
+    BiS melee ring for:
+    - All melee combat
+    - Bossing
+    - Slayer
+    - Max strength setups
+
+    Imbue is essential - doubles the bonus.
+  market_strategy:
+    notes:
+      - DKs are efficient to farm
+      - Imbue immediately
+      - BiS for all melee
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Drop from Dagannoth Rex in the Waterbirth Island Dungeon.
-
-| Boss | Drop Rate |
-|------|-----------|
-| Dagannoth Rex | 1/128 |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Strength | +4 |
-| Requirements | None |
-
-**Best-in-slot strength bonus ring.**
-
-## Imbue
-
-Imbue at Soul Wars or Nightmare Zone for doubled stats:
-
-| Stat | Imbued |
-|------|--------|
-| Strength | +8 |
-
-## Usage
-
-BiS melee ring for:
-- All melee combat
-- Bossing
-- Slayer
-- Max strength setups
-
-**Imbue is essential - doubles the bonus.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- DKs are efficient to farm
-- Imbue immediately
-- BiS for all melee
-
-<Adsense />
+<OSRSAdsenseCard />

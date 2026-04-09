@@ -1,6 +1,6 @@
 ---
 title: Diamond bracelet | OSRS Price Data
-description: "Diamond bracelet: I wonder if this is valuable.. High alch: 2,295 GP, GE limit: 10,000."
+description: "Diamond bracelet is a members hands slot item. High alch: 2,295 GP, GE limit: 10,000."
 osrs:
   id: 11092
   name: Diamond bracelet
@@ -12,26 +12,56 @@ osrs:
   lowalch: 1530
   highalch: 2295
   limit: 10000
+  equipment:
+    slot: hands
+    requirements:
+      crafting: 58
+  recipes:
+    - skill: crafting
+      level: 58
+      xp: 95
+      inputs:
+        - item_name: Diamond
+          quantity: 1
+        - item_name: Gold bar
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 11085
+      item_name: Ruby bracelet
+      slug: ruby-bracelet
+      relationship: downgrade
+      description: Previous tier bracelet
+    - item_id: 11115
+      item_name: Dragonstone bracelet
+      slug: dragonstone-bracelet
+      relationship: upgrade
+      description: Next tier bracelet
+  about: |-
+    Crafting (Level 58): Diamond + Gold bar at a furnace with bracelet mould (95 XP)
+
+    > *"A diamond bracelet."*
+
+    Lvl-4 Enchant (57 Magic): 1 cosmic rune + 10 earth runes (67 XP)
+
+    The Abyssal bracelet allows entry to the Abyss without being skulled (5 charges). Normally, using the Mage of Zamorak to enter the Abyss skulls you, risking all items on death. This bracelet removes that risk.
+
+    Useful for:
+    - Runecrafting via the Abyss without skull risk
+    - Protecting expensive equipment while crafting runes
+    - Ironman accounts who can't afford to lose gear
+  market_strategy:
+    notes:
+      - Steady Runecrafting demand
+      - 5 charges per bracelet — consumed regularly
+      - Cheap to enchant
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -1,6 +1,6 @@
 ---
 title: Frog-leather chaps | OSRS Price Data
-description: "Frog-leather chaps: Chaps made out of frog hide.. High alch: 540 GP, GE limit: 70."
+description: "Frog-leather chaps is a members legs slot item requiring 25 Defence. High alch: 540 GP, GE limit: 70."
 osrs:
   id: 10956
   name: Frog-leather chaps
@@ -12,26 +12,65 @@ osrs:
   lowalch: 360
   highalch: 540
   limit: 70
+  equipment:
+    slot: legs
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -5
+      ranged: 4
+    defence_bonus:
+      stab: 8
+      slash: 5
+      crush: 9
+      magic: 4
+      ranged: 8
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      ranged: 25
+      defence: 25
+    weight: 3.175
+  related_items:
+    - item_id: 10954
+      item_name: Frog-leather body
+      slug: frog-leather-body
+      relationship: set-piece
+      description: Matching body armour
+    - item_id: 10958
+      item_name: Frog-leather boots
+      slug: frog-leather-boots
+      relationship: set-piece
+      description: Matching boots
+  about: |-
+    | Attack | Value |
+    |--------|-------|
+    | Ranged | +4 |
+
+    | Defence | Value |
+    |---------|-------|
+    | Crush | +9 |
+    | Stab | +8 |
+    | Ranged | +8 |
+
+    Requirements: 25 Ranged, 25 Defence | Weight: 3.18 kg
+
+    Entry-level ranged armour from the Dorgeshuun city. Fills the gap between leather and snakeskin for accounts with 25 Ranged/Defence.
+  market_strategy:
+    notes:
+      - Niche low-level ranged armour
+      - Limited demand — most players skip to snakeskin or green d'hide
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

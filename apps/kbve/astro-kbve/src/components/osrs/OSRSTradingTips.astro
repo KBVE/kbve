@@ -1,0 +1,69 @@
+---
+interface Props {
+	tips: string[];
+}
+
+const { tips } = Astro.props;
+---
+
+<div class="osrs-tips">
+	<div class="osrs-tips__header">
+		<span class="osrs-tips__icon">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+				<path
+					d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z">
+				</path>
+			</svg>
+		</span>
+		<h4 class="osrs-tips__title">Trading Tips</h4>
+	</div>
+	<div class="osrs-tips__content">
+		{tips.map((tip) => <div class="osrs-tips__item">{tip}</div>)}
+	</div>
+</div>
+
+<style>
+	.osrs-tips {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-tips__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-tips__icon {
+		color: #f59e0b;
+	}
+
+	.osrs-tips__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+	}
+
+	.osrs-tips__content {
+		padding: 0.375rem 0.75rem;
+		display: grid;
+		gap: 0.25rem;
+	}
+
+	.osrs-tips__item {
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-2);
+		padding: 0.375rem 0.625rem;
+		background: var(--sl-color-gray-6);
+		border-radius: 0.375rem;
+		border: 1px solid var(--sl-color-gray-5);
+		line-height: 1.5;
+	}
+</style>

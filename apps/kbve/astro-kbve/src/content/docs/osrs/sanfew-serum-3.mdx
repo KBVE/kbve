@@ -39,39 +39,19 @@ osrs:
       slug: super-restore-4
       relationship: component
       description: Base potion
+  about: 3-dose variant of Sanfew serum.
+  market_strategy:
+    notes:
+      - Compare 4-dose vs 3-dose prices
+      - Decanting can profit in either direction
+      - Use decanting NPC in GE
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Usage
-
-3-dose variant of Sanfew serum.
-
-## Market Flip Strategy
-
-**Dose Manipulation:**
-- Compare 4-dose vs 3-dose prices
-- Decanting can profit in either direction
-- Use decanting NPC in GE
-
-**Buy Limit:** 2,000 per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

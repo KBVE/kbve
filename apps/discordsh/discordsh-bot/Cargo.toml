@@ -36,6 +36,7 @@ bevy_battle = { path = "../../../packages/rust/bevy/bevy_battle" }
 bevy_npc = { path = "../../../packages/rust/bevy/bevy_npc" }
 bevy_quests = { path = "../../../packages/rust/bevy/bevy_quests" }
 bevy_skills = { path = "../../../packages/rust/bevy/bevy_skills" }
+bevy_chat = { path = "../../../packages/rust/bevy/bevy_chat" }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.6", optional = true }

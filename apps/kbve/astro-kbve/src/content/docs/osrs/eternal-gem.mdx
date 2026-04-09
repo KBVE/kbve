@@ -50,69 +50,32 @@ osrs:
       slug: slayer-ring
       relationship: alternative
       description: Standard version
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Crafting Material |
+    | Tradeable | Yes |
+    | Weight | 0.004 kg |
+
+    | Item Created | Materials | Requirements |
+    |--------------|-----------|--------------|
+    | Eternal slayer ring | Eternal gem + Gold bar | 75 Crafting |
+
+    Irreversible - ring is untradeable.
+
+    Also functions as enchanted gem for Slayer masters.
+  market_strategy:
+    notes:
+      - Farm high-level superiors
+      - Creates infinite teleport ring
+      - 75 Crafting to use
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Crafting Material |
-| Tradeable | Yes |
-| Weight | 0.004 kg |
-
-## Obtaining
-
-Dropped by superior slayer monsters.
-
-Requires "Bigger and Badder" unlock (50 Slayer points).
-
-Best rates: Nuclear smoke devil (1/200), Night beast (1/256).
-
-## Uses
-
-| Item Created | Materials | Requirements |
-|--------------|-----------|--------------|
-| Eternal slayer ring | Eternal gem + Gold bar | 75 Crafting |
-
-**Irreversible - ring is untradeable.**
-
-Also functions as enchanted gem for Slayer masters.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~9.5M gp
-
-**Tips:**
-- Farm high-level superiors
-- Creates infinite teleport ring
-- 75 Crafting to use
-
-## Related Items
-
-- [Eternal slayer ring](/osrs/eternal-slayer-ring/) - Created item
-- [Slayer ring](/osrs/slayer-ring/) - Standard version
-- [Superior slayer monsters](/osrs/superior-slayer-monsters/) - Drop source
-
-<Adsense />
+<OSRSAdsenseCard />

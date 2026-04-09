@@ -1,6 +1,6 @@
 ---
 title: Studded body | OSRS Price Data
-description: "Studded body: Those studs should provide a bit more protection.. High alch: 510 GP, GE limit: 125."
+description: "Studded body is a F2P body slot item requiring 20 Defence. High alch: 510 GP, GE limit: 125."
 osrs:
   id: 1133
   name: Studded body
@@ -12,26 +12,108 @@ osrs:
   lowalch: 340
   highalch: 510
   limit: 125
+  equipment:
+    slot: body
+    type: ranged_armour
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -4
+      ranged: 8
+    defence_bonus:
+      stab: 18
+      slash: 25
+      crush: 22
+      magic: 8
+      ranged: 25
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      ranged: 20
+      defence: 20
+    weight: 5.443
+  recipes:
+    - skill: crafting
+      level: 41
+      xp: 40
+      materials:
+        - item_name: Leather body
+          item_id: 1129
+          quantity: 1
+        - item_name: Steel studs
+          item_id: 2370
+          quantity: 1
+      product: Studded body
+      product_id: 1133
+      product_quantity: 1
+      ticks: 3
+  related_items:
+    - item_id: 1129
+      item_name: Leather body
+      slug: leather-body
+      relationship: component
+      description: Base armour before studding
+    - item_id: 2370
+      item_name: Steel studs
+      slug: steel-studs
+      relationship: component
+      description: Studs added to leather body
+    - item_id: 1097
+      item_name: Studded chaps
+      slug: studded-chaps
+      relationship: alternative
+      description: Matching leg slot armour
+    - item_id: 1131
+      item_name: Hardleather body
+      slug: hardleather-body
+      relationship: downgrade
+      description: Lower tier ranged body
+    - item_id: 1135
+      item_name: Green d'hide body
+      slug: green-dhide-body
+      relationship: upgrade
+      description: Next tier ranged body (40 Ranged)
+  about: |-
+    | Stat | Attack | Defence |
+    |------|--------|---------|
+    | Stab | 0 | +18 |
+    | Slash | 0 | +25 |
+    | Crush | 0 | +22 |
+    | Magic | -4 | +8 |
+    | Ranged | +8 | +25 |
+
+    Requirements: 20 Ranged, 20 Defence | Weight: 5.44 kg
+
+    The studded body is the best F2P ranged body armour, sitting between the hardleather body and the members-only green d'hide body:
+
+    | Armour | Ranged Atk | Ranged Def | Req |
+    |--------|-----------|-----------|-----|
+    | Hardleather body | +8 | +15 | 1 Ranged, 10 Def |
+    | Studded body | +8 | +25 | 20 Ranged, 20 Def |
+    | Green d'hide body | +15 | +40 | 40 Ranged (P2P) |
+
+    The studded body is essential F2P ranged gear:
+    - Best ranged body available to free players
+    - PKing standard for F2P ranged builds
+    - PvM solid early-game ranged defence
+    - Affordable and easy to replace
+  market_strategy:
+    notes:
+      - Very low GE price (~353 gp), high alch at 510 gp provides small margin
+      - F2P demand keeps volume steady (~1,800 units daily)
+      - Crafting profit is minimal but positive after GE tax
+      - Steel studs are the bottleneck material
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

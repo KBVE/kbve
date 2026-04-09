@@ -53,69 +53,32 @@ osrs:
       slug: purging-staff
       relationship: product
       description: Created BiS magic demonbane weapon
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Crafting Material |
+    | Tradeable | Yes |
+    | Weight | 1.814 kg |
+
+    Creates demonbane weapons:
+
+    | Weapon | Skill |
+    |--------|-------|
+    | Emberlight | 74 Smithing |
+    | Purging staff | 74 Crafting, 55 Smithing |
+    | Scorching bow | 74 Fletching |
+  market_strategy:
+    notes:
+      - Farm Tormented demons
+      - Requires While Guthix Sleeps
+      - Creates non-degrading demonbane gear
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Crafting Material |
-| Tradeable | Yes |
-| Weight | 1.814 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Tormented demon | 1/500 |
-
-Found in Ancient Guthix Temple after While Guthix Sleeps.
-
-## Uses
-
-Creates demonbane weapons:
-
-| Weapon | Skill |
-|--------|-------|
-| Emberlight | 74 Smithing |
-| Purging staff | 74 Crafting, 55 Smithing |
-| Scorching bow | 74 Fletching |
-
-## Market Strategy
-
-**Buy Limit:** 5 per 4 hours
-
-**Price:** ~18.4M gp
-
-**Tips:**
-- Farm Tormented demons
-- Requires While Guthix Sleeps
-- Creates non-degrading demonbane gear
-
-## Related Items
-
-- [Tormented demon](/osrs/tormented-demon/) - Drop source
-- [Emberlight](/osrs/emberlight/) - Created weapon
-- [Scorching bow](/osrs/scorching-bow/) - Created weapon
-
-<Adsense />
+<OSRSAdsenseCard />

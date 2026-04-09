@@ -71,69 +71,38 @@ osrs:
       slug: dragon-bones
       relationship: alternative
       description: Co-drop
+  about: |-
+    Take to any tanner to convert to Green dragon leather.
+
+    | Tanner | Cost |
+    |--------|------|
+    | Regular | 20 GP |
+    | Canifis | 45 GP |
+  market_strategy:
+    profit_formulas:
+      - Green dragon leather - Green dragonhide - 20 = Profit
+      - Body price - (Leather × 3) = Profit
+    notes:
+      - Buy hides → Tan → Sell leather
+      - "Calculate:"
+      - Highest volume dragonhide
+      - Green d'hide body most traded
+      - "Check:"
+      - Entry-level dragonhide crafting
+      - Green dragons (Wilderness, Corsair Cove)
+      - Brutal green dragons
+      - Popular bot farming target
+      - Lowest tier dragonhide
+      - Entry-level ranged armor
+      - Very high trade volume
+      - Price volatile from bots
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Tanning
-
-Take to any tanner to convert to [Green dragon leather](/osrs/green-dragon-leather/).
-
-| Tanner | Cost |
-|--------|------|
-| Regular | 20 GP |
-| Canifis | 45 GP |
-
-## Crafting Products
-
-| Item | Leather | Crafting Level | XP |
-|------|---------|----------------|-----|
-| [Green d'hide vambraces](/osrs/green-d-hide-vambraces/) | 1 | 57 | 62 |
-| [Green d'hide chaps](/osrs/green-d-hide-chaps/) | 2 | 60 | 124 |
-| [Green d'hide body](/osrs/green-d-hide-body/) | 3 | 63 | 186 |
-| [Green d'hide shield](/osrs/green-d-hide-shield/) | 2 | 62 | 124 |
-
-## Market Flip Strategy
-
-**Tanning Profit:**
-- Buy hides → Tan → Sell leather
-- Calculate: `Green dragon leather - Green dragonhide - 20 = Profit`
-- Highest volume dragonhide
-
-**Crafting Profit:**
-- [Green d'hide body](/osrs/green-d-hide-body/) most traded
-- Check: `Body price - (Leather × 3) = Profit`
-- Entry-level dragonhide crafting
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Drop Sources:**
-- Green dragons (Wilderness, Corsair Cove)
-- Brutal green dragons
-- Popular bot farming target
-
-**Tips:**
-- Lowest tier dragonhide
-- Entry-level ranged armor
-- Very high trade volume
-- Price volatile from bots
-
-<Adsense />
+<OSRSAdsenseCard />

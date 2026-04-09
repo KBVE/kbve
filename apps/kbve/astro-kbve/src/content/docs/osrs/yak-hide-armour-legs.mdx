@@ -1,6 +1,6 @@
 ---
 title: Yak-hide armour (legs) | OSRS Price Data
-description: "Yak-hide armour (legs): Leg protection, made from smelly yak-hide.. High alch: 300 GP, GE limit: 70."
+description: "Yak-hide armour (legs) is a members legs slot item requiring 20 Defence. High alch: 300 GP, GE limit: 70."
 osrs:
   id: 10824
   name: Yak-hide armour (legs)
@@ -12,26 +12,57 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 70
+  equipment:
+    slot: legs
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -10
+      ranged: -5
+    defence_bonus:
+      stab: 20
+      slash: 25
+      crush: 22
+      magic: -3
+      ranged: 20
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      defence: 20
+    weight: 5
+  related_items:
+    - item_id: 10822
+      item_name: Yak-hide armour
+      slug: yak-hide-armour
+      relationship: set-piece
+      description: Matching body armour
+  about: |-
+    | Defence | Value |
+    |---------|-------|
+    | Slash | +25 |
+    | Crush | +22 |
+    | Stab | +20 |
+    | Ranged | +20 |
+
+    Requirements: 20 Defence | Weight: 5.0 kg
+
+    At only 20 Defence, yak-hide legs provide solid melee defence comparable to mithril platelegs. Useful for low-level accounts and during The Fremennik Isles quest itself.
+  market_strategy:
+    notes:
+      - Niche Fremennik quest item
+      - 20 Defence requirement makes it accessible for pures
+      - Most players upgrade quickly past this tier
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

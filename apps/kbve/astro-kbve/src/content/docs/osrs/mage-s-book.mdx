@@ -51,79 +51,36 @@ osrs:
       slug: book-of-darkness
       relationship: alternative
       description: Prayer bonus option
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Magic attack | +15 |
+    | Magic damage | +2% |
+
+    | Defence | Value |
+    |---------|-------|
+    | Magic | +15 |
+
+    Requirements: 60 Magic (no Defence)
+
+    Popular for:
+    - Pures (no def requirement)
+    - Budget magic offhand
+    - Mid-game maging
+
+    Great for 1 Defence builds.
+  market_strategy:
+    notes:
+      - Long grind but free
+      - Good for pures
+      - Upgrade to arcane later
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Shield |
-| Type | Magic Offhand |
-| Tradeable | No (untradeable) |
-| Weight | 1 kg |
-
-## Obtaining
-
-Reward from Mage Training Arena.
-
-| Points Required | Type |
-|-----------------|------|
-| 500 | Telekinetic |
-| 550 | Alchemist |
-| 6,000 | Enchantment |
-| 500 | Graveyard |
-
-**Time:** ~5.3 hours efficient play
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Magic attack | +15 |
-| Magic damage | +2% |
-
-| Defence | Value |
-|---------|-------|
-| Magic | +15 |
-
-**Requirements:** 60 Magic (no Defence)
-
-## Usage
-
-Popular for:
-- Pures (no def requirement)
-- Budget magic offhand
-- Mid-game maging
-
-**Great for 1 Defence builds.**
-
-## Market Strategy
-
-**Untradeable** - MTA grind only.
-
-**Tips:**
-- Long grind but free
-- Good for pures
-- Upgrade to arcane later
-
-<Adsense />
+<OSRSAdsenseCard />

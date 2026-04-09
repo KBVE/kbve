@@ -59,63 +59,35 @@ osrs:
       slug: blessed-silver-sickle
       relationship: component
       description: Collection tool
+  about: |-
+    | Use | Details |
+    |-----|---------|
+    | Super energy potion | Herblore 52 |
+    | Druid pouch | Adds 1 charge |
+  market_strategy:
+    title: |-
+      - Super energy production
+      - Stamina potion chain
+      - Consistent demand
+    notes:
+      - Super energy production
+      - Stamina potion chain
+      - Consistent demand
+      - Super energy potions
+      - Stamina potion production
+      - Druid pouch charging
+      - Ironman accounts
+      - Bloom spell farming profitable
+      - Nature Spirit quest required
+      - Consistent pricing
+      - Essential for stamina chain
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-| Source | Method |
-|--------|--------|
-| Mort Myre Swamp | Bloom spell on rotting logs |
-| Tools | Blessed silver sickle, Ivandis flail |
-| Monster drops | Zygomites, Vyrewatch |
-| Sulliuscep mushrooms | Woodcutting |
-
-## Uses
-
-| Use | Details |
-|-----|---------|
-| Super energy potion | Herblore 52 |
-| Druid pouch | Adds 1 charge |
-
-## Market Flip Strategy
-
-**Essential Secondary:**
-- Super energy production
-- Stamina potion chain
-- Consistent demand
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Demand Drivers:**
-- Super energy potions
-- Stamina potion production
-- Druid pouch charging
-- Ironman accounts
-
-**Tips:**
-- Bloom spell farming profitable
-- Nature Spirit quest required
-- Consistent pricing
-- Essential for stamina chain
-
-<Adsense />
+<OSRSAdsenseCard />

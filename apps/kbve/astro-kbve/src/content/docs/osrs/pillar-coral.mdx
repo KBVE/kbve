@@ -1,6 +1,6 @@
 ---
 title: Pillar coral | OSRS Price Data
-description: "Pillar coral: A real community of the pillar.. High alch: 62 GP."
+description: "Pillar coral: A real community of the pillar.. High alch: 62 GP, GE limit: 13,000."
 osrs:
   id: 31484
   name: Pillar coral
@@ -11,7 +11,7 @@ osrs:
   value: 104
   lowalch: 41
   highalch: 62
-  limit: null
+  limit: 13000
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

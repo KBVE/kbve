@@ -1,0 +1,150 @@
+---
+import type { OSRSGathering } from '@/data/schema';
+
+interface Props {
+	gathering: OSRSGathering & { skill: string };
+}
+
+const { gathering } = Astro.props;
+const skillName =
+	gathering.skill.charAt(0).toUpperCase() + gathering.skill.slice(1);
+
+const skillColors: Record<string, string> = {
+	woodcutting: '#22c55e',
+	mining: '#a3a3a3',
+	fishing: '#3b82f6',
+	hunter: '#a16207',
+	farming: '#16a34a',
+};
+const color = skillColors[gathering.skill] ?? 'var(--sl-color-accent)';
+---
+
+<div class="osrs-gathering">
+	<div class="osrs-gathering__header" style={`--skill-color: ${color}`}>
+		<span class="osrs-gathering__icon">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+				<path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"></path>
+			</svg>
+		</span>
+		<h4 class="osrs-gathering__title">{skillName}</h4>
+		<span class="osrs-gathering__level">Lvl {gathering.level}</span>
+	</div>
+	<div class="osrs-gathering__content">
+		{
+			gathering.xp && (
+				<div class="osrs-gathering__stat">
+					<span class="osrs-gathering__label">XP per action</span>
+					<span class="osrs-gathering__value">{gathering.xp}</span>
+				</div>
+			)
+		}
+		{
+			gathering.tool && (
+				<div class="osrs-gathering__stat">
+					<span class="osrs-gathering__label">Tool</span>
+					<span class="osrs-gathering__value">{gathering.tool}</span>
+				</div>
+			)
+		}
+		{
+			gathering.locations && gathering.locations.length > 0 && (
+				<div class="osrs-gathering__locations">
+					<span class="osrs-gathering__label">Locations</span>
+					<div class="osrs-gathering__pills">
+						{gathering.locations.map((loc) => (
+							<span class="osrs-gathering__pill">{loc}</span>
+						))}
+					</div>
+				</div>
+			)
+		}
+	</div>
+</div>
+
+<style>
+	.osrs-gathering {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-gathering__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-gathering__icon {
+		color: var(--skill-color);
+	}
+
+	.osrs-gathering__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+		flex: 1;
+	}
+
+	.osrs-gathering__level {
+		font-size: 0.625rem;
+		font-weight: 600;
+		padding: 0.125rem 0.375rem;
+		border-radius: 0.25rem;
+		background: color-mix(in srgb, var(--skill-color) 20%, transparent);
+		color: var(--skill-color);
+	}
+
+	.osrs-gathering__content {
+		padding: 0.625rem 0.75rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 1.5rem;
+	}
+
+	.osrs-gathering__stat {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+	}
+
+	.osrs-gathering__label {
+		font-size: 0.5625rem;
+		text-transform: uppercase;
+		letter-spacing: 0.025em;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-gathering__value {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+
+	.osrs-gathering__locations {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.osrs-gathering__pills {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+	}
+
+	.osrs-gathering__pill {
+		font-size: 0.625rem;
+		padding: 0.125rem 0.5rem;
+		border-radius: 1rem;
+		background: var(--sl-color-gray-6);
+		border: 1px solid var(--sl-color-gray-5);
+		color: var(--sl-color-gray-2);
+	}
+</style>

@@ -1,6 +1,6 @@
 ---
 title: Torva armour set | OSRS Price Data
-description: "Torva armour set: A set containing a Torva full helm, Torva platebody and Torva platelegs.. High alch: 87,000 GP."
+description: "Torva armour set: A set containing a Torva full helm, Torva platebody and Torva platelegs.. High alch: 87,000 GP, GE limit: 2."
 osrs:
   id: 31145
   name: Torva armour set
@@ -11,7 +11,7 @@ osrs:
   value: 145000
   lowalch: 58000
   highalch: 87000
-  limit: null
+  limit: 2
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

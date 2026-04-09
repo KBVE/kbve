@@ -1,6 +1,6 @@
 ---
 title: Guthix cloak | OSRS Price Data
-description: "Guthix cloak: A Guthix cloak.. High alch: 1,200 GP, GE limit: 8."
+description: "Guthix cloak is a members cape slot item. High alch: 1,200 GP, GE limit: 8."
 osrs:
   id: 10448
   name: Guthix cloak
@@ -12,26 +12,29 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 8
+  equipment:
+    slot: cape
+    requirements:
+      prayer: 40
+    other_bonus:
+      prayer: 3
+  related_items:
+    - item_id: 10462
+      item_name: Guthix robe top
+      slug: guthix-robe-top
+      relationship: set-piece
+      description: Guthix vestment body
+  about: |-
+    > *"A Guthix cloak."*
+
+    The Guthix cloak is the cape piece of the Guthix vestment set. It provides a +3 Prayer bonus and requires 40 Prayer to equip. Counts as a Guthixian item in the God Wars Dungeon.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

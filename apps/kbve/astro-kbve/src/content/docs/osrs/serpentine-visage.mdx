@@ -49,67 +49,32 @@ osrs:
       slug: zulrahs-scales
       relationship: downgrade
       description: Dismantle result
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Crafting Material |
+    | Tradeable | Yes |
+    | Weight | 1 kg |
+
+    | Item Created | Materials | Requirements |
+    |--------------|-----------|--------------|
+    | Serpentine helm (uncharged) | Serpentine visage + chisel | 52 Crafting |
+
+    Grants 120 Crafting XP when crafted.
+
+    Can be dismantled for 20,000 Zulrah's scales.
+  market_strategy:
+    notes:
+      - Zulrah exclusive drop
+      - Creates venom-immune helm
+      - 52 Crafting to process
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Crafting Material |
-| Tradeable | Yes |
-| Weight | 1 kg |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Zulrah | 2 x 1/1,024 |
-
-## Uses
-
-| Item Created | Materials | Requirements |
-|--------------|-----------|--------------|
-| Serpentine helm (uncharged) | Serpentine visage + chisel | 52 Crafting |
-
-Grants 120 Crafting XP when crafted.
-
-Can be dismantled for 20,000 Zulrah's scales.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~4.5M gp
-
-**Tips:**
-- Zulrah exclusive drop
-- Creates venom-immune helm
-- 52 Crafting to process
-
-## Related Items
-
-- [Zulrah](/osrs/zulrah/) - Boss drop
-- [Serpentine helm](/osrs/serpentine-helm/) - Created helm
-- [Zulrah's scales](/osrs/zulrahs-scales/) - Dismantle result
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -54,62 +54,13 @@ osrs:
       slug: iron-bolts
       relationship: alternative
       description: Compatible ammo
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Main Hand |
-| Type | Crossbow |
-| Tradeable | Yes |
-| Weight | 4 kg |
-| Requirements | 26 Ranged |
-
-## Combat Stats
-
-| Stat | Bonus |
-|------|-------|
-| Ranged Attack | +42 |
-| Attack Range | 7 |
-
-## Obtaining
-
-**Fletching:** 39 Fletching with iron crossbow (u) + crossbow string.
-
-**Shop:** Crossbow Shop, Keldagrim.
-
-## Market Strategy
-
-**Buy Limit:** 125 per 4 hours
-
-**Price:** ~319 gp
-
-Mid-level crossbow. Uses up to iron bolts.
-
-## Related Items
-
-- [Steel crossbow](/osrs/steel-crossbow/) - Upgrade
-- [Iron bolts](/osrs/iron-bolts/) - Compatible ammo
-
-<Adsense />
+<OSRSAdsenseCard />

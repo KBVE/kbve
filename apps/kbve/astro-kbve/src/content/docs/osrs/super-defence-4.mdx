@@ -60,63 +60,38 @@ osrs:
       slug: defence-potion-3
       relationship: alternative
       description: Lower tier
+  about: |-
+    | Requirement | Value |
+    |-------------|-------|
+    | Herblore Level | 66 |
+    | XP | 150 |
+    | Ingredients | Cadantine + White berries |
+
+    | Effect | Value |
+    |--------|-------|
+    | Defence boost | +5 to +19 (15% + 5) |
+    | Duration | 60s per level lost |
+    | Preserve prayer | 90s per level lost |
+  market_strategy:
+    notes:
+      - Super combat ingredient
+      - Standalone defence boost
+      - Moderate demand
+      - Super combat production
+      - Tank builds
+      - Bossing preparation
+      - Defence training
+      - Low buy limit (2,000)
+      - Cadantine herb
+      - White berries secondary
+      - Component for super combat
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creating
-
-| Requirement | Value |
-|-------------|-------|
-| Herblore Level | 66 |
-| XP | 150 |
-| Ingredients | Cadantine + White berries |
-
-## Effects
-
-| Effect | Value |
-|--------|-------|
-| Defence boost | +5 to +19 (15% + 5) |
-| Duration | 60s per level lost |
-| Preserve prayer | 90s per level lost |
-
-## Market Flip Strategy
-
-**Combat Potion Component:**
-- Super combat ingredient
-- Standalone defence boost
-- Moderate demand
-
-**Buy Limit:** 2,000 per 4 hours
-
-**Demand Drivers:**
-- Super combat production
-- Tank builds
-- Bossing preparation
-- Defence training
-
-**Tips:**
-- Low buy limit (2,000)
-- Cadantine herb
-- White berries secondary
-- Component for super combat
-
-<Adsense />
+<OSRSAdsenseCard />

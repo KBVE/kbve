@@ -70,71 +70,46 @@ osrs:
       slug: zamorak-godsword
       relationship: alternative
       description: Freeze spec
+  about: |-
+    Attach Armadyl hilt to Godsword blade.
+
+    | Component | Source | Price |
+    |-----------|--------|-------|
+    | Armadyl hilt | Kree'arra (1/508) | ~8.4M gp |
+    | Godsword blade | GWD bosses | ~526K gp |
+
+    | Stat | Value |
+    |------|-------|
+    | Attack style | Slash |
+    | Slash attack | +132 |
+    | Crush attack | +80 |
+    | Strength bonus | +132 |
+    | Prayer bonus | +8 |
+    | Attack speed | 6 tick (3.6s) |
+    | Requirements | 75 Attack |
+
+    The Judgement (50% energy):
+    - +37.5% max hit increase
+    - Standard accuracy
+    - Can hit 70+ on monsters
+    - Can hit 90+ with boosts (black mask, etc.)
+
+    PvP:
+    - Premier KO weapon
+    - Finish low HP opponents
+    - Popular in deep wilderness
+
+    PvM:
+    - Speed kills (spec and teleport)
+    - General Graardor finisher
+    - Not commonly used for sustained DPS
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Attach Armadyl hilt to Godsword blade.
-
-| Component | Source | Price |
-|-----------|--------|-------|
-| Armadyl hilt | Kree'arra (1/508) | ~8.4M gp |
-| Godsword blade | GWD bosses | ~526K gp |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Attack style | Slash |
-| Slash attack | +132 |
-| Crush attack | +80 |
-| Strength bonus | +132 |
-| Prayer bonus | +8 |
-| Attack speed | 6 tick (3.6s) |
-| Requirements | 75 Attack |
-
-## Special Attack
-
-**The Judgement** (50% energy):
-- +37.5% max hit increase
-- Standard accuracy
-- Can hit 70+ on monsters
-- Can hit 90+ with boosts (black mask, etc.)
-
-## Usage
-
-**PvP:**
-- Premier KO weapon
-- Finish low HP opponents
-- Popular in deep wilderness
-
-**PvM:**
-- Speed kills (spec and teleport)
-- General Graardor finisher
-- Not commonly used for sustained DPS
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

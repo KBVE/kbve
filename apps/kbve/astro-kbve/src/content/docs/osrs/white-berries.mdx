@@ -19,10 +19,6 @@ osrs:
     level: 59
     seed_id: 5105
     seed_name: Whiteberry seed
-  gathering:
-    locations:
-      - Isafdar
-      - Lava Dragon Isle
   drop_table:
     sources:
       - source: Kurask
@@ -87,64 +83,26 @@ osrs:
       slug: defence-potion-3
       relationship: product
       description: Basic product
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Herblore Secondary |
+    | Tradeable | Yes |
+    | Weight | 0.007 kg |
+
+    Secondary ingredient for:
+    - Defence potion (with ranarr potion unf)
+    - Super defence (with cadantine potion unf)
+
+    Also usable as supercompost material.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Herblore Secondary |
-| Tradeable | Yes |
-| Weight | 0.007 kg |
-
-## Obtaining
-
-Common sources:
-- Farming whiteberry bushes (59 Farming)
-- Monster drops (Kurask, Corporeal Beast)
-- Natural spawns (Isafdar, Lava Dragon Isle)
-
-## Usage
-
-Secondary ingredient for:
-- **Defence potion** (with ranarr potion unf)
-- **Super defence** (with cadantine potion unf)
-
-Also usable as supercompost material.
-
-## Market Strategy
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Price:** ~250 gp
-
-High-volume herblore ingredient. Stable demand from potion makers.
-
-## Related Items
-
-- [Defence potion](/osrs/defence-potion/) - Primary use
-- [Super defence](/osrs/super-defence/) - Advanced use
-- [Whiteberry seed](/osrs/whiteberry-seed/) - Farming source
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -1,6 +1,6 @@
 ---
 title: Toktz-mej-tal | OSRS Price Data
-description: "Toktz-mej-tal: A staff of obsidian.. High alch: 21,000 GP, GE limit: 70."
+description: "Toktz-mej-tal is a members weapon slot item with +55 melee strength requiring 60 Attack. High alch: 21,000 GP, GE limit: 70."
 osrs:
   id: 6526
   name: Toktz-mej-tal
@@ -12,26 +12,79 @@ osrs:
   lowalch: 14000
   highalch: 21000
   limit: 70
+  equipment:
+    slot: weapon
+    two_handed: true
+    attack_speed: 6
+    attack_bonus:
+      stab: 15
+      slash: -1
+      crush: 55
+      magic: 15
+      ranged: 0
+    defence_bonus:
+      stab: 10
+      slash: 15
+      crush: 5
+      magic: 15
+      ranged: 0
+    other_bonus:
+      melee_strength: 55
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 5
+    requirements:
+      attack: 60
+      magic: 60
+    weight: 1.814
+  related_items:
+    - item_id: 6523
+      item_name: Toktz-xil-ak
+      slug: toktz-xil-ak
+      relationship: alternative
+      description: Obsidian sword (melee focused)
+    - item_id: 6524
+      item_name: Toktz-ket-xil
+      slug: toktz-ket-xil
+      relationship: alternative
+      description: Obsidian shield
+  about: |-
+    | Attack | Value |
+    |--------|-------|
+    | Crush | +55 |
+    | Stab | +15 |
+    | Magic | +15 |
+
+    | Defence | Value |
+    |---------|-------|
+    | Slash | +15 |
+    | Magic | +15 |
+    | Stab | +10 |
+
+    | Other | Value |
+    |-------|-------|
+    | Strength | +55 |
+    | Prayer | +5 |
+
+    Requirements: 60 Attack, 60 Magic | Speed: 6 tick melee / 5 tick spellcasting | Two-handed
+
+    The Toktz-mej-tal is a unique hybrid weapon — functioning as both a melee weapon (+55 crush, +55 Str) and a magic staff (+15 magic attack). Its +5 Prayer bonus is rare for a weapon.
+
+    However, being two-handed means you sacrifice a shield slot, and the 6-tick melee speed is slow.
+
+    10 Toktz-mej-tal are needed to build an Obsidian fence at 83 Construction — a popular decorative feature.
+  market_strategy:
+    notes:
+      - Tokkul shop is cheapest source (45,500 with Karamja gloves)
+      - Prayer bonus is unique for a weapon
+      - Construction sink provides additional demand
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

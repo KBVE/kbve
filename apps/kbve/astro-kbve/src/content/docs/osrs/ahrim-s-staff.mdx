@@ -53,89 +53,44 @@ osrs:
       slug: kodai-wand
       relationship: upgrade
       description: BiS upgrade
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Magic attack | +15 |
+    | Magic damage | +5% |
+
+    | Defence | Value |
+    |---------|-------|
+    | All | +0 |
+
+    Requirements: 70 Magic, 70 Attack
+
+    Full Ahrim's:
+    - Chance to lower target's Strength
+
+    With Amulet of the Damned:
+    - 25% chance for +30% damage with Ancient Magicks
+
+    Degrades over 15 hours of combat.
+
+    Popular for:
+    - Ancient Magicks with AotD
+    - Budget magic weapon
+    - Barrows set completion
+
+    +5% magic damage is valuable.
+  market_strategy:
+    notes:
+      - Barrows grind
+      - Good with AotD
+      - Degrades with use
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon (Main-hand) |
-| Type | Magic Staff |
-| Tradeable | Yes |
-| Weight | 2.267 kg |
-| Attack Speed | 5 tick casting |
-
-## Obtaining
-
-Drop from Barrows reward chest.
-
-| Source | Drop Rate |
-|--------|-----------|
-| Barrows chest | 7 × 1/2,448 |
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Magic attack | +15 |
-| Magic damage | +5% |
-
-| Defence | Value |
-|---------|-------|
-| All | +0 |
-
-**Requirements:** 70 Magic, 70 Attack
-
-## Set Effect
-
-**Full Ahrim's:**
-- Chance to lower target's Strength
-
-**With Amulet of the Damned:**
-- 25% chance for +30% damage with Ancient Magicks
-
-## Degradation
-
-Degrades over 15 hours of combat.
-
-## Usage
-
-Popular for:
-- Ancient Magicks with AotD
-- Budget magic weapon
-- Barrows set completion
-
-**+5% magic damage is valuable.**
-
-## Market Strategy
-
-**Buy Limit:** 15 per 4 hours
-
-**Price:** ~190K gp
-
-**Tips:**
-- Barrows grind
-- Good with AotD
-- Degrades with use
-
-<Adsense />
+<OSRSAdsenseCard />

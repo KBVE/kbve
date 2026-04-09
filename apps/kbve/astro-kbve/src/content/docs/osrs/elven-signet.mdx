@@ -53,91 +53,47 @@ osrs:
       slug: crystal-harpoon
       relationship: alternative
       description: Works with this tool
+  about: |-
+    Crystal Efficiency:
+    - 10% chance to not consume a charge when using crystal equipment
+    - Effective bonus: ~11.1% additional charges (saved charges can save again)
+
+    Works With:
+    - Crystal pickaxe
+    - Crystal axe
+    - Crystal harpoon
+    - Crystal armour
+
+    Does NOT work with:
+    - Blade of Saeldor
+    - Bow of Faerdhinen
+
+    Can be combined with Celestial ring to create Celestial signet:
+    - Requires 70 Smithing and 70 Crafting
+    - Or pay NPCs to combine
+
+    Celestial signet provides:
+    - +4 invisible Mining levels (from Celestial ring)
+    - 10% crystal charge saving (from Elven signet)
+
+    Essential for:
+    - Crystal tool users
+    - Reducing crystal shard consumption
+    - Efficient skilling in Prifddinas
+
+    Stacks with all crystal equipment.
+  market_strategy:
+    notes:
+      - Gauntlet is only source
+      - Combine with Celestial ring for BiS mining ring
+      - Saves expensive crystal shards long-term
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Ring |
-| Type | Skilling Ring |
-| Tradeable | Yes |
-| Weight | 0.003 kg |
-
-## Obtaining
-
-| Source | Method |
-|--------|--------|
-| Gauntlet | Rare drop |
-| Corrupted Gauntlet | Rare drop (more common) |
-
-## Passive Effect
-
-**Crystal Efficiency:**
-- 10% chance to not consume a charge when using crystal equipment
-- Effective bonus: ~11.1% additional charges (saved charges can save again)
-
-**Works With:**
-- Crystal pickaxe
-- Crystal axe
-- Crystal harpoon
-- Crystal armour
-
-**Does NOT work with:**
-- Blade of Saeldor
-- Bow of Faerdhinen
-
-## Combining
-
-Can be combined with Celestial ring to create Celestial signet:
-- Requires 70 Smithing and 70 Crafting
-- Or pay NPCs to combine
-
-**Celestial signet provides:**
-- +4 invisible Mining levels (from Celestial ring)
-- 10% crystal charge saving (from Elven signet)
-
-## Usage
-
-Essential for:
-- Crystal tool users
-- Reducing crystal shard consumption
-- Efficient skilling in Prifddinas
-
-**Stacks with all crystal equipment.**
-
-## Market Strategy
-
-**Tips:**
-- Gauntlet is only source
-- Combine with Celestial ring for BiS mining ring
-- Saves expensive crystal shards long-term
-
-## Related Items
-
-- [Celestial ring](/osrs/celestial-ring/) - Can combine for Celestial signet
-- [Crystal pickaxe](/osrs/crystal-pickaxe/) - Works with this tool
-- [Crystal axe](/osrs/crystal-axe/) - Works with this tool
-- [Crystal harpoon](/osrs/crystal-harpoon/) - Works with this tool
-
-<Adsense />
+<OSRSAdsenseCard />

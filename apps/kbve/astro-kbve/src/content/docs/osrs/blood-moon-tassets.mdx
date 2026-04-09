@@ -62,63 +62,34 @@ osrs:
       slug: blood-moon-chestplate
       relationship: set-piece
       description: Body armour in set
+  about: |-
+    When wearing the full Blood moon armour set with the Dual macuahuitl:
+    - Bloodrager: 33% chance upon successful hit to attack one tick earlier
+
+    | Property | Value |
+    |----------|-------|
+    | Total charges | 3,000 |
+    | Charge rate | 1 per 54 seconds |
+    | Combat duration | ~45 hours |
+    | NPC repair cost | 1,500,000 coins |
+    | Repair at 99 Smithing | 757,500 coins |
+
+    Part of the Blood moon armour set for melee combat:
+    - Solid defensive stats
+    - +2 strength bonus
+    - Good magic defence (+32)
+  market_strategy:
+    notes:
+      - Essential for Blood moon builds
+      - Decent standalone legs option
+      - Factor in repair costs
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-The Blood moon tassets are obtained from the Lunar Chest in Neypotzli with a 1/224 drop rate.
-
-**Requirements:** 75 Strength, 50 Defence to equip
-
-## Set Effect
-
-When wearing the full Blood moon armour set with the Dual macuahuitl:
-- **Bloodrager:** 33% chance upon successful hit to attack one tick earlier
-
-## Degradation
-
-| Property | Value |
-|----------|-------|
-| Total charges | 3,000 |
-| Charge rate | 1 per 54 seconds |
-| Combat duration | ~45 hours |
-| NPC repair cost | 1,500,000 coins |
-| Repair at 99 Smithing | 757,500 coins |
-
-## Usage
-
-Part of the Blood moon armour set for melee combat:
-- Solid defensive stats
-- +2 strength bonus
-- Good magic defence (+32)
-
-## Market Strategy
-
-**Buy Limit:** 15 per 4 hours
-
-**Tips:**
-- Essential for Blood moon builds
-- Decent standalone legs option
-- Factor in repair costs
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -64,69 +64,29 @@ osrs:
       slug: yew-seed
       relationship: alternative
       description: Lower tier option
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Tree Seed |
+    | Tradeable | Yes |
+    | Weight | 0 kg |
+    | Requirements | 75 Farming |
+
+    Plant in tree patches to grow magic trees.
+
+    Growth Time: ~8 hours
+
+    Payment: 25 coconuts (optional protection)
+
+    XP: 145.5 (planting) + 13,768.3 (check-health)
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Tree Seed |
-| Tradeable | Yes |
-| Weight | 0 kg |
-| Requirements | 75 Farming |
-
-## Obtaining
-
-Common sources:
-- Bird nests (Woodcutting, Bird houses)
-- Managing Miscellania
-- Boss drops (Kalphite Queen, Commander Zilyana, Kraken)
-- Impling jars
-- Reward caskets
-
-## Usage
-
-Plant in **tree patches** to grow magic trees.
-
-**Growth Time:** ~8 hours
-
-**Payment:** 25 coconuts (optional protection)
-
-**XP:** 145.5 (planting) + 13,768.3 (check-health)
-
-## Market Strategy
-
-**Buy Limit:** 200 per 4 hours
-
-**Price:** ~75k gp
-
-High-value tree seed. Excellent Farming XP and provides magic logs when chopped.
-
-## Related Items
-
-- [Magic logs](/osrs/magic-logs/) - Woodcutting product
-- [Coconut](/osrs/coconut/) - Protection payment
-- [Yew seed](/osrs/yew-seed/) - Lower tier option
-
-<Adsense />
+<OSRSAdsenseCard />

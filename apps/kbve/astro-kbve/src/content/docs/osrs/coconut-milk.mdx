@@ -69,63 +69,37 @@ osrs:
       slug: vial
       relationship: component
       description: Empty vial needed
+  about: |-
+    Make coconut milk in two steps:
+
+    1. Use hammer on coconut to get half coconut
+    2. Use half coconut on empty vial
+
+    This produces:
+    - 1 Coconut milk (vial)
+    - 1 Coconut shell (supercompost material)
+  market_strategy:
+    title: Profit Chain
+    steps:
+      - order: 1
+        action: Coconut (crack) -> Half coconut
+      - order: 2
+        action: Half coconut + Vial -> Coconut milk + Shell
+      - order: 3
+        action: Coconut milk -> Antidote++
+    notes:
+      - Coconuts from palm tree farming
+      - Also from Tai Bwo Wannai cleanup
+      - Kingdom of Miscellania (hardwood workers)
+      - Coconut shell makes supercompost
+      - Added value from byproduct
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-Make coconut milk in two steps:
-
-1. Use hammer on coconut to get half coconut
-2. Use half coconut on empty vial
-
-This produces:
-- 1 Coconut milk (vial)
-- 1 Coconut shell (supercompost material)
-
-## Herblore Uses
-
-| Potion | Ingredients | Level | XP |
-|--------|-------------|-------|-----|
-| Antidote++(3) | Coconut milk + Irit + Magic roots | 79 | 155 |
-
-Coconut milk replaces the standard vial of water for antidote++ potions.
-
-## Market Strategy
-
-**Coconut Supply:**
-- Coconuts from palm tree farming
-- Also from Tai Bwo Wannai cleanup
-- Kingdom of Miscellania (hardwood workers)
-
-**Profit Chain:**
-1. Coconut (crack) -> Half coconut
-2. Half coconut + Vial -> Coconut milk + Shell
-3. Coconut milk -> Antidote++
-
-**Supercompost Bonus:**
-- Coconut shell makes supercompost
-- Added value from byproduct
-
-**Buy Limit:** 10,000 per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

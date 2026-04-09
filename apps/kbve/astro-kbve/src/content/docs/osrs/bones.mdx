@@ -58,60 +58,21 @@ osrs:
       slug: bonecrusher
       relationship: alternative
       description: Auto-bury bones
+  market_strategy:
+    notes:
+      - Cheapest Prayer XP available
+      - Extremely high supply from bots/players
+      - Low demand except from F2P players
+      - Very low value per bone
+      - High volume but low profit potential
+      - Better to collect Big bones instead
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Prayer Training
-
-Basic bones are the lowest tier bones for Prayer training:
-
-| Method | XP per bone |
-|--------|-------------|
-| Bury | 4.5 |
-| Gilded altar (2 burners) | 15.75 |
-| Chaos altar (Wilderness) | 15.75 (50% saved) |
-| Ectofuntus | 18 |
-
-## Obtaining
-
-Dropped by almost all monsters in the game:
-- Chickens (1)
-- Goblins (2)
-- Cows (2)
-- Men/Women (2)
-- Skeletons (various)
-
-## Market Flip Strategy
-
-**F2P Training:**
-- Cheapest Prayer XP available
-- Extremely high supply from bots/players
-- Low demand except from F2P players
-
-**Buy Limit:** 3,000 per 4 hours
-
-**Tips:**
-- Very low value per bone
-- High volume but low profit potential
-- Better to collect Big bones instead
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -1,0 +1,144 @@
+---
+import type { OSRSFood } from '@/data/schema';
+
+interface Props {
+	food: OSRSFood;
+}
+
+const { food } = Astro.props;
+---
+
+<div class="osrs-food">
+	<div class="osrs-food__header">
+		<span class="osrs-food__icon">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+				<path
+					d="M18.06 22.99h1.66c.84 0 1.53-.65 1.63-1.48L23 5.05l-6 2V22h.94c.12 0 .12.99.12.99zM1 21.99h15.03c.54 0 .99-.44.99-.98V19.7c-.02-1.2-.28-2.36-.71-3.4-.47-1.15-1.13-2.17-1.95-2.97-1.09-1.06-2.44-1.77-3.9-2.03-.48-.09-.97-.13-1.46-.13-.48 0-.96.04-1.43.13-1.48.26-2.85.99-3.94 2.06-.8.78-1.45 1.77-1.92 2.87-.44 1.04-.7 2.18-.72 3.37V21c0 .54.45.99.99.99H1z">
+				</path>
+			</svg>
+		</span>
+		<h4 class="osrs-food__title">Food Info</h4>
+	</div>
+	<div class="osrs-food__content">
+		{
+			food.heals && (
+				<div class="osrs-food__stat osrs-food__stat--heal">
+					<span class="osrs-food__label">Heals</span>
+					<span class="osrs-food__value">{food.heals} HP</span>
+				</div>
+			)
+		}
+		{
+			food.heals_formula && (
+				<div class="osrs-food__stat">
+					<span class="osrs-food__label">Healing</span>
+					<span class="osrs-food__value osrs-food__value--formula">
+						{food.heals_formula}
+					</span>
+				</div>
+			)
+		}
+		{food.overheal && <span class="osrs-food__overheal">Can overheal</span>}
+		{
+			food.cooking_level && (
+				<div class="osrs-food__stat">
+					<span class="osrs-food__label">Cooking Level</span>
+					<span class="osrs-food__value">{food.cooking_level}</span>
+				</div>
+			)
+		}
+		{
+			food.cooking_xp && (
+				<div class="osrs-food__stat">
+					<span class="osrs-food__label">Cooking XP</span>
+					<span class="osrs-food__value">{food.cooking_xp}</span>
+				</div>
+			)
+		}
+		{
+			food.burn_level && (
+				<div class="osrs-food__stat">
+					<span class="osrs-food__label">Stop Burn</span>
+					<span class="osrs-food__value">
+						Level {food.burn_level}
+					</span>
+				</div>
+			)
+		}
+	</div>
+</div>
+
+<style>
+	.osrs-food {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-food__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-food__icon {
+		color: #f97316;
+	}
+
+	.osrs-food__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+		flex: 1;
+	}
+
+	.osrs-food__content {
+		padding: 0.625rem 0.75rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 1rem;
+	}
+
+	.osrs-food__stat {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+	}
+
+	.osrs-food__label {
+		font-size: 0.5625rem;
+		text-transform: uppercase;
+		letter-spacing: 0.025em;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-food__value {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+
+	.osrs-food__stat--heal .osrs-food__value {
+		color: #22c55e;
+	}
+
+	.osrs-food__value--formula {
+		font-family: monospace;
+		font-size: 0.6875rem;
+	}
+
+	.osrs-food__overheal {
+		font-size: 0.5625rem;
+		padding: 0.125rem 0.375rem;
+		border-radius: 0.25rem;
+		background: rgba(234, 179, 8, 0.2);
+		color: #eab308;
+		align-self: center;
+	}
+</style>

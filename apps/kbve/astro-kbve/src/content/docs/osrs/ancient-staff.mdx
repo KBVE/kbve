@@ -61,51 +61,26 @@ osrs:
       slug: ring-of-visibility
       relationship: alternative
       description: Also obtained during Desert Treasure
+  about: |-
+    Ancient Magicks Autocasting:
+    - Only standard staff that can autocast Ancient spells
+    - Essential for Ancient Magicks training
+
+    Combat Stats:
+    - +15 Magic attack bonus
+    - +15 Magic defence bonus
+    - Can be used for melee (50 strength bonus)
+
+    - Cheap alternative for Ancient Magicks autocasting
+    - Replaced by Staff of the dead / Nightmare staff for high-level content
+    - Free replacement from Eblis if lost
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Purchased from Eblis in the Bandit Camp Quarry after completing Desert Treasure.
-
-**Requirements:**
-- Desert Treasure quest completion
-- 80,000 coins
-
-## Usage
-
-**Ancient Magicks Autocasting:**
-- Only standard staff that can autocast Ancient spells
-- Essential for Ancient Magicks training
-
-**Combat Stats:**
-- +15 Magic attack bonus
-- +15 Magic defence bonus
-- Can be used for melee (50 strength bonus)
-
-## Notes
-
-- Cheap alternative for Ancient Magicks autocasting
-- Replaced by Staff of the dead / Nightmare staff for high-level content
-- Free replacement from Eblis if lost
-
-<Adsense />
+<OSRSAdsenseCard />

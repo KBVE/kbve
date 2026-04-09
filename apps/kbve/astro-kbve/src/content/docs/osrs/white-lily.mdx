@@ -33,60 +33,23 @@ osrs:
       slug: supercompost
       relationship: product
       description: Created by composting white lily
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Flower |
+    | Tradeable | Yes |
+    | Weight | 0.02 kg |
+
+    Allotment protection: Fully grown white lily protects adjacent allotment patches from disease.
+
+    Composting: Creates supercompost when added to compost bin.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Flower |
-| Tradeable | Yes |
-| Weight | 0.02 kg |
-
-## Obtaining
-
-| Source | Requirement |
-|--------|-------------|
-| Flower patch | 58 Farming |
-| Hallowed Sepulchre coffin | 66 Thieving (1/10) |
-| Hallowed sack | Random reward |
-
-## Effect
-
-**Allotment protection:** Fully grown white lily protects adjacent allotment patches from disease.
-
-**Composting:** Creates supercompost when added to compost bin.
-
-## Market Strategy
-
-**Buy Limit:** 600 per 4 hours
-
-**Price:** ~500 gp
-
-## Related Items
-
-- [White lily seed](/osrs/white-lily-seed/) - Planted form
-- [Hespori](/osrs/hespori/) - Related boss
-- [Supercompost](/osrs/supercompost/) - Created product
-
-<Adsense />
+<OSRSAdsenseCard />

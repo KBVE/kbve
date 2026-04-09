@@ -108,67 +108,42 @@ osrs:
       slug: soda-ash
       relationship: component
       description: Ingredient
+  about: |-
+    | Method | Requirements |
+    |--------|--------------|
+    | Furnace | Bucket of sand + Soda ash |
+    | Superglass Make | 77 Magic, Lunar spellbook |
+
+    | Product | Level | XP |
+    |---------|-------|-----|
+    | Beer glass | 1 | 17.5 |
+    | Candle lantern | 4 | 19 |
+    | Oil lamp | 12 | 25 |
+    | Vial | 33 | 35 |
+    | Fishbowl | 42 | 42.5 |
+    | Unpowered orb | 46 | 52.5 |
+    | Lantern lens | 49 | 55 |
+    | Light orb | 87 | 70 |
+  market_strategy:
+    notes:
+      - Base for all glass items
+      - Superglass Make efficient
+      - High volume trading
+      - Unpowered orb production
+      - Vial creation
+      - Crafting training
+      - Ironman supplies
+      - Superglass Make best method
+      - Giant seaweed + sandstone
+      - Extra glass from spell
+      - High Crafting XP
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creating
-
-| Method | Requirements |
-|--------|--------------|
-| Furnace | Bucket of sand + Soda ash |
-| Superglass Make | 77 Magic, Lunar spellbook |
-
-## Glassblowing
-
-| Product | Level | XP |
-|---------|-------|-----|
-| Beer glass | 1 | 17.5 |
-| Candle lantern | 4 | 19 |
-| Oil lamp | 12 | 25 |
-| Vial | 33 | 35 |
-| Fishbowl | 42 | 42.5 |
-| Unpowered orb | 46 | 52.5 |
-| Lantern lens | 49 | 55 |
-| Light orb | 87 | 70 |
-
-## Market Flip Strategy
-
-**Crafting Essential:**
-- Base for all glass items
-- Superglass Make efficient
-- High volume trading
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Demand Drivers:**
-- Unpowered orb production
-- Vial creation
-- Crafting training
-- Ironman supplies
-
-**Tips:**
-- Superglass Make best method
-- Giant seaweed + sandstone
-- Extra glass from spell
-- High Crafting XP
-
-<Adsense />
+<OSRSAdsenseCard />

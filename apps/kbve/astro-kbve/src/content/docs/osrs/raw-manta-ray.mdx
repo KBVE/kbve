@@ -50,55 +50,23 @@ osrs:
       slug: raw-anglerfish
       relationship: alternative
       description: Overheal alternative
+  market_strategy:
+    profit_formulas:
+      - Manta ray - Raw manta ray = Cooking profit
+    notes:
+      - Raw mantas are a valuable Trawler reward
+      - Sell raw for profit or cook for XP
+      - "Calculate:"
+      - Manta ray (22 HP) vs Shark (20 HP)
+      - Higher healing but harder to obtain
+      - Often more expensive than sharks
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Raw manta ray is obtained exclusively from the **Fishing Trawler** minigame:
-- Requires 81 Fishing
-- 46 Fishing XP per catch
-- Part of the trawler loot pool
-
-## Cooking
-
-| Level | XP | Stop Burning |
-|-------|-----|--------------|
-| 91 | 216.2 | 99 (never with gauntlets) |
-
-Manta rays heal 22 HP when cooked, making them one of the highest healing foods.
-
-## Market Strategy
-
-**Trawler Profit:**
-- Raw mantas are a valuable Trawler reward
-- Sell raw for profit or cook for XP
-- Calculate: `Manta ray - Raw manta ray = Cooking profit`
-
-**Food Comparison:**
-- Manta ray (22 HP) vs Shark (20 HP)
-- Higher healing but harder to obtain
-- Often more expensive than sharks
-
-**Buy Limit:** 6,000 per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -73,68 +73,32 @@ osrs:
       slug: crystal-helm
       relationship: product
       description: Created armour piece
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Crafting Material |
+    | Tradeable | Yes |
+    | Stackable | No |
+
+    | Item | Seeds | Shards | Smithing/Crafting |
+    |------|-------|--------|-------------------|
+    | Crystal helm | 1 | 50 | 70 |
+    | Crystal legs | 2 | 100 | 72 |
+    | Crystal body | 3 | 150 | 74 |
+
+    Alternative: Exchange for 250 crystal shards.
+  market_strategy:
+    notes:
+      - Farm Corrupted Gauntlet for best rates
+      - Use for crystal armour or trade for shards
+      - Needed for full crystal set
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Type | Crafting Material |
-| Tradeable | Yes |
-| Stackable | No |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| The Gauntlet | 1/120 |
-| Corrupted Gauntlet | 1/50 |
-
-## Uses
-
-| Item | Seeds | Shards | Smithing/Crafting |
-|------|-------|--------|-------------------|
-| Crystal helm | 1 | 50 | 70 |
-| Crystal legs | 2 | 100 | 72 |
-| Crystal body | 3 | 150 | 74 |
-
-**Alternative:** Exchange for 250 crystal shards.
-
-## Market Strategy
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Price:** ~5K gp
-
-**Tips:**
-- Farm Corrupted Gauntlet for best rates
-- Use for crystal armour or trade for shards
-- Needed for full crystal set
-
-## Related Items
-
-- [Crystal body](/osrs/crystal-body/) - Created item
-- [Crystal shards](/osrs/crystal-shards/) - Exchange option
-- [The Gauntlet](/osrs/the-gauntlet/) - Drop source
-
-<Adsense />
+<OSRSAdsenseCard />

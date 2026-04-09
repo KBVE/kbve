@@ -1,6 +1,6 @@
 ---
 title: Team cape zero | OSRS Price Data
-description: "Team cape zero: Ooohhh look at the dirty colours.... High alch: 30 GP, GE limit: 4."
+description: "Team cape zero is a F2P cape slot item. High alch: 30 GP, GE limit: 4."
 osrs:
   id: 20211
   name: Team cape zero
@@ -12,26 +12,31 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 4
+  equipment:
+    slot: cape
+    requirements: {}
+  related_items:
+    - item_id: 20214
+      item_name: Team cape x
+      slug: team-cape-x
+      relationship: variant
+      description: Team cape x variant
+    - item_id: 20217
+      item_name: Team cape i
+      slug: team-cape-i
+      relationship: variant
+      description: Team cape i variant
+  about: |-
+    > *"Ooohhh look at the dirty colours..."*
+
+    Team cape zero is a cosmetic cape from easy treasure trails. Unlike regular team capes bought from shops, the treasure trail variants are rarer and cannot be purchased from NPCs. No stats or requirements.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

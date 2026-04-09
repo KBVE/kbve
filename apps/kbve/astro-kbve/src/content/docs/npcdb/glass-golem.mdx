@@ -55,6 +55,49 @@ lore: |
     The Glass Golem was created as a final guardian, its body forged from the crystallized tears of a dying god.
 credits: |
     Ported from KBVE DiscordSH dungeon crawler.
+loot:
+    entries:
+        - item_ref: 'ward'
+          drop_rate: 0.3
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'potion'
+          drop_rate: 0.45
+          min_quantity: 1
+          max_quantity: 2
+        - item_ref: 'bomb'
+          drop_rate: 0.3
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'teleport-rune'
+          drop_rate: 0.15
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'campfire-kit'
+          drop_rate: 0.15
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'phoenix-feather'
+          drop_rate: 0.15
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'elixir'
+          drop_rate: 0.15
+          min_quantity: 1
+          max_quantity: 1
+        - item_ref: 'smoke-bomb'
+          drop_rate: 0.15
+          min_quantity: 1
+          max_quantity: 1
+    max_drops: 2
+    gold_min: 15
+    gold_max: 30
+    xp_reward: 100
+abilities:
+    - id: 'charge'
+      name: 'Glass Rampage'
+faction:
+    faction_id: 'crystal-order'
 ---
 
 import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';

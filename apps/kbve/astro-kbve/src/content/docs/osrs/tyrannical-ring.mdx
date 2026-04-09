@@ -57,81 +57,38 @@ osrs:
       slug: dragon-warhammer
       relationship: alternative
       description: Pairs well
+  about: |-
+    | Stat | Regular | Imbued |
+    |------|---------|--------|
+    | Crush attack | +4 | +8 |
+    | Crush defence | +4 | +8 |
+
+    Requirements: None
+
+    | Method | Cost |
+    |--------|------|
+    | NMZ | 650K points (325K with hard CA) |
+    | Soul Wars | 260 zeal |
+    | Scroll | 200 Emir's Arena points |
+
+    BiS crush ring for:
+    - Dragon warhammer specs
+    - Crush-focused combat
+    - Wilderness PvM
+
+    Accuracy boost for DWH specs.
+  market_strategy:
+    notes:
+      - Wilderness boss drop
+      - Good for DWH accuracy
+      - Niche use case
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Ring |
-| Type | Crush Ring |
-| Tradeable | Yes |
-| Weight | 1 kg |
-
-## Obtaining
-
-Drop from Wilderness bosses.
-
-| Boss | Drop Rate |
-|------|-----------|
-| Callisto | 1/512 |
-| Artio | 1/716 |
-
-## Stats
-
-| Stat | Regular | Imbued |
-|------|---------|--------|
-| Crush attack | +4 | +8 |
-| Crush defence | +4 | +8 |
-
-**Requirements:** None
-
-## Imbue
-
-| Method | Cost |
-|--------|------|
-| NMZ | 650K points (325K with hard CA) |
-| Soul Wars | 260 zeal |
-| Scroll | 200 Emir's Arena points |
-
-## Usage
-
-BiS crush ring for:
-- Dragon warhammer specs
-- Crush-focused combat
-- Wilderness PvM
-
-**Accuracy boost for DWH specs.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~187K gp
-
-**Tips:**
-- Wilderness boss drop
-- Good for DWH accuracy
-- Niche use case
-
-<Adsense />
+<OSRSAdsenseCard />

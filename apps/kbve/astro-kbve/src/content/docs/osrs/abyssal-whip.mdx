@@ -87,55 +87,25 @@ osrs:
       slug: abyssal-dagger
       relationship: alternative
       description: Alternative Abyssal weapon for Strength training
+  about: |-
+    Best-in-slot for:
+    - 70 Attack training
+    - Slayer tasks
+    - Budget melee setup
+
+    Note: Cannot train Strength (controlled only gives shared XP)
+  market_strategy:
+    notes:
+      - High volume item
+      - Steady demand from Slayer
+      - Tentacle upgrade consumes whip
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Dropped by Abyssal demons (1/512 drop rate).
-
-**Requirements:** 85 Slayer to kill Abyssal demons
-
-**Locations:**
-- Slayer Tower
-- Catacombs of Kourend
-- Abyssal Area (via fairy ring)
-
-## Usage
-
-Best-in-slot for:
-- 70 Attack training
-- Slayer tasks
-- Budget melee setup
-
-**Note:** Cannot train Strength (controlled only gives shared XP)
-
-## Market Strategy
-
-**Buy Limit:** 70 per 4 hours
-
-**Tips:**
-- High volume item
-- Steady demand from Slayer
-- Tentacle upgrade consumes whip
-
-<Adsense />
+<OSRSAdsenseCard />

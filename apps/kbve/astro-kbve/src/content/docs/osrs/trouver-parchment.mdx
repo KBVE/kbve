@@ -1,6 +1,6 @@
 ---
 title: Trouver parchment | OSRS Price Data
-description: "Trouver parchment: Take it to Perdu to help you avoid losing certain items.. High alch: 120 GP."
+description: "Trouver parchment: Take it to Perdu to help you avoid losing certain items.. High alch: 120 GP, GE limit: 500."
 osrs:
   id: 24187
   name: Trouver parchment
@@ -11,7 +11,7 @@ osrs:
   value: 200
   lowalch: 80
   highalch: 120
-  limit: null
+  limit: 500
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

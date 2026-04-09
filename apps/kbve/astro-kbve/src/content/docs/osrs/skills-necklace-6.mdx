@@ -51,70 +51,39 @@ osrs:
       slug: skills-necklace-4
       relationship: variant
       description: 4 charge version
+  about: |-
+    No combat bonuses - utility item for teleportation to skilling locations.
+
+    - Fishing Guild
+    - Mining Guild
+    - Crafting Guild
+    - Cooking Guild
+    - Woodcutting Guild
+    - Farming Guild
+
+    | State | Charges |
+    |-------|---------|
+    | Current | 6 |
+    | Maximum | 6 |
+  market_strategy:
+    notes:
+      - Maximum charges from Fountain of Rune
+      - More efficient than 4-charge version
+      - Popular for efficient skillers
+      - Skilling efficiency
+      - Mining Guild access
+      - Farming Guild access
+      - Maximum charge seekers
+      - Recharged at Fountain of Rune only for 6 charges
+      - More value per teleport than skills necklace(4)
+      - Essential for efficient skilling methods
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Stats
-
-No combat bonuses - utility item for teleportation to skilling locations.
-
-## Teleport Locations
-
-- Fishing Guild
-- Mining Guild
-- Crafting Guild
-- Cooking Guild
-- Woodcutting Guild
-- Farming Guild
-
-## Charges
-
-| State | Charges |
-|-------|---------|
-| Current | 6 |
-| Maximum | 6 |
-
-## Obtaining
-
-Charge a Skills necklace at the Fountain of Rune in the Wilderness.
-
-## Market Flip Strategy
-
-**Fully Charged Skills Necklace:**
-- Maximum charges from Fountain of Rune
-- More efficient than 4-charge version
-- Popular for efficient skillers
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Demand Drivers:**
-- Skilling efficiency
-- Mining Guild access
-- Farming Guild access
-- Maximum charge seekers
-
-**Tips:**
-- Recharged at Fountain of Rune only for 6 charges
-- More value per teleport than skills necklace(4)
-- Essential for efficient skilling methods
-
-<Adsense />
+<OSRSAdsenseCard />

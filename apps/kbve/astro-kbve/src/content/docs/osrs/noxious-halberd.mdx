@@ -70,71 +70,39 @@ osrs:
       slug: rune-2h-sword
       relationship: alternative
       description: Budget 2-tile weapon alternative
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Attack speed | 5 ticks (3.0s) |
+    | Attack range | 2 tiles |
+    | Combat style | Slash/Stab |
+
+    Passive Effect: 33% chance to envenom targets (if not venom immune)
+
+    Note: Attacks on a faster 5-tick cycle compared to the typical 7-tick halberd cycle.
+
+    Virulence (50% energy):
+    - Only usable while poisoned or venomed
+    - Cures the affliction
+    - Increases minimum hit of next accurate attack by poison/venom damage
+
+    Best-in-slot halberd for:
+    - Multi-target combat (2-tile range)
+    - Nightmare Zone
+    - Slayer tasks
+    - Boss encounters where venom is useful
+  market_strategy:
+    notes:
+      - Components are untradeable, only completed halberd is tradeable
+      - High demand for endgame melee
+      - Venom passive adds significant DPS value
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-The Noxious halberd is crafted by combining three untradeable components from Araxxor:
-- Noxious point
-- Noxious blade
-- Noxious pommel
-
-**Requirements:** 72 Smithing, 72 Crafting (both boostable)
-
-## Combat Mechanics
-
-| Property | Value |
-|----------|-------|
-| Attack speed | 5 ticks (3.0s) |
-| Attack range | 2 tiles |
-| Combat style | Slash/Stab |
-
-**Passive Effect:** 33% chance to envenom targets (if not venom immune)
-
-**Note:** Attacks on a faster 5-tick cycle compared to the typical 7-tick halberd cycle.
-
-## Special Attack
-
-**Virulence** (50% energy):
-- Only usable while poisoned or venomed
-- Cures the affliction
-- Increases minimum hit of next accurate attack by poison/venom damage
-
-## Usage
-
-Best-in-slot halberd for:
-- Multi-target combat (2-tile range)
-- Nightmare Zone
-- Slayer tasks
-- Boss encounters where venom is useful
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Components are untradeable, only completed halberd is tradeable
-- High demand for endgame melee
-- Venom passive adds significant DPS value
-
-<Adsense />
+<OSRSAdsenseCard />

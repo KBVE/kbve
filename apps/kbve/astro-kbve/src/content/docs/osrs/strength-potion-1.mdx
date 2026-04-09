@@ -12,26 +12,28 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 2000
+  related_items:
+    - item_id: 115
+      item_name: Strength potion(3)
+      slug: strength-potion-3
+      relationship: variant
+      description: 3-dose version
+    - item_id: 117
+      item_name: Strength potion(2)
+      slug: strength-potion-2
+      relationship: variant
+      description: 2-dose version
+  about: |-
+    > _"1 dose of Strength potion."_
+
+    A 1-dose strength potion. Boosts Strength by 3 + 10% of current level. Available to F2P and members.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

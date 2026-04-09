@@ -65,63 +65,27 @@ osrs:
       slug: pestle-and-mortar
       relationship: component
       description: Tool for grinding
+  market_strategy:
+    notes:
+      - "Base yield: 3-6 shards per scale"
+      - "Hard Wilderness Diary: 4-9 shards per scale"
+      - Higher Herblore = higher average yield
+      - Lava dragons are guaranteed drops
+      - Deep wilderness (41-44 level)
+      - Bring minimal risk gear
+      - Bank scales or grind on-site
+      - Compare whole scale price vs (avg shards × shard price)
+      - Usually profitable to grind yourself
+      - Hard diary makes grinding very profitable
+      - Extended antifire (4 shards each)
+      - Extended super antifire (4 shards each)
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Lava scales drop from:
-
-| Monster | Location | Drop Rate |
-|---------|----------|-----------|
-| Lava dragon | Lava Dragon Isle (Wilderness) | Always |
-| Brutal black dragon | Catacombs of Kourend | 3/128 |
-
-**Warning:** Lava dragons are in deep Wilderness (PKer risk).
-
-## Processing
-
-Grind lava scales with pestle and mortar:
-- Base yield: 3-6 shards per scale
-- Hard Wilderness Diary: 4-9 shards per scale
-- Higher Herblore = higher average yield
-
-## Market Strategy
-
-**Wilderness Farming:**
-- Lava dragons are guaranteed drops
-- Deep wilderness (41-44 level)
-- Bring minimal risk gear
-- Bank scales or grind on-site
-
-**Scale vs Shard Economics:**
-- Compare whole scale price vs (avg shards × shard price)
-- Usually profitable to grind yourself
-- Hard diary makes grinding very profitable
-
-**End Products:**
-- Extended antifire (4 shards each)
-- Extended super antifire (4 shards each)
-
-**Buy Limit:** 11,000 per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

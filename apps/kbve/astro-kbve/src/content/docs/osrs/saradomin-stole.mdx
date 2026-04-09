@@ -1,6 +1,6 @@
 ---
 title: Saradomin stole | OSRS Price Data
-description: "Saradomin stole: A Saradomin stole.. High alch: 1,500 GP, GE limit: 8."
+description: "Saradomin stole is a members neck slot item. High alch: 1,500 GP, GE limit: 8."
 osrs:
   id: 10470
   name: Saradomin stole
@@ -12,26 +12,39 @@ osrs:
   lowalch: 1000
   highalch: 1500
   limit: 8
+  equipment:
+    slot: neck
+    requirements:
+      prayer: 60
+    other_bonus:
+      prayer: 10
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        tier: Hard
+        description: Reward from hard clue scrolls
+  related_items:
+    - item_id: 10474
+      item_name: Zamorak stole
+      slug: zamorak-stole
+      relationship: variant
+      description: Zamorak equivalent stole
+    - item_id: 10460
+      item_name: Zamorak robe top
+      slug: zamorak-robe-top
+      relationship: alternative
+      description: Zamorak vestment body piece
+  about: |-
+    > *"A Saradomin stole."*
+
+    The Saradomin stole is a neck slot item from the Saradomin vestment set. It provides a +10 Prayer bonus and requires 60 Prayer to equip. As a Saradominist item, it provides protection in the God Wars Dungeon Saradomin encampment. One of the highest prayer bonus items available in the neck slot.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

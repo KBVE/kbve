@@ -40,67 +40,14 @@ osrs:
       slug: dragon-hunter-lance
       relationship: upgrade
       description: Upgraded dragon-slaying weapon
+  about: "Shove: Stuns target for 3 seconds. Costs 25% spec."
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Two Hand |
-| Type | Spear |
-| Tradeable | Yes |
-| Weight | 3 kg |
-| Requirements | 70 Attack |
-
-## Combat Stats
-
-| Stat | Bonus |
-|------|-------|
-| Stab Attack | +85 |
-| Slash Attack | +65 |
-| Crush Attack | +65 |
-| Strength | +75 |
-| Prayer | +2 |
-
-## Obtaining
-
-**Drops:** K'ril Tsutsaroth (1/127).
-
-## Special Attack
-
-**Shove:** Stuns target for 3 seconds. Costs 25% spec.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~1,308,315 gp
-
-GWD unique. Converts to hasta at Otto.
-
-## Related Items
-
-- [Zamorakian hasta](/osrs/zamorakian-hasta/) - One-hand version
-- [Dragon hunter lance](/osrs/dragon-hunter-lance/) - Upgrade
-
-<Adsense />
+<OSRSAdsenseCard />

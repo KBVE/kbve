@@ -48,91 +48,51 @@ osrs:
       slug: ranger-boots
       relationship: set-piece
       description: Matching boots (medium clue)
+  about: |-
+    | Offense | Value |
+    |---------|-------|
+    | Ranged attack | +15 |
+
+    | Defence | Value |
+    |---------|-------|
+    | Stab | +36 |
+    | Slash | +30 |
+    | Crush | +39 |
+    | Magic | -10 |
+    | Ranged | +36 |
+
+    Requirements: 40 Ranged, 40 Defence
+
+    Good ranged body armour:
+    - Hard clue exclusive
+    - Same ranged bonus as black d'hide body
+    - Better defences than d'hide
+    - Fashionscape with ranger set
+
+    | Item | Ranged attack | Defence |
+    |------|---------------|---------|
+    | Rangers' tunic | +15 | Higher |
+    | Black d'hide body | +15 | Lower |
+    | Blessed d'hide body | +15 | Similar |
+
+    Complete the ranger set with:
+    - Robin hood hat (hard clue)
+    - Ranger gloves (master clue)
+    - Ranger boots (medium clue)
+    - Rangers' tights (elite clue)
+  market_strategy:
+    notes:
+      - Hard clue exclusive
+      - Part of ranger outfit
+      - Good stats for fashionscape
+      - Collection log item
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Body |
-| Type | Ranged Armour |
-| Tradeable | Yes |
-| Weight | 3.6 kg |
-
-## Obtaining
-
-Reward from hard Treasure Trails.
-
-**Drop Rate:** Rare from reward casket (hard)
-
-## Stats
-
-| Offense | Value |
-|---------|-------|
-| Ranged attack | +15 |
-
-| Defence | Value |
-|---------|-------|
-| Stab | +36 |
-| Slash | +30 |
-| Crush | +39 |
-| Magic | -10 |
-| Ranged | +36 |
-
-**Requirements:** 40 Ranged, 40 Defence
-
-## Usage
-
-Good ranged body armour:
-- Hard clue exclusive
-- Same ranged bonus as black d'hide body
-- Better defences than d'hide
-- Fashionscape with ranger set
-
-## Comparison
-
-| Item | Ranged attack | Defence |
-|------|---------------|---------|
-| Rangers' tunic | +15 | Higher |
-| Black d'hide body | +15 | Lower |
-| Blessed d'hide body | +15 | Similar |
-
-## Ranger Set
-
-Complete the ranger set with:
-- [Robin hood hat](/osrs/robin-hood-hat/) (hard clue)
-- [Ranger gloves](/osrs/ranger-gloves/) (master clue)
-- [Ranger boots](/osrs/ranger-boots/) (medium clue)
-- [Rangers' tights](/osrs/rangers-tights/) (elite clue)
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Tips:**
-- Hard clue exclusive
-- Part of ranger outfit
-- Good stats for fashionscape
-- Collection log item
-
-<Adsense />
+<OSRSAdsenseCard />

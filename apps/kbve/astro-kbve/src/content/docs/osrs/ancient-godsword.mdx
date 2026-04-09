@@ -66,79 +66,36 @@ osrs:
       slug: godsword-blade
       relationship: component
       description: Base component
+  about: |-
+    Combine Godsword blade with Ancient hilt.
+
+    | Offence | Bonus |
+    |---------|-------|
+    | Stab | +0 |
+    | Slash | +132 |
+    | Crush | +80 |
+    | Strength | +132 |
+
+    Blood Sacrifice (50% spec)
+    - Doubled accuracy
+    - +10% max hit
+    - Marks target for 25 damage after 4.8s
+    - Heals 15% of target's max HP (cap 25 PvM, 15 PvP)
+    - Target can avoid by moving 5+ tiles
+
+    Used for:
+    - Spec weapon for healing
+    - Group PvM
+    - Alternative to SGS
+
+    Healing spec weapon.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | 2h Weapon |
-| Type | Godsword |
-| Tradeable | Yes |
-| Weight | 10 kg |
-| Requirements | 75 Attack |
-
-## Creation
-
-Combine [Godsword blade](/osrs/godsword-blade/) with [Ancient hilt](/osrs/ancient-hilt/).
-
-## Stats
-
-| Offence | Bonus |
-|---------|-------|
-| Stab | +0 |
-| Slash | +132 |
-| Crush | +80 |
-| Strength | +132 |
-
-## Special Attack
-
-**Blood Sacrifice** (50% spec)
-- Doubled accuracy
-- +10% max hit
-- Marks target for 25 damage after 4.8s
-- Heals 15% of target's max HP (cap 25 PvM, 15 PvP)
-- Target can avoid by moving 5+ tiles
-
-## Usage
-
-Used for:
-- Spec weapon for healing
-- Group PvM
-- Alternative to SGS
-
-**Healing spec weapon.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~34M gp
-
-## Related Items
-
-- [Ancient hilt](/osrs/ancient-hilt/) - From Nex
-- [Saradomin godsword](/osrs/saradomin-godsword/) - Alternative healer
-- [Godsword blade](/osrs/godsword-blade/) - Component
-
-<Adsense />
+<OSRSAdsenseCard />

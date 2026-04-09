@@ -42,63 +42,25 @@ osrs:
     - slug: ruby-bolts-e
       name: Ruby bolts (e)
       relation: popular_enchanted
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | Ammo |
+    | Type | Crossbow Bolts |
+    | Tradeable | Yes |
+    | Weight | 0 kg |
+    | Requirements | 61 Ranged |
+
+    Used with rune crossbow or higher.
+
+    Can be tipped with gems and enchanted for special effects.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Ammo |
-| Type | Crossbow Bolts |
-| Tradeable | Yes |
-| Weight | 0 kg |
-| Requirements | 61 Ranged |
-
-## Obtaining
-
-**Fletching:** Attach feathers to runite bolts (unf) at 69 Fletching.
-
-**Drops:** Mithril dragons, King Black Dragon, demonic gorillas.
-
-**Alternative:** Purchase from Grand Exchange.
-
-## Usage
-
-Used with rune crossbow or higher.
-
-Can be tipped with gems and enchanted for special effects.
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~233 gp
-
-Popular high-level ammunition. Steady market demand.
-
-## Related Items
-
-- [Rune crossbow](/osrs/rune-crossbow/) - Common weapon pairing
-- [Ruby bolts (e)](/osrs/ruby-bolts-e/) - Popular enchanted variant
-
-<Adsense />
+<OSRSAdsenseCard />

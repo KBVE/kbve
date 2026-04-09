@@ -1,6 +1,6 @@
 ---
 title: Rune platebody (t) | OSRS Price Data
-description: "Rune platebody (t): Rune platebody with trim.. High alch: 39,000 GP, GE limit: 8."
+description: "Rune platebody (t) is a F2P body slot item requiring 40 Defence. High alch: 39,000 GP, GE limit: 8."
 osrs:
   id: 2623
   name: Rune platebody (t)
@@ -12,26 +12,89 @@ osrs:
   lowalch: 26000
   highalch: 39000
   limit: 8
+  equipment:
+    slot: body
+    stats:
+      attack_magic: -30
+      attack_ranged: -15
+      defence_stab: 82
+      defence_slash: 80
+      defence_crush: 72
+      defence_magic: -6
+      defence_ranged: 80
+    requirements:
+      defence: 40
+      quest: Dragon Slayer I
+  obtaining:
+    methods:
+      - source: Hard Treasure Trails
+        type: Reward casket (hard)
+        rarity: 1/1,625
+  related_items:
+    - item_id: 1127
+      item_name: Rune platebody
+      slug: rune-platebody
+      relationship: component
+      description: Standard version with identical stats
+    - item_id: 2615
+      item_name: Rune platebody (g)
+      slug: rune-platebody-g
+      relationship: variant
+      description: Gold-trimmed version
+    - item_id: 2625
+      item_name: Rune platelegs (t)
+      slug: rune-platelegs-t
+      relationship: set-piece
+      description: Matching trimmed platelegs
+    - item_id: 2627
+      item_name: Rune plateskirt (t)
+      slug: rune-plateskirt-t
+      relationship: set-piece
+      description: Matching trimmed plateskirt
+    - item_id: 2631
+      item_name: Rune full helm (t)
+      slug: rune-full-helm-t
+      relationship: set-piece
+      description: Matching trimmed full helm
+    - item_id: 2629
+      item_name: Rune kiteshield (t)
+      slug: rune-kiteshield-t
+      relationship: set-piece
+      description: Matching trimmed kiteshield
+  about: |-
+    > *"Rune platebody with trim."*
+
+    | Bonus | Value |
+    |-------|-------|
+    | Stab Attack | +0 |
+    | Slash Attack | +0 |
+    | Crush Attack | +0 |
+    | Magic Attack | -30 |
+    | Ranged Attack | -15 |
+    | Stab Defence | +82 |
+    | Slash Defence | +80 |
+    | Crush Defence | +72 |
+    | Magic Defence | -6 |
+    | Ranged Defence | +80 |
+    | Melee Strength | +0 |
+    | Ranged Strength | +0 |
+    | Magic Damage | 0% |
+    | Prayer | +0 |
+
+    Requirements: 40 Defence, Dragon Slayer I quest
+  market_strategy:
+    notes:
+      - F2P tradeable, making it popular in free-to-play fashion
+      - Low buy limit due to treasure trail rarity
+      - Price driven by cosmetic demand, not utility
+      - Identical stats to regular rune platebody
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

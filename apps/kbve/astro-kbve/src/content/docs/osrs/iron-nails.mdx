@@ -55,67 +55,35 @@ osrs:
       slug: plank
       relationship: component
       description: Used with planks
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Bend rate | High |
+    | Construction level | 1+ |
+    | Used with | Planks |
+
+    Note: Iron nails still have a high bend rate. Consider steel nails instead.
+
+    | Nails | Bend Rate |
+    |-------|-----------|
+    | Bronze | Highest |
+    | Iron | High |
+    | Steel | Medium |
+    | Mithril | Low |
+    | Adamantite | Very Low |
+    | Rune | Never bends |
+  market_strategy:
+    notes:
+      - Slightly better than bronze nails
+      - Still bends frequently
+      - Steel nails recommended for training
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-**Smithing:**
-- Requires 19 Smithing
-- 1 [Iron bar](/osrs/iron-bar/) = 15 nails
-- Grants 25 XP
-
-**Shops:**
-- Sawmill Operator: 2 GP each
-- Construction supplies shops
-
-## Construction Use
-
-| Property | Value |
-|----------|-------|
-| Bend rate | High |
-| Construction level | 1+ |
-| Used with | [Planks](/osrs/plank/) |
-
-**Note:** Iron nails still have a high bend rate. Consider [steel nails](/osrs/steel-nails/) instead.
-
-## Market Strategy
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Tips:**
-- Slightly better than bronze nails
-- Still bends frequently
-- [Steel nails](/osrs/steel-nails/) recommended for training
-
-## Nail Tier Comparison
-
-| Nails | Bend Rate |
-|-------|-----------|
-| [Bronze](/osrs/bronze-nails/) | Highest |
-| Iron | High |
-| [Steel](/osrs/steel-nails/) | Medium |
-| [Mithril](/osrs/mithril-nails/) | Low |
-| [Adamantite](/osrs/adamantite-nails/) | Very Low |
-| [Rune](/osrs/rune-nails/) | Never bends |
-
-<Adsense />
+<OSRSAdsenseCard />

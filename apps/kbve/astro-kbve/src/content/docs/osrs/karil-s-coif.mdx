@@ -63,76 +63,32 @@ osrs:
       slug: armadyl-helmet
       relationship: upgrade
       description: Upgrade path
+  about: |-
+    | Bonus | Value |
+    |-------|-------|
+    | Ranged attack | +7 |
+    | Stab defence | +6 |
+    | Slash defence | +9 |
+    | Crush defence | +12 |
+    | Magic defence | +6 |
+    | Ranged defence | +10 |
+
+    Tainted Shot:
+    When wearing full Karil's (coif, leathertop, leatherskirt, crossbow):
+    - 25% chance to lower opponent's Agility by 20%
+
+    With Amulet of the Damned:
+    - 25% chance to hit twice (second hit at 50% damage)
+
+    - 15 hours of combat use
+    - Repair at Bob in Lumbridge or POH armor stand
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Obtained from the Barrows minigame (1/102.17 for any specific Barrows item).
-
-**Location:** Barrows mounds, east of Mort'ton in Morytania
-
-## Equipment Info
-
-| Stat | Value |
-|------|-------|
-| Slot | Head |
-| Weight | 0.9 kg |
-| Requirements | 70 Defence, 70 Ranged |
-
-## Stats
-
-| Bonus | Value |
-|-------|-------|
-| Ranged attack | +7 |
-| Stab defence | +6 |
-| Slash defence | +9 |
-| Crush defence | +12 |
-| Magic defence | +6 |
-| Ranged defence | +10 |
-
-## Set Effect
-
-**Tainted Shot:**
-When wearing full Karil's (coif, leathertop, leatherskirt, crossbow):
-- 25% chance to lower opponent's Agility by 20%
-
-**With Amulet of the Damned:**
-- 25% chance to hit twice (second hit at 50% damage)
-
-## Degradation
-
-- 15 hours of combat use
-- Repair at Bob in Lumbridge or POH armor stand
-
-## Market Strategy
-
-**Buy Limit:** 10 per 4 hours
-
-## Related Items
-
-- [Karil's leathertop](/osrs/karils-leathertop/) - Body slot
-- [Karil's leatherskirt](/osrs/karils-leatherskirt/) - Legs slot
-- [Karil's crossbow](/osrs/karils-crossbow/) - Weapon
-- [Armadyl helmet](/osrs/armadyl-helmet/) - Upgrade
-
-<Adsense />
+<OSRSAdsenseCard />

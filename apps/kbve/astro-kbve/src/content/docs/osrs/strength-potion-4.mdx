@@ -71,68 +71,45 @@ osrs:
       slug: attack-potion-4
       relationship: alternative
       description: Pairs for melee
+  about: |-
+    Members (Herblore):
+    Mix Tarromin potion (unf) + Limpwurt root.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Herblore Level | 12 |
+    | XP gained | 50 |
+
+    F2P (Apothecary):
+    Bring Limpwurt root + Red spiders' eggs + 5 gp to Apothecary in Varrock.
+
+    Temporarily boosts Strength by 3 + 10% of level:
+
+    | Strength Level | Boost |
+    |----------------|-------|
+    | 1-9 | +3 |
+    | 10-19 | +4 |
+    | 50-59 | +8 |
+    | 90-99 | +12 |
+
+    Boost decays 1 point per minute. Preserve prayer extends to 90 seconds.
+
+    Budget Strength boost for:
+    - F2P combat (via Apothecary)
+    - Early-game members
+    - Ironman accounts
+  market_strategy:
+    notes:
+      - Low level requirement, accessible early
+      - Apothecary method doesn't require Herblore
+      - Popular for F2P PKing
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creation
-
-**Members (Herblore):**
-Mix Tarromin potion (unf) + Limpwurt root.
-
-| Requirement | Value |
-|-------------|-------|
-| Herblore Level | 12 |
-| XP gained | 50 |
-
-**F2P (Apothecary):**
-Bring Limpwurt root + Red spiders' eggs + 5 gp to Apothecary in Varrock.
-
-## Effect
-
-Temporarily boosts Strength by 3 + 10% of level:
-
-| Strength Level | Boost |
-|----------------|-------|
-| 1-9 | +3 |
-| 10-19 | +4 |
-| 50-59 | +8 |
-| 90-99 | +12 |
-
-Boost decays 1 point per minute. Preserve prayer extends to 90 seconds.
-
-## Usage
-
-Budget Strength boost for:
-- F2P combat (via Apothecary)
-- Early-game members
-- Ironman accounts
-
-## Market Strategy
-
-**Buy Limit:** 2,000 per 4 hours
-
-**Tips:**
-- Low level requirement, accessible early
-- Apothecary method doesn't require Herblore
-- Popular for F2P PKing
-
-<Adsense />
+<OSRSAdsenseCard />

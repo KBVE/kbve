@@ -57,74 +57,27 @@ osrs:
       slug: dust-battlestaff
       relationship: variant
       description: Earth variant
+  about: |-
+    | Offence | Bonus |
+    |---------|-------|
+    | Magic | +12 |
+    | Crush | +28 |
+    | Strength | +35 |
+
+    | Defence | Bonus |
+    |---------|-------|
+    | Magic | +12 |
+
+    Unlimited Runes: Provides infinite air and water runes.
+
+    Enables autocast for relevant spells.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Weapon |
-| Type | Staff |
-| Tradeable | Yes |
-| Weight | 2.267 kg |
-| Requirements | 30 Attack, 30 Magic |
-
-## Obtaining
-
-| Source | Drop Rate |
-|--------|-----------|
-| Waterfiend | 1/3,000 |
-| Superior slayer monsters | Varies |
-| Colossal Hydra | 1/46 |
-
-## Stats
-
-| Offence | Bonus |
-|---------|-------|
-| Magic | +12 |
-| Crush | +28 |
-| Strength | +35 |
-
-| Defence | Bonus |
-|---------|-------|
-| Magic | +12 |
-
-## Passive Effect
-
-**Unlimited Runes:** Provides infinite air and water runes.
-
-Enables autocast for relevant spells.
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~112K gp
-
-## Related Items
-
-- [Waterfiend](/osrs/waterfiend/) - Drop source
-- [Mystic mist staff](/osrs/mystic-mist-staff/) - Upgrade
-- [Dust battlestaff](/osrs/dust-battlestaff/) - Earth variant
-
-<Adsense />
+<OSRSAdsenseCard />

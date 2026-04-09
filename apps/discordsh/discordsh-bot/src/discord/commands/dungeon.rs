@@ -129,6 +129,7 @@ async fn start(
         pending_destination: None,
         enemies_had_first_strike: false,
         quest_journal,
+        active_dialogue: None,
     };
 
     let components = render::render_components(&session_state);

@@ -52,55 +52,32 @@ osrs:
       slug: pie-dish
       relationship: product
       description: Fired version
+  about: |-
+    | Method | Level | Materials |
+    |--------|-------|-----------|
+    | Potter's wheel | 7 | 1 Soft clay |
+    | XP | 15 | - |
+
+    | Method | Level | XP |
+    |--------|-------|-----|
+    | Pottery oven | 1 | 10 |
+    | Success rate | 100% | - |
+  market_strategy:
+    notes:
+      - Pie dish crafting
+      - Cooking skill
+      - F2P accessible
+      - Higher XP than pots
+      - No failure rate for firing
+      - Used in Cooking
+      - F2P accessible
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creating
-
-| Method | Level | Materials |
-|--------|-------|-----------|
-| Potter's wheel | 7 | 1 Soft clay |
-| XP | 15 | - |
-
-## Firing
-
-| Method | Level | XP |
-|--------|-------|-----|
-| Pottery oven | 1 | 10 |
-| Success rate | 100% | - |
-
-## Market Strategy
-
-**Buy Limit:** 13,000 per 4 hours
-
-**Demand Drivers:**
-- Pie dish crafting
-- Cooking skill
-- F2P accessible
-
-**Tips:**
-- Higher XP than pots
-- No failure rate for firing
-- Used in Cooking
-- F2P accessible
-
-<Adsense />
+<OSRSAdsenseCard />

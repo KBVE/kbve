@@ -1,6 +1,6 @@
 ---
 title: Rune kiteshield (g) | OSRS Price Data
-description: "Rune kiteshield (g): Rune kiteshield with gold trim.. High alch: 32,640 GP, GE limit: 8."
+description: "Rune kiteshield (g) is a F2P shield slot item requiring 40 Defence. High alch: 32,640 GP, GE limit: 8."
 osrs:
   id: 2621
   name: Rune kiteshield (g)
@@ -12,26 +12,27 @@ osrs:
   lowalch: 21760
   highalch: 32640
   limit: 8
+  equipment:
+    slot: shield
+    requirements:
+      defence: 40
+  related_items:
+    - item_id: 2629
+      item_name: Rune kiteshield (t)
+      slug: rune-kiteshield-t
+      relationship: variant
+      description: Trimmed variant
+  about: |-
+    > *"Rune kiteshield with gold trim."*
+
+    The rune kiteshield (g) is a gold-trimmed cosmetic variant of the standard rune kiteshield. Identical stats, requiring 40 Defence. Clue scroll exclusive — cannot be smithed.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

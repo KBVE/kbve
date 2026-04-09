@@ -80,55 +80,26 @@ osrs:
       slug: zulrahs-scales
       relationship: component
       description: Anti-venom secondary
+  market_strategy:
+    notes:
+      - Super combat potion demand
+      - Anti-venom+ for raids
+      - Very high value herb
+      - Super combat potions
+      - Anti-venom+ production
+      - Zamorak brews
+      - High-level PvM
+      - Most expensive standard herb
+      - Super combat always in demand
+      - Anti-venom+ for CoX/ToB
+      - Farm runs profitable
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Herblore
-
-| Potion | Level | Secondary |
-|--------|-------|-----------|
-| Zamorak brew | 78 | Jangerberries |
-| Super combat potion | 90 | Super attack/str/def |
-| Anti-venom+ | 94 | Zulrah's scales |
-
-## Market Flip Strategy
-
-**Highest Tier Herb:**
-- Super combat potion demand
-- Anti-venom+ for raids
-- Very high value herb
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Demand Drivers:**
-- Super combat potions
-- Anti-venom+ production
-- Zamorak brews
-- High-level PvM
-
-**Tips:**
-- Most expensive standard herb
-- Super combat always in demand
-- Anti-venom+ for CoX/ToB
-- Farm runs profitable
-
-<Adsense />
+<OSRSAdsenseCard />

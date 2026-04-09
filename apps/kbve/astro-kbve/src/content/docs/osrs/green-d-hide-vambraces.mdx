@@ -66,63 +66,38 @@ osrs:
       slug: blue-dhide-vambraces
       relationship: alternative
       description: Higher tier vambraces
+  about: |-
+    | Method | Level | Materials |
+    |--------|-------|-----------|
+    | Crafting | 57 | 1 Green dragon leather |
+    | XP | 62 | - |
+
+    | Stat | Value |
+    |------|-------|
+    | Ranged requirement | 40 |
+    | Defence requirement | None |
+    | Ranged attack | +8 |
+    | Ranged defence | +6 |
+    | Magic defence | +4 |
+  market_strategy:
+    notes:
+      - First dragonhide glove tier
+      - F2P accessible
+      - Budget ranged gear
+      - Crafting training (62 XP)
+      - F2P ranged armor
+      - Budget gear
+      - Best F2P ranged gloves
+      - 1 leather per vambraces
+      - Lowest crafting level in set
+      - Fast crafting method
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creating
-
-| Method | Level | Materials |
-|--------|-------|-----------|
-| Crafting | 57 | 1 Green dragon leather |
-| XP | 62 | - |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged requirement | 40 |
-| Defence requirement | None |
-| Ranged attack | +8 |
-| Ranged defence | +6 |
-| Magic defence | +4 |
-
-## Market Strategy
-
-**Entry D'hide Vambraces:**
-- First dragonhide glove tier
-- F2P accessible
-- Budget ranged gear
-
-**Buy Limit:** 125 per 4 hours
-
-**Demand Drivers:**
-- Crafting training (62 XP)
-- F2P ranged armor
-- Budget gear
-
-**Tips:**
-- Best F2P ranged gloves
-- 1 leather per vambraces
-- Lowest crafting level in set
-- Fast crafting method
-
-<Adsense />
+<OSRSAdsenseCard />

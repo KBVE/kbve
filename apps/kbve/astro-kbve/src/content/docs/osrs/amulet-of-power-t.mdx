@@ -1,6 +1,6 @@
 ---
 title: Amulet of power (t) | OSRS Price Data
-description: "Amulet of power (t): An enchanted diamond amulet that looks good.. High alch: 2,415 GP, GE limit: 5."
+description: "Amulet of power (t) is a F2P neck slot item with +6 melee strength. High alch: 2,415 GP, GE limit: 5."
 osrs:
   id: 23354
   name: Amulet of power (t)
@@ -12,26 +12,80 @@ osrs:
   lowalch: 1610
   highalch: 2415
   limit: 5
+  equipment:
+    slot: neck
+    weight: 0.01
+    attack_bonus:
+      stab: 6
+      slash: 6
+      crush: 6
+      magic: 6
+      ranged: 6
+    defence_bonus:
+      stab: 6
+      slash: 6
+      crush: 6
+      magic: 6
+      ranged: 6
+    other_bonus:
+      melee_strength: 6
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        tier: Easy
+        drop_rate: 1/1,404
+        description: Rare reward from easy clue scrolls
+  related_items:
+    - item_id: 6919
+      item_name: Amulet of power
+      slug: amulet-of-power
+      relationship: variant
+      description: Standard (untrimmed) version
+    - item_id: 1704
+      item_name: Amulet of glory(4)
+      slug: amulet-of-glory-4
+      relationship: upgrade
+      description: Superior amulet with teleports
+    - item_id: 6585
+      item_name: Amulet of fury
+      slug: amulet-of-fury
+      relationship: upgrade
+      description: Best-in-slot hybrid amulet
+  about: |-
+    > *"An enchanted diamond amulet that looks good."*
+
+    | Property | Amulet of Power | Amulet of Power (t) |
+    |----------|----------------|---------------------|
+    | All Attack | +6 | +6 |
+    | All Defence | +6 | +6 |
+    | Strength | +6 | +6 |
+    | Prayer | +1 | +1 |
+    | Appearance | Standard | Gold trimmed |
+    | Source | Crafting (Lvl-4 Enchant) | Easy clue |
+    | F2P | Yes | Yes |
+
+    Stats are identical. The trimmed version is purely cosmetic.
+  market_strategy:
+    title: Investment Notes
+    notes:
+      - Easy clue exclusive cosmetic
+      - Free-to-play tradeable
+      - Popular hybrid amulet for mid-level accounts
+      - Best F2P amulet for balanced combat styles
+      - Solid all-round amulet before accessing glory or fury
+      - No requirements to equip, making it accessible to all account builds
+      - Good choice for F2P PKing due to balanced offensive and defensive stats
+      - Collection log item for completionists
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -1,6 +1,6 @@
 ---
 title: Machete | OSRS Price Data
-description: "Machete: A jungle specific slashing device.. High alch: 24 GP, GE limit: 15."
+description: "Machete is a members weapon slot item. High alch: 24 GP, GE limit: 15."
 osrs:
   id: 975
   name: Machete
@@ -12,26 +12,20 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 15
+  equipment:
+    slot: weapon
+  related_items: []
+  about: |-
+    > _"Good for\"cutting\" through\"vegetation\"."_
+
+    The machete is used to cut through jungle undergrowth on Karamja and in Tai Bwo Wannai Cleanup. Required for accessing various areas on Karamja. Can be upgraded to jade, red topaz, or opal machetes for faster cutting.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

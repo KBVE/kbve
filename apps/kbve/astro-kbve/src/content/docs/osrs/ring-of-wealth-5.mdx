@@ -58,80 +58,37 @@ osrs:
       slug: amulet-of-glory-4
       relationship: alternative
       description: Also used in jewellery box
+  about: |-
+    | Destination | Uses |
+    |-------------|------|
+    | Grand Exchange | Banking, trading |
+    | Falador Park | Tree patch |
+    | Miscellania | Kingdom management |
+    | Dondakan's mine | Gold mining |
+
+    Charges: 5 teleports per ring
+
+    Recharge: Fountain of Rune (Wilderness)
+
+    Required for POH upgrade:
+    - 8x Ring of wealth (5)
+    - 8x Amulet of glory(4)
+    - 2x Gold leaf
+    - 91 Construction
+
+    Provides unlimited teleports to all locations from POH.
+  market_strategy:
+    notes:
+      - Buy in bulk for ornate jewellery box
+      - Popular for ironman accounts
+      - GE teleport is highly useful
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Ring |
-| Type | Teleport Jewelry |
-| Tradeable | Yes |
-| Weight | 0.006 kg |
-
-## Teleport Locations
-
-| Destination | Uses |
-|-------------|------|
-| Grand Exchange | Banking, trading |
-| Falador Park | Tree patch |
-| Miscellania | Kingdom management |
-| Dondakan's mine | Gold mining |
-
-**Charges:** 5 teleports per ring
-
-**Recharge:** Fountain of Rune (Wilderness)
-
-## Drop Table Effect
-
-When equipped, affects RDT (Rare Drop Table):
-- Removes cabbage, half keys, etc.
-- Notifies on rare drops
-- Increases clue scroll drop rate slightly
-
-## Ornate Jewellery Box
-
-**Required for POH upgrade:**
-- 8x Ring of wealth (5)
-- 8x [Amulet of glory(4)](/osrs/amulet-of-glory-4/)
-- 2x [Gold leaf](/osrs/gold-leaf/)
-- 91 Construction
-
-Provides unlimited teleports to all locations from POH.
-
-## Market Strategy
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Tips:**
-- Buy in bulk for ornate jewellery box
-- Popular for ironman accounts
-- GE teleport is highly useful
-
-## Related Items
-
-- [Ring of wealth](/osrs/ring-of-wealth/) - Uncharged version
-- [Gold leaf](/osrs/gold-leaf/) - POH construction
-- [Amulet of glory(4)](/osrs/amulet-of-glory-4/) - Partner jewelry
-
-<Adsense />
+<OSRSAdsenseCard />

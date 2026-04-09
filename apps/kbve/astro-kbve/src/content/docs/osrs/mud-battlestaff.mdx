@@ -1,6 +1,6 @@
 ---
 title: Mud battlestaff | OSRS Price Data
-description: "Mud battlestaff: It's a slightly magical stick.. High alch: 10,200 GP, GE limit: 8."
+description: "Mud battlestaff is a members weapon slot item with +35 melee strength requiring 30 Attack. High alch: 10,200 GP, GE limit: 8."
 osrs:
   id: 6562
   name: Mud battlestaff
@@ -12,26 +12,110 @@ osrs:
   lowalch: 6800
   highalch: 10200
   limit: 8
+  equipment:
+    slot: weapon
+    attack_speed: 5
+    attack_bonus:
+      stab: 7
+      slash: -1
+      crush: 28
+      magic: 12
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 12
+      ranged: 0
+    other_bonus:
+      melee_strength: 35
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      attack: 30
+      magic: 30
+    weight: 2.267
+  drop_table:
+    primary_source: Dagannoth Prime
+    best_drop_rate: 1/128
+    sources:
+      - source: Dagannoth Prime
+        combat_level: 303
+        quantity: "1"
+        rarity: uncommon
+        drop_rate: 1/128
+        members_only: true
+  related_items:
+    - item_id: 6563
+      item_name: Mystic mud staff
+      slug: mystic-mud-staff
+      relationship: upgrade
+      description: Mystic version via Thormac
+    - item_id: 3053
+      item_name: Lava battlestaff
+      slug: lava-battlestaff
+      relationship: alternative
+      description: Earth+Fire combination staff
+  about: |-
+    | Attack | Value |
+    |--------|-------|
+    | Magic | +12 |
+    | Crush | +28 |
+    | Stab | +7 |
+
+    | Defence | Value |
+    |---------|-------|
+    | Magic | +12 |
+
+    | Other | Value |
+    |-------|-------|
+    | Strength | +35 |
+
+    Requirements: 30 Attack, 30 Magic | Speed: 5 tick (3.0s)
+
+    Provides unlimited water and earth runes simultaneously. This uniquely benefits:
+
+    Curse Spells (almost all use both water + earth runes):
+    - Confuse, Weaken, Curse
+    - Vulnerability, Enfeeble, Stun
+    - Bind, Snare, Entangle
+
+    Utility Spells:
+    - Bones to Bananas / Bones to Peaches
+    - Lvl-5 Enchant
+    - Draynor Manor Teleport
+
+    Lunar Spells:
+    - String Jewellery
+    - Stat Restore Pot Share
+    - Boost Potion Share
+
+    Upgrade to Mystic mud staff via Thormac (after Scorpion Catcher):
+
+    | Diary Completion | Cost |
+    |-----------------|------|
+    | None | 40,000 coins |
+    | Hard Kandarin | 30,000 coins |
+    | Elite Kandarin | 20,000 coins |
+
+    The Mystic version gains +2 Magic attack/defence and +15 Strength bonus.
+
+    If unable to obtain this drop, alternatives include pairing an earth staff with Tome of Water (or water staff with earth runes). Tome-based setups avoid charge depletion during non-combat spells like Bones to Peaches.
+
+    September 2021: Magic Attack and Defence bonuses increased from +10 to +12.
+  market_strategy:
+    notes:
+      - Only from Dagannoth Prime (must trio or solo DKs)
+      - Upgrade to Mystic for profit (check Thormac cost vs GE spread)
+      - Low daily volume — prices can be volatile
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

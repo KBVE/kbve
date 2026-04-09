@@ -35,6 +35,11 @@ pub struct CreateVmRequest {
     pub env: serde_json::Map<String, serde_json::Value>,
     #[serde(default = "default_boot_args")]
     pub boot_args: String,
+    /// Optional list of packages to install before execution.
+    /// The rootfs determines the package manager: alpine-python → pip, alpine-node → npm.
+    /// Packages are installed from a pre-built local cache drive (no network needed).
+    #[serde(default)]
+    pub packages: Vec<String>,
 }
 
 fn default_vcpu() -> u8 {
@@ -320,6 +325,7 @@ enum VmCleanup {
         config_path: String,
         socket_path: String,
         code_path: String,
+        pkg_manifest_path: Option<String>,
     },
     /// Jailed mode: entire jail directory tree + cgroup.
     Jailed { jail_dir: String, vm_id: String },
@@ -358,6 +364,32 @@ async fn run_vm_lifecycle(
         buf
     };
 
+    // Build packages manifest buffer (newline-separated list).
+    // The VM init script reads /dev/vdc to get the list and installs from local cache.
+    let pkg_buf = if req.packages.is_empty() {
+        None
+    } else {
+        let manifest = req.packages.join("\n");
+        let mut buf = manifest.as_bytes().to_vec();
+        let pad = (512 - (buf.len() % 512)) % 512;
+        buf.resize(buf.len() + pad, 0);
+        Some(buf)
+    };
+
+    // Resolve the pip package cache ext4 image path.
+    // Only python rootfs images get the pip cache attached.
+    let pkg_cache_path = if pkg_buf.is_some() && req.rootfs.contains("python") {
+        let path = format!("{}/pip-cache.ext4", rootfs_dir);
+        if tokio::fs::try_exists(&path).await.unwrap_or(false) {
+            Some(path)
+        } else {
+            tracing::warn!("pip-cache.ext4 not found, skipping package install");
+            None
+        }
+    } else {
+        None
+    };
+
     let boot_args = format!("{} fc_entrypoint={}", req.boot_args, req.entrypoint);
 
     // Spawn via jailer or direct depending on configuration.
@@ -370,6 +402,8 @@ async fn run_vm_lifecycle(
             &code_buf,
             &boot_args,
             &req,
+            pkg_buf.as_deref(),
+            pkg_cache_path.as_deref(),
         )
         .await
     } else {
@@ -380,6 +414,8 @@ async fn run_vm_lifecycle(
             &code_buf,
             &boot_args,
             &req,
+            pkg_buf.as_deref(),
+            pkg_cache_path.as_deref(),
         )
         .await
     };
@@ -490,10 +526,14 @@ async fn run_vm_lifecycle(
             config_path,
             socket_path,
             code_path,
+            pkg_manifest_path,
         } => {
             let _ = tokio::fs::remove_file(&config_path).await;
             let _ = tokio::fs::remove_file(&socket_path).await;
             let _ = tokio::fs::remove_file(&code_path).await;
+            if let Some(p) = pkg_manifest_path {
+                let _ = tokio::fs::remove_file(&p).await;
+            }
         }
         VmCleanup::Jailed { jail_dir, vm_id } => {
             let _ = tokio::fs::remove_dir_all(&jail_dir).await;
@@ -515,6 +555,8 @@ async fn spawn_direct(
     code_buf: &[u8],
     boot_args: &str,
     req: &CreateVmRequest,
+    pkg_buf: Option<&[u8]>,
+    pkg_cache_path: Option<&str>,
 ) -> Result<(tokio::process::Child, VmCleanup), String> {
     let scratch_dir = "/var/lib/firecracker/scratch";
     let code_path = format!("{}/{}.code", scratch_dir, vm_id);
@@ -525,25 +567,58 @@ async fn spawn_direct(
         .await
         .map_err(|e| format!("Code write failed: {}", e))?;
 
+    // Write package manifest to scratch if packages were requested.
+    let pkg_manifest_path = if let Some(buf) = pkg_buf {
+        let path = format!("{}/{}.pkgs", scratch_dir, vm_id);
+        tokio::fs::write(&path, buf)
+            .await
+            .map_err(|e| format!("Package manifest write failed: {}", e))?;
+        Some(path)
+    } else {
+        None
+    };
+
+    let mut drives = vec![
+        serde_json::json!({
+            "drive_id": "rootfs",
+            "path_on_host": rootfs_path,
+            "is_root_device": true,
+            "is_read_only": true,
+        }),
+        serde_json::json!({
+            "drive_id": "code",
+            "path_on_host": &code_path,
+            "is_root_device": false,
+            "is_read_only": true,
+        }),
+    ];
+
+    // Attach package manifest as vdc (read-only, contains package list).
+    if let Some(ref manifest_path) = pkg_manifest_path {
+        drives.push(serde_json::json!({
+            "drive_id": "packages",
+            "path_on_host": manifest_path,
+            "is_root_device": false,
+            "is_read_only": true,
+        }));
+    }
+
+    // Attach package cache as vdd (read-only ext4 with pre-downloaded wheels/tarballs).
+    if let Some(cache_path) = pkg_cache_path {
+        drives.push(serde_json::json!({
+            "drive_id": "pkg-cache",
+            "path_on_host": cache_path,
+            "is_root_device": false,
+            "is_read_only": true,
+        }));
+    }
+
     let config = serde_json::json!({
         "boot-source": {
             "kernel_image_path": format!("{}/vmlinux", rootfs_dir),
             "boot_args": boot_args,
         },
-        "drives": [
-            {
-                "drive_id": "rootfs",
-                "path_on_host": rootfs_path,
-                "is_root_device": true,
-                "is_read_only": true,
-            },
-            {
-                "drive_id": "code",
-                "path_on_host": &code_path,
-                "is_root_device": false,
-                "is_read_only": true,
-            },
-        ],
+        "drives": drives,
         "machine-config": {
             "vcpu_count": req.vcpu_count,
             "mem_size_mib": req.mem_size_mib,
@@ -567,6 +642,7 @@ async fn spawn_direct(
             config_path,
             socket_path,
             code_path,
+            pkg_manifest_path,
         },
     ))
 }
@@ -583,6 +659,8 @@ async fn spawn_jailed(
     code_buf: &[u8],
     boot_args: &str,
     req: &CreateVmRequest,
+    pkg_buf: Option<&[u8]>,
+    pkg_cache_path: Option<&str>,
 ) -> Result<(tokio::process::Child, VmCleanup), String> {
     // The jailer creates: <chroot_base>/firecracker/<id>/root/
     // We pre-create and populate it so the VM has its resources inside the chroot.
@@ -607,26 +685,60 @@ async fn spawn_jailed(
         .await
         .map_err(|e| format!("Code write in jail failed: {}", e))?;
 
+    // Write package manifest if provided.
+    if let Some(buf) = pkg_buf {
+        tokio::fs::write(format!("{}/packages.raw", jail_root), buf)
+            .await
+            .map_err(|e| format!("Package manifest write in jail failed: {}", e))?;
+    }
+
+    // Copy package cache into jail if provided.
+    if let Some(cache_path) = pkg_cache_path {
+        tokio::fs::copy(cache_path, format!("{}/pkg-cache.ext4", jail_root))
+            .await
+            .map_err(|e| format!("Package cache copy into jail failed: {}", e))?;
+    }
+
     // Config with paths relative to the chroot root.
+    let mut drives = vec![
+        serde_json::json!({
+            "drive_id": "rootfs",
+            "path_on_host": "/rootfs.ext4",
+            "is_root_device": true,
+            "is_read_only": true,
+        }),
+        serde_json::json!({
+            "drive_id": "code",
+            "path_on_host": "/code.raw",
+            "is_root_device": false,
+            "is_read_only": true,
+        }),
+    ];
+
+    if pkg_buf.is_some() {
+        drives.push(serde_json::json!({
+            "drive_id": "packages",
+            "path_on_host": "/packages.raw",
+            "is_root_device": false,
+            "is_read_only": true,
+        }));
+    }
+
+    if pkg_cache_path.is_some() {
+        drives.push(serde_json::json!({
+            "drive_id": "pkg-cache",
+            "path_on_host": "/pkg-cache.ext4",
+            "is_root_device": false,
+            "is_read_only": true,
+        }));
+    }
+
     let config = serde_json::json!({
         "boot-source": {
             "kernel_image_path": "/vmlinux",
             "boot_args": boot_args,
         },
-        "drives": [
-            {
-                "drive_id": "rootfs",
-                "path_on_host": "/rootfs.ext4",
-                "is_root_device": true,
-                "is_read_only": true,
-            },
-            {
-                "drive_id": "code",
-                "path_on_host": "/code.raw",
-                "is_root_device": false,
-                "is_read_only": true,
-            },
-        ],
+        "drives": drives,
         "machine-config": {
             "vcpu_count": req.vcpu_count,
             "mem_size_mib": req.mem_size_mib,
@@ -697,6 +809,24 @@ async fn init_jailer(
 ) -> Result<JailerConfig, String> {
     let bin_dir = format!("{}/bin", scratch_dir);
     let chroot_base = format!("{}/jails", scratch_dir);
+
+    // Kubernetes emptyDir mounts inherit shared propagation from the kubelet.
+    // The jailer's pivot_root() syscall requires a private mount — it fails with
+    // EPERM on shared mounts. Remount the scratch dir as private (needs CAP_SYS_ADMIN,
+    // already granted) so pivot_root works without requiring privileged: true.
+    let mount_status = tokio::process::Command::new("mount")
+        .args(["--make-private", scratch_dir])
+        .status()
+        .await
+        .map_err(|e| format!("Failed to run mount --make-private: {}", e))?;
+    if !mount_status.success() {
+        return Err(format!(
+            "mount --make-private {} failed with exit code {:?}",
+            scratch_dir,
+            mount_status.code()
+        ));
+    }
+    tracing::info!("Remounted {} as private propagation", scratch_dir);
 
     tokio::fs::create_dir_all(&bin_dir)
         .await

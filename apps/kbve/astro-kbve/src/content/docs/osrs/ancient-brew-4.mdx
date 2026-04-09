@@ -75,57 +75,36 @@ osrs:
       slug: ancient-brew-3
       relationship: variant
       description: 3-dose version
+  about: |-
+    Ancient brew provides unique effects:
+    - Boost: +2 Magic level
+    - Restore: Prayer points (like super restore)
+    - Drain: Attack, Strength, Defence by 10%+2
+
+    Best for:
+    - Magic-focused PvM
+    - Situations where melee stats don't matter
+    - Raids (ToA especially)
+  market_strategy:
+    profit_formulas:
+      - Ancient brew - Dwarf weed - Nihil dust
+    notes:
+      - Unique Magic boost + Prayer restore
+      - ToA increased demand significantly
+      - Compare to super restore prices
+      - "Calculate:"
+      - High Herblore requirement (85)
+      - Nihil dust from Nex
+      - ToA drives demand
+      - Nex farming provides nihil dust
+      - Magic boost useful for boosting
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Usage
-
-Ancient brew provides unique effects:
-- **Boost:** +2 Magic level
-- **Restore:** Prayer points (like super restore)
-- **Drain:** Attack, Strength, Defence by 10%+2
-
-Best for:
-- Magic-focused PvM
-- Situations where melee stats don't matter
-- Raids (ToA especially)
-
-## Market Flip Strategy
-
-**Niche Potion:**
-- Unique Magic boost + Prayer restore
-- ToA increased demand significantly
-- Compare to super restore prices
-
-**Potion Making Profit:**
-- Calculate: `Ancient brew - Dwarf weed - Nihil dust`
-- High Herblore requirement (85)
-- Nihil dust from Nex
-
-**Buy Limit:** 2,000 per 4 hours
-
-**Tips:**
-- ToA drives demand
-- Nex farming provides nihil dust
-- Magic boost useful for boosting
-
-<Adsense />
+<OSRSAdsenseCard />

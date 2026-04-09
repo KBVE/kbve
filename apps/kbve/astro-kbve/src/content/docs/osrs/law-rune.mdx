@@ -55,63 +55,40 @@ osrs:
       slug: death-rune
       relationship: alternative
       description: Combat rune
+  about: |-
+    Craft at the Law Altar (Entrana) with Pure essence.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Runecrafting Level | 54 |
+    | XP per essence | 9.5 |
+    | Double runes | 95 RC |
+
+    Law runes power teleportation magic:
+    - Varrock, Lumbridge, Falador, Camelot teleports
+    - Teleport to House
+    - Ardougne, Watchtower teleports
+    - Teleother spells
+  market_strategy:
+    profit_formulas:
+      - (Law rune × runes) - Pure essence = Profit
+    notes:
+      - "At 54+ RC: Craft law runes for profit"
+      - "At 95+ RC: Double runes = 2x profit"
+      - "Calculate:"
+      - Teleportation is essential for efficiency
+      - Used in nearly every activity
+      - Consistent, stable demand
+      - Entrana access required (no weapons/armor)
+      - Abyss method faster but dangerous
+      - Popular for both crafting and trading
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Runecrafting
-
-Craft at the Law Altar (Entrana) with Pure essence.
-
-| Requirement | Value |
-|-------------|-------|
-| Runecrafting Level | 54 |
-| XP per essence | 9.5 |
-| Double runes | 95 RC |
-
-## Usage
-
-Law runes power teleportation magic:
-- Varrock, Lumbridge, Falador, Camelot teleports
-- Teleport to House
-- Ardougne, Watchtower teleports
-- Teleother spells
-
-## Market Flip Strategy
-
-**Runecrafting Profit:**
-- At 54+ RC: Craft law runes for profit
-- At 95+ RC: Double runes = 2x profit
-- Calculate: `(Law rune × runes) - Pure essence = Profit`
-
-**Buy Limit:** 18,000 per 4 hours
-
-**Demand Drivers:**
-- Teleportation is essential for efficiency
-- Used in nearly every activity
-- Consistent, stable demand
-
-**Tips:**
-- Entrana access required (no weapons/armor)
-- Abyss method faster but dangerous
-- Popular for both crafting and trading
-
-<Adsense />
+<OSRSAdsenseCard />

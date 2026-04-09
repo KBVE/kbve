@@ -1,6 +1,6 @@
 ---
 title: Onyx amulet | OSRS Price Data
-description: "Onyx amulet: I wonder if I can get this enchanted.. High alch: 120,600 GP, GE limit: 10,000."
+description: "Onyx amulet is a members neck slot item. High alch: 120,600 GP, GE limit: 10,000."
 osrs:
   id: 6581
   name: Onyx amulet
@@ -12,26 +12,60 @@ osrs:
   lowalch: 80400
   highalch: 120600
   limit: 10000
+  equipment:
+    slot: neck
+    requirements:
+      crafting: 90
+  recipes:
+    - skill: crafting
+      level: 90
+      xp: 165
+      inputs:
+        - item_name: Onyx
+          quantity: 1
+        - item_name: Gold bar
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 1702
+      item_name: Dragonstone amulet
+      slug: dragonstone-amulet
+      relationship: downgrade
+      description: Previous tier amulet
+    - item_id: 19541
+      item_name: Zenyte amulet
+      slug: zenyte-amulet
+      relationship: upgrade
+      description: Next tier amulet
+    - item_id: 6585
+      item_name: Amulet of fury
+      slug: amulet-of-fury
+      relationship: upgrade
+      description: Enchanted version (BiS hybrid amulet)
+  about: |-
+    Crafting (Level 90): Onyx + Gold bar at a furnace with amulet mould (165 XP). String with ball of wool.
+
+    > *"An onyx amulet."*
+
+    Lvl-6 Enchant (87 Magic): 1 cosmic rune + 20 fire runes + 20 earth runes (97 XP)
+
+    The Amulet of fury is the best hybrid amulet in OSRS:
+    - +10 to all attack styles, +15 to all defence styles
+    - +8 Strength, +5 Prayer
+    - Best all-round amulet before specialized zenyte jewelry
+    - Used in virtually every combat style
+  market_strategy:
+    notes:
+      - Onyx cost (from TzHaar shops or Zulrah) drives the price
+      - Fury has massive demand — BiS hybrid neck
+      - High-value enchant — check margins
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

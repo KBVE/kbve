@@ -31,64 +31,24 @@ osrs:
       slug: papaya-tree-seed
       relationship: alternative
       description: Farming source
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | N/A |
+    | Type | Farming Product / Food |
+    | Tradeable | Yes |
+    | Weight | 0.028 kg |
+
+    Farming: Palm tree protection payment (15 papaya fruits)
+
+    Summoning (RS3-era references): Fruit bat familiar
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | N/A |
-| Type | Farming Product / Food |
-| Tradeable | Yes |
-| Weight | 0.028 kg |
-
-## Obtaining
-
-**Primary:** Harvest from papaya trees (57 Farming required)
-
-**Other sources:**
-- Fruit stall thieving (25 Thieving)
-- Kurask drops (~1 per 3 kills)
-- Shops in Civitas illa Fortis, Aldarin
-
-## Usage
-
-**Farming:** Palm tree protection payment (15 papaya fruits)
-
-**Summoning (RS3-era references):** Fruit bat familiar
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~1,265 gp
-
-Good volume. Primary use is palm tree protection.
-
-## Related Items
-
-- [Palm tree seed](/osrs/palm-tree-seed/) - Protection target
-- [Papaya tree seed](/osrs/papaya-tree-seed/) - Farming source
-- [Kurask](/osrs/kurask/) - Drop source
-
-<Adsense />
+<OSRSAdsenseCard />

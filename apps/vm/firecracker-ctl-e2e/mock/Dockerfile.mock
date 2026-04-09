@@ -1,0 +1,93 @@
+# ============================================================================
+# firecracker-ctl mock — for e2e testing without /dev/kvm
+#
+# Reuses the real firecracker-ctl binary but replaces the firecracker/jailer
+# binaries with a mock script that reads the code drive and prints it.
+# Also creates dummy rootfs images and kernel so validation passes.
+# ============================================================================
+
+# ============================================================================
+# [STAGE A] - Cargo Chef Planner
+# ============================================================================
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
+ENV CARGO_INCREMENTAL=0
+
+COPY apps/vm/firecracker-ctl/Cargo.workspace.toml Cargo.toml
+COPY apps/vm/firecracker-ctl/Cargo.toml apps/vm/firecracker-ctl/Cargo.toml
+
+RUN mkdir -p apps/vm/firecracker-ctl/src && \
+    echo "fn main() {}" > apps/vm/firecracker-ctl/src/main.rs
+
+RUN cargo chef prepare --recipe-path recipe.json
+
+# ============================================================================
+# [STAGE B] - Cargo Chef Cook (Cache Dependencies)
+# ============================================================================
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder-deps
+ENV CARGO_INCREMENTAL=0
+
+COPY --from=planner /app/recipe.json recipe.json
+COPY --from=planner /app/Cargo.toml ./
+COPY --from=planner /app/apps apps
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
+    cargo chef cook --release --recipe-path recipe.json -p firecracker-ctl
+
+# ============================================================================
+# [STAGE C] - Build Application
+# ============================================================================
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder
+ENV CARGO_INCREMENTAL=0
+
+COPY --from=builder-deps /app/target target
+COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
+
+COPY --from=planner /app/Cargo.toml ./
+
+COPY apps/vm/firecracker-ctl apps/vm/firecracker-ctl
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
+    cargo build --release -p firecracker-ctl && \
+    strip target/release/firecracker-ctl
+
+# ============================================================================
+# [STAGE Z] - Runtime with mock firecracker
+# ============================================================================
+FROM --platform=linux/amd64 ubuntu:24.04 AS runtime
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        iproute2 \
+        iptables && \
+    rm -rf /var/lib/apt/lists/* && \
+    groupadd -g 10001 appgroup && \
+    useradd -u 10001 -g appgroup -s /bin/false appuser && \
+    mkdir -p /var/lib/firecracker/rootfs /var/lib/firecracker/scratch && \
+    chown -R 10001:10001 /var/lib/firecracker
+
+COPY --from=builder /app/target/release/firecracker-ctl /usr/local/bin/firecracker-ctl
+
+# Mock firecracker binary (shell script that reads code drive → stdout)
+COPY apps/vm/firecracker-ctl-e2e/mock/firecracker /usr/local/bin/firecracker
+RUN chmod +x /usr/local/bin/firecracker
+
+# Dummy rootfs images (empty files — mock doesn't boot a real VM)
+# Package cache files must be non-empty for exists-check to pass in firecracker-ctl
+RUN touch /var/lib/firecracker/rootfs/alpine-minimal.ext4 \
+          /var/lib/firecracker/rootfs/alpine-node.ext4 \
+          /var/lib/firecracker/rootfs/alpine-python.ext4 \
+          /var/lib/firecracker/rootfs/vmlinux && \
+    echo "mock-pip-cache" > /var/lib/firecracker/rootfs/pip-cache.ext4
+
+ENV FC_PORT=9001
+ENV FC_ROOTFS_DIR=/var/lib/firecracker/rootfs
+ENV RUST_LOG=firecracker_ctl=info,tower_http=info
+
+EXPOSE 9001
+
+ENTRYPOINT ["firecracker-ctl"]

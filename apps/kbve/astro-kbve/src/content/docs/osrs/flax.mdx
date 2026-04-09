@@ -15,11 +15,6 @@ osrs:
   material:
     type: plant
     tier: basic
-  gathering:
-    locations:
-      - Seers' Village
-      - Lletya
-      - Tree Gnome Stronghold
   recipes:
     - skill: crafting
       level: 1
@@ -53,52 +48,27 @@ osrs:
       slug: crossbow-string
       relationship: alternative
       description: Alternative product (from sinew/roots)
+  market_strategy:
+    profit_formulas:
+      - Bow string price - Flax price = Profit
+    notes:
+      - Buy Flax → Spin → Sell Bow string
+      - "Calculate:"
+      - Classic low-level money maker
+      - Lumbridge Castle (closest to bank with agility shortcut)
+      - Seers' Village (close to flax field)
+      - Crafting Guild (requires 40 Crafting)
+      - Very consistent margins
+      - Good for low-level accounts
+      - High volume item
+      - Flax can be picked for free near Seers' Village
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Crafting
-
-Spin **Flax** on a spinning wheel to create [Bow string](/osrs/bow-string/).
-
-| Action | Crafting Level | XP |
-|--------|----------------|-----|
-| Spin flax | 1 | 15 |
-
-## Market Flip Strategy
-
-**Spinning Profit:**
-- Buy [Flax](/osrs/flax/) → Spin → Sell [Bow string](/osrs/bow-string/)
-- Calculate: `Bow string price - Flax price = Profit`
-- Classic low-level money maker
-
-**Spinning Locations:**
-- Lumbridge Castle (closest to bank with agility shortcut)
-- Seers' Village (close to flax field)
-- Crafting Guild (requires 40 Crafting)
-
-**Tips:**
-- Very consistent margins
-- Good for low-level accounts
-- High volume item
-- Flax can be picked for free near Seers' Village
-
-<Adsense />
+<OSRSAdsenseCard />

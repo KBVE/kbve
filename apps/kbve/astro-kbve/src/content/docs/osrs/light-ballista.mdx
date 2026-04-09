@@ -57,86 +57,41 @@ osrs:
       slug: monkey-tail
       relationship: component
       description: Creation material
+  about: |-
+    Combine unstrung light ballista with Monkey tail.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Fletching | 47 (300 XP) |
+
+    | Offence | Bonus |
+    |---------|-------|
+    | Ranged | +110 |
+
+    Uses Javelins (up to dragon tier).
+
+    Concentrated Shot (65% spec)
+    - +25% accuracy
+    - +25% damage
+
+    Used for:
+    - Budget ranged option
+    - PvP ballista builds
+    - Javelin usage
+
+    Budget alternative to heavy ballista.
+  market_strategy:
+    notes:
+      - Good for mid-level ranged
+      - Heavy ballista is stronger
+      - Uses same ammo as heavy
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | 2h Weapon |
-| Type | Ranged Weapon |
-| Tradeable | Yes |
-| Weight | 3 kg |
-| Requirements | 65 Ranged |
-
-## Creation
-
-Combine unstrung light ballista with [Monkey tail](/osrs/monkey-tail/).
-
-| Requirement | Value |
-|-------------|-------|
-| Fletching | 47 (300 XP) |
-
-## Stats
-
-| Offence | Bonus |
-|---------|-------|
-| Ranged | +110 |
-
-## Ammunition
-
-Uses [Javelins](/osrs/javelin/) (up to dragon tier).
-
-## Special Attack
-
-**Concentrated Shot** (65% spec)
-- +25% accuracy
-- +25% damage
-
-## Usage
-
-Used for:
-- Budget ranged option
-- PvP ballista builds
-- Javelin usage
-
-**Budget alternative to heavy ballista.**
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~756K gp
-
-**Tips:**
-- Good for mid-level ranged
-- Heavy ballista is stronger
-- Uses same ammo as heavy
-
-## Related Items
-
-- [Heavy ballista](/osrs/heavy-ballista/) - Stronger version
-- [Dragon javelin](/osrs/dragon-javelin/) - Best ammo
-- [Monkey tail](/osrs/monkey-tail/) - Creation material
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -1,6 +1,6 @@
 ---
 title: Onyx necklace | OSRS Price Data
-description: "Onyx necklace: I wonder if this is valuable.. High alch: 120,600 GP, GE limit: 10,000."
+description: "Onyx necklace is a members neck slot item. High alch: 120,600 GP, GE limit: 10,000."
 osrs:
   id: 6577
   name: Onyx necklace
@@ -12,26 +12,59 @@ osrs:
   lowalch: 80400
   highalch: 120600
   limit: 10000
+  equipment:
+    slot: neck
+    requirements:
+      crafting: 82
+  recipes:
+    - skill: crafting
+      level: 82
+      xp: 120
+      inputs:
+        - item_name: Onyx
+          quantity: 1
+        - item_name: Gold bar
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 1664
+      item_name: Dragon necklace
+      slug: dragon-necklace
+      relationship: downgrade
+      description: Previous tier necklace
+    - item_id: 19535
+      item_name: Zenyte necklace
+      slug: zenyte-necklace
+      relationship: upgrade
+      description: Next tier necklace
+  about: |-
+    Crafting (Level 82): Onyx + Gold bar at a furnace with necklace mould (120 XP)
+
+    > *"An onyx necklace."*
+
+    Lvl-6 Enchant (87 Magic): 1 cosmic rune + 20 fire runes + 20 earth runes (97 XP)
+
+    The Berserker necklace provides a unique 20% damage boost when wielding an obsidian melee weapon (Toktz-xil-ak, Tzhaar-ket-om, Toktz-xil-ek). This stacks with the obsidian armour set bonus for up to 30% total damage increase.
+
+    | Bonus | Source | Damage Boost |
+    |-------|--------|-------------|
+    | Berserker necklace | Neck slot | +20% |
+    | Obsidian armour set | Body+legs+helm | +10% |
+    | Combined | | +30% |
+
+    This setup is popular for NMZ training and low-level Slayer.
+  market_strategy:
+    notes:
+      - Onyx is the main cost
+      - Berserker necklace popular for NMZ/obsidian training
+      - High-value enchant
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

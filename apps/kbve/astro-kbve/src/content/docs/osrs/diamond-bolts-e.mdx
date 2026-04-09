@@ -44,63 +44,25 @@ osrs:
       slug: ruby-bolts-e
       relationship: alternative
       description: High HP boss alternative
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Slot | Ammo |
+    | Type | Enchanted Bolts |
+    | Tradeable | Yes |
+    | Weight | 0 kg |
+    | Requirements | 61 Ranged |
+
+    Armour Piercing: Ignores portion of target's defence.
+
+    Effective against high-defence targets.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Item Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Ammo |
-| Type | Enchanted Bolts |
-| Tradeable | Yes |
-| Weight | 0 kg |
-| Requirements | 61 Ranged |
-
-## Obtaining
-
-**Enchanting:** Cast Enchant Crossbow Bolt (Diamond) at 57 Magic.
-
-**Runes:** 10 earth, 2 law, 1 cosmic per 10 bolts.
-
-**Alternative:** Purchase from Grand Exchange.
-
-## Effects
-
-**Armour Piercing:** Ignores portion of target's defence.
-
-Effective against high-defence targets.
-
-## Market Strategy
-
-**Buy Limit:** 11,000 per 4 hours
-
-**Price:** ~228 gp
-
-Popular for bossing. Good against armored targets.
-
-## Related Items
-
-- [Diamond bolts](/osrs/diamond-bolts/) - Unenchanted version
-- [Ruby bolts (e)](/osrs/ruby-bolts-e/) - High HP boss alternative
-
-<Adsense />
+<OSRSAdsenseCard />

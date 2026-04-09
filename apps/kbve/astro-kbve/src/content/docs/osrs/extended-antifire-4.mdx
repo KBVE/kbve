@@ -57,63 +57,38 @@ osrs:
       slug: dragonfire-shield
       relationship: alternative
       description: Alternative protection
+  about: |-
+    | Requirement | Value |
+    |-------------|-------|
+    | Herblore Level | 84 |
+    | XP | 27.5 per shard |
+    | Ingredients | Antifire potion + Lava scale shard |
+
+    | Effect | Value |
+    |--------|-------|
+    | Dragonfire protection | Partial (slight) |
+    | With anti-dragon shield | Full immunity |
+    | Duration | 12 minutes per dose |
+  market_strategy:
+    notes:
+      - Double duration of regular
+      - Popular for dragon tasks
+      - Lava scale shards from Wilderness
+      - Long dragon tasks
+      - Vorkath farming
+      - Efficient dragon killing
+      - Less potion switching
+      - Low buy limit (2,000)
+      - Lava scale shards from lava dragons
+      - 12 min vs 6 min duration
+      - Worth the upgrade cost
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Creating
-
-| Requirement | Value |
-|-------------|-------|
-| Herblore Level | 84 |
-| XP | 27.5 per shard |
-| Ingredients | Antifire potion + Lava scale shard |
-
-## Effects
-
-| Effect | Value |
-|--------|-------|
-| Dragonfire protection | Partial (slight) |
-| With anti-dragon shield | Full immunity |
-| Duration | 12 minutes per dose |
-
-## Market Flip Strategy
-
-**Extended Dragon Protection:**
-- Double duration of regular
-- Popular for dragon tasks
-- Lava scale shards from Wilderness
-
-**Buy Limit:** 2,000 per 4 hours
-
-**Demand Drivers:**
-- Long dragon tasks
-- Vorkath farming
-- Efficient dragon killing
-- Less potion switching
-
-**Tips:**
-- Low buy limit (2,000)
-- Lava scale shards from lava dragons
-- 12 min vs 6 min duration
-- Worth the upgrade cost
-
-<Adsense />
+<OSRSAdsenseCard />

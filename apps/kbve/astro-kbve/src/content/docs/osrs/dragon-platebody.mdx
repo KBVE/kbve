@@ -1,6 +1,6 @@
 ---
 title: Dragon platebody | OSRS Price Data
-description: "Dragon platebody: Provides excellent protection.. High alch: 1,200,000 GP, GE limit: 70."
+description: "Dragon platebody is a members body slot item requiring 60 Defence. High alch: 1,200,000 GP, GE limit: 70."
 osrs:
   id: 21892
   name: Dragon platebody
@@ -12,26 +12,72 @@ osrs:
   lowalch: 800000
   highalch: 1200000
   limit: 70
+  equipment:
+    slot: body
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -15
+      ranged: 0
+    defence_bonus:
+      stab: 117
+      slash: 120
+      crush: 113
+      magic: -6
+      ranged: 113
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      defence: 60
+  related_items:
+    - item_id: 3140
+      item_name: Dragon chainbody
+      slug: dragon-chainbody
+      relationship: downgrade
+      description: Easier to obtain dragon body
+    - item_id: 11832
+      item_name: Bandos chestplate
+      slug: bandos-chestplate
+      relationship: upgrade
+      description: BiS melee body with strength bonus
+    - item_id: 1127
+      item_name: Rune platebody
+      slug: rune-platebody
+      relationship: downgrade
+      description: F2P alternative
+  about: |-
+    | Defence | Value |
+    |---------|-------|
+    | Stab | +117 |
+    | Slash | +120 |
+    | Crush | +113 |
+    | Magic | -6 |
+    | Ranged | +113 |
+
+    Requirements: 60 Defence, Dragon Slayer II
+
+    Best dragon body armour:
+    - Highest defensive stats for 60 Defence
+    - Does not degrade
+    - Cosmetically popular
+
+    Note: Bandos chestplate is preferred for the +4 Strength bonus despite lower Defence.
+  market_strategy:
+    notes:
+      - Components are rare drops
+      - Popular for fashionscape
+      - Niche use where pure Defence matters
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

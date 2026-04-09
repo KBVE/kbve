@@ -74,50 +74,32 @@ osrs:
       slug: nature-rune
       relationship: component
       description: For High Alchemy
+  about: |-
+    | Alch Type | Value |
+    |-----------|-------|
+    | High Alch | 39,000 GP |
+    | Low Alch | 26,000 GP |
+  market_strategy:
+    profit_formulas:
+      - 39,000 - Rune platebody price - Nature rune = Profit
+      - 39,000 - (5 × Runite bar price) - Nature rune
+    notes:
+      - "High Alch value: **39,000 GP**"
+      - "Calculate:"
+      - One of the highest alch value items
+      - "Cost: 5 Runite bars"
+      - "Revenue: 39,000 GP (alch) or GE price"
+      - "Compare:"
+      - "Buy limit: 8 per 4 hours (low limit!)"
+      - Dragon Slayer 1 completion required to equip
+      - Popular PvM drop - check drop sources for supply
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## High Alchemy
-
-| Alch Type | Value |
-|-----------|-------|
-| **High Alch** | **39,000 GP** |
-| Low Alch | 26,000 GP |
-
-## Market Flip Strategy
-
-**Alch Flipping:**
-- High Alch value: **39,000 GP**
-- Calculate: `39,000 - Rune platebody price - Nature rune = Profit`
-- One of the highest alch value items
-
-**Smithing Profit:**
-- Cost: 5 Runite bars
-- Revenue: 39,000 GP (alch) or GE price
-- Compare: `39,000 - (5 × Runite bar price) - Nature rune`
-
-**Tips:**
-- Buy limit: 8 per 4 hours (low limit!)
-- Dragon Slayer 1 completion required to equip
-- Popular PvM drop - check drop sources for supply
-
-<Adsense />
+<OSRSAdsenseCard />

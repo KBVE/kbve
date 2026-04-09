@@ -1,6 +1,6 @@
 ---
 title: Dragon necklace | OSRS Price Data
-description: "Dragon necklace: I wonder if this is valuable.. High alch: 11,025 GP, GE limit: 10,000."
+description: "Dragon necklace is a members neck slot item. High alch: 11,025 GP, GE limit: 10,000."
 osrs:
   id: 1664
   name: Dragon necklace
@@ -12,26 +12,60 @@ osrs:
   lowalch: 7350
   highalch: 11025
   limit: 10000
+  equipment:
+    slot: neck
+    requirements:
+      crafting: 72
+  recipes:
+    - skill: crafting
+      level: 72
+      xp: 105
+      inputs:
+        - item_name: Dragonstone
+          quantity: 1
+        - item_name: Gold bar
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 1662
+      item_name: Diamond necklace
+      slug: diamond-necklace
+      relationship: downgrade
+      description: Previous tier necklace
+    - item_id: 11113
+      item_name: Skills necklace
+      slug: skills-necklace
+      relationship: upgrade
+      description: Enchanted version (skilling teleports)
+  about: |-
+    Crafting (Level 72): Dragonstone + Gold bar at a furnace with necklace mould (105 XP)
+
+    > *"I wonder if this is valuable."*
+
+    Lvl-5 Enchant (68 Magic): 1 cosmic rune + 15 earth runes + 15 water runes (78 XP)
+
+    The Skills necklace provides 6 charges of teleportation to skilling locations:
+    - Fishing Guild — best fishing spot access
+    - Mining Guild — invisible +7 Mining boost
+    - Crafting Guild — bank + crafting facilities
+    - Cooking Guild — never-burn range
+    - Woodcutting Guild — invisible +7 WC boost
+    - Farming Guild — herb/tree patches
+
+    The Farming Guild teleport is especially popular for daily farming runs.
+  market_strategy:
+    notes:
+      - Dragonstone cost is the main expense
+      - Skills necklace has steady demand for farming runs
+      - Enchanting usually profitable
+      - Rechargeable at Legends' Guild fountain
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

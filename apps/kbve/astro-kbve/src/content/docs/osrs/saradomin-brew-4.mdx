@@ -75,55 +75,34 @@ osrs:
       slug: saradomin-brew-3
       relationship: variant
       description: 3-dose version
+  about: |-
+    Per dose:
+    - Heals: 15% + 2 of max HP
+    - Boosts Defence: 20% + 2 of base level
+    - Lowers: Attack, Strength, Magic, Ranged by 10% + 2
+
+    Essential for high-level PvM:
+    - Raids (CoX, ToB, ToA)
+    - Inferno attempts
+    - Boss fights (GWD, Nex, etc.)
+    - PvP (often combo'd with Super restore)
+  market_strategy:
+    profit_formulas:
+      - Brew price - Toadflax - Crushed nest - Vial = Profit
+    notes:
+      - Toadflax + Vial of water → Unfinished potion
+      - Add Crushed nest → Saradomin brew
+      - "Calculate:"
+      - High demand from raiders
+      - Crushed nest price drives margins
+      - Often paired with Super restores (3:1 ratio)
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Effects
-
-Per dose:
-- **Heals:** 15% + 2 of max HP
-- **Boosts Defence:** 20% + 2 of base level
-- **Lowers:** Attack, Strength, Magic, Ranged by 10% + 2
-
-## Usage
-
-Essential for high-level PvM:
-- Raids (CoX, ToB, ToA)
-- Inferno attempts
-- Boss fights (GWD, Nex, etc.)
-- PvP (often combo'd with Super restore)
-
-## Market Flip Strategy
-
-**Potion Making:**
-- Toadflax + Vial of water → Unfinished potion
-- Add Crushed nest → Saradomin brew
-- Calculate: `Brew price - Toadflax - Crushed nest - Vial = Profit`
-
-**Buy Limit:** 2,000 per 4 hours
-
-**Tips:**
-- High demand from raiders
-- Crushed nest price drives margins
-- Often paired with Super restores (3:1 ratio)
-
-<Adsense />
+<OSRSAdsenseCard />

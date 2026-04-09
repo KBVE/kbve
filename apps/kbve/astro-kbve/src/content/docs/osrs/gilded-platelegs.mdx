@@ -54,80 +54,26 @@ osrs:
       slug: gilded-scimitar
       relationship: set-piece
       description: Weapon of gilded set
+  about: |-
+    The gilded platelegs are a cosmetic variant of rune platelegs with identical stats but a prestigious golden appearance. They require 40 Defence to wear.
+
+    Gilded armour is obtained from Treasure Trails and is valued for its appearance rather than stats. It shares the same defensive bonuses as rune armour but costs significantly more due to its rarity and fashionscape appeal.
+  market_strategy:
+    title: Investment Notes
+    notes:
+      - Price driven by cosmetic demand
+      - Popular for fashionscape and showing off
+      - More accessible than 3rd age but still valuable
+      - Compare prices with rune equivalent for value assessment
+      - Watch for dips after clue scroll events
+      - Popular with free-to-play players for fashion
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Equipment Info
-
-| Property | Value |
-|----------|-------|
-| Slot | Legs |
-| Type | Melee Armour |
-| Tradeable | Yes |
-| Members Only | No |
-| Weight | 9.979 kg |
-
-## Obtaining
-
-| Method | Details |
-|--------|---------|
-| Source | Hard Clue Scrolls |
-| Rarity | Rare (1/35,750) |
-
-## Combat Stats
-
-| Defence | Value |
-|---------|-------|
-| Stab | +51 |
-| Slash | +49 |
-| Crush | +47 |
-| Magic | -4 |
-| Ranged | +49 |
-
-**Requirements:** 40 Defence
-
-## About
-
-The gilded platelegs are a cosmetic variant of rune platelegs with identical stats but a prestigious golden appearance. They require 40 Defence to wear.
-
-Gilded armour is obtained from Treasure Trails and is valued for its appearance rather than stats. It shares the same defensive bonuses as rune armour but costs significantly more due to its rarity and fashionscape appeal.
-
-## Market Strategy
-
-**Investment Notes:**
-- Price driven by cosmetic demand
-- Popular for fashionscape and showing off
-- More accessible than 3rd age but still valuable
-
-**Trading Tips:**
-- Compare prices with rune equivalent for value assessment
-- Watch for dips after clue scroll events
-- Popular with free-to-play players for fashion
-
-## Related Items
-
-- [Gilded full helm](/osrs/gilded-full-helm/) - Head slot of gilded set
-- [Gilded platebody](/osrs/gilded-platebody/) - Body slot of gilded set
-- [Gilded kiteshield](/osrs/gilded-kiteshield/) - Shield slot of gilded set
-- [Gilded scimitar](/osrs/gilded-scimitar/) - Weapon of gilded set
-
-<Adsense />
+<OSRSAdsenseCard />

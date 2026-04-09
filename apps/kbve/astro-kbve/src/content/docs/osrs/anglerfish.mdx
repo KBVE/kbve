@@ -64,56 +64,33 @@ osrs:
       slug: saradomin-brew-4
       relationship: alternative
       description: Percentage-based healing
+  about: |-
+    Anglerfish can overheal above max HP (outside PvP):
+
+    | Hitpoints Level | Heal Amount | Max HP |
+    |-----------------|-------------|--------|
+    | 75 | 19 | 94 |
+    | 85 | 20 | 105 |
+    | 93+ | 22 | 115+ |
+    | 99 | 22 | 121 |
+  market_strategy:
+    notes:
+      - Buy Raw anglerfish → Cook → Sell
+      - 84+ Cooking required, burns until 99 without gauntlets
+      - Pre-fight overheal for bosses
+      - Inferno attempts
+      - Raids preparation
+      - High-level Slayer
+      - Premium price over sharks
+      - Essential for difficult PvM
+      - Caught at Port Piscarilius (Kourend)
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Overheal Effect
-
-Anglerfish can **overheal** above max HP (outside PvP):
-
-| Hitpoints Level | Heal Amount | Max HP |
-|-----------------|-------------|--------|
-| 75 | 19 | 94 |
-| 85 | 20 | 105 |
-| 93+ | 22 | 115+ |
-| 99 | 22 | 121 |
-
-## Market Flip Strategy
-
-**Cooking Profit:**
-- Buy Raw anglerfish → Cook → Sell
-- 84+ Cooking required, burns until 99 without gauntlets
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Demand Drivers:**
-- Pre-fight overheal for bosses
-- Inferno attempts
-- Raids preparation
-- High-level Slayer
-
-**Tips:**
-- Premium price over sharks
-- Essential for difficult PvM
-- Caught at Port Piscarilius (Kourend)
-
-<Adsense />
+<OSRSAdsenseCard />

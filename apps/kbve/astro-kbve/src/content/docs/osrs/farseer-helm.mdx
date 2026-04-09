@@ -1,6 +1,6 @@
 ---
 title: Farseer helm | OSRS Price Data
-description: "Farseer helm: This helmet is worn by farseers.. High alch: 36,000 GP, GE limit: 70."
+description: "Farseer helm is a members head slot item requiring 45 Defence. High alch: 36,000 GP, GE limit: 70."
 osrs:
   id: 3755
   name: Farseer helm
@@ -12,26 +12,75 @@ osrs:
   lowalch: 24000
   highalch: 36000
   limit: 70
+  equipment:
+    slot: head
+    attack_bonus:
+      stab: -5
+      slash: -5
+      crush: -5
+      magic: 6
+      ranged: -5
+    defence_bonus:
+      stab: 8
+      slash: 10
+      crush: 12
+      magic: 6
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      defence: 45
+    weight: 2.721
+  related_items:
+    - item_id: 3751
+      item_name: Berserker helm
+      slug: berserker-helm
+      relationship: alternative
+      description: Melee variant (+3 Str)
+    - item_id: 3749
+      item_name: Archer helm
+      slug: archer-helm
+      relationship: alternative
+      description: Ranged variant
+  about: |-
+    | Attack | Value |
+    |--------|-------|
+    | Magic | +6 |
+
+    | Defence | Value |
+    |---------|-------|
+    | Stab | +8 |
+    | Slash | +10 |
+    | Crush | +12 |
+    | Magic | +6 |
+
+    Requirements: 45 Defence | Weight: 2.72 kg
+
+    At +6 magic attack, the farseer helm matches the Infinity hat and is only surpassed by Ancestral hat (+8) and Virtus mask (+8) among tradeable helms. It requires only 45 Defence versus Infinity's 50 Magic/25 Defence.
+
+    | Stat | Farseer | Mystic Hat | Infinity Hat | Ancestral Hat |
+    |------|---------|-----------|-------------|--------------|
+    | Magic Atk | +6 | +4 | +6 | +8 |
+    | Magic Def | +6 | +4 | +6 | +8 |
+    | Melee Def | +8/+10/+12 | 0/0/0 | 0/0/0 | 0/0/0 |
+    | Req | 45 Def | 40 Mag/20 Def | 50 Mag/25 Def | 75 Mag/65 Def |
+
+    The farseer's melee defence stats are a significant advantage — it's the only mid-tier magic helm with meaningful physical protection.
+  market_strategy:
+    notes:
+      - Best magic helm at 45 Defence
+      - Popular for Barrows and mid-game Slayer
+      - Affordable compared to Infinity/Ancestral
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

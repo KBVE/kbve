@@ -64,96 +64,47 @@ osrs:
       slug: hueycoatl-hide-vambraces
       relationship: set-piece
       description: Gloves
+  about: |-
+    - 40 Defence
+    - 70 Ranged
+
+    | Stat | Bonus |
+    |------|-------|
+    | Ranged Attack | +30 |
+    | Magic Attack | -15 |
+    | Stab Defence | +55 |
+    | Slash Defence | +47 |
+    | Crush Defence | +60 |
+    | Ranged Defence | +55 |
+    | Magic Defence | +56 |
+    | Prayer | +3 |
+
+    The Hueycoatl hide body is the most valuable piece of the set, offering:
+
+    - High ranged attack: +30 ranged attack bonus
+    - Strong defences: Excellent protection across all styles
+    - Prayer bonus: +3 prayer for extended trips
+
+    Best used with:
+    - Hueycoatl hide coif
+    - Hueycoatl hide chaps
+    - Hueycoatl hide vambraces
+
+    Comparison: Provides competitive stats with other high-tier ranged bodies while offering unique prayer bonuses.
+  market_strategy:
+    notes:
+      - Most expensive piece of the set
+      - Highest crafting requirement in the set
+      - Compare 3-hide crafting cost vs market price
+      - Prayer bonus makes it desirable for bossing
+      - Core piece - often purchased first when building the set
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-## Equipment Info
-
-The Hueycoatl hide body is the chest piece of the Hueycoatl hide armor set. It offers strong ranged attack bonuses, excellent defensive stats, and a prayer bonus.
-
-**Slot:** Body
-**Weight:** 5.0 kg
-**Tradeable:** Yes
-
-## Requirements
-
-- 40 Defence
-- 70 Ranged
-
-## Stats
-
-| Stat | Bonus |
-|------|-------|
-| Ranged Attack | +30 |
-| Magic Attack | -15 |
-| Stab Defence | +55 |
-| Slash Defence | +47 |
-| Crush Defence | +60 |
-| Ranged Defence | +55 |
-| Magic Defence | +56 |
-| Prayer | +3 |
-
-## Crafting
-
-| Requirement | Value |
-|-------------|-------|
-| Skill | Crafting |
-| Level | 78 |
-| Experience | 285 XP |
-
-**Materials:**
-- 3x Hueycoatl hide
-- 1x Thread
-
-## Obtaining
-
-**Method 1:** Craft from Hueycoatl hides (78 Crafting required)
-**Method 2:** Buy from Grand Exchange or other players
-
-## Usage
-
-The Hueycoatl hide body is the most valuable piece of the set, offering:
-
-- **High ranged attack:** +30 ranged attack bonus
-- **Strong defences:** Excellent protection across all styles
-- **Prayer bonus:** +3 prayer for extended trips
-
-**Best used with:**
-- Hueycoatl hide coif
-- Hueycoatl hide chaps
-- Hueycoatl hide vambraces
-
-**Comparison:** Provides competitive stats with other high-tier ranged bodies while offering unique prayer bonuses.
-
-## Market Strategy
-
-**Buy Limit:** 70 per 4 hours
-**Estimated Price:** ~1.45M GP
-
-**Tips:**
-- Most expensive piece of the set
-- Highest crafting requirement in the set
-- Compare 3-hide crafting cost vs market price
-- Prayer bonus makes it desirable for bossing
-- Core piece - often purchased first when building the set
-
-<Adsense />
+<OSRSAdsenseCard />

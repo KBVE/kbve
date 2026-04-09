@@ -85,66 +85,37 @@ osrs:
       slug: nature-rune
       relationship: component
       description: For Plank Make
+  about: |-
+    | XP per plank | 90 |
+    |--------------|-----|
+    | Mythical cape rack | ~180 XP per plank |
+    | Buy limit | 13,000 per 4 hours |
+    | Min Construction level | 35 |
+
+    Best XP methods:
+    - Teak garden benches (6 planks, 540 XP)
+    - Mahogany Homes contracts (efficient XP)
+    - Teak dining tables (4 planks, 360 XP)
+  market_strategy:
+    profit_formulas:
+      - Teak plank price - Teak log price - 500 GP = Profit
+    notes:
+      - Buy Teak logs → Sawmill → Sell planks
+      - "Calculate:"
+      - 86 Magic required
+      - Only 350 GP per plank (saves 150 GP vs sawmill)
+      - Good middle ground between oak and mahogany
+      - Better XP/GP ratio than mahogany
+      - Cheaper than mahogany planks
+      - Popular for efficient Construction training
+      - Mythical cape rack is meta method
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Convert [Teak logs](/osrs/teak-logs/) at a Sawmill:
-
-| Method | Cost |
-|--------|------|
-| Sawmill operator | 500 GP per plank |
-| Plank Make spell | 350 GP + runes |
-| Woodcutting Guild sawmill | 450 GP per plank |
-
-## Construction
-
-| XP per plank | 90 |
-|--------------|-----|
-| Mythical cape rack | ~180 XP per plank |
-| Buy limit | 13,000 per 4 hours |
-| Min Construction level | 35 |
-
-**Best XP methods:**
-- Teak garden benches (6 planks, 540 XP)
-- Mahogany Homes contracts (efficient XP)
-- Teak dining tables (4 planks, 360 XP)
-
-## Market Flip Strategy
-
-**Plank Making Profit:**
-- Buy [Teak logs](/osrs/teak-logs/) → Sawmill → Sell planks
-- Calculate: `Teak plank price - Teak log price - 500 GP = Profit`
-
-**Plank Make Spell:**
-- 86 Magic required
-- Only 350 GP per plank (saves 150 GP vs sawmill)
-- Good middle ground between oak and mahogany
-
-**Tips:**
-- Better XP/GP ratio than mahogany
-- Cheaper than mahogany planks
-- Popular for efficient Construction training
-- Mythical cape rack is meta method
-
-<Adsense />
+<OSRSAdsenseCard />

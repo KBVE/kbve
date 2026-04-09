@@ -58,67 +58,37 @@ osrs:
       slug: ball-of-wool
       relationship: alternative
       description: Crafting material
+  about: |-
+    | Furniture | Bolts of Cloth | Level | XP |
+    |-----------|----------------|-------|-----|
+    | Torn curtains | 3 | 2 | 132 |
+    | Curtains | 3 | 18 | 225 |
+    | Rug | 2 | 13 | 180 |
+    | Opulent rug | 4 | 65 | 360 |
+    | Bell-pull | 1 | 37 | 120 |
+    | Tapestry | 4 | 36 | 290 |
+
+    Common Uses:
+    - Decorating bedrooms, parlours, and dining rooms
+    - Required for servant call bell-pulls
+    - Rugs and curtains in various rooms
+
+    - Plank - Basic construction
+    - Oak plank - Common training
+    - Steel nails - Some furniture requires nails
+  market_strategy:
+    notes:
+      - Cheap at 650 GP from shops
+      - Low demand item - usually at GE minimum
+      - Buy from sawmill when building in bulk
+      - Used for Mahogany Homes contracts occasionally
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-**Shop Purchase:**
-- Sawmill operator: 650 GP each
-- Construction Supplies (Mahogany Homes): 650 GP each
-- Various sawmill locations
-
-**Tradeable on Grand Exchange.**
-
-## Construction Uses
-
-| Furniture | Bolts of Cloth | Level | XP |
-|-----------|----------------|-------|-----|
-| Torn curtains | 3 | 2 | 132 |
-| Curtains | 3 | 18 | 225 |
-| Rug | 2 | 13 | 180 |
-| Opulent rug | 4 | 65 | 360 |
-| Bell-pull | 1 | 37 | 120 |
-| Tapestry | 4 | 36 | 290 |
-
-**Common Uses:**
-- Decorating bedrooms, parlours, and dining rooms
-- Required for servant call bell-pulls
-- Rugs and curtains in various rooms
-
-## Market Strategy
-
-**Buy Limit:** 10,000 per 4 hours
-
-**Tips:**
-- Cheap at 650 GP from shops
-- Low demand item - usually at GE minimum
-- Buy from sawmill when building in bulk
-- Used for Mahogany Homes contracts occasionally
-
-## Related Construction Materials
-
-- [Plank](/osrs/plank/) - Basic construction
-- [Oak plank](/osrs/oak-plank/) - Common training
-- [Steel nails](/osrs/steel-nails/) - Some furniture requires nails
-
-<Adsense />
+<OSRSAdsenseCard />

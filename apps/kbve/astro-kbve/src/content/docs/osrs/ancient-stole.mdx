@@ -1,6 +1,6 @@
 ---
 title: Ancient stole | OSRS Price Data
-description: "Ancient stole: An Ancient stole.. High alch: 1,500 GP, GE limit: 8."
+description: "Ancient stole is a members neck slot item. High alch: 1,500 GP, GE limit: 8."
 osrs:
   id: 12201
   name: Ancient stole
@@ -12,26 +12,29 @@ osrs:
   lowalch: 1000
   highalch: 1500
   limit: 8
+  equipment:
+    slot: neck
+    requirements:
+      prayer: 60
+    other_bonus:
+      prayer: 10
+  related_items:
+    - item_id: 12199
+      item_name: Ancient crozier
+      slug: ancient-crozier
+      relationship: set-piece
+      description: Ancient vestment weapon
+  about: |-
+    > *"An Ancient stole."*
+
+    The Ancient stole is a neck slot item from the Ancient vestment set. It provides a +10 Prayer bonus and requires 60 Prayer to equip. One of the highest prayer bonus items available in the neck slot. Counts as a Zarosian item in the God Wars Dungeon.
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -1,6 +1,6 @@
 ---
 title: Rosewood logs | OSRS Price Data
-description: "Rosewood logs: Logs cut from a rosewood tree.. High alch: 288 GP."
+description: "Rosewood logs: Logs cut from a rosewood tree.. High alch: 288 GP, GE limit: 12,000."
 osrs:
   id: 32910
   name: Rosewood logs
@@ -11,7 +11,7 @@ osrs:
   value: 480
   lowalch: 192
   highalch: 288
-  limit: null
+  limit: 12000
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
@@ -32,6 +32,6 @@ import { Adsense } from '@/components/astropad';
 - **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
 - **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
 - **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
 
 <Adsense />

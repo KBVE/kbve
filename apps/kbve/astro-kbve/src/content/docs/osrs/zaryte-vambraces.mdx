@@ -51,75 +51,36 @@ osrs:
       slug: necklace-of-anguish
       relationship: alternative
       description: Ranged amulet
+  about: |-
+    | Stat | Value |
+    |------|-------|
+    | Ranged attack | +18 |
+    | Prayer | +1 |
+    | Ranged defence | +2 |
+    | Requirements | 80 Ranged |
+
+    Best-in-slot ranged gloves.
+
+    Special effect:
+    - 10% chance to prevent incoming damage from consuming enchanted bolt effects
+
+    BiS ranged gloves for:
+    - All ranged combat
+    - Bossing
+    - Raids
+    - Crossbow builds
+  market_strategy:
+    notes:
+      - Only from Nex
+      - Best ranged hand slot
+      - Pairs with Zaryte crossbow
+  mdx_version: 2
+  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-## Obtaining
-
-Rare drop from Nex.
-
-| Boss | Drop Rate |
-|------|-----------|
-| Nex | 1/43 per unique roll |
-
-## Stats
-
-| Stat | Value |
-|------|-------|
-| Ranged attack | +18 |
-| Prayer | +1 |
-| Ranged defence | +2 |
-| Requirements | 80 Ranged |
-
-**Best-in-slot ranged gloves.**
-
-## Effects
-
-**Special effect:**
-- 10% chance to prevent incoming damage from consuming enchanted bolt effects
-
-## Usage
-
-BiS ranged gloves for:
-- All ranged combat
-- Bossing
-- Raids
-- Crossbow builds
-
-## Market Strategy
-
-**Buy Limit:** 8 per 4 hours
-
-**Price:** ~72M gp
-
-**Tips:**
-- Only from Nex
-- Best ranged hand slot
-- Pairs with Zaryte crossbow
-
-## Related Items
-
-- [Zaryte crossbow](/osrs/zaryte-crossbow/) - Nex crossbow
-- [Barrows gloves](/osrs/barrows-gloves/) - Budget alternative
-- [Necklace of anguish](/osrs/necklace-of-anguish/) - Ranged amulet
-
-<Adsense />
+<OSRSAdsenseCard />

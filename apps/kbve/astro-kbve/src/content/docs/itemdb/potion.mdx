@@ -17,6 +17,16 @@ tags:
   - discordsh
 use_effects:
   - { type: 'heal', amount: 15 }
+recipes:
+    - skill: 'alchemy'
+      skill_level: 1
+      xp_reward: 15
+      output_quantity: 1
+      ingredients:
+          - item_ref: 'wildflower'
+            amount: 2
+          - item_ref: 'porcini'
+            amount: 1
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
