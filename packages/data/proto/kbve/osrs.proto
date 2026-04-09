@@ -699,6 +699,10 @@ message OSRSItem {
 
   // Ammunition data
   optional OSRSAmmunition ammunition  = 39;
+
+  // MDX content versioning
+  optional int32 mdx_version          = 40;  // Schema version (1 = original, 2 = data-driven)
+  optional string mdx_updated         = 41;  // ISO date of last content update (YYYY-MM-DD)
 }
 
 // =============================================================================
