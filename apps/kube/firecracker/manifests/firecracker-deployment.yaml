@@ -59,8 +59,11 @@ spec:
                               - CHOWN
                               - DAC_OVERRIDE
                               - FOWNER
+                              - KILL
                               - MKNOD
                               - NET_ADMIN
+                              - SETGID
+                              - SETUID
                               - SYS_ADMIN
                               - SYS_CHROOT
                   volumeMounts:
