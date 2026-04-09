@@ -20,6 +20,22 @@ data:
           esac
         done
 
+        # Install packages from local cache if vdc (manifest) and vdd (cache) exist.
+        if [ -b /dev/vdc ] && [ -b /dev/vdd ]; then
+          dd if=/dev/vdc of=/tmp/packages.raw bs=4096 2>/dev/null
+          tr -d '\0' < /tmp/packages.raw > /tmp/packages.txt
+
+          mkdir -p /mnt/packages
+          mount -o ro /dev/vdd /mnt/packages 2>/dev/null
+
+          if [ -d /mnt/packages/pip ] && command -v pip3 >/dev/null 2>&1; then
+            pip3 install --no-index --find-links /mnt/packages/pip \
+              $(cat /tmp/packages.txt) 2>/tmp/pkg-install.log || true
+          fi
+
+          umount /mnt/packages 2>/dev/null
+        fi
+
         if [ -b /dev/vdb ]; then
           dd if=/dev/vdb of=/tmp/code.raw bs=4096 2>/dev/null
           tr -d '\0' < /tmp/code.raw > /tmp/code

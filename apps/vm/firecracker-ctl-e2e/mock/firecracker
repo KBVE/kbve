@@ -1,6 +1,7 @@
 #!/bin/bash
 # Mock firecracker binary for e2e testing.
 # Reads the config JSON, finds the code drive, and prints its content to stdout.
+# Also reports attached drives (packages, pkg-cache) for test verification.
 # Exits 0 to simulate a successful VM run.
 
 CONFIG_FILE=""
@@ -17,14 +18,30 @@ if [[ -z "$CONFIG_FILE" || ! -f "$CONFIG_FILE" ]]; then
     exit 1
 fi
 
-# Extract the code drive path from the config JSON using grep/sed.
-# The config has a "drives" array; we find the entry after "drive_id":"code"
-# and extract its "path_on_host" value.
-CODE_PATH=$(grep -o '"path_on_host":"[^"]*"' "$CONFIG_FILE" | tail -1 | sed 's/"path_on_host":"//;s/"//')
+# Extract drive paths by drive_id from config JSON.
+# Each drive entry looks like: "drive_id":"X",...,"path_on_host":"Y"
+# We use grep to find all path_on_host values in order: rootfs, code, [packages], [pkg-cache]
+ALL_PATHS=$(grep -o '"path_on_host":"[^"]*"' "$CONFIG_FILE" | sed 's/"path_on_host":"//;s/"//')
+
+# Second path is always the code drive
+CODE_PATH=$(echo "$ALL_PATHS" | sed -n '2p')
 
 if [[ -z "$CODE_PATH" || ! -f "$CODE_PATH" ]]; then
     echo "mock-firecracker: code drive not found (path=$CODE_PATH)" >&2
     exit 1
+fi
+
+# Check for packages manifest drive (third path if present)
+PKG_PATH=$(echo "$ALL_PATHS" | sed -n '3p')
+if [[ -n "$PKG_PATH" && -f "$PKG_PATH" ]]; then
+    PKG_LIST=$(tr -d '\0' < "$PKG_PATH")
+    echo "[mock-packages] $PKG_LIST"
+fi
+
+# Check for pkg-cache drive (fourth path if present)
+CACHE_PATH=$(echo "$ALL_PATHS" | sed -n '4p')
+if [[ -n "$CACHE_PATH" && -f "$CACHE_PATH" ]]; then
+    echo "[mock-pkg-cache] attached"
 fi
 
 # Read the code content (strip null padding added by firecracker-ctl)
