@@ -11,34 +11,55 @@
  * noting the proto field name.
  *
  * Proto message → Zod schema mapping:
- *   OSRSAttackBonus      → OSRSAttackBonusSchema
- *   OSRSDefenceBonus     → OSRSDefenceBonusSchema
- *   OSRSOtherBonus       → OSRSOtherBonusSchema
- *   OSRSRequirements     → OSRSRequirementsSchema
- *   OSRSEquipment        → OSRSEquipmentSchema
- *   OSRSSpecialAttack    → OSRSSpecialAttackSchema
- *   OSRSSetBonus         → OSRSSetBonusSchema
- *   OSRSDropSource       → OSRSDropSourceSchema
- *   OSRSRecipeMaterial   → OSRSMaterialSchema
- *   OSRSRecipe           → OSRSRecipeSchema
- *   OSRSEffect           → (inline in OSRSPotionSchema.effects)
- *   OSRSConsumable       → OSRSPotionSchema        (renamed for MDX compat)
- *   OSRSFood             → OSRSFoodSchema
- *   OSRSCookingBurnRate  → (inline in OSRSCookingSchema.burn_rates)
- *   OSRSCooking          → OSRSCookingSchema
- *   OSRSShopSource       → OSRSShopSourceSchema
- *   OSRSSkillingSource   → OSRSSkillingSourceSchema
- *   OSRSTreasureTrail    → OSRSTreasureTrailSchema
- *   OSRSRelatedItem      → OSRSRelatedItemSchema
- *   OSRSItemProperties   → OSRSItemPropertiesSchema
- *   OSRSMeta             → OSRSMetaSchema
- *   OSRSPrice            → OSRSPriceSchema
- *   OSRSItem             → OSRSExtendedSchema
+ *   OSRSAttackBonus          → OSRSAttackBonusSchema
+ *   OSRSDefenceBonus         → OSRSDefenceBonusSchema
+ *   OSRSOtherBonus           → OSRSOtherBonusSchema
+ *   OSRSRequirements         → OSRSRequirementsSchema
+ *   OSRSEquipment            → OSRSEquipmentSchema
+ *   OSRSSpecialAttack        → OSRSSpecialAttackSchema
+ *   OSRSSetBonus             → OSRSSetBonusSchema
+ *   OSRSDropSource           → OSRSDropSourceSchema
+ *   OSRSRecipeMaterial       → OSRSMaterialSchema          (recipe ingredients)
+ *   OSRSRecipe               → OSRSRecipeSchema
+ *   OSRSEffect               → (inline in OSRSPotionSchema.effects)
+ *   OSRSConsumable           → OSRSPotionSchema             (renamed for MDX compat)
+ *   OSRSFood                 → OSRSFoodSchema
+ *   OSRSCookingBurnRate      → (inline in OSRSCookingSchema.burn_rates)
+ *   OSRSCooking              → OSRSCookingSchema
+ *   OSRSShopSource           → OSRSShopSourceSchema
+ *   OSRSSkillingSource       → OSRSSkillingSourceSchema
+ *   OSRSTreasureTrail        → OSRSTreasureTrailSchema
+ *   OSRSRelatedItem          → OSRSRelatedItemSchema
+ *   OSRSItemProperties       → OSRSItemPropertiesSchema
+ *   OSRSMeta                 → OSRSMetaSchema
+ *   OSRSPrice                → OSRSPriceSchema
+ *   OSRSAbout                → OSRSAboutSchema
+ *   OSRSMarketStep           → OSRSMarketStepSchema
+ *   OSRSMarketStrategy       → OSRSMarketStrategySchema
+ *   OSRSMaterial             → OSRSItemMaterialSchema       (item classification)
+ *   OSRSPrayer               → OSRSPrayerSchema
+ *   OSRSGathering            → OSRSGatheringSchema
+ *   OSRSTeleportDestination  → OSRSTeleportDestinationSchema
+ *   OSRSTeleport             → OSRSTeleportSchema
+ *   OSRSQuestRequirement     → OSRSQuestRequirementSchema
+ *   OSRSQuestData            → OSRSQuestDataSchema
+ *   OSRSFarming              → OSRSFarmingSchema
+ *   OSRSCharges              → OSRSChargesSchema
+ *   OSRSSlayer               → OSRSSlayerSchema
+ *   OSRSConstruction         → OSRSConstructionSchema
+ *   OSRSPassiveEffect        → OSRSPassiveEffectSchema
+ *   OSRSAmmunition           → OSRSAmmunitionSchema
+ *   OSRSItem                 → OSRSExtendedSchema
  *
  * Field name differences (proto → MDX):
  *   ge_limit     → limit
  *   drop_sources → drop_table (supports both array and object format)
  *   consumable   → potion
+ *   material     → item_material (avoids collision with recipe OSRSMaterialSchema)
+ *
+ * Skill enum: proto uses OSRSSkill enum for skill references. Zod accepts
+ * lowercase strings validated against the OSRSSkills array. The deprecated
+ * OSRSRecipeSkill enum is replaced by OSRSSkill everywhere.
  *
  * Future: proto → JSON Schema → Zod codegen pipeline
  *   buf.gen.yaml has a commented-out protoschema-jsonschema plugin.
@@ -47,6 +68,45 @@
  */
 
 import { z } from 'astro:content';
+
+// ============================================================================
+// Shared — proto: OSRSSkill enum
+// ============================================================================
+
+export const OSRSSkills = [
+	'attack',
+	'strength',
+	'defence',
+	'ranged',
+	'prayer',
+	'magic',
+	'runecraft',
+	'hitpoints',
+	'crafting',
+	'mining',
+	'smithing',
+	'fishing',
+	'cooking',
+	'firemaking',
+	'woodcutting',
+	'agility',
+	'herblore',
+	'thieving',
+	'fletching',
+	'slayer',
+	'farming',
+	'construction',
+	'hunter',
+] as const;
+
+export type OSRSSkill = (typeof OSRSSkills)[number];
+
+/** Lowercase transform for skill strings from MDX frontmatter */
+const lowercaseSkill = z
+	.string()
+	.transform((s) => s.toLowerCase())
+	.nullable()
+	.optional();
 
 // ============================================================================
 // SEO / Meta — proto: OSRSMeta
@@ -98,10 +158,14 @@ export const OSRSItemPropertiesSchema = z.object({
 	edible: z.boolean().optional(),
 	quest_item: z.boolean().optional(),
 	quest: z.string().optional(),
-	options: z.array(z.string()).optional(),
+	options: z.array(z.string()).optional(), // proto: options (inventory right-click)
 	bankable: z.boolean().optional(),
 	placeholder: z.boolean().optional(),
 	weight: z.number().optional(),
+	destroy: z.string().optional(), // proto: destroy — warning text
+	respawn: z.number().optional(), // proto: respawn — ground spawn ticks
+	worn_options: z.array(z.string()).optional(), // proto: worn_options
+	alchable: z.boolean().optional(), // proto: alchable
 	league_region: z.string().optional(), // MDX-only, not in proto
 });
 
@@ -222,34 +286,6 @@ export type OSRSOtherBonus = z.infer<typeof OSRSOtherBonusSchema>;
 // ============================================================================
 // Skill Requirements — proto: OSRSRequirements
 // ============================================================================
-
-export const OSRSSkills = [
-	'attack',
-	'strength',
-	'defence',
-	'ranged',
-	'prayer',
-	'magic',
-	'runecraft',
-	'hitpoints',
-	'crafting',
-	'mining',
-	'smithing',
-	'fishing',
-	'cooking',
-	'firemaking',
-	'woodcutting',
-	'agility',
-	'herblore',
-	'thieving',
-	'fletching',
-	'slayer',
-	'farming',
-	'construction',
-	'hunter',
-] as const;
-
-export type OSRSSkill = (typeof OSRSSkills)[number];
 
 export const OSRSRequirementsSchema = z.object({
 	attack: z.number().min(1).max(99).optional(),
@@ -405,7 +441,7 @@ export type OSRSShopSource = z.infer<typeof OSRSShopSourceSchema>;
 // ============================================================================
 
 export const OSRSSkillingSourceSchema = z.object({
-	skill: z.string().transform((s) => s.toLowerCase()),
+	skill: z.string().transform((s) => s.toLowerCase()), // proto: OSRSSkill enum
 	level: z.number().min(1).max(99),
 	xp: z.number().optional(),
 	location: z.string().optional(),
@@ -423,6 +459,10 @@ export type OSRSSkillingSource = z.infer<typeof OSRSSkillingSourceSchema>;
 // Recipes — proto: OSRSRecipe, OSRSRecipeMaterial
 // ============================================================================
 
+/**
+ * Deprecated: use OSRSSkills instead for skill validation.
+ * Kept for backwards compatibility with existing code that imports it.
+ */
 export const OSRSCreationSkills = [
 	'herblore',
 	'crafting',
@@ -437,7 +477,7 @@ export const OSRSCreationSkills = [
 
 export type OSRSCreationSkill = (typeof OSRSCreationSkills)[number];
 
-/** proto: OSRSRecipeMaterial */
+/** proto: OSRSRecipeMaterial — ingredients for a recipe */
 export const OSRSMaterialSchema = z.object({
 	item_id: z.number().optional(),
 	item_name: z.string(),
@@ -447,15 +487,9 @@ export const OSRSMaterialSchema = z.object({
 
 export type OSRSMaterial = z.infer<typeof OSRSMaterialSchema>;
 
-const lowercaseSkill = z
-	.string()
-	.transform((s) => s.toLowerCase())
-	.nullable()
-	.optional();
-
 export const OSRSRecipeSchema = z
 	.object({
-		skill: lowercaseSkill,
+		skill: lowercaseSkill, // proto: OSRSSkill enum
 		level: z.number().min(0).max(99).nullable().optional(),
 		xp: z.number().nullable().optional(),
 		materials: z.array(OSRSMaterialSchema).nullable().optional(),
@@ -491,11 +525,7 @@ export const OSRSPotionSchema = z
 			.array(
 				z
 					.object({
-						stat: z
-							.string()
-							.transform((s) => s.toLowerCase())
-							.nullable()
-							.optional(),
+						stat: lowercaseSkill, // proto: OSRSSkill enum
 						boost_type: z.string().nullable().optional(),
 						boost_value: z.number().nullable().optional(),
 						boost_formula: z.string().nullable().optional(),
@@ -625,6 +655,259 @@ export const OSRSPriceSchema = z.object({
 export type OSRSPrice = z.infer<typeof OSRSPriceSchema>;
 
 // ============================================================================
+// About / Content Text — proto: OSRSAbout
+// ============================================================================
+
+export const OSRSAboutSchema = z.object({
+	text: z.string(),
+});
+
+export type OSRSAbout = z.infer<typeof OSRSAboutSchema>;
+
+// ============================================================================
+// Market Strategy — proto: OSRSMarketStrategy, OSRSMarketStep
+// ============================================================================
+
+export const OSRSMarketStepSchema = z.object({
+	order: z.number().min(1),
+	action: z.string(),
+	item_id: z.number().nullable().optional(),
+	item_name: z.string().nullable().optional(),
+	item_slug: z.string().nullable().optional(), // MDX-only: for internal linking
+});
+
+export type OSRSMarketStep = z.infer<typeof OSRSMarketStepSchema>;
+
+export const OSRSMarketStrategySchema = z.object({
+	title: z.string().optional(),
+	steps: z.array(OSRSMarketStepSchema).optional(),
+	profit_formulas: z.array(z.string()).optional(),
+	notes: z.array(z.string()).optional(),
+});
+
+export type OSRSMarketStrategy = z.infer<typeof OSRSMarketStrategySchema>;
+
+// ============================================================================
+// Item Material Classification — proto: OSRSMaterial
+// (distinct from OSRSMaterialSchema which maps to proto OSRSRecipeMaterial)
+// ============================================================================
+
+export const OSRSItemMaterialSchema = z.object({
+	type: z.string(), // e.g., "log", "ore", "bone", "hide", "gem", "herb"
+	tier: z.string().optional(), // e.g., "low", "mid", "mid-high", "high"
+});
+
+export type OSRSItemMaterial = z.infer<typeof OSRSItemMaterialSchema>;
+
+// ============================================================================
+// Prayer Training — proto: OSRSPrayer
+// ============================================================================
+
+export const OSRSPrayerSchema = z
+	.object({
+		xp_bury: z.number().optional(),
+		xp_gilded_altar: z.number().optional(),
+		xp_gilded: z.number().optional(), // MDX alias
+		xp_chaos_altar: z.number().optional(),
+		xp_chaos: z.number().optional(), // MDX alias
+		xp_ectofuntus: z.number().optional(),
+	})
+	.passthrough();
+
+export type OSRSPrayer = z.infer<typeof OSRSPrayerSchema>;
+
+// ============================================================================
+// Gathering Skills — proto: OSRSGathering
+// ============================================================================
+
+export const OSRSGatheringSchema = z
+	.object({
+		skill: lowercaseSkill, // proto: OSRSSkill enum — inferred from context in MDX aliases
+		level: z.number().min(1).max(99),
+		xp: z.number().optional(),
+		locations: z.array(z.string()).optional(),
+		tool: z.string().optional(),
+		members_only: z.boolean().optional(),
+	})
+	.passthrough();
+
+export type OSRSGathering = z.infer<typeof OSRSGatheringSchema>;
+
+// ============================================================================
+// Teleportation — proto: OSRSTeleportDestination, OSRSTeleport
+// ============================================================================
+
+export const OSRSTeleportDestinationSchema = z.object({
+	name: z.string(),
+	location: z.string().optional(),
+	requirements: z.string().optional(),
+	members_only: z.boolean().optional(),
+	wilderness: z.boolean().optional(),
+});
+
+export type OSRSTeleportDestination = z.infer<
+	typeof OSRSTeleportDestinationSchema
+>;
+
+export const OSRSTeleportSchema = z
+	.object({
+		destinations: z.array(OSRSTeleportDestinationSchema).optional(),
+		charges: z.number().optional(), // 0 = unlimited
+		recharge_method: z.string().optional(),
+		recharge_cost: z.number().optional(),
+		type: z.string().optional(), // "jewelry", "tablet", "scroll", "spell", "other"
+		spellbook: z.string().optional(), // "standard", "ancient", "lunar", "arceuus"
+		magic_level: z.number().optional(),
+		runes: z.array(z.string()).optional(), // e.g., ["1 Law rune", "3 Air rune"]
+		magic_xp: z.number().optional(),
+	})
+	.passthrough();
+
+export type OSRSTeleport = z.infer<typeof OSRSTeleportSchema>;
+
+// ============================================================================
+// Quest Involvement — proto: OSRSQuestRequirement, OSRSQuestData
+// ============================================================================
+
+export const OSRSQuestRequirementSchema = z.object({
+	quest_name: z.string(),
+	role: z.string().optional(), // "required", "reward", "optional", "starts"
+	quantity: z.number().optional(),
+	notes: z.string().optional(),
+});
+
+export type OSRSQuestRequirement = z.infer<typeof OSRSQuestRequirementSchema>;
+
+export const OSRSQuestDataSchema = z.object({
+	quests: z.array(OSRSQuestRequirementSchema).optional(),
+});
+
+export type OSRSQuestData = z.infer<typeof OSRSQuestDataSchema>;
+
+// ============================================================================
+// Farming — proto: OSRSFarming
+// ============================================================================
+
+export const OSRSFarmingSchema = z
+	.object({
+		farming_level: z.number().min(1).max(99).optional(),
+		plant_xp: z.number().optional(),
+		harvest_xp: z.number().optional(),
+		check_health_xp: z.number().optional(),
+		patch_type: z.string().optional(), // "allotment", "herb", "tree", etc.
+		growth_time: z.number().optional(), // Minutes
+		payment: z.string().optional(), // e.g., "1 basket of apples"
+		payment_item_id: z.number().optional(),
+		seed_id: z.number().optional(),
+		produce_id: z.number().optional(),
+		produce_name: z.string().optional(),
+		min_yield: z.number().optional(),
+		max_yield: z.number().optional(),
+		compost_type: z.string().optional(), // "compost", "supercompost", "ultracompost"
+		growth_cycles: z.number().optional(),
+		cycle_minutes: z.number().optional(),
+		seed_name: z.string().optional(),
+		disease_free: z.boolean().optional(),
+	})
+	.passthrough();
+
+export type OSRSFarming = z.infer<typeof OSRSFarmingSchema>;
+
+// ============================================================================
+// Charges & Degradation — proto: OSRSCharges
+// ============================================================================
+
+export const OSRSChargesSchema = z
+	.object({
+		max_charges: z.number().optional(),
+		charge_cost_item_id: z.number().optional(),
+		charge_cost_item: z.string().optional(),
+		charges_per_item: z.number().optional(),
+		degrade_to_id: z.number().optional(),
+		degrade_to_name: z.string().optional(),
+		repairable: z.boolean().optional(),
+		repair_cost: z.number().optional(),
+		repair_npc: z.string().optional(),
+		combat_hours: z.number().optional(),
+	})
+	.passthrough();
+
+export type OSRSCharges = z.infer<typeof OSRSChargesSchema>;
+
+// ============================================================================
+// Slayer — proto: OSRSSlayer
+// ============================================================================
+
+export const OSRSSlayerSchema = z
+	.object({
+		slayer_level: z.number().min(1).max(99).optional(),
+		slayer_master: z.string().optional(),
+		task_weight: z.number().optional(),
+		category: z.string().optional(), // e.g., "abyssal demons", "gargoyles"
+		requires_task: z.boolean().optional(),
+	})
+	.passthrough();
+
+export type OSRSSlayer = z.infer<typeof OSRSSlayerSchema>;
+
+// ============================================================================
+// Construction / POH — proto: OSRSConstruction
+// ============================================================================
+
+export const OSRSConstructionSchema = z
+	.object({
+		construction_level: z.number().min(1).max(99).optional(),
+		construction_xp: z.number().optional(),
+		room: z.string().optional(),
+		hotspot: z.string().optional(),
+		flatpack: z.boolean().optional(),
+		built_item_id: z.number().optional(),
+	})
+	.passthrough();
+
+export type OSRSConstruction = z.infer<typeof OSRSConstructionSchema>;
+
+// ============================================================================
+// Passive / Special Effects — proto: OSRSPassiveEffect
+// ============================================================================
+
+export const OSRSPassiveEffectSchema = z
+	.object({
+		name: z.string(),
+		description: z.string().optional(),
+		trigger: z.string().optional(), // "always", "on_hit", "on_kill", "while_worn", "chance"
+		chance: z.number().optional(), // 0.0-1.0
+		affected_skill: lowercaseSkill, // proto: OSRSSkill enum
+		boost_value: z.number().optional(),
+		boost_formula: z.string().optional(),
+	})
+	.passthrough();
+
+export type OSRSPassiveEffect = z.infer<typeof OSRSPassiveEffectSchema>;
+
+// ============================================================================
+// Ammunition — proto: OSRSAmmunition
+// ============================================================================
+
+export const OSRSAmmunitionSchema = z
+	.object({
+		type: z.string().optional(), // "arrow", "bolt", "dart", etc.
+		tier: z.string().optional(), // "bronze", "iron", "steel", etc.
+		ranged_strength: z.number().optional(),
+		enchanted: z.boolean().optional(),
+		enchant_effect: z.string().optional(),
+		enchant_description: z.string().optional(),
+		proc_rate_pvm: z.number().optional(), // 0.0-1.0
+		proc_rate_pvp: z.number().optional(), // 0.0-1.0
+		compatible_weapons: z.array(z.string()).optional(),
+		enchant_magic_level: z.number().optional(),
+		enchant_runes: z.array(z.string()).optional(),
+	})
+	.passthrough();
+
+export type OSRSAmmunition = z.infer<typeof OSRSAmmunitionSchema>;
+
+// ============================================================================
 // Complete OSRS Item — proto: OSRSItem
 // ============================================================================
 
@@ -673,6 +956,52 @@ export const OSRSExtendedSchema = z.object({
 
 	// Price (runtime data, not typically in frontmatter)
 	price: OSRSPriceSchema.optional(),
+
+	// ── New fields (proto fields 26-39) ──
+
+	// Content text — proto: about (field 26)
+	about: z.union([z.string(), OSRSAboutSchema]).optional(),
+
+	// Market / trading — proto: market_strategy (27), trading_tips (28)
+	market_strategy: OSRSMarketStrategySchema.optional(),
+	trading_tips: z.array(z.string()).optional(),
+
+	// Material classification — proto: material (29)
+	material: OSRSItemMaterialSchema.optional(),
+
+	// Prayer training — proto: prayer (30)
+	prayer: OSRSPrayerSchema.optional(),
+
+	// Gathering skills — proto: gathering (31)
+	// MDX uses skill-specific keys that map to gathering with implicit skill
+	gathering: OSRSGatheringSchema.optional(),
+	woodcutting: OSRSGatheringSchema.optional(), // MDX alias → gathering(woodcutting)
+	mining: OSRSGatheringSchema.optional(), // MDX alias → gathering(mining)
+	fishing: OSRSGatheringSchema.optional(), // MDX alias → gathering(fishing)
+
+	// Teleportation — proto: teleport (32)
+	teleport: OSRSTeleportSchema.optional(),
+
+	// Quest involvement — proto: quest_data (33)
+	quest_data: OSRSQuestDataSchema.optional(),
+
+	// Farming — proto: farming (34)
+	farming: OSRSFarmingSchema.optional(),
+
+	// Charges & degradation — proto: charges (35)
+	charges: OSRSChargesSchema.optional(),
+
+	// Slayer — proto: slayer (36)
+	slayer: OSRSSlayerSchema.optional(),
+
+	// Construction / POH — proto: construction (37)
+	construction: OSRSConstructionSchema.optional(),
+
+	// Passive effects — proto: passive_effects (38)
+	passive_effects: z.array(OSRSPassiveEffectSchema).optional(),
+
+	// Ammunition — proto: ammunition (39)
+	ammunition: OSRSAmmunitionSchema.optional(),
 });
 
 export type OSRSExtended = z.infer<typeof OSRSExtendedSchema>;
@@ -680,6 +1009,8 @@ export type OSRSExtended = z.infer<typeof OSRSExtendedSchema>;
 // ============================================================================
 // Type Guards
 // ============================================================================
+
+// ── Existing guards ──
 
 export function hasEquipment(
 	item: OSRSExtended,
@@ -771,6 +1102,130 @@ export function isQuestItem(item: OSRSExtended): boolean {
 export function hasRelatedItems(item: OSRSExtended): boolean {
 	return (item.related_items?.length ?? 0) > 0;
 }
+
+// ── New guards (proto fields 26-39) ──
+
+export function hasAbout(
+	item: OSRSExtended,
+): item is OSRSExtended & { about: string | OSRSAbout } {
+	if (item.about === undefined) return false;
+	if (typeof item.about === 'string') return item.about.length > 0;
+	return item.about.text.length > 0;
+}
+
+/** Normalize about to always return a string */
+export function getAboutText(item: OSRSExtended): string | undefined {
+	if (!item.about) return undefined;
+	return typeof item.about === 'string' ? item.about : item.about.text;
+}
+
+export function hasMarketStrategy(
+	item: OSRSExtended,
+): item is OSRSExtended & { market_strategy: OSRSMarketStrategy } {
+	return item.market_strategy !== undefined;
+}
+
+export function hasTradingTips(
+	item: OSRSExtended,
+): item is OSRSExtended & { trading_tips: string[] } {
+	return (item.trading_tips?.length ?? 0) > 0;
+}
+
+export function hasMaterial(
+	item: OSRSExtended,
+): item is OSRSExtended & { material: OSRSItemMaterial } {
+	return item.material !== undefined;
+}
+
+export function hasPrayer(
+	item: OSRSExtended,
+): item is OSRSExtended & { prayer: OSRSPrayer } {
+	return item.prayer !== undefined;
+}
+
+/** Normalize prayer XP (handles both proto-style and MDX alias field names) */
+export function getPrayerXP(prayer: OSRSPrayer): {
+	xp_bury?: number;
+	xp_gilded_altar?: number;
+	xp_chaos_altar?: number;
+	xp_ectofuntus?: number;
+} {
+	return {
+		xp_bury: prayer.xp_bury,
+		xp_gilded_altar: prayer.xp_gilded_altar ?? prayer.xp_gilded,
+		xp_chaos_altar: prayer.xp_chaos_altar ?? prayer.xp_chaos,
+		xp_ectofuntus: prayer.xp_ectofuntus,
+	};
+}
+
+export function hasGathering(item: OSRSExtended): boolean {
+	return (
+		item.gathering !== undefined ||
+		item.woodcutting !== undefined ||
+		item.mining !== undefined ||
+		item.fishing !== undefined
+	);
+}
+
+/** Normalize gathering data from skill-specific MDX aliases */
+export function getGathering(
+	item: OSRSExtended,
+): (OSRSGathering & { skill: string }) | undefined {
+	if (item.gathering)
+		return { skill: item.gathering.skill ?? 'unknown', ...item.gathering };
+	if (item.woodcutting) return { ...item.woodcutting, skill: 'woodcutting' };
+	if (item.mining) return { ...item.mining, skill: 'mining' };
+	if (item.fishing) return { ...item.fishing, skill: 'fishing' };
+	return undefined;
+}
+
+export function hasTeleport(
+	item: OSRSExtended,
+): item is OSRSExtended & { teleport: OSRSTeleport } {
+	return item.teleport !== undefined;
+}
+
+export function hasQuestData(
+	item: OSRSExtended,
+): item is OSRSExtended & { quest_data: OSRSQuestData } {
+	return item.quest_data !== undefined;
+}
+
+export function hasFarming(
+	item: OSRSExtended,
+): item is OSRSExtended & { farming: OSRSFarming } {
+	return item.farming !== undefined;
+}
+
+export function hasCharges(
+	item: OSRSExtended,
+): item is OSRSExtended & { charges: OSRSCharges } {
+	return item.charges !== undefined;
+}
+
+export function hasSlayer(
+	item: OSRSExtended,
+): item is OSRSExtended & { slayer: OSRSSlayer } {
+	return item.slayer !== undefined;
+}
+
+export function hasConstruction(
+	item: OSRSExtended,
+): item is OSRSExtended & { construction: OSRSConstruction } {
+	return item.construction !== undefined;
+}
+
+export function hasPassiveEffects(item: OSRSExtended): boolean {
+	return (item.passive_effects?.length ?? 0) > 0;
+}
+
+export function hasAmmunition(
+	item: OSRSExtended,
+): item is OSRSExtended & { ammunition: OSRSAmmunition } {
+	return item.ammunition !== undefined;
+}
+
+// ── Meta description generator ──
 
 export function generateMetaDescription(item: OSRSExtended): string {
 	const parts: string[] = [item.name];
