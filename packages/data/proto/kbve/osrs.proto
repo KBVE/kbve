@@ -81,19 +81,8 @@ enum OSRSSkill {
   OSRS_SKILL_HUNTER      = 23;
 }
 
-// Skills used for item creation recipes
-enum OSRSRecipeSkill {
-  OSRS_RECIPE_SKILL_UNSPECIFIED  = 0;
-  OSRS_RECIPE_SKILL_HERBLORE     = 1;
-  OSRS_RECIPE_SKILL_CRAFTING     = 2;
-  OSRS_RECIPE_SKILL_SMITHING     = 3;
-  OSRS_RECIPE_SKILL_FLETCHING    = 4;
-  OSRS_RECIPE_SKILL_COOKING      = 5;
-  OSRS_RECIPE_SKILL_CONSTRUCTION = 6;
-  OSRS_RECIPE_SKILL_RUNECRAFT    = 7;
-  OSRS_RECIPE_SKILL_MAGIC        = 8;
-  OSRS_RECIPE_SKILL_FIREMAKING   = 9;
-}
+// Deprecated: use OSRSSkill instead. Kept for backwards compatibility.
+// enum OSRSRecipeSkill — replaced by OSRSSkill for all skill references
 
 // Facilities required for crafting
 enum OSRSFacility {
@@ -259,7 +248,7 @@ message OSRSRecipeMaterial {
 
 // Recipe for creating an item
 message OSRSRecipe {
-  optional string skill           = 1;   // Lowercase skill name
+  optional OSRSSkill skill        = 1;   // Skill enum reference
   optional int32 level            = 2;   // 0-99
   optional float xp               = 3;
   optional string facility        = 4;   // e.g., "Furnace", "Anvil", "Range"
@@ -273,7 +262,7 @@ message OSRSRecipe {
 
 // Potion/buff effect per dose
 message OSRSEffect {
-  optional string stat            = 1;   // Skill/stat name (lowercase)
+  optional OSRSSkill stat         = 1;   // Skill/stat affected
   optional string boost_type      = 2;   // "flat", "percentage", "formula"
   optional int32 boost_value      = 3;
   optional string boost_formula   = 4;   // e.g., "floor(level * 0.15) + 2"
@@ -333,7 +322,7 @@ message OSRSShopSource {
 
 // Skilling source (fishing, mining, hunter, etc.)
 message OSRSSkillingSource {
-  optional string skill           = 1;
+  optional OSRSSkill skill        = 1;
   optional int32 level            = 2;
   optional float xp               = 3;
   optional string location        = 4;
@@ -370,6 +359,219 @@ message OSRSRelatedItem {
 }
 
 // =============================================================================
+// Content / Description
+// =============================================================================
+
+// About/description text for item pages
+message OSRSAbout {
+  string text                         = 1;   // Primary description paragraph(s)
+}
+
+// =============================================================================
+// Market / Trading
+// =============================================================================
+
+// Individual step in a market strategy
+message OSRSMarketStep {
+  int32 order                         = 1;   // Step number (1-based)
+  string action                       = 2;   // e.g., "Buy Yew logs on GE"
+  optional int32 item_id              = 3;   // Referenced item
+  optional string item_name           = 4;
+}
+
+// Market strategy for flipping/processing
+message OSRSMarketStrategy {
+  optional string title               = 1;   // e.g., "Yew Longbow (u) Processing"
+  repeated OSRSMarketStep steps       = 2;
+  repeated string profit_formulas     = 3;   // e.g., "Yew longbow (u) price - Yew log price"
+  repeated string notes               = 4;   // Additional context
+}
+
+// =============================================================================
+// Material Classification
+// =============================================================================
+
+// Material type for resource items (logs, ores, bones, hides, etc.)
+message OSRSMaterial {
+  string type                         = 1;   // e.g., "log", "ore", "bone", "hide"
+  optional string tier                = 2;   // e.g., "low", "mid", "mid-high", "high"
+}
+
+// =============================================================================
+// Prayer Training
+// =============================================================================
+
+// Prayer XP values for bones/ashes
+message OSRSPrayer {
+  optional float xp_bury             = 1;   // Base bury/scatter XP
+  optional float xp_gilded_altar     = 2;   // Gilded altar with 2 burners (3.5x)
+  optional float xp_chaos_altar      = 3;   // Chaos altar in Wilderness (3.5x)
+  optional float xp_ectofuntus       = 4;   // Ectofuntus (4x)
+}
+
+// =============================================================================
+// Gathering Skills
+// =============================================================================
+
+// Gathering skill data (woodcutting, mining, fishing, etc.)
+message OSRSGathering {
+  OSRSSkill skill                     = 1;   // Skill enum reference
+  int32 level                         = 2;   // Required level (1-99)
+  optional float xp                   = 3;   // XP per action
+  repeated string locations           = 4;   // Named locations
+  optional string tool                = 5;   // Required tool
+  optional bool members_only          = 6;
+}
+
+// =============================================================================
+// Teleportation
+// =============================================================================
+
+// A single teleport destination an item provides
+message OSRSTeleportDestination {
+  string name                         = 1;   // e.g., "Duel Arena", "Castle Wars"
+  optional string location            = 2;   // Region/area context
+  optional string requirements        = 3;   // e.g., "Completion of Desert Treasure"
+  optional bool members_only          = 4;
+  optional bool wilderness            = 5;
+}
+
+// Teleport capabilities for an item (jewelry, tablets, scrolls, etc.)
+message OSRSTeleport {
+  repeated OSRSTeleportDestination destinations = 1;
+  optional int32 charges              = 2;   // Max charges (0 = unlimited)
+  optional string recharge_method     = 3;   // e.g., "Fountain of Rune", "Legends' Guild"
+  optional int32 recharge_cost        = 4;   // GP cost to recharge (if applicable)
+  optional string type                = 5;   // "jewelry", "tablet", "scroll", "spell", "other"
+  optional string spellbook           = 6;   // "standard", "ancient", "lunar", "arceuus" (spell teleports)
+  optional int32 magic_level          = 7;   // Magic level required (spell teleports)
+  repeated string runes               = 8;   // Rune costs (e.g., "1 Law rune", "3 Air rune")
+  optional float magic_xp             = 9;   // Magic XP per cast
+}
+
+// =============================================================================
+// Quest Involvement
+// =============================================================================
+
+// Quest relationship for an item
+message OSRSQuestRequirement {
+  string quest_name                   = 1;
+  optional string role                = 2;   // "required", "reward", "optional", "starts"
+  optional int32 quantity             = 3;   // Quantity needed (default 1)
+  optional string notes               = 4;   // Extra context
+}
+
+// Quest data for an item
+message OSRSQuestData {
+  repeated OSRSQuestRequirement quests = 1;
+}
+
+// =============================================================================
+// Farming
+// =============================================================================
+
+// Farming data for seeds, saplings, and produce
+message OSRSFarming {
+  optional int32 farming_level        = 1;   // Required Farming level
+  optional float plant_xp             = 2;   // XP for planting
+  optional float harvest_xp           = 3;   // XP per harvest
+  optional float check_health_xp      = 4;   // XP for checking health (trees)
+  optional string patch_type          = 5;   // "allotment", "herb", "tree", "fruit_tree", "hops", "flower", "bush", "cactus", "mushroom", "belladonna", "spirit_tree", "calquat", "redwood", "seaweed", "hardwood"
+  optional int32 growth_time          = 6;   // Minutes to fully grow
+  optional string payment             = 7;   // Farmer protection payment (e.g., "1 basket of apples")
+  optional int32 payment_item_id      = 8;   // Item ID of payment
+  optional int32 seed_id              = 9;   // Seed item ID (if this is the produce)
+  optional int32 produce_id           = 10;  // Produce item ID (if this is the seed)
+  optional string produce_name        = 11;
+  optional int32 min_yield            = 12;  // Minimum harvest quantity
+  optional int32 max_yield            = 13;  // Maximum harvest quantity
+  optional string compost_type        = 14;  // Recommended compost ("compost", "supercompost", "ultracompost")
+  optional int32 growth_cycles        = 15;  // Number of growth cycles
+  optional int32 cycle_minutes        = 16;  // Minutes per growth cycle
+  optional string seed_name           = 17;  // Seed name (if this is the produce)
+  optional bool disease_free          = 18;  // Immune to disease (e.g., Hespori)
+}
+
+// =============================================================================
+// Charges & Degradation
+// =============================================================================
+
+// Charge/degradation data for items with limited uses
+message OSRSCharges {
+  optional int32 max_charges          = 1;   // Maximum charge count
+  optional int32 charge_cost_item_id  = 2;   // Item used to charge (e.g., Zulrah's scales)
+  optional string charge_cost_item    = 3;   // Item name
+  optional int32 charges_per_item     = 4;   // How many charges each cost item gives
+  optional int32 degrade_to_id        = 5;   // Item ID when fully degraded
+  optional string degrade_to_name     = 6;
+  optional bool repairable            = 7;
+  optional int32 repair_cost          = 8;   // GP cost to repair
+  optional string repair_npc          = 9;   // NPC that repairs (e.g., "Bob", "Perdu")
+  optional float combat_hours         = 10;  // Hours of combat before degrading
+}
+
+// =============================================================================
+// Slayer
+// =============================================================================
+
+// Slayer-related data for items
+message OSRSSlayer {
+  optional int32 slayer_level         = 1;   // Slayer level to use/obtain
+  optional string slayer_master       = 2;   // Which masters assign the task
+  optional int32 task_weight          = 3;   // Task weight for assignment probability
+  optional string category            = 4;   // Slayer category (e.g., "abyssal demons", "gargoyles")
+  optional bool requires_task         = 5;   // Must be on-task to obtain/use
+}
+
+// =============================================================================
+// Construction
+// =============================================================================
+
+// Construction/POH data for buildable items
+message OSRSConstruction {
+  optional int32 construction_level   = 1;   // Required Construction level
+  optional float construction_xp      = 2;   // XP for building
+  optional string room                = 3;   // POH room name
+  optional string hotspot             = 4;   // Hotspot name within room
+  optional bool flatpack              = 5;   // Is this a flatpack variant?
+  optional int32 built_item_id        = 6;   // ID of the built furniture (if flatpack)
+}
+
+// =============================================================================
+// Passive / Special Effects
+// =============================================================================
+
+// A passive or always-on effect an item provides (NOT special attack)
+message OSRSPassiveEffect {
+  string name                         = 1;   // e.g., "Coin collection", "Mining boost"
+  optional string description         = 2;
+  optional string trigger             = 3;   // "always", "on_hit", "on_kill", "while_worn", "chance"
+  optional float chance               = 4;   // Proc chance 0.0-1.0 (if trigger = "chance")
+  optional OSRSSkill affected_skill   = 5;   // Skill boosted/affected
+  optional int32 boost_value          = 6;   // Flat boost amount
+  optional string boost_formula       = 7;   // Formula if not flat
+}
+
+// =============================================================================
+// Ammunition
+// =============================================================================
+
+// Ammunition data for arrows, bolts, darts, thrown items
+message OSRSAmmunition {
+  optional string type                = 1;   // "arrow", "bolt", "dart", "javelin", "knife", "thrownaxe", "chinchompa"
+  optional string tier                = 2;   // "bronze", "iron", "steel", "mithril", "adamant", "rune", "dragon", "amethyst"
+  optional int32 ranged_strength      = 3;
+  optional bool enchanted             = 4;   // Has gem enchantment (ruby bolts (e), etc.)
+  optional string enchant_effect      = 5;   // e.g., "Blood Forfeit", "Armour Piercing"
+  optional string enchant_description = 6;   // Effect description
+  optional float proc_rate_pvm        = 7;   // Proc chance in PvM 0.0-1.0
+  optional float proc_rate_pvp        = 8;   // Proc chance in PvP 0.0-1.0
+  repeated string compatible_weapons  = 9;   // Weapon names/types that can fire this
+  optional int32 enchant_magic_level  = 10;  // Magic level to enchant
+  repeated string enchant_runes       = 11;  // Runes needed to enchant
+}
+
+// =============================================================================
 // Item Properties & Metadata
 // =============================================================================
 
@@ -385,10 +587,14 @@ message OSRSItemProperties {
   optional bool edible            = 8;
   optional bool quest_item        = 9;
   optional string quest           = 10;
-  repeated string options         = 11;  // Right-click options
+  repeated string options         = 11;  // Right-click inventory options
   optional bool bankable          = 12;
   optional bool placeholder       = 13;
   optional float weight           = 14;  // kg (for non-equipment items)
+  optional string destroy         = 15;  // Destroy warning text
+  optional int32 respawn          = 16;  // Ground spawn respawn time (ticks)
+  repeated string worn_options    = 17;  // Right-click options while equipped
+  optional bool alchable          = 18;  // Can be alchemised (some items can't)
 }
 
 // SEO and page metadata
@@ -455,6 +661,44 @@ message OSRSItem {
   optional OSRSItemProperties properties = 23;
   optional OSRSMeta meta              = 24;
   optional OSRSPrice price            = 25;
+
+  // Content text
+  optional OSRSAbout about            = 26;
+
+  // Market / trading
+  optional OSRSMarketStrategy market_strategy = 27;
+  repeated string trading_tips        = 28;
+
+  // Material classification
+  optional OSRSMaterial material      = 29;
+
+  // Skill-specific training data
+  optional OSRSPrayer prayer          = 30;
+  optional OSRSGathering gathering    = 31;
+
+  // Teleportation
+  optional OSRSTeleport teleport      = 32;
+
+  // Quest involvement
+  optional OSRSQuestData quest_data   = 33;
+
+  // Farming
+  optional OSRSFarming farming        = 34;
+
+  // Charges & degradation
+  optional OSRSCharges charges        = 35;
+
+  // Slayer
+  optional OSRSSlayer slayer          = 36;
+
+  // Construction / POH
+  optional OSRSConstruction construction = 37;
+
+  // Passive effects (always-on item abilities)
+  repeated OSRSPassiveEffect passive_effects = 38;
+
+  // Ammunition data
+  optional OSRSAmmunition ammunition  = 39;
 }
 
 // =============================================================================
