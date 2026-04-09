@@ -41,6 +41,15 @@ spec:
                       - name: FC_JAILER_GID
                         value: '10001'
                   securityContext:
+                      # The jailer's pivot_root syscall is blocked by the default
+                      # seccomp profile. Unconfined is required because:
+                      #   - Talos does not support Localhost seccomp profiles
+                      #   - No Security Profiles Operator is installed
+                      # Mitigations: NetworkPolicy default-deny, KVM hardware
+                      # isolation, jailer per-VM cgroup+chroot+PID namespace,
+                      # read-only rootfs, no outbound network for VMs.
+                      seccompProfile:
+                          type: Unconfined
                       capabilities:
                           add:
                               - NET_ADMIN
