@@ -1,0 +1,424 @@
+name: Unreal Plugin Build & Publish (Win64)
+
+# Windows-native counterpart to utils-unreal-plugin-cicd.yml (Linux/Docker).
+# Builds UE5 plugins directly on the KubeVirt Windows VM via RunUAT.bat.
+# Engine must be installed locally on the runner (not containerized).
+
+on:
+    workflow_call:
+        inputs:
+            plugin_path:
+                description: 'Path to plugin directory relative to repo root (e.g. packages/unreal/KBVEROWS)'
+                required: true
+                type: string
+            plugin_name:
+                description: 'Plugin name — must match the .uplugin filename (e.g. KBVEROWS)'
+                required: true
+                type: string
+            engine_root:
+                description: 'UE5 engine root on the Windows runner (e.g. C:\UnrealEngine)'
+                required: false
+                type: string
+                default: ''
+            target_platforms:
+                description: 'Target platforms for BuildPlugin (e.g. Win64, Win64+Linux)'
+                required: false
+                type: string
+                default: 'Win64'
+            release_tag_prefix:
+                description: 'GitHub Release tag prefix (e.g. kbverows-v → kbverows-v1.0)'
+                required: false
+                type: string
+                default: ''
+            deploy_to_itch:
+                description: 'Deploy to itch.io after successful build'
+                required: false
+                type: boolean
+                default: false
+            itch_username:
+                description: 'Itch.io username'
+                required: false
+                type: string
+                default: 'kbve'
+            itch_game_id:
+                description: 'Itch.io game/project ID'
+                required: false
+                type: string
+                default: ''
+            itch_channel:
+                description: 'Itch.io build channel'
+                required: false
+                type: string
+                default: 'plugin-win64'
+            dependency_plugin_paths:
+                description: 'Space-separated paths to dependency plugins (e.g. packages/unreal/KBVEYYJson packages/unreal/KBVEZstd)'
+                required: false
+                type: string
+                default: ''
+            runner:
+                description: 'Windows runner label'
+                required: false
+                type: string
+                default: 'UE5-Win'
+            build_timeout:
+                description: 'Build job timeout in minutes'
+                required: false
+                type: number
+                default: 90
+        secrets:
+            butler_api:
+                description: 'Itch.io Butler API key'
+                required: false
+        outputs:
+            version:
+                description: 'Plugin version extracted from .uplugin'
+                value: ${{ jobs.version-check.outputs.version }}
+            should_release:
+                description: 'Whether a new release was created'
+                value: ${{ jobs.version-check.outputs.should_release }}
+            build_result:
+                description: 'Build job result'
+                value: ${{ jobs.build.result }}
+
+permissions: {}
+
+jobs:
+    # ── Fork Guard ──────────────────────────────────────────────
+    guard:
+        name: Fork Guard
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            allowed: ${{ steps.check.outputs.allowed }}
+        steps:
+            - name: Verify origin and actor
+              id: check
+              uses: actions/github-script@v8
+              with:
+                  script: |
+                      if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
+                        const headRepo = context.payload.pull_request?.head?.repo?.full_name;
+                        const baseRepo = context.payload.repository?.full_name;
+                        if (headRepo && headRepo !== baseRepo) {
+                          core.error(`Blocked: fork PR from ${headRepo}`);
+                          core.setOutput('allowed', 'false');
+                          return;
+                        }
+                      }
+                      try {
+                        const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          username: context.actor,
+                        });
+                        const level = data.permission;
+                        if (level === 'admin' || level === 'write') {
+                          core.setOutput('allowed', 'true');
+                        } else {
+                          core.error(`Actor ${context.actor} has ${level} access — insufficient`);
+                          core.setOutput('allowed', 'false');
+                        }
+                      } catch (err) {
+                        core.error(`Permission check failed: ${err.message}`);
+                        core.setOutput('allowed', 'false');
+                      }
+
+    # ── Version Check ───────────────────────────────────────────
+    version-check:
+        name: Version Gate
+        needs: guard
+        if: needs.guard.outputs.allowed == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        outputs:
+            version: ${{ steps.extract.outputs.version }}
+            published_version: ${{ steps.extract.outputs.published_version }}
+            should_release: ${{ steps.compare.outputs.should_release }}
+            tag: ${{ steps.compare.outputs.tag }}
+            zip_name: ${{ steps.extract.outputs.zip_name }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Extract versions
+              id: extract
+              run: |
+                  UPLUGIN="${{ inputs.plugin_path }}/${{ inputs.plugin_name }}.uplugin"
+                  if [ ! -f "${UPLUGIN}" ]; then
+                    echo "::error::Plugin file not found: ${UPLUGIN}"
+                    exit 1
+                  fi
+                  VERSION=$(jq -r '.VersionName' "${UPLUGIN}")
+                  if [ -z "${VERSION}" ] || [ "${VERSION}" = "null" ]; then
+                    echo "::error::Could not extract VersionName from ${UPLUGIN}"
+                    exit 1
+                  fi
+
+                  VERSION_TOML="${{ inputs.plugin_path }}/version.toml"
+                  if [ -f "${VERSION_TOML}" ]; then
+                    PUBLISHED=$(grep -m1 '^version' "${VERSION_TOML}" | sed 's/version = "\(.*\)"/\1/')
+                  else
+                    PUBLISHED="0.0.0"
+                  fi
+
+                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+                  echo "published_version=${PUBLISHED}" >> "$GITHUB_OUTPUT"
+                  echo "zip_name=${{ inputs.plugin_name }}-Win64-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
+                  echo "::notice::Plugin ${{ inputs.plugin_name }} — uplugin: ${VERSION}, published: ${PUBLISHED}"
+
+            - name: Compare versions
+              id: compare
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  VERSION="${{ steps.extract.outputs.version }}"
+                  PUBLISHED="${{ steps.extract.outputs.published_version }}"
+
+                  PREFIX="${{ inputs.release_tag_prefix }}"
+                  if [ -z "${PREFIX}" ]; then
+                    PREFIX=$(echo "${{ inputs.plugin_name }}" | tr '[:upper:]' '[:lower:]')
+                    PREFIX="${PREFIX}-win64-v"
+                  fi
+                  TAG="${PREFIX}${VERSION}"
+                  echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+                  if [ "${VERSION}" = "${PUBLISHED}" ]; then
+                    echo "::notice::version.toml matches .uplugin (${VERSION}) — skipping publish"
+                    echo "should_release=false" >> "$GITHUB_OUTPUT"
+                  elif gh release view "${TAG}" --json tagName >/dev/null 2>&1; then
+                    echo "::notice::Release ${TAG} already exists (version.toml stale) — skipping publish"
+                    echo "should_release=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "::notice::New version ${VERSION} (was ${PUBLISHED}) — will publish"
+                    echo "should_release=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+    # ── Build Plugin (Windows Native) ──────────────────────────
+    build:
+        name: Build Plugin Win64 (${{ inputs.plugin_name }})
+        needs: [guard, version-check]
+        if: needs.guard.outputs.allowed == 'true'
+        runs-on: ${{ inputs.runner }}
+        timeout-minutes: ${{ inputs.build_timeout }}
+        permissions:
+            contents: read
+        steps:
+            - name: Audit log
+              run: |
+                  Write-Host "::notice::Win64 plugin build: plugin=${{ inputs.plugin_name }}, version=${{ needs.version-check.outputs.version }}, platforms=${{ inputs.target_platforms }}, actor=${{ github.actor }}"
+
+            - name: Checkout repository
+              uses: actions/checkout@v6
+
+            - name: Locate Unreal Engine
+              id: engine
+              run: |
+                  $engineInput = '${{ inputs.engine_root }}'
+                  $candidates = @(
+                      $engineInput,
+                      "C:\UnrealEngine",
+                      "D:\UnrealEngine",
+                      "C:\Program Files\Epic Games\UE_5.7",
+                      "C:\Program Files\Epic Games\UE_5.4",
+                      "C:\Program Files\Epic Games\UE_5.5"
+                  ) | Where-Object { $_ -ne '' }
+
+                  $engineRoot = $null
+                  foreach ($candidate in $candidates) {
+                      $runuat = Join-Path $candidate "Engine\Build\BatchFiles\RunUAT.bat"
+                      if (Test-Path $runuat) {
+                          $engineRoot = $candidate
+                          Write-Host "::notice::Engine found at: $candidate"
+                          break
+                      }
+                  }
+
+                  if (-not $engineRoot) {
+                      Write-Host "::error::RunUAT.bat not found. Searched:" -ForegroundColor Red
+                      foreach ($c in $candidates) { Write-Host "  - $c" }
+                      Write-Host "Scanning C:\ for RunUAT.bat (this may take a moment)..."
+                      $found = Get-ChildItem -Path C:\ -Filter "RunUAT.bat" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+                      if ($found) {
+                          Write-Host "::notice::Found at: $($found.FullName)"
+                      }
+                      exit 1
+                  }
+
+                  $runuatPath = Join-Path $engineRoot "Engine\Build\BatchFiles\RunUAT.bat"
+                  echo "engine_root=$engineRoot" >> $env:GITHUB_OUTPUT
+                  echo "runuat=$runuatPath" >> $env:GITHUB_OUTPUT
+
+            - name: Install dependency plugins
+              if: inputs.dependency_plugin_paths != ''
+              run: |
+                  $engineRoot = '${{ steps.engine.outputs.engine_root }}'
+                  $marketplaceDir = Join-Path $engineRoot "Engine\Plugins\Marketplace"
+                  New-Item -ItemType Directory -Force -Path $marketplaceDir | Out-Null
+
+                  $deps = '${{ inputs.dependency_plugin_paths }}' -split '\s+'
+                  foreach ($depPath in $deps) {
+                      if ([string]::IsNullOrWhiteSpace($depPath)) { continue }
+                      $depName = Split-Path $depPath -Leaf
+                      $src = Join-Path $env:GITHUB_WORKSPACE $depPath
+                      $dst = Join-Path $marketplaceDir $depName
+                      Write-Host "::notice::Installing dependency: $depName -> $dst"
+                      Copy-Item -Path $src -Destination $dst -Recurse -Force
+                  }
+
+            - name: Build plugin with RunUAT
+              run: |
+                  $runuat = '${{ steps.engine.outputs.runuat }}'
+                  $pluginPath = Join-Path $env:GITHUB_WORKSPACE '${{ inputs.plugin_path }}' '${{ inputs.plugin_name }}.uplugin'
+                  $outputDir = Join-Path $env:GITHUB_WORKSPACE 'output' '${{ inputs.plugin_name }}'
+
+                  New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
+
+                  Write-Host "::notice::RunUAT: $runuat"
+                  Write-Host "::notice::Plugin: $pluginPath"
+                  Write-Host "::notice::Output: $outputDir"
+                  Write-Host "::notice::Platforms: ${{ inputs.target_platforms }}"
+
+                  & $runuat BuildPlugin `
+                      -Plugin="$pluginPath" `
+                      -Package="$outputDir" `
+                      -TargetPlatforms=${{ inputs.target_platforms }} `
+                      -Rocket `
+                      -StrictIncludes
+
+                  if ($LASTEXITCODE -ne 0) {
+                      Write-Host "::error::RunUAT BuildPlugin failed with exit code $LASTEXITCODE"
+                      exit $LASTEXITCODE
+                  }
+
+            - name: Verify build output
+              run: |
+                  $uplugin = Join-Path $env:GITHUB_WORKSPACE 'output' '${{ inputs.plugin_name }}' '${{ inputs.plugin_name }}.uplugin'
+                  if (-not (Test-Path $uplugin)) {
+                      Write-Host "::error::Build output missing — .uplugin not found at $uplugin"
+                      Get-ChildItem -Path (Join-Path $env:GITHUB_WORKSPACE 'output') -Recurse | Select-Object -First 30
+                      exit 1
+                  }
+                  Write-Host "::notice::Build succeeded for ${{ inputs.plugin_name }}"
+                  Get-ChildItem -Path (Join-Path $env:GITHUB_WORKSPACE 'output' '${{ inputs.plugin_name }}') -Recurse | Select-Object -First 30
+
+            - name: Package plugin zip
+              run: |
+                  $outputDir = Join-Path $env:GITHUB_WORKSPACE 'output'
+                  $zipName = '${{ needs.version-check.outputs.zip_name }}'
+                  $zipPath = Join-Path $outputDir $zipName
+                  Compress-Archive -Path (Join-Path $outputDir '${{ inputs.plugin_name }}') -DestinationPath $zipPath
+                  Write-Host "::notice::Packaged: $zipPath ($((Get-Item $zipPath).Length / 1MB) MB)"
+
+            - name: Upload build artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.plugin_name }}-Win64-v${{ needs.version-check.outputs.version }}
+                  path: output/${{ needs.version-check.outputs.zip_name }}
+                  retention-days: 30
+
+    # ── GitHub Release ──────────────────────────────────────────
+    release:
+        name: Create GitHub Release
+        needs: [version-check, build]
+        if: needs.version-check.outputs.should_release == 'true' && needs.build.result == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+        steps:
+            - name: Download build artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: ${{ inputs.plugin_name }}-Win64-v${{ needs.version-check.outputs.version }}
+                  path: ./artifact
+
+            - name: Create release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  gh release create "${{ needs.version-check.outputs.tag }}" \
+                    --repo "${{ github.repository }}" \
+                    --title "${{ inputs.plugin_name }} Win64 v${{ needs.version-check.outputs.version }}" \
+                    --notes "${{ inputs.plugin_name }} plugin v${{ needs.version-check.outputs.version }} built for ${{ inputs.target_platforms }}" \
+                    --prerelease \
+                    "./artifact/${{ needs.version-check.outputs.zip_name }}"
+
+    # ── Itch.io Deploy ──────────────────────────────────────────
+    itch-deploy:
+        name: Deploy to itch.io
+        needs: [version-check, build, release]
+        if: |
+            always() &&
+            needs.build.result == 'success' &&
+            inputs.deploy_to_itch == true &&
+            inputs.itch_game_id != ''
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        permissions:
+            contents: read
+        steps:
+            - name: Download build artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: ${{ inputs.plugin_name }}-Win64-v${{ needs.version-check.outputs.version }}
+                  path: ./artifact
+
+            - name: Extract zip for butler
+              run: |
+                  mkdir -p ./deploy
+                  unzip "./artifact/${{ needs.version-check.outputs.zip_name }}" -d ./deploy
+
+            - name: Deploy to itch.io
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.butler_api }}
+                  gameData: ./deploy/${{ inputs.plugin_name }}
+                  itchUsername: ${{ inputs.itch_username }}
+                  itchGameId: ${{ inputs.itch_game_id }}
+                  buildChannel: ${{ inputs.itch_channel }}-v${{ needs.version-check.outputs.version }}
+                  buildNumber: ${{ needs.version-check.outputs.version }}
+
+    # ── Update version.toml ────────────────────────────────────
+    update-version:
+        name: PR version.toml update
+        needs: [version-check, build, release]
+        if: needs.version-check.outputs.should_release == 'true' && needs.build.result == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+            pull-requests: write
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+
+            - name: Update version.toml
+              run: |
+                  VERSION_TOML="${{ inputs.plugin_path }}/version.toml"
+                  echo 'version = "${{ needs.version-check.outputs.version }}"' > "${VERSION_TOML}"
+                  cat "${VERSION_TOML}"
+
+            - name: Create PR
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  PLUGIN="${{ inputs.plugin_name }}"
+                  VERSION="${{ needs.version-check.outputs.version }}"
+                  BRANCH="auto/update-${PLUGIN,,}-win64-version-${VERSION}"
+
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git checkout -b "${BRANCH}"
+                  git add "${{ inputs.plugin_path }}/version.toml"
+                  git commit -m "chore(${{ inputs.plugin_name }}): update version.toml to ${VERSION} [skip ci]"
+                  git push origin "${BRANCH}"
+
+                  gh pr create \
+                    --base dev \
+                    --head "${BRANCH}" \
+                    --title "chore(${PLUGIN}): update version.toml to ${VERSION}" \
+                    --body "Automated post-publish update. ${PLUGIN} Win64 v${VERSION} has been released."

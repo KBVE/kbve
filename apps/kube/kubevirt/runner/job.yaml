@@ -1,0 +1,69 @@
+# Job to install or update the GitHub Actions runner inside the Windows VM.
+#
+# Uses the QEMU Guest Agent to run PowerShell inside Windows — no VNC needed.
+# The runner package is staged on the internal file-server to bypass NAT.
+#
+# Prerequisites:
+#   1. windows-builder VM running with QEMU Guest Agent
+#   2. Secret 'github-arc-token' in angelscript namespace (synced by ExternalSecret)
+#   3. vm-scaler RBAC with pod/exec + deployment scale permissions
+#
+# Apply manually:
+#   kubectl apply -f apps/kube/kubevirt/runner/ -n angelscript
+#
+# Re-run (update runner version or re-register):
+#   kubectl delete job vm-runner-install -n angelscript
+#   kubectl apply -f apps/kube/kubevirt/runner/ -n angelscript
+#
+# Override runner version:
+#   Edit RUNNER_VERSION env below, or:
+#   kubectl set env job/vm-runner-install RUNNER_VERSION=2.335.0 (before apply)
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: vm-runner-install
+    namespace: angelscript
+    labels:
+        app: angelscript
+        component: vm-runner
+spec:
+    backoffLimit: 2
+    ttlSecondsAfterFinished: 86400
+    template:
+        metadata:
+            labels:
+                app: angelscript
+                component: vm-runner
+        spec:
+            serviceAccountName: vm-scaler
+            restartPolicy: OnFailure
+            containers:
+                - name: runner-install
+                  image: registry.k8s.io/kubectl:v1.33.2
+                  command: ['/bin/sh', '/scripts/install-runner.sh']
+                  env:
+                      - name: VM_NAME
+                        value: windows-builder
+                      - name: NAMESPACE
+                        value: angelscript
+                      - name: GITHUB_ORG
+                        value: KBVE
+                      - name: RUNNER_NAME
+                        value: windows-builder
+                      - name: RUNNER_LABELS
+                        value: UE5-Win
+                      - name: RUNNER_VERSION
+                        value: '2.333.0'
+                      - name: GITHUB_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: github-arc-token
+                                key: github_token
+                  volumeMounts:
+                      - name: script
+                        mountPath: /scripts
+            volumes:
+                - name: script
+                  configMap:
+                      name: vm-runner-install-script
+                      defaultMode: 0755
