@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.79",
+			"version": "1.0.104",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -17,7 +17,7 @@
 		{
 			"key": "chisel_ubuntu_axum",
 			"app_name": "chisel-ubuntu-axum",
-			"version": "24.04.2",
+			"version": "24.04.7",
 			"version_toml": "packages/docker/chisel-ubuntu-axum/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/chisel.mdx",
 			"source_path": "packages/docker/chisel-ubuntu-axum",
@@ -28,7 +28,7 @@
 		{
 			"key": "chuckrpg",
 			"app_name": "axum-chuckrpg",
-			"version": "0.1.6",
+			"version": "0.1.7",
 			"version_toml": "apps/chuckrpg/axum-chuckrpg/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/chuckrpg.mdx",
 			"version_target": "apps/chuckrpg/axum-chuckrpg/Cargo.toml",
@@ -42,7 +42,7 @@
 		{
 			"key": "cryptothrone",
 			"app_name": "cryptothrone",
-			"version": "0.1.4",
+			"version": "0.1.5",
 			"version_toml": "apps/cryptothrone/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone.mdx",
 			"version_target": "apps/cryptothrone/axum-cryptothrone/Cargo.toml",
@@ -56,7 +56,7 @@
 		{
 			"key": "discordsh",
 			"app_name": "discordsh",
-			"version": "0.1.40",
+			"version": "0.1.43",
 			"version_toml": "apps/discordsh/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh.mdx",
 			"version_target": "apps/discordsh/axum-discordsh/Cargo.toml",
@@ -70,21 +70,19 @@
 		{
 			"key": "discordsh_bot",
 			"app_name": "discordsh-bot",
-			"version": "0.1.1",
+			"version": "0.1.7",
 			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
 			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
 			"source_path": "apps/discordsh/discordsh-bot",
 			"runner": "ubuntu-latest",
 			"image": "kbve/discordsh-bot",
-			"e2e_name": "discordsh-bot-e2e",
-			"deployment_yaml": "apps/kube/discordsh/manifest/discordsh-bot-deployment.yaml",
-			"has_test": true
+			"deployment_yaml": "apps/kube/discordsh/manifest/discordsh-bot-deployment.yaml"
 		},
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.21",
+			"version": "0.1.26",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -96,9 +94,22 @@
 			"has_test": true
 		},
 		{
+			"key": "firecracker_ctl",
+			"app_name": "firecracker-ctl",
+			"version": "0.1.26",
+			"version_toml": "apps/vm/firecracker-ctl/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-ctl.mdx",
+			"version_target": "apps/vm/firecracker-ctl/Cargo.toml",
+			"source_path": "apps/vm/firecracker-ctl",
+			"runner": "arc-runner-set",
+			"image": "kbve/firecracker-ctl",
+			"deployment_yaml": "apps/kube/firecracker/manifests/firecracker-deployment.yaml",
+			"has_test": false
+		},
+		{
 			"key": "herbmail",
 			"app_name": "herbmail",
-			"version": "0.1.0",
+			"version": "0.1.1",
 			"version_toml": "apps/herbmail/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/herbmail.mdx",
 			"version_target": "apps/herbmail/axum-herbmail/Cargo.toml",
@@ -112,7 +123,7 @@
 		{
 			"key": "irc_gateway",
 			"app_name": "irc-gateway",
-			"version": "0.1.2",
+			"version": "0.1.9",
 			"version_toml": "apps/irc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/irc-gateway.mdx",
 			"version_target": "apps/irc/irc-gateway/Cargo.toml",
@@ -134,9 +145,20 @@
 			"has_test": false
 		},
 		{
+			"key": "mc",
+			"app_name": "mc",
+			"version": "1.0.0",
+			"version_toml": "apps/mc/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
+			"source_path": "apps/mc",
+			"runner": "ubuntu-latest",
+			"image": "kbve/mc",
+			"has_test": false
+		},
+		{
 			"key": "memes",
 			"app_name": "memes",
-			"version": "0.1.7",
+			"version": "0.1.8",
 			"version_toml": "apps/memes/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/memes.mdx",
 			"version_target": "apps/memes/axum-memes/Cargo.toml",
@@ -158,29 +180,6 @@
 			"runner": "ubuntu-latest",
 			"image": "kbve/rows",
 			"deployment_yaml": "apps/kube/ows/manifest/rows-deployment.yaml",
-			"has_test": false
-		},
-		{
-			"key": "firecracker_ctl",
-			"app_name": "firecracker-ctl",
-			"version": "0.1.0",
-			"version_toml": "apps/vm/firecracker-ctl/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-ctl.mdx",
-			"version_target": "apps/vm/firecracker-ctl/Cargo.toml",
-			"source_path": "apps/vm/firecracker-ctl",
-			"runner": "arc-runner-set",
-			"image": "kbve/firecracker-ctl",
-			"deployment_yaml": "apps/kube/firecracker/manifests/firecracker-deployment.yaml",
-			"has_test": false
-		},
-		{
-			"key": "mc",
-			"app_name": "mc",
-			"version": "1.0.0",
-			"version_toml": "apps/mc/version.toml",
-			"source_path": "apps/mc",
-			"runner": "ubuntu-latest",
-			"image": "kbve/mc",
 			"has_test": false
 		}
 	],
@@ -224,84 +223,96 @@
 			"package_name": "bevy_battle",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_battle/version.toml",
-			"version_source": "packages/rust/bevy/bevy_battle/Cargo.toml"
+			"version_source": "packages/rust/bevy/bevy_battle/Cargo.toml",
+			"version_target": "packages/rust/bevy_battle/Cargo.toml"
 		},
 		{
 			"key": "bevy_cam_crate",
 			"package_name": "bevy_cam",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_cam/version.toml",
-			"version_source": "packages/rust/bevy/bevy_cam/Cargo.toml"
+			"version_source": "packages/rust/bevy/bevy_cam/Cargo.toml",
+			"version_target": "packages/rust/bevy_cam/Cargo.toml"
 		},
 		{
 			"key": "bevy_inventory_crate",
 			"package_name": "bevy_inventory",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_inventory/version.toml",
-			"version_source": "packages/rust/bevy/bevy_inventory/Cargo.toml"
+			"version_source": "packages/rust/bevy/bevy_inventory/Cargo.toml",
+			"version_target": "packages/rust/bevy_inventory/Cargo.toml"
 		},
 		{
 			"key": "bevy_items_crate",
 			"package_name": "bevy_items",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_items/version.toml",
-			"version_source": "packages/rust/bevy/bevy_items/Cargo.toml"
+			"version_source": "packages/rust/bevy/bevy_items/Cargo.toml",
+			"version_target": "packages/rust/bevy_items/Cargo.toml"
 		},
 		{
 			"key": "bevy_kbve_net_crate",
 			"package_name": "bevy_kbve_net",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_kbve_net/version.toml",
-			"version_source": "packages/rust/bevy/bevy_kbve_net/Cargo.toml"
+			"version_source": "packages/rust/bevy/bevy_kbve_net/Cargo.toml",
+			"version_target": "packages/rust/bevy_kbve_net/Cargo.toml"
 		},
 		{
 			"key": "bevy_mapdb_crate",
 			"package_name": "bevy_mapdb",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_mapdb/version.toml",
-			"version_source": "packages/rust/bevy/bevy_mapdb/Cargo.toml"
+			"version_source": "packages/rust/bevy/bevy_mapdb/Cargo.toml",
+			"version_target": "packages/rust/bevy_mapdb/Cargo.toml"
 		},
 		{
 			"key": "bevy_npc_crate",
 			"package_name": "bevy_npc",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_npc/version.toml",
-			"version_source": "packages/rust/bevy/bevy_npc/Cargo.toml"
+			"version_source": "packages/rust/bevy/bevy_npc/Cargo.toml",
+			"version_target": "packages/rust/bevy_npc/Cargo.toml"
 		},
 		{
 			"key": "bevy_player_crate",
 			"package_name": "bevy_player",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_player/version.toml",
-			"version_source": "packages/rust/bevy/bevy_player/Cargo.toml"
+			"version_source": "packages/rust/bevy/bevy_player/Cargo.toml",
+			"version_target": "packages/rust/bevy_player/Cargo.toml"
 		},
 		{
 			"key": "bevy_quests_crate",
 			"package_name": "bevy_quests",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_quests/version.toml",
-			"version_source": "packages/rust/bevy/bevy_quests/Cargo.toml"
+			"version_source": "packages/rust/bevy/bevy_quests/Cargo.toml",
+			"version_target": "packages/rust/bevy_quests/Cargo.toml"
 		},
 		{
 			"key": "bevy_skills_crate",
 			"package_name": "bevy_skills",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_skills/version.toml",
-			"version_source": "packages/rust/bevy/bevy_skills/Cargo.toml"
+			"version_source": "packages/rust/bevy/bevy_skills/Cargo.toml",
+			"version_target": "packages/rust/bevy_skills/Cargo.toml"
 		},
 		{
 			"key": "bevy_statemachine_crate",
 			"package_name": "bevy_statemachine",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_statemachine/version.toml",
-			"version_source": "packages/rust/bevy/bevy_statemachine/Cargo.toml"
+			"version_source": "packages/rust/bevy/bevy_statemachine/Cargo.toml",
+			"version_target": "packages/rust/bevy_statemachine/Cargo.toml"
 		},
 		{
 			"key": "bevy_tasker_crate",
 			"package_name": "bevy_tasker",
-			"version": "0.1.0",
+			"version": "0.1.1",
 			"version_toml": "packages/rust/bevy/bevy_tasker/version.toml",
-			"version_source": "packages/rust/bevy/bevy_tasker/Cargo.toml"
+			"version_source": "packages/rust/bevy/bevy_tasker/Cargo.toml",
+			"version_target": "packages/rust/bevy_tasker/Cargo.toml"
 		},
 		{
 			"key": "erust_crate",
@@ -435,12 +446,12 @@
 		}
 	],
 	"summary": {
-		"docker": 13,
+		"docker": 14,
 		"npm": 4,
 		"crates": 18,
 		"python": 2,
 		"unreal": 6,
 		"ue5_server": 2,
-		"total": 44
+		"total": 46
 	}
 }
