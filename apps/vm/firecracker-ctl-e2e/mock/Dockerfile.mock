@@ -77,10 +77,12 @@ COPY apps/vm/firecracker-ctl-e2e/mock/firecracker /usr/local/bin/firecracker
 RUN chmod +x /usr/local/bin/firecracker
 
 # Dummy rootfs images (empty files — mock doesn't boot a real VM)
+# Package cache files must be non-empty for exists-check to pass in firecracker-ctl
 RUN touch /var/lib/firecracker/rootfs/alpine-minimal.ext4 \
           /var/lib/firecracker/rootfs/alpine-node.ext4 \
           /var/lib/firecracker/rootfs/alpine-python.ext4 \
-          /var/lib/firecracker/rootfs/vmlinux
+          /var/lib/firecracker/rootfs/vmlinux && \
+    echo "mock-pip-cache" > /var/lib/firecracker/rootfs/pip-cache.ext4
 
 ENV FC_PORT=9001
 ENV FC_ROOTFS_DIR=/var/lib/firecracker/rootfs
