@@ -38,6 +38,29 @@ class AppDexie extends Dexie {
 }
 const db = new AppDexie();
 
+// --- ws-worker → db-worker direct pipeline ---
+// Listen for WebSocket messages from the ws-worker via BroadcastChannel.
+// This keeps the main thread out of the data storage path entirely.
+if (typeof BroadcastChannel !== 'undefined') {
+	const wsChannel = new BroadcastChannel('kbve_ws_data');
+	wsChannel.onmessage = (e: MessageEvent) => {
+		const msg = e.data;
+		if (msg?.type !== 'ws.store') return;
+
+		const key = `ws:${msg.ts ?? Date.now()}`;
+		const message =
+			msg.format === 'text'
+				? new TextEncoder().encode(msg.data)
+				: msg.data instanceof Uint8Array
+					? msg.data
+					: new Uint8Array(msg.data ?? []);
+
+		db.ws_messages.put({ key, message }).catch((err) => {
+			console.error('[DB] Failed to store ws message:', err);
+		});
+	};
+}
+
 function renderHtmlForServer(server: DiscordServer): string {
 	return `
 		<div class="flex flex-col gap-2 p-2">
