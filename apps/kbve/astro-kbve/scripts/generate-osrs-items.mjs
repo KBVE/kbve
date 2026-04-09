@@ -204,8 +204,53 @@ function buildBaseOsrsData(item, slug) {
 }
 
 /**
+ * Generate v2 MDX body — data-driven, all content rendered from frontmatter
+ * Sub-components in OSRSItemPanel handle: About, ItemDetails, Recipes,
+ * Equipment, DropSources, PotionInfo, FoodInfo, PrayerInfo, GatheringInfo,
+ * MarketStrategy, TradingTips, RelatedItems
+ */
+function generateV2Body() {
+	return `import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />
+`;
+}
+
+/**
+ * Generate v1 MDX body — legacy format with inline markdown sections
+ */
+function generateV1Body(item, overrideContent) {
+	return `import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is ${item.members ? 'a members-only' : 'a free-to-play'} item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+${item.highalch ? `- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP` : ''}
+${item.lowalch ? `- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP` : ''}
+${item.limit ? `- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours` : ''}
+${overrideContent ? `\n${overrideContent}\n` : ''}
+<Adsense />
+`;
+}
+
+/**
  * Generate MDX content for an OSRS item
  * Merges base Wiki data with override frontmatter
+ * Uses v2 body when mdx_version >= 2, otherwise legacy v1
  */
 async function generateMdx(item, overrideFrontmatter, overrideContent) {
 	const slug = nameToSlug(item.name);
@@ -234,34 +279,16 @@ async function generateMdx(item, overrideFrontmatter, overrideContent) {
 		nullStr: 'null',
 	});
 
+	// v2 items: all content in frontmatter, sub-components render everything
+	// v1 items: legacy markdown body with inline sections
+	const isV2 = osrsData.mdx_version >= 2;
+	const body = isV2 ? generateV2Body() : generateV1Body(item, overrideContent);
+
 	return `---
 ${yamlContent.trim()}
 ---
 
-import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
-
-<OSRSItemPanel data={frontmatter.osrs} />
-
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is ${item.members ? 'a members-only' : 'a free-to-play'} item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-${item.highalch ? `- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP` : ''}
-${item.lowalch ? `- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP` : ''}
-${item.limit ? `- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours` : ''}
-${overrideContent ? `
-${overrideContent}
-` : ''}
-<Adsense />
-`;
+${body}`;
 }
 
 async function main() {
