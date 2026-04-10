@@ -1276,7 +1276,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.104"
+version = "1.0.106"
 dependencies = [
  "anyhow",
  "askama",
@@ -1712,10 +1712,13 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "crossbeam-channel",
+ "js-sys",
  "serde",
  "serde_json",
  "tokio",
  "tracing",
+ "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]
@@ -5552,7 +5555,7 @@ checksum = "5baebc0774151f905a1a2cc41989300b1e6fbb29aff0ceffa1064fdd3088d582"
 
 [[package]]
 name = "firecracker-ctl"
-version = "0.1.26"
+version = "0.1.28"
 dependencies = [
  "axum",
  "dashmap 6.1.0",
@@ -7712,7 +7715,7 @@ checksum = "d98f6fed1fde3f8c21bc40a1abb88dd75e67924f9cffc3ef95607bad8017f8e2"
 
 [[package]]
 name = "irc-gateway"
-version = "0.1.9"
+version = "0.1.10"
 dependencies = [
  "anyhow",
  "axum",

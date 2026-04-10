@@ -21,6 +21,7 @@ COPY packages/rust/bevy/bevy_battle/Cargo.toml packages/rust/bevy/bevy_battle/Ca
 COPY packages/rust/bevy/bevy_npc/Cargo.toml packages/rust/bevy/bevy_npc/Cargo.toml
 COPY packages/rust/bevy/bevy_quests/Cargo.toml packages/rust/bevy/bevy_quests/Cargo.toml
 COPY packages/rust/bevy/bevy_skills/Cargo.toml packages/rust/bevy/bevy_skills/Cargo.toml
+COPY packages/rust/bevy/bevy_chat/Cargo.toml packages/rust/bevy/bevy_chat/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
@@ -32,7 +33,8 @@ RUN mkdir -p apps/discordsh/discordsh-bot/src && echo "fn main() {}" > apps/disc
     mkdir -p packages/rust/bevy/bevy_battle/src && echo "" > packages/rust/bevy/bevy_battle/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_npc/src && echo "" > packages/rust/bevy/bevy_npc/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_quests/src && echo "" > packages/rust/bevy/bevy_quests/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_skills/src && echo "" > packages/rust/bevy/bevy_skills/src/lib.rs
+    mkdir -p packages/rust/bevy/bevy_skills/src && echo "" > packages/rust/bevy/bevy_skills/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_chat/src && echo "" > packages/rust/bevy/bevy_chat/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -74,11 +76,12 @@ COPY packages/rust/bevy/bevy_battle packages/rust/bevy/bevy_battle
 COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
 COPY packages/rust/bevy/bevy_quests packages/rust/bevy/bevy_quests
 COPY packages/rust/bevy/bevy_skills packages/rust/bevy/bevy_skills
+COPY packages/rust/bevy/bevy_chat packages/rust/bevy/bevy_chat
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    cargo build --release -p kbve -p jedi -p bevy_inventory -p bevy_items -p bevy_battle -p bevy_npc -p bevy_quests -p bevy_skills
+    cargo build --release -p kbve -p jedi -p bevy_inventory -p bevy_items -p bevy_battle -p bevy_npc -p bevy_quests -p bevy_skills -p bevy_chat
 
 # ============================================================================
 # [STAGE D] - Build Application
@@ -99,6 +102,7 @@ COPY packages/rust/bevy/bevy_battle packages/rust/bevy/bevy_battle
 COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
 COPY packages/rust/bevy/bevy_quests packages/rust/bevy/bevy_quests
 COPY packages/rust/bevy/bevy_skills packages/rust/bevy/bevy_skills
+COPY packages/rust/bevy/bevy_chat packages/rust/bevy/bevy_chat
 
 # Application source (most frequently changing — placed last for cache)
 COPY apps/discordsh/discordsh-bot apps/discordsh/discordsh-bot
