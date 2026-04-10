@@ -1,0 +1,36 @@
+# Package list for the firecracker pip cache.
+# Consumed by both the rootfs init job (first build) and the weekly
+# refresh CronJob. Updating this list + bumping the init job version
+# (v6 → v7) triggers a rebuild on next ArgoCD sync.
+#
+# Selection criteria:
+#   - Useful for a Python code playground (not ML-heavy)
+#   - Must have musl-compatible wheels (alpine) or be pure Python
+#   - Stable, widely-used libraries
+#
+# Skipped (musl wheel issues or too heavy):
+#   - numpy, pandas, lxml, grpcio — build-from-source on alpine, too slow
+#   - opencv, pillow, tesseract — large binary deps
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: firecracker-pip-packages
+    namespace: firecracker
+    labels:
+        app: firecracker-ctl
+data:
+    packages.txt: |
+        kbve
+        fudster
+        requests
+        httpx
+        pydantic
+        click
+        rich
+        beautifulsoup4
+        python-dateutil
+        pyyaml
+        toml
+        orjson
+        tabulate
+        jmespath
