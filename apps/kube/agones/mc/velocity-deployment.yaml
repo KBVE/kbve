@@ -25,6 +25,10 @@ spec:
                 app: mc-velocity
                 app.kubernetes.io/part-of: mc
         spec:
+            # Pin to the dedicated-server node so hostPort 25565 is
+            # reachable on the same IP that mc.kbve.com resolves to.
+            nodeSelector:
+                node.kbve.com/type: dedicated-server
             containers:
                 - name: velocity
                   image: itzg/bungeecord:latest
@@ -38,8 +42,13 @@ spec:
                       - name: REPLACE_ENV_VARIABLES
                         value: 'true'
                   ports:
+                      # hostPort exposes Velocity directly on the node IP at
+                      # the standard Minecraft port 25565. Bypasses Service /
+                      # LoadBalancer / Gateway entirely. Players connect to
+                      # the node's external IP (mc.kbve.com:25565).
                       - name: minecraft
                         containerPort: 25565
+                        hostPort: 25565
                         protocol: TCP
                   resources:
                       requests:
