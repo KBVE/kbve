@@ -1,6 +1,6 @@
 ---
 title: Magic potion(4) | OSRS Price Data
-description: "Magic potion(4) is a 3-dose members potion. High alch: 180 GP, GE limit: 2,000."
+description: "Magic potion(4) is a 4-dose members potion. High alch: 180 GP, GE limit: 2,000."
 osrs:
   id: 3040
   name: Magic potion(4)
@@ -13,17 +13,20 @@ osrs:
   highalch: 180
   limit: 2000
   potion:
-    doses: 3
-    type: skill
-    boost_stat: magic
-    boost_formula: "+4"
-  herblore:
-    level: 76
-    xp: 172.5
+    doses: 4
+    herblore_level: 76
+    herblore_xp: 172.5
+    effect: Boosts Magic level by 4 for approximately 5 minutes (does not refresh)
+    effects:
+      - stat: magic
+        boost_type: flat
+        boost_value: 4
+        duration: 500
   recipes:
     - skill: herblore
       level: 76
       xp: 172.5
+      members_only: true
       materials:
         - item_name: Lantadyme potion (unf)
           item_id: 2483
@@ -31,68 +34,43 @@ osrs:
         - item_name: Potato cactus
           item_id: 3138
           quantity: 1
-      product: Magic potion(3)
-      product_id: 3040
-      product_quantity: 1
-      facility: None
-      members_only: true
   related_items:
-    - item_id: 2481
-      item_name: Lantadyme
+    - item_name: Lantadyme
+      item_id: 2481
       slug: lantadyme
       relationship: component
-      description: Primary herb
-    - item_id: 3138
-      item_name: Potato cactus
+    - item_name: Lantadyme potion (unf)
+      item_id: 2483
+      slug: lantadyme-potion-unf
+      relationship: component
+    - item_name: Potato cactus
+      item_id: 3138
       slug: potato-cactus
       relationship: component
-      description: Secondary
-    - item_id: 23739
-      item_name: Divine magic potion(3)
-      slug: divine-magic-potion-3
-      relationship: upgrade
-      description: No-decay version
-    - item_id: 20724
-      item_name: Imbued heart
+    - item_name: Magic potion(3)
+      item_id: 3042
+      slug: magic-potion-3
+      relationship: variant
+    - item_name: Magic potion(2)
+      item_id: 3044
+      slug: magic-potion-2
+      relationship: variant
+    - item_name: Magic potion(1)
+      item_id: 3046
+      slug: magic-potion-1
+      relationship: variant
+    - item_name: Imbued heart
+      item_id: 20724
       slug: imbued-heart
       relationship: alternative
-      description: Infinite magic boost
+    - item_name: Battlemage potion(4)
+      item_id: 22449
+      slug: battlemage-potion-4
+      relationship: alternative
   about: |-
-    Mix Lantadyme potion (unf) + Potato cactus.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore Level | 76 |
-    | XP gained | 172.5 |
-
-    Temporarily boosts Magic by +4 levels.
-
-    Note: Boosted Magic allows casting higher spells but NOT equipping gear above your base level.
-
-    Useful for:
-    - Casting spells above your level
-    - Enchanting jewelry
-    - Ancient Magicks
-    - Lunar spells
-
-    | Potion | Boost | Level |
-    |--------|-------|-------|
-    | Magic potion(4) | +4 | 76 |
-    | Super magic potion(4) | 5 + 15% | - |
-    | Divine magic potion(4) | +4 (no decay) | - |
-    | Imbued heart | 1 + 10% | - |
-  market_strategy:
-    profit_formulas:
-      - Magic potion - Lantadyme - Potato cactus = Profit
-    notes:
-      - High Herblore level required (76)
-      - "Calculate:"
-      - "Buy limit: 2,000 per 4 hours"
-      - Often cheaper than Divine version
-      - Lantadyme is the expensive component
-      - Potato cactus from farming or GE
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Magic potion(4) is a 4-dose members potion that grants a flat +4 boost to the Magic level when consumed. It is made via Herblore at level 76 by combining a Lantadyme potion (unf) with a potato cactus, yielding 172.5 Herblore experience per mix. Players commonly use it to cast higher-level spells and satisfy boosted Magic requirements for runecrafting and utility spells.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

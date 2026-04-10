@@ -20,10 +20,9 @@ data:
         online-mode = true
         force-key-authentication = true
         prevent-client-proxy-connections = false
-        # Modern forwarding requires FabricProxy-Lite mod on backend.
-        # Until that's bundled, use legacy bungeecord forwarding which
-        # most Fabric servers support natively (with bungeecord = true on backend).
-        player-info-forwarding-mode = "legacy"
+        # Modern Velocity forwarding — backend Fabric server runs
+        # FabricProxy-Lite to validate the forwarding signature.
+        player-info-forwarding-mode = "modern"
         forwarding-secret-file = "forwarding.secret"
         announce-forge = false
         announce-proxy-commands = true

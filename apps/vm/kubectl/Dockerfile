@@ -93,7 +93,7 @@ RUN chisel cut --release ubuntu-24.04 --root /rootfs \
         libc6_libs \
         libstdc++6_libs \
         openssl_config \
-        busybox-static_bins \
+        busybox_bins \
         libcurl4t64_libs \
         curl_bins && \
     # Create busybox symlinks for shell utilities

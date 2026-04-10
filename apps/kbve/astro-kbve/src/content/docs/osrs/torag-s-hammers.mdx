@@ -14,86 +14,83 @@ osrs:
   limit: 15
   equipment:
     slot: 2h
-    type: barrows_weapon
-    attack_style: melee
+    weapon_type: blunt
     attack_speed: 5
+    weight: 3.628
+    attack_bonus:
+      stab: -4
+      slash: -4
+      crush: 85
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+    other_bonus:
+      melee_strength: 72
     requirements:
       attack: 70
       strength: 70
-    stats:
-      attack_stab: -4
-      attack_slash: -4
-      attack_crush: 85
-      strength: 72
-    degradeable: true
-    degrade_hours: 15
-  effect:
-    double_hit: true
   set_bonus:
-    set_name: Torag's
-    effect: Chance to lower target's run energy by 20%
-  drop_table:
-    sources:
-      - source: Barrows chest
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
-        rarity: 7 × 1/2,448
-        members_only: true
+    set_name: Torag the Corrupted's equipment
+    pieces_required: 4
+    description: "25% chance for melee attacks to drain the target's run energy by 20% on a successful hit."
+    pieces:
+      - 4745
+      - 4749
+      - 4751
+      - 4747
+  charges:
+    max_charges: 100
+    combat_hours: 15
+    repairable: true
+    repair_npc: Bob
+    degrade_to_id: 4956
+    degrade_to_name: Torag's hammers 0
   related_items:
-    - item_id: 4749
-      item_name: Torag's platebody
-      slug: torags-platebody
-      relationship: component
-      description: Set piece
     - item_id: 4745
       item_name: Torag's helm
-      slug: torags-helm
-      relationship: component
-      description: Set piece
+      slug: torag-s-helm
+      relationship: set-piece
+      description: Torag the Corrupted's helmet
+    - item_id: 4749
+      item_name: Torag's platebody
+      slug: torag-s-platebody
+      relationship: set-piece
+      description: Torag the Corrupted's platebody
+    - item_id: 4751
+      item_name: Torag's platelegs
+      slug: torag-s-platelegs
+      relationship: set-piece
+      description: Torag the Corrupted's platelegs
+    - item_id: 11856
+      item_name: Torag's armour set
+      slug: torag-s-armour-set
+      relationship: variant
+      description: Grand Exchange placeholder bundling all four Torag set pieces
+    - item_id: 11838
+      item_name: Saradomin sword
+      slug: saradomin-sword
+      relationship: alternative
+      description: Alternative high-tier crush weapon with positive slash and stab bonuses
+    - item_id: 24417
+      item_name: Inquisitor's mace
+      slug: inquisitor-s-mace
+      relationship: alternative
+      description: Stronger crush alternative paired with the Inquisitor's armour set bonus
+    - item_id: 4734
+      item_name: Karil's crossbow
+      slug: karil-s-crossbow
+      relationship: alternative
+      description: Ranged Barrows weapon alternative from the same minigame
     - item_id: 4718
       item_name: Dharok's greataxe
-      slug: dharoks-greataxe
+      slug: dharok-s-greataxe
       relationship: alternative
-      description: Better alternative
+      description: Melee Barrows weapon alternative with the low-HP damage boost
   about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Stab | -4 |
-    | Slash | -4 |
-    | Crush | +85 |
-    | Strength | +72 |
-
-    | Defence | Value |
-    |---------|-------|
-    | All | +0 |
-
-    Requirements: 70 Attack, 70 Strength
-
-    Full Torag's:
-    - Chance to lower target's run energy by 20%
-    - Relatively weak effect
-
-    Double Hit:
-    - Two independent hits per attack
-    - Damage split between both hits
-    - Useful vs negative armour targets
-
-    Degrades over 15 hours of combat.
-
-    Limited uses:
-    - Barrows set completion
-    - Double-hit mechanics
-    - Set effect is weak
-
-    Generally outclassed by other options.
-  market_strategy:
-    notes:
-      - Cheapest Barrows weapon
-      - Set effect is niche
-      - Collection purposes
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Torag's hammers are a members' two-handed crush weapon requiring 70 Attack and 70 Strength to wield, dealing two independently rolled hits per attack that split the combined maximum damage. When worn with the full Torag the Corrupted's equipment set, melee attacks gain a 25% chance to drain the target's run energy by 20% on a successful hit. The hammers are obtained from the Barrows minigame and degrade over 15 hours of combat, after which they must be repaired by Bob in Lumbridge or at an armour stand in a player-owned house.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

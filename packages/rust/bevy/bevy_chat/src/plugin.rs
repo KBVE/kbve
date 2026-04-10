@@ -37,8 +37,8 @@ impl ChatOutbox {
     }
 }
 
-/// Bevy event fired for each incoming IRC message.
-#[derive(Event, Debug, Clone)]
+/// Bevy message fired for each incoming IRC message.
+#[derive(Message, Debug, Clone)]
 pub struct IncomingChatEvent(pub ChatMessage);
 
 /// Bevy plugin that creates the IRC bridge channels and a system
@@ -79,13 +79,13 @@ impl Plugin for ChatPlugin {
         app.insert_resource(ChatOutbox {
             tx: self.outbox_tx.clone(),
         });
-        app.add_event::<IncomingChatEvent>();
+        app.add_message::<IncomingChatEvent>();
         app.add_systems(Update, poll_inbox);
     }
 }
 
-/// System that drains the crossbeam inbox and fires Bevy events.
-fn poll_inbox(inbox: Res<ChatInbox>, mut events: EventWriter<IncomingChatEvent>) {
+/// System that drains the crossbeam inbox and fires Bevy messages.
+fn poll_inbox(inbox: Res<ChatInbox>, mut events: MessageWriter<IncomingChatEvent>) {
     for msg in inbox.drain() {
         events.write(IncomingChatEvent(msg));
     }

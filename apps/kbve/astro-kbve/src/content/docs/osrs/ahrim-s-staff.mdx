@@ -13,79 +13,110 @@ osrs:
   highalch: 51000
   limit: 15
   equipment:
-    slot: weapon
-    type: barrows_weapon
-    attack_style: magic
-    attack_speed: 5
+    slot: 2h
+    weapon_type: staff
+    attack_speed: 6
+    weight: 2.267
+    attack_bonus:
+      stab: 11
+      slash: 11
+      crush: 65
+      magic: 15
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 3
+      crush: 1
+      magic: 15
+      ranged: 0
+    other_bonus:
+      melee_strength: 68
+      magic_damage: 5
+      prayer: 0
     requirements:
       magic: 70
       attack: 70
-    stats:
-      attack_magic: 15
-      magic_damage: 5
-    degradeable: true
-    degrade_hours: 15
   set_bonus:
-    set_name: Ahrim's
-    effect: Chance to lower target's Strength
-    aotd_effect: 25% chance for +30% damage with Ancient Magicks
-  drop_table:
-    sources:
-      - source: Barrows chest
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
-        rarity: 7 × 1/2,448
-        members_only: true
+    set_name: Ahrim the Blighted's equipment
+    pieces_required: 4
+    description: "25% chance for magic attacks to drain the target's Strength level by 5 on a successful hit."
+    pieces:
+      - 4708
+      - 4712
+      - 4714
+      - 4710
+  charges:
+    max_charges: 100
+    combat_hours: 15
+    repairable: true
+    repair_npc: Bob
+    degrade_to_id: 4862
+    degrade_to_name: Ahrim's staff 0
   related_items:
+    - item_id: 4708
+      item_name: Ahrim's hood
+      slug: ahrim-s-hood
+      relationship: set-piece
+      description: Head slot of Ahrim's set.
     - item_id: 4712
       item_name: Ahrim's robetop
-      slug: ahrims-robetop
-      relationship: component
-      description: Set piece
-    - item_id: 12851
-      item_name: Amulet of the damned
-      slug: amulet-of-the-damned
-      relationship: component
-      description: Enhanced effect
-    - item_id: 21006
-      item_name: Kodai wand
-      slug: kodai-wand
-      relationship: upgrade
-      description: BiS upgrade
+      slug: ahrim-s-robetop
+      relationship: set-piece
+      description: Body slot of Ahrim's set.
+    - item_id: 4714
+      item_name: Ahrim's robeskirt
+      slug: ahrim-s-robeskirt
+      relationship: set-piece
+      description: Legs slot of Ahrim's set.
+    - item_id: 4856
+      item_name: Ahrim's armour set
+      slug: ahrim-s-armour-set
+      relationship: variant
+      description: Grand Exchange bundle containing the full set
+    - item_id: 11905
+      item_name: Trident of the seas
+      slug: trident-of-the-seas
+      relationship: alternative
+      description: Powered staff alternative for magic combat.
+    - item_id: 4675
+      item_name: Ancient staff
+      slug: ancient-staff
+      relationship: alternative
+      description: Alternative magic staff for Ancient Magicks.
+    - item_id: 6914
+      item_name: Master wand
+      slug: master-wand
+      relationship: alternative
+      description: One-handed magic weapon alternative.
+    - item_id: 4718
+      item_name: Dharok's greataxe
+      slug: dharok-s-greataxe
+      relationship: alternative
+      description: Another Barrows two-handed weapon.
+    - item_id: 4726
+      item_name: Guthan's warspear
+      slug: guthan-s-warspear
+      relationship: alternative
+      description: Another Barrows two-handed weapon.
+    - item_id: 4734
+      item_name: Karil's crossbow
+      slug: karil-s-crossbow
+      relationship: alternative
+      description: Another Barrows two-handed weapon.
+    - item_id: 4747
+      item_name: Verac's flail
+      slug: verac-s-flail
+      relationship: alternative
+      description: Another Barrows two-handed weapon.
   about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Magic attack | +15 |
-    | Magic damage | +5% |
-
-    | Defence | Value |
-    |---------|-------|
-    | All | +0 |
-
-    Requirements: 70 Magic, 70 Attack
-
-    Full Ahrim's:
-    - Chance to lower target's Strength
-
-    With Amulet of the Damned:
-    - 25% chance for +30% damage with Ancient Magicks
-
-    Degrades over 15 hours of combat.
-
-    Popular for:
-    - Ancient Magicks with AotD
-    - Budget magic weapon
-    - Barrows set completion
-
-    +5% magic damage is valuable.
+    Ahrim the Blighted's staff is a members two-handed magic staff requiring 70 Magic and 70 Attack to wield. When worn alongside the other three Ahrim's pieces, the set grants a 25% chance for magic attacks to drain the target's Strength level by 5 on a successful hit. It is obtained as a drop from the Barrows minigame and degrades over 15 hours of combat before becoming unusable, but can be repaired by Bob in Lumbridge or at an armour stand.
   market_strategy:
     notes:
       - Barrows grind
       - Good with AotD
       - Degrades with use
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

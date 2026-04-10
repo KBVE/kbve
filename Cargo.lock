@@ -7844,6 +7844,7 @@ dependencies = [
  "base64 0.22.1",
  "bevy",
  "bevy_cam",
+ "bevy_chat",
  "bevy_db",
  "bevy_inventory",
  "bevy_items",
