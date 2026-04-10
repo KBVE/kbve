@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Skeletons spawn near players and despawn when players leave.
  * Each skeleton is tracked by entity ID with a monotonic epoch
  * for stale-intent detection. Skeletons can call for reinforcements
- * when wounded.
+ * when wounded, subject to per-skeleton and global cooldowns.
  */
 public class AiSkeletonManager {
 
@@ -35,15 +35,17 @@ public class AiSkeletonManager {
 
     private static final int SPAWN_RADIUS = 20;
     private static final int DESPAWN_RANGE = 64;
-    private static final int MAX_SKELETONS = 6;
+    private static final int MAX_SKELETONS = 3;
     private static final int SPAWN_CHECK_INTERVAL = 100; // ticks (~5s)
     private static final double OBSERVATION_RANGE = 32.0;
-    private static final int CALL_COOLDOWN_TICKS = 200; // 10s cooldown per skeleton
+    private static final int CALL_COOLDOWN_TICKS = 400; // 20s cooldown per skeleton
+    private static final int GLOBAL_CALL_COOLDOWN_TICKS = 400; // 20s global cooldown
 
     /** Tracked skeletons keyed by entity ID. */
     private final ConcurrentHashMap<Integer, TrackedSkeleton> skeletons = new ConcurrentHashMap<>();
 
     private int tickCounter = 0;
+    private long lastGlobalCallTick = 0;
 
     // -----------------------------------------------------------------------
     // Tracked skeleton state
@@ -95,6 +97,7 @@ public class AiSkeletonManager {
 
     /**
      * Build observation JSON for each tracked skeleton and submit to Tokio.
+     * Called at throttled intervals by NpcTickHandler, not every tick.
      */
     public void submitObservations(MinecraftServer server) {
         ServerWorld overworld = server.getOverworld();
@@ -123,7 +126,6 @@ public class AiSkeletonManager {
             obs.addProperty("health", skeleton.getHealth());
             obs.addProperty("tick", currentTick);
 
-            // Nearby players as entities
             JsonArray nearbyEntities = new JsonArray();
             Box searchBox = skeleton.getBoundingBox().expand(OBSERVATION_RANGE);
             for (ServerPlayerEntity player : overworld.getPlayers()) {
@@ -168,18 +170,21 @@ public class AiSkeletonManager {
     // Call for help — spawn reinforcements near the caller
     // -----------------------------------------------------------------------
 
-    /**
-     * Spawn reinforcement skeletons near the calling skeleton.
-     * Returns true if reinforcements were spawned.
-     */
     public boolean spawnReinforcements(ServerWorld world, int callerEntityId, int count, long currentTick) {
+        // Global cooldown — prevent cascade
+        if ((currentTick - lastGlobalCallTick) < GLOBAL_CALL_COOLDOWN_TICKS) return false;
+
         var tracked = skeletons.get(callerEntityId);
         if (tracked == null || !tracked.canCall(currentTick)) return false;
 
         var caller = world.getEntityById(callerEntityId);
         if (caller == null || !caller.isAlive()) return false;
 
+        // Already at max — no reinforcements
+        if (skeletons.size() >= MAX_SKELETONS) return false;
+
         tracked.markCalled(currentTick);
+        lastGlobalCallTick = currentTick;
         int spawned = 0;
 
         for (int i = 0; i < count && skeletons.size() < MAX_SKELETONS; i++) {
@@ -213,7 +218,6 @@ public class AiSkeletonManager {
             }
             if (!nearPlayer) {
                 entity.discard();
-                LOGGER.debug("[AI Skeleton] Despawned skeleton too far from players (id={})", entry.getKey());
                 return true;
             }
             return false;
@@ -248,6 +252,10 @@ public class AiSkeletonManager {
         skeleton.setCustomName(Text.of("AI Skeleton"));
         skeleton.setCustomNameVisible(true);
         skeleton.setPersistent();
+        // Iron helmet — prevents burning in sunlight
+        skeleton.equipStack(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
+        skeleton.setEquipmentDropChance(EquipmentSlot.HEAD, 0.0f);
+        // Stone sword for melee
         skeleton.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
         skeleton.setEquipmentDropChance(EquipmentSlot.MAINHAND, 0.0f);
 
