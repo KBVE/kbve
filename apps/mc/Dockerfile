@@ -1,12 +1,16 @@
 # ── Stage 1: Build Rust native library (.so) ──────────────────────────
-FROM rust:1.85-bookworm AS rust-builder
+FROM rust:1.94-bookworm AS rust-builder
 WORKDIR /build
 
-# Standalone workspace with only the behavior_statetree crate.
+# Standalone workspace with behavior_statetree + bevy_npc dependency.
 # Uses the repo Cargo.lock for reproducible dependency resolution.
 COPY Cargo.lock .
 COPY apps/mc/behavior_statetree/ behavior_statetree/
-RUN printf '[workspace]\nresolver = "2"\nmembers = ["behavior_statetree"]\n' > Cargo.toml
+COPY packages/rust/bevy/bevy_npc/ bevy_npc/
+
+# Rewrite bevy_npc path in behavior_statetree Cargo.toml for Docker context
+RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_npc"|path = "../bevy_npc"|' behavior_statetree/Cargo.toml
+RUN printf '[workspace]\nresolver = "2"\nmembers = ["behavior_statetree", "bevy_npc"]\n' > Cargo.toml
 
 RUN cargo build -p behavior_statetree --release
 # Output: /build/target/release/libbehavior_statetree.so

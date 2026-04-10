@@ -1505,6 +1505,8 @@ dependencies = [
 name = "behavior_statetree"
 version = "0.1.0"
 dependencies = [
+ "bevy",
+ "bevy_npc",
  "crossbeam-channel",
  "jni 0.21.1",
  "serde",

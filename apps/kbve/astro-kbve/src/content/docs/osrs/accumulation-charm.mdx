@@ -12,9 +12,9 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: null
-  about: Accumulation charm is a members-only item in Old School RuneScape.
+  about: The Accumulation charm is a Deadman Mode reward item that triples drops from clue scrolls, chinchompas, and gathering skills (Mining, Fishing, Woodcutting, Farming) while multiplying Runecrafting rune output by five. It must be kept in the player's inventory to activate its effects, and is dropped by breach bosses and high-level monsters in the permanent Deadman Mode game variant.
   mdx_version: 3
-  mdx_updated: 2026-04-10
+  mdx_updated: "2026-04-10"
   properties:
     tradeable: true
     equipable: false
@@ -22,6 +22,36 @@ osrs:
     noteable: true
     members: true
     weight: 1
+  passive_effects:
+    - name: Tripled Gathering Yield
+      description: "Triples resources (and experience) gained from Mining, Fishing, Woodcutting, and Farming while the charm is held in the player's inventory."
+      trigger: always
+    - name: Tripled Drop Rates
+      description: "Triples the drop rates of clue scrolls and chinchompas while held."
+      trigger: always
+    - name: Runecrafting Multiplier
+      description: "Multiplies the number of runes produced per essence during Runecrafting by five."
+      trigger: always
+    - name: Charge Efficiency
+      description: "Charged gathering items such as the Bracelet of clay consume only a single charge while still benefiting from the tripled resource effect."
+      trigger: always
+  drop_table:
+    sources:
+      - source: Breach bosses (Deadman Mode)
+        rarity: rare
+        members_only: true
+      - source: Combat level 200+ monsters (Deadman Mode)
+        rarity: very-rare
+        members_only: true
+  related_items:
+    - item_name: Stockpiling charm
+      slug: stockpiling-charm
+      relationship: alternative
+      description: "Synergistic charm that mitigates the banking overhead from tripled gathering yield."
+    - item_name: Bracelet of clay
+      slug: bracelet-of-clay
+      relationship: component
+      description: "Charged gathering item that consumes only one charge per action while benefiting from the tripled resource effect."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

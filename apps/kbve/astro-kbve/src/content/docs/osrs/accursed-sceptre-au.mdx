@@ -12,9 +12,57 @@ osrs:
   lowalch: 48000
   highalch: 72000
   limit: 8
-  about: "Accursed sceptre (au) is a members-only item in Old School RuneScape. High alchemy value: 72,000 coins. Grand Exchange buy limit: 8 per 4 hours."
+  about: "The Accursed sceptre (au) is the autocast-enabled variant of the accursed sceptre, wielded as a two-handed magic weapon that requires level 70 Magic to equip. It carries the same Condemn special attack as the base sceptre, consuming 50% special energy to deliver a boosted-accuracy, boosted-damage spell that drains the target's Defence and Magic levels on a successful hit. Players obtain the underlying sceptre pieces from Wilderness boss drops before assembling and charging it with revenant ether."
+  equipment:
+    slot: 2h
+    weapon_type: powered-staff
+    attack_speed: 5
+    attack_range: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 22
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 20
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      magic: 70
+    weight: 0.198
+  special_attack:
+    name: Condemn
+    energy: 50
+    description: "Consumes 50% special attack energy and 1 revenant ether to cast a built-in spell with boosted accuracy and damage. On a successful hit it drains the target's Defence and Magic levels by up to 15% of their current value (capped, non-stacking)."
+    accuracy_modifier: 1.5
+    damage_modifier: 1.5
+  charges:
+    max_charges: 17000
+    charge_cost_item: Revenant ether
+    charges_per_item: 1
+  related_items:
+    - item_name: Accursed sceptre
+      slug: accursed-sceptre
+      relationship: variant
+      description: Uncharged base form
+    - item_name: Accursed sceptre (u)
+      slug: accursed-sceptre-u
+      relationship: component
+      description: Unpowered sceptre used in assembly
+    - item_name: Trailblazer reloaded teleport scroll
+      slug: trailblazer-reloaded-teleport-scroll
+      relationship: alternative
+      description: Alternative reward-track item
   mdx_version: 3
-  mdx_updated: 2026-04-10
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
