@@ -12,27 +12,61 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 11000
-  herb:
-    type: clean
-    tier: mid-high
+  material:
+    type: herb
+    tier: high
   farming:
-    level: 32
-    xp: 91
+    farming_level: 32
+    plant_xp: 27
+    harvest_xp: 30.5
+    patch_type: herb
     growth_time: 80
+    payment: "1 sack of potatoes"
+    payment_item_id: 5418
     seed_id: 5295
     seed_name: Ranarr seed
-  herblore:
-    cleaning_level: 25
-    cleaning_xp: 7.5
-    grimy_id: 207
-    grimy_name: Grimy ranarr weed
+    min_yield: 6
+    compost_type: ultracompost
+    disease_free: false
+  about: >-
+    Ranarr weed is widely regarded as the most valuable common herb in Old
+    School RuneScape, prized almost exclusively for its role as the primary
+    ingredient in prayer potions — a staple consumable across virtually every
+    PvM encounter. Players can plant ranarr seeds at 32 Farming or clean the
+    grimy version at 25 Herblore, both routes feeding into an enormous and
+    remarkably stable market. Because prayer potions are consumed constantly
+    by the entire game, ranarr weed maintains high demand and consistently
+    strong prices on the Grand Exchange.
   recipes:
+    - skill: herblore
+      level: 25
+      xp: 7.5
+      materials:
+        - item_name: Grimy ranarr weed
+          item_id: 207
+          quantity: 1
+      product: Ranarr weed
+      product_id: 257
+      members_only: true
+    - skill: herblore
+      level: 30
+      xp: 0
+      materials:
+        - item_name: Ranarr weed
+          item_id: 257
+          quantity: 1
+        - item_name: Vial of water
+          item_id: 227
+          quantity: 1
+      product: Ranarr potion (unf)
+      product_id: 97
+      members_only: true
     - skill: herblore
       level: 38
       xp: 87.5
       materials:
-        - item_name: Ranarr weed
-          item_id: 257
+        - item_name: Ranarr potion (unf)
+          item_id: 97
           quantity: 1
         - item_name: Snape grass
           item_id: 231
@@ -44,50 +78,57 @@ osrs:
     - item_id: 207
       item_name: Grimy ranarr weed
       slug: grimy-ranarr-weed
-      relationship: component
-      description: Uncleaned version
+      relationship: variant
+      description: Uncleaned version — cleaned at 25 Herblore for 7.5 XP
     - item_id: 5295
       item_name: Ranarr seed
       slug: ranarr-seed
       relationship: component
-      description: For farming
-    - item_id: 231
-      item_name: Snape grass
-      slug: snape-grass
-      relationship: component
-      description: Secondary ingredient
+      description: Planted at 32 Farming in a herb patch
+    - item_id: 97
+      item_name: Ranarr potion (unf)
+      slug: ranarr-potion-unf
+      relationship: product
+      description: Unfinished prayer potion base (ranarr + vial of water)
     - item_id: 2434
       item_name: Prayer potion(4)
       slug: prayer-potion-4
       relationship: product
-      description: Final product
-    - item_id: 227
-      item_name: Vial of water
-      slug: vial-of-water
-      relationship: component
-      description: Required for potion
+      description: Final product — restores prayer points
+    - item_id: 3051
+      item_name: Snapdragon
+      slug: snapdragon
+      relationship: alternative
+      description: Higher tier herb — used for super restore potions
+    - item_id: 209
+      item_name: Irit leaf
+      slug: irit-leaf
+      relationship: alternative
+      description: Lower tier herb — used for super attack and antipoison potions
   market_strategy:
+    title: Prayer potion processing
     steps:
       - order: 1
-        action: Buy Grimy ranarr weed or clean Ranarr weed
+        action: Buy Grimy ranarr weed and clean to Ranarr weed
+        item_slug: grimy-ranarr-weed
       - order: 2
-        action: Buy Snape grass
+        action: Combine with Vial of water to make Ranarr potion (unf)
+        item_slug: ranarr-potion-unf
       - order: 3
-        action: Make Prayer potion(4)
+        action: Add Snape grass to make Prayer potion(3)
+        item_slug: prayer-potion-3
       - order: 4
-        action: "Calculate: `Prayer potion price - Ranarr price - Snape grass price - Vial = Profit`"
+        action: Decant 3-dose potions into 4-dose for higher value
+        item_slug: prayer-potion-4
     profit_formulas:
-      - Prayer potion price - Ranarr price - Snape grass price - Vial = Profit
+      - "Prayer potion(4) - Ranarr weed - Snape grass - Vial of water = profit margin"
     notes:
-      - Buy grimy → Clean → Sell clean
-      - Small margin but high volume
-      - Ranarr seed → Grow → Harvest
-      - One of the most profitable herbs to farm
-      - Prayer potions used by every account
-      - Essential for all PvM content
-      - High volume, stable prices
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Cleaning grimy ranarr is the easiest entry point — small margin per herb but huge volume.
+      - Farming a herb run with ultracompost is one of the most profitable activities in OSRS, returning 6+ herbs per patch.
+      - Demand is permanent and price-stable because every PvM account consumes prayer potions.
+      - Watch grimy vs clean spread for cleaning arbitrage opportunities.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

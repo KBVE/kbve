@@ -32,8 +32,11 @@ osrs:
       product: Cooked karambwan
       product_id: 3144
       product_quantity: 1
-      facility: Range/Fire
+      facility: Range
       members_only: true
+  material:
+    type: fish
+    tier: high
   related_items:
     - item_id: 3142
       item_name: Raw karambwan
@@ -56,30 +59,14 @@ osrs:
       relationship: alternative
       description: Alternative
   about: |-
-    | Effect | Value |
-    |--------|-------|
-    | Heals | 18 HP |
-    | Buy limit | 10,000 |
-
-    Combo Eating:
-    - Eat same tick as other food
-    - Essential for high-level PvM
-    - Used with shark/anglerfish
+    Cooked karambwan is a members-only fish that restores 18 Hitpoints and acts as a fast food, meaning it can be eaten on the same tick as another food item for an instant double heal. This combo-eating property makes it a staple at raids and other high-end PvM encounters where burst healing matters more than raw heal-per-bite. Cooking raw karambwan requires level 30 Cooking and completion of the Tai Bwo Wannai Trio quest — without the quest, players will only produce poison karambwan instead.
   market_strategy:
     notes:
-      - Tick eating meta
-      - Raids/Inferno staple
-      - High demand always
-      - Combo eating (PvM/PvP)
-      - Theatre of Blood
-      - Inferno attempts
-      - Cox/ToA raids
-      - 1-tick karambwan technique
-      - Eat with shark for 38 HP
-      - Quest required to cook
-      - Always in demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Cooked karambwan anchors the tick-eating meta, letting players stack a bite on the same tick as shark, anglerfish, or brews for burst heals.
+      - Demand is driven almost entirely by PvM — Theatre of Blood, Chambers of Xeric, Tombs of Amascut, and Inferno runs all burn through stacks per attempt.
+      - The Tai Bwo Wannai Trio quest gate keeps the supply of self-cooked karambwan tight, since new accounts cannot produce them until the quest is finished.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
