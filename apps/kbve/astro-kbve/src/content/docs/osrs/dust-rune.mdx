@@ -12,67 +12,59 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 18000
-  item:
+  material:
     type: rune
-    subtype: combination
-    tradeable: true
-    stackable: true
-    weight: 0
-    elements:
-      - air
-      - earth
+    tier: mid
   recipes:
     - skill: runecraft
       level: 10
-      xp: 8.3
-      altar: Air
+      xp: 8.4
+      members_only: true
+      facility: Earth altar (with Binding necklace)
       materials:
-        - item_name: Pure essence
-          quantity: 1
-        - item_name: Earth rune
-          quantity: 1
-        - item_name: Earth talisman
-          quantity: 1
-    - skill: runecraft
-      level: 10
-      xp: 9
-      altar: Earth
-      materials:
-        - item_name: Pure essence
-          quantity: 1
         - item_name: Air rune
+          item_id: 556
           quantity: 1
-        - item_name: Air talisman
+        - item_name: Pure essence
+          item_id: 7936
           quantity: 1
+      product: Dust rune
+      product_id: 4696
   related_items:
-    - item_id: 4697
-      item_name: Smoke rune
-      slug: smoke-rune
-      relationship: alternative
-      description: Air + Fire combo rune
-    - item_id: 4695
-      item_name: Mist rune
+    - item_name: Air rune
+      item_id: 556
+      slug: air-rune
+      relationship: component
+    - item_name: Earth rune
+      item_id: 557
+      slug: earth-rune
+      relationship: component
+    - item_name: Pure essence
+      item_id: 7936
+      slug: pure-essence
+      relationship: component
+    - item_name: Binding necklace
+      slug: binding-necklace
+      relationship: component
+    - item_name: Mist rune
       slug: mist-rune
       relationship: alternative
-      description: Air + Water combo rune
-    - item_id: 4699
-      item_name: Lava rune
+    - item_name: Smoke rune
+      slug: smoke-rune
+      relationship: alternative
+    - item_name: Steam rune
+      slug: steam-rune
+      relationship: alternative
+    - item_name: Mud rune
+      slug: mud-rune
+      relationship: alternative
+    - item_name: Lava rune
       slug: lava-rune
       relationship: alternative
-      description: Earth + Fire combo rune
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Combination Rune |
-    | Tradeable | Yes |
-    | Stackable | Yes |
-    | Weight | 0 kg |
-
-    Counts as both air and earth rune.
-
-    Used in earth spells.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Dust runes are members-only combination runes that count as both an air rune and an earth rune, letting a single dust rune satisfy either requirement (or both) in any spell. They are crafted at the Earth altar by bringing pure essence and air runes while wearing a binding necklace, typically paired with the Lunar spell Magic Imbue to avoid consuming a talisman. Dust runes can also be purchased with Pizazz points from the Mage Training Arena.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

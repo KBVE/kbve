@@ -12,67 +12,59 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 18000
-  item:
+  material:
     type: rune
-    subtype: combination
-    tradeable: true
-    stackable: true
-    weight: 0
-    elements:
-      - air
-      - water
+    tier: mid
   recipes:
     - skill: runecraft
       level: 6
-      xp: 8
-      altar: Air
-      materials:
-        - item_name: Pure essence
-          quantity: 1
-        - item_name: Water rune
-          quantity: 1
-        - item_name: Water talisman
-          quantity: 1
-    - skill: runecraft
-      level: 6
       xp: 8.5
-      altar: Water
+      members_only: true
+      facility: Water altar (with Binding necklace)
       materials:
-        - item_name: Pure essence
-          quantity: 1
         - item_name: Air rune
+          item_id: 556
           quantity: 1
-        - item_name: Air talisman
+        - item_name: Pure essence
+          item_id: 7936
           quantity: 1
+      product: Mist rune
+      product_id: 4695
   related_items:
-    - item_id: 4697
-      item_name: Smoke rune
+    - item_name: Air rune
+      item_id: 556
+      slug: air-rune
+      relationship: component
+    - item_name: Water rune
+      item_id: 555
+      slug: water-rune
+      relationship: component
+    - item_name: Pure essence
+      item_id: 7936
+      slug: pure-essence
+      relationship: component
+    - item_name: Binding necklace
+      slug: binding-necklace
+      relationship: component
+    - item_name: Smoke rune
       slug: smoke-rune
       relationship: alternative
-      description: Air + Fire combo rune
-    - item_id: 4696
-      item_name: Dust rune
-      slug: dust-rune
-      relationship: alternative
-      description: Air + Earth combo rune
-    - item_id: 4694
-      item_name: Steam rune
+    - item_name: Steam rune
       slug: steam-rune
       relationship: alternative
-      description: Water + Fire combo rune
+    - item_name: Dust rune
+      slug: dust-rune
+      relationship: alternative
+    - item_name: Mud rune
+      slug: mud-rune
+      relationship: alternative
+    - item_name: Lava rune
+      slug: lava-rune
+      relationship: alternative
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Combination Rune |
-    | Tradeable | Yes |
-    | Stackable | Yes |
-    | Weight | 0 kg |
-
-    Counts as both air and water rune.
-
-    Used in water spells.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Mist rune is a members-only combination rune that counts as both an Air rune and a Water rune when casting spells, letting a single rune satisfy both elemental requirements. Players can craft it at level 6 Runecraft at the Water altar by using Air runes with pure essence while wearing a Binding necklace for a guaranteed success, or by using the Lunar spell Magic Imbue from Lunar Diplomacy to skip the talisman requirement. It awards 8.5 Runecraft experience per rune and is commonly used to save inventory space for water-based combat spells.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

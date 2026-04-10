@@ -14,22 +14,13 @@ osrs:
   limit: 10000
   material:
     type: gem
-    tier: mid-high
-  crafting:
-    cutting_level: 34
-    cutting_xp: 85
-    uncut: true
-  drop_table:
-    sources:
-      - source: Gem rocks
-        source_id: 0
-        quantity: "1"
-        rarity: uncommon
-        members_only: true
+    tier: mid
   recipes:
     - skill: crafting
       level: 34
-      xp: 85
+      xp: 50
+      tools:
+        - Chisel
       materials:
         - item_name: Uncut ruby
           item_id: 1619
@@ -37,68 +28,55 @@ osrs:
       product: Ruby
       product_id: 1603
       product_quantity: 1
-    - skill: fletching
-      level: 63
-      xp: 6
-      materials:
-        - item_name: Ruby
-          item_id: 1603
-          quantity: 1
-      product: Ruby bolt tips
-      product_id: 9191
-      product_quantity: 12
-      members_only: true
   related_items:
-    - item_id: 1617
-      item_name: Uncut diamond
-      slug: uncut-diamond
-      relationship: alternative
-      description: Higher tier gem
-    - item_id: 1621
-      item_name: Uncut emerald
-      slug: uncut-emerald
-      relationship: alternative
-      description: Lower tier gem
     - item_id: 1603
       item_name: Ruby
       slug: ruby
       relationship: product
-      description: Cut version
-    - item_id: 9242
-      item_name: Ruby bolts (e)
-      slug: ruby-bolts-e
-      relationship: product
-      description: Popular ammunition
-    - item_id: 1755
-      item_name: Chisel
-      slug: chisel
-      relationship: component
-      description: For cutting
+    - item_id: 1621
+      item_name: Uncut emerald
+      slug: uncut-emerald
+      relationship: downgrade
+    - item_id: 1617
+      item_name: Uncut diamond
+      slug: uncut-diamond
+      relationship: upgrade
+    - item_id: 1623
+      item_name: Uncut sapphire
+      slug: uncut-sapphire
+      relationship: downgrade
+    - item_id: 1631
+      item_name: Uncut dragonstone
+      slug: uncut-dragonstone
+      relationship: upgrade
+  drop_table:
+    sources:
+      - source: Gem rocks
+        quantity: "1"
+        rarity: uncommon
+        drop_rate: "1/29"
+        members_only: true
+      - source: Lesser demon
+        quantity: "1"
+        rarity: rare
+        drop_rate: "1/128"
+      - source: Ankou
+        quantity: "1"
+        rarity: rare
+        drop_rate: "1/256"
+      - source: Dust devil
+        quantity: "1"
+        rarity: rare
+        drop_rate: "1/256"
+        members_only: true
+      - source: Hill giant
+        quantity: "1"
+        rarity: rare
+        drop_rate: "1/512"
   about: |-
-    | Item | Enchantment | Effect |
-    |------|-------------|--------|
-    | Ruby ring | Ring of forging | No iron ore fail |
-    | Ruby necklace | Digsite pendant | Teleport |
-    | Ruby amulet | Amulet of strength | +10 Strength |
-    | Ruby bolts | Ruby bolts (e) | Blood Forfeit spec |
-  market_strategy:
-    title: Gem Processing
-    profit_formulas:
-      - Cut ruby price - Uncut price = Profit
-    notes:
-      - Buy uncut → Cut → Sell for profit
-      - "Calculate:"
-      - Factor in failure rate below 34 Crafting
-      - Ruby bolt tips (e) enchanting
-      - Jewellery crafting
-      - Ring of forging
-      - Amulet of strength
-      - Ruby bolt (e) very popular
-      - Blood Fury combines with ruby
-      - Higher margins than emerald
-      - Consistent demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Uncut ruby is the raw form of the ruby, a mid-tier precious gem dropped by many monsters via the rare drop table and mined from gem rocks in Shilo Village and Tai Bwo Wannai. It can be cut with a chisel at level 34 Crafting, granting 50 experience per cut. Cut rubies are used to craft ruby jewellery such as the amulet of strength and ring of forging, and to make ruby bolt tips for enchanted ranged ammunition.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

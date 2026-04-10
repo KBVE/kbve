@@ -12,67 +12,62 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 18000
-  item:
+  material:
     type: rune
-    subtype: combination
-    tradeable: true
-    stackable: true
-    weight: 0
-    elements:
-      - water
-      - fire
+    tier: mid
   recipes:
     - skill: runecraft
       level: 19
-      xp: 9.5
-      altar: Water
-      materials:
-        - item_name: Pure essence
-          quantity: 1
-        - item_name: Fire rune
-          quantity: 1
-        - item_name: Fire talisman
-          quantity: 1
-    - skill: runecraft
-      level: 19
       xp: 10
-      altar: Fire
+      members_only: true
+      facility: Fire altar (with Binding necklace)
       materials:
-        - item_name: Pure essence
-          quantity: 1
         - item_name: Water rune
+          item_id: 555
           quantity: 1
-        - item_name: Water talisman
+        - item_name: Pure essence
+          item_id: 7936
           quantity: 1
+      product: Steam rune
+      product_id: 4694
   related_items:
-    - item_id: 4696
-      item_name: Dust rune
-      slug: dust-rune
-      relationship: alternative
-      description: Air + Earth combo rune
-    - item_id: 4695
-      item_name: Mist rune
+    - item_name: Water rune
+      item_id: 555
+      slug: water-rune
+      relationship: component
+    - item_name: Fire rune
+      item_id: 554
+      slug: fire-rune
+      relationship: component
+    - item_name: Pure essence
+      item_id: 7936
+      slug: pure-essence
+      relationship: component
+    - item_name: Binding necklace
+      slug: binding-necklace
+      relationship: component
+    - item_name: Mist rune
       slug: mist-rune
       relationship: alternative
-      description: Air + Water combo rune
-    - item_id: 4697
-      item_name: Smoke rune
+    - item_name: Smoke rune
       slug: smoke-rune
       relationship: alternative
-      description: Air + Fire combo rune
+    - item_name: Dust rune
+      slug: dust-rune
+      relationship: alternative
+    - item_name: Mud rune
+      slug: mud-rune
+      relationship: alternative
+    - item_name: Lava rune
+      slug: lava-rune
+      relationship: alternative
+    - item_name: Steam battlestaff
+      slug: steam-battlestaff
+      relationship: alternative
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Combination Rune |
-    | Tradeable | Yes |
-    | Stackable | Yes |
-    | Weight | 0 kg |
-
-    Counts as both water and fire rune.
-
-    One steam rune replaces one of each element.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Steam runes are combination runes that count as both a water rune and a fire rune, letting a single steam rune satisfy either (or both) elemental requirements for a spell. They are members-only and crafted at level 19 Runecraft by bringing pure essence and the complementary rune to the Fire or Water altar, typically alongside a Binding necklace for a guaranteed success and the Lunar spell Magic Imbue to preserve the talisman. When equipped, the Steam battlestaff and Mystic steam staff provide an unlimited supply of steam runes.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
