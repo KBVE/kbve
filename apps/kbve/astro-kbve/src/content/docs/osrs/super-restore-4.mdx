@@ -16,29 +16,24 @@ osrs:
     doses: 4
     herblore_level: 63
     herblore_xp: 142.5
-    effect: Restores 8-32 Prayer points and all reduced stats except Hitpoints
+    effect: Restores 8-32 Prayer points per dose and also restores all other lowered stats except Hitpoints
     effects:
-      - stat: Prayer
+      - stat: prayer
         boost_formula: 8 + floor(level / 4)
-      - stat: All stats
-        boost_type: restore
-        boost_value: 0
-        description: Restores all reduced stats except Hitpoints
   recipes:
     - skill: herblore
       level: 63
       xp: 142.5
       materials:
-        - item_name: Snapdragon
-          item_id: 3000
+        - item_name: Snapdragon potion (unf)
+          item_id: 3002
           quantity: 1
         - item_name: Red spiders' eggs
           item_id: 223
           quantity: 1
-        - item_name: Vial of water
-          item_id: 227
-          quantity: 1
-          consumed: true
+      product: Super restore(4)
+      product_id: 3024
+      product_quantity: 1
       ticks: 2
       members_only: true
   related_items:
@@ -67,25 +62,17 @@ osrs:
       slug: super-restore-3
       relationship: variant
       description: 3-dose version
-  about: |-
-    Super restore is preferred over prayer potions because it:
-    - Restores ALL reduced stats (not just prayer)
-    - Essential for raids where stats get drained
-    - Required for high-level PvM
+  about: Super restore(4) is a four-dose members potion that restores Prayer points along with any other lowered stats except Hitpoints, making it the go-to recovery potion for raids and high-level PvM where stat drain is common. It is preferred over prayer potions because a single drink refills both Prayer and drained combat or skill levels, saving inventory space during long encounters. Crafting one requires level 63 Herblore by combining a snapdragon potion (unf) with red spiders' eggs for 142.5 experience.
   market_strategy:
     profit_formulas:
-      - Super restore(4) - Snapdragon - Red spiders' eggs - Vial
+      - "Super restore(4) - Snapdragon - Red spiders' eggs - Vial of water = profit margin"
     notes:
-      - "Calculate:"
-      - Higher margin than prayer potions
-      - Consistent raid demand
-      - Super restore costs more but restores stats
-      - Raid tax creates premium demand
-      - Check relative margins between both
-      - Compare 4-dose vs 3-dose prices
-      - Decanting can profit in either direction
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Super restore(4) typically holds a higher margin than prayer potions due to consistent raid and PvM demand.
+      - The premium over prayer potions reflects the added utility of restoring drained combat and skill stats in a single dose.
+      - Compare 4-dose and 3-dose prices regularly, as decanting between them can produce profit in either direction.
+      - Watch relative margins against prayer potion(4) to spot arbitrage opportunities when PvM activity spikes.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
