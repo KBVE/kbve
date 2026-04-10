@@ -12,9 +12,36 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 4
-  about: "A powdered wig is a members-only item in Old School RuneScape. High alchemy value: 1,200 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
+  about: A powdered wig is a members-only head slot item in Old School RuneScape.
+  mdx_version: 3
   mdx_updated: 2026-04-10
+  equipment:
+    slot: head
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    weight: 0.4
+  properties:
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    weight: 0.4
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

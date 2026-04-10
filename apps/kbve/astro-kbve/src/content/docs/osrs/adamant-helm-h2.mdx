@@ -12,9 +12,36 @@ osrs:
   lowalch: 1408
   highalch: 2112
   limit: 70
-  about: "Adamant helm (h2) is a free-to-play item in Old School RuneScape. High alchemy value: 2,112 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
+  about: Adamant helm (h2) is a free-to-play head slot item in Old School RuneScape. It provides +-3 ranged attack.
+  mdx_version: 3
   mdx_updated: 2026-04-10
+  equipment:
+    slot: head
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -3
+    defence_bonus:
+      stab: 19
+      slash: 21
+      crush: 16
+      magic: -1
+      ranged: 19
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    weight: 3.175
+  properties:
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: false
+    weight: 3.175
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
