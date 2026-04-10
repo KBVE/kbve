@@ -12,25 +12,26 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
+  about: Copper ore is a free-to-play Mining resource obtained at level 1 from copper rocks, granting 17.5 Mining experience per ore. It is smelted with tin ore to create bronze bars at Smithing level 1, making it the starter ingredient for all early-game Smithing training. Supply is dominated by new players and bots, keeping prices near the vendor value.
   material:
     type: ore
-    tier: copper
+    tier: low
   mining:
+    skill: mining
     level: 1
     xp: 17.5
-    rocks: Copper rock
+    tool: Any pickaxe
     locations:
-      - Lumbridge Swamp
-      - Varrock south-east
-      - Al Kharid
-  smithing:
-    level: 1
-    xp: 6.2
-    method: Smelting
+      - Lumbridge Swamp mine
+      - Varrock south-east mine
+      - Al Kharid mine
+      - Rimmington mine
+      - Dwarven Mine
   recipes:
     - skill: smithing
       level: 1
       xp: 6.2
+      facility: Furnace
       materials:
         - item_name: Copper ore
           item_id: 436
@@ -41,38 +42,51 @@ osrs:
       product: Bronze bar
       product_id: 2349
       product_quantity: 1
+    - skill: smithing
+      level: 74
+      xp: 42
       facility: Furnace
+      members_only: true
+      materials:
+        - item_name: Copper ore
+          item_id: 436
+          quantity: 2
+        - item_name: Nickel ore
+          item_id: 31719
+          quantity: 1
+      product: Cupronickel bar
+      product_id: 32892
+      product_quantity: 1
   related_items:
     - item_id: 438
       item_name: Tin ore
       slug: tin-ore
       relationship: component
-      description: Bronze bar partner
     - item_id: 2349
       item_name: Bronze bar
       slug: bronze-bar
       relationship: product
-      description: Smelting product
-    - item_id: 1265
-      item_name: Bronze pickaxe
-      slug: bronze-pickaxe
-      relationship: alternative
-      description: Mining tool
+    - item_id: 31719
+      item_name: Nickel ore
+      slug: nickel-ore
+      relationship: component
+    - item_id: 32892
+      item_name: Cupronickel bar
+      slug: cupronickel-bar
+      relationship: product
+    - item_id: 440
+      item_name: Iron ore
+      slug: iron-ore
+      relationship: upgrade
   market_strategy:
     notes:
-      - First ore for new players
-      - Combined with tin for bronze bars
-      - Tutorial Island creates supply
-      - New player Smithing
-      - Ironman accounts
-      - Bronze bar production
-      - Quest requirements (Doric's Quest)
-      - Very low value ore
-      - High supply from bots
-      - Minimal profit margins
-      - Best sold in bulk
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - First ore available to F2P and new players at Mining level 1
+      - Must be paired with tin ore to smelt bronze bars
+      - Also used with nickel ore for cupronickel bars (Sailing shipbuilding, level 74 Smithing)
+      - High bot-generated supply keeps prices near vendor value
+      - Primary buyers are ironmen and new players training early Smithing
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

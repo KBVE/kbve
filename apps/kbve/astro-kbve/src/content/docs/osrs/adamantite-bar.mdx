@@ -12,20 +12,15 @@ osrs:
   lowalch: 256
   highalch: 384
   limit: 10000
+  about: Adamantite bar is smelted from one adamantite ore and six coal at Smithing level 70 for 37.5 XP. Blast Furnace halves the coal requirement to three, making it the standard method for high-volume smelters. Adamant bars feed adamant weapons, armour, dart tips (10 per bar at Anvil level 74), and Cerberus crystal charging.
   material:
     type: bar
     tier: mid-high
-  smithing:
-    level: 70
-    xp: 37.5
-    primary_ore: 449
-    primary_ore_name: Adamantite ore
-    coal_required: 6
-    blast_furnace_coal: 3
   recipes:
     - skill: smithing
       level: 70
       xp: 37.5
+      facility: Furnace
       materials:
         - item_name: Adamantite ore
           item_id: 449
@@ -36,79 +31,51 @@ osrs:
       product: Adamantite bar
       product_id: 2361
       product_quantity: 1
-      facility: Furnace
-    - skill: smithing
-      level: 70
-      xp: 37.5
-      materials:
-        - item_name: Adamantite ore
-          item_id: 449
-          quantity: 1
-        - item_name: Coal
-          item_id: 453
-          quantity: 3
-      product: Adamantite bar
-      product_id: 2361
-      product_quantity: 1
-      facility: Blast Furnace
-      members_only: true
     - skill: smithing
       level: 74
       xp: 62.5
+      facility: Anvil
+      members_only: true
       materials:
         - item_name: Adamantite bar
           item_id: 2361
           quantity: 1
+        - item_name: Hammer
+          item_id: 2347
+          quantity: 1
+          consumed: false
       product: Adamant dart tip
       product_id: 823
       product_quantity: 10
-      facility: Anvil
-      members_only: true
   related_items:
     - item_id: 449
       item_name: Adamantite ore
       slug: adamantite-ore
       relationship: component
-      description: Primary ore
     - item_id: 453
       item_name: Coal
       slug: coal
       relationship: component
-      description: Required for smelting
-    - item_id: 2359
-      item_name: Mithril bar
-      slug: mithril-bar
-      relationship: alternative
-      description: Lower tier
-    - item_id: 2363
-      item_name: Runite bar
-      slug: runite-bar
-      relationship: alternative
-      description: Higher tier
     - item_id: 823
       item_name: Adamant dart tip
       slug: adamant-dart-tip
       relationship: product
-      description: Popular product
-  about: |-
-    Smelt 1 Adamantite ore + 6 Coal (3 coal at Blast Furnace).
-
-    | Method | Coal Required | Smithing Level | XP |
-    |--------|---------------|----------------|-----|
-    | Regular furnace | 6 | 70 | 37.5 |
-    | Blast Furnace | 3 | 70 | 37.5 |
+    - item_id: 2359
+      item_name: Mithril bar
+      slug: mithril-bar
+      relationship: downgrade
+    - item_id: 2363
+      item_name: Runite bar
+      slug: runite-bar
+      relationship: upgrade
   market_strategy:
-    profit_formulas:
-      - Adamant bar - Adamantite ore - (Coal × 3) = Profit
     notes:
-      - Half coal = significant savings
-      - "Calculate:"
-      - Popular mid-level Blast Furnace method
-      - 1 bar = 10 Adamant dart tips
-      - High demand for Fletching training
-      - Check dart tip vs bar margins
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Blast Furnace halves coal per bar — essential for competitive bars/hr
+      - Adamant dart tips are a top Fletching xp/hr method at Anvil level 74
+      - Cerberus crystal charging consumes adamant bars from high-level Slayer solvers
+      - Coal bag is mandatory at this tier to avoid repeated bank trips
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

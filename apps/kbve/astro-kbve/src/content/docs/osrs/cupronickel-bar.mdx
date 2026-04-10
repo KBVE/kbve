@@ -12,8 +12,66 @@ osrs:
   lowalch: 11
   highalch: 16
   limit: null
-  about: "Cupronickel bar is a members-only item in Old School RuneScape. High alchemy value: 16 coins."
-  mdx_version: 2
+  about: Cupronickel bar was added with the Sailing skill release on 19 November 2025. It is smelted from two copper ore and one nickel ore at Smithing level 74, awarding 42 Smithing XP per bar. Like lead bar, it is consumed by shipbuilding and island amenities in the Sailing economy, making it the higher-tier Sailing metal bar.
+  material:
+    type: bar
+    tier: mid-high
+  recipes:
+    - skill: smithing
+      level: 74
+      xp: 42
+      facility: Furnace
+      members_only: true
+      materials:
+        - item_name: Copper ore
+          item_id: 436
+          quantity: 2
+        - item_name: Nickel ore
+          item_id: 31719
+          quantity: 1
+      product: Cupronickel bar
+      product_id: 32892
+      product_quantity: 1
+    - skill: magic
+      level: 43
+      xp: 53
+      members_only: true
+      materials:
+        - item_name: Copper ore
+          item_id: 436
+          quantity: 2
+        - item_name: Nickel ore
+          item_id: 31719
+          quantity: 1
+        - item_name: Nature rune
+          item_id: 561
+          quantity: 1
+        - item_name: Fire rune
+          item_id: 554
+          quantity: 4
+      product: Cupronickel bar
+      product_id: 32892
+      product_quantity: 1
+  related_items:
+    - item_id: 436
+      item_name: Copper ore
+      slug: copper-ore
+      relationship: component
+    - item_id: 31719
+      item_name: Nickel ore
+      slug: nickel-ore
+      relationship: component
+    - item_id: 32889
+      item_name: Lead bar
+      slug: lead-bar
+      relationship: downgrade
+  market_strategy:
+    notes:
+      - Sailing-era bar introduced 19 November 2025 — demand tracks Sailing content and ship upgrades
+      - Blast Furnace supports batched Sailing runs — deposit 18 copper + 9 nickel per trip, withdraw every three runs for 27 bars
+      - Superheat Item (Magic 43) provides a banking-free training alternative
+      - Cupronickel is the higher-tier Sailing metal bar alongside lead bar
+  mdx_version: 3
   mdx_updated: "2026-04-10"
 ---
 

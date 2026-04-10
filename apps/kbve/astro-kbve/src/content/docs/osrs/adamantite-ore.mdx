@@ -12,28 +12,26 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 4500
+  about: Adamantite ore is mined at level 70 from adamantite rocks, granting 95 Mining experience per ore. It smelts with six coal to create an adamantite bar at Smithing level 70, awarding 37.5 Smithing XP per bar. Adamantite ore feeds adamant weapons, armour, dart tips, and Cerberus crystal charging — making it a high-volume input throughout mid-to-late-game Smithing.
   material:
     type: ore
-    tier: adamantite
+    tier: mid-high
   mining:
+    skill: mining
     level: 70
     xp: 95
-    rocks: Adamantite rock
-    respawn_time: 240
+    tool: Any pickaxe
     locations:
       - Mining Guild
+      - Wilderness Resource Area
       - Jatizso mine
+      - Heroes' Guild basement
       - Motherlode Mine
-  smithing:
-    level: 70
-    xp: 37.5
-    method: Smelting
-    coal_required: 6
-    coal_required_bf: 3
   recipes:
     - skill: smithing
       level: 70
       xp: 37.5
+      facility: Furnace
       materials:
         - item_name: Adamantite ore
           item_id: 449
@@ -44,58 +42,31 @@ osrs:
       product: Adamantite bar
       product_id: 2361
       product_quantity: 1
-      facility: Furnace
-    - skill: smithing
-      level: 70
-      xp: 37.5
-      materials:
-        - item_name: Adamantite ore
-          item_id: 449
-          quantity: 1
-        - item_name: Coal
-          item_id: 453
-          quantity: 3
-      product: Adamantite bar
-      product_id: 2361
-      product_quantity: 1
-      facility: Blast Furnace
-      members_only: true
   related_items:
-    - item_id: 2361
-      item_name: Adamantite bar
-      slug: adamantite-bar
-      relationship: product
-      description: Smelting product
     - item_id: 453
       item_name: Coal
       slug: coal
       relationship: component
-      description: Required for smelting
-    - item_id: 451
-      item_name: Runite ore
-      slug: runite-ore
-      relationship: upgrade
-      description: Higher tier ore
+    - item_id: 2361
+      item_name: Adamantite bar
+      slug: adamantite-bar
+      relationship: product
     - item_id: 447
       item_name: Mithril ore
       slug: mithril-ore
       relationship: downgrade
-      description: Lower tier ore
+    - item_id: 451
+      item_name: Runite ore
+      slug: runite-ore
+      relationship: upgrade
   market_strategy:
     notes:
-      - Good Mining XP
-      - Long respawn time
-      - Blast Furnace halves coal
-      - Adamant bar production
-      - Smithing training
-      - Adamant dart tips
-      - High-level gear crafting
-      - Blast Furnace saves coal
-      - Mining Guild for extra ore
-      - 4 minute respawn limits yield
-      - Expert mining gloves help
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Coal-heavy bar (6 coal each) — Blast Furnace and coal bag are essential at scale
+      - Long ~4 minute rock respawn limits sustained gathering rates
+      - Adamant dart tips are one of the highest Fletching xp/hr methods
+      - Demand from Cerberus crystal charging and ore-pack ironman runs
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

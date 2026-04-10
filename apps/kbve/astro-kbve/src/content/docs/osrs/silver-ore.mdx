@@ -12,22 +12,26 @@ osrs:
   lowalch: 30
   highalch: 45
   limit: 13000
+  about: Silver ore is a free-to-play Mining resource obtained at level 20 from silver rocks, granting 40 Mining experience per ore. It smelts directly to a silver bar at Smithing level 20 with no secondary ingredient, and silver bars feed Crafting (holy symbols, tiaras, silver sickles, jewellery) rather than weapons or armour. Demand is niche compared to coal or iron, but remains steady from Crafting trainers.
   material:
     type: ore
-    tier: low
+    tier: mid-low
   mining:
+    skill: mining
     level: 20
     xp: 40
+    tool: Any pickaxe
     locations:
       - Crafting Guild
       - Al Kharid mine
       - Varrock west mine
-  motherlode_mine:
-    level: 30
+      - Edgeville dungeon
+      - Mining Guild
   recipes:
     - skill: smithing
       level: 20
       xp: 13.7
+      facility: Furnace
       materials:
         - item_name: Silver ore
           item_id: 442
@@ -35,43 +39,27 @@ osrs:
       product: Silver bar
       product_id: 2355
       product_quantity: 1
-      facility: Furnace
   related_items:
     - item_id: 2355
       item_name: Silver bar
       slug: silver-bar
       relationship: product
-      description: Smelting product
-    - item_id: 1718
-      item_name: Holy symbol
-      slug: holy-symbol
-      relationship: product
-      description: Crafting product
-    - item_id: 5525
-      item_name: Tiara
-      slug: tiara
-      relationship: product
-      description: RC training
-    - item_id: 1714
-      item_name: Unstrung symbol
-      slug: unstrung-symbol
-      relationship: product
-      description: Intermediate
+    - item_id: 444
+      item_name: Gold ore
+      slug: gold-ore
+      relationship: alternative
+    - item_id: 440
+      item_name: Iron ore
+      slug: iron-ore
+      relationship: alternative
   market_strategy:
     notes:
-      - Holy symbols demand
-      - Tiaras for Runecrafting
-      - Low-level Crafting
-      - Silver bar production
-      - Holy symbol crafting
-      - Tiara making
-      - Unstrung symbol
-      - Crafting Guild has rocks
-      - Lower demand than gold
-      - Holy symbols for Prayer
-      - Tiaras for RC training
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Niche ore used exclusively for Crafting outputs rather than Smithing weapons or armour
+      - Crafting Guild has dense respawning silver rocks with minimal competition
+      - Steady demand from holy symbol, tiara, and silver bolt makers
+      - Bot supply is lighter than copper, tin, or iron
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

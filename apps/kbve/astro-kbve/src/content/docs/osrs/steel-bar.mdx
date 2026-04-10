@@ -12,17 +12,15 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 10000
+  about: Steel bar is smelted from one iron ore and two coal at Smithing level 30 for 17.5 XP. It is the main input for cannonball crafting (4 cannonballs per bar at Smithing level 35) and Varrock armour 1/2/3 hourly Blast Furnace bonuses, making it one of the highest-volume mid-tier bars in the game.
   material:
     type: bar
-    tier: steel
-  smithing:
-    level: 30
-    xp: 17.5
-    method: Smelting
+    tier: mid
   recipes:
     - skill: smithing
       level: 30
       xp: 17.5
+      facility: Furnace
       materials:
         - item_name: Iron ore
           item_id: 440
@@ -33,60 +31,51 @@ osrs:
       product: Steel bar
       product_id: 2353
       product_quantity: 1
-      facility: Furnace
     - skill: smithing
-      level: 30
-      xp: 17.5
-      materials:
-        - item_name: Iron ore
-          item_id: 440
-          quantity: 1
-        - item_name: Coal
-          item_id: 453
-          quantity: 1
-      product: Steel bar
-      product_id: 2353
-      product_quantity: 1
-      facility: Blast Furnace
+      level: 35
+      xp: 25.5
+      facility: Furnace
       members_only: true
+      materials:
+        - item_name: Steel bar
+          item_id: 2353
+          quantity: 1
+        - item_name: Ammo mould
+          item_id: 4
+          quantity: 1
+          consumed: false
+      product: Cannonball
+      product_id: 2
+      product_quantity: 4
   related_items:
     - item_id: 440
       item_name: Iron ore
       slug: iron-ore
       relationship: component
-      description: Primary ore
     - item_id: 453
       item_name: Coal
       slug: coal
       relationship: component
-      description: Required for smelting
     - item_id: 2
       item_name: Cannonball
       slug: cannonball
       relationship: product
-      description: Popular product (4 per bar)
+    - item_id: 2351
+      item_name: Iron bar
+      slug: iron-bar
+      relationship: downgrade
     - item_id: 2359
       item_name: Mithril bar
       slug: mithril-bar
       relationship: upgrade
-      description: Next tier bar
-    - item_id: 4
-      item_name: Ammo mould
-      slug: ammo-mould
-      relationship: alternative
-      description: For cannonballs
   market_strategy:
-    profit_formulas:
-      - (Cannonball price × 4) - Steel bar price = Profit
-      - Steel bar price - Iron ore - Coal
     notes:
-      - 1 Steel bar = 4 Cannonballs
-      - Very slow but AFK
-      - "Calculate:"
-      - Half coal requirement = significant savings
-      - "Compare:  at both furnaces"
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Cannonball crafting (requires Dwarf Cannon) consumes massive volumes of steel bar
+      - Varrock armour 1/2/3 Blast Furnace hourly ore bonus is a major ironman value lever
+      - Blast Furnace halves the coal requirement, significantly improving margins
+      - One steel bar produces four cannonballs at Smithing level 35 — scale the margin check per bar
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
