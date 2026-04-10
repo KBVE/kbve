@@ -50,7 +50,7 @@ spec:
                         node.kbve.com/type: dedicated-server
                     containers:
                         - name: mc-server
-                          image: ghcr.io/kbve/mc:1.0.7
+                          image: ghcr.io/kbve/mc:1.0.8
                           env:
                               - name: TYPE
                                 value: FABRIC
