@@ -752,125 +752,20 @@ pub async fn kubevirt_vnc_handler(
         kubevirt.upstream, VM_NAMESPACE, vm_name
     );
     let upstream_token = kubevirt.upstream_token.clone();
+    // Session key: namespace + name. KASM/other VM namespaces will want
+    // this parameterised later, but for now we only serve angelscript.
+    let vm_key = format!("{VM_NAMESPACE}/{vm_name}");
 
-    // Accept the WebSocket upgrade and spawn the bridge
+    // Accept the WebSocket upgrade and hand the browser connection off to
+    // the VNC hub, which shares a single upstream across every viewer.
     ws.protocols(["binary.k8s.io", "base64.binary.k8s.io"])
         .on_upgrade(move |browser_ws| async move {
-            if let Err(e) = vnc_bridge(browser_ws, &upstream_url, upstream_token.as_deref()).await {
-                warn!("VNC bridge error for {vm_name}: {e}");
+            if let Err(e) =
+                super::vnc_hub::join_session(vm_key, upstream_url, upstream_token, browser_ws).await
+            {
+                warn!("VNC hub error for {vm_name}: {e}");
             }
         })
-}
-
-/// Bidirectional WebSocket bridge between the browser and KubeVirt VNC.
-async fn vnc_bridge(
-    browser_ws: axum::extract::ws::WebSocket,
-    upstream_url: &str,
-    token: Option<&str>,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    use axum::extract::ws::Message as AxumMsg;
-    use futures_util::{SinkExt, StreamExt};
-    use tokio_tungstenite::tungstenite::{Message as TungMsg, client::IntoClientRequest};
-
-    // Build upstream request with auth + subprotocol
-    let ws_url = upstream_url
-        .replace("https://", "wss://")
-        .replace("http://", "ws://");
-    let mut request = ws_url.into_client_request()?;
-    if let Some(t) = token {
-        request
-            .headers_mut()
-            .insert("Authorization", format!("Bearer {t}").parse()?);
-    }
-    // NOTE: Do not set Sec-WebSocket-Protocol on the upstream request.
-    // tokio-tungstenite requires the server to echo the subprotocol back,
-    // but the K8s VNC subresource may not. The browser-side protocol
-    // negotiation is handled separately by the axum WebSocketUpgrade.
-
-    // Build TLS connector with K8s cluster CA so the VNC subresource
-    // endpoint's certificate is trusted (default webpki roots don't
-    // include the in-cluster CA).
-    let tls_connector = {
-        let mut root_store = rustls::RootCertStore::empty();
-        root_store.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
-        // Try custom CA path first, then in-cluster default
-        let ca_path = std::env::var("KUBEVIRT_CA_CERT_PATH")
-            .unwrap_or_else(|_| "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt".into());
-        if let Ok(pem) = std::fs::read(&ca_path) {
-            let certs = rustls_pemfile::certs(&mut pem.as_slice())
-                .filter_map(|c| c.ok())
-                .collect::<Vec<_>>();
-            for cert in certs {
-                let _ = root_store.add(cert);
-            }
-            debug!("VNC bridge: loaded CA from {ca_path}");
-        }
-        let config = rustls::ClientConfig::builder()
-            .with_root_certificates(root_store)
-            .with_no_client_auth();
-        tokio_tungstenite::Connector::Rustls(std::sync::Arc::new(config))
-    };
-
-    // Connect to K8s API VNC subresource
-    let (upstream_ws, _resp) =
-        tokio_tungstenite::connect_async_tls_with_config(request, None, false, Some(tls_connector))
-            .await?;
-
-    // Split both sides into sender/receiver
-    let (mut browser_tx, mut browser_rx) = browser_ws.split();
-    let (mut upstream_tx, mut upstream_rx) = upstream_ws.split();
-
-    // Browser → K8s
-    let browser_to_upstream = async {
-        while let Some(msg) = browser_rx.next().await {
-            match msg {
-                Ok(AxumMsg::Binary(data)) => {
-                    if upstream_tx.send(TungMsg::Binary(data)).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(AxumMsg::Text(text)) => {
-                    let s: String = text.to_string();
-                    if upstream_tx.send(TungMsg::Text(s.into())).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(AxumMsg::Close(_)) | Err(_) => break,
-                _ => {}
-            }
-        }
-        let _ = upstream_tx.close().await;
-    };
-
-    // K8s → Browser
-    let upstream_to_browser = async {
-        while let Some(msg) = upstream_rx.next().await {
-            match msg {
-                Ok(TungMsg::Binary(data)) => {
-                    if browser_tx.send(AxumMsg::Binary(data)).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(TungMsg::Text(text)) => {
-                    let s: String = text.to_string();
-                    if browser_tx.send(AxumMsg::Text(s.into())).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(TungMsg::Close(_)) | Err(_) => break,
-                _ => {}
-            }
-        }
-        let _ = browser_tx.close().await;
-    };
-
-    // Run both directions concurrently — when either ends, the other stops
-    tokio::select! {
-        _ = browser_to_upstream => {},
-        _ = upstream_to_browser => {},
-    }
-
-    Ok(())
 }
 
 const VM_NAMESPACE: &str = "angelscript";
