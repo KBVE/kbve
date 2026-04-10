@@ -5,14 +5,27 @@
 # IMPORTANT: Running macOS VMs requires genuine Apple hardware (Mac Pro, etc.)
 # per Apple's EULA. Only deploy this on Apple-branded physical hosts.
 #
+# macOS cannot boot from SeaBIOS — it requires UEFI (OVMF) firmware AND the
+# OpenCore bootloader as a separate disk. Plain EFI cannot load the macOS
+# kernel directly. The boot order is OpenCore → rootdisk → BaseSystem.
+#
 # Provisioning steps (one-time, after KubeVirt + CDI are running):
-#   1. Prepare a macOS install image using OSX-KVM tools:
+#   1. Prepare a macOS install image and OpenCore boot disk using OSX-KVM:
 #        - Clone https://github.com/kholia/OSX-KVM
 #        - Run fetch-macOS-v2.py to download the BaseSystem.dmg
 #        - Convert to raw: qemu-img convert BaseSystem.dmg -O raw BaseSystem.img
+#        - Copy the bundled OpenCore.qcow2 from the OSX-KVM repo
 #   2. Port-forward the CDI upload proxy:
 #        kubectl port-forward -n cdi svc/cdi-uploadproxy 8443:443
-#   3. Upload the install image via virtctl DataVolume:
+#   3. Upload the OpenCore bootloader (one-time):
+#        virtctl image-upload dv macos-opencore \
+#          --size=1Gi \
+#          --image-path=/path/to/OSX-KVM/OpenCore/OpenCore.qcow2 \
+#          --storage-class=longhorn \
+#          --namespace=angelscript \
+#          --uploadproxy-url=https://localhost:8443 \
+#          --insecure
+#   4. Upload the macOS install image:
 #        virtctl image-upload dv macos-tahoe-builder-iso \
 #          --size=16Gi \
 #          --image-path=/Users/alappatel/Downloads/BaseSystem-tahoe.img \
@@ -20,12 +33,14 @@
 #          --namespace=angelscript \
 #          --uploadproxy-url=https://localhost:8443 \
 #          --insecure
-#   4. Start the VM: virtctl start macos-builder -n angelscript
-#   5. Connect via VNC: virtctl vnc macos-builder -n angelscript
-#   6. Inside macOS, install:
+#   5. Start the VM: virtctl start macos-builder -n angelscript
+#   6. Connect via VNC: virtctl vnc macos-builder -n angelscript
+#   7. At the OpenCore boot picker, select the macOS BaseSystem entry to begin
+#      installation. After install completes, OpenCore will boot from rootdisk.
+#   8. Inside macOS, install:
 #      - Xcode + Command Line Tools
 #      - GitHub Actions runner (configured for KBVE/UnrealEngine-Angelscript)
-#   7. After setup, set running: true and the VM becomes a persistent runner.
+#   9. After setup, the VM runs as a persistent self-hosted runner.
 ---
 # Root disk — blank Longhorn volume for the macOS installation
 apiVersion: v1
@@ -85,16 +100,21 @@ spec:
                           policy: require
                 devices:
                     disks:
-                        # Root disk — macOS installation
-                        - name: rootdisk
+                        # OpenCore bootloader — required first; loads the macOS kernel
+                        - name: opencore
                           disk:
                               bus: sata
                           bootOrder: 1
+                        # Root disk — macOS installation target / boot volume
+                        - name: rootdisk
+                          disk:
+                              bus: sata
+                          bootOrder: 2
                         # macOS install image — uploaded via virtctl, managed by CDI DataVolume
                         - name: iso
                           cdrom:
                               bus: sata
-                          bootOrder: 2
+                          bootOrder: 3
                         # Shared storage — ISOs, Xcode .xip, installers staging
                         - name: shared-storage
                           disk:
@@ -107,8 +127,17 @@ spec:
                           bus: usb
                           name: tablet
                     useVirtioTransitional: true
+                # OVMF (UEFI) is required — macOS will not boot from SeaBIOS.
+                # secureBoot is disabled because macOS uses OpenCore, not signed
+                # Microsoft/RedHat keys. SMM is required by OVMF regardless.
+                firmware:
+                    bootloader:
+                        efi:
+                            secureBoot: false
                 features:
                     acpi: {}
+                    smm:
+                        enabled: true
                 clock:
                     utc: {}
                 machine:
@@ -127,6 +156,9 @@ spec:
                   pod: {}
             terminationGracePeriodSeconds: 3600
             volumes:
+                - name: opencore
+                  dataVolume:
+                      name: macos-opencore
                 - name: rootdisk
                   persistentVolumeClaim:
                       claimName: macos-builder-rootdisk

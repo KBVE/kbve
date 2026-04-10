@@ -34,11 +34,17 @@ spec:
                   containerPort: 25565
                   protocol: TCP
             health:
-                # Java + Fabric startup is slower than native binaries
-                initialDelaySeconds: 90
+                # Fabric + 8 mods + library unpacking takes ~3-4 minutes on cold start
+                initialDelaySeconds: 240
                 periodSeconds: 30
-                failureThreshold: 5
+                failureThreshold: 10
             template:
+                metadata:
+                    labels:
+                        # Pod-level label so the Velocity backend Service
+                        # can select MC gameserver pods (Agones doesn't
+                        # propagate Fleet template labels to pods).
+                        app: mc-gameserver
                 spec:
                     nodeSelector:
                         node.kbve.com/type: dedicated-server
@@ -71,8 +77,14 @@ spec:
                                 value: '12'
                               - name: SIMULATION_DISTANCE
                                 value: '8'
+                              # Velocity proxy handles Mojang auth — backend
+                              # must be offline-mode to accept forwarded sessions.
                               - name: ONLINE_MODE
-                                value: 'true'
+                                value: 'false'
+                              # Allow connections only from the Velocity proxy
+                              # via the cluster network (private addresses).
+                              - name: PREVENT_PROXY_CONNECTIONS
+                                value: 'false'
                               - name: SERVER_PORT
                                 value: '25565'
                           resources:
@@ -83,9 +95,11 @@ spec:
                                   memory: 4Gi
                                   cpu: '2'
                           volumeMounts:
-                              - name: world-data
-                                mountPath: /data/world
+                              # Mount entire /data so Fabric libraries, mods,
+                              # and world all persist across restarts
+                              - name: mc-data
+                                mountPath: /data
                     volumes:
-                        - name: world-data
+                        - name: mc-data
                           persistentVolumeClaim:
                               claimName: mc-world-data

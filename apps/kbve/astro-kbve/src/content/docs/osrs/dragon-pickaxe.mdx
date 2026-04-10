@@ -14,104 +14,104 @@ osrs:
   limit: 40
   equipment:
     slot: weapon
-    type: pickaxe
-    attack_style: melee
+    weapon_type: pickaxe
     attack_speed: 5
+    weight: 2.4
+    attack_bonus:
+      stab: 38
+      slash: -2
+      crush: 32
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 42
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
     requirements:
       attack: 60
       mining: 61
-    stats:
-      attack_stab: 26
-      attack_slash: 16
-      attack_crush: 22
-      strength: 30
   special_attack:
-    name: Rock Knocker
+    name: Rejuvenate
     energy: 100
-    effect: +3 Mining boost for 3 minutes
+    description: "Boosts the player's Mining level by 3 for 30 seconds. Can be activated while in inventory or wielded."
+  gathering:
+    skill: mining
+    level: 61
+    tool: Dragon pickaxe
   drop_table:
     sources:
       - source: Kalphite Queen
-        source_id: 963
         combat_level: 333
         quantity: "1"
-        rarity: 1/400
+        rarity: rare
+        drop_rate: "1/400"
         members_only: true
       - source: Chaos Elemental
-        source_id: 2054
         combat_level: 305
         quantity: "1"
-        rarity: 1/256
+        rarity: rare
+        drop_rate: "1/256"
         members_only: true
+        wilderness: true
       - source: Callisto
-        source_id: 6503
         combat_level: 470
         quantity: "1"
-        rarity: 1/256
+        rarity: rare
+        drop_rate: "1/256"
         members_only: true
+        wilderness: true
       - source: Vet'ion
-        source_id: 6611
         combat_level: 464
         quantity: "1"
-        rarity: 1/256
+        rarity: rare
+        drop_rate: "1/256"
         members_only: true
+        wilderness: true
       - source: Venenatis
-        source_id: 6504
         combat_level: 464
         quantity: "1"
-        rarity: 1/256
+        rarity: rare
+        drop_rate: "1/256"
         members_only: true
+        wilderness: true
       - source: King Black Dragon
-        source_id: 239
         combat_level: 276
         quantity: "1"
-        rarity: 1/1,000
+        rarity: very-rare
+        drop_rate: "1/1500"
         members_only: true
   related_items:
-    - item_id: 13243
-      item_name: Infernal pickaxe
-      slug: infernal-pickaxe
-      relationship: upgrade
-      description: 1/3 ore → Smithing XP
-    - item_id: 23680
-      item_name: Crystal pickaxe
+    - item_name: Rune pickaxe
+      slug: rune-pickaxe
+      relationship: downgrade
+      description: Previous tier pickaxe, no special attack.
+    - item_name: Crystal pickaxe
       slug: crystal-pickaxe
       relationship: upgrade
-      description: +4 invisible Mining levels
-    - item_id: 20014
-      item_name: 3rd age pickaxe
+      description: Equivalent power, faster XP/hour when used with crystal armour set.
+    - item_name: Infernal pickaxe
+      slug: infernal-pickaxe
+      relationship: upgrade
+      description: Burns 1/3 of mined ores for bonus Smithing experience.
+    - item_name: 3rd age pickaxe
       slug: 3rd-age-pickaxe
-      relationship: alternative
-      description: Cosmetic/flex
-    - item_id: 13245
-      item_name: Smouldering stone
-      slug: smouldering-stone
-      relationship: component
-      description: Infernal upgrade
+      relationship: variant
+      description: Cosmetic rare with identical stats.
+    - item_name: Dragon pickaxe (or)
+      slug: dragon-pickaxe-or
+      relationship: variant
+      description: Ornament kit recolour of the dragon pickaxe.
   about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Attack | 60 (to wield) |
-    | Mining | 61 (to use) |
-
-    Rock Knocker (100% energy):
-    - +3 Mining boost for 3 minutes
-    - Decays 1 level per 60 seconds
-    - Allows mining at 58 Mining with boost
-
-    | Upgrade | Requirements | Effect |
-    |---------|--------------|--------|
-    | Infernal pickaxe | 85 Smithing + Smouldering stone | 1/3 ore → Smithing XP |
-    | Crystal pickaxe | 76 Crafting/Smithing + 120 shards + seed | +4 invisible Mining levels |
-    | 3rd age pickaxe | 65 Mining | Cosmetic/flex |
-  market_strategy:
-    notes:
-      - Best pickaxe before upgrades
-      - Required for infernal/crystal
-      - Wilderness bosses = risky but common source
-      - KQ is safest source
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The dragon pickaxe is the best non-upgraded pickaxe in Old School RuneScape, tied with the 3rd age pickaxe and second only to the crystal pickaxe in mining speed. It requires 61 Mining to mine with and 60 Attack to wield, though its Rejuvenate special attack can temporarily boost Mining by 3 levels, allowing players with 58 base Mining to begin using it. The pickaxe is obtained as a rare drop from Wilderness bosses (Callisto, Venenatis, Vet'ion, Chaos Elemental, King Black Dragon), the Kalphite Queen, and as a reward from the Motherlode Mine.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

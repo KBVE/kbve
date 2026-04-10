@@ -22,69 +22,71 @@ osrs:
     xp_ectofuntus: 288
   drop_table:
     sources:
-      - source: Green dragon
-        source_id: 260
-        combat_level: 79
-        quantity: "1"
-        rarity: always
-        members_only: true
       - source: Blue dragon
-        source_id: 265
         combat_level: 111
         quantity: "1"
         rarity: always
+        drop_rate: "1/1"
+        members_only: true
+      - source: Red dragon
+        combat_level: 152
+        quantity: "1"
+        rarity: always
+        drop_rate: "1/1"
+        members_only: true
+      - source: Black dragon
+        combat_level: 227
+        quantity: "1"
+        rarity: always
+        drop_rate: "1/1"
+        members_only: true
+      - source: Bronze dragon
+        combat_level: 131
+        quantity: "1"
+        rarity: always
+        drop_rate: "1/1"
+        members_only: true
+      - source: Iron dragon
+        combat_level: 189
+        quantity: "1"
+        rarity: always
+        drop_rate: "1/1"
+        members_only: true
+      - source: Steel dragon
+        combat_level: 246
+        quantity: "1"
+        rarity: always
+        drop_rate: "1/1"
         members_only: true
       - source: King Black Dragon
-        source_id: 239
         combat_level: 276
         quantity: "1"
         rarity: always
-        members_only: true
-      - source: Vorkath
-        source_id: 8061
-        combat_level: 732
-        quantity: "2"
-        rarity: always
+        drop_rate: "1/1"
         members_only: true
   related_items:
-    - item_id: 22124
-      item_name: Superior dragon bones
-      slug: superior-dragon-bones
-      relationship: alternative
-      description: Higher XP (150 base)
-    - item_id: 6729
-      item_name: Dagannoth bones
-      slug: dagannoth-bones
-      relationship: alternative
-      description: Alternative (125 base XP)
-    - item_id: 6812
-      item_name: Wyvern bones
+    - item_name: Big bones
+      slug: big-bones
+      relationship: downgrade
+    - item_name: Babydragon bones
+      slug: babydragon-bones
+      relationship: downgrade
+    - item_name: Wyvern bones
       slug: wyvern-bones
       relationship: alternative
-      description: Same XP (72 base)
-    - item_id: 532
-      item_name: Big bones
-      slug: big-bones
+    - item_name: Frost dragon bones
+      slug: frost-dragon-bones
+      relationship: upgrade
+    - item_name: Superior dragon bones
+      slug: superior-dragon-bones
+      relationship: upgrade
+    - item_name: Lava dragon bones
+      slug: lava-dragon-bones
       relationship: alternative
-      description: Budget option (15 base XP)
-    - item_id: 1753
-      item_name: Green dragonhide
-      slug: green-dragonhide
-      relationship: alternative
-      description: Co-drop from green dragons
-  market_strategy:
-    notes:
-      - Players pay for bones to be used on their altar
-      - "Track:"
-      - Compare to alternative training methods
-      - New player influx
-      - Green dragon bots (major supply)
-      - Green dragons (most common)
-      - Blue dragons
-      - Various dragon bosses (KBD, Vorkath, etc.)
-      - Zulrah, Cerberus, Alchemical Hydra
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: |
+    Dragon bones are a high-tier Prayer training material dropped by nearly every adult dragon in the game, from Blue and Red dragons to Bronze, Iron, Steel, Black, and the King Black Dragon. Offering them at a gilded altar with two burners yields 252 Prayer experience per bone, making them the best mainstream training option outside of the Chaos Temple altar and premium bones like Superior or Frost dragon bones. They remain one of the most popular and accessible prayer training methods in Old School RuneScape thanks to their steady drop supply and strong XP-per-bone ratio.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

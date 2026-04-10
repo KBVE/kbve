@@ -12,16 +12,18 @@ osrs:
   lowalch: 320
   highalch: 480
   limit: 11000
+  about: |
+    Dragon arrows are the strongest type of arrow in Old School RuneScape, providing +60 ranged strength and requiring 60 Ranged to wield. Unlike lower-tier arrows, they are only compatible with a handful of high-end bows — the dark bow, twisted bow, venator bow, scorching bow, and 3rd age bow — making them the ammunition of choice for end-game ranged combat and raids. They are created through the Fletching skill at level 90 by combining dragon arrowtips with headless arrows, producing 15 arrows per action for 225 Fletching experience.
   ammunition:
     type: arrow
+    tier: dragon
     ranged_strength: 60
-    slot: ammo
-  fletching:
-    level: 90
-    xp: 15
-    product: Dragon arrow
-    product_id: 11212
-    quantity_per_action: 15
+    compatible_weapons:
+      - Dark bow
+      - Twisted bow
+      - Venator bow
+      - Scorching bow
+      - 3rd age bow
   equipment:
     slot: ammo
     weight: 0
@@ -60,50 +62,41 @@ osrs:
       product_quantity: 15
       members_only: true
   related_items:
-    - item_id: 53
-      item_name: Headless arrow
-      slug: headless-arrow
-      relationship: component
-      description: Arrow shaft component
     - item_id: 11237
       item_name: Dragon arrowtips
       slug: dragon-arrowtips
       relationship: component
       description: Dragon tip component
+    - item_id: 53
+      item_name: Headless arrow
+      slug: headless-arrow
+      relationship: component
+      description: Arrow shaft component
     - item_id: 892
       item_name: Rune arrow
       slug: rune-arrow
       relationship: downgrade
       description: Lower tier arrow
+    - item_id: 4160
+      item_name: Broad arrows
+      slug: broad-arrows
+      relationship: alternative
+      description: Alternative arrow option
     - item_id: 21326
       item_name: Amethyst arrow
       slug: amethyst-arrow
       relationship: alternative
       description: Alternative high-tier arrow
-    - item_id: 20997
-      item_name: Twisted bow
-      slug: twisted-bow
-      relationship: alternative
-      description: Primary user of dragon arrows
   market_strategy:
     profit_formulas:
-      - (Dragon arrow × 15) - (Headless × 15) - (Dragon arrowtips × 15) = Profit
+      - "(Dragon arrow × 15) - (Headless arrow × 15) - (Dragon arrowtips × 15) = Fletching profit"
     notes:
-      - "Calculate:"
-      - 90 Fletching required
-      - Check arrowtip vs arrow margins
-      - Dragon arrowtips from Vorkath, Zulrah
-      - High volume from boss farming
-      - Twisted bow primary ammo
-      - Dark bow spec attacks
-      - High-level ranged training
-      - Cox/ToB raids
-      - Best arrows in game
-      - Twisted bow users = huge demand
-      - Often cheaper than rune arrows
-      - Check Vorkath supply levels
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Demand is driven by Twisted bow users farming raids and high-level boss content.
+      - Dragon arrowtip supply comes mainly from Vorkath and Zulrah drops, so check their kill rates when forecasting price moves.
+      - Compare arrowtip prices to finished arrow prices regularly — fletching margins can flip when Vorkath supply spikes.
+      - Often trades at or below rune arrow prices despite being end-game ammo, due to the steep 90 Fletching requirement limiting buyers.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

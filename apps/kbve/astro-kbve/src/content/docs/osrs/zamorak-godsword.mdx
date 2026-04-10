@@ -14,100 +14,71 @@ osrs:
   limit: 8
   equipment:
     slot: 2h
-    type: godsword
-    attack_style: slash
+    weapon_type: two-handed-sword
     attack_speed: 6
+    attack_range: 1
+    weight: 10
+    attack_bonus:
+      stab: 0
+      slash: 132
+      crush: 80
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 132
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 8
     requirements:
       attack: 75
-    stats:
-      attack_slash: 132
-      attack_crush: 80
-      strength: 132
-      prayer: 8
   special_attack:
     name: Ice Cleave
     energy: 50
-    effect: Doubled accuracy, +10% max hit, freezes for 19.2 seconds
-  recipes:
-    - skill: none
-      level: 0
-      xp: 0
-      materials:
-        - item_name: Godsword blade
-          item_id: 11798
-          quantity: 1
-        - item_name: Zamorak hilt
-          item_id: 11816
-          quantity: 1
-      product: Zamorak godsword
-      product_id: 11808
-      product_quantity: 1
-      facility: None
-      members_only: true
+    description: "Doubles accuracy, increases max hit by 10%, and freezes the target for 19.2 seconds (32 ticks) on a successful hit. Cannot freeze targets already frozen."
+    accuracy_modifier: 2.0
+    damage_modifier: 1.1
+    freezes: true
+    freeze_duration: 32
   related_items:
     - item_id: 11816
       item_name: Zamorak hilt
       slug: zamorak-hilt
       relationship: component
-      description: Hilt component
+      description: Hilt component dropped by K'ril Tsutsaroth; attach to a Godsword blade to create the Zamorak godsword.
     - item_id: 11798
       item_name: Godsword blade
       slug: godsword-blade
       relationship: component
-      description: Blade component
+      description: Blade component forged from three Godsword shards; combined with the Zamorak hilt to assemble the weapon.
     - item_id: 11802
       item_name: Armadyl godsword
       slug: armadyl-godsword
       relationship: alternative
-      description: KO spec
+      description: Alternative godsword known for its high-damage KO special attack.
     - item_id: 11804
       item_name: Bandos godsword
       slug: bandos-godsword
       relationship: alternative
-      description: Defence drain
+      description: Alternative godsword that drains enemy combat stats on special attack.
     - item_id: 11806
       item_name: Saradomin godsword
       slug: saradomin-godsword
       relationship: alternative
-      description: Healing spec
-  about: |-
-    Attach Zamorak hilt to Godsword blade.
-
-    | Component | Source | Price |
-    |-----------|--------|-------|
-    | Zamorak hilt | K'ril Tsutsaroth (1/508) | ~18M gp |
-    | Godsword blade | GWD bosses | ~526K gp |
-
-    | Stat | Value |
-    |------|-------|
-    | Slash attack | +132 |
-    | Crush attack | +80 |
-    | Strength | +132 |
-    | Prayer | +8 |
-    | Attack speed | 6 tick (3.6s) |
-    | Requirements | 75 Attack |
-
-    Ice Cleave (50% energy):
-    - Doubled accuracy
-    - +10% max hit
-    - Freezes target for 19.2 seconds (same as Ice Barrage)
-
-    Best For:
-    - Castle Wars (freezing flag carriers)
-    - Barrows (freezing brothers)
-    - Chambers of Xeric (Muttadiles)
-    - PvP (freeze combos)
-
-    Niche Uses:
-    - Preventing boss mechanics (healing, moving)
-    - Controlling adds in multi-combat
+      description: Alternative godsword that heals the user on special attack.
+  about: "The Zamorak godsword is the cheapest of the five godsword variants, assembled by attaching a Zamorak hilt (dropped by K'ril Tsutsaroth) to a completed Godsword blade. Its Ice Cleave special attack consumes 50% energy to double accuracy, add 10% to max hit, and freeze the target for 19.2 seconds (32 ticks) on a successful hit. It is best known for freezing flag carriers in Castle Wars, locking down melee Barrows brothers, and controlling Muttadiles in the Chambers of Xeric. The sword requires 75 Attack to wield and shares the same base slash stats as the other godswords."
   market_strategy:
     notes:
       - Cheapest godsword
       - Niche but useful freeze
       - Good for specific content
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

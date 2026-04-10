@@ -1,0 +1,72 @@
+# Velocity proxy deployment
+# Receives all player connections on port 25565 and forwards them to
+# the Agones-managed Fabric MC server pods.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: mc-velocity
+    namespace: arc-runners
+    labels:
+        app: mc-velocity
+        app.kubernetes.io/part-of: mc
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: mc-velocity
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 0
+    template:
+        metadata:
+            labels:
+                app: mc-velocity
+                app.kubernetes.io/part-of: mc
+        spec:
+            containers:
+                - name: velocity
+                  image: itzg/bungeecord:latest
+                  env:
+                      - name: TYPE
+                        value: VELOCITY
+                      - name: VELOCITY_VERSION
+                        value: '3.4.0-SNAPSHOT'
+                      - name: MEMORY
+                        value: '512M'
+                      - name: REPLACE_ENV_VARIABLES
+                        value: 'true'
+                  ports:
+                      - name: minecraft
+                        containerPort: 25565
+                        protocol: TCP
+                  resources:
+                      requests:
+                          memory: 512Mi
+                          cpu: 250m
+                      limits:
+                          memory: 1Gi
+                          cpu: 500m
+                  volumeMounts:
+                      - name: velocity-config
+                        mountPath: /config/velocity.toml
+                        subPath: velocity.toml
+                      - name: velocity-config
+                        mountPath: /config/forwarding.secret
+                        subPath: forwarding.secret
+                  livenessProbe:
+                      tcpSocket:
+                          port: 25565
+                      initialDelaySeconds: 30
+                      periodSeconds: 30
+                      failureThreshold: 5
+                  readinessProbe:
+                      tcpSocket:
+                          port: 25565
+                      initialDelaySeconds: 10
+                      periodSeconds: 10
+            volumes:
+                - name: velocity-config
+                  configMap:
+                      name: mc-velocity-config
