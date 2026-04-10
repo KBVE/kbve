@@ -1,0 +1,56 @@
+# Dev Velocity proxy config — mounted read-only into the mc-velocity
+# container by docker-compose.dev.yml. Mirrors the prod
+# apps/kube/agones/mc/velocity-configmap.yaml but with three dev-only
+# differences:
+#   1. online-mode = false (no Mojang auth, lets cracked clients connect)
+#   2. backend server points at the compose service name, not the k8s
+#      headless Service FQDN
+#   3. show-max-players lowered to match MAX_PLAYERS on the Fabric pod
+
+config-version = "2.7"
+
+bind = "0.0.0.0:25565"
+motd = "<#00FF00>KBVE Dev Server"
+show-max-players = 10
+# Dev mode — skip Mojang auth so local cracked clients can connect.
+online-mode = false
+force-key-authentication = false
+prevent-client-proxy-connections = false
+# Modern Velocity forwarding — backend runs FabricProxy-Lite with a
+# matching secret (shipped via ./forwarding.secret and baked into the
+# Fabric image's config/FabricProxy-Lite.toml).
+player-info-forwarding-mode = "modern"
+forwarding-secret-file = "forwarding.secret"
+announce-forge = false
+announce-proxy-commands = true
+
+[servers]
+# Points at the docker-compose service name. Docker's embedded DNS
+# resolves "mc-fabric" to the Fabric container on the shared
+# kbve-mc-dev bridge network.
+mc = "mc-fabric:25565"
+try = ["mc"]
+
+[forced-hosts]
+
+[advanced]
+compression-threshold = 256
+compression-level = -1
+login-ratelimit = 3000
+connection-timeout = 5000
+read-timeout = 30000
+haproxy-protocol = false
+tcp-fast-open = false
+bungee-plugin-message-channel = true
+show-ping-requests = false
+failover-on-unexpected-server-disconnect = true
+announce-proxy-commands = true
+log-command-executions = true
+log-player-connections = true
+accepts-transfers = false
+
+[query]
+enabled = false
+port = 25577
+map = "Velocity"
+show-plugins = false
