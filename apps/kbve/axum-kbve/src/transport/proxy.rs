@@ -40,6 +40,22 @@ impl ServiceProxy {
             return resp;
         }
 
+        self.forward_request(path, req).await
+    }
+
+    /// Forward the request to the upstream service without running the
+    /// DASHBOARD_VIEW gate. Callers must have already authenticated the
+    /// request (e.g. with a higher-privilege permission check).
+    async fn handle_preauthorized(
+        &self,
+        path: Option<Path<String>>,
+        req: Request<Body>,
+    ) -> Response {
+        self.forward_request(path, req).await
+    }
+
+    async fn forward_request(&self, path: Option<Path<String>>, req: Request<Body>) -> Response {
+        let req_headers = req.headers().clone();
         let suffix = path.map(|Path(p)| p).unwrap_or_default();
         let query = req
             .uri()
@@ -251,6 +267,69 @@ fn extract_auth_token(headers: &HeaderMap, query: Option<&str>) -> Option<String
 
 async fn require_dashboard_view(headers: &HeaderMap, service_name: &str) -> Result<(), Response> {
     require_dashboard_view_with_query(headers, None, service_name).await
+}
+
+/// Gate for sensitive proxy routes that need a higher privilege level than
+/// plain DASHBOARD_VIEW (e.g. network-enabled firecracker). Requires the
+/// same JWT checks plus DASHBOARD_MANAGE permission.
+async fn require_dashboard_manage(headers: &HeaderMap, service_name: &str) -> Result<(), Response> {
+    // Reuse the DASHBOARD_VIEW gate for JWT validation, then check the
+    // higher permission on top. Duplicating the JWT fetch avoids mutating
+    // the existing helper and keeps the error paths identical.
+    let auth_token = match extract_auth_token(headers, None) {
+        Some(t) => t,
+        None => {
+            return Err((
+                StatusCode::UNAUTHORIZED,
+                axum::Json(json!({
+                    "error": "Missing Authorization header or access_token query param",
+                    "hint": "Include 'Authorization: Bearer <token>' header or ?access_token=<token>"
+                })),
+            )
+                .into_response());
+        }
+    };
+
+    let jwt_cache = match get_jwt_cache() {
+        Some(c) => c,
+        None => {
+            return Err((
+                StatusCode::SERVICE_UNAVAILABLE,
+                axum::Json(json!({"error": "JWT validation not configured"})),
+            )
+                .into_response());
+        }
+    };
+
+    let token_info = match jwt_cache.verify_and_cache(&auth_token).await {
+        Ok(info) => info,
+        Err(e) => {
+            warn!("{service_name} proxy JWT rejected: {e}");
+            return Err((
+                StatusCode::UNAUTHORIZED,
+                axum::Json(json!({"error": "Invalid or expired token"})),
+            )
+                .into_response());
+        }
+    };
+
+    if !token_info.has_permission(staff_perm::DASHBOARD_MANAGE) {
+        warn!(
+            user_id = %token_info.user_id,
+            permissions = format!("0x{:08x}", token_info.staff_permissions),
+            "{service_name} proxy access denied — missing DASHBOARD_MANAGE permission"
+        );
+        return Err((
+            StatusCode::FORBIDDEN,
+            axum::Json(json!({
+                "error": "Access restricted",
+                "message": "This feature requires DASHBOARD_MANAGE permission"
+            })),
+        )
+            .into_response());
+    }
+
+    Ok(())
 }
 
 async fn require_dashboard_view_with_query(
@@ -1020,6 +1099,55 @@ pub async fn firecracker_proxy_handler(path: Option<Path<String>>, req: Request<
         None => (
             StatusCode::SERVICE_UNAVAILABLE,
             axum::Json(json!({"error": "Firecracker proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Firecracker-Net proxy singleton (network-enabled, DASHBOARD_MANAGE gated)
+// ---------------------------------------------------------------------------
+
+static FIRECRACKER_NET: OnceLock<ServiceProxy> = OnceLock::new();
+
+pub fn init_firecracker_net_proxy() -> bool {
+    let upstream = std::env::var("FIRECRACKER_CTL_NET_URL")
+        .unwrap_or_else(|_| "http://firecracker-ctl-net.firecracker.svc.cluster.local:9001".into());
+
+    let client = Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(10))
+        .timeout(Duration::from_secs(30))
+        .build()
+        .expect("failed to build reqwest client for firecracker-net proxy");
+
+    FIRECRACKER_NET
+        .set(ServiceProxy {
+            name: "Firecracker-Net",
+            client,
+            upstream: upstream.trim_end_matches('/').to_string(),
+            upstream_token: None,
+        })
+        .is_ok()
+}
+
+pub async fn firecracker_net_proxy_handler(
+    path: Option<Path<String>>,
+    req: Request<Body>,
+) -> Response {
+    let headers = req.headers().clone();
+    // Higher privilege gate — network-enabled VMs are staff-only.
+    if let Err(resp) = require_dashboard_manage(&headers, "Firecracker-Net").await {
+        return resp;
+    }
+
+    match FIRECRACKER_NET.get() {
+        // Already authenticated with DASHBOARD_MANAGE — skip the inner
+        // DASHBOARD_VIEW check to avoid double auth fetch.
+        Some(proxy) => proxy.handle_preauthorized(path, req).await,
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Firecracker-Net proxy not configured"})),
         )
             .into_response(),
     }
