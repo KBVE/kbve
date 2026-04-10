@@ -103,6 +103,19 @@ CREATE TABLE IF NOT EXISTS discordsh.dungeon_profiles (
     -- Completed quest slugs
     completed_quests        TEXT[] NOT NULL DEFAULT '{}',
 
+    -- Cross-platform: shared with isometric game
+    skills                  JSONB NOT NULL DEFAULT '{}'::JSONB,
+    faction_standing        JSONB NOT NULL DEFAULT '{}'::JSONB,
+    auth_user_id            UUID UNIQUE,
+
+    -- Mode lock: prevents simultaneous Discord + isometric play
+    -- Enforced via service_claim_mode/service_release_mode RPCs.
+    -- Stale claims (>30 min) are auto-overridable.
+    active_mode             TEXT
+                            CHECK (active_mode IS NULL OR active_mode IN ('discord', 'isometric')),
+    active_mode_session_id  TEXT,
+    active_mode_started_at  TIMESTAMPTZ,
+
     -- Timestamps
     created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at              TIMESTAMPTZ
@@ -116,6 +129,27 @@ COMMENT ON COLUMN discordsh.dungeon_profiles.class_id IS
     'DungeonClass proto enum: 1=warrior, 2=rogue, 3=cleric';
 COMMENT ON COLUMN discordsh.dungeon_profiles.inventory IS
     'JSONB array: [{item_id: string, qty: int}, ...] — shape-validated via CHECK';
+COMMENT ON COLUMN discordsh.dungeon_profiles.skills IS
+    'Serialized bevy_skills::SkillProfile — shared across Discord and isometric game';
+COMMENT ON COLUMN discordsh.dungeon_profiles.faction_standing IS
+    'Faction reputation: {"crystal-order": 25, "shadow-court": -10, "deep-wardens": 50}';
+COMMENT ON COLUMN discordsh.dungeon_profiles.auth_user_id IS
+    'Optional link to auth.users(id) — enables isometric game to load this profile via JWT';
+COMMENT ON COLUMN discordsh.dungeon_profiles.active_mode IS
+    'Currently active play mode: discord or isometric. NULL means no active session. '
+    'Enforced via service_claim_mode/service_release_mode RPCs to prevent data races '
+    'when the same player has Discord dungeon and isometric game open simultaneously.';
+COMMENT ON COLUMN discordsh.dungeon_profiles.active_mode_session_id IS
+    'Opaque session identifier owned by the claiming client. Used by service_release_mode '
+    'to verify the caller still owns the lock before releasing.';
+COMMENT ON COLUMN discordsh.dungeon_profiles.active_mode_started_at IS
+    'When the active mode was claimed. Stale claims (older than 30 minutes) '
+    'can be force-overridden by the next claimant.';
+
+-- Index for isometric game profile lookup by auth user
+CREATE INDEX IF NOT EXISTS idx_discordsh_dungeon_profiles_auth_user
+    ON discordsh.dungeon_profiles (auth_user_id)
+    WHERE auth_user_id IS NOT NULL;
 
 -- Explicit revoke for defense in depth
 REVOKE ALL ON discordsh.dungeon_profiles FROM PUBLIC, anon, authenticated;
@@ -164,6 +198,25 @@ COMMENT ON COLUMN discordsh.dungeon_runs.outcome IS
 
 -- Explicit revoke for defense in depth
 REVOKE ALL ON discordsh.dungeon_runs FROM PUBLIC, anon, authenticated;
+
+-- ===========================================
+-- GRANT table privileges to service_role
+--
+-- service_role needs direct table access for SECURITY DEFINER functions
+-- to work in production. Without these grants, every service_* RPC fails
+-- with "permission denied for table dungeon_profiles" because the function
+-- owner can't read the underlying tables, even with the RLS policy below.
+--
+-- Local dev hides this because the local service_role is a superuser stub
+-- (init/00-roles.sql) that bypasses all checks. Production has proper
+-- role isolation, so explicit GRANTs are required.
+--
+-- The functions stay service_role-owned (not postgres) so SECURITY DEFINER
+-- bounds the blast radius — no privilege escalation surface.
+-- ===========================================
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON discordsh.dungeon_profiles TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON discordsh.dungeon_runs TO service_role;
 
 -- ===========================================
 -- INDEXES
@@ -327,6 +380,8 @@ CREATE POLICY "service_role_full_access" ON discordsh.dungeon_runs
 -- Called by the bot's ProfileStore via PostgREST RPC.
 -- ===========================================
 
+DROP FUNCTION IF EXISTS discordsh.service_load_profile(BIGINT);
+
 CREATE OR REPLACE FUNCTION discordsh.service_load_profile(
     p_discord_id BIGINT
 )
@@ -349,6 +404,9 @@ RETURNS TABLE(
     armor_gear TEXT,
     inventory JSONB,
     completed_quests TEXT[],
+    skills JSONB,
+    faction_standing JSONB,
+    auth_user_id UUID,
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ
 )
@@ -377,6 +435,9 @@ BEGIN
         p.armor_gear,
         p.inventory,
         p.completed_quests,
+        p.skills,
+        p.faction_standing,
+        p.auth_user_id,
         p.created_at,
         p.updated_at
     FROM discordsh.dungeon_profiles p
@@ -399,6 +460,13 @@ ALTER FUNCTION discordsh.service_load_profile(BIGINT) OWNER TO service_role;
 -- concurrent save races (e.g., timeout cleanup vs explicit /dungeon end).
 -- ===========================================
 
+DROP FUNCTION IF EXISTS discordsh.service_upsert_profile(
+    BIGINT, TEXT, SMALLINT, SMALLINT, INT, INT, INT,
+    INT, INT, INT, INT, INT, INT, INT,
+    TEXT, TEXT, JSONB, TEXT[],
+    SMALLINT, INT, INT, INT, INT, INT, INT, SMALLINT, INT
+);
+
 CREATE OR REPLACE FUNCTION discordsh.service_upsert_profile(
     -- Profile fields
     p_discord_id            BIGINT,
@@ -419,6 +487,8 @@ CREATE OR REPLACE FUNCTION discordsh.service_upsert_profile(
     p_armor_gear            TEXT DEFAULT NULL,
     p_inventory             JSONB DEFAULT '[]'::JSONB,
     p_completed_quests      TEXT[] DEFAULT '{}',
+    p_skills                JSONB DEFAULT '{}'::JSONB,
+    p_faction_standing      JSONB DEFAULT '{}'::JSONB,
     -- Run fields
     p_run_outcome           SMALLINT DEFAULT NULL,
     p_run_rooms_cleared     INT DEFAULT 0,
@@ -444,13 +514,15 @@ BEGIN
         discord_id, discord_name, class_id, level, xp, xp_to_next, gold,
         lifetime_kills, lifetime_gold_earned, lifetime_rooms_cleared,
         lifetime_bosses_defeated, lifetime_deaths, lifetime_victories,
-        lifetime_escapes, weapon, armor_gear, inventory, completed_quests
+        lifetime_escapes, weapon, armor_gear, inventory, completed_quests,
+        skills, faction_standing
     )
     VALUES (
         p_discord_id, p_discord_name, p_class_id, p_level, p_xp, p_xp_to_next, p_gold,
         p_lifetime_kills, p_lifetime_gold_earned, p_lifetime_rooms_cleared,
         p_lifetime_bosses_defeated, p_lifetime_deaths, p_lifetime_victories,
-        p_lifetime_escapes, p_weapon, p_armor_gear, p_inventory, p_completed_quests
+        p_lifetime_escapes, p_weapon, p_armor_gear, p_inventory, p_completed_quests,
+        p_skills, p_faction_standing
     )
     ON CONFLICT (discord_id) DO UPDATE SET
         discord_name            = EXCLUDED.discord_name,
@@ -469,7 +541,9 @@ BEGIN
         weapon                  = EXCLUDED.weapon,
         armor_gear              = EXCLUDED.armor_gear,
         inventory               = EXCLUDED.inventory,
-        completed_quests        = EXCLUDED.completed_quests;
+        completed_quests        = EXCLUDED.completed_quests,
+        skills                  = EXCLUDED.skills,
+        faction_standing        = EXCLUDED.faction_standing;
 
     -- Insert run log (if outcome provided)
     IF p_run_outcome IS NOT NULL THEN
@@ -499,19 +573,19 @@ COMMENT ON FUNCTION discordsh.service_upsert_profile IS
 REVOKE ALL ON FUNCTION discordsh.service_upsert_profile(
     BIGINT, TEXT, SMALLINT, SMALLINT, INT, INT, INT,
     INT, INT, INT, INT, INT, INT, INT,
-    TEXT, TEXT, JSONB, TEXT[],
+    TEXT, TEXT, JSONB, TEXT[], JSONB, JSONB,
     SMALLINT, INT, INT, INT, INT, INT, INT, SMALLINT, INT
 ) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION discordsh.service_upsert_profile(
     BIGINT, TEXT, SMALLINT, SMALLINT, INT, INT, INT,
     INT, INT, INT, INT, INT, INT, INT,
-    TEXT, TEXT, JSONB, TEXT[],
+    TEXT, TEXT, JSONB, TEXT[], JSONB, JSONB,
     SMALLINT, INT, INT, INT, INT, INT, INT, SMALLINT, INT
 ) TO service_role;
 ALTER FUNCTION discordsh.service_upsert_profile(
     BIGINT, TEXT, SMALLINT, SMALLINT, INT, INT, INT,
     INT, INT, INT, INT, INT, INT, INT,
-    TEXT, TEXT, JSONB, TEXT[],
+    TEXT, TEXT, JSONB, TEXT[], JSONB, JSONB,
     SMALLINT, INT, INT, INT, INT, INT, INT, SMALLINT, INT
 ) OWNER TO service_role;
 
@@ -629,6 +703,269 @@ GRANT EXECUTE ON FUNCTION discordsh.service_leaderboard(SMALLINT, INT) TO servic
 ALTER FUNCTION discordsh.service_leaderboard(SMALLINT, INT) OWNER TO service_role;
 
 -- ===========================================
+-- SERVICE FUNCTION: Load profile by Supabase auth UUID
+--
+-- Used by the isometric game to load a profile via JWT.
+-- Returns empty if no profile is linked (guest mode).
+-- ===========================================
+
+CREATE OR REPLACE FUNCTION discordsh.service_load_profile_by_auth(
+    p_auth_user_id UUID
+)
+RETURNS TABLE(
+    discord_id BIGINT,
+    discord_name TEXT,
+    class_id SMALLINT,
+    level SMALLINT,
+    xp INT,
+    xp_to_next INT,
+    gold INT,
+    lifetime_kills INT,
+    lifetime_gold_earned INT,
+    lifetime_rooms_cleared INT,
+    lifetime_bosses_defeated INT,
+    lifetime_deaths INT,
+    lifetime_victories INT,
+    lifetime_escapes INT,
+    weapon TEXT,
+    armor_gear TEXT,
+    inventory JSONB,
+    completed_quests TEXT[],
+    skills JSONB,
+    faction_standing JSONB,
+    auth_user_id UUID,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        p.discord_id, p.discord_name, p.class_id, p.level, p.xp, p.xp_to_next, p.gold,
+        p.lifetime_kills, p.lifetime_gold_earned, p.lifetime_rooms_cleared,
+        p.lifetime_bosses_defeated, p.lifetime_deaths, p.lifetime_victories, p.lifetime_escapes,
+        p.weapon, p.armor_gear, p.inventory, p.completed_quests,
+        p.skills, p.faction_standing, p.auth_user_id, p.created_at, p.updated_at
+    FROM discordsh.dungeon_profiles p
+    WHERE p.auth_user_id = p_auth_user_id;
+END;
+$$;
+
+COMMENT ON FUNCTION discordsh.service_load_profile_by_auth IS
+    'Load a dungeon profile by Supabase auth UUID. Returns empty if no linked profile (guest mode).';
+
+REVOKE ALL ON FUNCTION discordsh.service_load_profile_by_auth(UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION discordsh.service_load_profile_by_auth(UUID) TO service_role;
+ALTER FUNCTION discordsh.service_load_profile_by_auth(UUID) OWNER TO service_role;
+
+-- ===========================================
+-- SERVICE FUNCTION: Link Supabase auth account to Discord profile
+-- ===========================================
+
+CREATE OR REPLACE FUNCTION discordsh.service_link_auth(
+    p_discord_id    BIGINT,
+    p_auth_user_id  UUID
+)
+RETURNS TABLE(success BOOLEAN, message TEXT)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    UPDATE discordsh.dungeon_profiles
+    SET auth_user_id = p_auth_user_id
+    WHERE discord_id = p_discord_id;
+
+    IF NOT FOUND THEN
+        RETURN QUERY SELECT false, 'Discord profile not found.'::TEXT;
+        RETURN;
+    END IF;
+
+    RETURN QUERY SELECT true, 'Account linked.'::TEXT;
+
+EXCEPTION
+    WHEN unique_violation THEN
+        RETURN QUERY SELECT false, 'Auth account already linked to another profile.'::TEXT;
+    WHEN OTHERS THEN
+        RETURN QUERY SELECT false, SQLERRM::TEXT;
+END;
+$$;
+
+COMMENT ON FUNCTION discordsh.service_link_auth IS
+    'Link a Supabase auth.users UUID to a Discord dungeon profile. Enables cross-platform persistence.';
+
+REVOKE ALL ON FUNCTION discordsh.service_link_auth(BIGINT, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION discordsh.service_link_auth(BIGINT, UUID) TO service_role;
+ALTER FUNCTION discordsh.service_link_auth(BIGINT, UUID) OWNER TO service_role;
+
+-- ===========================================
+-- MODE LOCK: prevents simultaneous Discord + isometric play
+--
+-- The same player should never have a Discord dungeon session AND an
+-- isometric game session running at the same time — both writes to the
+-- same profile would race and clobber each other (gold, inventory, skills).
+--
+-- service_claim_mode atomically claims the lock for one mode at a time.
+-- service_release_mode releases the lock when the session ends.
+-- Stale claims auto-expire after 30 minutes (covers crash recovery).
+-- ===========================================
+
+CREATE OR REPLACE FUNCTION discordsh.service_claim_mode(
+    p_discord_id  BIGINT,
+    p_mode        TEXT,
+    p_session_id  TEXT,
+    p_force       BOOLEAN DEFAULT FALSE
+)
+RETURNS TABLE(success BOOLEAN, current_mode TEXT, message TEXT)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_existing_mode       TEXT;
+    v_existing_session_id TEXT;
+    v_existing_started_at TIMESTAMPTZ;
+    v_lock_age_minutes    NUMERIC;
+    v_ttl_minutes         CONSTANT INT := 30;
+BEGIN
+    IF p_mode NOT IN ('discord', 'isometric') THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Invalid mode (must be discord or isometric).'::TEXT;
+        RETURN;
+    END IF;
+
+    IF p_session_id IS NULL OR p_session_id = '' THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'session_id is required.'::TEXT;
+        RETURN;
+    END IF;
+
+    PERFORM pg_advisory_xact_lock(p_discord_id);
+
+    SELECT active_mode, active_mode_session_id, active_mode_started_at
+      INTO v_existing_mode, v_existing_session_id, v_existing_started_at
+      FROM discordsh.dungeon_profiles
+     WHERE discord_id = p_discord_id;
+
+    IF NOT FOUND THEN
+        INSERT INTO discordsh.dungeon_profiles (
+            discord_id, discord_name, active_mode, active_mode_session_id, active_mode_started_at
+        )
+        VALUES (
+            p_discord_id, 'Adventurer'::TEXT, p_mode, p_session_id, NOW()
+        );
+        RETURN QUERY SELECT true, p_mode, 'Mode claimed (new profile).'::TEXT;
+        RETURN;
+    END IF;
+
+    IF v_existing_mode IS NULL THEN
+        UPDATE discordsh.dungeon_profiles
+           SET active_mode = p_mode,
+               active_mode_session_id = p_session_id,
+               active_mode_started_at = NOW()
+         WHERE discord_id = p_discord_id;
+        RETURN QUERY SELECT true, p_mode, 'Mode claimed.'::TEXT;
+        RETURN;
+    END IF;
+
+    IF v_existing_mode = p_mode AND v_existing_session_id = p_session_id THEN
+        UPDATE discordsh.dungeon_profiles
+           SET active_mode_started_at = NOW()
+         WHERE discord_id = p_discord_id;
+        RETURN QUERY SELECT true, p_mode, 'Mode reclaimed (refreshed).'::TEXT;
+        RETURN;
+    END IF;
+
+    v_lock_age_minutes := EXTRACT(EPOCH FROM (NOW() - v_existing_started_at)) / 60;
+
+    IF v_lock_age_minutes > v_ttl_minutes OR p_force THEN
+        UPDATE discordsh.dungeon_profiles
+           SET active_mode = p_mode,
+               active_mode_session_id = p_session_id,
+               active_mode_started_at = NOW()
+         WHERE discord_id = p_discord_id;
+        RETURN QUERY SELECT
+            true,
+            p_mode,
+            FORMAT('Mode claimed (overrode stale %s claim, age %s min).',
+                   v_existing_mode, ROUND(v_lock_age_minutes, 1))::TEXT;
+        RETURN;
+    END IF;
+
+    RETURN QUERY SELECT
+        false,
+        v_existing_mode,
+        FORMAT('Player is already in %s (claim age %s min). Finish that session first.',
+               v_existing_mode, ROUND(v_lock_age_minutes, 1))::TEXT;
+END;
+$$;
+
+COMMENT ON FUNCTION discordsh.service_claim_mode IS
+    'Atomically claim the play mode lock for a player. Prevents simultaneous '
+    'Discord + isometric sessions. Stale claims (>30min) auto-override.';
+
+REVOKE ALL ON FUNCTION discordsh.service_claim_mode(BIGINT, TEXT, TEXT, BOOLEAN)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION discordsh.service_claim_mode(BIGINT, TEXT, TEXT, BOOLEAN)
+    TO service_role;
+ALTER FUNCTION discordsh.service_claim_mode(BIGINT, TEXT, TEXT, BOOLEAN)
+    OWNER TO service_role;
+
+CREATE OR REPLACE FUNCTION discordsh.service_release_mode(
+    p_discord_id BIGINT,
+    p_session_id TEXT
+)
+RETURNS TABLE(success BOOLEAN, message TEXT)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_existing_session_id TEXT;
+BEGIN
+    PERFORM pg_advisory_xact_lock(p_discord_id);
+
+    SELECT active_mode_session_id INTO v_existing_session_id
+      FROM discordsh.dungeon_profiles
+     WHERE discord_id = p_discord_id;
+
+    IF NOT FOUND THEN
+        RETURN QUERY SELECT false, 'Profile not found.'::TEXT;
+        RETURN;
+    END IF;
+
+    IF v_existing_session_id IS NULL THEN
+        RETURN QUERY SELECT true, 'No active claim.'::TEXT;
+        RETURN;
+    END IF;
+
+    IF v_existing_session_id <> p_session_id THEN
+        RETURN QUERY SELECT false, 'Lock owned by another session.'::TEXT;
+        RETURN;
+    END IF;
+
+    UPDATE discordsh.dungeon_profiles
+       SET active_mode = NULL,
+           active_mode_session_id = NULL,
+           active_mode_started_at = NULL
+     WHERE discord_id = p_discord_id;
+
+    RETURN QUERY SELECT true, 'Mode released.'::TEXT;
+END;
+$$;
+
+COMMENT ON FUNCTION discordsh.service_release_mode IS
+    'Release the play mode lock if the caller still owns the session.';
+
+REVOKE ALL ON FUNCTION discordsh.service_release_mode(BIGINT, TEXT)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION discordsh.service_release_mode(BIGINT, TEXT)
+    TO service_role;
+ALTER FUNCTION discordsh.service_release_mode(BIGINT, TEXT)
+    OWNER TO service_role;
+
+-- ===========================================
 -- VERIFICATION
 -- ===========================================
 
@@ -653,8 +990,34 @@ BEGIN
 
     -- Verify service functions exist
     PERFORM 'discordsh.service_load_profile(bigint)'::regprocedure;
-    PERFORM 'discordsh.service_upsert_profile(bigint, text, smallint, smallint, int, int, int, int, int, int, int, int, int, int, text, text, jsonb, text[], smallint, int, int, int, int, int, int, smallint, int)'::regprocedure;
+    PERFORM 'discordsh.service_upsert_profile(bigint, text, smallint, smallint, int, int, int, int, int, int, int, int, int, int, text, text, jsonb, text[], jsonb, jsonb, smallint, int, int, int, int, int, int, smallint, int)'::regprocedure;
     PERFORM 'discordsh.service_leaderboard(smallint, int)'::regprocedure;
+    PERFORM 'discordsh.service_load_profile_by_auth(uuid)'::regprocedure;
+    PERFORM 'discordsh.service_link_auth(bigint, uuid)'::regprocedure;
+    PERFORM 'discordsh.service_claim_mode(bigint, text, text, boolean)'::regprocedure;
+    PERFORM 'discordsh.service_release_mode(bigint, text)'::regprocedure;
+
+    -- Verify cross-platform columns exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'discordsh' AND table_name = 'dungeon_profiles' AND column_name = 'skills'
+    ) THEN
+        RAISE EXCEPTION 'skills column missing on discordsh.dungeon_profiles';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'discordsh' AND table_name = 'dungeon_profiles' AND column_name = 'faction_standing'
+    ) THEN
+        RAISE EXCEPTION 'faction_standing column missing on discordsh.dungeon_profiles';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'discordsh' AND table_name = 'dungeon_profiles' AND column_name = 'active_mode'
+    ) THEN
+        RAISE EXCEPTION 'active_mode column missing on discordsh.dungeon_profiles';
+    END IF;
 
     -- Verify validation function exists
     PERFORM 'discordsh.is_valid_inventory(jsonb)'::regprocedure;
@@ -743,7 +1106,7 @@ BEGIN
 
     IF EXISTS (
         SELECT 1 FROM pg_proc
-        WHERE oid = 'discordsh.service_upsert_profile(bigint, text, smallint, smallint, int, int, int, int, int, int, int, int, int, int, text, text, jsonb, text[], smallint, int, int, int, int, int, int, smallint, int)'::regprocedure
+        WHERE oid = 'discordsh.service_upsert_profile(bigint, text, smallint, smallint, int, int, int, int, int, int, int, int, int, int, text, text, jsonb, text[], jsonb, jsonb, smallint, int, int, int, int, int, int, smallint, int)'::regprocedure
           AND pg_get_userbyid(proowner) <> 'service_role'
     ) THEN
         RAISE EXCEPTION 'discordsh.service_upsert_profile must be owned by service_role';

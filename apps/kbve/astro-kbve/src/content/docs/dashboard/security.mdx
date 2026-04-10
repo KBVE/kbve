@@ -13,23 +13,23 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-04-09T08:43:05Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-04-10T08:42:17Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**35** critical/high severity findings across the monorepo.
+**34** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
 
 <CardGrid>
-  <Card title="1 Critical" icon="warning">
+  <Card title="2 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="34 High" icon="error">
+  <Card title="32 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="39 Medium" icon="information">
+  <Card title="38 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="5 Low" icon="approve-check-circle">
@@ -41,7 +41,7 @@ Last generated: **2026-04-09T08:43:05Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **77** advisories
+    **75** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **26** advisories
@@ -62,9 +62,9 @@ Last generated: **2026-04-09T08:43:05Z** — updated daily by `ci-dashboard`.
 ```mermaid
 pie showData
     title Findings by Severity
-    "Critical" : 1
-    "High" : 34
-    "Medium" : 39
+    "Critical" : 2
+    "High" : 32
+    "Medium" : 38
     "Low" : 5
 ```
 
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 77
+    "npm" : 75
     "Cargo" : 26
 ```
 
@@ -82,12 +82,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 1 | 34 | 37 | 5 | 77 |
+| **npm** | 2 | 32 | 36 | 5 | 75 |
 | **Cargo** | 0 | 0 | 2 | 0 | 26 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 34 | 39 | 5 | 103 |
+| **Total** | 2 | 32 | 38 | 5 | 101 |
 
   </TabItem>
   <TabItem label="npm">
@@ -95,6 +95,7 @@ pie showData
 | Severity | Package | Advisory | Link |
 |----------|---------|----------|------|
 | Critical | `handlebars` | Handlebars.js has JavaScript Injection via AST Type Confu... | [Details](https://github.com/advisories/GHSA-2w6w-674q-4c4q) |
+| Critical | `axios` | Axios has a NO_PROXY Hostname Normalization Bypass Leads ... | [Details](https://github.com/advisories/GHSA-3p68-rc4w-qgx5) |
 | High | `glob` | glob CLI: Command injection via -c/--cmd executes matches... | [Details](https://github.com/advisories/GHSA-5j98-mcp5-4vw2) |
 | High | `rollup` | Rollup 4 has Arbitrary File Write via Path Traversal | [Details](https://github.com/advisories/GHSA-mw96-cpmx-2vgc) |
 | High | `koa` | Koa has Host Header Injection via ctx.hostname | [Details](https://github.com/advisories/GHSA-7gcc-r8m5-44qm) |
@@ -116,12 +117,10 @@ pie showData
 | High | `node-forge` | Forge has Denial of Service via Infinite Loop in BigInteg... | [Details](https://github.com/advisories/GHSA-5m6q-g25r-mvwx) |
 | High | `picomatch` | Picomatch has a ReDoS vulnerability via extglob quantifiers | [Details](https://github.com/advisories/GHSA-c2c7-rcm5-vvqj) |
 | High | `picomatch` | Picomatch has a ReDoS vulnerability via extglob quantifiers | [Details](https://github.com/advisories/GHSA-c2c7-rcm5-vvqj) |
-| High | `happy-dom` | Happy DOM's fetch credentials include uses page-origin co... | [Details](https://github.com/advisories/GHSA-w4gp-fjgq-3q4g) |
 | High | `node-forge` | Forge has signature forgery in RSA-PKCS due to ASN.1 extr... | [Details](https://github.com/advisories/GHSA-ppp5-5v6c-4jwp) |
 | High | `handlebars` | Handlebars.js has JavaScript Injection in CLI Precompiler... | [Details](https://github.com/advisories/GHSA-xjpj-3mr7-gcpf) |
 | High | `handlebars` | Handlebars.js has JavaScript Injection via AST Type Confu... | [Details](https://github.com/advisories/GHSA-xhpv-hc6g-r9c6) |
 | High | `handlebars` | Handlebars.js has Denial of Service via Malformed Decorat... | [Details](https://github.com/advisories/GHSA-9cx6-37pm-9jff) |
-| High | `happy-dom` | Happy DOM ECMAScriptModuleCompiler: unsanitized export na... | [Details](https://github.com/advisories/GHSA-6q6h-j7hj-3r64) |
 | High | `lodash-es` | lodash vulnerable to Code Injection via `_.template` impo... | [Details](https://github.com/advisories/GHSA-r5fr-rjxr-66jc) |
 | High | `lodash` | lodash vulnerable to Code Injection via `_.template` impo... | [Details](https://github.com/advisories/GHSA-r5fr-rjxr-66jc) |
 | High | `@xmldom/xmldom` | xmldom: XML injection via unsafe CDATA serialization allo... | [Details](https://github.com/advisories/GHSA-wh4c-j3r5-mjhp) |
@@ -131,7 +130,6 @@ pie showData
 | High | `vite` | Vite Vulnerable to Arbitrary File Read via Vite Dev Serve... | [Details](https://github.com/advisories/GHSA-p9ff-h696-f583) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
-| Medium | `lodash-es` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
 | Medium | `lodash` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
 | Medium | `undici` | Undici has an unbounded decompression chain in HTTP respo... | [Details](https://github.com/advisories/GHSA-g9mf-h72j-4rw9) |
 | Medium | `js-yaml` | js-yaml has prototype pollution in merge (&lt;&lt;) | [Details](https://github.com/advisories/GHSA-mh29-5h37-fv8m) |

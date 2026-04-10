@@ -21,57 +21,46 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Manages AI Skeleton NPCs that spawn near players.
+ * Thin actuator for AI Skeleton entities.
  *
- * <p>Skeletons spawn near players and despawn when players leave.
- * Each skeleton is tracked by entity ID with a monotonic epoch
- * for stale-intent detection. Skeletons can call for reinforcements
- * when wounded, subject to per-skeleton and global cooldowns.
+ * <p>Java owns nothing about behavior — no cooldowns, no rate limits, no
+ * "should I roar?" decisions. The Rust ECS holds all policy state and
+ * emits commands; this class just translates them into Minecraft API
+ * calls and ships entity observations back to Rust.
+ *
+ * <p>What stays here is purely Minecraft-side bookkeeping:
+ * <ul>
+ *   <li>{@code entityId → epoch} map so the JVM can drop stale intents
+ *       (Rust epochs are minted by Java when an observation is sent)</li>
+ *   <li>{@code MAX_SKELETONS} cap as a server resource guard
+ *       (Minecraft mob count, not an AI decision)</li>
+ *   <li>Spawn / despawn proximity to players
+ *       (entity lifecycle is a Minecraft concern)</li>
+ * </ul>
  */
 public class AiSkeletonManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("behavior_statetree");
     private static final Gson GSON = new Gson();
 
-    private static final int SPAWN_RADIUS = 20;
-    private static final int DESPAWN_RANGE = 64;
-    private static final int MAX_SKELETONS = 3;
-    private static final int SPAWN_CHECK_INTERVAL = 100; // ticks (~5s)
     private static final double OBSERVATION_RANGE = 32.0;
-    private static final int CALL_COOLDOWN_TICKS = 400; // 20s cooldown per skeleton
-    private static final int GLOBAL_CALL_COOLDOWN_TICKS = 400; // 20s global cooldown
 
-    /** Tracked skeletons keyed by entity ID. */
-    private final ConcurrentHashMap<Integer, TrackedSkeleton> skeletons = new ConcurrentHashMap<>();
-
-    private int tickCounter = 0;
-    private long lastGlobalCallTick = 0;
+    /** Tracked skeletons keyed by entity ID. Holds only the epoch. */
+    private final ConcurrentHashMap<Integer, EpochSlot> skeletons = new ConcurrentHashMap<>();
 
     // -----------------------------------------------------------------------
-    // Tracked skeleton state
+    // Tracked skeleton state — strictly the JVM-side epoch counter
     // -----------------------------------------------------------------------
 
-    private static class TrackedSkeleton {
-        final int entityId;
+    private static final class EpochSlot {
         long epoch;
-        long lastCallTick;
 
-        TrackedSkeleton(int entityId) {
-            this.entityId = entityId;
+        EpochSlot() {
             this.epoch = 0;
-            this.lastCallTick = 0;
         }
 
         long nextEpoch() {
             return ++epoch;
-        }
-
-        boolean canCall(long currentTick) {
-            return (currentTick - lastCallTick) > CALL_COOLDOWN_TICKS;
-        }
-
-        void markCalled(long currentTick) {
-            lastCallTick = currentTick;
         }
     }
 
@@ -83,12 +72,9 @@ public class AiSkeletonManager {
         ServerWorld overworld = server.getOverworld();
         if (overworld == null) return;
 
-        tickCounter++;
-        if (tickCounter % SPAWN_CHECK_INTERVAL == 0) {
-            manageSpawns(overworld);
-        }
-
-        // Evict dead skeletons
+        // Evict dead skeletons from the epoch map. Population management
+        // (spawning new ones, despawning ones too far from players) happens
+        // in Rust now via SpawnSkeleton / Despawn intents.
         skeletons.entrySet().removeIf(entry -> {
             var entity = overworld.getEntityById(entry.getKey());
             return entity == null || !entity.isAlive();
@@ -96,7 +82,7 @@ public class AiSkeletonManager {
     }
 
     /**
-     * Build observation JSON for each tracked skeleton and submit to Tokio.
+     * Build observation JSON for each tracked skeleton and submit to Rust.
      * Called at throttled intervals by NpcTickHandler, not every tick.
      */
     public void submitObservations(MinecraftServer server) {
@@ -106,15 +92,15 @@ public class AiSkeletonManager {
         long currentTick = overworld.getTime();
 
         for (var entry : skeletons.entrySet()) {
-            var tracked = entry.getValue();
-            var entity = overworld.getEntityById(tracked.entityId);
+            var slot = entry.getValue();
+            var entity = overworld.getEntityById(entry.getKey());
             if (entity == null || !entity.isAlive()) continue;
 
             var skeleton = (SkeletonEntity) entity;
-            long epoch = tracked.nextEpoch();
+            long epoch = slot.nextEpoch();
 
             JsonObject obs = new JsonObject();
-            obs.addProperty("entity_id", tracked.entityId);
+            obs.addProperty("entity_id", entry.getKey());
             obs.addProperty("epoch", epoch);
 
             JsonArray pos = new JsonArray();
@@ -158,8 +144,8 @@ public class AiSkeletonManager {
     }
 
     public long getEpoch(int entityId) {
-        var tracked = skeletons.get(entityId);
-        return tracked != null ? tracked.epoch : -1;
+        var slot = skeletons.get(entityId);
+        return slot != null ? slot.epoch : -1;
     }
 
     public Set<Integer> getTrackedIds() {
@@ -167,70 +153,60 @@ public class AiSkeletonManager {
     }
 
     // -----------------------------------------------------------------------
-    // Call for help — spawn reinforcements near the caller
+    // Pure actuator API — called by NpcTickHandler when Rust emits commands
     // -----------------------------------------------------------------------
 
-    public boolean spawnReinforcements(ServerWorld world, int callerEntityId, int count, long currentTick) {
-        // Global cooldown — prevent cascade
-        if ((currentTick - lastGlobalCallTick) < GLOBAL_CALL_COOLDOWN_TICKS) return false;
+    /**
+     * Spawn an AI Skeleton near the given player. Called when Rust emits
+     * a {@code SpawnSkeleton} world intent.
+     *
+     * @return true if a skeleton was actually spawned
+     */
+    public boolean spawnSkeletonNearPlayer(ServerWorld world, int playerEntityId, int radius) {
+        var player = world.getEntityById(playerEntityId);
+        if (player == null || !player.isAlive()) return false;
+        return spawnSkeletonNear(world, player.getX(), player.getY(), player.getZ(), radius);
+    }
 
-        var tracked = skeletons.get(callerEntityId);
-        if (tracked == null || !tracked.canCall(currentTick)) return false;
-
+    /**
+     * Spawn AI Skeletons near an existing skeleton (reinforcement call).
+     * Called when Rust emits a {@code CallForHelp} per-NPC intent.
+     *
+     * @return number of skeletons actually spawned
+     */
+    public int spawnReinforcements(ServerWorld world, int callerEntityId, int count) {
         var caller = world.getEntityById(callerEntityId);
-        if (caller == null || !caller.isAlive()) return false;
+        if (caller == null || !caller.isAlive()) return 0;
 
-        // Already at max — no reinforcements
-        if (skeletons.size() >= MAX_SKELETONS) return false;
-
-        tracked.markCalled(currentTick);
-        lastGlobalCallTick = currentTick;
         int spawned = 0;
-
-        for (int i = 0; i < count && skeletons.size() < MAX_SKELETONS; i++) {
+        for (int i = 0; i < count; i++) {
             if (spawnSkeletonNear(world, caller.getX(), caller.getY(), caller.getZ(), 8)) {
                 spawned++;
             }
         }
 
         if (spawned > 0) {
-            LOGGER.info("[AI Skeleton] {} reinforcements answered the call (id={})", spawned, callerEntityId);
+            LOGGER.info("[AI Skeleton] {} reinforcements answered the call (id={})",
+                    spawned, callerEntityId);
         }
-        return spawned > 0;
+        return spawned;
+    }
+
+    /**
+     * Discard an AI Skeleton entity by ID. Called when Rust emits a
+     * {@code Despawn} world intent (skeleton too far from any player).
+     */
+    public void despawnEntity(ServerWorld world, int entityId) {
+        var entity = world.getEntityById(entityId);
+        if (entity != null) {
+            entity.discard();
+        }
+        skeletons.remove(entityId);
     }
 
     // -----------------------------------------------------------------------
-    // Spawn / despawn management
+    // Internal spawn primitive
     // -----------------------------------------------------------------------
-
-    private void manageSpawns(ServerWorld world) {
-        // Despawn skeletons too far from any player
-        skeletons.entrySet().removeIf(entry -> {
-            var entity = world.getEntityById(entry.getKey());
-            if (entity == null) return true;
-
-            boolean nearPlayer = false;
-            for (ServerPlayerEntity player : world.getPlayers()) {
-                if (entity.squaredDistanceTo(player) < DESPAWN_RANGE * DESPAWN_RANGE) {
-                    nearPlayer = true;
-                    break;
-                }
-            }
-            if (!nearPlayer) {
-                entity.discard();
-                return true;
-            }
-            return false;
-        });
-
-        // Spawn skeletons near players if under limit
-        if (skeletons.size() >= MAX_SKELETONS) return;
-
-        for (ServerPlayerEntity player : world.getPlayers()) {
-            if (skeletons.size() >= MAX_SKELETONS) break;
-            spawnSkeletonNear(world, player.getX(), player.getY(), player.getZ(), SPAWN_RADIUS);
-        }
-    }
 
     private boolean spawnSkeletonNear(ServerWorld world, double centerX, double centerY, double centerZ, int radius) {
         Random rand = new Random();
@@ -260,7 +236,7 @@ public class AiSkeletonManager {
         skeleton.setEquipmentDropChance(EquipmentSlot.MAINHAND, 0.0f);
 
         world.spawnEntity(skeleton);
-        skeletons.put(skeleton.getId(), new TrackedSkeleton(skeleton.getId()));
+        skeletons.put(skeleton.getId(), new EpochSlot());
 
         LOGGER.info("[AI Skeleton] Spawned at [{}, {}, {}] (id={})",
                 surface.getX(), surface.getY(), surface.getZ(), skeleton.getId());

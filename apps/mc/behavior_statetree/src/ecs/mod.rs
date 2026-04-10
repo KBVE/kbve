@@ -13,9 +13,13 @@ pub mod systems;
 
 use bevy::prelude::*;
 
-use components::{GlobalCallCooldown, ServerTick};
-use events::{IntentBuffer, ObservationBuffer};
-use systems::{ingest_observations, plan_behavior};
+use components::{
+    GlobalCallCooldown, LastPopulationManagedTick, ServerTick, SkeletonPopulationConfig,
+};
+use events::{IntentBuffer, ObservationBuffer, PlayerObservationBuffer, WorldIntentBuffer};
+use systems::{
+    ingest_observations, ingest_player_snapshots, manage_skeleton_population, plan_behavior,
+};
 
 /// Plugin that registers all AI ECS components, resources, and systems.
 pub struct AiBehaviorPlugin;
@@ -25,7 +29,20 @@ impl Plugin for AiBehaviorPlugin {
         app.init_resource::<ServerTick>()
             .init_resource::<GlobalCallCooldown>()
             .init_resource::<ObservationBuffer>()
+            .init_resource::<PlayerObservationBuffer>()
             .init_resource::<IntentBuffer>()
-            .add_systems(Update, (ingest_observations, plan_behavior).chain());
+            .init_resource::<WorldIntentBuffer>()
+            .init_resource::<SkeletonPopulationConfig>()
+            .init_resource::<LastPopulationManagedTick>()
+            .add_systems(
+                Update,
+                (
+                    ingest_player_snapshots,
+                    ingest_observations,
+                    plan_behavior,
+                    manage_skeleton_population,
+                )
+                    .chain(),
+            );
     }
 }

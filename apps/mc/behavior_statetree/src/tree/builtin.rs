@@ -2,7 +2,7 @@
 
 use crate::types::{NpcCommand, NpcObservation};
 
-use super::node::{BehaviorNode, NodeStatus};
+use super::node::{BehaviorContext, BehaviorNode, NodeStatus};
 
 /// Wander randomly within a radius of the NPC's current position.
 pub struct Wander {
@@ -10,7 +10,11 @@ pub struct Wander {
 }
 
 impl BehaviorNode for Wander {
-    fn evaluate(&self, observation: &NpcObservation) -> (NodeStatus, Vec<NpcCommand>) {
+    fn evaluate(
+        &self,
+        observation: &NpcObservation,
+        _ctx: &mut BehaviorContext<'_>,
+    ) -> (NodeStatus, Vec<NpcCommand>) {
         let [x, y, z] = observation.position;
         // Simple deterministic offset based on tick for reproducibility
         let angle = (observation.tick as f64 * 0.1) % std::f64::consts::TAU;
@@ -29,7 +33,11 @@ pub struct Flee {
 }
 
 impl BehaviorNode for Flee {
-    fn evaluate(&self, observation: &NpcObservation) -> (NodeStatus, Vec<NpcCommand>) {
+    fn evaluate(
+        &self,
+        observation: &NpcObservation,
+        _ctx: &mut BehaviorContext<'_>,
+    ) -> (NodeStatus, Vec<NpcCommand>) {
         let nearest_hostile = observation
             .nearby_entities
             .iter()
@@ -65,7 +73,11 @@ pub struct AttackNearest {
 }
 
 impl BehaviorNode for AttackNearest {
-    fn evaluate(&self, observation: &NpcObservation) -> (NodeStatus, Vec<NpcCommand>) {
+    fn evaluate(
+        &self,
+        observation: &NpcObservation,
+        _ctx: &mut BehaviorContext<'_>,
+    ) -> (NodeStatus, Vec<NpcCommand>) {
         let nearest_hostile = observation
             .nearby_entities
             .iter()
@@ -95,7 +107,11 @@ pub struct IsHealthLow {
 }
 
 impl BehaviorNode for IsHealthLow {
-    fn evaluate(&self, observation: &NpcObservation) -> (NodeStatus, Vec<NpcCommand>) {
+    fn evaluate(
+        &self,
+        observation: &NpcObservation,
+        _ctx: &mut BehaviorContext<'_>,
+    ) -> (NodeStatus, Vec<NpcCommand>) {
         if observation.health < self.threshold {
             (NodeStatus::Success, vec![])
         } else {
@@ -105,19 +121,37 @@ impl BehaviorNode for IsHealthLow {
 }
 
 /// Call for reinforcements when health is in danger range.
-/// Emits a Speak + CallForHelp command to summon allies.
+///
+/// Reads both the per-NPC and global cooldowns from the context. Only emits
+/// commands when *both* are clear, then bumps both. The chat broadcast and
+/// the reinforcement spawn flow as a single atomic decision in Rust — Java
+/// just executes whatever it receives.
 pub struct CallAllies {
     pub health_threshold: f32,
     pub reinforcement_count: u32,
 }
 
 impl BehaviorNode for CallAllies {
-    fn evaluate(&self, observation: &NpcObservation) -> (NodeStatus, Vec<NpcCommand>) {
-        // Only call if hostiles are nearby and health is below threshold
+    fn evaluate(
+        &self,
+        observation: &NpcObservation,
+        ctx: &mut BehaviorContext<'_>,
+    ) -> (NodeStatus, Vec<NpcCommand>) {
+        // Gating: hostiles nearby + low HP + cooldowns clear.
         let has_hostiles = observation.nearby_entities.iter().any(|e| e.is_hostile);
         if !has_hostiles || observation.health >= self.health_threshold {
             return (NodeStatus::Failure, vec![]);
         }
+
+        let tick = ctx.current_tick;
+        if !ctx.per_npc.can_fire(tick) || !ctx.global.can_fire(tick) {
+            // Throttle silently — no spam, no chat, no spawn.
+            return (NodeStatus::Failure, vec![]);
+        }
+
+        // Cooldowns satisfied — fire the call. Bump both before returning.
+        ctx.per_npc.mark_fired(tick);
+        ctx.global.mark_fired(tick);
 
         (
             NodeStatus::Success,
@@ -139,7 +173,11 @@ pub struct Idle {
 }
 
 impl BehaviorNode for Idle {
-    fn evaluate(&self, _observation: &NpcObservation) -> (NodeStatus, Vec<NpcCommand>) {
+    fn evaluate(
+        &self,
+        _observation: &NpcObservation,
+        _ctx: &mut BehaviorContext<'_>,
+    ) -> (NodeStatus, Vec<NpcCommand>) {
         (
             NodeStatus::Success,
             vec![NpcCommand::Idle { ticks: self.ticks }],
