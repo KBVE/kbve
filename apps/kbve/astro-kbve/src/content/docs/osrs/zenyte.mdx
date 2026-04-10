@@ -14,104 +14,62 @@ osrs:
   limit: 11000
   material:
     type: gem
-    tier: zenyte
+    tier: elite
   recipes:
     - skill: crafting
       level: 89
-      xp: 150
-      materials:
-        - item_name: Zenyte
-          item_id: 19493
-          quantity: 1
-        - item_name: Gold bar
-          item_id: 2357
-          quantity: 1
-      product: Zenyte ring
-      product_id: 19538
-      product_quantity: 1
-      facility: Furnace
-      members_only: true
-    - skill: crafting
-      level: 92
-      xp: 165
-      materials:
-        - item_name: Zenyte
-          item_id: 19493
-          quantity: 1
-        - item_name: Gold bar
-          item_id: 2357
-          quantity: 1
-      product: Zenyte necklace
-      product_id: 19535
-      product_quantity: 1
-      facility: Furnace
-      members_only: true
-    - skill: crafting
-      level: 98
       xp: 200
+      tools:
+        - Chisel
       materials:
-        - item_name: Zenyte
-          item_id: 19493
+        - item_name: Uncut zenyte
+          item_id: 19496
           quantity: 1
-        - item_name: Gold bar
-          item_id: 2357
-          quantity: 1
-      product: Zenyte amulet (u)
-      product_id: 19501
+      product: Zenyte
+      product_id: 19493
       product_quantity: 1
-      facility: Furnace
-      members_only: true
-    - skill: crafting
-      level: 95
-      xp: 180
-      materials:
-        - item_name: Zenyte
-          item_id: 19493
-          quantity: 1
-        - item_name: Gold bar
-          item_id: 2357
-          quantity: 1
-      product: Zenyte bracelet
-      product_id: 19532
-      product_quantity: 1
-      facility: Furnace
       members_only: true
   related_items:
-    - item_id: 19529
+    - item_id: 19496
+      item_name: Uncut zenyte
+      slug: uncut-zenyte
+      relationship: component
+      description: Intermediate uncut form
+    - item_id: 19497
       item_name: Zenyte shard
       slug: zenyte-shard
       relationship: component
-      description: Drop from gorillas
+      description: Drop from Demonic gorillas
     - item_id: 6573
       item_name: Onyx
       slug: onyx
       relationship: component
-      description: Base gem
-    - item_id: 19553
-      item_name: Amulet of torture
+      description: Base gem combined with shard
+    - item_name: Amulet of torture
       slug: amulet-of-torture
       relationship: product
-      description: Melee BiS
-    - item_id: 19547
-      item_name: Necklace of anguish
+      description: Best-in-slot melee neck
+    - item_name: Necklace of anguish
       slug: necklace-of-anguish
       relationship: product
-      description: Ranged BiS
+      description: Best-in-slot ranged neck
+    - item_name: Ring of suffering
+      slug: ring-of-suffering
+      relationship: product
+      description: Recoil ring with defensive bonuses
+    - item_name: Tormented bracelet
+      slug: tormented-bracelet
+      relationship: product
+      description: Magic damage bracelet
   about: |-
-    | Item | Effect |
-    |------|--------|
-    | Ring of suffering | +20 all defence, prayer bonus |
-    | Necklace of anguish | +15 Ranged str, +5 Ranged |
-    | Amulet of torture | +15 melee str, +10 Attack |
-    | Tormented bracelet | +5 Magic damage |
+    Zenyte is the highest-tier gem in Old School RuneScape, sitting above onyx in the progression ladder and unlocking the most powerful jewelry in the game. It is produced by combining a cut onyx with a zenyte shard, which drops exclusively from Demonic gorillas deep within the Crash Site Cavern after Monkey Madness II. Players use zenyte to craft best-in-slot jewelry including the Amulet of torture, Necklace of anguish, Ring of suffering, and Tormented bracelet.
   market_strategy:
     notes:
-      - Requires onyx + zenyte shard
-      - Wall of Flames to create
-      - High Crafting requirements
-      - 93 Magic to enchant
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Demonic gorillas are the only source of zenyte shards, so supply is bottlenecked by Monkey Madness II completion and gorilla farming.
+      - The cut zenyte to jewelry chain holds a stable margin because the Amulet of torture and Necklace of anguish remain BiS for years.
+      - Watch shard prices closely — they directly drive the floor on every zenyte product.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

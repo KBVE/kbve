@@ -14,72 +14,92 @@ osrs:
   limit: 15
   equipment:
     slot: body
-    type: barrows
-    set: Dharok
-    tradeable: true
-    degradeable: true
     weight: 9.9
-    requirements:
-      defence: 70
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: -30
-      attack_ranged: -10
-      defence_stab: 122
-      defence_slash: 120
-      defence_crush: 107
-      defence_magic: -6
-      defence_ranged: 132
-      strength: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -10
+    defence_bonus:
+      stab: 122
+      slash: 120
+      crush: 107
+      magic: -6
+      ranged: 132
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  set_effect:
-    name: Wretched Strength
+    requirements:
+      defence: 70
+  charges:
+    max_charges: 100
+    combat_hours: 15
+    repairable: true
+    repair_npc: Bob
+    degrade_to_id: 4886
+    degrade_to_name: Dharok's platebody 0
+  set_bonus:
+    set_name: Dharok the Wretched's equipment
     pieces_required: 4
-    description: Damage increases as HP decreases. Up to +98.9% damage at 1 HP with 99 max HP
+    description: "Increases melee damage as the player's hitpoints decrease, with maximum boost at 1 HP."
+    pieces:
+      - 4716
+      - 4720
+      - 4722
+      - 4718
   related_items:
     - item_id: 4716
       item_name: Dharok's helm
-      slug: dharoks-helm
+      slug: dharok-s-helm
       relationship: set-piece
       description: Head slot set piece
     - item_id: 4722
       item_name: Dharok's platelegs
-      slug: dharoks-platelegs
+      slug: dharok-s-platelegs
       relationship: set-piece
       description: Legs slot set piece
     - item_id: 4718
       item_name: Dharok's greataxe
-      slug: dharoks-greataxe
+      slug: dharok-s-greataxe
       relationship: set-piece
-      description: Weapon set piece
+      description: Two-handed weapon set piece
+    - item_id: 4939
+      item_name: Dharok's armour set
+      slug: dharok-s-armour-set
+      relationship: variant
+      description: Grand Exchange set containing all four Dharok pieces
+    - item_id: 4856
+      item_name: Ahrim's robetop
+      slug: ahrim-s-robetop
+      relationship: alternative
+      description: Magic-focused Barrows brother body slot armour
+    - item_id: 4732
+      item_name: Karil's leathertop
+      slug: karil-s-leathertop
+      relationship: alternative
+      description: Ranged-focused Barrows brother body slot armour
+    - item_id: 4728
+      item_name: Verac's brassard
+      slug: verac-s-brassard
+      relationship: alternative
+      description: Melee/prayer hybrid Barrows brother body slot armour
+    - item_id: 4749
+      item_name: Torag's platebody
+      slug: torag-s-platebody
+      relationship: alternative
+      description: Defensive melee Barrows brother body slot armour
+    - item_id: 4753
+      item_name: Guthan's platebody
+      slug: guthan-s-platebody
+      relationship: alternative
+      description: Healing melee Barrows brother body slot armour
   about: |-
-    | Bonus | Value |
-    |-------|-------|
-    | Stab defence | +122 |
-    | Slash defence | +120 |
-    | Crush defence | +107 |
-    | Magic defence | -6 |
-    | Ranged defence | +132 |
-    | Magic attack | -30 |
-    | Ranged attack | -10 |
-
-    Wretched Strength:
-    When wearing full Dharok's (helm, platebody, platelegs, greataxe):
-    - Damage increases as HP decreases
-    - Up to +98.9% damage at 1 HP with 99 max HP
-
-    - 15 hours of combat use
-    - Repair at Bob in Lumbridge or POH armor stand
-  market_strategy:
-    notes:
-      - Essential piece for Dharok's set effect
-      - Highest defence bonus body in Barrows
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Dharok's platebody is the body slot piece of Dharok the Wretched's equipment, obtained as a reward from the Barrows minigame and requiring 70 Defence to wear. It contributes to the Wretched Strength set effect which, when all four Dharok pieces are equipped, increases melee damage dealt as the player's hitpoints drop, reaching up to 98.9% bonus damage at 1 HP with 99 maximum hitpoints. The platebody degrades over 15 hours of combat and can be repaired by Bob in Lumbridge or at a player-owned house armour stand.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

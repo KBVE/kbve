@@ -12,15 +12,9 @@ osrs:
   lowalch: 72
   highalch: 108
   limit: 18000
-  rune:
-    type: utility
-  runecraft:
-    level: 44
-    xp: 9
-    multiple_at: 91
-    altar: Nature Altar
-    altar_location: Karamja (north)
-    essence_type: pure
+  material:
+    type: rune
+    tier: high
   recipes:
     - skill: runecraft
       level: 44
@@ -33,49 +27,38 @@ osrs:
       product_id: 561
       product_quantity: 1
       facility: Nature altar
-      members_only: true
   related_items:
-    - item_id: 554
-      item_name: Fire rune
-      slug: fire-rune
+    - item_id: 7936
+      item_name: Pure essence
+      slug: pure-essence
       relationship: component
-      description: Required for High Alchemy
-    - item_id: 855
-      item_name: Yew longbow
-      slug: yew-longbow
+      description: Required essence for crafting nature runes
+    - item_name: Rune essence
+      slug: rune-essence
+      relationship: component
+      description: Cannot be used for nature runes — pure essence only
+    - item_name: Nature talisman
+      slug: nature-talisman
+      relationship: component
+      description: Grants access to the Nature Altar
+    - item_name: Nature tiara
+      slug: nature-tiara
+      relationship: component
+      description: Head-slot alternative to carrying the talisman
+    - item_name: Daeyalt essence
+      slug: daeyalt-essence
       relationship: alternative
-      description: Common alch target
-    - item_id: 859
-      item_name: Magic longbow
-      slug: magic-longbow
-      relationship: alternative
-      description: High value alch target
-    - item_id: 1387
-      item_name: Staff of fire
-      slug: staff-of-fire
-      relationship: alternative
-      description: Infinite fire runes
-  about: |-
-    Nature runes are primarily used for Alchemy spells:
-
-    | Spell | Magic Level | Runes Required |
-    |-------|-------------|----------------|
-    | Low Alchemy | 21 | 1 Nature rune |
-    | High Alchemy | 55 | 1 Nature rune, 5 Fire runes |
-  market_strategy:
-    profit_formulas:
-      - High Alch value - Item cost - Nature rune = Profit
-    notes:
-      - Yew longbow - Alchs for 768 GP
-      - Magic longbow - Alchs for 1,536 GP
-      - Rune items - Various high alch values
-      - "Grand Exchange (buy limit: 18,000)"
-      - Runecrafting (44 RC, 91 for double)
-      - Nature Chest (Ardougne)
-      - Monster drops
-      - Shops (180 GP each)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Higher-XP alternative essence (13.5 XP per craft)
+  about: >-
+    Nature runes are the most valuable common rune in Old School RuneScape, used
+    primarily to cast High Alchemy, Low Alchemy, and Superheat Item — making
+    them a staple demand among Magic trainers and profit alchers. They are
+    crafted via Runecrafting at level 44 at the Nature Altar south-east of Tai
+    Bwo Wannai in Karamja, granting 9 XP per pure essence, with double runes
+    unlocked at level 91. Constant demand from the High Alchemy economy keeps
+    the Grand Exchange price high relative to elemental runes.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
