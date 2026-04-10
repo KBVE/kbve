@@ -1383,7 +1383,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.107"
+version = "1.0.108"
 dependencies = [
  "anyhow",
  "askama",
@@ -8298,7 +8298,7 @@ dependencies = [
 
 [[package]]
 name = "kbve-kubectl"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "base64 0.22.1",
  "clap",
