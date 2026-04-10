@@ -24,6 +24,10 @@ struct ServiceProxy {
     /// If set, injected as `Authorization: Bearer <token>` on upstream requests.
     /// When `None`, no auth header is sent upstream (e.g. Grafana anonymous).
     upstream_token: Option<String>,
+    /// When true, strip X-Frame-Options and Content-Security-Policy frame-ancestors
+    /// from upstream responses so the proxied service can be embedded in an iframe
+    /// (e.g. KASM workspace viewer).
+    iframe_safe: bool,
 }
 
 impl ServiceProxy {
@@ -34,16 +38,21 @@ impl ServiceProxy {
         // `Send` (Body is !Sync), so we must not hold a reference to `req`
         // across an .await boundary.
         let req_headers = req.headers().clone();
+        // Capture the query string up front so the auth gate can fall back to
+        // an `access_token=` param when no Authorization header is present
+        // (e.g. iframe loads where headers cannot be set client-side).
+        let raw_query = req.uri().query().map(|q| q.to_string());
 
         // --- JWT + staff gate ---
-        if let Err(resp) = require_dashboard_view(&req_headers, self.name).await {
+        if let Err(resp) =
+            require_dashboard_view_with_query(&req_headers, raw_query.as_deref(), self.name).await
+        {
             return resp;
         }
 
         let suffix = path.map(|Path(p)| p).unwrap_or_default();
-        let query = req
-            .uri()
-            .query()
+        let query = raw_query
+            .as_ref()
             .map(|q| format!("?{q}"))
             .unwrap_or_default();
         let upstream_url = format!("{}/{}{}", self.upstream, suffix, query);
@@ -166,6 +175,16 @@ impl ServiceProxy {
         ];
         for h in HOP_BY_HOP {
             resp_headers.remove(*h);
+        }
+
+        // For services rendered in an iframe (e.g. KASM workspace viewer),
+        // strip framing-restriction headers so the upstream UI can embed.
+        // We're already gating access via JWT + DASHBOARD_VIEW so the
+        // clickjacking protection these headers provide is redundant here.
+        if self.iframe_safe {
+            resp_headers.remove("x-frame-options");
+            resp_headers.remove("content-security-policy");
+            resp_headers.remove("content-security-policy-report-only");
         }
 
         let resp_body = match upstream_resp.bytes().await {
@@ -341,6 +360,7 @@ pub fn init_grafana_proxy() -> bool {
             client,
             upstream,
             upstream_token: None,
+            iframe_safe: false,
         })
         .is_ok()
 }
@@ -406,6 +426,7 @@ pub fn init_argo_proxy() -> bool {
         client,
         upstream,
         upstream_token: Some(auth_token),
+        iframe_safe: false,
     })
     .is_ok()
 }
@@ -452,6 +473,7 @@ pub fn init_clickhouse_logs_proxy() -> bool {
             client,
             upstream,
             upstream_token: Some(service_role_key),
+            iframe_safe: false,
         })
         .is_ok()
 }
@@ -500,6 +522,7 @@ pub fn init_forgejo_proxy() -> bool {
             client,
             upstream,
             upstream_token: Some(auth_token),
+            iframe_safe: false,
         })
         .is_ok()
 }
@@ -582,6 +605,7 @@ pub fn init_kubevirt_proxy() -> bool {
             client,
             upstream,
             upstream_token: Some(auth_token),
+            iframe_safe: false,
         })
         .is_ok()
 }
@@ -805,6 +829,7 @@ pub fn init_kasm_proxy() -> bool {
         client,
         upstream: upstream.trim_end_matches('/').to_string(),
         upstream_token: None, // KASM uses its own VNC_PW auth
+        iframe_safe: true,    // strip X-Frame-Options for iframe embedding
     })
     .is_ok()
 }
@@ -1005,6 +1030,7 @@ pub fn init_firecracker_proxy() -> bool {
             client,
             upstream: upstream.trim_end_matches('/').to_string(),
             upstream_token: None,
+            iframe_safe: false,
         })
         .is_ok()
 }
@@ -1052,6 +1078,7 @@ pub fn init_guacamole_proxy() -> bool {
             client,
             upstream: upstream.trim_end_matches('/').to_string(),
             upstream_token: None, // Guacamole uses its own session auth
+            iframe_safe: false,
         })
         .is_ok()
 }
@@ -1222,6 +1249,7 @@ pub fn init_edge_proxy() -> bool {
         client,
         upstream,
         upstream_token: Some(service_role_key),
+        iframe_safe: false,
     })
     .is_ok()
 }
@@ -1262,6 +1290,7 @@ pub fn init_chuckrpg_proxy() -> bool {
             client,
             upstream,
             upstream_token: None,
+            iframe_safe: false,
         })
         .is_ok()
 }
