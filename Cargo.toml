@@ -35,6 +35,7 @@ members = [
 	'apps/vm/firecracker-ctl',
 	'apps/vm/kubectl',
 	'apps/mc/behavior_statetree',
+	'apps/mc/mc_auth',
 ]
 
 [profile.dev]

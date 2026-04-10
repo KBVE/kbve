@@ -3,8 +3,8 @@ plugins {
 }
 
 version = '0.1.0'
-group = 'com.kbve'
-base.archivesName = 'behavior_statetree'
+group = 'com.kbve.mcauth'
+base.archivesName = 'mc_auth'
 
 repositories {
     mavenCentral()
@@ -20,9 +20,9 @@ dependencies {
 // Copy the Rust native library into the JAR resources
 processResources {
     from("../../target/release") {
-        include "libbehavior_statetree.so"
-        include "libbehavior_statetree.dylib"
-        include "behavior_statetree.dll"
+        include "libmc_auth.so"
+        include "libmc_auth.dylib"
+        include "mc_auth.dll"
         into "natives"
     }
 }

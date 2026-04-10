@@ -48,15 +48,45 @@ pub struct NpcThinkJob {
 }
 
 /// A command the NPC intends to execute. Validated by the server tick thread.
+///
+/// Some commands target a specific NPC (carried by the parent `NpcIntent`),
+/// while others (`SpawnSkeleton`, `Despawn`) act on entities the AI does not
+/// yet "own" — these come from the `world_intents` channel emitted by
+/// world-level systems instead of per-NPC behavior trees.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum NpcCommand {
-    MoveTo { target: [f64; 3] },
-    Attack { target_entity: u64 },
-    Interact { block_pos: [i64; 3] },
-    Idle { ticks: u32 },
-    Speak { message: String },
-    SetGoal { goal: GoalId },
-    CallForHelp { count: u32 },
+    MoveTo {
+        target: [f64; 3],
+    },
+    Attack {
+        target_entity: u64,
+    },
+    Interact {
+        block_pos: [i64; 3],
+    },
+    Idle {
+        ticks: u32,
+    },
+    Speak {
+        message: String,
+    },
+    SetGoal {
+        goal: GoalId,
+    },
+    CallForHelp {
+        count: u32,
+    },
+    /// Despawn an existing AI-managed entity. The Java side discards the
+    /// Minecraft entity by ID — no policy decisions, just the API call.
+    Despawn {
+        target_entity: u64,
+    },
+    /// Spawn an AI Skeleton near the given player entity ID. Java picks
+    /// a random offset within `radius` blocks of the player.
+    SpawnSkeleton {
+        near_player: u64,
+        radius: i32,
+    },
 }
 
 /// Result of async AI planning. Only applied if epoch matches current NPC epoch.
@@ -74,4 +104,30 @@ pub struct NpcIntent {
 pub struct NpcDecisionEpoch {
     pub entity_id: u64,
     pub epoch: u64,
+}
+
+// ---------------------------------------------------------------------------
+// Player snapshot — sent from Java once per observation tick (separate from
+// per-NPC observations). Lets the Rust ECS run spawn/despawn policy without
+// asking Java "how far is the nearest player?" on every decision.
+// ---------------------------------------------------------------------------
+
+/// Single player record inside a `PlayerSnapshot`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlayerInfo {
+    pub entity_id: u64,
+    pub username: String,
+    pub position: [f64; 3],
+    pub health: f32,
+}
+
+/// Snapshot of all players currently online on the server.
+///
+/// Sent each observation tick by Java. The Rust side reconciles it against
+/// `OnlinePlayer` ECS entities (spawn new ones, update positions, despawn
+/// players who logged out).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlayerSnapshot {
+    pub players: Vec<PlayerInfo>,
+    pub tick: u64,
 }

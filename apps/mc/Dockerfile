@@ -1,35 +1,55 @@
-# ── Stage 1: Build Rust native library (.so) ──────────────────────────
+# ── Stage 1: Build Rust native libraries (.so) ────────────────────────
 FROM rust:1.94-bookworm AS rust-builder
 WORKDIR /build
 
-# Standalone workspace with behavior_statetree + bevy_npc dependency.
+# protoc + well-known types — required by the agones crate's build.rs.
+# protobuf-compiler ships protoc; libprotobuf-dev ships google/protobuf/*.proto
+# (descriptor.proto, struct.proto) which the agones SDK protos import.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    protobuf-compiler \
+    libprotobuf-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Standalone workspace with behavior_statetree + mc_auth + bevy_npc.
 # Uses the repo Cargo.lock for reproducible dependency resolution.
 COPY Cargo.lock .
 COPY apps/mc/behavior_statetree/ behavior_statetree/
+COPY apps/mc/mc_auth/ mc_auth/
 COPY packages/rust/bevy/bevy_npc/ bevy_npc/
 
 # Rewrite bevy_npc path in behavior_statetree Cargo.toml for Docker context
 RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_npc"|path = "../bevy_npc"|' behavior_statetree/Cargo.toml
-RUN printf '[workspace]\nresolver = "2"\nmembers = ["behavior_statetree", "bevy_npc"]\n' > Cargo.toml
+RUN printf '[workspace]\nresolver = "2"\nmembers = ["behavior_statetree", "mc_auth", "bevy_npc"]\n' > Cargo.toml
 
-RUN cargo build -p behavior_statetree --release
-# Output: /build/target/release/libbehavior_statetree.so
+RUN cargo build -p behavior_statetree -p mc_auth --release
+# Outputs:
+#   /build/target/release/libbehavior_statetree.so
+#   /build/target/release/libmc_auth.so
 
-# ── Stage 2: Build Fabric mod JAR (bundles .so via processResources) ──
+# ── Stage 2: Build Fabric mod JARs (bundle .so via processResources) ──
 FROM gradle:jdk21 AS java-builder
 WORKDIR /build
 
-# Copy Java source
+# Copy Java source for both Fabric mods
 COPY apps/mc/behavior_statetree/java/ behavior_statetree/java/
+COPY apps/mc/mc_auth/java/ mc_auth/java/
 
-# Place .so where Gradle processResources expects it.
+# Place each .so where its Gradle processResources expects it.
 # build.gradle: from("../../target/release") relative to java/
-# java/ is at /build/behavior_statetree/java/, so ../../target/release = /build/target/release/
+# behavior_statetree/java/ → ../../target/release = /build/target/release/
+# mc_auth/java/             → ../../target/release = /build/target/release/
 COPY --from=rust-builder /build/target/release/libbehavior_statetree.so target/release/libbehavior_statetree.so
+COPY --from=rust-builder /build/target/release/libmc_auth.so target/release/libmc_auth.so
 
+# Build behavior_statetree JAR
 WORKDIR /build/behavior_statetree/java
 RUN gradle build --no-daemon
-# Output: /build/behavior_statetree/java/build/libs/*.jar (contains natives/libbehavior_statetree.so)
+# Output: /build/behavior_statetree/java/build/libs/*.jar
+
+# Build mc_auth JAR
+WORKDIR /build/mc_auth/java
+RUN gradle build --no-daemon
+# Output: /build/mc_auth/java/build/libs/*.jar
 
 # ── Stage 3: Runtime ──────────────────────────────────────────────────
 FROM itzg/minecraft-server:java21
@@ -76,6 +96,9 @@ declare -A MODS=(
   ["Chunky-Fabric-1.4.55.jar"]="19c34a23a5c1b2f6c73117b8eb4524b521e1926b https://cdn.modrinth.com/data/fALzjamp/versions/1CpEkmcD/Chunky-Fabric-1.4.55.jar"
   ["old_combat_mod-fabric-1.21.11-1.2.jar"]="5908493d5f019497864b6a8834fcfd4b2aa95213 https://cdn.modrinth.com/data/dZ1APLkO/versions/TzHDocwD/old_combat_mod-fabric-1.21.11-1.2.jar"
   ["FabricProxy-Lite-2.11.0.jar"]="2c6674b1561b9b263b332607ef25b7db469133ec https://cdn.modrinth.com/data/8dI2tmqs/versions/nR8AIdvx/FabricProxy-Lite-2.11.0.jar"
+  ["essential_commands-0.38.6-mc1.21.11.jar"]="c10c608f7adfd566fa2908deb16fd761fe399e8b https://cdn.modrinth.com/data/6VdDUivB/versions/3s9XXmZa/essential_commands-0.38.6-mc1.21.11.jar"
+  ["LuckPerms-Fabric-5.5.21.jar"]="2b899a61f216e8fd5ff9bfae98b62fcb1201e91b https://cdn.modrinth.com/data/Vebnzrzj/versions/CzCJJMuo/LuckPerms-Fabric-5.5.21.jar"
+  ["ledger-1.3.19.jar"]="b53db7b817e968603adf33f8d31903a0bf5c0ea2 https://cdn.modrinth.com/data/LVN9ygNV/versions/c1d39lju/ledger-1.3.19.jar"
 )
 
 for name in "${!MODS[@]}"; do
@@ -87,6 +110,9 @@ MODS
 
 # behavior_statetree mod (built in stage 2)
 COPY --from=java-builder /build/behavior_statetree/java/build/libs/*.jar /mods/
+
+# mc_auth mod (built in stage 2) — Supabase auth bridge + Agones heartbeat
+COPY --from=java-builder /build/mc_auth/java/build/libs/*.jar /mods/
 
 # Additional pre-built mods
 COPY apps/mc/mods/ /mods/
