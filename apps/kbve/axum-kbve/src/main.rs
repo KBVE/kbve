@@ -155,6 +155,16 @@ async fn main() -> anyhow::Result<()> {
         info!("Firecracker proxy not configured (using default cluster URL)");
     }
 
+    // Initialize Firecracker-Net proxy (optional - DASHBOARD_MANAGE gated,
+    // routes to firecracker-ctl-net with Gluetun/WireGuard sidecar)
+    if transport::proxy::init_firecracker_net_proxy() {
+        info!(
+            "Firecracker-Net proxy initialized - /dashboard/firecracker-net/proxy enabled (DASHBOARD_MANAGE required)"
+        );
+    } else {
+        info!("Firecracker-Net proxy not configured (using default cluster URL)");
+    }
+
     // Initialize Guacamole proxy (optional - for /dashboard/guac)
     if transport::proxy::init_guacamole_proxy() {
         info!("Guacamole proxy initialized - /dashboard/guac/proxy enabled");
