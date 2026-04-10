@@ -43,4 +43,13 @@ export function dockerExecSafe(cmd: string): {
 	}
 }
 
+/**
+ * Write arbitrary text to a file inside the container without worrying about
+ * shell quoting. Base64-encodes on the host, decodes in the container.
+ */
+export function dockerWriteFile(path: string, content: string): void {
+	const b64 = Buffer.from(content, 'utf-8').toString('base64');
+	dockerExec(`/bin/sh -c "echo ${b64} | base64 -d > ${path}"`);
+}
+
 export { CONTAINER_NAME, IMAGE_NAME };
