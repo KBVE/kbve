@@ -12,9 +12,16 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 13000
-  about: Achey tree logs is a members-only item in Old School RuneScape.
+  about: |
+    Achey tree logs are a members-only log chopped from achey trees, which
+    require only level 1 Woodcutting and yield 25 Woodcutting XP each. They
+    are primarily used in the ogre weapon Fletching chain — cut with a knife
+    to produce 2-6 ogre arrow shafts (level 5 Fletching) and combined with
+    wolf bones to craft the ogre composite bow. Tradeable and noteable, they
+    are most commonly gathered in the Feldip Hills during Big Chompy Bird
+    Hunting and Zogre Flesh Eaters content.
   mdx_version: 3
-  mdx_updated: 2026-04-10
+  mdx_updated: "2026-04-10"
   properties:
     tradeable: true
     equipable: false
@@ -22,7 +29,62 @@ osrs:
     noteable: true
     members: true
     weight: 1.36
-    quest: "[[Big Chompy Bird Hunting]], [[Zogre Flesh Eaters]]"
+    quest: "Big Chompy Bird Hunting, Zogre Flesh Eaters"
+  material:
+    type: log
+    tier: low
+  woodcutting:
+    level: 1
+    xp: 25
+    tool: Any axe
+    locations:
+      - Feldip Hills (south of Castle Wars)
+      - Near Rantz's cave
+      - Jungle south of Gu'Tanoth
+  recipes:
+    - skill: fletching
+      level: 5
+      xp: 1.6
+      tools:
+        - Knife
+      materials:
+        - item_name: Achey tree logs
+          item_id: 2862
+          quantity: 1
+      product: Ogre arrow shaft
+      product_id: 2864
+      product_quantity: "2-6"
+      quest_required: Big Chompy Bird Hunting
+    - skill: fletching
+      level: 30
+      tools:
+        - Knife
+      materials:
+        - item_name: Achey tree logs
+          item_id: 2862
+          quantity: 1
+        - item_name: Wolf bones
+          quantity: 1
+      product: Ogre composite bow (unstrung)
+      quest_required: Zogre Flesh Eaters
+    - skill: firemaking
+      level: 1
+      xp: 40
+      product: Fire
+  related_items:
+    - item_id: 2864
+      item_name: Ogre arrow shaft
+      slug: ogre-arrow-shaft
+      relationship: product
+      description: Cut from achey logs with a knife
+    - item_name: Ogre composite bow
+      slug: ogre-composite-bow
+      relationship: product
+      description: Crafted from achey logs and wolf bones
+    - item_name: Logs
+      slug: logs
+      relationship: alternative
+      description: Standard logs (lowest tier)
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

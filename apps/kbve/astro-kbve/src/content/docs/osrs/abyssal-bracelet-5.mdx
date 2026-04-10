@@ -12,9 +12,84 @@ osrs:
   lowalch: 1680
   highalch: 2520
   limit: 10000
-  about: "Abyssal bracelet(5) is a members-only item in Old School RuneScape. High alchemy value: 2,520 coins. Grand Exchange buy limit: 10,000 per 4 hours."
+  about: "The Abyssal bracelet(5) is the fully charged form of the abyssal bracelet, a members-only hands slot item used by runecrafters who travel through the Abyss. While worn, it reduces the aggression of the Abyss's monsters, making it safer to reach the altars for training Runecraft. Each trip into the Abyss consumes one of its five charges before the bracelet degrades."
+  equipment:
+    slot: hands
+    weight: 0.25
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements: {}
+  charges:
+    max_charges: 5
+    charge_cost_item: Cosmic rune
+    charge_cost_item_id: 564
+    charges_per_item: 1
+    degrade_to_id: 11097
+    degrade_to_name: Abyssal bracelet(4)
+  recipes:
+    - skill: magic
+      level: 57
+      xp: 67
+      facility: null
+      materials:
+        - item_name: Diamond bracelet
+          item_id: 11074
+          quantity: 1
+        - item_name: Cosmic rune
+          item_id: 564
+          quantity: 1
+        - item_name: Earth rune
+          item_id: 557
+          quantity: 10
+      product: Abyssal bracelet(5)
+      product_id: 11095
+      notes: "Created by casting Lvl-4 Enchant on a Diamond bracelet."
+  passive_effects:
+    - name: Abyss protection
+      description: Reduces aggression from Abyss creatures while training Runecraft.
+      trigger: while_worn
+  related_items:
+    - item_name: Abyssal bracelet(1)
+      slug: abyssal-bracelet-1
+      relationship: variant
+      description: 1-charge variant
+    - item_name: Abyssal bracelet(2)
+      slug: abyssal-bracelet-2
+      relationship: variant
+      description: 2-charge variant
+    - item_name: Abyssal bracelet(3)
+      slug: abyssal-bracelet-3
+      relationship: variant
+      description: 3-charge variant
+    - item_name: Abyssal bracelet(4)
+      slug: abyssal-bracelet-4
+      relationship: variant
+      description: 4-charge variant (degrade target)
+    - item_name: Diamond bracelet
+      slug: diamond-bracelet
+      relationship: component
+      description: Base item enchanted with Lvl-4 Enchant
+    - item_name: Cosmic rune
+      slug: cosmic-rune
+      relationship: component
+      description: Required for the enchanting spell
   mdx_version: 3
-  mdx_updated: 2026-04-10
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

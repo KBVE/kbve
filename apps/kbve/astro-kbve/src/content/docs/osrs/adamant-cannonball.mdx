@@ -12,9 +12,10 @@ osrs:
   lowalch: 72
   highalch: 108
   limit: 11000
-  about: Adamant cannonball is a members-only item in Old School RuneScape.
+  about: |
+    Adamant cannonball is the adamant-tier ammunition for the Dwarf multicannon, introduced as a higher-powered alternative to the standard cannonball. Players can craft them at a furnace by smithing adamantite bars with a dwarf cannon ammo mould, requiring level 75 Smithing. They deal considerably more damage than regular or steel cannonballs thanks to their increased ranged strength bonus.
   mdx_version: 3
-  mdx_updated: 2026-04-10
+  mdx_updated: "2026-04-10"
   properties:
     tradeable: true
     equipable: false
@@ -22,6 +23,47 @@ osrs:
     noteable: false
     members: true
     weight: 0
+  ammunition:
+    type: cannonball
+    tier: adamant
+    ranged_strength: 157
+    compatible_weapons:
+      - Dwarf multicannon
+      - Royale cannon
+  recipes:
+    - skill: smithing
+      level: 75
+      xp: 42.5
+      facility: Furnace
+      tools:
+        - Ammo mould
+      materials:
+        - item_name: Adamantite bar
+          quantity: 1
+      product: Adamant cannonball
+      product_id: 31912
+      product_quantity: 4
+  related_items:
+    - item_name: Cannonball
+      slug: cannonball
+      relationship: alternative
+      description: Standard steel-tier cannonball
+    - item_name: Steel cannonball
+      slug: steel-cannonball
+      relationship: downgrade
+      description: Lower-tier variant
+    - item_name: Rune cannonball
+      slug: rune-cannonball
+      relationship: upgrade
+      description: Higher-tier variant
+    - item_name: Adamantite bar
+      slug: adamantite-bar
+      relationship: component
+      description: Smithed into cannonballs
+    - item_name: Dwarf multicannon
+      slug: dwarf-multicannon
+      relationship: variant
+      description: The cannon that fires this ammunition
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
