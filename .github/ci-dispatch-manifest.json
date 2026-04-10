@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.105",
+			"version": "1.0.106",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -70,7 +70,7 @@
 		{
 			"key": "discordsh_bot",
 			"app_name": "discordsh-bot",
-			"version": "0.1.7",
+			"version": "0.1.8",
 			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
 			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
@@ -84,7 +84,7 @@
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.27",
+			"version": "0.1.28",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -98,7 +98,7 @@
 		{
 			"key": "firecracker_ctl",
 			"app_name": "firecracker-ctl",
-			"version": "0.1.27",
+			"version": "0.1.28",
 			"version_toml": "apps/vm/firecracker-ctl/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-ctl.mdx",
 			"version_target": "apps/vm/firecracker-ctl/Cargo.toml",
@@ -125,7 +125,7 @@
 		{
 			"key": "irc_gateway",
 			"app_name": "irc-gateway",
-			"version": "0.1.9",
+			"version": "0.1.10",
 			"version_toml": "apps/irc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/irc-gateway.mdx",
 			"version_target": "apps/irc/irc-gateway/Cargo.toml",
@@ -147,15 +147,30 @@
 			"has_test": false
 		},
 		{
+			"key": "kubectl",
+			"app_name": "kbve-kubectl",
+			"version": "0.1.0",
+			"version_toml": "apps/vm/kubectl/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kubectl.mdx",
+			"version_target": "apps/vm/kubectl/Cargo.toml",
+			"source_path": "apps/vm/kubectl",
+			"runner": "arc-runner-set",
+			"image": "kbve/kubectl",
+			"e2e_name": "kubectl-e2e",
+			"has_test": true
+		},
+		{
 			"key": "mc",
 			"app_name": "mc",
-			"version": "1.0.0",
+			"version": "1.0.2",
 			"version_toml": "apps/mc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
 			"source_path": "apps/mc",
 			"runner": "ubuntu-latest",
 			"image": "kbve/mc",
-			"has_test": false
+			"e2e_name": "mc",
+			"deployment_yaml": "apps/kube/agones/mc/fleet.yaml",
+			"has_test": true
 		},
 		{
 			"key": "memes",
@@ -448,12 +463,12 @@
 		}
 	],
 	"summary": {
-		"docker": 14,
+		"docker": 15,
 		"npm": 4,
 		"crates": 18,
 		"python": 2,
 		"unreal": 6,
 		"ue5_server": 2,
-		"total": 46
+		"total": 47
 	}
 }
