@@ -36,10 +36,21 @@ spec:
         spec:
             serviceAccountName: vm-scaler
             restartPolicy: OnFailure
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
             containers:
                 - name: autologon
-                  image: registry.k8s.io/kubectl:v1.33.2
+                  image: ghcr.io/kbve/kubectl:0.1.2
                   command: ['/bin/sh', '/scripts/autologon.sh']
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop: ['ALL']
                   env:
                       - name: VM_NAME
                         value: windows-builder
@@ -53,8 +64,12 @@ spec:
                   volumeMounts:
                       - name: script
                         mountPath: /scripts
+                      - name: tmp
+                        mountPath: /tmp
             volumes:
                 - name: script
                   configMap:
                       name: vm-autologon-script
                       defaultMode: 0755
+                - name: tmp
+                  emptyDir: {}
