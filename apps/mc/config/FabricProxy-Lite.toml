@@ -6,8 +6,16 @@
 # but the server still validates Velocity's forwarding signature.
 hackOnlineMode = true
 
-# Hack early send — works around connection edge cases.
-hackEarlySend = false
+# Hack early send — MUST be true for LuckPerms compatibility.
+# When false, the modern-forwarding profile swap happens AFTER
+# LuckPerms-Fabric's onPreLogin mixin reads the authenticated profile,
+# so LuckPerms loads user data under the offline UUID, then onLogin
+# looks up under the real online UUID, finds null, and kicks the player
+# with "[LP] Permissions data for your user was not loaded during the
+# pre-login stage". Setting this true makes FabricProxy-Lite install the
+# online UUID on the profile before LuckPerms's hook fires. Cross-
+# confirmed by LuckPerms issue #4188 and FabricProxy-Lite README.
+hackEarlySend = true
 
 # Hack message chain — ensures chat signing works with forwarded sessions.
 hackMessageChain = true
