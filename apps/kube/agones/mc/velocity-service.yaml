@@ -1,0 +1,46 @@
+# Headless backend Service — selects the Agones gameserver pods.
+# Velocity uses this name to forward connections.
+# Headless (clusterIP: None) so DNS returns pod IPs directly,
+# bypassing kube-proxy load balancing.
+apiVersion: v1
+kind: Service
+metadata:
+    name: mc-fabric-backend
+    namespace: arc-runners
+    labels:
+        app: mc-gameserver
+        app.kubernetes.io/part-of: mc
+spec:
+    type: ClusterIP
+    clusterIP: None
+    selector:
+        app: mc-gameserver
+    ports:
+        - name: minecraft
+          port: 25565
+          targetPort: 25565
+          protocol: TCP
+---
+# LoadBalancer Service for Velocity — exposes port 25565 externally
+# via Cilium LB IPAM. Players connect here.
+apiVersion: v1
+kind: Service
+metadata:
+    name: mc-velocity
+    namespace: arc-runners
+    labels:
+        app: mc-velocity
+        app.kubernetes.io/part-of: mc
+    annotations:
+        # Hint to Cilium LB IPAM to allocate from the public pool
+        io.cilium/lb-ipam-ips: ''
+spec:
+    type: LoadBalancer
+    selector:
+        app: mc-velocity
+    ports:
+        - name: minecraft
+          port: 25565
+          targetPort: 25565
+          protocol: TCP
+    externalTrafficPolicy: Local
