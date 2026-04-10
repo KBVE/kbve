@@ -1,0 +1,35 @@
+[package]
+name = "mc_auth"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94"
+license = "MIT"
+publish = false
+description = "Minecraft ↔ Supabase authentication bridge — JNI-hosted Tokio runtime that links Fabric players to Supabase accounts via REST calls and link codes."
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# JNI bridge — Rust ↔ JVM interop
+jni = "0.21"
+
+# Async runtime — hosts the HTTP client + request pipeline
+tokio = { version = "1", features = ["rt-multi-thread", "sync", "time", "macros"] }
+
+# Bounded channels for message passing (JNI ↔ async worker)
+crossbeam-channel = "0.5"
+
+# Serialization for auth DTOs + event payloads
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Logging
+tracing = "0.1"
+
+# HTTP client for Supabase REST calls — rustls to avoid OpenSSL system deps
+reqwest = { version = "0.12", default-features = false, features = [
+    "json",
+    "rustls-tls",
+] }

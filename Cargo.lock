@@ -1320,7 +1320,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.106"
+version = "1.0.107"
 dependencies = [
  "anyhow",
  "askama",
@@ -9412,6 +9412,19 @@ checksum = "a06de3016e9fae57a36fd14dba131fccf49f74b40b7fbdb472f96e361ec71a08"
 dependencies = [
  "autocfg",
  "rawpointer",
+]
+
+[[package]]
+name = "mc_auth"
+version = "0.1.0"
+dependencies = [
+ "crossbeam-channel",
+ "jni 0.21.1",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
