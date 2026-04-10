@@ -12,8 +12,44 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 600
-  about: "Potato seed is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 600 per 4 hours."
-  mdx_version: 2
+  about: Potato seed is the first seed unlockable in the Farming skill, plantable in allotment patches at level 1 for 8 Farming XP. Three seeds are sown per patch and grow into potato plants after 40 minutes, each yielding at least 3 potatoes (up to 6 with ultracompost). A nearby gardener will protect the patch for 2 buckets of compost.
+  material:
+    type: seed
+    tier: low
+  farming:
+    farming_level: 1
+    plant_xp: 8
+    harvest_xp: 9
+    patch_type: allotment
+    growth_time: 40
+    growth_cycles: 4
+    cycle_minutes: 10
+    produce_id: 1942
+    produce_name: Potato
+    min_yield: 3
+    max_yield: 6
+    compost_type: compost
+    payment: 2 buckets of compost
+  related_items:
+    - item_id: 1942
+      item_name: Potato
+      slug: potato
+      relationship: product
+    - item_id: 5319
+      item_name: Onion seed
+      slug: onion-seed
+      relationship: upgrade
+    - item_id: 5096
+      item_name: Marigold seed
+      slug: marigold-seed
+      relationship: alternative
+  market_strategy:
+    notes:
+      - First Farming seed available — level 1 unlock for allotment runs
+      - Used heavily in bird house trapping due to low cost
+      - Common drop from guards, farmers, hill giants, and Master Farmer pickpocketing
+      - Sold in bulk by ironmen farming seeds for early Farming XP
+  mdx_version: 3
   mdx_updated: "2026-04-10"
 ---
 
