@@ -12,96 +12,69 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 50000
-  rune:
-    type: elemental
-    element: water
-  runecraft:
-    level: 5
-    xp: 6
-    multiple_at: 19
-    altar: Water Altar
-    altar_location: Lumbridge Swamp
-    essence_type: any
-  shops:
-    - shop_name: Rune shops
-      stock: Unlimited
-      price: 17
+  material:
+    type: rune
+    tier: low
   recipes:
     - skill: runecraft
       level: 5
       xp: 6
       materials:
-        - item_name: Rune essence
-          item_id: 1436
+        - item_name: Pure essence
+          item_id: 7936
           quantity: 1
       product: Water rune
       product_id: 555
       product_quantity: 1
       facility: Water altar
   related_items:
-    - item_id: 556
-      item_name: Air rune
+    - item_id: 7936
+      item_name: Pure essence
+      slug: pure-essence
+      relationship: component
+      description: Essence used to craft water runes
+    - item_id: 1436
+      item_name: Rune essence
+      slug: rune-essence
+      relationship: component
+      description: F2P essence used to craft water runes
+    - item_name: Water talisman
+      slug: water-talisman
+      relationship: component
+      description: Grants access to the Water altar
+    - item_name: Water tiara
+      slug: water-tiara
+      relationship: component
+      description: Worn alternative to the Water talisman
+    - item_name: Air rune
       slug: air-rune
       relationship: alternative
       description: Elemental rune
-    - item_id: 554
-      item_name: Fire rune
-      slug: fire-rune
-      relationship: alternative
-      description: Elemental rune
-    - item_id: 557
-      item_name: Earth rune
+    - item_name: Earth rune
       slug: earth-rune
       relationship: alternative
       description: Elemental rune
-    - item_id: 560
-      item_name: Death rune
-      slug: death-rune
-      relationship: component
-      description: For ice spells
-    - item_id: 21006
-      item_name: Tome of water
-      slug: tome-of-water
-      relationship: alternative
-      description: Unlimited water runes
+    - item_name: Mist rune
+      slug: mist-rune
+      relationship: variant
+      description: Combination rune of water and air
+    - item_name: Steam rune
+      slug: steam-rune
+      relationship: variant
+      description: Combination rune of water and fire
+    - item_name: Mud rune
+      slug: mud-rune
+      relationship: variant
+      description: Combination rune of water and earth
   about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Runecraft Level | 5 |
-    | XP per rune | 6 |
-    | Runes per essence | 1 (10 at 95) |
-
-    Multipliers (every 19 levels):
-    - Level 19: 2x runes
-    - Level 38: 3x runes
-    - Level 57: 4x runes
-    - Level 76: 5x runes
-    - Level 95: 6x runes
-
-    | Spell | Water Runes | Other Runes |
-    |-------|-------------|-------------|
-    | Water Strike | 1 | 1 Air, 1 Mind |
-    | Water Bolt | 2 | 2 Air, 1 Chaos |
-    | Water Blast | 3 | 3 Air, 1 Death |
-    | Water Wave | 7 | 5 Air, 1 Blood |
-    | Water Surge | 10 | 7 Air, 1 Wrath |
-    | Ice spells | 2-6 | Death/Blood |
-    | Charge Water Orb | 30 | 3 Cosmic |
+    Water rune is one of the four basic elemental runes, used in F2P Water spells from Water Strike through Water Surge along with Curse, Vulnerability, Weaken, and Magic Imbue. It is crafted at level 5 Runecrafting for 6 experience per essence at the Water altar in the Lumbridge swamp. Water runes are also required for the dragonbane fire spell cast on metal dragons.
   market_strategy:
     notes:
-      - Ancient Magicks ice spells
-      - Charge water orb for battlestaves
-      - Water spell training
-      - Ice Barrage (PvP/PvM)
-      - Ice Burst (Slayer)
-      - Water orb charging
-      - Humidify spell
-      - Tome of water provides unlimited
-      - Staff of water saves runes
-      - Ice spells drive demand
-      - Mud/Mist battlestaff combos
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Bulk demand comes from Ancient Magicks Ice spells (Ice Barrage and Ice Burst), making water runes essential for slayer multi-task barraging.
+      - Used in large quantities to charge water orbs into mystic water staves and battlestaves of water.
+      - Tome of water and Staff of water both negate the rune cost, capping price growth from veteran players.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

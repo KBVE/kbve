@@ -12,94 +12,63 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 50000
-  rune:
-    type: elemental
-    element: earth
-  runecraft:
-    level: 9
-    xp: 6.5
-    multiple_at: 26
-    altar: Earth Altar
-    altar_location: Northeast of Varrock
-    essence_type: any
-  shops:
-    - shop_name: Rune shops
-      stock: Unlimited
-      price: 17
+  material:
+    type: rune
+    tier: low
   recipes:
     - skill: runecraft
       level: 9
       xp: 6.5
       materials:
-        - item_name: Rune essence
-          item_id: 1436
+        - item_name: Pure essence
+          item_id: 7936
           quantity: 1
       product: Earth rune
       product_id: 557
       product_quantity: 1
       facility: Earth altar
   related_items:
-    - item_id: 556
-      item_name: Air rune
+    - item_id: 7936
+      item_name: Pure essence
+      slug: pure-essence
+      relationship: component
+      description: Crafting material for earth runes
+    - item_id: 1436
+      item_name: Rune essence
+      slug: rune-essence
+      relationship: component
+      description: F2P crafting material for earth runes
+    - item_name: Earth talisman
+      slug: earth-talisman
+      relationship: component
+      description: Required to enter the Earth altar
+    - item_name: Earth tiara
+      slug: earth-tiara
+      relationship: component
+      description: Head slot alternative to the talisman
+    - item_name: Air rune
       slug: air-rune
       relationship: alternative
-      description: Elemental rune
-    - item_id: 554
-      item_name: Fire rune
-      slug: fire-rune
-      relationship: alternative
-      description: Elemental rune
-    - item_id: 555
-      item_name: Water rune
+      description: Elemental rune paired with earth spells
+    - item_name: Water rune
       slug: water-rune
       relationship: alternative
-      description: Elemental rune
-    - item_id: 564
-      item_name: Cosmic rune
-      slug: cosmic-rune
-      relationship: component
-      description: For orb charging
-    - item_id: 1385
-      item_name: Staff of earth
-      slug: staff-of-earth
-      relationship: alternative
-      description: Unlimited earth runes
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Runecraft Level | 9 |
-    | XP per rune | 6.5 |
-    | Runes per essence | 1 (8 at 99) |
-
-    Multipliers (every 26 levels):
-    - Level 26: 2x runes
-    - Level 52: 3x runes
-    - Level 78: 4x runes
-
-    | Spell | Earth Runes | Other Runes |
-    |-------|-------------|-------------|
-    | Earth Strike | 2 | 1 Air, 1 Mind |
-    | Earth Bolt | 3 | 2 Air, 1 Chaos |
-    | Earth Blast | 4 | 3 Air, 1 Death |
-    | Earth Wave | 7 | 5 Air, 1 Blood |
-    | Earth Surge | 10 | 7 Air, 1 Wrath |
-    | Bones to Bananas | 2 | 1 Nature, 2 Water |
-    | Magic Imbue | 7 | 2 Astral, 1 Fire |
-  market_strategy:
-    notes:
-      - Used in many utility spells
-      - Charge earth orb
-      - Bones to Peaches tablets
-      - Charge Earth Orb
-      - Magic Imbue spell
-      - Earth spells
-      - Bones to Peaches
-      - Staff of earth saves runes
-      - Mud/Dust battlestaff combos
-      - Lower demand than fire/water
-      - Earth orbs for battlestaves
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Elemental rune of the water element
+    - item_name: Mud rune
+      slug: mud-rune
+      relationship: variant
+      description: Combination rune of earth and water
+    - item_name: Lava rune
+      slug: lava-rune
+      relationship: variant
+      description: Combination rune of earth and fire
+    - item_name: Dust rune
+      slug: dust-rune
+      relationship: variant
+      description: Combination rune of earth and air
+  about: Earth rune is one of the four basic elemental runes and is available to free-to-play players. It powers the Earth Strike through Earth Surge spell progression along with utility spells such as Lvl-1 Enchant, Stun, and Bind. Earth runes are crafted at level 9 Runecrafting for 6.5 experience each at the Earth altar located northeast of Varrock.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
