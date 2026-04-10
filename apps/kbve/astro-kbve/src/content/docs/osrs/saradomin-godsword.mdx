@@ -14,99 +14,63 @@ osrs:
   limit: 8
   equipment:
     slot: 2h
-    type: godsword
-    attack_style: slash
+    weapon_type: two-handed-sword
+    weight: 10
     attack_speed: 6
+    attack_range: 1
     requirements:
       attack: 75
-    stats:
-      attack_slash: 132
-      attack_crush: 80
-      strength: 132
+    attack_bonus:
+      stab: 0
+      slash: 132
+      crush: 80
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 132
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 8
   special_attack:
     name: Healing Blade
     energy: 50
-    effect: Doubled accuracy, +10% max hit, heals 50% of damage, restores 25% Prayer
-  recipes:
-    - skill: none
-      level: 0
-      xp: 0
-      materials:
-        - item_name: Godsword blade
-          item_id: 11798
-          quantity: 1
-        - item_name: Saradomin hilt
-          item_id: 11814
-          quantity: 1
-      product: Saradomin godsword
-      product_id: 11806
-      product_quantity: 1
-      facility: None
-      members_only: true
+    description: "Doubles accuracy and increases max hit by 10%; the user heals for 50% of the damage dealt and restores 25% of the damage dealt as prayer points."
+    accuracy_modifier: 2.0
+    damage_modifier: 1.1
+    heals: true
   related_items:
     - item_id: 11814
       item_name: Saradomin hilt
       slug: saradomin-hilt
       relationship: component
-      description: Hilt component
     - item_id: 11798
       item_name: Godsword blade
       slug: godsword-blade
       relationship: component
-      description: Blade component
     - item_id: 11802
       item_name: Armadyl godsword
       slug: armadyl-godsword
       relationship: alternative
-      description: KO spec
     - item_id: 11804
       item_name: Bandos godsword
       slug: bandos-godsword
       relationship: alternative
-      description: Defence drain
     - item_id: 11808
       item_name: Zamorak godsword
       slug: zamorak-godsword
       relationship: alternative
-      description: Freeze spec
-  about: |-
-    Attach Saradomin hilt to Godsword blade.
-
-    | Component | Source | Price |
-    |-----------|--------|-------|
-    | Saradomin hilt | Commander Zilyana (1/508) | ~24M gp |
-    | Godsword blade | GWD bosses | ~526K gp |
-
-    | Stat | Value |
-    |------|-------|
-    | Slash attack | +132 |
-    | Crush attack | +80 |
-    | Strength | +132 |
-    | Prayer | +8 |
-    | Attack speed | 6 tick (3.6s) |
-    | Requirements | 75 Attack |
-
-    Healing Blade (50% energy):
-    - Doubled accuracy
-    - +10% max hit
-    - Heals HP equal to 50% of damage dealt
-    - Restores Prayer equal to 25% of damage dealt
-
-    Best For:
-    - Extended PvM trips (Slayer, bossing)
-    - Sustain without food/prayer pots
-    - GWD trips
-    - Budget Inferno attempts
-
-    Strategy: Swap to SGS for specs, use main weapon otherwise
-  market_strategy:
-    notes:
-      - Most "practical" godsword for PvM
-      - Reduces supply costs significantly
-      - Good for learning bosses
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Saradomin godsword (or)
+      slug: saradomin-godsword-or
+      relationship: variant
+  about: The Saradomin godsword is a healing godsword prized for sustained PvM training at Nightmare Zone and bossing encounters where damage taken is unavoidable. Its Healing Blade special attack consumes 50% energy, doubles accuracy and boosts max hit by 10% while restoring hitpoints equal to half the damage dealt and prayer equal to a quarter. Wielding it requires 75 Attack and it is created by attaching a Saradomin hilt to a completed godsword blade.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
