@@ -18,6 +18,8 @@ resources:
     # ingress-nginx removed — Cilium Gateway API handles ingress + ACME HTTP-01 challenges
     - cert-manager/application.yaml
     - sealed-secrets/application.yaml
+    # Stakater Reloader — auto-restart deployments when configmaps/secrets change
+    - reloader/application.yaml
     - keda/application.yaml
     - crossplane/application.yaml
     - crossplane/providers-application.yaml
