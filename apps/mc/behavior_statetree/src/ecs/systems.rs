@@ -73,7 +73,7 @@ pub fn ingest_observations(
                     max: 20.0,
                 },
                 AiEpoch { value: 1 },
-                CallCooldown::new(400),
+                CallCooldown::new(1200),
                 NearbyEntities {
                     entities: obs
                         .nearby_entities
@@ -337,14 +337,14 @@ fn build_behavior_tree() -> Selector {
             }),
             Box::new(Sequence {
                 children: vec![
-                    Box::new(IsHealthLow { threshold: 12.0 }),
+                    Box::new(IsHealthLow { threshold: 6.0 }),
                     Box::new(CallAllies {
-                        health_threshold: 12.0,
-                        reinforcement_count: 2,
+                        health_threshold: 6.0,
+                        reinforcement_count: 1,
                     }),
                 ],
             }),
-            Box::new(AttackNearest { range: 4.0 }),
+            Box::new(AttackNearest { range: 2.5 }),
             Box::new(Wander { radius: 8.0 }),
         ],
     }
