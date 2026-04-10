@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+    name: firecracker-manifests
+    annotations:
+        description: 'Firecracker microVM runtime — controller, VPN-enabled variant, rootfs init, policies'
+
+namespace: firecracker
+
+resources:
+    - firecracker-namespace.yaml
+    - firecracker-pvc.yaml
+    - firecracker-resourcequota.yaml
+    - firecracker-networkpolicy.yaml
+    - firecracker-seccomp.yaml
+    - firecracker-pip-packages.yaml
+    - firecracker-vm-init.yaml
+    - firecracker-rootfs-init.yaml
+    - firecracker-pip-cache-cronjob.yaml
+    - firecracker-deployment.yaml
+    - firecracker-service.yaml
+    - firecracker-keda.yaml
+    - firecracker-net-deployment.yaml
+    - firecracker-net-service.yaml
+    - sealed-vpn-wireguard.yaml
