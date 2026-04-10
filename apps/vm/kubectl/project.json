@@ -1,5 +1,5 @@
 {
-	"name": "kubectl",
+	"name": "kbve-kubectl",
 	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
 	"sourceRoot": "apps/vm/kubectl/src",
@@ -39,13 +39,13 @@
 			"configurations": {
 				"local": {
 					"commands": [
-						"./kbve.sh -nx kubectl:containerx",
+						"./kbve.sh -nx kbve-kubectl:containerx",
 						"VERSION=$(grep '^version' apps/vm/kubectl/version.toml | sed 's/version = \"\\(.*\\)\"/\\1/') && docker tag kbve/kubectl:latest kbve/kubectl:$VERSION && echo \"Tagged kbve/kubectl:$VERSION\""
 					]
 				},
 				"production": {
 					"commands": [
-						"./kbve.sh -nx kubectl:containerx --configuration=production",
+						"./kbve.sh -nx kbve-kubectl:containerx --configuration=production",
 						"VERSION=$(grep '^version' apps/vm/kubectl/version.toml | sed 's/version = \"\\(.*\\)\"/\\1/') && docker tag kbve/kubectl:latest kbve/kubectl:$VERSION && docker tag kbve/kubectl:latest ghcr.io/kbve/kubectl:latest && docker tag kbve/kubectl:latest ghcr.io/kbve/kubectl:$VERSION && echo \"Tagged ghcr.io/kbve/kubectl:$VERSION\""
 					]
 				}
