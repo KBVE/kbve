@@ -11,6 +11,7 @@
 //! All message passing uses bounded channels with immutable snapshots.
 //! Per-NPC epochs prevent stale decisions from being applied.
 
+pub mod ecs;
 pub mod planner;
 pub mod runtime;
 pub mod tree;
