@@ -12,26 +12,27 @@ osrs:
   lowalch: 6
   highalch: 10
   limit: 13000
+  about: Iron ore is a free-to-play Mining resource obtained at level 15 from iron rocks, granting 35 Mining experience per ore. It smelts to an iron bar at Smithing level 15, but with only 50% base success unless the smith wears a Ring of forging or has 58+ Smithing at the Blast Furnace. Combined with two coal it produces a steel bar, making iron ore one of the most heavily traded mid-tier Smithing ingredients.
   material:
     type: ore
-    tier: iron
+    tier: mid-low
   mining:
+    skill: mining
     level: 15
     xp: 35
-    rocks: Iron rock
+    tool: Any pickaxe
     locations:
       - Mining Guild
-      - Motherlode Mine
       - Al Kharid mine
-  smithing:
-    level: 15
-    xp: 12.5
-    method: Smelting
-    success_rate: 50
+      - Varrock south-east mine
+      - Dwarven Mine
+      - Wilderness Resource Area
+      - Motherlode Mine
   recipes:
     - skill: smithing
       level: 15
       xp: 12.5
+      facility: Furnace
       materials:
         - item_name: Iron ore
           item_id: 440
@@ -39,11 +40,10 @@ osrs:
       product: Iron bar
       product_id: 2351
       product_quantity: 1
-      facility: Furnace
-      success_rate: 50% (100% at Blast Furnace)
     - skill: smithing
       level: 30
       xp: 17.5
+      facility: Furnace
       materials:
         - item_name: Iron ore
           item_id: 440
@@ -54,48 +54,35 @@ osrs:
       product: Steel bar
       product_id: 2353
       product_quantity: 1
-      facility: Furnace
   related_items:
-    - item_id: 2351
-      item_name: Iron bar
-      slug: iron-bar
-      relationship: product
-      description: Basic product
-    - item_id: 2353
-      item_name: Steel bar
-      slug: steel-bar
-      relationship: product
-      description: Higher tier product
     - item_id: 453
       item_name: Coal
       slug: coal
       relationship: component
-      description: For steel bars
-    - item_id: 2568
-      item_name: Ring of forging
-      slug: ring-of-forging
-      relationship: alternative
-      description: 100% smelting success
+    - item_id: 2351
+      item_name: Iron bar
+      slug: iron-bar
+      relationship: product
+    - item_id: 2353
+      item_name: Steel bar
+      slug: steel-bar
+      relationship: product
     - item_id: 436
       item_name: Copper ore
       slug: copper-ore
-      relationship: alternative
-      description: For bronze bars
+      relationship: downgrade
+    - item_id: 447
+      item_name: Mithril ore
+      slug: mithril-ore
+      relationship: upgrade
   market_strategy:
-    profit_formulas:
-      - Iron bar price - Iron ore price = Profit
     notes:
-      - 100% success rate at Blast Furnace
-      - No ring of forging needed
-      - "Calculate:"
-      - Iron ore + Coal → Steel bar
-      - "At Blast Furnace: Only 1 coal needed"
-      - Compare margins between iron and steel bars
-      - Iron ore has very high supply from bots/players
-      - Ring of forging provides 140 charges at 100% success
-      - Blast Furnace is always more profitable
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - 50% base smelt success without Ring of forging or 58 Smithing creates two distinct supply curves
+      - Used as the iron half of every steel bar — high consumption from Cannonball smithers
+      - Blast Furnace iron bars are a profitable F2P/early-members training method
+      - Wilderness Resource Area and Motherlode Mine are common high-yield gathering spots
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

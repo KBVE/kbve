@@ -11,22 +11,27 @@ osrs:
   value: 45
   lowalch: 18
   highalch: 27
-  limit: 13000
+  limit: 13500
+  about: Coal is a free-to-play Mining resource obtained at level 30 from coal rocks, granting 50 Mining experience per ore. It is the universal secondary ingredient for steel, mithril, adamantite, and runite bar smelting (2/4/6/8 coal per bar respectively), making it one of the highest-volume traded items in the game. Blast Furnace dwarves consume coal in massive quantities daily, keeping demand consistently high.
   material:
     type: ore
-    tier: coal
+    tier: mid
   mining:
+    skill: mining
     level: 30
     xp: 50
-    rocks: Coal rock
+    tool: Any pickaxe
     locations:
       - Mining Guild
-      - Motherlode Mine
-      - Coal trucks
+      - Lumbridge Swamp west
+      - Dwarven Mine
+      - Wilderness Resource Area
+      - Ardougne south mine
   recipes:
     - skill: smithing
       level: 30
       xp: 17.5
+      facility: Furnace
       materials:
         - item_name: Iron ore
           item_id: 440
@@ -37,43 +42,78 @@ osrs:
       product: Steel bar
       product_id: 2353
       product_quantity: 1
+    - skill: smithing
+      level: 50
+      xp: 30
       facility: Furnace
+      materials:
+        - item_name: Mithril ore
+          item_id: 447
+          quantity: 1
+        - item_name: Coal
+          item_id: 453
+          quantity: 4
+      product: Mithril bar
+      product_id: 2359
+      product_quantity: 1
+    - skill: smithing
+      level: 70
+      xp: 37.5
+      facility: Furnace
+      materials:
+        - item_name: Adamantite ore
+          item_id: 449
+          quantity: 1
+        - item_name: Coal
+          item_id: 453
+          quantity: 6
+      product: Adamantite bar
+      product_id: 2361
+      product_quantity: 1
+    - skill: smithing
+      level: 85
+      xp: 50
+      facility: Furnace
+      materials:
+        - item_name: Runite ore
+          item_id: 451
+          quantity: 1
+        - item_name: Coal
+          item_id: 453
+          quantity: 8
+      product: Runite bar
+      product_id: 2363
+      product_quantity: 1
   related_items:
     - item_id: 440
       item_name: Iron ore
       slug: iron-ore
-      relationship: alternative
-      description: For steel bars
+      relationship: component
+    - item_id: 447
+      item_name: Mithril ore
+      slug: mithril-ore
+      relationship: component
+    - item_id: 449
+      item_name: Adamantite ore
+      slug: adamantite-ore
+      relationship: component
+    - item_id: 451
+      item_name: Runite ore
+      slug: runite-ore
+      relationship: component
     - item_id: 2353
       item_name: Steel bar
       slug: steel-bar
       relationship: product
-      description: Basic coal product
-    - item_id: 2359
-      item_name: Mithril bar
-      slug: mithril-bar
-      relationship: product
-      description: Mid-tier bar (4 coal)
-    - item_id: 2363
-      item_name: Runite bar
-      slug: runite-bar
-      relationship: product
-      description: High-tier bar (8 coal)
-    - item_id: 451
-      item_name: Runite ore
-      slug: runite-ore
-      relationship: alternative
-      description: For rune bars
   market_strategy:
-    profit_formulas:
-      - Bar price - (Ore price + Coal price × amount) = Smelting profit
     notes:
-      - At Blast Furnace, coal requirement is halved
-      - "Steel: 1 coal, Mithril: 2 coal, Adamant: 3 coal, Rune: 4 coal"
-      - Major cost savings for bar production
-      - Check current coal prices vs bar margins
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Highest-demand secondary ore in the game (every steel-and-up bar consumes coal)
+      - Blast Furnace halves the coal cost per bar, dramatically improving high-tier margins
+      - Coal bag (Prospector Percy reward) lets players carry 27 extra coal — essential for Blast Furnace
+      - Wilderness Resource Area and Mining Guild provide the densest sustained gathering rates
+      - Stable price floor — heavy production from miners is met by heavy consumption from smithers
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
