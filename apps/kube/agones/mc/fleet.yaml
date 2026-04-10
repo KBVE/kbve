@@ -87,6 +87,24 @@ spec:
                                 value: 'false'
                               - name: SERVER_PORT
                                 value: '25565'
+                              # LuckPerms config via env vars (no PVC mutation).
+                              # EnvironmentVariableConfigAdapter reads LUCKPERMS_*
+                              # and overrides the on-disk luckperms.conf. Pairing
+                              # this messaging-service=pluginmsg with the matching
+                              # env var on mc-velocity makes Velocity's LuckPerms
+                              # authoritative for user data — the proxy loads
+                              # permissions against the real online UUID before
+                              # forwarding, and the Fabric LuckPerms receives
+                              # them over the plugin-message channel. This fixes
+                              # the "[LP] Permissions data for your user was not
+                              # loaded during the pre-login stage" kick caused
+                              # by FabricProxy-Lite swapping the offline UUID for
+                              # the online one after LuckPerms already tried to
+                              # pre-load under the offline ID.
+                              - name: LUCKPERMS_MESSAGING_SERVICE
+                                value: 'pluginmsg'
+                              - name: LUCKPERMS_STORAGE_METHOD
+                                value: 'h2'
                           resources:
                               requests:
                                   memory: 2Gi
