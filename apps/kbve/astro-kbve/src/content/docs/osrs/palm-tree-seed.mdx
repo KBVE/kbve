@@ -12,70 +12,58 @@ osrs:
   lowalch: 101
   highalch: 152
   limit: 200
-  properties:
-    tradeable: true
-    tradeable_ge: true
-    stackable: true
-    weight: 0
-  skilling_sources:
-    - skill: farming
-      level: 68
-      xp: 110.5
-      growth_time: 960
+  about: Palm tree seed is the highest-tier regular fruit tree seed, plantable at Farming level 68 for 110.5 Farming XP. Placed in a plant pot of soil to grow a palm sapling, then planted in a fruit tree patch. Palm trees take roughly 16 hours to grow and grant 10,150.1 check-health XP — one of the best daily Farming XP steps in the game. Harvested coconuts are used to protect magic trees.
+  material:
+    type: seed
+    tier: high
+  farming:
+    farming_level: 68
+    plant_xp: 110.5
+    check_health_xp: 10150.1
+    patch_type: fruit_tree
+    growth_time: 960
+    growth_cycles: 6
+    cycle_minutes: 160
+    produce_id: 5974
+    produce_name: Coconut
+    payment: 15 papaya fruit
   drop_table:
     sources:
-      - source: Bird nests (Woodcutting)
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
+      - source: Bird nest
         rarity: uncommon
+        quantity: "1"
         members_only: true
       - source: Zulrah
-        source_id: 2044
         combat_level: 725
-        quantity: "2"
         rarity: uncommon
+        quantity: "1-2"
         members_only: true
       - source: Hespori
-        source_id: 8583
         combat_level: 284
-        quantity: "1"
         rarity: common
+        quantity: "1"
         members_only: true
   related_items:
-    - item_id: 5972
-      item_name: Papaya fruit
-      slug: papaya-fruit
+    - item_id: 5974
+      item_name: Coconut
+      slug: coconut
       relationship: product
-      description: Protection payment (15)
-    - item_id: 5290
-      item_name: Dragonfruit tree seed
-      slug: dragonfruit-tree-seed
-      relationship: upgrade
-      description: Higher tier option
+    - item_id: 5288
+      item_name: Papaya tree seed
+      slug: papaya-tree-seed
+      relationship: downgrade
     - item_id: 5316
       item_name: Magic seed
       slug: magic-seed
       relationship: alternative
-      description: Alternative tree seed
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Tree Seed |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 68 Farming |
-
-    Plant in fruit tree patches to grow palm trees.
-
-    Growth Time: 16 hours
-
-    Payment: 15 papaya fruit (optional protection)
-
-    XP: 110.5 (planting) + 10,150.1 (check-health)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - End-tier fruit tree seed unlocked at Farming level 68
+      - Coconuts protect magic trees — this seed is the gate to the full high-level rotation
+      - Common Hespori drop — primary ironman supply
+      - One of the best single-step daily Farming XP sources in the game
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

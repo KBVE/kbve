@@ -12,64 +12,48 @@ osrs:
   lowalch: 5
   highalch: 7
   limit: 200
-  properties:
-    tradeable: true
-    tradeable_ge: true
-    stackable: true
-    weight: 0
-  skilling_sources:
-    - skill: farming
-      level: 27
-      xp: 22
-      growth_time: 960
+  about: Apple tree seed is the first fruit tree seed, plantable at Farming level 27 for 22 Farming XP. Placed in a plant pot of soil to grow an apple sapling, then planted in a fruit tree patch. Apple trees take roughly 16 hours to fully grow and grant 1,199.5 check-health XP. Cooking apples are used in pie-making and other Cooking recipes.
+  material:
+    type: seed
+    tier: mid-low
+  farming:
+    farming_level: 27
+    plant_xp: 22
+    check_health_xp: 1199.5
+    patch_type: fruit_tree
+    growth_time: 960
+    growth_cycles: 6
+    cycle_minutes: 160
+    produce_id: 1955
+    produce_name: Cooking apple
+    payment: 9 sweetcorn
   drop_table:
     sources:
-      - source: Bird nests (Woodcutting)
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
+      - source: Bird nest
         rarity: common
+        quantity: "1"
         members_only: true
-      - source: Wintertodt
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
+      - source: Wintertodt supply crate
         rarity: common
+        quantity: "1"
         members_only: true
   related_items:
     - item_id: 1955
       item_name: Cooking apple
       slug: cooking-apple
       relationship: product
-      description: Harvested fruit
-    - item_id: 5978
-      item_name: Sweetcorn
-      slug: sweetcorn
-      relationship: component
-      description: Protection payment (9)
     - item_id: 5284
       item_name: Banana tree seed
       slug: banana-tree-seed
       relationship: upgrade
-      description: Higher tier option
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Fruit Tree Seed |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 27 Farming |
-
-    Plant in fruit tree patches to grow apple trees.
-
-    Growth Time: 16 hours
-
-    Payment: 9 sweetcorn (optional protection)
-
-    XP: 22 (planting) + 1,199.5 (check-health)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - First fruit tree seed unlocked at Farming level 27
+      - Cheapest fruit tree to farm — popular daily Farming XP step
+      - Cooking apples are used for apple pies and gnome cooking
+      - Sweetcorn protection payment ties fruit tree runs to the allotment rotation
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,75 +12,64 @@ osrs:
   lowalch: 19
   highalch: 28
   limit: 200
-  properties:
-    tradeable: true
-    tradeable_ge: true
-    stackable: true
-    weight: 0
-  skilling_sources:
-    - skill: farming
-      level: 45
-      xp: 45
-      growth_time: 320
+  about: Maple seed is a tree seed plantable at Farming level 45 for 45 Farming XP. Placed in a plant pot of soil to grow a maple sapling, then planted in a tree patch. Maple trees take roughly 5 hours 20 minutes to fully grow and grant 3,403.4 check-health XP. Common drops from Zulrah, Kree'arra, and bird nests.
+  material:
+    type: seed
+    tier: mid
+  farming:
+    farming_level: 45
+    plant_xp: 45
+    check_health_xp: 3403.4
+    patch_type: tree
+    growth_time: 320
+    growth_cycles: 8
+    cycle_minutes: 40
+    produce_id: 1517
+    produce_name: Maple logs
+    payment: 1 basket of oranges
   drop_table:
     sources:
-      - source: Bird nests (Woodcutting)
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
+      - source: Bird nest
         rarity: uncommon
+        drop_rate: "1/168"
+        quantity: "1"
         members_only: true
-      - source: Wintertodt
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
+      - source: Wintertodt supply crate
         rarity: uncommon
+        quantity: "1"
         members_only: true
       - source: Zulrah
-        source_id: 2044
         combat_level: 725
-        quantity: "1"
+        rarity: common
+        drop_rate: "6/168"
+        quantity: "1-3"
+        members_only: true
+      - source: Kree'arra
+        combat_level: 580
         rarity: uncommon
+        quantity: "1"
         members_only: true
   related_items:
     - item_id: 1517
       item_name: Maple logs
       slug: maple-logs
       relationship: product
-      description: Woodcutting product
-    - item_id: 6018
-      item_name: Basket of oranges
-      slug: basket-of-oranges
-      relationship: component
-      description: Protection payment (1)
     - item_id: 5313
       item_name: Willow seed
       slug: willow-seed
-      relationship: alternative
-      description: Lower tier option
+      relationship: downgrade
     - item_id: 5315
       item_name: Yew seed
       slug: yew-seed
       relationship: upgrade
-      description: Higher tier option
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Tree Seed |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 45 Farming |
-
-    Plant in tree patches to grow maple trees.
-
-    Growth Time: ~320 minutes (5.3 hours)
-
-    Payment: 1 basket of oranges (optional protection)
-
-    XP: 45 (planting) + 3,403.4 (check-health)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - Mid-tier tree seed unlocked at Farming level 45
+      - Common Zulrah drop — primary supply beyond bird nests
+      - Payment (1 basket of oranges) is from the fruit tree rotation
+      - Used as a cheap Farming XP source by ironmen with excess bird nests
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,69 +12,52 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 200
-  properties:
-    tradeable: true
-    tradeable_ge: true
-    stackable: true
-    weight: 0
-  skilling_sources:
-    - skill: farming
-      level: 33
-      xp: 28
-      growth_time: 960
+  about: Banana tree seed is a fruit tree seed plantable at Farming level 33 for 28 Farming XP. Placed in a plant pot of soil to grow a banana sapling, then planted in a fruit tree patch. Banana trees take roughly 16 hours to grow and grant 1,750.5 check-health XP. Harvested bananas are used in Gnome Cooking recipes.
+  material:
+    type: seed
+    tier: mid-low
+  farming:
+    farming_level: 33
+    plant_xp: 28
+    check_health_xp: 1750.5
+    patch_type: fruit_tree
+    growth_time: 960
+    growth_cycles: 6
+    cycle_minutes: 160
+    produce_id: 1963
+    produce_name: Banana
+    payment: 4 baskets of apples
   drop_table:
     sources:
-      - source: Bird nests (Woodcutting)
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
+      - source: Bird nest
         rarity: common
+        quantity: "1"
         members_only: true
-      - source: Wintertodt
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
+      - source: Wintertodt supply crate
         rarity: common
+        quantity: "1"
         members_only: true
   related_items:
     - item_id: 1963
       item_name: Banana
       slug: banana
       relationship: product
-      description: Harvested fruit
-    - item_id: 5979
-      item_name: Basket of apples
-      slug: basket-of-apples
-      relationship: component
-      description: Protection payment (4)
     - item_id: 5283
       item_name: Apple tree seed
       slug: apple-tree-seed
-      relationship: alternative
-      description: Lower tier option
+      relationship: downgrade
     - item_id: 5285
       item_name: Orange tree seed
       slug: orange-tree-seed
       relationship: upgrade
-      description: Higher tier option
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Fruit Tree Seed |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 33 Farming |
-
-    Plant in fruit tree patches to grow banana trees.
-
-    Growth Time: 16 hours
-
-    Payment: 4 baskets of apples (optional protection)
-
-    XP: 28 (planting) + 1,750.5 (check-health)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - Second fruit tree seed unlocked at Farming level 33
+      - Bananas are used in several Gnome cooking recipes
+      - Protection payment (4 baskets of apples) loops the apple tree rotation
+      - Steady supply from bird nests and Wintertodt crates
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

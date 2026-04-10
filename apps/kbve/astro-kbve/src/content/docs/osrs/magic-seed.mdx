@@ -12,76 +12,60 @@ osrs:
   lowalch: 168
   highalch: 253
   limit: 200
-  properties:
-    tradeable: true
-    tradeable_ge: true
-    stackable: true
-    weight: 0
-  skilling_sources:
-    - skill: farming
-      level: 75
-      xp: 145.5
-      growth_time: 480
+  about: Magic seed is the highest-tier regular tree seed, plantable at Farming level 75 for 145.5 Farming XP. Placed in a plant pot of soil to grow a magic sapling, then planted in a tree patch. Magic trees take roughly 8 hours to fully grow and grant 13,768.3 check-health XP — the single highest-XP daily Farming step in the game.
+  material:
+    type: seed
+    tier: high
+  farming:
+    farming_level: 75
+    plant_xp: 145.5
+    check_health_xp: 13768.3
+    patch_type: tree
+    growth_time: 480
+    growth_cycles: 24
+    cycle_minutes: 20
+    produce_id: 1513
+    produce_name: Magic logs
+    payment: 25 coconuts
   drop_table:
     sources:
-      - source: Bird nests (Woodcutting)
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
+      - source: Bird nest
         rarity: rare
+        drop_rate: "1/1,111"
+        quantity: "1"
         members_only: true
       - source: Kalphite Queen
-        source_id: 963
         combat_level: 333
-        quantity: "1"
         rarity: uncommon
+        quantity: "1"
         members_only: true
       - source: Commander Zilyana
-        source_id: 2205
         combat_level: 596
-        quantity: "1"
         rarity: uncommon
+        quantity: "1"
         members_only: true
       - source: Kraken
-        source_id: 494
         combat_level: 291
-        quantity: "1"
         rarity: uncommon
+        quantity: "1"
         members_only: true
   related_items:
     - item_id: 1513
       item_name: Magic logs
       slug: magic-logs
       relationship: product
-      description: Woodcutting product
-    - item_id: 5974
-      item_name: Coconut
-      slug: coconut
-      relationship: component
-      description: Protection payment (25)
     - item_id: 5315
       item_name: Yew seed
       slug: yew-seed
-      relationship: alternative
-      description: Lower tier option
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Tree Seed |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 75 Farming |
-
-    Plant in tree patches to grow magic trees.
-
-    Growth Time: ~8 hours
-
-    Payment: 25 coconuts (optional protection)
-
-    XP: 145.5 (planting) + 13,768.3 (check-health)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: downgrade
+  market_strategy:
+    notes:
+      - Highest-XP regular tree seed — unlocked at Farming level 75
+      - Highest single daily Farming XP step in the game (check-health)
+      - Coconut protection payment requires farming palm trees on the fruit tree rotation
+      - Rare bird nest drop — supply primarily comes from Zilyana, Kalphite Queen, and Kraken
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
