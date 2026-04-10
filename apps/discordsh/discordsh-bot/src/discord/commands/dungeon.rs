@@ -53,6 +53,26 @@ async fn start(
     };
 
     let (id, short_id) = game::new_short_sid();
+
+    // Claim the play mode lock — prevents the same player from being in
+    // both Discord dungeon AND isometric game at the same time (data race
+    // on profile saves). Gracefully degrades to success if Supabase is down.
+    if let Err(reason) = ctx
+        .data()
+        .app
+        .profiles
+        .claim_mode(user.get(), &short_id, false)
+        .await
+    {
+        ctx.send(
+            poise::CreateReply::default()
+                .content(format!("Cannot start dungeon: {}", reason))
+                .ephemeral(true),
+        )
+        .await?;
+        return Ok(());
+    }
+
     let map = content::generate_initial_map(&id);
     let room = content::room_from_tile(map.tiles.get(&map.position).unwrap());
     let phase = GamePhase::City;
@@ -261,6 +281,25 @@ async fn join(
         }
     } // Lock dropped here before async lookup
 
+    // Claim the play mode lock for the joining party member.
+    // Each player has their own lock — joining a party means claiming
+    // the discord mode for that player too.
+    if let Err(reason) = ctx
+        .data()
+        .app
+        .profiles
+        .claim_mode(user.get(), &sid, false)
+        .await
+    {
+        ctx.send(
+            poise::CreateReply::default()
+                .content(format!("Cannot join dungeon: {}", reason))
+                .ephemeral(true),
+        )
+        .await?;
+        return Ok(());
+    }
+
     // Membership lookup for joining player
     let member_status_raw = ctx.data().app.members.lookup(user.get()).await;
     let (joiner_name, joiner_tag) = match &member_status_raw {
@@ -418,6 +457,11 @@ async fn leave(ctx: Context<'_>) -> Result<(), Error> {
             );
             ctx.data().app.profiles.save_async(profile, run);
         }
+        // Release the leaving player's mode lock so they can switch modes.
+        ctx.data()
+            .app
+            .profiles
+            .release_mode_async(user.get(), session.short_id.clone());
         session.party.retain(|&id| id != user);
         session.players.remove(&user);
         session

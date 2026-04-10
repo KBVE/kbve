@@ -226,6 +226,105 @@ impl ProfileStore {
         });
     }
 
+    /// Try to claim the play mode lock for a player.
+    ///
+    /// Returns `Ok(())` if the lock was granted (player can start a Discord
+    /// dungeon session), or `Err(message)` describing why the claim was
+    /// rejected. If Supabase is unavailable, claims always succeed (graceful
+    /// degradation — the bot still works without persistence).
+    ///
+    /// Set `force=true` to override stale claims unconditionally (admin only).
+    pub async fn claim_mode(
+        &self,
+        discord_id: u64,
+        session_id: &str,
+        force: bool,
+    ) -> Result<(), String> {
+        let Some(client) = self.client.as_ref() else {
+            return Ok(());
+        };
+        let params = serde_json::json!({
+            "p_discord_id": discord_id as i64,
+            "p_mode": "discord",
+            "p_session_id": session_id,
+            "p_force": force,
+        });
+        match client
+            .rpc_schema("service_claim_mode", params, SCHEMA)
+            .await
+        {
+            Ok(resp) if resp.status().is_success() => {
+                #[derive(Deserialize)]
+                struct ClaimResult {
+                    success: bool,
+                    #[serde(default)]
+                    message: String,
+                }
+                match resp.json::<Vec<ClaimResult>>().await {
+                    Ok(rows) => match rows.into_iter().next() {
+                        Some(r) if r.success => {
+                            debug!(discord_id, "Mode lock claimed");
+                            Ok(())
+                        }
+                        Some(r) => Err(r.message),
+                        None => Err("Empty claim_mode response".to_owned()),
+                    },
+                    Err(e) => {
+                        warn!(error = %e, discord_id, "Failed to parse claim_mode response");
+                        Ok(())
+                    }
+                }
+            }
+            Ok(resp) => {
+                warn!(
+                    status = %resp.status(),
+                    discord_id,
+                    "service_claim_mode returned non-200"
+                );
+                Ok(())
+            }
+            Err(e) => {
+                warn!(error = %e, discord_id, "service_claim_mode RPC failed");
+                Ok(())
+            }
+        }
+    }
+
+    /// Release the play mode lock for a player (fire-and-forget).
+    ///
+    /// Called when a Discord dungeon session ends (game over, leave, expire).
+    /// Silently no-ops if Supabase is unavailable or the caller doesn't own
+    /// the lock — both are non-fatal for the player flow.
+    pub fn release_mode_async(&self, discord_id: u64, session_id: String) {
+        let Some(client) = self.client.clone() else {
+            return;
+        };
+        tokio::spawn(async move {
+            let params = serde_json::json!({
+                "p_discord_id": discord_id as i64,
+                "p_session_id": session_id,
+            });
+            match client
+                .rpc_schema("service_release_mode", params, SCHEMA)
+                .await
+            {
+                Ok(resp) if resp.status().is_success() => {
+                    debug!(discord_id, "Mode lock released");
+                }
+                Ok(resp) => {
+                    warn!(
+                        status = %resp.status(),
+                        discord_id,
+                        "service_release_mode returned non-200"
+                    );
+                }
+                Err(e) => {
+                    warn!(error = %e, discord_id, "service_release_mode RPC failed");
+                }
+            }
+        });
+    }
+
     /// Fetch leaderboard (always fresh, no cache).
     pub async fn leaderboard(&self, category: i16, limit: i32) -> Vec<LeaderboardEntry> {
         let Some(client) = self.client.as_ref() else {
@@ -448,6 +547,10 @@ pub fn save_all_players(
             session,
         );
         profiles.save_async(profile, run);
+        // Release the play mode lock so the player can switch to isometric
+        // (or restart Discord). Each player owns their own lock keyed on
+        // the session's short_id.
+        profiles.release_mode_async(uid.get(), session.short_id.clone());
     }
 
     // Invalidate cache for all players
