@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { dockerExec, dockerExecSafe } from './helpers/docker';
+import { dockerExec, dockerExecSafe, dockerWriteFile } from './helpers/docker';
 
 describe('Tools', () => {
 	it('should have kubectl available', () => {
@@ -21,9 +21,11 @@ describe('Tools', () => {
 	});
 
 	it('should parse complex JSON with jq', () => {
-		const out = dockerExec(
-			'/bin/sh -c \'echo \\\'{"items":[{"name":"a"},{"name":"b"}]}\\\' | jq -r ".items[].name"\'',
+		dockerWriteFile(
+			'/tmp/complex.json',
+			'{"items":[{"name":"a"},{"name":"b"}]}',
 		);
+		const out = dockerExec('jq -r ".items[].name" /tmp/complex.json');
 		expect(out).toBe('a\nb');
 	});
 
