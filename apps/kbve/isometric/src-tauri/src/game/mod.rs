@@ -2,6 +2,7 @@ pub mod actions;
 pub mod camera;
 pub mod campfire;
 pub mod candle;
+pub mod chat;
 pub mod client_profile;
 pub mod creatures;
 pub mod grass;
@@ -160,6 +161,7 @@ impl PluginGroup for GamePluginGroup {
             .add(ActionsPlugin)
             .add(PixelatePlugin)
             .add(toast::ToastPlugin)
+            .add(chat::GameChatPlugin)
             .add(InteractionUiPlugin)
             .add(InventoryUiPlugin)
             .add(skills::SkillsPlugin)

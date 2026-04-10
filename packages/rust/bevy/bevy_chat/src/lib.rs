@@ -56,4 +56,4 @@ pub use client_wasm::ChatClient;
 #[cfg(feature = "plugin")]
 mod plugin;
 #[cfg(feature = "plugin")]
-pub use plugin::ChatPlugin;
+pub use plugin::{ChatInbox, ChatOutbox, ChatPlugin, IncomingChatEvent};
