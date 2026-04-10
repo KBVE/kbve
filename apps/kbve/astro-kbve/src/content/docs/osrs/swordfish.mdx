@@ -12,14 +12,20 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 6000
+  material:
+    type: fish
+    tier: mid-high
   food:
     heals: 14
+    cooking_level: 45
     type: fish
   cooking:
     level: 45
     xp: 140
-    stop_burn: 86
-    stop_burn_gauntlets: 76
+    stop_burn_level: 86
+    raw_item_id: 371
+    raw_item_name: Raw swordfish
+    burnt_item_id: 375
   recipes:
     - skill: cooking
       level: 45
@@ -38,26 +44,18 @@ osrs:
       slug: raw-swordfish
       relationship: component
       description: Uncooked version
-    - item_id: 385
-      item_name: Shark
-      slug: shark
-      relationship: alternative
-      description: Higher tier food
     - item_id: 379
       item_name: Lobster
       slug: lobster
-      relationship: alternative
-      description: Alternative
-    - item_id: 775
-      item_name: Cooking gauntlets
-      slug: cooking-gauntlets
-      relationship: alternative
-      description: Reduce burn
+      relationship: downgrade
+      description: Lower tier F2P food healing 12 HP
+    - item_id: 7946
+      item_name: Monkfish
+      slug: monkfish
+      relationship: upgrade
+      description: Members upgrade healing 16 HP
   about: |-
-    | Effect | Value |
-    |--------|-------|
-    | Heals | 14 HP |
-    | Buy limit | 6,000 |
+    Swordfish is a cooked fish that restores 14 Hitpoints when eaten, making it the best single-serving food available in free-to-play worlds. Players cook raw swordfish on a fire or range at 45 Cooking for 140 experience, though burning remains a concern until level 86 on a fire or 80 on a range. It is widely used by mid-level combatants and remains a staple for F2P PvM and PvP.
   market_strategy:
     notes:
       - Best F2P food option
@@ -71,8 +69,8 @@ osrs:
       - Cooking gauntlets essential
       - Popular F2P staple
       - Caught alongside tuna
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

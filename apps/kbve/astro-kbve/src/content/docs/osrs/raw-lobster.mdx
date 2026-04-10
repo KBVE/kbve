@@ -12,24 +12,17 @@ osrs:
   lowalch: 28
   highalch: 42
   limit: 15000
+  about: Raw lobster is a crustacean caught with a lobster pot at level 40 Fishing, granting 90 experience per catch. It is one of the staple free-to-play fish used by mid-level players training Fishing and Cooking together. When cooked at level 40 Cooking, it becomes a lobster that heals 12 hitpoints.
   material:
-    type: raw_fish
+    type: fish
     tier: mid
-  fishing:
+  skilling_source:
+    skill: fishing
     level: 40
     xp: 90
-    method: Lobster pot
-    locations:
-      - Catherby
-      - Fishing Guild
-      - Musa Point
-  cooking:
-    level: 40
-    xp: 120
-    stop_burn_level: 74
-    stop_burn_level_gauntlets: 64
-    product_id: 379
-    product_name: Lobster
+    location: Catherby / Karamja / Fishing Guild
+    tool: Lobster pot
+    method: Cage
   recipes:
     - skill: cooking
       level: 40
@@ -41,40 +34,26 @@ osrs:
       product: Lobster
       product_id: 379
       product_quantity: 1
-      facility: Fire or range
+      facility: Range/Fire
   related_items:
     - item_id: 379
       item_name: Lobster
       slug: lobster
       relationship: product
-      description: Cooked product (heals 12 HP)
+    - item_id: 301
+      item_name: Lobster pot
+      slug: lobster-pot
+      relationship: component
+    - item_id: 359
+      item_name: Raw tuna
+      slug: raw-tuna
+      relationship: downgrade
     - item_id: 371
       item_name: Raw swordfish
       slug: raw-swordfish
       relationship: upgrade
-      description: Next tier up
-    - item_id: 383
-      item_name: Raw shark
-      slug: raw-shark
-      relationship: upgrade
-      description: High-tier fish
-    - item_id: 301
-      item_name: Lobster pot
-      slug: lobster-pot
-      relationship: alternative
-      description: Used for fishing
-  market_strategy:
-    profit_formulas:
-      - Lobster price - Raw lobster price = Cooking profit
-    notes:
-      - Buy Raw lobster → Cook → Sell Lobster
-      - "Calculate:"
-      - Low burn rate at higher levels = consistent profit
-      - Great entry-level cooking flip
-      - Very high volume item
-      - Consistent margins
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

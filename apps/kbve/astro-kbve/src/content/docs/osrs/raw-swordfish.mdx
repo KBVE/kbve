@@ -13,23 +13,15 @@ osrs:
   highalch: 48
   limit: 15000
   material:
-    type: raw_fish
-    tier: mid
-  fishing:
-    level: 50
-    xp: 100
-    method: Harpoon
-    locations:
-      - Catherby
-      - Fishing Guild
-      - Musa Point
-  cooking:
-    level: 45
-    xp: 140
-    stop_burn_level: 86
-    stop_burn_level_gauntlets: 76
-    product_id: 373
-    product_name: Swordfish
+    type: fish
+    tier: mid-high
+  skilling_source:
+    - skill: fishing
+      level: 50
+      xp: 100
+      location: Catherby / Karamja / Fishing Guild
+      tool: Harpoon
+      method: Harpoon
   recipes:
     - skill: cooking
       level: 45
@@ -41,43 +33,31 @@ osrs:
       product: Swordfish
       product_id: 373
       product_quantity: 1
-      facility: Fire or range
+      facility: Range/Fire
   related_items:
     - item_id: 373
       item_name: Swordfish
       slug: swordfish
       relationship: product
-      description: Cooked version (heals 14 HP)
-    - item_id: 383
-      item_name: Raw shark
-      slug: raw-shark
-      relationship: upgrade
-      description: Higher tier fish
-    - item_id: 359
-      item_name: Raw tuna
-      slug: raw-tuna
-      relationship: downgrade
-      description: Lower tier fish
+      description: Cooked swordfish heals 14 HP
     - item_id: 311
       item_name: Harpoon
       slug: harpoon
-      relationship: alternative
-      description: Fishing tool
-  market_strategy:
-    notes:
-      - Solid healing food
-      - F2P staple
-      - Good Cooking XP
-      - Combat training
-      - F2P PvM/PvP
-      - Mid-level healing
-      - Cooking training
-      - Burns until high Cooking
-      - Cooking gauntlets essential
-      - Popular F2P food
-      - Caught alongside tuna
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: component
+      description: Required fishing tool
+    - item_id: 377
+      item_name: Raw lobster
+      slug: raw-lobster
+      relationship: downgrade
+      description: Lower-tier fish
+    - item_id: 7944
+      item_name: Raw monkfish
+      slug: raw-monkfish
+      relationship: upgrade
+      description: Higher-tier fish
+  about: Raw swordfish is a fish caught at level 50 Fishing using a harpoon at spots in Catherby, Karamja, and the Fishing Guild, granting 100 Fishing experience per catch. It can be cooked at level 45 Cooking on a fire or range to make a swordfish, yielding 140 Cooking experience and a food item that heals 14 hitpoints. As a free-to-play fish with solid healing, it is a staple for mid-level combat training and Cooking XP.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

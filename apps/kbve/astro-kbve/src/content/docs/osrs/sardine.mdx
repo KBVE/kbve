@@ -12,23 +12,51 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 6000
+  material:
+    type: fish
+    tier: low
+  food:
+    heals: 4
+    cooking_level: 1
+    type: fish
+  cooking:
+    level: 1
+    xp: 40
+    stop_burn_level: 38
+    raw_item_id: 327
+    raw_item_name: Raw sardine
+    burnt_item_id: 369
+  recipes:
+    - name: Cook sardine
+      skill: cooking
+      level: 1
+      xp: 40
+      materials:
+        - item_name: Raw sardine
+          item_id: 327
+          quantity: 1
+      product: Sardine
+      product_id: 325
   related_items:
     - item_id: 327
       item_name: Raw sardine
       slug: raw-sardine
       relationship: component
       description: Uncooked version
+    - item_id: 315
+      item_name: Shrimps
+      slug: shrimps
+      relationship: downgrade
+      description: Lower tier cooked fish
     - item_id: 347
       item_name: Herring
       slug: herring
-      relationship: variant
-      description: Next tier bait fish
+      relationship: upgrade
+      description: Higher tier cooked fish
   about: |-
-    > _"Some nicely cooked sardines."_
-
-    Sardines heal 4 Hitpoints. Caught with a fishing rod and bait at 5 Fishing. A slight upgrade over shrimps for early-game food.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Sardine is a free-to-play cooked fish that restores 4 Hitpoints when eaten. It is prepared by cooking a raw sardine on a fire or range at Cooking level 1, granting 40 Cooking experience per successful cook. Players stop burning sardines entirely at Cooking level 38, making it a common early-game food choice alongside shrimps and herring.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

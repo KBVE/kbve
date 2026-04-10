@@ -33,10 +33,14 @@ export default function ReactKasmViewer() {
 		? (workspace.state & KasmState.CAN_CONNECT) !== 0
 		: false;
 
-	// Build the proxy URL for the iframe
+	// Build the proxy URL for the iframe.
+	// No trailing slash: axum's route `/dashboard/kasm/proxy/{*path}` requires
+	// a non-empty path segment, and `/dashboard/kasm/proxy` (no slash) is the
+	// only route that matches a bare request. A trailing slash falls through
+	// to the Astro static handler and returns a 404 with X-Frame-Options: DENY.
 	const proxyUrl = useMemo(() => {
 		if (!workspaceName || !token) return null;
-		return `/dashboard/kasm/proxy/?access_token=${encodeURIComponent(token)}`;
+		return `/dashboard/kasm/proxy?access_token=${encodeURIComponent(token)}`;
 	}, [workspaceName, token]);
 
 	// --- No workspace name in URL ---

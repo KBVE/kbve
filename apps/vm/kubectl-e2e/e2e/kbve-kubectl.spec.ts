@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { dockerExec, dockerExecSafe } from './helpers/docker';
+import { dockerExec, dockerExecSafe, dockerWriteFile } from './helpers/docker';
 
 describe('kbve-kubectl CLI', () => {
 	it('should print version with info subcommand', () => {
@@ -46,23 +46,23 @@ describe('kbve-kubectl CLI', () => {
 	});
 
 	it('should execute a script via run subcommand', () => {
-		const out = dockerExec(
-			'/bin/sh -c \'printf "#!/bin/sh\\necho hello-from-run\\n" > /tmp/test.sh && chmod +x /tmp/test.sh && kbve-kubectl run /tmp/test.sh\'',
-		);
+		dockerWriteFile('/tmp/test.sh', '#!/bin/sh\necho hello-from-run\n');
+		dockerExec('chmod +x /tmp/test.sh');
+		const out = dockerExec('kbve-kubectl run /tmp/test.sh');
 		expect(out).toContain('hello-from-run');
 	});
 
 	it('should propagate script exit codes via run subcommand', () => {
-		const result = dockerExecSafe(
-			'/bin/sh -c \'printf "#!/bin/sh\\nexit 7\\n" > /tmp/exit.sh && chmod +x /tmp/exit.sh && kbve-kubectl run /tmp/exit.sh\'',
-		);
+		dockerWriteFile('/tmp/exit.sh', '#!/bin/sh\nexit 7\n');
+		dockerExec('chmod +x /tmp/exit.sh');
+		const result = dockerExecSafe('kbve-kubectl run /tmp/exit.sh');
 		expect(result.exitCode).toBe(7);
 	});
 
 	it('should pass arguments to run subcommand scripts', () => {
-		const out = dockerExec(
-			'/bin/sh -c \'printf "#!/bin/sh\\necho first=$1 second=$2\\n" > /tmp/args.sh && chmod +x /tmp/args.sh && kbve-kubectl run /tmp/args.sh hello world\'',
-		);
+		dockerWriteFile('/tmp/args.sh', '#!/bin/sh\necho first=$1 second=$2\n');
+		dockerExec('chmod +x /tmp/args.sh');
+		const out = dockerExec('kbve-kubectl run /tmp/args.sh hello world');
 		expect(out).toContain('first=hello second=world');
 	});
 

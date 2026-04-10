@@ -12,18 +12,45 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 15000
+  material:
+    type: fish
+    tier: low
+  skilling_source:
+    skill: fishing
+    level: 10
+    xp: 30
+    location: Catherby / Lumbridge
+    tool: Fishing rod
+    bait: Fishing bait
+    method: Bait
+  recipes:
+    - name: Cook herring
+      skill: cooking
+      level: 5
+      xp: 50
+      materials:
+        - item_name: Raw herring
+          item_id: 345
+          quantity: 1
+      product: Herring
+      product_id: 347
+      facility: Range/Fire
   related_items:
     - item_id: 347
       item_name: Herring
       slug: herring
       relationship: product
-      description: Cooked version
-  about: |-
-    > _"I should try cooking this."_
-
-    Raw herring can be cooked at 5 Cooking to make herring. Caught at the same bait spots as sardines.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 327
+      item_name: Raw sardine
+      slug: raw-sardine
+      relationship: downgrade
+    - item_id: 335
+      item_name: Raw trout
+      slug: raw-trout
+      relationship: upgrade
+  about: Raw herring is a low-tier fish caught with a fishing rod and fishing bait at coastal bait spots from level 10 Fishing, yielding 30 experience per catch. It can be cooked at level 5 Cooking on a range or fire for 50 experience to produce a herring. Common catch locations include Catherby, Lumbridge Swamp, Draynor Village, and Port Sarim.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
