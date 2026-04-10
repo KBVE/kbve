@@ -12,76 +12,56 @@ osrs:
   lowalch: 68
   highalch: 102
   limit: 10000
+  material:
+    type: fish
+    tier: high
   food:
     heals: 20
     cooking_level: 80
-    cooking_xp: 210
-    burn_level: 94
+    type: fish
   cooking:
     level: 80
     xp: 210
     stop_burn_level: 99
-    stop_burn_level_gauntlets: 94
     raw_item_id: 383
     raw_item_name: Raw shark
-    ticks: 4
+    burnt_item_id: 387
   recipes:
-    - skill: cooking
+    - name: Cook shark
+      skill: cooking
       level: 80
       xp: 210
       materials:
         - item_name: Raw shark
           item_id: 383
           quantity: 1
-      facility: Fire or range
-      ticks: 4
+      product: Shark
+      product_id: 385
   related_items:
     - item_id: 383
       item_name: Raw shark
       slug: raw-shark
       relationship: component
-      description: Uncooked version
+    - item_id: 7946
+      item_name: Monkfish
+      slug: monkfish
+      relationship: downgrade
+    - item_id: 3144
+      item_name: Cooked karambwan
+      slug: cooked-karambwan
+      relationship: alternative
+    - item_id: 13441
+      item_name: Anglerfish
+      slug: anglerfish
+      relationship: upgrade
     - item_id: 391
       item_name: Manta ray
       slug: manta-ray
       relationship: alternative
-      description: Higher healing (22 HP)
-    - item_id: 13441
-      item_name: Anglerfish
-      slug: anglerfish
-      relationship: alternative
-      description: Overheal food
-    - item_id: 379
-      item_name: Lobster
-      slug: lobster
-      relationship: alternative
-      description: Budget alternative (12 HP)
-    - item_id: 373
-      item_name: Swordfish
-      slug: swordfish
-      relationship: alternative
-      description: Mid-tier food (14 HP)
   about: |-
-    Cook Raw shark on a fire or range.
-
-    Shark is one of the most popular food items for:
-    - Boss fights (GWD, Raids, etc.)
-    - PvP combat
-    - Slayer tasks
-    - General high-level PvM
-  market_strategy:
-    notes:
-      - Buy Raw shark → Cook → Sell Shark
-      - Popular consistent flip with high volume
-      - Fishing Trawler
-      - Player fishing (76+ Fishing)
-      - PvM drops (various bosses)
-      - Raids (ToB, ToA, CoX)
-      - Wilderness bosses
-      - PvP worlds
-      - Inferno attempts
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Shark is the classic high-tier PvM food in Old School RuneScape, healing 20 Hitpoints per bite and available only to members. Cooking raw shark requires level 80 Cooking and grants 210 experience, with burns stopping entirely at level 99 on a normal fire or range. It remains one of the most popular combat foods and pairs with cooked karambwan as the standard combo-eat partner for high-level bossing and PvP.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

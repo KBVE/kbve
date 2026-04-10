@@ -13,24 +13,17 @@ osrs:
   highalch: 18
   limit: 15000
   material:
-    type: raw_fish
-    tier: low-mid
-  fishing:
+    type: fish
+    tier: mid
+  about: Raw salmon is a free-to-play fish caught through fly fishing at level 30 Fishing, granting 70 experience per catch. Players use a fly fishing rod and feathers at river spots in Lumbridge, Barbarian Village, and Shilo Village, where salmon are caught alongside trout. Once caught, raw salmon can be cooked into Salmon at Cooking level 25 for 90 experience on a range or fire.
+  skilling_source:
+    skill: fishing
     level: 30
     xp: 70
-    method: Fly fishing
-    locations:
-      - Barbarian Village
-      - Shilo Village
-    tool: Fly fishing rod
-    bait: Feather
-  cooking:
-    level: 25
-    xp: 90
-    stop_burn: 58
-    stop_burn_gauntlets: 48
-    product_id: 329
-    product_name: Salmon
+    location: "Lumbridge / Barbarian Village / Shilo Village"
+    tool: "Fly fishing rod"
+    bait: "Feathers"
+    method: "Lure"
   recipes:
     - skill: cooking
       level: 25
@@ -39,7 +32,7 @@ osrs:
         - item_name: Raw salmon
           item_id: 331
           quantity: 1
-      product: Salmon
+      product: "Salmon"
       product_id: 329
       product_quantity: 1
       facility: Range/Fire
@@ -48,37 +41,20 @@ osrs:
       item_name: Salmon
       slug: salmon
       relationship: product
-      description: Cooked version
     - item_id: 335
       item_name: Raw trout
       slug: raw-trout
-      relationship: alternative
-      description: Caught together
-    - item_id: 309
-      item_name: Fly fishing rod
-      slug: fly-fishing-rod
-      relationship: component
-      description: Fishing tool
+      relationship: downgrade
+    - item_id: 359
+      item_name: Raw tuna
+      slug: raw-tuna
+      relationship: upgrade
     - item_id: 314
       item_name: Feather
       slug: feather
       relationship: component
-      description: Bait
-  market_strategy:
-    notes:
-      - Popular for Cooking training
-      - Caught alongside trout
-      - Low-level content
-      - Cooking training
-      - F2P content
-      - Ironman progression
-      - Budget food source
-      - Caught with fly fishing rod
-      - Feathers as bait
-      - Barbarian Village popular
-      - Often dropped for XP
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

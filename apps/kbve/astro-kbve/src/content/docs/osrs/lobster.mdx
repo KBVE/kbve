@@ -12,19 +12,20 @@ osrs:
   lowalch: 28
   highalch: 42
   limit: 6000
+  material:
+    type: fish
+    tier: mid
   food:
     heals: 12
     cooking_level: 40
-    cooking_xp: 120
-    burn_level: 74
+    type: fish
   cooking:
     level: 40
     xp: 120
     stop_burn_level: 74
-    stop_burn_level_gauntlets: 64
     raw_item_id: 377
     raw_item_name: Raw lobster
-    ticks: 4
+    burnt_item_id: 381
   recipes:
     - skill: cooking
       level: 40
@@ -33,46 +34,24 @@ osrs:
         - item_name: Raw lobster
           item_id: 377
           quantity: 1
-      facility: Fire or range
-      ticks: 4
+      product: Lobster
+      product_id: 379
   related_items:
     - item_id: 377
       item_name: Raw lobster
       slug: raw-lobster
       relationship: component
-      description: Uncooked version
-    - item_id: 373
-      item_name: Swordfish
-      slug: swordfish
-      relationship: upgrade
-      description: Next tier (14 HP)
-    - item_id: 385
-      item_name: Shark
-      slug: shark
-      relationship: upgrade
-      description: High tier (20 HP)
     - item_id: 361
       item_name: Tuna
       slug: tuna
       relationship: downgrade
-      description: Lower tier (10 HP)
-  about: |-
-    Cook Raw lobster on a fire or range.
-
-    Lobster is a popular mid-level food for:
-    - Mid-level slayer
-    - Quest bosses
-    - Budget PvP
-    - Ironman progression
-  market_strategy:
-    notes:
-      - High volume, consistent demand
-      - Good margins for cooking bots/alts
-      - Very liquid market
-      - Cheaper than shark/swordfish
-      - Popular for activities where food is expendable
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 373
+      item_name: Swordfish
+      slug: swordfish
+      relationship: upgrade
+  about: Lobster is a classic mid-game food in Old School RuneScape, available to free-to-play players and healing 12 Hitpoints per eat. Cooked from raw lobster at Cooking level 40 for 120 experience, it remains one of the most popular staples for low-to-mid level combat training, Slayer tasks, and questing thanks to its cheap price and high liquidity on the Grand Exchange.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

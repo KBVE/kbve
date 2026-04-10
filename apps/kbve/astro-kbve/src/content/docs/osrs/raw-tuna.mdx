@@ -12,24 +12,17 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 15000
+  about: Raw tuna is a free-to-play fish caught by harpooning at harpoon/cage spots, requiring level 35 Fishing and awarding 80 experience per catch. It can be cooked at level 30 Cooking for 100 experience to produce tuna, a solid mid-tier healing food popular with combat trainers. Catherby and Karamja are the most common harpoon fishing locations for stocking up on raw tuna.
   material:
-    type: raw_fish
-    tier: mid-low
-  fishing:
+    type: fish
+    tier: mid
+  skilling_source:
+    skill: fishing
     level: 35
     xp: 80
+    location: Catherby / Karamja
+    tool: Harpoon
     method: Harpoon
-    locations:
-      - Catherby
-      - Fishing Guild
-      - Musa Point
-  cooking:
-    level: 30
-    xp: 100
-    stop_burn_level: 63
-    stop_burn_level_gauntlets: 53
-    product_id: 361
-    product_name: Tuna
   recipes:
     - skill: cooking
       level: 30
@@ -40,40 +33,26 @@ osrs:
           quantity: 1
       product: Tuna
       product_id: 361
-      product_quantity: 1
-      facility: Fire or range
+      facility: Range/Fire
   related_items:
     - item_id: 361
       item_name: Tuna
       slug: tuna
       relationship: product
-      description: Cooked version (heals 10 HP)
-    - item_id: 371
-      item_name: Raw swordfish
-      slug: raw-swordfish
-      relationship: upgrade
-      description: Higher tier fish
-    - item_id: 377
-      item_name: Raw lobster
-      slug: raw-lobster
-      relationship: alternative
-      description: Alternative fish
     - item_id: 311
       item_name: Harpoon
       slug: harpoon
-      relationship: alternative
-      description: Fishing tool
-  market_strategy:
-    notes:
-      - Popular for combat training
-      - Affordable healing food
-      - F2P accessible
-      - Combat training food
-      - F2P PvM
-      - Budget healing
-      - Cooking training
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: component
+    - item_id: 331
+      item_name: Raw salmon
+      slug: raw-salmon
+      relationship: downgrade
+    - item_id: 377
+      item_name: Raw lobster
+      slug: raw-lobster
+      relationship: upgrade
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

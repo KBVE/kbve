@@ -12,14 +12,20 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 6000
+  material:
+    type: fish
+    tier: mid
   food:
     heals: 9
+    cooking_level: 25
     type: fish
   cooking:
     level: 25
     xp: 90
-    stop_burn: 58
-    stop_burn_gauntlets: 48
+    stop_burn_level: 58
+    raw_item_id: 331
+    raw_item_name: Raw salmon
+    burnt_item_id: 343
   recipes:
     - skill: cooking
       level: 25
@@ -41,23 +47,14 @@ osrs:
     - item_id: 333
       item_name: Trout
       slug: trout
-      relationship: alternative
-      description: Similar tier food
-    - item_id: 379
-      item_name: Lobster
-      slug: lobster
-      relationship: alternative
-      description: Upgrade food
-    - item_id: 775
-      item_name: Cooking gauntlets
-      slug: cooking-gauntlets
-      relationship: alternative
-      description: Reduce burn
-  about: |-
-    | Effect | Value |
-    |--------|-------|
-    | Heals | 9 HP |
-    | Buy limit | 6,000 |
+      relationship: downgrade
+      description: Lower tier fish food
+    - item_id: 361
+      item_name: Tuna
+      slug: tuna
+      relationship: upgrade
+      description: Higher tier fish food
+  about: Salmon is a cooked fish that restores 9 Hitpoints when eaten, obtained by cooking raw salmon on a fire or range at Cooking level 25 for 90 experience. It stops burning at level 58 on a regular range, or 55 when using the Lumbridge Castle range after completing Cook's Assistant. Salmon is also used as an ingredient for admiral pie and is required during the Family Crest quest.
   market_strategy:
     notes:
       - Cheap healing option
@@ -71,8 +68,8 @@ osrs:
       - Caught alongside trout
       - Good early game food
       - Low burn level
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

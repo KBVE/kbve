@@ -12,23 +12,18 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 15000
+  about: Raw shrimps are the most basic fish in Old School RuneScape and a staple starter resource for free-to-play players. They can be caught at level 1 Fishing with a small fishing net at net fishing spots in Lumbridge Swamp, Draynor Village, and Al Kharid, then cooked at level 1 Cooking to become shrimps. As one of the easiest foods to obtain, they are a common early-game healing option for new adventurers.
   material:
-    type: raw_fish
-    tier: lowest
-  fishing:
+    type: fish
+    tier: low
+  skilling_source:
+    skill: fishing
     level: 1
     xp: 10
-    method: Small fishing net
-    locations:
-      - Draynor Village
-      - Lumbridge Swamp
-      - Al Kharid
-  cooking:
-    level: 1
-    xp: 30
-    stop_burn_level: 34
-    product_id: 315
-    product_name: Shrimps
+    location: Lumbridge / Draynor / Al Kharid
+    tool: Small fishing net
+    bait: None
+    method: Net
   recipes:
     - skill: cooking
       level: 1
@@ -40,25 +35,22 @@ osrs:
       product: Shrimps
       product_id: 315
       product_quantity: 1
-      facility: Fire or range
+      facility: Range/Fire
   related_items:
     - item_id: 315
       item_name: Shrimps
       slug: shrimps
       relationship: product
-      description: Cooked version
     - item_id: 321
       item_name: Raw anchovies
       slug: raw-anchovies
       relationship: alternative
-      description: Also caught at same spots
-    - item_id: 303
-      item_name: Small fishing net
-      slug: small-fishing-net
-      relationship: alternative
-      description: Required to catch
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 327
+      item_name: Raw sardine
+      slug: raw-sardine
+      relationship: upgrade
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

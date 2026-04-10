@@ -12,18 +12,52 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 6000
+  material:
+    type: fish
+    tier: low
+  food:
+    heals: 3
+    cooking_level: 1
+    type: fish
+  cooking:
+    level: 1
+    xp: 30
+    stop_burn_level: 34
+    raw_item_id: 317
+    raw_item_name: Raw shrimps
+    burnt_item_id: 7954
+  recipes:
+    - name: Cook shrimps
+      skill: cooking
+      level: 1
+      xp: 30
+      materials:
+        - item_name: Raw shrimps
+          item_id: 317
+          quantity: 1
+      product: "Shrimps"
+      product_id: 315
+      facility: "Range/Fire"
   related_items:
+    - item_id: 317
+      item_name: Raw shrimps
+      slug: raw-shrimps
+      relationship: component
+      description: Raw form cooked into shrimps
     - item_id: 319
       item_name: Anchovies
       slug: anchovies
-      relationship: variant
-      description: Another net-caught fish
+      relationship: alternative
+      description: Another low-level net-caught fish
+    - item_id: 325
+      item_name: Sardine
+      slug: sardine
+      relationship: upgrade
+      description: Higher-healing F2P fish
   about: |-
-    > _"Some nicely cooked shrimp."_
-
-    Shrimps heal 3 Hitpoints. The very first food most players cook, caught with a small fishing net at 1 Fishing. Cheap and abundant.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Shrimps are the first cooked fish most players encounter, healing 3 Hitpoints when eaten. They are prepared by cooking raw shrimps on a fire or range at Cooking level 1 for 30 experience. Shrimps stop burning entirely at Cooking level 34, or level 31 when using the Lumbridge Castle range after completing Cook's Assistant.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

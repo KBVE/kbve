@@ -12,6 +12,31 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 6000
+  material:
+    type: fish
+    tier: low
+  food:
+    heals: 5
+    cooking_level: 5
+    type: fish
+  cooking:
+    level: 5
+    xp: 50
+    stop_burn_level: 41
+    raw_item_id: 345
+    raw_item_name: Raw herring
+    burnt_item_id: 357
+  recipes:
+    - name: Cook herring
+      skill: cooking
+      level: 5
+      xp: 50
+      materials:
+        - item_name: Raw herring
+          item_id: 345
+          quantity: 1
+      product: Herring
+      product_id: 347
   related_items:
     - item_id: 345
       item_name: Raw herring
@@ -21,14 +46,17 @@ osrs:
     - item_id: 325
       item_name: Sardine
       slug: sardine
-      relationship: variant
-      description: Lower tier bait fish
+      relationship: downgrade
+      description: Lower tier cooked fish
+    - item_id: 333
+      item_name: Trout
+      slug: trout
+      relationship: upgrade
+      description: Higher tier cooked fish
   about: |-
-    > _"Some nicely cooked herring."_
-
-    Herring heals 5 Hitpoints. Caught with a fishing rod and bait at 10 Fishing.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Herring is a free-to-play cooked fish that restores 5 Hitpoints when eaten. It is made by cooking a raw herring on a fire or range, requiring level 5 Cooking and granting 50 experience per success. Herring stops burning entirely at Cooking level 41, or 38 when using the Lumbridge Castle range with Cook's Assistant completed.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

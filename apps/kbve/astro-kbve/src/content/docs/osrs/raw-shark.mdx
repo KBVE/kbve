@@ -12,24 +12,17 @@ osrs:
   lowalch: 68
   highalch: 102
   limit: 15000
+  about: Raw shark is a high-tier members fish caught with a harpoon at level 76 Fishing, primarily at Catherby, Karamja, and the Fishing Guild. Once cooked at 80 Cooking, it becomes a Shark that heals 20 Hitpoints, making it a staple food for high-level PvM training and bossing.
   material:
-    type: raw_fish
+    type: fish
     tier: high
-  fishing:
+  skilling_source:
+    skill: fishing
     level: 76
     xp: 110
+    location: Catherby / Karamja / Fishing Guild
+    tool: Harpoon
     method: Harpoon
-    locations:
-      - Fishing Guild
-      - Catherby
-      - Jatizso
-  cooking:
-    level: 80
-    xp: 210
-    stop_burn_level: 94
-    stop_burn_level_gauntlets: 89
-    product_id: 385
-    product_name: Shark
   recipes:
     - skill: cooking
       level: 80
@@ -41,7 +34,7 @@ osrs:
       product: Shark
       product_id: 385
       product_quantity: 1
-      facility: Fire or range
+      facility: Range/Fire
       members_only: true
   related_items:
     - item_id: 385
@@ -49,36 +42,28 @@ osrs:
       slug: shark
       relationship: product
       description: Cooked product
-    - item_id: 377
-      item_name: Raw lobster
-      slug: raw-lobster
+    - item_id: 311
+      item_name: Harpoon
+      slug: harpoon
+      relationship: component
+      description: Tool required to catch raw shark
+    - item_id: 7944
+      item_name: Raw monkfish
+      slug: raw-monkfish
       relationship: downgrade
       description: Lower tier fish
-    - item_id: 371
-      item_name: Raw swordfish
-      slug: raw-swordfish
-      relationship: downgrade
-      description: Mid-tier fish
-    - item_id: 775
-      item_name: Cooking gauntlets
-      slug: cooking-gauntlets
+    - item_id: 3142
+      item_name: Raw karambwan
+      slug: raw-karambwan
       relationship: alternative
-      description: Reduces burn rate
-  market_strategy:
-    profit_formulas:
-      - Shark price - Raw shark price = Cooking profit
-    notes:
-      - Buy Raw shark → Cook → Sell Shark
-      - "Calculate:"
-      - Account for burn rate at your level
-      - Use Hosidius kitchen (5% reduced burn rate)
-      - Cooking gauntlets significantly reduce burns
-      - High volume item, consistent demand
-      - "At level 80: ~20% burn rate"
-      - "At level 89 (gauntlets + Hosidius): 0% burn rate"
-      - Factor burnt sharks into profit calculation
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Combo-eat food alternative
+    - item_id: 13439
+      item_name: Raw anglerfish
+      slug: raw-anglerfish
+      relationship: upgrade
+      description: Higher tier fish with overheal
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
