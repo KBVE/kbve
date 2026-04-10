@@ -14,79 +14,86 @@ osrs:
   limit: 15
   equipment:
     slot: 2h
-    type: barrows_weapon
-    attack_style: melee
+    weapon_type: blunt
     attack_speed: 5
+    weight: 2.267
+    attack_bonus:
+      stab: 68
+      slash: 0
+      crush: 82
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+    other_bonus:
+      melee_strength: 72
+      prayer: 6
     requirements:
       attack: 70
-    stats:
-      attack_stab: 68
-      attack_slash: -2
-      attack_crush: 82
-      strength: 72
-      prayer: 6
-    degradeable: true
-    degrade_hours: 15
+      strength: 70
   set_bonus:
-    set_name: Verac's
-    effect: 25% chance to ignore defence and protection prayers
+    set_name: Verac the Defiled's equipment
+    pieces_required: 4
+    description: "25% chance for melee attacks to ignore the target's Defence and Prayer bonuses, hitting through any defensive setup."
+    pieces:
+      - 4753
+      - 4757
+      - 4759
+      - 4755
+  charges:
+    max_charges: 100
+    combat_hours: 15
+    repairable: true
+    repair_npc: Bob
+    degrade_to_id: 4990
+    degrade_to_name: Verac's flail 0
   drop_table:
     sources:
       - source: Barrows chest
-        source_id: 0
-        combat_level: 0
         quantity: "1"
-        rarity: 7 × 1/2,448
+        rarity: rare
+        drop_rate: "1/2448"
         members_only: true
   related_items:
-    - item_id: 4759
-      item_name: Verac's plateskirt
-      slug: veracs-plateskirt
-      relationship: component
-      description: Set piece
+    - item_id: 4753
+      item_name: Verac's helm
+      slug: verac-s-helm
+      relationship: set-piece
+      description: Verac the Defiled's helmet, worn with the flail to complete the Defiler set bonus.
     - item_id: 4757
       item_name: Verac's brassard
-      slug: veracs-brassard
-      relationship: component
-      description: Set piece
+      slug: verac-s-brassard
+      relationship: set-piece
+      description: Verac the Defiled's body armour, worn with the flail to complete the Defiler set bonus.
+    - item_id: 4759
+      item_name: Verac's plateskirt
+      slug: verac-s-plateskirt
+      relationship: set-piece
+      description: Verac the Defiled's legs, worn with the flail to complete the Defiler set bonus.
+    - item_id: 4070
+      item_name: Verac's armour set
+      slug: verac-s-armour-set
+      relationship: variant
+      description: Grand Exchange placeholder bundle containing all four Verac's pieces.
+    - item_id: 3204
+      item_name: Dragon halberd
+      slug: dragon-halberd
+      relationship: alternative
+      description: Two-handed crush/stab polearm used in a similar melee role without degradation.
+    - item_id: 4747
+      item_name: Torag's hammers
+      slug: torag-s-hammers
+      relationship: alternative
+      description: Alternative Barrows weapon from the same drop table.
   about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Stab | +68 |
-    | Crush | +82 |
-    | Slash | -2 |
-    | Strength | +72 |
-
-    | Defence | Value |
-    |---------|-------|
-    | All | +0 |
-
-    | Other | Value |
-    |-------|-------|
-    | Prayer | +6 |
-
-    Requirements: 70 Attack
-
-    Full Verac's:
-    - 25% chance to ignore defence and protection prayers
-    - Hits through Protect from Melee
-
-    Degrades over 15 hours of combat.
-
-    Essential for:
-    - Callisto
-    - Vet'ion
-    - Corp (pre-spec)
-    - PvP (hits through prayer)
-
-    Only way to hit through protection prayers.
+    Verac's flail is Verac the Defiled's members-only two-handed blunt weapon, requiring 70 Attack and 70 Strength to wield. When worn alongside the helm, brassard, and plateskirt to complete the Defiler set, it grants a 25% chance on each successful hit to ignore the target's Defence and Prayer bonuses, making it a key option for Slayer tasks, raids, and PvM encounters where hitting through Protect from Melee matters. It is obtained from the Barrows chest after defeating Verac the Defiled and degrades over 15 hours of combat, requiring repair from Bob in Lumbridge or at an armour stand.
   market_strategy:
     notes:
       - Essential for wilderness bosses
       - Prayer bonus is nice
       - Set effect is unique
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

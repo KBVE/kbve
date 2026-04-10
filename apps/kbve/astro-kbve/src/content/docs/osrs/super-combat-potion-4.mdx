@@ -16,21 +16,28 @@ osrs:
     doses: 4
     herblore_level: 90
     herblore_xp: 150
-    effect: Boosts Attack, Strength, and Defence by 5 + 15% of level
+    effect: "Boosts Attack, Strength, and Defence by 5 + 15% of base level for 5 minutes"
     effects:
-      - stat: Attack
-        boost_formula: 5 + floor(level * 0.15)
-      - stat: Strength
-        boost_formula: 5 + floor(level * 0.15)
-      - stat: Defence
-        boost_formula: 5 + floor(level * 0.15)
+      - stat: attack
+        boost_type: formula
+        boost_formula: "5 + floor(level * 0.15)"
+        duration: 500
+      - stat: strength
+        boost_type: formula
+        boost_formula: "5 + floor(level * 0.15)"
+        duration: 500
+      - stat: defence
+        boost_type: formula
+        boost_formula: "5 + floor(level * 0.15)"
+        duration: 500
   recipes:
     - skill: herblore
       level: 90
       xp: 150
+      members_only: true
       materials:
-        - item_name: Torstol
-          item_id: 269
+        - item_name: Torstol potion (unf)
+          item_id: 111
           quantity: 1
         - item_name: Super attack(4)
           item_id: 2436
@@ -41,56 +48,43 @@ osrs:
         - item_name: Super defence(4)
           item_id: 2442
           quantity: 1
-      ticks: 2
-      members_only: true
   related_items:
-    - item_id: 269
-      item_name: Torstol
-      slug: torstol
-      relationship: component
-      description: Primary herb
     - item_id: 2436
       item_name: Super attack(4)
       slug: super-attack-4
       relationship: component
-      description: Attack component
     - item_id: 2440
       item_name: Super strength(4)
       slug: super-strength-4
       relationship: component
-      description: Strength component
     - item_id: 2442
       item_name: Super defence(4)
       slug: super-defence-4
       relationship: component
-      description: Defence component
-    - item_id: 12697
-      item_name: Super combat potion(3)
+    - item_id: 269
+      item_name: Torstol
+      slug: torstol
+      relationship: component
+    - item_id: 111
+      item_name: Torstol potion (unf)
+      slug: torstol-potion-unf
+      relationship: component
+    - item_name: Super combat potion(3)
       slug: super-combat-potion-3
       relationship: variant
-      description: 3-dose version
+    - item_name: Super combat potion(2)
+      slug: super-combat-potion-2
+      relationship: variant
+    - item_name: Super combat potion(1)
+      slug: super-combat-potion-1
+      relationship: variant
+    - item_name: Divine super combat potion(4)
+      slug: divine-super-combat-potion-4
+      relationship: upgrade
   about: |-
-    | Effect | Value |
-    |--------|-------|
-    | Attack boost | +5 to +19 (15% + 5) |
-    | Strength boost | +5 to +19 (15% + 5) |
-    | Defence boost | +5 to +19 (15% + 5) |
-    | Duration | 60s per level lost |
-  market_strategy:
-    notes:
-      - Combines 3 super potions
-      - Essential for melee PvM
-      - High demand always
-      - All melee PvM
-      - Raids preparation
-      - Bossing
-      - Slayer tasks
-      - Low buy limit (2,000)
-      - Torstol very expensive
-      - Combines 3 potions in 1
-      - 90 Herblore required
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Super combat potion(4) is a members combat potion that combines the effects of super attack, super strength, and super defence into a single four-dose flask, boosting each stat by 5 + 15% of the player's base level for five minutes per dose. Brewing one requires level 90 Herblore and yields 150 experience, made by combining a torstol (or torstol potion (unf)) with a 4-dose super attack, super strength, and super defence. Since its release it has been the staple combat potion for melee training and PvM, freeing up inventory space that would otherwise be consumed by three separate potions.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

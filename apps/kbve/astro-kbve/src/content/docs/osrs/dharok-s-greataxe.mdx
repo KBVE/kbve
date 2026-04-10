@@ -14,82 +14,92 @@ osrs:
   limit: 15
   equipment:
     slot: 2h
-    type: barrows_weapon
-    attack_style: melee
+    weapon_type: axe
     attack_speed: 7
+    weight: 3.175
+    attack_bonus:
+      stab: -4
+      slash: 103
+      crush: 95
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -1
+    other_bonus:
+      melee_strength: 105
     requirements:
       attack: 70
       strength: 70
-    stats:
-      attack_stab: -4
-      attack_slash: 103
-      attack_crush: 95
-      attack_magic: -4
-      strength: 105
-    degradeable: true
-    degrade_hours: 15
   set_bonus:
-    set_name: Dharok's
-    effect: Damage increases as HP decreases, up to +98.9% at 1 HP
-  drop_table:
-    sources:
-      - source: Barrows chest
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
-        rarity: 7 × 1/2,448
-        members_only: true
+    set_name: Dharok the Wretched's equipment
+    pieces_required: 4
+    description: "Increases melee damage as the player's hitpoints decrease, with maximum boost at 1 HP."
+    pieces:
+      - 4716
+      - 4720
+      - 4722
+      - 4718
+  charges:
+    max_charges: 100
+    combat_hours: 15
+    repairable: true
+    repair_npc: Bob
+    degrade_to_id: 4884
+    degrade_to_name: Dharok's greataxe 0
   related_items:
+    - item_id: 4716
+      item_name: Dharok's helm
+      slug: dharok-s-helm
+      relationship: set-piece
+      description: Head slot of the Wretched Strength set.
     - item_id: 4720
       item_name: Dharok's platebody
-      slug: dharoks-platebody
-      relationship: component
-      description: Set piece
-    - item_id: 26786
-      item_name: Absorption potion
-      slug: absorption-potion
+      slug: dharok-s-platebody
+      relationship: set-piece
+      description: Body slot of the Wretched Strength set.
+    - item_id: 4722
+      item_name: Dharok's platelegs
+      slug: dharok-s-platelegs
+      relationship: set-piece
+      description: Legs slot of the Wretched Strength set.
+    - item_id: 4931
+      item_name: Dharok's armour set
+      slug: dharok-s-armour-set
+      relationship: variant
+      description: Grand Exchange bundle containing all four Dharok's pieces
+    - item_id: 4710
+      item_name: Ahrim's staff
+      slug: ahrim-s-staff
       relationship: alternative
-      description: NMZ combo
-    - item_id: 11730
-      item_name: Overload
-      slug: overload
+      description: Two-handed magic weapon from another Barrows brother.
+    - item_id: 4734
+      item_name: Karil's crossbow
+      slug: karil-s-crossbow
       relationship: alternative
-      description: NMZ boost
+      description: Two-handed ranged weapon from another Barrows brother.
+    - item_id: 4747
+      item_name: Torag's hammers
+      slug: torag-s-hammers
+      relationship: alternative
+      description: Dual-wield melee weapons from another Barrows brother.
+    - item_id: 4755
+      item_name: Verac's flail
+      slug: verac-s-flail
+      relationship: alternative
+      description: Armour-piercing melee weapon from another Barrows brother.
+    - item_id: 4726
+      item_name: Guthan's warspear
+      slug: guthan-s-warspear
+      relationship: alternative
+      description: Two-handed healing spear from another Barrows brother.
   about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Stab | -4 |
-    | Slash | +103 |
-    | Crush | +95 |
-    | Magic | -4 |
-    | Strength | +105 |
-
-    | Defence | Value |
-    |---------|-------|
-    | All | +0 |
-
-    Requirements: 70 Attack, 70 Strength
-
-    Full Dharok's:
-    - Damage increases as HP decreases
-    - At 1 HP with 99 max: +98.9% bonus damage
-    - Can hit 100+ with max strength
-
-    Degrades over 15 hours of combat.
-
-    Essential for:
-    - NMZ training (absorption method)
-    - PvP (low HP rushing)
-    - Mole hunting
-
-    Highest possible max hit in game.
-  market_strategy:
-    notes:
-      - Popular for NMZ
-      - Use with absorption pots
-      - High risk, high reward
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Dharok's greataxe is the cheapest "best in slot for max hits" weapon in Old School RuneScape, prized for its enormous slash attack and +105 melee strength bonus that amplify the Wretched Strength set effect. It is obtained as a reward from the Barrows minigame, where players fight Dharok the Wretched inside his crypt and loot the chest after clearing the brothers. The greataxe degrades over 15 hours of combat and must be repaired by Bob in Lumbridge or at an armour stand before it returns to full charges.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

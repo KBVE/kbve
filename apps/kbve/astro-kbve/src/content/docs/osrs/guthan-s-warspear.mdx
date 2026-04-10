@@ -14,80 +14,78 @@ osrs:
   limit: 15
   equipment:
     slot: 2h
-    type: barrows_weapon
-    attack_style: melee
+    weapon_type: spear
     attack_speed: 5
+    weight: 4.535
+    attack_bonus:
+      stab: 75
+      slash: 75
+      crush: 75
+    defence_bonus:
+      stab: 7
+      slash: 7
+      crush: 7
+    other_bonus:
+      melee_strength: 75
     requirements:
       attack: 70
-    stats:
-      attack_stab: 75
-      attack_slash: 75
-      attack_crush: 75
-      strength: 75
-    degradeable: true
-    degrade_hours: 15
+      strength: 70
   set_bonus:
-    set_name: Guthan's
-    effect: 25% chance to heal HP equal to damage dealt
-  drop_table:
-    sources:
-      - source: Barrows chest
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
-        rarity: 7 × 1/2,448
-        members_only: true
+    set_name: Guthan the Infested's equipment
+    pieces_required: 4
+    description: "25% chance for melee attacks to heal the user by the amount of damage dealt on a successful hit. Can heal above maximum HP."
+    pieces:
+      - 4724
+      - 4728
+      - 4730
+      - 4726
+  charges:
+    max_charges: 100
+    combat_hours: 15
+    repairable: true
+    repair_npc: Bob
+    degrade_to_id: 4910
+    degrade_to_name: Guthan's warspear 0
   related_items:
-    - item_id: 4728
-      item_name: Guthan's platebody
-      slug: guthans-platebody
-      relationship: component
-      description: Set piece
     - item_id: 4724
       item_name: Guthan's helm
-      slug: guthans-helm
-      relationship: component
-      description: Set piece
+      slug: guthan-s-helm
+      relationship: set-piece
+      description: Guthan the Infested's helmet
+    - item_id: 4728
+      item_name: Guthan's platebody
+      slug: guthan-s-platebody
+      relationship: set-piece
+      description: Guthan the Infested's platebody
+    - item_id: 4730
+      item_name: Guthan's chainskirt
+      slug: guthan-s-chainskirt
+      relationship: set-piece
+      description: Guthan the Infested's chainskirt
+    - item_id: 4869
+      item_name: Guthan's armour set
+      slug: guthan-s-armour-set
+      relationship: variant
+      description: Grand Exchange placeholder bundling all four Guthan's pieces
+    - item_id: 385
+      item_name: Shark
+      slug: shark
+      relationship: alternative
+      description: Conventional healing food alternative to the set effect
     - item_id: 4718
       item_name: Dharok's greataxe
-      slug: dharoks-greataxe
+      slug: dharok-s-greataxe
       relationship: alternative
-      description: Alternative
+      description: Melee Barrows two-handed weapon used for damage rather than sustain
   about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Stab | +75 |
-    | Slash | +75 |
-    | Crush | +75 |
-    | Strength | +75 |
-
-    | Defence | Value |
-    |---------|-------|
-    | All | +0 |
-
-    Requirements: 70 Attack
-
-    Full Guthan's:
-    - 25% chance to heal HP equal to damage dealt
-    - No prayer or rune cost
-    - Indefinite sustain
-
-    Degrades over 15 hours of combat.
-
-    Essential for:
-    - AFK Slayer (with full set)
-    - Extended trips
-    - Gargoyles/Hellhounds
-    - NMZ (alternative to Dharok)
-
-    Best sustain set in the game.
+    Guthan's warspear is a members' two-handed melee warspear that forms the weapon slot of Guthan the Infested's Barrows equipment. When wielded with the matching helm, platebody, and chainskirt, the Infestation set effect grants a 25% chance on each successful hit to heal the wearer for the damage dealt, which underpins the classic AFK Slayer training method. The warspear is obtained from the Barrows Brothers chest and degrades over 15 hours of combat before breaking, but it can be repaired by Bob in Lumbridge or at an armour stand.
   market_strategy:
     notes:
       - Full set for healing
       - Great for AFK tasks
       - Popular for ironmen
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

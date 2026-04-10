@@ -13,14 +13,15 @@ osrs:
   highalch: 180
   limit: 2000
   potion:
-    type: energy
-    tier: super
     doses: 4
-    effect: Restores 20% run energy per dose
+    herblore_level: 52
+    herblore_xp: 117.5
+    effect: "Restores 20% of run energy per dose"
   recipes:
     - skill: herblore
       level: 52
       xp: 117.5
+      members_only: true
       materials:
         - item_name: Avantoe potion (unf)
           item_id: 103
@@ -31,72 +32,38 @@ osrs:
       product: Super energy(4)
       product_id: 3016
       product_quantity: 1
-      members_only: true
-    - skill: herblore
-      level: 77
-      xp: 102
-      materials:
-        - item_name: Super energy(4)
-          item_id: 3016
-          quantity: 1
-        - item_name: Amylase crystal
-          item_id: 12640
-          quantity: 4
-      product: Stamina potion(4)
-      product_id: 12625
-      product_quantity: 1
-      members_only: true
   related_items:
     - item_id: 261
       item_name: Avantoe
       slug: avantoe
       relationship: component
-      description: Primary herb
-    - item_id: 2970
-      item_name: Mort myre fungus
+    - item_name: Avantoe potion (unf)
+      slug: avantoe-potion-unf
+      relationship: component
+    - item_name: Mort myre fungus
       slug: mort-myre-fungus
       relationship: component
-      description: Secondary
-    - item_id: 12640
-      item_name: Amylase crystal
-      slug: amylase-crystal
-      relationship: component
-      description: Stamina upgrade
-    - item_id: 12625
-      item_name: Stamina potion(4)
-      slug: stamina-potion-4
-      relationship: product
-      description: End product
-    - item_id: 3010
+    - item_id: 3008
       item_name: Energy potion(4)
       slug: energy-potion-4
-      relationship: alternative
-      description: Lower tier
+      relationship: downgrade
+    - item_name: Stamina potion(4)
+      slug: stamina-potion-4
+      relationship: upgrade
+    - item_name: Super energy(3)
+      slug: super-energy-3
+      relationship: variant
+    - item_name: Super energy(2)
+      slug: super-energy-2
+      relationship: variant
+    - item_name: Super energy(1)
+      slug: super-energy-1
+      relationship: variant
   about: |-
-    Combine Avantoe potion (unf) + Mort myre fungus.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore Level | 52 |
-    | XP gained | 117.5 |
-
-    Restores 20% of run energy per dose.
-  market_strategy:
-    profit_formulas:
-      - Super energy(4) - Avantoe potion (unf) - Mort myre fungus = Profit
-    notes:
-      - "Calculate:"
-      - 52 Herblore required
-      - Decent XP method
-      - Super energy(4) + 4× Amylase crystal = Stamina(4)
-      - Higher profit at 77 Herblore
-      - Check both margins
-      - Primary use is stamina making
-      - Mort myre fungus from Canifis
-      - Mid-level Herblore training
-      - Compare to energy potion prices
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Super energy(4) is a four-dose members potion that restores 20% of run energy per dose when consumed. It is brewed via Herblore at level 52 by combining an Avantoe potion (unf) with a Mort myre fungus, granting 117.5 Herblore experience per potion made.
+    Players rely on it for long-distance running and Agility training, and it also serves as the base ingredient for Stamina potions, which add a run energy drain reduction effect on top of the same restoration.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
