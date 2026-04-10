@@ -12,18 +12,15 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 10000
+  about: Gold bar is smelted from one gold ore at Smithing level 40, earning 22.5 Smithing XP normally or 56.2 XP per bar with Goldsmith gauntlets (reward from the Family Crest quest). Gold bars are the universal jewellery Crafting input — rings, necklaces, amulets, and bracelets all start from a gold bar and the appropriate mould. Blast Furnace gold bars are one of the top Smithing training methods in the game.
   material:
     type: bar
-    tier: gold
-  smithing:
-    level: 40
-    xp: 22.5
-    xp_with_gauntlets: 56.2
-    method: Smelting
+    tier: mid
   recipes:
     - skill: smithing
       level: 40
       xp: 22.5
+      facility: Furnace
       materials:
         - item_name: Gold ore
           item_id: 444
@@ -31,60 +28,56 @@ osrs:
       product: Gold bar
       product_id: 2357
       product_quantity: 1
+    - skill: smithing
+      level: 40
+      xp: 56.2
       facility: Furnace
+      members_only: true
+      materials:
+        - item_name: Gold ore
+          item_id: 444
+          quantity: 1
+      product: Gold bar
+      product_id: 2357
+      product_quantity: 1
   related_items:
     - item_id: 444
       item_name: Gold ore
       slug: gold-ore
       relationship: component
-      description: Raw material
     - item_id: 776
       item_name: Goldsmith gauntlets
       slug: goldsmith-gauntlets
       relationship: alternative
-      description: 2.5x XP bonus
     - item_id: 1673
       item_name: Gold amulet (u)
       slug: gold-amulet-u
       relationship: product
-      description: Craftable jewelry
-    - item_id: 1592
-      item_name: Ring mould
-      slug: ring-mould
+    - item_id: 2355
+      item_name: Silver bar
+      slug: silver-bar
       relationship: alternative
-      description: For crafting rings
-    - item_id: 1595
-      item_name: Amulet mould
-      slug: amulet-mould
-      relationship: alternative
-      description: For crafting amulets
-  about: |-
-    Smelt Gold ore at a furnace.
-
-    | Method | Smithing Level | XP |
-    |--------|----------------|-----|
-    | Regular furnace | 40 | 22.5 |
-    | Blast Furnace | 40 | 22.5 |
-    | Goldsmith gauntlets | 40 | 56.2 |
+    - item_id: 2359
+      item_name: Mithril bar
+      slug: mithril-bar
+      relationship: upgrade
   market_strategy:
     steps:
       - order: 1
-        action: Gold bar + Mould → Jewelry
+        action: Smelt gold ore at Blast Furnace with Goldsmith gauntlets
       - order: 2
-        action: String → Unstrung amulet
+        action: Craft gold bar + mould into unstrung jewellery
       - order: 3
-        action: Enchant → Valuable amulet
+        action: String and enchant the jewellery for final value
     profit_formulas:
-      - Gold bar price - Gold ore price = Smelting profit
+      - Gold bar price - Gold ore price - Blast Furnace coins cost = Smelting profit
     notes:
-      - Buy Gold ore → Smelt at Blast Furnace with Goldsmith gauntlets
-      - Best Smithing XP in game
-      - "Calculate:"
-      - Blast Furnace is the meta for gold bars
-      - Goldsmith gauntlets from Family Crest quest
-      - High volume item for both Smithing and Crafting training
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Goldsmith gauntlets (Family Crest reward) unlock 60-80k Smithing xp/hr at Blast Furnace
+      - Gold bars feed every jewellery Crafting recipe in the game
+      - High volume on the GE makes this the easiest ore-to-bar flip
+      - Blast Furnace is the meta for gold bars — Goldsmith gauntlets required for top xp/hr
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

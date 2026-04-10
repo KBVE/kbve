@@ -12,8 +12,47 @@ osrs:
   lowalch: 14
   highalch: 21
   limit: null
-  about: "Lead ore is a members-only item in Old School RuneScape. High alchemy value: 21 coins."
-  mdx_version: 2
+  about: Lead ore was added with the Sailing skill release on 19 November 2025. It is mined at level 25 from lead rocks for 40.5 Mining experience per ore — designed to give better xp/hr than iron rocks outside the Mining Guild but lower than Mining Guild iron. Two lead ore smelt to a lead bar at Smithing level 25, providing the bulk metal for shipbuilding and island amenities.
+  material:
+    type: ore
+    tier: mid-low
+  mining:
+    skill: mining
+    level: 25
+    xp: 40.5
+    tool: Any pickaxe
+    members_only: true
+    locations:
+      - Lead rocks (Sailing region)
+  recipes:
+    - skill: smithing
+      level: 25
+      xp: 15.5
+      facility: Furnace
+      members_only: true
+      materials:
+        - item_name: Lead ore
+          item_id: 31716
+          quantity: 2
+      product: Lead bar
+      product_id: 32889
+      product_quantity: 1
+  related_items:
+    - item_id: 32889
+      item_name: Lead bar
+      slug: lead-bar
+      relationship: product
+    - item_id: 440
+      item_name: Iron ore
+      slug: iron-ore
+      relationship: alternative
+  market_strategy:
+    notes:
+      - Sailing-era ore introduced 19 November 2025 — long-term demand tied to shipbuilding economy
+      - Mining xp/hr designed to exceed iron rocks outside the Mining Guild
+      - Varrock armour 1+ grants a 10% extra-ore chance on lead rocks
+      - Mining gloves prevent rocks depleting after a number of mines
+  mdx_version: 3
   mdx_updated: "2026-04-10"
 ---
 

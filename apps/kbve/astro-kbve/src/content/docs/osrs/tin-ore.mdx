@@ -12,67 +12,57 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
+  about: Tin ore is a free-to-play Mining resource obtained at level 1 from tin rocks, granting 17.5 Mining experience per ore. It is paired with copper ore to smelt bronze bars at Smithing level 1, serving as one of the two foundational F2P Smithing ingredients. Tin ore supply is dominated by new players and bots, resulting in consistently low GE prices.
   material:
     type: ore
-    tier: tin
+    tier: low
   mining:
+    skill: mining
     level: 1
     xp: 17.5
-    rocks: Tin rock
+    tool: Any pickaxe
     locations:
-      - Lumbridge Swamp
-      - Varrock south-east
-      - Rimmington
-  smithing:
-    level: 1
-    xp: 6.2
-    method: Smelting
+      - Lumbridge Swamp mine
+      - Varrock south-east mine
+      - Al Kharid mine
+      - Rimmington mine
+      - Dwarven Mine
   recipes:
     - skill: smithing
       level: 1
       xp: 6.2
+      facility: Furnace
       materials:
-        - item_name: Tin ore
-          item_id: 438
-          quantity: 1
         - item_name: Copper ore
           item_id: 436
+          quantity: 1
+        - item_name: Tin ore
+          item_id: 438
           quantity: 1
       product: Bronze bar
       product_id: 2349
       product_quantity: 1
-      facility: Furnace
   related_items:
     - item_id: 436
       item_name: Copper ore
       slug: copper-ore
       relationship: component
-      description: Bronze bar partner
     - item_id: 2349
       item_name: Bronze bar
       slug: bronze-bar
       relationship: product
-      description: Smelting product
-    - item_id: 1265
-      item_name: Bronze pickaxe
-      slug: bronze-pickaxe
-      relationship: alternative
-      description: Mining tool
+    - item_id: 440
+      item_name: Iron ore
+      slug: iron-ore
+      relationship: upgrade
   market_strategy:
     notes:
-      - First ore for new players
-      - Combined with copper for bronze bars
-      - Tutorial Island creates supply
-      - New player Smithing
-      - Ironman accounts
-      - Bronze bar production
-      - Quest requirements
-      - Very low value ore
-      - High supply from bots
-      - Minimal profit margins
-      - Best sold in bulk
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - F2P ore available at Mining level 1, same rocks network as copper
+      - Required partner with copper ore for bronze bar smelting
+      - Supply and price closely track copper ore
+      - Primary buyers are ironmen and new players training early Smithing
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

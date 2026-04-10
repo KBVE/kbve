@@ -12,20 +12,15 @@ osrs:
   lowalch: 3
   highalch: 4
   limit: 10000
+  about: Bronze bar is the entry-level Smithing bar in OSRS, smelted from one copper and one tin ore at Smithing level 1 for 6.2 XP. It is hammered into bronze daggers, swords, helms, and other early-game gear at the anvil, plus bronze nails for Construction. Bronze bars are mainly produced by tutorial graduates, ironmen, and new Smithing trainers.
   material:
     type: bar
-    tier: basic
-  smithing:
-    level: 1
-    xp: 6.2
-    primary_ore: 436
-    primary_ore_name: Copper ore
-    secondary_ore: 438
-    secondary_ore_name: Tin ore
+    tier: low
   recipes:
     - skill: smithing
       level: 1
       xp: 6.2
+      facility: Furnace
       materials:
         - item_name: Copper ore
           item_id: 436
@@ -36,65 +31,46 @@ osrs:
       product: Bronze bar
       product_id: 2349
       product_quantity: 1
-      facility: Furnace
     - skill: smithing
       level: 4
       xp: 12.5
+      facility: Anvil
       materials:
         - item_name: Bronze bar
           item_id: 2349
           quantity: 1
+        - item_name: Hammer
+          item_id: 2347
+          quantity: 1
+          consumed: false
       product: Bronze nails
       product_id: 4819
       product_quantity: 15
-      facility: Anvil
   related_items:
-    - item_id: 2351
-      item_name: Iron bar
-      slug: iron-bar
-      relationship: alternative
-      description: Next tier bar
     - item_id: 436
       item_name: Copper ore
       slug: copper-ore
       relationship: component
-      description: Smelting material
     - item_id: 438
       item_name: Tin ore
       slug: tin-ore
       relationship: component
-      description: Smelting material
     - item_id: 4819
       item_name: Bronze nails
       slug: bronze-nails
       relationship: product
-      description: Construction use
-    - item_id: 2347
-      item_name: Hammer
-      slug: hammer
-      relationship: component
-      description: For Smithing
-  about: |-
-    | Method | Time | XP |
-    |--------|------|-----|
-    | Furnace | 5 ticks (3s) | 6.2 |
-    | Blast Furnace | 11 ticks (6.6s) | 6.2 |
-    | Superheat Item | 3 ticks (1.8s) | 6.2 + 53 Magic |
+    - item_id: 2351
+      item_name: Iron bar
+      slug: iron-bar
+      relationship: upgrade
   market_strategy:
     notes:
-      - First bar for Smithing
-      - Low value but consistent
-      - Tutorial Island creates supply
-      - New player equipment
-      - Ironman early game
-      - Bronze nails for Construction
-      - F2P Smithing training
-      - Tutorial Island floods market
-      - Very low profit margins
-      - Bronze wire for crossbows
-      - Nails for early Construction
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Entry-level Smithing bar — used almost exclusively by ironmen and new players
+      - Tutorial Island graduates flood the market with cheap supply
+      - Bronze nails are the main bulk Construction consumable
+      - Profit margins are razor-thin given vendor-tier pricing
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
