@@ -18,6 +18,40 @@ spec:
             nodeSelector:
                 kvm: 'true'
             automountServiceAccountToken: false
+            # Wait for the rootfs init job (PostSync hook) to populate
+            # vmlinux + rootfs images before the main container starts.
+            # Without this, a pod restart after PVC recreation would race
+            # the init job — init_jailer() would fall back to direct mode
+            # because it can't find /var/lib/firecracker/rootfs/vmlinux.
+            initContainers:
+                - name: wait-rootfs
+                  image: busybox:1.37
+                  command:
+                      - /bin/sh
+                      - -c
+                      - |
+                          for i in $(seq 1 60); do
+                            if [ -f /var/lib/firecracker/rootfs/vmlinux ] && \
+                               [ -f /var/lib/firecracker/rootfs/alpine-minimal.ext4 ]; then
+                              echo "rootfs ready after ${i}s"
+                              exit 0
+                            fi
+                            echo "waiting for rootfs init job... ${i}/60"
+                            sleep 2
+                          done
+                          echo "rootfs not ready after 120s, proceeding anyway"
+                          exit 0
+                  volumeMounts:
+                      - name: rootfs-cache
+                        mountPath: /var/lib/firecracker/rootfs
+                        readOnly: true
+                  resources:
+                      requests:
+                          cpu: 10m
+                          memory: 16Mi
+                      limits:
+                          cpu: 100m
+                          memory: 32Mi
             containers:
                 - name: firecracker-ctl
                   image: ghcr.io/kbve/firecracker-ctl:0.1.28
@@ -44,8 +78,14 @@ spec:
                   securityContext:
                       # The jailer's pivot_root syscall is blocked by the default
                       # seccomp profile. Unconfined is required because:
-                      #   - Talos does not support Localhost seccomp profiles
-                      #   - No Security Profiles Operator is installed
+                      #   - Talos does not support Localhost seccomp profile
+                      #     file paths on nodes
+                      #   - SPO (Security Profiles Operator) IS installed but
+                      #     its spod DaemonSet is incompatible with Talos
+                      #     (sets seLinuxOptions spc_t which Talos's AppArmor
+                      #     kernel config rejects; runc errors on fsmount
+                      #     /proc operations). See [VM][Firecracker] Audit
+                      #     issue for the SPO/Talos compatibility follow-up.
                       # Mitigations: NetworkPolicy default-deny, KVM hardware
                       # isolation, jailer per-VM cgroup+chroot+PID namespace,
                       # read-only rootfs, no outbound network for VMs.
