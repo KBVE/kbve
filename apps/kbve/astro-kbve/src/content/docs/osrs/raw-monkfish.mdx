@@ -12,19 +12,26 @@ osrs:
   lowalch: 92
   highalch: 138
   limit: 13000
+  about: Raw monkfish is a members-only fish caught at the Piscatoris Fishing Colony after completing the Swan Song quest. It is a popular AFK fishing method from level 62 onwards, offering solid experience rates and serving as a stepping stone between swordfish and sharks. When cooked, monkfish heal 16 hitpoints, making them a cost-effective food choice for mid-level combat training.
+  material:
+    type: fish
+    tier: mid-high
   food:
     heals: 16
     type: fish
     cooked_version: 7946
     cooked_name: Monkfish
-  gathering:
+  skilling_source:
     skill: fishing
     level: 62
     xp: 120
-    tool: Small fishing net
     location: Piscatoris Fishing Colony
-    quest_required: Swan Song
-    members_only: true
+    tool: Small fishing net
+    method: Net
+  quest_data:
+    quests:
+      - quest_name: Swan Song
+        role: required
   recipes:
     - skill: cooking
       level: 62
@@ -46,29 +53,24 @@ osrs:
       slug: monkfish
       relationship: product
       description: Cooked version
-    - item_id: 383
-      item_name: Raw shark
-      slug: raw-shark
-      relationship: alternative
-      description: Higher tier fish
     - item_id: 371
       item_name: Raw swordfish
       slug: raw-swordfish
-      relationship: alternative
+      relationship: downgrade
       description: Lower tier fish
-    - item_id: 303
-      item_name: Small fishing net
-      slug: small-fishing-net
-      relationship: component
-      description: Fishing tool
+    - item_id: 383
+      item_name: Raw shark
+      slug: raw-shark
+      relationship: upgrade
+      description: Higher tier fish
   market_strategy:
     notes:
       - Swan Song quest required
       - Piscatoris Fishing Colony only
       - Good GP/hour fishing
       - Burns until high Cooking
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

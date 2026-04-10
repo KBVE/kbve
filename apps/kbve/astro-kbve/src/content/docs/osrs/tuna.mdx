@@ -12,14 +12,20 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 6000
+  material:
+    type: fish
+    tier: mid
   food:
     heals: 10
+    cooking_level: 30
     type: fish
   cooking:
     level: 30
     xp: 100
-    stop_burn: 63
-    stop_burn_gauntlets: 53
+    stop_burn_level: 63
+    raw_item_id: 359
+    raw_item_name: Raw tuna
+    burnt_item_id: 367
   recipes:
     - skill: cooking
       level: 30
@@ -37,42 +43,21 @@ osrs:
       item_name: Raw tuna
       slug: raw-tuna
       relationship: component
-      description: Uncooked version
-    - item_id: 373
-      item_name: Swordfish
-      slug: swordfish
-      relationship: alternative
-      description: Better food
+      description: Uncooked version cooked at level 30 Cooking for 100 XP.
+    - item_id: 329
+      item_name: Salmon
+      slug: salmon
+      relationship: downgrade
+      description: Lower-level cooked fish healing 9 HP at Cooking level 25.
     - item_id: 379
       item_name: Lobster
       slug: lobster
-      relationship: alternative
-      description: Alternative
-    - item_id: 775
-      item_name: Cooking gauntlets
-      slug: cooking-gauntlets
-      relationship: alternative
-      description: Reduce burn
+      relationship: upgrade
+      description: Stronger cooked food healing 12 HP at Cooking level 40.
   about: |-
-    | Effect | Value |
-    |--------|-------|
-    | Heals | 10 HP |
-    | Buy limit | 6,000 |
-  market_strategy:
-    notes:
-      - Cheap healing option
-      - F2P accessible
-      - High volume trading
-      - Budget PvM food
-      - F2P combat training
-      - Low-level players
-      - Wintertodt supplies
-      - Very affordable food
-      - Heals same as cake
-      - Caught alongside swordfish
-      - Good entry-level food
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Tuna is a Free-to-Play cooked fish that restores 10 Hitpoints when eaten, obtained by cooking raw tuna on a fire or range at Cooking level 30 for 100 experience. It stops burning entirely at Cooking level 63, making it a reliable early-game training and healing staple. Tuna is also used with sweetcorn to craft tuna and corn, and is required by Caleb during the Family Crest quest.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

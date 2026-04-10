@@ -12,15 +12,20 @@ osrs:
   lowalch: 92
   highalch: 138
   limit: 13000
+  material:
+    type: fish
+    tier: mid-high
   food:
     heals: 16
+    cooking_level: 62
     type: fish
   cooking:
     level: 62
     xp: 150
     stop_burn_level: 92
-    stop_burn_level_gauntlets: 82
-    quest_required: Swan Song
+    raw_item_id: 7944
+    raw_item_name: Raw monkfish
+    burnt_item_id: 7948
   recipes:
     - skill: cooking
       level: 62
@@ -34,32 +39,28 @@ osrs:
       product_quantity: 1
       facility: Range/Fire
       members_only: true
+  quest_data:
+    quests:
+      - quest_name: Swan Song
+        role: required
   related_items:
     - item_id: 7944
       item_name: Raw monkfish
       slug: raw-monkfish
       relationship: component
       description: Uncooked version
-    - item_id: 385
-      item_name: Shark
-      slug: shark
-      relationship: alternative
-      description: Higher tier food
     - item_id: 373
       item_name: Swordfish
       slug: swordfish
-      relationship: alternative
+      relationship: downgrade
       description: Lower tier food
-    - item_id: 775
-      item_name: Cooking gauntlets
-      slug: cooking-gauntlets
-      relationship: alternative
-      description: Reduce burn
+    - item_id: 385
+      item_name: Shark
+      slug: shark
+      relationship: upgrade
+      description: Higher tier food
   about: |-
-    | Effect | Value |
-    |--------|-------|
-    | Heals | 16 HP |
-    | Buy limit | 13,000 |
+    Monkfish is a members cooked food that heals 16 HP per bite, requiring the Swan Song quest to fish the raw version and 62 Cooking to prepare. It sits comfortably between swordfish and sharks as an efficient mid-high tier food for Slayer, mid-level PvM, and combat training. Catching and cooking monkfish is one of the most popular AFK fishing and cooking methods in the game, thanks to its steady XP rates and reasonable profit.
   market_strategy:
     notes:
       - Good healing for cost
@@ -73,8 +74,8 @@ osrs:
       - Burns until high Cooking
       - Good GP/HP ratio
       - Popular Slayer food
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

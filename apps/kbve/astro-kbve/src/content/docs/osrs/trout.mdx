@@ -12,14 +12,20 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 6000
+  material:
+    type: fish
+    tier: mid-low
   food:
     heals: 7
+    cooking_level: 15
     type: fish
   cooking:
     level: 15
     xp: 70
-    stop_burn: 50
-    stop_burn_gauntlets: 40
+    stop_burn_level: 50
+    raw_item_id: 335
+    raw_item_name: Raw trout
+    burnt_item_id: 343
   recipes:
     - skill: cooking
       level: 15
@@ -38,26 +44,17 @@ osrs:
       slug: raw-trout
       relationship: component
       description: Uncooked version
+    - item_id: 347
+      item_name: Herring
+      slug: herring
+      relationship: downgrade
+      description: Lower tier fish healing 5 HP
     - item_id: 329
       item_name: Salmon
       slug: salmon
-      relationship: alternative
-      description: Upgrade food
-    - item_id: 379
-      item_name: Lobster
-      slug: lobster
-      relationship: alternative
-      description: Better food
-    - item_id: 775
-      item_name: Cooking gauntlets
-      slug: cooking-gauntlets
-      relationship: alternative
-      description: Reduce burn
-  about: |-
-    | Effect | Value |
-    |--------|-------|
-    | Heals | 7 HP |
-    | Buy limit | 6,000 |
+      relationship: upgrade
+      description: Stronger fish healing 9 HP
+  about: Trout is a cooked fish that restores 7 Hitpoints when eaten, made by cooking raw trout on a fire or range at level 15 Cooking for 70 experience. It is a common early-game food choice for F2P players and a popular catch while training Fishing by fly fishing. Players stop burning trout entirely at Cooking level 50, or 45 when using the Lumbridge Castle range after completing Cook's Assistant.
   market_strategy:
     notes:
       - Cheapest useful food
@@ -71,8 +68,8 @@ osrs:
       - First fly fishing catch
       - Good for low HP content
       - Often power-fished
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
