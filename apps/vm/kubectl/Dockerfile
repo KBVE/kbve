@@ -22,7 +22,7 @@
 # ============================================================================
 # [STAGE A] - Cargo Chef Planner
 # ============================================================================
-FROM --platform=linux/amd64 rust:1.83-alpine3.21 AS planner
+FROM --platform=linux/amd64 rust:1.94-alpine3.21 AS planner
 ENV CARGO_INCREMENTAL=0
 WORKDIR /app
 
@@ -40,7 +40,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 # ============================================================================
 # [STAGE B] - Cargo Chef Cook (cache deps)
 # ============================================================================
-FROM --platform=linux/amd64 rust:1.83-alpine3.21 AS builder-deps
+FROM --platform=linux/amd64 rust:1.94-alpine3.21 AS builder-deps
 ENV CARGO_INCREMENTAL=0
 WORKDIR /app
 
@@ -58,7 +58,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # ============================================================================
 # [STAGE C] - Build static musl binary
 # ============================================================================
-FROM --platform=linux/amd64 rust:1.83-alpine3.21 AS builder
+FROM --platform=linux/amd64 rust:1.94-alpine3.21 AS builder
 ENV CARGO_INCREMENTAL=0
 WORKDIR /app
 

@@ -9,15 +9,24 @@
 # OpenCore bootloader as a separate disk. Plain EFI cannot load the macOS
 # kernel directly. The boot order is OpenCore → rootdisk → BaseSystem.
 #
+# Target version: macOS Sequoia (15.x, Darwin 24).
+#   - Tahoe (26.x) was attempted first but boot.efi requires x86legacyap.im4m
+#     which is missing from the Tahoe BaseSystem recovery image. The OSX-KVM
+#     bundled OpenCore.qcow2 also lacks Tahoe-specific patches; community work
+#     is unfinished as of April 2026 (see kholia/OSX-KVM PR #273 + Dortania
+#     Tahoe install guide). Sequoia is the boring known-working choice.
+#
 # Provisioning steps (one-time, after KubeVirt + CDI are running):
 #   1. Prepare a macOS install image and OpenCore boot disk using OSX-KVM:
 #        - Clone https://github.com/kholia/OSX-KVM
-#        - Run fetch-macOS-v2.py to download the BaseSystem.dmg
-#        - Convert to raw: qemu-img convert BaseSystem.dmg -O raw BaseSystem.img
-#        - Copy the bundled OpenCore.qcow2 from the OSX-KVM repo
+#        - Run: python3 fetch-macOS-v2.py --action download -s sequoia -os latest
+#          Output: com.apple.recovery.boot/BaseSystem.dmg (~900 MB)
+#        - Convert to raw: qemu-img convert -f dmg -O raw BaseSystem.dmg BaseSystem-sequoia.img
+#          (~2.5 GB raw)
+#        - Copy the bundled OpenCore.qcow2 from the OSX-KVM repo (do NOT modify it)
 #   2. Port-forward the CDI upload proxy:
 #        kubectl port-forward -n cdi svc/cdi-uploadproxy 8443:443
-#   3. Upload the OpenCore bootloader (one-time):
+#   3. Upload the OpenCore bootloader (one-time, pristine OSX-KVM image):
 #        virtctl image-upload dv macos-opencore \
 #          --size=1Gi \
 #          --image-path=/path/to/OSX-KVM/OpenCore/OpenCore.qcow2 \
@@ -25,10 +34,10 @@
 #          --namespace=angelscript \
 #          --uploadproxy-url=https://localhost:8443 \
 #          --insecure
-#   4. Upload the macOS install image:
-#        virtctl image-upload dv macos-tahoe-builder-iso \
-#          --size=16Gi \
-#          --image-path=/Users/alappatel/Downloads/BaseSystem-tahoe.img \
+#   4. Upload the Sequoia install image (~2.5 GB raw, takes a few minutes):
+#        virtctl image-upload dv macos-sequoia-installer \
+#          --size=4Gi \
+#          --image-path=./BaseSystem-sequoia.img \
 #          --storage-class=longhorn \
 #          --namespace=angelscript \
 #          --uploadproxy-url=https://localhost:8443 \
@@ -166,7 +175,7 @@ spec:
                       claimName: macos-builder-rootdisk
                 - name: installer
                   dataVolume:
-                      name: macos-tahoe-builder-iso
+                      name: macos-sequoia-installer
                 - name: shared-storage
                   persistentVolumeClaim:
                       claimName: builder-shared-storage
