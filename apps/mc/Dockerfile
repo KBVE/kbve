@@ -75,6 +75,7 @@ declare -A MODS=(
   ["servercore-fabric-1.5.15+1.21.11.jar"]="c3c6ec10b0ceddaa8f1ef53ffe57db57b4e8638f https://cdn.modrinth.com/data/4WWQxlQP/versions/zg8VIycZ/servercore-fabric-1.5.15%2B1.21.11.jar"
   ["Chunky-Fabric-1.4.55.jar"]="19c34a23a5c1b2f6c73117b8eb4524b521e1926b https://cdn.modrinth.com/data/fALzjamp/versions/1CpEkmcD/Chunky-Fabric-1.4.55.jar"
   ["old_combat_mod-fabric-1.21.11-1.2.jar"]="5908493d5f019497864b6a8834fcfd4b2aa95213 https://cdn.modrinth.com/data/dZ1APLkO/versions/TzHDocwD/old_combat_mod-fabric-1.21.11-1.2.jar"
+  ["FabricProxy-Lite-2.11.0.jar"]="2c6674b1561b9b263b332607ef25b7db469133ec https://cdn.modrinth.com/data/8dI2tmqs/versions/nR8AIdvx/FabricProxy-Lite-2.11.0.jar"
 )
 
 for name in "${!MODS[@]}"; do

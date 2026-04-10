@@ -1,0 +1,20 @@
+# FabricProxy-Lite — accepts forwarded player info from Velocity proxy.
+# Must use modern (Velocity-style) forwarding mode + matching secret.
+# Server's online-mode must be false (Velocity handles Mojang auth).
+
+# Hack online mode — set this true so Mojang authentication is bypassed
+# but the server still validates Velocity's forwarding signature.
+hackOnlineMode = true
+
+# Hack early send — works around connection edge cases.
+hackEarlySend = false
+
+# Hack message chain — ensures chat signing works with forwarded sessions.
+hackMessageChain = true
+
+# Disable secure chat profile lookups (Mojang) since Velocity handles auth.
+disableSecureChat = false
+
+# Modern Velocity forwarding secret — must match Velocity's
+# /server/forwarding.secret value.
+secret = "kbve-velocity-forwarding-secret-change-me"
