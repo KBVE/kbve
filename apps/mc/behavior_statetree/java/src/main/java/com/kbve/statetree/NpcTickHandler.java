@@ -106,7 +106,6 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             double ty = target.get(1).getAsDouble();
             double tz = target.get(2).getAsDouble();
 
-            // Use the mob's navigation to pathfind
             mob.getNavigation().startMovingTo(tx, ty, tz, 1.0);
 
         } else if (cmd.has("Attack")) {
@@ -115,22 +114,31 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             Entity target = world.getEntityById((int) targetId);
             if (target != null && target.isAlive()) {
                 mob.tryAttack(world, target);
-                // Face the target
                 mob.lookAtEntity(target, 30.0f, 30.0f);
             }
 
         } else if (cmd.has("Idle")) {
-            // Do nothing — skeleton stands still
             mob.getNavigation().stop();
 
         } else if (cmd.has("Speak")) {
             JsonObject speak = cmd.getAsJsonObject("Speak");
             String message = speak.get("message").getAsString();
-            // Set custom name briefly to simulate speech
-            mob.setCustomName(net.minecraft.text.Text.of("AI Skeleton: " + message));
+            // Broadcast to nearby players as action bar text
+            for (var player : world.getPlayers()) {
+                if (mob.squaredDistanceTo(player) < 32 * 32) {
+                    player.sendMessage(
+                            net.minecraft.text.Text.of("§c<AI Skeleton> " + message),
+                            false
+                    );
+                }
+            }
+
+        } else if (cmd.has("CallForHelp")) {
+            JsonObject call = cmd.getAsJsonObject("CallForHelp");
+            int count = call.get("count").getAsInt();
+            skeletonManager.spawnReinforcements(world, mob.getId(), count, world.getTime());
 
         } else if (cmd.has("SetGoal")) {
-            // Goal management — future expansion
             LOGGER.debug("[AI Skeleton] SetGoal not yet implemented");
         }
     }

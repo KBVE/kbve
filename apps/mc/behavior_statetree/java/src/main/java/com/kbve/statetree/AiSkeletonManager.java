@@ -21,28 +21,29 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Manages AI Skeleton NPCs in the starter zone.
+ * Manages AI Skeleton NPCs that spawn near players.
  *
- * <p>Skeletons spawn when a player enters the zone and despawn
- * when no players remain. Each skeleton is tracked by entity ID
- * with a monotonic epoch for stale-intent detection.
+ * <p>Skeletons spawn near players and despawn when players leave.
+ * Each skeleton is tracked by entity ID with a monotonic epoch
+ * for stale-intent detection. Skeletons can call for reinforcements
+ * when wounded.
  */
 public class AiSkeletonManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("behavior_statetree");
     private static final Gson GSON = new Gson();
 
-    // Starter zone: spawn point ± ZONE_RADIUS blocks
-    private static final int ZONE_RADIUS = 50;
-    private static final int MAX_SKELETONS = 3;
+    private static final int SPAWN_RADIUS = 20;
+    private static final int DESPAWN_RANGE = 64;
+    private static final int MAX_SKELETONS = 6;
     private static final int SPAWN_CHECK_INTERVAL = 100; // ticks (~5s)
     private static final double OBSERVATION_RANGE = 32.0;
+    private static final int CALL_COOLDOWN_TICKS = 200; // 10s cooldown per skeleton
 
     /** Tracked skeletons keyed by entity ID. */
     private final ConcurrentHashMap<Integer, TrackedSkeleton> skeletons = new ConcurrentHashMap<>();
 
     private int tickCounter = 0;
-    private BlockPos spawnOrigin = null;
 
     // -----------------------------------------------------------------------
     // Tracked skeleton state
@@ -51,14 +52,24 @@ public class AiSkeletonManager {
     private static class TrackedSkeleton {
         final int entityId;
         long epoch;
+        long lastCallTick;
 
         TrackedSkeleton(int entityId) {
             this.entityId = entityId;
             this.epoch = 0;
+            this.lastCallTick = 0;
         }
 
         long nextEpoch() {
             return ++epoch;
+        }
+
+        boolean canCall(long currentTick) {
+            return (currentTick - lastCallTick) > CALL_COOLDOWN_TICKS;
+        }
+
+        void markCalled(long currentTick) {
+            lastCallTick = currentTick;
         }
     }
 
@@ -66,25 +77,9 @@ public class AiSkeletonManager {
     // Tick entry point
     // -----------------------------------------------------------------------
 
-    /**
-     * Called every server tick. Handles spawn/despawn logic on intervals
-     * and returns observations for all active skeletons.
-     */
     public void tick(MinecraftServer server) {
         ServerWorld overworld = server.getOverworld();
         if (overworld == null) return;
-
-        // Lazily capture spawn origin
-        if (spawnOrigin == null) {
-            // Use first player's position as zone center, or world origin
-            if (!overworld.getPlayers().isEmpty()) {
-                var player = overworld.getPlayers().get(0);
-                spawnOrigin = player.getBlockPos();
-            } else {
-                spawnOrigin = BlockPos.ORIGIN;
-            }
-            LOGGER.info("[AI Skeleton] Starter zone centered at {} ±{}", spawnOrigin, ZONE_RADIUS);
-        }
 
         tickCounter++;
         if (tickCounter % SPAWN_CHECK_INTERVAL == 0) {
@@ -128,7 +123,7 @@ public class AiSkeletonManager {
             obs.addProperty("health", skeleton.getHealth());
             obs.addProperty("tick", currentTick);
 
-            // Nearby players as entities (skeletons treat players as hostile)
+            // Nearby players as entities
             JsonArray nearbyEntities = new JsonArray();
             Box searchBox = skeleton.getBoundingBox().expand(OBSERVATION_RANGE);
             for (ServerPlayerEntity player : overworld.getPlayers()) {
@@ -156,26 +151,47 @@ public class AiSkeletonManager {
         }
     }
 
-    /**
-     * Check if an entity ID belongs to a managed AI skeleton.
-     */
     public boolean isManaged(int entityId) {
         return skeletons.containsKey(entityId);
     }
 
-    /**
-     * Get the current epoch for an entity (for stale intent detection).
-     */
     public long getEpoch(int entityId) {
         var tracked = skeletons.get(entityId);
         return tracked != null ? tracked.epoch : -1;
     }
 
-    /**
-     * Get all tracked entity IDs.
-     */
     public Set<Integer> getTrackedIds() {
         return Collections.unmodifiableSet(skeletons.keySet());
+    }
+
+    // -----------------------------------------------------------------------
+    // Call for help — spawn reinforcements near the caller
+    // -----------------------------------------------------------------------
+
+    /**
+     * Spawn reinforcement skeletons near the calling skeleton.
+     * Returns true if reinforcements were spawned.
+     */
+    public boolean spawnReinforcements(ServerWorld world, int callerEntityId, int count, long currentTick) {
+        var tracked = skeletons.get(callerEntityId);
+        if (tracked == null || !tracked.canCall(currentTick)) return false;
+
+        var caller = world.getEntityById(callerEntityId);
+        if (caller == null || !caller.isAlive()) return false;
+
+        tracked.markCalled(currentTick);
+        int spawned = 0;
+
+        for (int i = 0; i < count && skeletons.size() < MAX_SKELETONS; i++) {
+            if (spawnSkeletonNear(world, caller.getX(), caller.getY(), caller.getZ(), 8)) {
+                spawned++;
+            }
+        }
+
+        if (spawned > 0) {
+            LOGGER.info("[AI Skeleton] {} reinforcements answered the call (id={})", spawned, callerEntityId);
+        }
+        return spawned > 0;
     }
 
     // -----------------------------------------------------------------------
@@ -183,53 +199,55 @@ public class AiSkeletonManager {
     // -----------------------------------------------------------------------
 
     private void manageSpawns(ServerWorld world) {
-        Box zone = new Box(
-                spawnOrigin.getX() - ZONE_RADIUS,
-                spawnOrigin.getY() - 10,
-                spawnOrigin.getZ() - ZONE_RADIUS,
-                spawnOrigin.getX() + ZONE_RADIUS,
-                spawnOrigin.getY() + 50,
-                spawnOrigin.getZ() + ZONE_RADIUS
-        );
+        // Despawn skeletons too far from any player
+        skeletons.entrySet().removeIf(entry -> {
+            var entity = world.getEntityById(entry.getKey());
+            if (entity == null) return true;
 
-        boolean playersInZone = false;
-        for (ServerPlayerEntity player : world.getPlayers()) {
-            if (zone.contains(player.getX(), player.getY(), player.getZ())) {
-                playersInZone = true;
-                break;
+            boolean nearPlayer = false;
+            for (ServerPlayerEntity player : world.getPlayers()) {
+                if (entity.squaredDistanceTo(player) < DESPAWN_RANGE * DESPAWN_RANGE) {
+                    nearPlayer = true;
+                    break;
+                }
             }
-        }
+            if (!nearPlayer) {
+                entity.discard();
+                LOGGER.debug("[AI Skeleton] Despawned skeleton too far from players (id={})", entry.getKey());
+                return true;
+            }
+            return false;
+        });
 
-        if (playersInZone && skeletons.size() < MAX_SKELETONS) {
-            spawnSkeleton(world);
-        } else if (!playersInZone && !skeletons.isEmpty()) {
-            despawnAll(world);
+        // Spawn skeletons near players if under limit
+        if (skeletons.size() >= MAX_SKELETONS) return;
+
+        for (ServerPlayerEntity player : world.getPlayers()) {
+            if (skeletons.size() >= MAX_SKELETONS) break;
+            spawnSkeletonNear(world, player.getX(), player.getY(), player.getZ(), SPAWN_RADIUS);
         }
     }
 
-    private void spawnSkeleton(ServerWorld world) {
-        // Random offset from spawn within zone
-        Random rand = world.getRandom().nextBetween(0, Integer.MAX_VALUE) > 0
-                ? new Random() : new Random();
-        double offsetX = (rand.nextDouble() - 0.5) * ZONE_RADIUS;
-        double offsetZ = (rand.nextDouble() - 0.5) * ZONE_RADIUS;
+    private boolean spawnSkeletonNear(ServerWorld world, double centerX, double centerY, double centerZ, int radius) {
+        Random rand = new Random();
+        double offsetX = (rand.nextDouble() - 0.5) * 2 * radius;
+        double offsetZ = (rand.nextDouble() - 0.5) * 2 * radius;
 
-        double x = spawnOrigin.getX() + offsetX;
-        double z = spawnOrigin.getZ() + offsetZ;
-        // Find surface Y
+        double x = centerX + offsetX;
+        double z = centerZ + offsetZ;
+
         BlockPos surface = world.getTopPosition(
                 net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
                 BlockPos.ofFloored(x, 0, z)
         );
 
         SkeletonEntity skeleton = EntityType.SKELETON.create(world, net.minecraft.entity.SpawnReason.COMMAND);
-        if (skeleton == null) return;
+        if (skeleton == null) return false;
 
-        skeleton.refreshPositionAndAngles(surface.getX() + 0.5, surface.getY(), surface.getZ() + 0.5, 0, 0);
+        skeleton.refreshPositionAndAngles(surface.getX() + 0.5, surface.getY(), surface.getZ() + 0.5, rand.nextFloat() * 360, 0);
         skeleton.setCustomName(Text.of("AI Skeleton"));
         skeleton.setCustomNameVisible(true);
         skeleton.setPersistent();
-        // Equip with stone sword instead of bow for melee combat
         skeleton.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
         skeleton.setEquipmentDropChance(EquipmentSlot.MAINHAND, 0.0f);
 
@@ -238,16 +256,6 @@ public class AiSkeletonManager {
 
         LOGGER.info("[AI Skeleton] Spawned at [{}, {}, {}] (id={})",
                 surface.getX(), surface.getY(), surface.getZ(), skeleton.getId());
-    }
-
-    private void despawnAll(ServerWorld world) {
-        for (var entry : skeletons.entrySet()) {
-            var entity = world.getEntityById(entry.getKey());
-            if (entity != null) {
-                entity.discard();
-            }
-        }
-        skeletons.clear();
-        LOGGER.info("[AI Skeleton] All skeletons despawned — no players in zone");
+        return true;
     }
 }

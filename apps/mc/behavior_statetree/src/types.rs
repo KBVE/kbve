@@ -56,6 +56,7 @@ pub enum NpcCommand {
     Idle { ticks: u32 },
     Speak { message: String },
     SetGoal { goal: GoalId },
+    CallForHelp { count: u32 },
 }
 
 /// Result of async AI planning. Only applied if epoch matches current NPC epoch.
