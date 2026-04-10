@@ -15,21 +15,12 @@ osrs:
   material:
     type: gem
     tier: high
-  crafting:
-    cutting_level: 43
-    cutting_xp: 107.5
-    uncut: true
-  drop_table:
-    sources:
-      - source: Gem rocks
-        source_id: 0
-        quantity: "1"
-        rarity: uncommon
-        members_only: true
   recipes:
     - skill: crafting
       level: 43
       xp: 107.5
+      tools:
+        - Chisel
       materials:
         - item_name: Uncut diamond
           item_id: 1617
@@ -37,76 +28,53 @@ osrs:
       product: Diamond
       product_id: 1601
       product_quantity: 1
-    - skill: fletching
-      level: 65
-      xp: 7
-      materials:
-        - item_name: Diamond
-          item_id: 1601
-          quantity: 1
-      product: Diamond bolt tips
-      product_id: 9192
-      product_quantity: 12
-      members_only: true
   related_items:
     - item_id: 1601
       item_name: Diamond
       slug: diamond
       relationship: product
-      description: Cut version
-    - item_id: 9192
-      item_name: Diamond bolt tips
-      slug: diamond-bolt-tips
-      relationship: product
-      description: Fletching product
+    - item_id: 1621
+      item_name: Uncut emerald
+      slug: uncut-emerald
+      relationship: downgrade
     - item_id: 1619
       item_name: Uncut ruby
       slug: uncut-ruby
-      relationship: alternative
-      description: Lower tier gem
+      relationship: downgrade
     - item_id: 1631
       item_name: Uncut dragonstone
       slug: uncut-dragonstone
-      relationship: alternative
-      description: Higher tier gem
-    - item_id: 1755
-      item_name: Chisel
-      slug: chisel
-      relationship: component
-      description: Required tool
+      relationship: upgrade
+    - item_id: 6571
+      item_name: Uncut onyx
+      slug: uncut-onyx
+      relationship: upgrade
+  drop_table:
+    sources:
+      - source: Cyclops
+        quantity: "1"
+        rarity: rare
+        drop_rate: "1/128"
+      - source: Dust devil
+        quantity: "1"
+        rarity: rare
+        drop_rate: "1/128"
+      - source: Lizardman shaman
+        quantity: "1"
+        rarity: uncommon
+        drop_rate: "1/75"
+      - source: Skeleton (Wilderness)
+        quantity: "1"
+        rarity: rare
+        drop_rate: "1/128"
+      - source: Steel dragon
+        quantity: "1"
+        rarity: uncommon
+        drop_rate: "1/64"
   about: |-
-    Use a Chisel on Uncut diamond to cut it.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Crafting Level | 43 |
-    | XP gained | 107.5 |
-
-    | Product | Crafting Level | XP |
-    |---------|----------------|-----|
-    | Diamond | 43 | 107.5 |
-    | Diamond bolt tips | 65 | 7 per tip |
-
-    Diamonds craft into high-tier jewelry:
-    - Diamond ring → Ring of life
-    - Diamond necklace → Phoenix necklace
-    - Diamond amulet → Amulet of power
-  market_strategy:
-    profit_formulas:
-      - Diamond - Uncut diamond = Profit
-      - (Bolt tips × 12) - Uncut diamond = Profit
-    notes:
-      - Buy uncut → Cut → Sell cut
-      - "Calculate:"
-      - Fast XP, check margins before bulk buying
-      - 1 diamond = 12 bolt tips
-      - "Calculate:"
-      - Diamond bolts (e) are popular for PvM
-      - Gem rocks (Shilo Village)
-      - Various monsters
-      - Clue scrolls
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    An uncut diamond is the rough form of the diamond, a high-tier precious gem in Old School RuneScape. It is dropped commonly by mid-to-high level monsters with access to the rare drop table and can be obtained from mining gem rocks in Shilo Village or the Tai Bwo Wannai Cleanup activity. Players with level 43 Crafting can use a chisel on an uncut diamond to cut it into a diamond, gaining 107.5 Crafting experience. Cut diamonds are used to make the diamond ring, necklace, amulet, and bracelet jewellery chain.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

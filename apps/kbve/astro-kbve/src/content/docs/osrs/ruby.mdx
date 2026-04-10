@@ -15,9 +15,6 @@ osrs:
   material:
     type: gem
     tier: mid
-  crafting:
-    level: 34
-    xp: 85
   recipes:
     - skill: crafting
       level: 34
@@ -30,52 +27,11 @@ osrs:
           item_id: 2357
           quantity: 1
       product: Ruby ring
-      product_id: 1641
+      product_id: 1639
       product_quantity: 1
       facility: Furnace
-    - skill: crafting
-      level: 40
-      xp: 75
-      materials:
-        - item_name: Ruby
-          item_id: 1603
-          quantity: 1
-        - item_name: Gold bar
-          item_id: 2357
-          quantity: 1
-      product: Ruby necklace
-      product_id: 1660
-      product_quantity: 1
-      facility: Furnace
-    - skill: crafting
-      level: 50
-      xp: 85
-      materials:
-        - item_name: Ruby
-          item_id: 1603
-          quantity: 1
-        - item_name: Gold bar
-          item_id: 2357
-          quantity: 1
-      product: Ruby amulet (u)
-      product_id: 1679
-      product_quantity: 1
-      facility: Furnace
-    - skill: crafting
-      level: 42
-      xp: 80
-      materials:
-        - item_name: Ruby
-          item_id: 1603
-          quantity: 1
-        - item_name: Gold bar
-          item_id: 2357
-          quantity: 1
-      product: Ruby bracelet
-      product_id: 11085
-      product_quantity: 1
-      facility: Furnace
-      members_only: true
+      tools:
+        - Ring mould
     - skill: fletching
       level: 63
       xp: 6.3
@@ -84,52 +40,47 @@ osrs:
           item_id: 1603
           quantity: 1
       product: Ruby bolt tips
-      product_id: 9191
+      product_id: 9189
       product_quantity: 12
-      members_only: true
+      tools:
+        - Chisel
   related_items:
     - item_id: 1619
       item_name: Uncut ruby
       slug: uncut-ruby
       relationship: component
-      description: Raw gem
-    - item_id: 2568
-      item_name: Ring of forging
-      slug: ring-of-forging
+    - item_id: 1639
+      item_name: Ruby ring
+      slug: ruby-ring
       relationship: product
-      description: Enchanted ring
-    - item_id: 11194
-      item_name: Digsite pendant
-      slug: digsite-pendant
+    - item_id: 1654
+      item_name: Ruby necklace
+      slug: ruby-necklace
       relationship: product
-      description: Enchanted necklace
-    - item_id: 1605
-      item_name: Emerald
+    - item_id: 1679
+      item_name: Ruby amulet
+      slug: ruby-amulet
+      relationship: product
+    - item_id: 11085
+      item_name: Ruby bracelet
+      slug: ruby-bracelet
+      relationship: product
+    - item_id: 9189
+      item_name: Ruby bolt tips
+      slug: ruby-bolt-tips
+      relationship: product
+    - item_name: Ruby bolts
+      slug: ruby-bolts
+      relationship: product
+    - item_name: Emerald
       slug: emerald
-      relationship: alternative
-      description: Lower tier gem
-    - item_id: 1601
-      item_name: Diamond
+      relationship: downgrade
+    - item_name: Diamond
       slug: diamond
-      relationship: alternative
-      description: Higher tier gem
-  about: |-
-    | Item | Effect |
-    |------|--------|
-    | Ring of forging | 100% iron smelting |
-    | Digsite pendant | Digsite teleports |
-    | Inoculation bracelet | Disease immunity |
-    | Amulet of strength | +10 Strength |
-  market_strategy:
-    notes:
-      - Ring of forging for smithing
-      - Amulet of strength
-      - Crafting training
-      - Mid-tier gem
-      - Ring of forging popular
-      - Ruby bolts (e) for PvM
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: upgrade
+  about: Ruby is the cut form of the uncut ruby gem, produced with a chisel at level 34 Crafting. It is used to craft Ruby jewelry (ring, necklace, amulet, bracelet) with gold bars, and can be fletched into Ruby bolt tips at level 63 Fletching. Enchanted ruby bolts trigger the Blood Forfeit effect, dealing 20% of the user's current HP as bonus damage, which makes Ruby bolts (e) the most popular ranged ammunition for high-HP bosses in OSRS.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
