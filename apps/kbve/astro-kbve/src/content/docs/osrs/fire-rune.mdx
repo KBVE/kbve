@@ -12,96 +12,55 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 50000
-  rune:
-    type: elemental
-    element: fire
-  runecraft:
-    level: 14
-    xp: 7
-    multiple_at: 35
-    altar: Fire Altar
-    altar_location: Al Kharid
-    essence_type: any
-  shops:
-    - shop_name: Rune shops
-      stock: Unlimited
-      price: 17
-    - shop_name: TzHaar shops
-      stock: Unlimited
-      price: 6 Tokkul
+  material:
+    type: rune
+    tier: low
   recipes:
     - skill: runecraft
       level: 14
       xp: 7
       materials:
-        - item_name: Rune essence
-          item_id: 1436
+        - item_name: Pure essence
+          item_id: 7936
           quantity: 1
       product: Fire rune
       product_id: 554
       product_quantity: 1
       facility: Fire altar
   related_items:
-    - item_id: 556
-      item_name: Air rune
-      slug: air-rune
-      relationship: alternative
-      description: Elemental rune
-    - item_id: 555
-      item_name: Water rune
-      slug: water-rune
-      relationship: alternative
-      description: Elemental rune
-    - item_id: 557
-      item_name: Earth rune
-      slug: earth-rune
-      relationship: alternative
-      description: Elemental rune
-    - item_id: 561
-      item_name: Nature rune
-      slug: nature-rune
+    - item_id: 7936
+      item_name: Pure essence
+      slug: pure-essence
       relationship: component
-      description: For alchemy
-    - item_id: 20714
-      item_name: Tome of fire
-      slug: tome-of-fire
+    - item_id: 1436
+      item_name: Rune essence
+      slug: rune-essence
+      relationship: component
+    - item_name: Fire talisman
+      slug: fire-talisman
+      relationship: component
+    - item_name: Fire tiara
+      slug: fire-tiara
+      relationship: component
+    - item_name: Nature rune
+      slug: nature-rune
       relationship: alternative
-      description: Unlimited fire runes
+    - item_name: Smoke rune
+      slug: smoke-rune
+      relationship: variant
+    - item_name: Steam rune
+      slug: steam-rune
+      relationship: variant
+    - item_name: Lava rune
+      slug: lava-rune
+      relationship: variant
+    - item_name: Staff of fire
+      slug: staff-of-fire
+      relationship: alternative
   about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Runecraft Level | 14 |
-    | XP per rune | 7 |
-    | Runes per essence | 1 (7 at 91) |
-
-    Multipliers (every 35 levels):
-    - Level 35: 2x runes
-    - Level 70: 3x runes
-
-    | Spell | Fire Runes | Other Runes |
-    |-------|------------|-------------|
-    | Fire Strike | 3 | 2 Air, 1 Mind |
-    | Fire Bolt | 4 | 3 Air, 1 Chaos |
-    | Fire Blast | 5 | 4 Air, 1 Death |
-    | Fire Wave | 7 | 5 Air, 1 Blood |
-    | Fire Surge | 10 | 7 Air, 1 Wrath |
-    | High Alchemy | 5 | 1 Nature |
-    | Superheat Item | 4 | 1 Nature |
-  market_strategy:
-    notes:
-      - High Level Alchemy uses 5 per cast
-      - Fire Surge most popular combat spell
-      - Smithing via Superheat
-      - High Alchemy (money making)
-      - Fire Surge (PvM meta)
-      - Superheat Item (Smithing)
-      - Charge Fire Orb
-      - Tome of Fire provides unlimited
-      - Staff of fire saves runes
-      - TzHaar shops cheap with Tokkul
-      - Price stable due to high supply
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Fire rune is a free-to-play elemental rune used to cast Fire spells from Fire Strike through Fire Surge, High Alchemy, Low Alchemy, Superheat Item, and every bolt and crossbow enchanting spell from Lvl-3 Enchant onwards. It is one of the most heavily consumed runes in Old School RuneScape due to the constant demand from alching, making it a staple of money-making and magic training alike. Players can craft fire runes at level 14 Runecrafting by binding pure or rune essence at the Fire altar located near the Duel Arena north-east of Al Kharid.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

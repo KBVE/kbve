@@ -12,15 +12,9 @@ osrs:
   lowalch: 72
   highalch: 108
   limit: 25000
-  rune:
-    type: combat
-  runecraft:
-    level: 65
-    xp: 10
-    multiple_at: 99
-    altar: Death Altar
-    altar_location: Temple of Light
-    essence_type: pure
+  material:
+    type: rune
+    tier: high
   recipes:
     - skill: runecraft
       level: 65
@@ -32,54 +26,43 @@ osrs:
       product: Death rune
       product_id: 560
       product_quantity: 1
-      facility: Death altar
+      facility: Death altar (Temple of Light)
       members_only: true
+      quest_required: Mourning's End Part II
   related_items:
     - item_id: 7936
       item_name: Pure essence
       slug: pure-essence
       relationship: component
-      description: Crafting material
-    - item_id: 565
-      item_name: Blood rune
+      description: Rune essence consumed at the Death altar to craft death runes.
+    - item_name: Death talisman
+      slug: death-talisman
+      relationship: component
+      description: Talisman that grants entry to the Death altar chamber.
+    - item_name: Death tiara
+      slug: death-tiara
+      relationship: component
+      description: Head slot alternative to the Death talisman for accessing the altar.
+    - item_name: Daeyalt essence
+      slug: daeyalt-essence
+      relationship: alternative
+      description: Alternative essence that yields higher Runecraft XP per craft.
+    - item_name: Blood rune
       slug: blood-rune
       relationship: alternative
-      description: Paired for barrages
-    - item_id: 563
-      item_name: Law rune
-      slug: law-rune
-      relationship: alternative
-      description: Tele Block combo
-    - item_id: 11907
-      item_name: Trident of the seas
-      slug: trident-of-the-seas
-      relationship: alternative
-      description: Rune consumer
+      description: Even higher-tier combat rune used for top-end Ancient and Lunar spells.
+    - item_name: Chaos rune
+      slug: chaos-rune
+      relationship: downgrade
+      description: Lower-tier combat rune used for mid-level Bolt spells.
+    - item_name: Soul rune
+      slug: soul-rune
+      relationship: upgrade
+      description: Higher-tier rune used for Surge spells and advanced teleports.
   about: |-
-    | Spell | Death Runes | Spellbook |
-    |-------|-------------|-----------|
-    | Fire Blast | 1 | Standard |
-    | Iban Blast | 1 | Standard |
-    | Magic Dart | 1 | Standard |
-    | Tele Block | 1 | Standard |
-    | Ice Barrage | 4 | Ancient |
-    | Blood Barrage | 4 | Ancient |
-    | Vengeance | 2 | Lunar |
-  market_strategy:
-    notes:
-      - 1 pure essence = 1 death rune
-      - Abyss method for speed
-      - Mourning's End Part II required
-      - All burst/barrage spells
-      - Slayer training (bursting)
-      - PvP (Tele Block, Vengeance)
-      - Trident charges
-      - Essential PvM rune
-      - Ice Barrage uses 4 per cast
-      - High consistent demand
-      - Tridents create rune sink
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Death runes are a high-tier members rune used to cast the Wave-tier elemental spells (Wind Wave, Water Wave, Earth Wave, and Fire Wave), along with Magic Dart, Iban Blast, Slayer Dart, and the Lvl-7 Enchant spell. They are crafted at level 65 Runecrafting at the Death altar inside the Temple of Light, which requires completion of the Mourning's End Part II quest to access. Players who reach 99 Runecrafting craft two death runes per essence, making them a staple Runecrafting training and profit method in the late game.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
