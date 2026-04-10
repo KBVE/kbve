@@ -12,58 +12,45 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 13000
-  item_id: 6333
-  type: logs
-  tradeable: true
-  weight: 1.36
-  buy_limit: 13000
-  requirements:
-    skills:
-      - skill: woodcutting
-        level: 35
-        context: to cut
-  obtaining:
-    woodcutting:
+  material:
+    type: log
+    tier: mid
+  woodcutting:
+    level: 35
+    xp: 85
+    tool: Any axe
+    locations:
+      - Kharazi Jungle
+      - Ape Atoll
+      - Hardwood Grove
+  recipes:
+    - skill: firemaking
       level: 35
-      xp: 85
-      trees: Teak trees
-      locations:
-        - Castle Wars
-        - Fossil Island
-        - Ape Atoll
-    farming:
-      level: 35
-      details: Grow teak trees
-    drops:
-      - Cave horror
-      - Jungle horror
-      - Wyverns
-  usage:
-    construction:
-      product: Teak planks
-      sawmill_cost: 500
-    fletching: Good for Fletching training
+      xp: 105
+      materials:
+        - item_name: Teak logs
+          item_id: 6333
+          quantity: 1
+      product: Fire
   related_items:
-    - slug: teak-plank
-      name: Teak plank
-      relation: processed_form
-    - slug: mahogany-logs
-      name: Mahogany logs
-      relation: higher_tier
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Logs |
-    | Tradeable | Yes |
-    | Weight | 1.36 kg |
-    | Requirements | 35 Woodcutting |
-
-    Convert to teak planks for Construction (500 gp at sawmill).
-
-    Good for Fletching training.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 8780
+      item_name: Teak plank
+      slug: teak-plank
+      relationship: product
+      description: Sawmill conversion costs 500 gp per log
+    - item_id: 6332
+      item_name: Mahogany logs
+      slug: mahogany-logs
+      relationship: upgrade
+      description: Higher-tier hardwood log
+    - item_id: 1517
+      item_name: Maple logs
+      slug: maple-logs
+      relationship: alternative
+      description: Standard mid-tier log
+  about: Teak logs are a mid-tier hardwood obtained by chopping teak trees with a Woodcutting level of 35, granting 85 experience per log. They are primarily converted into teak planks at a sawmill for 500 coins each, serving as a popular mid-level Construction material. Burning the logs with Firemaking yields 105 experience at level 35 or above.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

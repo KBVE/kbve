@@ -18,21 +18,21 @@ osrs:
   woodcutting:
     level: 15
     xp: 37.5
+    tool: Any axe
     locations:
-      - Varrock
-      - Draynor
+      - Draynor Village
       - Lumbridge
-      - Grand Exchange area
-  farming:
-    level: 15
-    seed_id: 5370
-    seed_name: Oak sapling
-  processing:
-    method: Sawmill
-    product_id: 8778
-    product_name: Oak plank
-    cost: 250
+      - Varrock
   recipes:
+    - skill: firemaking
+      level: 15
+      xp: 60
+      materials:
+        - item_name: Oak logs
+          item_id: 1521
+          quantity: 1
+      tools:
+        - Tinderbox
     - skill: fletching
       level: 20
       xp: 16.5
@@ -40,6 +40,8 @@ osrs:
         - item_name: Oak logs
           item_id: 1521
           quantity: 1
+      tools:
+        - Knife
       product: Oak shortbow (u)
       product_id: 54
       product_quantity: 1
@@ -50,52 +52,40 @@ osrs:
         - item_name: Oak logs
           item_id: 1521
           quantity: 1
+      tools:
+        - Knife
       product: Oak longbow (u)
       product_id: 56
       product_quantity: 1
-  drop_table:
-    sources:
-      - source: Ent
-        source_id: 2594
-        combat_level: 86
-        quantity: "1"
-        rarity: common
-        members_only: true
   related_items:
-    - item_id: 8778
-      item_name: Oak plank
-      slug: oak-plank
-      relationship: product
-      description: Processed form for Construction
-    - item_id: 1519
-      item_name: Willow logs
-      slug: willow-logs
-      relationship: upgrade
-      description: Higher tier logs
     - item_id: 1511
       item_name: Logs
       slug: logs
       relationship: downgrade
-      description: Lower tier logs
-    - item_id: 54
-      item_name: Oak shortbow (u)
-      slug: oak-shortbow-u
+    - item_id: 1519
+      item_name: Willow logs
+      slug: willow-logs
+      relationship: upgrade
+    - item_id: 1517
+      item_name: Maple logs
+      slug: maple-logs
+      relationship: upgrade
+    - item_id: 1515
+      item_name: Yew logs
+      slug: yew-logs
+      relationship: upgrade
+    - item_id: 1513
+      item_name: Magic logs
+      slug: magic-logs
+      relationship: upgrade
+    - item_id: 8778
+      item_name: Oak plank
+      slug: oak-plank
       relationship: product
-      description: Fletching output
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Logs |
-    | Tradeable | Yes |
-    | Weight | 2 kg |
-    | Requirements | 15 Woodcutting |
-
-    Convert to oak planks for Construction (250 gp at sawmill).
-
-    Popular for low-level Construction training.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Oak logs are the second tier of logs in Old School RuneScape, obtained by chopping oak trees at level 15 Woodcutting for 37.5 experience per log. They can be burned at level 15 Firemaking for 60 experience, fletched into oak shortbows and longbows, or converted into oak planks at a sawmill for use in Construction. As a free-to-play resource with wide availability in Draynor Village, Lumbridge, and Varrock, they serve as an early-game staple for training multiple skills.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

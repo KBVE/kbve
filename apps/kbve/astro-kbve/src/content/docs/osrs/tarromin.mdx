@@ -12,18 +12,71 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 13000
+  material:
+    type: herb
+    tier: low
+  farming:
+    farming_level: 19
+    plant_xp: 16
+    harvest_xp: 18
+    patch_type: herb
+    growth_time: 80
+    payment: 1 sack of onions
+    seed_id: 5293
+    seed_name: Tarromin seed
+  recipes:
+    - skill: herblore
+      level: 11
+      xp: 5
+      materials:
+        - item_id: 203
+          item_name: Grimy tarromin
+          quantity: 1
+      product: Tarromin
+      product_id: 253
+    - skill: herblore
+      level: 12
+      xp: 0
+      materials:
+        - item_id: 253
+          item_name: Tarromin
+          quantity: 1
+        - item_name: Vial of water
+          quantity: 1
+      product: Tarromin potion (unf)
+      product_id: 95
   related_items:
     - item_id: 203
       item_name: Grimy tarromin
       slug: grimy-tarromin
+      relationship: variant
+    - item_id: 5293
+      item_name: Tarromin seed
+      slug: tarromin-seed
       relationship: component
-      description: Uncleaned version
+    - item_id: 95
+      item_name: Tarromin potion (unf)
+      slug: tarromin-potion-unf
+      relationship: product
+    - item_id: 113
+      item_name: Strength potion(4)
+      slug: strength-potion-4
+      relationship: product
+    - item_name: Serum 207
+      slug: serum-207
+      relationship: product
+    - item_id: 251
+      item_name: Marrentill
+      slug: marrentill
+      relationship: alternative
+    - item_id: 255
+      item_name: Harralander
+      slug: harralander
+      relationship: alternative
   about: |-
-    > _"A useful herb."_
-
-    Tarromin is used to make strength potions (12 Herblore) and serum 207 for the Shades of Mort'ton quest/minigame.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Tarromin is a low-tier Herblore herb cleaned at level 11 for 5 XP from its grimy form. Combined with a vial of water it makes a tarromin potion (unf), the base for Strength potions at level 12 Herblore and for Serum 207 used in the Shades of Mort'ton minigame. Farmers can grow their own supply from tarromin seeds at level 19 Farming in any herb patch.
+  mdx_version: 3
+  mdx_updated: '2026-04-10'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

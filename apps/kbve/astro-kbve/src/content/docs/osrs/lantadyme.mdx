@@ -12,102 +12,77 @@ osrs:
   lowalch: 27
   highalch: 40
   limit: 11000
-  herb:
-    type: clean
+  material:
+    type: herb
     tier: high
-  herblore:
-    cleaning_level: 67
-    cleaning_xp: 13.1
   farming:
     level: 73
+    plant_xp: 87
+    harvest_xp: 101.5
+    patch_type: herb
+    growth_time: 80
+    payment: 10 poison ivy berries
     seed_id: 5302
     seed_name: Lantadyme seed
-  drop_table:
-    sources:
-      - source: Aberrant spectre
-        source_id: 2927
-        combat_level: 96
-        quantity: "1"
-        rarity: common
-        members_only: true
   recipes:
     - skill: herblore
-      level: 69
-      xp: 157.5
+      level: 67
+      xp: 13.1
       materials:
-        - item_name: Lantadyme potion (unf)
-          item_id: 2483
+        - item_name: Grimy lantadyme
+          item_id: 2485
           quantity: 1
-        - item_name: Dragon scale dust
-          item_id: 241
-          quantity: 1
-      product: Antifire potion(3)
-      product_id: 2452
+      product: Lantadyme
+      product_id: 2481
       product_quantity: 1
       facility: None
       members_only: true
     - skill: herblore
-      level: 76
-      xp: 172.5
+      level: 69
+      xp: 0
       materials:
-        - item_name: Lantadyme potion (unf)
-          item_id: 2483
+        - item_name: Lantadyme
+          item_id: 2481
           quantity: 1
-        - item_name: Potato cactus
-          item_id: 3138
+        - item_name: Vial of water
+          item_id: 227
           quantity: 1
-      product: Magic potion(3)
-      product_id: 3040
+      product: Lantadyme potion (unf)
+      product_id: 2483
       product_quantity: 1
       facility: None
       members_only: true
   related_items:
-    - item_id: 2452
-      item_name: Antifire potion(3)
-      slug: antifire-potion-3
-      relationship: product
-      description: Main product
-    - item_id: 241
-      item_name: Dragon scale dust
-      slug: dragon-scale-dust
-      relationship: component
-      description: Secondary
-    - item_id: 3040
-      item_name: Magic potion(3)
-      slug: magic-potion-3
-      relationship: product
-      description: Alternative product
+    - item_id: 2485
+      item_name: Grimy lantadyme
+      slug: grimy-lantadyme
+      relationship: variant
     - item_id: 5302
       item_name: Lantadyme seed
       slug: lantadyme-seed
       relationship: component
-      description: Farming seed
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore Level | 67 |
-    | XP | 13.1 |
-    | Product | Lantadyme (clean) |
-  market_strategy:
-    title: |-
-      - Antifire potions (dragons)
-      - Magic potions
-      - Extended antifire chain
-      - Ironman accounts
-    notes:
-      - Antifire production
-      - Magic potion demand
-      - Steady pricing
-      - Antifire potions (dragons)
-      - Magic potions
-      - Extended antifire chain
-      - Ironman accounts
-      - Farm runs profitable
-      - 73 Farming required
-      - Dragon scale dust expensive
-      - Essential for dragons
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 2483
+      item_name: Lantadyme potion (unf)
+      slug: lantadyme-potion-unf
+      relationship: product
+    - item_id: 3040
+      item_name: Magic potion(4)
+      slug: magic-potion-4
+      relationship: product
+    - item_name: Antifire potion(4)
+      slug: antifire-potion-4
+      relationship: product
+    - item_id: 265
+      item_name: Cadantine
+      slug: cadantine
+      relationship: alternative
+    - item_id: 267
+      item_name: Dwarf weed
+      slug: dwarf-weed
+      relationship: alternative
+  about: Lantadyme is a high-level herb used by herblorists to brew Magic potions and Antifire potions. Players obtain it by cleaning grimy lantadyme at Herblore 67 or by harvesting lantadyme seeds planted in a herb patch at Farming 73. Once cleaned, it is combined with a vial of water to create a lantadyme potion (unf), the base ingredient for both potions.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
