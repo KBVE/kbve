@@ -12,103 +12,70 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 50000
-  rune:
-    type: elemental
-    element: air
-  runecraft:
-    level: 1
-    xp: 5
-    multiple_at: 11
-    altar: Air Altar
-    altar_location: Southwest of Falador
-    essence_type: any
-  shops:
-    - shop_name: Rune shops
-      stock: Unlimited
-      price: 17
-    - shop_name: Magic tutor
-      stock: 30 free
-      price: 0
+  material:
+    type: rune
+    tier: low
   recipes:
     - skill: runecraft
       level: 1
       xp: 5
       materials:
-        - item_name: Rune essence
-          item_id: 1436
+        - item_name: Pure essence
+          item_id: 7936
           quantity: 1
       product: Air rune
       product_id: 556
       product_quantity: 1
       facility: Air altar
   related_items:
-    - item_id: 554
-      item_name: Fire rune
-      slug: fire-rune
+    - item_id: 7936
+      item_name: Pure essence
+      slug: pure-essence
+      relationship: component
+      description: Members-only essence that can be crafted into any rune including air runes
+    - item_id: 1436
+      item_name: Rune essence
+      slug: rune-essence
+      relationship: component
+      description: F2P essence used to craft low-level runes such as air runes
+    - item_name: Air talisman
+      slug: air-talisman
+      relationship: component
+      description: Required to enter the Air altar for runecrafting
+    - item_name: Air tiara
+      slug: air-tiara
+      relationship: component
+      description: Head slot equivalent of the air talisman, keeps an inventory slot free
+    - item_name: Mind rune
+      slug: mind-rune
       relationship: alternative
-      description: Elemental rune
-    - item_id: 555
-      item_name: Water rune
+      description: Paired with air runes in basic combat spells like Wind Strike
+    - item_name: Water rune
       slug: water-rune
       relationship: alternative
-      description: Elemental rune
-    - item_id: 557
-      item_name: Earth rune
-      slug: earth-rune
-      relationship: alternative
-      description: Elemental rune
-    - item_id: 558
-      item_name: Mind rune
-      slug: mind-rune
-      relationship: component
-      description: Combat rune
-    - item_id: 1381
-      item_name: Staff of air
-      slug: staff-of-air
-      relationship: alternative
-      description: Unlimited air runes
+      description: Another basic elemental rune used in elemental spells
+    - item_name: Mist rune
+      slug: mist-rune
+      relationship: variant
+      description: Combination rune counting as both an air rune and a water rune
+    - item_name: Smoke rune
+      slug: smoke-rune
+      relationship: variant
+      description: Combination rune counting as both an air rune and a fire rune
+    - item_name: Dust rune
+      slug: dust-rune
+      relationship: variant
+      description: Combination rune counting as both an air rune and an earth rune
   about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Runecraft Level | 1 |
-    | XP per rune | 5 |
-    | Altar location | Southwest of Falador |
-
-    Multipliers (every 11 levels):
-    - Level 11: 2x runes
-    - Level 22: 3x runes
-    - Level 33: 4x runes
-    - Level 44: 5x runes
-    - Level 55: 6x runes
-    - Level 66: 7x runes
-    - Level 77: 8x runes
-    - Level 88: 9x runes
-    - Level 99: 10x runes
-
-    | Spell | Air Runes | Other Runes |
-    |-------|-----------|-------------|
-    | Wind Strike | 1 | 1 Mind |
-    | Wind Bolt | 2 | 1 Chaos |
-    | Wind Blast | 3 | 1 Death |
-    | Wind Wave | 5 | 1 Blood |
-    | Wind Surge | 7 | 1 Wrath |
-    | Varrock Teleport | 3 | 1 Fire, 1 Law |
-    | Falador Teleport | 3 | 1 Water, 1 Law |
+    Air runes are the most basic of the four elemental runes and are available to free-to-play players. They power every Air spell in the standard spellbook from Wind Strike up through Wind Surge, as well as numerous teleport and utility spells such as Tele-Other.
+    Players can craft air runes at Runecraft level 1 for 5 experience per essence at the Air altar located southwest of Falador, using either rune essence or pure essence. Additional runes per essence are granted every 11 Runecraft levels, reaching ten runes per essence at level 99.
   market_strategy:
     notes:
-      - Used in every combat spell
-      - Used in most teleportation spells
-      - Staff of air provides unlimited
-      - Magic training (all levels)
-      - Teleportation spells
-      - Combat magic
-      - Alchemy spells
-      - Staff of air negates need
-      - Smoke/Mist battlestaff combos
-      - Essential for early Magic
-      - Low profit margins due to volume
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Air runes are consumed in massive volume by every Magic training method, but the Staff of air gives an unlimited supply, capping demand from veteran players.
+      - Smoke and Mist battlestaves negate air rune cost in combo spells, so price spikes are rare and margins per rune stay thin.
+      - Most reliable demand comes from new accounts training Magic before they can afford an elemental staff.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
