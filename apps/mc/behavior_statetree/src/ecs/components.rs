@@ -3,6 +3,8 @@
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
+use crate::tree::node::CooldownState;
+
 /// Marker for entities managed by the AI behavior system.
 #[derive(Component, Debug)]
 pub struct AiManaged;
@@ -49,12 +51,14 @@ impl CallCooldown {
             cooldown_ticks,
         }
     }
+}
 
-    pub fn can_call(&self, current_tick: u64) -> bool {
+impl CooldownState for CallCooldown {
+    fn can_fire(&self, current_tick: u64) -> bool {
         current_tick.saturating_sub(self.last_call_tick) > self.cooldown_ticks
     }
 
-    pub fn mark_called(&mut self, current_tick: u64) {
+    fn mark_fired(&mut self, current_tick: u64) {
         self.last_call_tick = current_tick;
     }
 }
@@ -99,12 +103,12 @@ impl Default for GlobalCallCooldown {
     }
 }
 
-impl GlobalCallCooldown {
-    pub fn can_call(&self, current_tick: u64) -> bool {
+impl CooldownState for GlobalCallCooldown {
+    fn can_fire(&self, current_tick: u64) -> bool {
         current_tick.saturating_sub(self.last_call_tick) > self.cooldown_ticks
     }
 
-    pub fn mark_called(&mut self, current_tick: u64) {
+    fn mark_fired(&mut self, current_tick: u64) {
         self.last_call_tick = current_tick;
     }
 }

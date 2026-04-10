@@ -128,9 +128,11 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             }
 
         } else if (cmd.has("CallForHelp")) {
+            // Pure actuator: Rust already gated this through CallCooldown +
+            // GlobalCallCooldown. Java just spawns whatever was asked.
             JsonObject call = cmd.getAsJsonObject("CallForHelp");
             int count = call.get("count").getAsInt();
-            skeletonManager.spawnReinforcements(world, mob.getId(), count, world.getTime());
+            skeletonManager.spawnReinforcements(world, mob.getId(), count);
 
         } else if (cmd.has("SetGoal")) {
             LOGGER.debug("[AI Skeleton] SetGoal not yet implemented");

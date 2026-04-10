@@ -6,7 +6,7 @@
 use bevy::prelude::*;
 
 use crate::tree::builtin::{AttackNearest, CallAllies, Flee, IsHealthLow, Wander};
-use crate::tree::node::{BehaviorNode, Selector, Sequence};
+use crate::tree::node::{BehaviorContext, BehaviorNode, Selector, Sequence};
 use crate::types::NpcObservation;
 
 use super::components::*;
@@ -88,23 +88,31 @@ pub fn ingest_observations(
 }
 
 /// System: evaluate behavior trees for all AI-managed entities, write intents.
+///
+/// Per-NPC and global cooldowns are mutable resources/components — the
+/// behavior tree reads + writes them through `BehaviorContext`. Java sees
+/// only the resulting commands and applies them blindly, so all rate
+/// limiting / spam prevention lives here in Rust.
 pub fn plan_behavior(
-    query: Query<
+    mut query: Query<
         (
             &McEntityId,
             &McPosition,
             &McHealth,
             &AiEpoch,
             &NearbyEntities,
+            &mut CallCooldown,
         ),
         With<AiManaged>,
     >,
     server_tick: Res<ServerTick>,
+    mut global_cooldown: ResMut<GlobalCallCooldown>,
     mut intent_buffer: ResMut<IntentBuffer>,
 ) {
     let tree = build_behavior_tree();
+    let current_tick = server_tick.0;
 
-    for (mc_id, pos, health, epoch, nearby) in &query {
+    for (mc_id, pos, health, epoch, nearby, mut cooldown) in &mut query {
         let observation = NpcObservation {
             entity_id: mc_id.0,
             epoch: epoch.value,
@@ -123,10 +131,15 @@ pub fn plan_behavior(
                 .collect(),
             nearby_blocks: vec![],
             current_goal: None,
-            tick: server_tick.0,
+            tick: current_tick,
         };
 
-        let (_status, commands) = tree.evaluate(&observation);
+        let mut ctx = BehaviorContext {
+            current_tick,
+            per_npc: cooldown.as_mut(),
+            global: global_cooldown.as_mut(),
+        };
+        let (_status, commands) = tree.evaluate(&observation, &mut ctx);
 
         intent_buffer.ready.push(IntentReady {
             entity_id: mc_id.0,
