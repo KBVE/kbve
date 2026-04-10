@@ -52,7 +52,7 @@ RUN gradle build --no-daemon
 # Output: /build/mc_auth/java/build/libs/*.jar
 
 # ── Stage 3: Runtime ──────────────────────────────────────────────────
-FROM itzg/minecraft-server:java21
+FROM itzg/minecraft-server:java25
 
 ENV TYPE=FABRIC
 ENV VERSION=1.21.11
@@ -90,10 +90,26 @@ declare -A MODS=(
   ["fabric-api-0.141.3+1.21.11.jar"]="50de67eb221f0b38216da8668b09ca311327040e https://cdn.modrinth.com/data/P7dR8mSH/versions/i5tSkVBH/fabric-api-0.141.3%2B1.21.11.jar"
   # fabric-language-kotlin: required by Ledger (Kotlin mod) and others.
   ["fabric-language-kotlin-1.13.10+kotlin.2.3.20.jar"]="9873294abf498f509453d37b0a5ba019f4570ffb https://cdn.modrinth.com/data/Ha28R6CL/versions/21TRTKmh/fabric-language-kotlin-1.13.10%2Bkotlin.2.3.20.jar"
-  # C2ME 0.3.6.0.0 — last stable release that runs on Java 21. The 0.3.7
-  # alpha line bumped its toolchain to Java 22 which the itzg/minecraft-server
-  # base image doesn't ship.
-  ["c2me-fabric-mc1.21.11-0.3.6.0.0.jar"]="587f9a3d9e4591e8e1a1c3eda61ed2f7bfa5dc46 https://cdn.modrinth.com/data/VSNURh3q/versions/olrVZpJd/c2me-fabric-mc1.21.11-0.3.6.0.0.jar"
+  # ViaFabric — Fabric loader shim for ViaVersion + ViaBackwards. The
+  # actual protocol translators don't ship as Fabric mods themselves;
+  # ViaFabric is what registers them with the Fabric loader.
+  ["ViaFabric-0.4.21+156-1.14-1.21.jar"]="e8f54ee523ea0c6b8eab84c4d047f958908f1e95 https://cdn.modrinth.com/data/YlKdE5VK/versions/fX5DMuoH/ViaFabric-0.4.21%2B156-1.14-1.21.jar"
+  # ViaVersion — core protocol translator. Newer-than-the-server clients
+  # connect through this. Pinned to 5.8.1 stable so it stays in sync
+  # with the standalone ViaBackwards 5.8.1 below (same release line =
+  # same internal API; SNAPSHOT builds drift apart).
+  ["ViaVersion-5.8.1.jar"]="8203fe1e2995c3d019caafeb54466a31e81e3b46 https://cdn.modrinth.com/data/P1OZGk5p/versions/Sh5z5ETl/ViaVersion-5.8.1.jar"
+  # ViaBackwards — companion addon supplying newer-server → older-client
+  # packet rewrites. Skipping ViaRewind (1.8/1.12 support) because Old
+  # Combat Mod already provides 1.8-style PvP for modern clients.
+  ["ViaBackwards-5.8.1.jar"]="30ca8d606d0d834c4ee75ef1359aaf954fc91bf4 https://cdn.modrinth.com/data/NpvuJQoq/versions/6GSQXY2l/ViaBackwards-5.8.1.jar"
+  # C2ME 0.3.7+alpha.0.9 — concurrent chunk management. Requires Java 22+
+  # which is why the runtime base image was bumped to itzg/minecraft-server:java25.
+  # Recommended companions are Lithium + ScalableLux (both bundled below).
+  ["c2me-fabric-mc1.21.11-0.3.7+alpha.0.9.jar"]="8ba48c81c03c5287b7dd1e39e66603c64a1bf3a0 https://cdn.modrinth.com/data/VSNURh3q/versions/vsiqVtu6/c2me-fabric-mc1.21.11-0.3.7%2Balpha.0.9.jar"
+  # ScalableLux — multithreaded lighting engine, recommended companion
+  # to C2ME for chunk-loading performance.
+  ["ScalableLux-0.1.6+fabric.c25518a-all.jar"]="9df93ab6442fa374c17fab6b5181fe2c215d9d5b https://cdn.modrinth.com/data/Ps1zyz6x/versions/PV9KcrYQ/ScalableLux-0.1.6%2Bfabric.c25518a-all.jar"
   ["vmp-fabric-mc1.21.11-0.2.0+beta.7.227-all.jar"]="6d665e488ea4f301d639cdf9fd4abf3ffdb44e0d https://cdn.modrinth.com/data/wnEe9KBa/versions/7Cxc2cAR/vmp-fabric-mc1.21.11-0.2.0%2Bbeta.7.227-all.jar"
   ["lithium-fabric-0.21.4+mc1.21.11.jar"]="203bdcb26e97b3217b045e1182651a7d7b6462ec https://cdn.modrinth.com/data/gvQqBUqZ/versions/Ow7wA0kG/lithium-fabric-0.21.4%2Bmc1.21.11.jar"
   ["ferritecore-8.2.0-fabric.jar"]="c2e2f5e008f5bc9f401dfad8ca94909917006b65 https://cdn.modrinth.com/data/uXXizFIs/versions/Ii0gP3D8/ferritecore-8.2.0-fabric.jar"
