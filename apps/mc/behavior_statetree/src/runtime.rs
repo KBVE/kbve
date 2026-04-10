@@ -1,63 +1,49 @@
-//! Tokio runtime lifecycle — one runtime for all NPC planning.
+//! Runtime hosting a headless Bevy ECS App on a dedicated thread.
 //!
-//! The runtime owns bounded channels for job submission and intent collection.
-//! The JVM side submits observations via `submit_job()` and drains completed
-//! intents via `poll_intents()` on each server tick.
+//! Bevy's App is not Send, so it runs on its own OS thread (not Tokio).
+//! Crossbeam channels bridge the JNI thread and the ECS thread.
 
-use std::sync::Arc;
+use std::time::Duration;
 
+use bevy::MinimalPlugins;
+use bevy::app::App;
 use crossbeam_channel::{Receiver, Sender, bounded};
-use tokio::runtime::Runtime;
+use tracing::{debug, warn};
 
-use crate::planner::plan_npc;
+use crate::ecs::AiBehaviorPlugin;
+use crate::ecs::events::{IntentBuffer, ObservationBuffer};
 use crate::types::{NpcIntent, NpcThinkJob};
 
-/// Channel capacity — bounds memory usage and back-pressure.
 const JOB_CHANNEL_SIZE: usize = 256;
 const INTENT_CHANNEL_SIZE: usize = 256;
+const ECS_TICK_INTERVAL: Duration = Duration::from_millis(100);
 
-/// Owns the Tokio runtime and channels for NPC AI planning.
+/// Owns the ECS thread and JNI channels.
 pub struct AiRuntime {
-    _runtime: Arc<Runtime>,
     job_tx: Sender<NpcThinkJob>,
     intent_rx: Receiver<NpcIntent>,
 }
 
 impl AiRuntime {
-    /// Start the Tokio runtime and spawn the job consumer loop.
     pub fn start() -> Self {
-        let runtime = Arc::new(
-            tokio::runtime::Builder::new_multi_thread()
-                .worker_threads(2)
-                .thread_name("npc-planner")
-                .enable_all()
-                .build()
-                .expect("failed to create Tokio runtime for NPC planner"),
-        );
-
         let (job_tx, job_rx) = bounded::<NpcThinkJob>(JOB_CHANNEL_SIZE);
         let (intent_tx, intent_rx) = bounded::<NpcIntent>(INTENT_CHANNEL_SIZE);
 
-        // Spawn the consumer loop inside the Tokio runtime
-        let rt = Arc::clone(&runtime);
-        rt.spawn(async move {
-            consumer_loop(job_rx, intent_tx).await;
-        });
+        // Dedicated OS thread for the Bevy App (not Send, can't use Tokio)
+        std::thread::Builder::new()
+            .name("npc-ecs".into())
+            .spawn(move || {
+                ecs_tick_loop(job_rx, intent_tx);
+            })
+            .expect("failed to spawn NPC ECS thread");
 
-        Self {
-            _runtime: runtime,
-            job_tx,
-            intent_rx,
-        }
+        Self { job_tx, intent_rx }
     }
 
-    /// Submit an NPC observation for async planning. Non-blocking.
-    /// Returns false if the channel is full (back-pressure).
     pub fn submit_job(&self, job: NpcThinkJob) -> bool {
         self.job_tx.try_send(job).is_ok()
     }
 
-    /// Drain all completed intents. Called on each server tick.
     pub fn poll_intents(&self) -> Vec<NpcIntent> {
         let mut intents = Vec::new();
         while let Ok(intent) = self.intent_rx.try_recv() {
@@ -67,19 +53,43 @@ impl AiRuntime {
     }
 }
 
-/// Consumer loop — receives jobs from the server tick thread,
-/// spawns a Tokio task per job, and sends completed intents back.
-async fn consumer_loop(job_rx: Receiver<NpcThinkJob>, intent_tx: Sender<NpcIntent>) {
-    loop {
-        let job = match job_rx.recv() {
-            Ok(job) => job,
-            Err(_) => break, // channel closed, runtime shutting down
-        };
+fn ecs_tick_loop(job_rx: Receiver<NpcThinkJob>, intent_tx: Sender<NpcIntent>) {
+    let mut app = App::new();
+    app.add_plugins(MinimalPlugins);
+    app.add_plugins(AiBehaviorPlugin);
 
-        let tx = intent_tx.clone();
-        tokio::spawn(async move {
-            let intent = plan_npc(job.observation).await;
-            let _ = tx.try_send(intent);
-        });
+    debug!("Bevy ECS App initialized (headless, MinimalPlugins) on dedicated thread");
+
+    loop {
+        // Drain observations into ECS resource buffer
+        {
+            let mut obs_buffer = app.world_mut().resource_mut::<ObservationBuffer>();
+            while let Ok(job) = job_rx.try_recv() {
+                obs_buffer.pending.push(job.observation);
+            }
+        }
+
+        // Tick the Bevy App
+        app.update();
+
+        // Drain intent buffer and send through channel
+        {
+            let mut intent_buffer = app.world_mut().resource_mut::<IntentBuffer>();
+            for intent in intent_buffer.ready.drain(..) {
+                let npc_intent = NpcIntent {
+                    entity_id: intent.entity_id,
+                    epoch: intent.epoch,
+                    commands: intent.commands,
+                };
+                if intent_tx.try_send(npc_intent).is_err() {
+                    warn!(
+                        "Intent channel full — dropping intent for entity {}",
+                        intent.entity_id
+                    );
+                }
+            }
+        }
+
+        std::thread::sleep(ECS_TICK_INTERVAL);
     }
 }
