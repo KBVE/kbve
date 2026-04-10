@@ -1,35 +1,55 @@
-# ── Stage 1: Build Rust native library (.so) ──────────────────────────
+# ── Stage 1: Build Rust native libraries (.so) ────────────────────────
 FROM rust:1.94-bookworm AS rust-builder
 WORKDIR /build
 
-# Standalone workspace with behavior_statetree + bevy_npc dependency.
+# protoc + well-known types — required by the agones crate's build.rs.
+# protobuf-compiler ships protoc; libprotobuf-dev ships google/protobuf/*.proto
+# (descriptor.proto, struct.proto) which the agones SDK protos import.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    protobuf-compiler \
+    libprotobuf-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Standalone workspace with behavior_statetree + mc_auth + bevy_npc.
 # Uses the repo Cargo.lock for reproducible dependency resolution.
 COPY Cargo.lock .
 COPY apps/mc/behavior_statetree/ behavior_statetree/
+COPY apps/mc/mc_auth/ mc_auth/
 COPY packages/rust/bevy/bevy_npc/ bevy_npc/
 
 # Rewrite bevy_npc path in behavior_statetree Cargo.toml for Docker context
 RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_npc"|path = "../bevy_npc"|' behavior_statetree/Cargo.toml
-RUN printf '[workspace]\nresolver = "2"\nmembers = ["behavior_statetree", "bevy_npc"]\n' > Cargo.toml
+RUN printf '[workspace]\nresolver = "2"\nmembers = ["behavior_statetree", "mc_auth", "bevy_npc"]\n' > Cargo.toml
 
-RUN cargo build -p behavior_statetree --release
-# Output: /build/target/release/libbehavior_statetree.so
+RUN cargo build -p behavior_statetree -p mc_auth --release
+# Outputs:
+#   /build/target/release/libbehavior_statetree.so
+#   /build/target/release/libmc_auth.so
 
-# ── Stage 2: Build Fabric mod JAR (bundles .so via processResources) ──
+# ── Stage 2: Build Fabric mod JARs (bundle .so via processResources) ──
 FROM gradle:jdk21 AS java-builder
 WORKDIR /build
 
-# Copy Java source
+# Copy Java source for both Fabric mods
 COPY apps/mc/behavior_statetree/java/ behavior_statetree/java/
+COPY apps/mc/mc_auth/java/ mc_auth/java/
 
-# Place .so where Gradle processResources expects it.
+# Place each .so where its Gradle processResources expects it.
 # build.gradle: from("../../target/release") relative to java/
-# java/ is at /build/behavior_statetree/java/, so ../../target/release = /build/target/release/
+# behavior_statetree/java/ → ../../target/release = /build/target/release/
+# mc_auth/java/             → ../../target/release = /build/target/release/
 COPY --from=rust-builder /build/target/release/libbehavior_statetree.so target/release/libbehavior_statetree.so
+COPY --from=rust-builder /build/target/release/libmc_auth.so target/release/libmc_auth.so
 
+# Build behavior_statetree JAR
 WORKDIR /build/behavior_statetree/java
 RUN gradle build --no-daemon
-# Output: /build/behavior_statetree/java/build/libs/*.jar (contains natives/libbehavior_statetree.so)
+# Output: /build/behavior_statetree/java/build/libs/*.jar
+
+# Build mc_auth JAR
+WORKDIR /build/mc_auth/java
+RUN gradle build --no-daemon
+# Output: /build/mc_auth/java/build/libs/*.jar
 
 # ── Stage 3: Runtime ──────────────────────────────────────────────────
 FROM itzg/minecraft-server:java21
@@ -90,6 +110,9 @@ MODS
 
 # behavior_statetree mod (built in stage 2)
 COPY --from=java-builder /build/behavior_statetree/java/build/libs/*.jar /mods/
+
+# mc_auth mod (built in stage 2) — Supabase auth bridge + Agones heartbeat
+COPY --from=java-builder /build/mc_auth/java/build/libs/*.jar /mods/
 
 # Additional pre-built mods
 COPY apps/mc/mods/ /mods/

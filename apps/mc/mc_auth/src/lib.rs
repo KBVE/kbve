@@ -15,6 +15,7 @@
 //! All network work is stubbed for now — see `supabase.rs` for the planned
 //! shape of the real integration.
 
+pub mod agones;
 pub mod runtime;
 pub mod supabase;
 pub mod types;
@@ -93,11 +94,17 @@ pub extern "system" fn Java_com_kbve_mcauth_NativeRuntime_pollEvents<'local>(
 }
 
 /// Shutdown the Tokio runtime. Call from Fabric mod shutdown.
+///
+/// Sends a graceful Agones `Shutdown()` so the Fleet drains the gameserver
+/// instead of letting it die from a health timeout.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_kbve_mcauth_NativeRuntime_shutdown(
     mut _env: JNIEnv,
     _class: JClass,
 ) {
+    if let Some(rt) = RUNTIME.get() {
+        rt.shutdown_blocking();
+    }
     // OnceLock doesn't support take(), so the runtime lives until JVM exit.
     // Channels close when the static drops; the Tokio worker exits cleanly.
 }

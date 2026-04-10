@@ -13,6 +13,7 @@ use crossbeam_channel::{Receiver, Sender, bounded};
 use tokio::runtime::Runtime;
 use tracing::{debug, warn};
 
+use crate::agones;
 use crate::supabase::SupabaseClient;
 use crate::types::{AuthRequest, AuthResponse, PlayerEvent};
 
@@ -46,13 +47,28 @@ impl AuthRuntime {
             worker_loop(request_rx, event_tx).await;
         });
 
-        debug!("mc_auth Tokio runtime initialized");
+        // Spawn the Agones SDK heartbeat task — Ready() once + Health() loop.
+        // Falls through gracefully if no Agones sidecar is reachable (local dev).
+        tokio.spawn(agones::run_health_loop());
+
+        debug!("mc_auth Tokio runtime initialized (auth worker + Agones heartbeat)");
 
         Self {
             request_tx,
             event_rx,
             tokio,
         }
+    }
+
+    /// Best-effort graceful shutdown — sends `Shutdown()` to the Agones
+    /// sidecar so the Fleet drains the gameserver gracefully. Blocks the
+    /// caller for up to ~1s.
+    pub fn shutdown_blocking(&self) {
+        self.tokio.block_on(async {
+            tokio::time::timeout(std::time::Duration::from_secs(1), agones::shutdown())
+                .await
+                .ok();
+        });
     }
 
     /// Enqueue an inbound auth request. Returns an immediate stub response.

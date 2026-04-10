@@ -4,6 +4,7 @@ plugins {
 
 version = '0.1.0'
 group = 'com.kbve'
+base.archivesName = 'behavior_statetree'
 
 repositories {
     mavenCentral()

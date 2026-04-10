@@ -33,3 +33,8 @@ reqwest = { version = "0.12", default-features = false, features = [
     "json",
     "rustls-tls",
 ] }
+
+# Agones SDK — sends Ready/Health pings to the sidecar so the gameserver
+# stays alive in the Agones Fleet. Without these pings the pod is recycled
+# every ~5 minutes by Agones' health controller.
+agones = "1.57"

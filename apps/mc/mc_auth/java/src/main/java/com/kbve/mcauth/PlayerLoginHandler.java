@@ -32,7 +32,8 @@ public final class PlayerLoginHandler {
         }
 
         String uuid = player.getUuidAsString();
-        String username = player.getGameProfile().getName();
+        // 1.21.11 yarn: getNameForScoreboard() returns the plain username string
+        String username = player.getNameForScoreboard();
 
         String responseJson;
         try {
