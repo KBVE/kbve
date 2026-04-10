@@ -14,21 +14,35 @@ osrs:
   limit: 15
   equipment:
     slot: 2h
-    type: barrows_weapon
-    attack_style: ranged
+    weapon_type: crossbow
+    weight: 8.165
     attack_speed: 4
     attack_range: 8
+    attack_bonus:
+      ranged: 60
+    defence_bonus:
+      stab: 0
+    other_bonus:
+      ranged_strength: 0
     requirements:
       ranged: 70
-    stats:
-      attack_ranged: 84
-    degradeable: true
-    degrade_hours: 15
-    ammo_type: Bolt rack
+      agility: 70
   set_bonus:
-    set_name: Karil's
-    effect: Chance to lower target's Agility
-    aotd_effect: 25% chance for second hit at 50% damage
+    set_name: Karil the Tainted's equipment
+    pieces_required: 4
+    description: "25% chance for ranged attacks to drain the target's Agility level by 20% on a successful hit."
+    pieces:
+      - 4732
+      - 4734
+      - 4736
+      - 4738
+  charges:
+    max_charges: 100
+    combat_hours: 15
+    repairable: true
+    repair_npc: Bob
+    degrade_to_id: 4934
+    degrade_to_name: Karil's crossbow 0
   drop_table:
     sources:
       - source: Barrows chest
@@ -38,56 +52,65 @@ osrs:
         rarity: 7 × 1/2,448
         members_only: true
   related_items:
+    - item_id: 4732
+      item_name: Karil's coif
+      slug: karil-s-coif
+      relationship: set-piece
+      description: Head slot piece of Karil the Tainted's set
     - item_id: 4736
       item_name: Karil's leathertop
-      slug: karils-leathertop
-      relationship: component
-      description: Set piece
-    - item_id: 11785
-      item_name: Armadyl crossbow
-      slug: armadyl-crossbow
-      relationship: upgrade
-      description: Better alternative
+      slug: karil-s-leathertop
+      relationship: set-piece
+      description: Body slot piece of Karil the Tainted's set
+    - item_id: 4738
+      item_name: Karil's leatherskirt
+      slug: karil-s-leatherskirt
+      relationship: set-piece
+      description: Legs slot piece of Karil the Tainted's set
+    - item_id: 4959
+      item_name: Karil's armour set
+      slug: karil-s-armour-set
+      relationship: variant
+      description: Grand Exchange placeholder bundling all four Karil the Tainted pieces
     - item_id: 4740
-      item_name: Bolt rack
-      slug: bolt-rack
+      item_name: Bolt racks
+      slug: bolt-racks
       relationship: component
-      description: Required ammo
+      description: Required ammunition for Karil's crossbow; consumed on firing.
+    - item_id: 12926
+      item_name: Toxic blowpipe
+      slug: toxic-blowpipe
+      relationship: alternative
+      description: High-DPS alternative ranged weapon commonly used over Karil's crossbow.
+    - item_id: 20997
+      item_name: Twisted bow
+      slug: twisted-bow
+      relationship: alternative
+      description: End-game ranged weapon that outclasses Karil's crossbow in nearly all content.
+    - item_id: 4718
+      item_name: Dharok's greataxe
+      slug: dharok-s-greataxe
+      relationship: alternative
+      description: Another Barrows weapon with a powerful low-HP damage set effect.
+    - item_id: 4710
+      item_name: Ahrim's staff
+      slug: ahrim-s-staff
+      relationship: alternative
+      description: Barrows magic weapon with a Strength-draining set effect.
+    - item_id: 4726
+      item_name: Verac's flail
+      slug: verac-s-flail
+      relationship: alternative
+      description: Barrows melee weapon with a prayer-ignoring set effect.
   about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Ranged attack | +84 |
-    | Ranged strength | +0 |
-
-    | Defence | Value |
-    |---------|-------|
-    | All | +0 |
-
-    Requirements: 70 Ranged
-
-    Full Karil's:
-    - Chance to lower target's Agility
-
-    With Amulet of the Damned:
-    - 25% chance for second hit at 50% damage
-
-    Uses Bolt racks - break on use, cannot be recovered.
-
-    Degrades over 15 hours of combat.
-
-    Niche uses:
-    - Set effect is unique
-    - Fast attack speed
-    - Barrows completion
-
-    Generally outclassed by other crossbows.
+    Karil's crossbow is a members two-handed ranged weapon requiring 70 Ranged and 70 Agility to wield, obtained from the Barrows minigame as part of Karil the Tainted's equipment. It fires bolt racks as dedicated ammunition for high damage output and has a fast attack speed of 4 ticks with an attack range of 8. When worn together with Karil's coif, leathertop and leatherskirt, the Tainted Shot set effect grants a 25% chance on a successful hit to drain the target's Agility level by 20%, and the crossbow degrades over 15 hours of combat and must be repaired by Bob in Lumbridge or at an armour stand.
   market_strategy:
     notes:
       - Barrows grind
       - Bolt racks add cost
       - Set effect is situational
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

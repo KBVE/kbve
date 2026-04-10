@@ -13,80 +13,59 @@ osrs:
   highalch: 216
   limit: 2000
   potion:
-    doses: 3
-    type: boost
-    skill: ranged
-    boost_min: 4
-    boost_max: 13
-    boost_formula: 10% + 4
-    duration: 60
-  herblore:
-    level: 72
-    xp: 162.5
+    doses: 4
+    herblore_level: 72
+    herblore_xp: 162.5
+    effect: "Boosts Ranged level by 4 + 10% of base level for 5 minutes"
+    effects:
+      - stat: ranged
+        boost_type: formula
+        boost_formula: "4 + floor(level * 0.10)"
+        duration: 500
   recipes:
     - skill: herblore
       level: 72
       xp: 162.5
+      members_only: true
       materials:
         - item_name: Dwarf weed potion (unf)
-          item_id: 109
+          item_id: 105
           quantity: 1
         - item_name: Wine of zamorak
           item_id: 245
           quantity: 1
-      product: Ranging potion(3)
-      product_id: 2444
-      product_quantity: 1
-      facility: None
-      members_only: true
   related_items:
-    - item_id: 267
-      item_name: Dwarf weed
+    - item_name: Dwarf weed
+      item_id: 267
       slug: dwarf-weed
       relationship: component
-      description: Primary herb
-    - item_id: 245
-      item_name: Wine of zamorak
+    - item_name: Dwarf weed potion (unf)
+      item_id: 105
+      slug: dwarf-weed-potion-unf
+      relationship: component
+    - item_name: Wine of zamorak
+      item_id: 245
       slug: wine-of-zamorak
       relationship: component
-      description: Secondary
-    - item_id: 22461
-      item_name: Bastion potion(3)
-      slug: bastion-potion-3
+    - item_name: Ranging potion(3)
+      slug: ranging-potion-3
+      relationship: variant
+    - item_name: Ranging potion(2)
+      slug: ranging-potion-2
+      relationship: variant
+    - item_name: Ranging potion(1)
+      slug: ranging-potion-1
+      relationship: variant
+    - item_name: Divine ranging potion(4)
+      slug: divine-ranging-potion-4
+      relationship: upgrade
+    - item_name: Bastion potion(4)
+      slug: bastion-potion-4
       relationship: alternative
-      description: Upgrade
-    - item_id: 23733
-      item_name: Divine ranging potion(3)
-      slug: divine-ranging-potion-3
-      relationship: alternative
-      description: Variant
   about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore Level | 72 |
-    | XP | 162.5 |
-    | Ingredients | Dwarf weed + Wine of zamorak |
-
-    | Effect | Value |
-    |--------|-------|
-    | Ranged boost | +4 to +13 (10% + 4) |
-    | Duration | 60s per level lost |
-    | Preserve prayer | 90s per level lost |
-  market_strategy:
-    notes:
-      - Required for Ranged combat
-      - High demand always
-      - Wine of zamorak expensive
-      - Ranged PvM
-      - Raids preparation
-      - Slayer tasks
-      - Bossing
-      - Low buy limit (2,000)
-      - Dwarf weed herb
-      - Wine of zamorak secondary
-      - Always in demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Ranging potion(4) is a 4-dose members potion that temporarily boosts the Ranged level for ranged combat and skilling, made via Herblore at level 72 from a dwarf weed potion (unf) and wine of zamorak for 162.5 XP. The boost is calculated as 4 + 10% of the base Ranged level, lasting roughly 5 minutes before decaying one level per minute. It is commonly used for Slayer ranging tasks, Nightmare Zone training, and PvM bossing where squeezing extra Ranged accuracy and damage matters.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
