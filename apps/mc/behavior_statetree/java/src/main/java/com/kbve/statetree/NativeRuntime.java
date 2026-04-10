@@ -77,6 +77,17 @@ public final class NativeRuntime {
     public static native boolean submitJob(String observationJson);
 
     /**
+     * Submit a snapshot of all online players as JSON. Call once per
+     * observation tick from the Fabric server tick handler. The Rust ECS
+     * uses this to maintain its own world model so spawn/despawn policy
+     * lives entirely on the Rust side.
+     *
+     * @param snapshotJson JSON-serialized PlayerSnapshot
+     * @return true if accepted, false if back-pressured
+     */
+    public static native boolean submitPlayerSnapshot(String snapshotJson);
+
+    /**
      * Poll all completed NPC intents as a JSON array.
      * Call each server tick to drain results.
      *

@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,9 +16,24 @@ import org.slf4j.LoggerFactory;
 /**
  * Server tick handler — the sync boundary between Fabric and Tokio.
  *
- * <p>Observations are throttled to every {@link #OBSERVE_INTERVAL} ticks
- * to avoid overwhelming the Tokio runtime. Intents are polled every tick
- * so actions feel responsive once decided.
+ * <p>Each observation tick (every {@link #OBSERVE_INTERVAL} ticks) Java
+ * pushes two things to Rust:
+ * <ol>
+ *   <li>A snapshot of all online players (positions, health) so the Rust
+ *       ECS has the world state it needs for spawn/despawn policy.</li>
+ *   <li>One per-NPC observation per AI Skeleton.</li>
+ * </ol>
+ *
+ * <p>Every game tick Java polls and applies intents from Rust. Intents
+ * come in two flavors:
+ * <ul>
+ *   <li><b>Per-NPC intents</b> — {@code entity_id != 0}, target a specific
+ *       managed mob. Resolved through the epoch check, then dispatched to
+ *       {@link #applyMobCommand}.</li>
+ *   <li><b>World intents</b> — {@code entity_id == 0}, not tied to any
+ *       single mob (e.g. {@code SpawnSkeleton}, {@code Despawn}). Dispatched
+ *       to {@link #applyWorldCommand}.</li>
+ * </ul>
  */
 public class NpcTickHandler implements ServerTickEvents.EndTick {
 
@@ -38,20 +54,55 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
 
         tickCounter++;
 
-        // Phase 0: Manage skeleton lifecycle (every tick for cleanup)
+        // Phase 0: Manage skeleton lifecycle (every tick — just dead-entity cleanup)
         skeletonManager.tick(server);
 
-        // Phase 1: Gather observations — throttled to reduce load
+        // Phase 1: Push observations — throttled to every OBSERVE_INTERVAL ticks
         if (tickCounter % OBSERVE_INTERVAL == 0) {
+            submitPlayerSnapshot(server);
             skeletonManager.submitObservations(server);
         }
 
-        // Phase 2 + 3: Poll and apply intents every tick for responsiveness
+        // Phase 2: Poll and apply intents every tick for responsiveness
         String intentsJson = NativeRuntime.pollIntents();
         if (intentsJson == null || intentsJson.equals("[]")) {
             return;
         }
         applyIntents(server, intentsJson);
+    }
+
+    // -----------------------------------------------------------------------
+    // Player snapshot push — gives Rust the world model it needs for
+    // spawn/despawn policy without asking Java per-decision
+    // -----------------------------------------------------------------------
+
+    private void submitPlayerSnapshot(MinecraftServer server) {
+        ServerWorld overworld = server.getOverworld();
+        if (overworld == null) return;
+
+        long currentTick = overworld.getTime();
+
+        JsonArray players = new JsonArray();
+        for (ServerPlayerEntity player : overworld.getPlayers()) {
+            JsonObject p = new JsonObject();
+            p.addProperty("entity_id", player.getId());
+            p.addProperty("username", player.getNameForScoreboard());
+
+            JsonArray pos = new JsonArray();
+            pos.add(player.getX());
+            pos.add(player.getY());
+            pos.add(player.getZ());
+            p.add("position", pos);
+
+            p.addProperty("health", player.getHealth());
+            players.add(p);
+        }
+
+        JsonObject snapshot = new JsonObject();
+        snapshot.add("players", players);
+        snapshot.addProperty("tick", currentTick);
+
+        NativeRuntime.submitPlayerSnapshot(GSON.toJson(snapshot));
     }
 
     // -----------------------------------------------------------------------
@@ -75,6 +126,18 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             int entityId = intent.get("entity_id").getAsInt();
             long epoch = intent.get("epoch").getAsLong();
 
+            JsonArray commands = intent.getAsJsonArray("commands");
+            if (commands == null) continue;
+
+            // World intents: entity_id == 0 means "not tied to a specific mob"
+            if (entityId == 0) {
+                for (JsonElement cmdElem : commands) {
+                    applyWorldCommand(overworld, cmdElem.getAsJsonObject());
+                }
+                continue;
+            }
+
+            // Per-NPC intents: epoch-validated and dispatched per mob
             if (!skeletonManager.isManaged(entityId)) continue;
 
             long currentEpoch = skeletonManager.getEpoch(entityId);
@@ -84,17 +147,17 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             if (entity == null || !entity.isAlive()) continue;
             if (!(entity instanceof MobEntity mob)) continue;
 
-            JsonArray commands = intent.getAsJsonArray("commands");
-            if (commands == null) continue;
-
             for (JsonElement cmdElem : commands) {
-                JsonObject cmd = cmdElem.getAsJsonObject();
-                applyCommand(overworld, mob, cmd);
+                applyMobCommand(overworld, mob, cmdElem.getAsJsonObject());
             }
         }
     }
 
-    private void applyCommand(ServerWorld world, MobEntity mob, JsonObject cmd) {
+    // -----------------------------------------------------------------------
+    // Per-NPC commands — operate on a specific mob
+    // -----------------------------------------------------------------------
+
+    private void applyMobCommand(ServerWorld world, MobEntity mob, JsonObject cmd) {
         if (cmd.has("MoveTo")) {
             JsonObject moveTo = cmd.getAsJsonObject("MoveTo");
             JsonArray target = moveTo.getAsJsonArray("target");
@@ -128,14 +191,31 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             }
 
         } else if (cmd.has("CallForHelp")) {
-            // Pure actuator: Rust already gated this through CallCooldown +
-            // GlobalCallCooldown. Java just spawns whatever was asked.
+            // Rust already gated this through CallCooldown + GlobalCallCooldown.
             JsonObject call = cmd.getAsJsonObject("CallForHelp");
             int count = call.get("count").getAsInt();
             skeletonManager.spawnReinforcements(world, mob.getId(), count);
 
         } else if (cmd.has("SetGoal")) {
             LOGGER.debug("[AI Skeleton] SetGoal not yet implemented");
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // World commands — operate on world state, not a specific mob
+    // -----------------------------------------------------------------------
+
+    private void applyWorldCommand(ServerWorld world, JsonObject cmd) {
+        if (cmd.has("SpawnSkeleton")) {
+            JsonObject spawn = cmd.getAsJsonObject("SpawnSkeleton");
+            int playerId = spawn.get("near_player").getAsInt();
+            int radius = spawn.get("radius").getAsInt();
+            skeletonManager.spawnSkeletonNearPlayer(world, playerId, radius);
+
+        } else if (cmd.has("Despawn")) {
+            JsonObject despawn = cmd.getAsJsonObject("Despawn");
+            int targetId = (int) despawn.get("target_entity").getAsLong();
+            skeletonManager.despawnEntity(world, targetId);
         }
     }
 }

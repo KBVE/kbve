@@ -23,7 +23,7 @@ use jni::objects::{JClass, JString};
 use jni::sys::{jboolean, jstring};
 
 use runtime::AiRuntime;
-use types::{NpcObservation, NpcThinkJob};
+use types::{NpcObservation, NpcThinkJob, PlayerSnapshot};
 
 /// Global runtime instance — initialized once via JNI `init()`.
 static RUNTIME: OnceLock<AiRuntime> = OnceLock::new();
@@ -59,6 +59,38 @@ pub extern "system" fn Java_com_kbve_statetree_NativeRuntime_submitJob(
     };
 
     if rt.submit_job(NpcThinkJob { observation }) {
+        1
+    } else {
+        0
+    }
+}
+
+/// Submit a snapshot of all online players. Java pushes one of these per
+/// observation tick. The Rust ECS reconciles it against `OnlinePlayer`
+/// entities so the population manager can run spawn/despawn purely on
+/// in-Rust state — Java doesn't decide which mobs exist anymore.
+///
+/// Returns true if accepted, false if back-pressured.
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_kbve_statetree_NativeRuntime_submitPlayerSnapshot(
+    mut env: JNIEnv,
+    _class: JClass,
+    snapshot_json: JString,
+) -> jboolean {
+    let Some(rt) = RUNTIME.get() else {
+        return 0;
+    };
+
+    let json_str: String = match env.get_string(&snapshot_json) {
+        Ok(s) => s.into(),
+        Err(_) => return 0,
+    };
+
+    let Ok(snapshot) = serde_json::from_str::<PlayerSnapshot>(&json_str) else {
+        return 0;
+    };
+
+    if rt.submit_player_snapshot(snapshot) {
         1
     } else {
         0

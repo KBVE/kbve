@@ -43,16 +43,10 @@ public class AiSkeletonManager {
     private static final Logger LOGGER = LoggerFactory.getLogger("behavior_statetree");
     private static final Gson GSON = new Gson();
 
-    private static final int SPAWN_RADIUS = 20;
-    private static final int DESPAWN_RANGE = 64;
-    private static final int MAX_SKELETONS = 3;
-    private static final int SPAWN_CHECK_INTERVAL = 100; // ticks (~5s)
     private static final double OBSERVATION_RANGE = 32.0;
 
     /** Tracked skeletons keyed by entity ID. Holds only the epoch. */
     private final ConcurrentHashMap<Integer, EpochSlot> skeletons = new ConcurrentHashMap<>();
-
-    private int tickCounter = 0;
 
     // -----------------------------------------------------------------------
     // Tracked skeleton state — strictly the JVM-side epoch counter
@@ -78,12 +72,9 @@ public class AiSkeletonManager {
         ServerWorld overworld = server.getOverworld();
         if (overworld == null) return;
 
-        tickCounter++;
-        if (tickCounter % SPAWN_CHECK_INTERVAL == 0) {
-            manageSpawns(overworld);
-        }
-
-        // Evict dead skeletons
+        // Evict dead skeletons from the epoch map. Population management
+        // (spawning new ones, despawning ones too far from players) happens
+        // in Rust now via SpawnSkeleton / Despawn intents.
         skeletons.entrySet().removeIf(entry -> {
             var entity = overworld.getEntityById(entry.getKey());
             return entity == null || !entity.isAlive();
@@ -162,16 +153,24 @@ public class AiSkeletonManager {
     }
 
     // -----------------------------------------------------------------------
-    // Reinforcement spawning — pure actuator. Rust decided WHEN; Java does HOW.
+    // Pure actuator API — called by NpcTickHandler when Rust emits commands
     // -----------------------------------------------------------------------
 
     /**
-     * Spawn reinforcement skeletons near the calling skeleton.
+     * Spawn an AI Skeleton near the given player. Called when Rust emits
+     * a {@code SpawnSkeleton} world intent.
      *
-     * <p>No cooldown checks here — Rust's behavior tree already gated this
-     * call through {@code CallCooldown} + {@code GlobalCallCooldown} before
-     * the {@code CallForHelp} command was emitted. The only constraint Java
-     * enforces is {@link #MAX_SKELETONS} (Minecraft mob count cap).
+     * @return true if a skeleton was actually spawned
+     */
+    public boolean spawnSkeletonNearPlayer(ServerWorld world, int playerEntityId, int radius) {
+        var player = world.getEntityById(playerEntityId);
+        if (player == null || !player.isAlive()) return false;
+        return spawnSkeletonNear(world, player.getX(), player.getY(), player.getZ(), radius);
+    }
+
+    /**
+     * Spawn AI Skeletons near an existing skeleton (reinforcement call).
+     * Called when Rust emits a {@code CallForHelp} per-NPC intent.
      *
      * @return number of skeletons actually spawned
      */
@@ -180,7 +179,7 @@ public class AiSkeletonManager {
         if (caller == null || !caller.isAlive()) return 0;
 
         int spawned = 0;
-        for (int i = 0; i < count && skeletons.size() < MAX_SKELETONS; i++) {
+        for (int i = 0; i < count; i++) {
             if (spawnSkeletonNear(world, caller.getX(), caller.getY(), caller.getZ(), 8)) {
                 spawned++;
             }
@@ -193,38 +192,21 @@ public class AiSkeletonManager {
         return spawned;
     }
 
-    // -----------------------------------------------------------------------
-    // Spawn / despawn management
-    // -----------------------------------------------------------------------
-
-    private void manageSpawns(ServerWorld world) {
-        // Despawn skeletons too far from any player
-        skeletons.entrySet().removeIf(entry -> {
-            var entity = world.getEntityById(entry.getKey());
-            if (entity == null) return true;
-
-            boolean nearPlayer = false;
-            for (ServerPlayerEntity player : world.getPlayers()) {
-                if (entity.squaredDistanceTo(player) < DESPAWN_RANGE * DESPAWN_RANGE) {
-                    nearPlayer = true;
-                    break;
-                }
-            }
-            if (!nearPlayer) {
-                entity.discard();
-                return true;
-            }
-            return false;
-        });
-
-        // Spawn skeletons near players if under limit
-        if (skeletons.size() >= MAX_SKELETONS) return;
-
-        for (ServerPlayerEntity player : world.getPlayers()) {
-            if (skeletons.size() >= MAX_SKELETONS) break;
-            spawnSkeletonNear(world, player.getX(), player.getY(), player.getZ(), SPAWN_RADIUS);
+    /**
+     * Discard an AI Skeleton entity by ID. Called when Rust emits a
+     * {@code Despawn} world intent (skeleton too far from any player).
+     */
+    public void despawnEntity(ServerWorld world, int entityId) {
+        var entity = world.getEntityById(entityId);
+        if (entity != null) {
+            entity.discard();
         }
+        skeletons.remove(entityId);
     }
+
+    // -----------------------------------------------------------------------
+    // Internal spawn primitive
+    // -----------------------------------------------------------------------
 
     private boolean spawnSkeletonNear(ServerWorld world, double centerX, double centerY, double centerZ, int radius) {
         Random rand = new Random();

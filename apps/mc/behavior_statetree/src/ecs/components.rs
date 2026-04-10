@@ -9,6 +9,19 @@ use crate::tree::node::CooldownState;
 #[derive(Component, Debug)]
 pub struct AiManaged;
 
+/// Marker for AI Skeleton entities specifically. Used by the population
+/// manager system to distinguish skeletons from other AI creature types.
+#[derive(Component, Debug)]
+pub struct AiSkeleton;
+
+/// Marker for online players mirrored from Java's player snapshot.
+/// One ECS entity per logged-in player; reconciled each observation tick.
+#[derive(Component, Debug)]
+pub struct OnlinePlayer {
+    pub entity_id: u64,
+    pub username: String,
+}
+
 /// Position in Minecraft world coordinates.
 #[derive(Component, Debug, Clone, Serialize, Deserialize)]
 pub struct McPosition {
@@ -112,3 +125,37 @@ impl CooldownState for GlobalCallCooldown {
         self.last_call_tick = current_tick;
     }
 }
+
+// ---------------------------------------------------------------------------
+// Skeleton population config — single source of truth for the spawn/despawn
+// policy. Lives in Rust so Java has zero say in "how many skeletons exist".
+// ---------------------------------------------------------------------------
+
+/// Tunable parameters for the AI Skeleton population manager system.
+#[derive(Resource, Debug)]
+pub struct SkeletonPopulationConfig {
+    /// Maximum AI Skeletons alive at once (server-wide).
+    pub max_skeletons: usize,
+    /// Spawn radius around each player (blocks).
+    pub spawn_radius: i32,
+    /// Skeletons further than this from every player get despawn intents.
+    pub despawn_range: f64,
+    /// Run the spawn/despawn pass every N ECS ticks (~5s at 100ms ticks).
+    pub manage_interval_ticks: u64,
+}
+
+impl Default for SkeletonPopulationConfig {
+    fn default() -> Self {
+        Self {
+            max_skeletons: 3,
+            spawn_radius: 20,
+            despawn_range: 64.0,
+            manage_interval_ticks: 50, // 5s at 100ms ECS ticks
+        }
+    }
+}
+
+/// Tracks when the population manager last ran. Resource so the system
+/// can self-throttle without an extra timer plugin.
+#[derive(Resource, Debug, Default)]
+pub struct LastPopulationManagedTick(pub u64);
