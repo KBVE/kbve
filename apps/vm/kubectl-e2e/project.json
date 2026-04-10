@@ -18,10 +18,9 @@
 					"docker buildx build --platform linux/amd64 -f apps/vm/kubectl/Dockerfile -t kbve/kubectl:e2e --load .",
 					"docker run -d --name kubectl-e2e --entrypoint sleep kbve/kubectl:e2e infinity",
 					"echo 'Waiting for container...' && for i in $(seq 1 30); do if docker exec kubectl-e2e /bin/sh -c 'echo ok' >/dev/null 2>&1; then echo 'Container ready after '\"$i\"'s'; break; fi; if [ $i -eq 30 ]; then echo 'Container did not become ready'; docker logs kubectl-e2e 2>&1 | tail -20; docker rm -f kubectl-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
-					"npx vitest run; EC=$?; docker rm -f kubectl-e2e 2>/dev/null || true; exit $EC"
+					"cd apps/vm/kubectl-e2e && npx vitest run; EC=$?; docker rm -f kubectl-e2e 2>/dev/null || true; exit $EC"
 				],
-				"parallel": false,
-				"cwd": "apps/vm/kubectl-e2e"
+				"parallel": false
 			},
 			"configurations": {
 				"ci": {}

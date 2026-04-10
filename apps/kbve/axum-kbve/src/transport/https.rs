@@ -264,6 +264,14 @@ fn router(state: AppState) -> Router {
             any(super::proxy::firecracker_proxy_handler),
         )
         .route(
+            "/dashboard/firecracker-net/proxy/{*path}",
+            any(super::proxy::firecracker_net_proxy_handler),
+        )
+        .route(
+            "/dashboard/firecracker-net/proxy",
+            any(super::proxy::firecracker_net_proxy_handler),
+        )
+        .route(
             "/dashboard/kasm/proxy/{*path}",
             any(super::proxy::kasm_proxy_handler),
         )

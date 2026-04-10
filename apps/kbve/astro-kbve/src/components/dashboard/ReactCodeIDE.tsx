@@ -269,6 +269,7 @@ export default function ReactCodeIDE() {
 	const result = useStore(ideService.$result);
 	const error = useStore(ideService.$error);
 	const preset = useStore(ideService.$preset);
+	const useNetwork = useStore(ideService.$useNetwork);
 	const editorRef = useRef<HTMLDivElement>(null);
 	const viewRef = useRef<EditorView | null>(null);
 	const langCompartment = useRef(new Compartment());
@@ -474,6 +475,40 @@ export default function ReactCodeIDE() {
 							</select>
 						);
 					})()}
+					{/* Network toggle — routes to firecracker-ctl-net (VPN).
+					    Backend enforces DASHBOARD_MANAGE permission, so users
+					    without it will get 403 on the first request. */}
+					<label
+						title="Route VM traffic through the WireGuard VPN (staff only — requires DASHBOARD_MANAGE)"
+						style={{
+							display: 'inline-flex',
+							alignItems: 'center',
+							gap: '0.35rem',
+							fontSize: '0.75rem',
+							color: useNetwork
+								? '#22c55e'
+								: 'rgba(255,255,255,0.5)',
+							padding: '0.25rem 0.5rem',
+							border: `1px solid ${
+								useNetwork
+									? 'rgba(34,197,94,0.4)'
+									: 'rgba(255,255,255,0.1)'
+							}`,
+							borderRadius: '6px',
+							cursor: isRunning ? 'not-allowed' : 'pointer',
+							opacity: isRunning ? 0.5 : 1,
+						}}>
+						<input
+							type="checkbox"
+							checked={useNetwork}
+							disabled={isRunning}
+							onChange={(e) =>
+								ideService.$useNetwork.set(e.target.checked)
+							}
+							style={{ cursor: 'inherit' }}
+						/>
+						Network (VPN)
+					</label>
 				</div>
 				<PhaseIndicator phase={phase} elapsed={elapsed} />
 			</div>

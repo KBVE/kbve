@@ -1,5 +1,6 @@
 # Headless backend Service — selects the Agones gameserver pods.
-# Velocity uses this name to forward connections.
+# Velocity uses this DNS name to forward connections to the dynamically
+# allocated Fabric server pods.
 # Headless (clusterIP: None) so DNS returns pod IPs directly,
 # bypassing kube-proxy load balancing.
 apiVersion: v1
@@ -15,28 +16,6 @@ spec:
     clusterIP: None
     selector:
         app: mc-gameserver
-    ports:
-        - name: minecraft
-          port: 25565
-          targetPort: 25565
-          protocol: TCP
----
-# ClusterIP Service for Velocity — the Cilium Gateway TCPRoute
-# (apps/kube/agones/mc/velocity-tcproute.yaml) handles external
-# exposure on port 25565 by sharing the kbve-gateway IP.
-# No standalone LoadBalancer needed → no IP pool exhaustion.
-apiVersion: v1
-kind: Service
-metadata:
-    name: mc-velocity
-    namespace: arc-runners
-    labels:
-        app: mc-velocity
-        app.kubernetes.io/part-of: mc
-spec:
-    type: ClusterIP
-    selector:
-        app: mc-velocity
     ports:
         - name: minecraft
           port: 25565

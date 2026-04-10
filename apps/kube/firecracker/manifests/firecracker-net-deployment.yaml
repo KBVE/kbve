@@ -1,0 +1,161 @@
+# Network-enabled Firecracker deployment with Gluetun (WireGuard VPN) sidecar.
+# All VM traffic exits through the WireGuard tunnel — user code in VMs gets
+# internet access via the VPN, never seeing the raw host network.
+#
+# This is a separate deployment from firecracker-ctl (no-network) so that
+# untrusted user code by default runs without network, and privileged staff
+# can opt into the network-enabled backend via a permission-gated proxy route.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: firecracker-ctl-net
+    namespace: firecracker
+    labels:
+        app: firecracker-ctl-net
+        app.kubernetes.io/part-of: firecracker
+        app.kubernetes.io/component: vm-runtime-net
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: firecracker-ctl-net
+    template:
+        metadata:
+            labels:
+                app: firecracker-ctl-net
+                app.kubernetes.io/part-of: firecracker
+                app.kubernetes.io/component: vm-runtime-net
+        spec:
+            nodeSelector:
+                kvm: 'true'
+            automountServiceAccountToken: false
+            containers:
+                # ── Gluetun VPN sidecar ──
+                # Establishes WireGuard tunnel. firecracker-ctl shares this
+                # network namespace, so all VM traffic routes through the VPN.
+                - name: gluetun
+                  image: ghcr.io/qdm12/gluetun:v3.40.0
+                  securityContext:
+                      capabilities:
+                          add:
+                              - NET_ADMIN
+                  ports:
+                      # Expose firecracker-ctl API through Gluetun's network stack
+                      - name: api
+                        containerPort: 9001
+                        protocol: TCP
+                      # Gluetun health/control API
+                      - name: gluetun-http
+                        containerPort: 9999
+                        protocol: TCP
+                  envFrom:
+                      - secretRef:
+                            name: vpn-wireguard
+                  env:
+                      - name: UPDATER_PERIOD
+                        value: '24h'
+                      - name: TZ
+                        value: 'UTC'
+                      # Firewall — allow firecracker-ctl API port + health
+                      - name: FIREWALL_INPUT_PORTS
+                        value: '9001,9999'
+                      - name: FIREWALL_OUTBOUND_SUBNETS
+                        value: '10.0.0.0/8,172.16.0.0/12'
+                      # Disable DNS-over-TLS (port 853 blocked through tunnel,
+                      # same issue as KASM — causes health check failures)
+                      - name: DOT
+                        value: 'off'
+                      - name: DNS_ADDRESS
+                        value: '1.1.1.1'
+                      # Give tunnel time to stabilize before health check
+                      - name: HEALTH_VPN_DURATION_INITIAL
+                        value: '30s'
+                      - name: HEALTH_SERVER_ADDRESS
+                        value: '0.0.0.0:9999'
+                  livenessProbe:
+                      httpGet:
+                          path: /
+                          port: 9999
+                      initialDelaySeconds: 30
+                      periodSeconds: 30
+                      timeoutSeconds: 10
+                      failureThreshold: 5
+                  readinessProbe:
+                      httpGet:
+                          path: /
+                          port: 9999
+                      initialDelaySeconds: 15
+                      periodSeconds: 15
+                      timeoutSeconds: 10
+                  resources:
+                      requests:
+                          cpu: 100m
+                          memory: 128Mi
+                      limits:
+                          cpu: 500m
+                          memory: 384Mi
+
+                # ── firecracker-ctl (shares Gluetun's network namespace) ──
+                - name: firecracker-ctl
+                  image: ghcr.io/kbve/firecracker-ctl:0.1.27
+                  resources:
+                      requests:
+                          cpu: 250m
+                          memory: 512Mi
+                          devices.kubevirt.io/kvm: '1'
+                      limits:
+                          cpu: '2'
+                          memory: 2Gi
+                          devices.kubevirt.io/kvm: '1'
+                  env:
+                      - name: FC_USE_JAILER
+                        value: 'true'
+                      - name: FC_JAILER_UID
+                        value: '10001'
+                      - name: FC_JAILER_GID
+                        value: '10001'
+                      # Different port? No — Gluetun already firewalls 9001
+                      # and this container doesn't own its own net namespace.
+                      # Listen on 9001 (same as default) through Gluetun.
+                  securityContext:
+                      # Same seccomp exception as the non-network deployment
+                      # (jailer pivot_root requirement — see firecracker-deployment.yaml)
+                      seccompProfile:
+                          type: Unconfined
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+                          add:
+                              - CHOWN
+                              - DAC_OVERRIDE
+                              - FOWNER
+                              - KILL
+                              - MKNOD
+                              - NET_ADMIN
+                              - SETGID
+                              - SETUID
+                              - SYS_ADMIN
+                              - SYS_CHROOT
+                  volumeMounts:
+                      - name: rootfs-cache
+                        mountPath: /var/lib/firecracker/rootfs
+                        readOnly: true
+                      - name: vm-scratch
+                        mountPath: /var/lib/firecracker/scratch
+                      - name: tmp
+                        mountPath: /tmp
+                  # No liveness/readiness probes on this container —
+                  # the probe port 9001 is owned by Gluetun (shared netns)
+                  # and we can't distinguish which container responds.
+                  # Gluetun's own health check covers the pod.
+            volumes:
+                - name: rootfs-cache
+                  persistentVolumeClaim:
+                      claimName: firecracker-rootfs
+                - name: vm-scratch
+                  emptyDir:
+                      sizeLimit: 8Gi
+                - name: tmp
+                  emptyDir:
+                      sizeLimit: 64Mi

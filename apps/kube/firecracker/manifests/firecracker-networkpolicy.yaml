@@ -89,3 +89,49 @@ spec:
         - ports:
               - protocol: TCP
                 port: 443
+---
+# Network-enabled firecracker-ctl (Gluetun + WireGuard sidecar).
+# Same ingress as the no-network deployment, plus egress for the VPN tunnel.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: firecracker-ctl-net-policy
+    namespace: firecracker
+spec:
+    podSelector:
+        matchLabels:
+            app: firecracker-ctl-net
+    policyTypes:
+        - Ingress
+        - Egress
+    ingress:
+        # Dashboard proxy (kbve/app:kbve) → firecracker-ctl-net API
+        # Only the dashboard can hit this — no edge function access
+        # because network-enabled VMs are staff-only.
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: kbve
+                podSelector:
+                    matchLabels:
+                        app: kbve
+          ports:
+              - protocol: TCP
+                port: 9001
+    egress:
+        # DNS resolution (required before WireGuard endpoint resolution)
+        - to:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: kube-system
+          ports:
+              - protocol: UDP
+                port: 53
+              - protocol: TCP
+                port: 53
+        # WireGuard tunnel to VPN endpoint (UDP 51820)
+        # Egress to any IP — Gluetun resolves and connects to the
+        # provider endpoint, no way to pre-lock a specific IP.
+        - ports:
+              - protocol: UDP
+                port: 51820

@@ -114,6 +114,7 @@ export const PRESETS: RuntimePreset[] = [
 // ---------------------------------------------------------------------------
 
 const FC_PROXY = '/dashboard/firecracker/proxy';
+const FC_NET_PROXY = '/dashboard/firecracker-net/proxy';
 const POLL_INTERVAL_MS = 500;
 
 // ---------------------------------------------------------------------------
@@ -125,6 +126,7 @@ async function fcFetch<T>(
 	path: string,
 	method = 'GET',
 	body?: unknown,
+	useNetwork = false,
 ): Promise<T> {
 	const headers: Record<string, string> = {
 		Authorization: `Bearer ${token}`,
@@ -138,7 +140,8 @@ async function fcFetch<T>(
 		headers['Content-Type'] = 'application/json';
 		opts.body = JSON.stringify(body);
 	}
-	const resp = await fetch(`${FC_PROXY}${path}`, opts);
+	const base = useNetwork ? FC_NET_PROXY : FC_PROXY;
+	const resp = await fetch(`${base}${path}`, opts);
 	if (!resp.ok) {
 		const text = await resp.text().catch(() => '');
 		throw new Error(
@@ -290,6 +293,9 @@ class IDEService {
 	public readonly $preset = atom<RuntimePreset>(PRESETS[0]);
 	public readonly $code = atom<string>(DEFAULT_CODES.python);
 	public readonly $history = atom<HistoryEntry[]>([]);
+	// Opt-in to network-enabled firecracker backend (staff-only, DASHBOARD_MANAGE).
+	// When true, all fcFetch calls route to /dashboard/firecracker-net/proxy.
+	public readonly $useNetwork = atom<boolean>(false);
 
 	private _abortController: AbortController | null = null;
 
@@ -331,6 +337,7 @@ class IDEService {
 		}
 
 		const preset = this.$preset.get();
+		const useNetwork = this.$useNetwork.get();
 		this.$phase.set('creating');
 		this.$result.set(null);
 		this.$error.set(null);
@@ -349,6 +356,7 @@ class IDEService {
 					env: { CODE: code },
 					boot_args: 'console=ttyS0 reboot=k panic=1 init=/init',
 				},
+				useNetwork,
 			);
 
 			const vmId = createResp.vm_id;
@@ -361,6 +369,9 @@ class IDEService {
 				const info = await fcFetch<{ vm_id: string; status: string }>(
 					token,
 					`/vm/${vmId}`,
+					'GET',
+					undefined,
+					useNetwork,
 				);
 
 				if (
@@ -371,6 +382,9 @@ class IDEService {
 					const result = await fcFetch<RunResult>(
 						token,
 						`/vm/${vmId}/result`,
+						'GET',
+						undefined,
+						useNetwork,
 					);
 					this.$result.set(result);
 					this._pushHistory(result, null);
@@ -389,6 +403,9 @@ class IDEService {
 				const result = await fcFetch<RunResult>(
 					token,
 					`/vm/${vmId}/result`,
+					'GET',
+					undefined,
+					useNetwork,
 				);
 				this.$result.set(result);
 			} catch {
