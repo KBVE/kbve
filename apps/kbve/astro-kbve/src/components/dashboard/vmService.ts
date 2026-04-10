@@ -1,5 +1,10 @@
 import { atom, computed } from 'nanostores';
 import { initSupa, getSupa } from '@/lib/supa';
+import { addToast } from '@kbve/droid';
+
+function capitalize(s: string): string {
+	return s.length === 0 ? s : s[0].toUpperCase() + s.slice(1);
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -449,22 +454,45 @@ class VMService {
 
 	public readonly $vms = atom<VirtualMachine[]>([]);
 	public readonly $vmis = atom<VirtualMachineInstance[]>([]);
+	/** True only on the initial load (before any data arrives). */
 	public readonly $loading = atom<boolean>(true);
+	/** True whenever a background poll is in flight. Drives the top bar. */
+	public readonly $refreshing = atom<boolean>(false);
 	public readonly $error = atom<string | null>(null);
 	public readonly $lastUpdated = atom<Date | null>(null);
+	/** "<action>:<vmname>" while an action is pending a confirmed state change. */
 	public readonly $actionInProgress = atom<string | null>(null);
 	public readonly $vncTarget = atom<string | null>(null);
 	public readonly $guacTarget = atom<string | null>(null);
 
 	public readonly $vmInfos = computed(
-		[this.$vms, this.$vmis],
-		(vms, vmis): VMInfo[] =>
+		[this.$vms, this.$vmis, this.$actionInProgress],
+		(vms, vmis, actionInProgress): VMInfo[] =>
 			vms.map((vm) => {
 				const vmi = vmis.find(
 					(i) => i.metadata.name === vm.metadata.name,
 				);
-				const state = getVMState(vm, vmi);
-				const phase = stateToPhase(state);
+				let state = getVMState(vm, vmi);
+				let phase = stateToPhase(state);
+
+				// Optimistic phase override: while the user's action is pending
+				// confirmation from KubeVirt, show the transitioning phase
+				// immediately instead of waiting for the next poll to flip it.
+				if (actionInProgress) {
+					const [action, target] = actionInProgress.split(':');
+					if (target === vm.metadata.name) {
+						if (action === 'start') {
+							phase = 'Starting';
+							state = phaseToState('Starting');
+						} else if (action === 'stop') {
+							phase = 'Stopping';
+							state = phaseToState('Stopping');
+						} else if (action === 'restart') {
+							phase = 'Starting';
+							state = phaseToState('Starting');
+						}
+					}
+				}
 
 				// Runner label detection — VMs managed by KEDA have a runner label
 				const labels = vm.metadata.labels ?? {};
@@ -540,6 +568,7 @@ class VMService {
 		const token = this.$accessToken.get();
 		if (!token) return;
 
+		this.$refreshing.set(true);
 		try {
 			this.$error.set(null);
 			const [vms, vmis] = await Promise.all([
@@ -558,7 +587,18 @@ class VMService {
 			this.$error.set(e instanceof Error ? e.message : 'Unknown error');
 		} finally {
 			this.$loading.set(false);
+			this.$refreshing.set(false);
 		}
+	}
+
+	/** Read the real (non-optimistic) phase for a VM directly from the
+	 *  underlying atoms, bypassing the $vmInfos computed so we can check
+	 *  whether KubeVirt has actually reached the expected state. */
+	private _getRealPhase(name: string): VMPhase | null {
+		const vm = this.$vms.get().find((v) => v.metadata.name === name);
+		if (!vm) return null;
+		const vmi = this.$vmis.get().find((i) => i.metadata.name === name);
+		return stateToPhase(getVMState(vm, vmi));
 	}
 
 	public loadCacheAndFetch(): void {
@@ -613,15 +653,73 @@ class VMService {
 				`/apis/subresources.kubevirt.io/v1/namespaces/${VM_NAMESPACE}/virtualmachines/${name}/${action}`,
 				'PUT',
 			);
-			// Refresh after short delay to let K8s reconcile
-			setTimeout(() => this.fetchData(), 2000);
+			addToast({
+				id: `vm-${action}-${name}-${Date.now()}`,
+				message: `${capitalize(action)} dispatched to ${name}`,
+				severity: 'info',
+				duration: 3000,
+			});
+			// Kick off a fast-poll loop that keeps the button spinning until
+			// KubeVirt actually reports the expected state (or we time out).
+			// Detached on purpose — the UI should not block on it.
+			void this._fastPollAfterAction(name, action);
 		} catch (e) {
-			this.$error.set(
-				e instanceof Error ? e.message : `Failed to ${action} ${name}`,
-			);
-		} finally {
+			const msg =
+				e instanceof Error ? e.message : `Failed to ${action} ${name}`;
+			this.$error.set(msg);
 			this.$actionInProgress.set(null);
+			addToast({
+				id: `vm-${action}-err-${name}-${Date.now()}`,
+				message: `${capitalize(action)} failed: ${msg}`,
+				severity: 'error',
+				duration: 5000,
+			});
 		}
+	}
+
+	/** Poll the VM state every ~1.2s after an action until the real phase
+	 *  matches the expected outcome (or we hit the timeout). Keeps
+	 *  $actionInProgress set throughout so the button spinner persists. */
+	private async _fastPollAfterAction(
+		name: string,
+		action: 'start' | 'stop' | 'restart',
+	): Promise<void> {
+		const expectedPhase: VMPhase =
+			action === 'stop' ? 'Stopped' : 'Running';
+		// For restart, we expect the phase to dip to Stopping/Starting first
+		// before returning to Running. Don't accept "Running" until we've
+		// seen at least one non-Running intermediate, otherwise we'd clear
+		// the spinner instantly if the poll happens before KubeVirt reacts.
+		let sawIntermediate = action !== 'restart';
+		const POLL_MS = 1200;
+		const MAX_ATTEMPTS = 25; // ~30s budget
+
+		for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+			await new Promise((r) => setTimeout(r, POLL_MS));
+			await this.fetchData();
+			const real = this._getRealPhase(name);
+			if (real === null) {
+				// VM disappeared — nothing more to wait for.
+				break;
+			}
+			if (!sawIntermediate && real !== 'Running') {
+				sawIntermediate = true;
+			}
+			if (real === expectedPhase && sawIntermediate) {
+				addToast({
+					id: `vm-${action}-ok-${name}-${Date.now()}`,
+					message: `${name} is now ${real.toLowerCase()}`,
+					severity: 'success',
+					duration: 3000,
+				});
+				this.$actionInProgress.set(null);
+				return;
+			}
+		}
+
+		// Timed out — release the spinner and let the user see the current
+		// state. No error toast: the action was dispatched, it's just slow.
+		this.$actionInProgress.set(null);
 	}
 
 	// --- VNC ---

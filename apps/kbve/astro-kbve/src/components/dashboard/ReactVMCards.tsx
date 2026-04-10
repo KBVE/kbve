@@ -60,6 +60,11 @@ function VMCard({ info }: { info: VMInfo }) {
 				border: `1px solid ${isRunning ? 'rgba(34, 197, 94, 0.3)' : 'var(--sl-color-gray-5, #30363d)'}`,
 				background: 'var(--sl-color-gray-6, #161b22)',
 				overflow: 'hidden',
+				// Stable min-height prevents the grid from reflowing when
+				// cards expand/contract as VM state changes.
+				minHeight: 320,
+				display: 'flex',
+				flexDirection: 'column',
 			}}>
 			{/* Accent strip */}
 			<div style={{ height: 3, background: phaseColor(phase) }} />
@@ -431,6 +436,124 @@ function VMCard({ info }: { info: VMInfo }) {
 	);
 }
 
+function VMCardSkeleton() {
+	return (
+		<div
+			style={{
+				borderRadius: 12,
+				border: '1px solid var(--sl-color-gray-5, #30363d)',
+				background: 'var(--sl-color-gray-6, #161b22)',
+				overflow: 'hidden',
+				minHeight: 320,
+				display: 'flex',
+				flexDirection: 'column',
+				animation: 'pulse 1.5s ease-in-out infinite',
+			}}>
+			<div
+				style={{
+					height: 3,
+					background: 'var(--sl-color-gray-5, #30363d)',
+				}}
+			/>
+			<div style={{ padding: '1rem 1.25rem' }}>
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: 10,
+					}}>
+					<div
+						style={{
+							width: 40,
+							height: 40,
+							borderRadius: 10,
+							background: 'var(--sl-color-gray-5, #30363d)',
+						}}
+					/>
+					<div style={{ flex: 1 }}>
+						<div
+							style={{
+								width: '60%',
+								height: 12,
+								background: 'var(--sl-color-gray-5, #30363d)',
+								borderRadius: 4,
+								marginBottom: 6,
+							}}
+						/>
+						<div
+							style={{
+								width: '40%',
+								height: 10,
+								background: 'var(--sl-color-gray-5, #30363d)',
+								borderRadius: 4,
+							}}
+						/>
+					</div>
+				</div>
+				<div
+					style={{
+						marginTop: '1.25rem',
+						display: 'grid',
+						gridTemplateColumns: 'repeat(3, 1fr)',
+						gap: '0.75rem',
+					}}>
+					{[0, 1, 2].map((i) => (
+						<div key={i}>
+							<div
+								style={{
+									width: '50%',
+									height: 8,
+									background:
+										'var(--sl-color-gray-5, #30363d)',
+									borderRadius: 4,
+									marginBottom: 6,
+								}}
+							/>
+							<div
+								style={{
+									width: '80%',
+									height: 14,
+									background:
+										'var(--sl-color-gray-5, #30363d)',
+									borderRadius: 4,
+								}}
+							/>
+						</div>
+					))}
+				</div>
+			</div>
+		</div>
+	);
+}
+
+function RefreshBar({ active }: { active: boolean }) {
+	// Reserve vertical space even when inactive so enabling it does not
+	// push the grid down.
+	return (
+		<div
+			style={{
+				position: 'relative',
+				height: 2,
+				marginBottom: '0.75rem',
+				overflow: 'hidden',
+				borderRadius: 1,
+				background: 'transparent',
+			}}>
+			{active && (
+				<div
+					style={{
+						position: 'absolute',
+						inset: 0,
+						background:
+							'linear-gradient(90deg, transparent 0%, var(--sl-color-accent, #06b6d4) 50%, transparent 100%)',
+						animation: 'vm-refresh-slide 1.2s ease-in-out infinite',
+					}}
+				/>
+			)}
+		</div>
+	);
+}
+
 function ActionButton({
 	icon,
 	label,
@@ -481,34 +604,31 @@ function ActionButton({
 export default function ReactVMCards() {
 	const vmInfos = useStore(vmService.$vmInfos);
 	const loading = useStore(vmService.$loading);
+	const refreshing = useStore(vmService.$refreshing);
 	const error = useStore(vmService.$error);
 
 	useEffect(() => {
 		vmService.loadCacheAndFetch();
 	}, []);
 
-	if (loading && vmInfos.length === 0) {
-		return (
-			<div
-				className="not-content"
-				style={{
-					display: 'flex',
-					justifyContent: 'center',
-					padding: '2rem',
-				}}>
-				<Loader2
-					size={24}
-					style={{
-						animation: 'spin 1s linear infinite',
-						color: 'var(--sl-color-accent, #06b6d4)',
-					}}
-				/>
-			</div>
-		);
-	}
+	const showSkeleton = loading && vmInfos.length === 0;
 
 	return (
 		<div className="not-content">
+			{/* Keyframes for skeleton pulse + refresh bar slide */}
+			<style>{`
+				@keyframes pulse {
+					0%, 100% { opacity: 0.6; }
+					50% { opacity: 0.35; }
+				}
+				@keyframes vm-refresh-slide {
+					0% { transform: translateX(-100%); }
+					100% { transform: translateX(100%); }
+				}
+			`}</style>
+
+			<RefreshBar active={refreshing} />
+
 			{error && (
 				<div
 					style={{
@@ -534,9 +654,11 @@ export default function ReactVMCards() {
 						'repeat(auto-fill, minmax(360px, 1fr))',
 					gap: '1rem',
 				}}>
-				{vmInfos.map((info) => (
-					<VMCard key={info.vm.metadata.name} info={info} />
-				))}
+				{showSkeleton
+					? [0, 1, 2].map((i) => <VMCardSkeleton key={`skel-${i}`} />)
+					: vmInfos.map((info) => (
+							<VMCard key={info.vm.metadata.name} info={info} />
+						))}
 			</div>
 			{vmInfos.length === 0 && !loading && (
 				<div
