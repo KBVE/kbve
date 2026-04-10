@@ -43,9 +43,16 @@ spec:
                                   PIPCACHE=$(mktemp -d)
                                   mkdir -p "${PIPCACHE}/pip"
 
-                                  echo "Downloading latest wheels..."
+                                  PACKAGES=$(grep -v '^\s*$' /pip-packages/packages.txt | tr '\n' ' ')
+                                  echo "Downloading latest wheels: ${PACKAGES}"
                                   pip3 download --dest "${PIPCACHE}/pip" \
-                                      kbve fudster 2>&1 || true
+                                      --only-binary=:all: \
+                                      --platform=musllinux_1_2_x86_64 \
+                                      --platform=musllinux_1_1_x86_64 \
+                                      --platform=any \
+                                      --python-version=3.12 \
+                                      ${PACKAGES} 2>&1 || \
+                                  pip3 download --dest "${PIPCACHE}/pip" ${PACKAGES} 2>&1 || true
 
                                   WHEEL_COUNT=$(ls "${PIPCACHE}/pip/"*.whl "${PIPCACHE}/pip/"*.tar.gz 2>/dev/null | wc -l)
 
@@ -59,7 +66,7 @@ spec:
 
                                   # Build new cache image to a temp file first, then atomic swap
                                   TMPIMG=$(mktemp -p "${OUTPUT}" pip-cache.XXXXXX)
-                                  dd if=/dev/zero of="${TMPIMG}" bs=1M count=0 seek=256 2>/dev/null
+                                  dd if=/dev/zero of="${TMPIMG}" bs=1M count=0 seek=384 2>/dev/null
                                   mkfs.ext4 -F -d "${PIPCACHE}" "${TMPIMG}"
 
                                   # Atomic replace — prevents partial reads by firecracker-ctl
@@ -78,7 +85,13 @@ spec:
                           volumeMounts:
                               - name: rootfs
                                 mountPath: /rootfs
+                              - name: pip-packages
+                                mountPath: /pip-packages
+                                readOnly: true
                     volumes:
                         - name: rootfs
                           persistentVolumeClaim:
                               claimName: firecracker-rootfs
+                        - name: pip-packages
+                          configMap:
+                              name: firecracker-pip-packages
