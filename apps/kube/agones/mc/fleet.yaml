@@ -34,10 +34,10 @@ spec:
                   containerPort: 25565
                   protocol: TCP
             health:
-                # Java + Fabric startup is slower than native binaries
-                initialDelaySeconds: 90
+                # Fabric + 8 mods + library unpacking takes ~3-4 minutes on cold start
+                initialDelaySeconds: 240
                 periodSeconds: 30
-                failureThreshold: 5
+                failureThreshold: 10
             template:
                 spec:
                     nodeSelector:
@@ -83,9 +83,11 @@ spec:
                                   memory: 4Gi
                                   cpu: '2'
                           volumeMounts:
-                              - name: world-data
-                                mountPath: /data/world
+                              # Mount entire /data so Fabric libraries, mods,
+                              # and world all persist across restarts
+                              - name: mc-data
+                                mountPath: /data
                     volumes:
-                        - name: world-data
+                        - name: mc-data
                           persistentVolumeClaim:
                               claimName: mc-world-data

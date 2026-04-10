@@ -62,9 +62,10 @@ gameservers:
         - ows
         - arc-runners
 
-    # Port range for game server host ports (UDP)
+    # Port range for game server host ports.
+    # Capped at 7900 to avoid MetalLB speaker memberlist port (7946).
     minPort: 7000
-    maxPort: 8000
+    maxPort: 7900
 
     # Node selector — only run game servers on dedicated-server nodes
     nodeSelector:
