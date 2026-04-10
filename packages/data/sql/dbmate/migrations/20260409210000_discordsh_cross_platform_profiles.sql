@@ -52,6 +52,28 @@ CREATE INDEX IF NOT EXISTS idx_discordsh_dungeon_profiles_auth_user
     WHERE auth_user_id IS NOT NULL;
 
 -- ===========================================
+-- HOTFIX: grant table privileges to service_role
+--
+-- The baseline migration (20260316210000) created the tables with
+-- REVOKE FROM PUBLIC + an RLS policy granting service_role access, but
+-- never explicitly GRANTed table privileges to service_role. In production
+-- (where service_role is a normal role, not a superuser), this means all
+-- service_* RPCs marked SECURITY DEFINER fail with "permission denied for
+-- table dungeon_profiles" because the function owner doesn't have the
+-- underlying SELECT/INSERT/UPDATE grants needed to satisfy SECURITY DEFINER.
+--
+-- Local dev hides this because the local service_role is a superuser stub
+-- (init/00-roles.sql) that bypasses all grants and RLS.
+--
+-- These GRANTs are idempotent and stay scoped to service_role — no
+-- privilege escalation, no superuser access. The functions remain
+-- service_role-owned so SECURITY DEFINER bounds the blast radius.
+-- ===========================================
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON discordsh.dungeon_profiles TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON discordsh.dungeon_runs TO service_role;
+
+-- ===========================================
 -- UPDATE: service_load_profile — add new columns to output
 --
 -- Postgres does not allow CREATE OR REPLACE FUNCTION to change the return
@@ -644,6 +666,12 @@ ALTER TABLE discordsh.dungeon_profiles
     DROP COLUMN IF EXISTS auth_user_id,
     DROP COLUMN IF EXISTS faction_standing,
     DROP COLUMN IF EXISTS skills;
+
+-- NOTE: We intentionally do NOT REVOKE the table grants from service_role
+-- in the down migration. The grants fix a latent bug in the baseline
+-- migration (service_role lacked direct table privileges, causing
+-- service_upsert_profile to silently fail in production). Rolling back
+-- our migration shouldn't re-break the baseline RPCs.
 
 -- Recreate the original service_load_profile (without skills/faction/auth_user_id columns)
 -- to restore the prior schema state.

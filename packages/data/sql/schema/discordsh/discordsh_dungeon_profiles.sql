@@ -200,6 +200,25 @@ COMMENT ON COLUMN discordsh.dungeon_runs.outcome IS
 REVOKE ALL ON discordsh.dungeon_runs FROM PUBLIC, anon, authenticated;
 
 -- ===========================================
+-- GRANT table privileges to service_role
+--
+-- service_role needs direct table access for SECURITY DEFINER functions
+-- to work in production. Without these grants, every service_* RPC fails
+-- with "permission denied for table dungeon_profiles" because the function
+-- owner can't read the underlying tables, even with the RLS policy below.
+--
+-- Local dev hides this because the local service_role is a superuser stub
+-- (init/00-roles.sql) that bypasses all checks. Production has proper
+-- role isolation, so explicit GRANTs are required.
+--
+-- The functions stay service_role-owned (not postgres) so SECURITY DEFINER
+-- bounds the blast radius — no privilege escalation surface.
+-- ===========================================
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON discordsh.dungeon_profiles TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON discordsh.dungeon_runs TO service_role;
+
+-- ===========================================
 -- INDEXES
 -- ===========================================
 
