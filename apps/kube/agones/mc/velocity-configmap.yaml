@@ -1,0 +1,62 @@
+# Velocity proxy configuration
+# Forwards client connections from port 25565 → backend MC servers
+# discovered via the mc-fabric-backend headless Service.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: mc-velocity-config
+    namespace: arc-runners
+    labels:
+        app: mc-velocity
+        app.kubernetes.io/part-of: mc
+data:
+    velocity.toml: |
+        config-version = "2.7"
+
+        bind = "0.0.0.0:25565"
+        motd = "<#FFD700>KBVE Minecraft Server"
+        show-max-players = 50
+        # Velocity authenticates clients against Mojang
+        online-mode = true
+        force-key-authentication = true
+        prevent-client-proxy-connections = false
+        # Modern forwarding requires FabricProxy-Lite mod on backend.
+        # Until that's bundled, use legacy bungeecord forwarding which
+        # most Fabric servers support natively (with bungeecord = true on backend).
+        player-info-forwarding-mode = "legacy"
+        forwarding-secret-file = "forwarding.secret"
+        announce-forge = false
+        announce-proxy-commands = true
+
+        [servers]
+        # Single backend — Agones fleet routed via headless Service.
+        # Velocity treats this as one logical server; the Service load-balances
+        # across whichever gameserver pods are Ready.
+        mc = "mc-fabric-backend.arc-runners.svc.cluster.local:25565"
+        try = ["mc"]
+
+        [forced-hosts]
+
+        [advanced]
+        compression-threshold = 256
+        compression-level = -1
+        login-ratelimit = 3000
+        connection-timeout = 5000
+        read-timeout = 30000
+        haproxy-protocol = false
+        tcp-fast-open = false
+        bungee-plugin-message-channel = true
+        show-ping-requests = false
+        failover-on-unexpected-server-disconnect = true
+        announce-proxy-commands = true
+        log-command-executions = false
+        log-player-connections = true
+        accepts-transfers = false
+
+        [query]
+        enabled = false
+        port = 25577
+        map = "Velocity"
+        show-plugins = false
+    forwarding.secret: |
+        kbve-velocity-forwarding-secret-change-me
