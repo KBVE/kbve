@@ -56,22 +56,27 @@ async fn start(
 
     // Claim the play mode lock — prevents the same player from being in
     // both Discord dungeon AND isometric game at the same time (data race
-    // on profile saves). Gracefully degrades to success if Supabase is down.
-    if let Err(reason) = ctx
+    // on profile saves). Returns a RAII guard that releases on drop unless
+    // we explicitly commit() after the session is fully created.
+    // Gracefully degrades to a no-op guard if Supabase is down.
+    let mode_guard = match ctx
         .data()
         .app
         .profiles
         .claim_mode(user.get(), &short_id, false)
         .await
     {
-        ctx.send(
-            poise::CreateReply::default()
-                .content(format!("Cannot start dungeon: {}", reason))
-                .ephemeral(true),
-        )
-        .await?;
-        return Ok(());
-    }
+        Ok(g) => g,
+        Err(reason) => {
+            ctx.send(
+                poise::CreateReply::default()
+                    .content(format!("Cannot start dungeon: {}", reason))
+                    .ephemeral(true),
+            )
+            .await?;
+            return Ok(());
+        }
+    };
 
     let map = content::generate_initial_map(&id);
     let room = content::room_from_tile(map.tiles.get(&map.position).unwrap());
@@ -190,6 +195,11 @@ async fn start(
 
     ctx.data().app.sessions.create(final_state);
 
+    // Session is fully registered — release the lock from the guard's
+    // ownership. Future release will happen via save_all_players when
+    // the session ends naturally.
+    mode_guard.commit();
+
     // One-time guest notice
     if let MemberStatus::Guest { notified } = &member_status_raw
         && !notified
@@ -283,22 +293,26 @@ async fn join(
 
     // Claim the play mode lock for the joining party member.
     // Each player has their own lock — joining a party means claiming
-    // the discord mode for that player too.
-    if let Err(reason) = ctx
+    // the discord mode for that player too. Returns a RAII guard that
+    // auto-releases on drop unless we commit() after the player is added.
+    let mode_guard = match ctx
         .data()
         .app
         .profiles
         .claim_mode(user.get(), &sid, false)
         .await
     {
-        ctx.send(
-            poise::CreateReply::default()
-                .content(format!("Cannot join dungeon: {}", reason))
-                .ephemeral(true),
-        )
-        .await?;
-        return Ok(());
-    }
+        Ok(g) => g,
+        Err(reason) => {
+            ctx.send(
+                poise::CreateReply::default()
+                    .content(format!("Cannot join dungeon: {}", reason))
+                    .ephemeral(true),
+            )
+            .await?;
+            return Ok(());
+        }
+    };
 
     // Membership lookup for joining player
     let member_status_raw = ctx.data().app.members.lookup(user.get()).await;
@@ -384,6 +398,11 @@ async fn join(
 
     // Drop lock before sending response
     drop(session);
+
+    // Player is now in the session — commit the mode lock guard so it
+    // doesn't release on drop. Future release will happen via save_all_players
+    // when the session ends.
+    mode_guard.commit();
 
     ctx.send(
         poise::CreateReply::default()

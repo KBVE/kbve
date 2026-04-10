@@ -228,10 +228,17 @@ impl ProfileStore {
 
     /// Try to claim the play mode lock for a player.
     ///
-    /// Returns `Ok(())` if the lock was granted (player can start a Discord
-    /// dungeon session), or `Err(message)` describing why the claim was
-    /// rejected. If Supabase is unavailable, claims always succeed (graceful
-    /// degradation — the bot still works without persistence).
+    /// Returns a [`ModeLockGuard`] if the lock was granted, or `Err(message)`
+    /// if rejected. The guard releases the lock automatically on drop unless
+    /// you call [`ModeLockGuard::commit`] first.
+    ///
+    /// **RAII pattern**: if any error path between claim and session creation
+    /// returns early or panics, the guard's `Drop` impl spawns a release so
+    /// the player isn't locked out for the full 30-min TTL. Call `commit()`
+    /// only after the session is fully registered in `SessionStore`.
+    ///
+    /// If Supabase is unavailable, the guard is created in a no-op state
+    /// (graceful degradation — the bot still works without persistence).
     ///
     /// Set `force=true` to override stale claims unconditionally (admin only).
     pub async fn claim_mode(
@@ -239,9 +246,15 @@ impl ProfileStore {
         discord_id: u64,
         session_id: &str,
         force: bool,
-    ) -> Result<(), String> {
+    ) -> Result<ModeLockGuard, String> {
         let Some(client) = self.client.as_ref() else {
-            return Ok(());
+            // No Supabase: return a no-op guard
+            return Ok(ModeLockGuard {
+                client: None,
+                discord_id,
+                session_id: session_id.to_owned(),
+                committed: false,
+            });
         };
         let params = serde_json::json!({
             "p_discord_id": discord_id as i64,
@@ -264,14 +277,26 @@ impl ProfileStore {
                     Ok(rows) => match rows.into_iter().next() {
                         Some(r) if r.success => {
                             debug!(discord_id, "Mode lock claimed");
-                            Ok(())
+                            Ok(ModeLockGuard {
+                                client: Some(client.clone()),
+                                discord_id,
+                                session_id: session_id.to_owned(),
+                                committed: false,
+                            })
                         }
                         Some(r) => Err(r.message),
                         None => Err("Empty claim_mode response".to_owned()),
                     },
                     Err(e) => {
                         warn!(error = %e, discord_id, "Failed to parse claim_mode response");
-                        Ok(())
+                        // Parsing failed but the RPC may have succeeded — return a guard
+                        // so we still release on drop.
+                        Ok(ModeLockGuard {
+                            client: Some(client.clone()),
+                            discord_id,
+                            session_id: session_id.to_owned(),
+                            committed: false,
+                        })
                     }
                 }
             }
@@ -281,11 +306,23 @@ impl ProfileStore {
                     discord_id,
                     "service_claim_mode returned non-200"
                 );
-                Ok(())
+                // RPC failed at HTTP level — assume no lock was acquired
+                Ok(ModeLockGuard {
+                    client: None,
+                    discord_id,
+                    session_id: session_id.to_owned(),
+                    committed: false,
+                })
             }
             Err(e) => {
                 warn!(error = %e, discord_id, "service_claim_mode RPC failed");
-                Ok(())
+                // Network/transport error — assume no lock acquired
+                Ok(ModeLockGuard {
+                    client: None,
+                    discord_id,
+                    session_id: session_id.to_owned(),
+                    committed: false,
+                })
             }
         }
     }
@@ -357,6 +394,94 @@ impl ProfileStore {
     /// Invalidate a cached profile (called after save).
     pub async fn invalidate(&self, discord_id: u64) {
         self.cache.lock().await.pop(&discord_id);
+    }
+}
+
+// ── ModeLockGuard ──────────────────────────────────────────────────────
+
+/// RAII guard for the play mode lock.
+///
+/// Returned by [`ProfileStore::claim_mode`]. Releases the lock automatically
+/// when dropped unless [`commit`](Self::commit) was called first. This
+/// prevents the lock from leaking when error paths between claim and session
+/// creation return early or panic.
+///
+/// # Usage
+///
+/// ```ignore
+/// let guard = profiles.claim_mode(user.get(), &session_id, false).await?;
+///
+/// // ... do all the fallible setup work ...
+/// let session = build_session(...)?;
+/// store.create(session);
+///
+/// // Only NOW commit — the lock will outlive this scope.
+/// guard.commit();
+/// ```
+///
+/// If any `?` between the claim and `commit()` returns early, the guard's
+/// `Drop` impl spawns a release task to free the lock immediately instead
+/// of waiting 30 minutes for the TTL.
+pub struct ModeLockGuard {
+    /// Supabase client for the release call. `None` if Supabase was
+    /// unavailable at claim time (no-op guard, drop does nothing).
+    client: Option<SupabaseClient>,
+    discord_id: u64,
+    session_id: String,
+    /// When true, drop is a no-op (the caller successfully created the session).
+    committed: bool,
+}
+
+impl ModeLockGuard {
+    /// Mark the lock as committed — drop will NOT release.
+    ///
+    /// Call this only after the session is fully registered and the player
+    /// can be expected to release the lock through normal session lifecycle
+    /// (game over, leave, expire).
+    pub fn commit(mut self) {
+        self.committed = true;
+    }
+}
+
+impl Drop for ModeLockGuard {
+    fn drop(&mut self) {
+        if self.committed {
+            return;
+        }
+        let Some(client) = self.client.clone() else {
+            return;
+        };
+        let discord_id = self.discord_id;
+        let session_id = std::mem::take(&mut self.session_id);
+        debug!(
+            discord_id,
+            session_id = %session_id,
+            "ModeLockGuard dropped without commit — spawning release"
+        );
+        tokio::spawn(async move {
+            let params = serde_json::json!({
+                "p_discord_id": discord_id as i64,
+                "p_session_id": session_id,
+            });
+            match client
+                .rpc_schema("service_release_mode", params, SCHEMA)
+                .await
+            {
+                Ok(resp) if resp.status().is_success() => {
+                    debug!(discord_id, "Mode lock released via guard drop");
+                }
+                Ok(resp) => {
+                    warn!(
+                        status = %resp.status(),
+                        discord_id,
+                        "ModeLockGuard release returned non-200"
+                    );
+                }
+                Err(e) => {
+                    warn!(error = %e, discord_id, "ModeLockGuard release RPC failed");
+                }
+            }
+        });
     }
 }
 
