@@ -1,0 +1,83 @@
+# Local dev stack for the MC server — mirrors the prod topology of a
+# Velocity proxy fronting a single Fabric backend. Required because the
+# Fabric image ships with FabricProxy-Lite hackOnlineMode=true, which
+# rejects any connection that didn't come through Velocity with
+# "This server requires you to connect with Velocity." Running just the
+# Fabric container directly on localhost:25565 is therefore unusable.
+#
+# Topology:
+#   host:25565  → mc-velocity:25565 (Velocity proxy, modern forwarding)
+#                   → mc-fabric:25565 (Fabric server via internal network)
+#   host:25575  → mc-fabric:25575 (RCON, password=dev)
+#
+# Usage:
+#   nx run mc:dev        # builds the image + brings the stack up (attached)
+#   nx run mc:dev:down   # stops the stack, keeps the volumes
+#   nx run mc:dev:clean  # stops the stack AND wipes the Fabric world PVC
+#
+# Boot time: ~4 minutes cold (Fabric + 16 mods + library unpacking).
+# Velocity is Ready in ~30s but will hold connections until Fabric is up.
+
+name: kbve-mc-dev
+
+services:
+    mc-velocity:
+        image: itzg/bungeecord:latest
+        container_name: kbve-mc-dev-velocity
+        ports:
+            - '25565:25565'
+        environment:
+            TYPE: VELOCITY
+            VELOCITY_VERSION: '3.4.0-SNAPSHOT'
+            MEMORY: '512M'
+            REPLACE_ENV_VARIABLES: 'true'
+            # LuckPerms-Velocity — downloaded at container start. Matches the
+            # prod velocity-deployment.yaml PLUGINS env var so the dev stack
+            # exercises the same plugin-loading path.
+            PLUGINS: 'https://cdn.modrinth.com/data/Vebnzrzj/versions/GZjsuCmU/LuckPerms-Velocity-5.5.17.jar'
+            LUCKPERMS_MESSAGING_SERVICE: 'pluginmsg'
+            LUCKPERMS_STORAGE_METHOD: 'h2'
+        volumes:
+            - ./velocity-dev/velocity.toml:/config/velocity.toml:ro
+            - ./velocity-dev/forwarding.secret:/config/forwarding.secret:ro
+        depends_on:
+            - mc-fabric
+        networks:
+            - mc-dev
+
+    mc-fabric:
+        image: kbve/mc:latest
+        container_name: kbve-mc-dev-fabric
+        # RCON exposed on the host for e2e tests and manual debugging.
+        # Game port (25565) is NOT exposed — clients must connect through
+        # Velocity to exercise the modern-forwarding handshake.
+        ports:
+            - '25575:25575'
+        environment:
+            EULA: 'TRUE'
+            # Velocity handles Mojang auth on the proxy side; Fabric must
+            # be offline-mode to accept forwarded sessions.
+            ONLINE_MODE: 'false'
+            MEMORY: '3G'
+            ENABLE_RCON: 'true'
+            RCON_PORT: '25575'
+            RCON_PASSWORD: 'dev'
+            MOTD: 'KBVE Dev Server'
+            MAX_PLAYERS: '10'
+            DIFFICULTY: 'normal'
+            VIEW_DISTANCE: '8'
+            SIMULATION_DISTANCE: '6'
+        volumes:
+            # Named volume so mods + libraries + world persist across
+            # `nx run mc:dev:down` cycles. Use `nx run mc:dev:clean` to wipe.
+            - mc-fabric-data:/data
+        networks:
+            - mc-dev
+
+networks:
+    mc-dev:
+        name: kbve-mc-dev
+
+volumes:
+    mc-fabric-data:
+        name: kbve-mc-dev-fabric-data
