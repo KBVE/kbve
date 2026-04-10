@@ -9,29 +9,26 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.Vec3d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Server tick handler — the sync boundary between Fabric and Tokio.
  *
- * <p>Each tick:
- * <ol>
- *   <li>Manage AI skeleton spawns/despawns via {@link AiSkeletonManager}</li>
- *   <li>Gather NPC observations and submit to Tokio runtime</li>
- *   <li>Poll completed intents and apply validated commands</li>
- * </ol>
- *
- * <p>The Fabric server tick thread is the ONLY thread that mutates entity state.
- * Tokio tasks produce immutable intents that are validated here before application.
+ * <p>Observations are throttled to every {@link #OBSERVE_INTERVAL} ticks
+ * to avoid overwhelming the Tokio runtime. Intents are polled every tick
+ * so actions feel responsive once decided.
  */
 public class NpcTickHandler implements ServerTickEvents.EndTick {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("behavior_statetree");
     private static final Gson GSON = new Gson();
 
+    /** Only submit observations every N ticks (10 = 0.5s at 20 TPS). */
+    private static final int OBSERVE_INTERVAL = 10;
+
     private final AiSkeletonManager skeletonManager = new AiSkeletonManager();
+    private int tickCounter = 0;
 
     @Override
     public void onEndTick(MinecraftServer server) {
@@ -39,19 +36,21 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             return;
         }
 
-        // Phase 0: Manage skeleton lifecycle
+        tickCounter++;
+
+        // Phase 0: Manage skeleton lifecycle (every tick for cleanup)
         skeletonManager.tick(server);
 
-        // Phase 1: Gather observations and submit to Tokio
-        skeletonManager.submitObservations(server);
+        // Phase 1: Gather observations — throttled to reduce load
+        if (tickCounter % OBSERVE_INTERVAL == 0) {
+            skeletonManager.submitObservations(server);
+        }
 
-        // Phase 2: Poll completed intents from Tokio
+        // Phase 2 + 3: Poll and apply intents every tick for responsiveness
         String intentsJson = NativeRuntime.pollIntents();
         if (intentsJson == null || intentsJson.equals("[]")) {
             return;
         }
-
-        // Phase 3: Parse intents, validate epochs, apply commands
         applyIntents(server, intentsJson);
     }
 
@@ -76,10 +75,8 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             int entityId = intent.get("entity_id").getAsInt();
             long epoch = intent.get("epoch").getAsLong();
 
-            // Only apply to managed skeletons
             if (!skeletonManager.isManaged(entityId)) continue;
 
-            // Epoch check — discard stale intents
             long currentEpoch = skeletonManager.getEpoch(entityId);
             if (epoch != currentEpoch) continue;
 
@@ -98,15 +95,12 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
     }
 
     private void applyCommand(ServerWorld world, MobEntity mob, JsonObject cmd) {
-        // Commands are tagged unions — check which fields exist
         if (cmd.has("MoveTo")) {
             JsonObject moveTo = cmd.getAsJsonObject("MoveTo");
             JsonArray target = moveTo.getAsJsonArray("target");
             double tx = target.get(0).getAsDouble();
             double ty = target.get(1).getAsDouble();
             double tz = target.get(2).getAsDouble();
-
-            // Use the mob's navigation to pathfind
             mob.getNavigation().startMovingTo(tx, ty, tz, 1.0);
 
         } else if (cmd.has("Attack")) {
@@ -115,22 +109,30 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             Entity target = world.getEntityById((int) targetId);
             if (target != null && target.isAlive()) {
                 mob.tryAttack(world, target);
-                // Face the target
                 mob.lookAtEntity(target, 30.0f, 30.0f);
             }
 
         } else if (cmd.has("Idle")) {
-            // Do nothing — skeleton stands still
             mob.getNavigation().stop();
 
         } else if (cmd.has("Speak")) {
             JsonObject speak = cmd.getAsJsonObject("Speak");
             String message = speak.get("message").getAsString();
-            // Set custom name briefly to simulate speech
-            mob.setCustomName(net.minecraft.text.Text.of("AI Skeleton: " + message));
+            for (var player : world.getPlayers()) {
+                if (mob.squaredDistanceTo(player) < 32 * 32) {
+                    player.sendMessage(
+                            net.minecraft.text.Text.of("\u00A7c<AI Skeleton> " + message),
+                            false
+                    );
+                }
+            }
+
+        } else if (cmd.has("CallForHelp")) {
+            JsonObject call = cmd.getAsJsonObject("CallForHelp");
+            int count = call.get("count").getAsInt();
+            skeletonManager.spawnReinforcements(world, mob.getId(), count, world.getTime());
 
         } else if (cmd.has("SetGoal")) {
-            // Goal management — future expansion
             LOGGER.debug("[AI Skeleton] SetGoal not yet implemented");
         }
     }

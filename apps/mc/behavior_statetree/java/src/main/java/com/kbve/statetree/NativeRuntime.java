@@ -1,5 +1,10 @@
 package com.kbve.statetree;
 
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+
 /**
  * JNI bridge to the Rust behavior_statetree native library.
  *
@@ -9,6 +14,10 @@ package com.kbve.statetree;
  *
  * <p>Architecture: Tokio = AI brain, Fabric server tick = body + law.
  * All communication uses bounded channels with immutable JSON snapshots.
+ *
+ * <p>The .so/.dll/.dylib is bundled inside the JAR at natives/ and extracted
+ * to a temp file at load time, then loaded via System.load() with the
+ * absolute path.
  */
 public final class NativeRuntime {
 
@@ -16,7 +25,6 @@ public final class NativeRuntime {
 
     static {
         try {
-            // Load from natives/ inside the mod JAR (extracted at runtime)
             String os = System.getProperty("os.name").toLowerCase();
             String lib;
             if (os.contains("linux")) {
@@ -28,9 +36,30 @@ public final class NativeRuntime {
             } else {
                 throw new UnsupportedOperationException("Unsupported OS: " + os);
             }
-            System.loadLibrary("behavior_statetree");
+
+            // Extract from JAR to temp file, then load via absolute path
+            String resourcePath = "/natives/" + lib;
+            InputStream in = NativeRuntime.class.getResourceAsStream(resourcePath);
+            if (in == null) {
+                throw new UnsatisfiedLinkError("Native library not found in JAR: " + resourcePath);
+            }
+
+            File tempFile = File.createTempFile("behavior_statetree_", "_" + lib);
+            tempFile.deleteOnExit();
+
+            try (OutputStream out = Files.newOutputStream(tempFile.toPath())) {
+                byte[] buf = new byte[8192];
+                int len;
+                while ((len = in.read(buf)) != -1) {
+                    out.write(buf, 0, len);
+                }
+            }
+            in.close();
+
+            System.load(tempFile.getAbsolutePath());
             loaded = true;
-        } catch (UnsatisfiedLinkError e) {
+            System.out.println("[behavior_statetree] Native library loaded from " + tempFile.getAbsolutePath());
+        } catch (Exception e) {
             System.err.println("[behavior_statetree] Failed to load native library: " + e.getMessage());
             loaded = false;
         }

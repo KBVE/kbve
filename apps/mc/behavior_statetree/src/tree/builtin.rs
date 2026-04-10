@@ -104,6 +104,35 @@ impl BehaviorNode for IsHealthLow {
     }
 }
 
+/// Call for reinforcements when health is in danger range.
+/// Emits a Speak + CallForHelp command to summon allies.
+pub struct CallAllies {
+    pub health_threshold: f32,
+    pub reinforcement_count: u32,
+}
+
+impl BehaviorNode for CallAllies {
+    fn evaluate(&self, observation: &NpcObservation) -> (NodeStatus, Vec<NpcCommand>) {
+        // Only call if hostiles are nearby and health is below threshold
+        let has_hostiles = observation.nearby_entities.iter().any(|e| e.is_hostile);
+        if !has_hostiles || observation.health >= self.health_threshold {
+            return (NodeStatus::Failure, vec![]);
+        }
+
+        (
+            NodeStatus::Success,
+            vec![
+                NpcCommand::Speak {
+                    message: "Skeleton roars and calls for his allies!".to_string(),
+                },
+                NpcCommand::CallForHelp {
+                    count: self.reinforcement_count,
+                },
+            ],
+        )
+    }
+}
+
 /// Idle for a number of ticks.
 pub struct Idle {
     pub ticks: u32,

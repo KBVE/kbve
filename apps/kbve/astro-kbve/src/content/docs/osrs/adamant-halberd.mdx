@@ -12,26 +12,43 @@ osrs:
   lowalch: 2560
   highalch: 3840
   limit: 125
+  about: Adamant halberd is a members-only two-handed weapon in Old School RuneScape. It provides +41 slash attack, +42 melee strength.
+  mdx_version: 3
+  mdx_updated: 2026-04-10
+  equipment:
+    slot: 2h
+    attack_speed: 7
+    attack_range: 2
+    attack_bonus:
+      stab: 28
+      slash: 41
+      crush: 0
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: -1
+      slash: 3
+      crush: 4
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 42
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    weight: 3.628
+  properties:
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    weight: 3.628
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />

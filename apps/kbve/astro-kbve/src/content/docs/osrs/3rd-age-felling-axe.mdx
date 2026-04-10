@@ -12,26 +12,43 @@ osrs:
   lowalch: 22000
   highalch: 33000
   limit: null
+  about: 3rd age felling axe is a members-only two-handed weapon in Old School RuneScape. It provides +60 slash attack, +67 melee strength.
+  mdx_version: 3
+  mdx_updated: 2026-04-10
+  equipment:
+    slot: 2h
+    attack_speed: 7
+    attack_range: 1
+    attack_bonus:
+      stab: -3
+      slash: 60
+      crush: 51
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 67
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    weight: 1.814
+  properties:
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    weight: 1.814
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-
-
-<Adsense />
+<OSRSAdsenseCard />

@@ -4,7 +4,7 @@
 //! NpcObservation and returns an immutable NpcIntent. All world
 //! mutation happens back on the Fabric server tick thread.
 
-use crate::tree::builtin::{AttackNearest, Flee, IsHealthLow, Wander};
+use crate::tree::builtin::{AttackNearest, CallAllies, Flee, IsHealthLow, Wander};
 use crate::tree::node::{BehaviorNode, Selector, Sequence};
 use crate::types::{NpcIntent, NpcObservation};
 
@@ -13,9 +13,12 @@ use crate::types::{NpcIntent, NpcObservation};
 /// The tree structure:
 /// ```text
 /// Selector
-///   ├── Sequence [flee if low health]
+///   ├── Sequence [flee if critically low health]
 ///   │     ├── IsHealthLow(5.0)
 ///   │     └── Flee(16.0)
+///   ├── Sequence [call for help if wounded]
+///   │     ├── IsHealthLow(12.0)
+///   │     └── CallAllies(12.0, 2)
 ///   ├── AttackNearest(4.0)
 ///   └── Wander(8.0)
 /// ```
@@ -34,7 +37,7 @@ pub async fn plan_npc(observation: NpcObservation) -> NpcIntent {
 fn build_default_tree() -> Selector {
     Selector {
         children: vec![
-            // Priority 1: flee if health is low
+            // Priority 1: flee if health is critically low
             Box::new(Sequence {
                 children: vec![
                     Box::new(IsHealthLow { threshold: 5.0 }),
@@ -43,9 +46,19 @@ fn build_default_tree() -> Selector {
                     }),
                 ],
             }),
-            // Priority 2: attack nearest hostile in range
+            // Priority 2: call for help if wounded (< 12 HP but > 5)
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(IsHealthLow { threshold: 12.0 }),
+                    Box::new(CallAllies {
+                        health_threshold: 12.0,
+                        reinforcement_count: 2,
+                    }),
+                ],
+            }),
+            // Priority 3: attack nearest hostile in range
             Box::new(AttackNearest { range: 4.0 }),
-            // Priority 3: wander
+            // Priority 4: wander
             Box::new(Wander { radius: 8.0 }),
         ],
     }

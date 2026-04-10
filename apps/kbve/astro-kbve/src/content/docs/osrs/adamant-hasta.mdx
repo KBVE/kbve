@@ -12,26 +12,41 @@ osrs:
   lowalch: 832
   highalch: 1248
   limit: 125
+  about: Adamant hasta is a members-only weapon slot item in Old School RuneScape. It provides +24 slash attack, +28 melee strength.
+  mdx_version: 3
+  mdx_updated: 2026-04-10
+  equipment:
+    slot: weapon
+    attack_speed: 4
+    attack_range: 1
+    attack_bonus:
+      stab: 24
+      slash: 24
+      crush: 24
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: -6
+      slash: -7
+      crush: -5
+      magic: 0
+      ranged: -6
+    other_bonus:
+      melee_strength: 28
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    weight: 2.721
+  properties:
+    equipable: true
+    stackable: false
+    members: true
+    weight: 2.721
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
-import { Adsense } from '@/components/astropad';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
 
-## About {frontmatter.osrs.name}
-
-**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
-
-> "{frontmatter.osrs.examine}"
-
-## Item Details
-
-- **Item ID:** {frontmatter.osrs.id}
-- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
-- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
-- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
-- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
-- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
-
-<Adsense />
+<OSRSAdsenseCard />
