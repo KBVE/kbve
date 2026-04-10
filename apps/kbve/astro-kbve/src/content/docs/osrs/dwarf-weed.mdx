@@ -12,83 +12,66 @@ osrs:
   lowalch: 28
   highalch: 42
   limit: 11000
-  herb:
-    type: clean
+  about: Dwarf weed is a high-tier herb cleaned from grimy dwarf weed at level 70 Herblore. It is best known as the key ingredient in ranging potions, which provide a Ranged boost for PvM and PvP. It can also be used in ancient brews and other niche mixes, and is grown by players with 79 Farming from dwarf weed seeds in herb patches.
+  material:
+    type: herb
     tier: high
   farming:
     level: 79
-    xp: 170.5
+    plant_xp: 98.5
+    harvest_xp: 137.5
+    patch_type: herb
     growth_time: 80
+    payment: 6 mahogany logs
     seed_id: 5303
     seed_name: Dwarf weed seed
-  herblore:
-    cleaning_level: 70
-    cleaning_xp: 13.8
-    grimy_id: 217
-    grimy_name: Grimy dwarf weed
   recipes:
-    - skill: herblore
+    - name: Clean grimy dwarf weed
+      skill: herblore
+      level: 70
+      xp: 13.8
+      materials:
+        - item_name: Grimy dwarf weed
+          item_id: 217
+          quantity: 1
+    - name: Make Dwarf weed potion (unf)
+      skill: herblore
       level: 72
-      xp: 162.5
+      xp: 0
       materials:
         - item_name: Dwarf weed
           item_id: 267
           quantity: 1
-        - item_name: Wine of zamorak
-          item_id: 245
+        - item_name: Vial of water
+          item_id: 227
           quantity: 1
-      product: Ranging potion(3)
-      product_id: 169
-      members_only: true
-    - skill: herblore
-      level: 85
-      xp: 190
-      materials:
-        - item_name: Dwarf weed
-          item_id: 267
-          quantity: 1
-        - item_name: Nihil dust
-          item_id: 26373
-          quantity: 1
-      product: Ancient brew(4)
-      product_id: 26340
-      members_only: true
   related_items:
-    - item_id: 169
-      item_name: Ranging potion(3)
-      slug: ranging-potion-3
-      relationship: product
-      description: Main product
-    - item_id: 245
-      item_name: Wine of zamorak
-      slug: wine-of-zamorak
+    - item_id: 217
+      item_name: Grimy dwarf weed
+      slug: grimy-dwarf-weed
+      relationship: variant
+    - item_id: 5303
+      item_name: Dwarf weed seed
+      slug: dwarf-weed-seed
       relationship: component
-      description: Secondary ingredient
-    - item_id: 269
-      item_name: Torstol
-      slug: torstol
-      relationship: upgrade
-      description: Higher tier herb
+    - item_id: 105
+      item_name: Dwarf weed potion (unf)
+      slug: dwarf-weed-potion-unf
+      relationship: product
+    - item_id: 2444
+      item_name: Ranging potion(4)
+      slug: ranging-potion-4
+      relationship: product
     - item_id: 2481
       item_name: Lantadyme
       slug: lantadyme
       relationship: alternative
-      description: Similar tier herb
-  market_strategy:
-    notes:
-      - Ranging potions essential
-      - High-level herb
-      - Consistent demand
-      - Ranging potions (PvM/PvP)
-      - Ancient brews (raids)
-      - Menaphite remedy (ToA)
-      - High-level content
-      - Ranging pots always needed
-      - Wine of Zamorak expensive
-      - Ancient brew for mage builds
-      - High farm profit
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 269
+      item_name: Torstol
+      slug: torstol
+      relationship: alternative
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

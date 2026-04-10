@@ -12,8 +12,78 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 15000
-  about: "Willow logs is a free-to-play item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 15,000 per 4 hours."
-  mdx_version: 2
+  material:
+    type: log
+    tier: mid-low
+  woodcutting:
+    level: 30
+    xp: 67.5
+    tool: Any axe
+    locations:
+      - Draynor Village
+      - Barbarian Village
+      - Catherby
+  recipes:
+    - skill: firemaking
+      level: 30
+      xp: 90
+      materials:
+        - item_name: Willow logs
+          item_id: 1519
+          quantity: 1
+      tools:
+        - Tinderbox
+    - skill: fletching
+      level: 35
+      xp: 33.25
+      materials:
+        - item_name: Willow logs
+          item_id: 1519
+          quantity: 1
+      tools:
+        - Knife
+      product: Willow shortbow (u)
+      product_id: 60
+      product_quantity: 1
+    - skill: fletching
+      level: 40
+      xp: 41.5
+      materials:
+        - item_name: Willow logs
+          item_id: 1519
+          quantity: 1
+      tools:
+        - Knife
+      product: Willow longbow (u)
+      product_id: 58
+      product_quantity: 1
+  related_items:
+    - item_id: 1511
+      item_name: Logs
+      slug: logs
+      relationship: downgrade
+    - item_id: 1521
+      item_name: Oak logs
+      slug: oak-logs
+      relationship: downgrade
+    - item_id: 1517
+      item_name: Maple logs
+      slug: maple-logs
+      relationship: upgrade
+    - item_id: 1515
+      item_name: Yew logs
+      slug: yew-logs
+      relationship: upgrade
+    - item_id: 1513
+      item_name: Magic logs
+      slug: magic-logs
+      relationship: upgrade
+    - item_name: Willow plank
+      slug: willow-plank
+      relationship: product
+  about: |-
+    Willow logs are the third tier of logs in Old School RuneScape, obtained by chopping willow trees at level 30 Woodcutting for 67.5 experience per log. They can be burned at level 30 Firemaking for 90 experience, fletched into willow shortbows and longbows, or converted into willow planks at a sawmill for Construction. As a free-to-play resource with dense tree clusters in Draynor Village, Barbarian Village, and Catherby, they remain a reliable mid-low tier choice for training multiple skills.
+  mdx_version: 3
   mdx_updated: "2026-04-10"
 ---
 

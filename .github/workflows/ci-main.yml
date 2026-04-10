@@ -165,6 +165,40 @@ jobs:
                     jq -r --arg k "$key" '.[$k] // "false"' "$ALTER" 2>/dev/null
                   }
 
+                  # --- In-flight check ---
+                  # Returns "true" if any queued/in-progress ci-docker run already
+                  # exists for this app_name. Prevents stacking multiple builds of
+                  # the same app when several main commits land in quick succession.
+                  # ci-docker.yml sets run-name to "CI - Docker / <app>", so we
+                  # match on that exact string from gh run list.
+                  is_docker_running() {
+                    local app="$1"
+                    local title="CI - Docker / ${app}"
+                    local q ip
+                    q=$(gh run list --workflow=ci-docker.yml --repo "$REPO" \
+                      --status queued --limit 50 --json displayTitle \
+                      --jq "[.[] | select(.displayTitle == \"$title\")] | length" 2>/dev/null || echo 0)
+                    ip=$(gh run list --workflow=ci-docker.yml --repo "$REPO" \
+                      --status in_progress --limit 50 --json displayTitle \
+                      --jq "[.[] | select(.displayTitle == \"$title\")] | length" 2>/dev/null || echo 0)
+                    if [ "$q" -gt 0 ] || [ "$ip" -gt 0 ]; then echo "true"; else echo "false"; fi
+                  }
+
+                  # Same idea for ci-publish.yml — its run-name is
+                  # "CI - Publish / <type> / <name>".
+                  is_publish_running() {
+                    local type="$1" name="$2"
+                    local title="CI - Publish / ${type} / ${name}"
+                    local q ip
+                    q=$(gh run list --workflow=ci-publish.yml --repo "$REPO" \
+                      --status queued --limit 50 --json displayTitle \
+                      --jq "[.[] | select(.displayTitle == \"$title\")] | length" 2>/dev/null || echo 0)
+                    ip=$(gh run list --workflow=ci-publish.yml --repo "$REPO" \
+                      --status in_progress --limit 50 --json displayTitle \
+                      --jq "[.[] | select(.displayTitle == \"$title\")] | length" 2>/dev/null || echo 0)
+                    if [ "$q" -gt 0 ] || [ "$ip" -gt 0 ]; then echo "true"; else echo "false"; fi
+                  }
+
                   # --- Dispatch helpers ---
                   dispatch_docker() {
                     local app="$1"
@@ -188,21 +222,34 @@ jobs:
                     SRC=$(echo "$entry" | jq -r '.version_source // empty')
                     VTOML=$(echo "$entry" | jq -r '.version_toml // empty')
                     altered=$(is_altered "$key")
+                    needs_dispatch="false"
+                    reason=""
                     if [ "$altered" = "true" ]; then
-                      echo "  ✓ $app — files changed, dispatching"
-                      dispatch_docker "$app"
-                      DISPATCHED=$((DISPATCHED + 1))
+                      needs_dispatch="true"
+                      reason="files changed"
                     elif [ -n "$SRC" ] && [ "$(check_version "$SRC" "$VTOML")" = "true" ]; then
-                      echo "  ✓ $app — unpublished version, dispatching"
-                      dispatch_docker "$app"
-                      DISPATCHED=$((DISPATCHED + 1))
+                      needs_dispatch="true"
+                      reason="unpublished version"
                     elif [ -z "$SRC" ]; then
                       echo "  · $app — no version source, skipping"
                       SKIPPED=$((SKIPPED + 1))
+                      continue
                     else
                       echo "  · $app — no changes, version published, skipping"
                       SKIPPED=$((SKIPPED + 1))
+                      continue
                     fi
+                    # Concurrency guard: skip if a build for this app is already
+                    # queued or in progress. Prevents stacking duplicate runs when
+                    # several main commits land in quick succession.
+                    if [ "$(is_docker_running "$app")" = "true" ]; then
+                      echo "  · $app — already running ($reason), skipping duplicate"
+                      SKIPPED=$((SKIPPED + 1))
+                      continue
+                    fi
+                    echo "  ✓ $app — $reason, dispatching"
+                    dispatch_docker "$app"
+                    DISPATCHED=$((DISPATCHED + 1))
                   done < <(jq -c '.docker[]' "$MANIFEST")
 
                   # =================================================================
@@ -226,18 +273,28 @@ jobs:
                     [ -n "$TGT" ] && EXTRA_FIELDS="$EXTRA_FIELDS --field version_target=${TGT}"
                     [ -n "$VER" ] && [ "$VER" != "0.0.0" ] && EXTRA_FIELDS="$EXTRA_FIELDS --field manifest_version=${VER}"
 
+                    needs_dispatch="false"
+                    reason=""
                     if [ "$altered" = "true" ]; then
-                      echo "  ✓ $pkg — files changed, dispatching (v$VER)"
-                      dispatch_publish npm --field package_name="$pkg" $EXTRA_FIELDS
-                      DISPATCHED=$((DISPATCHED + 1))
+                      needs_dispatch="true"
+                      reason="files changed"
                     elif [ "$(check_version "$npm_src" "$npm_vtoml")" = "true" ]; then
-                      echo "  ✓ $pkg — unpublished version, dispatching (v$VER)"
-                      dispatch_publish npm --field package_name="$pkg" $EXTRA_FIELDS
-                      DISPATCHED=$((DISPATCHED + 1))
-                    else
+                      needs_dispatch="true"
+                      reason="unpublished version"
+                    fi
+                    if [ "$needs_dispatch" != "true" ]; then
                       echo "  · $pkg — no changes, version published, skipping"
                       SKIPPED=$((SKIPPED + 1))
+                      continue
                     fi
+                    if [ "$(is_publish_running npm "$pkg")" = "true" ]; then
+                      echo "  · $pkg — already running ($reason), skipping duplicate"
+                      SKIPPED=$((SKIPPED + 1))
+                      continue
+                    fi
+                    echo "  ✓ $pkg — $reason, dispatching (v$VER)"
+                    dispatch_publish npm --field package_name="$pkg" $EXTRA_FIELDS
+                    DISPATCHED=$((DISPATCHED + 1))
                   done < <(jq -c '.npm[]' "$MANIFEST")
 
                   # =================================================================
@@ -274,18 +331,28 @@ jobs:
                       EXTRA_FIELDS="$EXTRA_FIELDS --field manifest_version=${VER}"
                     fi
 
+                    needs_dispatch="false"
+                    reason=""
                     if [ "$altered" = "true" ]; then
-                      echo "  ✓ $pkg — files changed, dispatching (v$VER)"
-                      dispatch_publish crates --field package_name="$pkg" $EXTRA_FIELDS
-                      DISPATCHED=$((DISPATCHED + 1))
+                      needs_dispatch="true"
+                      reason="files changed"
                     elif [ "$(check_version "$cargo_src" "$cargo_vtoml")" = "true" ]; then
-                      echo "  ✓ $pkg — unpublished version, dispatching (v$VER)"
-                      dispatch_publish crates --field package_name="$pkg" $EXTRA_FIELDS
-                      DISPATCHED=$((DISPATCHED + 1))
-                    else
+                      needs_dispatch="true"
+                      reason="unpublished version"
+                    fi
+                    if [ "$needs_dispatch" != "true" ]; then
                       echo "  · $pkg — no changes, version published, skipping"
                       SKIPPED=$((SKIPPED + 1))
+                      continue
                     fi
+                    if [ "$(is_publish_running crates "$pkg")" = "true" ]; then
+                      echo "  · $pkg — already running ($reason), skipping duplicate"
+                      SKIPPED=$((SKIPPED + 1))
+                      continue
+                    fi
+                    echo "  ✓ $pkg — $reason, dispatching (v$VER)"
+                    dispatch_publish crates --field package_name="$pkg" $EXTRA_FIELDS
+                    DISPATCHED=$((DISPATCHED + 1))
                   done < <(jq -c '.crates[]' "$MANIFEST")
 
                   # =================================================================
@@ -310,18 +377,28 @@ jobs:
                     [ -n "$TGT" ] && EXTRA_FIELDS="$EXTRA_FIELDS --field version_target=${TGT}"
                     [ -n "$VER" ] && [ "$VER" != "0.0.0" ] && EXTRA_FIELDS="$EXTRA_FIELDS --field manifest_version=${VER}"
 
+                    needs_dispatch="false"
+                    reason=""
                     if [ "$altered" = "true" ]; then
-                      echo "  ✓ $pkg — files changed, dispatching (v$VER)"
-                      dispatch_publish python --field package_name="$pkg" $EXTRA_FIELDS
-                      DISPATCHED=$((DISPATCHED + 1))
+                      needs_dispatch="true"
+                      reason="files changed"
                     elif [ "$(check_version "$py_src" "$py_vtoml")" = "true" ]; then
-                      echo "  ✓ $pkg — unpublished version, dispatching (v$VER)"
-                      dispatch_publish python --field package_name="$pkg" $EXTRA_FIELDS
-                      DISPATCHED=$((DISPATCHED + 1))
-                    else
+                      needs_dispatch="true"
+                      reason="unpublished version"
+                    fi
+                    if [ "$needs_dispatch" != "true" ]; then
                       echo "  · $pkg — no changes, version published, skipping"
                       SKIPPED=$((SKIPPED + 1))
+                      continue
                     fi
+                    if [ "$(is_publish_running python "$pkg")" = "true" ]; then
+                      echo "  · $pkg — already running ($reason), skipping duplicate"
+                      SKIPPED=$((SKIPPED + 1))
+                      continue
+                    fi
+                    echo "  ✓ $pkg — $reason, dispatching (v$VER)"
+                    dispatch_publish python --field package_name="$pkg" $EXTRA_FIELDS
+                    DISPATCHED=$((DISPATCHED + 1))
                   done < <(jq -c '.python[]' "$MANIFEST")
 
                   # =================================================================
@@ -337,15 +414,22 @@ jobs:
                     altered=$(is_altered "$key")
                     deploy_itch="false"
                     [ -n "$itch" ] && deploy_itch="true"
+                    reason=""
                     if [ "$altered" = "true" ]; then
-                      echo "  ✓ $name — files changed, dispatching"
+                      reason="files changed"
                     elif [ "$(check_version "${path}/${name}.uplugin" "${path}/version.toml")" = "true" ]; then
-                      echo "  ✓ $name — unpublished version, dispatching"
+                      reason="unpublished version"
                     else
                       echo "  · $name — no changes, version published, skipping"
                       SKIPPED=$((SKIPPED + 1))
                       continue
                     fi
+                    if [ "$(is_publish_running unreal "$name")" = "true" ]; then
+                      echo "  · $name — already running ($reason), skipping duplicate"
+                      SKIPPED=$((SKIPPED + 1))
+                      continue
+                    fi
+                    echo "  ✓ $name — $reason, dispatching"
                     dispatch_publish unreal \
                       --field package_name="$name" \
                       --field unreal_plugin_path="$path" \

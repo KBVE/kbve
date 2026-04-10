@@ -12,18 +12,81 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
+  material:
+    type: herb
+    tier: low
+  farming:
+    farming_level: 9
+    plant_xp: 11
+    harvest_xp: 12.5
+    patch_type: herb
+    growth_time: 80
+    payment: 1 sack of potatoes
+    payment_item_id: 5418
+    seed_id: 5291
+    seed_name: Guam seed
+    min_yield: 3
+    compost_type: compost
+  recipes:
+    - name: Clean grimy guam leaf
+      skill: herblore
+      level: 3
+      xp: 2.5
+      materials:
+        - item_name: Grimy guam leaf
+          item_id: 199
+          quantity: 1
+      product: Guam leaf
+      product_id: 249
+      product_quantity: 1
+    - name: Make Guam potion (unf)
+      skill: herblore
+      level: 3
+      xp: 0
+      materials:
+        - item_name: Guam leaf
+          item_id: 249
+          quantity: 1
+        - item_name: Vial of water
+          item_id: 227
+          quantity: 1
+      product: Guam potion (unf)
+      product_id: 91
+      product_quantity: 1
   related_items:
     - item_id: 199
       item_name: Grimy guam leaf
       slug: grimy-guam-leaf
+      relationship: variant
+      description: Uncleaned version of the herb
+    - item_id: 5291
+      item_name: Guam seed
+      slug: guam-seed
       relationship: component
-      description: Uncleaned version
+      description: Seed planted in a herb patch to grow guam
+    - item_id: 91
+      item_name: Guam potion (unf)
+      slug: guam-potion-unf
+      relationship: product
+      description: Unfinished potion made with a vial of water
+    - item_id: 2428
+      item_name: Attack potion(4)
+      slug: attack-potion-4
+      relationship: product
+      description: Finished Attack potion brewed from guam potion (unf)
+    - item_name: Guam tar
+      slug: guam-tar
+      relationship: product
+      description: Swamp lizard ammunition crafted from guam leaves
+    - item_id: 251
+      item_name: Marrentill
+      slug: marrentill
+      relationship: alternative
+      description: Next-tier herb in the Herblore progression
   about: |-
-    > _"A bitter green herb."_
-
-    Guam leaf is the lowest-tier clean herb. Used to make guam potions (unf) which are the base for attack potions (3 Herblore) and guam tar.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Guam leaf is the lowest-tier clean herb in Old School RuneScape and the first herb a player can use in Herblore. It is the base ingredient for Attack potions and is also used to craft guam tar for fuelling swamp lizards. Cleaning a grimy guam leaf requires only level 3 Herblore, and the herb can be farmed at level 9 Farming in any herb patch.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

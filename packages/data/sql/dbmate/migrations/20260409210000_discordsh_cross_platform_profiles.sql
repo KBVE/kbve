@@ -15,8 +15,6 @@
 -- enables cross-platform persistence.
 -- ============================================================
 
-BEGIN;
-
 -- ===========================================
 -- ADD NEW COLUMNS
 -- ===========================================
@@ -40,7 +38,12 @@ CREATE INDEX IF NOT EXISTS idx_discordsh_dungeon_profiles_auth_user
 
 -- ===========================================
 -- UPDATE: service_load_profile — add new columns to output
+--
+-- Postgres does not allow CREATE OR REPLACE FUNCTION to change the return
+-- type of an existing function, so we DROP first then recreate.
 -- ===========================================
+
+DROP FUNCTION IF EXISTS discordsh.service_load_profile(BIGINT);
 
 CREATE OR REPLACE FUNCTION discordsh.service_load_profile(
     p_discord_id BIGINT
@@ -396,15 +399,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-COMMIT;
-
 -- migrate:down
 
-BEGIN;
-
--- Drop new functions
+-- Drop new helper functions
 DROP FUNCTION IF EXISTS discordsh.service_link_auth(BIGINT, UUID);
 DROP FUNCTION IF EXISTS discordsh.service_load_profile_by_auth(UUID);
+
+-- Drop the modified service functions (they have new signatures with skills/faction_standing)
+DROP FUNCTION IF EXISTS discordsh.service_load_profile(BIGINT);
+DROP FUNCTION IF EXISTS discordsh.service_upsert_profile(
+    BIGINT, TEXT, SMALLINT, SMALLINT, INT, INT, INT,
+    INT, INT, INT, INT, INT, INT, INT,
+    TEXT, TEXT, JSONB, TEXT[], JSONB, JSONB,
+    SMALLINT, INT, INT, INT, INT, INT, INT, SMALLINT, INT
+);
 
 -- Drop index
 DROP INDEX IF EXISTS discordsh.idx_discordsh_dungeon_profiles_auth_user;
@@ -415,4 +423,152 @@ ALTER TABLE discordsh.dungeon_profiles
     DROP COLUMN IF EXISTS faction_standing,
     DROP COLUMN IF EXISTS skills;
 
-COMMIT;
+-- Recreate the original service_load_profile (without skills/faction/auth_user_id columns)
+-- to restore the prior schema state.
+CREATE OR REPLACE FUNCTION discordsh.service_load_profile(
+    p_discord_id BIGINT
+)
+RETURNS TABLE(
+    discord_id BIGINT,
+    discord_name TEXT,
+    class_id SMALLINT,
+    level SMALLINT,
+    xp INT,
+    xp_to_next INT,
+    gold INT,
+    lifetime_kills INT,
+    lifetime_gold_earned INT,
+    lifetime_rooms_cleared INT,
+    lifetime_bosses_defeated INT,
+    lifetime_deaths INT,
+    lifetime_victories INT,
+    lifetime_escapes INT,
+    weapon TEXT,
+    armor_gear TEXT,
+    inventory JSONB,
+    completed_quests TEXT[],
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        p.discord_id, p.discord_name, p.class_id, p.level, p.xp, p.xp_to_next, p.gold,
+        p.lifetime_kills, p.lifetime_gold_earned, p.lifetime_rooms_cleared,
+        p.lifetime_bosses_defeated, p.lifetime_deaths, p.lifetime_victories, p.lifetime_escapes,
+        p.weapon, p.armor_gear, p.inventory, p.completed_quests, p.created_at, p.updated_at
+    FROM discordsh.dungeon_profiles p
+    WHERE p.discord_id = p_discord_id;
+END;
+$$;
+REVOKE ALL ON FUNCTION discordsh.service_load_profile(BIGINT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION discordsh.service_load_profile(BIGINT) TO service_role;
+ALTER FUNCTION discordsh.service_load_profile(BIGINT) OWNER TO service_role;
+
+-- Recreate original service_upsert_profile (without p_skills/p_faction_standing params)
+CREATE OR REPLACE FUNCTION discordsh.service_upsert_profile(
+    p_discord_id            BIGINT,
+    p_discord_name          TEXT,
+    p_class_id              SMALLINT,
+    p_level                 SMALLINT,
+    p_xp                    INT,
+    p_xp_to_next            INT,
+    p_gold                  INT,
+    p_lifetime_kills        INT,
+    p_lifetime_gold_earned  INT,
+    p_lifetime_rooms_cleared INT,
+    p_lifetime_bosses_defeated INT,
+    p_lifetime_deaths       INT,
+    p_lifetime_victories    INT,
+    p_lifetime_escapes      INT,
+    p_weapon                TEXT DEFAULT NULL,
+    p_armor_gear            TEXT DEFAULT NULL,
+    p_inventory             JSONB DEFAULT '[]'::JSONB,
+    p_completed_quests      TEXT[] DEFAULT '{}',
+    p_run_outcome           SMALLINT DEFAULT NULL,
+    p_run_rooms_cleared     INT DEFAULT 0,
+    p_run_kills             INT DEFAULT 0,
+    p_run_gold_earned       INT DEFAULT 0,
+    p_run_gold_lost         INT DEFAULT 0,
+    p_run_bosses_defeated   INT DEFAULT 0,
+    p_run_xp_earned         INT DEFAULT 0,
+    p_run_level_at_end      SMALLINT DEFAULT 1,
+    p_run_duration_secs     INT DEFAULT NULL
+)
+RETURNS TABLE(success BOOLEAN, message TEXT)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    PERFORM pg_advisory_xact_lock(p_discord_id);
+    INSERT INTO discordsh.dungeon_profiles (
+        discord_id, discord_name, class_id, level, xp, xp_to_next, gold,
+        lifetime_kills, lifetime_gold_earned, lifetime_rooms_cleared,
+        lifetime_bosses_defeated, lifetime_deaths, lifetime_victories,
+        lifetime_escapes, weapon, armor_gear, inventory, completed_quests
+    )
+    VALUES (
+        p_discord_id, p_discord_name, p_class_id, p_level, p_xp, p_xp_to_next, p_gold,
+        p_lifetime_kills, p_lifetime_gold_earned, p_lifetime_rooms_cleared,
+        p_lifetime_bosses_defeated, p_lifetime_deaths, p_lifetime_victories,
+        p_lifetime_escapes, p_weapon, p_armor_gear, p_inventory, p_completed_quests
+    )
+    ON CONFLICT (discord_id) DO UPDATE SET
+        discord_name            = EXCLUDED.discord_name,
+        class_id                = EXCLUDED.class_id,
+        level                   = EXCLUDED.level,
+        xp                      = EXCLUDED.xp,
+        xp_to_next              = EXCLUDED.xp_to_next,
+        gold                    = EXCLUDED.gold,
+        lifetime_kills          = EXCLUDED.lifetime_kills,
+        lifetime_gold_earned    = EXCLUDED.lifetime_gold_earned,
+        lifetime_rooms_cleared  = EXCLUDED.lifetime_rooms_cleared,
+        lifetime_bosses_defeated = EXCLUDED.lifetime_bosses_defeated,
+        lifetime_deaths         = EXCLUDED.lifetime_deaths,
+        lifetime_victories      = EXCLUDED.lifetime_victories,
+        lifetime_escapes        = EXCLUDED.lifetime_escapes,
+        weapon                  = EXCLUDED.weapon,
+        armor_gear              = EXCLUDED.armor_gear,
+        inventory               = EXCLUDED.inventory,
+        completed_quests        = EXCLUDED.completed_quests;
+    IF p_run_outcome IS NOT NULL THEN
+        INSERT INTO discordsh.dungeon_runs (
+            discord_id, outcome, rooms_cleared, kills,
+            gold_earned, gold_lost, bosses_defeated,
+            xp_earned, level_at_end, duration_secs
+        )
+        VALUES (
+            p_discord_id, p_run_outcome, p_run_rooms_cleared, p_run_kills,
+            p_run_gold_earned, p_run_gold_lost, p_run_bosses_defeated,
+            p_run_xp_earned, p_run_level_at_end, p_run_duration_secs
+        );
+    END IF;
+    RETURN QUERY SELECT true, 'Profile saved.'::TEXT;
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN QUERY SELECT false, SQLERRM::TEXT;
+END;
+$$;
+REVOKE ALL ON FUNCTION discordsh.service_upsert_profile(
+    BIGINT, TEXT, SMALLINT, SMALLINT, INT, INT, INT,
+    INT, INT, INT, INT, INT, INT, INT,
+    TEXT, TEXT, JSONB, TEXT[],
+    SMALLINT, INT, INT, INT, INT, INT, INT, SMALLINT, INT
+) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION discordsh.service_upsert_profile(
+    BIGINT, TEXT, SMALLINT, SMALLINT, INT, INT, INT,
+    INT, INT, INT, INT, INT, INT, INT,
+    TEXT, TEXT, JSONB, TEXT[],
+    SMALLINT, INT, INT, INT, INT, INT, INT, SMALLINT, INT
+) TO service_role;
+ALTER FUNCTION discordsh.service_upsert_profile(
+    BIGINT, TEXT, SMALLINT, SMALLINT, INT, INT, INT,
+    INT, INT, INT, INT, INT, INT, INT,
+    TEXT, TEXT, JSONB, TEXT[],
+    SMALLINT, INT, INT, INT, INT, INT, INT, SMALLINT, INT
+) OWNER TO service_role;

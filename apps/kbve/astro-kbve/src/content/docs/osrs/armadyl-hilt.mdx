@@ -18,67 +18,54 @@ osrs:
   drop_table:
     sources:
       - source: Kree'arra
-        source_id: 3162
         combat_level: 580
         quantity: "1"
-        rarity: 1/508
+        rarity: very-rare
+        drop_rate: "1/508"
         members_only: true
-  recipes:
-    - skill: none
-      level: 0
-      xp: 0
-      materials:
-        - item_name: Godsword blade
-          item_id: 11798
-          quantity: 1
-        - item_name: Armadyl hilt
-          item_id: 11810
-          quantity: 1
-      product: Armadyl godsword
-      product_id: 11802
-      product_quantity: 1
-      facility: None
-      members_only: true
+      - source: Flight Kilisa
+        combat_level: 159
+        quantity: "1"
+        rarity: very-rare
+        drop_rate: "1/5376"
+        members_only: true
+      - source: Flockleader Geerin
+        combat_level: 149
+        quantity: "1"
+        rarity: very-rare
+        drop_rate: "1/5376"
+        members_only: true
+      - source: Wingman Skree
+        combat_level: 143
+        quantity: "1"
+        rarity: very-rare
+        drop_rate: "1/5376"
+        members_only: true
   related_items:
-    - item_id: 11802
-      item_name: Armadyl godsword
-      slug: armadyl-godsword
-      relationship: product
-      description: Created weapon
-    - item_id: 11798
-      item_name: Godsword blade
+    - item_name: Godsword blade
       slug: godsword-blade
       relationship: component
-      description: Blade component
-    - item_id: 11812
-      item_name: Bandos hilt
+    - item_name: Armadyl godsword
+      slug: armadyl-godsword
+      relationship: product
+    - item_name: Bandos hilt
       slug: bandos-hilt
       relationship: alternative
-      description: Defence drain hilt
-    - item_id: 11814
-      item_name: Saradomin hilt
+    - item_name: Saradomin hilt
       slug: saradomin-hilt
       relationship: alternative
-      description: Healing hilt
+    - item_name: Zamorak hilt
+      slug: zamorak-hilt
+      relationship: alternative
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 2.5 kg |
-
-    | Item Created | Materials |
-    |--------------|-----------|
-    | Armadyl godsword | Godsword blade + Armadyl hilt |
-
-    No skill requirements.
+    The Armadyl hilt is an Armadyl-aligned godsword hilt dropped from Kree'arra at the God Wars Dungeon. It is combined with a godsword blade to form the Armadyl godsword. The hilt is a very rare drop from Kree'arra, with a base rate of roughly 1/508 per kill.
   market_strategy:
     notes:
       - Farm Kree'arra
       - Most valuable hilt
       - Creates spec weapon
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

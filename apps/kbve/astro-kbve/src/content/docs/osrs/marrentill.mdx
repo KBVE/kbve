@@ -12,18 +12,74 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 13000
+  material:
+    type: herb
+    tier: low
+  farming:
+    level: 14
+    plant_xp: 13.5
+    harvest_xp: 15
+    patch_type: herb
+    growth_time: 80
+    payment: 1 bag of cabbages
+    seed_id: 5292
+    seed_name: Marrentill seed
+  recipes:
+    - name: Clean grimy marrentill
+      skill: herblore
+      level: 5
+      xp: 3.8
+      materials:
+        - item_name: Grimy marrentill
+          item_id: 201
+          quantity: 1
+      product: Marrentill
+      product_id: 251
+    - name: Make Marrentill potion (unf)
+      skill: herblore
+      level: 5
+      xp: 0
+      materials:
+        - item_name: Marrentill
+          item_id: 251
+          quantity: 1
+        - item_name: Vial of water
+          item_id: 227
+          quantity: 1
+      product: Marrentill potion (unf)
+      product_id: 93
   related_items:
     - item_id: 201
       item_name: Grimy marrentill
       slug: grimy-marrentill
+      relationship: variant
+    - item_id: 5292
+      item_name: Marrentill seed
+      slug: marrentill-seed
       relationship: component
-      description: Uncleaned version
+    - item_id: 93
+      item_name: Marrentill potion (unf)
+      slug: marrentill-potion-unf
+      relationship: product
+    - item_id: 2446
+      item_name: Antipoison(4)
+      slug: antipoison-4
+      relationship: product
+    - item_name: Serum 207
+      slug: serum-207
+      relationship: product
+    - item_id: 249
+      item_name: Guam leaf
+      slug: guam-leaf
+      relationship: alternative
+    - item_id: 253
+      item_name: Tarromin
+      slug: tarromin
+      relationship: alternative
   about: |-
-    > _"A herb used in poison cures."_
-
-    Marrentill is used to make antipoison potions (5 Herblore) and as incense on POH burners. Also used in Druidic Ritual and other quests.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Marrentill is the second-lowest tier herb in Old School RuneScape, obtained by cleaning grimy marrentill at level 5 Herblore for 3.8 experience. It is most commonly used to brew antipoison potions and Serum 207, the latter being required during the Temple Trekking minigame to cure diseased Morytania villagers. Players can grow their own supply by planting Marrentill seeds in herb patches at level 14 Farming.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

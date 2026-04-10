@@ -12,10 +12,9 @@ osrs:
   lowalch: 100000
   highalch: 150000
   limit: 11000
-  item:
-    type: godsword shard
-    tradeable: true
-    weight: 2.5
+  material:
+    type: bar
+    tier: high
   recipes:
     - skill: smithing
       level: 80
@@ -32,34 +31,49 @@ osrs:
           quantity: 1
       product: Godsword blade
       product_id: 11798
+  drop_table:
+    sources:
+      - source: General Graardor
+        combat_level: 624
+        quantity: "1"
+        rarity: very-rare
+        drop_rate: "1/762"
+        members_only: true
+      - source: K'ril Tsutsaroth
+        combat_level: 650
+        quantity: "1"
+        rarity: very-rare
+        drop_rate: "1/762"
+        members_only: true
+      - source: Commander Zilyana
+        combat_level: 596
+        quantity: "1"
+        rarity: very-rare
+        drop_rate: "1/762"
+        members_only: true
+      - source: Kree'arra
+        combat_level: 580
+        quantity: "1"
+        rarity: very-rare
+        drop_rate: "1/762"
+        members_only: true
   related_items:
-    - item_id: 11818
-      item_name: Godsword shard 1
+    - item_name: Godsword shard 1
+      item_id: 11818
       slug: godsword-shard-1
       relationship: component
-      description: First shard for godsword blade
-    - item_id: 11822
-      item_name: Godsword shard 3
+    - item_name: Godsword shard 3
+      item_id: 11822
       slug: godsword-shard-3
       relationship: component
-      description: Third shard for godsword blade
-    - item_id: 11798
-      item_name: Godsword blade
+    - item_name: Godsword blade
+      item_id: 11798
       slug: godsword-blade
       relationship: product
-      description: Created item from all three shards
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 2.5 kg |
-
-    Combine all 3 shards at anvil (80 Smithing):
-    - Shard 1 + Shard 2 + Shard 3 = Godsword blade
-    - 100 Smithing XP
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Godsword shard 2 is the second of three shards dropped by the bosses and sub-bosses of the God Wars Dungeon. When combined with Godsword shard 1 and Godsword shard 3 on an anvil, it forms a Godsword blade, granting 100 Smithing experience and requiring level 80 Smithing. The blade must then have a hilt attached to become a fully usable Godsword.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

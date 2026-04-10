@@ -15,18 +15,9 @@ osrs:
   material:
     type: plank
     tier: high
-  construction:
-    xp_per_plank: 140
-    min_level: 40
-    common_builds:
-      - name: Mahogany tables
-        planks: 6
-        xp: 840
-      - name: Gnome benches
-        planks: 6
-        xp: 840
   recipes:
     - skill: construction
+      level: 1
       materials:
         - item_name: Mahogany logs
           item_id: 6332
@@ -35,8 +26,6 @@ osrs:
       product_id: 8782
       product_quantity: 1
       facility: Sawmill
-      cost: 1500
-      members_only: true
     - skill: magic
       level: 86
       xp: 90
@@ -47,69 +36,39 @@ osrs:
         - item_name: Astral rune
           item_id: 9075
           quantity: 2
-        - item_name: Nature rune
-          item_id: 561
-          quantity: 1
         - item_name: Earth rune
           item_id: 557
           quantity: 15
+        - item_name: Nature rune
+          item_id: 561
+          quantity: 1
       product: Mahogany plank
       product_id: 8782
       product_quantity: 1
-      cost: 1050
-      members_only: true
-      spell: Plank Make
   related_items:
     - item_id: 6332
       item_name: Mahogany logs
       slug: mahogany-logs
       relationship: component
-      description: Raw material
     - item_id: 8780
       item_name: Teak plank
       slug: teak-plank
-      relationship: alternative
-      description: Mid tier alternative
+      relationship: downgrade
     - item_id: 8778
       item_name: Oak plank
       slug: oak-plank
+      relationship: downgrade
+    - item_id: 960
+      item_name: Plank
+      slug: plank
+      relationship: downgrade
+    - item_name: Plank Make
+      slug: plank-make
       relationship: alternative
-      description: Budget option
-    - item_id: 9075
-      item_name: Astral rune
-      slug: astral-rune
-      relationship: component
-      description: For Plank Make
-    - item_id: 561
-      item_name: Nature rune
-      slug: nature-rune
-      relationship: component
-      description: For Plank Make
   about: |-
-    | XP per plank | 140 |
-    |--------------|-----|
-    | Mahogany Homes avg | ~346 XP per plank |
-    | Buy limit | 13,000 per 4 hours |
-    | Min Construction level | 40 |
-
-    Best XP methods:
-    - Mahogany tables (6 planks, 840 XP)
-    - Mahogany Homes contracts (most efficient)
-    - Gnome benches (6 planks, 840 XP)
-  market_strategy:
-    profit_formulas:
-      - Mahogany plank price - Mahogany log price - 1,500 GP = Profit
-    notes:
-      - Buy Mahogany logs → Sawmill → Sell planks
-      - "Calculate:"
-      - 86 Magic required
-      - Only 1,050 GP per plank (saves 450 GP vs sawmill)
-      - Higher profit margin than oak planks
-      - Highest XP/plank for Construction
-      - Premium price = higher margins
-      - Popular for 99 Construction rushes
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Mahogany plank is the highest-tier Construction plank in Old School RuneScape, prized for delivering the most experience per plank and used in the most expensive Construction builds. Players obtain it by bringing mahogany logs to the Sawmill in Varrock and paying 1,500 coins per log, or by casting the Lunar spell Plank Make on a mahogany log for a reduced cost. Because of its steep price and high XP yield, it is the staple material for fast Construction training to 99.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

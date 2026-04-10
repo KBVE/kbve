@@ -14,102 +14,60 @@ osrs:
   limit: 70
   equipment:
     slot: weapon
-    type: longsword
-    attack_style: melee
+    weapon_type: slash-sword
     attack_speed: 5
+    attack_range: 1
     tradeable: true
     weight: 1.814
-  requirements:
-    attack: 60
-    quests:
-      - name: Lost City
-  stats:
-    attack:
+    requirements:
+      attack: 60
+      quest: Lost City
+    attack_bonus:
       stab: 58
       slash: 69
       crush: -2
       magic: 0
       ranged: 0
-    defence:
+    defence_bonus:
       stab: 0
       slash: 3
       crush: 2
       magic: 0
       ranged: 0
-    other:
+    other_bonus:
       melee_strength: 71
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
   special_attack:
     name: Cleave
-    description: +25% max hit on a single powerful strike
-    energy_cost: 25
-  shops:
-    - shop_name: Jukat
-      location: Zanaris
-      price: 100000
-  drop_table:
-    sources:
-      - source: Steel dragon
-        source_id: 274
-        combat_level: 246
-        quantity: "1"
-        rarity: rare
-        members_only: true
-      - source: Black dragon
-        source_id: 252
-        combat_level: 227
-        quantity: "1"
-        rarity: rare
+    energy: 25
+    description: Raises the player's maximum hit by 25% for one powerful strike.
+    damage_modifier: 1.25
   related_items:
     - item_id: 4587
       item_name: Dragon scimitar
       slug: dragon-scimitar
       relationship: alternative
-      description: Faster attack speed
-    - item_id: 12954
-      item_name: Dragon defender
-      slug: dragon-defender
+    - item_id: 1434
+      item_name: Dragon mace
+      slug: dragon-mace
       relationship: alternative
-      description: Shield slot upgrade
-    - item_id: 1303
-      item_name: Rune longsword
-      slug: rune-longsword
-      relationship: downgrade
-      description: Lower tier weapon
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Stab | +58 |
-    | Slash | +69 |
-    | Crush | -2 |
-    | Strength | +71 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Slash | +3 |
-    | Crush | +2 |
-
-    Requirements: 60 Attack, Lost City
-
-    Cleave (25% energy):
-    - +25% max hit
-    - Single powerful hit
-
-    Good for:
-    - Stab/slash training
-    - Budget spec weapon
-    - Collection log
-
-    2nd strongest longsword.
-  market_strategy:
-    notes:
-      - Lost City quest required
-      - Slower than scimitar
-      - Better for specs
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1215
+      item_name: Dragon dagger
+      slug: dragon-dagger
+      relationship: alternative
+    - item_id: 1377
+      item_name: Dragon battleaxe
+      slug: dragon-battleaxe
+      relationship: alternative
+    - item_id: 11838
+      item_name: Saradomin sword
+      slug: saradomin-sword
+      relationship: upgrade
+  about: The Dragon longsword is the classic dragon-tier longsword, offering strong stab and slash bonuses alongside a respectable melee strength bonus. Its Cleave special attack consumes 25% special energy to deal a single strike with 25% increased damage, making it a viable budget spec weapon. Wielding it requires 60 Attack and completion of the Lost City quest.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
