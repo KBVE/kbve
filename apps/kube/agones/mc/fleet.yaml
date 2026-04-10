@@ -48,6 +48,28 @@ spec:
                 spec:
                     nodeSelector:
                         node.kbve.com/type: dedicated-server
+                    # Force-sync FabricProxy-Lite.toml from the Docker image
+                    # onto the PVC on every pod start. itzg's /config/ → /data/config/
+                    # copy is first-boot-only, so any change to the template
+                    # (like flipping hackEarlySend to true for the LuckPerms
+                    # pre-login UUID fix) would otherwise be ignored by existing
+                    # PVCs. This initContainer pulls the template from the same
+                    # image the main container uses and overwrites the PVC copy
+                    # so the Docker template is the single source of truth.
+                    initContainers:
+                        - name: sync-fabricproxy-config
+                          image: ghcr.io/kbve/mc:1.0.8
+                          command:
+                              - sh
+                              - -c
+                              - |
+                                  set -eu
+                                  mkdir -p /data/config
+                                  cp /config/FabricProxy-Lite.toml /data/config/FabricProxy-Lite.toml
+                                  echo "synced FabricProxy-Lite.toml from image template"
+                          volumeMounts:
+                              - name: mc-data
+                                mountPath: /data
                     containers:
                         - name: mc-server
                           image: ghcr.io/kbve/mc:1.0.8
@@ -87,24 +109,6 @@ spec:
                                 value: 'false'
                               - name: SERVER_PORT
                                 value: '25565'
-                              # LuckPerms config via env vars (no PVC mutation).
-                              # EnvironmentVariableConfigAdapter reads LUCKPERMS_*
-                              # and overrides the on-disk luckperms.conf. Pairing
-                              # this messaging-service=pluginmsg with the matching
-                              # env var on mc-velocity makes Velocity's LuckPerms
-                              # authoritative for user data — the proxy loads
-                              # permissions against the real online UUID before
-                              # forwarding, and the Fabric LuckPerms receives
-                              # them over the plugin-message channel. This fixes
-                              # the "[LP] Permissions data for your user was not
-                              # loaded during the pre-login stage" kick caused
-                              # by FabricProxy-Lite swapping the offline UUID for
-                              # the online one after LuckPerms already tried to
-                              # pre-load under the offline ID.
-                              - name: LUCKPERMS_MESSAGING_SERVICE
-                                value: 'pluginmsg'
-                              - name: LUCKPERMS_STORAGE_METHOD
-                                value: 'h2'
                           resources:
                               requests:
                                   memory: 2Gi
