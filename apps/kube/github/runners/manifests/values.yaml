@@ -68,8 +68,11 @@ template:
                       cpu: '12'
                       memory: 24Gi
                   requests:
-                      cpu: '4'
-                      memory: 8Gi
+                      # Idle runners only burn ~100m. Reserve 1 CPU so the pod
+                      # schedules but doesn't squat on capacity. Heavy jobs still
+                      # burst up to the 12-CPU limit.
+                      cpu: '1'
+                      memory: 4Gi
               securityContext:
                   # Run as root for sudo/apt-get (Unity builder requirement)
                   # Not privileged - no host access, just root inside container
@@ -102,8 +105,10 @@ template:
                       cpu: '12'
                       memory: 32Gi
                   requests:
-                      cpu: '2'
-                      memory: 4Gi
+                      # DinD daemon idles around 50m; reserve 500m for headroom
+                      # while letting builds burst into the 12-CPU limit.
+                      cpu: 500m
+                      memory: 2Gi
               volumeMounts:
                   - name: work
                     mountPath: /home/runner/_work
