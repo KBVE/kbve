@@ -12,75 +12,59 @@ osrs:
   lowalch: 300000
   highalch: 450000
   limit: 10000
-  item:
-    type: crafting_material
-    tradeable: true
-    weight: 7.5
-  creation:
-    method: Created at anvil
-    requirements:
-      smithing: 80
-    xp: 100
-    materials:
-      - item_id: 0
-        item_name: Godsword shard 1
-        slug: godsword-shard-1
-      - item_id: 0
-        item_name: Godsword shard 2
-        slug: godsword-shard-2
-      - item_id: 0
-        item_name: Godsword shard 3
-        slug: godsword-shard-3
-  uses:
-    - hilt: Ancient hilt
-      godsword: Ancient godsword
-    - hilt: Armadyl hilt
-      godsword: Armadyl godsword
-    - hilt: Bandos hilt
-      godsword: Bandos godsword
-    - hilt: Saradomin hilt
-      godsword: Saradomin godsword
-    - hilt: Zamorak hilt
-      godsword: Zamorak godsword
+  material:
+    type: bar
+    tier: high
+  recipes:
+    - skill: smithing
+      level: 80
+      xp: 100
+      facility: Furnace
+      product: Godsword blade
+      product_id: 11798
+      product_quantity: 1
+      materials:
+        - item_name: Godsword shard 1
+          item_id: 11818
+          quantity: 1
+        - item_name: Godsword shard 2
+          item_id: 11820
+          quantity: 1
+        - item_name: Godsword shard 3
+          item_id: 11822
+          quantity: 1
   related_items:
     - item_id: 11818
       item_name: Godsword shard 1
       slug: godsword-shard-1
       relationship: component
-      description: Component
-    - item_id: 0
-      item_name: Armadyl hilt
-      slug: armadyl-hilt
+    - item_id: 11820
+      item_name: Godsword shard 2
+      slug: godsword-shard-2
       relationship: component
-      description: Most valuable hilt
+    - item_id: 11822
+      item_name: Godsword shard 3
+      slug: godsword-shard-3
+      relationship: component
+    - item_id: 11802
+      item_name: Armadyl godsword
+      slug: armadyl-godsword
+      relationship: product
     - item_id: 11804
       item_name: Bandos godsword
       slug: bandos-godsword
       relationship: product
-      description: Created weapon
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 7.5 kg |
-
-    Combine with a hilt to create godsword:
-
-    | Hilt | Godsword |
-    |------|----------|
-    | Ancient hilt | Ancient godsword |
-    | Armadyl hilt | Armadyl godsword |
-    | Bandos hilt | Bandos godsword |
-    | Saradomin hilt | Saradomin godsword |
-    | Zamorak hilt | Zamorak godsword |
-  market_strategy:
-    notes:
-      - Combine shards yourself
-      - Add hilt for profit
-      - Farm GWD for shards
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 11806
+      item_name: Saradomin godsword
+      slug: saradomin-godsword
+      relationship: product
+    - item_id: 11808
+      item_name: Zamorak godsword
+      slug: zamorak-godsword
+      relationship: product
+  about: The godsword blade is an intermediate component crafted by smithing Godsword shard 1, Godsword shard 2, and Godsword shard 3 together at an anvil, requiring level 80 Smithing. Each pair of shards smithed together grants 100 Smithing experience, so assembling a full blade awards 200 experience total. Once complete, the blade is combined with a god hilt obtained from the God Wars Dungeon to forge one of the four godswords.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

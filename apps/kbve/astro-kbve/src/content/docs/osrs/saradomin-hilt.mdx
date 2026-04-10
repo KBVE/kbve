@@ -12,52 +12,55 @@ osrs:
   lowalch: 200000
   highalch: 300000
   limit: 10000
-  item:
-    type: godsword hilt
-    tradeable: true
-    weight: 2.5
-  recipes:
-    - skill: null
-      level: 0
-      materials:
-        - item_id: 11814
-          item_name: Saradomin hilt
-          quantity: 1
-        - item_id: 11798
-          item_name: Godsword blade
-          quantity: 1
-      product: Saradomin godsword
-      product_id: 11806
+  drop_table:
+    sources:
+      - source: Commander Zilyana
+        combat_level: 596
+        quantity: "1"
+        rarity: rare
+        drop_rate: "1/508"
+        members_only: true
   related_items:
-    - item_id: 11806
-      item_name: Saradomin godsword
-      slug: saradomin-godsword
-      relationship: product
-      description: Created weapon from hilt
     - item_id: 11798
       item_name: Godsword blade
       slug: godsword-blade
       relationship: component
-      description: Required component for godsword
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 2.5 kg |
-
-    | Item Created | Materials |
-    |--------------|-----------|
-    | Saradomin godsword | Godsword blade + Saradomin hilt |
-
-    No skill requirements.
+      description: Combined with the hilt to forge the Saradomin godsword.
+    - item_id: 11806
+      item_name: Saradomin godsword
+      slug: saradomin-godsword
+      relationship: product
+      description: Finished weapon created from the hilt and a godsword blade.
+    - item_id: 11810
+      item_name: Armadyl hilt
+      slug: armadyl-hilt
+      relationship: alternative
+      description: Armadyl-aligned godsword hilt dropped by Kree'arra.
+    - item_id: 11812
+      item_name: Bandos hilt
+      slug: bandos-hilt
+      relationship: alternative
+      description: Bandos-aligned godsword hilt dropped by General Graardor.
+    - item_id: 11816
+      item_name: Zamorak hilt
+      slug: zamorak-hilt
+      relationship: alternative
+      description: Zamorak-aligned godsword hilt dropped by K'ril Tsutsaroth.
+  about: >-
+    The Saradomin hilt is a Saradomin-aligned godsword hilt dropped by
+    Commander Zilyana in the God Wars Dungeon. It is combined with a completed
+    godsword blade to forge the Saradomin godsword, whose Healing Blade special
+    attack restores hitpoints and prayer based on damage dealt. Among the four
+    godsword hilts it is consistently one of the most valuable, because the
+    Saradomin godsword remains a go-to sustain weapon for Nightmare Zone,
+    slayer, and long bossing trips where incoming damage is unavoidable.
   market_strategy:
     notes:
       - Farm Commander Zilyana
       - Healing spec weapon
       - Most expensive standard hilt
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

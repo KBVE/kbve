@@ -14,10 +14,11 @@ osrs:
   limit: 70
   equipment:
     slot: weapon
-    weapon_type: mace
-    weight: 0.907
+    weapon_type: blunt
     attack_speed: 4
     attack_range: 1
+    requirements:
+      attack: 60
     attack_bonus:
       stab: 40
       slash: -2
@@ -35,51 +36,34 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 5
-    requirements:
-      attack: 60
-  quest_requirements:
-    - quest_name: Heroes' Quest
-      quest_id: 63
-      required: true
-      notes: Required to purchase from shop
   special_attack:
     name: Shatter
     energy: 25
-    description: Hits with 50% increased damage and ignores the opponent's Protect from Melee prayer
+    description: Increases accuracy by 25% and damage by 50%, rolling against the target's crush defence.
+    damage_modifier: 1.5
+    accuracy_modifier: 1.25
   related_items:
-    - item_id: 1377
-      item_name: Dragon battleaxe
-      slug: dragon-battleaxe
-      relationship: alternative
-      description: Also from Heroes' Quest content
     - item_id: 1305
       item_name: Dragon longsword
       slug: dragon-longsword
       relationship: alternative
-      description: Also from Heroes' Quest content
-  about: |-
-    Special Attack - Shatter:
-    - Uses only 25% special attack energy
-    - 50% increased damage
-    - Ignores opponent's Protect from Melee prayer
-
-    Combat Features:
-    - +5 Prayer bonus (unique among dragon weapons)
-    - Crush attack style (good vs plate armor)
-    - Same speed as scimitar
-
-    | Stat | Bonus |
-    |------|-------|
-    | Crush | +60 |
-    | Stab | +40 |
-    | Strength | +55 |
-    | Prayer | +5 |
-
-    - Spec useful in PvP for prayer-ignoring hits
-    - Lower DPS than dragon scimitar
-    - Prayer bonus is niche advantage
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 4587
+      item_name: Dragon scimitar
+      slug: dragon-scimitar
+      relationship: alternative
+    - item_id: 1377
+      item_name: Dragon battleaxe
+      slug: dragon-battleaxe
+      relationship: alternative
+    - item_name: Granite hammer
+      slug: granite-hammer
+      relationship: upgrade
+    - item_name: Inquisitor's mace
+      slug: inquisitor-s-mace
+      relationship: upgrade
+  about: The dragon mace is a crush weapon from the dragon equipment tier, purchased at the Heroes' Guild after completing Heroes' Quest. Its Shatter special attack costs only 25% energy, making it a popular low-cost spec accumulator weapon for stacking damage in PvP and boss encounters. Wielding it requires level 60 Attack.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

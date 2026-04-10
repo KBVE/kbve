@@ -14,106 +14,65 @@ osrs:
   limit: 8
   equipment:
     slot: 2h
-    type: godsword
-    attack_style: slash
+    weapon_type: two-handed-sword
     attack_speed: 6
+    attack_range: 1
     requirements:
       attack: 75
-    stats:
-      attack_slash: 132
-      attack_crush: 80
-      strength: 132
-      prayer: 8
+    bonuses:
+      attack:
+        stab: 0
+        slash: 132
+        crush: 80
+        magic: 0
+        ranged: 0
+      defence:
+        stab: 0
+        slash: 0
+        crush: 0
+        magic: 0
+        ranged: 0
+      other:
+        melee_strength: 132
+        ranged_strength: 0
+        magic_damage: 0
+        prayer: 8
   special_attack:
     name: Warstrike
     energy: 50
-    effect: +100% accuracy, +21% damage, drains combat stats equal to damage dealt
-  recipes:
-    - skill: none
-      level: 0
-      xp: 0
-      materials:
-        - item_name: Godsword blade
-          item_id: 11798
-          quantity: 1
-        - item_name: Bandos hilt
-          item_id: 11812
-          quantity: 1
-      product: Bandos godsword
-      product_id: 11804
-      product_quantity: 1
-      facility: None
-      members_only: true
+    description: Doubled accuracy and +21% damage. Drains the target's combat stats equal to the damage dealt, in the order Defence, Strength, Prayer, Attack, Magic, Ranged.
+    accuracy_modifier: 2.0
+    damage_modifier: 1.21
+    drains_defence: true
+    drains_stats: true
   related_items:
     - item_id: 11812
       item_name: Bandos hilt
       slug: bandos-hilt
       relationship: component
-      description: Hilt component
     - item_id: 11798
       item_name: Godsword blade
       slug: godsword-blade
       relationship: component
-      description: Blade component
-    - item_id: 13576
-      item_name: Dragon warhammer
-      slug: dragon-warhammer
-      relationship: alternative
-      description: Primary spec alternative
     - item_id: 11802
       item_name: Armadyl godsword
       slug: armadyl-godsword
       relationship: alternative
-      description: Damage spec
     - item_id: 11806
       item_name: Saradomin godsword
       slug: saradomin-godsword
       relationship: alternative
-      description: Healing spec
+    - item_id: 11808
+      item_name: Zamorak godsword
+      slug: zamorak-godsword
+      relationship: alternative
+    - item_name: Bandos godsword (or)
+      slug: bandos-godsword-or
+      relationship: variant
   about: |-
-    Attach Bandos hilt to Godsword blade.
-
-    | Component | Source | Price |
-    |-----------|--------|-------|
-    | Bandos hilt | General Graardor (1/508) | ~16M gp |
-    | Godsword blade | GWD bosses | ~526K gp |
-
-    | Stat | Value |
-    |------|-------|
-    | Attack style | Slash |
-    | Slash attack | +132 |
-    | Crush attack | +80 |
-    | Strength bonus | +132 |
-    | Prayer bonus | +8 |
-    | Attack speed | 6 tick (3.6s) |
-    | Requirements | 75 Attack |
-
-    Warstrike (50% energy):
-    - +100% accuracy (doubled)
-    - +21% damage boost
-    - Drains combat stats equal to damage dealt
-    - Drain order: Defence → Strength → Prayer → Attack → Magic → Ranged
-
-    PvM (Primary Use):
-    - Alternative to Dragon warhammer
-    - Defence reduction for bosses
-    - Double spec at start of kills
-
-    Best For:
-    - Corporeal Beast
-    - Nightmare
-    - Solo bossing
-    - Budget DWH alternative
-
-    PvP:
-    - Stat drain can be devastating
-    - Less burst than AGS
-  market_strategy:
-    notes:
-      - PvM utility drives price
-      - Good for ironmen (easier than DWH)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The Bandos godsword is the cheapest of the five godsword variants and serves as the budget entry point to godsword ownership for players who want a high-hitting two-handed weapon. Its Warstrike special attack drains the target's Defence (and then other combat stats) equal to the damage dealt, making it a popular pick at high-Defence bosses where shredding enemy stats opens up the rest of the fight. Like every godsword, it is forged by attaching a Bandos hilt, dropped by General Graardor, to a godsword blade assembled from shards found throughout the God Wars Dungeon.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
