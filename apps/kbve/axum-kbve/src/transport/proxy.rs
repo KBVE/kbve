@@ -67,8 +67,9 @@ impl ServiceProxy {
     async fn forward_request(&self, path: Option<Path<String>>, req: Request<Body>) -> Response {
         let req_headers = req.headers().clone();
         let suffix = path.map(|Path(p)| p).unwrap_or_default();
-        let query = raw_query
-            .as_ref()
+        let query = req
+            .uri()
+            .query()
             .map(|q| format!("?{q}"))
             .unwrap_or_default();
         let upstream_url = format!("{}/{}{}", self.upstream, suffix, query);
@@ -1153,6 +1154,7 @@ pub fn init_firecracker_net_proxy() -> bool {
             client,
             upstream: upstream.trim_end_matches('/').to_string(),
             upstream_token: None,
+            iframe_safe: false,
         })
         .is_ok()
 }
