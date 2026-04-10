@@ -89,6 +89,29 @@ spec:
                                     secretKeyRef:
                                         name: mc-gameserver-secrets
                                         key: rcon-password
+                              # Supabase service-role credentials for the
+                              # mc_auth bridge. Projected from the mc
+                              # namespace via the mc-gameserver-secrets
+                              # ExternalSecret — see gameserver-secrets.yaml.
+                              # Both keys are marked optional: true so the
+                              # pod can boot even if the ExternalSecret
+                              # hasn't synced them yet. In that case the
+                              # Rust SupabaseClient falls through to
+                              # graceful "treat everyone as unlinked" mode
+                              # and logs a warning at startup. Players are
+                              # never blocked from joining by missing auth.
+                              - name: SUPABASE_URL
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: mc-gameserver-secrets
+                                        key: supabase-url
+                                        optional: true
+                              - name: SUPABASE_SERVICE_ROLE_KEY
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: mc-gameserver-secrets
+                                        key: supabase-service-role-key
+                                        optional: true
                               - name: MOTD
                                 value: 'KBVE Minecraft Server'
                               - name: MAX_PLAYERS
