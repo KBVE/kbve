@@ -120,6 +120,15 @@ declare -A MODS=(
   ["essential_commands-0.38.6-mc1.21.11.jar"]="c10c608f7adfd566fa2908deb16fd761fe399e8b https://cdn.modrinth.com/data/6VdDUivB/versions/3s9XXmZa/essential_commands-0.38.6-mc1.21.11.jar"
   ["LuckPerms-Fabric-5.5.21.jar"]="2b899a61f216e8fd5ff9bfae98b62fcb1201e91b https://cdn.modrinth.com/data/Vebnzrzj/versions/CzCJJMuo/LuckPerms-Fabric-5.5.21.jar"
   ["ledger-1.3.19.jar"]="b53db7b817e968603adf33f8d31903a0bf5c0ea2 https://cdn.modrinth.com/data/LVN9ygNV/versions/c1d39lju/ledger-1.3.19.jar"
+  # Grim Anticheat — packet-level anticheat. Lives on the Fabric backend
+  # (not Velocity) because Grim works at the packet layer and needs the
+  # actual client movement packets after ViaVersion translation. Grim's
+  # default punishments.yml ships with ONLY [alert]/[log]/[webhook]/[proxy]
+  # tokens — no auto-kick or ban out of the box, which is exactly the
+  # "warning-only" rollout mode we want. Tune the generated
+  # /data/plugins/Grim/punishments.yml in-place on the PVC once we
+  # collect real violation data.
+  ["grimac-fabric-2.3.73.jar"]="7a6fcb37c8a2845268f8072166b929d4b963863a https://cdn.modrinth.com/data/LJNGWSvH/versions/SNnHVoFr/grimac-fabric-2.3.73.jar"
 )
 
 for name in "${!MODS[@]}"; do
