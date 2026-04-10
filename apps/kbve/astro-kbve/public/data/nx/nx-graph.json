@@ -6940,6 +6940,123 @@
           "implicitDependencies": []
         }
       },
+      "kubectl-e2e": {
+        "name": "kubectl-e2e",
+        "type": "e2e",
+        "data": {
+          "root": "apps/vm/kubectl-e2e",
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "kubectl-e2e",
+              "packageVersion": "0.0.0",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "targets": {
+            "test": {
+              "executor": "nx:noop",
+              "cache": false,
+              "options": {},
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "options": {
+                "cwd": "apps/vm/kubectl-e2e",
+                "command": "tsc --noEmit -p tsconfig.json"
+              },
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects kubectl-e2e --includeDependentProjects -- pnpm exec nx build-deps kubectl-e2e"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker rm -f kubectl-e2e 2>/dev/null || true",
+                  "docker buildx build --platform linux/amd64 -f apps/vm/kubectl/Dockerfile -t kbve/kubectl:e2e --load .",
+                  "docker run -d --name kubectl-e2e --entrypoint sleep kbve/kubectl:e2e infinity",
+                  "echo 'Waiting for container...' && for i in $(seq 1 30); do if docker exec kubectl-e2e /bin/sh -c 'echo ok' >/dev/null 2>&1; then echo 'Container ready after '\"$i\"'s'; break; fi; if [ $i -eq 30 ]; then echo 'Container did not become ready'; docker logs kubectl-e2e 2>&1 | tail -20; docker rm -f kubectl-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+                  "cd apps/vm/kubectl-e2e && npx vitest run; EC=$?; docker rm -f kubectl-e2e 2>/dev/null || true; exit $EC"
+                ],
+                "parallel": false
+              },
+              "configurations": {
+                "ci": {}
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            }
+          },
+          "projectType": "application",
+          "name": "kubectl-e2e",
+          "tags": [
+            "npm:private",
+            "scope:vm",
+            "kubectl",
+            "e2e"
+          ],
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/vm/kubectl-e2e/e2e",
+          "implicitDependencies": [
+            "kbve-kubectl"
+          ]
+        }
+      },
       "astro": {
         "name": "astro",
         "type": "lib",
@@ -8956,6 +9073,143 @@
           ]
         }
       },
+      "kbve-kubectl": {
+        "name": "kbve-kubectl",
+        "type": "app",
+        "data": {
+          "root": "apps/vm/kubectl",
+          "name": "kbve-kubectl",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/vm/kubectl/src",
+          "tags": [
+            "scope:vm",
+            "kubectl",
+            "infrastructure"
+          ],
+          "targets": {
+            "build": {
+              "executor": "@monodon/rust:build",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/kbve-kubectl"
+              },
+              "configurations": {
+                "production": {
+                  "release": true
+                }
+              },
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "test": {
+              "executor": "@monodon/rust:test",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/kbve-kubectl"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "lint": {
+              "executor": "@monodon/rust:lint",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/kbve-kubectl"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true
+            },
+            "container": {
+              "executor": "nx:run-commands",
+              "defaultConfiguration": "local",
+              "options": {
+                "parallel": false
+              },
+              "configurations": {
+                "local": {
+                  "commands": [
+                    "./kbve.sh -nx kbve-kubectl:containerx",
+                    "VERSION=$(grep '^version' apps/vm/kubectl/version.toml | sed 's/version = \"\\(.*\\)\"/\\1/') && docker tag kbve/kubectl:latest kbve/kubectl:$VERSION && echo \"Tagged kbve/kubectl:$VERSION\""
+                  ]
+                },
+                "production": {
+                  "commands": [
+                    "./kbve.sh -nx kbve-kubectl:containerx --configuration=production",
+                    "VERSION=$(grep '^version' apps/vm/kubectl/version.toml | sed 's/version = \"\\(.*\\)\"/\\1/') && docker tag kbve/kubectl:latest kbve/kubectl:$VERSION && docker tag kbve/kubectl:latest ghcr.io/kbve/kubectl:latest && docker tag kbve/kubectl:latest ghcr.io/kbve/kubectl:$VERSION && echo \"Tagged ghcr.io/kbve/kubectl:$VERSION\""
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "containerx": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/vm/kubectl/Dockerfile",
+                "load": true
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/kubectl:latest"
+                  ]
+                },
+                "production": {
+                  "load": true,
+                  "push": false,
+                  "metadata": {
+                    "images": [
+                      "ghcr.io/kbve/kubectl",
+                      "kbve/kubectl"
+                    ],
+                    "tags": [
+                      "latest"
+                    ]
+                  },
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/kubectl:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/kubectl:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "q": {
         "name": "q",
         "type": "lib",
@@ -9844,6 +10098,35 @@
               },
               "parallelism": true
             },
+            "dev": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                {
+                  "target": "container",
+                  "projects": [
+                    "mc"
+                  ],
+                  "params": "forward"
+                }
+              ],
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker rm -f mc-dev 2>/dev/null || true",
+                  "echo '=== Starting MC server (offline mode) ==='",
+                  "echo '  Game:  localhost:25565'",
+                  "echo '  RCON:  localhost:25575 (password: dev)'",
+                  "echo '  Logs:  docker logs -f mc-dev'",
+                  "echo '  Stop:  docker rm -f mc-dev'",
+                  "echo ''",
+                  "docker run --name mc-dev -p 25565:25565 -p 25575:25575 -e EULA=TRUE -e ONLINE_MODE=false -e RCON_PASSWORD=dev -e ENABLE_RCON=true -e MOTD='KBVE Dev Server' kbve/mc:latest"
+                ],
+                "parallel": false,
+                "cwd": "apps/mc"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "e2e": {
               "executor": "nx:run-commands",
               "dependsOn": [
@@ -9859,8 +10142,8 @@
               "options": {
                 "commands": [
                   "docker rm -f mc-e2e 2>/dev/null || true",
-                  "docker run -d --name mc-e2e -p 25575:25575 -p 25565:25565 -e EULA=TRUE -e RCON_PASSWORD=test -e ENABLE_RCON=true kbve/mc:latest",
-                  "echo 'Waiting for MC server RCON...' && for i in $(seq 1 300); do if docker logs mc-e2e 2>&1 | grep -q 'RCON running'; then echo 'RCON ready after '\"$i\"'s'; break; fi; if [ $i -eq 300 ]; then echo 'Server did not start in 300s'; docker logs mc-e2e 2>&1 | tail -50; docker rm -f mc-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+                  "docker run -d --name mc-e2e -p 25575:25575 -p 25565:25565 -e EULA=TRUE -e RCON_PASSWORD=test -e ENABLE_RCON=true -e ONLINE_MODE=false kbve/mc:latest",
+                  "echo 'Waiting for MC server RCON...' && for i in $(seq 1 300); do if docker logs mc-e2e 2>&1 | grep -q 'RCON running'; then echo 'RCON ready after '\"$i\"'s'; break; fi; if docker logs mc-e2e 2>&1 | grep -q 'Multiple garbage collectors'; then echo 'JVM GC conflict detected'; docker logs mc-e2e 2>&1 | tail -20; docker rm -f mc-e2e 2>/dev/null || true; exit 1; fi; if [ $i -eq 300 ]; then echo 'Server did not start in 300s'; docker logs mc-e2e 2>&1 | tail -50; docker rm -f mc-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
                   "RCON_PASSWORD=test npx vitest run; EC=$?; echo '--- container logs ---'; docker logs mc-e2e 2>&1 | tail -50; docker rm -f mc-e2e 2>/dev/null || true; exit $EC"
                 ],
                 "parallel": false,
@@ -10204,6 +10487,13 @@
       "devops": [],
       "erust": [],
       "isometric": [],
+      "kubectl-e2e": [
+        {
+          "source": "kubectl-e2e",
+          "target": "kbve-kubectl",
+          "type": "implicit"
+        }
+      ],
       "astro": [
         {
           "source": "astro",
@@ -10267,6 +10557,7 @@
           "type": "implicit"
         }
       ],
+      "kbve-kubectl": [],
       "q": [],
       "discordsh": [],
       "edge": [],

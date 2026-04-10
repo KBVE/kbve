@@ -13,21 +13,21 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## NX Dependency Graph
 
 :::note[Auto-generated]
-Last generated: **2026-04-09T08:42:54Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-04-10T08:42:17Z** — updated daily by `ci-dashboard`.
 :::
 
 <CardGrid>
-  <Card title="32 Apps" icon="rocket">
-    @kbve/source, angelscript, astro-chuckrpg, astro-cryptothrone, astro-discordsh, astro-herbmail + 26 more
+  <Card title="33 Apps" icon="rocket">
+    @kbve/source, angelscript, astro-chuckrpg, astro-cryptothrone, astro-discordsh, astro-herbmail + 27 more
   </Card>
-  <Card title="17 E2es" icon="approve-check-circle">
-    astro-cryptothrone-e2e, astro-e2e, astro-kbve-e2e, axum-chuckrpg-e2e, axum-kbve-e2e, devops-e2e + 11 more
+  <Card title="18 E2es" icon="approve-check-circle">
+    astro-cryptothrone-e2e, astro-e2e, astro-kbve-e2e, axum-chuckrpg-e2e, axum-kbve-e2e, devops-e2e + 12 more
   </Card>
   <Card title="26 Libs" icon="puzzle">
     astro, bevy_battle, bevy_cam, bevy_inventory, bevy_items, bevy_kbve_net + 20 more
   </Card>
-  <Card title="40 Dependencies" icon="random">
-    Across 75 projects in the monorepo.
+  <Card title="41 Dependencies" icon="random">
+    Across 77 projects in the monorepo.
   </Card>
 </CardGrid>
 
@@ -56,8 +56,8 @@ Last generated: **2026-04-09T08:42:54Z** — updated daily by `ci-dashboard`.
 ```mermaid
 pie showData
     title Projects by Type
-    "Apps" : 32
-    "E2es" : 17
+    "Apps" : 33
+    "E2es" : 18
     "Libs" : 26
 ```
 
@@ -116,14 +116,15 @@ graph LR
     irc_e2e["irc-e2e"] --> irc_gateway["irc-gateway"]
     khashvault["khashvault"] --> droid["droid"]
     khashvault_e2e["khashvault-e2e"] --> khashvault["khashvault"]
+    kubectl_e2e["kubectl-e2e"] --> kbve_kubectl["kbve-kubectl"]
     laser_e2e["laser-e2e"] --> laser["laser"]
     memes_e2e["memes-e2e"] --> astro_memes["astro-memes"]
     memes_e2e["memes-e2e"] --> axum_memes["axum-memes"]
     ows["ows"] --> rows["rows"]
     rows_e2e["rows-e2e"] --> rows["rows"]
-    class _kbve_source,angelscript,astro_chuckrpg,astro_cryptothrone,astro_discordsh,astro_herbmail,astro_irc,astro_kbve,astro_memes,axum_chuckrpg,axum_cryptothrone,axum_discordsh,axum_herbmail,axum_kbve,axum_memes,cryptothrone,desktop_kbve,discordsh,discordsh_bot,edge,firecracker_ctl,herbmail,irc,irc_gateway,isometric,kilobase,mc,memes,notification_bot,ows,pydesk,rows app
+    class _kbve_source,angelscript,astro_chuckrpg,astro_cryptothrone,astro_discordsh,astro_herbmail,astro_irc,astro_kbve,astro_memes,axum_chuckrpg,axum_cryptothrone,axum_discordsh,axum_herbmail,axum_kbve,axum_memes,cryptothrone,desktop_kbve,discordsh,discordsh_bot,edge,firecracker_ctl,herbmail,irc,irc_gateway,isometric,kbve_kubectl,kilobase,mc,memes,notification_bot,ows,pydesk,rows app
     class astro,bevy_battle,bevy_cam,bevy_inventory,bevy_items,bevy_kbve_net,bevy_mapdb,bevy_npc,bevy_player,bevy_quests,bevy_skills,bevy_statemachine,bevy_tasker,chisel_ubuntu_axum,data_proto,devops,droid,erust,holy,jedi,kbve,khashvault,laser,python_fudster,python_kbve,q lib
-    class astro_cryptothrone_e2e,astro_e2e,astro_kbve_e2e,axum_chuckrpg_e2e,axum_kbve_e2e,devops_e2e,discordsh_bot_e2e,discordsh_e2e,droid_e2e,edge_e2e,firecracker_ctl_e2e,herbmail_e2e,irc_e2e,khashvault_e2e,laser_e2e,memes_e2e,rows_e2e e2e
+    class astro_cryptothrone_e2e,astro_e2e,astro_kbve_e2e,axum_chuckrpg_e2e,axum_kbve_e2e,devops_e2e,discordsh_bot_e2e,discordsh_e2e,droid_e2e,edge_e2e,firecracker_ctl_e2e,herbmail_e2e,irc_e2e,khashvault_e2e,kubectl_e2e,laser_e2e,memes_e2e,rows_e2e e2e
 ```
 
 :::tip[Legend]
@@ -194,9 +195,11 @@ graph LR
 | **isometric** | app | `apps/kbve/isometric` | 0 | 0 |
 | **jedi** | lib | `packages/rust/jedi` | 0 | 0 |
 | **kbve** | lib | `packages/rust/kbve` | 0 | 0 |
+| **kbve-kubectl** | app | `apps/vm/kubectl` | 0 | 1 |
 | **khashvault** | lib | `packages/npm/khashvault` | 1 | 2 |
 | **khashvault-e2e** | e2e | `packages/npm/khashvault-e2e` | 2 | 0 |
 | **kilobase** | app | `apps/kbve/kilobase` | 0 | 0 |
+| **kubectl-e2e** | e2e | `apps/vm/kubectl-e2e` | 1 | 0 |
 | **laser** | lib | `packages/npm/laser` | 0 | 4 |
 | **laser-e2e** | e2e | `packages/npm/laser-e2e` | 2 | 0 |
 | **mc** | app | `apps/mc` | 0 | 0 |
@@ -439,6 +442,15 @@ graph LR
 |--------|------|
 | khashvault | implicit |
 | khashvault | static |
+
+</details>
+
+<details>
+<summary><strong>kubectl-e2e</strong> (1 dep)</summary>
+
+| Target | Type |
+|--------|------|
+| kbve-kubectl | implicit |
 
 </details>
 

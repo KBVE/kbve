@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-04-09T08:43:05Z",
+  "generated_at": "2026-04-10T08:42:17Z",
   "summary": {
-    "critical": 1,
-    "high": 34,
-    "medium": 39,
+    "critical": 2,
+    "high": 32,
+    "medium": 38,
     "low": 5,
     "info": 24
   },
   "ecosystems": {
     "npm": {
-      "total": 77,
+      "total": 75,
       "severities": {
-        "critical": 1,
-        "high": 34,
-        "medium": 37,
+        "critical": 2,
+        "high": 32,
+        "medium": 36,
         "low": 5,
         "info": 0
       },
@@ -38,13 +38,6 @@
           "severity": "medium",
           "package": "vue-template-compiler",
           "url": "https://github.com/advisories/GHSA-g3ch-rx76-35fx"
-        },
-        {
-          "id": "1112453",
-          "title": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions",
-          "severity": "medium",
-          "package": "lodash-es",
-          "url": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg"
         },
         {
           "id": "1112455",
@@ -411,13 +404,6 @@
           "url": "https://github.com/advisories/GHSA-442j-39wm-28r2"
         },
         {
-          "id": "1115611",
-          "title": "Happy DOM's fetch credentials include uses page-origin cookies instead of target-origin cookies",
-          "severity": "high",
-          "package": "happy-dom",
-          "url": "https://github.com/advisories/GHSA-w4gp-fjgq-3q4g"
-        },
-        {
           "id": "1115612",
           "title": "Forge has signature forgery in RSA-PKCS due to ASN.1 extra field  ",
           "severity": "high",
@@ -451,13 +437,6 @@
           "severity": "high",
           "package": "handlebars",
           "url": "https://github.com/advisories/GHSA-9cx6-37pm-9jff"
-        },
-        {
-          "id": "1115698",
-          "title": "Happy DOM ECMAScriptModuleCompiler: unsanitized export names are interpolated as executable code",
-          "severity": "high",
-          "package": "happy-dom",
-          "url": "https://github.com/advisories/GHSA-6q6h-j7hj-3r64"
         },
         {
           "id": "1115723",
@@ -556,6 +535,13 @@
           "severity": "high",
           "package": "vite",
           "url": "https://github.com/advisories/GHSA-p9ff-h696-f583"
+        },
+        {
+          "id": "1116365",
+          "title": "Axios has a NO_PROXY Hostname Normalization Bypass Leads to SSRF",
+          "severity": "critical",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-3p68-rc4w-qgx5"
         }
       ]
     },
