@@ -136,6 +136,9 @@ declare -A MODS=(
   # /data/plugins/Grim/punishments.yml in-place on the PVC once we
   # collect real violation data.
   ["grimac-fabric-2.3.73.jar"]="7a6fcb37c8a2845268f8072166b929d4b963863a https://cdn.modrinth.com/data/LJNGWSvH/versions/SNnHVoFr/grimac-fabric-2.3.73.jar"
+  # WorldEdit 7.4.2 — in-game world editor. Fabric build supports 1.21.11.
+  # Permissions are gated through LuckPerms (worldedit.* nodes).
+  ["worldedit-mod-7.4.2.jar"]="2f5c35ab2d0dffa1be99ed6016132596949e59b3 https://cdn.modrinth.com/data/1u6JkXh5/versions/oY3E2pzA/worldedit-mod-7.4.2.jar"
 )
 
 for name in "${!MODS[@]}"; do
