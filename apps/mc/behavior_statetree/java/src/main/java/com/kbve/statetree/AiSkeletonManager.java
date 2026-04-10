@@ -43,7 +43,7 @@ public class AiSkeletonManager {
     private static final Logger LOGGER = LoggerFactory.getLogger("behavior_statetree");
     private static final Gson GSON = new Gson();
 
-    private static final double OBSERVATION_RANGE = 32.0;
+    private static final double OBSERVATION_RANGE = 16.0;
 
     /** Tracked skeletons keyed by entity ID. Holds only the epoch. */
     private final ConcurrentHashMap<Integer, EpochSlot> skeletons = new ConcurrentHashMap<>();
