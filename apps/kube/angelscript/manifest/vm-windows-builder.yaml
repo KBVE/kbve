@@ -16,10 +16,19 @@
 #   4. Connect via VNC and install Windows:
 #        virtctl vnc windows-builder -n angelscript
 #   5. Inside Windows, install:
-#      - virtio-win drivers (from the virtio CD-ROM attached below)
+#      - virtio-win drivers (requires temporarily re-attaching the virtio-drivers
+#        containerDisk — see the removed block below)
 #      - Visual Studio Build Tools (MSVC)
 #      - GitHub Actions runner (configured for KBVE/UnrealEngine-Angelscript)
 #   6. After setup, the VM runs as a persistent self-hosted runner.
+#
+# Note: the virtio-drivers containerDisk sidecar (quay.io/kubevirt/virtio-container-disk)
+# was removed from this manifest because it has a reproducible startup race on
+# cold-start under KubeVirt v1.7.2: the sidecar terminates with
+# "socket disk_2.sock does not exist anymore", leaving the VMI stuck in
+# Scheduled phase and the pod 2/3 NotReady. Drivers are already installed
+# inside Windows, so the ISO is no longer needed at runtime. If you ever need
+# to reinstall or refresh drivers, re-add the disk + volume entries temporarily.
 ---
 # Root disk — blank Longhorn volume for the Windows installation
 apiVersion: v1
@@ -74,11 +83,6 @@ spec:
                           cdrom:
                               bus: sata
                           bootOrder: 2
-                        # virtio-win drivers ISO — needed during Windows install
-                        - name: virtio-drivers
-                          cdrom:
-                              bus: sata
-                          bootOrder: 3
                         # Shared storage — ISOs, installers, Xcode .xip staging
                         - name: shared-storage
                           disk:
@@ -129,9 +133,6 @@ spec:
                 - name: iso
                   dataVolume:
                       name: windows-server-builder-iso
-                - name: virtio-drivers
-                  containerDisk:
-                      image: quay.io/kubevirt/virtio-container-disk:v1.7.2
                 - name: shared-storage
                   persistentVolumeClaim:
                       claimName: builder-shared-storage

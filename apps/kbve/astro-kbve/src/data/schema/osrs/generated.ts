@@ -943,10 +943,10 @@ export const OSRSExtendedSchema = z.object({
 	food: OSRSFoodSchema.optional(),
 	cooking: OSRSCookingSchema.optional(),
 
-	// Sources — proto: drop_sources (→ drop_table), shops, skilling_source
+	// Sources — proto: drop_sources (→ drop_table), shops, skilling_sources
 	drop_table: OSRSDropTableSchema.optional(), // proto field: drop_sources
 	shops: z.array(OSRSShopSourceSchema).optional(),
-	skilling_source: OSRSSkillingSourceSchema.optional(),
+	skilling_sources: z.array(OSRSSkillingSourceSchema).optional(),
 
 	// Creation — proto: recipes
 	recipes: z.array(OSRSRecipeSchema).optional(),

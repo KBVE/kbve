@@ -643,7 +643,7 @@ message OSRSItem {
   // Sources (where to get it)
   repeated OSRSDropSource drop_sources = 14;
   repeated OSRSShopSource shops       = 15;
-  optional OSRSSkillingSource skilling_source = 16;
+  repeated OSRSSkillingSource skilling_sources = 16;
 
   // Creation (how to make it)
   repeated OSRSRecipe recipes         = 17;
