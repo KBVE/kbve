@@ -1,7 +1,7 @@
 ---
 title: KBVE Kubectl
 description: |
-    Chiseled Ubuntu kubectl container image with Rust CLI extensions for KubeVirt VM lifecycle management.
+    Alpine + musl kubectl container image with Rust CLI extensions for KubeVirt VM lifecycle management.
 sidebar:
     label: Kubectl
     order: 55
@@ -13,7 +13,7 @@ tags:
 key: kubectl
 pipeline: docker
 app_name: kbve-kubectl
-version: "0.1.1"
+version: "0.1.2"
 source_path: apps/vm/kubectl
 version_toml: apps/vm/kubectl/version.toml
 version_target: apps/vm/kubectl/Cargo.toml
@@ -29,7 +29,7 @@ status: active
 
 ## Overview
 
-Chiseled Ubuntu kubectl image with a Rust CLI wrapper for KubeVirt VM management. Built from scratch using Canonical's chisel tool to produce a minimal rootfs with busybox, curl, and CA certs. Replaces the distroless `registry.k8s.io/kubectl` image which lacks `/bin/sh` and breaks Kubernetes Job scripts.
+Alpine-based kubectl image with a static musl Rust CLI wrapper for KubeVirt VM management. Replaces the distroless `registry.k8s.io/kubectl` image which lacks `/bin/sh` and breaks Kubernetes Job scripts. Built end-to-end on `rust:alpine` so the binary has zero glibc dependencies.
 
 ### CLI Subcommands
 
@@ -43,11 +43,11 @@ Chiseled Ubuntu kubectl image with a Rust CLI wrapper for KubeVirt VM management
 
 | Tool | Purpose |
 |------|---------|
-| `kubectl` | Kubernetes API access |
-| `curl` | HTTP requests (Ubuntu chisel slice) |
-| `wget` | HTTP requests (busybox built-in) |
+| `kubectl` | Kubernetes API access (static binary) |
+| `curl` | HTTP requests |
 | `jq` | JSON processing |
-| `/bin/sh` | Shell script execution |
+| `/bin/sh` | Shell script execution (Alpine ash) |
+| `kbve-kubectl` | Static musl Rust CLI |
 
 ### Usage in Jobs
 
