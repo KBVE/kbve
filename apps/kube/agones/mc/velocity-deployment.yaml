@@ -45,6 +45,26 @@ spec:
                         value: '512M'
                       - name: REPLACE_ENV_VARIABLES
                         value: 'true'
+                      # LuckPerms-Velocity — downloaded at container start via
+                      # itzg's PLUGINS env var. Makes Velocity the authoritative
+                      # owner of LuckPerms user data (keyed by the real online
+                      # UUID from Mojang auth) and pushes updates to the backend
+                      # LuckPerms-Fabric over the plugin-message channel. This
+                      # fixes the pre-login UUID mismatch kick that was caused
+                      # by FabricProxy-Lite swapping UUIDs after LuckPerms on
+                      # the backend had already tried to pre-load user data.
+                      # 5.5.17 is the latest Velocity release; 5.5.x versions
+                      # share a stable plugin-messaging wire format so the
+                      # 4-patch gap to Fabric 5.5.21 is safe.
+                      - name: PLUGINS
+                        value: 'https://cdn.modrinth.com/data/Vebnzrzj/versions/GZjsuCmU/LuckPerms-Velocity-5.5.17.jar'
+                      # Matches the LuckPerms env vars on the Fabric fleet pod.
+                      # EnvironmentVariableConfigAdapter overrides the on-disk
+                      # luckperms.conf without touching the PVC.
+                      - name: LUCKPERMS_MESSAGING_SERVICE
+                        value: 'pluginmsg'
+                      - name: LUCKPERMS_STORAGE_METHOD
+                        value: 'h2'
                   ports:
                       # hostPort exposes Velocity directly on the node IP at
                       # the standard Minecraft port 25565. Bypasses Service /
