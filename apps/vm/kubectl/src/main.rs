@@ -1,6 +1,6 @@
 use base64::{Engine as _, engine::general_purpose::STANDARD as B64};
 use clap::{Parser, Subcommand};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::json;
 use std::{process::ExitCode, time::Duration};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};

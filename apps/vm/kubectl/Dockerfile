@@ -136,6 +136,8 @@ COPY --from=tools-dl /usr/local/bin/kubectl /usr/local/bin/kubectl
 COPY --from=tools-dl /usr/local/bin/jq /usr/local/bin/jq
 COPY --from=builder /app/target/release/kbve-kubectl /usr/local/bin/kbve-kubectl
 
+ENV PATH=/usr/local/bin:/usr/bin:/bin
+
 WORKDIR /app
 USER 10001:10001
 
