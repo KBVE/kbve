@@ -12,13 +12,74 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 13000
-  related_items: []
+  material:
+    type: herb
+    tier: mid-low
+  farming:
+    level: 26
+    plant_xp: 24
+    harvest_xp: 27
+    patch_type: herb
+    growth_time: 80
+    payment: 1 bucket of compost
+    seed_id: 5294
+    seed_name: Harralander seed
+  recipes:
+    - name: Clean grimy harralander
+      skill: herblore
+      level: 20
+      xp: 6.25
+      materials:
+        - item_name: Grimy harralander
+          item_id: 205
+          quantity: 1
+    - name: Make Harralander potion (unf)
+      skill: herblore
+      level: 22
+      xp: 0
+      materials:
+        - item_name: Harralander
+          item_id: 255
+          quantity: 1
+        - item_name: Vial of water
+          quantity: 1
+  related_items:
+    - item_name: Grimy harralander
+      item_id: 205
+      slug: grimy-harralander
+      relationship: variant
+    - item_name: Harralander seed
+      item_id: 5294
+      slug: harralander-seed
+      relationship: component
+    - item_name: Harralander potion (unf)
+      slug: harralander-potion-unf
+      relationship: product
+    - item_name: Combat potion(4)
+      slug: combat-potion-4
+      relationship: product
+    - item_name: Restore potion(4)
+      slug: restore-potion-4
+      relationship: product
+    - item_name: Energy potion(4)
+      item_id: 3008
+      slug: energy-potion-4
+      relationship: product
+    - item_name: Compost potion(4)
+      slug: compost-potion-4
+      relationship: product
+    - item_name: Tarromin
+      item_id: 253
+      slug: tarromin
+      relationship: alternative
+    - item_name: Ranarr weed
+      item_id: 257
+      slug: ranarr-weed
+      relationship: alternative
   about: |-
-    > _"A useful herb."_
-
-    Harralander is used to make restore potions (22 Herblore), energy potions (26 Herblore), and combat potions (36 Herblore). A mid-tier herb commonly obtained from monster drops.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Harralander is a mid-low tier herb cleaned at level 20 Herblore, obtained from monster drops or by farming a harralander seed in a herb patch at level 26 Farming. Combined with a vial of water it becomes harralander potion (unf), the base for compost, restore, energy, and combat potions. It is a reliable staple herb for mid-level Herblore training and farming runs.
+  mdx_version: 3
+  mdx_updated: '2026-04-10'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

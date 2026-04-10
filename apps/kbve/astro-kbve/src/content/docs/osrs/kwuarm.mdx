@@ -12,83 +12,78 @@ osrs:
   lowalch: 21
   highalch: 32
   limit: 13000
-  herb:
-    type: clean
-    tier: mid
+  about: >-
+    Kwuarm is a mid-to-high tier herb used primarily to brew Super strength
+    potions and Weapon poison. Players obtain it by cleaning grimy kwuarm at
+    Herblore level 54, or by growing it from a Kwuarm seed at Farming level 56.
+    Its steady demand from combat training, PvM prep, and poisoned weapon
+    crafting keeps it a reliable staple on the Grand Exchange.
+  material:
+    type: herb
+    tier: mid-high
   farming:
     level: 56
-    xp: 120
+    plant_xp: 69
+    harvest_xp: 78
+    patch_type: herb
     growth_time: 80
+    payment: 3 limpwurt roots
     seed_id: 5299
     seed_name: Kwuarm seed
-  herblore:
-    cleaning_level: 54
-    cleaning_xp: 11.3
-    grimy_id: 213
-    grimy_name: Grimy kwuarm
   recipes:
     - skill: herblore
-      level: 55
-      xp: 100
+      level: 54
+      xp: 10.5
+      action: Clean grimy kwuarm
       materials:
-        - item_name: Kwuarm
-          item_id: 263
+        - item_name: Grimy kwuarm
+          item_id: 213
           quantity: 1
-        - item_name: Limpwurt root
-          item_id: 225
-          quantity: 1
-      product: Super strength(3)
-      product_id: 157
+      product: Kwuarm
+      product_id: 263
       members_only: true
     - skill: herblore
-      level: 60
-      xp: 137.5
+      level: 55
+      xp: 0
+      action: Make Kwuarm potion (unf)
       materials:
         - item_name: Kwuarm
           item_id: 263
           quantity: 1
-        - item_name: Dragon scale dust
-          item_id: 241
+        - item_name: Vial of water
+          item_id: 227
           quantity: 1
-      product: Weapon poison(3)
-      product_id: 187
+      product: Kwuarm potion (unf)
       members_only: true
   related_items:
-    - item_id: 157
-      item_name: Super strength(3)
-      slug: super-strength-3
-      relationship: product
-      description: Main product
-    - item_id: 225
-      item_name: Limpwurt root
-      slug: limpwurt-root
+    - item_name: Grimy kwuarm
+      item_id: 213
+      slug: grimy-kwuarm
+      relationship: variant
+    - item_name: Kwuarm seed
+      item_id: 5299
+      slug: kwuarm-seed
       relationship: component
-      description: Secondary ingredient
-    - item_id: 257
-      item_name: Ranarr weed
-      slug: ranarr-weed
+    - item_name: Kwuarm potion (unf)
+      slug: kwuarm-potion-unf
+      relationship: product
+    - item_name: Super strength(4)
+      item_id: 2440
+      slug: super-strength-4
+      relationship: product
+    - item_name: Weapon poison
+      slug: weapon-poison
+      relationship: product
+    - item_name: Avantoe
+      item_id: 261
+      slug: avantoe
       relationship: alternative
-      description: Similar value herb
-    - item_id: 259
-      item_name: Irit leaf
-      slug: irit-leaf
-      relationship: downgrade
-      description: Lower tier herb
-  market_strategy:
-    notes:
-      - Super strength essential
-      - Weapon poison niche use
-      - Mid-tier pricing
-      - Super strength potions
-      - Combat training
-      - PvM preparation
-      - Divine potions
-      - Super strength always needed
-      - Often botted/farmed
-      - Stable prices
-      - Good farm profit
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Snapdragon
+      item_id: 3000
+      slug: snapdragon
+      relationship: alternative
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,102 +12,77 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 13000
-  herb:
-    type: clean
+  material:
+    type: herb
     tier: mid
-  herblore:
-    cleaning_level: 40
-    cleaning_xp: 8.8
   farming:
     level: 44
+    plant_xp: 43
+    harvest_xp: 48.5
+    patch_type: herb
+    growth_time: 80
+    payment: 5 watermelons
     seed_id: 5297
     seed_name: Irit seed
-  drop_table:
-    sources:
-      - source: Aberrant spectre
-        source_id: 2927
-        combat_level: 96
-        quantity: "1"
-        rarity: common
-        members_only: true
   recipes:
     - skill: herblore
-      level: 45
-      xp: 100
+      level: 40
+      xp: 8.8
       materials:
-        - item_name: Irit potion (unf)
-          item_id: 101
+        - item_name: Grimy irit leaf
+          item_id: 209
           quantity: 1
-        - item_name: Eye of newt
-          item_id: 221
-          quantity: 1
-      product: Super attack(3)
-      product_id: 2436
+      product: Irit leaf
+      product_id: 259
       product_quantity: 1
       facility: None
       members_only: true
     - skill: herblore
-      level: 48
-      xp: 106.3
+      level: 45
+      xp: 0
       materials:
-        - item_name: Irit potion (unf)
-          item_id: 101
+        - item_name: Irit leaf
+          item_id: 259
           quantity: 1
-        - item_name: Unicorn horn dust
-          item_id: 235
+        - item_name: Vial of water
+          item_id: 227
           quantity: 1
-      product: Superantipoison(3)
-      product_id: 2448
+      product: Irit potion (unf)
+      product_id: 101
       product_quantity: 1
       facility: None
       members_only: true
   related_items:
-    - item_id: 2436
-      item_name: Super attack(3)
-      slug: super-attack-3
-      relationship: product
-      description: Main product
-    - item_id: 221
-      item_name: Eye of newt
-      slug: eye-of-newt
-      relationship: component
-      description: Secondary
+    - item_id: 209
+      item_name: Grimy irit leaf
+      slug: grimy-irit-leaf
+      relationship: variant
     - item_id: 5297
       item_name: Irit seed
       slug: irit-seed
       relationship: component
-      description: Farming seed
-    - item_id: 263
-      item_name: Kwuarm
-      slug: kwuarm
+    - item_id: 101
+      item_name: Irit potion (unf)
+      slug: irit-potion-unf
+      relationship: product
+    - item_id: 2436
+      item_name: Super attack(4)
+      slug: super-attack-4
+      relationship: product
+    - item_name: Super antipoison(4)
+      slug: super-antipoison-4
+      relationship: product
+    - item_id: 257
+      item_name: Ranarr weed
+      slug: ranarr-weed
       relationship: alternative
-      description: Higher tier herb
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore Level | 40 |
-    | XP | 8.8 |
-    | Product | Irit leaf (clean) |
-  market_strategy:
-    title: |-
-      - Super attack potions
-      - Super combat chain
-      - Antidote++ production
-      - Ironman accounts
-    notes:
-      - Super attack production
-      - Superantipoison demand
-      - Moderate value
-      - Super attack potions
-      - Super combat chain
-      - Antidote++ production
-      - Ironman accounts
-      - Farm runs profitable
-      - Common monster drop
-      - Super attack always needed
-      - Mid-tier pricing
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 261
+      item_name: Avantoe
+      slug: avantoe
+      relationship: alternative
+  about: Irit leaf is a mid-tier herb cleaned at level 40 Herblore for 8.8 XP from its grimy form. Combined with a vial of water it makes an irit potion (unf), the base for super attack potions, superantipoison, and (with coconut milk) antidote++. Farmers can grow it by planting an irit seed in a herb patch at level 44 Farming.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

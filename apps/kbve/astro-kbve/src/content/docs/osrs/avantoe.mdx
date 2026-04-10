@@ -12,102 +12,72 @@ osrs:
   lowalch: 19
   highalch: 28
   limit: 13000
-  herb:
-    type: clean
+  about: Avantoe is a mid-tier herb used in Herblore to brew Fishing, Super energy, and Hunter potions. Players clean it from grimy avantoe at level 48 Herblore or grow their own by planting avantoe seeds in a herb patch at level 50 Farming. It is a staple ingredient for mid-level potion training and supply runs.
+  material:
+    type: herb
     tier: mid
   farming:
     level: 50
-    xp: 61.5
+    plant_xp: 54.5
+    harvest_xp: 61.5
+    patch_type: herb
     growth_time: 80
+    payment: 2 snape grass
     seed_id: 5298
     seed_name: Avantoe seed
-  herblore:
-    cleaning_level: 48
-    cleaning_xp: 10
-    grimy_id: 211
-    grimy_name: Grimy avantoe
   recipes:
     - skill: herblore
+      level: 48
+      xp: 9.5
+      action: Clean grimy avantoe
+      materials:
+        - item_name: Grimy avantoe
+          item_id: 211
+          quantity: 1
+    - skill: herblore
       level: 50
-      xp: 100
+      xp: 0
+      action: Make Avantoe potion (unf)
       materials:
         - item_name: Avantoe
           item_id: 261
           quantity: 1
-        - item_name: Snape grass
-          item_id: 231
-          quantity: 1
         - item_name: Vial of water
           item_id: 227
           quantity: 1
-      product: Fishing potion(3)
-      product_id: 151
-      members_only: true
-    - skill: herblore
-      level: 52
-      xp: 117.5
-      materials:
-        - item_name: Avantoe
-          item_id: 261
-          quantity: 1
-        - item_name: Mort myre fungus
-          item_id: 2970
-          quantity: 1
-        - item_name: Vial of water
-          item_id: 227
-          quantity: 1
-      product: Super energy(3)
-      product_id: 3018
-      members_only: true
-    - skill: herblore
-      level: 66
-      xp: 155
-      materials:
-        - item_name: Avantoe
-          item_id: 261
-          quantity: 1
-        - item_name: Kebbit teeth dust
-          item_id: 10111
-          quantity: 1
-        - item_name: Vial of water
-          item_id: 227
-          quantity: 1
-      product: Hunter potion(3)
-      product_id: 10000
-      members_only: true
   related_items:
-    - item_id: 211
-      item_name: Grimy avantoe
+    - item_name: Grimy avantoe
+      item_id: 211
       slug: grimy-avantoe
-      relationship: component
-      description: Uncleaned version
-    - item_id: 5298
-      item_name: Avantoe seed
+      relationship: variant
+    - item_name: Avantoe seed
+      item_id: 5298
       slug: avantoe-seed
       relationship: component
-      description: For farming
-    - item_id: 3016
-      item_name: Super energy(4)
+    - item_name: Avantoe potion (unf)
+      item_id: 103
+      slug: avantoe-potion-unf
+      relationship: product
+    - item_name: Super energy(4)
+      item_id: 3016
       slug: super-energy-4
       relationship: product
-      description: Primary product
-    - item_id: 2970
-      item_name: Mort myre fungus
-      slug: mort-myre-fungus
-      relationship: component
-      description: Super energy secondary
-  market_strategy:
-    profit_formulas:
-      - Super energy - Avantoe - Mort myre fungus - Vial
-    notes:
-      - Most common use for avantoe
-      - "Calculate:"
-      - Base ingredient for stamina potions
-      - 50 Farming to grow
-      - Moderate profit per run
-      - Consider disease risk vs profit
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Fishing potion(4)
+      slug: fishing-potion-4
+      relationship: product
+    - item_name: Hunter potion(4)
+      slug: hunter-potion-4
+      relationship: product
+    - item_name: Irit leaf
+      item_id: 259
+      slug: irit-leaf
+      relationship: alternative
+    - item_name: Kwuarm
+      item_id: 263
+      slug: kwuarm
+      relationship: alternative
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

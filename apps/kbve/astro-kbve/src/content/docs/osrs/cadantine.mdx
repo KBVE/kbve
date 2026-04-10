@@ -12,102 +12,73 @@ osrs:
   lowalch: 26
   highalch: 39
   limit: 11000
-  herb:
-    type: clean
+  material:
+    type: herb
     tier: high
-  herblore:
-    cleaning_level: 65
-    cleaning_xp: 12.5
   farming:
     level: 67
+    plant_xp: 80
+    harvest_xp: 91.5
+    patch_type: herb
+    growth_time: 80
+    payment: 10 white berries
     seed_id: 5301
     seed_name: Cadantine seed
-  drop_table:
-    sources:
-      - source: Aberrant spectre
-        source_id: 2927
-        combat_level: 96
-        quantity: "1"
-        rarity: common
-        members_only: true
   recipes:
     - skill: herblore
-      level: 66
-      xp: 150
+      level: 65
+      xp: 12.5
       materials:
-        - item_name: Cadantine potion (unf)
-          item_id: 103
+        - item_name: Grimy cadantine
+          item_id: 215
           quantity: 1
-        - item_name: White berries
-          item_id: 239
-          quantity: 1
-      product: Super defence(3)
-      product_id: 2442
+      product: Cadantine
+      product_id: 265
       product_quantity: 1
       facility: None
       members_only: true
     - skill: herblore
-      level: 80
-      xp: 155
+      level: 66
+      xp: 0
       materials:
-        - item_name: Cadantine blood potion (unf)
-          item_id: 22443
+        - item_name: Cadantine
+          item_id: 265
           quantity: 1
-        - item_name: Wine of zamorak
-          item_id: 245
+        - item_name: Vial of water
+          item_id: 227
           quantity: 1
-      product: Bastion potion(3)
-      product_id: 22461
+      product: Cadantine potion (unf)
+      product_id: 103
       product_quantity: 1
       facility: None
       members_only: true
   related_items:
-    - item_id: 2442
-      item_name: Super defence(3)
-      slug: super-defence-3
-      relationship: product
-      description: Main product
-    - item_id: 239
-      item_name: White berries
-      slug: white-berries
-      relationship: component
-      description: Secondary
-    - item_id: 22461
-      item_name: Bastion potion(3)
-      slug: bastion-potion-3
-      relationship: product
-      description: Raid potion
+    - item_id: 215
+      item_name: Grimy cadantine
+      slug: grimy-cadantine
+      relationship: variant
     - item_id: 5301
       item_name: Cadantine seed
       slug: cadantine-seed
       relationship: component
-      description: Farming seed
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore Level | 65 |
-    | XP | 12.5 |
-    | Product | Cadantine (clean) |
-  market_strategy:
-    title: |-
-      - Super defence potions
-      - Super combat chain
-      - Bastion potions (raids)
-      - Battlemage potions
-    notes:
-      - Super defence production
-      - Bastion potion demand
-      - Good value herb
-      - Super defence potions
-      - Super combat chain
-      - Bastion potions (raids)
-      - Battlemage potions
-      - Farm runs profitable
-      - 67 Farming required
-      - White berries secondary
-      - Good herb value
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Cadantine potion (unf)
+      slug: cadantine-potion-unf
+      relationship: product
+    - item_id: 2442
+      item_name: Super defence(4)
+      slug: super-defence-4
+      relationship: product
+    - item_id: 3000
+      item_name: Snapdragon
+      slug: snapdragon
+      relationship: alternative
+    - item_id: 2481
+      item_name: Lantadyme
+      slug: lantadyme
+      relationship: alternative
+  about: Cadantine is a high-tier herb obtained by cleaning grimy cadantine at level 65 Herblore for 12.5 experience, or by farming cadantine seeds at level 67 Farming. Its primary use is creating Cadantine potion (unf) with a vial of water, which is then combined with white berries to produce Super defence potions at level 66 Herblore. Players can also grow it themselves, paying 10 white berries to a farmer to protect the herb patch during growth.
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
