@@ -76,7 +76,13 @@ public class AiSkeletonManager {
 
         // Lazily capture spawn origin
         if (spawnOrigin == null) {
-            spawnOrigin = overworld.getSpawnPos();
+            // Use first player's position as zone center, or world origin
+            if (!overworld.getPlayers().isEmpty()) {
+                var player = overworld.getPlayers().get(0);
+                spawnOrigin = player.getBlockPos();
+            } else {
+                spawnOrigin = BlockPos.ORIGIN;
+            }
             LOGGER.info("[AI Skeleton] Starter zone centered at {} ±{}", spawnOrigin, ZONE_RADIUS);
         }
 
@@ -216,7 +222,7 @@ public class AiSkeletonManager {
                 BlockPos.ofFloored(x, 0, z)
         );
 
-        SkeletonEntity skeleton = EntityType.SKELETON.create(world);
+        SkeletonEntity skeleton = EntityType.SKELETON.create(world, net.minecraft.entity.SpawnReason.COMMAND);
         if (skeleton == null) return;
 
         skeleton.refreshPositionAndAngles(surface.getX() + 0.5, surface.getY(), surface.getZ() + 0.5, 0, 0);

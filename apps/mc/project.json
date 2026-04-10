@@ -35,6 +35,31 @@
 				}
 			}
 		},
+		"dev": {
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"target": "container",
+					"projects": ["mc"],
+					"params": "forward"
+				}
+			],
+			"cache": false,
+			"options": {
+				"commands": [
+					"docker rm -f mc-dev 2>/dev/null || true",
+					"echo '=== Starting MC server (offline mode) ==='",
+					"echo '  Game:  localhost:25565'",
+					"echo '  RCON:  localhost:25575 (password: dev)'",
+					"echo '  Logs:  docker logs -f mc-dev'",
+					"echo '  Stop:  docker rm -f mc-dev'",
+					"echo ''",
+					"docker run --name mc-dev -p 25565:25565 -p 25575:25575 -e EULA=TRUE -e ONLINE_MODE=false -e RCON_PASSWORD=dev -e ENABLE_RCON=true -e MOTD='KBVE Dev Server' kbve/mc:latest"
+				],
+				"parallel": false,
+				"cwd": "apps/mc"
+			}
+		},
 		"e2e": {
 			"executor": "nx:run-commands",
 			"dependsOn": [
