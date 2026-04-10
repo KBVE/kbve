@@ -73,6 +73,14 @@ ENV SPAWN_PROTECTION=0
 ENV ONLINE_MODE=true
 ENV SERVER_PORT=25565
 
+# Server operators — itzg/minecraft-server reads OPS at startup and writes
+# matching entries into /data/ops.json (level 4). EXISTING_OPS_FILE=SYNCHRONIZE
+# keeps the file in sync with this list on every boot, so removing a UUID here
+# de-ops them on the next restart. UUIDs are preferred over names so renames
+# don't break op state.
+ENV OPS=b1897cef-8c27-45cb-b7fd-af139291ed6e,7e7b3993-e79a-41a9-9b26-fe90997cc273
+ENV EXISTING_OPS_FILE=SYNCHRONIZE
+
 # ZGC with generational mode — lower pause times than G1GC for MC servers.
 # Aikar flags disabled to avoid GC conflict (Aikar sets G1GC).
 ENV USE_AIKAR_FLAGS=false
