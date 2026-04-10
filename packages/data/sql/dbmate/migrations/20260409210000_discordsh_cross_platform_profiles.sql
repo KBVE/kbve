@@ -22,7 +22,12 @@
 ALTER TABLE discordsh.dungeon_profiles
     ADD COLUMN IF NOT EXISTS skills          JSONB NOT NULL DEFAULT '{}'::JSONB,
     ADD COLUMN IF NOT EXISTS faction_standing JSONB NOT NULL DEFAULT '{}'::JSONB,
-    ADD COLUMN IF NOT EXISTS auth_user_id    UUID UNIQUE;
+    ADD COLUMN IF NOT EXISTS auth_user_id    UUID UNIQUE,
+    -- Mode lock: prevents simultaneous Discord + isometric play (data race prevention)
+    ADD COLUMN IF NOT EXISTS active_mode            TEXT
+        CHECK (active_mode IS NULL OR active_mode IN ('discord', 'isometric')),
+    ADD COLUMN IF NOT EXISTS active_mode_session_id TEXT,
+    ADD COLUMN IF NOT EXISTS active_mode_started_at TIMESTAMPTZ;
 
 COMMENT ON COLUMN discordsh.dungeon_profiles.skills IS
     'Serialized bevy_skills::SkillProfile — shared across Discord and isometric game';
@@ -30,6 +35,16 @@ COMMENT ON COLUMN discordsh.dungeon_profiles.faction_standing IS
     'Faction reputation: {"crystal-order": 25, "shadow-court": -10, "deep-wardens": 50}';
 COMMENT ON COLUMN discordsh.dungeon_profiles.auth_user_id IS
     'Optional link to auth.users(id) — enables isometric game to load this profile via JWT';
+COMMENT ON COLUMN discordsh.dungeon_profiles.active_mode IS
+    'Currently active play mode: discord or isometric. NULL means no active session. '
+    'Enforced via service_claim_mode/service_release_mode RPCs to prevent data races '
+    'when the same player has Discord dungeon and isometric game open simultaneously.';
+COMMENT ON COLUMN discordsh.dungeon_profiles.active_mode_session_id IS
+    'Opaque session identifier owned by the claiming client. Used by service_release_mode '
+    'to verify the caller still owns the lock before releasing.';
+COMMENT ON COLUMN discordsh.dungeon_profiles.active_mode_started_at IS
+    'When the active mode was claimed. Stale claims (older than MODE_LOCK_TTL_MINUTES) '
+    'can be force-overridden by the next claimant.';
 
 -- Index for isometric game profile lookup by auth user
 CREATE INDEX IF NOT EXISTS idx_discordsh_dungeon_profiles_auth_user
@@ -362,6 +377,183 @@ GRANT EXECUTE ON FUNCTION discordsh.service_link_auth(BIGINT, UUID) TO service_r
 ALTER FUNCTION discordsh.service_link_auth(BIGINT, UUID) OWNER TO service_role;
 
 -- ===========================================
+-- MODE LOCK: prevents simultaneous Discord + isometric play
+--
+-- Rationale: when a player has both clients open, both can call
+-- service_upsert_profile concurrently. The advisory lock keyed on
+-- discord_id only prevents torn writes, not last-write-wins clobbering
+-- of fields the other client just changed (gold, inventory, skills).
+--
+-- The mode lock forces sessions to be serial: player can be in Discord
+-- OR isometric, never both. Stale claims auto-expire after 30 minutes
+-- (covers crash recovery without locking the player out forever).
+--
+-- TTL: 30 minutes
+-- ===========================================
+
+-- service_claim_mode — atomic CAS to grab the mode lock for a session
+CREATE OR REPLACE FUNCTION discordsh.service_claim_mode(
+    p_discord_id  BIGINT,
+    p_mode        TEXT,           -- 'discord' or 'isometric'
+    p_session_id  TEXT,           -- opaque session id owned by caller
+    p_force       BOOLEAN DEFAULT FALSE  -- override stale claim (>30min)
+)
+RETURNS TABLE(success BOOLEAN, current_mode TEXT, message TEXT)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_existing_mode       TEXT;
+    v_existing_session_id TEXT;
+    v_existing_started_at TIMESTAMPTZ;
+    v_lock_age_minutes    NUMERIC;
+    v_ttl_minutes         CONSTANT INT := 30;
+BEGIN
+    -- Validate mode value
+    IF p_mode NOT IN ('discord', 'isometric') THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Invalid mode (must be discord or isometric).'::TEXT;
+        RETURN;
+    END IF;
+
+    IF p_session_id IS NULL OR p_session_id = '' THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'session_id is required.'::TEXT;
+        RETURN;
+    END IF;
+
+    -- Serialize per-player to avoid concurrent claims racing
+    PERFORM pg_advisory_xact_lock(p_discord_id);
+
+    SELECT active_mode, active_mode_session_id, active_mode_started_at
+      INTO v_existing_mode, v_existing_session_id, v_existing_started_at
+      FROM discordsh.dungeon_profiles
+     WHERE discord_id = p_discord_id;
+
+    -- Profile doesn't exist yet — auto-create with the claim
+    IF NOT FOUND THEN
+        INSERT INTO discordsh.dungeon_profiles (
+            discord_id, discord_name, active_mode, active_mode_session_id, active_mode_started_at
+        )
+        VALUES (
+            p_discord_id, 'Adventurer'::TEXT, p_mode, p_session_id, NOW()
+        );
+        RETURN QUERY SELECT true, p_mode, 'Mode claimed (new profile).'::TEXT;
+        RETURN;
+    END IF;
+
+    -- No active claim → grant immediately
+    IF v_existing_mode IS NULL THEN
+        UPDATE discordsh.dungeon_profiles
+           SET active_mode = p_mode,
+               active_mode_session_id = p_session_id,
+               active_mode_started_at = NOW()
+         WHERE discord_id = p_discord_id;
+        RETURN QUERY SELECT true, p_mode, 'Mode claimed.'::TEXT;
+        RETURN;
+    END IF;
+
+    -- Same mode + same session = idempotent re-claim (refresh timestamp)
+    IF v_existing_mode = p_mode AND v_existing_session_id = p_session_id THEN
+        UPDATE discordsh.dungeon_profiles
+           SET active_mode_started_at = NOW()
+         WHERE discord_id = p_discord_id;
+        RETURN QUERY SELECT true, p_mode, 'Mode reclaimed (refreshed).'::TEXT;
+        RETURN;
+    END IF;
+
+    -- Different claim exists — check if it's stale
+    v_lock_age_minutes := EXTRACT(EPOCH FROM (NOW() - v_existing_started_at)) / 60;
+
+    IF v_lock_age_minutes > v_ttl_minutes OR p_force THEN
+        -- Stale or forced override
+        UPDATE discordsh.dungeon_profiles
+           SET active_mode = p_mode,
+               active_mode_session_id = p_session_id,
+               active_mode_started_at = NOW()
+         WHERE discord_id = p_discord_id;
+        RETURN QUERY SELECT
+            true,
+            p_mode,
+            FORMAT('Mode claimed (overrode stale %s claim, age %s min).',
+                   v_existing_mode, ROUND(v_lock_age_minutes, 1))::TEXT;
+        RETURN;
+    END IF;
+
+    -- Lock held by another active session — reject
+    RETURN QUERY SELECT
+        false,
+        v_existing_mode,
+        FORMAT('Player is already in %s (claim age %s min). Finish that session first.',
+               v_existing_mode, ROUND(v_lock_age_minutes, 1))::TEXT;
+END;
+$$;
+
+COMMENT ON FUNCTION discordsh.service_claim_mode IS
+    'Atomically claim the play mode lock for a player. Prevents simultaneous '
+    'Discord + isometric sessions. Stale claims (>30min) auto-override.';
+
+REVOKE ALL ON FUNCTION discordsh.service_claim_mode(BIGINT, TEXT, TEXT, BOOLEAN)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION discordsh.service_claim_mode(BIGINT, TEXT, TEXT, BOOLEAN)
+    TO service_role;
+ALTER FUNCTION discordsh.service_claim_mode(BIGINT, TEXT, TEXT, BOOLEAN)
+    OWNER TO service_role;
+
+-- service_release_mode — release the lock if the caller still owns it
+CREATE OR REPLACE FUNCTION discordsh.service_release_mode(
+    p_discord_id BIGINT,
+    p_session_id TEXT
+)
+RETURNS TABLE(success BOOLEAN, message TEXT)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_existing_session_id TEXT;
+BEGIN
+    PERFORM pg_advisory_xact_lock(p_discord_id);
+
+    SELECT active_mode_session_id INTO v_existing_session_id
+      FROM discordsh.dungeon_profiles
+     WHERE discord_id = p_discord_id;
+
+    IF NOT FOUND THEN
+        RETURN QUERY SELECT false, 'Profile not found.'::TEXT;
+        RETURN;
+    END IF;
+
+    IF v_existing_session_id IS NULL THEN
+        RETURN QUERY SELECT true, 'No active claim.'::TEXT;
+        RETURN;
+    END IF;
+
+    IF v_existing_session_id <> p_session_id THEN
+        RETURN QUERY SELECT false, 'Lock owned by another session.'::TEXT;
+        RETURN;
+    END IF;
+
+    UPDATE discordsh.dungeon_profiles
+       SET active_mode = NULL,
+           active_mode_session_id = NULL,
+           active_mode_started_at = NULL
+     WHERE discord_id = p_discord_id;
+
+    RETURN QUERY SELECT true, 'Mode released.'::TEXT;
+END;
+$$;
+
+COMMENT ON FUNCTION discordsh.service_release_mode IS
+    'Release the play mode lock if the caller still owns the session.';
+
+REVOKE ALL ON FUNCTION discordsh.service_release_mode(BIGINT, TEXT)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION discordsh.service_release_mode(BIGINT, TEXT)
+    TO service_role;
+ALTER FUNCTION discordsh.service_release_mode(BIGINT, TEXT)
+    OWNER TO service_role;
+
+-- ===========================================
 -- VERIFICATION
 -- ===========================================
 
@@ -391,15 +583,42 @@ BEGIN
         RAISE EXCEPTION 'auth_user_id column not found on discordsh.dungeon_profiles';
     END IF;
 
-    -- Verify new function exists
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'discordsh' AND table_name = 'dungeon_profiles' AND column_name = 'active_mode'
+    ) THEN
+        RAISE EXCEPTION 'active_mode column not found on discordsh.dungeon_profiles';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'discordsh' AND table_name = 'dungeon_profiles' AND column_name = 'active_mode_session_id'
+    ) THEN
+        RAISE EXCEPTION 'active_mode_session_id column not found on discordsh.dungeon_profiles';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'discordsh' AND table_name = 'dungeon_profiles' AND column_name = 'active_mode_started_at'
+    ) THEN
+        RAISE EXCEPTION 'active_mode_started_at column not found on discordsh.dungeon_profiles';
+    END IF;
+
+    -- Verify new functions exist
     PERFORM 'discordsh.service_load_profile_by_auth(uuid)'::regprocedure;
     PERFORM 'discordsh.service_link_auth(bigint, uuid)'::regprocedure;
+    PERFORM 'discordsh.service_claim_mode(bigint, text, text, boolean)'::regprocedure;
+    PERFORM 'discordsh.service_release_mode(bigint, text)'::regprocedure;
 
     RAISE NOTICE 'cross_platform_profiles migration verified successfully.';
 END;
 $$ LANGUAGE plpgsql;
 
 -- migrate:down
+
+-- Drop mode lock functions
+DROP FUNCTION IF EXISTS discordsh.service_release_mode(BIGINT, TEXT);
+DROP FUNCTION IF EXISTS discordsh.service_claim_mode(BIGINT, TEXT, TEXT, BOOLEAN);
 
 -- Drop new helper functions
 DROP FUNCTION IF EXISTS discordsh.service_link_auth(BIGINT, UUID);
@@ -417,8 +636,11 @@ DROP FUNCTION IF EXISTS discordsh.service_upsert_profile(
 -- Drop index
 DROP INDEX IF EXISTS discordsh.idx_discordsh_dungeon_profiles_auth_user;
 
--- Remove columns
+-- Remove columns (mode lock first, then cross-platform fields)
 ALTER TABLE discordsh.dungeon_profiles
+    DROP COLUMN IF EXISTS active_mode_started_at,
+    DROP COLUMN IF EXISTS active_mode_session_id,
+    DROP COLUMN IF EXISTS active_mode,
     DROP COLUMN IF EXISTS auth_user_id,
     DROP COLUMN IF EXISTS faction_standing,
     DROP COLUMN IF EXISTS skills;
