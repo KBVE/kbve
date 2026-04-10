@@ -18,11 +18,14 @@ spec:
     selector:
         matchLabels:
             app: mc-velocity
+    # Recreate — required because replicas=1 binds hostPort 25565 on the
+    # dedicated-server node. A rolling update can never surge: the new pod
+    # can't schedule until the old one frees the port, and the old one
+    # can't terminate until the new one is Ready. Recreate tears the old
+    # pod down first, which accepts a short (~30s plugin-download + boot)
+    # connection gap in exchange for rollouts that actually complete.
     strategy:
-        type: RollingUpdate
-        rollingUpdate:
-            maxSurge: 1
-            maxUnavailable: 0
+        type: Recreate
     template:
         metadata:
             labels:
