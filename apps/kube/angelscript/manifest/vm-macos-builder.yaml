@@ -110,9 +110,11 @@ spec:
                           disk:
                               bus: sata
                           bootOrder: 2
-                        # macOS install image — uploaded via virtctl, managed by CDI DataVolume
-                        - name: iso
-                          cdrom:
+                        # macOS install image — must be attached as a disk, not cdrom.
+                        # BaseSystem.img is a raw HFS+/APFS image (not ISO9660), so
+                        # OpenCore's macOS scanner only finds it on a regular disk bus.
+                        - name: installer
+                          disk:
                               bus: sata
                           bootOrder: 3
                         # Shared storage — ISOs, Xcode .xip, installers staging
@@ -162,7 +164,7 @@ spec:
                 - name: rootdisk
                   persistentVolumeClaim:
                       claimName: macos-builder-rootdisk
-                - name: iso
+                - name: installer
                   dataVolume:
                       name: macos-tahoe-builder-iso
                 - name: shared-storage
