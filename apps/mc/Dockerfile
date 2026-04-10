@@ -88,7 +88,12 @@ mkdir -p /mods
 
 declare -A MODS=(
   ["fabric-api-0.141.3+1.21.11.jar"]="50de67eb221f0b38216da8668b09ca311327040e https://cdn.modrinth.com/data/P7dR8mSH/versions/i5tSkVBH/fabric-api-0.141.3%2B1.21.11.jar"
-  ["c2me-fabric-mc1.21.11-0.3.7+alpha.0.9.jar"]="8ba48c81c03c5287b7dd1e39e66603c64a1bf3a0 https://cdn.modrinth.com/data/VSNURh3q/versions/vsiqVtu6/c2me-fabric-mc1.21.11-0.3.7%2Balpha.0.9.jar"
+  # fabric-language-kotlin: required by Ledger (Kotlin mod) and others.
+  ["fabric-language-kotlin-1.13.10+kotlin.2.3.20.jar"]="9873294abf498f509453d37b0a5ba019f4570ffb https://cdn.modrinth.com/data/Ha28R6CL/versions/21TRTKmh/fabric-language-kotlin-1.13.10%2Bkotlin.2.3.20.jar"
+  # C2ME 0.3.6.0.0 — last stable release that runs on Java 21. The 0.3.7
+  # alpha line bumped its toolchain to Java 22 which the itzg/minecraft-server
+  # base image doesn't ship.
+  ["c2me-fabric-mc1.21.11-0.3.6.0.0.jar"]="587f9a3d9e4591e8e1a1c3eda61ed2f7bfa5dc46 https://cdn.modrinth.com/data/VSNURh3q/versions/olrVZpJd/c2me-fabric-mc1.21.11-0.3.6.0.0.jar"
   ["vmp-fabric-mc1.21.11-0.2.0+beta.7.227-all.jar"]="6d665e488ea4f301d639cdf9fd4abf3ffdb44e0d https://cdn.modrinth.com/data/wnEe9KBa/versions/7Cxc2cAR/vmp-fabric-mc1.21.11-0.2.0%2Bbeta.7.227-all.jar"
   ["lithium-fabric-0.21.4+mc1.21.11.jar"]="203bdcb26e97b3217b045e1182651a7d7b6462ec https://cdn.modrinth.com/data/gvQqBUqZ/versions/Ow7wA0kG/lithium-fabric-0.21.4%2Bmc1.21.11.jar"
   ["ferritecore-8.2.0-fabric.jar"]="c2e2f5e008f5bc9f401dfad8ca94909917006b65 https://cdn.modrinth.com/data/uXXizFIs/versions/Ii0gP3D8/ferritecore-8.2.0-fabric.jar"
