@@ -68,13 +68,26 @@ public final class NativeRuntime {
     public static native void init();
 
     /**
-     * Submit an auth request for a connecting player.
+     * Submit an auth lookup for a connecting player. Non-blocking — the
+     * real result lands asynchronously via {@link #pollEvents()}.
      *
      * @param uuid     canonical Minecraft UUID (with dashes)
      * @param username current in-game username
-     * @return JSON-serialized {@code AuthResponse} (status/linked/supabase_user_id/error)
+     * @return JSON ack: {@code {"status":"queued"}} or {@code {"status":"error",...}}
      */
     public static native String authenticate(String uuid, String username);
+
+    /**
+     * Submit a link-code verification for a player. Called when the player
+     * runs {@code /link <code>} in-game. Non-blocking — the result arrives
+     * via {@link #pollEvents()} as a {@code LinkVerified} or
+     * {@code LinkRejected} event.
+     *
+     * @param uuid canonical Minecraft UUID (with dashes)
+     * @param code 6-digit code minted web-side via {@code proxy_request_link}
+     * @return JSON ack: {@code {"status":"queued"}} or {@code {"status":"error",...}}
+     */
+    public static native String verifyLink(String uuid, int code);
 
     /**
      * Poll all pending player events as a JSON array.

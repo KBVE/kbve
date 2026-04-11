@@ -1,7 +1,9 @@
 package com.kbve.mcauth;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,8 +14,11 @@ import org.slf4j.LoggerFactory;
  * <p>Lifecycle:
  * <ol>
  *   <li>Server start → init the native Tokio auth runtime</li>
- *   <li>Player join → delegate to {@link PlayerLoginHandler}</li>
- *   <li>Server stop → shutdown the native runtime</li>
+ *   <li>Player join → {@link PlayerLoginHandler} queues a lookup</li>
+ *   <li>Every server tick → {@link AuthEventTicker} drains results</li>
+ *   <li>{@code /link &lt;code&gt;} → {@link LinkCommand} queues a verify</li>
+ *   <li>Player disconnect → drop their entry from the in-memory registry</li>
+ *   <li>Server stop → shutdown the native runtime (graceful Agones drain)</li>
  * </ol>
  */
 public class McAuthMod implements ModInitializer {
@@ -35,6 +40,18 @@ public class McAuthMod implements ModInitializer {
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             PlayerLoginHandler.onJoin(handler.getPlayer());
+        });
+
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            if (handler.getPlayer() != null) {
+                LinkStatusRegistry.remove(handler.getPlayer().getUuidAsString());
+            }
+        });
+
+        ServerTickEvents.END_SERVER_TICK.register(AuthEventTicker::onEndTick);
+
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            LinkCommand.register(dispatcher);
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {

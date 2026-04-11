@@ -6,14 +6,16 @@
 //!
 //! JNI surface:
 //!   1. `init()` — start the Tokio runtime + worker loop.
-//!   2. `authenticate(uuid, username) -> JSON` — enqueue an auth check and
-//!      return an immediate stub response (the real result flows back via
-//!      `pollEvents`).
-//!   3. `pollEvents() -> JSON` — drain completed `PlayerEvent`s.
-//!   4. `shutdown()` — no-op placeholder; the runtime lives until JVM exit.
+//!   2. `authenticate(uuid, username) -> JSON` — enqueue a lookup. Result
+//!      lands asynchronously as an `AlreadyLinked` / `Unlinked` PlayerEvent.
+//!   3. `verifyLink(uuid, code) -> JSON` — enqueue a verify_link call.
+//!      Result lands as a `LinkVerified` / `LinkRejected` PlayerEvent.
+//!   4. `pollEvents() -> JSON` — drain completed `PlayerEvent`s.
+//!   5. `shutdown()` — graceful Agones shutdown.
 //!
-//! All network work is stubbed for now — see `supabase.rs` for the planned
-//! shape of the real integration.
+//! All HTTP work is non-blocking for the JVM thread — the JNI entry points
+//! only enqueue jobs and return immediately. Any Supabase failure is
+//! downgraded to a graceful `Unlinked` event so players are never kicked.
 
 pub mod agones;
 pub mod runtime;
@@ -24,10 +26,10 @@ use std::sync::OnceLock;
 
 use jni::JNIEnv;
 use jni::objects::{JClass, JString};
-use jni::sys::jstring;
+use jni::sys::{jint, jstring};
 
 use runtime::AuthRuntime;
-use types::{AuthRequest, AuthResponse};
+use types::{AuthJob, AuthResponse};
 
 /// Global runtime instance — initialized once via JNI `init()`.
 static RUNTIME: OnceLock<AuthRuntime> = OnceLock::new();
@@ -38,9 +40,8 @@ pub extern "system" fn Java_com_kbve_mcauth_NativeRuntime_init(mut _env: JNIEnv,
     let _ = RUNTIME.set(AuthRuntime::start());
 }
 
-/// Submit an auth request for a player. Returns an immediate JSON
-/// `AuthResponse` — the real result (link code, success, failure) is
-/// delivered asynchronously through `pollEvents`.
+/// Submit an auth lookup for a player. Returns an immediate ack JSON —
+/// the real result arrives asynchronously via `pollEvents`.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_kbve_mcauth_NativeRuntime_authenticate<'local>(
     mut env: JNIEnv<'local>,
@@ -63,9 +64,37 @@ pub extern "system" fn Java_com_kbve_mcauth_NativeRuntime_authenticate<'local>(
     };
 
     let response = match RUNTIME.get() {
-        Some(rt) => rt.authenticate(AuthRequest {
+        Some(rt) => rt.submit(AuthJob::Authenticate {
             player_uuid,
             username: username_s,
+        }),
+        None => AuthResponse::error("runtime not initialized"),
+    };
+
+    make_jstring(&mut env, &response)
+}
+
+/// Submit a link-code verification for a player. Called by `/link <code>`.
+/// Returns an immediate ack; the `LinkVerified` / `LinkRejected` result
+/// lands via `pollEvents`.
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_kbve_mcauth_NativeRuntime_verifyLink<'local>(
+    mut env: JNIEnv<'local>,
+    _class: JClass<'local>,
+    uuid: JString<'local>,
+    code: jint,
+) -> jstring {
+    let player_uuid: String = match env.get_string(&uuid) {
+        Ok(s) => s.into(),
+        Err(_) => {
+            return make_jstring(&mut env, &AuthResponse::error("invalid uuid string"));
+        }
+    };
+
+    let response = match RUNTIME.get() {
+        Some(rt) => rt.submit(AuthJob::VerifyLink {
+            player_uuid,
+            code: code as i32,
         }),
         None => AuthResponse::error("runtime not initialized"),
     };
@@ -105,8 +134,6 @@ pub extern "system" fn Java_com_kbve_mcauth_NativeRuntime_shutdown(
     if let Some(rt) = RUNTIME.get() {
         rt.shutdown_blocking();
     }
-    // OnceLock doesn't support take(), so the runtime lives until JVM exit.
-    // Channels close when the static drops; the Tokio worker exits cleanly.
 }
 
 // -----------------------------------------------------------------------
@@ -114,8 +141,8 @@ pub extern "system" fn Java_com_kbve_mcauth_NativeRuntime_shutdown(
 // -----------------------------------------------------------------------
 
 fn make_jstring(env: &mut JNIEnv, response: &AuthResponse) -> jstring {
-    let json = serde_json::to_string(response)
-        .unwrap_or_else(|_| "{\"status\":\"error\",\"linked\":false}".to_string());
+    let json =
+        serde_json::to_string(response).unwrap_or_else(|_| "{\"status\":\"error\"}".to_string());
     env.new_string(&json)
         .expect("failed to create auth response JSON string")
         .into_raw()

@@ -10,16 +10,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libprotobuf-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Standalone workspace with behavior_statetree + mc_auth + bevy_npc.
+# Standalone workspace with behavior_statetree + mc_auth + bevy_npc + bevy_supa.
 # Uses the repo Cargo.lock for reproducible dependency resolution.
 COPY Cargo.lock .
 COPY apps/mc/behavior_statetree/ behavior_statetree/
 COPY apps/mc/mc_auth/ mc_auth/
 COPY packages/rust/bevy/bevy_npc/ bevy_npc/
+COPY packages/rust/bevy/bevy_supa/ bevy_supa/
 
-# Rewrite bevy_npc path in behavior_statetree Cargo.toml for Docker context
+# Rewrite package path refs for the flattened Docker context.
+# - behavior_statetree ← ../../../packages/rust/bevy/bevy_npc
+# - mc_auth             ← ../../../packages/rust/bevy/bevy_supa
 RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_npc"|path = "../bevy_npc"|' behavior_statetree/Cargo.toml
-RUN printf '[workspace]\nresolver = "2"\nmembers = ["behavior_statetree", "mc_auth", "bevy_npc"]\n' > Cargo.toml
+RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_supa"|path = "../bevy_supa"|' mc_auth/Cargo.toml
+RUN printf '[workspace]\nresolver = "2"\nmembers = ["behavior_statetree", "mc_auth", "bevy_npc", "bevy_supa"]\n' > Cargo.toml
 
 RUN cargo build -p behavior_statetree -p mc_auth --release
 # Outputs:

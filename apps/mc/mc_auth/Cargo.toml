@@ -28,7 +28,17 @@ serde_json = "1"
 # Logging
 tracing = "0.1"
 
-# HTTP client for Supabase REST calls — rustls to avoid OpenSSL system deps
+# Shared Supabase (PostgREST) client — lives in bevy_supa so future Bevy
+# games (isometric, etc.) can import the same plugin + SupaClient shape
+# without re-rolling the reqwest wrapper. mc_auth is JNI, not Bevy, so we
+# opt out of the `bevy` feature and take only the native HTTP transport.
+bevy_supa = { path = "../../../packages/rust/bevy/bevy_supa", default-features = false, features = [
+    "native",
+] }
+
+# reqwest is pulled in transitively via bevy_supa's `native` feature —
+# we re-use the same Response + HeaderMap types in supabase.rs for
+# convenience without declaring a second dependency edge here.
 reqwest = { version = "0.12", default-features = false, features = [
     "json",
     "rustls-tls",

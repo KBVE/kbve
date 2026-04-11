@@ -2,58 +2,70 @@
 //!
 //! All types are immutable snapshots. The JVM side calls `authenticate()` with
 //! a player UUID + username, the Rust worker resolves the link state against
-//! Supabase (stub for now), and events are drained via `pollEvents()` each
-//! server tick.
+//! Supabase, and events are drained via `pollEvents()` each server tick.
 
 use serde::{Deserialize, Serialize};
 
-/// Inbound authentication request — produced by the Fabric join handler.
+/// Inbound requests the Rust worker processes from the JVM side.
+///
+/// `Authenticate` runs on player join and looks up the link status; the
+/// result flows back as a `PlayerEvent::AlreadyLinked` or `Unlinked`.
+/// `VerifyLink` runs when the player types `/link <code>` in-game and
+/// returns a `LinkVerified` or `LinkRejected` event on completion.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuthRequest {
-    /// Canonical Minecraft UUID string (with dashes).
-    pub player_uuid: String,
-    /// Current in-game username — may change across sessions.
-    pub username: String,
+pub enum AuthJob {
+    Authenticate {
+        player_uuid: String,
+        username: String,
+    },
+    VerifyLink {
+        player_uuid: String,
+        code: i32,
+    },
 }
 
-/// Immediate response returned synchronously from `authenticate()`.
+/// Immediate response returned synchronously from JNI entry points.
 ///
-/// The JVM side uses this to decide whether to greet the player or prompt
-/// them to link their account. Rich async results flow through `PlayerEvent`.
+/// The JVM side uses this only to know the request was accepted. Rich
+/// async results flow through `PlayerEvent` drained on the server tick.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthResponse {
-    /// High-level status: `pending`, `linked`, `unlinked`, `error`.
+    /// High-level status: `queued`, `error`.
     pub status: String,
-    /// True when the player is already linked to a Supabase user.
-    pub linked: bool,
-    /// Supabase user id when `linked == true`.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub supabase_user_id: Option<String>,
     /// Populated only when `status == "error"`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
 }
 
 impl AuthResponse {
-    /// Canonical "we haven't checked yet" stub returned by the scaffold.
-    pub fn pending_stub() -> Self {
+    /// The request was accepted by the worker. Result lands via pollEvents.
+    pub fn queued() -> Self {
         Self {
-            status: "pending".to_string(),
-            linked: false,
-            supabase_user_id: None,
+            status: "queued".to_string(),
             error: None,
         }
     }
 
-    /// Explicit error response carrying a short human-readable reason.
+    /// The request was rejected synchronously (e.g. back-pressure, bad input).
     pub fn error(reason: impl Into<String>) -> Self {
         Self {
             status: "error".to_string(),
-            linked: false,
-            supabase_user_id: None,
             error: Some(reason.into()),
         }
     }
+}
+
+/// Link status row returned by `mc.service_get_user_by_mc_uuid`.
+///
+/// The RPC returns a set; we take the first row (there's at most one).
+#[derive(Debug, Clone, Deserialize)]
+pub struct LinkStatusRow {
+    pub user_id: String,
+    #[allow(dead_code)]
+    pub mc_uuid: String,
+    #[allow(dead_code)]
+    pub status: i32,
+    pub is_verified: bool,
 }
 
 /// Events emitted by the Rust worker and drained by the JVM side each tick.
@@ -63,19 +75,26 @@ impl AuthResponse {
 /// in `behavior_statetree`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PlayerEvent {
-    /// The player is not yet linked — prompt them to visit the link URL.
-    LinkRequested {
-        player_uuid: String,
-        username: String,
-        link_code: String,
-    },
-    /// The player was successfully authenticated against Supabase.
-    AuthSuccess {
+    /// Player is already linked — greet them and unlock gated features.
+    AlreadyLinked {
         player_uuid: String,
         supabase_user_id: String,
     },
-    /// Authentication failed (network error, rejected token, rate limit…).
+    /// Player has no link row yet OR the row is not verified. Tell them
+    /// to visit kbve.com to request a code, then run `/link <code>`.
+    Unlinked {
+        player_uuid: String,
+        username: String,
+    },
+    /// `/link <code>` succeeded — the player is now linked to this user.
+    LinkVerified {
+        player_uuid: String,
+        supabase_user_id: String,
+    },
+    /// `/link <code>` failed — wrong/expired code, or the link is locked.
+    /// `reason` is a short human-readable hint for the player.
+    LinkRejected { player_uuid: String, reason: String },
+    /// Supabase lookup / verify failed for a transport reason (network,
+    /// 5xx, bad JSON). Treat as unlinked in graceful mode — never kick.
     AuthFailure { player_uuid: String, reason: String },
-    /// Informational log event forwarded to the Fabric logger.
-    Log { level: String, message: String },
 }

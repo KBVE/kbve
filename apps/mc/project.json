@@ -47,14 +47,15 @@
 			"cache": false,
 			"options": {
 				"commands": [
-					"docker compose -f docker-compose.dev.yml down --remove-orphans 2>/dev/null || true",
+					"docker compose --env-file ../../.env -f docker-compose.dev.yml down --remove-orphans 2>/dev/null || true",
 					"echo '=== Starting MC dev stack (Velocity + Fabric via docker compose) ==='",
 					"echo '  Game:  localhost:25565 (connect here — Velocity proxy)'",
 					"echo '  RCON:  localhost:25575 (password: dev)'",
+					"echo '  Env:   ../../.env (repo root, gitignored)'",
 					"echo '  Stop:  nx run mc:dev:down   (keeps world data)'",
 					"echo '  Wipe:  nx run mc:dev:clean  (drops world volume)'",
 					"echo ''",
-					"docker compose -f docker-compose.dev.yml up --remove-orphans"
+					"docker compose --env-file ../../.env -f docker-compose.dev.yml up --remove-orphans"
 				],
 				"parallel": false,
 				"cwd": "apps/mc"
@@ -65,7 +66,7 @@
 			"cache": false,
 			"options": {
 				"commands": [
-					"docker compose -f docker-compose.dev.yml down --remove-orphans"
+					"docker compose --env-file ../../.env -f docker-compose.dev.yml down --remove-orphans"
 				],
 				"cwd": "apps/mc"
 			}
@@ -75,7 +76,7 @@
 			"cache": false,
 			"options": {
 				"commands": [
-					"docker compose -f docker-compose.dev.yml down --remove-orphans --volumes"
+					"docker compose --env-file ../../.env -f docker-compose.dev.yml down --remove-orphans --volumes"
 				],
 				"cwd": "apps/mc"
 			}
