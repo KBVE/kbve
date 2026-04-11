@@ -222,7 +222,10 @@ impl Default for PetDogPopulationConfig {
             spawn_radius: 3,
             aggro_range: 12.0,
             melee_range: 2.5,
-            follow_distance: 8.0,
+            // Vanilla `FollowOwnerGoal` teleports at 12 blocks. Keep our
+            // sprint-home trigger well under that so the dog always
+            // catches up on its own feet before the vanilla teleport fires.
+            follow_distance: 5.0,
             manage_interval_ticks: 40,
         }
     }
@@ -276,7 +279,9 @@ impl Default for PetParrotPopulationConfig {
             parrots_per_player: 1,
             spawn_radius: 2,
             aggro_range: 14.0,
-            follow_distance: 10.0,
+            // Same rationale as the dog — keep the return trigger tight
+            // so the parrot flies back before vanilla's teleport fires.
+            follow_distance: 6.0,
             // ECS ticks = 100ms each, so 15 ticks ≈ 1.5s between poops.
             poop_cooldown_ticks: 15,
             // 20 TPS → 80 ticks = 4s of poison ticks (one damage tick/second).

@@ -495,6 +495,9 @@ pub fn plan_pet_dog_behavior(
             // radius, which doesn't make sense for a melee pet.
             let mut cmds = vec![NpcCommand::MoveTo {
                 target: target.position,
+                // Combat chase runs at the wolf's normal attack-move speed;
+                // sprinting into melee looks weird and overshoots the bite.
+                speed: 1.1,
             }];
             if dist_sq(dog_xyz, target.position) <= melee_sq {
                 cmds.push(NpcCommand::Attack {
@@ -503,7 +506,14 @@ pub fn plan_pet_dog_behavior(
             }
             cmds
         } else if dist_sq(dog_xyz, owner_pos) > follow_sq {
-            vec![NpcCommand::MoveTo { target: owner_pos }]
+            // Sprint back to the owner. Combined with the tighter
+            // follow_distance this keeps the dog inside vanilla's 12-block
+            // FollowOwnerGoal teleport threshold, so the dog visibly runs
+            // back instead of blinking to the player's side.
+            vec![NpcCommand::MoveTo {
+                target: owner_pos,
+                speed: 1.5,
+            }]
         } else {
             vec![]
         };
@@ -650,6 +660,8 @@ pub fn plan_pet_parrot_behavior(
                     target.position[1] + 3.0,
                     target.position[2],
                 ],
+                // Parrots fly, so a brisk pace closes the gap fast.
+                speed: 1.3,
             }];
             if current_tick.saturating_sub(cooldown.last_poop_tick) >= config.poop_cooldown_ticks {
                 cmds.push(NpcCommand::PoopPoison {
@@ -664,6 +676,7 @@ pub fn plan_pet_parrot_behavior(
             // Hover ~1.5 blocks above the owner's head when returning.
             vec![NpcCommand::MoveTo {
                 target: [owner_pos[0], owner_pos[1] + 1.5, owner_pos[2]],
+                speed: 1.4,
             }]
         } else {
             vec![]
