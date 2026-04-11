@@ -58,7 +58,7 @@ spec:
                     # so the Docker template is the single source of truth.
                     initContainers:
                         - name: sync-fabricproxy-config
-                          image: ghcr.io/kbve/mc:1.0.9
+                          image: ghcr.io/kbve/mc:1.0.10
                           command:
                               - sh
                               - -c
@@ -72,7 +72,7 @@ spec:
                                 mountPath: /data
                     containers:
                         - name: mc-server
-                          image: ghcr.io/kbve/mc:1.0.9
+                          image: ghcr.io/kbve/mc:1.0.10
                           env:
                               - name: TYPE
                                 value: FABRIC
