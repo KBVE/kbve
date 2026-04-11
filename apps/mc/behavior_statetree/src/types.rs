@@ -26,6 +26,12 @@ pub struct BlockSnapshot {
     pub block_type: String,
 }
 
+/// Default kind used when Java omits `entity_kind` on an observation.
+/// Preserves the original wire format for legacy skeleton observations.
+fn default_entity_kind() -> String {
+    "skeleton".to_string()
+}
+
 /// Immutable observation gathered on the server tick thread.
 /// Sent to Tokio for async AI processing.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -39,6 +45,15 @@ pub struct NpcObservation {
     pub nearby_blocks: Vec<BlockSnapshot>,
     pub current_goal: Option<GoalId>,
     pub tick: u64,
+    /// Tag set by Java so the ECS knows which creature archetype to spawn
+    /// on first sighting ("skeleton", "dog", ...). Defaults to "skeleton"
+    /// so legacy observations keep working unchanged.
+    #[serde(default = "default_entity_kind")]
+    pub entity_kind: String,
+    /// For owned creatures (pet dogs), the Minecraft entity ID of the
+    /// player that owns them. `None` for unowned mobs.
+    #[serde(default)]
+    pub owner_entity: Option<u64>,
 }
 
 /// Job submitted to the Tokio runtime for async processing.
@@ -84,6 +99,13 @@ pub enum NpcCommand {
     /// Spawn an AI Skeleton near the given player entity ID. Java picks
     /// a random offset within `radius` blocks of the player.
     SpawnSkeleton {
+        near_player: u64,
+        radius: i32,
+    },
+    /// Spawn a pet dog for the given player entity ID. Java creates a
+    /// tamed wolf within `radius` blocks of the player and wires the
+    /// owner relationship up on the Minecraft side.
+    SpawnPetDog {
         near_player: u64,
         radius: i32,
     },
