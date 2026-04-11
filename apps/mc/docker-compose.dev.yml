@@ -32,7 +32,7 @@ name: kbve-mc-dev
 
 services:
     mc-velocity:
-        # Custom Velocity image built from apps/mc-velocity. Bundles the
+        # Custom Velocity image built from apps/mc/velocity. Bundles the
         # kbve-velocity-commands Kotlin plugin (teleport aliases, cross-
         # server chat bridge with /chat local|global, last-server
         # persistence). Runtime is still itzg/bungeecord under the hood,

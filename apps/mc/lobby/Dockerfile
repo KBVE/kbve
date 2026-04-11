@@ -81,4 +81,4 @@ ENV JVM_XX_OPTS="-XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch -XX:+Disable
 # Bundled config fallback — paper-global.yml is also shipped so that if
 # itzg's CFG_VELOCITY_* patch path changes in the future, the forwarding
 # section is still present at /config/paper-global.yml on first boot.
-COPY apps/mc-lobby/config/ /config/
+COPY apps/mc/lobby/config/ /config/

@@ -1,8 +1,8 @@
 {
 	"name": "mc-velocity",
-	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
-	"sourceRoot": "apps/mc-velocity",
+	"sourceRoot": "apps/mc/velocity",
 	"targets": {
 		"test": {
 			"executor": "nx:noop",
@@ -14,7 +14,7 @@
 			"options": {
 				"engine": "docker",
 				"context": ".",
-				"file": "apps/mc-velocity/Dockerfile",
+				"file": "apps/mc/velocity/Dockerfile",
 				"load": true
 			},
 			"configurations": {

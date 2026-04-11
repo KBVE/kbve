@@ -38,7 +38,7 @@ spec:
                 node.kbve.com/type: dedicated-server
             containers:
                 - name: velocity
-                  # Custom Velocity image built from apps/mc-velocity.
+                  # Custom Velocity image built from apps/mc/velocity.
                   # Same itzg/bungeecord runtime under the hood, with a
                   # pre-baked kbve-velocity-commands plugin providing
                   # teleport aliases (/lobby, /hub, /mc, /survival),
@@ -46,7 +46,7 @@ spec:
                   # per-player mode, and last-server persistence so
                   # reconnecting players land on their previous backend.
                   #
-                  # CI/CD: bumps to apps/mc-velocity/version.toml (via
+                  # CI/CD: bumps to apps/mc/velocity/version.toml (via
                   # the mc-velocity.mdx version frontmatter) trigger a
                   # rebuild + push, and post-publish updates this image
                   # tag in place. The mc-velocity entry in ci-dispatch-

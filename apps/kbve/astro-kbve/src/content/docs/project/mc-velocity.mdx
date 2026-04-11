@@ -14,8 +14,8 @@ key: mc_velocity
 pipeline: docker
 app_name: mc-velocity
 version: "1.0.0"
-source_path: apps/mc-velocity
-version_toml: apps/mc-velocity/version.toml
+source_path: apps/mc/velocity
+version_toml: apps/mc/velocity/version.toml
 runner: ubuntu-latest
 image: kbve/mc-velocity
 deployment_yaml: apps/kube/agones/mc/velocity-deployment.yaml
@@ -24,7 +24,7 @@ has_test: false
 
 ## Overview
 
-Custom Velocity proxy image that replaces the generic `itzg/bungeecord:latest` used previously. Same itzg runtime under the hood, but with a pre-baked Kotlin plugin (`kbve-velocity-commands`) compiled from source at `apps/mc-velocity/plugin/`.
+Custom Velocity proxy image that replaces the generic `itzg/bungeecord:latest` used previously. Same itzg runtime under the hood, but with a pre-baked Kotlin plugin (`kbve-velocity-commands`) compiled from source at `apps/mc/velocity/plugin/`.
 
 The plugin bundles three features in one JAR, all specific to the KBVE MC stack:
 
@@ -83,4 +83,4 @@ All existing Velocity runtime wiring (LuckPerms env vars, forwarding mode, plugi
 
 - [mc (Fabric survival backend)](/project/mc/)
 - [mc-lobby (PaperMC lobby)](/project/mc-lobby/)
-- [Plugin source](https://github.com/KBVE/kbve/tree/main/apps/mc-velocity/plugin)
+- [Plugin source](https://github.com/KBVE/kbve/tree/main/apps/mc/velocity/plugin)

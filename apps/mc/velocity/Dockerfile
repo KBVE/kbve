@@ -6,7 +6,7 @@
 #   - Cross-server chat bridge with /chat local|global per-player mode
 #   - Last-server persistence (reconnect lands on previous backend)
 #
-# The plugin source lives at apps/mc-velocity/plugin/ and is built
+# The plugin source lives at apps/mc/velocity/plugin/ and is built
 # with Gradle shadowJar in stage 1. Stage 2 drops the resulting JAR
 # into /plugins/ where itzg/bungeecord scans for plugins at startup.
 #
@@ -19,7 +19,7 @@
 FROM gradle:jdk21 AS plugin-builder
 WORKDIR /build
 
-COPY apps/mc-velocity/plugin/ .
+COPY apps/mc/velocity/plugin/ .
 
 # shadowJar produces build/libs/kbve-velocity-commands-<version>.jar
 RUN gradle shadowJar --no-daemon --stacktrace

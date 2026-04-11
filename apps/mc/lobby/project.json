@@ -1,8 +1,8 @@
 {
 	"name": "mc-lobby",
-	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
-	"sourceRoot": "apps/mc-lobby",
+	"sourceRoot": "apps/mc/lobby",
 	"targets": {
 		"test": {
 			"executor": "nx:noop",
@@ -14,7 +14,7 @@
 			"options": {
 				"engine": "docker",
 				"context": ".",
-				"file": "apps/mc-lobby/Dockerfile",
+				"file": "apps/mc/lobby/Dockerfile",
 				"load": true
 			},
 			"configurations": {
@@ -55,7 +55,7 @@
 					"docker run --rm --name kbve-mc-lobby-dev -p 25565:25565 -p 25574:25575 -e EULA=TRUE -e ONLINE_MODE=false -e ENABLE_RCON=true -e RCON_PASSWORD=dev kbve/mc-lobby:latest"
 				],
 				"parallel": false,
-				"cwd": "apps/mc-lobby"
+				"cwd": "apps/mc/lobby"
 			}
 		},
 		"e2e": {
@@ -76,7 +76,7 @@
 					"RCON_PORT=25574 RCON_PASSWORD=test npx vitest run; EC=$?; echo '--- container logs ---'; docker logs mc-lobby-e2e 2>&1 | tail -50; docker rm -f mc-lobby-e2e 2>/dev/null || true; exit $EC"
 				],
 				"parallel": false,
-				"cwd": "apps/mc-lobby"
+				"cwd": "apps/mc/lobby"
 			},
 			"configurations": {
 				"ci": {}
