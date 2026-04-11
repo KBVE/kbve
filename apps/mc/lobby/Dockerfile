@@ -61,7 +61,7 @@ ENV CFG_VELOCITY_SECRET="kbve-velocity-forwarding-secret-change-me"
 #                        decorative portals in the lobby that teleport
 #                        players to other backends. Requires one-time
 #                        in-game `/portal create` setup after first boot.
-ENV MODRINTH_PROJECTS=luckperms,essentialsx,essentialsxantibuild,worldedit,advancedportals
+ENV MODRINTH_PROJECTS=luckperms,essentialsx,essentialsx-antibuild,worldedit,advanced-portals
 ENV LUCKPERMS_MESSAGING_SERVICE=pluginmsg
 ENV LUCKPERMS_STORAGE_METHOD=h2
 
