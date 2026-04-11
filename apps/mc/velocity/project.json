@@ -34,6 +34,31 @@
 					]
 				}
 			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"target": "container",
+					"projects": ["mc-velocity"],
+					"params": "forward"
+				}
+			],
+			"cache": false,
+			"options": {
+				"commands": [
+					"docker rm -f mc-velocity-e2e 2>/dev/null || true",
+					"docker run -d --name mc-velocity-e2e -p 25578:25577 -e TYPE=VELOCITY -e MEMORY=512M kbve/mc-velocity:latest",
+					"echo 'Waiting for Velocity to come up...' && for i in $(seq 1 300); do if docker logs mc-velocity-e2e 2>&1 | grep -q 'Done ('; then echo 'Velocity ready after '\"$i\"'s'; break; fi; if [ $i -eq 300 ]; then echo 'Velocity did not start in 300s'; docker logs mc-velocity-e2e 2>&1 | tail -80; docker rm -f mc-velocity-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+					"docker logs mc-velocity-e2e 2>&1 | grep -q 'KBVE Velocity Commands' || { echo 'kbve-velocity-commands plugin did not load'; docker logs mc-velocity-e2e 2>&1 | tail -80; docker rm -f mc-velocity-e2e 2>/dev/null || true; exit 1; }",
+					"VELOCITY_HOST=127.0.0.1 VELOCITY_PORT=25578 npx vitest run; EC=$?; echo '--- container logs ---'; docker logs mc-velocity-e2e 2>&1 | tail -50; docker rm -f mc-velocity-e2e 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false,
+				"cwd": "apps/mc/velocity"
+			},
+			"configurations": {
+				"ci": {}
+			}
 		}
 	},
 	"tags": ["scope:mc"]
