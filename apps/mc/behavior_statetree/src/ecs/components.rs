@@ -14,6 +14,23 @@ pub struct AiManaged;
 #[derive(Component, Debug)]
 pub struct AiSkeleton;
 
+/// Marker for AI Pet Dog entities. A pet dog is a tamed wolf spawned
+/// alongside a player; its lifecycle is tied to `PetOwner`.
+///
+/// Pet dogs intentionally do NOT carry the `AiManaged` marker so the
+/// skeleton-oriented `plan_behavior` system skips them — their decisions
+/// come from `plan_pet_dog_behavior` which needs the owner's position.
+#[derive(Component, Debug)]
+pub struct AiPetDog;
+
+/// Owner relationship for a pet creature. `player_id` is the Minecraft
+/// entity ID of the owning player, matched against `OnlinePlayer` rows
+/// each tick to decide follow targets and lifecycle.
+#[derive(Component, Debug, Clone, Copy)]
+pub struct PetOwner {
+    pub player_id: u64,
+}
+
 /// Marker for online players mirrored from Java's player snapshot.
 /// One ECS entity per logged-in player; reconciled each observation tick.
 #[derive(Component, Debug)]
@@ -159,3 +176,42 @@ impl Default for SkeletonPopulationConfig {
 /// can self-throttle without an extra timer plugin.
 #[derive(Resource, Debug, Default)]
 pub struct LastPopulationManagedTick(pub u64);
+
+// ---------------------------------------------------------------------------
+// Pet dog population config — drives the 1-dog-per-player spawn/despawn loop
+// and the proactive aggression radius around the owner.
+// ---------------------------------------------------------------------------
+
+/// Tunable parameters for the Pet Dog population + behavior systems.
+#[derive(Resource, Debug)]
+pub struct PetDogPopulationConfig {
+    /// Target number of pet dogs per online player.
+    pub dogs_per_player: usize,
+    /// Offset (in blocks) from the player where a new dog is placed.
+    pub spawn_radius: i32,
+    /// Radius around the owner (or dog) that triggers a proactive attack
+    /// on a hostile mob — beyond a vanilla tamed wolf's revenge target.
+    pub aggro_range: f64,
+    /// Distance from the owner beyond which the dog is nudged back via
+    /// an explicit MoveTo intent (vanilla follow-owner still handles the
+    /// shorter range case on its own).
+    pub follow_distance: f64,
+    /// Run the spawn/despawn pass every N ECS ticks (~4s at 100ms ticks).
+    pub manage_interval_ticks: u64,
+}
+
+impl Default for PetDogPopulationConfig {
+    fn default() -> Self {
+        Self {
+            dogs_per_player: 1,
+            spawn_radius: 3,
+            aggro_range: 12.0,
+            follow_distance: 8.0,
+            manage_interval_ticks: 40,
+        }
+    }
+}
+
+/// Tracks when the pet dog population manager last ran.
+#[derive(Resource, Debug, Default)]
+pub struct LastPetDogManagedTick(pub u64);
