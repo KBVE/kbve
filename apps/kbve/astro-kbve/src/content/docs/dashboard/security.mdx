@@ -13,17 +13,17 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-04-10T08:42:17Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-04-11T08:21:47Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**34** critical/high severity findings across the monorepo.
+**35** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
 
 <CardGrid>
-  <Card title="2 Critical" icon="warning">
+  <Card title="3 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
   <Card title="32 High" icon="error">
@@ -41,7 +41,7 @@ Last generated: **2026-04-10T08:42:17Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **75** advisories
+    **76** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **26** advisories
@@ -62,7 +62,7 @@ Last generated: **2026-04-10T08:42:17Z** — updated daily by `ci-dashboard`.
 ```mermaid
 pie showData
     title Findings by Severity
-    "Critical" : 2
+    "Critical" : 3
     "High" : 32
     "Medium" : 38
     "Low" : 5
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 75
+    "npm" : 76
     "Cargo" : 26
 ```
 
@@ -82,12 +82,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 2 | 32 | 36 | 5 | 75 |
+| **npm** | 3 | 32 | 36 | 5 | 76 |
 | **Cargo** | 0 | 0 | 2 | 0 | 26 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 2 | 32 | 38 | 5 | 101 |
+| **Total** | 3 | 32 | 38 | 5 | 102 |
 
   </TabItem>
   <TabItem label="npm">
@@ -96,6 +96,7 @@ pie showData
 |----------|---------|----------|------|
 | Critical | `handlebars` | Handlebars.js has JavaScript Injection via AST Type Confu... | [Details](https://github.com/advisories/GHSA-2w6w-674q-4c4q) |
 | Critical | `axios` | Axios has a NO_PROXY Hostname Normalization Bypass Leads ... | [Details](https://github.com/advisories/GHSA-3p68-rc4w-qgx5) |
+| Critical | `axios` | Axios has Unrestricted Cloud Metadata Exfiltration via He... | [Details](https://github.com/advisories/GHSA-fvcv-3m26-pcqx) |
 | High | `glob` | glob CLI: Command injection via -c/--cmd executes matches... | [Details](https://github.com/advisories/GHSA-5j98-mcp5-4vw2) |
 | High | `rollup` | Rollup 4 has Arbitrary File Write via Path Traversal | [Details](https://github.com/advisories/GHSA-mw96-cpmx-2vgc) |
 | High | `koa` | Koa has Host Header Injection via ctx.hostname | [Details](https://github.com/advisories/GHSA-7gcc-r8m5-44qm) |
