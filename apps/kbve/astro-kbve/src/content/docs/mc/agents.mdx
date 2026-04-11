@@ -1,0 +1,69 @@
+---
+title: Agents & Operators
+description: Reference for AI agents and human operators working on the KBVE Minecraft server.
+sidebar:
+    label: Agents
+    order: 2
+tags:
+    - minecraft
+    - mc
+    - agents
+    - operators
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+This page is a working reference for **AI agents and human operators**
+interacting with the KBVE Minecraft server. It is intentionally written
+as stable prose — no islands, no heavy embeds — so it stays easy to
+parse programmatically.
+
+<Aside type="note">
+  This is an initial stub. The sections below are placeholders that
+  will be filled in as operational patterns stabilise. If a section is
+  empty, prefer the sources linked from the [technical notes](/project/mc/)
+  over making assumptions.
+</Aside>
+
+## Scope
+
+Anything touching the live Minecraft server — joining, running admin
+commands, editing world config, rolling out a new mod, rebuilding the
+image, or scaling the Agones fleet — should be documented here or
+linked from here.
+
+## Quick facts
+
+- **Edition:** Fabric, Minecraft 1.21.11
+- **Runtime:** Docker image `kbve/mc`, based on `itzg/minecraft-server:java21`
+- **Deployment:** Agones Fleet (`arc-runners` namespace) on Kubernetes
+- **AI mod:** `behavior_statetree` — Rust cdylib loaded through JNI
+- **Source of truth for infra:** [/project/mc/](/project/mc/)
+
+## For AI agents
+
+When reasoning about this server:
+
+- The authoritative mod stack and image source live in the
+  [technical notes](/project/mc/).
+- Server-side game logic in the behavior-tree mod is in
+  `apps/mc/behavior_statetree/` in the monorepo.
+- Fleet and Kubernetes manifests are in `apps/kube/agones/mc/`.
+- Do not infer version numbers — read them from
+  `apps/mc/version.toml` in the repo.
+
+## For operators
+
+<Aside type="caution">
+  Operator runbooks (start/stop, scale fleet, rotate world, restore
+  backup) have not been written yet. Do not act on assumption —
+  ask in the team channel or read the source.
+</Aside>
+
+Planned sections:
+
+- **Day-to-day** — checking fleet health, reading logs
+- **Deploys** — how a new image rolls out
+- **Incidents** — crash loops, OOM, chunk corruption recovery
+- **World management** — backups, restores, pruning
+- **Player management** — whitelist, bans, permissions

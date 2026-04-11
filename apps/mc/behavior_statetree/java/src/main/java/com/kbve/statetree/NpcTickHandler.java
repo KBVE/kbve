@@ -21,19 +21,21 @@ import org.slf4j.LoggerFactory;
  * <ol>
  *   <li>A snapshot of all online players (positions, health) so the Rust
  *       ECS has the world state it needs for spawn/despawn policy.</li>
- *   <li>One per-NPC observation per AI Skeleton.</li>
+ *   <li>One per-creature observation per tracked mob (skeleton, pet dog, ...).</li>
  * </ol>
  *
- * <p>Every game tick Java polls and applies intents from Rust. Intents
- * come in two flavors:
+ * <p>Every game tick Java polls and applies intents from Rust:
  * <ul>
  *   <li><b>Per-NPC intents</b> — {@code entity_id != 0}, target a specific
- *       managed mob. Resolved through the epoch check, then dispatched to
- *       {@link #applyMobCommand}.</li>
+ *       tracked mob. Dispatched to {@link #applyMobCommand}.</li>
  *   <li><b>World intents</b> — {@code entity_id == 0}, not tied to any
- *       single mob (e.g. {@code SpawnSkeleton}, {@code Despawn}). Dispatched
- *       to {@link #applyWorldCommand}.</li>
+ *       single mob (e.g. {@code SpawnSkeleton}, {@code SpawnPetDog},
+ *       {@code Despawn}). Dispatched to {@link #applyWorldCommand}.</li>
  * </ul>
+ *
+ * <p>A single {@link AiCreatureManager} handles every creature archetype —
+ * new creature types plug in via {@link CreatureKind} without touching
+ * this class (aside from a new world-command branch).
  */
 public class NpcTickHandler implements ServerTickEvents.EndTick {
 
@@ -43,7 +45,7 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
     /** Only submit observations every N ticks (10 = 0.5s at 20 TPS). */
     private static final int OBSERVE_INTERVAL = 10;
 
-    private final AiSkeletonManager skeletonManager = new AiSkeletonManager();
+    private final AiCreatureManager creatureManager = new AiCreatureManager();
     private int tickCounter = 0;
 
     @Override
@@ -54,13 +56,13 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
 
         tickCounter++;
 
-        // Phase 0: Manage skeleton lifecycle (every tick — just dead-entity cleanup)
-        skeletonManager.tick(server);
+        // Phase 0: Evict dead entities (every tick — cheap map sweep)
+        creatureManager.tick(server);
 
         // Phase 1: Push observations — throttled to every OBSERVE_INTERVAL ticks
         if (tickCounter % OBSERVE_INTERVAL == 0) {
             submitPlayerSnapshot(server);
-            skeletonManager.submitObservations(server);
+            creatureManager.submitObservations(server);
         }
 
         // Phase 2: Poll and apply intents every tick for responsiveness
@@ -117,7 +119,7 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
         try {
             intents = GSON.fromJson(intentsJson, JsonArray.class);
         } catch (Exception e) {
-            LOGGER.warn("[AI Skeleton] Failed to parse intents JSON: {}", e.getMessage());
+            LOGGER.warn("[AI] Failed to parse intents JSON: {}", e.getMessage());
             return;
         }
 
@@ -137,11 +139,9 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
                 continue;
             }
 
-            // Per-NPC intents: epoch-validated and dispatched per mob
-            if (!skeletonManager.isManaged(entityId)) continue;
-
-            long currentEpoch = skeletonManager.getEpoch(entityId);
-            if (epoch != currentEpoch) continue;
+            // Per-NPC intents: epoch-validated then dispatched per mob.
+            if (!creatureManager.isManaged(entityId)) continue;
+            if (epoch != creatureManager.getEpoch(entityId)) continue;
 
             Entity entity = overworld.getEntityById(entityId);
             if (entity == null || !entity.isAlive()) continue;
@@ -164,7 +164,11 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             double tx = target.get(0).getAsDouble();
             double ty = target.get(1).getAsDouble();
             double tz = target.get(2).getAsDouble();
-            mob.getNavigation().startMovingTo(tx, ty, tz, 1.0);
+            // Rust picks the speed multiplier per intent (1.0 = walk,
+            // 1.3-1.5 reads as a sprint). Defaults to 1.0 for legacy
+            // JSON written before the speed field was added.
+            double speed = moveTo.has("speed") ? moveTo.get("speed").getAsDouble() : 1.0;
+            mob.getNavigation().startMovingTo(tx, ty, tz, speed);
 
         } else if (cmd.has("Attack")) {
             JsonObject attack = cmd.getAsJsonObject("Attack");
@@ -184,7 +188,7 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             for (var player : world.getPlayers()) {
                 if (mob.squaredDistanceTo(player) < 32 * 32) {
                     player.sendMessage(
-                            net.minecraft.text.Text.of("\u00A7c<AI Skeleton> " + message),
+                            net.minecraft.text.Text.of("\u00A7c<AI> " + message),
                             false
                     );
                 }
@@ -192,12 +196,49 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
 
         } else if (cmd.has("CallForHelp")) {
             // Rust already gated this through CallCooldown + GlobalCallCooldown.
+            // The creature manager matches the reinforcement kind to the caller's.
             JsonObject call = cmd.getAsJsonObject("CallForHelp");
             int count = call.get("count").getAsInt();
-            skeletonManager.spawnReinforcements(world, mob.getId(), count);
+            creatureManager.spawnReinforcements(world, mob.getId(), count);
+
+        } else if (cmd.has("PoopPoison")) {
+            // Rust already gated this via PoopCooldown — Java just applies
+            // the status effect and plays the splat feedback.
+            JsonObject poop = cmd.getAsJsonObject("PoopPoison");
+            long targetId = poop.get("target_entity").getAsLong();
+            int durationTicks = poop.get("duration_ticks").getAsInt();
+            int amplifier = poop.get("amplifier").getAsInt();
+            Entity target = world.getEntityById((int) targetId);
+            if (target instanceof net.minecraft.entity.LivingEntity living && living.isAlive()) {
+                living.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                        net.minecraft.entity.effect.StatusEffects.POISON,
+                        durationTicks,
+                        amplifier
+                ));
+                // Splat feedback: slime particles from the attacker's mouth
+                // and a squish sound so watching players can see it land.
+                world.spawnParticles(
+                        net.minecraft.particle.ParticleTypes.ITEM_SLIME,
+                        mob.getX(),
+                        mob.getY() + mob.getStandingEyeHeight() * 0.5,
+                        mob.getZ(),
+                        8,
+                        0.3, 0.2, 0.3,
+                        0.02
+                );
+                world.playSound(
+                        null,
+                        mob.getBlockPos(),
+                        net.minecraft.sound.SoundEvents.BLOCK_SLIME_BLOCK_BREAK,
+                        net.minecraft.sound.SoundCategory.NEUTRAL,
+                        1.0f,
+                        1.6f
+                );
+                mob.lookAtEntity(target, 30.0f, 30.0f);
+            }
 
         } else if (cmd.has("SetGoal")) {
-            LOGGER.debug("[AI Skeleton] SetGoal not yet implemented");
+            LOGGER.debug("[AI] SetGoal not yet implemented");
         }
     }
 
@@ -210,12 +251,24 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             JsonObject spawn = cmd.getAsJsonObject("SpawnSkeleton");
             int playerId = spawn.get("near_player").getAsInt();
             int radius = spawn.get("radius").getAsInt();
-            skeletonManager.spawnSkeletonNearPlayer(world, playerId, radius);
+            creatureManager.spawnNearPlayer(world, CreatureKinds.SKELETON, playerId, radius, false);
+
+        } else if (cmd.has("SpawnPetDog")) {
+            JsonObject spawn = cmd.getAsJsonObject("SpawnPetDog");
+            int playerId = spawn.get("near_player").getAsInt();
+            int radius = spawn.get("radius").getAsInt();
+            creatureManager.spawnNearPlayer(world, CreatureKinds.PET_DOG, playerId, radius, true);
+
+        } else if (cmd.has("SpawnPetParrot")) {
+            JsonObject spawn = cmd.getAsJsonObject("SpawnPetParrot");
+            int playerId = spawn.get("near_player").getAsInt();
+            int radius = spawn.get("radius").getAsInt();
+            creatureManager.spawnNearPlayer(world, CreatureKinds.PET_PARROT, playerId, radius, true);
 
         } else if (cmd.has("Despawn")) {
             JsonObject despawn = cmd.getAsJsonObject("Despawn");
             int targetId = (int) despawn.get("target_entity").getAsLong();
-            skeletonManager.despawnEntity(world, targetId);
+            creatureManager.despawnEntity(world, targetId);
         }
     }
 }

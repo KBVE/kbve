@@ -26,6 +26,12 @@ pub struct BlockSnapshot {
     pub block_type: String,
 }
 
+/// Default kind used when Java omits `entity_kind` on an observation.
+/// Preserves the original wire format for legacy skeleton observations.
+fn default_entity_kind() -> String {
+    "skeleton".to_string()
+}
+
 /// Immutable observation gathered on the server tick thread.
 /// Sent to Tokio for async AI processing.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -39,6 +45,15 @@ pub struct NpcObservation {
     pub nearby_blocks: Vec<BlockSnapshot>,
     pub current_goal: Option<GoalId>,
     pub tick: u64,
+    /// Tag set by Java so the ECS knows which creature archetype to spawn
+    /// on first sighting ("skeleton", "dog", ...). Defaults to "skeleton"
+    /// so legacy observations keep working unchanged.
+    #[serde(default = "default_entity_kind")]
+    pub entity_kind: String,
+    /// For owned creatures (pet dogs), the Minecraft entity ID of the
+    /// player that owns them. `None` for unowned mobs.
+    #[serde(default)]
+    pub owner_entity: Option<u64>,
 }
 
 /// Job submitted to the Tokio runtime for async processing.
@@ -53,10 +68,21 @@ pub struct NpcThinkJob {
 /// while others (`SpawnSkeleton`, `Despawn`) act on entities the AI does not
 /// yet "own" — these come from the `world_intents` channel emitted by
 /// world-level systems instead of per-NPC behavior trees.
+/// Default speed multiplier for legacy `MoveTo` JSON that omits `speed`.
+/// 1.0 = mob's base walk speed as computed by Minecraft navigation.
+fn default_move_speed() -> f64 {
+    1.0
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum NpcCommand {
     MoveTo {
         target: [f64; 3],
+        /// Speed multiplier passed to Minecraft navigation. 1.0 is the
+        /// mob's normal walk; 1.3-1.5 reads as a sprint. Serde default
+        /// preserves the pre-speed MoveTo wire format.
+        #[serde(default = "default_move_speed")]
+        speed: f64,
     },
     Attack {
         target_entity: u64,
@@ -86,6 +112,29 @@ pub enum NpcCommand {
     SpawnSkeleton {
         near_player: u64,
         radius: i32,
+    },
+    /// Spawn a pet dog for the given player entity ID. Java creates a
+    /// tamed wolf within `radius` blocks of the player and wires the
+    /// owner relationship up on the Minecraft side.
+    SpawnPetDog {
+        near_player: u64,
+        radius: i32,
+    },
+    /// Spawn a pet parrot for the given player entity ID. Java creates
+    /// a tamed parrot within `radius` blocks of the player and wires
+    /// the owner relationship up on the Minecraft side.
+    SpawnPetParrot {
+        near_player: u64,
+        radius: i32,
+    },
+    /// Ranged "poop" attack: apply the Minecraft POISON status effect
+    /// to `target_entity` for `duration_ticks` at the given amplifier.
+    /// Java also plays the splat particles + sound at the attacker's
+    /// position. Rust owns the cooldown that throttles this ability.
+    PoopPoison {
+        target_entity: u64,
+        duration_ticks: u32,
+        amplifier: u8,
     },
 }
 

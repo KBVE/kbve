@@ -14,6 +14,31 @@ pub struct AiManaged;
 #[derive(Component, Debug)]
 pub struct AiSkeleton;
 
+/// Marker for AI Pet Dog entities. A pet dog is a tamed wolf spawned
+/// alongside a player; its lifecycle is tied to `PetOwner`.
+///
+/// Pet dogs intentionally do NOT carry the `AiManaged` marker so the
+/// skeleton-oriented `plan_behavior` system skips them — their decisions
+/// come from `plan_pet_dog_behavior` which needs the owner's position.
+#[derive(Component, Debug)]
+pub struct AiPetDog;
+
+/// Marker for AI Pet Parrot entities. A pet parrot is a tamed parrot
+/// spawned alongside a player that flies nearby and drops a ranged
+/// "poop" poison attack on hostiles. Like pet dogs, parrots skip the
+/// `AiManaged` marker so the skeleton behavior tree ignores them —
+/// their decisions come from `plan_pet_parrot_behavior`.
+#[derive(Component, Debug)]
+pub struct AiPetParrot;
+
+/// Owner relationship for a pet creature. `player_id` is the Minecraft
+/// entity ID of the owning player, matched against `OnlinePlayer` rows
+/// each tick to decide follow targets and lifecycle.
+#[derive(Component, Debug, Clone, Copy)]
+pub struct PetOwner {
+    pub player_id: u64,
+}
+
 /// Marker for online players mirrored from Java's player snapshot.
 /// One ECS entity per logged-in player; reconciled each observation tick.
 #[derive(Component, Debug)]
@@ -159,3 +184,114 @@ impl Default for SkeletonPopulationConfig {
 /// can self-throttle without an extra timer plugin.
 #[derive(Resource, Debug, Default)]
 pub struct LastPopulationManagedTick(pub u64);
+
+// ---------------------------------------------------------------------------
+// Pet dog population config — drives the 1-dog-per-player spawn/despawn loop
+// and the proactive aggression radius around the owner.
+// ---------------------------------------------------------------------------
+
+/// Tunable parameters for the Pet Dog population + behavior systems.
+#[derive(Resource, Debug)]
+pub struct PetDogPopulationConfig {
+    /// Target number of pet dogs per online player.
+    pub dogs_per_player: usize,
+    /// Offset (in blocks) from the player where a new dog is placed.
+    pub spawn_radius: i32,
+    /// Radius around the owner (or dog) that triggers a proactive chase
+    /// on a hostile mob — beyond a vanilla tamed wolf's revenge target.
+    /// Inside this radius the dog runs at the hostile; attacks only land
+    /// once it has closed to `melee_range`.
+    pub aggro_range: f64,
+    /// Distance at which the dog's bite can actually connect. Rust only
+    /// emits `Attack` intents when the dog is within this range of the
+    /// target; outside it the dog just gets `MoveTo` intents and closes
+    /// the gap. Matches a tamed wolf's melee reach.
+    pub melee_range: f64,
+    /// Distance from the owner beyond which the dog is nudged back via
+    /// an explicit MoveTo intent (vanilla follow-owner still handles the
+    /// shorter range case on its own).
+    pub follow_distance: f64,
+    /// Run the spawn/despawn pass every N ECS ticks (~4s at 100ms ticks).
+    pub manage_interval_ticks: u64,
+}
+
+impl Default for PetDogPopulationConfig {
+    fn default() -> Self {
+        Self {
+            dogs_per_player: 1,
+            spawn_radius: 3,
+            aggro_range: 12.0,
+            melee_range: 2.5,
+            // Vanilla `FollowOwnerGoal` teleports at 12 blocks. Keep our
+            // sprint-home trigger well under that so the dog always
+            // catches up on its own feet before the vanilla teleport fires.
+            follow_distance: 5.0,
+            manage_interval_ticks: 40,
+        }
+    }
+}
+
+/// Tracks when the pet dog population manager last ran.
+#[derive(Resource, Debug, Default)]
+pub struct LastPetDogManagedTick(pub u64);
+
+// ---------------------------------------------------------------------------
+// Pet parrot components + config — drives the 1-parrot-per-player spawn
+// loop and the ranged "poop poison" ability's cooldown.
+// ---------------------------------------------------------------------------
+
+/// Per-parrot cooldown tracker for the ranged poison ability. State only —
+/// the cooldown window itself lives in `PetParrotPopulationConfig` so a
+/// runtime config change affects every parrot immediately.
+#[derive(Component, Debug, Default)]
+pub struct PoopCooldown {
+    pub last_poop_tick: u64,
+}
+
+/// Tunable parameters for the Pet Parrot population + behavior systems.
+#[derive(Resource, Debug)]
+pub struct PetParrotPopulationConfig {
+    /// Target number of pet parrots per online player.
+    pub parrots_per_player: usize,
+    /// Offset (in blocks) from the player where a new parrot spawns.
+    pub spawn_radius: i32,
+    /// Radius around the parrot or owner that triggers a proactive
+    /// ranged attack on a hostile mob.
+    pub aggro_range: f64,
+    /// Distance from the owner beyond which the parrot is nudged back
+    /// via an explicit MoveTo intent (vanilla follow-owner handles the
+    /// closer range on its own).
+    pub follow_distance: f64,
+    /// Cooldown (in ECS ticks) between successive poop intents for a
+    /// given parrot. Prevents per-tick spam while still feeling snappy.
+    pub poop_cooldown_ticks: u64,
+    /// Duration (in game ticks, 20/sec) of the applied POISON effect.
+    pub poison_duration_ticks: u32,
+    /// Poison amplifier: 0 = Poison I, 1 = Poison II, ...
+    pub poison_amplifier: u8,
+    /// Run the spawn/despawn pass every N ECS ticks (~4s at 100ms ticks).
+    pub manage_interval_ticks: u64,
+}
+
+impl Default for PetParrotPopulationConfig {
+    fn default() -> Self {
+        Self {
+            parrots_per_player: 1,
+            spawn_radius: 2,
+            aggro_range: 14.0,
+            // Same rationale as the dog — keep the return trigger tight
+            // so the parrot flies back before vanilla's teleport fires.
+            follow_distance: 6.0,
+            // ECS ticks = 100ms each, so 15 ticks ≈ 1.5s between poops.
+            poop_cooldown_ticks: 15,
+            // 20 TPS → 80 ticks = 4s of poison ticks (one damage tick/second).
+            poison_duration_ticks: 80,
+            poison_amplifier: 0,
+            manage_interval_ticks: 40,
+        }
+    }
+}
+
+/// Tracks when the pet parrot population manager last ran.
+#[derive(Resource, Debug, Default)]
+pub struct LastPetParrotManagedTick(pub u64);

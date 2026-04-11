@@ -23,7 +23,10 @@ impl BehaviorNode for Wander {
             y,
             z + angle.sin() * self.radius,
         ];
-        (NodeStatus::Success, vec![NpcCommand::MoveTo { target }])
+        (
+            NodeStatus::Success,
+            vec![NpcCommand::MoveTo { target, speed: 1.0 }],
+        )
     }
 }
 
@@ -63,7 +66,12 @@ impl BehaviorNode for Flee {
             nz + (dz / dist) * self.flee_distance,
         ];
 
-        (NodeStatus::Success, vec![NpcCommand::MoveTo { target }])
+        (
+            NodeStatus::Success,
+            // Flee at a sprint — being chased by something hostile means
+            // base walk speed isn't going to cut it.
+            vec![NpcCommand::MoveTo { target, speed: 1.4 }],
+        )
     }
 }
 

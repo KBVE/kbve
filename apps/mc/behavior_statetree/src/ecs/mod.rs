@@ -14,11 +14,14 @@ pub mod systems;
 use bevy::prelude::*;
 
 use components::{
-    GlobalCallCooldown, LastPopulationManagedTick, ServerTick, SkeletonPopulationConfig,
+    GlobalCallCooldown, LastPetDogManagedTick, LastPetParrotManagedTick, LastPopulationManagedTick,
+    PetDogPopulationConfig, PetParrotPopulationConfig, ServerTick, SkeletonPopulationConfig,
 };
 use events::{IntentBuffer, ObservationBuffer, PlayerObservationBuffer, WorldIntentBuffer};
 use systems::{
-    ingest_observations, ingest_player_snapshots, manage_skeleton_population, plan_behavior,
+    ingest_observations, ingest_player_snapshots, manage_pet_dog_population,
+    manage_pet_parrot_population, manage_skeleton_population, plan_behavior, plan_pet_dog_behavior,
+    plan_pet_parrot_behavior,
 };
 
 /// Plugin that registers all AI ECS components, resources, and systems.
@@ -34,13 +37,21 @@ impl Plugin for AiBehaviorPlugin {
             .init_resource::<WorldIntentBuffer>()
             .init_resource::<SkeletonPopulationConfig>()
             .init_resource::<LastPopulationManagedTick>()
+            .init_resource::<PetDogPopulationConfig>()
+            .init_resource::<LastPetDogManagedTick>()
+            .init_resource::<PetParrotPopulationConfig>()
+            .init_resource::<LastPetParrotManagedTick>()
             .add_systems(
                 Update,
                 (
                     ingest_player_snapshots,
                     ingest_observations,
                     plan_behavior,
+                    plan_pet_dog_behavior,
+                    plan_pet_parrot_behavior,
                     manage_skeleton_population,
+                    manage_pet_dog_population,
+                    manage_pet_parrot_population,
                 )
                     .chain(),
             );
