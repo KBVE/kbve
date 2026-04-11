@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-04-10T08:42:17Z",
+  "generated_at": "2026-04-11T08:21:47Z",
   "summary": {
-    "critical": 2,
+    "critical": 3,
     "high": 32,
     "medium": 38,
     "low": 5,
@@ -9,9 +9,9 @@
   },
   "ecosystems": {
     "npm": {
-      "total": 75,
+      "total": 76,
       "severities": {
-        "critical": 2,
+        "critical": 3,
         "high": 32,
         "medium": 36,
         "low": 5,
@@ -542,6 +542,13 @@
           "severity": "critical",
           "package": "axios",
           "url": "https://github.com/advisories/GHSA-3p68-rc4w-qgx5"
+        },
+        {
+          "id": "1116473",
+          "title": "Axios has Unrestricted Cloud Metadata Exfiltration via Header Injection Chain",
+          "severity": "critical",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-fvcv-3m26-pcqx"
         }
       ]
     },
