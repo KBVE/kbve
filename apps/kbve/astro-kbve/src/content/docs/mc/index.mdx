@@ -1,0 +1,58 @@
+---
+title: Minecraft
+description: The KBVE Minecraft server — how to join, what to expect, and where to find the technical notes.
+sidebar:
+    label: Overview
+    order: 1
+tags:
+    - minecraft
+    - mc
+---
+
+import { Card, CardGrid, Aside, LinkCard } from '@astrojs/starlight/components';
+
+The KBVE Minecraft server is a public, community-run Fabric 1.21.11 world
+with performance mods, old-combat mechanics, and a custom Rust-powered AI
+layer for NPCs and mobs.
+
+## How to join
+
+<Aside title="Server address" type="tip">
+  Coming soon. Connection details, whitelist policy, and Discord-linked
+  onboarding will land here as the server opens its public slots.
+</Aside>
+
+## What to expect
+
+<CardGrid>
+  <Card title="Fabric 1.21.11" icon="puzzle">
+    Modded Fabric server with performance mods (C2ME, Lithium, FerriteCore,
+    ServerCore, VMP) so large player counts and busy chunks stay smooth.
+  </Card>
+  <Card title="Old-style combat" icon="seti:shield">
+    The Old Combat Mod restores 1.8-era PvP mechanics — no attack cooldown,
+    classic hit registration.
+  </Card>
+  <Card title="Smarter NPCs" icon="seti:rust">
+    NPCs and select mobs run on a Rust behavior-tree mod loaded through
+    JNI. See the [technical notes](/project/mc/) for how the mod ships.
+  </Card>
+  <Card title="Run on Agones" icon="rocket">
+    Fleet-managed by Agones on Kubernetes. Every player session lands on
+    a fresh, clean game server.
+  </Card>
+</CardGrid>
+
+## Dig deeper
+
+<LinkCard
+  title="Technical notes"
+  description="Infra, CI/CD, Docker build, Agones fleet config, behavior_statetree mod source."
+  href="/project/mc/"
+/>
+
+<LinkCard
+  title="Agents & operators"
+  description="Reference for AI agents and human operators working on the Minecraft server."
+  href="/mc/agents/"
+/>
