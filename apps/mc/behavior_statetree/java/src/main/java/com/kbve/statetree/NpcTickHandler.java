@@ -164,7 +164,11 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             double tx = target.get(0).getAsDouble();
             double ty = target.get(1).getAsDouble();
             double tz = target.get(2).getAsDouble();
-            mob.getNavigation().startMovingTo(tx, ty, tz, 1.0);
+            // Rust picks the speed multiplier per intent (1.0 = walk,
+            // 1.3-1.5 reads as a sprint). Defaults to 1.0 for legacy
+            // JSON written before the speed field was added.
+            double speed = moveTo.has("speed") ? moveTo.get("speed").getAsDouble() : 1.0;
+            mob.getNavigation().startMovingTo(tx, ty, tz, speed);
 
         } else if (cmd.has("Attack")) {
             JsonObject attack = cmd.getAsJsonObject("Attack");

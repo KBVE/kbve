@@ -43,6 +43,16 @@ public class AiCreatureManager {
     private static final Logger LOGGER = LoggerFactory.getLogger("behavior_statetree");
     private static final Gson GSON = new Gson();
 
+    /**
+     * Scoreboard tag attached to every AI-managed creature on spawn. Persists
+     * across saves, so on server restart we can identify and discard any
+     * lingering AI creatures from the previous session before the population
+     * manager tries to spawn fresh ones (otherwise persistent pet wolves pile
+     * up across restarts — each cold-start would add another dog to the world
+     * without realizing the old one is still there).
+     */
+    private static final String AI_MARKER_TAG = "kbve_ai_creature";
+
     /** Tracked creatures keyed by Minecraft entity ID. */
     private final ConcurrentHashMap<Integer, CreatureSlot> creatures = new ConcurrentHashMap<>();
 
@@ -85,12 +95,48 @@ public class AiCreatureManager {
     }
 
     /**
+     * Discard any loaded entity that carries the AI marker tag but is not
+     * in our in-memory tracking map. Catches two scenarios:
+     * <ol>
+     *   <li><b>Restart cleanup:</b> persistent pet creatures from a previous
+     *       server session linger in the world but our tracking map is
+     *       fresh. Without this sweep the Rust population manager would
+     *       spawn additional pets each cold-start, accumulating duplicates.</li>
+     *   <li><b>Chunk re-loads:</b> a tracked pet whose chunk unloaded while
+     *       the owner was elsewhere will re-enter the loaded world without
+     *       a matching entry in {@code creatures} if it was evicted by
+     *       {@link #tick}. The next sweep discards it and the population
+     *       manager replaces it.</li>
+     * </ol>
+     *
+     * <p>Called from {@link #submitObservations} so it runs on the same
+     * throttled cadence as observation collection (no extra per-tick cost).
+     */
+    private void sweepOrphanedAiCreatures(ServerWorld world) {
+        int removed = 0;
+        for (Entity entity : world.iterateEntities()) {
+            if (!(entity instanceof MobEntity)) continue;
+            if (!entity.getCommandTags().contains(AI_MARKER_TAG)) continue;
+            if (creatures.containsKey(entity.getId())) continue;
+            entity.discard();
+            removed++;
+        }
+        if (removed > 0) {
+            LOGGER.info("[AI] Swept {} orphan AI creature(s) from the world", removed);
+        }
+    }
+
+    /**
      * Build an observation for each tracked creature and submit it to Rust.
      * Called at throttled intervals by {@link NpcTickHandler}, not every tick.
      */
     public void submitObservations(MinecraftServer server) {
         ServerWorld overworld = server.getOverworld();
         if (overworld == null) return;
+
+        // Run the orphan sweep first so any stale creatures from a previous
+        // session are gone before we submit observations for the current set.
+        sweepOrphanedAiCreatures(overworld);
 
         long currentTick = overworld.getTime();
 
@@ -254,6 +300,10 @@ public class AiCreatureManager {
 
         MobEntity mob = kind.create(world, surface, owner);
         if (mob == null) return false;
+
+        // Tag the mob BEFORE spawning so the tag is part of the initial
+        // NBT snapshot Minecraft writes on save.
+        mob.addCommandTag(AI_MARKER_TAG);
 
         if (!world.spawnEntity(mob)) {
             return false;

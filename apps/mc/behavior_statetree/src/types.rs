@@ -68,10 +68,21 @@ pub struct NpcThinkJob {
 /// while others (`SpawnSkeleton`, `Despawn`) act on entities the AI does not
 /// yet "own" — these come from the `world_intents` channel emitted by
 /// world-level systems instead of per-NPC behavior trees.
+/// Default speed multiplier for legacy `MoveTo` JSON that omits `speed`.
+/// 1.0 = mob's base walk speed as computed by Minecraft navigation.
+fn default_move_speed() -> f64 {
+    1.0
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum NpcCommand {
     MoveTo {
         target: [f64; 3],
+        /// Speed multiplier passed to Minecraft navigation. 1.0 is the
+        /// mob's normal walk; 1.3-1.5 reads as a sprint. Serde default
+        /// preserves the pre-speed MoveTo wire format.
+        #[serde(default = "default_move_speed")]
+        speed: f64,
     },
     Attack {
         target_entity: u64,
