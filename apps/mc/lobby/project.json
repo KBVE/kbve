@@ -1,0 +1,87 @@
+{
+	"name": "mc-lobby",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/mc/lobby",
+	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
+		"container": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/mc/lobby/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/mc-lobby:latest"]
+				},
+				"production": {
+					"push": true,
+					"tags": ["ghcr.io/kbve/mc-lobby:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/mc-lobby:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/mc-lobby:buildcache,mode=max"
+					]
+				}
+			}
+		},
+		"dev": {
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"target": "container",
+					"projects": ["mc-lobby"],
+					"params": "forward"
+				}
+			],
+			"cache": false,
+			"options": {
+				"commands": [
+					"echo '=== Starting standalone mc-lobby container ==='",
+					"echo '  Game:  localhost:25565'",
+					"echo '  RCON:  localhost:25574 (password: dev)'",
+					"echo '  Note:  bypasses Velocity — set ONLINE_MODE=false on your client'",
+					"docker rm -f kbve-mc-lobby-dev 2>/dev/null || true",
+					"docker run --rm --name kbve-mc-lobby-dev -p 25565:25565 -p 25574:25575 -e EULA=TRUE -e ONLINE_MODE=false -e ENABLE_RCON=true -e RCON_PASSWORD=dev kbve/mc-lobby:latest"
+				],
+				"parallel": false,
+				"cwd": "apps/mc/lobby"
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"target": "container",
+					"projects": ["mc-lobby"],
+					"params": "forward"
+				}
+			],
+			"cache": false,
+			"options": {
+				"commands": [
+					"docker rm -f mc-lobby-e2e 2>/dev/null || true",
+					"docker run -d --name mc-lobby-e2e -p 25574:25575 -p 25566:25565 -e EULA=TRUE -e RCON_PASSWORD=test -e ENABLE_RCON=true -e ONLINE_MODE=false kbve/mc-lobby:latest",
+					"echo 'Waiting for MC lobby RCON...' && for i in $(seq 1 300); do if docker logs mc-lobby-e2e 2>&1 | grep -q 'RCON running'; then echo 'RCON ready after '\"$i\"'s'; break; fi; if [ $i -eq 300 ]; then echo 'Server did not start in 300s'; docker logs mc-lobby-e2e 2>&1 | tail -50; docker rm -f mc-lobby-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+					"RCON_PORT=25574 RCON_PASSWORD=test npx vitest run; EC=$?; echo '--- container logs ---'; docker logs mc-lobby-e2e 2>&1 | tail -50; docker rm -f mc-lobby-e2e 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false,
+				"cwd": "apps/mc/lobby"
+			},
+			"configurations": {
+				"ci": {}
+			}
+		}
+	},
+	"tags": ["scope:mc"]
+}

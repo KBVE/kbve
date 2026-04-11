@@ -1,0 +1,86 @@
+---
+title: Minecraft Velocity Proxy
+description: |
+    Custom Velocity 3.4 proxy image with a Kotlin plugin providing cross-server teleport aliases, chat bridging, and last-server persistence for the KBVE MC stack.
+sidebar:
+    label: MC Velocity
+    order: 452
+tags:
+    - minecraft
+    - velocity
+    - proxy
+    - kotlin
+key: mc_velocity
+pipeline: docker
+app_name: mc-velocity
+version: "1.0.0"
+source_path: apps/mc/velocity
+version_toml: apps/mc/velocity/version.toml
+runner: ubuntu-latest
+image: kbve/mc-velocity
+deployment_yaml: apps/kube/agones/mc/velocity-deployment.yaml
+has_test: false
+---
+
+## Overview
+
+Custom Velocity proxy image that replaces the generic `itzg/bungeecord:latest` used previously. Same itzg runtime under the hood, but with a pre-baked Kotlin plugin (`kbve-velocity-commands`) compiled from source at `apps/mc/velocity/plugin/`.
+
+The plugin bundles three features in one JAR, all specific to the KBVE MC stack:
+
+### 1. Teleport command aliases
+
+Brigadier commands that wrap `Player.createConnectionRequest(server).fireAndForget()`:
+
+| Command | Target |
+|---|---|
+| `/lobby`, `/hub` | `lobby` backend (PaperMC lobby) |
+| `/mc`, `/survival` | `mc` backend (Fabric survival) |
+
+Hardcoded aliases for v1. A config file for dynamic aliases is v2 scope. No-permission — any player can use them in v1; LuckPerms nodes like `kbve.lobby` can be added later.
+
+### 2. Cross-server chat bridge
+
+Listens to `PlayerChatEvent` on Velocity and broadcasts a secondary `Component` to all players on *other* servers. Does NOT cancel or modify the original event, so local signed chat flows through normally — the bridge is additive.
+
+Per-player chat mode stored in an in-memory `ConcurrentHashMap<UUID, ChatMode>`, toggled via `/chat`:
+
+| Command | Behavior |
+|---|---|
+| `/chat` | Shows current mode (default `global`) |
+| `/chat local` | Messages stay on source server |
+| `/chat global` | Messages bridge cross-server with `[L]` / `[S]` tag prefixes |
+
+Bridged messages are color-coded by server: gray for lobby (`[L]`), gold for mc (`[S]`).
+
+Session-scoped — the map resets when the Velocity pod restarts. Persistent storage is v2 scope.
+
+### 3. Last-server persistence
+
+Tracks the last server a player was connected to via `ServerConnectedEvent` and restores it on `PlayerChooseInitialServerEvent` when they reconnect. Falls back to Velocity's normal `try` list (which starts with lobby) if the stored server is missing or offline.
+
+In-memory only for v1 — survives player disconnect/reconnect cycles within a single Velocity pod lifetime, not across pod restarts.
+
+## Build
+
+Multi-stage Dockerfile:
+
+```
+Stage 1: gradle:jdk21
+    └─► Gradle shadowJar builds kbve-velocity-commands-<version>.jar
+         └─► com.velocitypowered:velocity-api:3.4.0-SNAPSHOT
+              └─► Kotlin 2.0.21 + KAPT for @Plugin annotation processing
+
+Stage 2: itzg/bungeecord:latest
+    └─► COPY --from=plugin-builder the JAR into /plugins/
+         └─► itzg auto-loads everything in /plugins/ at Velocity boot
+              └─► LuckPerms-Velocity also downloaded via PLUGINS env var
+```
+
+All existing Velocity runtime wiring (LuckPerms env vars, forwarding mode, plugin messaging) continues to work — this image only pre-bakes the one plugin KBVE owns the source for.
+
+### Related
+
+- [mc (Fabric survival backend)](/project/mc/)
+- [mc-lobby (PaperMC lobby)](/project/mc-lobby/)
+- [Plugin source](https://github.com/KBVE/kbve/tree/main/apps/mc/velocity/plugin)

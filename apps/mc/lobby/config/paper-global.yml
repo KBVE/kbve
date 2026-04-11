@@ -1,0 +1,20 @@
+# Minimal paper-global.yml shipped as a first-boot fallback so the lobby
+# accepts Velocity modern-forwarding handshakes even before itzg's
+# CFG_VELOCITY_* env-var patcher runs. Paper merges this with its
+# generated defaults on boot; all other fields Paper owns.
+#
+# The `secret` must stay in lockstep with:
+#   - apps/kube/agones/mc/velocity-configmap.yaml (forwarding.secret key)
+#   - apps/mc/config/FabricProxy-Lite.toml (secret field)
+#
+# If you rotate the secret, update all three at once.
+
+_version: 30
+proxies:
+    bungee-cord:
+        online-mode: true
+    velocity:
+        enabled: true
+        online-mode: true
+        secret: 'kbve-velocity-forwarding-secret-change-me'
+    proxy-protocol: false

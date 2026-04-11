@@ -1,0 +1,69 @@
+---
+title: Minecraft Lobby
+description: |
+    PaperMC 1.21.11 lobby server — the default landing target and fallback for the KBVE MC Velocity proxy. Superflat peaceful world with minimal plugin set.
+sidebar:
+    label: MC Lobby
+    order: 451
+tags:
+    - minecraft
+    - paper
+    - lobby
+    - velocity
+key: mc_lobby
+pipeline: docker
+app_name: mc-lobby
+version: "1.0.0"
+source_path: apps/mc/lobby
+version_toml: apps/mc/lobby/version.toml
+runner: ubuntu-latest
+image: kbve/mc-lobby
+deployment_yaml: apps/kube/agones/mc/lobby-deployment.yaml
+has_test: false
+---
+
+## Overview
+
+PaperMC-based lobby server that sits alongside the [Fabric survival backend](/project/mc/) in the KBVE MC stack. It's the first server new players land on when they connect, and the fallback when the Fabric backend disconnects unexpectedly — instead of getting kicked, players get moved here until Fabric comes back.
+
+The world is a vanilla **superflat** preset (bedrock + 2 dirt + grass, plains biome, no structures, no mob spawning) with `DIFFICULTY=peaceful` so there's zero combat. No custom spawn structures are baked in — admins build with WorldEdit after first boot.
+
+### Plugin Stack
+
+| Plugin | Purpose |
+|---|---|
+| LuckPerms | Cross-server permission sync via the pluginmsg channel (same wire format as Fabric + Velocity). |
+| EssentialsX | `/spawn`, `/sethome`, `/tpa`, `/back`, kit system. Required by the AntiBuild addon. |
+| EssentialsXAntiBuild | Blocks build/break/interact for non-permissioned players — grief-proofs the lobby by default. |
+| WorldEdit | Admin building tool; same version line as Fabric for consistency. |
+| AdvancedPortals | Physical portal regions that fire proxy commands on player entry. Lets us place decorative portals that teleport players to other backends via the [Velocity command plugin](/project/mc-velocity/). |
+
+### Architecture
+
+```
+itzg/minecraft-server:java25
+    └─► TYPE=PAPER, VERSION=1.21.11
+         └─► Superflat peaceful world (LEVEL_TYPE=minecraft:flat)
+              └─► Paper native Velocity forwarding (paper-global.yml secret)
+                   └─► Kubernetes Deployment (1 replica, Recreate strategy)
+                        └─► ClusterIP Service: mc-lobby-backend
+                             └─► Registered with Velocity as `lobby`
+```
+
+### Velocity Integration
+
+The Velocity proxy (see [mc-velocity](/project/mc-velocity/)) has the lobby as its default `try` target:
+
+```toml
+[servers]
+lobby = "mc-lobby-backend.arc-runners.svc.cluster.local:25565"
+mc = "mc-fabric-backend.arc-runners.svc.cluster.local:25565"
+try = ["lobby", "mc"]
+```
+
+Combined with `failover-on-unexpected-server-disconnect = true` in the Velocity advanced section, this means players on `mc` who get disconnected (fleet restart, pod recycle, Fabric crash) are automatically sent back to the lobby instead of getting kicked to their client disconnect screen.
+
+### Related
+
+- [mc (Fabric survival backend)](/project/mc/)
+- [mc-velocity (custom Velocity proxy + command plugin)](/project/mc-velocity/)

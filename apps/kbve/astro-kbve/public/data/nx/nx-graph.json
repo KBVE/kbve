@@ -7025,8 +7025,8 @@
               "options": {
                 "commands": [
                   "docker rm -f kubectl-e2e 2>/dev/null || true",
-                  "docker buildx build --platform linux/amd64 -f apps/vm/kubectl/Dockerfile -t kbve/kubectl:e2e --load .",
-                  "docker run -d --name kubectl-e2e --entrypoint sleep kbve/kubectl:e2e infinity",
+                  "docker buildx build --platform linux/amd64 -f apps/vm/kubectl/Dockerfile -t kbve/kubectl:latest --load .",
+                  "docker run -d --name kubectl-e2e --entrypoint sleep kbve/kubectl:latest infinity",
                   "echo 'Waiting for container...' && for i in $(seq 1 30); do if docker exec kubectl-e2e /bin/sh -c 'echo ok' >/dev/null 2>&1; then echo 'Container ready after '\"$i\"'s'; break; fi; if [ $i -eq 30 ]; then echo 'Container did not become ready'; docker logs kubectl-e2e 2>&1 | tail -20; docker rm -f kubectl-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
                   "cd apps/vm/kubectl-e2e && npx vitest run; EC=$?; docker rm -f kubectl-e2e 2>/dev/null || true; exit $EC"
                 ],
@@ -10112,16 +10112,41 @@
               "cache": false,
               "options": {
                 "commands": [
-                  "docker rm -f mc-dev 2>/dev/null || true",
-                  "echo '=== Starting MC server (offline mode) ==='",
-                  "echo '  Game:  localhost:25565'",
+                  "docker compose --env-file ../../.env -f docker-compose.dev.yml down --remove-orphans 2>/dev/null || true",
+                  "echo '=== Starting MC dev stack (Velocity + Fabric via docker compose) ==='",
+                  "echo '  Game:  localhost:25565 (connect here — Velocity proxy)'",
                   "echo '  RCON:  localhost:25575 (password: dev)'",
-                  "echo '  Logs:  docker logs -f mc-dev'",
-                  "echo '  Stop:  docker rm -f mc-dev'",
+                  "echo '  Env:   ../../.env (repo root, gitignored)'",
+                  "echo '  Stop:  nx run mc:dev:down   (keeps world data)'",
+                  "echo '  Wipe:  nx run mc:dev:clean  (drops world volume)'",
                   "echo ''",
-                  "docker run --name mc-dev -p 25565:25565 -p 25575:25575 -e EULA=TRUE -e ONLINE_MODE=false -e RCON_PASSWORD=dev -e ENABLE_RCON=true -e MOTD='KBVE Dev Server' kbve/mc:latest"
+                  "docker compose --env-file ../../.env -f docker-compose.dev.yml up --remove-orphans"
                 ],
                 "parallel": false,
+                "cwd": "apps/mc"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "dev:down": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker compose --env-file ../../.env -f docker-compose.dev.yml down --remove-orphans"
+                ],
+                "cwd": "apps/mc"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "dev:clean": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker compose --env-file ../../.env -f docker-compose.dev.yml down --remove-orphans --volumes"
+                ],
                 "cwd": "apps/mc"
               },
               "configurations": {},

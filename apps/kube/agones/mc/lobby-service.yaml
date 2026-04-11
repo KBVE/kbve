@@ -1,0 +1,26 @@
+# ClusterIP Service fronting the PaperMC lobby pod. This is the DNS
+# name Velocity resolves in its velocity.toml — specifically the entry:
+#
+#   lobby = "mc-lobby-backend.arc-runners.svc.cluster.local:25565"
+#
+# The lobby is a singleton Deployment (not an Agones Fleet), so this
+# Service selects a single pod rather than load-balancing across a
+# Fleet. A normal ClusterIP is enough — headless is only needed for
+# multi-replica pod discovery, which we don't have.
+apiVersion: v1
+kind: Service
+metadata:
+    name: mc-lobby-backend
+    namespace: arc-runners
+    labels:
+        app: mc-lobby
+        app.kubernetes.io/part-of: mc
+spec:
+    type: ClusterIP
+    selector:
+        app: mc-lobby
+    ports:
+        - name: minecraft
+          port: 25565
+          targetPort: 25565
+          protocol: TCP

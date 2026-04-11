@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-10T08:39:34.348Z",
+  "generated_at": "2026-04-11T08:19:06.104Z",
   "summary": {
     "total_protos": 26,
     "registered": 22,
@@ -1038,31 +1038,7 @@
     "packages/data/proto/kbve/kbve.proto",
     "packages/data/proto/kbve/kbveproto.proto"
   ],
-  "checked_at": "2026-04-10T08:39:34Z",
-  "drift_detected": true,
-  "drift_files": [
-    "packages/data/codegen/generated/ci_registry-schema.ts",
-    "packages/data/codegen/generated/clickhouse-schema.ts",
-    "packages/data/codegen/generated/discordsh-schema.ts",
-    "packages/data/codegen/generated/forum-schema.ts",
-    "packages/data/codegen/generated/github-schema.ts",
-    "packages/data/codegen/generated/groq-schema.ts",
-    "packages/data/codegen/generated/itemdb-schema.ts",
-    "packages/data/codegen/generated/jedi-schema.ts",
-    "packages/data/codegen/generated/kbveproto-schema.ts",
-    "packages/data/codegen/generated/mapdb-schema.ts",
-    "packages/data/codegen/generated/meme-schema.ts",
-    "packages/data/codegen/generated/npcdb-schema.ts",
-    "packages/data/codegen/generated/osrs-schema.ts",
-    "packages/data/codegen/generated/ows-schema.ts",
-    "packages/data/codegen/generated/pool-schema.ts",
-    "packages/data/codegen/generated/profile-schema.ts",
-    "packages/data/codegen/generated/questdb-schema.ts",
-    "packages/data/codegen/generated/redis-schema.ts",
-    "packages/data/codegen/generated/rows-schema.ts",
-    "packages/data/codegen/generated/schema-schema.ts",
-    "packages/data/codegen/generated/snapshot-schema.ts",
-    "packages/data/codegen/generated/staff-schema.ts",
-    "packages/data/codegen/generated/twitch-schema.ts"
-  ]
+  "checked_at": "2026-04-11T08:19:06Z",
+  "drift_detected": false,
+  "drift_files": []
 }
