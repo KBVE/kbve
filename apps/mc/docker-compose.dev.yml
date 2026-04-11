@@ -17,6 +17,14 @@
 #
 # Boot time: ~4 minutes cold (Fabric + 16 mods + library unpacking).
 # Velocity is Ready in ~30s but will hold connections until Fabric is up.
+#
+# Secrets / env — Docker Compose auto-loads `.env` from this directory
+# (apps/mc/.env, gitignored) for ${VAR} substitution in the blocks
+# below. Copy `apps/mc/.env.example` to `apps/mc/.env` and fill in the
+# Supabase values if you want the mc_auth bridge to actually hit
+# kilobase. Leave it blank — or skip the copy entirely — and mc_auth
+# drops into graceful mode: players still join, every lookup is
+# treated as Unlinked, and a single warning is logged at startup.
 
 name: kbve-mc-dev
 
@@ -53,6 +61,19 @@ services:
         # Velocity to exercise the modern-forwarding handshake.
         ports:
             - '25575:25575'
+        # Lets the Fabric container reach a host-side kubectl port-forward
+        # of the kilobase Kong service. Pattern:
+        #
+        #   kubectl port-forward -n kilobase svc/kong 8000:8000
+        #   # then in apps/mc/.env:
+        #   SUPABASE_URL=http://host.docker.internal:8000
+        #   SUPABASE_SERVICE_ROLE_KEY=<paste the JWT from kilobase/supabase-jwt>
+        #
+        # host.docker.internal works out of the box on Docker Desktop
+        # (Mac/Windows); the host-gateway alias below makes it work on
+        # Linux too.
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
         environment:
             EULA: 'TRUE'
             # Velocity handles Mojang auth on the proxy side; Fabric must
@@ -67,6 +88,13 @@ services:
             DIFFICULTY: 'normal'
             VIEW_DISTANCE: '8'
             SIMULATION_DISTANCE: '6'
+            # mc_auth → Supabase. Pulled from apps/mc/.env via Compose's
+            # automatic variable substitution. Both values default to an
+            # empty string if unset, which makes the bevy_supa client fall
+            # through to graceful "treat everyone as unlinked" mode so
+            # local dev without Supabase still works end-to-end.
+            SUPABASE_URL: ${SUPABASE_URL:-}
+            SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
         volumes:
             # Named volume so mods + libraries + world persist across
             # `nx run mc:dev:down` cycles. Use `nx run mc:dev:clean` to wipe.
