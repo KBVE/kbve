@@ -89,28 +89,30 @@ spec:
                                     secretKeyRef:
                                         name: mc-gameserver-secrets
                                         key: rcon-password
-                              # Supabase service-role credentials for the
-                              # mc_auth bridge. Projected from the mc
-                              # namespace via the mc-gameserver-secrets
-                              # ExternalSecret — see gameserver-secrets.yaml.
-                              # Both keys are marked optional: true so the
-                              # pod can boot even if the ExternalSecret
-                              # hasn't synced them yet. In that case the
-                              # Rust SupabaseClient falls through to
-                              # graceful "treat everyone as unlinked" mode
-                              # and logs a warning at startup. Players are
-                              # never blocked from joining by missing auth.
+                              # Self-hosted Supabase (kilobase) in-cluster
+                              # endpoint. Not a secret — a plain DNS name
+                              # resolving to the Kong API gateway in the
+                              # kilobase namespace, which routes REST
+                              # calls through PostgREST. Keeping this
+                              # next to the service-role key makes the
+                              # mc_auth bridge config locally legible.
                               - name: SUPABASE_URL
-                                valueFrom:
-                                    secretKeyRef:
-                                        name: mc-gameserver-secrets
-                                        key: supabase-url
-                                        optional: true
+                                value: 'http://kong.kilobase.svc.cluster.local:8000'
+                              # Service-role JWT projected from
+                              # kilobase/supabase-jwt.service-key via the
+                              # ExternalSecret in supabase-external-secret.yaml.
+                              # Single source of truth lives in the
+                              # kilobase stack; this env ref never copies
+                              # the value into git. optional: true so the
+                              # pod can still boot if the ExternalSecret
+                              # hasn't synced yet — the bevy_supa client
+                              # drops into graceful "treat everyone as
+                              # unlinked" mode on missing credentials.
                               - name: SUPABASE_SERVICE_ROLE_KEY
                                 valueFrom:
                                     secretKeyRef:
-                                        name: mc-gameserver-secrets
-                                        key: supabase-service-role-key
+                                        name: mc-supabase-credentials
+                                        key: service-role-key
                                         optional: true
                               - name: MOTD
                                 value: 'KBVE Minecraft Server'
