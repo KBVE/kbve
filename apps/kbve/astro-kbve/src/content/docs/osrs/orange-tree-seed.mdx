@@ -12,69 +12,52 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 200
-  properties:
-    tradeable: true
-    tradeable_ge: true
-    stackable: true
-    weight: 0
-  skilling_sources:
-    - skill: farming
-      level: 39
-      xp: 35.5
-      growth_time: 960
+  about: Orange tree seed is a fruit tree seed plantable at Farming level 39 for 35.5 Farming XP. Placed in a plant pot of soil to grow an orange sapling, then planted in a fruit tree patch. Orange trees take roughly 16 hours to grow and grant 2,470.2 check-health XP. Harvested oranges are used for chocolate drinks and Gnome cocktails.
+  material:
+    type: seed
+    tier: mid
+  farming:
+    farming_level: 39
+    plant_xp: 35.5
+    check_health_xp: 2470.2
+    patch_type: fruit_tree
+    growth_time: 960
+    growth_cycles: 6
+    cycle_minutes: 160
+    produce_id: 2108
+    produce_name: Orange
+    payment: 3 baskets of strawberries
   drop_table:
     sources:
-      - source: Bird nests (Woodcutting)
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
+      - source: Bird nest
         rarity: common
+        quantity: "1"
         members_only: true
-      - source: Wintertodt
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
+      - source: Wintertodt supply crate
         rarity: common
+        quantity: "1"
         members_only: true
   related_items:
     - item_id: 2108
       item_name: Orange
       slug: orange
       relationship: product
-      description: Harvested fruit
-    - item_id: 5980
-      item_name: Basket of strawberries
-      slug: basket-of-strawberries
-      relationship: component
-      description: Protection payment (3)
     - item_id: 5284
       item_name: Banana tree seed
       slug: banana-tree-seed
-      relationship: alternative
-      description: Lower tier option
+      relationship: downgrade
     - item_id: 5286
       item_name: Curry tree seed
       slug: curry-tree-seed
       relationship: upgrade
-      description: Higher tier option
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Fruit Tree Seed |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 39 Farming |
-
-    Plant in fruit tree patches to grow orange trees.
-
-    Growth Time: 16 hours
-
-    Payment: 3 baskets of strawberries (optional protection)
-
-    XP: 35.5 (planting) + 2,470.2 (check-health)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - Fruit tree seed unlocked at Farming level 39
+      - Oranges are used for orange chocolate drinks and fruit blast
+      - Protection payment (3 strawberry baskets) loops the strawberry rotation
+      - Standard mid-tier daily fruit tree step for ironmen
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

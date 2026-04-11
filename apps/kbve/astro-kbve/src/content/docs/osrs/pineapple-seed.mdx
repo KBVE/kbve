@@ -12,69 +12,52 @@ osrs:
   lowalch: 29
   highalch: 44
   limit: 200
-  properties:
-    tradeable: true
-    tradeable_ge: true
-    stackable: true
-    weight: 0
-  skilling_sources:
-    - skill: farming
-      level: 51
-      xp: 57
-      growth_time: 960
+  about: Pineapple seed is a fruit tree seed plantable at Farming level 51 for 57 Farming XP. Placed in a plant pot of soil to grow a pineapple sapling, then planted in a fruit tree patch. Pineapple plants take roughly 16 hours to grow and grant 4,605.7 check-health XP. Harvested pineapples are used for fruit blast and Karambwanji fishing bait rotations.
+  material:
+    type: seed
+    tier: mid
+  farming:
+    farming_level: 51
+    plant_xp: 57
+    check_health_xp: 4605.7
+    patch_type: fruit_tree
+    growth_time: 960
+    growth_cycles: 6
+    cycle_minutes: 160
+    produce_id: 2114
+    produce_name: Pineapple
+    payment: 10 watermelons
   drop_table:
     sources:
-      - source: Bird nests (Woodcutting)
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
+      - source: Bird nest
         rarity: common
+        quantity: "1"
         members_only: true
-      - source: Wintertodt
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
+      - source: Wintertodt supply crate
         rarity: common
+        quantity: "1"
         members_only: true
   related_items:
     - item_id: 2114
       item_name: Pineapple
       slug: pineapple
       relationship: product
-      description: Harvested fruit
-    - item_id: 6020
-      item_name: Watermelon
-      slug: watermelon
-      relationship: component
-      description: Protection payment (10)
     - item_id: 5286
       item_name: Curry tree seed
       slug: curry-tree-seed
-      relationship: alternative
-      description: Lower tier option
+      relationship: downgrade
     - item_id: 5288
       item_name: Papaya tree seed
       slug: papaya-tree-seed
       relationship: upgrade
-      description: Higher tier option
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Fruit Tree Seed |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 51 Farming |
-
-    Plant in fruit tree patches to grow pineapple plants.
-
-    Growth Time: 16 hours
-
-    Payment: 10 watermelons (optional protection)
-
-    XP: 57 (planting) + 4,605.7 (check-health)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - Mid-high fruit tree seed unlocked at Farming level 51
+      - Pineapples are used in fruit blast and gnome cocktails
+      - Protection payment (10 watermelons) loops the watermelon rotation
+      - Steady supply from bird nests and Wintertodt crates
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -111,7 +111,7 @@ impl Default for GlobalCallCooldown {
     fn default() -> Self {
         Self {
             last_call_tick: 0,
-            cooldown_ticks: 400, // 20s
+            cooldown_ticks: 1200, // 60s
         }
     }
 }
@@ -147,10 +147,10 @@ pub struct SkeletonPopulationConfig {
 impl Default for SkeletonPopulationConfig {
     fn default() -> Self {
         Self {
-            max_skeletons: 3,
-            spawn_radius: 20,
+            max_skeletons: 2,
+            spawn_radius: 32,
             despawn_range: 64.0,
-            manage_interval_ticks: 50, // 5s at 100ms ECS ticks
+            manage_interval_ticks: 200, // 20s at 100ms ECS ticks
         }
     }
 }

@@ -12,76 +12,63 @@ osrs:
   lowalch: 46
   highalch: 69
   limit: 200
-  properties:
-    tradeable: true
-    tradeable_ge: true
-    stackable: true
-    weight: 0
-  skilling_sources:
-    - skill: farming
-      level: 57
-      xp: 72
-      growth_time: 960
+  about: Papaya tree seed is a fruit tree seed plantable at Farming level 57 for 72 Farming XP. Placed in a plant pot of soil to grow a papaya sapling, then planted in a fruit tree patch. Papaya trees take roughly 16 hours to grow and grant 6,146.4 check-health XP. Harvested papaya fruit is used as protection payment for higher-tier fruit trees and the rare Stew of the Gods recipe.
+  material:
+    type: seed
+    tier: mid-high
+  farming:
+    farming_level: 57
+    plant_xp: 72
+    check_health_xp: 6146.4
+    patch_type: fruit_tree
+    growth_time: 960
+    growth_cycles: 6
+    cycle_minutes: 160
+    produce_id: 5972
+    produce_name: Papaya fruit
+    payment: 10 pineapples
   drop_table:
     sources:
-      - source: Bird nests (Woodcutting)
-        source_id: 0
-        combat_level: 0
+      - source: Bird nest
+        rarity: uncommon
         quantity: "1"
-        rarity: common
         members_only: true
       - source: Kalphite Queen
-        source_id: 963
         combat_level: 333
-        quantity: "1"
         rarity: uncommon
+        quantity: "1"
         members_only: true
       - source: Zulrah
-        source_id: 2044
         combat_level: 725
-        quantity: "2"
         rarity: uncommon
+        quantity: "1-2"
         members_only: true
       - source: Sarachnis
-        source_id: 8713
         combat_level: 318
-        quantity: "1"
         rarity: uncommon
+        quantity: "1"
         members_only: true
   related_items:
     - item_id: 5972
       item_name: Papaya fruit
       slug: papaya-fruit
       relationship: product
-      description: Harvested fruit
-    - item_id: 2114
-      item_name: Pineapple
-      slug: pineapple
-      relationship: component
-      description: Protection payment (10)
+    - item_id: 5287
+      item_name: Pineapple seed
+      slug: pineapple-seed
+      relationship: downgrade
     - item_id: 5289
       item_name: Palm tree seed
       slug: palm-tree-seed
       relationship: upgrade
-      description: Higher tier option
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Fruit Tree Seed |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 57 Farming |
-
-    Plant in fruit tree patches to grow papaya trees.
-
-    Growth Time: 16 hours
-
-    Payment: 10 pineapples (optional protection)
-
-    XP: 72 (planting) + 6,146.4 (check-health)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - High-tier fruit tree seed unlocked at Farming level 57
+      - Papaya fruit is the protection payment for palm trees — closes the rotation loop
+      - Common Sarachnis, Zulrah, and Kalphite Queen drop
+      - Payment loop (10 pineapples) ties directly to the pineapple rotation
+  mdx_version: 3
+  mdx_updated: "2026-04-10"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
