@@ -442,6 +442,7 @@ pub fn plan_pet_dog_behavior(
     mut intent_buffer: ResMut<IntentBuffer>,
 ) {
     let aggro_sq = config.aggro_range * config.aggro_range;
+    let melee_sq = config.melee_range * config.melee_range;
     let follow_sq = config.follow_distance * config.follow_distance;
 
     for (dog_id, dog_pos, epoch, nearby, owner) in &dogs {
@@ -470,14 +471,19 @@ pub fn plan_pet_dog_behavior(
             });
 
         let commands = if let Some(target) = best_target {
-            vec![
-                NpcCommand::MoveTo {
-                    target: target.position,
-                },
-                NpcCommand::Attack {
+            // Always chase the target. Only emit Attack once the dog has
+            // closed to within its actual bite reach — otherwise Java's
+            // `mob.tryAttack(target)` lands damage from across the aggro
+            // radius, which doesn't make sense for a melee pet.
+            let mut cmds = vec![NpcCommand::MoveTo {
+                target: target.position,
+            }];
+            if dist_sq(dog_xyz, target.position) <= melee_sq {
+                cmds.push(NpcCommand::Attack {
                     target_entity: target.entity_id,
-                },
-            ]
+                });
+            }
+            cmds
         } else if dist_sq(dog_xyz, owner_pos) > follow_sq {
             vec![NpcCommand::MoveTo { target: owner_pos }]
         } else {

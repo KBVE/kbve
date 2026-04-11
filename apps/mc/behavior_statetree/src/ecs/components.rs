@@ -189,9 +189,16 @@ pub struct PetDogPopulationConfig {
     pub dogs_per_player: usize,
     /// Offset (in blocks) from the player where a new dog is placed.
     pub spawn_radius: i32,
-    /// Radius around the owner (or dog) that triggers a proactive attack
+    /// Radius around the owner (or dog) that triggers a proactive chase
     /// on a hostile mob — beyond a vanilla tamed wolf's revenge target.
+    /// Inside this radius the dog runs at the hostile; attacks only land
+    /// once it has closed to `melee_range`.
     pub aggro_range: f64,
+    /// Distance at which the dog's bite can actually connect. Rust only
+    /// emits `Attack` intents when the dog is within this range of the
+    /// target; outside it the dog just gets `MoveTo` intents and closes
+    /// the gap. Matches a tamed wolf's melee reach.
+    pub melee_range: f64,
     /// Distance from the owner beyond which the dog is nudged back via
     /// an explicit MoveTo intent (vanilla follow-owner still handles the
     /// shorter range case on its own).
@@ -206,6 +213,7 @@ impl Default for PetDogPopulationConfig {
             dogs_per_player: 1,
             spawn_radius: 3,
             aggro_range: 12.0,
+            melee_range: 2.5,
             follow_distance: 8.0,
             manage_interval_ticks: 40,
         }
