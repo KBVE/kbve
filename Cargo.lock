@@ -2855,6 +2855,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_supa"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tracing",
+]
+
+[[package]]
 name = "bevy_tasker"
 version = "0.1.0"
 dependencies = [
@@ -9488,6 +9500,7 @@ name = "mc_auth"
 version = "0.1.0"
 dependencies = [
  "agones",
+ "bevy_supa",
  "crossbeam-channel",
  "jni 0.21.1",
  "reqwest 0.12.28",

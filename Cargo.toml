@@ -32,6 +32,7 @@ members = [
 	'packages/rust/bevy/bevy_skills',
 	'packages/rust/bevy/bevy_tasker',
 	'packages/rust/bevy/bevy_db',
+	'packages/rust/bevy/bevy_supa',
 	'apps/vm/firecracker-ctl',
 	'apps/vm/kubectl',
 	'apps/mc/behavior_statetree',
