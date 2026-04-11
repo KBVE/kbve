@@ -25,11 +25,18 @@ announce-forge = false
 announce-proxy-commands = true
 
 [servers]
-# Points at the docker-compose service name. Docker's embedded DNS
-# resolves "mc-fabric" to the Fabric container on the shared
-# kbve-mc-dev bridge network.
+# Points at the docker-compose service names. Docker's embedded DNS
+# resolves "mc-lobby" and "mc-fabric" to their respective containers
+# on the shared kbve-mc-dev bridge network.
+#
+# try = ["lobby", "mc"] means:
+#   - New players land in the lobby first.
+#   - If a backend (e.g. mc) unexpectedly disconnects, Velocity walks
+#     this list to find the next server that's up — since lobby is
+#     first, players get moved there instead of kicked.
+lobby = "mc-lobby:25565"
 mc = "mc-fabric:25565"
-try = ["mc"]
+try = ["lobby", "mc"]
 
 [forced-hosts]
 

@@ -1,22 +1,24 @@
 # Local dev stack for the MC server — mirrors the prod topology of a
-# Velocity proxy fronting a single Fabric backend. Required because the
-# Fabric image ships with FabricProxy-Lite hackOnlineMode=true, which
-# rejects any connection that didn't come through Velocity with
-# "This server requires you to connect with Velocity." Running just the
-# Fabric container directly on localhost:25565 is therefore unusable.
+# Velocity proxy fronting two backends (a PaperMC lobby and a Fabric
+# survival server). Required because the Fabric image ships with
+# FabricProxy-Lite hackOnlineMode=true, which rejects any connection
+# that didn't come through Velocity.
 #
 # Topology:
 #   host:25565  → mc-velocity:25565 (Velocity proxy, modern forwarding)
-#                   → mc-fabric:25565 (Fabric server via internal network)
-#   host:25575  → mc-fabric:25575 (RCON, password=dev)
+#                   ├─ mc-lobby:25565  (Paper lobby, default try + fallback)
+#                   └─ mc-fabric:25565 (Fabric survival, 50-player cap)
+#   host:25574  → mc-lobby:25575      (Paper RCON, password=dev)
+#   host:25575  → mc-fabric:25575     (Fabric RCON, password=dev)
 #
 # Usage:
-#   nx run mc:dev        # builds the image + brings the stack up (attached)
+#   nx run mc:dev        # builds both images + brings the stack up (attached)
 #   nx run mc:dev:down   # stops the stack, keeps the volumes
-#   nx run mc:dev:clean  # stops the stack AND wipes the Fabric world PVC
+#   nx run mc:dev:clean  # stops the stack AND wipes both world PVCs
 #
-# Boot time: ~4 minutes cold (Fabric + 16 mods + library unpacking).
-# Velocity is Ready in ~30s but will hold connections until Fabric is up.
+# Boot time: ~4 minutes cold for Fabric, ~45s cold for lobby. Velocity
+# is Ready in ~30s and will hold connections until at least one backend
+# is up; lobby comes up first so new connections land there quickly.
 #
 # Secrets / env — the nx `mc:dev` target invokes docker compose with
 # `--env-file ../../.env`, pointing at the gitignored root `.env` for
@@ -30,7 +32,12 @@ name: kbve-mc-dev
 
 services:
     mc-velocity:
-        image: itzg/bungeecord:latest
+        # Custom Velocity image built from apps/mc/velocity. Bundles the
+        # kbve-velocity-commands Kotlin plugin (teleport aliases, cross-
+        # server chat bridge with /chat local|global, last-server
+        # persistence). Runtime is still itzg/bungeecord under the hood,
+        # so all the usual PLUGINS / LUCKPERMS_* env vars continue to work.
+        image: kbve/mc-velocity:latest
         container_name: kbve-mc-dev-velocity
         ports:
             - '25565:25565'
@@ -49,7 +56,40 @@ services:
             - ./velocity-dev/velocity.toml:/config/velocity.toml:ro
             - ./velocity-dev/forwarding.secret:/config/forwarding.secret:ro
         depends_on:
+            - mc-lobby
             - mc-fabric
+        networks:
+            - mc-dev
+
+    mc-lobby:
+        # PaperMC lobby — Velocity's default landing target and fallback
+        # when mc-fabric disconnects. Superflat peaceful world, minimal
+        # plugin set (LuckPerms + EssentialsX suite + WorldEdit +
+        # AdvancedPortals). RCON exposed on host port 25574 so e2e tests
+        # and manual debugging don't collide with mc-fabric's 25575.
+        image: kbve/mc-lobby:latest
+        container_name: kbve-mc-dev-lobby
+        ports:
+            - '25574:25575'
+        environment:
+            EULA: 'TRUE'
+            # Velocity handles Mojang auth; backend runs offline-mode and
+            # trusts the forwarding signature from the proxy.
+            ONLINE_MODE: 'false'
+            MEMORY: '1G'
+            ENABLE_RCON: 'true'
+            RCON_PORT: '25575'
+            RCON_PASSWORD: 'dev'
+            MOTD: 'KBVE Dev Lobby'
+            MAX_PLAYERS: '50'
+            DIFFICULTY: 'peaceful'
+            LEVEL_TYPE: 'minecraft:flat'
+            GENERATE_STRUCTURES: 'false'
+            SPAWN_MONSTERS: 'false'
+            SPAWN_ANIMALS: 'false'
+            SPAWN_NPCS: 'false'
+        volumes:
+            - mc-lobby-data:/data
         networks:
             - mc-dev
 
@@ -104,3 +144,5 @@ networks:
 volumes:
     mc-fabric-data:
         name: kbve-mc-dev-fabric-data
+    mc-lobby-data:
+        name: kbve-mc-dev-lobby-data

@@ -28,11 +28,20 @@ data:
         announce-proxy-commands = true
 
         [servers]
-        # Single backend — Agones fleet routed via headless Service.
-        # Velocity treats this as one logical server; the Service load-balances
-        # across whichever gameserver pods are Ready.
+        # Two backends:
+        #   - lobby: a single PaperMC Deployment fronted by the mc-lobby-backend
+        #     ClusterIP Service. Superflat peaceful world, always-on singleton.
+        #   - mc: the Agones Fleet of Fabric gameservers routed via the
+        #     mc-fabric-backend headless Service (load-balanced across Ready pods).
+        #
+        # try = ["lobby", "mc"] means:
+        #   - New players land in the lobby first.
+        #   - `failover-on-unexpected-server-disconnect = true` (line below) walks
+        #     this list when a backend drops, so players on mc get sent back to
+        #     lobby instead of kicked when Fabric restarts or a pod recycles.
+        lobby = "mc-lobby-backend.arc-runners.svc.cluster.local:25565"
         mc = "mc-fabric-backend.arc-runners.svc.cluster.local:25565"
-        try = ["mc"]
+        try = ["lobby", "mc"]
 
         [forced-hosts]
 
