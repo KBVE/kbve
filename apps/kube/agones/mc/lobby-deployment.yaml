@@ -1,0 +1,144 @@
+# PaperMC lobby Deployment.
+#
+# Not an Agones Fleet — the lobby is a persistent singleton, always-on,
+# meant to be cheap and idle. Agones is overkill when there's exactly
+# one replica that never scales.
+#
+# Topology (fits into the existing apps/kube/agones/mc/ stack):
+#
+#   mc.kbve.com:25565
+#       ↓
+#   mc-velocity  (Deployment, hostPort 25565 on dedicated-server node)
+#       ├→ mc-lobby-backend  (ClusterIP Service) → THIS pod (Paper lobby)
+#       └→ mc-fabric-backend (headless Service)  → Agones Fleet pods (survival)
+#
+# CI/CD: ci-dispatch-manifest.json entry `mc-lobby` points its
+# `deployment_yaml` at this file, so publish-time post-publish updates
+# the image tag here and only here. Changes to this file (or the image
+# it references) do NOT trigger a restart of the Fabric fleet.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: mc-lobby
+    namespace: arc-runners
+    labels:
+        app: mc-lobby
+        app.kubernetes.io/part-of: mc
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: mc-lobby
+    # Recreate — the lobby holds no state that survives Deployment
+    # rollout anyway (world is persistent via PVC, player state is
+    # per-session), and there's only one replica. A RollingUpdate
+    # would fail to surge because the second pod can't mount the
+    # RWO PVC while the first pod still owns it. Recreate frees the
+    # PVC first.
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                app: mc-lobby
+                app.kubernetes.io/part-of: mc
+        spec:
+            # Same node pool as the Fabric fleet — dedicated MC nodes
+            # with the right memory + CPU shape.
+            nodeSelector:
+                node.kbve.com/type: dedicated-server
+            containers:
+                - name: mc-server
+                  image: ghcr.io/kbve/mc-lobby:1.0.0
+                  env:
+                      - name: TYPE
+                        value: PAPER
+                      - name: VERSION
+                        value: '1.21.11'
+                      - name: EULA
+                        value: 'TRUE'
+                      - name: MEMORY
+                        value: '1G'
+                      - name: ENABLE_RCON
+                        value: 'true'
+                      - name: RCON_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: mc-gameserver-secrets
+                                key: rcon-password
+                      - name: MOTD
+                        value: 'KBVE Lobby'
+                      - name: MAX_PLAYERS
+                        value: '50'
+                      - name: DIFFICULTY
+                        value: 'peaceful'
+                      - name: VIEW_DISTANCE
+                        value: '8'
+                      - name: SIMULATION_DISTANCE
+                        value: '4'
+                      - name: SPAWN_PROTECTION
+                        value: '16'
+                      # Velocity handles Mojang auth on the proxy side.
+                      - name: ONLINE_MODE
+                        value: 'false'
+                      - name: SERVER_PORT
+                        value: '25565'
+                      # Superflat peaceful world — no mobs, no damage.
+                      - name: LEVEL_TYPE
+                        value: 'minecraft:flat'
+                      - name: GENERATE_STRUCTURES
+                        value: 'false'
+                      - name: SPAWN_ANIMALS
+                        value: 'false'
+                      - name: SPAWN_MONSTERS
+                        value: 'false'
+                      - name: SPAWN_NPCS
+                        value: 'false'
+                      # Velocity modern forwarding — secret matches
+                      # velocity-configmap.yaml + Fabric FabricProxy-Lite.
+                      - name: CFG_VELOCITY_ENABLED
+                        value: 'true'
+                      - name: CFG_VELOCITY_ONLINE_MODE
+                        value: 'true'
+                      - name: CFG_VELOCITY_SECRET
+                        value: 'kbve-velocity-forwarding-secret-change-me'
+                      # Plugins downloaded at container start via itzg's
+                      # MODRINTH_PROJECTS env. Paper-compatible latest of
+                      # each slug.
+                      - name: MODRINTH_PROJECTS
+                        value: 'luckperms,essentialsx,essentialsxantibuild,worldedit,advancedportals'
+                      - name: LUCKPERMS_MESSAGING_SERVICE
+                        value: 'pluginmsg'
+                      - name: LUCKPERMS_STORAGE_METHOD
+                        value: 'h2'
+                      # Ops list mirrors mc — source of truth is here,
+                      # SYNCHRONIZE forces ops.json to match on every boot.
+                      - name: OPS
+                        value: 'b1897cef-8c27-45cb-b7fd-af139291ed6e,7e7b3993-e79a-41a9-9b26-fe90997cc273'
+                      - name: EXISTING_OPS_FILE
+                        value: 'SYNCHRONIZE'
+                  ports:
+                      - name: minecraft
+                        containerPort: 25565
+                        protocol: TCP
+                  resources:
+                      requests:
+                          memory: 1Gi
+                          cpu: 250m
+                      limits:
+                          memory: 2Gi
+                          cpu: '1'
+                  volumeMounts:
+                      # Whole /data is persistent so plugin configs,
+                      # LuckPerms h2 db, AdvancedPortals regions, and
+                      # the world itself survive pod restarts.
+                      - name: mc-lobby-data
+                        mountPath: /data
+                  # No health/readiness probes for v1 — Paper takes ~30s
+                  # to fully accept connections, but Velocity's retry
+                  # logic handles it. Can add TCP probes later if the
+                  # lobby ever gets flaky.
+            volumes:
+                - name: mc-lobby-data
+                  persistentVolumeClaim:
+                      claimName: mc-lobby-world

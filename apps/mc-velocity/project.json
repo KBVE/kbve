@@ -1,0 +1,40 @@
+{
+	"name": "mc-velocity",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/mc-velocity",
+	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
+		"container": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/mc-velocity/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/mc-velocity:latest"]
+				},
+				"production": {
+					"push": true,
+					"tags": ["ghcr.io/kbve/mc-velocity:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/mc-velocity:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/mc-velocity:buildcache,mode=max"
+					]
+				}
+			}
+		}
+	},
+	"tags": ["scope:mc"]
+}

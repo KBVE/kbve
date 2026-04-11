@@ -1,0 +1,18 @@
+# Persistent volume for the PaperMC lobby — holds the superflat world,
+# LuckPerms h2 db, Paper configs, and EssentialsX/WorldEdit/AdvancedPortals
+# plugin data. Small by design: the lobby has one 21x21 platform's worth
+# of blocks and a handful of plugin configs, so 2Gi is comfortable.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: mc-lobby-world
+    namespace: arc-runners
+    labels:
+        app: mc-lobby
+        app.kubernetes.io/part-of: mc
+spec:
+    accessModes:
+        - ReadWriteOnce
+    resources:
+        requests:
+            storage: 2Gi
