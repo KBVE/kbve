@@ -52,7 +52,7 @@ spec:
                   # tag in place. The mc-velocity entry in ci-dispatch-
                   # manifest.json owns this deployment_yaml exclusively,
                   # so CI never cross-triggers with mc or mc-lobby.
-                  image: ghcr.io/kbve/mc-velocity:1.0.0
+                  image: ghcr.io/kbve/mc-velocity:1.0.1
                   env:
                       - name: TYPE
                         value: VELOCITY
