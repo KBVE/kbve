@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.106",
+			"version": "1.0.108",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -70,7 +70,7 @@
 		{
 			"key": "discordsh_bot",
 			"app_name": "discordsh-bot",
-			"version": "0.1.8",
+			"version": "0.1.9",
 			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
 			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
@@ -149,7 +149,7 @@
 		{
 			"key": "kubectl",
 			"app_name": "kbve-kubectl",
-			"version": "0.1.0",
+			"version": "0.1.2",
 			"version_toml": "apps/vm/kubectl/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kubectl.mdx",
 			"version_target": "apps/vm/kubectl/Cargo.toml",
@@ -162,7 +162,7 @@
 		{
 			"key": "mc",
 			"app_name": "mc",
-			"version": "1.0.2",
+			"version": "1.0.12",
 			"version_toml": "apps/mc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
 			"source_path": "apps/mc",
@@ -194,9 +194,9 @@
 			"source_path": "apps/mc/velocity",
 			"runner": "ubuntu-latest",
 			"image": "kbve/mc-velocity",
+			"e2e_name": "mc-velocity",
 			"deployment_yaml": "apps/kube/agones/mc/velocity-deployment.yaml",
-			"has_test": true,
-			"e2e_name": "mc-velocity"
+			"has_test": true
 		},
 		{
 			"key": "memes",
