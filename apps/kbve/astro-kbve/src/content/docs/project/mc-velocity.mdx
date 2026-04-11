@@ -13,13 +13,14 @@ tags:
 key: mc_velocity
 pipeline: docker
 app_name: mc-velocity
-version: "1.0.0"
+version: "1.0.1"
 source_path: apps/mc/velocity
 version_toml: apps/mc/velocity/version.toml
 runner: ubuntu-latest
 image: kbve/mc-velocity
+e2e_name: mc-velocity
 deployment_yaml: apps/kube/agones/mc/velocity-deployment.yaml
-has_test: false
+has_test: true
 ---
 
 ## Overview

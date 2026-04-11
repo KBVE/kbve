@@ -17,6 +17,13 @@
 #   kubectl apply -f apps/kube/kubevirt/autologon/ -n angelscript
 #
 # The autologon config persists across reboots — only needs to run once.
+#
+# Note: the pod template intentionally does NOT carry `app: angelscript`
+# because the namespace NetworkPolicy (podSelector app=angelscript) only
+# allows egress on ports 53 + 443 for game-server workloads. kube-proxy
+# DNATs kubernetes.default.svc to the real apiserver endpoint on port 6443,
+# which is blocked — so any kubectl from inside a policy-scoped pod times
+# out. Management jobs live outside the game-server network policy.
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -31,7 +38,6 @@ spec:
     template:
         metadata:
             labels:
-                app: angelscript
                 component: vm-autologon
         spec:
             serviceAccountName: vm-scaler
