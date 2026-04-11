@@ -97,6 +97,24 @@ pub fn ingest_observations(
                         nearby,
                     ));
                 }
+                "parrot" => {
+                    let Some(owner_id) = obs.owner_entity else {
+                        // Parrot with no owner — same story as dog.
+                        continue;
+                    };
+                    commands.spawn((
+                        AiPetParrot,
+                        PetOwner {
+                            player_id: owner_id,
+                        },
+                        McEntityId(obs.entity_id),
+                        position,
+                        health,
+                        AiEpoch { value: 1 },
+                        PoopCooldown::default(),
+                        nearby,
+                    ));
+                }
                 _ => {
                     commands.spawn((
                         AiManaged,
@@ -496,6 +514,167 @@ pub fn plan_pet_dog_behavior(
 
         intent_buffer.ready.push(IntentReady {
             entity_id: dog_id.0,
+            epoch: epoch.value,
+            commands,
+        });
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Pet parrot population + behavior
+//
+// Each player gets one tamed parrot that flies near them and drops a
+// ranged "poop poison" attack on any hostile within `aggro_range` of
+// the parrot or owner. Unlike the dog (melee), the parrot doesn't need
+// to close with its target — the ability is ranged, so the only gate
+// is a per-parrot cooldown so it doesn't spam every ECS tick.
+// ---------------------------------------------------------------------------
+
+/// System: maintain pet-parrot population, one parrot per online player.
+///
+/// Mirrors `manage_pet_dog_population` for the parrot archetype. Emits
+/// `SpawnPetParrot` for players without a parrot and `Despawn` for
+/// parrots whose owner has left the player snapshot.
+pub fn manage_pet_parrot_population(
+    parrots: Query<(&McEntityId, &PetOwner), With<AiPetParrot>>,
+    players: Query<&OnlinePlayer>,
+    config: Res<PetParrotPopulationConfig>,
+    server_tick: Res<ServerTick>,
+    mut last_managed: ResMut<LastPetParrotManagedTick>,
+    mut world_intents: ResMut<WorldIntentBuffer>,
+) {
+    use std::collections::HashSet;
+
+    let current_tick = server_tick.0;
+    if current_tick.saturating_sub(last_managed.0) < config.manage_interval_ticks {
+        return;
+    }
+    last_managed.0 = current_tick;
+
+    let online_ids: HashSet<u64> = players.iter().map(|p| p.entity_id).collect();
+
+    let mut owned_by_online: HashSet<u64> = HashSet::new();
+    for (parrot_mc_id, owner) in &parrots {
+        if online_ids.contains(&owner.player_id) {
+            owned_by_online.insert(owner.player_id);
+        } else {
+            world_intents.ready.push(IntentReady {
+                entity_id: 0,
+                epoch: 0,
+                commands: vec![NpcCommand::Despawn {
+                    target_entity: parrot_mc_id.0,
+                }],
+            });
+        }
+    }
+
+    if config.parrots_per_player == 0 {
+        return;
+    }
+    for player in &players {
+        if !owned_by_online.contains(&player.entity_id) {
+            world_intents.ready.push(IntentReady {
+                entity_id: 0,
+                epoch: 0,
+                commands: vec![NpcCommand::SpawnPetParrot {
+                    near_player: player.entity_id,
+                    radius: config.spawn_radius,
+                }],
+            });
+        }
+    }
+}
+
+/// System: evaluate the pet-parrot behavior for every tracked parrot.
+///
+/// Decision order per parrot:
+/// 1. Pick the nearest hostile within `aggro_range` of the parrot or
+///    owner. If the per-parrot poop cooldown is clear, emit a
+///    `PoopPoison` intent at that target and bump the cooldown.
+///    A `MoveTo` above the target is also emitted so the parrot
+///    visually "perches" over whatever it's dumping on.
+/// 2. Otherwise, if the parrot has drifted past `follow_distance`,
+///    nudge it back toward the owner with a `MoveTo` (vanilla parrot
+///    flight AI handles the closer range and the hover-above idle).
+/// 3. Otherwise, emit nothing and let vanilla AI drift around.
+pub fn plan_pet_parrot_behavior(
+    mut parrots: Query<
+        (
+            &McEntityId,
+            &McPosition,
+            &AiEpoch,
+            &NearbyEntities,
+            &PetOwner,
+            &mut PoopCooldown,
+        ),
+        With<AiPetParrot>,
+    >,
+    players: Query<(&OnlinePlayer, &McPosition)>,
+    config: Res<PetParrotPopulationConfig>,
+    server_tick: Res<ServerTick>,
+    mut intent_buffer: ResMut<IntentBuffer>,
+) {
+    let current_tick = server_tick.0;
+    let aggro_sq = config.aggro_range * config.aggro_range;
+    let follow_sq = config.follow_distance * config.follow_distance;
+
+    for (parrot_id, parrot_pos, epoch, nearby, owner, mut cooldown) in &mut parrots {
+        let Some(owner_pos) = players
+            .iter()
+            .find_map(|(p, pos)| (p.entity_id == owner.player_id).then_some([pos.x, pos.y, pos.z]))
+        else {
+            continue;
+        };
+        let parrot_xyz = [parrot_pos.x, parrot_pos.y, parrot_pos.z];
+
+        let best_target = nearby
+            .entities
+            .iter()
+            .filter(|e| e.is_hostile)
+            .filter(|e| {
+                dist_sq(parrot_xyz, e.position) <= aggro_sq
+                    || dist_sq(owner_pos, e.position) <= aggro_sq
+            })
+            .min_by(|a, b| {
+                let da = dist_sq(parrot_xyz, a.position);
+                let db = dist_sq(parrot_xyz, b.position);
+                da.partial_cmp(&db).unwrap_or(std::cmp::Ordering::Equal)
+            });
+
+        let commands = if let Some(target) = best_target {
+            // Hover slightly above the target so the "poop from above"
+            // framing reads correctly for any watching players.
+            let mut cmds = vec![NpcCommand::MoveTo {
+                target: [
+                    target.position[0],
+                    target.position[1] + 3.0,
+                    target.position[2],
+                ],
+            }];
+            if current_tick.saturating_sub(cooldown.last_poop_tick) >= config.poop_cooldown_ticks {
+                cmds.push(NpcCommand::PoopPoison {
+                    target_entity: target.entity_id,
+                    duration_ticks: config.poison_duration_ticks,
+                    amplifier: config.poison_amplifier,
+                });
+                cooldown.last_poop_tick = current_tick;
+            }
+            cmds
+        } else if dist_sq(parrot_xyz, owner_pos) > follow_sq {
+            // Hover ~1.5 blocks above the owner's head when returning.
+            vec![NpcCommand::MoveTo {
+                target: [owner_pos[0], owner_pos[1] + 1.5, owner_pos[2]],
+            }]
+        } else {
+            vec![]
+        };
+
+        if commands.is_empty() {
+            continue;
+        }
+
+        intent_buffer.ready.push(IntentReady {
+            entity_id: parrot_id.0,
             epoch: epoch.value,
             commands,
         });

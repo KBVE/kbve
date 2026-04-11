@@ -109,6 +109,22 @@ pub enum NpcCommand {
         near_player: u64,
         radius: i32,
     },
+    /// Spawn a pet parrot for the given player entity ID. Java creates
+    /// a tamed parrot within `radius` blocks of the player and wires
+    /// the owner relationship up on the Minecraft side.
+    SpawnPetParrot {
+        near_player: u64,
+        radius: i32,
+    },
+    /// Ranged "poop" attack: apply the Minecraft POISON status effect
+    /// to `target_entity` for `duration_ticks` at the given amplifier.
+    /// Java also plays the splat particles + sound at the attacker's
+    /// position. Rust owns the cooldown that throttles this ability.
+    PoopPoison {
+        target_entity: u64,
+        duration_ticks: u32,
+        amplifier: u8,
+    },
 }
 
 /// Result of async AI planning. Only applied if epoch matches current NPC epoch.

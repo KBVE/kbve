@@ -197,6 +197,42 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             int count = call.get("count").getAsInt();
             creatureManager.spawnReinforcements(world, mob.getId(), count);
 
+        } else if (cmd.has("PoopPoison")) {
+            // Rust already gated this via PoopCooldown — Java just applies
+            // the status effect and plays the splat feedback.
+            JsonObject poop = cmd.getAsJsonObject("PoopPoison");
+            long targetId = poop.get("target_entity").getAsLong();
+            int durationTicks = poop.get("duration_ticks").getAsInt();
+            int amplifier = poop.get("amplifier").getAsInt();
+            Entity target = world.getEntityById((int) targetId);
+            if (target instanceof net.minecraft.entity.LivingEntity living && living.isAlive()) {
+                living.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                        net.minecraft.entity.effect.StatusEffects.POISON,
+                        durationTicks,
+                        amplifier
+                ));
+                // Splat feedback: slime particles from the attacker's mouth
+                // and a squish sound so watching players can see it land.
+                world.spawnParticles(
+                        net.minecraft.particle.ParticleTypes.ITEM_SLIME,
+                        mob.getX(),
+                        mob.getY() + mob.getStandingEyeHeight() * 0.5,
+                        mob.getZ(),
+                        8,
+                        0.3, 0.2, 0.3,
+                        0.02
+                );
+                world.playSound(
+                        null,
+                        mob.getBlockPos(),
+                        net.minecraft.sound.SoundEvents.BLOCK_SLIME_BLOCK_BREAK,
+                        net.minecraft.sound.SoundCategory.NEUTRAL,
+                        1.0f,
+                        1.6f
+                );
+                mob.lookAtEntity(target, 30.0f, 30.0f);
+            }
+
         } else if (cmd.has("SetGoal")) {
             LOGGER.debug("[AI] SetGoal not yet implemented");
         }
@@ -218,6 +254,12 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             int playerId = spawn.get("near_player").getAsInt();
             int radius = spawn.get("radius").getAsInt();
             creatureManager.spawnNearPlayer(world, CreatureKinds.PET_DOG, playerId, radius, true);
+
+        } else if (cmd.has("SpawnPetParrot")) {
+            JsonObject spawn = cmd.getAsJsonObject("SpawnPetParrot");
+            int playerId = spawn.get("near_player").getAsInt();
+            int radius = spawn.get("radius").getAsInt();
+            creatureManager.spawnNearPlayer(world, CreatureKinds.PET_PARROT, playerId, radius, true);
 
         } else if (cmd.has("Despawn")) {
             JsonObject despawn = cmd.getAsJsonObject("Despawn");

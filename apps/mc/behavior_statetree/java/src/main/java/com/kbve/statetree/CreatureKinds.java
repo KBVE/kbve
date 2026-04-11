@@ -12,6 +12,7 @@ public final class CreatureKinds {
 
     public static final CreatureKind SKELETON = new SkeletonCreatureKind();
     public static final CreatureKind PET_DOG = new PetDogCreatureKind();
+    public static final CreatureKind PET_PARROT = new PetParrotCreatureKind();
 
     private CreatureKinds() {}
 }
