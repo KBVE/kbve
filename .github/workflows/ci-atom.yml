@@ -26,6 +26,7 @@ jobs:
                   script: |
                       const AUTHORIZED_USERS = [
                         { username: 'h0lybyte', id: 5599058 },
+                        { username: 'Fudster', id: 5642609 },
                       ];
 
                       const actor = context.actor;
@@ -313,6 +314,7 @@ jobs:
                       // Defense-in-depth: validate PR author matches authorized users
                       const AUTHORIZED_USERS = [
                         { username: 'h0lybyte', id: 5599058 },
+                        { username: 'Fudster', id: 5642609 },
                       ];
 
                       // Get PR number from previous jobs
