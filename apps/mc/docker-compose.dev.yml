@@ -18,13 +18,13 @@
 # Boot time: ~4 minutes cold (Fabric + 16 mods + library unpacking).
 # Velocity is Ready in ~30s but will hold connections until Fabric is up.
 #
-# Secrets / env — Docker Compose auto-loads `.env` from this directory
-# (apps/mc/.env, gitignored) for ${VAR} substitution in the blocks
-# below. Copy `apps/mc/.env.example` to `apps/mc/.env` and fill in the
-# Supabase values if you want the mc_auth bridge to actually hit
-# kilobase. Leave it blank — or skip the copy entirely — and mc_auth
-# drops into graceful mode: players still join, every lookup is
-# treated as Unlinked, and a single warning is logged at startup.
+# Secrets / env — the nx `mc:dev` target invokes docker compose with
+# `--env-file ../../.env`, pointing at the gitignored root `.env` for
+# ${VAR} substitution in the blocks below. That file already holds
+# SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY for other projects in the
+# monorepo, so `nx run mc:dev` picks them up with zero copy/paste.
+# Missing or empty vars are fine: the bevy_supa client falls through
+# to graceful mode and players are treated as Unlinked.
 
 name: kbve-mc-dev
 
@@ -61,17 +61,12 @@ services:
         # Velocity to exercise the modern-forwarding handshake.
         ports:
             - '25575:25575'
-        # Lets the Fabric container reach a host-side kubectl port-forward
-        # of the kilobase Kong service. Pattern:
-        #
-        #   kubectl port-forward -n kilobase svc/kong 8000:8000
-        #   # then in apps/mc/.env:
-        #   SUPABASE_URL=http://host.docker.internal:8000
-        #   SUPABASE_SERVICE_ROLE_KEY=<paste the JWT from kilobase/supabase-jwt>
-        #
-        # host.docker.internal works out of the box on Docker Desktop
-        # (Mac/Windows); the host-gateway alias below makes it work on
-        # Linux too.
+        # host.docker.internal fallback — only needed if a developer
+        # overrides SUPABASE_URL to point at a host-side port-forward
+        # (e.g. `kubectl port-forward -n kilobase svc/kong 8000:8000`
+        # → http://host.docker.internal:8000). The default root .env
+        # already uses the public https://supabase.kbve.com endpoint,
+        # so this alias is a safety net, not the primary path.
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         environment:
