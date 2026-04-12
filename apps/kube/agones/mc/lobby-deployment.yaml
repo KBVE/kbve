@@ -49,7 +49,7 @@ spec:
                 node.kbve.com/type: dedicated-server
             containers:
                 - name: mc-server
-                  image: ghcr.io/kbve/mc-lobby:1.0.0
+                  image: ghcr.io/kbve/mc-lobby:1.0.1
                   env:
                       - name: TYPE
                         value: PAPER
