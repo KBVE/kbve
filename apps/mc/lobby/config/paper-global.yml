@@ -18,3 +18,4 @@ proxies:
         online-mode: true
         secret: 'kbve-velocity-forwarding-secret-change-me'
     proxy-protocol: false
+enable-nether: false
