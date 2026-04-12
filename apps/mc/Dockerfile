@@ -139,6 +139,10 @@ declare -A MODS=(
   # UUID mismatch.
   ["LuckPerms-Fabric-5.5.21.jar"]="2b899a61f216e8fd5ff9bfae98b62fcb1201e91b https://cdn.modrinth.com/data/Vebnzrzj/versions/CzCJJMuo/LuckPerms-Fabric-5.5.21.jar"
   ["ledger-1.3.19.jar"]="b53db7b817e968603adf33f8d31903a0bf5c0ea2 https://cdn.modrinth.com/data/LVN9ygNV/versions/c1d39lju/ledger-1.3.19.jar"
+  # Spark — lightweight performance profiler. Provides /spark tps,
+  # /spark health, /spark profiler. Paper bundles it by default but
+  # Fabric needs the standalone mod.
+  ["spark-1.10.170-fabric.jar"]="2a3745baa44e11672c4befe3beeccef758581f80 https://cdn.modrinth.com/data/l6YH9Als/versions/gonLOAU1/spark-1.10.170-fabric.jar"
   # Grim Anticheat — packet-level anticheat. Lives on the Fabric backend
   # (not Velocity) because Grim works at the packet layer and needs the
   # actual client movement packets after ViaVersion translation. Grim's
