@@ -1,0 +1,128 @@
+#cloud-config
+# ============================================================================
+# KBVE IoT Edge Worker — cloud-init template for Alpine/Ubuntu Linux VMs
+#
+# Deployed on a dev/IoT machine (e.g. via OrbStack, Lima, UTM) to join the
+# main KBVE Talos cluster as a remote worker over WireGuard.
+#
+# Placeholders filled by bootstrap.sh:
+#   __NODE_NAME__           — desired node hostname (e.g. edge-laptop-m3)
+#   __WG_PRIVATE_KEY__      — wireguard private key (sensitive, local file)
+#   __WG_ADDRESS__          — tunnel IP (e.g. 10.88.0.12/32)
+#   __WG_PEER_PUBKEY__      — Talos-side wireguard public key
+#   __WG_ENDPOINT__         — Talos wireguard endpoint host:port
+#   __WG_ALLOWED_IPS__      — cluster CIDRs to route through the tunnel
+#   __APISERVER_ENDPOINT__  — kube-apiserver URL (tunnel-reachable)
+#   __BOOTSTRAP_TOKEN__     — kubeadm bootstrap token (short-lived)
+#   __CA_CERT_HASH__        — kubeadm discovery-token-ca-cert-hash
+#   __K8S_VERSION__         — kubernetes minor version (e.g. 1.33)
+# ============================================================================
+
+hostname: __NODE_NAME__
+preserve_hostname: false
+
+packages:
+    - wireguard-tools
+    - containerd
+    - conntrack-tools
+    - ipset
+    - ethtool
+    - socat
+    - ca-certificates
+    - curl
+
+write_files:
+    - path: /etc/wireguard/wg0.conf
+      permissions: '0600'
+      owner: root:root
+      content: |
+          [Interface]
+          PrivateKey = __WG_PRIVATE_KEY__
+          Address = __WG_ADDRESS__
+          MTU = 1380
+
+          [Peer]
+          PublicKey = __WG_PEER_PUBKEY__
+          Endpoint = __WG_ENDPOINT__
+          AllowedIPs = __WG_ALLOWED_IPS__
+          PersistentKeepalive = 25
+
+    - path: /etc/kbve-edge/bootstrap.env
+      permissions: '0600'
+      owner: root:root
+      content: |
+          NODE_NAME=__NODE_NAME__
+          APISERVER_ENDPOINT=__APISERVER_ENDPOINT__
+          BOOTSTRAP_TOKEN=__BOOTSTRAP_TOKEN__
+          CA_CERT_HASH=__CA_CERT_HASH__
+          K8S_VERSION=__K8S_VERSION__
+
+    - path: /etc/kbve-edge/join.sh
+      permissions: '0755'
+      owner: root:root
+      content: |
+          #!/bin/sh
+          set -e
+          . /etc/kbve-edge/bootstrap.env
+
+          # Wait for wireguard tunnel
+          for i in $(seq 1 30); do
+              if wg show wg0 >/dev/null 2>&1; then break; fi
+              sleep 2
+          done
+
+          # Wait for apiserver reachability over tunnel
+          APISERVER_HOST=$(echo "$APISERVER_ENDPOINT" | sed 's|https\?://||' | cut -d: -f1)
+          APISERVER_PORT=$(echo "$APISERVER_ENDPOINT" | sed 's|https\?://||' | awk -F: '{print $2}')
+          APISERVER_PORT=${APISERVER_PORT:-6443}
+          for i in $(seq 1 60); do
+              if nc -zw2 "$APISERVER_HOST" "$APISERVER_PORT" 2>/dev/null; then break; fi
+              sleep 2
+          done
+
+          # Already joined? skip
+          if [ -f /etc/kubernetes/kubelet.conf ]; then
+              echo "kubelet already configured, starting service"
+              systemctl enable --now kubelet
+              exit 0
+          fi
+
+          kubeadm join "$APISERVER_ENDPOINT" \
+              --node-name "$NODE_NAME" \
+              --token "$BOOTSTRAP_TOKEN" \
+              --discovery-token-ca-cert-hash "$CA_CERT_HASH" \
+              --cri-socket unix:///run/containerd/containerd.sock
+
+    - path: /etc/systemd/system/kbve-edge-join.service
+      permissions: '0644'
+      owner: root:root
+      content: |
+          [Unit]
+          Description=KBVE edge worker join + kubelet bootstrap
+          After=network-online.target wg-quick@wg0.service containerd.service
+          Wants=network-online.target wg-quick@wg0.service containerd.service
+          ConditionPathExists=!/etc/kubernetes/kubelet.conf
+
+          [Service]
+          Type=oneshot
+          ExecStart=/etc/kbve-edge/join.sh
+          RemainAfterExit=yes
+
+          [Install]
+          WantedBy=multi-user.target
+
+runcmd:
+    # Install kubeadm + kubelet matching cluster version
+    - curl -fsSL "https://dl.k8s.io/release/v__K8S_VERSION__.0/bin/linux/amd64/kubeadm" -o /usr/local/bin/kubeadm
+    - curl -fsSL "https://dl.k8s.io/release/v__K8S_VERSION__.0/bin/linux/amd64/kubelet" -o /usr/local/bin/kubelet
+    - chmod +x /usr/local/bin/kubeadm /usr/local/bin/kubelet
+    # Install CNI plugins
+    - mkdir -p /opt/cni/bin
+    - curl -fsSL "https://github.com/containernetworking/plugins/releases/download/v1.5.1/cni-plugins-linux-amd64-v1.5.1.tgz" | tar -xz -C /opt/cni/bin
+    # Enable services
+    - systemctl enable --now containerd
+    - systemctl enable --now wg-quick@wg0
+    - systemctl enable --now kbve-edge-join.service
+
+# Apply node labels + taints after kubelet is up (run once by kbve-edge-join)
+# The control plane can also apply these via a post-join ConfigMap mutation.
