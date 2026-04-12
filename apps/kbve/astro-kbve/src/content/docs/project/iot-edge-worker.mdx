@@ -1,0 +1,149 @@
+---
+title: KBVE IoT Edge Worker
+description: |
+    Cloud-init template + bootstrap helper for joining a local dev machine (OrbStack, Lima, UTM) to the main KBVE Talos cluster as a remote worker over WireGuard.
+sidebar:
+    label: IoT Edge Worker
+    order: 56
+tags:
+    - iot
+    - kubernetes
+    - wireguard
+    - edge
+    - talos
+key: iot_edge_worker
+pipeline: docker
+app_name: iot-edge-worker
+version: "0.0.1"
+source_path: apps/vm/iot/edge-worker
+version_toml: apps/vm/iot/edge-worker/version.toml
+version_target: apps/vm/iot/edge-worker/version.toml
+runner: arc-runner-set
+image: kbve/iot-edge-worker
+has_test: false
+author: h0lybyte
+license: KBVE
+status: beta
+---
+
+## Overview
+
+`iot-edge-worker` is a cloud-init template + shell helper for joining a local dev machine (OrbStack, Lima, or UTM VM) to the main KBVE Talos cluster as a remote worker over WireGuard.
+
+It does **not** ship as a runtime binary or Docker image — the artifact is the template itself, rendered per-laptop and consumed by the VM host at first boot.
+
+## Why
+
+The main KBVE cluster runs on Talos at Hetzner. For dev/experimentation we want a way to pull an idle laptop into the cluster as extra compute without:
+
+- Installing a full Talos OS on the laptop
+- Running kubelet-in-a-container (privileged, fragile)
+- Opening inbound ports on the home network
+
+WireGuard solves the network problem (the laptop dials out to a fixed endpoint), and a plain `kubeadm join` on a minimal Alpine/Ubuntu VM gives us a real kubelet that the Talos control plane sees as a normal worker.
+
+## Architecture
+
+```
+Talos cluster (Hetzner)
+    │
+    ├─ apiserver (10.88.0.1:6443 over WireGuard)
+    └─ wireguard endpoint (public IP:51820)
+           ↕
+        WireGuard tunnel
+           ↕
+    OrbStack / Lima / UTM VM on laptop
+    └─ Alpine or Ubuntu minimal
+           └─ wg-quick@wg0 (systemd)
+           └─ containerd
+           └─ kubelet (joined via kubeadm token)
+```
+
+The worker is tainted `edge=true:NoSchedule` and labeled `role=edge`, so existing workloads don't accidentally schedule to it — only pods that explicitly tolerate the taint and target the label.
+
+## Files
+
+| File | Purpose |
+|---|---|
+| `cloud-init.yaml.tmpl` | cloud-init template with WireGuard config, kubeadm install, systemd units |
+| `bootstrap.sh` | Generates a wireguard keypair and renders the template with per-laptop values |
+| `project.json` | Nx lint target (shell syntax check + yamllint) |
+| `version.toml` | Version tracking |
+
+## Operator workflow
+
+1. **Generate a wireguard keypair on the laptop:**
+   ```bash
+   ./bootstrap.sh keygen > wg0.key
+   wg pubkey < wg0.key  # copy this pubkey
+   ```
+
+2. **On the Talos side, add the peer to the server-side wireguard config** and restart the wg-quick service. Record the server's wireguard public key and endpoint.
+
+3. **Generate a kubeadm bootstrap token** on any Talos control-plane node:
+   ```bash
+   kubeadm token create --print-join-command
+   # outputs: kubeadm join <apiserver> --token <TOKEN> --discovery-token-ca-cert-hash <HASH>
+   ```
+
+4. **Render the cloud-init** with all the collected values:
+   ```bash
+   ./bootstrap.sh render \
+       --name edge-laptop-01 \
+       --wg-private-key "$(cat wg0.key)" \
+       --wg-address 10.88.0.12/32 \
+       --wg-peer-pubkey <talos-wg-pubkey> \
+       --wg-endpoint <talos-public-ip>:51820 \
+       --wg-allowed-ips 10.96.0.0/12,10.244.0.0/16 \
+       --apiserver https://10.88.0.1:6443 \
+       --token <TOKEN> \
+       --ca-hash <HASH> \
+       --k8s-version 1.33 \
+       > edge-laptop-01.cloud-init.yaml
+   ```
+
+5. **Deploy the VM** using OrbStack, Lima, or UTM:
+   ```bash
+   # OrbStack (when cloud-init support lands):
+   orbctl create alpine edge-laptop-01 --cloud-init=./edge-laptop-01.cloud-init.yaml
+
+   # Lima (works today):
+   limactl start --name=edge-laptop-01 ./edge-laptop-01.cloud-init.yaml
+
+   # UTM: import the cloud-init as a user-data seed ISO
+   ```
+
+6. **Verify from the Talos side:**
+   ```bash
+   kubectl get nodes
+   # NAME              STATUS   ROLES    AGE   VERSION
+   # edge-laptop-01    Ready    <none>   2m    v1.33.x
+   ```
+
+## Scheduling to the edge worker
+
+Workloads that want to run on the edge worker must tolerate the taint and target the label:
+
+```yaml
+spec:
+  nodeSelector:
+    role: edge
+  tolerations:
+    - key: edge
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
+```
+
+## Scope (v1)
+
+- Single-arch amd64 (cloud-init pulls kubeadm amd64 binaries)
+- Manual keygen + token workflow (no automation yet)
+- Container workloads only — **Firecracker microVMs are out of scope** because they need nested KVM, which requires M3+ Apple Silicon and adds fragility
+
+## Future work
+
+- arm64 branch of the template
+- Rust CLI (`kbve-edge-bootstrap`) that pulls credentials from Vault/ESO and handles the whole workflow
+- Reconciler on the Talos side that auto-removes stale edge nodes + revokes their wireguard peers
+- Nested-virt Firecracker support (separate project, M3+ only)
