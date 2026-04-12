@@ -111,7 +111,7 @@ spec:
                       # on Paper 1.21.11. Must stay in sync with the same
                       # env in apps/mc/lobby/Dockerfile.
                       - name: MODRINTH_PROJECTS
-                        value: 'luckperms,essentialsx:Oa9ZDzZq,essentialsx-antibuild:gjXSrVNQ,worldedit,advanced-portals'
+                        value: 'luckperms,essentialsx:Oa9ZDzZq,essentialsx-spawn:RVbLg2Am,essentialsx-antibuild:gjXSrVNQ,worldedit,advanced-portals'
                       - name: LUCKPERMS_MESSAGING_SERVICE
                         value: 'pluginmsg'
                       - name: LUCKPERMS_STORAGE_METHOD
