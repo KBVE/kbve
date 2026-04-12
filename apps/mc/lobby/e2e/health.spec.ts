@@ -26,6 +26,13 @@ describe('MC lobby health', () => {
 	});
 
 	it('reports PaperMC server version', async () => {
+		// Paper's /version is async — the first call returns the
+		// "checking version, please wait..." placeholder synchronously
+		// while the upstream version-check HTTP call runs in the
+		// background. The result is cached, so a second call after a
+		// short delay returns the actual version string synchronously.
+		await rcon.command('version');
+		await new Promise((resolve) => setTimeout(resolve, 2000));
 		const response = await rcon.command('version');
 		expect(response.toLowerCase()).toContain('paper');
 	});
