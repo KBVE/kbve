@@ -1,0 +1,23 @@
+{
+	"name": "iot-edge-worker",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/vm/iot/edge-worker",
+	"targets": {
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"sh -n apps/vm/iot/edge-worker/bootstrap.sh",
+					"docker run --rm -v $PWD/apps/vm/iot/edge-worker:/work pipelinecomponents/yamllint:latest yamllint -d '{extends: relaxed, rules: {line-length: disable}}' /work/cloud-init.yaml.tmpl || true"
+				],
+				"parallel": false
+			}
+		},
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		}
+	},
+	"tags": ["scope:vm", "iot", "edge-worker"]
+}
