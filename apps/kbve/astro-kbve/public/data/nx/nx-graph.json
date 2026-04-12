@@ -9073,6 +9073,153 @@
           ]
         }
       },
+      "mc-velocity": {
+        "name": "mc-velocity",
+        "type": "app",
+        "data": {
+          "root": "apps/mc/velocity",
+          "metadata": {},
+          "targets": {
+            "test": {
+              "executor": "nx:noop",
+              "cache": false,
+              "options": {},
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "options": {
+                "cwd": "apps/mc/velocity",
+                "command": "tsc --noEmit -p tsconfig.e2e.json"
+              },
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.e2e.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects mc-velocity --includeDependentProjects -- pnpm exec nx build-deps mc-velocity"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "container": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/mc/velocity/Dockerfile",
+                "load": true
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/mc-velocity:latest"
+                  ]
+                },
+                "production": {
+                  "push": true,
+                  "tags": [
+                    "ghcr.io/kbve/mc-velocity:latest"
+                  ],
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/mc-velocity:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/mc-velocity:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                {
+                  "target": "container",
+                  "projects": [
+                    "mc-velocity"
+                  ],
+                  "params": "forward"
+                }
+              ],
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker rm -f mc-velocity-e2e 2>/dev/null || true",
+                  "docker run -d --name mc-velocity-e2e -p 25578:25577 -e TYPE=VELOCITY -e MEMORY=512M kbve/mc-velocity:latest",
+                  "echo 'Waiting for Velocity to come up...' && for i in $(seq 1 300); do if docker logs mc-velocity-e2e 2>&1 | grep -q 'Done ('; then echo 'Velocity ready after '\"$i\"'s'; break; fi; if [ $i -eq 300 ]; then echo 'Velocity did not start in 300s'; docker logs mc-velocity-e2e 2>&1 | tail -80; docker rm -f mc-velocity-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+                  "docker logs mc-velocity-e2e 2>&1 | grep -q 'KBVE Velocity Commands' || { echo 'kbve-velocity-commands plugin did not load'; docker logs mc-velocity-e2e 2>&1 | tail -80; docker rm -f mc-velocity-e2e 2>/dev/null || true; exit 1; }",
+                  "VELOCITY_HOST=127.0.0.1 VELOCITY_PORT=25578 npx vitest run; EC=$?; echo '--- container logs ---'; docker logs mc-velocity-e2e 2>&1 | tail -50; docker rm -f mc-velocity-e2e 2>/dev/null || true; exit $EC"
+                ],
+                "parallel": false,
+                "cwd": "apps/mc/velocity"
+              },
+              "configurations": {
+                "ci": {}
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            }
+          },
+          "projectType": "application",
+          "name": "mc-velocity",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/mc/velocity",
+          "tags": [
+            "scope:mc"
+          ],
+          "implicitDependencies": []
+        }
+      },
       "kbve-kubectl": {
         "name": "kbve-kubectl",
         "type": "app",
@@ -9606,6 +9753,179 @@
               "parallelism": true
             }
           },
+          "implicitDependencies": []
+        }
+      },
+      "mc-lobby": {
+        "name": "mc-lobby",
+        "type": "app",
+        "data": {
+          "root": "apps/mc/lobby",
+          "metadata": {},
+          "targets": {
+            "test": {
+              "executor": "nx:noop",
+              "cache": false,
+              "options": {},
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "options": {
+                "cwd": "apps/mc/lobby",
+                "command": "tsc --noEmit -p tsconfig.e2e.json"
+              },
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.e2e.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects mc-lobby --includeDependentProjects -- pnpm exec nx build-deps mc-lobby"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "container": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/mc/lobby/Dockerfile",
+                "load": true
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/mc-lobby:latest"
+                  ]
+                },
+                "production": {
+                  "push": true,
+                  "tags": [
+                    "ghcr.io/kbve/mc-lobby:latest"
+                  ],
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/mc-lobby:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/mc-lobby:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "dev": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                {
+                  "target": "container",
+                  "projects": [
+                    "mc-lobby"
+                  ],
+                  "params": "forward"
+                }
+              ],
+              "cache": false,
+              "options": {
+                "commands": [
+                  "echo '=== Starting standalone mc-lobby container ==='",
+                  "echo '  Game:  localhost:25565'",
+                  "echo '  RCON:  localhost:25574 (password: dev)'",
+                  "echo '  Note:  bypasses Velocity — set ONLINE_MODE=false on your client'",
+                  "docker rm -f kbve-mc-lobby-dev 2>/dev/null || true",
+                  "docker run --rm --name kbve-mc-lobby-dev -p 25565:25565 -p 25574:25575 -e EULA=TRUE -e ONLINE_MODE=false -e ENABLE_RCON=true -e RCON_PASSWORD=dev kbve/mc-lobby:latest"
+                ],
+                "parallel": false,
+                "cwd": "apps/mc/lobby"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                {
+                  "target": "container",
+                  "projects": [
+                    "mc-lobby"
+                  ],
+                  "params": "forward"
+                }
+              ],
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker rm -f mc-lobby-e2e 2>/dev/null || true",
+                  "docker run -d --name mc-lobby-e2e -p 25574:25575 -p 25566:25565 -e EULA=TRUE -e RCON_PASSWORD=test -e ENABLE_RCON=true -e ONLINE_MODE=false kbve/mc-lobby:latest",
+                  "echo 'Waiting for MC lobby RCON...' && for i in $(seq 1 300); do if docker logs mc-lobby-e2e 2>&1 | grep -q 'RCON running'; then echo 'RCON ready after '\"$i\"'s'; break; fi; if [ $i -eq 300 ]; then echo 'Server did not start in 300s'; docker logs mc-lobby-e2e 2>&1 | tail -50; docker rm -f mc-lobby-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+                  "RCON_PORT=25574 RCON_PASSWORD=test npx vitest run; EC=$?; echo '--- container logs ---'; docker logs mc-lobby-e2e 2>&1 | tail -50; docker rm -f mc-lobby-e2e 2>/dev/null || true; exit $EC"
+                ],
+                "parallel": false,
+                "cwd": "apps/mc/lobby"
+              },
+              "configurations": {
+                "ci": {}
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            }
+          },
+          "projectType": "application",
+          "name": "mc-lobby",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/mc/lobby",
+          "tags": [
+            "scope:mc"
+          ],
           "implicitDependencies": []
         }
       },
@@ -10582,11 +10902,13 @@
           "type": "implicit"
         }
       ],
+      "mc-velocity": [],
       "kbve-kubectl": [],
       "q": [],
       "discordsh": [],
       "edge": [],
       "herbmail": [],
+      "mc-lobby": [],
       "rows": [],
       "pydesk": [],
       "memes": [],

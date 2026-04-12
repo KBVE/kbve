@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-04-11T08:21:47Z",
+  "generated_at": "2026-04-12T08:26:40Z",
   "summary": {
     "critical": 3,
     "high": 32,
     "medium": 38,
     "low": 5,
-    "info": 24
+    "info": 28
   },
   "ecosystems": {
     "npm": {
@@ -553,13 +553,13 @@
       ]
     },
     "cargo": {
-      "total": 26,
+      "total": 30,
       "severities": {
         "critical": 0,
         "high": 0,
         "medium": 2,
         "low": 0,
-        "info": 24
+        "info": 28
       },
       "advisories": [
         {
@@ -743,6 +743,34 @@
           "severity": "info",
           "package": "glib",
           "url": "https://github.com/gtk-rs/gtk-rs-core/pull/1343"
+        },
+        {
+          "id": "RUSTSEC-2026-0097",
+          "title": "Rand is unsound with a custom logger using `rand::rng()`",
+          "severity": "info",
+          "package": "rand",
+          "url": "https://github.com/rust-random/rand/pull/1763"
+        },
+        {
+          "id": "RUSTSEC-2026-0097",
+          "title": "Rand is unsound with a custom logger using `rand::rng()`",
+          "severity": "info",
+          "package": "rand",
+          "url": "https://github.com/rust-random/rand/pull/1763"
+        },
+        {
+          "id": "RUSTSEC-2026-0097",
+          "title": "Rand is unsound with a custom logger using `rand::rng()`",
+          "severity": "info",
+          "package": "rand",
+          "url": "https://github.com/rust-random/rand/pull/1763"
+        },
+        {
+          "id": "RUSTSEC-2026-0097",
+          "title": "Rand is unsound with a custom logger using `rand::rng()`",
+          "severity": "info",
+          "package": "rand",
+          "url": "https://github.com/rust-random/rand/pull/1763"
         }
       ]
     },
