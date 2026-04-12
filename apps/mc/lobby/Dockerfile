@@ -34,6 +34,8 @@ ENV GENERATE_STRUCTURES=false
 ENV SPAWN_ANIMALS=false
 ENV SPAWN_MONSTERS=false
 ENV SPAWN_NPCS=false
+ENV ALLOW_NETHER=false
+ENV ALLOW_END=false
 
 # ── Velocity modern forwarding ────────────────────────────────────────
 # itzg patches paper-global.yml with these CFG_VELOCITY_* env vars on

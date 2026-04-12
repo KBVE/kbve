@@ -94,6 +94,10 @@ spec:
                         value: 'false'
                       - name: SPAWN_NPCS
                         value: 'false'
+                      - name: ALLOW_NETHER
+                        value: 'false'
+                      - name: ALLOW_END
+                        value: 'false'
                       # Velocity modern forwarding — secret matches
                       # velocity-configmap.yaml + Fabric FabricProxy-Lite.
                       - name: CFG_VELOCITY_ENABLED
