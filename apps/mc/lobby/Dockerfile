@@ -50,9 +50,11 @@ ENV CFG_VELOCITY_SECRET="kbve-velocity-forwarding-secret-change-me"
 #   luckperms          — permission backbone; syncs cross-server via
 #                        the pluginmsg channel with the Velocity proxy
 #                        and the Fabric backend.
-#   essentialsx        — /spawn, /tpa, /sethome, /back, kit system,
-#                        and the dependency for every EssentialsX addon.
-#   essentialsxantibuild — blocks build/break/interact for non-permissioned
+#   essentialsx        — /tpa, /sethome, /back, kit system, and the
+#                        dependency for every EssentialsX addon.
+#   essentialsx-spawn  — /spawn, /setspawn, spawn-on-join. Separate
+#                        module from the main EssentialsX jar.
+#   essentialsx-antibuild — blocks build/break/interact for non-permissioned
 #                        players. Grief-proof the lobby by default.
 #   worldedit          — admin building tool, same version line as the
 #                        Fabric backend so commands are consistent.
@@ -67,7 +69,7 @@ ENV CFG_VELOCITY_SECRET="kbve-velocity-forwarding-secret-change-me"
 # stable across the 1.21.x line and the plugins enable cleanly on Paper
 # 1.21.11 (verified by smoke test). Drop the pins once upstream tags
 # 1.21.11 builds.
-ENV MODRINTH_PROJECTS=luckperms,essentialsx:Oa9ZDzZq,essentialsx-antibuild:gjXSrVNQ,worldedit,advanced-portals
+ENV MODRINTH_PROJECTS=luckperms,essentialsx:Oa9ZDzZq,essentialsx-spawn:RVbLg2Am,essentialsx-antibuild:gjXSrVNQ,worldedit,advanced-portals
 ENV LUCKPERMS_MESSAGING_SERVICE=pluginmsg
 ENV LUCKPERMS_STORAGE_METHOD=h2
 
