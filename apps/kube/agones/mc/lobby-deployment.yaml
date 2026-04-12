@@ -103,10 +103,15 @@ spec:
                       - name: CFG_VELOCITY_SECRET
                         value: 'kbve-velocity-forwarding-secret-change-me'
                       # Plugins downloaded at container start via itzg's
-                      # MODRINTH_PROJECTS env. Paper-compatible latest of
-                      # each slug.
+                      # MODRINTH_PROJECTS env. EssentialsX + AntiBuild are
+                      # pinned to v2.21.2 (Modrinth IDs Oa9ZDzZq + gjXSrVNQ)
+                      # because the project tops out at MC 1.21.8 on
+                      # Modrinth — the Bukkit API the bundle uses is stable
+                      # across the 1.21.x line so the plugins enable cleanly
+                      # on Paper 1.21.11. Must stay in sync with the same
+                      # env in apps/mc/lobby/Dockerfile.
                       - name: MODRINTH_PROJECTS
-                        value: 'luckperms,essentialsx,essentialsxantibuild,worldedit,advancedportals'
+                        value: 'luckperms,essentialsx:Oa9ZDzZq,essentialsx-antibuild:gjXSrVNQ,worldedit,advanced-portals'
                       - name: LUCKPERMS_MESSAGING_SERVICE
                         value: 'pluginmsg'
                       - name: LUCKPERMS_STORAGE_METHOD
