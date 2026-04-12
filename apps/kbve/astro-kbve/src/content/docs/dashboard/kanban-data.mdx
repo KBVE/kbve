@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-04-11T08:18:04.967Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-04-12T08:22:40.350Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -27,7 +27,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **1** items
   </Card>
   <Card title="Todo" icon="list-format">
-    **9** items
+    **8** items
   </Card>
   <Card title="Backlog" icon="document">
     **7** items
@@ -42,10 +42,10 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **4** items
   </Card>
   <Card title="Review" icon="approve-check">
-    **0** items
+    **1** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **250** items
+    **263** items
   </Card>
 </CardGrid>
 
@@ -57,11 +57,12 @@ pie showData
     title Items by Status
     "Theory" : 23
     "AI" : 1
-    "Todo" : 9
+    "Todo" : 8
     "Backlog" : 7
     "Error" : 11
     "Staging" : 4
-    "Done" : 250
+    "Review" : 1
+    "Done" : 263
 ```
 
 ```mermaid
@@ -69,7 +70,7 @@ pie showData
     title Work State
     "Active (Todo+Staging+Review)" : 13
     "Blocked (Error+Support)" : 11
-    "Done" : 250
+    "Done" : 263
     "Planning (Theory+AI+Backlog)" : 31
 ```
 
@@ -86,7 +87,7 @@ flowchart LR
     Theory --> AI
     AI["AI<br/><strong>1</strong>"]
     AI --> Todo
-    Todo["Todo<br/><strong>9</strong>"]
+    Todo["Todo<br/><strong>8</strong>"]
     Todo --> Backlog
     Backlog["Backlog<br/><strong>7</strong>"]
     Backlog --> Error
@@ -96,9 +97,9 @@ flowchart LR
     Support --> Staging
     Staging["Staging<br/><strong>4</strong>"]
     Staging --> Review
-    Review["Review<br/><strong>0</strong>"]
+    Review["Review<br/><strong>1</strong>"]
     Review --> Done
-    Done["Done<br/><strong>250</strong>"]
+    Done["Done<br/><strong>263</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -115,7 +116,7 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 241
+    "Pull Request" : 254
     "Issue" : 64
 ```
 
@@ -123,9 +124,9 @@ pie showData
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 241 |
-| dev→main | 114 |
-| atomic | 85 |
+| auto-pr | 254 |
+| dev→main | 120 |
+| atomic | 92 |
 | enhancement | 33 |
 | 0 | 23 |
 | unity | 16 |
@@ -171,7 +172,7 @@ pie showData
 |---|-------|----------|-----------|--------|
 | [#4906](https://github.com/KBVE/kbve/issues/4906) | [Bug] : [Unity] : Character Orchestrator | — | h0lybyte | 0, bug, unity |
 
-### Todo (9)
+### Todo (8)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -183,7 +184,6 @@ pie showData
 | [#8170](https://github.com/KBVE/kbve/issues/8170) | feat(proto): ArgoCD application state schema via protobuf → zod → edge pipeline | — | h0lybyte | 4, documentation, todo |
 | [#9334](https://github.com/KBVE/kbve/issues/9334) | [ROWS] v0.4/v0.5 — Complete migration from C# OWS to Rust ROWS | — | h0lybyte | 6, enhancement, todo |
 | [#8817](https://github.com/KBVE/kbve/issues/8817) | [E2E] kilobase needs pgrx/PostgreSQL build environment | — | h0lybyte | 1, todo |
-| [#10033](https://github.com/KBVE/kbve/issues/10033) | feat(mc): PaperMC lobby server + custom Velocity proxy with command/chat plugin | — | — | enhancement, todo, ci |
 
 ### Backlog (7)
 
@@ -222,7 +222,13 @@ pie showData
 | [#3396](https://github.com/KBVE/kbve/issues/3396) | [Concept] : [Unity] : Adding Quirky Character Pack by Noiryt | — | h0lybyte | 4, unity |
 | [#6943](https://github.com/KBVE/kbve/issues/6943) | Phase 2: Frontend - Orchestration Tab | — | — | todo |
 
-### Done (250)
+### Review (1)
+
+| # | Title | Priority | Assignees | Labels |
+|---|-------|----------|-----------|--------|
+| [#10060](https://github.com/KBVE/kbve/pull/10060) | Release: 1 feature, 1 fix → Main | — | — | auto-pr, dev→main |
+
+### Done (263)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -234,10 +240,6 @@ pie showData
 | [#8931](https://github.com/KBVE/kbve/issues/8931) | [UE5] [OWS] Add retry and circuit breaker for K8s API calls | — | — | enhancement |
 | [#8933](https://github.com/KBVE/kbve/issues/8933) | [UE5] [OWS] Extract hardcoded cleanup config to options pattern | — | — | enhancement |
 | [#8932](https://github.com/KBVE/kbve/issues/8932) | [UE5] [OWS] Move instance cleanup to scheduled background job | — | — | enhancement |
-| [#9234](https://github.com/KBVE/kbve/pull/9234) | Release: 2 fixes, 1 CI, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#9237](https://github.com/KBVE/kbve/pull/9237) | chore(dashboard): daily sync — 2026-03-28 | — | — | auto-pr |
-| [#9238](https://github.com/KBVE/kbve/pull/9238) | Release: 6 features, 3 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#9248](https://github.com/KBVE/kbve/pull/9248) | Release: 0 commits → Main | — | — | auto-pr, dev→main |
 | [#9253](https://github.com/KBVE/kbve/pull/9253) | deploy(isometric): update WASM build | — | — | auto-pr |
 | [#9254](https://github.com/KBVE/kbve/pull/9254) | Atomic: discordsh v0.1.40 post-publish sync | — | — | auto-pr, atomic |
 | [#9255](https://github.com/KBVE/kbve/pull/9255) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
@@ -473,9 +475,26 @@ pie showData
 | [#10027](https://github.com/KBVE/kbve/pull/10027) | Release: 3 features, 1 fix, 1 doc → Main | — | — | auto-pr, dev→main |
 | [#10031](https://github.com/KBVE/kbve/pull/10031) | Atomic: mc v1.0.11 post-publish sync | — | — | auto-pr, atomic |
 | [#10032](https://github.com/KBVE/kbve/pull/10032) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#10033](https://github.com/KBVE/kbve/issues/10033) | feat(mc): PaperMC lobby server + custom Velocity proxy with command/chat plugin | — | — | enhancement, todo, ci |
 | [#10034](https://github.com/KBVE/kbve/pull/10034) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
 | [#10035](https://github.com/KBVE/kbve/pull/10035) | Atomic: mc v1.0.12 post-publish sync | — | — | auto-pr, atomic |
 | [#10036](https://github.com/KBVE/kbve/pull/10036) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#10038](https://github.com/KBVE/kbve/pull/10038) | chore(dashboard): daily sync — 2026-04-11 | — | — | auto-pr |
+| [#10039](https://github.com/KBVE/kbve/pull/10039) | Release: 1 feature, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#10042](https://github.com/KBVE/kbve/pull/10042) | Release: 2 fixes → Main | — | — | auto-pr, dev→main |
+| [#10044](https://github.com/KBVE/kbve/pull/10044) | Atomic: mc-velocity v1.0.1 post-publish sync | — | — | auto-pr, atomic |
+| [#10045](https://github.com/KBVE/kbve/pull/10045) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#10048](https://github.com/KBVE/kbve/pull/10048) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
+| [#10050](https://github.com/KBVE/kbve/pull/10050) | Atomic: mc lobby pin essentials | — | — | auto-pr, atomic |
+| [#10051](https://github.com/KBVE/kbve/pull/10051) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
+| [#10053](https://github.com/KBVE/kbve/pull/10053) | Atomic: mc lobby fix version test | — | — | auto-pr, atomic |
+| [#10054](https://github.com/KBVE/kbve/pull/10054) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
+| [#10055](https://github.com/KBVE/kbve/pull/10055) | Atomic: mc-lobby v1.0.1 post-publish sync | — | — | auto-pr, atomic |
+| [#10056](https://github.com/KBVE/kbve/pull/10056) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#10057](https://github.com/KBVE/kbve/pull/10057) | Atomic: mc lobby add spawn plugin | — | — | auto-pr, atomic |
+| [#10058](https://github.com/KBVE/kbve/pull/10058) | Release: 1 feature → Main | — | — | auto-pr, dev→main |
+| [#10059](https://github.com/KBVE/kbve/pull/10059) | Atomic: mc fabric add spark | — | — | auto-pr, atomic |
+| [#10061](https://github.com/KBVE/kbve/pull/10061) | Atomic: mc lobby disable nether end | — | — | auto-pr, atomic |
 
 ---
 

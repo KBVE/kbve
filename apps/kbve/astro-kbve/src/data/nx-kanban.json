@@ -1,20 +1,20 @@
 {
-	"generated_at": "2026-04-11T08:18:04.967Z",
+	"generated_at": "2026-04-12T08:22:40.350Z",
 	"project": {
 		"title": "KBVE",
 		"url": "https://github.com/orgs/KBVE/projects/5",
-		"total_items": 311
+		"total_items": 324
 	},
 	"summary": {
 		"Theory": 23,
 		"AI": 1,
-		"Todo": 9,
+		"Todo": 8,
 		"Backlog": 7,
 		"Error": 11,
 		"Support": 0,
 		"Staging": 4,
-		"Review": 0,
-		"Done": 250
+		"Review": 1,
+		"Done": 263
 	},
 	"columns": {
 		"Theory": [
@@ -580,23 +580,6 @@
 				"matrix": null,
 				"date": "2026-04-09",
 				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 10033,
-				"title": "feat(mc): PaperMC lobby server + custom Velocity proxy with command/chat plugin",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/10033",
-				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"ci",
-					"docker"
-				],
-				"matrix": null,
-				"date": "2026-04-11",
-				"milestone": null
 			}
 		],
 		"Backlog": [
@@ -983,7 +966,23 @@
 				"milestone": null
 			}
 		],
-		"Review": [],
+		"Review": [
+			{
+				"type": "PULL_REQUEST",
+				"number": 10060,
+				"title": "Release: 1 feature, 1 fix → Main",
+				"state": "OPEN",
+				"url": "https://github.com/KBVE/kbve/pull/10060",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			}
+		],
 		"Done": [
 			{
 				"type": "ISSUE",
@@ -1103,65 +1102,6 @@
 				],
 				"matrix": null,
 				"date": "2026-03-23",
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 9234,
-				"title": "Release: 2 fixes, 1 CI, 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/9234",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 9237,
-				"title": "chore(dashboard): daily sync — 2026-03-28",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/9237",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 9238,
-				"title": "Release: 6 features, 3 fixes, 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/9238",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 9248,
-				"title": "Release: 0 commits → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/9248",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
 				"milestone": null
 			},
 			{
@@ -4648,6 +4588,23 @@
 				"milestone": null
 			},
 			{
+				"type": "ISSUE",
+				"number": 10033,
+				"title": "feat(mc): PaperMC lobby server + custom Velocity proxy with command/chat plugin",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/10033",
+				"assignees": [],
+				"labels": [
+					"enhancement",
+					"todo",
+					"ci",
+					"docker"
+				],
+				"matrix": null,
+				"date": "2026-04-11",
+				"milestone": null
+			},
+			{
 				"type": "PULL_REQUEST",
 				"number": 10034,
 				"title": "Release: 1 chore → Main",
@@ -4687,6 +4644,245 @@
 				"labels": [
 					"auto-pr",
 					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10038,
+				"title": "chore(dashboard): daily sync — 2026-04-11",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10038",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10039,
+				"title": "Release: 1 feature, 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10039",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10042,
+				"title": "Release: 2 fixes → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10042",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10044,
+				"title": "Atomic: mc-velocity v1.0.1 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10044",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10045,
+				"title": "Release: 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10045",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10048,
+				"title": "Release: 1 fix → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10048",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10050,
+				"title": "Atomic: mc lobby pin essentials",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10050",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10051,
+				"title": "Release: 1 fix → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10051",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10053,
+				"title": "Atomic: mc lobby fix version test",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10053",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10054,
+				"title": "Release: 1 fix → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10054",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10055,
+				"title": "Atomic: mc-lobby v1.0.1 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10055",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10056,
+				"title": "Release: 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10056",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10057,
+				"title": "Atomic: mc lobby add spawn plugin",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10057",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10058,
+				"title": "Release: 1 feature → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10058",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10059,
+				"title": "Atomic: mc fabric add spark",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10059",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10061,
+				"title": "Atomic: mc lobby disable nether end",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10061",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
 				],
 				"matrix": null,
 				"date": null,
