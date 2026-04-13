@@ -8,6 +8,7 @@ import { CONTAINER_ACTIONS, handleContainer } from "./container.ts";
 import { handleTransfer, TRANSFER_ACTIONS } from "./transfer.ts";
 import { CHARACTER_ACTIONS, handleCharacter } from "./character.ts";
 import { handleSkill, SKILL_ACTIONS } from "./skill.ts";
+import { ADMIN_ACTIONS, handleAdmin } from "./admin.ts";
 
 // ---------------------------------------------------------------------------
 // MC Edge Function — Unified Router
@@ -19,6 +20,7 @@ import { handleSkill, SKILL_ACTIONS } from "./skill.ts";
 //   transfer:  record, history
 //   character: save, load, add_xp
 //   skill:     save, load, add_xp
+//   admin:     execute, give, teleport, broadcast
 // ---------------------------------------------------------------------------
 
 const MODULES: Record<
@@ -34,6 +36,7 @@ const MODULES: Record<
   transfer: { handler: handleTransfer, actions: TRANSFER_ACTIONS },
   character: { handler: handleCharacter, actions: CHARACTER_ACTIONS },
   skill: { handler: handleSkill, actions: SKILL_ACTIONS },
+  admin: { handler: handleAdmin, actions: ADMIN_ACTIONS },
 };
 
 function buildHelpText(): string {
