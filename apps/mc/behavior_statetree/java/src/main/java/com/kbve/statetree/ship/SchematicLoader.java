@@ -59,10 +59,19 @@ public final class SchematicLoader {
                 return null;
             }
 
-            int[] size = root.getIntArray("size").orElse(new int[0]);
-            int sx = size.length >= 3 ? size[0] : 0;
-            int sy = size.length >= 3 ? size[1] : 0;
-            int sz = size.length >= 3 ? size[2] : 0;
+            // MC structure format stores "size" as TAG_List of TAG_Int, not TAG_Int_Array
+            int sx = 0, sy = 0, sz = 0;
+            NbtList sizeList = root.getList("size").orElse(null);
+            int[] sizeArr = root.getIntArray("size").orElse(null);
+            if (sizeList != null && sizeList.size() >= 3) {
+                sx = sizeList.getInt(0);
+                sy = sizeList.getInt(1);
+                sz = sizeList.getInt(2);
+            } else if (sizeArr != null && sizeArr.length >= 3) {
+                sx = sizeArr[0];
+                sy = sizeArr[1];
+                sz = sizeArr[2];
+            }
 
             if (sx == 0 || sy == 0 || sz == 0) {
                 LOGGER.warn("[Ship] NBT schematic '{}' has zero dimensions", name);
@@ -89,8 +98,21 @@ public final class SchematicLoader {
                 NbtCompound block = blocksList.getCompound(i).orElse(null);
                 if (block == null) continue;
 
-                int[] pos = block.getIntArray("pos").orElse(new int[0]);
-                if (pos.length < 3) continue;
+                // "pos" is TAG_List of TAG_Int in MC structure format
+                int px, py, pz;
+                NbtList posList = block.getList("pos").orElse(null);
+                int[] posArr = block.getIntArray("pos").orElse(null);
+                if (posList != null && posList.size() >= 3) {
+                    px = posList.getInt(0);
+                    py = posList.getInt(1);
+                    pz = posList.getInt(2);
+                } else if (posArr != null && posArr.length >= 3) {
+                    px = posArr[0];
+                    py = posArr[1];
+                    pz = posArr[2];
+                } else {
+                    continue;
+                }
 
                 int stateIdx = block.getInt("state").orElse(-1);
                 if (stateIdx < 0 || stateIdx >= palette.size()) continue;
@@ -98,7 +120,7 @@ public final class SchematicLoader {
                 BlockState state = palette.get(stateIdx);
                 if (state.isAir()) continue;
 
-                blocks.put(new BlockPos(pos[0], pos[1], pos[2]), state);
+                blocks.put(new BlockPos(px, py, pz), state);
             }
 
             if (blocks.isEmpty()) {
