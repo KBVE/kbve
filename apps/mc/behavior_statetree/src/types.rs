@@ -209,6 +209,32 @@ pub enum NpcCommand {
         near_player: u64,
         radius: i32,
     },
+
+    // -- Ship commands ---------------------------------------------------------
+    /// Move a ship forward along its current heading. Java handles the
+    /// chunked block relocation across multiple ticks. `distance` is in
+    /// blocks (typically 1-3 per command for smooth sailing).
+    MoveShip {
+        ship_id: String,
+        distance: i32,
+    },
+    /// Rotate a ship by `degrees` around its anchor Y axis. Positive =
+    /// clockwise (starboard turn). Java rotates all block offsets and
+    /// relocates in chunks.
+    RotateShip {
+        ship_id: String,
+        degrees: f32,
+    },
+    /// Spawn a named ship from a bundled schematic near a player.
+    /// Java loads the schematic, finds safe ocean, and places it.
+    SpawnShip {
+        ship_name: String,
+        near_player: u64,
+    },
+    /// Remove a ship and all its blocks from the world.
+    DespawnShip {
+        ship_id: String,
+    },
 }
 
 /// Result of async AI planning. Only applied if epoch matches current NPC epoch.
