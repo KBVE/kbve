@@ -64,9 +64,9 @@ public final class SchematicLoader {
             NbtList sizeList = root.getList("size").orElse(null);
             int[] sizeArr = root.getIntArray("size").orElse(null);
             if (sizeList != null && sizeList.size() >= 3) {
-                sx = sizeList.getInt(0);
-                sy = sizeList.getInt(1);
-                sz = sizeList.getInt(2);
+                sx = sizeList.getInt(0).orElse(0);
+                sy = sizeList.getInt(1).orElse(0);
+                sz = sizeList.getInt(2).orElse(0);
             } else if (sizeArr != null && sizeArr.length >= 3) {
                 sx = sizeArr[0];
                 sy = sizeArr[1];
@@ -103,9 +103,9 @@ public final class SchematicLoader {
                 NbtList posList = block.getList("pos").orElse(null);
                 int[] posArr = block.getIntArray("pos").orElse(null);
                 if (posList != null && posList.size() >= 3) {
-                    px = posList.getInt(0);
-                    py = posList.getInt(1);
-                    pz = posList.getInt(2);
+                    px = posList.getInt(0).orElse(0);
+                    py = posList.getInt(1).orElse(0);
+                    pz = posList.getInt(2).orElse(0);
                 } else if (posArr != null && posArr.length >= 3) {
                     px = posArr[0];
                     py = posArr[1];
