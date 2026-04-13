@@ -110,9 +110,11 @@ public final class ShipCommands {
         }
 
         ShipManager.ActiveShip ship = manager.getShip(shipId);
+        int estSeconds = data.blockCount() / 500 / 20; // 500 blocks/tick, 20 ticks/sec
         source.sendFeedback(() -> Text.of(
                 "\u00A7a\u00A7lShip deploying! \u00A7r\u00A7e'" + name +
                         "' at " + ship.anchor.toShortString() +
+                        " (~" + estSeconds + "s to build, " + data.blockCount() + " blocks)" +
                         " (id: " + shipId + ")"), true);
 
         return 1;
