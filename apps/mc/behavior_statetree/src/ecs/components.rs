@@ -9,10 +9,107 @@ use crate::tree::node::CooldownState;
 #[derive(Component, Debug)]
 pub struct AiManaged;
 
-/// Marker for AI Skeleton entities specifically. Used by the population
+/// Marker for AI Skeleton entities (any archetype). Used by the population
 /// manager system to distinguish skeletons from other AI creature types.
 #[derive(Component, Debug)]
 pub struct AiSkeleton;
+
+/// Skeleton archetype — determines which behavior tree runs and which
+/// special abilities are available.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SkeletonArchetype {
+    /// Sword + scaffolding builder — climbs obstacles.
+    Melee,
+    /// Teleport ability — bypasses walls and cliffs.
+    Mage,
+    /// Bow + vantage point seeking — attacks from range.
+    Archer,
+}
+
+/// Tracks whether a mob is "stuck" — has a MoveTo target but hasn't
+/// made meaningful progress toward it. Used by the melee skeleton to
+/// trigger scaffold placement.
+#[derive(Component, Debug, Default)]
+pub struct StuckTracker {
+    /// Last recorded position (set each time we check).
+    pub last_pos: [f64; 3],
+    /// Number of consecutive checks where position barely changed.
+    pub stuck_ticks: u32,
+    /// The Y coordinate of the target we're trying to reach.
+    pub target_y: Option<f64>,
+}
+
+impl StuckTracker {
+    /// Update with current position. Returns true if the mob appears stuck
+    /// (hasn't moved more than 0.5 blocks in the last check).
+    pub fn update(&mut self, pos: [f64; 3]) -> bool {
+        let dx = pos[0] - self.last_pos[0];
+        let dz = pos[2] - self.last_pos[2];
+        let moved_sq = dx * dx + dz * dz;
+
+        if moved_sq < 0.25 {
+            // Barely moved
+            self.stuck_ticks = self.stuck_ticks.saturating_add(1);
+        } else {
+            self.stuck_ticks = 0;
+        }
+        self.last_pos = pos;
+        self.stuck_ticks >= 3
+    }
+
+    /// Check if the target is significantly above the mob (cliff situation).
+    pub fn is_cliff(&self, mob_y: f64) -> bool {
+        self.target_y.is_some_and(|ty| ty - mob_y > 1.5)
+    }
+}
+
+/// Cooldown for scaffold placement to prevent spam-building.
+#[derive(Component, Debug)]
+pub struct ScaffoldCooldown {
+    pub last_place_tick: u64,
+    pub cooldown_ticks: u64,
+}
+
+impl Default for ScaffoldCooldown {
+    fn default() -> Self {
+        Self {
+            last_place_tick: 0,
+            cooldown_ticks: 30, // 3s at 100ms ECS ticks
+        }
+    }
+}
+
+/// Cooldown for mage teleport ability.
+#[derive(Component, Debug)]
+pub struct TeleportCooldown {
+    pub last_teleport_tick: u64,
+    pub cooldown_ticks: u64,
+}
+
+impl Default for TeleportCooldown {
+    fn default() -> Self {
+        Self {
+            last_teleport_tick: 0,
+            cooldown_ticks: 50, // 5s at 100ms ECS ticks
+        }
+    }
+}
+
+/// Cooldown for archer arrow shots.
+#[derive(Component, Debug)]
+pub struct ArrowCooldown {
+    pub last_shot_tick: u64,
+    pub cooldown_ticks: u64,
+}
+
+impl Default for ArrowCooldown {
+    fn default() -> Self {
+        Self {
+            last_shot_tick: 0,
+            cooldown_ticks: 20, // 2s at 100ms ECS ticks
+        }
+    }
+}
 
 /// Marker for AI Pet Dog entities. A pet dog is a tamed wolf spawned
 /// alongside a player; its lifecycle is tied to `PetOwner`.
