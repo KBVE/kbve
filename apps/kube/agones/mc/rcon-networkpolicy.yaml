@@ -1,0 +1,47 @@
+# Allow ingress on RCON port (25575) from the edge functions pod
+# in the kilobase namespace. This enables staff-gated RCON commands
+# from the Supabase edge runtime to both lobby and survival servers.
+#
+# The same policy covers future MC mod-to-mod RCON if pods carry the
+# mc-gameserver or mc-lobby label in arc-runners.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: mc-rcon-ingress
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/part-of: mc
+spec:
+    podSelector:
+        matchExpressions:
+            - key: app
+              operator: In
+              values:
+                  - mc-lobby
+                  - mc-gameserver
+    policyTypes:
+        - Ingress
+    ingress:
+        # Edge functions (kilobase namespace)
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: kilobase
+                podSelector:
+                    matchLabels:
+                        app: functions
+          ports:
+              - port: 25575
+                protocol: TCP
+        # MC pods talking to each other (same namespace)
+        - from:
+              - podSelector:
+                    matchExpressions:
+                        - key: app
+                          operator: In
+                          values:
+                              - mc-lobby
+                              - mc-gameserver
+          ports:
+              - port: 25575
+                protocol: TCP

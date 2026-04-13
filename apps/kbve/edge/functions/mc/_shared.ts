@@ -1,5 +1,6 @@
 // Re-export all shared utilities from the centralized module
 export {
+  checkStaffPermissions,
   createServiceClient,
   createUserClient,
   extractToken,
@@ -7,7 +8,9 @@ export {
   type JwtClaims,
   parseJwt,
   requireServiceRole,
+  requireStaffOrServiceRole,
   requireUserToken,
+  staffPerm,
 } from "../_shared/supabase.ts";
 
 import { jsonResponse } from "../_shared/supabase.ts";

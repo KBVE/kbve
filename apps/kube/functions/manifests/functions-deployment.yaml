@@ -76,6 +76,25 @@ spec:
                             secretKeyRef:
                                 name: supabase-shared
                                 key: clickhouse-password
+                      # MC RCON — service DNS resolves dynamically to current pods
+                      - name: MC_RCON_LOBBY_HOST
+                        value: 'mc-lobby-backend.arc-runners.svc.cluster.local'
+                      - name: MC_RCON_LOBBY_PORT
+                        value: '25575'
+                      - name: MC_RCON_LOBBY_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: mc-rcon-credentials
+                                key: rcon-password
+                      - name: MC_RCON_SURVIVAL_HOST
+                        value: 'mc-fabric-backend.arc-runners.svc.cluster.local'
+                      - name: MC_RCON_SURVIVAL_PORT
+                        value: '25575'
+                      - name: MC_RCON_SURVIVAL_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: mc-rcon-credentials
+                                key: rcon-password
                   resources:
                       requests:
                           memory: '256Mi'
