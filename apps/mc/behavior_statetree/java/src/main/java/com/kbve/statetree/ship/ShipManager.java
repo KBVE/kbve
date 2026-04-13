@@ -56,11 +56,35 @@ public final class ShipManager {
             BiomeKeys.FROZEN_OCEAN
     );
 
+    /** Blocks to place per server tick during initial ship placement. */
+    private static final int PLACEMENT_BLOCKS_PER_TICK = 5000;
+
     /** Active ships keyed by ship UUID. */
     private final ConcurrentHashMap<UUID, ActiveShip> ships = new ConcurrentHashMap<>();
 
     /** Chunked block relocation engine. */
     private final ShipMover mover = new ShipMover();
+
+    /** Pending initial placements (chunked across ticks). */
+    private final ConcurrentHashMap<UUID, PlacementJob> placementJobs = new ConcurrentHashMap<>();
+
+    /** A chunked initial placement job. */
+    private static final class PlacementJob {
+        final UUID shipId;
+        final ShipData data;
+        final BlockPos anchor;
+        final java.util.List<Map.Entry<BlockPos, BlockState>> entries;
+        int index = 0;
+
+        PlacementJob(UUID shipId, ShipData data, BlockPos anchor) {
+            this.shipId = shipId;
+            this.data = data;
+            this.anchor = anchor;
+            this.entries = new java.util.ArrayList<>(data.blocks().entrySet());
+        }
+
+        boolean isDone() { return index >= entries.size(); }
+    }
 
     /** Record of an active ship in the world. */
     public static final class ActiveShip {
@@ -102,25 +126,21 @@ public final class ShipManager {
         BlockPos anchor = new BlockPos(ocean.getX(), seaLevel, ocean.getZ());
 
         UUID shipId = UUID.randomUUID();
-        LOGGER.info("[Ship] Placing '{}' at {} (owner={})", data.name(), anchor.toShortString(), ownerUuid);
+        LOGGER.info("[Ship] Queuing '{}' at {} ({} blocks, owner={})",
+                data.name(), anchor.toShortString(), data.blockCount(), ownerUuid);
 
-        // Place all blocks from the schematic
-        int placed = 0;
-        for (Map.Entry<BlockPos, BlockState> entry : data.blocks().entrySet()) {
-            BlockPos worldPos = anchor.add(entry.getKey());
-            world.setBlockState(worldPos, entry.getValue());
-            placed++;
-
-            // Yield occasionally for very large schematics to avoid tick lag
-            // (In production, this should be chunked across multiple ticks)
-        }
-
-        LOGGER.info("[Ship] Placed {} blocks for '{}' (id={})", placed, data.name(), shipId);
-
-        // Entity registration is deferred — registering a custom EntityType
-        // forces clients to have Fabric. Ships work as pure blocks for now.
+        // Queue chunked placement via the mover — same engine used for
+        // movement. This spreads 400k blocks across multiple ticks instead
+        // of freezing the server thread.
         ActiveShip ship = new ActiveShip(shipId, ownerUuid, data.name(), anchor, data);
         ships.put(shipId, ship);
+
+        // Use a "move from nowhere" — old anchor is the same as new anchor,
+        // but we skip the clear phase and go straight to placement.
+        placementJobs.put(shipId, new PlacementJob(shipId, data, anchor));
+
+        LOGGER.info("[Ship] Placement queued for '{}' (id={}), ~{} ticks to complete",
+                data.name(), shipId, data.blockCount() / PLACEMENT_BLOCKS_PER_TICK + 1);
 
         return shipId;
     }
@@ -162,10 +182,30 @@ public final class ShipManager {
     }
 
     /**
-     * Tick the ship manager — processes chunked block relocations.
+     * Tick the ship manager — processes chunked placements and relocations.
      * Call once per server tick.
      */
     public void tick(ServerWorld world) {
+        // Process chunked initial placements
+        var it = placementJobs.entrySet().iterator();
+        while (it.hasNext()) {
+            PlacementJob job = it.next().getValue();
+            int budget = PLACEMENT_BLOCKS_PER_TICK;
+            while (!job.isDone() && budget > 0) {
+                var entry = job.entries.get(job.index);
+                BlockPos worldPos = job.anchor.add(entry.getKey());
+                world.setBlockState(worldPos, entry.getValue(), 18); // 18 = no block updates, no observer triggers
+                job.index++;
+                budget--;
+            }
+            if (job.isDone()) {
+                it.remove();
+                LOGGER.info("[Ship] Placement complete for '{}' ({} blocks placed)",
+                        job.data.name(), job.entries.size());
+            }
+        }
+
+        // Process chunked movement relocations
         mover.tick(world);
     }
 
