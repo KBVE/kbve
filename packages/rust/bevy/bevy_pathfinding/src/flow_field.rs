@@ -91,7 +91,9 @@ impl FlowField {
     /// Goals that are out of bounds or on non-walkable cells are skipped.
     /// Returns a flow field covering the same region as the grid.
     pub fn compute(grid: &BlockGrid, goals: &[(i32, i32)]) -> Self {
-        let n = (grid.width * grid.depth) as usize;
+        let w = grid.width;
+        let d = grid.depth;
+        let n = (w * d) as usize;
         let mut cost = vec![UNREACHABLE; n];
         let mut dirs = vec![Dir::ZERO; n];
         let mut queue = VecDeque::with_capacity(n / 4);
@@ -101,8 +103,7 @@ impl FlowField {
             if !grid.in_bounds(gx, gz) || !grid.is_walkable(gx, gz) {
                 continue;
             }
-            let idx = Self::idx(gx, gz, grid.origin_x, grid.origin_z, grid.width);
-            if let Some(i) = idx {
+            if let Some(i) = Self::idx(gx, gz, grid.origin_x, grid.origin_z, w, d) {
                 if cost[i] == UNREACHABLE {
                     cost[i] = 0;
                     queue.push_back((gx, gz));
@@ -110,11 +111,9 @@ impl FlowField {
             }
         }
 
-        // BFS expansion — unweighted for speed (all steps cost 1).
-        // For weighted terrain, swap to Dijkstra, but BFS is usually
-        // good enough for MC block grids where cost differences are small.
+        // BFS expansion
         while let Some((cx, cz)) = queue.pop_front() {
-            let ci = match Self::idx(cx, cz, grid.origin_x, grid.origin_z, grid.width) {
+            let ci = match Self::idx(cx, cz, grid.origin_x, grid.origin_z, w, d) {
                 Some(i) => i,
                 None => continue,
             };
@@ -128,14 +127,13 @@ impl FlowField {
                     continue;
                 }
 
-                // Height check — mobs can only step up/down 1 block
                 let center_h = grid.get(cx, cz).height;
                 let neigh_h = grid.get(nx, nz).height;
                 if (neigh_h - center_h).abs() > crate::grid::MAX_STEP_HEIGHT {
                     continue;
                 }
 
-                let ni = match Self::idx(nx, nz, grid.origin_x, grid.origin_z, grid.width) {
+                let ni = match Self::idx(nx, nz, grid.origin_x, grid.origin_z, w, d) {
                     Some(i) => i,
                     None => continue,
                 };
@@ -143,8 +141,6 @@ impl FlowField {
                 let new_cost = current_cost + 1;
                 if new_cost < cost[ni] {
                     cost[ni] = new_cost;
-                    // Direction points from neighbor TOWARD current (which is
-                    // closer to goal) — so the neighbor should move by (-dx, -dz).
                     dirs[ni] = Dir {
                         dx: -dx as i8,
                         dz: -dz as i8,
@@ -157,35 +153,29 @@ impl FlowField {
         Self {
             origin_x: grid.origin_x,
             origin_z: grid.origin_z,
-            width: grid.width,
-            depth: grid.depth,
+            width: w,
+            depth: d,
             cost,
             dirs,
         }
     }
 
     /// Compute a flow field that guides AWAY from the given sources.
-    ///
-    /// This is the reverse of `compute` — useful for flee behavior. Cells
-    /// near the sources have high "danger" and the field points toward
-    /// safety (away from the nearest source).
     pub fn compute_flee(grid: &BlockGrid, sources: &[(i32, i32)]) -> Self {
-        // First compute a normal flow field toward the sources to get
-        // distance-to-source for every cell.
         let toward = Self::compute(grid, sources);
 
         let n = toward.cost.len();
+        let w = toward.width;
+        let d = toward.depth;
         let mut dirs = vec![Dir::ZERO; n];
 
-        // For each cell, pick the walkable neighbor with the HIGHEST
-        // cost-to-source (farthest from danger).
         for (i, &cell_cost) in toward.cost.iter().enumerate() {
             if cell_cost == UNREACHABLE || cell_cost == 0 {
                 continue;
             }
 
-            let lx = (i as u32) % toward.width;
-            let lz = (i as u32) / toward.width;
+            let lx = (i as u32) % w;
+            let lz = (i as u32) / w;
             let x = toward.origin_x + lx as i32;
             let z = toward.origin_z + lz as i32;
 
@@ -195,8 +185,7 @@ impl FlowField {
             for &(dx, dz) in &OFFSETS {
                 let nx = x + dx;
                 let nz = z + dz;
-                if let Some(ni) = Self::idx(nx, nz, toward.origin_x, toward.origin_z, toward.width)
-                {
+                if let Some(ni) = Self::idx(nx, nz, toward.origin_x, toward.origin_z, w, d) {
                     let nc = toward.cost[ni];
                     if nc != UNREACHABLE && nc > best_cost {
                         best_cost = nc;
@@ -214,8 +203,8 @@ impl FlowField {
         Self {
             origin_x: toward.origin_x,
             origin_z: toward.origin_z,
-            width: toward.width,
-            depth: toward.depth,
+            width: w,
+            depth: d,
             cost: toward.cost,
             dirs,
         }
@@ -224,34 +213,27 @@ impl FlowField {
     // -- Queries -----------------------------------------------------------
 
     /// Get the direction to move from the given cell toward the nearest goal.
-    /// Returns `None` if the cell is out of bounds or unreachable.
     pub fn direction(&self, x: i32, z: i32) -> Option<(i32, i32)> {
-        let i = Self::idx(x, z, self.origin_x, self.origin_z, self.width)?;
+        let i = Self::idx(x, z, self.origin_x, self.origin_z, self.width, self.depth)?;
         let d = self.dirs[i];
         if d.is_zero() && self.cost[i] != 0 {
-            // Zero direction but not at goal = unreachable
             return None;
         }
         Some((d.dx as i32, d.dz as i32))
     }
 
     /// Get the BFS distance from the given cell to the nearest goal.
-    /// Returns `None` if unreachable or out of bounds.
     pub fn distance(&self, x: i32, z: i32) -> Option<u32> {
-        let i = Self::idx(x, z, self.origin_x, self.origin_z, self.width)?;
+        let i = Self::idx(x, z, self.origin_x, self.origin_z, self.width, self.depth)?;
         let c = self.cost[i];
         if c == UNREACHABLE { None } else { Some(c) }
     }
 
     /// Convert the direction at `(x, z)` into a world-space target position.
-    ///
-    /// Given an entity at `(ex, ey, ez)` in f64 MC coords, returns the
-    /// center of the next cell they should walk toward, with Y set to the
-    /// grid's recorded height for that cell.
     pub fn next_target(&self, grid: &BlockGrid, x: i32, z: i32) -> Option<[f64; 3]> {
         let (dx, dz) = self.direction(x, z)?;
         if dx == 0 && dz == 0 {
-            return None; // At goal
+            return None;
         }
         let nx = x + dx;
         let nz = z + dz;
@@ -266,14 +248,14 @@ impl FlowField {
 
     // -- Internals ---------------------------------------------------------
 
+    /// Bounds-checked index with both width and depth validation.
     #[inline]
-    fn idx(x: i32, z: i32, origin_x: i32, origin_z: i32, width: u32) -> Option<usize> {
+    fn idx(x: i32, z: i32, origin_x: i32, origin_z: i32, width: u32, depth: u32) -> Option<usize> {
         let lx = x - origin_x;
         let lz = z - origin_z;
-        if lx < 0 || lz < 0 || lx >= width as i32 {
+        if lx < 0 || lz < 0 || lx >= width as i32 || lz >= depth as i32 {
             return None;
         }
-        let i = lz as u32 * width + lx as u32;
-        Some(i as usize)
+        Some((lz as u32 * width + lx as u32) as usize)
     }
 }
