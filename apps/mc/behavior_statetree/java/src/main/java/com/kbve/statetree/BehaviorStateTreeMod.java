@@ -2,6 +2,7 @@ package com.kbve.statetree;
 
 import com.kbve.statetree.ship.ShipCommands;
 import com.kbve.statetree.ship.ShipManager;
+import com.kbve.statetree.ship.Shipyard;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -25,17 +26,21 @@ public class BehaviorStateTreeMod implements ModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     private final ShipManager shipManager = new ShipManager();
+    private final Shipyard shipyard = new Shipyard();
 
     @Override
     public void onInitialize() {
-        // Ship commands register regardless of native library state —
-        // ships are pure Java (schematic placement + block management).
-        // NOTE: ShipEntity registration is deferred — registering a custom
-        // EntityType forces clients to have Fabric installed. Ships work as
-        // pure blocks for now; the entity will be registered once we add
-        // client-side rendering support.
+        // Register ship blueprints — parsed once at server start, cached forever
+        shipyard.registerBlueprint("dark_reaper", "/schematics/dark_reaper.nbt");
+
+        // Load all schematics when the server starts (before players connect)
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            shipyard.loadAll();
+        });
+
+        // Ship commands use the Shipyard for instant acquisition (no re-parsing)
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            ShipCommands.register(dispatcher, shipManager);
+            ShipCommands.register(dispatcher, shipManager, shipyard);
         });
 
         // Tick ship block relocations (chunked movement)
