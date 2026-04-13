@@ -4,8 +4,9 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MovementType;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Vec3d;
@@ -69,7 +70,7 @@ public class ShipEntity extends Entity {
             return ActionResult.PASS;
         }
 
-        // Server-side only — ServerPlayerEntity only exists on the server
+        // Server-side only — ServerPlayerEntity only exists on server
         if (player instanceof ServerPlayerEntity && !this.hasPassengers()) {
             player.startRiding(this);
             return ActionResult.SUCCESS;
@@ -88,10 +89,11 @@ public class ShipEntity extends Entity {
     public void tick() {
         super.tick();
 
-        // Only run movement on the server — check if we have a server reference
-        if (this.getServer() == null) return;
+        // Only move on server — check for rider being ServerPlayerEntity
         if (targetSpeed <= 0.0f) return;
         if (!this.hasPassengers()) return;
+        Entity rider = this.getFirstPassenger();
+        if (!(rider instanceof ServerPlayerEntity)) return;
 
         double rad = Math.toRadians(heading);
         double dx = -Math.sin(rad) * targetSpeed * 0.05;
@@ -118,7 +120,7 @@ public class ShipEntity extends Entity {
         }
     }
 
-    // -- Serialization (1.21.11 Yarn — WriteView / ReadView) ----------------
+    // -- Serialization (1.21.11 WriteView / ReadView API) -------------------
 
     @Override
     protected void initDataTracker(net.minecraft.entity.data.DataTracker.Builder builder) {
@@ -126,18 +128,18 @@ public class ShipEntity extends Entity {
     }
 
     @Override
-    public void readCustomData(NbtCompound nbt) {
-        this.shipIdStr = nbt.getString("ShipId").orElse("");
-        this.ownerUuidStr = nbt.getString("OwnerUuid").orElse("");
-        this.heading = nbt.getFloat("Heading").orElse(0.0f);
-        this.targetSpeed = nbt.getFloat("TargetSpeed").orElse(0.0f);
+    public void readCustomData(ReadView view) {
+        this.shipIdStr = view.getString("ShipId", "");
+        this.ownerUuidStr = view.getString("OwnerUuid", "");
+        this.heading = view.getFloat("Heading", 0.0f);
+        this.targetSpeed = view.getFloat("TargetSpeed", 0.0f);
     }
 
     @Override
-    public void writeCustomData(NbtCompound nbt) {
-        nbt.putString("ShipId", shipIdStr);
-        nbt.putString("OwnerUuid", ownerUuidStr);
-        nbt.putFloat("Heading", heading);
-        nbt.putFloat("TargetSpeed", targetSpeed);
+    public void writeCustomData(WriteView view) {
+        view.putString("ShipId", shipIdStr);
+        view.putString("OwnerUuid", ownerUuidStr);
+        view.putFloat("Heading", heading);
+        view.putFloat("TargetSpeed", targetSpeed);
     }
 }

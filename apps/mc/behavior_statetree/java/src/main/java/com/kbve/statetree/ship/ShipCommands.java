@@ -38,7 +38,7 @@ public final class ShipCommands {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, ShipManager manager) {
         dispatcher.register(
                 CommandManager.literal("spawnship")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(source -> source.isExecutedByPlayer())
                         .then(CommandManager.argument("name", StringArgumentType.word())
                                 .suggests((ctx, builder) -> {
                                     SCHEMATICS.keySet().forEach(builder::suggest);
@@ -53,7 +53,7 @@ public final class ShipCommands {
 
         dispatcher.register(
                 CommandManager.literal("removeship")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(source -> source.isExecutedByPlayer())
                         .then(CommandManager.argument("uuid", StringArgumentType.string())
                                 .executes(ctx -> {
                                     String uuidStr = StringArgumentType.getString(ctx, "uuid");
