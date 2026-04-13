@@ -167,6 +167,48 @@ pub enum NpcCommand {
         duration_ticks: u32,
         amplifier: u8,
     },
+
+    // -- Skeleton archetype commands ----------------------------------------
+    /// Place a block at the given position. Used by melee skeletons to
+    /// build scaffolding when stuck at a cliff. Java places the block and
+    /// schedules it for cleanup after `cleanup_ticks` (0 = permanent).
+    PlaceBlock {
+        block_pos: [i64; 3],
+        /// Block type tag for Java dispatch. "scaffolding" = Blocks.SCAFFOLDING.
+        block_type: String,
+        /// Ticks until Java auto-removes the placed block. 0 = no cleanup.
+        cleanup_ticks: u32,
+    },
+    /// Teleport the mob to the target position. Used by mage skeletons
+    /// to bypass vertical obstacles and walls. Java sets the entity
+    /// position directly + plays enderman teleport particles/sound.
+    Teleport {
+        target: [f64; 3],
+    },
+    /// Shoot a projectile at the target entity. Used by archer skeletons.
+    /// Java spawns an arrow from the mob aimed at the target with the
+    /// given power (0.0-1.0 → pull strength, affects speed + damage).
+    ShootArrow {
+        target_entity: u64,
+        power: f32,
+    },
+
+    // -- Archetype-specific spawn commands ----------------------------------
+    /// Spawn a melee skeleton (sword + scaffold ability).
+    SpawnSkeletonMelee {
+        near_player: u64,
+        radius: i32,
+    },
+    /// Spawn a mage skeleton (teleport ability).
+    SpawnSkeletonMage {
+        near_player: u64,
+        radius: i32,
+    },
+    /// Spawn an archer skeleton (ranged bow attacks).
+    SpawnSkeletonArcher {
+        near_player: u64,
+        radius: i32,
+    },
 }
 
 /// Result of async AI planning. Only applied if epoch matches current NPC epoch.

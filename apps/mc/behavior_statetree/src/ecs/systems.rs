@@ -8,6 +8,9 @@ use bevy::prelude::*;
 use bevy_pathfinding::flow_field::FlowField;
 use bevy_pathfinding::flow_gate;
 
+use crate::tree::archetype_nodes::{
+    BuildScaffold, IsPathBlocked, IsStuckAtCliff, MaintainRange, ShootAtTarget, TeleportToTarget,
+};
 use crate::tree::builtin::{AttackNearest, CallAllies, Flee, IsHealthLow, Wander};
 use crate::tree::flow_nodes::{
     FlowApproach, FlowFlee, HasFlowField, PatrolGate, PlayerWithinFlowDistance,
@@ -121,10 +124,57 @@ pub fn ingest_observations(
                         nearby,
                     ));
                 }
-                _ => {
+                "skeleton_melee" => {
                     commands.spawn((
                         AiManaged,
                         AiSkeleton,
+                        SkeletonArchetype::Melee,
+                        StuckTracker::default(),
+                        ScaffoldCooldown::default(),
+                        McEntityId(obs.entity_id),
+                        position,
+                        health,
+                        AiEpoch { value: 1 },
+                        CallCooldown::new(1200),
+                        nearby,
+                    ));
+                }
+                "skeleton_mage" => {
+                    commands.spawn((
+                        AiManaged,
+                        AiSkeleton,
+                        SkeletonArchetype::Mage,
+                        TeleportCooldown::default(),
+                        McEntityId(obs.entity_id),
+                        position,
+                        health,
+                        AiEpoch { value: 1 },
+                        CallCooldown::new(1200),
+                        nearby,
+                    ));
+                }
+                "skeleton_archer" => {
+                    commands.spawn((
+                        AiManaged,
+                        AiSkeleton,
+                        SkeletonArchetype::Archer,
+                        ArrowCooldown::default(),
+                        McEntityId(obs.entity_id),
+                        position,
+                        health,
+                        AiEpoch { value: 1 },
+                        CallCooldown::new(1200),
+                        nearby,
+                    ));
+                }
+                _ => {
+                    // Legacy "skeleton" or unknown kind — default melee
+                    commands.spawn((
+                        AiManaged,
+                        AiSkeleton,
+                        SkeletonArchetype::Melee,
+                        StuckTracker::default(),
+                        ScaffoldCooldown::default(),
                         McEntityId(obs.entity_id),
                         position,
                         health,
@@ -282,21 +332,41 @@ pub fn manage_skeleton_population(
     let alive = total_skeletons.saturating_sub(despawn_count);
 
     // ---- Spawn pass --------------------------------------------------------
+    // Spawn a mix of archetypes: cycle through melee, mage, archer.
+    // This gives each spawn wave a balanced composition.
     if alive >= config.max_skeletons || player_positions.is_empty() {
         return;
     }
     let needed = config.max_skeletons - alive;
+    let archetype_cycle = [
+        SkeletonArchetype::Melee,
+        SkeletonArchetype::Archer,
+        SkeletonArchetype::Melee,
+        SkeletonArchetype::Mage,
+    ];
     for (i, (player_id, _)) in player_positions.iter().enumerate() {
         if i >= needed {
             break;
         }
+        let archetype = archetype_cycle[i % archetype_cycle.len()];
+        let cmd = match archetype {
+            SkeletonArchetype::Melee => NpcCommand::SpawnSkeletonMelee {
+                near_player: *player_id,
+                radius: config.spawn_radius,
+            },
+            SkeletonArchetype::Mage => NpcCommand::SpawnSkeletonMage {
+                near_player: *player_id,
+                radius: config.spawn_radius,
+            },
+            SkeletonArchetype::Archer => NpcCommand::SpawnSkeletonArcher {
+                near_player: *player_id,
+                radius: config.spawn_radius,
+            },
+        };
         world_intents.ready.push(IntentReady {
             entity_id: 0,
             epoch: 0,
-            commands: vec![NpcCommand::SpawnSkeleton {
-                near_player: *player_id,
-                radius: config.spawn_radius,
-            }],
+            commands: vec![cmd],
         });
     }
 }
@@ -323,6 +393,7 @@ pub fn plan_behavior(
             &AiEpoch,
             &NearbyEntities,
             &mut CallCooldown,
+            Option<&SkeletonArchetype>,
         ),
         With<AiManaged>,
     >,
@@ -334,11 +405,9 @@ pub fn plan_behavior(
     flee_field: Res<FleeFlowField>,
     gates: Res<DetectedFlowGates>,
 ) {
-    let tree = build_behavior_tree();
     let current_tick = server_tick.0;
 
-    for (mc_id, pos, health, epoch, nearby, mut cooldown) in &mut query {
-        // Build flow field hint from computed resources
+    for (mc_id, pos, health, epoch, nearby, mut cooldown, archetype) in &mut query {
         let flow_hint = build_flow_hint(
             pos,
             grid_res.as_ref(),
@@ -346,6 +415,14 @@ pub fn plan_behavior(
             flee_field.as_ref(),
             gates.as_ref(),
         );
+
+        // Determine entity_kind tag based on archetype
+        let entity_kind = match archetype {
+            Some(SkeletonArchetype::Melee) => "skeleton_melee",
+            Some(SkeletonArchetype::Mage) => "skeleton_mage",
+            Some(SkeletonArchetype::Archer) => "skeleton_archer",
+            None => "skeleton",
+        };
 
         let observation = NpcObservation {
             entity_id: mc_id.0,
@@ -366,9 +443,17 @@ pub fn plan_behavior(
             nearby_blocks: vec![],
             current_goal: None,
             tick: current_tick,
-            entity_kind: "skeleton".to_string(),
+            entity_kind: entity_kind.to_string(),
             owner_entity: None,
             flow_hint,
+        };
+
+        // Select behavior tree based on archetype
+        let tree: Box<dyn BehaviorNode> = match archetype {
+            Some(SkeletonArchetype::Melee) => Box::new(build_melee_tree()),
+            Some(SkeletonArchetype::Mage) => Box::new(build_mage_tree()),
+            Some(SkeletonArchetype::Archer) => Box::new(build_archer_tree()),
+            None => Box::new(build_behavior_tree()),
         };
 
         let mut ctx = BehaviorContext {
@@ -449,6 +534,151 @@ fn build_flow_hint(
         player_distance,
         nearest_gate,
         gates_in_range,
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Archetype-specific behavior trees
+// ---------------------------------------------------------------------------
+
+/// Melee skeleton: approach → stuck at cliff? build scaffold → attack → wander
+fn build_melee_tree() -> Selector {
+    Selector {
+        children: vec![
+            // Priority 1: Low HP → flee
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(IsHealthLow { threshold: 5.0 }),
+                    Box::new(Selector {
+                        children: vec![
+                            Box::new(FlowFlee),
+                            Box::new(Flee {
+                                flee_distance: 16.0,
+                            }),
+                        ],
+                    }),
+                ],
+            }),
+            // Priority 2: Call for help when hurt
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(IsHealthLow { threshold: 6.0 }),
+                    Box::new(CallAllies {
+                        health_threshold: 6.0,
+                        reinforcement_count: 1,
+                    }),
+                ],
+            }),
+            // Priority 3: Attack if in melee range
+            Box::new(AttackNearest { range: 2.5 }),
+            // Priority 4: Stuck at cliff → build scaffolding
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(IsStuckAtCliff),
+                    Box::new(BuildScaffold {
+                        cleanup_ticks: 600, // 30s at 20 TPS
+                    }),
+                ],
+            }),
+            // Priority 5: Flow field approach
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(HasFlowField),
+                    Box::new(PlayerWithinFlowDistance { max_distance: 24 }),
+                    Box::new(FlowApproach),
+                ],
+            }),
+            // Priority 6: Patrol chokepoints
+            Box::new(PatrolGate),
+            // Priority 7: Wander
+            Box::new(Wander { radius: 8.0 }),
+        ],
+    }
+}
+
+/// Mage skeleton: teleport past obstacles → attack from close range → flee via teleport
+fn build_mage_tree() -> Selector {
+    Selector {
+        children: vec![
+            // Priority 1: Low HP → teleport away, then flee
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(IsHealthLow { threshold: 5.0 }),
+                    Box::new(Selector {
+                        children: vec![
+                            Box::new(FlowFlee),
+                            Box::new(Flee {
+                                flee_distance: 16.0,
+                            }),
+                        ],
+                    }),
+                ],
+            }),
+            // Priority 2: Attack if in melee range
+            Box::new(AttackNearest { range: 2.5 }),
+            // Priority 3: Path is blocked → teleport to target
+            Box::new(Sequence {
+                children: vec![Box::new(IsPathBlocked), Box::new(TeleportToTarget)],
+            }),
+            // Priority 4: Stuck at cliff → teleport
+            Box::new(Sequence {
+                children: vec![Box::new(IsStuckAtCliff), Box::new(TeleportToTarget)],
+            }),
+            // Priority 5: Flow field approach
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(HasFlowField),
+                    Box::new(PlayerWithinFlowDistance { max_distance: 32 }),
+                    Box::new(FlowApproach),
+                ],
+            }),
+            // Priority 6: Wander
+            Box::new(Wander { radius: 10.0 }),
+        ],
+    }
+}
+
+/// Archer skeleton: maintain distance → shoot → reposition
+fn build_archer_tree() -> Selector {
+    Selector {
+        children: vec![
+            // Priority 1: Low HP → flee
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(IsHealthLow { threshold: 5.0 }),
+                    Box::new(Selector {
+                        children: vec![
+                            Box::new(FlowFlee),
+                            Box::new(Flee {
+                                flee_distance: 20.0,
+                            }),
+                        ],
+                    }),
+                ],
+            }),
+            // Priority 2: Shoot at target in range
+            Box::new(ShootAtTarget {
+                range: 20.0,
+                power: 0.8,
+            }),
+            // Priority 3: Maintain ideal range (back up if too close)
+            Box::new(MaintainRange {
+                ideal_range: 14.0,
+                min_range: 6.0,
+            }),
+            // Priority 4: Flow field approach (close gap if too far)
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(HasFlowField),
+                    Box::new(PlayerWithinFlowDistance { max_distance: 30 }),
+                    Box::new(FlowApproach),
+                ],
+            }),
+            // Priority 5: Patrol gates (good vantage points)
+            Box::new(PatrolGate),
+            // Priority 6: Wander
+            Box::new(Wander { radius: 12.0 }),
+        ],
     }
 }
 
