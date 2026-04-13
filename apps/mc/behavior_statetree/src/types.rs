@@ -54,6 +54,37 @@ pub struct NpcObservation {
     /// player that owns them. `None` for unowned mobs.
     #[serde(default)]
     pub owner_entity: Option<u64>,
+    /// Flow field navigation hints. Not sent from Java — injected by the
+    /// ECS `plan_behavior` system from computed flow field resources.
+    #[serde(default)]
+    pub flow_hint: FlowFieldHint,
+}
+
+// ---------------------------------------------------------------------------
+// Flow field hint — injected by the ECS `plan_behavior` system from
+// the computed flow field resources. Lets behavior tree nodes make
+// terrain-aware movement decisions without direct ECS access.
+// ---------------------------------------------------------------------------
+
+/// Pre-computed navigation hints derived from the current flow field and
+/// flow gate state. Populated per-NPC by the `plan_behavior` system.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct FlowFieldHint {
+    /// Suggested next block position from the approach flow field
+    /// (toward the nearest player). `None` if no flow field is available
+    /// or the NPC is out of the grid bounds.
+    pub approach_target: Option<[f64; 3]>,
+    /// Suggested next block position from the flee flow field (away from
+    /// all players). `None` if unavailable.
+    pub flee_target: Option<[f64; 3]>,
+    /// BFS distance (in blocks) to the nearest player via the flow field.
+    /// `None` if unreachable or no field available.
+    pub player_distance: Option<u32>,
+    /// Position of the nearest detected chokepoint / flow gate.
+    /// `None` if no gates are detected.
+    pub nearest_gate: Option<[f64; 3]>,
+    /// Number of flow gates within a reasonable patrol radius (~32 blocks).
+    pub gates_in_range: u32,
 }
 
 /// Job submitted to the Tokio runtime for async processing.

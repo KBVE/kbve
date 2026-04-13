@@ -6,6 +6,8 @@
 
 use bevy::prelude::*;
 
+use bevy_pathfinding::grid::MapRegionSnapshot;
+
 use crate::types::{NpcCommand, NpcObservation, PlayerSnapshot};
 
 /// Inbound buffer: per-NPC observations queued from JNI, drained by
@@ -38,6 +40,14 @@ pub struct IntentBuffer {
 #[derive(Resource, Default)]
 pub struct WorldIntentBuffer {
     pub ready: Vec<IntentReady>,
+}
+
+/// Inbound buffer: map region snapshots queued from JNI, drained by
+/// `ingest_map_data` each tick. Java sends these every few seconds when
+/// players move — NOT every tick.
+#[derive(Resource, Default)]
+pub struct MapDataBuffer {
+    pub pending: Vec<MapRegionSnapshot>,
 }
 
 /// A single intent ready to send back to Java.

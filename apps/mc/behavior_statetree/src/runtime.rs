@@ -10,14 +10,17 @@ use bevy::app::App;
 use crossbeam_channel::{Receiver, Sender, bounded};
 use tracing::{debug, warn};
 
+use bevy_pathfinding::grid::MapRegionSnapshot;
+
 use crate::ecs::AiBehaviorPlugin;
 use crate::ecs::events::{
-    IntentBuffer, ObservationBuffer, PlayerObservationBuffer, WorldIntentBuffer,
+    IntentBuffer, MapDataBuffer, ObservationBuffer, PlayerObservationBuffer, WorldIntentBuffer,
 };
 use crate::types::{NpcIntent, NpcThinkJob, PlayerSnapshot};
 
 const JOB_CHANNEL_SIZE: usize = 256;
 const PLAYER_SNAPSHOT_CHANNEL_SIZE: usize = 64;
+const MAP_DATA_CHANNEL_SIZE: usize = 4;
 const INTENT_CHANNEL_SIZE: usize = 256;
 const ECS_TICK_INTERVAL: Duration = Duration::from_millis(100);
 
@@ -25,6 +28,7 @@ const ECS_TICK_INTERVAL: Duration = Duration::from_millis(100);
 pub struct AiRuntime {
     job_tx: Sender<NpcThinkJob>,
     player_tx: Sender<PlayerSnapshot>,
+    map_tx: Sender<MapRegionSnapshot>,
     intent_rx: Receiver<NpcIntent>,
 }
 
@@ -32,19 +36,21 @@ impl AiRuntime {
     pub fn start() -> Self {
         let (job_tx, job_rx) = bounded::<NpcThinkJob>(JOB_CHANNEL_SIZE);
         let (player_tx, player_rx) = bounded::<PlayerSnapshot>(PLAYER_SNAPSHOT_CHANNEL_SIZE);
+        let (map_tx, map_rx) = bounded::<MapRegionSnapshot>(MAP_DATA_CHANNEL_SIZE);
         let (intent_tx, intent_rx) = bounded::<NpcIntent>(INTENT_CHANNEL_SIZE);
 
         // Dedicated OS thread for the Bevy App (not Send, can't use Tokio)
         std::thread::Builder::new()
             .name("npc-ecs".into())
             .spawn(move || {
-                ecs_tick_loop(job_rx, player_rx, intent_tx);
+                ecs_tick_loop(job_rx, player_rx, map_rx, intent_tx);
             })
             .expect("failed to spawn NPC ECS thread");
 
         Self {
             job_tx,
             player_tx,
+            map_tx,
             intent_rx,
         }
     }
@@ -55,6 +61,10 @@ impl AiRuntime {
 
     pub fn submit_player_snapshot(&self, snapshot: PlayerSnapshot) -> bool {
         self.player_tx.try_send(snapshot).is_ok()
+    }
+
+    pub fn submit_map_data(&self, snapshot: MapRegionSnapshot) -> bool {
+        self.map_tx.try_send(snapshot).is_ok()
     }
 
     pub fn poll_intents(&self) -> Vec<NpcIntent> {
@@ -69,6 +79,7 @@ impl AiRuntime {
 fn ecs_tick_loop(
     job_rx: Receiver<NpcThinkJob>,
     player_rx: Receiver<PlayerSnapshot>,
+    map_rx: Receiver<MapRegionSnapshot>,
     intent_tx: Sender<NpcIntent>,
 ) {
     let mut app = App::new();
@@ -91,6 +102,14 @@ fn ecs_tick_loop(
             let mut player_buffer = app.world_mut().resource_mut::<PlayerObservationBuffer>();
             while let Ok(snapshot) = player_rx.try_recv() {
                 player_buffer.pending.push(snapshot);
+            }
+        }
+
+        // Drain map region snapshots into the ECS buffer
+        {
+            let mut map_buffer = app.world_mut().resource_mut::<MapDataBuffer>();
+            while let Ok(snapshot) = map_rx.try_recv() {
+                map_buffer.pending.push(snapshot);
             }
         }
 

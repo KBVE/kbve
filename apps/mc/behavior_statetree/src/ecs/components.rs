@@ -295,3 +295,46 @@ impl Default for PetParrotPopulationConfig {
 /// Tracks when the pet parrot population manager last ran.
 #[derive(Resource, Debug, Default)]
 pub struct LastPetParrotManagedTick(pub u64);
+
+// ---------------------------------------------------------------------------
+// Flow field / pathfinding resources — computed from map data snapshots
+// sent by Java. The grid + flow fields are recomputed every few seconds
+// (gated by `FlowFieldRebuildTick`), not every ECS tick.
+// ---------------------------------------------------------------------------
+
+/// The current walkability grid built from the most recent map snapshot.
+/// `None` until Java sends the first `MapRegionSnapshot`.
+#[derive(Resource, Default)]
+pub struct CurrentBlockGrid(pub Option<bevy_pathfinding::grid::BlockGrid>);
+
+/// Flow fields computed toward each online player's position. Keyed by
+/// the player's Minecraft entity ID so skeletons can pick "approach the
+/// nearest player" in O(1) per cell.
+#[derive(Resource, Default)]
+pub struct PlayerFlowFields(pub Vec<(u64, bevy_pathfinding::flow_field::FlowField)>);
+
+/// Flee flow field — points every cell AWAY from all player positions.
+/// Used by the low-health flee behavior.
+#[derive(Resource, Default)]
+pub struct FleeFlowField(pub Option<bevy_pathfinding::flow_field::FlowField>);
+
+/// Detected chokepoints / flow gates in the current grid. Recomputed
+/// alongside the flow fields.
+#[derive(Resource, Default)]
+pub struct DetectedFlowGates(pub Vec<bevy_pathfinding::flow_gate::FlowGate>);
+
+/// Tracks when the flow field was last rebuilt. Flow field recomputation
+/// is expensive relative to a normal ECS tick, so it's throttled.
+#[derive(Resource, Debug, Default)]
+pub struct FlowFieldRebuildTick(pub u64);
+
+/// How many ECS ticks between flow field rebuilds.
+/// At 100ms/tick, 30 ticks ≈ 3 seconds.
+#[derive(Resource, Debug)]
+pub struct FlowFieldRebuildInterval(pub u64);
+
+impl Default for FlowFieldRebuildInterval {
+    fn default() -> Self {
+        Self(30) // ~3s at 100ms ECS ticks
+    }
+}
