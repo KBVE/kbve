@@ -53,7 +53,7 @@ public final class SchematicLoader {
      */
     public static ShipData loadNbtSchematic(String name, InputStream stream) {
         try {
-            NbtCompound root = NbtIo.readCompressed(stream, NbtSizeTracker.of(64 * 1024 * 1024));
+            NbtCompound root = NbtIo.readCompressed(stream, NbtSizeTracker.ofUnlimitedBytes());
 
             if (!root.contains("size") && !root.contains("blocks")) {
                 return null;
@@ -121,7 +121,7 @@ public final class SchematicLoader {
      */
     public static ShipData loadLitematic(String name, InputStream stream) {
         try {
-            NbtCompound root = NbtIo.readCompressed(stream, NbtSizeTracker.of(64 * 1024 * 1024));
+            NbtCompound root = NbtIo.readCompressed(stream, NbtSizeTracker.ofUnlimitedBytes());
             return parseLitematic(name, root);
         } catch (Exception e) {
             LOGGER.error("[Ship] Failed to load litematic '{}': {}", name, e.getMessage());
