@@ -45,6 +45,9 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
     /** Only submit observations every N ticks (10 = 0.5s at 20 TPS). */
     private static final int OBSERVE_INTERVAL = 10;
 
+    /** Only scan map data every N ticks (60 = 3s at 20 TPS). */
+    private static final int MAP_SCAN_INTERVAL = 60;
+
     private final AiCreatureManager creatureManager = new AiCreatureManager();
     private int tickCounter = 0;
 
@@ -63,6 +66,16 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
         if (tickCounter % OBSERVE_INTERVAL == 0) {
             submitPlayerSnapshot(server);
             creatureManager.submitObservations(server);
+        }
+
+        // Phase 1b: Scan map surface — slower cadence than observations.
+        // Builds a 64x64 walkability grid centered on the player centroid
+        // and pushes it to Rust for flow field + chokepoint computation.
+        if (tickCounter % MAP_SCAN_INTERVAL == 0) {
+            ServerWorld overworld = server.getOverworld();
+            if (overworld != null) {
+                MapScanner.scanAndSubmit(overworld, overworld.getTime());
+            }
         }
 
         // Phase 2: Poll and apply intents every tick for responsiveness

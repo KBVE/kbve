@@ -88,6 +88,18 @@ public final class NativeRuntime {
     public static native boolean submitPlayerSnapshot(String snapshotJson);
 
     /**
+     * Submit a map region snapshot as JSON for flow field computation.
+     *
+     * <p>Java scans the surface around each player every few seconds and
+     * packs walkability data into a {@code MapRegionSnapshot}. Rust builds
+     * a {@code BlockGrid} and computes flow fields + chokepoints from it.
+     *
+     * @param snapshotJson JSON-serialized MapRegionSnapshot
+     * @return true if accepted, false if back-pressured
+     */
+    public static native boolean submitMapData(String snapshotJson);
+
+    /**
      * Poll all completed NPC intents as a JSON array.
      * Call each server tick to drain results.
      *
