@@ -88,15 +88,15 @@ public final class ShipCommands {
         if (data == null) {
             // Not loaded yet — trigger background load and notify when ready
             String shipName = name;
+            ServerPlayerEntity notifyPlayer = player;
             shipyard.ensureLoaded(name, () -> {
-                // This runs on the loader thread — send message via server
-                if (player.getServer() != null) {
-                    player.getServer().execute(() -> {
-                        player.sendMessage(Text.of(
-                                "\u00A7a\u00A7l[Shipyard] \u00A7r\u00A7e'" + shipName +
-                                        "' is ready! Run \u00A7f/spawnship " + shipName +
-                                        "\u00A7e again to deploy."), false);
-                    });
+                // Callback runs on loader thread — sendMessage is thread-safe
+                // for ServerPlayerEntity (queues a network packet)
+                if (notifyPlayer.isAlive()) {
+                    notifyPlayer.sendMessage(Text.of(
+                            "\u00A7a\u00A7l[Shipyard] \u00A7r\u00A7e'" + shipName +
+                                    "' is ready! Run \u00A7f/spawnship " + shipName +
+                                    "\u00A7e again to deploy."), false);
                 }
             });
 
