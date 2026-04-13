@@ -37,6 +37,7 @@ public final class ShipNetworking {
     public static final Identifier SHIP_MOVE_ID = Identifier.of("behavior_statetree", "ship_move");
     public static final Identifier SHIP_SPAWN_ID = Identifier.of("behavior_statetree", "ship_spawn");
     public static final Identifier SHIP_DESPAWN_ID = Identifier.of("behavior_statetree", "ship_despawn");
+    public static final Identifier SHIP_STATUS_ID = Identifier.of("behavior_statetree", "ship_status");
     public static final Identifier HELM_INPUT_ID = Identifier.of("behavior_statetree", "helm_input");
 
     // -- Server → Client payloads -------------------------------------------
@@ -100,6 +101,31 @@ public final class ShipNetworking {
         public Id<? extends CustomPayload> getId() { return ID; }
     }
 
+    /** Ship status update — hull integrity, block count, damage events. */
+    public record ShipStatusPayload(
+            String shipId,
+            float integrity,
+            int blockCount,
+            int damageX, int damageY, int damageZ,
+            byte action // 0 = block removed (damage), 1 = block added (repair)
+    ) implements CustomPayload {
+        public static final CustomPayload.Id<ShipStatusPayload> ID = new CustomPayload.Id<>(SHIP_STATUS_ID);
+        public static final PacketCodec<RegistryByteBuf, ShipStatusPayload> CODEC =
+                PacketCodec.tuple(
+                        PacketCodecs.STRING, ShipStatusPayload::shipId,
+                        PacketCodecs.FLOAT, ShipStatusPayload::integrity,
+                        PacketCodecs.INTEGER, ShipStatusPayload::blockCount,
+                        PacketCodecs.INTEGER, ShipStatusPayload::damageX,
+                        PacketCodecs.INTEGER, ShipStatusPayload::damageY,
+                        PacketCodecs.INTEGER, ShipStatusPayload::damageZ,
+                        PacketCodecs.BYTE, ShipStatusPayload::action,
+                        ShipStatusPayload::new
+                );
+
+        @Override
+        public Id<? extends CustomPayload> getId() { return ID; }
+    }
+
     // -- Client → Server payloads -------------------------------------------
 
     /** WASD helm steering input. */
@@ -129,6 +155,7 @@ public final class ShipNetworking {
         PayloadTypeRegistry.playS2C().register(ShipMovePayload.ID, ShipMovePayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ShipSpawnPayload.ID, ShipSpawnPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ShipDespawnPayload.ID, ShipDespawnPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ShipStatusPayload.ID, ShipStatusPayload.CODEC);
 
         // Client → Server
         PayloadTypeRegistry.playC2S().register(HelmInputPayload.ID, HelmInputPayload.CODEC);
@@ -176,6 +203,24 @@ public final class ShipNetworking {
                 ship.shipId.toString(),
                 ship.anchor.getX(), ship.anchor.getY(), ship.anchor.getZ(),
                 ship.heading
+        );
+        for (ServerPlayerEntity player : world.getPlayers()) {
+            ServerPlayNetworking.send(player, payload);
+        }
+    }
+
+    /** Send a ship status update (damage event) to all players in the world. */
+    public static void broadcastShipStatus(
+            net.minecraft.server.world.ServerWorld world,
+            ShipManager.ActiveShip ship,
+            int damageX, int damageY, int damageZ,
+            byte action) {
+        ShipStatusPayload payload = new ShipStatusPayload(
+                ship.shipId.toString(),
+                ship.blockTracker.integrity(),
+                ship.blockTracker.blockCount(),
+                damageX, damageY, damageZ,
+                action
         );
         for (ServerPlayerEntity player : world.getPlayers()) {
             ServerPlayNetworking.send(player, payload);

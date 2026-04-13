@@ -40,15 +40,12 @@ public final class ShipProtection {
                     // Update the live block tracker
                     ship.blockTracker.removeBlock(offset);
 
-                    // Log damage at integrity thresholds
-                    float integrity = ship.blockTracker.integrity();
-                    if (integrity <= 75 && integrity > 74 ||
-                            integrity <= 50 && integrity > 49 ||
-                            integrity <= 25 && integrity > 24 ||
-                            integrity <= 10 && integrity > 9) {
-                        LOGGER.info("[Ship] '{}' hull integrity: {:.0f}% ({} blocks remaining)",
-                                ship.shipName, integrity, ship.blockTracker.blockCount());
-                    }
+                    // Broadcast damage to all clients (HUD + effects)
+                    ShipNetworking.broadcastShipStatus(
+                            serverWorld, ship,
+                            pos.getX(), pos.getY(), pos.getZ(),
+                            (byte) 0 // 0 = removed
+                    );
 
                     return false; // cancel normal break (no drops)
                 }
