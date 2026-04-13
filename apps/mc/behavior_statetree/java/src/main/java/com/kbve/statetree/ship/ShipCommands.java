@@ -86,12 +86,26 @@ public final class ShipCommands {
 
         ShipData data = shipyard.acquire(name);
         if (data == null) {
+            // Not loaded yet — trigger background load and notify when ready
+            String shipName = name;
+            shipyard.ensureLoaded(name, () -> {
+                // This runs on the loader thread — send message via server
+                if (player.getServer() != null) {
+                    player.getServer().execute(() -> {
+                        player.sendMessage(Text.of(
+                                "\u00A7a\u00A7l[Shipyard] \u00A7r\u00A7e'" + shipName +
+                                        "' is ready! Run \u00A7f/spawnship " + shipName +
+                                        "\u00A7e again to deploy."), false);
+                    });
+                }
+            });
+
             if (shipyard.isLoading(name)) {
                 source.sendFeedback(() -> Text.of(
-                        "\u00A7eShip '" + name + "' is being loaded in the background. Try again in a few seconds."), false);
+                        "\u00A7e[Shipyard] Loading '" + name + "'... You'll be notified when it's ready."), false);
             } else {
                 source.sendFeedback(() -> Text.of(
-                        "\u00A7eLoading ship '" + name + "' for the first time. Try again in a few seconds."), false);
+                        "\u00A7e[Shipyard] Preparing '" + name + "'... You'll be notified when it's ready."), false);
             }
             return 0;
         }

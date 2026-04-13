@@ -51,6 +51,9 @@ public final class Shipyard {
     /** Blueprints currently being loaded in a background thread. */
     private final ConcurrentHashMap<String, Boolean> loading = new ConcurrentHashMap<>();
 
+    /** Callbacks to fire when a blueprint finishes loading. */
+    private final ConcurrentHashMap<String, ConcurrentLinkedQueue<Runnable>> loadCallbacks = new ConcurrentHashMap<>();
+
     /** Max ready instances per ship type. */
     private final ConcurrentHashMap<String, Integer> maxReadyCounts = new ConcurrentHashMap<>();
 
@@ -128,11 +131,23 @@ public final class Shipyard {
     /**
      * Trigger background loading of a blueprint if not already loaded or
      * in progress. Returns true if already ready, false if loading started.
+     *
+     * @param onReady optional callback fired on the loader thread when done
      */
-    public boolean ensureLoaded(String name) {
-        if (blueprintCache.containsKey(name)) return true;
+    public boolean ensureLoaded(String name, Runnable onReady) {
+        if (blueprintCache.containsKey(name)) {
+            if (onReady != null) onReady.run();
+            return true;
+        }
         if (!blueprintPaths.containsKey(name)) return false;
-        if (loading.putIfAbsent(name, Boolean.TRUE) != null) return false; // already loading
+
+        // Register callback (even if load is already in progress)
+        if (onReady != null) {
+            loadCallbacks.computeIfAbsent(name, k -> new ConcurrentLinkedQueue<>()).offer(onReady);
+        }
+
+        // Only start one loader thread per blueprint
+        if (loading.putIfAbsent(name, Boolean.TRUE) != null) return false;
 
         String resource = blueprintPaths.get(name);
         Thread loader = new Thread(() -> {
@@ -153,11 +168,27 @@ public final class Shipyard {
             } else {
                 LOGGER.error("[Shipyard] Failed to load '{}'", name);
             }
+
+            // Fire all registered callbacks
+            ConcurrentLinkedQueue<Runnable> callbacks = loadCallbacks.remove(name);
+            if (callbacks != null) {
+                for (Runnable cb : callbacks) {
+                    try { cb.run(); } catch (Exception e) {
+                        LOGGER.warn("[Shipyard] Callback error for '{}': {}", name, e.getMessage());
+                    }
+                }
+            }
+
             loading.remove(name);
         }, "shipyard-load-" + name);
         loader.setDaemon(true);
         loader.start();
         return false;
+    }
+
+    /** Convenience overload without callback. */
+    public boolean ensureLoaded(String name) {
+        return ensureLoaded(name, null);
     }
 
     /** Check if a blueprint is currently being loaded. */
