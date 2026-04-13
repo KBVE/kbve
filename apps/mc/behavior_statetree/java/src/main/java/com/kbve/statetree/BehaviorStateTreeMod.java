@@ -33,10 +33,9 @@ public class BehaviorStateTreeMod implements ModInitializer {
         // Register ship blueprints — parsed once at server start, cached forever
         shipyard.registerBlueprint("dark_reaper", "/schematics/dark_reaper.nbt");
 
-        // Load all schematics when the server starts (before players connect)
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            shipyard.loadAll();
-        });
+        // Schematics are loaded lazily on first /spawnship call (in a
+        // background thread). This avoids blocking server start and
+        // prevents watchdog kills from the 4.7GB NBT parse.
 
         // Ship commands use the Shipyard for instant acquisition (no re-parsing)
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {

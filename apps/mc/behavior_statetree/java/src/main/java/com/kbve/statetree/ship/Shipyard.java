@@ -48,6 +48,9 @@ public final class Shipyard {
     /** Ready pool: name → queue of pre-built ShipData instances. */
     private final ConcurrentHashMap<String, ConcurrentLinkedQueue<ShipData>> readyPool = new ConcurrentHashMap<>();
 
+    /** Blueprints currently being loaded in a background thread. */
+    private final ConcurrentHashMap<String, Boolean> loading = new ConcurrentHashMap<>();
+
     /** Max ready instances per ship type. */
     private final ConcurrentHashMap<String, Integer> maxReadyCounts = new ConcurrentHashMap<>();
 
@@ -119,16 +122,60 @@ public final class Shipyard {
     }
 
     // -----------------------------------------------------------------------
+    // Lazy loading
+    // -----------------------------------------------------------------------
+
+    /**
+     * Trigger background loading of a blueprint if not already loaded or
+     * in progress. Returns true if already ready, false if loading started.
+     */
+    public boolean ensureLoaded(String name) {
+        if (blueprintCache.containsKey(name)) return true;
+        if (!blueprintPaths.containsKey(name)) return false;
+        if (loading.putIfAbsent(name, Boolean.TRUE) != null) return false; // already loading
+
+        String resource = blueprintPaths.get(name);
+        Thread loader = new Thread(() -> {
+            LOGGER.info("[Shipyard] Background loading '{}'...", name);
+            long start = System.currentTimeMillis();
+            ShipData data = SchematicLoader.loadFromResource(name, resource);
+            long elapsed = System.currentTimeMillis() - start;
+
+            if (data != null) {
+                blueprintCache.put(name, data);
+                int maxReady = maxReadyCounts.getOrDefault(name, DEFAULT_MAX_READY);
+                ConcurrentLinkedQueue<ShipData> pool = readyPool.get(name);
+                if (pool != null) {
+                    for (int i = 0; i < maxReady; i++) pool.offer(data);
+                }
+                LOGGER.info("[Shipyard] Loaded '{}' in {}ms — {} blocks",
+                        name, elapsed, data.blockCount());
+            } else {
+                LOGGER.error("[Shipyard] Failed to load '{}'", name);
+            }
+            loading.remove(name);
+        }, "shipyard-load-" + name);
+        loader.setDaemon(true);
+        loader.start();
+        return false;
+    }
+
+    /** Check if a blueprint is currently being loaded. */
+    public boolean isLoading(String name) {
+        return loading.containsKey(name);
+    }
+
+    // -----------------------------------------------------------------------
     // Acquisition
     // -----------------------------------------------------------------------
 
     /**
      * Acquire a ship for deployment. Returns the cached {@link ShipData}
-     * instantly (no I/O, no parsing). The pool auto-refills since ShipData
-     * is immutable and shared.
+     * instantly if loaded. If not loaded yet, triggers background loading
+     * and returns null.
      *
      * @param name ship type name
-     * @return ShipData or null if the blueprint doesn't exist
+     * @return ShipData or null if not ready yet
      */
     public ShipData acquire(String name) {
         // Try the ready pool first
@@ -136,21 +183,17 @@ public final class Shipyard {
         if (pool != null) {
             ShipData data = pool.poll();
             if (data != null) {
-                // Immediately refill — ShipData is immutable, same instance is fine
-                pool.offer(data);
-                LOGGER.debug("[Shipyard] Acquired '{}' from pool ({} remaining)", name, pool.size());
+                pool.offer(data); // refill — immutable, same instance
                 return data;
             }
         }
 
-        // Fallback to blueprint cache (pool was empty, shouldn't happen normally)
+        // Fallback to blueprint cache
         ShipData cached = blueprintCache.get(name);
-        if (cached != null) {
-            LOGGER.debug("[Shipyard] Acquired '{}' from blueprint cache", name);
-            return cached;
-        }
+        if (cached != null) return cached;
 
-        LOGGER.warn("[Shipyard] No blueprint found for '{}'", name);
+        // Not loaded — trigger lazy load
+        ensureLoaded(name);
         return null;
     }
 

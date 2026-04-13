@@ -78,10 +78,21 @@ public final class ShipCommands {
             return 0;
         }
 
-        // Acquire from Shipyard — instant, no I/O
+        // Acquire from Shipyard — instant if cached, triggers background load if not
+        if (!shipyard.blueprintNames().contains(name)) {
+            source.sendError(Text.of("Unknown ship: " + name + ". Available: " + shipyard.blueprintNames()));
+            return 0;
+        }
+
         ShipData data = shipyard.acquire(name);
         if (data == null) {
-            source.sendError(Text.of("Unknown ship: " + name + ". Available: " + shipyard.blueprintNames()));
+            if (shipyard.isLoading(name)) {
+                source.sendFeedback(() -> Text.of(
+                        "\u00A7eShip '" + name + "' is being loaded in the background. Try again in a few seconds."), false);
+            } else {
+                source.sendFeedback(() -> Text.of(
+                        "\u00A7eLoading ship '" + name + "' for the first time. Try again in a few seconds."), false);
+            }
             return 0;
         }
 
