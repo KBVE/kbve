@@ -1,6 +1,9 @@
 package com.kbve.statetree;
 
+import com.kbve.statetree.ship.ShipCommands;
+import com.kbve.statetree.ship.ShipManager;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import org.slf4j.Logger;
@@ -21,10 +24,19 @@ public class BehaviorStateTreeMod implements ModInitializer {
     public static final String MOD_ID = "behavior_statetree";
     private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
+    private final ShipManager shipManager = new ShipManager();
+
     @Override
     public void onInitialize() {
+        // Ship commands register regardless of native library state —
+        // ships are pure Java (schematic placement + block management).
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            ShipCommands.register(dispatcher, shipManager);
+        });
+        LOGGER.info("[{}] Ship commands registered (/spawnship, /removeship)", MOD_ID);
+
         if (!NativeRuntime.isLoaded()) {
-            LOGGER.error("[{}] Native library not loaded — NPC AI disabled", MOD_ID);
+            LOGGER.error("[{}] Native library not loaded — NPC AI disabled (ships still work)", MOD_ID);
             return;
         }
 
@@ -43,6 +55,6 @@ public class BehaviorStateTreeMod implements ModInitializer {
             NativeRuntime.shutdown();
         });
 
-        LOGGER.info("[{}] Mod initialized — AI Skeleton system ready", MOD_ID);
+        LOGGER.info("[{}] Mod initialized — AI Skeleton + Ship system ready", MOD_ID);
     }
 }
