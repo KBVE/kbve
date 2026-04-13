@@ -22,7 +22,7 @@ jobs:
         steps:
             - name: Verify origin and actor
               id: check
-              uses: actions/github-script@v8
+              uses: actions/github-script@v9
               with:
                   script: |
                       if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
@@ -606,7 +606,7 @@ jobs:
             - name: Fetch project board items
               id: fetch
               if: steps.token_check.outputs.skip != 'true'
-              uses: actions/github-script@v8
+              uses: actions/github-script@v9
               env:
                   PROJECT_TOKEN: ${{ secrets.UNITY_PAT }}
               with:
@@ -1306,7 +1306,7 @@ jobs:
 
             - name: Auto-approve and merge
               if: steps.pr.outputs.pr_number != '' && steps.build.outcome == 'success'
-              uses: actions/github-script@v8
+              uses: actions/github-script@v9
               with:
                   github-token: ${{ secrets.UNITY_PAT }}
                   script: |

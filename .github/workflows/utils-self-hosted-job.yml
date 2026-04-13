@@ -101,7 +101,7 @@ jobs:
         steps:
             - name: Verify origin and actor
               id: check
-              uses: actions/github-script@v8
+              uses: actions/github-script@v9
               with:
                   script: |
                       // 1. Fork check — block PRs from external repositories

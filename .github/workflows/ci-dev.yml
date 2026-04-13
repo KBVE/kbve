@@ -34,7 +34,7 @@ jobs:
 
             - name: Check if dev has changes for main
               id: check_changes
-              uses: actions/github-script@v8
+              uses: actions/github-script@v9
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
@@ -119,7 +119,7 @@ jobs:
             - name: Check if dev→main PR exists
               if: fromJson(steps.check_changes.outputs.result).hasChanges == true
               id: check_pr
-              uses: actions/github-script@v8
+              uses: actions/github-script@v9
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
@@ -146,7 +146,7 @@ jobs:
             - name: Create or update dev→main PR
               if: fromJson(steps.check_changes.outputs.result).hasChanges == true
               id: upsert_pr
-              uses: actions/github-script@v8
+              uses: actions/github-script@v9
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
@@ -227,7 +227,7 @@ jobs:
 
             - name: Enable auto-merge with clean commit title
               if: fromJson(steps.check_changes.outputs.result).hasChanges == true
-              uses: actions/github-script@v8
+              uses: actions/github-script@v9
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
