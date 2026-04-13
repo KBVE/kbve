@@ -62,6 +62,16 @@ public class ShipEntity extends Entity {
     public float getTargetSpeed() { return targetSpeed; }
     public void setTargetSpeed(float speed) { this.targetSpeed = Math.max(0, speed); }
 
+    // -- Damage (abstract in 1.21.11) -----------------------------------------
+
+    @Override
+    public boolean damage(net.minecraft.server.world.ServerWorld world,
+                          net.minecraft.entity.damage.DamageSource source,
+                          float amount) {
+        // Ships are indestructible — damage goes to the blocks, not the anchor entity
+        return false;
+    }
+
     // -- Interaction --------------------------------------------------------
 
     @Override
