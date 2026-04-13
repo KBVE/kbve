@@ -36,3 +36,8 @@ bevy = { version = "0.18", default-features = false, features = [
 
 # Creature components from the shared bevy_npc package
 bevy_npc = { path = "../../../packages/rust/bevy/bevy_npc", features = ["creature"] }
+
+# Flow field pathfinding — pure algorithms, no Bevy feature needed here
+# (the grid/flow types are plain Rust structs wrapped as Bevy Resources
+# inside our own ECS module).
+bevy_pathfinding = { path = "../../../packages/rust/bevy/bevy_pathfinding" }

@@ -22,6 +22,7 @@ use jni::JNIEnv;
 use jni::objects::{JClass, JString};
 use jni::sys::{jboolean, jstring};
 
+use bevy_pathfinding::grid::MapRegionSnapshot;
 use runtime::AiRuntime;
 use types::{NpcObservation, NpcThinkJob, PlayerSnapshot};
 
@@ -95,6 +96,34 @@ pub extern "system" fn Java_com_kbve_statetree_NativeRuntime_submitPlayerSnapsho
     } else {
         0
     }
+}
+
+/// Submit a map region snapshot as a JSON string. Java scans the surface
+/// around players every few seconds and packs walkability data into a
+/// `MapRegionSnapshot`. Rust builds a `BlockGrid` and computes flow
+/// fields + chokepoints from it.
+///
+/// Returns true if the snapshot was accepted, false if back-pressured.
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_kbve_statetree_NativeRuntime_submitMapData(
+    mut env: JNIEnv,
+    _class: JClass,
+    snapshot_json: JString,
+) -> jboolean {
+    let Some(rt) = RUNTIME.get() else {
+        return 0;
+    };
+
+    let json_str: String = match env.get_string(&snapshot_json) {
+        Ok(s) => s.into(),
+        Err(_) => return 0,
+    };
+
+    let Ok(snapshot) = serde_json::from_str::<MapRegionSnapshot>(&json_str) else {
+        return 0;
+    };
+
+    if rt.submit_map_data(snapshot) { 1 } else { 0 }
 }
 
 /// Poll all completed NPC intents. Returns a JSON array string.
