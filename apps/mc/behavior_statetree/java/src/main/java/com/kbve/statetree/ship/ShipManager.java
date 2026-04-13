@@ -69,7 +69,7 @@ public final class ShipManager {
         public final String shipName;
         public BlockPos anchor;
         public final ShipData data;
-        public ShipEntity entity;
+        public float heading = 0.0f;
 
         ActiveShip(UUID shipId, UUID ownerUuid, String shipName, BlockPos anchor, ShipData data) {
             this.shipId = shipId;
@@ -117,21 +117,9 @@ public final class ShipManager {
 
         LOGGER.info("[Ship] Placed {} blocks for '{}' (id={})", placed, data.name(), shipId);
 
-        // Spawn the invisible anchor entity at the center of the ship
-        ShipEntity entity = ShipEntityTypes.SHIP.create(world, net.minecraft.entity.SpawnReason.COMMAND);
-        if (entity != null) {
-            double centerX = anchor.getX() + data.sizeX() / 2.0;
-            double centerZ = anchor.getZ() + data.sizeZ() / 2.0;
-            entity.setPosition(centerX, anchor.getY() + 1.0, centerZ);
-            entity.setShipId(shipId);
-            entity.setOwnerUuid(ownerUuid);
-            world.spawnEntity(entity);
-            LOGGER.info("[Ship] Spawned anchor entity at [{}, {}, {}]",
-                    centerX, anchor.getY() + 1, centerZ);
-        }
-
+        // Entity registration is deferred — registering a custom EntityType
+        // forces clients to have Fabric. Ships work as pure blocks for now.
         ActiveShip ship = new ActiveShip(shipId, ownerUuid, data.name(), anchor, data);
-        ship.entity = entity;
         ships.put(shipId, ship);
 
         return shipId;
@@ -151,11 +139,6 @@ public final class ShipManager {
             removed++;
         }
 
-        // Despawn the anchor entity
-        if (ship.entity != null && ship.entity.isAlive()) {
-            ship.entity.discard();
-        }
-
         LOGGER.info("[Ship] Removed {} blocks for '{}' (id={})", removed, ship.shipName, shipId);
         return true;
     }
@@ -166,22 +149,16 @@ public final class ShipManager {
      */
     public void moveShip(UUID shipId, int distance) {
         ActiveShip ship = ships.get(shipId);
-        if (ship == null || ship.entity == null) return;
+        if (ship == null) return;
         if (mover.isMoving(shipId)) return; // Wait for current move to finish
 
-        float heading = ship.entity.getHeading();
-        double rad = Math.toRadians(heading);
+        double rad = Math.toRadians(ship.heading);
         int dx = (int) Math.round(-Math.sin(rad) * distance);
         int dz = (int) Math.round(Math.cos(rad) * distance);
 
         BlockPos newAnchor = ship.anchor.add(dx, 0, dz);
         mover.queueMove(shipId, ship.data, ship.anchor, newAnchor);
         ship.anchor = newAnchor;
-
-        // Move the entity to the new anchor center
-        double centerX = newAnchor.getX() + ship.data.sizeX() / 2.0;
-        double centerZ = newAnchor.getZ() + ship.data.sizeZ() / 2.0;
-        ship.entity.setPosition(centerX, newAnchor.getY() + 1.0, centerZ);
     }
 
     /**

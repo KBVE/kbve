@@ -1,7 +1,6 @@
 package com.kbve.statetree;
 
 import com.kbve.statetree.ship.ShipCommands;
-import com.kbve.statetree.ship.ShipEntityTypes;
 import com.kbve.statetree.ship.ShipManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -29,11 +28,12 @@ public class BehaviorStateTreeMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        // Register ship entity type
-        ShipEntityTypes.register();
-
         // Ship commands register regardless of native library state —
         // ships are pure Java (schematic placement + block management).
+        // NOTE: ShipEntity registration is deferred — registering a custom
+        // EntityType forces clients to have Fabric installed. Ships work as
+        // pure blocks for now; the entity will be registered once we add
+        // client-side rendering support.
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             ShipCommands.register(dispatcher, shipManager);
         });
