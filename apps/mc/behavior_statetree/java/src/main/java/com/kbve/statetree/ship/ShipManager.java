@@ -59,14 +59,26 @@ public final class ShipManager {
     /** Active ships keyed by ship UUID. */
     private final ConcurrentHashMap<UUID, ActiveShip> ships = new ConcurrentHashMap<>();
 
+    /** Chunked block relocation engine. */
+    private final ShipMover mover = new ShipMover();
+
     /** Record of an active ship in the world. */
-    public record ActiveShip(
-            UUID shipId,
-            UUID ownerUuid,
-            String shipName,
-            BlockPos anchor,
-            ShipData data
-    ) {}
+    public static final class ActiveShip {
+        public final UUID shipId;
+        public final UUID ownerUuid;
+        public final String shipName;
+        public BlockPos anchor;
+        public final ShipData data;
+        public ShipEntity entity;
+
+        ActiveShip(UUID shipId, UUID ownerUuid, String shipName, BlockPos anchor, ShipData data) {
+            this.shipId = shipId;
+            this.ownerUuid = ownerUuid;
+            this.shipName = shipName;
+            this.anchor = anchor;
+            this.data = data;
+        }
+    }
 
     /**
      * Find a safe ocean location and place the ship.
@@ -104,13 +116,29 @@ public final class ShipManager {
         }
 
         LOGGER.info("[Ship] Placed {} blocks for '{}' (id={})", placed, data.name(), shipId);
-        ships.put(shipId, new ActiveShip(shipId, ownerUuid, data.name(), anchor, data));
+
+        // Spawn the invisible anchor entity at the center of the ship
+        ShipEntity entity = ShipEntityTypes.SHIP.create(world);
+        if (entity != null) {
+            double centerX = anchor.getX() + data.sizeX() / 2.0;
+            double centerZ = anchor.getZ() + data.sizeZ() / 2.0;
+            entity.setPosition(centerX, anchor.getY() + 1.0, centerZ);
+            entity.setShipId(shipId);
+            entity.setOwnerUuid(ownerUuid);
+            world.spawnEntity(entity);
+            LOGGER.info("[Ship] Spawned anchor entity at [{}, {}, {}]",
+                    centerX, anchor.getY() + 1, centerZ);
+        }
+
+        ActiveShip ship = new ActiveShip(shipId, ownerUuid, data.name(), anchor, data);
+        ship.entity = entity;
+        ships.put(shipId, ship);
 
         return shipId;
     }
 
     /**
-     * Remove all blocks belonging to a ship and untrack it.
+     * Remove all blocks belonging to a ship, despawn its entity, and untrack it.
      */
     public boolean removeShip(ServerWorld world, UUID shipId) {
         ActiveShip ship = ships.remove(shipId);
@@ -119,14 +147,49 @@ public final class ShipManager {
         int removed = 0;
         for (BlockPos offset : ship.data.blocks().keySet()) {
             BlockPos worldPos = ship.anchor.add(offset);
-            // Only clear if the block still matches what we placed
-            // (player might have modified it)
             world.setBlockState(worldPos, Blocks.AIR.getDefaultState());
             removed++;
         }
 
+        // Despawn the anchor entity
+        if (ship.entity != null && ship.entity.isAlive()) {
+            ship.entity.discard();
+        }
+
         LOGGER.info("[Ship] Removed {} blocks for '{}' (id={})", removed, ship.shipName, shipId);
         return true;
+    }
+
+    /**
+     * Move a ship forward along its heading by the given distance.
+     * The actual block relocation is chunked across multiple ticks.
+     */
+    public void moveShip(UUID shipId, int distance) {
+        ActiveShip ship = ships.get(shipId);
+        if (ship == null || ship.entity == null) return;
+        if (mover.isMoving(shipId)) return; // Wait for current move to finish
+
+        float heading = ship.entity.getHeading();
+        double rad = Math.toRadians(heading);
+        int dx = (int) Math.round(-Math.sin(rad) * distance);
+        int dz = (int) Math.round(Math.cos(rad) * distance);
+
+        BlockPos newAnchor = ship.anchor.add(dx, 0, dz);
+        mover.queueMove(shipId, ship.data, ship.anchor, newAnchor);
+        ship.anchor = newAnchor;
+
+        // Move the entity to the new anchor center
+        double centerX = newAnchor.getX() + ship.data.sizeX() / 2.0;
+        double centerZ = newAnchor.getZ() + ship.data.sizeZ() / 2.0;
+        ship.entity.setPosition(centerX, newAnchor.getY() + 1.0, centerZ);
+    }
+
+    /**
+     * Tick the ship manager — processes chunked block relocations.
+     * Call once per server tick.
+     */
+    public void tick(ServerWorld world) {
+        mover.tick(world);
     }
 
     /** Get an active ship by UUID. */
@@ -137,6 +200,11 @@ public final class ShipManager {
     /** Get the number of active ships. */
     public int shipCount() {
         return ships.size();
+    }
+
+    /** Get the mover for direct access if needed. */
+    public ShipMover getMover() {
+        return mover;
     }
 
     // -----------------------------------------------------------------------

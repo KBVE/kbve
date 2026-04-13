@@ -1,6 +1,7 @@
 package com.kbve.statetree;
 
 import com.kbve.statetree.ship.ShipCommands;
+import com.kbve.statetree.ship.ShipEntityTypes;
 import com.kbve.statetree.ship.ShipManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -28,12 +29,24 @@ public class BehaviorStateTreeMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        // Register ship entity type
+        ShipEntityTypes.register();
+
         // Ship commands register regardless of native library state —
         // ships are pure Java (schematic placement + block management).
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             ShipCommands.register(dispatcher, shipManager);
         });
-        LOGGER.info("[{}] Ship commands registered (/spawnship, /removeship)", MOD_ID);
+
+        // Tick ship block relocations (chunked movement)
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            var overworld = server.getOverworld();
+            if (overworld != null) {
+                shipManager.tick(overworld);
+            }
+        });
+
+        LOGGER.info("[{}] Ship system registered (entity + commands + tick)", MOD_ID);
 
         if (!NativeRuntime.isLoaded()) {
             LOGGER.error("[{}] Native library not loaded — NPC AI disabled (ships still work)", MOD_ID);
@@ -47,7 +60,9 @@ public class BehaviorStateTreeMod implements ModInitializer {
         });
 
         // Each server tick: manage skeletons, submit observations, apply intents
-        ServerTickEvents.END_SERVER_TICK.register(new NpcTickHandler());
+        NpcTickHandler tickHandler = new NpcTickHandler();
+        tickHandler.setShipManager(shipManager);
+        ServerTickEvents.END_SERVER_TICK.register(tickHandler);
 
         // Shutdown the runtime when the server stops
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {

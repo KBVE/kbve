@@ -58,7 +58,13 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
 
     private final AiCreatureManager creatureManager = new AiCreatureManager();
     private final ScaffoldTracker scaffoldTracker = new ScaffoldTracker();
+    private com.kbve.statetree.ship.ShipManager shipManager;
     private int tickCounter = 0;
+
+    /** Inject the ship manager so world commands can dispatch ship ops. */
+    public void setShipManager(com.kbve.statetree.ship.ShipManager manager) {
+        this.shipManager = manager;
+    }
 
     @Override
     public void onEndTick(MinecraftServer server) {
@@ -378,6 +384,39 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             int playerId = spawn.get("near_player").getAsInt();
             int radius = spawn.get("radius").getAsInt();
             creatureManager.spawnNearPlayer(world, CreatureKinds.SKELETON_ARCHER, playerId, radius, false);
+
+        } else if (cmd.has("MoveShip")) {
+            JsonObject move = cmd.getAsJsonObject("MoveShip");
+            String shipIdStr = move.get("ship_id").getAsString();
+            int distance = move.get("distance").getAsInt();
+            try {
+                shipManager.moveShip(java.util.UUID.fromString(shipIdStr), distance);
+            } catch (IllegalArgumentException e) {
+                LOGGER.warn("[AI] Invalid ship UUID in MoveShip: {}", shipIdStr);
+            }
+
+        } else if (cmd.has("DespawnShip")) {
+            JsonObject despawn = cmd.getAsJsonObject("DespawnShip");
+            String shipIdStr = despawn.get("ship_id").getAsString();
+            try {
+                shipManager.removeShip(world, java.util.UUID.fromString(shipIdStr));
+            } catch (IllegalArgumentException e) {
+                LOGGER.warn("[AI] Invalid ship UUID in DespawnShip: {}", shipIdStr);
+            }
+
+        } else if (cmd.has("SpawnShip")) {
+            JsonObject spawn = cmd.getAsJsonObject("SpawnShip");
+            String shipName = spawn.get("ship_name").getAsString();
+            int playerId = (int) spawn.get("near_player").getAsLong();
+            Entity player = world.getEntityById(playerId);
+            if (player != null) {
+                com.kbve.statetree.ship.ShipData data =
+                        com.kbve.statetree.ship.SchematicLoader.loadFromResource(
+                                shipName, "/schematics/" + shipName + ".nbt");
+                if (data != null) {
+                    shipManager.placeShip(world, data, player.getUuid(), player.getBlockPos());
+                }
+            }
 
         } else if (cmd.has("Despawn")) {
             JsonObject despawn = cmd.getAsJsonObject("Despawn");
