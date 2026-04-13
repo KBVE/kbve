@@ -1,7 +1,10 @@
 package com.kbve.statetree.ship;
 
+import net.minecraft.block.BedBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.state.property.Properties;
+import net.minecraft.util.math.Direction;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.world.ServerWorld;
@@ -71,22 +74,34 @@ public final class ShipManager {
     /** Pending initial placements (chunked across ticks). */
     private final ConcurrentHashMap<UUID, PlacementJob> placementJobs = new ConcurrentHashMap<>();
 
-    /** A chunked initial placement job. */
+    /** A chunked initial placement job with water-clearing pre-pass. */
     private static final class PlacementJob {
         final UUID shipId;
         final ShipData data;
         final BlockPos anchor;
         final java.util.List<Map.Entry<BlockPos, BlockState>> entries;
-        int index = 0;
+
+        /** Phase 0: clear water/fluid in the ship's bounding box. */
+        final java.util.List<BlockPos> clearPositions;
+        int clearIndex = 0;
+        boolean clearDone = false;
+
+        /** Phase 1: place ship blocks. */
+        int placeIndex = 0;
 
         PlacementJob(UUID shipId, ShipData data, BlockPos anchor) {
             this.shipId = shipId;
             this.data = data;
             this.anchor = anchor;
             this.entries = new java.util.ArrayList<>(data.blocks().entrySet());
+
+            // Clear water at every position where we'll place a ship block.
+            // This handles water inside the hull without clearing the entire
+            // 4M-position bounding box.
+            clearPositions = new java.util.ArrayList<>(data.blocks().keySet());
         }
 
-        boolean isDone() { return index >= entries.size(); }
+        boolean isDone() { return clearDone && placeIndex >= entries.size(); }
     }
 
     /** Record of an active ship in the world. */
@@ -189,27 +204,116 @@ public final class ShipManager {
      * Call once per server tick.
      */
     public void tick(ServerWorld world) {
-        // Process chunked initial placements
+        // Process chunked initial placements (two-phase: clear water, then place)
         var it = placementJobs.entrySet().iterator();
         while (it.hasNext()) {
             PlacementJob job = it.next().getValue();
             int budget = PLACEMENT_BLOCKS_PER_TICK;
-            while (!job.isDone() && budget > 0) {
-                var entry = job.entries.get(job.index);
-                BlockPos worldPos = job.anchor.add(entry.getKey());
-                world.setBlockState(worldPos, entry.getValue(), 18); // 18 = no block updates, no observer triggers
-                job.index++;
-                budget--;
+
+            // Phase 0: clear water/fluid at ship block positions
+            if (!job.clearDone) {
+                while (job.clearIndex < job.clearPositions.size() && budget > 0) {
+                    BlockPos offset = job.clearPositions.get(job.clearIndex);
+                    BlockPos worldPos = job.anchor.add(offset);
+                    net.minecraft.block.BlockState existing = world.getBlockState(worldPos);
+                    // Only clear fluids (water, lava) and waterlogged blocks
+                    if (!existing.getFluidState().isEmpty()) {
+                        world.setBlockState(worldPos, net.minecraft.block.Blocks.AIR.getDefaultState(), 18);
+                    }
+                    job.clearIndex++;
+                    budget--;
+                }
+                if (job.clearIndex >= job.clearPositions.size()) {
+                    job.clearDone = true;
+                    LOGGER.info("[Ship] Water cleared for '{}', placing blocks...", job.data.name());
+                }
             }
+
+            // Phase 1: place ship blocks
+            if (job.clearDone) {
+                while (job.placeIndex < job.entries.size() && budget > 0) {
+                    var entry = job.entries.get(job.placeIndex);
+                    BlockPos worldPos = job.anchor.add(entry.getKey());
+                    world.setBlockState(worldPos, entry.getValue(), 18);
+                    job.placeIndex++;
+                    budget--;
+                }
+            }
+
             if (job.isDone()) {
                 it.remove();
                 LOGGER.info("[Ship] Placement complete for '{}' ({} blocks placed)",
                         job.data.name(), job.entries.size());
+
+                // Place a bed on the deck for spawn point — find the highest
+                // solid block near the center of the ship
+                placeBedOnDeck(world, job.anchor, job.data);
             }
         }
 
         // Process chunked movement relocations
         mover.tick(world);
+    }
+
+    // -----------------------------------------------------------------------
+    // Bed placement — spawn point on the deck
+    // -----------------------------------------------------------------------
+
+    /**
+     * Place a red bed on the highest solid surface near the center of the
+     * ship. Scans downward from the top of the schematic to find the deck.
+     */
+    private void placeBedOnDeck(ServerWorld world, BlockPos anchor, ShipData data) {
+        int cx = data.sizeX() / 2;
+        int cz = data.sizeZ() / 2;
+
+        // Scan down from the top to find the first solid block near center
+        int deckY = -1;
+        for (int y = data.sizeY() - 1; y >= 0; y--) {
+            BlockPos check = new BlockPos(cx, y, cz);
+            if (data.blocks().containsKey(check)) {
+                deckY = y + 1; // one above the solid block
+                break;
+            }
+        }
+
+        if (deckY < 0) {
+            // Try a slightly offset position if center is air
+            for (int dx = -2; dx <= 2 && deckY < 0; dx++) {
+                for (int dz = -2; dz <= 2 && deckY < 0; dz++) {
+                    for (int y = data.sizeY() - 1; y >= 0; y--) {
+                        BlockPos check = new BlockPos(cx + dx, y, cz + dz);
+                        if (data.blocks().containsKey(check)) {
+                            deckY = y + 1;
+                            cx = cx + dx;
+                            cz = cz + dz;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (deckY < 0) {
+            LOGGER.warn("[Ship] Could not find deck surface for bed placement");
+            return;
+        }
+
+        // Place a bed (foot + head, facing north)
+        BlockPos footPos = anchor.add(cx, deckY, cz);
+        BlockPos headPos = footPos.north();
+
+        BlockState foot = Blocks.RED_BED.getDefaultState()
+                .with(BedBlock.FACING, Direction.NORTH)
+                .with(BedBlock.PART, net.minecraft.block.enums.BedPart.FOOT);
+        BlockState head = Blocks.RED_BED.getDefaultState()
+                .with(BedBlock.FACING, Direction.NORTH)
+                .with(BedBlock.PART, net.minecraft.block.enums.BedPart.HEAD);
+
+        world.setBlockState(footPos, foot, 18);
+        world.setBlockState(headPos, head, 18);
+
+        LOGGER.info("[Ship] Bed placed on deck at {} (sleep here to set spawn)", footPos.toShortString());
     }
 
     /** Get an active ship by UUID. */
