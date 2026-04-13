@@ -31,7 +31,7 @@
 		"@nx/vite": "22.6.1",
 		"@nx/vitest": "22.6.1",
 		"@nx/web": "22.6.1",
-		"@nx/webpack": "22.6.1",
+		"@nx/webpack": "22.6.5",
 		"@nx/workspace": "22.6.1",
 		"@nxlv/python": "22.0.5",
 		"@playform/compress": "^0.2.1",
