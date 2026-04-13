@@ -5,7 +5,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MovementType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Vec3d;
@@ -19,21 +19,15 @@ import java.util.UUID;
  * <p>The ship's blocks exist as real blocks placed by {@link ShipManager}.
  * This entity sits at the ship's anchor point and serves as:
  * <ul>
- *   <li>The rideable target — players right-click a ship block, which
- *       mounts them on this entity</li>
- *   <li>The movement controller — when this entity moves, the
- *       ShipManager relocates all ship blocks to follow</li>
- *   <li>The network sync anchor — only this entity's position is
- *       replicated, not the blocks (they're world state)</li>
+ *   <li>The rideable target — players right-click to mount</li>
+ *   <li>The movement controller — WASD steers while riding</li>
+ *   <li>The network sync anchor — only this entity replicates</li>
  * </ul>
- *
- * <p>The entity is invisible with no collision box of its own — the
- * ship blocks provide the visual and collision.
  */
 public class ShipEntity extends Entity {
 
-    private UUID shipId;
-    private UUID ownerUuid;
+    private String shipIdStr = "";
+    private String ownerUuidStr = "";
     private float heading = 0.0f;
     private float targetSpeed = 0.0f;
 
@@ -45,11 +39,21 @@ public class ShipEntity extends Entity {
 
     // -- Ship state ---------------------------------------------------------
 
-    public UUID getShipId() { return shipId; }
-    public void setShipId(UUID id) { this.shipId = id; }
+    public UUID getShipId() {
+        return shipIdStr.isEmpty() ? null : UUID.fromString(shipIdStr);
+    }
 
-    public UUID getOwnerUuid() { return ownerUuid; }
-    public void setOwnerUuid(UUID uuid) { this.ownerUuid = uuid; }
+    public void setShipId(UUID id) {
+        this.shipIdStr = id != null ? id.toString() : "";
+    }
+
+    public UUID getOwnerUuid() {
+        return ownerUuidStr.isEmpty() ? null : UUID.fromString(ownerUuidStr);
+    }
+
+    public void setOwnerUuid(UUID uuid) {
+        this.ownerUuidStr = uuid != null ? uuid.toString() : "";
+    }
 
     public float getHeading() { return heading; }
     public void setHeading(float heading) { this.heading = heading % 360; }
@@ -62,11 +66,11 @@ public class ShipEntity extends Entity {
     @Override
     public ActionResult interact(PlayerEntity player, Hand hand) {
         if (player.isSneaking()) {
-            // Sneak + right-click = dismount (handled by vanilla)
             return ActionResult.PASS;
         }
 
-        if (!this.getWorld().isClient() && !this.hasPassengers()) {
+        // Server-side only — ServerPlayerEntity only exists on the server
+        if (player instanceof ServerPlayerEntity && !this.hasPassengers()) {
             player.startRiding(this);
             return ActionResult.SUCCESS;
         }
@@ -75,7 +79,6 @@ public class ShipEntity extends Entity {
 
     @Override
     protected boolean canAddPassenger(Entity passenger) {
-        // Only one captain at a time (for now)
         return !this.hasPassengers() && passenger instanceof PlayerEntity;
     }
 
@@ -85,21 +88,20 @@ public class ShipEntity extends Entity {
     public void tick() {
         super.tick();
 
-        if (this.getWorld().isClient()) return;
+        // Only run movement on the server — check if we have a server reference
+        if (this.getServer() == null) return;
         if (targetSpeed <= 0.0f) return;
         if (!this.hasPassengers()) return;
 
-        // Move along heading
         double rad = Math.toRadians(heading);
-        double dx = -Math.sin(rad) * targetSpeed * 0.05; // 0.05 = tick scale
+        double dx = -Math.sin(rad) * targetSpeed * 0.05;
         double dz = Math.cos(rad) * targetSpeed * 0.05;
 
         this.move(MovementType.SELF, new Vec3d(dx, 0, dz));
     }
 
     /**
-     * Steer the ship based on the rider's look direction.
-     * Called from a tick handler when a player is riding.
+     * Steer the ship based on the rider's input.
      */
     public void steerFromRider(PlayerEntity rider) {
         float forward = rider.forwardSpeed;
@@ -116,33 +118,25 @@ public class ShipEntity extends Entity {
         }
     }
 
-    // -- Serialization ------------------------------------------------------
+    // -- Serialization (1.21.11 Yarn — WriteView / ReadView) ----------------
 
     @Override
     protected void initDataTracker(net.minecraft.entity.data.DataTracker.Builder builder) {
-        // No tracked data for now — ship state is managed server-side
+        // No tracked data — ship state is managed server-side
     }
 
     @Override
-    protected void readCustomDataFromNbt(NbtCompound nbt) {
-        if (nbt.containsUuid("ShipId")) {
-            this.shipId = nbt.getUuid("ShipId");
-        }
-        if (nbt.containsUuid("OwnerUuid")) {
-            this.ownerUuid = nbt.getUuid("OwnerUuid");
-        }
-        this.heading = nbt.getFloat("Heading");
-        this.targetSpeed = nbt.getFloat("TargetSpeed");
+    public void readCustomData(NbtCompound nbt) {
+        this.shipIdStr = nbt.getString("ShipId").orElse("");
+        this.ownerUuidStr = nbt.getString("OwnerUuid").orElse("");
+        this.heading = nbt.getFloat("Heading").orElse(0.0f);
+        this.targetSpeed = nbt.getFloat("TargetSpeed").orElse(0.0f);
     }
 
     @Override
-    protected void writeCustomDataToNbt(NbtCompound nbt) {
-        if (shipId != null) {
-            nbt.putUuid("ShipId", shipId);
-        }
-        if (ownerUuid != null) {
-            nbt.putUuid("OwnerUuid", ownerUuid);
-        }
+    public void writeCustomData(NbtCompound nbt) {
+        nbt.putString("ShipId", shipIdStr);
+        nbt.putString("OwnerUuid", ownerUuidStr);
         nbt.putFloat("Heading", heading);
         nbt.putFloat("TargetSpeed", targetSpeed);
     }

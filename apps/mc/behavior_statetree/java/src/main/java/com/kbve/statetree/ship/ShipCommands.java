@@ -38,7 +38,7 @@ public final class ShipCommands {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, ShipManager manager) {
         dispatcher.register(
                 CommandManager.literal("spawnship")
-                        .requires(source -> source.hasPermissionLevel(2))
+                        .requires(source -> source.hasPermission(2))
                         .then(CommandManager.argument("name", StringArgumentType.word())
                                 .suggests((ctx, builder) -> {
                                     SCHEMATICS.keySet().forEach(builder::suggest);
@@ -53,7 +53,7 @@ public final class ShipCommands {
 
         dispatcher.register(
                 CommandManager.literal("removeship")
-                        .requires(source -> source.hasPermissionLevel(2))
+                        .requires(source -> source.hasPermission(2))
                         .then(CommandManager.argument("uuid", StringArgumentType.string())
                                 .executes(ctx -> {
                                     String uuidStr = StringArgumentType.getString(ctx, "uuid");
@@ -102,7 +102,7 @@ public final class ShipCommands {
         ShipManager.ActiveShip ship = manager.getShip(shipId);
         source.sendFeedback(() -> Text.of(
                 "\u00A7a\u00A7lShip placed! \u00A7r\u00A7e'" + name +
-                        "' at " + ship.anchor().toShortString() +
+                        "' at " + ship.anchor.toShortString() +
                         " (id: " + shipId + ")"), true);
 
         return 1;

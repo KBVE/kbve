@@ -3,7 +3,6 @@ package com.kbve.statetree.ship;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtSizeTracker;
@@ -20,21 +19,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Loads Litematica (.litematic) schematics into {@link ShipData}.
+ * Loads schematics into {@link ShipData}. Supports Sponge NBT and Litematica.
  *
- * <p>Litematic files are gzip-compressed NBT with a specific structure:
- * <pre>
- * root
- *   Regions
- *     {region_name}
- *       Position: {x, y, z}
- *       Size: {x, y, z}
- *       BlockStatePalette: [{Name: "minecraft:...", Properties: {...}}, ...]
- *       BlockStates: long[] (packed indices into palette)
- * </pre>
- *
- * <p>The block state array is bit-packed: each entry uses
- * ceil(log2(palette_size)) bits, packed into longs LSB-first.
+ * <p>All NbtCompound getters in 1.21.11 Yarn return {@code Optional<>}.
+ * This loader uses {@code .orElse()} / {@code .orElse(null)} throughout.
  */
 public final class SchematicLoader {
 
@@ -43,12 +31,7 @@ public final class SchematicLoader {
     private SchematicLoader() {}
 
     /**
-     * Load a schematic bundled in the JAR at {@code /schematics/<filename>}.
-     * Auto-detects format by trying NBT first (Sponge-style), then litematic.
-     *
-     * @param name     display name for the ship
-     * @param resource JAR resource path (e.g., "/schematics/dark_reaper.nbt")
-     * @return ShipData or null on failure
+     * Load a schematic bundled in the JAR. Auto-detects format.
      */
     public static ShipData loadFromResource(String name, String resource) {
         InputStream stream = SchematicLoader.class.getResourceAsStream(resource);
@@ -57,11 +40,9 @@ public final class SchematicLoader {
             return null;
         }
 
-        // Try NBT schematic first (Sponge-style)
         ShipData data = loadNbtSchematic(name, stream);
         if (data != null) return data;
 
-        // Retry as litematic
         stream = SchematicLoader.class.getResourceAsStream(resource);
         if (stream == null) return null;
         return loadLitematic(name, stream);
@@ -69,26 +50,16 @@ public final class SchematicLoader {
 
     /**
      * Load a Sponge-style NBT schematic (.nbt / .schem).
-     *
-     * <p>Format: root compound with {@code size} (int[3]),
-     * {@code palette} (list of compounds with Name + Properties),
-     * {@code blocks} (list of compounds with pos[3] + state index).
-     *
-     * @param name   display name for the ship
-     * @param stream gzip-compressed NBT data
-     * @return ShipData or null on failure
      */
     public static ShipData loadNbtSchematic(String name, InputStream stream) {
         try {
             NbtCompound root = NbtIo.readCompressed(stream, NbtSizeTracker.of(64 * 1024 * 1024));
 
-            // Check for Sponge-style format markers
             if (!root.contains("size") && !root.contains("blocks")) {
-                return null; // Not a Sponge schematic, caller should try litematic
+                return null;
             }
 
-            // Parse size
-            int[] size = root.getIntArray("size");
+            int[] size = root.getIntArray("size").orElse(new int[0]);
             int sx = size.length >= 3 ? size[0] : 0;
             int sy = size.length >= 3 ? size[1] : 0;
             int sz = size.length >= 3 ? size[2] : 0;
@@ -98,17 +69,16 @@ public final class SchematicLoader {
                 return null;
             }
 
-            // Parse palette
-            NbtList paletteList = root.getList("palette");
+            NbtList paletteList = root.getList("palette").orElse(null);
             List<BlockState> palette = new ArrayList<>();
             if (paletteList != null) {
                 for (int i = 0; i < paletteList.size(); i++) {
-                    palette.add(parseBlockState(paletteList.getCompound(i)));
+                    NbtCompound entry = paletteList.getCompound(i).orElse(null);
+                    if (entry != null) palette.add(parseBlockState(entry));
                 }
             }
 
-            // Parse blocks
-            NbtList blocksList = root.getList("blocks");
+            NbtList blocksList = root.getList("blocks").orElse(null);
             if (blocksList == null || blocksList.isEmpty()) {
                 LOGGER.warn("[Ship] NBT schematic '{}' has no blocks", name);
                 return null;
@@ -116,11 +86,13 @@ public final class SchematicLoader {
 
             Map<BlockPos, BlockState> blocks = new HashMap<>();
             for (int i = 0; i < blocksList.size(); i++) {
-                NbtCompound block = blocksList.getCompound(i);
-                int[] pos = block.getIntArray("pos");
+                NbtCompound block = blocksList.getCompound(i).orElse(null);
+                if (block == null) continue;
+
+                int[] pos = block.getIntArray("pos").orElse(new int[0]);
                 if (pos.length < 3) continue;
 
-                int stateIdx = block.getInt("state");
+                int stateIdx = block.getInt("state").orElse(-1);
                 if (stateIdx < 0 || stateIdx >= palette.size()) continue;
 
                 BlockState state = palette.get(stateIdx);
@@ -136,7 +108,6 @@ public final class SchematicLoader {
 
             LOGGER.info("[Ship] Loaded NBT schematic '{}': {}x{}x{}, {} blocks",
                     name, sx, sy, sz, blocks.size());
-
             return new ShipData(name, blocks, sx, sy, sz);
 
         } catch (Exception e) {
@@ -146,11 +117,7 @@ public final class SchematicLoader {
     }
 
     /**
-     * Load a litematic schematic from an input stream.
-     *
-     * @param name   display name for the ship
-     * @param stream gzip-compressed litematic data
-     * @return ShipData with all non-air blocks, or null on failure
+     * Load a Litematica schematic (.litematic).
      */
     public static ShipData loadLitematic(String name, InputStream stream) {
         try {
@@ -163,52 +130,48 @@ public final class SchematicLoader {
     }
 
     private static ShipData parseLitematic(String name, NbtCompound root) {
-        NbtCompound regions = root.getCompound("Regions");
+        NbtCompound regions = root.getCompound("Regions").orElse(null);
         if (regions == null) {
             LOGGER.error("[Ship] No 'Regions' tag in litematic");
             return null;
         }
 
-        // Get enclosing size from metadata
-        NbtCompound metadata = root.getCompound("Metadata");
-        NbtCompound enclosing = metadata != null ? metadata.getCompound("EnclosingSize") : null;
-        int totalSizeX = enclosing != null ? enclosing.getInt("x") : 0;
-        int totalSizeY = enclosing != null ? enclosing.getInt("y") : 0;
-        int totalSizeZ = enclosing != null ? enclosing.getInt("z") : 0;
+        NbtCompound metadata = root.getCompound("Metadata").orElse(null);
+        NbtCompound enclosing = metadata != null ? metadata.getCompound("EnclosingSize").orElse(null) : null;
+        int totalSizeX = enclosing != null ? enclosing.getInt("x").orElse(0) : 0;
+        int totalSizeY = enclosing != null ? enclosing.getInt("y").orElse(0) : 0;
+        int totalSizeZ = enclosing != null ? enclosing.getInt("z").orElse(0) : 0;
 
         Map<BlockPos, BlockState> allBlocks = new HashMap<>();
 
-        // Process each region
         for (String regionName : regions.getKeys()) {
-            NbtCompound region = regions.getCompound(regionName);
+            NbtCompound region = regions.getCompound(regionName).orElse(null);
             if (region == null) continue;
 
-            NbtCompound posTag = region.getCompound("Position");
-            int offX = posTag != null ? posTag.getInt("x") : 0;
-            int offY = posTag != null ? posTag.getInt("y") : 0;
-            int offZ = posTag != null ? posTag.getInt("z") : 0;
+            NbtCompound posTag = region.getCompound("Position").orElse(null);
+            int offX = posTag != null ? posTag.getInt("x").orElse(0) : 0;
+            int offY = posTag != null ? posTag.getInt("y").orElse(0) : 0;
+            int offZ = posTag != null ? posTag.getInt("z").orElse(0) : 0;
 
-            NbtCompound sizeTag = region.getCompound("Size");
-            int sx = sizeTag != null ? Math.abs(sizeTag.getInt("x")) : 0;
-            int sy = sizeTag != null ? Math.abs(sizeTag.getInt("y")) : 0;
-            int sz = sizeTag != null ? Math.abs(sizeTag.getInt("z")) : 0;
+            NbtCompound sizeTag = region.getCompound("Size").orElse(null);
+            int sx = sizeTag != null ? Math.abs(sizeTag.getInt("x").orElse(0)) : 0;
+            int sy = sizeTag != null ? Math.abs(sizeTag.getInt("y").orElse(0)) : 0;
+            int sz = sizeTag != null ? Math.abs(sizeTag.getInt("z").orElse(0)) : 0;
 
             if (sx == 0 || sy == 0 || sz == 0) continue;
 
-            // Parse palette
-            NbtList paletteList = region.getList("BlockStatePalette");
+            NbtList paletteList = region.getList("BlockStatePalette").orElse(null);
             if (paletteList == null) continue;
 
             List<BlockState> palette = new ArrayList<>();
             for (int i = 0; i < paletteList.size(); i++) {
-                NbtCompound entry = paletteList.getCompound(i);
-                palette.add(parseBlockState(entry));
+                NbtCompound entry = paletteList.getCompound(i).orElse(null);
+                if (entry != null) palette.add(parseBlockState(entry));
             }
 
             if (palette.isEmpty()) continue;
 
-            // Parse packed block states
-            long[] packed = region.getLongArray("BlockStates");
+            long[] packed = region.getLongArray("BlockStates").orElse(new long[0]);
             if (packed.length == 0) continue;
 
             int bitsPerEntry = Math.max(2, Integer.SIZE - Integer.numberOfLeadingZeros(palette.size() - 1));
@@ -226,7 +189,6 @@ public final class SchematicLoader {
                 if (bitIndex + bitsPerEntry <= 64) {
                     paletteIdx = (int) ((packed[longIndex] >>> bitIndex) & mask);
                 } else {
-                    // Spans two longs
                     int bitsInFirst = 64 - bitIndex;
                     long lower = (packed[longIndex] >>> bitIndex) & ((1L << bitsInFirst) - 1);
                     long upper = longIndex + 1 < packed.length
@@ -239,7 +201,6 @@ public final class SchematicLoader {
                 BlockState state = palette.get(paletteIdx);
                 if (state.isAir()) continue;
 
-                // Litematic stores in YZX order
                 int lx = i % sx;
                 int lz = (i / sx) % sz;
                 int ly = i / (sx * sz);
@@ -254,7 +215,6 @@ public final class SchematicLoader {
             return null;
         }
 
-        // Normalize offsets so minimum is (0,0,0)
         int minX = allBlocks.keySet().stream().mapToInt(BlockPos::getX).min().orElse(0);
         int minY = allBlocks.keySet().stream().mapToInt(BlockPos::getY).min().orElse(0);
         int minZ = allBlocks.keySet().stream().mapToInt(BlockPos::getZ).min().orElse(0);
@@ -271,28 +231,23 @@ public final class SchematicLoader {
 
         LOGGER.info("[Ship] Loaded '{}': {}x{}x{}, {} blocks",
                 name, totalSizeX, totalSizeY, totalSizeZ, normalized.size());
-
         return new ShipData(name, normalized, totalSizeX, totalSizeY, totalSizeZ);
     }
 
-    /**
-     * Parse a block state from an NBT palette entry.
-     */
     private static BlockState parseBlockState(NbtCompound entry) {
-        String blockId = entry.getString("Name");
+        String blockId = entry.getString("Name").orElse("");
         if (blockId.isEmpty()) return Blocks.AIR.getDefaultState();
 
         var block = Registries.BLOCK.get(Identifier.of(blockId));
         BlockState state = block.getDefaultState();
 
-        // Apply properties if present
-        if (entry.contains("Properties", NbtElement.COMPOUND_TYPE)) {
-            NbtCompound props = entry.getCompound("Properties");
+        NbtCompound props = entry.getCompound("Properties").orElse(null);
+        if (props != null) {
             for (String key : props.getKeys()) {
-                String value = props.getString(key);
+                String value = props.getString(key).orElse("");
                 var stateManager = block.getStateManager();
                 var property = stateManager.getProperty(key);
-                if (property != null) {
+                if (property != null && !value.isEmpty()) {
                     state = applyProperty(state, property, value);
                 }
             }
@@ -303,8 +258,10 @@ public final class SchematicLoader {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static BlockState applyProperty(BlockState state, net.minecraft.state.property.Property property, String value) {
-        return property.parse(value)
-                .map(v -> (BlockState) state.with(property, (Comparable) v))
-                .orElse(state);
+        var parsed = property.parse(value);
+        if (parsed.isPresent()) {
+            return state.with(property, (Comparable) parsed.get());
+        }
+        return state;
     }
 }

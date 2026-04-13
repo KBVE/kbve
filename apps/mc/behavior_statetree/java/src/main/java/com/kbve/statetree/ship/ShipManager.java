@@ -118,7 +118,7 @@ public final class ShipManager {
         LOGGER.info("[Ship] Placed {} blocks for '{}' (id={})", placed, data.name(), shipId);
 
         // Spawn the invisible anchor entity at the center of the ship
-        ShipEntity entity = ShipEntityTypes.SHIP.create(world);
+        ShipEntity entity = ShipEntityTypes.SHIP.create(world, net.minecraft.entity.SpawnReason.COMMAND);
         if (entity != null) {
             double centerX = anchor.getX() + data.sizeX() / 2.0;
             double centerZ = anchor.getZ() + data.sizeZ() / 2.0;
