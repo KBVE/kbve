@@ -326,6 +326,11 @@ public final class ShipManager {
         return ships.size();
     }
 
+    /** Get all active ships (for protection checks, etc.). */
+    public java.util.Map<UUID, ActiveShip> getActiveShips() {
+        return ships;
+    }
+
     /** Get the mover for direct access if needed. */
     public ShipMover getMover() {
         return mover;

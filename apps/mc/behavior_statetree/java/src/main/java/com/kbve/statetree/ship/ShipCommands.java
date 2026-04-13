@@ -59,11 +59,65 @@ public final class ShipCommands {
                         )
         );
 
+        // /despawnship <uuid> — alias for removeship with clearer name
+        dispatcher.register(
+                CommandManager.literal("despawnship")
+                        .requires(ServerCommandSource::isExecutedByPlayer)
+                        .then(CommandManager.argument("uuid", StringArgumentType.string())
+                                .executes(ctx -> {
+                                    String uuidStr = StringArgumentType.getString(ctx, "uuid");
+                                    return executeRemove(ctx.getSource(), manager, uuidStr);
+                                })
+                        )
+        );
+
+        // /moveship <uuid> <distance> — sail forward along heading
+        dispatcher.register(
+                CommandManager.literal("moveship")
+                        .requires(ServerCommandSource::isExecutedByPlayer)
+                        .then(CommandManager.argument("uuid", StringArgumentType.string())
+                                .then(CommandManager.argument("distance", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 50))
+                                        .executes(ctx -> {
+                                            String uuidStr = StringArgumentType.getString(ctx, "uuid");
+                                            int dist = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "distance");
+                                            return executeMove(ctx.getSource(), manager, uuidStr, dist);
+                                        })
+                                )
+                        )
+        );
+
         dispatcher.register(
                 CommandManager.literal("shipyard")
                         .requires(ServerCommandSource::isExecutedByPlayer)
                         .executes(ctx -> executeStatus(ctx.getSource(), shipyard, manager))
         );
+    }
+
+    private static int executeMove(ServerCommandSource source, ShipManager manager, String uuidStr, int distance) {
+        UUID shipId;
+        try {
+            shipId = UUID.fromString(uuidStr);
+        } catch (IllegalArgumentException e) {
+            source.sendError(Text.of("Invalid UUID: " + uuidStr));
+            return 0;
+        }
+
+        ShipManager.ActiveShip ship = manager.getShip(shipId);
+        if (ship == null) {
+            source.sendError(Text.of("No active ship with id: " + shipId));
+            return 0;
+        }
+
+        if (manager.getMover().isMoving(shipId)) {
+            source.sendError(Text.of("Ship is already moving — wait for current move to finish"));
+            return 0;
+        }
+
+        manager.moveShip(shipId, distance);
+        source.sendFeedback(() -> Text.of(
+                "\u00A7eSailing " + distance + " blocks (heading " +
+                        String.format("%.0f", ship.heading) + "\u00B0)"), false);
+        return 1;
     }
 
     private static int executeSpawn(

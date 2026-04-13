@@ -2,6 +2,7 @@ package com.kbve.statetree;
 
 import com.kbve.statetree.ship.ShipCommands;
 import com.kbve.statetree.ship.ShipManager;
+import com.kbve.statetree.ship.ShipProtection;
 import com.kbve.statetree.ship.Shipyard;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -32,6 +33,9 @@ public class BehaviorStateTreeMod implements ModInitializer {
     public void onInitialize() {
         // Register ship blueprints — parsed once at server start, cached forever
         shipyard.registerBlueprint("dark_reaper", "/schematics/dark_reaper.nbt");
+
+        // Ship block protection — breaking ship blocks doesn't drop items
+        ShipProtection.register(shipManager);
 
         // Schematics are loaded lazily on first /spawnship call (in a
         // background thread). This avoids blocking server start and
