@@ -7,6 +7,7 @@ import com.kbve.statetree.ship.ShipNetworking.ShipDespawnPayload;
 import com.kbve.statetree.ship.ShipNetworking.ShipMovePayload;
 import com.kbve.statetree.ship.ShipNetworking.ShipSpawnPayload;
 import com.kbve.statetree.ship.ShipNetworking.ShipStatusPayload;
+import java.util.UUID;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
