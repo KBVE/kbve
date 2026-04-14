@@ -71,6 +71,18 @@ public final class ShipCommands {
                         )
         );
 
+        // /boardship <uuid> — teleport to helm and mount
+        dispatcher.register(
+                CommandManager.literal("boardship")
+                        .requires(ServerCommandSource::isExecutedByPlayer)
+                        .then(CommandManager.argument("uuid", StringArgumentType.string())
+                                .executes(ctx -> {
+                                    String uuidStr = StringArgumentType.getString(ctx, "uuid");
+                                    return executeBoard(ctx.getSource(), manager, uuidStr);
+                                })
+                        )
+        );
+
         // /moveship <uuid> <distance> — sail forward along heading
         dispatcher.register(
                 CommandManager.literal("moveship")
@@ -118,6 +130,32 @@ public final class ShipCommands {
                 "\u00A7eSailing " + distance + " blocks (heading " +
                         String.format("%.0f", ship.heading) + "\u00B0)"), false);
         return 1;
+    }
+
+    private static int executeBoard(ServerCommandSource source, ShipManager manager, String uuidStr) {
+        UUID shipId;
+        try {
+            shipId = UUID.fromString(uuidStr);
+        } catch (IllegalArgumentException e) {
+            source.sendError(Text.of("Invalid UUID: " + uuidStr));
+            return 0;
+        }
+
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null) {
+            source.sendError(Text.of("This command must be run by a player"));
+            return 0;
+        }
+
+        ServerWorld world = source.getWorld();
+        if (manager.boardShip(world, shipId, player)) {
+            source.sendFeedback(() -> Text.of(
+                    "\u00A7a\u00A7lAll aboard! \u00A7r\u00A7eUse WASD to sail. Sneak to dismount."), false);
+            return 1;
+        } else {
+            source.sendError(Text.of("Could not board ship — helm not found"));
+            return 0;
+        }
     }
 
     private static int executeSpawn(

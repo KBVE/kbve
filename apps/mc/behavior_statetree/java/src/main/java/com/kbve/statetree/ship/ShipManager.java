@@ -176,6 +176,8 @@ public final class ShipManager {
         public final ShipData data;
         public final ShipBlockTracker blockTracker;
         public float heading = 0.0f;
+        /** Rideable helm entity on the deck. Null until placement completes. */
+        public ShipEntity helmEntity = null;
 
         ActiveShip(UUID shipId, UUID ownerUuid, String shipName, BlockPos anchor, ShipData data) {
             this.shipId = shipId;
@@ -314,6 +316,9 @@ public final class ShipManager {
 
                 // Place a bed on the deck and set the owner's spawn + teleport them there
                 placeBedOnDeck(world, job.anchor, job.data, job.ownerUuid);
+
+                // Spawn the helm entity on the deck so players can mount + WASD
+                spawnHelmEntity(world, job.shipId, job.anchor, job.data);
             }
         }
 
@@ -410,6 +415,80 @@ public final class ShipManager {
         } else {
             LOGGER.warn("[Ship] Owner {} not online — spawn not set", ownerUuid);
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // Helm entity — rideable ShipEntity on the deck
+    // -----------------------------------------------------------------------
+
+    /**
+     * Spawn a ShipEntity on the deck near the bed. Players mount it to steer.
+     */
+    private void spawnHelmEntity(ServerWorld world, UUID shipId, BlockPos anchor, ShipData data) {
+        ActiveShip ship = ships.get(shipId);
+        if (ship == null) return;
+
+        // Find deck position (same scan as placeBedOnDeck)
+        int cx = data.sizeX() / 2;
+        int cz = data.sizeZ() / 2;
+        int deckY = -1;
+        for (int y = data.sizeY() - 1; y >= 0; y--) {
+            if (data.blocks().containsKey(new BlockPos(cx, y, cz))) {
+                deckY = y + 1;
+                break;
+            }
+        }
+        if (deckY < 0) deckY = data.sizeY() / 2;
+
+        ShipEntity entity = ShipEntityTypes.SHIP.create(world, net.minecraft.entity.SpawnReason.COMMAND);
+        if (entity == null) {
+            LOGGER.warn("[Ship] Failed to create helm entity for {}", shipId);
+            return;
+        }
+
+        double hx = anchor.getX() + cx + 0.5;
+        double hy = anchor.getY() + deckY + 1.0;
+        double hz = anchor.getZ() + cz + 0.5;
+
+        entity.setPosition(hx, hy, hz);
+        entity.setShipId(shipId);
+        entity.setOwnerUuid(ship.ownerUuid);
+        world.spawnEntity(entity);
+
+        ship.helmEntity = entity;
+        LOGGER.info("[Ship] Helm entity spawned at [{}, {}, {}] for '{}'",
+                hx, hy, hz, ship.shipName);
+    }
+
+    /**
+     * Board a ship — teleport the player to the helm and mount them.
+     *
+     * @return true if the player was successfully mounted
+     */
+    public boolean boardShip(ServerWorld world, UUID shipId, net.minecraft.server.network.ServerPlayerEntity player) {
+        ActiveShip ship = ships.get(shipId);
+        if (ship == null) return false;
+
+        if (ship.helmEntity == null || !ship.helmEntity.isAlive()) {
+            // Respawn helm if it died
+            spawnHelmEntity(world, shipId, ship.anchor, ship.data);
+        }
+
+        if (ship.helmEntity == null) return false;
+
+        // Teleport player to the helm position
+        double hx = ship.helmEntity.getX();
+        double hy = ship.helmEntity.getY();
+        double hz = ship.helmEntity.getZ();
+
+        player.teleport(world, hx, hy, hz,
+                java.util.Set.of(), player.getYaw(), player.getPitch(), false);
+
+        // Mount the player on the entity
+        player.startRiding(ship.helmEntity);
+
+        LOGGER.info("[Ship] {} boarded '{}' at helm", player.getNameForScoreboard(), ship.shipName);
+        return true;
     }
 
     /** Get an active ship by UUID. */
