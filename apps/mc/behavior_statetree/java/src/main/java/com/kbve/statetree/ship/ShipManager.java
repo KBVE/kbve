@@ -77,6 +77,7 @@ public final class ShipManager {
     /** A chunked initial placement job with water-clearing pre-pass. */
     private static final class PlacementJob {
         final UUID shipId;
+        final UUID ownerUuid;
         final ShipData data;
         final BlockPos anchor;
         final java.util.List<Map.Entry<BlockPos, BlockState>> entries;
@@ -89,8 +90,9 @@ public final class ShipManager {
         /** Phase 1: place ship blocks. */
         int placeIndex = 0;
 
-        PlacementJob(UUID shipId, ShipData data, BlockPos anchor) {
+        PlacementJob(UUID shipId, UUID ownerUuid, ShipData data, BlockPos anchor) {
             this.shipId = shipId;
+            this.ownerUuid = ownerUuid;
             this.data = data;
             this.anchor = anchor;
             this.entries = new java.util.ArrayList<>(data.blocks().entrySet());
@@ -218,7 +220,7 @@ public final class ShipManager {
 
         // Use a "move from nowhere" — old anchor is the same as new anchor,
         // but we skip the clear phase and go straight to placement.
-        placementJobs.put(shipId, new PlacementJob(shipId, data, anchor));
+        placementJobs.put(shipId, new PlacementJob(shipId, ownerUuid, data, anchor));
 
         LOGGER.info("[Ship] Placement queued for '{}' (id={}), ~{} ticks to complete",
                 data.name(), shipId, data.blockCount() / PLACEMENT_BLOCKS_PER_TICK + 1);
@@ -310,9 +312,8 @@ public final class ShipManager {
                 LOGGER.info("[Ship] Placement complete for '{}' ({} blocks placed)",
                         job.data.name(), job.entries.size());
 
-                // Place a bed on the deck for spawn point — find the highest
-                // solid block near the center of the ship
-                placeBedOnDeck(world, job.anchor, job.data);
+                // Place a bed on the deck and set the owner's spawn + teleport them there
+                placeBedOnDeck(world, job.anchor, job.data, job.ownerUuid);
             }
         }
 
@@ -328,7 +329,7 @@ public final class ShipManager {
      * Place a red bed on the highest solid surface near the center of the
      * ship. Scans downward from the top of the schematic to find the deck.
      */
-    private void placeBedOnDeck(ServerWorld world, BlockPos anchor, ShipData data) {
+    private void placeBedOnDeck(ServerWorld world, BlockPos anchor, ShipData data, UUID ownerUuid) {
         int cx = data.sizeX() / 2;
         int cz = data.sizeZ() / 2;
 
@@ -343,7 +344,6 @@ public final class ShipManager {
         }
 
         if (deckY < 0) {
-            // Try a slightly offset position if center is air
             for (int dx = -2; dx <= 2 && deckY < 0; dx++) {
                 for (int dz = -2; dz <= 2 && deckY < 0; dz++) {
                     for (int y = data.sizeY() - 1; y >= 0; y--) {
@@ -378,7 +378,33 @@ public final class ShipManager {
         world.setBlockState(footPos, foot, 18);
         world.setBlockState(headPos, head, 18);
 
-        LOGGER.info("[Ship] Bed placed on deck at {} (sleep here to set spawn)", footPos.toShortString());
+        LOGGER.info("[Ship] Bed placed on deck at {}", footPos.toShortString());
+
+        // Find the owner player and set their spawn + teleport them to the deck
+        net.minecraft.server.network.ServerPlayerEntity owner = null;
+        for (net.minecraft.server.network.ServerPlayerEntity player : world.getPlayers()) {
+            if (player.getUuid().equals(ownerUuid)) {
+                owner = player;
+                break;
+            }
+        }
+
+        if (owner != null) {
+            // Set spawn point to the bed position
+            owner.setSpawnPoint(world.getRegistryKey(), footPos, 0.0f, true, false);
+
+            // Teleport owner to the deck (one block above the bed)
+            owner.teleport(world,
+                    footPos.getX() + 0.5, footPos.getY() + 1.0, footPos.getZ() + 0.5,
+                    java.util.Set.of(), owner.getYaw(), owner.getPitch(), false);
+
+            owner.sendMessage(net.minecraft.text.Text.of(
+                    "\u00A7a\u00A7l[Ship] \u00A7r\u00A7eYour ship is ready! Spawn point set to the deck."), false);
+
+            LOGGER.info("[Ship] Owner {} teleported to deck + spawn set", owner.getNameForScoreboard());
+        } else {
+            LOGGER.warn("[Ship] Owner {} not online — spawn not set", ownerUuid);
+        }
     }
 
     /** Get an active ship by UUID. */
