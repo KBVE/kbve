@@ -71,10 +71,11 @@ public final class ShipCommands {
                         )
         );
 
-        // /boardship <uuid> — teleport to helm and mount
+        // /boardship [uuid] — teleport to helm and mount (uuid optional, defaults to your ship)
         dispatcher.register(
                 CommandManager.literal("boardship")
                         .requires(ServerCommandSource::isExecutedByPlayer)
+                        .executes(ctx -> executeBoardOwned(ctx.getSource(), manager))
                         .then(CommandManager.argument("uuid", StringArgumentType.string())
                                 .executes(ctx -> {
                                     String uuidStr = StringArgumentType.getString(ctx, "uuid");
@@ -130,6 +131,26 @@ public final class ShipCommands {
                 "\u00A7eSailing " + distance + " blocks (heading " +
                         String.format("%.0f", ship.heading) + "\u00B0)"), false);
         return 1;
+    }
+
+    private static int executeBoardOwned(ServerCommandSource source, ShipManager manager) {
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null) {
+            source.sendError(Text.of("This command must be run by a player"));
+            return 0;
+        }
+
+        // Find the player's ship by owner UUID
+        UUID playerUuid = player.getUuid();
+        for (var entry : manager.getActiveShips().entrySet()) {
+            ShipManager.ActiveShip ship = entry.getValue();
+            if (ship.ownerUuid.equals(playerUuid)) {
+                return executeBoard(source, manager, ship.shipId.toString());
+            }
+        }
+
+        source.sendError(Text.of("You don't have a ship. Use /spawnship <name> first."));
+        return 0;
     }
 
     private static int executeBoard(ServerCommandSource source, ShipManager manager, String uuidStr) {
