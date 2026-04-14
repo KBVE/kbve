@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-04-13T08:49:56.965Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-04-14T08:41:04.373Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -45,7 +45,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **1** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **255** items
+    **248** items
   </Card>
 </CardGrid>
 
@@ -62,7 +62,7 @@ pie showData
     "Error" : 11
     "Staging" : 4
     "Review" : 1
-    "Done" : 255
+    "Done" : 248
 ```
 
 ```mermaid
@@ -70,7 +70,7 @@ pie showData
     title Work State
     "Active (Todo+Staging+Review)" : 13
     "Blocked (Error+Support)" : 11
-    "Done" : 255
+    "Done" : 248
     "Planning (Theory+AI+Backlog)" : 31
 ```
 
@@ -99,7 +99,7 @@ flowchart LR
     Staging --> Review
     Review["Review<br/><strong>1</strong>"]
     Review --> Done
-    Done["Done<br/><strong>255</strong>"]
+    Done["Done<br/><strong>248</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -116,24 +116,24 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 246
-    "Issue" : 64
+    "Pull Request" : 241
+    "Issue" : 62
 ```
 
 #### Top Labels
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 246 |
-| dev→main | 117 |
-| atomic | 89 |
-| enhancement | 33 |
+| auto-pr | 241 |
+| dev→main | 113 |
+| atomic | 88 |
+| enhancement | 32 |
 | 0 | 23 |
 | unity | 16 |
-| bug | 15 |
-| 1 | 14 |
+| bug | 14 |
+| 1 | 13 |
 | todo | 9 |
-| backlog | 8 |
+| backlog | 7 |
 
   </TabItem>
 </Tabs>
@@ -226,26 +226,18 @@ pie showData
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
-| [#10067](https://github.com/KBVE/kbve/pull/10067) | Release: 5 features, 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#10067](https://github.com/KBVE/kbve/pull/10067) | Release: 20 features, 26 fixes, 6 chores → Main | — | — | auto-pr, dev→main |
 
-### Done (255)
+### Done (248)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
-| [#7956](https://github.com/KBVE/kbve/issues/7956) | chore(astro-kbve): re-enable starlight-site-graph after Zod 4 / Astro 6 support | — | — | 1, bug, backlog |
 | [#8172](https://github.com/KBVE/kbve/issues/8172) | [ISOMETRIC] Lint deployments — validate WASM build assets before merge | — | — | 6, bug, ci |
-| [#8341](https://github.com/KBVE/kbve/issues/8341) | [PROTO] Zod codegen for 10 uncovered proto schemas | — | — | 6, enhancement |
 | [#8664](https://github.com/KBVE/kbve/issues/8664) | [UE5] [OWS] Security &amp; code quality audit — 30+ findings | — | — | bug, ci |
 | [#8935](https://github.com/KBVE/kbve/issues/8935) | [UE5] [OWS] Persist GameServer allocations to database | — | — | enhancement |
 | [#8931](https://github.com/KBVE/kbve/issues/8931) | [UE5] [OWS] Add retry and circuit breaker for K8s API calls | — | — | enhancement |
 | [#8933](https://github.com/KBVE/kbve/issues/8933) | [UE5] [OWS] Extract hardcoded cleanup config to options pattern | — | — | enhancement |
 | [#8932](https://github.com/KBVE/kbve/issues/8932) | [UE5] [OWS] Move instance cleanup to scheduled background job | — | — | enhancement |
-| [#9293](https://github.com/KBVE/kbve/pull/9293) | Atomic: axum-kbve v1.0.79 post-publish sync | — | — | auto-pr, atomic |
-| [#9294](https://github.com/KBVE/kbve/pull/9294) | Release: 2 features, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#9297](https://github.com/KBVE/kbve/pull/9297) | Release: 4 features, 2 fixes, 6 chores → Main | — | — | auto-pr, dev→main |
-| [#9318](https://github.com/KBVE/kbve/pull/9318) | chore(dashboard): daily sync — 2026-03-30 | — | — | auto-pr |
-| [#9323](https://github.com/KBVE/kbve/pull/9323) | Release: 1 feature, 7 chores → Main | — | — | auto-pr, dev→main |
-| [#9333](https://github.com/KBVE/kbve/pull/9333) | Release: 4 features, 1 fix, 1 doc, 3 chores → Main | — | — | auto-pr, dev→main |
 | [#9351](https://github.com/KBVE/kbve/pull/9351) | Release: 4 features, 5 fixes, 2 docs, 1 build, 1 test, 7 chores → Main | — | — | auto-pr, dev→main |
 | [#9368](https://github.com/KBVE/kbve/pull/9368) | Atomic: axum-kbve v1.0.80 post-publish sync | — | — | auto-pr, atomic |
 | [#9369](https://github.com/KBVE/kbve/pull/9369) | Release: 4 features, 4 fixes, 3 chores → Main | — | — | auto-pr, dev→main |
@@ -487,6 +479,7 @@ pie showData
 | [#10062](https://github.com/KBVE/kbve/pull/10062) | chore(dashboard): daily sync — 2026-04-12 | — | — | auto-pr |
 | [#10064](https://github.com/KBVE/kbve/pull/10064) | Atomic: mc v1.0.13 post-publish sync | — | — | auto-pr, atomic |
 | [#10065](https://github.com/KBVE/kbve/pull/10065) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#10083](https://github.com/KBVE/kbve/pull/10083) | chore(dashboard): daily sync — 2026-04-13 | — | — | auto-pr |
 
 ---
 
