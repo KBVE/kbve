@@ -619,25 +619,49 @@ public final class ShipManager {
     // -----------------------------------------------------------------------
 
     /**
-     * Search for a safe ocean location near the given position using a
-     * spiral outward pattern. "Safe" means:
-     * <ul>
-     *   <li>The biome is an ocean variant</li>
-     *   <li>The area has at least {@code MIN_OCEAN_DEPTH} blocks of water</li>
-     *   <li>The footprint fits without hitting land</li>
-     * </ul>
+     * Search for a safe ocean location. Uses MC's built-in biome locator
+     * to find the nearest deep ocean, then verifies the footprint fits.
+     * Falls back to spiral search if the biome locator doesn't find one.
      */
     private BlockPos findSafeOcean(ServerWorld world, BlockPos center, int shipWidth, int shipDepth) {
-        // Spiral search outward from center
+        // Step 1: Use MC's locate biome to find nearest deep ocean
+        // This searches up to 6400 blocks (same as /locate biome)
+        var deepOceanEntry = world.locateBiome(
+                biome -> OCEAN_BIOMES.stream().anyMatch(biome::matchesKey),
+                center, 6400, 32, 64);
+
+        if (deepOceanEntry != null) {
+            BlockPos found = deepOceanEntry.getFirst();
+            LOGGER.info("[Ship] Biome locator found ocean at {}", found.toShortString());
+
+            // Verify the footprint fits at this location
+            if (isOceanSafe(world, found.getX(), found.getZ(), shipWidth, shipDepth)) {
+                return new BlockPos(found.getX(), 0, found.getZ());
+            }
+
+            // The exact biome point might not fit the ship — spiral search nearby
+            for (int radius = SEARCH_STEP; radius <= OCEAN_SEARCH_RADIUS; radius += SEARCH_STEP) {
+                for (int dx = -radius; dx <= radius; dx += SEARCH_STEP) {
+                    for (int dz = -radius; dz <= radius; dz += SEARCH_STEP) {
+                        if (Math.abs(dx) != radius && Math.abs(dz) != radius) continue;
+                        int cx = found.getX() + dx;
+                        int cz = found.getZ() + dz;
+                        if (isOceanSafe(world, cx, cz, shipWidth, shipDepth)) {
+                            return new BlockPos(cx, 0, cz);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Fallback: spiral search from player position
+        LOGGER.info("[Ship] Biome locator failed, falling back to spiral search from {}", center.toShortString());
         for (int radius = 0; radius <= OCEAN_SEARCH_RADIUS; radius += SEARCH_STEP) {
             for (int dx = -radius; dx <= radius; dx += SEARCH_STEP) {
                 for (int dz = -radius; dz <= radius; dz += SEARCH_STEP) {
-                    // Only check the perimeter of each ring (skip interior)
                     if (Math.abs(dx) != radius && Math.abs(dz) != radius && radius > 0) continue;
-
                     int cx = center.getX() + dx;
                     int cz = center.getZ() + dz;
-
                     if (isOceanSafe(world, cx, cz, shipWidth, shipDepth)) {
                         return new BlockPos(cx, 0, cz);
                     }
