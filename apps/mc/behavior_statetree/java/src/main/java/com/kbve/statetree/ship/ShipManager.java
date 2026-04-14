@@ -178,6 +178,9 @@ public final class ShipManager {
         public float heading = 0.0f;
         /** Rideable helm entity on the deck. Null until placement completes. */
         public ShipEntity helmEntity = null;
+        /** Bed positions placed on deck (foot + head). Cleared on despawn. */
+        public BlockPos bedFoot = null;
+        public BlockPos bedHead = null;
 
         ActiveShip(UUID shipId, UUID ownerUuid, String shipName, BlockPos anchor, ShipData data) {
             this.shipId = shipId;
@@ -254,7 +257,20 @@ public final class ShipManager {
             removed++;
         }
 
-        LOGGER.info("[Ship] Removed {} blocks for '{}' (id={})", removed, ship.shipName, shipId);
+        // Clear the bed
+        if (ship.bedFoot != null) {
+            world.setBlockState(ship.bedFoot, Blocks.AIR.getDefaultState());
+        }
+        if (ship.bedHead != null) {
+            world.setBlockState(ship.bedHead, Blocks.AIR.getDefaultState());
+        }
+
+        // Despawn the helm entity
+        if (ship.helmEntity != null && ship.helmEntity.isAlive()) {
+            ship.helmEntity.discard();
+        }
+
+        LOGGER.info("[Ship] Removed {} blocks + bed + helm for '{}' (id={})", removed, ship.shipName, shipId);
         return true;
     }
 
@@ -392,6 +408,15 @@ public final class ShipManager {
         world.setBlockState(headPos, head, 18);
 
         LOGGER.info("[Ship] Bed placed on deck at {}", footPos.toShortString());
+
+        // Track bed positions so they get cleaned up on despawn
+        for (var entry : ships.entrySet()) {
+            if (entry.getValue().ownerUuid.equals(ownerUuid)) {
+                entry.getValue().bedFoot = footPos;
+                entry.getValue().bedHead = headPos;
+                break;
+            }
+        }
 
         // Find the owner player and set their spawn + teleport them to the deck
         net.minecraft.server.network.ServerPlayerEntity owner = null;

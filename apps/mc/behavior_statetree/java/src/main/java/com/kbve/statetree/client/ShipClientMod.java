@@ -116,6 +116,21 @@ public class ShipClientMod implements ClientModInitializer {
         // Tick ship interpolations
         tracker.tickAll();
 
+        // Auto-detect mounting/dismounting a ShipEntity
+        net.minecraft.entity.Entity vehicle = client.player.getVehicle();
+        if (vehicle instanceof com.kbve.statetree.ship.ShipEntity shipEntity) {
+            // Player is riding a ship — activate helm if not already
+            if (activeHelmShipId == null) {
+                UUID shipId = shipEntity.getShipId();
+                if (shipId != null) {
+                    setActiveHelm(shipId.toString());
+                }
+            }
+        } else if (activeHelmShipId != null) {
+            // Player dismounted — deactivate helm
+            clearActiveHelm();
+        }
+
         if (activeHelmShipId == null) return;
 
         // Read WASD input
@@ -132,11 +147,8 @@ public class ShipClientMod implements ClientModInitializer {
         if (forward != 0 || sideways != 0) {
             ClientPlayNetworking.send(new HelmInputPayload(activeHelmShipId, forward, sideways));
         }
-
-        // Check for sneak to dismount
-        if (client.options.sneakKey.isPressed()) {
-            clearActiveHelm();
-        }
+        // Dismount is handled by vanilla (sneak) — the vehicle check
+        // above detects when the player is no longer riding and clears helm.
     }
 
     /**
