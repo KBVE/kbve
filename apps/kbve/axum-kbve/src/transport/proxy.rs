@@ -772,6 +772,47 @@ const VM_NAMESPACE: &str = "angelscript";
 const KASM_NAMESPACE: &str = "kasm";
 
 // ---------------------------------------------------------------------------
+// VNC session info endpoints — viewer count + primary status
+// ---------------------------------------------------------------------------
+
+/// GET /dashboard/vm/vnc-info/{name} — returns viewer count for a specific VM
+pub async fn kubevirt_vnc_info_handler(
+    Path(vm_name): Path<String>,
+    req: Request<Body>,
+) -> Response {
+    let headers = req.headers().clone();
+    let query = req.uri().query().map(|q| q.to_string());
+
+    if let Err(resp) =
+        require_dashboard_view_with_query(&headers, query.as_deref(), "VNC-Info").await
+    {
+        return resp;
+    }
+
+    let vm_key = format!("{VM_NAMESPACE}/{vm_name}");
+    match super::vnc_hub::get_session_info(&vm_key) {
+        Some(info) => axum::Json(info).into_response(),
+        None => axum::Json(json!({"vm_key": vm_key, "viewers": 0, "has_primary": false}))
+            .into_response(),
+    }
+}
+
+/// GET /dashboard/vm/vnc-sessions — returns all active VNC sessions
+pub async fn kubevirt_vnc_sessions_handler(req: Request<Body>) -> Response {
+    let headers = req.headers().clone();
+    let query = req.uri().query().map(|q| q.to_string());
+
+    if let Err(resp) =
+        require_dashboard_view_with_query(&headers, query.as_deref(), "VNC-Sessions").await
+    {
+        return resp;
+    }
+
+    let sessions = super::vnc_hub::list_sessions();
+    axum::Json(json!({"sessions": sessions})).into_response()
+}
+
+// ---------------------------------------------------------------------------
 // KASM workspace proxy singleton (reverse proxy to KASM web UI)
 // ---------------------------------------------------------------------------
 
