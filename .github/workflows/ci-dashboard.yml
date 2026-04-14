@@ -85,7 +85,7 @@ jobs:
             - name: Setup pnpm v10
               uses: pnpm/action-setup@v6
               with:
-                  version: 10
+                  version: 10.33.0
                   run_install: false
 
             - name: Install pnpm Dependencies
@@ -307,7 +307,7 @@ jobs:
             - name: Setup pnpm v10
               uses: pnpm/action-setup@v6
               with:
-                  version: 10
+                  version: 10.33.0
                   run_install: false
 
             - name: Get pnpm Store Path
@@ -1043,7 +1043,7 @@ jobs:
             - name: Setup pnpm v10
               uses: pnpm/action-setup@v6
               with:
-                  version: 10
+                  version: 10.33.0
                   run_install: false
 
             - name: Install dependencies
@@ -1282,7 +1282,7 @@ jobs:
               if: steps.pr.outputs.pr_number != ''
               uses: pnpm/action-setup@v6
               with:
-                  version: 10
+                  version: 10.33.0
 
             - name: Setup Node v24 with pnpm cache
               if: steps.pr.outputs.pr_number != ''

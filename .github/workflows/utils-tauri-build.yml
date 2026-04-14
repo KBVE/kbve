@@ -130,7 +130,7 @@ jobs:
             - name: Setup pnpm v10
               uses: pnpm/action-setup@v6
               with:
-                  version: 10
+                  version: 10.33.0
                   run_install: false
 
             - name: Get pnpm Store Path
@@ -231,7 +231,7 @@ jobs:
             - name: Setup pnpm v10
               uses: pnpm/action-setup@v6
               with:
-                  version: 10
+                  version: 10.33.0
                   run_install: false
 
             - name: Get pnpm Store Path
@@ -329,7 +329,7 @@ jobs:
             - name: Setup pnpm v10
               uses: pnpm/action-setup@v6
               with:
-                  version: 10
+                  version: 10.33.0
                   run_install: false
 
             - name: Get pnpm Store Path
@@ -419,7 +419,7 @@ jobs:
             - name: Setup pnpm v10
               uses: pnpm/action-setup@v6
               with:
-                  version: 10
+                  version: 10.33.0
                   run_install: false
 
             - name: Get pnpm Store Path
