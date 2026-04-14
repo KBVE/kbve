@@ -59,8 +59,9 @@ public final class NativeRuntime {
             System.load(tempFile.getAbsolutePath());
             loaded = true;
             System.out.println("[behavior_statetree] Native library loaded from " + tempFile.getAbsolutePath());
-        } catch (Exception e) {
-            System.err.println("[behavior_statetree] Failed to load native library: " + e.getMessage());
+        } catch (Exception | UnsatisfiedLinkError e) {
+            System.err.println("[behavior_statetree] Native library not available: " + e.getMessage());
+            System.err.println("[behavior_statetree] AI features disabled — ship system still works");
             loaded = false;
         }
     }
