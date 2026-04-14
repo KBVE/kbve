@@ -142,6 +142,13 @@ public final class ShipCommands {
 
         // Find the player's ship by owner UUID
         UUID playerUuid = player.getUuid();
+        int shipCount = manager.getActiveShips().size();
+
+        if (shipCount == 0) {
+            source.sendError(Text.of("No ships exist. Use /spawnship <name> first."));
+            return 0;
+        }
+
         for (var entry : manager.getActiveShips().entrySet()) {
             ShipManager.ActiveShip ship = entry.getValue();
             if (ship.ownerUuid.equals(playerUuid)) {
@@ -149,7 +156,9 @@ public final class ShipCommands {
             }
         }
 
-        source.sendError(Text.of("You don't have a ship. Use /spawnship <name> first."));
+        // Debug: show why no match
+        source.sendError(Text.of("No ship owned by you (uuid=" + playerUuid + "). " +
+                shipCount + " ship(s) exist. Try /boardship <uuid> with the ship ID from /shipyard."));
         return 0;
     }
 
