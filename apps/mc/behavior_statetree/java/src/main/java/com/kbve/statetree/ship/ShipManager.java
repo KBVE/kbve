@@ -396,10 +396,10 @@ public final class ShipManager {
             String playerName = owner.getNameForScoreboard();
             int bx = footPos.getX(), by = footPos.getY(), bz = footPos.getZ();
 
-            server.getCommandManager().executeWithPrefix(
+            server.getCommandManager().parseAndExecute(
                     server.getCommandSource(),
                     "spawnpoint " + playerName + " " + bx + " " + by + " " + bz);
-            server.getCommandManager().executeWithPrefix(
+            server.getCommandManager().parseAndExecute(
                     server.getCommandSource(),
                     "tp " + playerName + " " + (bx + 0.5) + " " + (by + 1.0) + " " + (bz + 0.5));
 
