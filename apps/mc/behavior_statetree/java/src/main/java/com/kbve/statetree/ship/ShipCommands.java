@@ -99,11 +99,37 @@ public final class ShipCommands {
                         )
         );
 
+        // /clearallships — remove every tracked ship (dev tool)
+        dispatcher.register(
+                CommandManager.literal("clearallships")
+                        .requires(ServerCommandSource::isExecutedByPlayer)
+                        .executes(ctx -> executeClearAll(ctx.getSource(), manager))
+        );
+
         dispatcher.register(
                 CommandManager.literal("shipyard")
                         .requires(ServerCommandSource::isExecutedByPlayer)
                         .executes(ctx -> executeStatus(ctx.getSource(), shipyard, manager))
         );
+    }
+
+    private static int executeClearAll(ServerCommandSource source, ShipManager manager) {
+        ServerWorld world = source.getWorld();
+        var shipIds = new java.util.ArrayList<>(manager.getActiveShips().keySet());
+        int count = shipIds.size();
+
+        if (count == 0) {
+            source.sendFeedback(() -> Text.of("\u00A7eNo active ships to clear."), false);
+            return 0;
+        }
+
+        for (UUID id : shipIds) {
+            manager.removeShip(world, id);
+        }
+
+        source.sendFeedback(() -> Text.of(
+                "\u00A7a\u00A7lCleared " + count + " ship(s) \u00A7r\u00A7eand all their blocks."), true);
+        return 1;
     }
 
     private static int executeMove(ServerCommandSource source, ShipManager manager, String uuidStr, int distance) {
