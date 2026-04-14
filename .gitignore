@@ -10,7 +10,7 @@
 
 # Gradle build artifacts + caches
 **/.gradle/
-**/build/
+apps/mc/**/java/build/
 
 # 11-15-2023 9:19am - Ignore all __pycache__
 **/__pycache__/
