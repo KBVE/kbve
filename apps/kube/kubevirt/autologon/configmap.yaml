@@ -1,7 +1,11 @@
-# ConfigMap with the Windows autologon configuration script.
+# ConfigMap with the Windows autologon + VNC-ready configuration script.
 #
 # Uses the QEMU Guest Agent (via virsh in the virt-launcher pod) to set
-# Windows registry keys for automatic Administrator login at boot.
+# Windows registry keys for:
+#   1. Automatic Administrator login at boot (no lock screen)
+#   2. Disable Ctrl+Alt+Del requirement (Windows Server default)
+#   3. Disable screen lock, screensaver, and idle timeout
+#   4. Disable Server Manager auto-start (cleans up the VNC desktop)
 #
 # The admin password is injected as ADMIN_PASSWORD env var from a Secret —
 # it never appears in this ConfigMap or anywhere in the repo.
@@ -23,7 +27,7 @@ data:
         NAMESPACE="${NAMESPACE:-angelscript}"
         ADMIN_PASSWORD="${ADMIN_PASSWORD:?ADMIN_PASSWORD required}"
 
-        echo "=== Configuring Windows autologon: ${VM_NAME} ==="
+        echo "=== Configuring Windows autologon + VNC-ready: ${VM_NAME} ==="
 
         # ── Wait for VMI to be running ──
         echo "Waiting for VM to be running..."
@@ -84,41 +88,90 @@ data:
         # ── Escape password for JSON ──
         ESCAPED_PWD=$(printf '%s' "${ADMIN_PASSWORD}" | sed 's/\\/\\\\/g; s/"/\\"/g')
 
-        # ── Build PowerShell command ──
-        # Sets three Winlogon registry keys that enable automatic login:
-        #   AutoAdminLogon  = "1"        → enable auto-login
-        #   DefaultUserName = "Administrator"
-        #   DefaultPassword = <from secret>
-        PS_CMD="\$path = 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon'; Set-ItemProperty -Path \$path -Name AutoAdminLogon -Value '1' -Force; Set-ItemProperty -Path \$path -Name DefaultUserName -Value 'Administrator' -Force; Set-ItemProperty -Path \$path -Name DefaultPassword -Value '${ESCAPED_PWD}' -Force; Write-Output 'Autologon configured'"
+        # ── Helper: run a PowerShell command via guest agent and verify ──
+        run_ps() {
+            STEP_NAME="$1"
+            PS_SCRIPT="$2"
+            echo ""
+            echo "--- ${STEP_NAME} ---"
 
-        # ── Execute via QEMU guest agent (virsh in compute container) ──
-        echo "Setting autologon registry keys via guest agent..."
-        RESULT=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
-            virsh qemu-agent-command "${DOMAIN}" \
-            "{\"execute\":\"guest-exec\",\"arguments\":{\"path\":\"powershell.exe\",\"arg\":[\"-NoProfile\",\"-Command\",\"${PS_CMD}\"],\"capture-output\":true}}" \
-            2>&1)
-        echo "Guest agent response: ${RESULT}"
+            RESULT=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
+                virsh qemu-agent-command "${DOMAIN}" \
+                "{\"execute\":\"guest-exec\",\"arguments\":{\"path\":\"powershell.exe\",\"arg\":[\"-NoProfile\",\"-Command\",\"${PS_SCRIPT}\"],\"capture-output\":true}}" \
+                2>&1)
 
-        # ── Check exec status ──
-        PID=$(echo "${RESULT}" | sed -n 's/.*"pid":\([0-9]*\).*/\1/p')
-        if [ -n "${PID}" ]; then
+            PID=$(echo "${RESULT}" | sed -n 's/.*"pid":\([0-9]*\).*/\1/p')
+            if [ -z "${PID}" ]; then
+                echo "  WARNING: Could not parse PID — command may still have succeeded"
+                return 0
+            fi
+
             sleep 3
             STATUS_RESULT=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
                 virsh qemu-agent-command "${DOMAIN}" \
                 "{\"execute\":\"guest-exec-status\",\"arguments\":{\"pid\":${PID}}}" \
                 2>&1)
-            echo "Exec status: ${STATUS_RESULT}"
 
             EXITCODE=$(echo "${STATUS_RESULT}" | sed -n 's/.*"exitcode":\([0-9]*\).*/\1/p')
             if [ "${EXITCODE}" = "0" ]; then
-                echo "=== SUCCESS: Autologon configured for ${VM_NAME} ==="
-                echo "Windows will auto-login as Administrator on next boot."
+                echo "  OK: ${STEP_NAME}"
             else
-                echo "WARNING: PowerShell exited with code ${EXITCODE}"
-                echo "Check the exec status output above for details."
-                exit 1
+                echo "  FAILED (exit ${EXITCODE}): ${STEP_NAME}"
+                echo "  Response: ${STATUS_RESULT}"
+                return 1
             fi
+        }
+
+        FAILED=0
+
+        # ── Step 1: Autologon registry keys ──
+        # AutoAdminLogon  = "1"        → enable auto-login
+        # DefaultUserName = "Administrator"
+        # DefaultPassword = <from secret>
+        PS_AUTOLOGON="\$p = 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon'; Set-ItemProperty -Path \$p -Name AutoAdminLogon -Value '1' -Force; Set-ItemProperty -Path \$p -Name DefaultUserName -Value 'Administrator' -Force; Set-ItemProperty -Path \$p -Name DefaultPassword -Value '${ESCAPED_PWD}' -Force; Write-Output 'done'"
+        run_ps "Autologon registry keys" "${PS_AUTOLOGON}" || FAILED=1
+
+        # ── Step 2: Disable Ctrl+Alt+Del requirement ──
+        # Windows Server requires Ctrl+Alt+Del before login by default.
+        # DisableCAD=1 in Winlogon bypasses this for VNC usability.
+        PS_DISABLE_CAD="\$p = 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon'; Set-ItemProperty -Path \$p -Name DisableCAD -Value 1 -Type DWord -Force; Write-Output 'done'"
+        run_ps "Disable Ctrl+Alt+Del" "${PS_DISABLE_CAD}" || FAILED=1
+
+        # ── Step 3: Disable lock screen ──
+        # Prevents Windows from showing the lock screen on resume/idle.
+        PS_DISABLE_LOCK="\$p = 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Personalization'; if (-not (Test-Path \$p)) { New-Item -Path \$p -Force | Out-Null }; Set-ItemProperty -Path \$p -Name NoLockScreen -Value 1 -Type DWord -Force; Write-Output 'done'"
+        run_ps "Disable lock screen" "${PS_DISABLE_LOCK}" || FAILED=1
+
+        # ── Step 4: Disable screensaver ──
+        # Prevents screensaver from activating and locking the session.
+        PS_DISABLE_SS="Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name ScreenSaveActive -Value '0' -Force; Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name ScreenSaverIsSecure -Value '0' -Force; Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name ScreenSaveTimeOut -Value '0' -Force; Write-Output 'done'"
+        run_ps "Disable screensaver" "${PS_DISABLE_SS}" || FAILED=1
+
+        # ── Step 5: Disable idle lock timeout via power policy ──
+        # Sets console lock display off timeout to 0 (never lock on display off).
+        PS_POWER="powercfg /change standby-timeout-ac 0; powercfg /change monitor-timeout-ac 0; powercfg /x -hibernate-timeout-ac 0; Write-Output 'done'"
+        run_ps "Disable power idle timeouts" "${PS_POWER}" || FAILED=1
+
+        # ── Step 6: Disable Server Manager auto-start ──
+        # Server Manager opens on every login by default and clutters the VNC desktop.
+        PS_SRVMGR="\$p = 'HKLM:\\SOFTWARE\\Microsoft\\ServerManager'; Set-ItemProperty -Path \$p -Name DoNotOpenServerManagerAtLogon -Value 1 -Type DWord -Force; Write-Output 'done'"
+        run_ps "Disable Server Manager auto-start" "${PS_SRVMGR}" || FAILED=1
+
+        # ── Step 7: Disable machine inactivity limit (Group Policy) ──
+        # Prevents Windows from locking after X seconds of inactivity
+        # via the security policy InactivityTimeoutSecs.
+        PS_INACTIVITY="\$p = 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System'; Set-ItemProperty -Path \$p -Name InactivityTimeoutSecs -Value 0 -Type DWord -Force; Write-Output 'done'"
+        run_ps "Disable inactivity lock" "${PS_INACTIVITY}" || FAILED=1
+
+        # ── Summary ──
+        echo ""
+        if [ "${FAILED}" = "0" ]; then
+            echo "=== SUCCESS: All VNC-ready settings applied to ${VM_NAME} ==="
+            echo "Windows will auto-login and never lock the screen."
+            echo "Changes take full effect after the next reboot."
         else
-            echo "WARNING: Could not parse PID from guest-exec response"
-            echo "The command may still have succeeded — verify via VNC."
+            echo "=== PARTIAL: Some steps failed for ${VM_NAME} ==="
+            echo "Review the output above. Autologon may still work."
+            echo "Re-run after fixing any issues."
+            exit 1
         fi

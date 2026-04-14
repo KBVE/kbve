@@ -1,7 +1,18 @@
-# One-shot Job to configure Windows autologon on the builder VM.
+# One-shot Job to configure Windows autologon + VNC-ready settings on the builder VM.
 #
 # Uses the QEMU Guest Agent to set registry keys inside Windows so the
-# VM auto-logs in as Administrator on every boot — no VNC password prompt.
+# VM auto-logs in as Administrator on every boot — no lock screen, no
+# Ctrl+Alt+Del prompt, no screensaver, no idle lock. VNC users see the
+# desktop immediately without any interaction.
+#
+# What it configures (7 steps):
+#   1. Autologon registry keys (AutoAdminLogon, DefaultUserName, DefaultPassword)
+#   2. Disable Ctrl+Alt+Del requirement (DisableCAD)
+#   3. Disable lock screen (NoLockScreen policy)
+#   4. Disable screensaver (ScreenSaveActive=0)
+#   5. Disable power idle timeouts (standby, monitor, hibernate all to 0)
+#   6. Disable Server Manager auto-start (DoNotOpenServerManagerAtLogon)
+#   7. Disable machine inactivity lock (InactivityTimeoutSecs=0)
 #
 # Prerequisites:
 #   1. windows-builder VM is running with QEMU Guest Agent installed
@@ -16,7 +27,7 @@
 #   kubectl delete job vm-autologon-windows -n angelscript
 #   kubectl apply -f apps/kube/kubevirt/autologon/ -n angelscript
 #
-# The autologon config persists across reboots — only needs to run once.
+# The settings persist across reboots — only needs to run once.
 #
 # Note: the pod template intentionally does NOT carry `app: angelscript`
 # because the namespace NetworkPolicy (podSelector app=angelscript) only

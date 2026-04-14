@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { vmService } from './vmService';
-import { X, Maximize2, Minimize2, Keyboard } from 'lucide-react';
+import { X, Maximize2, Minimize2, Keyboard, Users, Crown } from 'lucide-react';
 
 // noVNC RFB client — loaded from vendored ESM in public/vendor/novnc/.
 // The npm package (@novnc/novnc) ships CJS with a top-level await in
@@ -38,6 +38,9 @@ async function loadRFB() {
 	return RFB;
 }
 
+const MAX_RECONNECT_ATTEMPTS = 5;
+const RECONNECT_BASE_DELAY_MS = 2000;
+
 export default function ReactVMVncViewer() {
 	const vncTarget = useStore(vmService.$vncTarget);
 	const rfbRef = useRef<InstanceType<typeof RFB> | null>(null);
@@ -47,82 +50,159 @@ export default function ReactVMVncViewer() {
 	const [connected, setConnected] = useState(false);
 	const [status, setStatus] = useState('Connecting...');
 	const [keyboardVisible, setKeyboardVisible] = useState(false);
+	const [viewerCount, setViewerCount] = useState(0);
+	const [isPrimary, setIsPrimary] = useState(false);
+	const reconnectAttemptRef = useRef(0);
+	const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+		null,
+	);
+	const intentionalCloseRef = useRef(false);
+
+	// Poll viewer count while connected
+	useEffect(() => {
+		if (!vncTarget || !connected) {
+			setViewerCount(0);
+			setIsPrimary(false);
+			return;
+		}
+
+		const pollViewerCount = async () => {
+			try {
+				const info = await vmService.getVNCSessionInfo(vncTarget);
+				if (info) {
+					setViewerCount(info.viewers);
+					setIsPrimary(info.has_primary);
+				}
+			} catch {
+				// Silently ignore — the connection may have dropped
+			}
+		};
+
+		pollViewerCount();
+		const interval = setInterval(pollViewerCount, 5000);
+		return () => clearInterval(interval);
+	}, [vncTarget, connected]);
 
 	const cleanup = useCallback(() => {
+		if (reconnectTimerRef.current) {
+			clearTimeout(reconnectTimerRef.current);
+			reconnectTimerRef.current = null;
+		}
 		if (rfbRef.current) {
 			rfbRef.current.disconnect();
 			rfbRef.current = null;
 		}
 		setConnected(false);
 		setStatus('Disconnected');
+		setViewerCount(0);
+		setIsPrimary(false);
+	}, []);
+
+	const connectVNC = useCallback(async (target: string) => {
+		const viewerEl = viewerRef.current;
+		if (!viewerEl) return;
+
+		viewerEl.innerHTML = '';
+
+		const wsUrl = vmService.getVNCWebSocketURL(target);
+		setStatus(
+			reconnectAttemptRef.current > 0
+				? `Reconnecting (${reconnectAttemptRef.current}/${MAX_RECONNECT_ATTEMPTS})...`
+				: 'Connecting...',
+		);
+
+		try {
+			const RFBClass = await loadRFB();
+			const rfb = new RFBClass(viewerEl, wsUrl, {
+				wsProtocols: ['binary.k8s.io', 'base64.binary.k8s.io'],
+			});
+
+			rfb.scaleViewport = true;
+			rfb.resizeSession = false;
+			rfb.clipViewport = false;
+			rfb.showDotCursor = true;
+			rfb.qualityLevel = 6;
+			rfb.compressionLevel = 2;
+
+			rfb.addEventListener('connect', () => {
+				setConnected(true);
+				setStatus(`Connected to ${target}`);
+				reconnectAttemptRef.current = 0;
+			});
+
+			rfb.addEventListener(
+				'disconnect',
+				(e: { detail: { clean: boolean } }) => {
+					setConnected(false);
+					rfbRef.current = null;
+
+					if (intentionalCloseRef.current) {
+						setStatus('Disconnected');
+						return;
+					}
+
+					if (e.detail.clean) {
+						setStatus('Disconnected — server closed connection');
+					} else {
+						setStatus('Connection lost — attempting reconnect...');
+					}
+
+					// Auto-reconnect on unexpected disconnects
+					if (reconnectAttemptRef.current < MAX_RECONNECT_ATTEMPTS) {
+						reconnectAttemptRef.current += 1;
+						const delay =
+							RECONNECT_BASE_DELAY_MS *
+							Math.pow(1.5, reconnectAttemptRef.current - 1);
+						setStatus(
+							`Reconnecting in ${Math.round(delay / 1000)}s (${reconnectAttemptRef.current}/${MAX_RECONNECT_ATTEMPTS})...`,
+						);
+						reconnectTimerRef.current = setTimeout(() => {
+							connectVNC(target);
+						}, delay);
+					} else {
+						setStatus(
+							'Connection lost — max reconnect attempts reached. Click to retry.',
+						);
+					}
+				},
+			);
+
+			rfb.addEventListener('securityfailure', () => {
+				setStatus('Security handshake failed');
+			});
+
+			rfbRef.current = rfb;
+		} catch (err) {
+			setStatus(
+				`Failed to connect: ${err instanceof Error ? err.message : 'Unknown error'}`,
+			);
+		}
 	}, []);
 
 	useEffect(() => {
 		if (!vncTarget) {
+			intentionalCloseRef.current = false;
 			cleanup();
 			return;
 		}
 
-		const target = viewerRef.current;
-		if (!target) return;
+		reconnectAttemptRef.current = 0;
+		intentionalCloseRef.current = false;
+		connectVNC(vncTarget);
 
-		// Clear previous content
-		target.innerHTML = '';
+		return () => {
+			intentionalCloseRef.current = true;
+			cleanup();
+		};
+	}, [vncTarget, connectVNC, cleanup]);
 
-		const wsUrl = vmService.getVNCWebSocketURL(vncTarget);
-		setStatus('Connecting...');
-
-		(async () => {
-			try {
-				const RFBClass = await loadRFB();
-				const rfb = new RFBClass(target, wsUrl, {
-					wsProtocols: ['binary.k8s.io', 'base64.binary.k8s.io'],
-				});
-
-				rfb.scaleViewport = true;
-				rfb.resizeSession = false;
-				rfb.clipViewport = false;
-				rfb.showDotCursor = true;
-				rfb.qualityLevel = 6;
-				rfb.compressionLevel = 2;
-
-				rfb.addEventListener('connect', () => {
-					setConnected(true);
-					setStatus(`Connected to ${vncTarget}`);
-				});
-
-				rfb.addEventListener(
-					'disconnect',
-					(e: { detail: { clean: boolean } }) => {
-						const wasConnected = connected;
-						setConnected(false);
-						if (e.detail.clean) {
-							setStatus('Disconnected cleanly');
-						} else if (!wasConnected) {
-							setStatus(
-								'WebSocket failed — VM may not be running or K8s API unreachable',
-							);
-						} else {
-							setStatus('Connection lost — VM may have stopped');
-						}
-						rfbRef.current = null;
-					},
-				);
-
-				rfb.addEventListener('securityfailure', () => {
-					setStatus('Security handshake failed');
-				});
-
-				rfbRef.current = rfb;
-			} catch (err) {
-				setStatus(
-					`Failed to connect: ${err instanceof Error ? err.message : 'Unknown error'}`,
-				);
-			}
-		})();
-
-		return cleanup;
-	}, [vncTarget, cleanup]);
+	// Manual retry handler
+	const handleRetry = useCallback(() => {
+		if (vncTarget && !connected) {
+			reconnectAttemptRef.current = 0;
+			connectVNC(vncTarget);
+		}
+	}, [vncTarget, connected, connectVNC]);
 
 	// Ctrl+Alt+Del sender
 	const sendCtrlAltDel = useCallback(() => {
@@ -162,12 +242,17 @@ export default function ReactVMVncViewer() {
 			{/* noVNC renders into this container */}
 			<div
 				ref={viewerRef}
+				onClick={!connected ? handleRetry : undefined}
 				style={{
 					flex: 1,
 					minHeight: fullscreen ? undefined : 480,
 					height: fullscreen ? undefined : 480,
 					background: '#0a0a0a',
-					cursor: connected ? 'default' : 'not-allowed',
+					cursor: connected
+						? 'default'
+						: status.includes('Click to retry')
+							? 'pointer'
+							: 'not-allowed',
 				}}
 			/>
 
@@ -210,6 +295,34 @@ export default function ReactVMVncViewer() {
 							}}>
 							{status}
 						</span>
+						{/* Viewer count badge */}
+						{connected && viewerCount > 0 && (
+							<span
+								style={{
+									display: 'inline-flex',
+									alignItems: 'center',
+									gap: 3,
+									padding: '1px 6px',
+									borderRadius: 4,
+									fontSize: '0.65rem',
+									fontWeight: 600,
+									background: 'rgba(6, 182, 212, 0.15)',
+									border: '1px solid rgba(6, 182, 212, 0.3)',
+									color: '#06b6d4',
+								}}>
+								<Users size={10} />
+								{viewerCount}
+								{isPrimary && (
+									<Crown
+										size={9}
+										style={{
+											color: '#f59e0b',
+											marginLeft: 1,
+										}}
+									/>
+								)}
+							</span>
+						)}
 					</div>
 					<div style={{ display: 'flex', gap: 4 }}>
 						{connected && (
@@ -245,7 +358,10 @@ export default function ReactVMVncViewer() {
 						</ToolbarButton>
 						<ToolbarButton
 							title="Close VNC"
-							onClick={() => vmService.closeVNC()}
+							onClick={() => {
+								intentionalCloseRef.current = true;
+								vmService.closeVNC();
+							}}
 							color="#ef4444">
 							<X size={14} />
 						</ToolbarButton>
@@ -259,8 +375,10 @@ export default function ReactVMVncViewer() {
 						textAlign: 'center',
 					}}>
 					{connected
-						? 'Click inside to capture keyboard · Ctrl+Alt+Del via toolbar'
-						: 'Waiting for VNC connection...'}
+						? `Click inside to capture keyboard · Ctrl+Alt+Del via toolbar${viewerCount > 1 ? ` · ${viewerCount} viewers connected` : ''}`
+						: status.includes('Click to retry')
+							? 'Click the viewer area to retry connection'
+							: 'Waiting for VNC connection...'}
 				</div>
 			</div>
 		</div>
