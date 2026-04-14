@@ -390,17 +390,18 @@ public final class ShipManager {
         }
 
         if (owner != null) {
-            // Set spawn point to the bed position
-            var spawnPoint = net.minecraft.world.WorldProperties.SpawnPoint.create(
-                    world.getRegistryKey(), footPos, 0.0f, 0.0f);
-            var respawn = new net.minecraft.server.network.ServerPlayerEntity.Respawn(
-                    spawnPoint, true);
-            owner.setSpawnPoint(respawn, false);
+            // Set spawn point + teleport via server commands — avoids
+            // chasing 1.21.11 Yarn API changes for setSpawnPoint/Respawn
+            var server = world.getServer();
+            String playerName = owner.getNameForScoreboard();
+            int bx = footPos.getX(), by = footPos.getY(), bz = footPos.getZ();
 
-            // Teleport owner to the deck (one block above the bed)
-            owner.teleport(world,
-                    footPos.getX() + 0.5, footPos.getY() + 1.0, footPos.getZ() + 0.5,
-                    java.util.Set.of(), owner.getYaw(), owner.getPitch(), false);
+            server.getCommandManager().executeWithPrefix(
+                    server.getCommandSource(),
+                    "spawnpoint " + playerName + " " + bx + " " + by + " " + bz);
+            server.getCommandManager().executeWithPrefix(
+                    server.getCommandSource(),
+                    "tp " + playerName + " " + (bx + 0.5) + " " + (by + 1.0) + " " + (bz + 0.5));
 
             owner.sendMessage(net.minecraft.text.Text.of(
                     "\u00A7a\u00A7l[Ship] \u00A7r\u00A7eYour ship is ready! Spawn point set to the deck."), false);
