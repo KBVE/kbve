@@ -10,6 +10,8 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +62,17 @@ public class BehaviorStateTreeMod implements ModInitializer {
             var overworld = server.getOverworld();
             if (overworld != null) {
                 shipManager.tick(overworld);
+            }
+        });
+
+        // Dev mode: auto-op every player on join when server is offline-mode.
+        // This gives all dev testers full admin (op level 4, creative, commands).
+        // Only activates when online-mode=false (the dev docker compose config).
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            if (!server.isOnlineMode()) {
+                ServerPlayerEntity player = handler.getPlayer();
+                server.getPlayerManager().addToOperators(player.getGameProfile());
+                LOGGER.info("[{}] Dev auto-op: {} (offline-mode server)", MOD_ID, player.getNameForScoreboard());
             }
         });
 
