@@ -95,13 +95,74 @@ public final class ShipManager {
             this.anchor = anchor;
             this.entries = new java.util.ArrayList<>(data.blocks().entrySet());
 
-            // Clear water at every position where we'll place a ship block.
-            // This handles water inside the hull without clearing the entire
-            // 4M-position bounding box.
-            clearPositions = new java.util.ArrayList<>(data.blocks().keySet());
+            // Clear water at ship block positions PLUS a 1-block buffer around
+            // the hull at and below sea level. This prevents water from seeping
+            // through gaps in the hull and handles the waterline cleanly.
+            java.util.Set<BlockPos> clearSet = new java.util.HashSet<>(data.blocks().keySet());
+
+            // Add a buffer zone: for each ship block at or below Y=5 (relative
+            // to anchor, which is at sea level), also clear adjacent positions.
+            // This creates a dry cavity inside the hull.
+            for (BlockPos bp : data.blocks().keySet()) {
+                if (bp.getY() <= 5) { // waterline zone (5 blocks above anchor)
+                    for (int dx = -1; dx <= 1; dx++) {
+                        for (int dz = -1; dz <= 1; dz++) {
+                            BlockPos adj = bp.add(dx, 0, dz);
+                            if (adj.getX() >= 0 && adj.getX() < data.sizeX()
+                                    && adj.getZ() >= 0 && adj.getZ() < data.sizeZ()) {
+                                clearSet.add(adj);
+                            }
+                            // Also clear below
+                            for (int dy = -1; dy >= -3; dy--) {
+                                BlockPos below = bp.add(dx, dy, dz);
+                                if (below.getY() >= 0) {
+                                    clearSet.add(below);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            clearPositions = new java.util.ArrayList<>(clearSet);
         }
 
         boolean isDone() { return clearDone && placeIndex >= entries.size(); }
+    }
+
+    /** Live tracking of which blocks currently belong to a ship.
+     *  Starts as a copy of the schematic, mutated as blocks are
+     *  broken (damage) or added (upgrades). Used by despawn to know
+     *  exactly which blocks to clear, and for hull integrity %. */
+    public static final class ShipBlockTracker {
+        private final java.util.Set<BlockPos> liveBlocks;
+        private final int originalCount;
+
+        ShipBlockTracker(ShipData data) {
+            this.liveBlocks = ConcurrentHashMap.newKeySet();
+            this.liveBlocks.addAll(data.blocks().keySet());
+            this.originalCount = data.blockCount();
+        }
+
+        /** Mark a block as destroyed (broken by player/explosion). */
+        public void removeBlock(BlockPos offset) {
+            liveBlocks.remove(offset);
+        }
+
+        /** Add a block (upgrade/repair). */
+        public void addBlock(BlockPos offset) {
+            liveBlocks.add(offset);
+        }
+
+        /** Current live block count. */
+        public int blockCount() { return liveBlocks.size(); }
+
+        /** Hull integrity as a percentage (100% = undamaged). */
+        public float integrity() {
+            return originalCount > 0 ? (float) liveBlocks.size() / originalCount * 100f : 0f;
+        }
+
+        /** All live block offsets (for despawn cleanup). */
+        public java.util.Set<BlockPos> blocks() { return liveBlocks; }
     }
 
     /** Record of an active ship in the world. */
@@ -111,10 +172,12 @@ public final class ShipManager {
         public final String shipName;
         public BlockPos anchor;
         public final ShipData data;
+        public final ShipBlockTracker blockTracker;
         public float heading = 0.0f;
 
         ActiveShip(UUID shipId, UUID ownerUuid, String shipName, BlockPos anchor, ShipData data) {
             this.shipId = shipId;
+            this.blockTracker = new ShipBlockTracker(data);
             this.ownerUuid = ownerUuid;
             this.shipName = shipName;
             this.anchor = anchor;
@@ -170,8 +233,10 @@ public final class ShipManager {
         ActiveShip ship = ships.remove(shipId);
         if (ship == null) return false;
 
+        // Use live block tracker — only clears blocks that still exist
+        // (broken blocks were already removed from the tracker)
         int removed = 0;
-        for (BlockPos offset : ship.data.blocks().keySet()) {
+        for (BlockPos offset : ship.blockTracker.blocks()) {
             BlockPos worldPos = ship.anchor.add(offset);
             world.setBlockState(worldPos, Blocks.AIR.getDefaultState());
             removed++;

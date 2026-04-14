@@ -1,7 +1,9 @@
 package com.kbve.statetree;
 
 import com.kbve.statetree.ship.ShipCommands;
+import com.kbve.statetree.ship.ShipEntityTypes;
 import com.kbve.statetree.ship.ShipManager;
+import com.kbve.statetree.ship.ShipNetworking;
 import com.kbve.statetree.ship.ShipProtection;
 import com.kbve.statetree.ship.Shipyard;
 import net.fabricmc.api.ModInitializer;
@@ -33,6 +35,13 @@ public class BehaviorStateTreeMod implements ModInitializer {
     public void onInitialize() {
         // Register ship blueprints — parsed once at server start, cached forever
         shipyard.registerBlueprint("dark_reaper", "/schematics/dark_reaper.nbt");
+
+        // Register ship entity type — safe now that all clients run Fabric
+        ShipEntityTypes.register();
+
+        // Register network payloads + server-side helm input receiver
+        ShipNetworking.registerPayloads();
+        ShipNetworking.registerServerReceivers(shipManager);
 
         // Ship block protection — breaking ship blocks doesn't drop items
         ShipProtection.register(shipManager);
