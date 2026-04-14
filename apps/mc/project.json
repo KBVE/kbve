@@ -72,7 +72,7 @@
 					"echo ''",
 					"echo '  Make sure the dev server is running: nx run mc:dev'",
 					"echo ''",
-					"cd behavior_statetree/java && gradle runClient --no-daemon"
+					"cd behavior_statetree/java && ./gradlew runClient --no-daemon"
 				],
 				"parallel": false,
 				"cwd": "apps/mc"

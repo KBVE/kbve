@@ -41,4 +41,4 @@ cd "$JAVA_DIR"
 
 # runClient launches a full MC client with the mod loaded.
 # On macOS, LWJGL needs -XstartOnFirstThread via the Gradle JVM args.
-exec gradle runClient --no-daemon
+exec ./gradlew runClient --no-daemon

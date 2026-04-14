@@ -27,4 +27,4 @@ echo Connect to: localhost:25565
 echo.
 
 cd java
-call gradle runClient --no-daemon
+call gradlew.bat runClient --no-daemon
