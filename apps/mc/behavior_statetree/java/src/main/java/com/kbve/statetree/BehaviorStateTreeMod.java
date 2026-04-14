@@ -87,6 +87,10 @@ public class BehaviorStateTreeMod implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             LOGGER.info("[{}] Starting NPC AI runtime — AI Skeletons enabled", MOD_ID);
             NativeRuntime.init();
+
+            // Initialize ship persistence (ships.json in the world directory)
+            String worldPath = server.getRunDirectory().toString();
+            shipManager.initPersistence(worldPath + "/ships.json");
         });
 
         // Each server tick: manage skeletons, submit observations, apply intents

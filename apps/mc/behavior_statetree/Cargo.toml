@@ -41,3 +41,4 @@ bevy_npc = { path = "../../../packages/rust/bevy/bevy_npc", features = ["creatur
 # (the grid/flow types are plain Rust structs wrapped as Bevy Resources
 # inside our own ECS module).
 bevy_pathfinding = { path = "../../../packages/rust/bevy/bevy_pathfinding" }
+

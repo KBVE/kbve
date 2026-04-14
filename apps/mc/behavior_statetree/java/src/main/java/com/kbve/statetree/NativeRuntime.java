@@ -100,6 +100,25 @@ public final class NativeRuntime {
      */
     public static native boolean submitMapData(String snapshotJson);
 
+    // -- Ship persistence (JSON file backed by Rust) -------------------------
+
+    /** Initialize the ship database at the given file path. */
+    public static native boolean initShipDb(String dbPath);
+
+    /** Save or update a ship record (JSON-serialized ShipRecord). */
+    public static native boolean saveShip(String shipJson);
+
+    /** Delete a ship record by its UUID string. */
+    public static native boolean deleteShip(String shipId);
+
+    /** Load all ship records as a JSON array. */
+    public static native String loadAllShips();
+
+    /** Delete all ship records (dev tool). */
+    public static native boolean deleteAllShips();
+
+    // -- Intents -------------------------------------------------------------
+
     /**
      * Poll all completed NPC intents as a JSON array.
      * Call each server tick to drain results.

@@ -13,6 +13,7 @@
 
 pub mod ecs;
 pub mod runtime;
+pub mod ship_db;
 pub mod tree;
 pub mod types;
 
@@ -28,6 +29,9 @@ use types::{NpcObservation, NpcThinkJob, PlayerSnapshot};
 
 /// Global runtime instance — initialized once via JNI `init()`.
 static RUNTIME: OnceLock<AiRuntime> = OnceLock::new();
+
+/// Global ship database — initialized via JNI `initShipDb()`.
+static SHIP_DB: OnceLock<ship_db::ShipDb> = OnceLock::new();
 
 /// Initialize the Tokio AI runtime. Call once from Fabric mod startup.
 #[unsafe(no_mangle)]
@@ -144,6 +148,126 @@ pub extern "system" fn Java_com_kbve_statetree_NativeRuntime_pollIntents(
     env.new_string(&json)
         .expect("failed to create intent JSON string")
         .into_raw()
+}
+
+// ---------------------------------------------------------------------------
+// Ship DB — SQLite persistence for ship state
+// ---------------------------------------------------------------------------
+
+/// Initialize the ship database. Call once from Fabric mod startup.
+/// `db_path` is the path to the SQLite file (e.g., "/data/ships.db").
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_kbve_statetree_NativeRuntime_initShipDb(
+    mut env: JNIEnv,
+    _class: JClass,
+    db_path: JString,
+) -> jboolean {
+    let path: String = match env.get_string(&db_path) {
+        Ok(s) => s.into(),
+        Err(_) => return 0,
+    };
+
+    match ship_db::ShipDb::open(&path) {
+        Ok(db) => {
+            let _ = SHIP_DB.set(db);
+            1
+        }
+        Err(e) => {
+            tracing::error!("[ShipDB] Failed to open: {}", e);
+            0
+        }
+    }
+}
+
+/// Save or update a ship record. JSON-serialized ShipRecord.
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_kbve_statetree_NativeRuntime_saveShip(
+    mut env: JNIEnv,
+    _class: JClass,
+    ship_json: JString,
+) -> jboolean {
+    let Some(db) = SHIP_DB.get() else { return 0 };
+
+    let json_str: String = match env.get_string(&ship_json) {
+        Ok(s) => s.into(),
+        Err(_) => return 0,
+    };
+
+    let Ok(record) = serde_json::from_str::<ship_db::ShipRecord>(&json_str) else {
+        return 0;
+    };
+
+    match db.upsert(&record) {
+        Ok(_) => 1,
+        Err(e) => {
+            tracing::error!("[ShipDB] Save failed: {}", e);
+            0
+        }
+    }
+}
+
+/// Delete a ship record by ID.
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_kbve_statetree_NativeRuntime_deleteShip(
+    mut env: JNIEnv,
+    _class: JClass,
+    ship_id: JString,
+) -> jboolean {
+    let Some(db) = SHIP_DB.get() else { return 0 };
+
+    let id: String = match env.get_string(&ship_id) {
+        Ok(s) => s.into(),
+        Err(_) => return 0,
+    };
+
+    match db.delete(&id) {
+        Ok(_) => 1,
+        Err(e) => {
+            tracing::error!("[ShipDB] Delete failed: {}", e);
+            0
+        }
+    }
+}
+
+/// Load all ship records. Returns a JSON array of ShipRecord.
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_kbve_statetree_NativeRuntime_loadAllShips(
+    env: JNIEnv,
+    _class: JClass,
+) -> jstring {
+    let json = match SHIP_DB.get() {
+        Some(db) => match db.load_all() {
+            Ok(records) => serde_json::to_string(&records).unwrap_or_else(|_| "[]".to_string()),
+            Err(e) => {
+                tracing::error!("[ShipDB] Load failed: {}", e);
+                "[]".to_string()
+            }
+        },
+        None => "[]".to_string(),
+    };
+
+    env.new_string(&json)
+        .expect("failed to create ship JSON string")
+        .into_raw()
+}
+
+/// Delete all ships from the database (dev tool).
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_kbve_statetree_NativeRuntime_deleteAllShips(
+    _env: JNIEnv,
+    _class: JClass,
+) -> jboolean {
+    let Some(db) = SHIP_DB.get() else { return 0 };
+    match db.delete_all() {
+        Ok(count) => {
+            tracing::info!("[ShipDB] Deleted {} ship records", count);
+            1
+        }
+        Err(e) => {
+            tracing::error!("[ShipDB] Delete all failed: {}", e);
+            0
+        }
+    }
 }
 
 /// Shutdown the Tokio runtime. Call from Fabric mod shutdown.
