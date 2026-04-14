@@ -71,7 +71,7 @@ public class BehaviorStateTreeMod implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             if (!server.isOnlineMode()) {
                 ServerPlayerEntity player = handler.getPlayer();
-                server.getPlayerManager().addToOperators(player.getGameProfile());
+                server.getPlayerManager().addToOperators(player.getPlayerConfigEntry());
                 LOGGER.info("[{}] Dev auto-op: {} (offline-mode server)", MOD_ID, player.getNameForScoreboard());
             }
         });

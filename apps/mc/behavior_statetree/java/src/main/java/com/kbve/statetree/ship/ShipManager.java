@@ -391,7 +391,10 @@ public final class ShipManager {
 
         if (owner != null) {
             // Set spawn point to the bed position
-            owner.setSpawnPoint(world.getRegistryKey(), footPos, 0.0f, true, false);
+            owner.setSpawnPoint(
+                    net.minecraft.world.WorldProperties.SpawnPoint.create(
+                            world.getRegistryKey(), footPos, 0.0f, 0.0f),
+                    false);
 
             // Teleport owner to the deck (one block above the bed)
             owner.teleport(world,
