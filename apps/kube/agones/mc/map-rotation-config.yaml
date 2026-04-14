@@ -1,0 +1,21 @@
+# Configuration for MC map rotation.
+# The starter zone is a square centered at (CENTER_X, CENTER_Z) with
+# PROTECT_RADIUS blocks in each direction. Region files overlapping
+# this square are preserved; everything else is deleted.
+#
+# Starter zone coordinates: 0.42, 67, 0.42 (just above sea level)
+# With a 512-block radius this keeps a ~1km² area around spawn.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: mc-map-rotation-config
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/part-of: mc
+data:
+    CENTER_X: '0'
+    CENTER_Z: '0'
+    PROTECT_RADIUS: '512'
+    RESET_NETHER: 'true'
+    RESET_END: 'true'
+    RESET_PLAYERDATA: 'false'
