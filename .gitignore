@@ -8,9 +8,10 @@
 # Rust build artifacts
 **/target/
 
-# Gradle build artifacts + caches
+# Gradle build artifacts + caches + runClient runtime data
 **/.gradle/
 apps/mc/**/java/build/
+apps/mc/**/java/run/
 
 # 11-15-2023 9:19am - Ignore all __pycache__
 **/__pycache__/
