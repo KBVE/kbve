@@ -31,3 +31,13 @@ java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
 }
+
+// macOS requires -XstartOnFirstThread for LWJGL (OpenGL context must
+// be on the main thread). Fabric Loom's runClient task inherits this.
+if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+    afterEvaluate {
+        tasks.matching { it.name == "runClient" }.configureEach {
+            jvmArgs "-XstartOnFirstThread"
+        }
+    }
+}
