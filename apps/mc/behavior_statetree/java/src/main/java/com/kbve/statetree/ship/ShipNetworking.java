@@ -178,17 +178,25 @@ public final class ShipNetworking {
                 ShipManager.ActiveShip ship = manager.getShip(shipId);
                 if (ship == null) return;
 
-                // Apply steering — each W press moves the ship 3 blocks
-                // forward. Multiple presses while moving are ignored
-                // (isMoving check) to prevent queue buildup.
-                if (payload.forward() > 0) {
-                    if (!manager.getMover().isMoving(shipId)) {
-                        manager.moveShip(shipId, 3);
+                // Airship directional movement — WASD maps to world cardinal
+                // directions (north/south/east/west), not ship heading.
+                //   forward > 0  = W = north (-Z)
+                //   forward < 0  = S = south (+Z)
+                //   sideways > 0 = A = west  (-X)
+                //   sideways < 0 = D = east  (+X)
+                // H = hover (no input) = no movement.
+                if (!manager.getMover().isMoving(shipId)) {
+                    int dx = 0, dz = 0;
+                    // 1-block steps — with 25k blocks/tick the full
+                    // relocation finishes in 1 tick, so each keypress
+                    // translates to smooth 1-block-per-tick movement.
+                    if (payload.forward() > 0) dz = -1;       // N
+                    else if (payload.forward() < 0) dz = 1;   // S
+                    if (payload.sideways() > 0) dx = -1;      // W
+                    else if (payload.sideways() < 0) dx = 1;  // E
+                    if (dx != 0 || dz != 0) {
+                        manager.moveShipDirection(shipId, dx, 0, dz);
                     }
-                }
-                if (payload.sideways() != 0) {
-                    ship.heading += payload.sideways() > 0 ? -3.0f : 3.0f;
-                    ship.heading = ship.heading % 360;
                 }
             });
         });

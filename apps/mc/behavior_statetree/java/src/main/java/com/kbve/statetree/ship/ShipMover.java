@@ -31,7 +31,7 @@ public final class ShipMover {
     private static final Logger LOGGER = LoggerFactory.getLogger("behavior_statetree");
 
     /** Maximum blocks to process per server tick during relocation. */
-    private static final int BLOCKS_PER_TICK = 8000;
+    private static final int BLOCKS_PER_TICK = 25000;
 
     /** Pending relocations keyed by ship UUID. */
     private final Map<UUID, MoveJob> activeJobs = new LinkedHashMap<>();
@@ -102,7 +102,9 @@ public final class ShipMover {
             while (job.clearIndex < job.offsets.size() && budget > 0) {
                 BlockPos offset = job.offsets.get(job.clearIndex);
                 BlockPos worldPos = job.oldAnchor.add(offset);
-                world.setBlockState(worldPos, Blocks.AIR.getDefaultState(), 18);
+                // Flag 2 = notify clients only (no block updates, no observers, no redraws).
+// Safe because we control all placement and don't need lighting/fluid recalc.
+world.setBlockState(worldPos, Blocks.AIR.getDefaultState(), 2);
                 job.clearIndex++;
                 budget--;
             }
@@ -118,7 +120,7 @@ public final class ShipMover {
                 BlockState state = job.data.blocks().get(offset);
                 if (state != null) {
                     BlockPos worldPos = job.newAnchor.add(offset);
-                    world.setBlockState(worldPos, state, 18);
+                    world.setBlockState(worldPos, state, 2);
                 }
                 job.placeIndex++;
                 budget--;

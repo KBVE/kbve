@@ -145,17 +145,18 @@ public class ShipClientMod implements ClientModInitializer {
 
         if (activeHelmShipId == null) return;
 
-        // Read WASD input
-        float forward = 0;
-        float sideways = 0;
+        // Read WASD input (cardinal directions — airship-style)
+        boolean n = client.options.forwardKey.isPressed();
+        boolean s = client.options.backKey.isPressed();
+        boolean w = client.options.leftKey.isPressed();
+        boolean e = client.options.rightKey.isPressed();
 
-        if (client.options.forwardKey.isPressed()) forward = 1.0f;
-        else if (client.options.backKey.isPressed()) forward = -1.0f;
+        // Update HUD with current input state (compass highlights)
+        hud.setInputState(n, s, e, w);
 
-        if (client.options.leftKey.isPressed()) sideways = 1.0f;
-        else if (client.options.rightKey.isPressed()) sideways = -1.0f;
+        float forward = n ? 1.0f : (s ? -1.0f : 0f);
+        float sideways = w ? 1.0f : (e ? -1.0f : 0f);
 
-        // Only send if there's actual input
         if (forward != 0 || sideways != 0) {
             ClientPlayNetworking.send(new HelmInputPayload(activeHelmShipId, forward, sideways));
         }
