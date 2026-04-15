@@ -12,6 +12,7 @@ resources:
     - kubevirt-rbac.yaml
     - kbve-deployment.yaml
     - kbve-gateway.yaml
+    - kbve-ingress.yaml
     - kbve-wt-lb.yaml
     - kbve-wt-selfsigned-cronjob.yaml
     - cf-cache-purge-externalsecret.yaml
