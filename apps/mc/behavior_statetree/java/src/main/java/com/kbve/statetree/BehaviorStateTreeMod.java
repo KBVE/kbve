@@ -37,6 +37,7 @@ public class BehaviorStateTreeMod implements ModInitializer {
     public void onInitialize() {
         // Register ship blueprints — parsed once at server start, cached forever
         shipyard.registerBlueprint("dark_reaper", "/schematics/dark_reaper.nbt");
+        shipyard.registerBlueprint("airship", "/schematics/migz_airship.nbt");
 
         // Register ship entity type — safe now that all clients run Fabric
         ShipEntityTypes.register();
