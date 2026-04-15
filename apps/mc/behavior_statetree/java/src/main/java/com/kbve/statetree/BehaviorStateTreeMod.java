@@ -111,7 +111,7 @@ public class BehaviorStateTreeMod implements ModInitializer {
 
             // Initialize ship persistence (ships.json in the world directory)
             String worldPath = server.getRunDirectory().toString();
-            shipManager.initPersistence(worldPath + "/ships.json");
+            shipManager.initPersistence(worldPath + "/ships.json", shipyard);
         });
 
         // Each server tick: manage skeletons, submit observations, apply intents

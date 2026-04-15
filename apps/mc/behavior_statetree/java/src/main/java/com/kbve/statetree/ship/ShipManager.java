@@ -555,8 +555,9 @@ public final class ShipManager {
         com.kbve.statetree.NativeRuntime.saveShip(json.toString());
     }
 
-    /** Initialize persistence and load saved ships into the manager. */
-    public void initPersistence(String dbPath) {
+    /** Initialize persistence and load saved ships into the manager.
+     *  Takes a Shipyard so we can re-attach ShipData to restored records. */
+    public void initPersistence(String dbPath, Shipyard shipyard) {
         if (!com.kbve.statetree.NativeRuntime.isLoaded()) {
             LOGGER.warn("[Ship] Native runtime not loaded — ship persistence disabled");
             return;
@@ -578,6 +579,8 @@ public final class ShipManager {
             return;
         }
 
+        int restored = 0;
+        int skipped = 0;
         for (var elem : arr) {
             com.google.gson.JsonObject obj = elem.getAsJsonObject();
             UUID shipId = UUID.fromString(obj.get("ship_id").getAsString());
@@ -586,21 +589,34 @@ public final class ShipManager {
             int ax = obj.get("anchor_x").getAsInt();
             int ay = obj.get("anchor_y").getAsInt();
             int az = obj.get("anchor_z").getAsInt();
+            float heading = obj.has("heading") ? obj.get("heading").getAsFloat() : 0.0f;
 
-            // We don't have the SchipData (schematic) here — create a minimal
-            // ActiveShip with null data for tracking purposes. Full schematic
-            // can be re-loaded from Shipyard if needed.
             BlockPos anchor = new BlockPos(ax, ay, az);
-            // Skip ships we already track (shouldn't happen, but defensive)
             if (ships.containsKey(shipId)) continue;
 
-            LOGGER.info("[Ship] Restored '{}' at {} (owner={})", shipName, anchor.toShortString(), ownerUuid);
-            // Note: without ShipData we can't create a proper ActiveShip.
-            // For now, log the restoration. Full restore requires the Shipyard
-            // to provide the SchipData by name.
+            // Look up the ShipData from the Shipyard by name
+            ShipData data = shipyard.getBlueprint(shipName);
+            if (data == null) {
+                // Blueprint not loaded yet — trigger async load, skip restore for now.
+                // User can run /clearallships or wait and retry.
+                LOGGER.warn("[Ship] Cannot restore '{}' (id={}) — blueprint not loaded, triggering load",
+                        shipName, shipId);
+                shipyard.ensureLoaded(shipName);
+                skipped++;
+                continue;
+            }
+
+            ActiveShip ship = new ActiveShip(shipId, ownerUuid, shipName, anchor, data);
+            ship.heading = heading;
+            ships.put(shipId, ship);
+            restored++;
+
+            LOGGER.info("[Ship] Restored '{}' at {} (id={})",
+                    shipName, anchor.toShortString(), shipId);
         }
 
-        LOGGER.info("[Ship] Persistence initialized — {} saved ship(s) found", arr.size());
+        LOGGER.info("[Ship] Persistence initialized — restored {} ship(s), skipped {} (blueprints loading)",
+                restored, skipped);
     }
 
     /** Get an active ship by UUID. */
