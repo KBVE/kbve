@@ -79,7 +79,8 @@ public class BehaviorStateTreeMod implements ModInitializer {
                 // Only teleports once per join — if they've moved away from spawn,
                 // assume they're already where they want to be.
                 var world = player.getEntityWorld();
-                var spawnPos = world.getSpawnPos();
+                // getSpawnPos() returns GlobalPos — extract the BlockPos
+                var spawnPos = world.getSpawnPos().pos();
                 double dx = player.getX() - spawnPos.getX();
                 double dz = player.getZ() - spawnPos.getZ();
                 boolean atSpawn = (dx * dx + dz * dz) < 64; // within 8 blocks of spawn
