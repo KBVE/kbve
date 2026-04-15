@@ -130,6 +130,7 @@ public final class SchematicLoader {
 
             LOGGER.info("[Ship] Loaded NBT schematic '{}': {}x{}x{}, {} blocks",
                     name, sx, sy, sz, blocks.size());
+            logSubstitutions(name);
             return new ShipData(name, blocks, sx, sy, sz);
 
         } catch (Exception e) {
@@ -253,14 +254,116 @@ public final class SchematicLoader {
 
         LOGGER.info("[Ship] Loaded '{}': {}x{}x{}, {} blocks",
                 name, totalSizeX, totalSizeY, totalSizeZ, normalized.size());
+        logSubstitutions(name);
         return new ShipData(name, normalized, totalSizeX, totalSizeY, totalSizeZ);
     }
+
+    /** Map of known modded blocks → closest vanilla equivalent.
+     *  Ensures schematics from modded servers (e.g. Create mod airships)
+     *  render as solid structures on a vanilla-only server. */
+    private static final java.util.Map<String, String> MOD_FALLBACKS = java.util.Map.ofEntries(
+            // Create mod — casings, structural
+            java.util.Map.entry("create:andesite_casing", "minecraft:polished_andesite"),
+            java.util.Map.entry("create:brass_casing", "minecraft:gold_block"),
+            java.util.Map.entry("create:copper_casing", "minecraft:copper_block"),
+            java.util.Map.entry("create:railway_casing", "minecraft:cut_copper"),
+            // Create mod — decorative stone
+            java.util.Map.entry("create:cut_limestone", "minecraft:calcite"),
+            java.util.Map.entry("create:cut_limestone_slab", "minecraft:calcite"),
+            java.util.Map.entry("create:cut_limestone_stairs", "minecraft:calcite"),
+            java.util.Map.entry("create:cut_limestone_wall", "minecraft:calcite"),
+            java.util.Map.entry("create:polished_cut_limestone", "minecraft:calcite"),
+            java.util.Map.entry("create:polished_cut_limestone_slab", "minecraft:calcite"),
+            java.util.Map.entry("create:polished_cut_limestone_stairs", "minecraft:calcite"),
+            java.util.Map.entry("create:polished_cut_limestone_wall", "minecraft:calcite"),
+            java.util.Map.entry("create:cut_andesite_bricks", "minecraft:polished_andesite"),
+            java.util.Map.entry("create:cut_dripstone", "minecraft:dripstone_block"),
+            java.util.Map.entry("create:polished_cut_dripstone", "minecraft:dripstone_block"),
+            java.util.Map.entry("create:polished_cut_dripstone_stairs", "minecraft:dripstone_block"),
+            java.util.Map.entry("create:cut_ochrum", "minecraft:sandstone"),
+            java.util.Map.entry("create:cut_ochrum_slab", "minecraft:sandstone"),
+            java.util.Map.entry("create:cut_ochrum_stairs", "minecraft:sandstone"),
+            java.util.Map.entry("create:cut_ochrum_wall", "minecraft:sandstone"),
+            java.util.Map.entry("create:polished_cut_ochrum", "minecraft:sandstone"),
+            java.util.Map.entry("create:polished_cut_ochrum_slab", "minecraft:sandstone"),
+            java.util.Map.entry("create:polished_cut_ochrum_stairs", "minecraft:sandstone"),
+            java.util.Map.entry("create:polished_cut_ochrum_wall", "minecraft:sandstone"),
+            java.util.Map.entry("create:cut_veridium", "minecraft:prismarine"),
+            java.util.Map.entry("create:polished_cut_scorchia", "minecraft:blackstone"),
+            java.util.Map.entry("create:polished_cut_scorchia_stairs", "minecraft:blackstone"),
+            // Create mod — kinetic machinery (hide behind gold/iron blocks)
+            java.util.Map.entry("create:shaft", "minecraft:iron_bars"),
+            java.util.Map.entry("create:cogwheel", "minecraft:iron_block"),
+            java.util.Map.entry("create:large_cogwheel", "minecraft:iron_block"),
+            java.util.Map.entry("create:encased_cogwheel", "minecraft:iron_block"),
+            java.util.Map.entry("create:encased_shaft", "minecraft:iron_block"),
+            java.util.Map.entry("create:andesite_encased_cogwheel", "minecraft:polished_andesite"),
+            java.util.Map.entry("create:andesite_encased_shaft", "minecraft:polished_andesite"),
+            java.util.Map.entry("create:flywheel", "minecraft:iron_block"),
+            java.util.Map.entry("create:water_wheel_structure", "minecraft:oak_planks"),
+            java.util.Map.entry("create:large_water_wheel", "minecraft:oak_planks"),
+            java.util.Map.entry("create:encased_fan", "minecraft:iron_block"),
+            java.util.Map.entry("create:mechanical_arm", "minecraft:iron_block"),
+            java.util.Map.entry("create:mechanical_bearing", "minecraft:iron_block"),
+            java.util.Map.entry("create:motor", "minecraft:redstone_block"),
+            java.util.Map.entry("create:creative_motor", "minecraft:redstone_block"),
+            java.util.Map.entry("create:simple_kinetic", "minecraft:iron_block"),
+            // Create mod — other
+            java.util.Map.entry("create:andesite_ladder", "minecraft:ladder"),
+            java.util.Map.entry("create:andesite_pillar", "minecraft:polished_andesite"),
+            java.util.Map.entry("create:chassis", "minecraft:oak_planks"),
+            java.util.Map.entry("create:radial_chassis", "minecraft:oak_planks"),
+            java.util.Map.entry("create:white_sail", "minecraft:white_wool"),
+            java.util.Map.entry("create:vertical_framed_glass", "minecraft:glass_pane"),
+            java.util.Map.entry("create:glass_fluid_pipe", "minecraft:glass_pane"),
+            java.util.Map.entry("create:fluid_pipe", "minecraft:iron_bars"),
+            java.util.Map.entry("create:fluid_tank", "minecraft:glass"),
+            java.util.Map.entry("create:brass_door", "minecraft:iron_door"),
+            java.util.Map.entry("create:copper_door", "minecraft:copper_door"),
+            java.util.Map.entry("create:sliding_door", "minecraft:iron_door"),
+            java.util.Map.entry("create:depot", "minecraft:smooth_stone_slab"),
+            java.util.Map.entry("create:item_vault", "minecraft:chest"),
+            java.util.Map.entry("create:jukebox", "minecraft:jukebox"),
+            java.util.Map.entry("create:cuckoo_clock", "minecraft:oak_planks"),
+            java.util.Map.entry("create:display_board", "minecraft:black_concrete"),
+            java.util.Map.entry("create:flap_display", "minecraft:black_concrete"),
+            java.util.Map.entry("create:controls", "minecraft:lever"),
+            java.util.Map.entry("create:light_gray_seat", "minecraft:light_gray_wool"),
+            java.util.Map.entry("create:metal_girder", "minecraft:iron_bars"),
+            java.util.Map.entry("create:chocolate", "minecraft:brown_concrete"),
+            java.util.Map.entry("create:copycat", "minecraft:stone"),
+            java.util.Map.entry("create:copycat_base", "minecraft:stone"),
+            java.util.Map.entry("create:copycat_panel", "minecraft:stone"),
+            java.util.Map.entry("create:copycat_step", "minecraft:stone_slab")
+    );
+
+    /** Generic fallback when we have no mapping — solid block so ship isn't hollow. */
+    private static final String GENERIC_FALLBACK = "minecraft:oak_planks";
+
+    /** Log unknown block IDs once per load so the user knows what got substituted. */
+    private static final java.util.concurrent.ConcurrentHashMap<String, Integer> unknownCounts =
+            new java.util.concurrent.ConcurrentHashMap<>();
 
     private static BlockState parseBlockState(NbtCompound entry) {
         String blockId = entry.getString("Name").orElse("");
         if (blockId.isEmpty()) return Blocks.AIR.getDefaultState();
 
-        var block = Registries.BLOCK.get(Identifier.of(blockId));
+        // Never substitute air — schematic air should stay air
+        if (blockId.equals("minecraft:air") || blockId.equals("minecraft:cave_air")
+                || blockId.equals("minecraft:void_air")) {
+            return Blocks.AIR.getDefaultState();
+        }
+
+        Identifier id = Identifier.of(blockId);
+        var block = Registries.BLOCK.get(id);
+
+        // If the block doesn't exist in vanilla, try fallback
+        if (block == Blocks.AIR && !blockId.startsWith("minecraft:")) {
+            String fallback = MOD_FALLBACKS.getOrDefault(blockId, GENERIC_FALLBACK);
+            block = Registries.BLOCK.get(Identifier.of(fallback));
+            unknownCounts.merge(blockId, 1, Integer::sum);
+        }
+
         BlockState state = block.getDefaultState();
 
         NbtCompound props = entry.getCompound("Properties").orElse(null);
@@ -276,6 +379,19 @@ public final class SchematicLoader {
         }
 
         return state;
+    }
+
+    /** Log + clear unknown block counts. Called at end of each schematic load. */
+    private static void logSubstitutions(String schematicName) {
+        if (unknownCounts.isEmpty()) return;
+        int total = unknownCounts.values().stream().mapToInt(Integer::intValue).sum();
+        LOGGER.info("[Ship] '{}' substituted {} blocks across {} unknown types",
+                schematicName, total, unknownCounts.size());
+        unknownCounts.entrySet().stream()
+                .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+                .limit(10)
+                .forEach(e -> LOGGER.info("[Ship]   {} × {}", e.getValue(), e.getKey()));
+        unknownCounts.clear();
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
