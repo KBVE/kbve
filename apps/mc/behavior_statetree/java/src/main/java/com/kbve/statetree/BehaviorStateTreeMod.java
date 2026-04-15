@@ -79,19 +79,26 @@ public class BehaviorStateTreeMod implements ModInitializer {
                 // Only teleports once per join — if they've moved away from spawn,
                 // assume they're already where they want to be.
                 var world = player.getEntityWorld();
-                // getSpawnPos() is on MinecraftServer and returns GlobalPos
-                var spawnPos = server.getSpawnPos().pos();
-                double dx = player.getX() - spawnPos.getX();
-                double dz = player.getZ() - spawnPos.getZ();
-                boolean atSpawn = (dx * dx + dz * dz) < 64; // within 8 blocks of spawn
+                var searchFrom = player.getBlockPos();
 
-                if (atSpawn) {
+                // Only teleport if the player is currently in a non-coastal
+                // biome (i.e., not already at a beach/ocean). This prevents
+                // re-teleporting on every reconnect.
+                var currentBiome = world.getBiome(searchFrom);
+                boolean alreadyCoastal = currentBiome.matchesKey(net.minecraft.world.biome.BiomeKeys.BEACH)
+                        || currentBiome.matchesKey(net.minecraft.world.biome.BiomeKeys.SNOWY_BEACH)
+                        || currentBiome.matchesKey(net.minecraft.world.biome.BiomeKeys.STONY_SHORE)
+                        || currentBiome.matchesKey(net.minecraft.world.biome.BiomeKeys.OCEAN)
+                        || currentBiome.matchesKey(net.minecraft.world.biome.BiomeKeys.DEEP_OCEAN)
+                        || currentBiome.matchesKey(net.minecraft.world.biome.BiomeKeys.WARM_OCEAN);
+
+                if (!alreadyCoastal) {
                     // Find a beach biome — solid sand/dirt at the ocean coast
                     var beachEntry = world.locateBiome(
                             biome -> biome.matchesKey(net.minecraft.world.biome.BiomeKeys.BEACH)
                                     || biome.matchesKey(net.minecraft.world.biome.BiomeKeys.SNOWY_BEACH)
                                     || biome.matchesKey(net.minecraft.world.biome.BiomeKeys.STONY_SHORE),
-                            spawnPos, 6400, 32, 64);
+                            searchFrom, 6400, 32, 64);
 
                     if (beachEntry != null) {
                         var beachPos = beachEntry.getFirst();
