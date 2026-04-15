@@ -97,35 +97,10 @@ public final class ShipManager {
             this.anchor = anchor;
             this.entries = new java.util.ArrayList<>(data.blocks().entrySet());
 
-            // Clear water at ship block positions PLUS a 1-block buffer around
-            // the hull at and below sea level. This prevents water from seeping
-            // through gaps in the hull and handles the waterline cleanly.
-            java.util.Set<BlockPos> clearSet = new java.util.HashSet<>(data.blocks().keySet());
-
-            // Add a buffer zone: for each ship block at or below Y=5 (relative
-            // to anchor, which is at sea level), also clear adjacent positions.
-            // This creates a dry cavity inside the hull.
-            for (BlockPos bp : data.blocks().keySet()) {
-                if (bp.getY() <= 5) { // waterline zone (5 blocks above anchor)
-                    for (int dx = -1; dx <= 1; dx++) {
-                        for (int dz = -1; dz <= 1; dz++) {
-                            BlockPos adj = bp.add(dx, 0, dz);
-                            if (adj.getX() >= 0 && adj.getX() < data.sizeX()
-                                    && adj.getZ() >= 0 && adj.getZ() < data.sizeZ()) {
-                                clearSet.add(adj);
-                            }
-                            // Also clear below
-                            for (int dy = -1; dy >= -3; dy--) {
-                                BlockPos below = bp.add(dx, dy, dz);
-                                if (below.getY() >= 0) {
-                                    clearSet.add(below);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            clearPositions = new java.util.ArrayList<>(clearSet);
+            // Airships spawn in open sky — only clear at exact ship block
+            // positions (handles the rare case where a tree or hill pokes
+            // into the ship volume). No waterline buffer needed.
+            clearPositions = new java.util.ArrayList<>(data.blocks().keySet());
         }
 
         boolean isDone() { return clearDone && placeIndex >= entries.size(); }
@@ -202,16 +177,14 @@ public final class ShipManager {
      * @return the ship UUID if placed successfully, null if no safe location found
      */
     public UUID placeShip(ServerWorld world, ShipData data, UUID ownerUuid, BlockPos searchFrom) {
-        BlockPos ocean = findSafeOcean(world, searchFrom, data.sizeX(), data.sizeZ());
-        if (ocean == null) {
-            LOGGER.warn("[Ship] No safe ocean found near {} for {} ({}x{})",
-                    searchFrom.toShortString(), data.name(), data.sizeX(), data.sizeZ());
-            return null;
-        }
-
-        // Place anchor at sea level (Y=63 is typical ocean surface)
-        int seaLevel = world.getSeaLevel();
-        BlockPos anchor = new BlockPos(ocean.getX(), seaLevel, ocean.getZ());
+        // Airships spawn directly above the player — in the sky, centered
+        // on their XZ position. No ocean finding needed.
+        int flightY = Math.max(searchFrom.getY() + 30, world.getSeaLevel() + 40);
+        BlockPos anchor = new BlockPos(
+                searchFrom.getX() - data.sizeX() / 2,
+                flightY,
+                searchFrom.getZ() - data.sizeZ() / 2
+        );
 
         UUID shipId = UUID.randomUUID();
         LOGGER.info("[Ship] Queuing '{}' at {} ({} blocks, owner={})",
@@ -312,8 +285,9 @@ public final class ShipManager {
                     BlockPos offset = job.clearPositions.get(job.clearIndex);
                     BlockPos worldPos = job.anchor.add(offset);
                     net.minecraft.block.BlockState existing = world.getBlockState(worldPos);
-                    // Only clear fluids (water, lava) and waterlogged blocks
-                    if (!existing.getFluidState().isEmpty()) {
+                    // Airships fly in the sky — clear anything in the way
+                    // (trees, floating islands, mountain tops, fluids).
+                    if (!existing.isAir()) {
                         world.setBlockState(worldPos, net.minecraft.block.Blocks.AIR.getDefaultState(), 18);
                     }
                     job.clearIndex++;
