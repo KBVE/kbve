@@ -60,10 +60,10 @@ public final class ShipManager {
     );
 
     /** Blocks to place per server tick during ship placement.
-     *  500 blocks/tick keeps the server smooth — a 400k block ship takes
-     *  ~800 ticks (~40 seconds) to fully materialize. The Shipyard pre-builds
-     *  ships in the background so players rarely wait. */
-    private static final int PLACEMENT_BLOCKS_PER_TICK = 500;
+     *  Higher = faster ship movement but more server load per tick.
+     *  8000/tick is a reasonable balance for smooth WASD sailing on a
+     *  400k block ship (full relocation in ~50 ticks / 2.5s). */
+    private static final int PLACEMENT_BLOCKS_PER_TICK = 8000;
 
     /** Active ships keyed by ship UUID. */
     private final ConcurrentHashMap<UUID, ActiveShip> ships = new ConcurrentHashMap<>();

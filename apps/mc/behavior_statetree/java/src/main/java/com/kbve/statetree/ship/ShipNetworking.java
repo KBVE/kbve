@@ -178,11 +178,12 @@ public final class ShipNetworking {
                 ShipManager.ActiveShip ship = manager.getShip(shipId);
                 if (ship == null) return;
 
-                // Apply steering
+                // Apply steering — each W press moves the ship 3 blocks
+                // forward. Multiple presses while moving are ignored
+                // (isMoving check) to prevent queue buildup.
                 if (payload.forward() > 0) {
-                    // Queue a small forward move
                     if (!manager.getMover().isMoving(shipId)) {
-                        manager.moveShip(shipId, 1);
+                        manager.moveShip(shipId, 3);
                     }
                 }
                 if (payload.sideways() != 0) {
