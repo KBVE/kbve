@@ -243,6 +243,9 @@ public final class ShipManager {
         ActiveShip ship = ships.remove(shipId);
         if (ship == null) return false;
 
+        // Notify clients to stop tracking this ship
+        ShipNetworking.broadcastShipDespawn(world, shipId);
+
         // Remove from persistent store
         if (com.kbve.statetree.NativeRuntime.isLoaded()) {
             com.kbve.statetree.NativeRuntime.deleteShip(shipId.toString());
@@ -343,6 +346,12 @@ public final class ShipManager {
 
                 // Spawn the helm entity on the deck so players can mount + WASD
                 spawnHelmEntity(world, job.shipId, job.anchor, job.data);
+
+                // Broadcast spawn to all clients so they start tracking the ship
+                ActiveShip activeShip = ships.get(job.shipId);
+                if (activeShip != null) {
+                    ShipNetworking.broadcastShipSpawn(world, activeShip);
+                }
             }
         }
 

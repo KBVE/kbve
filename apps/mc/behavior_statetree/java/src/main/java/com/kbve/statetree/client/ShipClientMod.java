@@ -124,11 +124,22 @@ public class ShipClientMod implements ClientModInitializer {
             if (activeHelmShipId == null) {
                 UUID shipId = shipEntity.getShipId();
                 if (shipId != null) {
+                    LOGGER.info("[Ship Client] Mounted ShipEntity with ID {}", shipId);
                     setActiveHelm(shipId.toString());
+                } else {
+                    // Entity's shipId not synced to client — use the first tracked ship as fallback
+                    if (!tracker.getAllShips().isEmpty()) {
+                        String fallbackId = tracker.getAllShips().keySet().iterator().next();
+                        LOGGER.info("[Ship Client] Mounted ShipEntity without synced ID — using tracked ship {}", fallbackId);
+                        setActiveHelm(fallbackId);
+                    } else {
+                        LOGGER.warn("[Ship Client] Mounted ShipEntity but no tracked ships available");
+                    }
                 }
             }
         } else if (activeHelmShipId != null) {
             // Player dismounted — deactivate helm
+            LOGGER.info("[Ship Client] Dismounted — clearing helm");
             clearActiveHelm();
         }
 

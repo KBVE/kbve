@@ -195,6 +195,31 @@ public final class ShipNetworking {
 
     // -- Broadcast helpers --------------------------------------------------
 
+    /** Send a ship spawn to all players — triggers client-side tracking. */
+    public static void broadcastShipSpawn(
+            net.minecraft.server.world.ServerWorld world,
+            ShipManager.ActiveShip ship) {
+        ShipSpawnPayload payload = new ShipSpawnPayload(
+                ship.shipId.toString(),
+                ship.shipName,
+                ship.anchor.getX(), ship.anchor.getY(), ship.anchor.getZ(),
+                ship.data.sizeX(), ship.data.sizeY(), ship.data.sizeZ()
+        );
+        for (ServerPlayerEntity player : world.getPlayers()) {
+            ServerPlayNetworking.send(player, payload);
+        }
+    }
+
+    /** Send a ship despawn to all players. */
+    public static void broadcastShipDespawn(
+            net.minecraft.server.world.ServerWorld world,
+            java.util.UUID shipId) {
+        ShipDespawnPayload payload = new ShipDespawnPayload(shipId.toString());
+        for (ServerPlayerEntity player : world.getPlayers()) {
+            ServerPlayNetworking.send(player, payload);
+        }
+    }
+
     /** Send a ship move update to all players in the world. */
     public static void broadcastShipMove(
             net.minecraft.server.world.ServerWorld world,
