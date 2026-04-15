@@ -44,6 +44,7 @@ use axum::body::Bytes;
 use axum::extract::ws::{Message as AxumMsg, WebSocket};
 use dashmap::DashMap;
 use futures_util::{SinkExt, StreamExt};
+use serde::Serialize;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, OnceLock};
 use tokio::sync::{Mutex, broadcast};
@@ -83,6 +84,41 @@ static NEXT_CLIENT_ID: AtomicUsize = AtomicUsize::new(1);
 
 fn sessions() -> &'static DashMap<String, Arc<VncSession>> {
     SESSIONS.get_or_init(DashMap::new)
+}
+
+/// Snapshot of a VNC session's state, returned by the info endpoint.
+#[derive(Serialize)]
+pub struct SessionInfo {
+    pub vm_key: String,
+    pub viewers: usize,
+    pub has_primary: bool,
+}
+
+/// Query session info for a specific VM key. Returns `None` if no active
+/// session exists (i.e. no one is currently connected to that VM's VNC).
+pub fn get_session_info(vm_key: &str) -> Option<SessionInfo> {
+    let registry = sessions();
+    registry.get(vm_key).map(|session| SessionInfo {
+        vm_key: session.vm_key.clone(),
+        viewers: session.clients.load(Ordering::Relaxed),
+        has_primary: session.primary_id.load(Ordering::Relaxed) != 0,
+    })
+}
+
+/// List all active VNC sessions with their viewer counts.
+pub fn list_sessions() -> Vec<SessionInfo> {
+    let registry = sessions();
+    registry
+        .iter()
+        .map(|entry| {
+            let session = entry.value();
+            SessionInfo {
+                vm_key: session.vm_key.clone(),
+                viewers: session.clients.load(Ordering::Relaxed),
+                has_primary: session.primary_id.load(Ordering::Relaxed) != 0,
+            }
+        })
+        .collect()
 }
 
 /// Entry point used by the HTTP handler. Finds or creates the session for

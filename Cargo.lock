@@ -1570,6 +1570,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy_npc",
+ "bevy_pathfinding",
  "crossbeam-channel",
  "jni 0.21.1",
  "serde",
@@ -2467,6 +2468,14 @@ dependencies = [
  "prost-build 0.14.3",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "bevy_pathfinding"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "serde",
 ]
 
 [[package]]

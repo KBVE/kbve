@@ -9,10 +9,107 @@ use crate::tree::node::CooldownState;
 #[derive(Component, Debug)]
 pub struct AiManaged;
 
-/// Marker for AI Skeleton entities specifically. Used by the population
+/// Marker for AI Skeleton entities (any archetype). Used by the population
 /// manager system to distinguish skeletons from other AI creature types.
 #[derive(Component, Debug)]
 pub struct AiSkeleton;
+
+/// Skeleton archetype — determines which behavior tree runs and which
+/// special abilities are available.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SkeletonArchetype {
+    /// Sword + scaffolding builder — climbs obstacles.
+    Melee,
+    /// Teleport ability — bypasses walls and cliffs.
+    Mage,
+    /// Bow + vantage point seeking — attacks from range.
+    Archer,
+}
+
+/// Tracks whether a mob is "stuck" — has a MoveTo target but hasn't
+/// made meaningful progress toward it. Used by the melee skeleton to
+/// trigger scaffold placement.
+#[derive(Component, Debug, Default)]
+pub struct StuckTracker {
+    /// Last recorded position (set each time we check).
+    pub last_pos: [f64; 3],
+    /// Number of consecutive checks where position barely changed.
+    pub stuck_ticks: u32,
+    /// The Y coordinate of the target we're trying to reach.
+    pub target_y: Option<f64>,
+}
+
+impl StuckTracker {
+    /// Update with current position. Returns true if the mob appears stuck
+    /// (hasn't moved more than 0.5 blocks in the last check).
+    pub fn update(&mut self, pos: [f64; 3]) -> bool {
+        let dx = pos[0] - self.last_pos[0];
+        let dz = pos[2] - self.last_pos[2];
+        let moved_sq = dx * dx + dz * dz;
+
+        if moved_sq < 0.25 {
+            // Barely moved
+            self.stuck_ticks = self.stuck_ticks.saturating_add(1);
+        } else {
+            self.stuck_ticks = 0;
+        }
+        self.last_pos = pos;
+        self.stuck_ticks >= 3
+    }
+
+    /// Check if the target is significantly above the mob (cliff situation).
+    pub fn is_cliff(&self, mob_y: f64) -> bool {
+        self.target_y.is_some_and(|ty| ty - mob_y > 1.5)
+    }
+}
+
+/// Cooldown for scaffold placement to prevent spam-building.
+#[derive(Component, Debug)]
+pub struct ScaffoldCooldown {
+    pub last_place_tick: u64,
+    pub cooldown_ticks: u64,
+}
+
+impl Default for ScaffoldCooldown {
+    fn default() -> Self {
+        Self {
+            last_place_tick: 0,
+            cooldown_ticks: 30, // 3s at 100ms ECS ticks
+        }
+    }
+}
+
+/// Cooldown for mage teleport ability.
+#[derive(Component, Debug)]
+pub struct TeleportCooldown {
+    pub last_teleport_tick: u64,
+    pub cooldown_ticks: u64,
+}
+
+impl Default for TeleportCooldown {
+    fn default() -> Self {
+        Self {
+            last_teleport_tick: 0,
+            cooldown_ticks: 50, // 5s at 100ms ECS ticks
+        }
+    }
+}
+
+/// Cooldown for archer arrow shots.
+#[derive(Component, Debug)]
+pub struct ArrowCooldown {
+    pub last_shot_tick: u64,
+    pub cooldown_ticks: u64,
+}
+
+impl Default for ArrowCooldown {
+    fn default() -> Self {
+        Self {
+            last_shot_tick: 0,
+            cooldown_ticks: 20, // 2s at 100ms ECS ticks
+        }
+    }
+}
 
 /// Marker for AI Pet Dog entities. A pet dog is a tamed wolf spawned
 /// alongside a player; its lifecycle is tied to `PetOwner`.
@@ -295,3 +392,84 @@ impl Default for PetParrotPopulationConfig {
 /// Tracks when the pet parrot population manager last ran.
 #[derive(Resource, Debug, Default)]
 pub struct LastPetParrotManagedTick(pub u64);
+
+// ---------------------------------------------------------------------------
+// Ship tracking — mirrors the Java ShipManager state so the Rust ECS can
+// issue MoveShip / RotateShip commands for AI-controlled fleet combat.
+// ---------------------------------------------------------------------------
+
+/// A ship tracked in the Rust ECS. One entity per active ship.
+#[derive(Component, Debug, Clone)]
+pub struct Ship {
+    /// UUID string matching Java's ShipManager.ActiveShip.shipId.
+    pub ship_id: String,
+    /// Ship schematic name (e.g., "dark_reaper").
+    pub ship_name: String,
+    /// Owner player's Minecraft entity ID.
+    pub owner_entity_id: u64,
+    /// Current heading in degrees (0 = north, 90 = east).
+    pub heading: f32,
+    /// Current speed in blocks per second.
+    pub speed: f32,
+}
+
+/// Ship anchor position in world coordinates.
+#[derive(Component, Debug, Clone)]
+pub struct ShipPosition {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+}
+
+/// Marker for ships that are currently under AI control (not player-piloted).
+#[derive(Component, Debug)]
+pub struct AiControlledShip;
+
+/// Resource tracking all active ships by their UUID string.
+#[derive(Resource, Default)]
+pub struct ActiveShips {
+    pub ships: Vec<String>,
+}
+
+// ---------------------------------------------------------------------------
+// Flow field / pathfinding resources — computed from map data snapshots
+// sent by Java. The grid + flow fields are recomputed every few seconds
+// (gated by `FlowFieldRebuildTick`), not every ECS tick.
+// ---------------------------------------------------------------------------
+
+/// The current walkability grid built from the most recent map snapshot.
+/// `None` until Java sends the first `MapRegionSnapshot`.
+#[derive(Resource, Default)]
+pub struct CurrentBlockGrid(pub Option<bevy_pathfinding::grid::BlockGrid>);
+
+/// Flow fields computed toward each online player's position. Keyed by
+/// the player's Minecraft entity ID so skeletons can pick "approach the
+/// nearest player" in O(1) per cell.
+#[derive(Resource, Default)]
+pub struct PlayerFlowFields(pub Vec<(u64, bevy_pathfinding::flow_field::FlowField)>);
+
+/// Flee flow field — points every cell AWAY from all player positions.
+/// Used by the low-health flee behavior.
+#[derive(Resource, Default)]
+pub struct FleeFlowField(pub Option<bevy_pathfinding::flow_field::FlowField>);
+
+/// Detected chokepoints / flow gates in the current grid. Recomputed
+/// alongside the flow fields.
+#[derive(Resource, Default)]
+pub struct DetectedFlowGates(pub Vec<bevy_pathfinding::flow_gate::FlowGate>);
+
+/// Tracks when the flow field was last rebuilt. Flow field recomputation
+/// is expensive relative to a normal ECS tick, so it's throttled.
+#[derive(Resource, Debug, Default)]
+pub struct FlowFieldRebuildTick(pub u64);
+
+/// How many ECS ticks between flow field rebuilds.
+/// At 100ms/tick, 30 ticks ≈ 3 seconds.
+#[derive(Resource, Debug)]
+pub struct FlowFieldRebuildInterval(pub u64);
+
+impl Default for FlowFieldRebuildInterval {
+    fn default() -> Self {
+        Self(30) // ~3s at 100ms ECS ticks
+    }
+}

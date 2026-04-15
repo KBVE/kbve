@@ -61,6 +61,23 @@
 				"cwd": "apps/mc"
 			}
 		},
+		"dev-client": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": [
+					"echo '=== KBVE MC Dev Client ==='",
+					"echo '  Builds the Fabric mod and launches a Minecraft client'",
+					"echo '  with the mod loaded. Connect to localhost:25565'",
+					"echo ''",
+					"echo '  Make sure the dev server is running: nx run mc:dev'",
+					"echo ''",
+					"cd behavior_statetree/java && ./gradlew runClient --no-daemon"
+				],
+				"parallel": false,
+				"cwd": "apps/mc"
+			}
+		},
 		"dev:down": {
 			"executor": "nx:run-commands",
 			"cache": false,

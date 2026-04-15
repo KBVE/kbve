@@ -1,8 +1,17 @@
 package com.kbve.statetree;
 
+import com.kbve.statetree.ship.ShipCommands;
+import com.kbve.statetree.ship.ShipEntityTypes;
+import com.kbve.statetree.ship.ShipManager;
+import com.kbve.statetree.ship.ShipNetworking;
+import com.kbve.statetree.ship.ShipProtection;
+import com.kbve.statetree.ship.Shipyard;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,10 +30,77 @@ public class BehaviorStateTreeMod implements ModInitializer {
     public static final String MOD_ID = "behavior_statetree";
     private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
+    private final ShipManager shipManager = new ShipManager();
+    private final Shipyard shipyard = new Shipyard();
+
     @Override
     public void onInitialize() {
+        // Register ship blueprints — parsed once at server start, cached forever
+        shipyard.registerBlueprint("dark_reaper", "/schematics/dark_reaper.nbt");
+
+        // Register ship entity type — safe now that all clients run Fabric
+        ShipEntityTypes.register();
+
+        // Register network payloads + server-side helm input receiver
+        ShipNetworking.registerPayloads();
+        ShipNetworking.registerServerReceivers(shipManager);
+
+        // Ship block protection — breaking ship blocks doesn't drop items
+        ShipProtection.register(shipManager);
+
+        // Schematics are loaded lazily on first /spawnship call (in a
+        // background thread). This avoids blocking server start and
+        // prevents watchdog kills from the 4.7GB NBT parse.
+
+        // Ship commands use the Shipyard for instant acquisition (no re-parsing)
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            ShipCommands.register(dispatcher, shipManager, shipyard);
+        });
+
+        // Tick ship block relocations (chunked movement)
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            var overworld = server.getOverworld();
+            if (overworld != null) {
+                shipManager.tick(overworld);
+            }
+        });
+
+        // Dev mode: auto-op every player on join when server is offline-mode.
+        // This gives all dev testers full admin (op level 4, creative, commands).
+        // Only activates when online-mode=false (the dev docker compose config).
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            if (!server.isOnlineMode()) {
+                ServerPlayerEntity player = handler.getPlayer();
+                server.getPlayerManager().addToOperators(player.getPlayerConfigEntry());
+                LOGGER.info("[{}] Dev auto-op: {} (offline-mode server)", MOD_ID, player.getNameForScoreboard());
+
+                // Dev mode: teleport player to the hardcoded known-good spawn
+                // near the ocean (works with the pinned seed -4470905440626961808).
+                // Delayed 20 ticks so the player's position is loaded after
+                // the Velocity handshake completes.
+                String playerName = player.getNameForScoreboard();
+                java.util.concurrent.atomic.AtomicInteger ticksLeft = new java.util.concurrent.atomic.AtomicInteger(20);
+                ServerTickEvents.EndTick delayedTp = new ServerTickEvents.EndTick() {
+                    @Override
+                    public void onEndTick(net.minecraft.server.MinecraftServer s) {
+                        if (ticksLeft.decrementAndGet() > 0) return;
+                        if (!player.isAlive()) return;
+                        s.getCommandManager().parseAndExecute(
+                                s.getCommandSource(),
+                                "tp " + playerName + " 0 67 0");
+                        LOGGER.info("[{}] Teleported {} to spawn (0, 67, 0)",
+                                MOD_ID, playerName);
+                        ticksLeft.set(Integer.MAX_VALUE); // one-shot
+                    }
+                };
+                ServerTickEvents.END_SERVER_TICK.register(delayedTp);
+            }
+        });
+
+        LOGGER.info("[{}] Ship system registered (entity + commands + tick)", MOD_ID);
+
         if (!NativeRuntime.isLoaded()) {
-            LOGGER.error("[{}] Native library not loaded — NPC AI disabled", MOD_ID);
+            LOGGER.error("[{}] Native library not loaded — NPC AI disabled (ships still work)", MOD_ID);
             return;
         }
 
@@ -32,10 +108,16 @@ public class BehaviorStateTreeMod implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             LOGGER.info("[{}] Starting NPC AI runtime — AI Skeletons enabled", MOD_ID);
             NativeRuntime.init();
+
+            // Initialize ship persistence (ships.json in the world directory)
+            String worldPath = server.getRunDirectory().toString();
+            shipManager.initPersistence(worldPath + "/ships.json", shipyard);
         });
 
         // Each server tick: manage skeletons, submit observations, apply intents
-        ServerTickEvents.END_SERVER_TICK.register(new NpcTickHandler());
+        NpcTickHandler tickHandler = new NpcTickHandler();
+        tickHandler.setShipManager(shipManager);
+        ServerTickEvents.END_SERVER_TICK.register(tickHandler);
 
         // Shutdown the runtime when the server stops
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
@@ -43,6 +125,6 @@ public class BehaviorStateTreeMod implements ModInitializer {
             NativeRuntime.shutdown();
         });
 
-        LOGGER.info("[{}] Mod initialized — AI Skeleton system ready", MOD_ID);
+        LOGGER.info("[{}] Mod initialized — AI Skeleton + Ship system ready", MOD_ID);
     }
 }

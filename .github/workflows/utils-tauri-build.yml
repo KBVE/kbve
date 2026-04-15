@@ -32,7 +32,7 @@ jobs:
         steps:
             - name: Verify origin and actor
               id: check
-              uses: actions/github-script@v8
+              uses: actions/github-script@v9
               with:
                   script: |
                       if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
@@ -130,7 +130,7 @@ jobs:
             - name: Setup pnpm v10
               uses: pnpm/action-setup@v5
               with:
-                  version: 10
+                  version: 10.33.0
                   run_install: false
 
             - name: Get pnpm Store Path
@@ -231,7 +231,7 @@ jobs:
             - name: Setup pnpm v10
               uses: pnpm/action-setup@v5
               with:
-                  version: 10
+                  version: 10.33.0
                   run_install: false
 
             - name: Get pnpm Store Path
@@ -329,7 +329,7 @@ jobs:
             - name: Setup pnpm v10
               uses: pnpm/action-setup@v5
               with:
-                  version: 10
+                  version: 10.33.0
                   run_install: false
 
             - name: Get pnpm Store Path
@@ -419,7 +419,7 @@ jobs:
             - name: Setup pnpm v10
               uses: pnpm/action-setup@v5
               with:
-                  version: 10
+                  version: 10.33.0
                   run_install: false
 
             - name: Get pnpm Store Path

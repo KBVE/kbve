@@ -256,6 +256,14 @@ fn router(state: AppState) -> Router {
             axum::routing::get(super::proxy::kubevirt_vnc_handler),
         )
         .route(
+            "/dashboard/vm/vnc-info/{name}",
+            axum::routing::get(super::proxy::kubevirt_vnc_info_handler),
+        )
+        .route(
+            "/dashboard/vm/vnc-sessions",
+            axum::routing::get(super::proxy::kubevirt_vnc_sessions_handler),
+        )
+        .route(
             "/dashboard/firecracker/proxy/{*path}",
             any(super::proxy::firecracker_proxy_handler),
         )

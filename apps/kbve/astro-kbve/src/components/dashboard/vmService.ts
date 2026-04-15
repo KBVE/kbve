@@ -751,6 +751,31 @@ class VMService {
 		return `${proto}//${window.location.host}/dashboard/vm/vnc/${name}?access_token=${token}`;
 	}
 
+	public async getVNCSessionInfo(
+		name: string,
+	): Promise<{
+		vm_key: string;
+		viewers: number;
+		has_primary: boolean;
+	} | null> {
+		const token = this.$accessToken.get();
+		if (!token) return null;
+		try {
+			const resp = await fetch(
+				`/dashboard/vm/vnc-info/${name}?access_token=${token}`,
+				{ signal: AbortSignal.timeout(5000) },
+			);
+			if (!resp.ok) return null;
+			return (await resp.json()) as {
+				vm_key: string;
+				viewers: number;
+				has_primary: boolean;
+			};
+		} catch {
+			return null;
+		}
+	}
+
 	private _startAutoRefresh(): void {
 		if (this._refreshInterval) clearInterval(this._refreshInterval);
 		this._refreshInterval = setInterval(

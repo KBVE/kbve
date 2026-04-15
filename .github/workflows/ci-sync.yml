@@ -19,7 +19,7 @@ jobs:
 
         steps:
             - name: Safe sync dev with main
-              uses: actions/github-script@v8
+              uses: actions/github-script@v9
               with:
                   github-token: ${{ secrets.UNITY_PAT }}
                   script: |
@@ -108,7 +108,7 @@ jobs:
 
         steps:
             - name: Cleanup merged atomic branches
-              uses: actions/github-script@v8
+              uses: actions/github-script@v9
               with:
                   github-token: ${{ secrets.UNITY_PAT }}
                   script: |
@@ -161,7 +161,7 @@ jobs:
 
         steps:
             - name: Close resolved merge conflict issues
-              uses: actions/github-script@v8
+              uses: actions/github-script@v9
               with:
                   github-token: ${{ secrets.UNITY_PAT }}
                   script: |
@@ -253,7 +253,7 @@ jobs:
 
         steps:
             - name: Close issues with explicit keywords
-              uses: actions/github-script@v8
+              uses: actions/github-script@v9
               with:
                   github-token: ${{ secrets.UNITY_PAT }}
                   script: |

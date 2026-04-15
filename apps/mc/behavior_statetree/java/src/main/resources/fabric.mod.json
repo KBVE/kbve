@@ -3,16 +3,17 @@
 	"id": "behavior_statetree",
 	"version": "0.1.0",
 	"name": "Behavior State Tree",
-	"description": "Hybrid Rust/Tokio NPC AI planner — async behavior trees with epoch-guarded intents.",
+	"description": "Hybrid Rust/Tokio NPC AI planner with client-side ship rendering — async behavior trees, flow field pathfinding, and ship system.",
 	"authors": ["KBVE", "h0lybyte"],
 	"contact": {
 		"homepage": "https://kbve.com/",
 		"sources": "https://github.com/KBVE/kbve/tree/main/apps/mc/behavior_statetree"
 	},
 	"license": "MIT",
-	"environment": "server",
+	"environment": "*",
 	"entrypoints": {
-		"main": ["com.kbve.statetree.BehaviorStateTreeMod"]
+		"main": ["com.kbve.statetree.BehaviorStateTreeMod"],
+		"client": ["com.kbve.statetree.client.ShipClientMod"]
 	},
 	"depends": {
 		"fabricloader": ">=0.16.0",

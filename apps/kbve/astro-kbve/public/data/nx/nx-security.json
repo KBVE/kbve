@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-04-12T08:26:40Z",
+  "generated_at": "2026-04-14T08:45:39Z",
   "summary": {
     "critical": 3,
     "high": 32,
-    "medium": 38,
+    "medium": 39,
     "low": 5,
     "info": 28
   },
   "ecosystems": {
     "npm": {
-      "total": 76,
+      "total": 77,
       "severities": {
         "critical": 3,
         "high": 32,
-        "medium": 36,
+        "medium": 37,
         "low": 5,
         "info": 0
       },
@@ -549,6 +549,13 @@
           "severity": "critical",
           "package": "axios",
           "url": "https://github.com/advisories/GHSA-fvcv-3m26-pcqx"
+        },
+        {
+          "id": "1116560",
+          "title": "follow-redirects leaks Custom Authentication Headers to Cross-Domain Redirect Targets",
+          "severity": "medium",
+          "package": "follow-redirects",
+          "url": "https://github.com/advisories/GHSA-r4q5-vmmm-2653"
         }
       ]
     },

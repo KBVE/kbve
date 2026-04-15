@@ -54,6 +54,37 @@ pub struct NpcObservation {
     /// player that owns them. `None` for unowned mobs.
     #[serde(default)]
     pub owner_entity: Option<u64>,
+    /// Flow field navigation hints. Not sent from Java — injected by the
+    /// ECS `plan_behavior` system from computed flow field resources.
+    #[serde(default)]
+    pub flow_hint: FlowFieldHint,
+}
+
+// ---------------------------------------------------------------------------
+// Flow field hint — injected by the ECS `plan_behavior` system from
+// the computed flow field resources. Lets behavior tree nodes make
+// terrain-aware movement decisions without direct ECS access.
+// ---------------------------------------------------------------------------
+
+/// Pre-computed navigation hints derived from the current flow field and
+/// flow gate state. Populated per-NPC by the `plan_behavior` system.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct FlowFieldHint {
+    /// Suggested next block position from the approach flow field
+    /// (toward the nearest player). `None` if no flow field is available
+    /// or the NPC is out of the grid bounds.
+    pub approach_target: Option<[f64; 3]>,
+    /// Suggested next block position from the flee flow field (away from
+    /// all players). `None` if unavailable.
+    pub flee_target: Option<[f64; 3]>,
+    /// BFS distance (in blocks) to the nearest player via the flow field.
+    /// `None` if unreachable or no field available.
+    pub player_distance: Option<u32>,
+    /// Position of the nearest detected chokepoint / flow gate.
+    /// `None` if no gates are detected.
+    pub nearest_gate: Option<[f64; 3]>,
+    /// Number of flow gates within a reasonable patrol radius (~32 blocks).
+    pub gates_in_range: u32,
 }
 
 /// Job submitted to the Tokio runtime for async processing.
@@ -135,6 +166,74 @@ pub enum NpcCommand {
         target_entity: u64,
         duration_ticks: u32,
         amplifier: u8,
+    },
+
+    // -- Skeleton archetype commands ----------------------------------------
+    /// Place a block at the given position. Used by melee skeletons to
+    /// build scaffolding when stuck at a cliff. Java places the block and
+    /// schedules it for cleanup after `cleanup_ticks` (0 = permanent).
+    PlaceBlock {
+        block_pos: [i64; 3],
+        /// Block type tag for Java dispatch. "scaffolding" = Blocks.SCAFFOLDING.
+        block_type: String,
+        /// Ticks until Java auto-removes the placed block. 0 = no cleanup.
+        cleanup_ticks: u32,
+    },
+    /// Teleport the mob to the target position. Used by mage skeletons
+    /// to bypass vertical obstacles and walls. Java sets the entity
+    /// position directly + plays enderman teleport particles/sound.
+    Teleport {
+        target: [f64; 3],
+    },
+    /// Shoot a projectile at the target entity. Used by archer skeletons.
+    /// Java spawns an arrow from the mob aimed at the target with the
+    /// given power (0.0-1.0 → pull strength, affects speed + damage).
+    ShootArrow {
+        target_entity: u64,
+        power: f32,
+    },
+
+    // -- Archetype-specific spawn commands ----------------------------------
+    /// Spawn a melee skeleton (sword + scaffold ability).
+    SpawnSkeletonMelee {
+        near_player: u64,
+        radius: i32,
+    },
+    /// Spawn a mage skeleton (teleport ability).
+    SpawnSkeletonMage {
+        near_player: u64,
+        radius: i32,
+    },
+    /// Spawn an archer skeleton (ranged bow attacks).
+    SpawnSkeletonArcher {
+        near_player: u64,
+        radius: i32,
+    },
+
+    // -- Ship commands ---------------------------------------------------------
+    /// Move a ship forward along its current heading. Java handles the
+    /// chunked block relocation across multiple ticks. `distance` is in
+    /// blocks (typically 1-3 per command for smooth sailing).
+    MoveShip {
+        ship_id: String,
+        distance: i32,
+    },
+    /// Rotate a ship by `degrees` around its anchor Y axis. Positive =
+    /// clockwise (starboard turn). Java rotates all block offsets and
+    /// relocates in chunks.
+    RotateShip {
+        ship_id: String,
+        degrees: f32,
+    },
+    /// Spawn a named ship from a bundled schematic near a player.
+    /// Java loads the schematic, finds safe ocean, and places it.
+    SpawnShip {
+        ship_name: String,
+        near_player: u64,
+    },
+    /// Remove a ship and all its blocks from the world.
+    DespawnShip {
+        ship_id: String,
     },
 }
 

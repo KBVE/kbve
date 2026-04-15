@@ -5,7 +5,16 @@
 
 use bevy::prelude::*;
 
+use bevy_pathfinding::flow_field::FlowField;
+use bevy_pathfinding::flow_gate;
+
+use crate::tree::archetype_nodes::{
+    BuildScaffold, IsPathBlocked, IsStuckAtCliff, MaintainRange, ShootAtTarget, TeleportToTarget,
+};
 use crate::tree::builtin::{AttackNearest, CallAllies, Flee, IsHealthLow, Wander};
+use crate::tree::flow_nodes::{
+    FlowApproach, FlowFlee, HasFlowField, PatrolGate, PlayerWithinFlowDistance,
+};
 use crate::tree::node::{BehaviorContext, BehaviorNode, Selector, Sequence};
 use crate::types::{NpcCommand, NpcObservation};
 
@@ -115,10 +124,57 @@ pub fn ingest_observations(
                         nearby,
                     ));
                 }
-                _ => {
+                "skeleton_melee" => {
                     commands.spawn((
                         AiManaged,
                         AiSkeleton,
+                        SkeletonArchetype::Melee,
+                        StuckTracker::default(),
+                        ScaffoldCooldown::default(),
+                        McEntityId(obs.entity_id),
+                        position,
+                        health,
+                        AiEpoch { value: 1 },
+                        CallCooldown::new(1200),
+                        nearby,
+                    ));
+                }
+                "skeleton_mage" => {
+                    commands.spawn((
+                        AiManaged,
+                        AiSkeleton,
+                        SkeletonArchetype::Mage,
+                        TeleportCooldown::default(),
+                        McEntityId(obs.entity_id),
+                        position,
+                        health,
+                        AiEpoch { value: 1 },
+                        CallCooldown::new(1200),
+                        nearby,
+                    ));
+                }
+                "skeleton_archer" => {
+                    commands.spawn((
+                        AiManaged,
+                        AiSkeleton,
+                        SkeletonArchetype::Archer,
+                        ArrowCooldown::default(),
+                        McEntityId(obs.entity_id),
+                        position,
+                        health,
+                        AiEpoch { value: 1 },
+                        CallCooldown::new(1200),
+                        nearby,
+                    ));
+                }
+                _ => {
+                    // Legacy "skeleton" or unknown kind — default melee
+                    commands.spawn((
+                        AiManaged,
+                        AiSkeleton,
+                        SkeletonArchetype::Melee,
+                        StuckTracker::default(),
+                        ScaffoldCooldown::default(),
                         McEntityId(obs.entity_id),
                         position,
                         health,
@@ -276,21 +332,41 @@ pub fn manage_skeleton_population(
     let alive = total_skeletons.saturating_sub(despawn_count);
 
     // ---- Spawn pass --------------------------------------------------------
+    // Spawn a mix of archetypes: cycle through melee, mage, archer.
+    // This gives each spawn wave a balanced composition.
     if alive >= config.max_skeletons || player_positions.is_empty() {
         return;
     }
     let needed = config.max_skeletons - alive;
+    let archetype_cycle = [
+        SkeletonArchetype::Melee,
+        SkeletonArchetype::Archer,
+        SkeletonArchetype::Melee,
+        SkeletonArchetype::Mage,
+    ];
     for (i, (player_id, _)) in player_positions.iter().enumerate() {
         if i >= needed {
             break;
         }
+        let archetype = archetype_cycle[i % archetype_cycle.len()];
+        let cmd = match archetype {
+            SkeletonArchetype::Melee => NpcCommand::SpawnSkeletonMelee {
+                near_player: *player_id,
+                radius: config.spawn_radius,
+            },
+            SkeletonArchetype::Mage => NpcCommand::SpawnSkeletonMage {
+                near_player: *player_id,
+                radius: config.spawn_radius,
+            },
+            SkeletonArchetype::Archer => NpcCommand::SpawnSkeletonArcher {
+                near_player: *player_id,
+                radius: config.spawn_radius,
+            },
+        };
         world_intents.ready.push(IntentReady {
             entity_id: 0,
             epoch: 0,
-            commands: vec![NpcCommand::SpawnSkeleton {
-                near_player: *player_id,
-                radius: config.spawn_radius,
-            }],
+            commands: vec![cmd],
         });
     }
 }
@@ -317,17 +393,37 @@ pub fn plan_behavior(
             &AiEpoch,
             &NearbyEntities,
             &mut CallCooldown,
+            Option<&SkeletonArchetype>,
         ),
         With<AiManaged>,
     >,
     server_tick: Res<ServerTick>,
     mut global_cooldown: ResMut<GlobalCallCooldown>,
     mut intent_buffer: ResMut<IntentBuffer>,
+    grid_res: Res<CurrentBlockGrid>,
+    player_fields: Res<PlayerFlowFields>,
+    flee_field: Res<FleeFlowField>,
+    gates: Res<DetectedFlowGates>,
 ) {
-    let tree = build_behavior_tree();
     let current_tick = server_tick.0;
 
-    for (mc_id, pos, health, epoch, nearby, mut cooldown) in &mut query {
+    for (mc_id, pos, health, epoch, nearby, mut cooldown, archetype) in &mut query {
+        let flow_hint = build_flow_hint(
+            pos,
+            grid_res.as_ref(),
+            player_fields.as_ref(),
+            flee_field.as_ref(),
+            gates.as_ref(),
+        );
+
+        // Determine entity_kind tag based on archetype
+        let entity_kind = match archetype {
+            Some(SkeletonArchetype::Melee) => "skeleton_melee",
+            Some(SkeletonArchetype::Mage) => "skeleton_mage",
+            Some(SkeletonArchetype::Archer) => "skeleton_archer",
+            None => "skeleton",
+        };
+
         let observation = NpcObservation {
             entity_id: mc_id.0,
             epoch: epoch.value,
@@ -347,8 +443,17 @@ pub fn plan_behavior(
             nearby_blocks: vec![],
             current_goal: None,
             tick: current_tick,
-            entity_kind: "skeleton".to_string(),
+            entity_kind: entity_kind.to_string(),
             owner_entity: None,
+            flow_hint,
+        };
+
+        // Select behavior tree based on archetype
+        let tree: Box<dyn BehaviorNode> = match archetype {
+            Some(SkeletonArchetype::Melee) => Box::new(build_melee_tree()),
+            Some(SkeletonArchetype::Mage) => Box::new(build_mage_tree()),
+            Some(SkeletonArchetype::Archer) => Box::new(build_archer_tree()),
+            None => Box::new(build_behavior_tree()),
         };
 
         let mut ctx = BehaviorContext {
@@ -363,6 +468,217 @@ pub fn plan_behavior(
             epoch: epoch.value,
             commands,
         });
+    }
+}
+
+/// Build a `FlowFieldHint` for the given NPC position from the computed
+/// flow field resources. Returns default (empty) hint if no data is
+/// available.
+fn build_flow_hint(
+    pos: &McPosition,
+    grid_res: &CurrentBlockGrid,
+    player_fields: &PlayerFlowFields,
+    flee_field: &FleeFlowField,
+    gates: &DetectedFlowGates,
+) -> crate::types::FlowFieldHint {
+    use crate::types::FlowFieldHint;
+
+    let Some(ref grid) = grid_res.0 else {
+        return FlowFieldHint::default();
+    };
+
+    let bx = pos.x.floor() as i32;
+    let bz = pos.z.floor() as i32;
+
+    if !grid.in_bounds(bx, bz) {
+        return FlowFieldHint::default();
+    }
+
+    // Approach: find the flow field with the shortest distance to this NPC
+    // (i.e., the nearest player's field), then get the next target.
+    let (approach_target, player_distance) = player_fields
+        .0
+        .iter()
+        .filter_map(|(_, field)| {
+            let dist = field.distance(bx, bz)?;
+            let target = field.next_target(grid, bx, bz)?;
+            Some((target, dist))
+        })
+        .min_by_key(|&(_, d)| d)
+        .map(|(t, d)| (Some(t), Some(d)))
+        .unwrap_or((None, None));
+
+    // Flee target
+    let flee_target = flee_field
+        .0
+        .as_ref()
+        .and_then(|ff| ff.next_target(grid, bx, bz));
+
+    // Nearest gate
+    let nearest_gate = bevy_pathfinding::flow_gate::nearest_gate(&gates.0, bx, bz).map(|g| {
+        let cell = grid.get(g.center_x, g.center_z);
+        [
+            g.center_x as f64 + 0.5,
+            cell.height as f64,
+            g.center_z as f64 + 0.5,
+        ]
+    });
+
+    // Gates within patrol range (~32 blocks)
+    let gates_in_range =
+        bevy_pathfinding::flow_gate::gates_in_radius(&gates.0, bx, bz, 32).len() as u32;
+
+    FlowFieldHint {
+        approach_target,
+        flee_target,
+        player_distance,
+        nearest_gate,
+        gates_in_range,
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Archetype-specific behavior trees
+// ---------------------------------------------------------------------------
+
+/// Melee skeleton: approach → stuck at cliff? build scaffold → attack → wander
+fn build_melee_tree() -> Selector {
+    Selector {
+        children: vec![
+            // Priority 1: Low HP → flee
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(IsHealthLow { threshold: 5.0 }),
+                    Box::new(Selector {
+                        children: vec![
+                            Box::new(FlowFlee),
+                            Box::new(Flee {
+                                flee_distance: 16.0,
+                            }),
+                        ],
+                    }),
+                ],
+            }),
+            // Priority 2: Call for help when hurt
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(IsHealthLow { threshold: 6.0 }),
+                    Box::new(CallAllies {
+                        health_threshold: 6.0,
+                        reinforcement_count: 1,
+                    }),
+                ],
+            }),
+            // Priority 3: Attack if in melee range
+            Box::new(AttackNearest { range: 2.5 }),
+            // Priority 4: Stuck at cliff → build scaffolding
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(IsStuckAtCliff),
+                    Box::new(BuildScaffold {
+                        cleanup_ticks: 600, // 30s at 20 TPS
+                    }),
+                ],
+            }),
+            // Priority 5: Flow field approach
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(HasFlowField),
+                    Box::new(PlayerWithinFlowDistance { max_distance: 24 }),
+                    Box::new(FlowApproach),
+                ],
+            }),
+            // Priority 6: Patrol chokepoints
+            Box::new(PatrolGate),
+            // Priority 7: Wander
+            Box::new(Wander { radius: 8.0 }),
+        ],
+    }
+}
+
+/// Mage skeleton: teleport past obstacles → attack from close range → flee via teleport
+fn build_mage_tree() -> Selector {
+    Selector {
+        children: vec![
+            // Priority 1: Low HP → teleport away, then flee
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(IsHealthLow { threshold: 5.0 }),
+                    Box::new(Selector {
+                        children: vec![
+                            Box::new(FlowFlee),
+                            Box::new(Flee {
+                                flee_distance: 16.0,
+                            }),
+                        ],
+                    }),
+                ],
+            }),
+            // Priority 2: Attack if in melee range
+            Box::new(AttackNearest { range: 2.5 }),
+            // Priority 3: Path is blocked → teleport to target
+            Box::new(Sequence {
+                children: vec![Box::new(IsPathBlocked), Box::new(TeleportToTarget)],
+            }),
+            // Priority 4: Stuck at cliff → teleport
+            Box::new(Sequence {
+                children: vec![Box::new(IsStuckAtCliff), Box::new(TeleportToTarget)],
+            }),
+            // Priority 5: Flow field approach
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(HasFlowField),
+                    Box::new(PlayerWithinFlowDistance { max_distance: 32 }),
+                    Box::new(FlowApproach),
+                ],
+            }),
+            // Priority 6: Wander
+            Box::new(Wander { radius: 10.0 }),
+        ],
+    }
+}
+
+/// Archer skeleton: maintain distance → shoot → reposition
+fn build_archer_tree() -> Selector {
+    Selector {
+        children: vec![
+            // Priority 1: Low HP → flee
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(IsHealthLow { threshold: 5.0 }),
+                    Box::new(Selector {
+                        children: vec![
+                            Box::new(FlowFlee),
+                            Box::new(Flee {
+                                flee_distance: 20.0,
+                            }),
+                        ],
+                    }),
+                ],
+            }),
+            // Priority 2: Shoot at target in range
+            Box::new(ShootAtTarget {
+                range: 20.0,
+                power: 0.8,
+            }),
+            // Priority 3: Maintain ideal range (back up if too close)
+            Box::new(MaintainRange {
+                ideal_range: 14.0,
+                min_range: 6.0,
+            }),
+            // Priority 4: Flow field approach (close gap if too far)
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(HasFlowField),
+                    Box::new(PlayerWithinFlowDistance { max_distance: 30 }),
+                    Box::new(FlowApproach),
+                ],
+            }),
+            // Priority 5: Patrol gates (good vantage points)
+            Box::new(PatrolGate),
+            // Priority 6: Wander
+            Box::new(Wander { radius: 12.0 }),
+        ],
     }
 }
 
@@ -697,14 +1013,21 @@ pub fn plan_pet_parrot_behavior(
 fn build_behavior_tree() -> Selector {
     Selector {
         children: vec![
+            // Priority 1: Low health → flee (prefer flow-aware, fall back to blind)
             Box::new(Sequence {
                 children: vec![
                     Box::new(IsHealthLow { threshold: 5.0 }),
-                    Box::new(Flee {
-                        flee_distance: 16.0,
+                    Box::new(Selector {
+                        children: vec![
+                            Box::new(FlowFlee),
+                            Box::new(Flee {
+                                flee_distance: 16.0,
+                            }),
+                        ],
                     }),
                 ],
             }),
+            // Priority 2: Call for help when hurt
             Box::new(Sequence {
                 children: vec![
                     Box::new(IsHealthLow { threshold: 6.0 }),
@@ -714,8 +1037,104 @@ fn build_behavior_tree() -> Selector {
                     }),
                 ],
             }),
+            // Priority 3: Attack if in melee range
             Box::new(AttackNearest { range: 2.5 }),
+            // Priority 4: Flow-field approach when player is within BFS range
+            Box::new(Sequence {
+                children: vec![
+                    Box::new(HasFlowField),
+                    Box::new(PlayerWithinFlowDistance { max_distance: 24 }),
+                    Box::new(FlowApproach),
+                ],
+            }),
+            // Priority 5: Patrol chokepoints (if any detected)
+            Box::new(PatrolGate),
+            // Priority 6: Classic blind wander as final fallback
             Box::new(Wander { radius: 8.0 }),
         ],
     }
+}
+
+// ---------------------------------------------------------------------------
+// Map data ingestion + flow field computation
+//
+// Java sends MapRegionSnapshot payloads every few seconds (not every tick).
+// The ingest system converts them to a BlockGrid, and the rebuild system
+// recomputes flow fields + flow gates on a throttled interval.
+// ---------------------------------------------------------------------------
+
+/// System: ingest map data snapshots from the JNI buffer into the ECS.
+///
+/// Takes the most recent snapshot (drops older ones if multiple arrived
+/// between ticks) and converts it to a `BlockGrid`. The grid is stored
+/// as a resource for flow field systems to read.
+pub fn ingest_map_data(
+    mut map_buffer: ResMut<MapDataBuffer>,
+    mut grid_res: ResMut<CurrentBlockGrid>,
+) {
+    // Only keep the most recent snapshot — older ones are stale.
+    let Some(snapshot) = map_buffer.pending.pop() else {
+        return;
+    };
+    // Drain any older snapshots that piled up.
+    map_buffer.pending.clear();
+
+    if let Some(grid) = snapshot.into_grid() {
+        grid_res.0 = Some(grid);
+    }
+}
+
+/// System: periodically recompute flow fields and flow gates from the
+/// current `BlockGrid` + player positions.
+///
+/// Throttled by `FlowFieldRebuildInterval` to avoid burning CPU every
+/// ECS tick. Produces:
+/// - `PlayerFlowFields` — one flow field per online player (approach)
+/// - `FleeFlowField` — flee field away from all players
+/// - `DetectedFlowGates` — chokepoints for tactical behavior
+pub fn rebuild_flow_fields(
+    server_tick: Res<ServerTick>,
+    mut last_rebuild: ResMut<FlowFieldRebuildTick>,
+    rebuild_interval: Res<FlowFieldRebuildInterval>,
+    grid_res: Res<CurrentBlockGrid>,
+    players: Query<(&OnlinePlayer, &McPosition)>,
+    mut player_fields: ResMut<PlayerFlowFields>,
+    mut flee_field: ResMut<FleeFlowField>,
+    mut gates: ResMut<DetectedFlowGates>,
+) {
+    let current = server_tick.0;
+    if current.saturating_sub(last_rebuild.0) < rebuild_interval.0 {
+        return;
+    }
+    last_rebuild.0 = current;
+
+    let Some(ref grid) = grid_res.0 else {
+        return;
+    };
+
+    // Collect player positions as block coords for flow field goals
+    let player_goals: Vec<(u64, (i32, i32))> = players
+        .iter()
+        .map(|(p, pos)| (p.entity_id, (pos.x.floor() as i32, pos.z.floor() as i32)))
+        .filter(|(_, (x, z))| grid.in_bounds(*x, *z))
+        .collect();
+
+    if player_goals.is_empty() {
+        player_fields.0.clear();
+        flee_field.0 = None;
+        return;
+    }
+
+    // Build per-player approach flow fields
+    player_fields.0 = player_goals
+        .iter()
+        .map(|&(id, goal)| (id, FlowField::compute(grid, &[goal])))
+        .collect();
+
+    // Build flee field (away from all players at once)
+    let all_goals: Vec<(i32, i32)> = player_goals.iter().map(|&(_, g)| g).collect();
+    flee_field.0 = Some(FlowField::compute_flee(grid, &all_goals));
+
+    // Detect chokepoints
+    gates.0 = flow_gate::detect_gates(grid);
 }

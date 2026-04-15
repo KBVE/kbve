@@ -4032,6 +4032,55 @@
           "implicitDependencies": []
         }
       },
+      "iot-edge-worker": {
+        "name": "iot-edge-worker",
+        "type": "app",
+        "data": {
+          "root": "apps/vm/iot/edge-worker",
+          "name": "iot-edge-worker",
+          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/vm/iot/edge-worker",
+          "tags": [
+            "scope:vm",
+            "iot",
+            "edge-worker"
+          ],
+          "targets": {
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "sh -n apps/vm/iot/edge-worker/bootstrap.sh",
+                  "docker run --rm -v $PWD/apps/vm/iot/edge-worker:/work pipelinecomponents/yamllint:latest yamllint -d '{extends: relaxed, rules: {line-length: disable}}' /work/cloud-init.yaml.tmpl || true"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true
+            },
+            "test": {
+              "executor": "nx:noop",
+              "cache": false,
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "khashvault": {
         "name": "khashvault",
         "type": "lib",
@@ -10448,6 +10497,25 @@
               "configurations": {},
               "parallelism": true
             },
+            "dev-client": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "echo '=== KBVE MC Dev Client ==='",
+                  "echo '  Builds the Fabric mod and launches a Minecraft client'",
+                  "echo '  with the mod loaded. Connect to localhost:25565'",
+                  "echo ''",
+                  "echo '  Make sure the dev server is running: nx run mc:dev'",
+                  "echo ''",
+                  "cd behavior_statetree/java && ./gradlew runClient --no-daemon"
+                ],
+                "parallel": false,
+                "cwd": "apps/mc"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "dev:down": {
               "executor": "nx:run-commands",
               "cache": false,
@@ -10733,6 +10801,7 @@
         }
       ],
       "firecracker-ctl": [],
+      "iot-edge-worker": [],
       "khashvault": [
         {
           "source": "khashvault",

@@ -14,14 +14,18 @@ pub mod systems;
 use bevy::prelude::*;
 
 use components::{
-    GlobalCallCooldown, LastPetDogManagedTick, LastPetParrotManagedTick, LastPopulationManagedTick,
-    PetDogPopulationConfig, PetParrotPopulationConfig, ServerTick, SkeletonPopulationConfig,
+    CurrentBlockGrid, DetectedFlowGates, FleeFlowField, FlowFieldRebuildInterval,
+    FlowFieldRebuildTick, GlobalCallCooldown, LastPetDogManagedTick, LastPetParrotManagedTick,
+    LastPopulationManagedTick, PetDogPopulationConfig, PetParrotPopulationConfig, PlayerFlowFields,
+    ServerTick, SkeletonPopulationConfig,
 };
-use events::{IntentBuffer, ObservationBuffer, PlayerObservationBuffer, WorldIntentBuffer};
+use events::{
+    IntentBuffer, MapDataBuffer, ObservationBuffer, PlayerObservationBuffer, WorldIntentBuffer,
+};
 use systems::{
-    ingest_observations, ingest_player_snapshots, manage_pet_dog_population,
+    ingest_map_data, ingest_observations, ingest_player_snapshots, manage_pet_dog_population,
     manage_pet_parrot_population, manage_skeleton_population, plan_behavior, plan_pet_dog_behavior,
-    plan_pet_parrot_behavior,
+    plan_pet_parrot_behavior, rebuild_flow_fields,
 };
 
 /// Plugin that registers all AI ECS components, resources, and systems.
@@ -33,8 +37,16 @@ impl Plugin for AiBehaviorPlugin {
             .init_resource::<GlobalCallCooldown>()
             .init_resource::<ObservationBuffer>()
             .init_resource::<PlayerObservationBuffer>()
+            .init_resource::<MapDataBuffer>()
             .init_resource::<IntentBuffer>()
             .init_resource::<WorldIntentBuffer>()
+            // Flow field / pathfinding resources
+            .init_resource::<CurrentBlockGrid>()
+            .init_resource::<PlayerFlowFields>()
+            .init_resource::<FleeFlowField>()
+            .init_resource::<DetectedFlowGates>()
+            .init_resource::<FlowFieldRebuildTick>()
+            .init_resource::<FlowFieldRebuildInterval>()
             .init_resource::<SkeletonPopulationConfig>()
             .init_resource::<LastPopulationManagedTick>()
             .init_resource::<PetDogPopulationConfig>()
@@ -46,6 +58,8 @@ impl Plugin for AiBehaviorPlugin {
                 (
                     ingest_player_snapshots,
                     ingest_observations,
+                    ingest_map_data,
+                    rebuild_flow_fields,
                     plan_behavior,
                     plan_pet_dog_behavior,
                     plan_pet_parrot_behavior,

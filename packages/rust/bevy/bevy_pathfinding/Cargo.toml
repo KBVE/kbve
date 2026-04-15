@@ -1,0 +1,28 @@
+[package]
+name = "bevy_pathfinding"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94"
+license = "MIT"
+description = "Grid-based flow field pathfinding and chokepoint detection — pure Rust core with optional Bevy ECS integration"
+homepage = "https://kbve.com/"
+repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_pathfinding"
+keywords = ["pathfinding", "flow-field", "gamedev", "bevy"]
+categories = ["game-development", "algorithms"]
+
+[features]
+default = []
+
+# Bevy ECS integration — adds Resource derives and optional plugin.
+# Without this feature the crate is plain Rust with zero Bevy dependency,
+# suitable for JNI cdylibs (behavior_statetree) and CLI tools.
+bevy = ["dep:bevy"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+
+# Bevy — only pulled in under the `bevy` feature.
+bevy = { version = "0.18", default-features = false, features = [
+    "bevy_state",
+], optional = true }

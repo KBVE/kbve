@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-04-12T08:26:40Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-04-14T08:45:39Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
@@ -29,7 +29,7 @@ Last generated: **2026-04-12T08:26:40Z** — updated daily by `ci-dashboard`.
   <Card title="32 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="38 Medium" icon="information">
+  <Card title="39 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="5 Low" icon="approve-check-circle">
@@ -41,7 +41,7 @@ Last generated: **2026-04-12T08:26:40Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **76** advisories
+    **77** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **30** advisories
@@ -64,7 +64,7 @@ pie showData
     title Findings by Severity
     "Critical" : 3
     "High" : 32
-    "Medium" : 38
+    "Medium" : 39
     "Low" : 5
 ```
 
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 76
+    "npm" : 77
     "Cargo" : 30
 ```
 
@@ -82,12 +82,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 3 | 32 | 36 | 5 | 76 |
+| **npm** | 3 | 32 | 37 | 5 | 77 |
 | **Cargo** | 0 | 0 | 2 | 0 | 30 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 3 | 32 | 38 | 5 | 106 |
+| **Total** | 3 | 32 | 39 | 5 | 107 |
 
   </TabItem>
   <TabItem label="npm">
@@ -165,6 +165,7 @@ pie showData
 | Medium | `dompurify` | DOMPurify USE_PROFILES prototype pollution allows event h... | [Details](https://github.com/advisories/GHSA-cj63-jhhr-wcxv) |
 | Medium | `vite` | Vite Vulnerable to Path Traversal in Optimized Deps `.map... | [Details](https://github.com/advisories/GHSA-4w7w-66w2-5vf9) |
 | Medium | `vite` | Vite Vulnerable to Path Traversal in Optimized Deps `.map... | [Details](https://github.com/advisories/GHSA-4w7w-66w2-5vf9) |
+| Medium | `follow-redirects` | follow-redirects leaks Custom Authentication Headers to C... | [Details](https://github.com/advisories/GHSA-r4q5-vmmm-2653) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
