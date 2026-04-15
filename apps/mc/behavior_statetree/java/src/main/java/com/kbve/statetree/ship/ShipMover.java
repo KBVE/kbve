@@ -10,21 +10,24 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * Handles chunked block relocation for ship movement.
+ * Diff-based block relocation for ship movement.
  *
- * <p>Moving 400k blocks in a single tick would freeze the server. Instead,
- * movement is broken into phases spread across multiple ticks:
+ * <p>For small movements (1-3 blocks), the new ship position overlaps the
+ * old position by ~99%. Naively clearing all old blocks and placing all
+ * new blocks does 2N operations when only the trailing edge needs to be
+ * cleared and the leading edge needs to be placed.
  *
+ * <p>This implementation:
  * <ol>
- *   <li><b>Snapshot</b>: record the current block states + offsets</li>
- *   <li><b>Clear phase</b>: remove N blocks per tick from the old position
- *       (back-to-front so the ship "dissolves" from the trailing edge)</li>
- *   <li><b>Place phase</b>: place N blocks per tick at the new position
- *       (front-to-back so the ship "materializes" from the leading edge)</li>
+ *   <li>Computes the SET of new world positions (ship blocks at new anchor)</li>
+ *   <li>Computes the SET of old world positions (ship blocks at old anchor)</li>
+ *   <li>Clear list = old positions NOT in the new set (trailing edge)</li>
+ *   <li>Place list = new positions (whole ship — needed because some blocks
+ *       might have wrong state from neighbor updates)</li>
  * </ol>
  *
- * <p>While a move is in progress, further moves are queued. This prevents
- * desync between the entity position and the block positions.
+ * <p>For a 1-block move on a 20k-block ship, this is ~99% reduction in
+ * clear ops. Place ops still cover the full ship to ensure correct state.
  */
 public final class ShipMover {
 
@@ -36,13 +39,18 @@ public final class ShipMover {
     /** Pending relocations keyed by ship UUID. */
     private final Map<UUID, MoveJob> activeJobs = new LinkedHashMap<>();
 
-    /** A queued block relocation job. */
+    /** A queued block relocation job with diff optimization. */
     private static final class MoveJob {
         final UUID shipId;
         final ShipData data;
         final BlockPos oldAnchor;
         final BlockPos newAnchor;
-        final List<BlockPos> offsets;
+
+        /** Positions to clear — old occupied positions that aren't in the new ship footprint. */
+        final List<BlockPos> clearList;
+        /** Offsets to place — full ship (we re-place everything to ensure correct state). */
+        final List<BlockPos> placeOffsets;
+
         int clearIndex = 0;
         int placeIndex = 0;
         boolean clearDone = false;
@@ -53,7 +61,22 @@ public final class ShipMover {
             this.data = data;
             this.oldAnchor = oldAnchor;
             this.newAnchor = newAnchor;
-            this.offsets = new ArrayList<>(data.blocks().keySet());
+            this.placeOffsets = new ArrayList<>(data.blocks().keySet());
+
+            // Compute diff: new occupied set
+            Set<BlockPos> newOccupied = new HashSet<>(data.blocks().size());
+            for (BlockPos offset : data.blocks().keySet()) {
+                newOccupied.add(newAnchor.add(offset));
+            }
+
+            // Old positions that are NOT in new — these need clearing
+            this.clearList = new ArrayList<>();
+            for (BlockPos offset : data.blocks().keySet()) {
+                BlockPos oldPos = oldAnchor.add(offset);
+                if (!newOccupied.contains(oldPos)) {
+                    clearList.add(oldPos);
+                }
+            }
         }
 
         boolean isDone() {
@@ -63,18 +86,13 @@ public final class ShipMover {
 
     /**
      * Queue a ship move from oldAnchor to newAnchor.
-     * The actual block relocation happens over subsequent ticks.
      */
     public void queueMove(UUID shipId, ShipData data, BlockPos oldAnchor, BlockPos newAnchor) {
-        // If there's already a job for this ship, we can't overlap — drop the old one.
-        // In practice the ship should wait for the current move to finish before starting another.
         activeJobs.put(shipId, new MoveJob(shipId, data, oldAnchor, newAnchor));
     }
 
     /**
      * Process pending relocations. Call once per server tick.
-     *
-     * @return set of ship UUIDs that completed their move this tick
      */
     public Set<UUID> tick(ServerWorld world) {
         Set<UUID> completed = new HashSet<>();
@@ -87,7 +105,6 @@ public final class ShipMover {
             if (job.isDone()) {
                 completed.add(job.shipId);
                 it.remove();
-                LOGGER.debug("[Ship] Move complete for {}", job.shipId);
             }
         }
 
@@ -97,36 +114,36 @@ public final class ShipMover {
     private void processJob(ServerWorld world, MoveJob job) {
         int budget = BLOCKS_PER_TICK;
 
-        // Phase 1: Clear old blocks
-        if (!job.clearDone) {
-            while (job.clearIndex < job.offsets.size() && budget > 0) {
-                BlockPos offset = job.offsets.get(job.clearIndex);
-                BlockPos worldPos = job.oldAnchor.add(offset);
-                // Flag 2 = notify clients only (no block updates, no observers, no redraws).
-// Safe because we control all placement and don't need lighting/fluid recalc.
-world.setBlockState(worldPos, Blocks.AIR.getDefaultState(), 2);
-                job.clearIndex++;
-                budget--;
-            }
-            if (job.clearIndex >= job.offsets.size()) {
-                job.clearDone = true;
-            }
-        }
-
-        // Phase 2: Place new blocks (starts after clear is done)
-        if (job.clearDone && !job.placeDone) {
-            while (job.placeIndex < job.offsets.size() && budget > 0) {
-                BlockPos offset = job.offsets.get(job.placeIndex);
+        // Phase 1: Place new blocks FIRST (so the ship is never invisible).
+        // For overlapping positions, this overwrites old state with new state.
+        if (!job.placeDone) {
+            while (job.placeIndex < job.placeOffsets.size() && budget > 0) {
+                BlockPos offset = job.placeOffsets.get(job.placeIndex);
                 BlockState state = job.data.blocks().get(offset);
                 if (state != null) {
                     BlockPos worldPos = job.newAnchor.add(offset);
+                    // Flag 2 = notify clients only (no block updates / observers / redraws).
                     world.setBlockState(worldPos, state, 2);
                 }
                 job.placeIndex++;
                 budget--;
             }
-            if (job.placeIndex >= job.offsets.size()) {
+            if (job.placeIndex >= job.placeOffsets.size()) {
                 job.placeDone = true;
+            }
+        }
+
+        // Phase 2: Clear trailing edge (only positions not in new footprint).
+        // For a 1-block move on a 20k-block ship, this is ~200 blocks instead of 20k.
+        if (job.placeDone && !job.clearDone) {
+            while (job.clearIndex < job.clearList.size() && budget > 0) {
+                BlockPos worldPos = job.clearList.get(job.clearIndex);
+                world.setBlockState(worldPos, Blocks.AIR.getDefaultState(), 2);
+                job.clearIndex++;
+                budget--;
+            }
+            if (job.clearIndex >= job.clearList.size()) {
+                job.clearDone = true;
             }
         }
     }
