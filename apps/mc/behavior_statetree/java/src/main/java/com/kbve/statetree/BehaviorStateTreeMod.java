@@ -74,61 +74,23 @@ public class BehaviorStateTreeMod implements ModInitializer {
                 server.getPlayerManager().addToOperators(player.getPlayerConfigEntry());
                 LOGGER.info("[{}] Dev auto-op: {} (offline-mode server)", MOD_ID, player.getNameForScoreboard());
 
-                // Dev mode: teleport player to the nearest beach biome on join.
-                // Delayed by 20 ticks (1s) so the player's position is fully
-                // loaded after Velocity forward.
+                // Dev mode: teleport player to the hardcoded known-good spawn
+                // near the ocean (works with the pinned seed -4470905440626961808).
+                // Delayed 20 ticks so the player's position is loaded after
+                // the Velocity handshake completes.
                 String playerName = player.getNameForScoreboard();
-                var world = player.getEntityWorld();
-                LOGGER.info("[{}] Player {} joined at {} — scheduling beach teleport",
-                        MOD_ID, playerName, player.getBlockPos().toShortString());
-
-                // Schedule teleport after a 1-second delay via a one-shot tick listener
                 java.util.concurrent.atomic.AtomicInteger ticksLeft = new java.util.concurrent.atomic.AtomicInteger(20);
                 ServerTickEvents.EndTick delayedTp = new ServerTickEvents.EndTick() {
                     @Override
                     public void onEndTick(net.minecraft.server.MinecraftServer s) {
                         if (ticksLeft.decrementAndGet() > 0) return;
-                        // Remove self — this is a one-shot
-                        // (Fabric doesn't support unregister, so we just no-op after first run)
                         if (!player.isAlive()) return;
-
-                        var searchFrom = player.getBlockPos();
-                        var currentBiome = world.getBiome(searchFrom);
-                        boolean alreadyCoastal = currentBiome.matchesKey(net.minecraft.world.biome.BiomeKeys.BEACH)
-                                || currentBiome.matchesKey(net.minecraft.world.biome.BiomeKeys.SNOWY_BEACH)
-                                || currentBiome.matchesKey(net.minecraft.world.biome.BiomeKeys.STONY_SHORE)
-                                || currentBiome.matchesKey(net.minecraft.world.biome.BiomeKeys.OCEAN)
-                                || currentBiome.matchesKey(net.minecraft.world.biome.BiomeKeys.DEEP_OCEAN)
-                                || currentBiome.matchesKey(net.minecraft.world.biome.BiomeKeys.WARM_OCEAN);
-
-                        if (alreadyCoastal) {
-                            LOGGER.info("[{}] Player {} already in coastal biome — skipping tp",
-                                    MOD_ID, playerName);
-                            ticksLeft.set(Integer.MAX_VALUE); // prevent re-run
-                            return;
-                        }
-
-                        LOGGER.info("[{}] Searching beach biome for {}...", MOD_ID, playerName);
-                        var beachEntry = world.locateBiome(
-                                b -> b.matchesKey(net.minecraft.world.biome.BiomeKeys.BEACH)
-                                        || b.matchesKey(net.minecraft.world.biome.BiomeKeys.SNOWY_BEACH)
-                                        || b.matchesKey(net.minecraft.world.biome.BiomeKeys.STONY_SHORE),
-                                searchFrom, 6400, 32, 64);
-
-                        if (beachEntry != null) {
-                            var beachPos = beachEntry.getFirst();
-                            int ty = world.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
-                                    beachPos.getX(), beachPos.getZ());
-                            s.getCommandManager().parseAndExecute(
-                                    s.getCommandSource(),
-                                    "tp " + playerName + " " + beachPos.getX() + " " + (ty + 1) + " " + beachPos.getZ());
-                            LOGGER.info("[{}] Teleported {} to beach at {}",
-                                    MOD_ID, playerName, beachPos.toShortString());
-                        } else {
-                            LOGGER.warn("[{}] No beach biome found within 6400 blocks for {}",
-                                    MOD_ID, playerName);
-                        }
-                        ticksLeft.set(Integer.MAX_VALUE); // prevent re-run
+                        s.getCommandManager().parseAndExecute(
+                                s.getCommandSource(),
+                                "tp " + playerName + " 0 67 0");
+                        LOGGER.info("[{}] Teleported {} to spawn (0, 67, 0)",
+                                MOD_ID, playerName);
+                        ticksLeft.set(Integer.MAX_VALUE); // one-shot
                     }
                 };
                 ServerTickEvents.END_SERVER_TICK.register(delayedTp);
