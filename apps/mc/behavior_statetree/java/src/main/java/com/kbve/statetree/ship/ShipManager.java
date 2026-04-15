@@ -283,20 +283,21 @@ public final class ShipManager {
         mover.queueMove(shipId, ship.data, ship.anchor, newAnchor);
         ship.anchor = newAnchor;
 
-        // Move the helm entity + any passengers riding it
+        // Move the helm entity — passengers ride along automatically
+        // via MC's passenger attachment system. Don't teleport passengers
+        // directly (that dismounts them).
         if (ship.helmEntity != null && ship.helmEntity.isAlive()) {
             double newX = ship.helmEntity.getX() + dx;
             double newY = ship.helmEntity.getY() + dy;
             double newZ = ship.helmEntity.getZ() + dz;
-
-            var passengers = new java.util.ArrayList<>(ship.helmEntity.getPassengerList());
-            for (var passenger : passengers) {
-                passenger.teleport(
-                        (net.minecraft.server.world.ServerWorld) ship.helmEntity.getEntityWorld(),
-                        passenger.getX() + dx, passenger.getY() + dy, passenger.getZ() + dz,
-                        java.util.Set.of(), passenger.getYaw(), passenger.getPitch(), false);
-            }
             ship.helmEntity.setPosition(newX, newY, newZ);
+            // Update passenger positions directly (without teleport/dismount)
+            for (var passenger : ship.helmEntity.getPassengerList()) {
+                passenger.setPosition(
+                        passenger.getX() + dx,
+                        passenger.getY() + dy,
+                        passenger.getZ() + dz);
+            }
         }
 
         // Persist new anchor so ships.json tracks the current position.
