@@ -266,6 +266,7 @@ public final class ShipManager {
         BlockPos newAnchor = ship.anchor.add(dx, 0, dz);
         mover.queueMove(shipId, ship.data, ship.anchor, newAnchor);
         ship.anchor = newAnchor;
+        persistShip(ship);
     }
 
     /**
@@ -282,16 +283,12 @@ public final class ShipManager {
         mover.queueMove(shipId, ship.data, ship.anchor, newAnchor);
         ship.anchor = newAnchor;
 
-        // Move the helm entity + any passengers riding it, so players
-        // stay with the ship as it relocates.
+        // Move the helm entity + any passengers riding it
         if (ship.helmEntity != null && ship.helmEntity.isAlive()) {
             double newX = ship.helmEntity.getX() + dx;
             double newY = ship.helmEntity.getY() + dy;
             double newZ = ship.helmEntity.getZ() + dz;
 
-            // Temporarily dismount passengers so we can teleport the entity,
-            // then re-mount them. This is the most reliable way to move
-            // a rideable entity + riders together in MC 1.21+.
             var passengers = new java.util.ArrayList<>(ship.helmEntity.getPassengerList());
             for (var passenger : passengers) {
                 passenger.teleport(
@@ -301,6 +298,11 @@ public final class ShipManager {
             }
             ship.helmEntity.setPosition(newX, newY, newZ);
         }
+
+        // Persist new anchor so ships.json tracks the current position.
+        // Without this, disconnecting mid-sail leaves the DB pointing at
+        // the old location → /clearallships can't find the moved ship.
+        persistShip(ship);
     }
 
     /**
