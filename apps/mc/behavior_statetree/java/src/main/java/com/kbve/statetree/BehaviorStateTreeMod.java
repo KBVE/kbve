@@ -73,6 +73,40 @@ public class BehaviorStateTreeMod implements ModInitializer {
                 ServerPlayerEntity player = handler.getPlayer();
                 server.getPlayerManager().addToOperators(player.getPlayerConfigEntry());
                 LOGGER.info("[{}] Dev auto-op: {} (offline-mode server)", MOD_ID, player.getNameForScoreboard());
+
+                // Dev mode: teleport new players to the nearest ocean biome so
+                // /spawnship + /boardship work immediately without walking.
+                // Only teleports once per join — if they've moved away from spawn,
+                // assume they're already where they want to be.
+                var world = player.getServerWorld();
+                var spawnPos = world.getSpawnPos();
+                double dx = player.getX() - spawnPos.getX();
+                double dz = player.getZ() - spawnPos.getZ();
+                boolean atSpawn = (dx * dx + dz * dz) < 64; // within 8 blocks of spawn
+
+                if (atSpawn) {
+                    // Find a beach biome — solid sand/dirt at the ocean coast
+                    var beachEntry = world.locateBiome(
+                            biome -> biome.matchesKey(net.minecraft.world.biome.BiomeKeys.BEACH)
+                                    || biome.matchesKey(net.minecraft.world.biome.BiomeKeys.SNOWY_BEACH)
+                                    || biome.matchesKey(net.minecraft.world.biome.BiomeKeys.STONY_SHORE),
+                            spawnPos, 6400, 32, 64);
+
+                    if (beachEntry != null) {
+                        var beachPos = beachEntry.getFirst();
+                        // Land on the surface (highest solid block, not water)
+                        int ty = world.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                                beachPos.getX(), beachPos.getZ());
+                        server.getCommandManager().parseAndExecute(
+                                server.getCommandSource(),
+                                "tp " + player.getNameForScoreboard() + " " +
+                                        beachPos.getX() + " " + (ty + 1) + " " + beachPos.getZ());
+                        LOGGER.info("[{}] Teleported {} to beach at {}",
+                                MOD_ID, player.getNameForScoreboard(), beachPos.toShortString());
+                    } else {
+                        LOGGER.warn("[{}] No beach biome found within 6400 blocks of spawn", MOD_ID);
+                    }
+                }
             }
         });
 
