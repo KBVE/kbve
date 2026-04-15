@@ -281,6 +281,26 @@ public final class ShipManager {
         BlockPos newAnchor = ship.anchor.add(dx, dy, dz);
         mover.queueMove(shipId, ship.data, ship.anchor, newAnchor);
         ship.anchor = newAnchor;
+
+        // Move the helm entity + any passengers riding it, so players
+        // stay with the ship as it relocates.
+        if (ship.helmEntity != null && ship.helmEntity.isAlive()) {
+            double newX = ship.helmEntity.getX() + dx;
+            double newY = ship.helmEntity.getY() + dy;
+            double newZ = ship.helmEntity.getZ() + dz;
+
+            // Temporarily dismount passengers so we can teleport the entity,
+            // then re-mount them. This is the most reliable way to move
+            // a rideable entity + riders together in MC 1.21+.
+            var passengers = new java.util.ArrayList<>(ship.helmEntity.getPassengerList());
+            for (var passenger : passengers) {
+                passenger.teleport(
+                        (net.minecraft.server.world.ServerWorld) ship.helmEntity.getEntityWorld(),
+                        passenger.getX() + dx, passenger.getY() + dy, passenger.getZ() + dz,
+                        java.util.Set.of(), passenger.getYaw(), passenger.getPitch(), false);
+            }
+            ship.helmEntity.setPosition(newX, newY, newZ);
+        }
     }
 
     /**

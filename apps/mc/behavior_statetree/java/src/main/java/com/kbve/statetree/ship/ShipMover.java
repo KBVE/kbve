@@ -102,7 +102,9 @@ public final class ShipMover {
             while (job.clearIndex < job.offsets.size() && budget > 0) {
                 BlockPos offset = job.offsets.get(job.clearIndex);
                 BlockPos worldPos = job.oldAnchor.add(offset);
-                world.setBlockState(worldPos, Blocks.AIR.getDefaultState(), 18);
+                // Flag 2 = notify clients only (no block updates, no observers, no redraws).
+// Safe because we control all placement and don't need lighting/fluid recalc.
+world.setBlockState(worldPos, Blocks.AIR.getDefaultState(), 2);
                 job.clearIndex++;
                 budget--;
             }
@@ -118,7 +120,7 @@ public final class ShipMover {
                 BlockState state = job.data.blocks().get(offset);
                 if (state != null) {
                     BlockPos worldPos = job.newAnchor.add(offset);
-                    world.setBlockState(worldPos, state, 18);
+                    world.setBlockState(worldPos, state, 2);
                 }
                 job.placeIndex++;
                 budget--;
