@@ -134,6 +134,14 @@ spec:
                                 value: 'false'
                               - name: SERVER_PORT
                                 value: '25565'
+                              # Pinned world seed — canonical KBVE survival seed.
+                              # Source of truth for every environment (prod, dev,
+                              # CI, contributor laptops). Only applies on first
+                              # world generation; existing PVCs must be wiped via
+                              # the map-rotation Job (with level.dat reset) to
+                              # pick up a seed change.
+                              - name: SEED
+                                value: '-4470905440626961808'
                           resources:
                               requests:
                                   memory: 2Gi
