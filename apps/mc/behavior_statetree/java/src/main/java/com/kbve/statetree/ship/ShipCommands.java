@@ -115,20 +115,38 @@ public final class ShipCommands {
 
     private static int executeClearAll(ServerCommandSource source, ShipManager manager) {
         ServerWorld world = source.getWorld();
+
+        // 1. Clear all in-memory ships (active)
         var shipIds = new java.util.ArrayList<>(manager.getActiveShips().keySet());
-        int count = shipIds.size();
-
-        if (count == 0) {
-            source.sendFeedback(() -> Text.of("\u00A7eNo active ships to clear."), false);
-            return 0;
-        }
-
+        int activeCount = shipIds.size();
         for (UUID id : shipIds) {
             manager.removeShip(world, id);
         }
 
+        // 2. Clear ships that are persisted but not currently tracked
+        // (ghost ships from server restart that never re-registered in memory)
+        int persistedCount = 0;
+        if (com.kbve.statetree.NativeRuntime.isLoaded()) {
+            String json = com.kbve.statetree.NativeRuntime.loadAllShips();
+            com.google.gson.JsonArray arr = new com.google.gson.Gson().fromJson(json, com.google.gson.JsonArray.class);
+            if (arr != null) {
+                persistedCount = arr.size();
+            }
+            com.kbve.statetree.NativeRuntime.deleteAllShips();
+        }
+
+        int total = activeCount + persistedCount;
+        final int finalTotal = total;
+        final int finalActive = activeCount;
+        final int finalPersisted = persistedCount;
+        if (total == 0) {
+            source.sendFeedback(() -> Text.of("\u00A7eNo ships to clear."), false);
+            return 0;
+        }
+
         source.sendFeedback(() -> Text.of(
-                "\u00A7a\u00A7lCleared " + count + " ship(s) \u00A7r\u00A7eand all their blocks."), true);
+                "\u00A7a\u00A7lCleared " + finalTotal + " ship(s) \u00A7r\u00A7e(" +
+                        finalActive + " active, " + finalPersisted + " persisted records)"), true);
         return 1;
     }
 
