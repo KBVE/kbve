@@ -31,7 +31,7 @@ public final class ShipMover {
     private static final Logger LOGGER = LoggerFactory.getLogger("behavior_statetree");
 
     /** Maximum blocks to process per server tick during relocation. */
-    private static final int BLOCKS_PER_TICK = 8000;
+    private static final int BLOCKS_PER_TICK = 25000;
 
     /** Pending relocations keyed by ship UUID. */
     private final Map<UUID, MoveJob> activeJobs = new LinkedHashMap<>();

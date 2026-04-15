@@ -60,10 +60,10 @@ public final class ShipManager {
     );
 
     /** Blocks to place per server tick during ship placement.
-     *  Higher = faster ship movement but more server load per tick.
-     *  8000/tick is a reasonable balance for smooth WASD sailing on a
-     *  400k block ship (full relocation in ~50 ticks / 2.5s). */
-    private static final int PLACEMENT_BLOCKS_PER_TICK = 8000;
+     *  For the 20k-block airship, 25k/tick = 1-tick full relocation,
+     *  giving smooth continuous WASD movement. Large ships (Dark Reaper)
+     *  still get chunked across multiple ticks. */
+    private static final int PLACEMENT_BLOCKS_PER_TICK = 25000;
 
     /** Active ships keyed by ship UUID. */
     private final ConcurrentHashMap<UUID, ActiveShip> ships = new ConcurrentHashMap<>();
@@ -252,18 +252,33 @@ public final class ShipManager {
 
     /**
      * Move a ship forward along its heading by the given distance.
-     * The actual block relocation is chunked across multiple ticks.
+     * (Legacy — kept for compatibility with /moveship command.)
      */
     public void moveShip(UUID shipId, int distance) {
         ActiveShip ship = ships.get(shipId);
         if (ship == null) return;
-        if (mover.isMoving(shipId)) return; // Wait for current move to finish
+        if (mover.isMoving(shipId)) return;
 
         double rad = Math.toRadians(ship.heading);
         int dx = (int) Math.round(-Math.sin(rad) * distance);
         int dz = (int) Math.round(Math.cos(rad) * distance);
 
         BlockPos newAnchor = ship.anchor.add(dx, 0, dz);
+        mover.queueMove(shipId, ship.data, ship.anchor, newAnchor);
+        ship.anchor = newAnchor;
+    }
+
+    /**
+     * Move a ship in a cardinal direction by the given deltas.
+     * dx > 0 = east, dx < 0 = west, dz > 0 = south, dz < 0 = north,
+     * dy > 0 = up, dy < 0 = down.
+     */
+    public void moveShipDirection(UUID shipId, int dx, int dy, int dz) {
+        ActiveShip ship = ships.get(shipId);
+        if (ship == null) return;
+        if (mover.isMoving(shipId)) return;
+
+        BlockPos newAnchor = ship.anchor.add(dx, dy, dz);
         mover.queueMove(shipId, ship.data, ship.anchor, newAnchor);
         ship.anchor = newAnchor;
     }
