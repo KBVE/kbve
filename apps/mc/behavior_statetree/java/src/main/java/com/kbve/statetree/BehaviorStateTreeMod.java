@@ -78,7 +78,7 @@ public class BehaviorStateTreeMod implements ModInitializer {
                 // /spawnship + /boardship work immediately without walking.
                 // Only teleports once per join — if they've moved away from spawn,
                 // assume they're already where they want to be.
-                var world = player.getServerWorld();
+                var world = player.getEntityWorld();
                 var spawnPos = world.getSpawnPos();
                 double dx = player.getX() - spawnPos.getX();
                 double dz = player.getZ() - spawnPos.getZ();
