@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-04-14T08:45:39Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-04-16T07:55:04Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
@@ -29,7 +29,7 @@ Last generated: **2026-04-14T08:45:39Z** — updated daily by `ci-dashboard`.
   <Card title="32 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="39 Medium" icon="information">
+  <Card title="46 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="5 Low" icon="approve-check-circle">
@@ -41,10 +41,10 @@ Last generated: **2026-04-14T08:45:39Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **77** advisories
+    **78** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
-    **30** advisories
+    **36** advisories
   </Card>
   <Card title="Python" icon="seti:python">
     **0** advisories
@@ -64,7 +64,7 @@ pie showData
     title Findings by Severity
     "Critical" : 3
     "High" : 32
-    "Medium" : 39
+    "Medium" : 46
     "Low" : 5
 ```
 
@@ -73,8 +73,8 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 77
-    "Cargo" : 30
+    "npm" : 78
+    "Cargo" : 36
 ```
 
 <Tabs>
@@ -82,12 +82,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 3 | 32 | 37 | 5 | 77 |
-| **Cargo** | 0 | 0 | 2 | 0 | 30 |
+| **npm** | 3 | 32 | 38 | 5 | 78 |
+| **Cargo** | 0 | 0 | 8 | 0 | 36 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 3 | 32 | 39 | 5 | 107 |
+| **Total** | 3 | 32 | 46 | 5 | 114 |
 
   </TabItem>
   <TabItem label="npm">
@@ -95,8 +95,8 @@ pie showData
 | Severity | Package | Advisory | Link |
 |----------|---------|----------|------|
 | Critical | `handlebars` | Handlebars.js has JavaScript Injection via AST Type Confu... | [Details](https://github.com/advisories/GHSA-2w6w-674q-4c4q) |
-| Critical | `axios` | Axios has a NO_PROXY Hostname Normalization Bypass Leads ... | [Details](https://github.com/advisories/GHSA-3p68-rc4w-qgx5) |
 | Critical | `axios` | Axios has Unrestricted Cloud Metadata Exfiltration via He... | [Details](https://github.com/advisories/GHSA-fvcv-3m26-pcqx) |
+| Critical | `axios` | Axios has a NO_PROXY Hostname Normalization Bypass Leads ... | [Details](https://github.com/advisories/GHSA-3p68-rc4w-qgx5) |
 | High | `glob` | glob CLI: Command injection via -c/--cmd executes matches... | [Details](https://github.com/advisories/GHSA-5j98-mcp5-4vw2) |
 | High | `rollup` | Rollup 4 has Arbitrary File Write via Path Traversal | [Details](https://github.com/advisories/GHSA-mw96-cpmx-2vgc) |
 | High | `koa` | Koa has Host Header Injection via ctx.hostname | [Details](https://github.com/advisories/GHSA-7gcc-r8m5-44qm) |
@@ -166,6 +166,7 @@ pie showData
 | Medium | `vite` | Vite Vulnerable to Path Traversal in Optimized Deps `.map... | [Details](https://github.com/advisories/GHSA-4w7w-66w2-5vf9) |
 | Medium | `vite` | Vite Vulnerable to Path Traversal in Optimized Deps `.map... | [Details](https://github.com/advisories/GHSA-4w7w-66w2-5vf9) |
 | Medium | `follow-redirects` | follow-redirects leaks Custom Authentication Headers to C... | [Details](https://github.com/advisories/GHSA-r4q5-vmmm-2653) |
+| Medium | `dompurify` | DOMPurify's ADD_TAGS function form bypasses FORBID_TAGS d... | [Details](https://github.com/advisories/GHSA-39q2-94rc-95cp) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
@@ -178,7 +179,13 @@ pie showData
 | Severity | Package | Advisory | Link |
 |----------|---------|----------|------|
 | Medium | `rsa` | Marvin Attack: potential key recovery through timing side... | [Details](https://github.com/RustCrypto/RSA/issues/19#issuecomment-1822995643) |
+| Medium | `rustls-webpki` | Name constraints for URI names were incorrectly accepted |  |
+| Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
 | Medium | `rustls-webpki` | CRLs not considered authoritative by Distribution Point d... |  |
+| Medium | `rustls-webpki` | Name constraints for URI names were incorrectly accepted |  |
+| Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
+| Medium | `rustls-webpki` | Name constraints for URI names were incorrectly accepted |  |
+| Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
 | Info | `atk` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `atk-sys` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `bincode` | Bincode is unmaintained | [Details](https://git.sr.ht/~stygianentity/bincode/tree/v3.0/item/README.md) |
