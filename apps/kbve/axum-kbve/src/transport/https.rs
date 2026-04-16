@@ -279,6 +279,14 @@ fn router(state: AppState) -> Router {
             "/dashboard/firecracker-net/proxy",
             any(super::proxy::firecracker_net_proxy_handler),
         )
+        // Public-facing persistent endpoint path — /fc/{name}/{*path}
+        // routes to firecracker-ctl-net's /proxy/{name}/{*path} after a
+        // staff-level auth gate. The {name} identifies the persistent VM.
+        .route(
+            "/fc/{name}/{*path}",
+            any(super::proxy::firecracker_fc_handler),
+        )
+        .route("/fc/{name}", any(super::proxy::firecracker_fc_handler))
         .route(
             "/dashboard/kasm/proxy/{*path}",
             any(super::proxy::kasm_proxy_handler),

@@ -308,6 +308,108 @@ async fn list_vms(State(state): State<AppState>) -> impl IntoResponse {
 }
 
 // ---------------------------------------------------------------------------
+// Persistent endpoints (/fc/*) — Phase 1 stubs
+// ---------------------------------------------------------------------------
+// Long-lived HTTP servers running inside Firecracker VMs, addressed by name.
+// These endpoints return 501 Not Implemented in phase 1 — phase 2 wires in
+// TAP networking and real VM lifecycle. See firecracker-ctl.mdx for the
+// full architecture.
+
+/// Request shape for POST /fc/deploy. Parsed but not acted on in phase 1.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct DeployFcRequest {
+    /// Unique, DNS-safe endpoint name. Used in the public /fc/{name} path.
+    pub name: String,
+    /// Rootfs image to boot (e.g. "alpine-python-web").
+    pub rootfs: String,
+    /// Port inside the guest that the HTTP server listens on.
+    pub http_port: u16,
+    /// Entrypoint binary or script to start the server.
+    pub entrypoint: String,
+    #[serde(default = "default_vcpu")]
+    pub vcpu_count: u8,
+    #[serde(default = "default_mem")]
+    pub mem_size_mib: u16,
+    /// Health check path the proxy pings on deploy. Defaults to "/health".
+    #[serde(default = "default_health_path")]
+    pub health_path: String,
+    #[serde(default)]
+    pub env: serde_json::Map<String, serde_json::Value>,
+    #[serde(default)]
+    pub code: Option<String>,
+}
+
+fn default_health_path() -> String {
+    "/health".to_string()
+}
+
+fn not_implemented(step: &str) -> (StatusCode, Json<serde_json::Value>) {
+    (
+        StatusCode::NOT_IMPLEMENTED,
+        Json(serde_json::json!({
+            "error": "persistent endpoints not yet implemented",
+            "step": step,
+            "phase": 1,
+            "see": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-ctl.mdx",
+        })),
+    )
+}
+
+async fn fc_deploy(
+    State(_state): State<AppState>,
+    Json(req): Json<DeployFcRequest>,
+) -> impl IntoResponse {
+    // Validate shape in phase 1 — real deploy logic lands in phase 2.
+    if req.name.is_empty()
+        || !req
+            .name
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+    {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "invalid endpoint name"})),
+        );
+    }
+    if req.rootfs.is_empty() || req.entrypoint.is_empty() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "rootfs and entrypoint are required"})),
+        );
+    }
+    if req.http_port == 0 {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "http_port must be > 0"})),
+        );
+    }
+    not_implemented("deploy")
+}
+
+async fn fc_list(State(_state): State<AppState>) -> impl IntoResponse {
+    // Phase 1: no persistent registry yet — return empty list.
+    Json(serde_json::json!({"endpoints": [], "count": 0}))
+}
+
+async fn fc_get(State(_state): State<AppState>, Path(_name): Path<String>) -> impl IntoResponse {
+    not_implemented("get")
+}
+
+async fn fc_destroy(
+    State(_state): State<AppState>,
+    Path(_name): Path<String>,
+) -> impl IntoResponse {
+    not_implemented("destroy")
+}
+
+async fn fc_proxy(
+    State(_state): State<AppState>,
+    Path(_params): Path<Vec<(String, String)>>,
+) -> impl IntoResponse {
+    not_implemented("proxy")
+}
+
+// ---------------------------------------------------------------------------
 // VM Lifecycle
 // ---------------------------------------------------------------------------
 
@@ -1086,6 +1188,13 @@ async fn main() {
         .route("/vm/{vm_id}", get(get_vm_status))
         .route("/vm/{vm_id}/result", get(get_vm_result))
         .route("/vm/{vm_id}", delete(destroy_vm))
+        // --- Persistent endpoints (phase 1 stubs) ---
+        .route("/fc/deploy", post(fc_deploy))
+        .route("/fc/list", get(fc_list))
+        .route("/fc/{name}", get(fc_get))
+        .route("/fc/{name}", delete(fc_destroy))
+        .route("/proxy/{name}", axum::routing::any(fc_proxy))
+        .route("/proxy/{name}/{*path}", axum::routing::any(fc_proxy))
         .layer(TraceLayer::new_for_http())
         .with_state(state);
 
