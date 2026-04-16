@@ -1,0 +1,115 @@
+name: CI - MC Gradle Cache
+
+# Builds and publishes ghcr.io/kbve/mc:gradle — the pre-warmed Fabric Loom
+# dependency cache that apps/mc/Dockerfile's java-builder stage pulls from.
+# This is infrastructure, not a versioned app, so it lives outside the
+# ci-dispatch-manifest.json flow. Rebuild is only needed when Fabric Loom /
+# Minecraft / Yarn / Loader / Fabric API version pins in build.gradle change.
+
+on:
+    workflow_dispatch:
+    push:
+        branches: [main, dev]
+        paths:
+            - 'apps/mc/Dockerfile.gradle'
+            - 'apps/mc/behavior_statetree/java/build.gradle'
+            - 'apps/mc/behavior_statetree/java/settings.gradle'
+            - 'apps/mc/mc_auth/java/build.gradle'
+            - 'apps/mc/mc_auth/java/settings.gradle'
+            - 'apps/mc/project.json'
+            - '.github/workflows/ci-mc-gradle-cache.yml'
+    pull_request:
+        branches: [main, dev]
+        paths:
+            - 'apps/mc/Dockerfile.gradle'
+            - 'apps/mc/behavior_statetree/java/build.gradle'
+            - 'apps/mc/behavior_statetree/java/settings.gradle'
+            - 'apps/mc/mc_auth/java/build.gradle'
+            - 'apps/mc/mc_auth/java/settings.gradle'
+            - 'apps/mc/project.json'
+            - '.github/workflows/ci-mc-gradle-cache.yml'
+
+concurrency:
+    group: mc-gradle-cache
+    cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+    build:
+        name: Build + Push ghcr.io/kbve/mc:gradle
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        env:
+            NX_NO_CLOUD: true
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Free disk space
+              uses: jlumbroso/free-disk-space@main
+              with:
+                  tool-cache: false
+                  android: true
+                  dotnet: true
+                  haskell: true
+                  large-packages: false
+                  swap-storage: false
+                  docker-images: true
+
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Setup Docker Buildx
+              uses: docker/setup-buildx-action@v4
+
+            - name: Login to GHCR
+              uses: docker/login-action@v4
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ github.token }}
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v5
+              with:
+                  version: 10.33.0
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v5
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              run: pnpm install
+              env:
+                  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+
+            # Pull requests build-only to validate the Dockerfile, but skip
+            # pushing so PR runs can't overwrite the :gradle tag that main
+            # builds depend on. Push is gated on event_name != pull_request.
+            - name: Build ghcr.io/kbve/mc:gradle (local)
+              if: ${{ github.event_name == 'pull_request' }}
+              env:
+                  INPUT_GITHUB_TOKEN: ${{ github.token }}
+              run: pnpm nx run mc:container-gradle --configuration=local --no-cloud
+
+            - name: Build + Push ghcr.io/kbve/mc:gradle
+              if: ${{ github.event_name != 'pull_request' }}
+              env:
+                  INPUT_GITHUB_TOKEN: ${{ github.token }}
+              run: pnpm nx run mc:container-gradle --configuration=production --no-cloud
