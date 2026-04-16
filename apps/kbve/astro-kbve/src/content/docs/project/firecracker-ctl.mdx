@@ -68,3 +68,86 @@ All manifests in `apps/kube/firecracker/manifests/`:
 - **NetworkPolicy** — Ingress from edge-runtime + dashboard proxy only
 - **KEDA ScaledObject** — minReplicas=1, cron scales to 2 during peak hours
 - **Rootfs Init Job** — ArgoCD PostSync hook, builds ext4 images in-cluster
+
+## Two Ecosystems
+
+Firecracker runs in two parallel deployments in the same namespace, chosen by trust level:
+
+| Deployment | Network | Access | Use Case |
+|------------|---------|--------|----------|
+| `firecracker-ctl` | None (MMDS only) | Edge functions + dashboard | Ephemeral, untrusted code execution |
+| `firecracker-ctl-net` | Gluetun/WireGuard VPN | Dashboard only (staff) | Persistent endpoints with outbound internet |
+
+`firecracker-ctl-net` shares its network namespace with a Gluetun sidecar — all VM traffic exits through a WireGuard tunnel, so user code in VMs never sees the raw host network. This is the only ecosystem that hosts persistent endpoints.
+
+## Persistent Endpoints (`/fc/*`)
+
+Long-lived VMs that expose HTTP servers, routed by name from the public edge. Think Fly.io Machines or Cloud Run — deploy once, stays up until explicitly stopped. Lives in the networked ecosystem only.
+
+### Request Flow
+
+```
+Browser → kbve.com/fc/{name}/*
+       → kbve-gateway (path prefix /fc/)
+       → kbve-service:4321 (axum-kbve)
+       → /fc/{name}/{*path} handler (staff auth)
+       → firecracker-ctl-net.firecracker.svc:9001/proxy/{name}/{*path}
+       → VM tap IP:{http_port}/{*path}
+       → response
+```
+
+Two hops of reverse proxy: axum-kbve authenticates + scopes to staff, firecracker-ctl-net does name→VM lookup and forwards over TAP.
+
+### API Additions (firecracker-ctl-net only)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/fc/deploy` | Deploy a persistent VM with a unique name + http_port |
+| `GET` | `/fc/list` | List all persistent endpoints with status |
+| `GET` | `/fc/{name}` | Get a single endpoint's metadata + health |
+| `DELETE` | `/fc/{name}` | Stop and destroy a persistent endpoint |
+| `ANY` | `/proxy/{name}/{*path}` | Reverse-proxy HTTP into the named VM |
+
+Deploy payload includes rootfs image, entrypoint, optional code blob (raw drive), env vars (via MMDS), http_port, vcpu/memory. No timeout field — persistent VMs live until `DELETE`.
+
+### Networking (TAP per VM)
+
+Persistent endpoints require TAP networking (deferred in Phase 1 for ephemeral VMs — MMDS was enough for outbound-only workloads). Inbound HTTP to a specific guest IP:port is not reachable via MMDS.
+
+- Each persistent VM gets a `/dev/net/tun` TAP device inside the firecracker-ctl-net pod netns
+- A private /30 per VM out of `172.18.0.0/16` (host .1, guest .2)
+- firecracker-ctl maintains `name → tap_ip:http_port` map for the proxy
+- Guest gets the IP via kernel `ip=` boot args; no DHCP needed
+- Gluetun's iptables rules already allow the pod netns internal subnets; VM egress flows out the WireGuard tunnel unchanged
+
+### Lifecycle
+
+- **Deploy** → allocate TAP + IP, boot VM, wait for `GET http://{tap_ip}:{http_port}/health` (configurable path), mark healthy
+- **Unhealthy** → mark `degraded`; proxy still forwards; restart is manual (no auto-restart in phase 1)
+- **Delete** → SIGTERM the VMM process, release TAP + IP, remove from map
+- **Pod restart** → all persistent endpoints lost (in-memory state only). Phase 2 adds on-disk persistence + automatic redeploy.
+
+### Rootfs Requirements
+
+A persistent-VM rootfs must:
+- Boot with `ip=...::::eth0:off` kernel args (kernel-side config, no DHCP)
+- Run an HTTP server on the declared `http_port` as PID 1 (or via a wrapper that re-execs entrypoint)
+- Respond to `GET /health` with `200` when ready
+
+New rootfs image planned: `alpine-python-web` (Alpine + Python + uvicorn + a tiny FastAPI shim), `alpine-node-web` (Alpine + Node + express shim). Tracked as `alpine-python` / `alpine-node` derivatives in the rootfs init job.
+
+### Security
+
+- Path prefix `/fc/*` is staff-gated at axum-kbve (same permission as `/dashboard/*` routes)
+- VMs cannot reach each other — Firecracker jailer isolates per-VM netns; TAP devices sit on a bridge with inter-guest traffic dropped
+- VMs cannot reach cluster services — NetworkPolicy already denies cluster egress from the pod; Gluetun's firewall drops anything not going through the tunnel
+- Outbound is metered by the VPN provider, not KBVE — no per-endpoint quotas in phase 1
+
+### Phased Delivery
+
+- **Phase 1** — docs + routing skeleton (this): `/fc/*` gateway entry, axum-kbve handler, firecracker-ctl 501 stubs for `/fc/deploy`, `/fc/list`, `/fc/{name}`, `/proxy/{name}/{*path}`
+- **Phase 2** — TAP networking + real VM lifecycle: `/fc/deploy` actually boots a VM, `/proxy/{name}/*` actually forwards
+- **Phase 3** — web-server rootfs images + example deployments
+- **Phase 4** — dashboard UI: deploy form, endpoint list, health badges, logs viewer
+- **Phase 5** — on-disk state + auto-redeploy on pod restart
+- **Phase 6** — per-endpoint quotas + metrics dashboard

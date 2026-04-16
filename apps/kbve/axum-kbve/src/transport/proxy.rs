@@ -1118,6 +1118,63 @@ pub async fn firecracker_net_proxy_handler(
 }
 
 // ---------------------------------------------------------------------------
+// /fc/{name}/{*path} — public path prefix for persistent Firecracker endpoints
+// ---------------------------------------------------------------------------
+// Rewrites /fc/{name}/{*path} → firecracker-ctl-net /proxy/{name}/{*path}.
+// Staff-gated (same level as /dashboard/firecracker-net/*) because the
+// networked ecosystem has outbound internet via the VPN tunnel.
+
+pub async fn firecracker_fc_handler(
+    axum::extract::Path(params): axum::extract::Path<Vec<(String, String)>>,
+    req: Request<Body>,
+) -> Response {
+    let headers = req.headers().clone();
+    if let Err(resp) = require_dashboard_manage(&headers, "Firecracker-FC").await {
+        return resp;
+    }
+
+    // Params come in as [("name", ...), ("path", ...)] for /fc/{name}/{*path}
+    // or just [("name", ...)] for the /fc/{name} bare-name route.
+    let name = params
+        .iter()
+        .find(|(k, _)| k == "name")
+        .map(|(_, v)| v.clone())
+        .unwrap_or_default();
+    let tail = params
+        .iter()
+        .find(|(k, _)| k == "path")
+        .map(|(_, v)| v.clone())
+        .unwrap_or_default();
+
+    if name.is_empty()
+        || !name
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+    {
+        return (
+            StatusCode::BAD_REQUEST,
+            axum::Json(json!({"error": "Invalid endpoint name"})),
+        )
+            .into_response();
+    }
+
+    let rewritten = if tail.is_empty() {
+        format!("proxy/{name}")
+    } else {
+        format!("proxy/{name}/{tail}")
+    };
+
+    match FIRECRACKER_NET.get() {
+        Some(proxy) => proxy.handle_preauthorized(Some(Path(rewritten)), req).await,
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Firecracker-Net proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Guacamole proxy singleton (reverse proxy to Apache Guacamole web app)
 // ---------------------------------------------------------------------------
 // guacamole-common-js connects via HTTP tunnel or WebSocket to:
