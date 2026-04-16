@@ -3,6 +3,11 @@
 //!
 //! Phase 2 step 1: IP allocator. Pure logic, unit-testable without KVM.
 
+// Items in this module are built out across multiple Phase 2 PRs.
+// Suppress the transitional "never used" warnings; each item gets
+// wired in by the time Phase 2 completes (persistent VM lifecycle).
+#![allow(dead_code)]
+
 use std::collections::HashSet;
 use std::net::Ipv4Addr;
 use std::sync::Mutex;
@@ -68,6 +73,13 @@ impl IpAllocation {
             host = self.host_ip,
             mask = self.netmask,
         )
+    }
+
+    /// The pool slot index this allocation came from. Used by the TAP
+    /// manager to derive deterministic, short interface names that fit
+    /// Linux's 15-char IFNAMSIZ limit (e.g. `fctap-42`).
+    pub fn slot_index(&self) -> u32 {
+        self.index
     }
 }
 
