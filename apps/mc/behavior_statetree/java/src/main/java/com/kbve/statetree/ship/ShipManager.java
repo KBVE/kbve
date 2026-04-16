@@ -356,6 +356,10 @@ public final class ShipManager {
                 // Place a bed on the deck and set the owner's spawn + teleport them there
                 placeBedOnDeck(world, job.anchor, job.data, job.ownerUuid);
 
+                // Pre-cache the StructureTemplate for fast WASD movement
+                String resourcePath = "/schematics/" + job.data.name() + ".nbt";
+                mover.getOrLoadTemplate(world, job.data, resourcePath);
+
                 // Spawn the helm entity on the deck so players can mount + WASD
                 spawnHelmEntity(world, job.shipId, job.anchor, job.data);
 
