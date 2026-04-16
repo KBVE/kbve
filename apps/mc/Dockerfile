@@ -34,7 +34,12 @@ RUN cargo build -p behavior_statetree -p mc_auth --release
 #   /build/target/release/libmc_auth.so
 
 # ── Stage 2: Build Fabric mod JARs (bundle .so via processResources) ──
-FROM gradle:jdk21 AS java-builder
+# Uses ghcr.io/kbve/mc:gradle — a pre-warmed image with the full Fabric Loom
+# dependency graph (Minecraft 1.21.11, Yarn, Loader, Fabric API) already
+# resolved into ~/.gradle/caches. Bypasses flaky Mojang/Fabric CDN round-trips
+# on every build. Rebuild via `nx run mc:container-gradle:production` whenever
+# the Loom/MC version pins in behavior_statetree/java/build.gradle change.
+FROM ghcr.io/kbve/mc:gradle AS java-builder
 WORKDIR /build
 
 # Copy Java source for both Fabric mods

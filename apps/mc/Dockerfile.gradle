@@ -1,0 +1,57 @@
+# ghcr.io/kbve/mc:gradle — pre-cached Gradle + Fabric Loom build environment.
+#
+# Why: Fabric Loom's first run pulls Minecraft client+server jars from Mojang,
+# Yarn mappings + intermediary from maven.fabricmc.net, and Fabric API from
+# Modrinth's maven. Those CDNs are flaky; random SSL resets there have killed
+# enough CI builds that caching the full dependency graph into a published
+# image is worth the extra pipeline step.
+#
+# Bump this image whenever build.gradle in behavior_statetree/java or
+# mc_auth/java changes its Minecraft / Yarn / Loader / Fabric API / Loom
+# version pins. Source-only changes don't need a rebuild.
+FROM gradle:jdk21
+
+WORKDIR /warmup
+
+# build.gradle's processResources references ../../target/release/lib*.so. The
+# real natives come from the rust-builder stage in the main Dockerfile — here
+# we just need empty placeholders so Loom can evaluate the project graph.
+RUN mkdir -p target/release \
+    && touch target/release/libbehavior_statetree.so \
+             target/release/libmc_auth.so
+
+# Only Gradle metadata — source edits must not invalidate this layer.
+COPY apps/mc/behavior_statetree/java/build.gradle \
+     apps/mc/behavior_statetree/java/settings.gradle \
+     behavior_statetree/java/
+COPY apps/mc/mc_auth/java/build.gradle \
+     apps/mc/mc_auth/java/settings.gradle \
+     mc_auth/java/
+
+# Minimal stub sources + fabric.mod.json so `gradle build` drives the full
+# Loom task graph (downloads MC, remaps, genSources) to completion without
+# depending on real mod code.
+RUN mkdir -p behavior_statetree/java/src/main/java/com/kbve/warmup \
+             behavior_statetree/java/src/main/resources \
+             mc_auth/java/src/main/java/com/kbve/warmup \
+             mc_auth/java/src/main/resources \
+    && printf 'package com.kbve.warmup; public class Warmup {}\n' \
+         > behavior_statetree/java/src/main/java/com/kbve/warmup/Warmup.java \
+    && printf 'package com.kbve.warmup; public class Warmup {}\n' \
+         > mc_auth/java/src/main/java/com/kbve/warmup/Warmup.java \
+    && printf '{"schemaVersion":1,"id":"warmup","version":"0.0.0","name":"warmup","environment":"*"}\n' \
+         > behavior_statetree/java/src/main/resources/fabric.mod.json \
+    && printf '{"schemaVersion":1,"id":"warmup","version":"0.0.0","name":"warmup","environment":"*"}\n' \
+         > mc_auth/java/src/main/resources/fabric.mod.json
+
+# One-shot cache warmup. -x test skips anything test-related (there is none
+# yet, but keeps the contract explicit). GRADLE_USER_HOME defaults to
+# /home/gradle/.gradle on the base image and that directory is what gets
+# inherited by downstream `FROM ghcr.io/kbve/mc:gradle` builds.
+RUN cd behavior_statetree/java && gradle --no-daemon build -x test
+RUN cd mc_auth/java && gradle --no-daemon build -x test
+
+# Drop the warmup scratch tree so downstream builds don't see stale stubs.
+# The Gradle cache at ~/.gradle/caches stays — that's the whole point.
+RUN rm -rf /warmup
+WORKDIR /
