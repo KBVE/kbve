@@ -91,7 +91,10 @@ public final class ShipMover {
                 }
                 NbtCompound nbt = NbtIo.readCompressed(stream, NbtSizeTracker.ofUnlimitedBytes());
                 StructureTemplate template = new StructureTemplate();
-                template.readNbt(world.getRegistryManager(), nbt);
+                var blockLookup = world.getRegistryManager()
+                        .getLookup(net.minecraft.registry.RegistryKeys.BLOCK)
+                        .orElseThrow();
+                template.readNbt(blockLookup, nbt);
                 LOGGER.info("[Ship] Loaded StructureTemplate '{}' ({})",
                         name, template.getSize());
                 return template;
