@@ -1383,7 +1383,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.108"
+version = "1.0.110"
 dependencies = [
  "anyhow",
  "askama",
@@ -5697,6 +5697,7 @@ version = "0.1.28"
 dependencies = [
  "axum 0.8.8",
  "dashmap 6.1.0",
+ "reqwest 0.12.28",
  "serde",
  "serde_json",
  "tokio",
