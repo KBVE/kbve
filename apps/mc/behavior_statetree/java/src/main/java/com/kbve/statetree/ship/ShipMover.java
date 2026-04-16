@@ -1,80 +1,116 @@
 package com.kbve.statetree.ship;
 
-import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtSizeTracker;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.structure.StructurePlacementData;
+import net.minecraft.structure.StructureTemplate;
 import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.util.*;
 
 /**
- * Handles chunked block relocation for ship movement.
+ * StructureTemplate-based ship movement.
  *
- * <p>Moving 400k blocks in a single tick would freeze the server. Instead,
- * movement is broken into phases spread across multiple ticks:
+ * <p>Uses MC's native {@link StructureTemplate#place} for block placement —
+ * a single optimized call that handles chunk batching, palette compression,
+ * and minimal network packets internally. Dramatically faster than 20k
+ * individual {@code setBlockState} calls.
  *
+ * <p>Movement phases:
  * <ol>
- *   <li><b>Snapshot</b>: record the current block states + offsets</li>
- *   <li><b>Clear phase</b>: remove N blocks per tick from the old position
- *       (back-to-front so the ship "dissolves" from the trailing edge)</li>
- *   <li><b>Place phase</b>: place N blocks per tick at the new position
- *       (front-to-back so the ship "materializes" from the leading edge)</li>
+ *   <li><b>Place</b>: template.place() at the new anchor (one call)</li>
+ *   <li><b>Clear trailing edge</b>: only positions from the old footprint
+ *       that don't overlap the new footprint (~200 blocks for a 1-block move)</li>
  * </ol>
- *
- * <p>While a move is in progress, further moves are queued. This prevents
- * desync between the entity position and the block positions.
  */
 public final class ShipMover {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("behavior_statetree");
 
-    /** Maximum blocks to process per server tick during relocation. */
-    private static final int BLOCKS_PER_TICK = 25000;
+    /** Maximum trailing-edge blocks to clear per tick. */
+    private static final int CLEAR_PER_TICK = 5000;
 
-    /** Pending relocations keyed by ship UUID. */
+    /** Cached StructureTemplates keyed by schematic name. */
+    private final Map<String, StructureTemplate> templateCache = new HashMap<>();
+
+    /** Pending relocations. */
     private final Map<UUID, MoveJob> activeJobs = new LinkedHashMap<>();
 
-    /** A queued block relocation job. */
+    /** A move job with pre-computed trailing-edge clear list. */
     private static final class MoveJob {
         final UUID shipId;
         final ShipData data;
         final BlockPos oldAnchor;
         final BlockPos newAnchor;
-        final List<BlockPos> offsets;
+        final List<BlockPos> trailingEdge;
+        boolean placed = false;
         int clearIndex = 0;
-        int placeIndex = 0;
-        boolean clearDone = false;
-        boolean placeDone = false;
 
         MoveJob(UUID shipId, ShipData data, BlockPos oldAnchor, BlockPos newAnchor) {
             this.shipId = shipId;
             this.data = data;
             this.oldAnchor = oldAnchor;
             this.newAnchor = newAnchor;
-            this.offsets = new ArrayList<>(data.blocks().keySet());
+
+            // Compute trailing edge: old positions NOT in new footprint
+            Set<BlockPos> newOccupied = new HashSet<>(data.blocks().size());
+            for (BlockPos offset : data.blocks().keySet()) {
+                newOccupied.add(newAnchor.add(offset));
+            }
+            this.trailingEdge = new ArrayList<>();
+            for (BlockPos offset : data.blocks().keySet()) {
+                BlockPos oldPos = oldAnchor.add(offset);
+                if (!newOccupied.contains(oldPos)) {
+                    trailingEdge.add(oldPos);
+                }
+            }
         }
 
         boolean isDone() {
-            return clearDone && placeDone;
+            return placed && clearIndex >= trailingEdge.size();
         }
     }
 
     /**
-     * Queue a ship move from oldAnchor to newAnchor.
-     * The actual block relocation happens over subsequent ticks.
+     * Load a StructureTemplate from the schematic's JAR resource.
+     * Cached after first load.
+     */
+    public StructureTemplate getOrLoadTemplate(ServerWorld world, ShipData data, String resourcePath) {
+        return templateCache.computeIfAbsent(data.name(), name -> {
+            try {
+                InputStream stream = getClass().getResourceAsStream(resourcePath);
+                if (stream == null) {
+                    LOGGER.error("[Ship] Template resource not found: {}", resourcePath);
+                    return null;
+                }
+                NbtCompound nbt = NbtIo.readCompressed(stream, NbtSizeTracker.ofUnlimitedBytes());
+                StructureTemplate template = new StructureTemplate();
+                template.readNbt(net.minecraft.registry.Registries.BLOCK, nbt);
+                LOGGER.info("[Ship] Loaded StructureTemplate '{}' ({})",
+                        name, template.getSize());
+                return template;
+            } catch (Exception e) {
+                LOGGER.error("[Ship] Failed to load template '{}': {}", name, e.getMessage());
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Queue a ship move.
      */
     public void queueMove(UUID shipId, ShipData data, BlockPos oldAnchor, BlockPos newAnchor) {
-        // If there's already a job for this ship, we can't overlap — drop the old one.
-        // In practice the ship should wait for the current move to finish before starting another.
         activeJobs.put(shipId, new MoveJob(shipId, data, oldAnchor, newAnchor));
     }
 
     /**
-     * Process pending relocations. Call once per server tick.
-     *
-     * @return set of ship UUIDs that completed their move this tick
+     * Process pending moves. Call once per server tick.
      */
     public Set<UUID> tick(ServerWorld world) {
         Set<UUID> completed = new HashSet<>();
@@ -82,61 +118,52 @@ public final class ShipMover {
 
         while (it.hasNext()) {
             MoveJob job = it.next().getValue();
-            processJob(world, job);
+
+            // Phase 1: Place the template at the new anchor (single call)
+            if (!job.placed) {
+                StructureTemplate template = templateCache.get(job.data.name());
+                if (template != null) {
+                    StructurePlacementData settings = new StructurePlacementData();
+                    template.place(world, job.newAnchor, BlockPos.ORIGIN, settings,
+                            world.getRandom(), 2); // flag 2 = notify clients only
+                    job.placed = true;
+                } else {
+                    // No template cached — fall back to block-by-block placement
+                    int budget = 25000;
+                    var entries = new ArrayList<>(job.data.blocks().entrySet());
+                    for (var entry : entries) {
+                        if (budget <= 0) break;
+                        world.setBlockState(job.newAnchor.add(entry.getKey()), entry.getValue(), 2);
+                        budget--;
+                    }
+                    job.placed = true;
+                }
+            }
+
+            // Phase 2: Clear trailing edge (only the diff)
+            if (job.placed) {
+                int budget = CLEAR_PER_TICK;
+                while (job.clearIndex < job.trailingEdge.size() && budget > 0) {
+                    world.setBlockState(job.trailingEdge.get(job.clearIndex),
+                            Blocks.AIR.getDefaultState(), 2);
+                    job.clearIndex++;
+                    budget--;
+                }
+            }
 
             if (job.isDone()) {
                 completed.add(job.shipId);
                 it.remove();
-                LOGGER.debug("[Ship] Move complete for {}", job.shipId);
             }
         }
 
         return completed;
     }
 
-    private void processJob(ServerWorld world, MoveJob job) {
-        int budget = BLOCKS_PER_TICK;
-
-        // Phase 1: Clear old blocks
-        if (!job.clearDone) {
-            while (job.clearIndex < job.offsets.size() && budget > 0) {
-                BlockPos offset = job.offsets.get(job.clearIndex);
-                BlockPos worldPos = job.oldAnchor.add(offset);
-                // Flag 2 = notify clients only (no block updates, no observers, no redraws).
-// Safe because we control all placement and don't need lighting/fluid recalc.
-world.setBlockState(worldPos, Blocks.AIR.getDefaultState(), 2);
-                job.clearIndex++;
-                budget--;
-            }
-            if (job.clearIndex >= job.offsets.size()) {
-                job.clearDone = true;
-            }
-        }
-
-        // Phase 2: Place new blocks (starts after clear is done)
-        if (job.clearDone && !job.placeDone) {
-            while (job.placeIndex < job.offsets.size() && budget > 0) {
-                BlockPos offset = job.offsets.get(job.placeIndex);
-                BlockState state = job.data.blocks().get(offset);
-                if (state != null) {
-                    BlockPos worldPos = job.newAnchor.add(offset);
-                    world.setBlockState(worldPos, state, 2);
-                }
-                job.placeIndex++;
-                budget--;
-            }
-            if (job.placeIndex >= job.offsets.size()) {
-                job.placeDone = true;
-            }
-        }
-    }
-
-    /** Check if a ship currently has a move in progress. */
     public boolean isMoving(UUID shipId) {
         return activeJobs.containsKey(shipId);
     }
 
-    /** Number of active move jobs. */
     public int activeJobCount() {
         return activeJobs.size();
     }

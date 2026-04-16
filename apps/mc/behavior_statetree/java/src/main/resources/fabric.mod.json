@@ -15,6 +15,7 @@
 		"main": ["com.kbve.statetree.BehaviorStateTreeMod"],
 		"client": ["com.kbve.statetree.client.ShipClientMod"]
 	},
+	"mixins": ["behavior_statetree.mixins.json"],
 	"depends": {
 		"fabricloader": ">=0.16.0",
 		"fabric-api": "*",
