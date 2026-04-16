@@ -1,0 +1,209 @@
+# Cluster-wide detection of pods with stale Kubernetes service-account CA.
+#
+# When the cluster CA is rotated (Talos `talosctl rotate-certificates`
+# cycle), pods that started before the rotation still have the old CA
+# baked into their in-memory HTTP clients. They can no longer verify the
+# API server's new serving cert and fail with `x509: certificate signed
+# by unknown authority`. The failure cascades silently — Multus CNI
+# breaks new pod scheduling, ingress-nginx stops reading Ingress rules,
+# cert-manager can't issue certs, ArgoCD freezes mid-sync, and so on.
+#
+# This CronJob runs every 15 minutes, compares the current CA cert's
+# `notBefore` against each pod's `creationTimestamp`, and emits one
+# structured JSON log line per stale pod. Vector already ingests pod
+# stdout cluster-wide and ships it to ClickHouse; a Grafana alert on
+# `event = "stale_ca_pod"` closes the loop.
+#
+# Phase 1 of the CA-rotation remediation story: detect only. Zero write
+# access anywhere in the cluster — this job cannot modify or restart
+# anything. Phase 2 adds opt-in remediation with a separate controller
+# and RBAC.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: ca-staleness-monitor
+    namespace: kube-system
+    labels:
+        app.kubernetes.io/name: ca-staleness-monitor
+        app.kubernetes.io/component: cluster-ops
+        app.kubernetes.io/managed-by: argocd
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+    name: ca-staleness-monitor
+    labels:
+        app.kubernetes.io/name: ca-staleness-monitor
+        app.kubernetes.io/component: cluster-ops
+        app.kubernetes.io/managed-by: argocd
+rules:
+    - apiGroups: ['']
+      resources: ['pods']
+      verbs: ['get', 'list']
+    - apiGroups: ['']
+      resources: ['configmaps']
+      verbs: ['get']
+      resourceNames: ['kube-root-ca.crt']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+    name: ca-staleness-monitor
+    labels:
+        app.kubernetes.io/name: ca-staleness-monitor
+        app.kubernetes.io/component: cluster-ops
+        app.kubernetes.io/managed-by: argocd
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: ca-staleness-monitor
+subjects:
+    - kind: ServiceAccount
+      name: ca-staleness-monitor
+      namespace: kube-system
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: ca-staleness-monitor
+    namespace: kube-system
+    labels:
+        app.kubernetes.io/name: ca-staleness-monitor
+        app.kubernetes.io/component: cluster-ops
+        app.kubernetes.io/managed-by: argocd
+spec:
+    schedule: '*/15 * * * *'
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        metadata:
+            labels:
+                app.kubernetes.io/name: ca-staleness-monitor
+                app.kubernetes.io/component: cluster-ops
+        spec:
+            activeDeadlineSeconds: 180
+            ttlSecondsAfterFinished: 86400
+            backoffLimit: 0
+            template:
+                metadata:
+                    labels:
+                        app.kubernetes.io/name: ca-staleness-monitor
+                        app.kubernetes.io/component: cluster-ops
+                spec:
+                    serviceAccountName: ca-staleness-monitor
+                    automountServiceAccountToken: true
+                    restartPolicy: Never
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 1000
+                        runAsGroup: 1000
+                        fsGroup: 1000
+                        seccompProfile:
+                            type: RuntimeDefault
+                    containers:
+                        - name: scan
+                          # alpine/k8s bundles kubectl + openssl + jq, all
+                          # needed to parse the CA cert's notBefore and
+                          # cross-reference against pod creation times.
+                          # Pinned by digest in Phase 2 once we trust the
+                          # signal; for now, tag pin is acceptable for a
+                          # read-only monitor.
+                          image: alpine/k8s:1.33.0
+                          imagePullPolicy: IfNotPresent
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL
+                          resources:
+                              limits:
+                                  cpu: 100m
+                                  memory: 128Mi
+                              requests:
+                                  cpu: 25m
+                                  memory: 32Mi
+                          env:
+                              - name: SCAN_ID
+                                valueFrom:
+                                    fieldRef:
+                                        fieldPath: metadata.name
+                          volumeMounts:
+                              - name: tmp
+                                mountPath: /tmp
+                          command:
+                              - /bin/bash
+                              - -c
+                              - |
+                                  set -euo pipefail
+
+                                  # Parse the current cluster CA cert's notBefore.
+                                  # Any pod older than this value was started against
+                                  # a previous CA and has a stale in-memory client.
+                                  CA_PEM=$(kubectl get configmap kube-root-ca.crt -n kube-system -o jsonpath='{.data.ca\.crt}')
+                                  CA_NOT_BEFORE=$(printf '%s' "${CA_PEM}" | openssl x509 -noout -startdate | cut -d= -f2)
+                                  CA_EPOCH=$(date -u -d "${CA_NOT_BEFORE}" +%s)
+                                  NOW=$(date -u +%s)
+                                  CA_AGE_S=$((NOW - CA_EPOCH))
+                                  SCAN_TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+                                  STALE_COUNT=0
+                                  TOTAL_COUNT=0
+                                  SKIPPED_COUNT=0
+
+                                  # Single pod list call, TSV-delimited for safe parsing.
+                                  # Pipe '|' is safe: pod/namespace/SA names can't contain it.
+                                  PODS=$(kubectl get pods --all-namespaces \
+                                      -o jsonpath='{range .items[*]}{.metadata.namespace}|{.metadata.name}|{.status.phase}|{.metadata.creationTimestamp}|{.spec.serviceAccountName}|{.spec.automountServiceAccountToken}{"\n"}{end}' \
+                                      2>/dev/null || echo "")
+
+                                  while IFS='|' read -r NS NAME PHASE CREATED SA AUTOMOUNT; do
+                                      [ -z "${NAME}" ] && continue
+                                      TOTAL_COUNT=$((TOTAL_COUNT + 1))
+
+                                      # Only Running pods matter; Completed/Failed
+                                      # pods won't try to hit the API again.
+                                      if [ "${PHASE}" != "Running" ]; then
+                                          SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
+                                          continue
+                                      fi
+
+                                      # automountServiceAccountToken defaults to true
+                                      # when unset, so empty string = still mounted.
+                                      if [ "${AUTOMOUNT}" = "false" ]; then
+                                          SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
+                                          continue
+                                      fi
+
+                                      CREATED_EPOCH=$(date -u -d "${CREATED}" +%s 2>/dev/null || echo 0)
+                                      [ "${CREATED_EPOCH}" = "0" ] && continue
+
+                                      if [ "${CREATED_EPOCH}" -lt "${CA_EPOCH}" ]; then
+                                          POD_AGE_S=$((NOW - CREATED_EPOCH))
+                                          STALENESS_S=$((CA_EPOCH - CREATED_EPOCH))
+                                          jq -cn \
+                                              --arg ts "${SCAN_TS}" \
+                                              --arg ns "${NS}" \
+                                              --arg pod "${NAME}" \
+                                              --arg sa "${SA:-default}" \
+                                              --argjson pod_age "${POD_AGE_S}" \
+                                              --argjson ca_age "${CA_AGE_S}" \
+                                              --argjson staleness "${STALENESS_S}" \
+                                              '{level:"warn",component:"ca-staleness-monitor",event:"stale_ca_pod",scan_ts:$ts,namespace:$ns,pod:$pod,service_account:$sa,pod_age_seconds:$pod_age,ca_age_seconds:$ca_age,staleness_seconds:$staleness,recommendation:"kubectl rollout restart the owning Deployment/DaemonSet"}'
+                                          STALE_COUNT=$((STALE_COUNT + 1))
+                                      fi
+                                  done <<< "${PODS}"
+
+                                  jq -cn \
+                                      --arg ts "${SCAN_TS}" \
+                                      --arg not_before "${CA_NOT_BEFORE}" \
+                                      --argjson stale "${STALE_COUNT}" \
+                                      --argjson total "${TOTAL_COUNT}" \
+                                      --argjson skipped "${SKIPPED_COUNT}" \
+                                      --argjson ca_age "${CA_AGE_S}" \
+                                      '{level:"info",component:"ca-staleness-monitor",event:"scan_complete",scan_ts:$ts,ca_not_before:$not_before,ca_age_seconds:$ca_age,stale_pods:$stale,total_pods:$total,skipped_pods:$skipped}'
+                    volumes:
+                        - name: tmp
+                          emptyDir: {}

@@ -76,6 +76,19 @@ spec:
           backendRefs:
               - name: kbve-service
                 port: 4321
+        # Firecracker persistent endpoints — user-deployed HTTP servers
+        # routed by name into the firecracker-ctl-net pod. May stream,
+        # upgrade to WebSocket, or run long-polling handlers, so they
+        # need the same generous timeout as other long-lived routes.
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /fc/
+          timeouts:
+              backendRequest: 3600s
+          backendRefs:
+              - name: kbve-service
+                port: 4321
         - matches:
               - path:
                     type: PathPrefix
