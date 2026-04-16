@@ -20,6 +20,9 @@ resources:
     - sealed-secrets/application.yaml
     # Stakater Reloader — auto-restart deployments when configmaps/secrets change
     - reloader/application.yaml
+    # CA staleness monitor — detects pods with stale serviceaccount CA mounts
+    # after a cluster CA rotation. Read-only CronJob, emits JSON to Vector.
+    - ca-staleness-monitor/application.yaml
     - keda/application.yaml
     - crossplane/application.yaml
     - crossplane/providers-application.yaml
