@@ -1,8 +1,9 @@
 use axum::{
     Json, Router,
-    extract::{Path, State},
-    http::StatusCode,
-    response::IntoResponse,
+    body::Body,
+    extract::{Path, Request, State},
+    http::{HeaderMap, HeaderValue, StatusCode, header},
+    response::{IntoResponse, Response},
     routing::{delete, get, post},
 };
 use dashmap::DashMap;
@@ -136,6 +137,10 @@ struct PersistentState {
     pool: persistent::Ipv4Pool,
     tap_manager: tap::TapManager,
     endpoints: DashMap<String, PersistentEndpoint>,
+    /// HTTP client used by `fc_proxy` to forward requests into the VM's
+    /// TAP IP. Built once at startup with the timeouts the reverse proxy
+    /// needs (short connect, long read for streaming / SSE / long-poll).
+    proxy_client: reqwest::Client,
 }
 
 /// Lifecycle status of a persistent endpoint.
@@ -658,13 +663,53 @@ async fn fc_destroy(
     (StatusCode::OK, Json(serde_json::json!({"removed": name})))
 }
 
+/// Hop-by-hop headers that must not cross proxy boundaries per RFC 7230 §6.1.
+/// `accept-encoding` is stripped on the request side so upstream never
+/// compresses — reqwest would transparently decode and the content-length
+/// wouldn't match what we forward. On the response side we also drop
+/// `content-encoding` since reqwest's own Content-Encoding decoding
+/// (when enabled) would otherwise mismatch the bytes we relay.
+const HOP_BY_HOP: &[&str] = &[
+    "connection",
+    "keep-alive",
+    "proxy-authenticate",
+    "proxy-authorization",
+    "te",
+    "trailers",
+    "transfer-encoding",
+    "upgrade",
+    "proxy-connection",
+];
+
+/// Reverse-proxy an HTTP request into the persistent VM identified by `name`.
+///
+/// Flow:
+///   1. Look up the endpoint in the registry (404 if missing).
+///   2. Build `http://{guest_ip}:{http_port}/{tail}?{query}`.
+///   3. Strip hop-by-hop headers from the client request.
+///   4. Issue the upstream request, streaming the request body.
+///   5. Stream the response back, stripping hop-by-hop on the way out.
+///
+/// Error mapping:
+///   - endpoint unknown → 404
+///   - upstream connect failed → 502 (usually: VM not spawned yet, Phase 2e)
+///   - upstream read timed out → 504
+///   - any other reqwest error → 502
+///
+/// WebSocket upgrades are intentionally NOT handled here. Phase 2d covers
+/// regular HTTP + long-poll/SSE; WS upgrade would need a separate handler
+/// that takes `WebSocketUpgrade` and opens a raw TCP stream to the guest.
 async fn fc_proxy(
     State(state): State<AppState>,
     Path(params): Path<Vec<(String, String)>>,
-) -> (StatusCode, Json<serde_json::Value>) {
+    req: Request<Body>,
+) -> Response {
     let persistent = match state.persistent.as_ref() {
         Some(p) => p,
-        None => return not_enabled(),
+        None => {
+            let (status, body) = not_enabled();
+            return (status, body).into_response();
+        }
     };
 
     let name = params
@@ -672,23 +717,176 @@ async fn fc_proxy(
         .find(|(k, _)| k == "name")
         .map(|(_, v)| v.clone())
         .unwrap_or_default();
+    let tail = params
+        .iter()
+        .find(|(k, _)| k == "path")
+        .map(|(_, v)| v.clone())
+        .unwrap_or_default();
 
-    // Registry lookup — at least surface 404 vs 502 correctly even though
-    // actual forwarding lands in Phase 2d.
-    if !persistent.endpoints.contains_key(&name) {
-        return (
-            StatusCode::NOT_FOUND,
-            Json(serde_json::json!({"error": "endpoint not found", "name": name})),
-        );
+    // --- Registry lookup ---
+    let (guest_ip, http_port) = match persistent.endpoints.get(&name) {
+        Some(entry) => {
+            let ep = entry.value();
+            (ep.allocation.guest_ip, ep.http_port)
+        }
+        None => {
+            return (
+                StatusCode::NOT_FOUND,
+                Json(serde_json::json!({"error": "endpoint not found", "name": name})),
+            )
+                .into_response();
+        }
+    };
+
+    // --- Build upstream URL ---
+    let query = req
+        .uri()
+        .query()
+        .map(|q| format!("?{q}"))
+        .unwrap_or_default();
+    let upstream_url = if tail.is_empty() {
+        format!("http://{guest_ip}:{http_port}/{query}")
+    } else {
+        format!("http://{guest_ip}:{http_port}/{tail}{query}")
+    };
+
+    // --- Split the request ---
+    let method = req.method().clone();
+    let mut client_headers = req.headers().clone();
+
+    // Strip hop-by-hop + the Host header (reqwest sets its own based on
+    // upstream URL) + accept-encoding (we relay raw bytes, so we don't
+    // want upstream to gzip them on us).
+    for h in HOP_BY_HOP {
+        client_headers.remove(*h);
     }
-    (
-        StatusCode::NOT_IMPLEMENTED,
-        Json(serde_json::json!({
-            "error": "proxy forwarder not yet implemented",
-            "phase": "2d",
-            "name": name,
-        })),
-    )
+    client_headers.remove(header::HOST);
+    client_headers.remove(header::ACCEPT_ENCODING);
+
+    // --- Buffer the request body ---
+    // 16 MiB cap matches typical ingress limits. Persistent endpoints are
+    // for API-style traffic; file uploads over the /fc/* path should go
+    // through the larger /dashboard/firecracker-net/proxy direct path
+    // or be chunked. Streaming request bodies can be added later.
+    let body_bytes = match axum::body::to_bytes(req.into_body(), 16 * 1024 * 1024).await {
+        Ok(b) => b,
+        Err(_) => {
+            return (
+                StatusCode::PAYLOAD_TOO_LARGE,
+                Json(serde_json::json!({"error": "request body exceeds 16 MiB"})),
+            )
+                .into_response();
+        }
+    };
+
+    // --- Issue the upstream request ---
+    let reqwest_method = match reqwest::Method::from_bytes(method.as_str().as_bytes()) {
+        Ok(m) => m,
+        Err(_) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({"error": "invalid HTTP method"})),
+            )
+                .into_response();
+        }
+    };
+
+    let reqwest_headers = axum_to_reqwest_headers(&client_headers);
+
+    let upstream_resp = match persistent
+        .proxy_client
+        .request(reqwest_method, &upstream_url)
+        .headers(reqwest_headers)
+        .body(body_bytes.to_vec())
+        .send()
+        .await
+    {
+        Ok(r) => r,
+        Err(e) => {
+            let (status, reason) = classify_reqwest_error(&e);
+            tracing::warn!("fc_proxy: upstream error for {name} ({upstream_url}): {e}");
+            return (
+                status,
+                Json(serde_json::json!({
+                    "error": "upstream proxy error",
+                    "reason": reason,
+                    "name": name,
+                    "detail": e.to_string(),
+                })),
+            )
+                .into_response();
+        }
+    };
+
+    // --- Build the client response ---
+    let upstream_status = StatusCode::from_u16(upstream_resp.status().as_u16())
+        .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
+    let mut resp_headers = reqwest_to_axum_headers(upstream_resp.headers());
+    for h in HOP_BY_HOP {
+        resp_headers.remove(*h);
+    }
+    // Strip content-encoding — reqwest handles decoding transparently
+    // when enabled, so the bytes we stream may differ from what upstream
+    // originally sent. Better to let the downstream client see uncompressed
+    // bytes without a misleading encoding claim.
+    resp_headers.remove(header::CONTENT_ENCODING);
+
+    let body_stream = upstream_resp.bytes_stream();
+    let body = Body::from_stream(body_stream);
+
+    let mut response = Response::builder().status(upstream_status);
+    if let Some(h) = response.headers_mut() {
+        *h = resp_headers;
+    }
+    response.body(body).unwrap_or_else(|_| {
+        Response::builder()
+            .status(StatusCode::INTERNAL_SERVER_ERROR)
+            .body(Body::empty())
+            .unwrap()
+    })
+}
+
+/// Copy an `axum::http::HeaderMap` into a `reqwest::header::HeaderMap`.
+/// Headers carry opaque bytes so we preserve them byte-for-byte even if
+/// axum's stricter typing would reject them downstream.
+fn axum_to_reqwest_headers(h: &HeaderMap) -> reqwest::header::HeaderMap {
+    let mut out = reqwest::header::HeaderMap::with_capacity(h.len());
+    for (name, value) in h {
+        if let (Ok(n), Ok(v)) = (
+            reqwest::header::HeaderName::from_bytes(name.as_str().as_bytes()),
+            reqwest::header::HeaderValue::from_bytes(value.as_bytes()),
+        ) {
+            out.append(n, v);
+        }
+    }
+    out
+}
+
+/// Copy a `reqwest::header::HeaderMap` into an `axum::http::HeaderMap`.
+fn reqwest_to_axum_headers(h: &reqwest::header::HeaderMap) -> HeaderMap {
+    let mut out = HeaderMap::with_capacity(h.len());
+    for (name, value) in h {
+        if let (Ok(n), Ok(v)) = (
+            axum::http::HeaderName::from_bytes(name.as_str().as_bytes()),
+            HeaderValue::from_bytes(value.as_bytes()),
+        ) {
+            out.append(n, v);
+        }
+    }
+    out
+}
+
+/// Translate reqwest errors into a user-facing status code + short reason.
+fn classify_reqwest_error(e: &reqwest::Error) -> (StatusCode, &'static str) {
+    if e.is_timeout() {
+        (StatusCode::GATEWAY_TIMEOUT, "upstream timed out")
+    } else if e.is_connect() {
+        (StatusCode::BAD_GATEWAY, "upstream unreachable")
+    } else if e.is_request() {
+        (StatusCode::BAD_GATEWAY, "request construction failed")
+    } else {
+        (StatusCode::BAD_GATEWAY, "unknown upstream error")
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1472,10 +1670,25 @@ async fn main() {
                             pool.capacity(),
                             tap_manager.config().tunnel_iface,
                         );
+                        // Proxy client for /proxy/{name}/* forwarding.
+                        // - connect timeout short: the VM is a neighbour
+                        //   on the /30 link, so connect should be ~ms
+                        //   or the VM is dead
+                        // - no overall timeout: long-poll / SSE / large
+                        //   streaming downloads must not be cut off.
+                        //   The gateway already caps the outer
+                        //   request at 3600s.
+                        let proxy_client = reqwest::Client::builder()
+                            .connect_timeout(Duration::from_secs(5))
+                            .pool_idle_timeout(Duration::from_secs(90))
+                            .redirect(reqwest::redirect::Policy::none())
+                            .build()
+                            .expect("build reqwest client for /fc proxy");
                         Some(Arc::new(PersistentState {
                             pool,
                             tap_manager,
                             endpoints: DashMap::new(),
+                            proxy_client,
                         }))
                     }
                     Err(e) => {
