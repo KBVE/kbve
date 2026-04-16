@@ -1,3 +1,16 @@
+# JAVA_BUILDER_IMAGE swaps in the pre-warmed Fabric Loom cache on production
+# builds (ghcr.io/kbve/mc:gradle — Minecraft 1.21.11, Yarn, Loader, Fabric
+# API already resolved into ~/.gradle/caches). Defaults to the vanilla
+# gradle:jdk21 image so local/test builds don't depend on the cache existing
+# in the registry — rebuild via `nx run mc:container-gradle:production`
+# whenever the Loom/MC version pins in behavior_statetree/java/build.gradle
+# change. CI's e2e test path stays on the default to avoid a cross-workflow
+# race against ci-mc-gradle-cache.yml.
+#
+# Must be declared before the first FROM — Docker scopes a post-FROM ARG to
+# the preceding stage, so a FROM later in the file would see it as blank.
+ARG JAVA_BUILDER_IMAGE=gradle:jdk21
+
 # ── Stage 1: Build Rust native libraries (.so) ────────────────────────
 FROM rust:1.94-bookworm AS rust-builder
 WORKDIR /build
@@ -34,15 +47,7 @@ RUN cargo build -p behavior_statetree -p mc_auth --release
 #   /build/target/release/libmc_auth.so
 
 # ── Stage 2: Build Fabric mod JARs (bundle .so via processResources) ──
-# JAVA_BUILDER_IMAGE swaps in the pre-warmed Fabric Loom cache on production
-# builds (ghcr.io/kbve/mc:gradle — Minecraft 1.21.11, Yarn, Loader, Fabric
-# API already resolved into ~/.gradle/caches). Defaults to the vanilla
-# gradle:jdk21 image so local/test builds don't depend on the cache
-# existing in the registry — rebuild via `nx run mc:container-gradle:production`
-# whenever the Loom/MC version pins in behavior_statetree/java/build.gradle
-# change. CI's e2e test path stays on the default to avoid a cross-workflow
-# race against ci-mc-gradle-cache.yml.
-ARG JAVA_BUILDER_IMAGE=gradle:jdk21
+# JAVA_BUILDER_IMAGE is declared at the top of this file (pre-FROM ARG).
 FROM ${JAVA_BUILDER_IMAGE} AS java-builder
 WORKDIR /build
 

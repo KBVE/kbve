@@ -20,7 +20,11 @@ spec:
     project: default
     source:
         repoURL: https://stakater.github.io/stakater-charts
-        targetRevision: 2.1.6
+        # Chart version 2.1.6 never existed in the Stakater repo — this
+        # Application has been stuck on ComparisonError, meaning Reloader
+        # was never deployed. That's why yesterday's CA rotation silently
+        # broke things with no auto-recovery. Pinning to a real version.
+        targetRevision: 2.2.11
         chart: reloader
         helm:
             releaseName: reloader

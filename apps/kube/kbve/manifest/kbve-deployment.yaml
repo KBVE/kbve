@@ -5,6 +5,11 @@ metadata:
     namespace: kbve
     labels:
         app: kbve
+    annotations:
+        # Restart on cluster CA rotation so the axum-kbve KubeVirt client
+        # picks up the new kube-apiserver cert. Without this, a rotation
+        # silently 502s the /dashboard/vm/* paths until manual restart.
+        configmap.reloader.stakater.com/reload: 'kube-root-ca.crt'
 spec:
     replicas: 1
     strategy:
