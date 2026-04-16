@@ -10457,11 +10457,40 @@
                   "tags": [
                     "ghcr.io/kbve/mc:latest"
                   ],
+                  "build-args": [
+                    "JAVA_BUILDER_IMAGE=ghcr.io/kbve/mc:gradle"
+                  ],
                   "cache-from": [
                     "type=registry,ref=ghcr.io/kbve/mc:buildcache"
                   ],
                   "cache-to": [
                     "type=registry,ref=ghcr.io/kbve/mc:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "container-gradle": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/mc/Dockerfile.gradle",
+                "load": true
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/mc:gradle"
+                  ]
+                },
+                "production": {
+                  "push": true,
+                  "tags": [
+                    "ghcr.io/kbve/mc:gradle"
                   ]
                 }
               },

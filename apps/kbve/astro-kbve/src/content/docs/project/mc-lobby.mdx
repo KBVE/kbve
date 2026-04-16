@@ -13,7 +13,7 @@ tags:
 key: mc_lobby
 pipeline: docker
 app_name: mc-lobby
-version: "1.0.1"
+version: "1.0.2"
 source_path: apps/mc/lobby
 version_toml: apps/mc/lobby/version.toml
 runner: ubuntu-latest
@@ -27,14 +27,15 @@ has_test: true
 
 PaperMC-based lobby server that sits alongside the [Fabric survival backend](/project/mc/) in the KBVE MC stack. It's the first server new players land on when they connect, and the fallback when the Fabric backend disconnects unexpectedly — instead of getting kicked, players get moved here until Fabric comes back.
 
-The world is a vanilla **superflat** preset (bedrock + 2 dirt + grass, plains biome, no structures, no mob spawning) with `DIFFICULTY=peaceful` so there's zero combat. No custom spawn structures are baked in — admins build with WorldEdit after first boot.
+The world is a vanilla **superflat** preset (bedrock + 2 dirt + grass, plains biome, no structures, no mob spawning) with `DIFFICULTY=peaceful` so there's zero combat. Nether and End dimensions are disabled (`ALLOW_NETHER=false`, `ALLOW_END=false`) — portals stay inert and `/execute in` commands targeting those dimensions fail, keeping all activity on the overworld. No custom spawn structures are baked in — admins build with WorldEdit after first boot, then lock the spawn point in with `/setspawn`.
 
 ### Plugin Stack
 
 | Plugin | Purpose |
 |---|---|
 | LuckPerms | Cross-server permission sync via the pluginmsg channel (same wire format as Fabric + Velocity). |
-| EssentialsX | `/spawn`, `/sethome`, `/tpa`, `/back`, kit system. Required by the AntiBuild addon. |
+| EssentialsX | Core `/sethome`, `/tpa`, `/back`, kit system. Required base dependency for every EssentialsX addon below. |
+| EssentialsX-Spawn | `/spawn`, `/setspawn`, spawn-on-join. Separate addon JAR — the `/spawn` command lives here, not in the core EssentialsX jar. |
 | EssentialsXAntiBuild | Blocks build/break/interact for non-permissioned players — grief-proofs the lobby by default. |
 | WorldEdit | Admin building tool; same version line as Fabric for consistency. |
 | AdvancedPortals | Physical portal regions that fire proxy commands on player entry. Lets us place decorative portals that teleport players to other backends via the [Velocity command plugin](/project/mc-velocity/). |
