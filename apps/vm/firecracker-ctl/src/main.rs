@@ -18,6 +18,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use uuid::Uuid;
 
 mod persistent;
+mod tap;
 
 // ---------------------------------------------------------------------------
 // Types
