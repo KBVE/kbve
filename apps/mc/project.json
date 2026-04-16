@@ -26,6 +26,7 @@
 				"production": {
 					"push": true,
 					"tags": ["ghcr.io/kbve/mc:latest"],
+					"build-args": ["JAVA_BUILDER_IMAGE=ghcr.io/kbve/mc:gradle"],
 					"cache-from": [
 						"type=registry,ref=ghcr.io/kbve/mc:buildcache"
 					],
