@@ -145,9 +145,13 @@ New rootfs image planned: `alpine-python-web` (Alpine + Python + uvicorn + a tin
 
 ### Phased Delivery
 
-- **Phase 1** — docs + routing skeleton (this): `/fc/*` gateway entry, axum-kbve handler, firecracker-ctl 501 stubs for `/fc/deploy`, `/fc/list`, `/fc/{name}`, `/proxy/{name}/{*path}`
-- **Phase 2** — TAP networking + real VM lifecycle: `/fc/deploy` actually boots a VM, `/proxy/{name}/*` actually forwards
-- **Phase 3** — web-server rootfs images + example deployments
+- **Phase 1** — docs + routing skeleton: `/fc/*` gateway entry, axum-kbve handler, firecracker-ctl 501 stubs
+- **Phase 2a** — IP allocator (`Ipv4Pool`, `IpAllocation`): pure logic, thread-safe, carves `/30` subnets from `172.18.0.0/16` (16384 slots). 13 unit tests.
+- **Phase 2b** — TAP device manager (`TapManager`): shells out to `ip` + `iptables` to create TAPs and install pod-level NAT/FORWARD rules. Idempotent init. Command assembly factored into pure builders with 13 more unit tests.
+- **Phase 2c** — lifecycle registry: `/fc/deploy` allocates IP + creates TAP + registers in DashMap; `/fc/list` / `/fc/{name}` / `DELETE /fc/{name}` wired end-to-end; endpoints land in `pending` status. VM process spawn deferred to 2e. `FC_PERSISTENT_ENDPOINTS_ENABLED` env gate ensures only the `-net` deployment carries persistent state.
+- **Phase 2d** — HTTP forwarder: `/proxy/{name}/{*path}` reverse-proxies to `http://{guest_ip}:{http_port}/{path}` preserving method/headers/body; streams response.
+- **Phase 2e** — VM lifecycle: actually spawn the Firecracker VMM with the TAP attached and `ip=` kernel boot args; transition `pending → starting → healthy`. Health-check loop marks `degraded` on failure.
+- **Phase 3** — web-server rootfs images (`alpine-python-web`, `alpine-node-web`) + example deployments
 - **Phase 4** — dashboard UI: deploy form, endpoint list, health badges, logs viewer
 - **Phase 5** — on-disk state + auto-redeploy on pod restart
 - **Phase 6** — per-endpoint quotas + metrics dashboard

@@ -125,6 +125,100 @@ struct AppState {
     rootfs_dir: String,
     max_concurrent_vms: usize,
     jailer: Option<Arc<JailerConfig>>,
+    /// Populated only when the binary runs as the networked deployment
+    /// (firecracker-ctl-net). When `None`, all /fc/* handlers return 503.
+    persistent: Option<Arc<PersistentState>>,
+}
+
+/// State block for persistent endpoints. Only constructed when the
+/// binary runs in the networked deployment (see `FC_PERSISTENT_ENDPOINTS_ENABLED`).
+struct PersistentState {
+    pool: persistent::Ipv4Pool,
+    tap_manager: tap::TapManager,
+    endpoints: DashMap<String, PersistentEndpoint>,
+}
+
+/// Lifecycle status of a persistent endpoint.
+///
+/// Only `Pending` is reachable in Phase 2c. The remaining variants are
+/// forward-declared so the wire format is stable across the Phase 2e /
+/// Phase 3 lifecycle rollouts — adding new variants later would force a
+/// consumer-side discriminator update, whereas pre-declaring them lets
+/// callers build state machines against the final shape today.
+#[allow(dead_code)]
+#[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+enum EndpointStatus {
+    /// Resources (IP + TAP) allocated; VM process not yet spawned.
+    /// Phase 2c terminal state — Phase 2e transitions to Starting.
+    Pending,
+    /// VM process launched, waiting for the first successful health check.
+    Starting,
+    /// Health check passed within the configured window.
+    Healthy,
+    /// Was healthy, subsequent health check failed.
+    Degraded,
+    /// Teardown in progress.
+    Stopping,
+}
+
+/// Registered persistent endpoint. Owned by `PersistentState::endpoints`.
+struct PersistentEndpoint {
+    /// Public name — keys the DashMap and appears in /fc/{name} paths.
+    name: String,
+    rootfs: String,
+    entrypoint: String,
+    http_port: u16,
+    health_path: String,
+    vcpu_count: u8,
+    mem_size_mib: u16,
+    /// Resources carried for lifetime of the endpoint; released on DELETE.
+    allocation: persistent::IpAllocation,
+    tap: tap::TapDevice,
+    /// Firecracker VMM pid once Phase 2e wires the launcher. None in 2c.
+    pid: Option<u32>,
+    status: EndpointStatus,
+    created: Instant,
+}
+
+/// JSON-serialisable view of a PersistentEndpoint. Keeps the owning
+/// struct free of serde plumbing so internal fields can change without
+/// breaking the wire format.
+#[derive(Debug, Clone, Serialize)]
+struct PersistentEndpointInfo {
+    name: String,
+    rootfs: String,
+    entrypoint: String,
+    http_port: u16,
+    health_path: String,
+    vcpu_count: u8,
+    mem_size_mib: u16,
+    host_ip: String,
+    guest_ip: String,
+    tap: String,
+    pid: Option<u32>,
+    status: EndpointStatus,
+    uptime_secs: u64,
+}
+
+impl PersistentEndpointInfo {
+    fn from(ep: &PersistentEndpoint) -> Self {
+        Self {
+            name: ep.name.clone(),
+            rootfs: ep.rootfs.clone(),
+            entrypoint: ep.entrypoint.clone(),
+            http_port: ep.http_port,
+            health_path: ep.health_path.clone(),
+            vcpu_count: ep.vcpu_count,
+            mem_size_mib: ep.mem_size_mib,
+            host_ip: ep.allocation.host_ip.to_string(),
+            guest_ip: ep.allocation.guest_ip.to_string(),
+            tap: ep.tap.name.clone(),
+            pid: ep.pid,
+            status: ep.status,
+            uptime_secs: ep.created.elapsed().as_secs(),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -311,14 +405,16 @@ async fn list_vms(State(state): State<AppState>) -> impl IntoResponse {
 }
 
 // ---------------------------------------------------------------------------
-// Persistent endpoints (/fc/*) — Phase 1 stubs
+// Persistent endpoints (/fc/*) — Phase 2c lifecycle (registry + network)
 // ---------------------------------------------------------------------------
 // Long-lived HTTP servers running inside Firecracker VMs, addressed by name.
-// These endpoints return 501 Not Implemented in phase 1 — phase 2 wires in
-// TAP networking and real VM lifecycle. See firecracker-ctl.mdx for the
-// full architecture.
+// Phase 2c wires the IP allocator + TAP manager into an in-memory registry:
+// POST /fc/deploy actually creates the TAP and reserves the IP; DELETE
+// actually tears them down. The VM process itself is NOT yet spawned —
+// that lands in Phase 2e when kernel boot args are wired. Proxy forwarding
+// lands in Phase 2d. See firecracker-ctl.mdx for the full architecture.
 
-/// Request shape for POST /fc/deploy. Parsed but not acted on in phase 1.
+/// Request shape for POST /fc/deploy.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct DeployFcRequest {
     /// Unique, DNS-safe endpoint name. Used in the public /fc/{name} path.
@@ -346,23 +442,24 @@ fn default_health_path() -> String {
     "/health".to_string()
 }
 
-fn not_implemented(step: &str) -> (StatusCode, Json<serde_json::Value>) {
+/// Short-circuit for /fc/* routes when persistent endpoints aren't
+/// enabled in this deployment. Kept as a helper so the same response
+/// shape lands regardless of which handler noticed.
+fn not_enabled() -> (StatusCode, Json<serde_json::Value>) {
     (
-        StatusCode::NOT_IMPLEMENTED,
+        StatusCode::SERVICE_UNAVAILABLE,
         Json(serde_json::json!({
-            "error": "persistent endpoints not yet implemented",
-            "step": step,
-            "phase": 1,
-            "see": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-ctl.mdx",
+            "error": "persistent endpoints not enabled in this deployment",
+            "hint": "set FC_PERSISTENT_ENDPOINTS_ENABLED=true and run as firecracker-ctl-net",
         })),
     )
 }
 
 async fn fc_deploy(
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
     Json(req): Json<DeployFcRequest>,
-) -> impl IntoResponse {
-    // Validate shape in phase 1 — real deploy logic lands in phase 2.
+) -> (StatusCode, Json<serde_json::Value>) {
+    // --- Validate request shape ---
     if req.name.is_empty()
         || !req
             .name
@@ -386,30 +483,212 @@ async fn fc_deploy(
             Json(serde_json::json!({"error": "http_port must be > 0"})),
         );
     }
-    not_implemented("deploy")
+
+    let persistent = match state.persistent.as_ref() {
+        Some(p) => p,
+        None => return not_enabled(),
+    };
+
+    // --- Name collision check (before allocating any resources) ---
+    if persistent.endpoints.contains_key(&req.name) {
+        return (
+            StatusCode::CONFLICT,
+            Json(serde_json::json!({
+                "error": "endpoint name already registered",
+                "name": req.name,
+            })),
+        );
+    }
+
+    // --- Allocate IP ---
+    let allocation = match persistent.pool.allocate() {
+        Ok(a) => a,
+        Err(e) => {
+            tracing::warn!("fc_deploy: pool allocation failed: {e}");
+            return (
+                StatusCode::INSUFFICIENT_STORAGE,
+                Json(serde_json::json!({
+                    "error": "IP pool exhausted",
+                    "detail": e.to_string(),
+                })),
+            );
+        }
+    };
+
+    // --- Create TAP (roll back the IP allocation on failure) ---
+    let tap = match persistent.tap_manager.create_tap(&allocation).await {
+        Ok(t) => t,
+        Err(e) => {
+            tracing::error!("fc_deploy: TAP creation failed: {e}");
+            persistent.pool.release(&allocation);
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({
+                    "error": "TAP creation failed",
+                    "detail": e.to_string(),
+                })),
+            );
+        }
+    };
+
+    // --- Register in the endpoint registry ---
+    // Second name check via entry() would be nicer, but DashMap's entry API
+    // returns a borrow we'd have to hold across awaits. A belt-and-braces
+    // re-check is cheap and acts as a guard against racing callers.
+    if persistent.endpoints.contains_key(&req.name) {
+        // Extremely unlikely: a concurrent request registered the same name
+        // between our first check and the TAP creation. Clean up.
+        let _ = persistent.tap_manager.destroy_tap(&tap).await;
+        persistent.pool.release(&allocation);
+        return (
+            StatusCode::CONFLICT,
+            Json(serde_json::json!({
+                "error": "endpoint name already registered (race)",
+                "name": req.name,
+            })),
+        );
+    }
+
+    let endpoint = PersistentEndpoint {
+        name: req.name.clone(),
+        rootfs: req.rootfs.clone(),
+        entrypoint: req.entrypoint.clone(),
+        http_port: req.http_port,
+        health_path: req.health_path.clone(),
+        vcpu_count: req.vcpu_count,
+        mem_size_mib: req.mem_size_mib,
+        allocation,
+        tap,
+        pid: None,
+        status: EndpointStatus::Pending,
+        created: Instant::now(),
+    };
+    let info = PersistentEndpointInfo::from(&endpoint);
+    persistent.endpoints.insert(req.name.clone(), endpoint);
+
+    tracing::info!(
+        "fc_deploy: registered endpoint {} tap={} host={} guest={} (VM spawn deferred to Phase 2e)",
+        info.name,
+        info.tap,
+        info.host_ip,
+        info.guest_ip,
+    );
+
+    (
+        StatusCode::CREATED,
+        Json(serde_json::json!({
+            "endpoint": info,
+            "note": "resources allocated (IP + TAP); VM spawn lands in Phase 2e",
+        })),
+    )
 }
 
-async fn fc_list(State(_state): State<AppState>) -> impl IntoResponse {
-    // Phase 1: no persistent registry yet — return empty list.
-    Json(serde_json::json!({"endpoints": [], "count": 0}))
+async fn fc_list(State(state): State<AppState>) -> (StatusCode, Json<serde_json::Value>) {
+    let persistent = match state.persistent.as_ref() {
+        Some(p) => p,
+        None => {
+            return (
+                StatusCode::OK,
+                Json(serde_json::json!({"endpoints": [], "count": 0})),
+            );
+        }
+    };
+    let endpoints: Vec<PersistentEndpointInfo> = persistent
+        .endpoints
+        .iter()
+        .map(|entry| PersistentEndpointInfo::from(entry.value()))
+        .collect();
+    let count = endpoints.len();
+    (
+        StatusCode::OK,
+        Json(serde_json::json!({"endpoints": endpoints, "count": count})),
+    )
 }
 
-async fn fc_get(State(_state): State<AppState>, Path(_name): Path<String>) -> impl IntoResponse {
-    not_implemented("get")
+async fn fc_get(
+    State(state): State<AppState>,
+    Path(name): Path<String>,
+) -> (StatusCode, Json<serde_json::Value>) {
+    let persistent = match state.persistent.as_ref() {
+        Some(p) => p,
+        None => return not_enabled(),
+    };
+    match persistent.endpoints.get(&name) {
+        Some(entry) => (
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "endpoint": PersistentEndpointInfo::from(entry.value()),
+            })),
+        ),
+        None => (
+            StatusCode::NOT_FOUND,
+            Json(serde_json::json!({"error": "endpoint not found", "name": name})),
+        ),
+    }
 }
 
 async fn fc_destroy(
-    State(_state): State<AppState>,
-    Path(_name): Path<String>,
-) -> impl IntoResponse {
-    not_implemented("destroy")
+    State(state): State<AppState>,
+    Path(name): Path<String>,
+) -> (StatusCode, Json<serde_json::Value>) {
+    let persistent = match state.persistent.as_ref() {
+        Some(p) => p,
+        None => return not_enabled(),
+    };
+    // Remove from registry first so further requests see it gone, then
+    // release the network resources. If TAP destroy fails, log but still
+    // release the IP — worst case we leak a TAP interface, which the pod
+    // will clean up on restart.
+    let Some((_, endpoint)) = persistent.endpoints.remove(&name) else {
+        return (
+            StatusCode::NOT_FOUND,
+            Json(serde_json::json!({"error": "endpoint not found", "name": name})),
+        );
+    };
+
+    if let Err(e) = persistent.tap_manager.destroy_tap(&endpoint.tap).await {
+        tracing::warn!(
+            "fc_destroy: TAP teardown failed for {name} ({}): {e}",
+            endpoint.tap.name
+        );
+    }
+    persistent.pool.release(&endpoint.allocation);
+
+    tracing::info!("fc_destroy: removed endpoint {name}");
+    (StatusCode::OK, Json(serde_json::json!({"removed": name})))
 }
 
 async fn fc_proxy(
-    State(_state): State<AppState>,
-    Path(_params): Path<Vec<(String, String)>>,
-) -> impl IntoResponse {
-    not_implemented("proxy")
+    State(state): State<AppState>,
+    Path(params): Path<Vec<(String, String)>>,
+) -> (StatusCode, Json<serde_json::Value>) {
+    let persistent = match state.persistent.as_ref() {
+        Some(p) => p,
+        None => return not_enabled(),
+    };
+
+    let name = params
+        .iter()
+        .find(|(k, _)| k == "name")
+        .map(|(_, v)| v.clone())
+        .unwrap_or_default();
+
+    // Registry lookup — at least surface 404 vs 502 correctly even though
+    // actual forwarding lands in Phase 2d.
+    if !persistent.endpoints.contains_key(&name) {
+        return (
+            StatusCode::NOT_FOUND,
+            Json(serde_json::json!({"error": "endpoint not found", "name": name})),
+        );
+    }
+    (
+        StatusCode::NOT_IMPLEMENTED,
+        Json(serde_json::json!({
+            "error": "proxy forwarder not yet implemented",
+            "phase": "2d",
+            "name": name,
+        })),
+    )
 }
 
 // ---------------------------------------------------------------------------
@@ -1171,11 +1450,62 @@ async fn main() {
     // Background reaper evicts finished VM records after TTL
     tokio::spawn(reaper_task(vms.clone(), Duration::from_secs(vm_ttl_secs)));
 
+    // Persistent endpoints (/fc/*) — only initialised when this binary runs
+    // as firecracker-ctl-net. Initialising the TAP manager in the no-network
+    // deployment would fail (no tunnel interface, no NET_ADMIN cap inside
+    // the jail netns) and would be actively harmful since those pods should
+    // never carry VM inbound HTTP.
+    let persistent_enabled = std::env::var("FC_PERSISTENT_ENDPOINTS_ENABLED")
+        .map(|v| v == "true" || v == "1")
+        .unwrap_or(false);
+    let persistent = if persistent_enabled {
+        let cidr =
+            std::env::var("FC_PERSISTENT_SUBNET").unwrap_or_else(|_| "172.18.0.0/16".to_string());
+        match persistent::Ipv4Pool::from_cidr(&cidr) {
+            Ok(pool) => {
+                let tap_config = tap::TapConfig::from_env();
+                let tap_manager = tap::TapManager::new(tap_config);
+                match tap_manager.init().await {
+                    Ok(()) => {
+                        tracing::info!(
+                            "Persistent endpoints ENABLED (pool={cidr}, capacity={} /30 slots, tunnel={})",
+                            pool.capacity(),
+                            tap_manager.config().tunnel_iface,
+                        );
+                        Some(Arc::new(PersistentState {
+                            pool,
+                            tap_manager,
+                            endpoints: DashMap::new(),
+                        }))
+                    }
+                    Err(e) => {
+                        tracing::error!(
+                            "Persistent endpoints: TapManager init failed, disabling /fc/*: {e}",
+                        );
+                        None
+                    }
+                }
+            }
+            Err(e) => {
+                tracing::error!(
+                    "Persistent endpoints: invalid FC_PERSISTENT_SUBNET {cidr:?} ({e}), disabling /fc/*",
+                );
+                None
+            }
+        }
+    } else {
+        tracing::info!(
+            "Persistent endpoints DISABLED (set FC_PERSISTENT_ENDPOINTS_ENABLED=true to enable)"
+        );
+        None
+    };
+
     let state = AppState {
         vms,
         rootfs_dir,
         max_concurrent_vms,
         jailer,
+        persistent,
     };
 
     tracing::info!(
