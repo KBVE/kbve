@@ -1,0 +1,137 @@
+---
+# In-cluster Modrinth publisher.
+#
+# Trigger: ArgoCD PostSync hook on the agones-mc Application — fires after
+# every sync (including the post-publish bump that retags fleet.yaml's
+# image to a new kbve/mc version). The Job is idempotent: it queries
+# Modrinth for the JAR's version_number and exits 0 if it's already
+# uploaded, so frequent syncs don't double-post.
+#
+# Flow:
+#   1. initContainer pulls ghcr.io/kbve/mc:latest (the same image that
+#      runs in the Fleet) and copies the bundled behavior_statetree JAR
+#      out of /mods/ into a shared emptyDir.
+#   2. main container reads MODRINTH_TOKEN from the sealed secret +
+#      MODRINTH_PROJECT_ID from the config map, checks for an existing
+#      version on Modrinth, and POSTs the JAR if missing.
+#
+# Until MODRINTH_PROJECT_ID is populated in mc-modrinth-config (the
+# project must be created manually on modrinth.com first), the Job
+# logs a notice and exits 0 — it does not block syncs.
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: mc-modrinth-publish
+    namespace: mc
+    annotations:
+        argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+        argocd.argoproj.io/sync-wave: '10'
+    labels:
+        app.kubernetes.io/part-of: mc
+        app.kubernetes.io/component: modrinth-publisher
+spec:
+    ttlSecondsAfterFinished: 86400
+    backoffLimit: 1
+    template:
+        metadata:
+            labels:
+                app.kubernetes.io/part-of: mc
+                app.kubernetes.io/component: modrinth-publisher
+        spec:
+            restartPolicy: Never
+            initContainers:
+                - name: extract-jar
+                  image: ghcr.io/kbve/mc:latest
+                  imagePullPolicy: Always
+                  command: ['sh', '-c']
+                  args:
+                      - |
+                          set -e
+                          JAR=$(ls /mods/behavior_statetree-*.jar 2>/dev/null | head -1)
+                          if [ -z "$JAR" ]; then
+                            echo "No behavior_statetree JAR found in /mods/ — image build is broken."
+                            ls -la /mods/
+                            exit 1
+                          fi
+                          cp "$JAR" /shared/
+                          echo "Extracted $(basename "$JAR") ($(du -h "$JAR" | cut -f1))"
+                  volumeMounts:
+                      - name: shared
+                        mountPath: /shared
+            containers:
+                - name: publish
+                  image: alpine:3.20
+                  command: ['sh', '-c']
+                  args:
+                      - |
+                          set -euo pipefail
+                          apk add --no-cache curl jq > /dev/null
+
+                          JAR=$(ls /shared/behavior_statetree-*.jar 2>/dev/null | head -1)
+                          VERSION=$(basename "$JAR" .jar | sed 's/^behavior_statetree-//')
+                          echo "Mod JAR: $(basename "$JAR")  →  version $VERSION"
+
+                          if [ -z "${MODRINTH_PROJECT_ID:-}" ]; then
+                            echo "MODRINTH_PROJECT_ID is empty — create the project on modrinth.com,"
+                            echo "then update mc-modrinth-config with the project .id. Skipping."
+                            exit 0
+                          fi
+
+                          # Idempotency — Modrinth rejects duplicate version_number anyway,
+                          # but checking first turns the no-op into a clean log instead of an
+                          # API error.
+                          EXISTING=$(curl -fsSL -H "Authorization: $MODRINTH_TOKEN" \
+                            "https://api.modrinth.com/v2/project/$MODRINTH_PROJECT_ID/version" \
+                            | jq -r --arg v "$VERSION" '.[] | select(.version_number == $v) | .id' \
+                            | head -1)
+
+                          if [ -n "$EXISTING" ]; then
+                            echo "v$VERSION already on Modrinth (id=$EXISTING) — no-op."
+                            exit 0
+                          fi
+
+                          cat > /tmp/data.json <<JSON
+                          {
+                            "name": "behavior_statetree $VERSION",
+                            "version_number": "$VERSION",
+                            "version_type": "$VERSION_TYPE",
+                            "project_id": "$MODRINTH_PROJECT_ID",
+                            "loaders": $LOADERS,
+                            "game_versions": $GAME_VERSIONS,
+                            "featured": false,
+                            "dependencies": $DEPENDENCIES,
+                            "file_parts": ["jar"]
+                          }
+                          JSON
+
+                          echo "Uploading v$VERSION → project $MODRINTH_PROJECT_ID..."
+                          RESPONSE=$(curl -fsSL -X POST "https://api.modrinth.com/v2/version" \
+                            -H "Authorization: $MODRINTH_TOKEN" \
+                            -F "data=@/tmp/data.json;type=application/json" \
+                            -F "jar=@$JAR;type=application/java-archive")
+
+                          VERSION_ID=$(echo "$RESPONSE" | jq -r '.id')
+                          echo "Published — version id $VERSION_ID"
+                  env:
+                      - name: MODRINTH_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: mc-modrinth-token
+                                key: token
+                  envFrom:
+                      - configMapRef:
+                            name: mc-modrinth-config
+                  volumeMounts:
+                      - name: shared
+                        mountPath: /shared
+                  resources:
+                      requests:
+                          memory: 64Mi
+                          cpu: 50m
+                      limits:
+                          memory: 256Mi
+                          cpu: 500m
+            volumes:
+                - name: shared
+                  emptyDir: {}
