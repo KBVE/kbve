@@ -11,9 +11,8 @@ metadata:
 data:
     # Modrinth project ID (NOT the slug). Look up via:
     #   curl https://api.modrinth.com/v2/project/<your-slug> | jq .id
-    # Leave empty until the project is registered on modrinth.com — the
-    # publish Job no-ops cleanly so syncs don't fail before then.
-    MODRINTH_PROJECT_ID: ''
+    # Project type: server-side mod (server_side=required, client_side=optional).
+    MODRINTH_PROJECT_ID: '86Wqkiak'
 
     # alpha | beta | release — the Modrinth channel new uploads land in.
     # Stay on alpha while the mod is in active development.
