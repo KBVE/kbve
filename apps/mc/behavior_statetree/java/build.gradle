@@ -2,7 +2,15 @@ plugins {
     id 'fabric-loom' version '1.16.1'
 }
 
-version = '1.0.16'
+// Read version from version.toml (single source of truth for the MC stack).
+// Falls back to dev placeholder if the file isn't found (e.g. runClient).
+def versionFile = file('../../version.toml')
+if (versionFile.exists()) {
+    def match = (versionFile.text =~ /version\s*=\s*"([^"]+)"/)
+    version = match ? match[0][1] : '0.0.0-dev'
+} else {
+    version = '0.0.0-dev'
+}
 group = 'com.kbve'
 base.archivesName = 'behavior_statetree'
 
@@ -17,8 +25,12 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:0.141.3+1.21.11"
 }
 
-// Copy the Rust native library into the JAR resources
+// Inject version into fabric.mod.json + copy Rust native libraries
 processResources {
+    inputs.property "version", version
+    filesMatching("fabric.mod.json") {
+        expand "version": version
+    }
     from("../../target/release") {
         include "libbehavior_statetree.so"
         include "libbehavior_statetree.dylib"

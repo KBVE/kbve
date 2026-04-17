@@ -248,7 +248,10 @@ async function connectWebSocket(wsUrl?: string) {
 		ws.onmessage = (event) => {
 			try {
 				const message = JSON.parse(event.data);
-				console.log('[SharedWorker] WebSocket message:', message);
+				console.log(
+					'[SharedWorker] WebSocket message:',
+					JSON.stringify(message),
+				);
 
 				// Handle pong response
 				if (message.type === 'pong') {
