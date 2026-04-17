@@ -554,6 +554,54 @@ async fn fc_deploy(
         );
     }
 
+    // --- Spawn the Firecracker VM ---
+    let vm_id = req.name.clone();
+    let ip_arg = allocation.kernel_ip_arg();
+    let spawn_result =
+        match spawn_persistent(&vm_id, &state.rootfs_dir, &req, &tap.name, &ip_arg).await {
+            Ok(r) => r,
+            Err(e) => {
+                tracing::error!("fc_deploy: VM spawn failed for {}: {e}", req.name);
+                let _ = persistent.tap_manager.destroy_tap(&tap).await;
+                persistent.pool.release(&allocation);
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(serde_json::json!({
+                        "error": "VM spawn failed",
+                        "detail": e,
+                    })),
+                );
+            }
+        };
+
+    let pid = spawn_result.child.id();
+
+    // Spawn a background task that monitors the child process. If it
+    // exits unexpectedly, mark the endpoint as degraded so the proxy
+    // returns 502 with a meaningful message rather than silently timing out.
+    {
+        let ps = persistent.clone();
+        let name = req.name.clone();
+        let mut child = spawn_result.child;
+        let config_path = spawn_result.config_path;
+        let socket_path = spawn_result.socket_path;
+        let code_path = spawn_result.code_path;
+        tokio::spawn(async move {
+            let status = child.wait().await;
+            if let Some(mut entry) = ps.endpoints.get_mut(&name) {
+                if entry.status != EndpointStatus::Stopping {
+                    entry.status = EndpointStatus::Degraded;
+                    tracing::warn!("fc: endpoint {name} VM exited unexpectedly: {status:?}");
+                }
+            }
+            let _ = tokio::fs::remove_file(&config_path).await;
+            let _ = tokio::fs::remove_file(&socket_path).await;
+            if let Some(ref cp) = code_path {
+                let _ = tokio::fs::remove_file(cp).await;
+            }
+        });
+    }
+
     let endpoint = PersistentEndpoint {
         name: req.name.clone(),
         rootfs: req.rootfs.clone(),
@@ -564,27 +612,25 @@ async fn fc_deploy(
         mem_size_mib: req.mem_size_mib,
         allocation,
         tap,
-        pid: None,
-        status: EndpointStatus::Pending,
+        pid,
+        status: EndpointStatus::Starting,
         created: Instant::now(),
     };
     let info = PersistentEndpointInfo::from(&endpoint);
     persistent.endpoints.insert(req.name.clone(), endpoint);
 
     tracing::info!(
-        "fc_deploy: registered endpoint {} tap={} host={} guest={} (VM spawn deferred to Phase 2e)",
+        "fc_deploy: spawned endpoint {} tap={} host={} guest={} pid={:?}",
         info.name,
         info.tap,
         info.host_ip,
         info.guest_ip,
+        info.pid,
     );
 
     (
         StatusCode::CREATED,
-        Json(serde_json::json!({
-            "endpoint": info,
-            "note": "resources allocated (IP + TAP); VM spawn lands in Phase 2e",
-        })),
+        Json(serde_json::json!({ "endpoint": info })),
     )
 }
 
@@ -644,12 +690,28 @@ async fn fc_destroy(
     // release the network resources. If TAP destroy fails, log but still
     // release the IP — worst case we leak a TAP interface, which the pod
     // will clean up on restart.
+    // Mark stopping so the background watcher doesn't log "unexpected exit".
+    if let Some(mut entry) = persistent.endpoints.get_mut(&name) {
+        entry.status = EndpointStatus::Stopping;
+    }
+
     let Some((_, endpoint)) = persistent.endpoints.remove(&name) else {
         return (
             StatusCode::NOT_FOUND,
             Json(serde_json::json!({"error": "endpoint not found", "name": name})),
         );
     };
+
+    // SIGTERM the VMM process so the guest can shut down. We use `kill(2)`
+    // via libc since we handed the Child off to the background watcher —
+    // only the PID is left.
+    if let Some(pid) = endpoint.pid {
+        unsafe {
+            libc::kill(pid as i32, libc::SIGTERM);
+        }
+        // Give the VMM a moment to exit before we rip the TAP out.
+        tokio::time::sleep(Duration::from_millis(500)).await;
+    }
 
     if let Err(e) = persistent.tap_manager.destroy_tap(&endpoint.tap).await {
         tracing::warn!(
@@ -659,7 +721,10 @@ async fn fc_destroy(
     }
     persistent.pool.release(&endpoint.allocation);
 
-    tracing::info!("fc_destroy: removed endpoint {name}");
+    tracing::info!(
+        "fc_destroy: removed endpoint {name} (pid={:?})",
+        endpoint.pid
+    );
     (StatusCode::OK, Json(serde_json::json!({"removed": name})))
 }
 
@@ -1374,6 +1439,117 @@ async fn spawn_jailed(
             vm_id: vm_id.to_string(),
         },
     ))
+}
+
+// ---------------------------------------------------------------------------
+// Persistent endpoint VM spawn — Phase 2e
+// ---------------------------------------------------------------------------
+
+/// Pad a byte slice to a 512-byte sector boundary (Firecracker requires
+/// block devices to be sector-aligned).
+fn pad_to_sector(data: &[u8]) -> Vec<u8> {
+    let sector = 512;
+    let pad = (sector - (data.len() % sector)) % sector;
+    let mut buf = Vec::with_capacity(data.len() + pad);
+    buf.extend_from_slice(data);
+    buf.resize(data.len() + pad, 0);
+    buf
+}
+
+struct PersistentSpawnResult {
+    child: tokio::process::Child,
+    config_path: String,
+    socket_path: String,
+    code_path: Option<String>,
+}
+
+async fn spawn_persistent(
+    vm_id: &str,
+    rootfs_dir: &str,
+    req: &DeployFcRequest,
+    tap_name: &str,
+    ip_arg: &str,
+) -> Result<PersistentSpawnResult, String> {
+    let rootfs_image = format!("{}/{}.ext4", rootfs_dir, req.rootfs);
+    if !tokio::fs::try_exists(&rootfs_image).await.unwrap_or(false) {
+        return Err(format!("rootfs image not found: {}", rootfs_image));
+    }
+
+    let scratch_dir = "/var/lib/firecracker/scratch";
+    let socket_path = format!("{}/fc-{}.sock", scratch_dir, vm_id);
+    let config_path = format!("{}/fc-{}.json", scratch_dir, vm_id);
+
+    let mut drives = vec![serde_json::json!({
+        "drive_id": "rootfs",
+        "path_on_host": &rootfs_image,
+        "is_root_device": true,
+        "is_read_only": true,
+    })];
+
+    // Optional code drive — if the deploy request includes inline code,
+    // write it to a sector-aligned raw block device for the guest init
+    // to pick up via /dev/vdb (same pattern as ephemeral VMs).
+    let code_path = if let Some(ref code) = req.code {
+        if !code.is_empty() {
+            let path = format!("{}/fc-{}.code", scratch_dir, vm_id);
+            let padded = pad_to_sector(code.as_bytes());
+            tokio::fs::write(&path, &padded)
+                .await
+                .map_err(|e| format!("code drive write failed: {e}"))?;
+            drives.push(serde_json::json!({
+                "drive_id": "code",
+                "path_on_host": &path,
+                "is_root_device": false,
+                "is_read_only": true,
+            }));
+            Some(path)
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
+    // Boot args: standard console + init + entrypoint, plus the static
+    // IP config so the guest gets its address without DHCP.
+    let boot_args = format!(
+        "console=ttyS0 reboot=k panic=1 init=/init fc_entrypoint={} ip={}",
+        req.entrypoint, ip_arg,
+    );
+
+    let config = serde_json::json!({
+        "boot-source": {
+            "kernel_image_path": format!("{}/vmlinux", rootfs_dir),
+            "boot_args": boot_args,
+        },
+        "drives": drives,
+        "machine-config": {
+            "vcpu_count": req.vcpu_count,
+            "mem_size_mib": req.mem_size_mib,
+        },
+        "network-interfaces": [{
+            "iface_id": "eth0",
+            "host_dev_name": tap_name,
+        }],
+    });
+
+    tokio::fs::write(&config_path, config.to_string())
+        .await
+        .map_err(|e| format!("config write failed: {e}"))?;
+
+    let child = tokio::process::Command::new("firecracker")
+        .args(["--api-sock", &socket_path, "--config-file", &config_path])
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("firecracker spawn failed: {e}"))?;
+
+    Ok(PersistentSpawnResult {
+        child,
+        config_path,
+        socket_path,
+        code_path,
+    })
 }
 
 // ---------------------------------------------------------------------------
