@@ -17,6 +17,13 @@ ENV RCON_PORT=25575
 
 ENV MOTD="KBVE Lobby"
 ENV MAX_PLAYERS=50
+
+# KBVE branded server-icon (64x64 PNG). Sourced from apps/mc/branding/.
+# itzg/minecraft-server reads $ICON on first boot and copies it to
+# /data/server-icon.png — OVERRIDE_ICON=TRUE reapplies on every restart.
+COPY apps/mc/branding/server-icon.png /usr/local/share/server-icon.png
+ENV ICON=/usr/local/share/server-icon.png
+ENV OVERRIDE_ICON=TRUE
 ENV DIFFICULTY=peaceful
 ENV VIEW_DISTANCE=8
 ENV SIMULATION_DISTANCE=4

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  KBVE Minecraft icon — 2x2 grid of "K B / V E" in KBVE green on deep
+  navy. Designed at 64x64 (the native server-icon.png size Vanilla
+  loads); rasterized to 256x256 for Modrinth via render.sh in this dir.
+
+  Re-render after editing:
+    cd apps/mc/branding && ./render.sh
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+    <!-- Deep navy background — reads as "KBVE dark mode" against the MC server list -->
+    <rect width="64" height="64" fill="#0a0e27"/>
+
+    <!-- Subtle 2x2 grid divider lines so each letter sits in its own quadrant -->
+    <line x1="32" y1="2" x2="32" y2="62" stroke="#1e293b" stroke-width="1"/>
+    <line x1="2" y1="32" x2="62" y2="32" stroke="#1e293b" stroke-width="1"/>
+
+    <!-- Letters — bold sans-serif, KBVE green (#22c55e ≈ Tailwind green-500) -->
+    <g font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900"
+       font-size="26" fill="#22c55e" text-anchor="middle" dominant-baseline="central">
+        <text x="16" y="17">K</text>
+        <text x="48" y="17">B</text>
+        <text x="16" y="49">V</text>
+        <text x="48" y="49">E</text>
+    </g>
+</svg>
