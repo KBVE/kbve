@@ -20,7 +20,7 @@ WORK_DIR="$DIST_DIR/work"
 
 MOD_JAR="$SCRIPT_DIR/../java/build/libs/behavior_statetree-0.1.0.jar"
 PACK_NAME="KBVE MC Client"
-PACK_VERSION="0.1.0"
+PACK_VERSION="0.1.1"
 MC_VERSION="1.21.11"
 LOADER_VERSION="0.18.6"
 
@@ -141,6 +141,51 @@ cat > "$WORK_DIR/modrinth.index.json" << MANIFEST
       },
       "downloads": [
         "https://cdn.modrinth.com/data/NTi7d3Xc/versions/zfKCnGWj/Oh-The-Biomes-Weve-Gone-Fabric-4.3.3.jar"
+      ],
+      "fileSize": 0,
+      "env": {
+        "client": "required",
+        "server": "unsupported"
+      }
+    },
+    {
+      "path": "mods/ForgeConfigAPIPort-v21.11.1-mc1.21.11-Fabric.jar",
+      "hashes": {
+        "sha1": "61aa1b5fafd75afc44552d0213cac39bc938bc2d",
+        "sha512": ""
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/ohNO6lps/versions/uXrWPsCu/ForgeConfigAPIPort-v21.11.1-mc1.21.11-Fabric.jar"
+      ],
+      "fileSize": 0,
+      "env": {
+        "client": "required",
+        "server": "unsupported"
+      }
+    },
+    {
+      "path": "mods/sootychimneys-fabric-1.3.4.jar",
+      "hashes": {
+        "sha1": "581f752d94dc8cf160bbd01fba4b5934ba2e9420",
+        "sha512": ""
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/b3w1XM9H/versions/KZ9rHjKU/sootychimneys-fabric-1.3.4.jar"
+      ],
+      "fileSize": 0,
+      "env": {
+        "client": "required",
+        "server": "unsupported"
+      }
+    },
+    {
+      "path": "mods/wilderflowers-1.0.4+1.21.11-fabric.jar",
+      "hashes": {
+        "sha1": "6094531a6bd1fe14b3a5c34f3dce846984798f4e",
+        "sha512": ""
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/8lUQapTY/versions/pzZ7fqlk/wilderflowers-1.0.4%2B1.21.11-fabric.jar"
       ],
       "fileSize": 0,
       "env": {
