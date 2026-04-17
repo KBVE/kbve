@@ -180,6 +180,9 @@ declare -A MODS=(
   # WorldEdit 7.4.2 — in-game world editor. Fabric build supports 1.21.11.
   # Permissions are gated through LuckPerms (worldedit.* nodes).
   ["worldedit-mod-7.4.2.jar"]="2f5c35ab2d0dffa1be99ed6016132596949e59b3 https://cdn.modrinth.com/data/1u6JkXh5/versions/oY3E2pzA/worldedit-mod-7.4.2.jar"
+  # Lithostitched 1.6.1 — worldgen library required by Tectonic for
+  # data-driven biome/structure registration. Server-side only.
+  ["lithostitched-1.6.1-fabric-1.21.11.jar"]="0b7a54cad929d4b831a9ca77b21240bdf2789679 https://cdn.modrinth.com/data/XaDC71GB/versions/s47RpVwc/lithostitched-1.6.1-fabric-1.21.11.jar"
   # Tectonic 3.0.19 — worldgen overhaul (Fabric mod variant of the
   # datapack). Generates dramatic mountains, deep valleys, and expanded
   # cave systems. Only affects newly generated chunks — existing terrain
