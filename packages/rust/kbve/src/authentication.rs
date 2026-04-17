@@ -12,9 +12,10 @@ use crate::runes::{
 
 use crate::entity::response::{create_custom_response, create_error_response};
 
+use crate::spellbook::spellbook_create_cookie;
 use crate::{
-    spellbook_complete, spellbook_create_cookie, spellbook_create_jwt, spellbook_email,
-    spellbook_error, spellbook_get_global, spellbook_pool, spellbook_ulid, spellbook_username,
+    spellbook_complete, spellbook_create_jwt, spellbook_email, spellbook_error,
+    spellbook_get_global, spellbook_pool, spellbook_ulid, spellbook_username,
 };
 
 //	?	[Diesel]
@@ -45,7 +46,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 pub async fn auth_logout() -> impl IntoResponse {
-    let cookie = spellbook_create_cookie!("token", "", -1);
+    let cookie = spellbook_create_cookie("token", "", -1);
 
     let mut headers = axum::http::HeaderMap::new();
 
@@ -431,7 +432,7 @@ pub async fn auth_player_login(
         2
     );
 
-    let cookie = spellbook_create_cookie!("token", jwt_token.to_owned(), 2);
+    let cookie = spellbook_create_cookie("token", &jwt_token, 2);
 
     let mut headers = axum::http::HeaderMap::new();
 
