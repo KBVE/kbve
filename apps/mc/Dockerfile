@@ -225,6 +225,55 @@ declare -A MODS=(
   # FallingTree 1.21.11.3 — chop entire trees by breaking a single log.
   # Server-required, client-optional. No hard dependencies.
   ["FallingTree-1.21.11-1.21.11.3.jar"]="9daded812605231a5e1e9461a6e04258d0424761 https://cdn.modrinth.com/data/Fb4jn8m6/versions/Hnj3s9Ez/FallingTree-1.21.11-1.21.11.3.jar"
+  # Configurable — config library required by Neruina.
+  ["configurable-3.3.2+1.21.11-fabric.jar"]="59e3c7c8457673516a82ab36f5ee352f759f0e3e https://cdn.modrinth.com/data/lGffrQ3O/versions/jIjsSVfP/configurable-3.3.2%2B1.21.11-fabric.jar"
+  # Neruina 3.2.2 — ticking entity crash prevention. Suspends
+  # problematic entities/block-entities instead of crashing the server.
+  # Client-optional, server-optional (most useful server-side).
+  ["neruina-3.2.2+1.21.11-fabric.jar"]="189f0f41dbbdc0a80ed6471c66e184d3bf9f40f2 https://cdn.modrinth.com/data/1s5x833P/versions/o8Ej08oB/neruina-3.2.2%2B1.21.11-fabric.jar"
+  # Blahaj Replushed 4.0.0 — IKEA-inspired plushie items (Blåhaj shark
+  # and friends). Craftable, placeable, personalizable. Client + server.
+  ["blahaj-replushed-4.0.0+1.21.11.jar"]="e02c9d72077cb84d11f0de9d5127f53fc729ff8f https://cdn.modrinth.com/data/5bb5rG4b/versions/enjEypbi/blahaj-replushed-4.0.0%2B1.21.11.jar"
+  # ── Libraries for mods below ───────────────────────────────────────
+  # MidnightLib — config/utility library. Required by Repurposed
+  # Structures and TslatEntityStatus.
+  ["midnightlib-fabric-1.9.2+1.21.11.jar"]="b9617fa5722a8cdc321781a2b6dd97217fcfdc2a https://cdn.modrinth.com/data/codAaoxh/versions/OeTayxh3/midnightlib-fabric-1.9.2%2B1.21.11.jar"
+  # Puzzles Lib — multi-loader abstraction library. Required by
+  # Magnum Torch.
+  ["PuzzlesLib-v21.11.12-mc1.21.11-Fabric.jar"]="f502faff2063b34cfca40cfada13e4fecf69e7fc https://cdn.modrinth.com/data/QAGBst4M/versions/owXZpJai/PuzzlesLib-v21.11.12-mc1.21.11-Fabric.jar"
+  # ── Food & cooking ─────────────────────────────────────────────────
+  # Farmer's Delight Refabricated 3.4.9 — farming + cooking expansion
+  # with new crops, meals, and kitchen blocks. Client + server.
+  ["FarmersDelight-1.21.11-3.4.9+refabricated.jar"]="7c51a74bed32f4c55a22cc87690109c9379c682e https://cdn.modrinth.com/data/7vxePowz/versions/ZP4Uof9C/FarmersDelight-1.21.11-3.4.9%2Brefabricated.jar"
+  # Chef's Delight 1.0.5 — Farmer's Delight addon adding chef villager
+  # trades. Client + server.
+  ["chefs-delight-1.0.5-fabric-1.21.11.jar"]="7848579a9cc8be4299de98010741e03edca7d4d8 https://cdn.modrinth.com/data/pvcsfne4/versions/EXu0Q4KH/chefs-delight-1.0.5-fabric-1.21.11.jar"
+  # ── Structure & worldgen ───────────────────────────────────────────
+  # Repurposed Structures 7.6.2 — adds biome-themed variants of vanilla
+  # structures (villages, temples, strongholds, etc). Server-only.
+  ["repurposed_structures-7.6.2+1.21.11-fabric.jar"]="dc88e4bea42a5e007eb5c2d0107271a43f1db363 https://cdn.modrinth.com/data/muf0XoRe/versions/LgshXq1u/repurposed_structures-7.6.2%2B1.21.11-fabric.jar"
+  # ChoiceTheorem's Overhauled Village 3.6.2a — replaces vanilla village
+  # generation with larger, more detailed layouts. Server-only.
+  ["[fabric]ctov-1.21.11-3.6.2a.jar"]="6aad41978d561c9e766ae38013b916164473a60a https://cdn.modrinth.com/data/fgmhI8kH/versions/K2dNRnIZ/%5Bfabric%5Dctov-1.21.11-3.6.2a.jar"
+  # ── Utility ────────────────────────────────────────────────────────
+  # Magnum Torch 21.11.0 — mega torch that prevents mob spawning in a
+  # large radius. Client + server.
+  ["MagnumTorch-v21.11.0-mc1.21.11-Fabric.jar"]="cf3f0ae62a8c9122b81d54b0bc834183e4a0bc5a https://cdn.modrinth.com/data/jorDmSKv/versions/ggEj5Dcf/MagnumTorch-v21.11.0-mc1.21.11-Fabric.jar"
+  # TslatEntityStatus 1.9.2 — shows entity health/status on HUD.
+  # Client + server.
+  ["TslatEntityStatus-fabric-1.21.11-1.9.2.jar"]="ac77b9ae97686f601cbb4cba1c34b6c1587eaadc https://cdn.modrinth.com/data/4A86JsDZ/versions/gC9DblyC/TslatEntityStatus-fabric-1.21.11-1.9.2.jar"
+  # JEI 27.4.0.22 — recipe viewer. Shows crafting recipes, usages,
+  # and ingredient lookups. Enhances Farmer's Delight recipe discovery.
+  ["jei-1.21.11-fabric-27.4.0.22.jar"]="dba6319ab4cad596d74f520ae608a5cae84ba245 https://cdn.modrinth.com/data/u6dRKJwZ/versions/oHe0elMI/jei-1.21.11-fabric-27.4.0.22.jar"
+  # AppleSkin 3.0.8 — food/hunger HUD overlay showing saturation and
+  # exhaustion. Server install provides accurate values to clients.
+  ["appleskin-fabric-mc1.21.11-3.0.8.jar"]="441fdbf4e9c34fb61517ceb8e15618950dc4d314 https://cdn.modrinth.com/data/EsAfCjCV/versions/59ti1rvg/appleskin-fabric-mc1.21.11-3.0.8.jar"
+  # Traveler's Backpack 10.11.9 — unique upgradeable backpacks with
+  # crafting, fluid tanks, and tool slots. Client + server.
+  ["travelersbackpack-fabric-1.21.11-10.11.9.jar"]="fb2d5a2fd919ee127d9a170e3e85f798edb852a5 https://cdn.modrinth.com/data/rlloIFEV/versions/XbEGJQSG/travelersbackpack-fabric-1.21.11-10.11.9.jar"
+  # Macaw's Paintings 1.1.0 — adds 40+ new painting variants in
+  # multiple sizes. Client + server.
+  ["mcw-paintings-1.1.0-mc1.21.11fabric.jar"]="580ba60f2811796b7906ebc7edea053849a0d1fd https://cdn.modrinth.com/data/okE6QVAY/versions/VPvufXfe/mcw-paintings-1.1.0-mc1.21.11fabric.jar"
 )
 
 for name in "${!MODS[@]}"; do
