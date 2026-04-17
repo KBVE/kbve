@@ -1,7 +1,7 @@
 [package]
 name = "behavior_statetree"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.0"
+version = "1.0.16"
 edition = "2024"
 rust-version = "1.94"
 license = "MIT"

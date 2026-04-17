@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-04-16T08:41:18.559Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-04-17T08:41:25.151Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -45,7 +45,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **1** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **235** items
+    **223** items
   </Card>
 </CardGrid>
 
@@ -62,7 +62,7 @@ pie showData
     "Error" : 11
     "Staging" : 4
     "Review" : 1
-    "Done" : 235
+    "Done" : 223
 ```
 
 ```mermaid
@@ -70,7 +70,7 @@ pie showData
     title Work State
     "Active (Todo+Staging+Review)" : 13
     "Blocked (Error+Support)" : 11
-    "Done" : 235
+    "Done" : 223
     "Planning (Theory+AI+Backlog)" : 31
 ```
 
@@ -99,7 +99,7 @@ flowchart LR
     Staging --> Review
     Review["Review<br/><strong>1</strong>"]
     Review --> Done
-    Done["Done<br/><strong>235</strong>"]
+    Done["Done<br/><strong>223</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -116,7 +116,7 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 228
+    "Pull Request" : 216
     "Issue" : 62
 ```
 
@@ -124,9 +124,9 @@ pie showData
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 228 |
-| dev→main | 105 |
-| atomic | 85 |
+| auto-pr | 216 |
+| dev→main | 97 |
+| atomic | 83 |
 | enhancement | 32 |
 | 0 | 23 |
 | unity | 16 |
@@ -226,9 +226,9 @@ pie showData
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
-| [#10118](https://github.com/KBVE/kbve/pull/10118) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#10151](https://github.com/KBVE/kbve/pull/10151) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
 
-### Done (235)
+### Done (223)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -238,32 +238,6 @@ pie showData
 | [#8931](https://github.com/KBVE/kbve/issues/8931) | [UE5] [OWS] Add retry and circuit breaker for K8s API calls | — | — | enhancement |
 | [#8933](https://github.com/KBVE/kbve/issues/8933) | [UE5] [OWS] Extract hardcoded cleanup config to options pattern | — | — | enhancement |
 | [#8932](https://github.com/KBVE/kbve/issues/8932) | [UE5] [OWS] Move instance cleanup to scheduled background job | — | — | enhancement |
-| [#9459](https://github.com/KBVE/kbve/pull/9459) | Release: 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#9465](https://github.com/KBVE/kbve/pull/9465) | Release: 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#9466](https://github.com/KBVE/kbve/pull/9466) | Atomic: axum-kbve v1.0.85 post-publish sync | — | — | auto-pr, atomic |
-| [#9470](https://github.com/KBVE/kbve/pull/9470) | Release: 2 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#9474](https://github.com/KBVE/kbve/pull/9474) | Release: 2 fixes → Main | — | — | auto-pr, dev→main |
-| [#9477](https://github.com/KBVE/kbve/pull/9477) | Release: 2 fixes, 1 refactor, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#9478](https://github.com/KBVE/kbve/pull/9478) | deploy(isometric): update WASM build | — | — | auto-pr |
-| [#9483](https://github.com/KBVE/kbve/pull/9483) | deploy(isometric): update WASM build | — | — | auto-pr |
-| [#9484](https://github.com/KBVE/kbve/pull/9484) | Release: 1 fix, 4 chores → Main | — | — | auto-pr, dev→main |
-| [#9487](https://github.com/KBVE/kbve/pull/9487) | Atomic: axum-kbve v1.0.86 post-publish sync | — | — | auto-pr, atomic |
-| [#9489](https://github.com/KBVE/kbve/pull/9489) | Atomic: chisel-ubuntu-axum v24.04.3 post-publish sync | — | — | auto-pr, atomic |
-| [#9490](https://github.com/KBVE/kbve/pull/9490) | Release: 2 fixes, 1 perf, 4 chores → Main | — | — | auto-pr, dev→main |
-| [#9493](https://github.com/KBVE/kbve/pull/9493) | Atomic: irc-gateway v0.1.4 post-publish sync | — | — | auto-pr, atomic |
-| [#9494](https://github.com/KBVE/kbve/pull/9494) | chore(dashboard): daily sync — 2026-04-02 | — | — | auto-pr |
-| [#9499](https://github.com/KBVE/kbve/pull/9499) | Atomic: chisel-ubuntu-axum v24.04.4 post-publish sync | — | — | auto-pr, atomic |
-| [#9500](https://github.com/KBVE/kbve/pull/9500) | Release: 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#9503](https://github.com/KBVE/kbve/pull/9503) | Release: 1 feature, 1 fix, 3 chores → Main | — | — | auto-pr, dev→main |
-| [#9504](https://github.com/KBVE/kbve/pull/9504) | Atomic: discordsh v0.1.42 post-publish sync | — | — | auto-pr, atomic |
-| [#9505](https://github.com/KBVE/kbve/pull/9505) | Atomic: irc-gateway v0.1.5 post-publish sync | — | — | auto-pr, atomic |
-| [#9512](https://github.com/KBVE/kbve/pull/9512) | Release: 1 feature, 1 fix → Main | — | — | auto-pr, dev→main |
-| [#9513](https://github.com/KBVE/kbve/pull/9513) | Atomic: chisel-ubuntu-axum v24.04.5 post-publish sync | — | — | auto-pr, atomic |
-| [#9514](https://github.com/KBVE/kbve/pull/9514) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
-| [#9517](https://github.com/KBVE/kbve/pull/9517) | Release: 2 fixes → Main | — | — | auto-pr, dev→main |
-| [#9518](https://github.com/KBVE/kbve/pull/9518) | Atomic: edge v0.1.22 post-publish sync | — | — | auto-pr, atomic |
-| [#9519](https://github.com/KBVE/kbve/pull/9519) | Release: 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#9520](https://github.com/KBVE/kbve/pull/9520) | Atomic: axum-kbve v1.0.87 post-publish sync | — | — | auto-pr, atomic |
 | [#9525](https://github.com/KBVE/kbve/pull/9525) | Release: 1 feature, 2 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#9529](https://github.com/KBVE/kbve/pull/9529) | Release: 2 features, 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#9530](https://github.com/KBVE/kbve/pull/9530) | deploy(isometric): update WASM build | — | — | auto-pr |
@@ -467,6 +441,20 @@ pie showData
 | [#10111](https://github.com/KBVE/kbve/pull/10111) | Release: 1 feature, 1 doc, 3 chores → Main | — | — | auto-pr, dev→main |
 | [#10114](https://github.com/KBVE/kbve/pull/10114) | chore(dashboard): daily sync — 2026-04-16 | — | — | auto-pr |
 | [#10117](https://github.com/KBVE/kbve/pull/10117) | Atomic: mc-lobby v1.0.2 post-publish sync | — | — | auto-pr, atomic |
+| [#10118](https://github.com/KBVE/kbve/pull/10118) | Release: 1 feature, 4 chores → Main | — | — | auto-pr, dev→main |
+| [#10119](https://github.com/KBVE/kbve/pull/10119) | Atomic: axum-kbve v1.0.110 post-publish sync | — | — | auto-pr, atomic |
+| [#10120](https://github.com/KBVE/kbve/pull/10120) | chore(dashboard): daily sync — 2026-04-16 | — | — | auto-pr |
+| [#10123](https://github.com/KBVE/kbve/pull/10123) | Release: 4 features, 2 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#10124](https://github.com/KBVE/kbve/pull/10124) | Atomic: axum-kbve v1.0.111 post-publish sync | — | — | auto-pr, atomic |
+| [#10130](https://github.com/KBVE/kbve/pull/10130) | Atomic: mc-velocity v1.0.2 post-publish sync | — | — | auto-pr, atomic |
+| [#10131](https://github.com/KBVE/kbve/pull/10131) | Release: 3 chores → Main | — | — | auto-pr, dev→main |
+| [#10133](https://github.com/KBVE/kbve/pull/10133) | Atomic: mc-lobby v1.0.3 post-publish sync | — | — | auto-pr, atomic |
+| [#10134](https://github.com/KBVE/kbve/pull/10134) | Atomic: mc v1.0.16 post-publish sync | — | — | auto-pr, atomic |
+| [#10140](https://github.com/KBVE/kbve/pull/10140) | Release: 4 features, 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#10143](https://github.com/KBVE/kbve/pull/10143) | Atomic: mc-velocity v1.0.3 post-publish sync | — | — | auto-pr, atomic |
+| [#10144](https://github.com/KBVE/kbve/pull/10144) | Atomic: mc-lobby v1.0.4 post-publish sync | — | — | auto-pr, atomic |
+| [#10145](https://github.com/KBVE/kbve/pull/10145) | Release: 2 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#10150](https://github.com/KBVE/kbve/pull/10150) | Atomic: mc v1.0.18 post-publish sync | — | — | auto-pr, atomic |
 
 ---
 
