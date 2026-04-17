@@ -134,6 +134,11 @@ spec:
                                 value: 'false'
                               - name: SERVER_PORT
                                 value: '25565'
+                              # Disable vanilla 1.21.x idle pause — it stops
+                              # the tick loop after 60s with no players,
+                              # which kills Velocity proxy handshakes.
+                              - name: PAUSE_WHEN_EMPTY_SECONDS
+                                value: '0'
                               # Pinned world seed — canonical KBVE survival seed.
                               # Source of truth for every environment (prod, dev,
                               # CI, contributor laptops). Only applies on first
