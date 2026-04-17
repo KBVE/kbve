@@ -1,9 +1,11 @@
-# Allow ingress on RCON port (25575) from the edge functions pod
-# in the kilobase namespace. This enables staff-gated RCON commands
-# from the Supabase edge runtime to both lobby and survival servers.
+# NetworkPolicy for MC game servers (lobby + Fabric survival).
 #
-# The same policy covers future MC mod-to-mod RCON if pods carry the
-# mc-gameserver or mc-lobby label in arc-runners.
+# Allows:
+#   - Velocity proxy → game port 25565 (player traffic)
+#   - Edge functions + MC pods → RCON port 25575 (admin commands)
+#
+# Without the game-traffic rule, Cilium's default-deny-on-policy
+# blocks Velocity from reaching the backend servers on 25565.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -22,7 +24,15 @@ spec:
     policyTypes:
         - Ingress
     ingress:
-        # Edge functions (kilobase namespace)
+        # Velocity proxy → game port (player traffic)
+        - from:
+              - podSelector:
+                    matchLabels:
+                        app: mc-velocity
+          ports:
+              - port: 25565
+                protocol: TCP
+        # Edge functions (kilobase namespace) → RCON
         - from:
               - namespaceSelector:
                     matchLabels:
@@ -33,7 +43,7 @@ spec:
           ports:
               - port: 25575
                 protocol: TCP
-        # MC pods talking to each other (same namespace)
+        # MC pods talking to each other → RCON
         - from:
               - podSelector:
                     matchExpressions:
