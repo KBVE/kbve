@@ -212,6 +212,7 @@ jobs:
             image: ${{ needs.config.outputs.image }}
             version_source: ${{ needs.config.outputs.version_source }}
             version_target: ${{ needs.config.outputs.version_target }}
+            install_playwright: false
 
     # ---------------------------------------------------------------------------
     # Publish — promotes the ci-{sha} tag built in test to the release tag.
