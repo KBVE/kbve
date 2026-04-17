@@ -1,27 +1,20 @@
 ---
-# In-cluster Modrinth publisher.
+# In-cluster Modrinth publisher — two-phase pipeline.
 #
-# Trigger: ArgoCD PostSync hook on the agones-mc Application — fires after
-# every sync (including the post-publish bump that retags fleet.yaml's
-# image to a new kbve/mc version). The Job is idempotent: it queries
-# Modrinth for the JAR's version_number and exits 0 if it's already
-# uploaded, so frequent syncs don't double-post.
+# Phase 1 (sync-wave 10): Publish the behavior_statetree JAR to the
+#   "mod" project (MOD_PROJECT_ID = QoFCg0tO).
+# Phase 2 (sync-wave 20): Build an mrpack referencing the JAR from
+#   Modrinth CDN + all dependency mods, publish to the "modpack"
+#   project (PACK_PROJECT_ID = 86Wqkiak).
 #
-# Flow:
-#   1. initContainer pulls ghcr.io/kbve/mc:latest (the same image that
-#      runs in the Fleet) and copies the bundled behavior_statetree JAR
-#      out of /mods/ into a shared emptyDir.
-#   2. main container reads MODRINTH_TOKEN from the sealed secret +
-#      MODRINTH_PROJECT_ID from the config map, checks for an existing
-#      version on Modrinth, and POSTs the JAR if missing.
-#
-# Until MODRINTH_PROJECT_ID is populated in mc-modrinth-config (the
-# project must be created manually on modrinth.com first), the Job
-# logs a notice and exits 0 — it does not block syncs.
+# Both Jobs are idempotent — they check for existing versions first.
+# Trigger: ArgoCD PostSync hook on the agones-mc Application.
+
+# ── Phase 1: Publish JAR ──────────────────────────────────────────────
 apiVersion: batch/v1
 kind: Job
 metadata:
-    name: mc-modrinth-publish
+    name: mc-modrinth-publish-jar
     namespace: mc
     annotations:
         argocd.argoproj.io/hook: PostSync
@@ -50,7 +43,7 @@ spec:
                           set -e
                           JAR=$(ls /mods/behavior_statetree-*.jar 2>/dev/null | head -1)
                           if [ -z "$JAR" ]; then
-                            echo "No behavior_statetree JAR found in /mods/ — image build is broken."
+                            echo "No behavior_statetree JAR found in /mods/"
                             ls -la /mods/
                             exit 1
                           fi
@@ -72,17 +65,13 @@ spec:
                           VERSION=$(basename "$JAR" .jar | sed 's/^behavior_statetree-//')
                           echo "Mod JAR: $(basename "$JAR")  →  version $VERSION"
 
-                          if [ -z "${MODRINTH_PROJECT_ID:-}" ]; then
-                            echo "MODRINTH_PROJECT_ID is empty — create the project on modrinth.com,"
-                            echo "then update mc-modrinth-config with the project .id. Skipping."
+                          if [ -z "${MOD_PROJECT_ID:-}" ]; then
+                            echo "MOD_PROJECT_ID is empty — skipping JAR publish."
                             exit 0
                           fi
 
-                          # Idempotency — Modrinth rejects duplicate version_number anyway,
-                          # but checking first turns the no-op into a clean log instead of an
-                          # API error.
                           EXISTING=$(curl -fsSL -H "Authorization: $MODRINTH_TOKEN" \
-                            "https://api.modrinth.com/v2/project/$MODRINTH_PROJECT_ID/version" \
+                            "https://api.modrinth.com/v2/project/$MOD_PROJECT_ID/version" \
                             | jq -r --arg v "$VERSION" '.[] | select(.version_number == $v) | .id' \
                             | head -1)
 
@@ -96,7 +85,7 @@ spec:
                             "name": "behavior_statetree $VERSION",
                             "version_number": "$VERSION",
                             "version_type": "$VERSION_TYPE",
-                            "project_id": "$MODRINTH_PROJECT_ID",
+                            "project_id": "$MOD_PROJECT_ID",
                             "loaders": $LOADERS,
                             "game_versions": $GAME_VERSIONS,
                             "featured": false,
@@ -105,14 +94,284 @@ spec:
                           }
                           JSON
 
-                          echo "Uploading v$VERSION → project $MODRINTH_PROJECT_ID..."
+                          echo "Uploading JAR v$VERSION → mod project $MOD_PROJECT_ID..."
                           RESPONSE=$(curl -fsSL -X POST "https://api.modrinth.com/v2/version" \
                             -H "Authorization: $MODRINTH_TOKEN" \
                             -F "data=@/tmp/data.json;type=application/json" \
                             -F "jar=@$JAR;type=application/java-archive")
 
                           VERSION_ID=$(echo "$RESPONSE" | jq -r '.id')
-                          echo "Published — version id $VERSION_ID"
+                          echo "Published JAR — version id $VERSION_ID"
+                  env:
+                      - name: MODRINTH_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: mc-modrinth-token
+                                key: token
+                  envFrom:
+                      - configMapRef:
+                            name: mc-modrinth-config
+                  volumeMounts:
+                      - name: shared
+                        mountPath: /shared
+                  resources:
+                      requests:
+                          memory: 64Mi
+                          cpu: 50m
+                      limits:
+                          memory: 256Mi
+                          cpu: 500m
+            volumes:
+                - name: shared
+                  emptyDir: {}
+---
+# ── Phase 2: Build + publish mrpack ───────────────────────────────────
+# Runs after the JAR Job (sync-wave 20 > 10). Fetches the JAR's
+# download URL from Modrinth, builds an mrpack manifest referencing it
+# plus all dependency mods, then uploads the mrpack to the modpack
+# project.
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: mc-modrinth-publish-mrpack
+    namespace: mc
+    annotations:
+        argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+        argocd.argoproj.io/sync-wave: '20'
+    labels:
+        app.kubernetes.io/part-of: mc
+        app.kubernetes.io/component: modrinth-publisher
+spec:
+    ttlSecondsAfterFinished: 86400
+    backoffLimit: 1
+    template:
+        metadata:
+            labels:
+                app.kubernetes.io/part-of: mc
+                app.kubernetes.io/component: modrinth-publisher
+        spec:
+            restartPolicy: Never
+            initContainers:
+                - name: extract-jar
+                  image: ghcr.io/kbve/mc:latest
+                  imagePullPolicy: Always
+                  command: ['sh', '-c']
+                  args:
+                      - |
+                          set -e
+                          JAR=$(ls /mods/behavior_statetree-*.jar 2>/dev/null | head -1)
+                          if [ -z "$JAR" ]; then
+                            echo "No behavior_statetree JAR found in /mods/"
+                            exit 1
+                          fi
+                          cp "$JAR" /shared/
+                          echo "Extracted $(basename "$JAR")"
+                  volumeMounts:
+                      - name: shared
+                        mountPath: /shared
+            containers:
+                - name: build-and-publish
+                  image: alpine:3.20
+                  command: ['sh', '-c']
+                  args:
+                      - |
+                          set -euo pipefail
+                          apk add --no-cache curl jq zip > /dev/null
+
+                          JAR=$(ls /shared/behavior_statetree-*.jar 2>/dev/null | head -1)
+                          VERSION=$(basename "$JAR" .jar | sed 's/^behavior_statetree-//')
+                          echo "Building mrpack v$VERSION"
+
+                          if [ -z "${PACK_PROJECT_ID:-}" ]; then
+                            echo "PACK_PROJECT_ID is empty — skipping mrpack publish."
+                            exit 0
+                          fi
+
+                          # Idempotency check
+                          EXISTING=$(curl -fsSL -H "Authorization: $MODRINTH_TOKEN" \
+                            "https://api.modrinth.com/v2/project/$PACK_PROJECT_ID/version" \
+                            | jq -r --arg v "$VERSION" '.[] | select(.version_number == $v) | .id' \
+                            | head -1)
+
+                          if [ -n "$EXISTING" ]; then
+                            echo "mrpack v$VERSION already on Modrinth (id=$EXISTING) — no-op."
+                            exit 0
+                          fi
+
+                          # Fetch the JAR's Modrinth download URL + hashes from the mod project
+                          echo "Fetching JAR metadata from mod project $MOD_PROJECT_ID..."
+                          JAR_META=$(curl -fsSL -H "Authorization: $MODRINTH_TOKEN" \
+                            "https://api.modrinth.com/v2/project/$MOD_PROJECT_ID/version" \
+                            | jq --arg v "$VERSION" '[.[] | select(.version_number == $v)] | .[0]')
+
+                          if [ "$JAR_META" = "null" ] || [ -z "$JAR_META" ]; then
+                            echo "JAR v$VERSION not found on mod project — Phase 1 may not have run yet. Skipping."
+                            exit 0
+                          fi
+
+                          JAR_URL=$(echo "$JAR_META" | jq -r '.files[0].url')
+                          JAR_SHA1=$(echo "$JAR_META" | jq -r '.files[0].hashes.sha1')
+                          JAR_SHA512=$(echo "$JAR_META" | jq -r '.files[0].hashes.sha512')
+                          JAR_SIZE=$(echo "$JAR_META" | jq -r '.files[0].size')
+                          JAR_FILENAME=$(echo "$JAR_META" | jq -r '.files[0].filename')
+                          echo "JAR: $JAR_FILENAME ($JAR_SIZE bytes) sha1=$JAR_SHA1"
+
+                          # Build modrinth.index.json
+                          WORK=/tmp/mrpack-work
+                          mkdir -p "$WORK"
+
+                          cat > "$WORK/modrinth.index.json" <<EOF
+                          {
+                            "formatVersion": 1,
+                            "game": "minecraft",
+                            "versionId": "$VERSION",
+                            "name": "KBVE MC Client",
+                            "summary": "Client-side modpack for KBVE MC server — behavior_statetree, BYG biomes, and Fabric API.",
+                            "dependencies": {
+                              "minecraft": "1.21.11",
+                              "fabric-loader": "0.18.6"
+                            },
+                            "files": [
+                              {
+                                "path": "mods/$JAR_FILENAME",
+                                "hashes": { "sha1": "$JAR_SHA1", "sha512": "$JAR_SHA512" },
+                                "downloads": ["$JAR_URL"],
+                                "fileSize": $JAR_SIZE,
+                                "env": { "client": "required", "server": "unsupported" }
+                              },
+                              {
+                                "path": "mods/fabric-api-0.141.3+1.21.11.jar",
+                                "hashes": {
+                                  "sha1": "50de67eb221f0b38216da8668b09ca311327040e",
+                                  "sha512": "c20c017e23d6d2774690d0dd774cec84c16bfac5461da2d9345a1cd95eee495b1954333c421e3d1c66186284d24a433f6b0cced8021f62e0bfa617d2384d0471"
+                                },
+                                "downloads": ["https://cdn.modrinth.com/data/P7dR8mSH/versions/i5tSkVBH/fabric-api-0.141.3%2B1.21.11.jar"],
+                                "fileSize": 2412693,
+                                "env": { "client": "required", "server": "unsupported" }
+                              },
+                              {
+                                "path": "mods/TerraBlender-fabric-1.21.11-21.11.0.0.jar",
+                                "hashes": {
+                                  "sha1": "e4bd1aee6bc8c56ae77647a06f31a3bd981962a6",
+                                  "sha512": "05bed03e80351e7795cfbe1a9375e54a8a326552379737d8e5dcd400c4a36fefdf57f18468b95121556576d1ef549aa397a638114acd30eab69342d86b576814"
+                                },
+                                "downloads": ["https://cdn.modrinth.com/data/kkmrDlKT/versions/chxo508B/TerraBlender-fabric-1.21.11-21.11.0.0.jar"],
+                                "fileSize": 341308,
+                                "env": { "client": "required", "server": "unsupported" }
+                              },
+                              {
+                                "path": "mods/Corgilib-Fabric-1.21.11-9.0.0.0.jar",
+                                "hashes": {
+                                  "sha1": "687e58061bed7d5e37776fe414076debb5292625",
+                                  "sha512": "bf124b2b15009335091f3b88d32bc7b01f3866ff604a518eb86d5e6f5d78da938d12d1ef12c8b2c33b98b2463d9c35b25b63d0fb88b8a4040f2876b9367d35aa"
+                                },
+                                "downloads": ["https://cdn.modrinth.com/data/ziOp6EO8/versions/y5NhX0ok/Corgilib-Fabric-1.21.11-9.0.0.0.jar"],
+                                "fileSize": 685859,
+                                "env": { "client": "required", "server": "unsupported" }
+                              },
+                              {
+                                "path": "mods/geckolib-fabric-1.21.11-5.4.5.jar",
+                                "hashes": {
+                                  "sha1": "41cd2e142e48a8b6604d85764a6466fe5edb70c3",
+                                  "sha512": "e3fec3a07fd2a39af287cfa682f531913a6b82af5c23b60a231e8586ed1c5b1d2857f6714fa069315a1d7366c0d148d167178a9531b59629d488eb1cace6c97e"
+                                },
+                                "downloads": ["https://cdn.modrinth.com/data/8BmcQJ2H/versions/G1BvHQDL/geckolib-fabric-1.21.11-5.4.5.jar"],
+                                "fileSize": 822664,
+                                "env": { "client": "required", "server": "unsupported" }
+                              },
+                              {
+                                "path": "mods/Oh-The-Trees-Youll-Grow-fabric-1.21.11-9.0.0.jar",
+                                "hashes": {
+                                  "sha1": "abdcfd53514cce7110638866ec1716faa50e8cb1",
+                                  "sha512": "baaba419736f67fe35b4699e720c9ed5a0b1dc3fb782711b741c0c6615c13ef24fbf53edd353ec6d6b8125894466d036b18b5d92213880eb5f3b468243b47c99"
+                                },
+                                "downloads": ["https://cdn.modrinth.com/data/g8NOG5OR/versions/RttF1Lcs/Oh-The-Trees-Youll-Grow-fabric-1.21.11-9.0.0.jar"],
+                                "fileSize": 124378,
+                                "env": { "client": "required", "server": "unsupported" }
+                              },
+                              {
+                                "path": "mods/Oh-The-Biomes-Weve-Gone-Fabric-4.3.3.jar",
+                                "hashes": {
+                                  "sha1": "d6fa332917da0d8e7cd401b4537923c62cc79a07",
+                                  "sha512": "3999f436721d63e2c80fd35725d7449f1d3ccb999c5e71a46e7a2992f9594d2719c721dda0845f8795c54f458540d5f815217bdca0c6c29d8a8340189b45b484"
+                                },
+                                "downloads": ["https://cdn.modrinth.com/data/NTi7d3Xc/versions/zfKCnGWj/Oh-The-Biomes-Weve-Gone-Fabric-4.3.3.jar"],
+                                "fileSize": 20866497,
+                                "env": { "client": "required", "server": "unsupported" }
+                              },
+                              {
+                                "path": "mods/ForgeConfigAPIPort-v21.11.1-mc1.21.11-Fabric.jar",
+                                "hashes": {
+                                  "sha1": "61aa1b5fafd75afc44552d0213cac39bc938bc2d",
+                                  "sha512": "28791c992d613da14b8685505d3ef632ed53b5f1e1d517f0b41677d10f8419f192dfbde991308df6cda5d0f113c0aa8fc18ecf4a0834029403b16d2f68dc52d6"
+                                },
+                                "downloads": ["https://cdn.modrinth.com/data/ohNO6lps/versions/uXrWPsCu/ForgeConfigAPIPort-v21.11.1-mc1.21.11-Fabric.jar"],
+                                "fileSize": 598009,
+                                "env": { "client": "required", "server": "unsupported" }
+                              },
+                              {
+                                "path": "mods/sootychimneys-fabric-1.3.4.jar",
+                                "hashes": {
+                                  "sha1": "581f752d94dc8cf160bbd01fba4b5934ba2e9420",
+                                  "sha512": "15899697947d3733902d34f230a85e6b8ca4a51fe76570c0af42f52916bb49199cb88af5208cee706ae7c7a8f2aa04d5621c3d45439ef208b238c6de0f5f31ce"
+                                },
+                                "downloads": ["https://cdn.modrinth.com/data/b3w1XM9H/versions/KZ9rHjKU/sootychimneys-fabric-1.3.4.jar"],
+                                "fileSize": 170257,
+                                "env": { "client": "required", "server": "unsupported" }
+                              },
+                              {
+                                "path": "mods/wilderflowers-1.0.4+1.21.11-fabric.jar",
+                                "hashes": {
+                                  "sha1": "6094531a6bd1fe14b3a5c34f3dce846984798f4e",
+                                  "sha512": "168d22fe62c25797b034339999b695761694c3d6369009da60034ed12c2a6e4fb79bc340c75dd53da31923cf002d98505b16ab43987f1361a9f1ded28a7e719b"
+                                },
+                                "downloads": ["https://cdn.modrinth.com/data/8lUQapTY/versions/pzZ7fqlk/wilderflowers-1.0.4%2B1.21.11-fabric.jar"],
+                                "fileSize": 3091196,
+                                "env": { "client": "required", "server": "unsupported" }
+                              },
+                              {
+                                "path": "mods/modmenu-17.0.0.jar",
+                                "hashes": {
+                                  "sha1": "544a8b340ac3918d85bcc7d02eaff5372814354b",
+                                  "sha512": "146f8c356f86c32e5aab76598e021ac123779c89fc7a51a486fccd2871d2751b02046b4eea3194e52f2e7f38abbb5f78301c8f49bde6e60e1839677db9c84e33"
+                                },
+                                "downloads": ["https://cdn.modrinth.com/data/mOgUt4GM/versions/Tyk71iSw/modmenu-17.0.0.jar"],
+                                "fileSize": 1115809,
+                                "env": { "client": "required", "server": "unsupported" }
+                              }
+                            ]
+                          }
+                          EOF
+
+                          # Package the mrpack (zip with modrinth.index.json at root)
+                          cd "$WORK"
+                          MRPACK="/tmp/kbve-mc-client-${VERSION}.mrpack"
+                          zip -j "$MRPACK" modrinth.index.json
+
+                          # Upload to modpack project
+                          cat > /tmp/pack-data.json <<JSON
+                          {
+                            "name": "KBVE MC Client $VERSION",
+                            "version_number": "$VERSION",
+                            "version_type": "$VERSION_TYPE",
+                            "project_id": "$PACK_PROJECT_ID",
+                            "loaders": ["mrpack"],
+                            "game_versions": $GAME_VERSIONS,
+                            "featured": true,
+                            "dependencies": [],
+                            "file_parts": ["mrpack"]
+                          }
+                          JSON
+
+                          echo "Uploading mrpack v$VERSION → modpack project $PACK_PROJECT_ID..."
+                          RESPONSE=$(curl -fsSL -X POST "https://api.modrinth.com/v2/version" \
+                            -H "Authorization: $MODRINTH_TOKEN" \
+                            -F "data=@/tmp/pack-data.json;type=application/json" \
+                            -F "mrpack=@$MRPACK;type=application/x-modrinth-modpack+zip")
+
+                          VERSION_ID=$(echo "$RESPONSE" | jq -r '.id')
+                          echo "Published mrpack — version id $VERSION_ID"
                   env:
                       - name: MODRINTH_TOKEN
                         valueFrom:
