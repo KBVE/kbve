@@ -222,6 +222,9 @@ declare -A MODS=(
   # Wilder Flowers 1.0.4 — scatters additional wildflower variants
   # across biomes. Client + server required.
   ["wilderflowers-1.0.4+1.21.11-fabric.jar"]="6094531a6bd1fe14b3a5c34f3dce846984798f4e https://cdn.modrinth.com/data/8lUQapTY/versions/pzZ7fqlk/wilderflowers-1.0.4%2B1.21.11-fabric.jar"
+  # FallingTree 1.21.11.3 — chop entire trees by breaking a single log.
+  # Server-required, client-optional. No hard dependencies.
+  ["FallingTree-1.21.11-1.21.11.3.jar"]="9daded812605231a5e1e9461a6e04258d0424761 https://cdn.modrinth.com/data/Fb4jn8m6/versions/Hnj3s9Ez/FallingTree-1.21.11-1.21.11.3.jar"
 )
 
 for name in "${!MODS[@]}"; do

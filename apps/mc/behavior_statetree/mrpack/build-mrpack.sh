@@ -180,6 +180,18 @@ cat > "$WORK_DIR/modrinth.index.json" << MANIFEST
       ],
       "fileSize": 1115809,
       "env": { "client": "required", "server": "unsupported" }
+    },
+    {
+      "path": "mods/FallingTree-1.21.11-1.21.11.3.jar",
+      "hashes": {
+        "sha1": "9daded812605231a5e1e9461a6e04258d0424761",
+        "sha512": "56b8b86846e65f9e070ee08af1baf0b8871ea5eb233a43961d0f937a6147f039eed44794a6b3661b4748e4da037e40aa48b903936960585b626bc9f5e9e308d9"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/Fb4jn8m6/versions/Hnj3s9Ez/FallingTree-1.21.11-1.21.11.3.jar"
+      ],
+      "fileSize": 488371,
+      "env": { "client": "optional", "server": "required" }
     }
   ]
 }
