@@ -1,0 +1,26 @@
+# MC schematic manifest — read by the map rotation job after a world reset
+# to re-establish persistent builds (city, ports, dungeon entrances, etc.).
+#
+# Each [[schematic]] entry maps a versioned .schem file in this directory to
+# an absolute block coordinate in the overworld. The pinned seed
+# (-4470905440626961808 — see fleet.yaml + docker-compose.dev.yml) guarantees
+# the terrain at these coordinates is identical across every environment, so a
+# build exported from dev pastes cleanly into prod.
+#
+# Schema:
+#   name        = "<bare schematic name, no .schem extension>"
+#   paste_at    = [x, y, z]  (absolute block coords, overworld)
+#   description = "<one-liner so future-you remembers what this is>"
+#
+# The rotation job applies entries in array order. If two schematics overlap,
+# the later entry wins (last-write semantics).
+#
+# This file starts intentionally empty. Add entries as real builds land.
+# Schema docs live in README.md alongside this file.
+
+# Example (commented out until real schematics are committed):
+#
+# [[schematic]]
+# name        = "main_city"
+# paste_at    = [0, 67, 0]
+# description = "Spawn city — town hall, market, info boards"
