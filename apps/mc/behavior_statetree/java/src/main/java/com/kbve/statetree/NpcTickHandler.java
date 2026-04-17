@@ -385,6 +385,19 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             int radius = spawn.get("radius").getAsInt();
             creatureManager.spawnNearPlayer(world, CreatureKinds.SKELETON_ARCHER, playerId, radius, false);
 
+        } else if (cmd.has("SpawnSkeletonHorsemenPack")) {
+            JsonObject spawn = cmd.getAsJsonObject("SpawnSkeletonHorsemenPack");
+            int playerId = spawn.get("near_player").getAsInt();
+            int radius = spawn.get("radius").getAsInt();
+            int horsemen = spawn.has("horsemen") ? spawn.get("horsemen").getAsInt() : 2;
+            int archers = spawn.has("archers") ? spawn.get("archers").getAsInt() : 3;
+            for (int i = 0; i < horsemen; i++) {
+                creatureManager.spawnNearPlayer(world, CreatureKinds.SKELETON_HORSEMAN, playerId, radius, false);
+            }
+            for (int i = 0; i < archers; i++) {
+                creatureManager.spawnNearPlayer(world, CreatureKinds.SKELETON_ARCHER, playerId, radius, false);
+            }
+
         } else if (cmd.has("MoveShip")) {
             JsonObject move = cmd.getAsJsonObject("MoveShip");
             String shipIdStr = move.get("ship_id").getAsString();
