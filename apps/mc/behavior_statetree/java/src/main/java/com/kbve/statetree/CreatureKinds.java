@@ -14,6 +14,7 @@ public final class CreatureKinds {
     public static final CreatureKind SKELETON_MELEE = new MeleeSkeletonKind();
     public static final CreatureKind SKELETON_MAGE = new MageSkeletonKind();
     public static final CreatureKind SKELETON_ARCHER = new ArcherSkeletonKind();
+    public static final CreatureKind SKELETON_HORSEMAN = new HorsemanSkeletonKind();
     public static final CreatureKind PET_DOG = new PetDogCreatureKind();
     public static final CreatureKind PET_PARROT = new PetParrotCreatureKind();
 
