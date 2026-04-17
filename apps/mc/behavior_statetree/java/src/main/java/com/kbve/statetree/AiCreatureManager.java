@@ -3,8 +3,10 @@ package com.kbve.statetree;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -297,6 +299,15 @@ public class AiCreatureManager {
                 Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
                 BlockPos.ofFloored(x, 0, z)
         );
+
+        // Reject underwater spawn positions — skeletons should not appear
+        // in rivers, oceans, or any waterlogged surface.
+        BlockState surfaceState = world.getBlockState(surface);
+        BlockState belowState = world.getBlockState(surface.down());
+        if (surfaceState.getFluidState().isIn(FluidTags.WATER)
+                || belowState.getFluidState().isIn(FluidTags.WATER)) {
+            return false;
+        }
 
         MobEntity mob = kind.create(world, surface, owner);
         if (mob == null) return false;

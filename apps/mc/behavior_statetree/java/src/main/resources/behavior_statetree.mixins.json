@@ -1,10 +1,10 @@
 {
 	"required": true,
 	"minVersion": "0.8",
-	"package": "com.kbve.statetree",
+	"package": "com.kbve.statetree.mixin",
 	"compatibilityLevel": "JAVA_21",
-	"mixins": ["mixin.BowAttackGoalMixin"],
-	"client": ["client.mixin.CameraMixin"],
+	"mixins": ["BowAttackGoalMixin"],
+	"client": ["client.CameraMixin"],
 	"injectors": {
 		"defaultRequire": 1
 	}
