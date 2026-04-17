@@ -2,7 +2,7 @@ plugins {
     id 'fabric-loom' version '1.16.1'
 }
 
-version = '0.1.0'
+version = '1.0.16'
 group = 'com.kbve'
 base.archivesName = 'behavior_statetree'
 

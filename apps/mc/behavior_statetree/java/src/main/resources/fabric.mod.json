@@ -1,7 +1,7 @@
 {
 	"schemaVersion": 1,
 	"id": "behavior_statetree",
-	"version": "0.1.0",
+	"version": "1.0.16",
 	"name": "Behavior State Tree",
 	"description": "Hybrid Rust/Tokio NPC AI planner with client-side ship rendering — async behavior trees, flow field pathfinding, and ship system.",
 	"authors": ["KBVE", "h0lybyte"],
