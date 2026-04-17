@@ -168,6 +168,30 @@ cat > "$WORK_DIR/modrinth.index.json" << MANIFEST
       ],
       "fileSize": 3091196,
       "env": { "client": "required", "server": "unsupported" }
+    },
+    {
+      "path": "mods/modmenu-17.0.0.jar",
+      "hashes": {
+        "sha1": "544a8b340ac3918d85bcc7d02eaff5372814354b",
+        "sha512": "146f8c356f86c32e5aab76598e021ac123779c89fc7a51a486fccd2871d2751b02046b4eea3194e52f2e7f38abbb5f78301c8f49bde6e60e1839677db9c84e33"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/mOgUt4GM/versions/Tyk71iSw/modmenu-17.0.0.jar"
+      ],
+      "fileSize": 1115809,
+      "env": { "client": "required", "server": "unsupported" }
+    },
+    {
+      "path": "mods/FallingTree-1.21.11-1.21.11.3.jar",
+      "hashes": {
+        "sha1": "9daded812605231a5e1e9461a6e04258d0424761",
+        "sha512": "56b8b86846e65f9e070ee08af1baf0b8871ea5eb233a43961d0f937a6147f039eed44794a6b3661b4748e4da037e40aa48b903936960585b626bc9f5e9e308d9"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/Fb4jn8m6/versions/Hnj3s9Ez/FallingTree-1.21.11-1.21.11.3.jar"
+      ],
+      "fileSize": 488371,
+      "env": { "client": "optional", "server": "required" }
     }
   ]
 }
