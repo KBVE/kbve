@@ -45,6 +45,10 @@ rules:
       resources: ['configmaps']
       verbs: ['get']
       resourceNames: ['kube-root-ca.crt']
+    # Read ArgoCD Applications to detect stuck syncs (>1h in Running).
+    - apiGroups: ['argoproj.io']
+      resources: ['applications']
+      verbs: ['get', 'list']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -203,7 +207,43 @@ spec:
                                       --argjson total "${TOTAL_COUNT}" \
                                       --argjson skipped "${SKIPPED_COUNT}" \
                                       --argjson ca_age "${CA_AGE_S}" \
-                                      '{level:"info",component:"ca-staleness-monitor",event:"scan_complete",scan_ts:$ts,ca_not_before:$not_before,ca_age_seconds:$ca_age,stale_pods:$stale,total_pods:$total,skipped_pods:$skipped}'
+                                      '{level:"info",component:"ca-staleness-monitor",event:"ca_scan_complete",scan_ts:$ts,ca_not_before:$not_before,ca_age_seconds:$ca_age,stale_pods:$stale,total_pods:$total,skipped_pods:$skipped}'
+
+                                  # ── ArgoCD sync stall detection ────────────────
+                                  # Any Application stuck in a Running sync phase
+                                  # for over 1 hour is likely deadlocked (health
+                                  # check wait on a resource that will never heal).
+                                  STUCK_THRESHOLD=3600
+                                  STUCK_COUNT=0
+
+                                  APPS=$(kubectl get applications.argoproj.io -n argocd \
+                                      -o jsonpath='{range .items[*]}{.metadata.name}|{.status.operationState.phase}|{.status.operationState.startedAt}|{.status.sync.status}|{.status.operationState.message}{"\n"}{end}' \
+                                      2>/dev/null || echo "")
+
+                                  while IFS='|' read -r APP_NAME PHASE STARTED SYNC_STATUS MSG; do
+                                      [ -z "${APP_NAME}" ] && continue
+                                      [ "${PHASE}" != "Running" ] && continue
+
+                                      STARTED_EPOCH=$(date -u -d "${STARTED}" +%s 2>/dev/null || echo 0)
+                                      [ "${STARTED_EPOCH}" = "0" ] && continue
+
+                                      ELAPSED=$((NOW - STARTED_EPOCH))
+                                      if [ "${ELAPSED}" -ge "${STUCK_THRESHOLD}" ]; then
+                                          jq -cn \
+                                              --arg ts "${SCAN_TS}" \
+                                              --arg app "${APP_NAME}" \
+                                              --arg sync "${SYNC_STATUS}" \
+                                              --arg msg "${MSG}" \
+                                              --argjson elapsed "${ELAPSED}" \
+                                              '{level:"warn",component:"ca-staleness-monitor",event:"argocd_sync_stuck",scan_ts:$ts,application:$app,sync_status:$sync,elapsed_seconds:$elapsed,blocking_message:$msg,recommendation:"Terminate the stuck operation and investigate the blocking resource"}'
+                                          STUCK_COUNT=$((STUCK_COUNT + 1))
+                                      fi
+                                  done <<< "${APPS}"
+
+                                  jq -cn \
+                                      --arg ts "${SCAN_TS}" \
+                                      --argjson stuck "${STUCK_COUNT}" \
+                                      '{level:"info",component:"ca-staleness-monitor",event:"argocd_scan_complete",scan_ts:$ts,stuck_syncs:$stuck}'
                     volumes:
                         - name: tmp
                           emptyDir: {}
