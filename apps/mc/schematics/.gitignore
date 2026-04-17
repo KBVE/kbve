@@ -1,0 +1,7 @@
+# Backup files WorldEdit writes alongside saves
+*.schem.bak
+*.schematic.bak
+
+# Dev scratch — anything prefixed with `_` is local-only
+_*.schem
+_*.schematic
