@@ -22,6 +22,8 @@ dashmap = "6"
 # into the VM on its TAP IP. No TLS needed — connections are plaintext
 # over the internal /30 link inside the pod netns.
 reqwest = { version = "0.12", default-features = false, features = ["stream"] }
+# Used by fc_destroy to SIGTERM the VMM process via kill(2).
+libc = "0.2"
 
 [features]
 default = []
