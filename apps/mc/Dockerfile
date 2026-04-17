@@ -180,6 +180,36 @@ declare -A MODS=(
   # WorldEdit 7.4.2 — in-game world editor. Fabric build supports 1.21.11.
   # Permissions are gated through LuckPerms (worldedit.* nodes).
   ["worldedit-mod-7.4.2.jar"]="2f5c35ab2d0dffa1be99ed6016132596949e59b3 https://cdn.modrinth.com/data/1u6JkXh5/versions/oY3E2pzA/worldedit-mod-7.4.2.jar"
+  # Tectonic 3.0.19 — worldgen overhaul (Fabric mod variant of the
+  # datapack). Generates dramatic mountains, deep valleys, and expanded
+  # cave systems. Only affects newly generated chunks — existing terrain
+  # is untouched. Pair with map-rotation.sh to regenerate outer regions
+  # with Tectonic terrain while preserving the starter zone.
+  ["tectonic-3.0.19-fabric-1.21.11.jar"]="ab0ad94c096070d36a050ec2ad56f0525d280d8c https://cdn.modrinth.com/data/lWDHr9jE/versions/7olSYFxL/tectonic-3.0.19-fabric-1.21.11.jar"
+  # Incendium 5.4.12 — Nether worldgen overhaul. Adds dramatic Nether
+  # biomes, structures, and terrain using vanilla blocks. Server-side
+  # only — no client mod required.
+  ["Incendium_26.1_v5.4.12.jar"]="74f78445b6da346eb08a9f730e86dc77925eed46 https://cdn.modrinth.com/data/ZVzW5oNS/versions/dmD183NM/Incendium_26.1_v5.4.12.jar"
+  # ── Oh The Biomes We've Gone (BYG) + dependencies ──────────────────
+  # BYG replaces vanilla biome distribution with 80+ custom biomes,
+  # new trees, blocks, and terrain features. Unlike Tectonic/Incendium,
+  # BYG adds custom assets — clients MUST install BYG + deps via the
+  # KBVE Modrinth modpack.
+  #
+  # TerraBlender — biome injection API. Required by BYG to register
+  # custom biomes into the vanilla biome source without conflicts.
+  ["TerraBlender-fabric-1.21.11-21.11.0.0.jar"]="e4bd1aee6bc8c56ae77647a06f31a3bd981962a6 https://cdn.modrinth.com/data/kkmrDlKT/versions/chxo508B/TerraBlender-fabric-1.21.11-21.11.0.0.jar"
+  # CorgiLib — shared config/codec utilities. Required by BYG and
+  # Oh The Trees You'll Grow.
+  ["Corgilib-Fabric-1.21.11-9.0.0.0.jar"]="687e58061bed7d5e37776fe414076debb5292625 https://cdn.modrinth.com/data/ziOp6EO8/versions/y5NhX0ok/Corgilib-Fabric-1.21.11-9.0.0.0.jar"
+  # GeckoLib — animation/rendering engine. Required by BYG for
+  # animated entity models and block renders.
+  ["geckolib-fabric-1.21.11-5.4.5.jar"]="41cd2e142e48a8b6604d85764a6466fe5edb70c3 https://cdn.modrinth.com/data/8BmcQJ2H/versions/G1BvHQDL/geckolib-fabric-1.21.11-5.4.5.jar"
+  # Oh The Trees You'll Grow — tree generation library. Required by
+  # BYG for its custom tree structures via structure template files.
+  ["Oh-The-Trees-Youll-Grow-fabric-1.21.11-9.0.0.jar"]="abdcfd53514cce7110638866ec1716faa50e8cb1 https://cdn.modrinth.com/data/g8NOG5OR/versions/RttF1Lcs/Oh-The-Trees-Youll-Grow-fabric-1.21.11-9.0.0.jar"
+  # Oh The Biomes We've Gone (BYG) 4.3.3 — the main biome mod.
+  ["Oh-The-Biomes-Weve-Gone-Fabric-4.3.3.jar"]="d6fa332917da0d8e7cd401b4537923c62cc79a07 https://cdn.modrinth.com/data/NTi7d3Xc/versions/zfKCnGWj/Oh-The-Biomes-Weve-Gone-Fabric-4.3.3.jar"
 )
 
 for name in "${!MODS[@]}"; do
