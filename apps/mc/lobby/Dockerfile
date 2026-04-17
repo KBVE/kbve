@@ -32,6 +32,7 @@ ENV SPAWN_PROTECTION=16
 # forwarded sessions (same pattern as apps/mc Fabric backend).
 ENV ONLINE_MODE=false
 ENV SERVER_PORT=25565
+ENV PAUSE_WHEN_EMPTY_SECONDS=0
 
 # ── Superflat peaceful world ──────────────────────────────────────────
 # Vanilla flat preset: bedrock + 2 dirt + grass, plains biome, no
