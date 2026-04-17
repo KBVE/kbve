@@ -83,6 +83,8 @@ spec:
                         value: 'false'
                       - name: SERVER_PORT
                         value: '25565'
+                      - name: PAUSE_WHEN_EMPTY_SECONDS
+                        value: '0'
                       # Superflat peaceful world — no mobs, no damage.
                       - name: LEVEL_TYPE
                         value: 'minecraft:flat'
