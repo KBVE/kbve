@@ -26,17 +26,23 @@ macro_rules! spellbook_create_jwt {
     }};
 }
 
-#[macro_export]
-macro_rules! spellbook_create_cookie {
-    ($name:expr, $token:expr, $duration:expr) => {
-        axum_extra::extract::cookie::Cookie::build(($name, $token))
-            .path("/")
-            .max_age(time::Duration::hours($duration))
-            .same_site(axum_extra::extract::cookie::SameSite::Lax)
-            .http_only(true)
-            .secure(true)
-            .build()
-    };
+/// Build a Set-Cookie header value with Secure, HttpOnly, SameSite=Lax.
+///
+/// Replaces the old `spellbook_create_cookie!` macro so static analyzers
+/// (CodeQL `rust/insecure-cookie`) can verify `.secure(true)` without
+/// needing macro expansion.
+pub fn spellbook_create_cookie<'a>(
+    name: &'a str,
+    token: &'a str,
+    duration: i64,
+) -> axum_extra::extract::cookie::Cookie<'a> {
+    axum_extra::extract::cookie::Cookie::build((name, token))
+        .path("/")
+        .max_age(time::Duration::hours(duration))
+        .same_site(axum_extra::extract::cookie::SameSite::Lax)
+        .http_only(true)
+        .secure(true)
+        .build()
 }
 
 #[macro_export]
