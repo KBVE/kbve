@@ -1566,7 +1566,7 @@ dependencies = [
 
 [[package]]
 name = "behavior_statetree"
-version = "0.1.0"
+version = "1.0.16"
 dependencies = [
  "bevy",
  "bevy_npc",
