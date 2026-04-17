@@ -210,6 +210,15 @@ declare -A MODS=(
   ["Oh-The-Trees-Youll-Grow-fabric-1.21.11-9.0.0.jar"]="abdcfd53514cce7110638866ec1716faa50e8cb1 https://cdn.modrinth.com/data/g8NOG5OR/versions/RttF1Lcs/Oh-The-Trees-Youll-Grow-fabric-1.21.11-9.0.0.jar"
   # Oh The Biomes We've Gone (BYG) 4.3.3 — the main biome mod.
   ["Oh-The-Biomes-Weve-Gone-Fabric-4.3.3.jar"]="d6fa332917da0d8e7cd401b4537923c62cc79a07 https://cdn.modrinth.com/data/NTi7d3Xc/versions/zfKCnGWj/Oh-The-Biomes-Weve-Gone-Fabric-4.3.3.jar"
+  # ── Decorative worldgen mods ────────────��───────────────────────────
+  # Forge Config API Port — config library required by Sooty Chimneys.
+  ["ForgeConfigAPIPort-v21.11.1-mc1.21.11-Fabric.jar"]="61aa1b5fafd75afc44552d0213cac39bc938bc2d https://cdn.modrinth.com/data/ohNO6lps/versions/uXrWPsCu/ForgeConfigAPIPort-v21.11.1-mc1.21.11-Fabric.jar"
+  # Sooty Chimneys 1.3.4 — adds smoking chimney blocks to village
+  # buildings and player-built structures. Client + server required.
+  ["sootychimneys-fabric-1.3.4.jar"]="581f752d94dc8cf160bbd01fba4b5934ba2e9420 https://cdn.modrinth.com/data/b3w1XM9H/versions/KZ9rHjKU/sootychimneys-fabric-1.3.4.jar"
+  # Wilder Flowers 1.0.4 — scatters additional wildflower variants
+  # across biomes. Client + server required.
+  ["wilderflowers-1.0.4+1.21.11-fabric.jar"]="6094531a6bd1fe14b3a5c34f3dce846984798f4e https://cdn.modrinth.com/data/8lUQapTY/versions/pzZ7fqlk/wilderflowers-1.0.4%2B1.21.11-fabric.jar"
 )
 
 for name in "${!MODS[@]}"; do
