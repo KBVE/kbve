@@ -116,3 +116,25 @@ data:
         hs.status = "Healthy"
         hs.message = "Runner set configured"
         return hs
+    # LoadBalancer Services with a pending external IP should not block
+    # ArgoCD sync completion. Cilium LB-IPAM may take time to allocate
+    # or the IP pool may be exhausted — neither should deadlock the
+    # entire Application's sync wave. Treat pending as Progressing so
+    # other resources in the same app can still land.
+    resource.customizations.health.Service: |
+        hs = {}
+        if obj.spec.type == "LoadBalancer" then
+          if obj.status and obj.status.loadBalancer and obj.status.loadBalancer.ingress then
+            local ingress = obj.status.loadBalancer.ingress
+            if #ingress > 0 and (ingress[1].ip or ingress[1].hostname) then
+              hs.status = "Healthy"
+              hs.message = "LoadBalancer IP assigned"
+              return hs
+            end
+          end
+          hs.status = "Progressing"
+          hs.message = "Waiting for LoadBalancer IP (non-blocking)"
+          return hs
+        end
+        hs.status = "Healthy"
+        return hs

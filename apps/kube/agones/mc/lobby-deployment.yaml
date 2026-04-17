@@ -145,10 +145,23 @@ spec:
                       # the world itself survive pod restarts.
                       - name: mc-lobby-data
                         mountPath: /data
-                  # No health/readiness probes for v1 — Paper takes ~30s
-                  # to fully accept connections, but Velocity's retry
-                  # logic handles it. Can add TCP probes later if the
-                  # lobby ever gets flaky.
+                  # Readiness: TCP socket — fast check, removes pod from
+                  # Service until Paper is accepting connections.
+                  readinessProbe:
+                      tcpSocket:
+                          port: 25565
+                      initialDelaySeconds: 120
+                      periodSeconds: 10
+                      failureThreshold: 3
+                  # Liveness: mc-health sends a real MC status ping —
+                  # catches hung JVMs that hold the socket open but
+                  # never respond to the protocol handshake.
+                  livenessProbe:
+                      exec:
+                          command: ['mc-health']
+                      initialDelaySeconds: 180
+                      periodSeconds: 30
+                      failureThreshold: 3
             volumes:
                 - name: mc-lobby-data
                   persistentVolumeClaim:
