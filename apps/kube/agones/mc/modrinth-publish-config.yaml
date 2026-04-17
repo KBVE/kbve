@@ -1,0 +1,30 @@
+---
+# Tunables for the in-cluster Modrinth publishing Job
+# (modrinth-publish-job.yaml). Kept as a ConfigMap so admins can adjust
+# loaders / game versions / channel without re-sealing the token secret
+# or rebuilding the publisher image.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: mc-modrinth-config
+    namespace: mc
+data:
+    # Modrinth project ID (NOT the slug). Look up via:
+    #   curl https://api.modrinth.com/v2/project/<your-slug> | jq .id
+    # Project type: server-side mod (server_side=required, client_side=optional).
+    MODRINTH_PROJECT_ID: '86Wqkiak'
+
+    # alpha | beta | release — the Modrinth channel new uploads land in.
+    # Stay on alpha while the mod is in active development.
+    VERSION_TYPE: 'alpha'
+
+    # Stringified JSON arrays — interpolated verbatim into the multipart
+    # JSON body posted to /v2/version. Keep in sync with the Fabric
+    # mod's `build.gradle` minecraft + loader pins.
+    LOADERS: '["fabric"]'
+    GAME_VERSIONS: '["1.21.11"]'
+
+    # Required runtime dependencies declared on every published version.
+    # Fabric API project id P7dR8mSH is canonical (not the slug, which
+    # can be re-pointed by the Modrinth team).
+    DEPENDENCIES: '[{"project_id":"P7dR8mSH","dependency_type":"required"}]'
