@@ -96,9 +96,8 @@ namespace RareIcon
                 _lastCameraChunk = cameraChunk;
                 _currentLoadRadius = loadRadius;
                 RequestMissingChunks(cameraChunk, loadRadius);
+                UnloadDistantChunks(cameraChunk, unloadRadius);
             }
-
-            UnloadDistantChunks(cameraChunk, unloadRadius);
 
             // Consume worker thread results
             int budget = _initialLoad ? 50 : MaxSpawnsPerFrame;
