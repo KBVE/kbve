@@ -37,7 +37,7 @@ prost = "0.14.1"
 chrono = { version = "0.4", features = ["serde"] }
 
 # DB + Auth (Phase 5)
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
 jsonwebtoken = { version = "10", features = ["rust_crypto"] }
 dashmap = { version = "6.1", features = ["rayon"] }
 rayon = "1.10"

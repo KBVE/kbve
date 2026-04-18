@@ -28,6 +28,11 @@ struct ServiceProxy {
     /// from upstream responses so the proxied service can be embedded in an iframe
     /// (e.g. KASM workspace viewer).
     iframe_safe: bool,
+    /// When true, stream the response body instead of buffering it.
+    /// Required for services with chunked/streaming responses that
+    /// can't be fully buffered (e.g. KASM websockify sends responses
+    /// that hyper fails to decode when buffered via `.bytes().await`).
+    streaming: bool,
 }
 
 impl ServiceProxy {
@@ -204,6 +209,46 @@ impl ServiceProxy {
             resp_headers.remove("content-security-policy-report-only");
         }
 
+        // --- Streaming mode ---
+        // Stream the response body through without buffering. Required
+        // for services that send chunked/streaming responses that fail
+        // when fully buffered (e.g. KASM websockify — hyper can't always
+        // decode the full body in one shot, causing "error decoding
+        // response body" when calling `.bytes().await`).
+        if self.streaming {
+            if upstream_status >= 500 {
+                warn!(
+                    %upstream_url, upstream_status,
+                    "{} upstream returned {} (streaming — no body preview)",
+                    self.name, upstream_status
+                );
+                return (
+                    StatusCode::BAD_GATEWAY,
+                    axum::Json(json!({
+                        "error": format!("{} upstream error", self.name),
+                        "reason": format!("upstream returned {upstream_status}"),
+                    })),
+                )
+                    .into_response();
+            }
+
+            let body = Body::from_stream(upstream_resp.bytes_stream());
+            let mut response = Response::builder().status(status);
+            if let Some(h) = response.headers_mut() {
+                *h = resp_headers;
+            }
+            return response
+                .body(body)
+                .unwrap_or_else(|_| {
+                    Response::builder()
+                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                        .body(Body::empty())
+                        .unwrap()
+                })
+                .into_response();
+        }
+
+        // --- Buffered mode (default) ---
         let resp_body = match upstream_resp.bytes().await {
             Ok(b) => b,
             Err(e) => {
@@ -441,6 +486,7 @@ pub fn init_grafana_proxy() -> bool {
             upstream,
             upstream_token: None,
             iframe_safe: false,
+            streaming: false,
         })
         .is_ok()
 }
@@ -507,6 +553,7 @@ pub fn init_argo_proxy() -> bool {
         upstream,
         upstream_token: Some(auth_token),
         iframe_safe: false,
+        streaming: false,
     })
     .is_ok()
 }
@@ -554,6 +601,7 @@ pub fn init_clickhouse_logs_proxy() -> bool {
             upstream,
             upstream_token: Some(service_role_key),
             iframe_safe: false,
+            streaming: false,
         })
         .is_ok()
 }
@@ -603,6 +651,7 @@ pub fn init_forgejo_proxy() -> bool {
             upstream,
             upstream_token: Some(auth_token),
             iframe_safe: false,
+            streaming: false,
         })
         .is_ok()
 }
@@ -686,6 +735,7 @@ pub fn init_kubevirt_proxy() -> bool {
             upstream,
             upstream_token: Some(auth_token),
             iframe_safe: false,
+            streaming: false,
         })
         .is_ok()
 }
@@ -825,8 +875,12 @@ pub fn init_kasm_proxy() -> bool {
     let mut builder = Client::builder()
         .redirect(reqwest::redirect::Policy::none())
         .connect_timeout(Duration::from_secs(10))
-        .timeout(Duration::from_secs(30))
-        .danger_accept_invalid_certs(true); // KASM uses self-signed certs internally
+        // No overall timeout — KASM streams VNC data that can last hours.
+        // The Cilium gateway already caps the outer request at 3600s.
+        .danger_accept_invalid_certs(true) // KASM uses self-signed certs internally
+        // Force HTTP/1.1 — websockify (KASM's built-in server) doesn't
+        // support h2 and ALPN negotiation can cause spurious resets.
+        .http1_only();
 
     // Load in-cluster CA if available
     let ca_path = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt";
@@ -846,6 +900,8 @@ pub fn init_kasm_proxy() -> bool {
         upstream: upstream.trim_end_matches('/').to_string(),
         upstream_token: None, // KASM uses its own VNC_PW auth
         iframe_safe: true,    // strip X-Frame-Options for iframe embedding
+        streaming: true,      // stream response body — websockify sends
+                              // chunked responses that fail when buffered
     })
     .is_ok()
 }
@@ -1047,6 +1103,7 @@ pub fn init_firecracker_proxy() -> bool {
             upstream: upstream.trim_end_matches('/').to_string(),
             upstream_token: None,
             iframe_safe: false,
+            streaming: false,
         })
         .is_ok()
 }
@@ -1091,6 +1148,7 @@ pub fn init_firecracker_net_proxy() -> bool {
             upstream: upstream.trim_end_matches('/').to_string(),
             upstream_token: None,
             iframe_safe: false,
+            streaming: false,
         })
         .is_ok()
 }
@@ -1202,6 +1260,7 @@ pub fn init_guacamole_proxy() -> bool {
             upstream: upstream.trim_end_matches('/').to_string(),
             upstream_token: None, // Guacamole uses its own session auth
             iframe_safe: false,
+            streaming: false,
         })
         .is_ok()
 }
@@ -1373,6 +1432,7 @@ pub fn init_edge_proxy() -> bool {
         upstream,
         upstream_token: Some(service_role_key),
         iframe_safe: false,
+        streaming: false,
     })
     .is_ok()
 }
@@ -1414,6 +1474,7 @@ pub fn init_chuckrpg_proxy() -> bool {
             upstream,
             upstream_token: None,
             iframe_safe: false,
+            streaming: false,
         })
         .is_ok()
 }
