@@ -24,8 +24,10 @@ Shader "RareIcon/OceanBackground"
             Name "OceanBackground"
 
             HLSLPROGRAM
+            #pragma target 4.5
             #pragma vertex vert
             #pragma fragment frag
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
@@ -33,12 +35,14 @@ Shader "RareIcon/OceanBackground"
             {
                 float4 positionOS : POSITION;
                 float2 uv : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             CBUFFER_START(UnityPerMaterial)
@@ -51,6 +55,19 @@ Shader "RareIcon/OceanBackground"
                 float4 _WorldOffset;
                 float _WorldScale;
             CBUFFER_END
+
+            #ifdef DOTS_INSTANCING_ON
+            UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
+                UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float4, _WaterCol)
+                UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float4, _Water2Col)
+                UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float4, _FoamCol)
+                UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float, _UVScale)
+                UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float, _DistortionSpeed)
+                UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float, _FBMStrength)
+                UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float4, _WorldOffset)
+                UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float, _WorldScale)
+            UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
+            #endif
 
             #define M_2PI 6.283185307
             #define M_6PI 18.84955592
@@ -215,6 +232,8 @@ Shader "RareIcon/OceanBackground"
             Varyings vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
                 output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
                 output.uv = input.uv + _WorldOffset.xy / _WorldScale;
                 return output;
@@ -222,6 +241,7 @@ Shader "RareIcon/OceanBackground"
 
             float4 frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_INSTANCE_ID(input);
                 float2 uv = input.uv * _UVScale;
                 float3 col = water(uv);
                 return float4(col, 1.0);

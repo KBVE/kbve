@@ -23,24 +23,13 @@ namespace RareIcon
             builder.RegisterBuildCallback(container =>
             {
                 GlobalMessagePipe.SetProvider(container.AsServiceProvider());
-                container.Resolve<OceanBackground>();
-                container.Resolve<HexBiomeLayer>();
                 container.Resolve<UIPanelManager>();
             });
 
             // -- Services --
-            builder.Register<CameraService>(Lifetime.Singleton);
+            builder.Register<CameraService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             builder.Register<LocaleService>(Lifetime.Singleton);
             builder.Register<InventoryService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
-
-            // -- World (loaded on title for early rendering) --
-            builder.RegisterComponentOnNewGameObject<OceanBackground>(Lifetime.Singleton, "OceanBackground")
-                .DontDestroyOnLoad()
-                .AsSelf();
-
-            builder.RegisterComponentOnNewGameObject<HexBiomeLayer>(Lifetime.Singleton, "HexBiomeLayer")
-                .DontDestroyOnLoad()
-                .AsSelf();
 
             // -- UI --
             builder.RegisterComponentOnNewGameObject<UIPanelManager>(Lifetime.Singleton, "UIPanelManager")
@@ -49,6 +38,11 @@ namespace RareIcon
 
             // -- Entry Points --
             builder.RegisterEntryPoint<TitleEntryPoint>();
+
+            // World rendering (ocean, hex tiles) handled by ECS systems:
+            // - OceanSpawnSystem: creates ocean entity
+            // - OceanTrackCameraSystem: follows camera each frame
+            // - HexSpawnSystem: generates biome data + spawns hex entities
         }
 
         protected override void Awake()

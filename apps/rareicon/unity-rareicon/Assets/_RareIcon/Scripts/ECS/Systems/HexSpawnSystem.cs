@@ -35,7 +35,7 @@ namespace RareIcon
 
             int mapSize = 64;
             int seed = 1337;
-            float hexSize = 0.5f;
+            float hexSize = 0.25f;
 
             // Generate biome data via Burst job
             var generator = new BiomeGenerator(mapSize, seed);
