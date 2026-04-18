@@ -1,6 +1,7 @@
 fn main() {
     csbindgen::Builder::default()
         .input_extern_file("src/lib.rs")
+        .input_extern_file("src/ffi_inventory.rs")
         .input_extern_file("src/ffi_pathfinding.rs")
         .csharp_dll_name("uniti")
         .csharp_dll_name_if("UNITY_IOS && !UNITY_EDITOR", "__Internal")

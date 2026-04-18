@@ -24,6 +24,85 @@ namespace RareIcon.Native
 
 
         /// <summary>
+        ///  Create an inventory with the given slot capacity.
+        ///  Caller must free with `uniti_inventory_free`.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_inventory_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void* uniti_inventory_new(uint max_slots);
+
+        /// <summary>
+        ///  Free an inventory.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_inventory_free", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_inventory_free(void* inv);
+
+        /// <summary>
+        ///  Add items to the inventory. Returns overflow count (0 = all fit).
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_inventory_add", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_inventory_add(void* inv, ushort item_id, uint quantity);
+
+        /// <summary>
+        ///  Remove items from the inventory. Returns amount actually removed.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_inventory_remove", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_inventory_remove(void* inv, ushort item_id, uint quantity);
+
+        /// <summary>
+        ///  Count total quantity of an item kind.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_inventory_count", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_inventory_count(void* inv, ushort item_id);
+
+        /// <summary>
+        ///  Number of occupied slots.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_inventory_slot_count", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_inventory_slot_count(void* inv);
+
+        /// <summary>
+        ///  Read a specific slot. Returns FfiSlot with valid=0 if out of bounds.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_inventory_get_slot", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern FfiSlot uniti_inventory_get_slot(void* inv, uint index);
+
+        /// <summary>
+        ///  Check if the inventory has room for a quantity of an item.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_inventory_has_room", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_inventory_has_room(void* inv, ushort item_id, uint quantity);
+
+        /// <summary>
+        ///  Swap two slots. Returns 1 on success, 0 on failure.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_inventory_swap", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_inventory_swap(void* inv, uint a, uint b);
+
+        /// <summary>
+        ///  Split a stack. Returns 1 on success, 0 on failure.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_inventory_split", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_inventory_split(void* inv, uint slot, uint quantity);
+
+        /// <summary>
+        ///  Merge slot `from` into slot `to`. Returns items moved.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_inventory_merge", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_inventory_merge(void* inv, uint from, uint to);
+
+        /// <summary>
+        ///  Compact fragmented stacks.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_inventory_compact", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_inventory_compact(void* inv);
+
+        /// <summary>
+        ///  Clear all items.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_inventory_clear", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_inventory_clear(void* inv);
+
+        /// <summary>
         ///  Create an empty grid. Caller must free with `uniti_grid_free`.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_grid_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
@@ -83,6 +162,17 @@ namespace RareIcon.Native
         public static extern void uniti_flow_free(void* field);
 
 
+    }
+
+    /// <summary>
+    ///  Slot data returned to C#.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct FfiSlot
+    {
+        public ushort item_id;
+        public uint quantity;
+        public byte valid;
     }
 
     [StructLayout(LayoutKind.Sequential)]
