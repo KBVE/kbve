@@ -1,0 +1,47 @@
+---
+title: GNU Lesser General Public License v3.0
+description: The LGPL-3.0 License as referenced by dependencies within the KBVE monorepo.
+sidebar:
+    label: LGPL-3.0
+    order: 17
+tags:
+    - legal
+    - license
+    - lgpl
+    - open-source
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## GNU Lesser General Public License v3.0
+
+<Aside type="caution" title="Weak Copyleft">
+  LGPL-3.0 allows proprietary software to **link** against LGPL-licensed
+  libraries without the proprietary code becoming GPL-licensed. However,
+  modifications to the LGPL library itself must be released under LGPL-3.0,
+  and users must be able to replace the LGPL library with a modified version.
+</Aside>
+
+The full text of the GNU Lesser General Public License v3.0 is available at
+[https://www.gnu.org/licenses/lgpl-3.0.en.html](https://www.gnu.org/licenses/lgpl-3.0.en.html).
+
+The LGPL-3.0 is defined as an additional set of permissions on top of the
+[GPL-3.0](/legal/gpl-3/). It inherits all GPL-3.0 terms and adds exceptions
+for linking.
+
+### What this means
+
+The LGPL-3.0 is a weak copyleft license designed for libraries. Key provisions:
+
+- **Linking exception**: Proprietary applications can link to LGPL-3.0 libraries (statically or dynamically) without the application itself becoming GPL-licensed.
+- **Library modifications**: If you modify the LGPL library's source, the modified library must be released under LGPL-3.0.
+- **User freedom**: End users must be able to replace the LGPL library with their own modified version (typically satisfied by dynamic linking or providing object files for relinking).
+- **Patent grant**: Same as GPL-3.0 — contributors grant patent rights.
+
+### Where this applies
+
+LGPL-3.0 is common in media processing libraries (FFmpeg components, audio
+codecs), GUI toolkits, and system libraries. When the KBVE monorepo links
+against an LGPL-3.0 library, the linking exception allows the surrounding
+proprietary application to remain under the [EULA](/legal/eula/), while the
+LGPL library itself retains its copyleft obligations.

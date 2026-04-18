@@ -107,15 +107,35 @@ license governs solely for that component.
 The following open-source licenses may apply to components within the KBVE
 monorepo and distributed applications:
 
--   [MIT License](/legal/mit/) — permissive; allows use, modification, and redistribution with attribution.
--   [Apache License 2.0](/legal/apache-2/) — permissive with patent grant; allows use, modification, and redistribution.
--   [GNU General Public License v3.0](/legal/gpl-3/) — copyleft; derivative works must be distributed under the same license.
+**Permissive licenses** — allow use, modification, and redistribution with minimal conditions:
+
+-   [MIT License](/legal/mit/) — attribution required.
+-   [Apache License 2.0](/legal/apache-2/) — attribution + express patent grant.
+-   [BSD 2-Clause](/legal/bsd-2/) — attribution in source and binary distributions.
+-   [BSD 3-Clause](/legal/bsd-3/) — attribution + no-endorsement clause.
+-   [ISC License](/legal/isc/) — functionally equivalent to MIT, common in npm ecosystem.
+
+**Copyleft licenses** — require derivative works or modifications to carry the same license:
+
+-   [GNU General Public License v3.0](/legal/gpl-3/) — full copyleft; derivative works must be GPL-3.0.
+-   [GNU Lesser General Public License v3.0](/legal/lgpl-3/) — weak copyleft; linking exception for proprietary code.
+-   [Mozilla Public License 2.0](/legal/mpl-2/) — file-level copyleft; modified files must stay MPL-2.0.
+
+**Creative Commons licenses** — for non-code assets (textures, documentation, schematics, audio):
+
+-   [CC BY 4.0](/legal/cc-by-4/) — share and adapt with attribution.
+-   [CC BY-SA 4.0](/legal/cc-by-sa-4/) — share and adapt with attribution + ShareAlike.
+
+**Public domain dedications** — no conditions whatsoever:
+
+-   [The Unlicense / CC0](/legal/unlicense/) — waives all copyright; no attribution required.
 
 Each component's `Cargo.toml`, `package.json`, or `LICENSE` file specifies
 which license applies. Components that do not specify a license are governed
-by this EULA. Where a distributed binary incorporates a GPL-3.0 dependency,
-the relevant source code is made available as required by that license, and
-the GPL-licensed portions are excluded from the scope of this EULA.
+by this EULA. Where a distributed binary incorporates a copyleft dependency
+(GPL-3.0, LGPL-3.0, or MPL-2.0), the relevant source code is made available
+as required by that license, and the copyleft-licensed portions are excluded
+from the scope of this EULA.
 
 You may review the full text of each license on the pages linked above.
 
