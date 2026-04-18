@@ -47,6 +47,11 @@ namespace RareIcon
     public struct HexSelectedTag : IComponentData { }
 
     /// <summary>
+    /// Tag for the single hover overlay entity. Moves to hovered hex position.
+    /// </summary>
+    public struct HexHoverOverlayTag : IComponentData { }
+
+    /// <summary>
     /// Singleton — cached mouse state for off-main-thread access.
     /// Updated once per frame by CameraService on the main thread.
     /// Any worker thread system can read this safely.

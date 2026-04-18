@@ -1,21 +1,23 @@
-Shader "RareIcon/HexTile"
+Shader "RareIcon/HexHoverOverlay"
 {
     Properties
     {
-        _BaseColor ("Base Color", Color) = (0.3, 0.65, 0.2, 1.0)
-        _BorderColor ("Border Color", Color) = (0.1, 0.1, 0.08, 0.6)
-        _BorderWidth ("Border Width", Float) = 0.06
+        _Color ("Border Color", Color) = (1.0, 1.0, 1.0, 0.9)
+        _InnerRadius ("Inner Radius", Float) = 0.18
+        _OuterRadius ("Outer Radius", Float) = 0.23
     }
 
     SubShader
     {
-        Tags { "RenderType"="Opaque" "Queue"="Geometry" "RenderPipeline"="UniversalPipeline" }
+        Tags { "RenderType"="Transparent" "Queue"="Transparent+1" "RenderPipeline"="UniversalPipeline" }
         LOD 100
+        Blend SrcAlpha OneMinusSrcAlpha
+        ZWrite Off
         Cull Off
 
         Pass
         {
-            Name "HexTile"
+            Name "HexHoverOverlay"
 
             HLSLPROGRAM
             #pragma target 4.5
@@ -28,37 +30,28 @@ Shader "RareIcon/HexTile"
             struct Attributes
             {
                 float4 positionOS : POSITION;
-                float2 uv : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                float2 uv : TEXCOORD0;
-                float2 localPos : TEXCOORD1;
+                float2 localPos : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             CBUFFER_START(UnityPerMaterial)
-                float4 _BaseColor;
-                float4 _BorderColor;
-                float _BorderWidth;
+                float4 _Color;
+                float _InnerRadius;
+                float _OuterRadius;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
             UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
-                UNITY_DOTS_INSTANCED_PROP(float4, _BaseColor)
-                UNITY_DOTS_INSTANCED_PROP(float4, _BorderColor)
-                UNITY_DOTS_INSTANCED_PROP(float, _BorderWidth)
+                UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float4, _Color)
             UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
-
-            #define _BaseColor    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _BaseColor)
-            #define _BorderColor  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _BorderColor)
-            #define _BorderWidth  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _BorderWidth)
             #endif
 
-            // Hex SDF — distance to edge of a pointy-top hexagon
             float hexSDF(float2 p, float size)
             {
                 p = abs(p);
@@ -72,7 +65,6 @@ Shader "RareIcon/HexTile"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
                 output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-                output.uv = input.uv;
                 output.localPos = input.positionOS.xy;
                 return output;
             }
@@ -81,18 +73,14 @@ Shader "RareIcon/HexTile"
             {
                 UNITY_SETUP_INSTANCE_ID(input);
 
-                // Distance to hex edge (negative = inside)
-                float d = hexSDF(input.localPos, 0.45);
+                float outer = hexSDF(input.localPos, _OuterRadius);
+                float inner = hexSDF(input.localPos, _InnerRadius);
 
-                // Border — thin dark line at the edge
-                float border = smoothstep(-_BorderWidth, -_BorderWidth * 0.3, d);
+                // Ring — visible between inner and outer hex edges
+                float ring = smoothstep(0.005, -0.005, outer) * smoothstep(-0.005, 0.005, inner);
 
-                float4 color = lerp(_BaseColor, _BorderColor, border);
-
-                // Discard pixels outside the hex shape
-                clip(-d - 0.001);
-
-                return color;
+                clip(ring - 0.01);
+                return float4(_Color.rgb, _Color.a * ring);
             }
             ENDHLSL
         }

@@ -1,24 +1,30 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Rendering;
+using Unity.Transforms;
 using MessagePipe;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace RareIcon
 {
     /// <summary>
-    /// Reads MouseState singleton, looks up hovered hex via persistent HashMap.
-    /// The HashMap is maintained by HexChunkSystem — add on spawn, remove on despawn.
-    /// One allocation, never rebuilt.
+    /// Reads MouseState singleton, moves a single hover overlay entity
+    /// to the hovered hex position. No per-entity component changes.
+    /// One overlay entity, one position update per frame.
     /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial class HexHoverSystem : SystemBase
     {
+        const float HexSize = 0.25f;
+
         static NativeHashMap<int2, Entity> _hexLookup;
         static bool _initialized;
 
-        Entity _lastHoveredEntity;
-        bool _hasLast;
+        Entity _overlayEntity;
+        bool _overlayCreated;
+        int2 _lastHex;
 
         public static void Initialize(int capacity)
         {
@@ -51,6 +57,7 @@ namespace RareIcon
         protected override void OnCreate()
         {
             RequireForUpdate<MouseState>();
+            _lastHex = new int2(int.MinValue, int.MinValue);
         }
 
         protected override void OnDestroy()
@@ -62,37 +69,70 @@ namespace RareIcon
         {
             if (!_initialized || !_hexLookup.IsCreated) return;
 
-            var mouse = SystemAPI.GetSingleton<MouseState>();
-            if (!mouse.Changed) return;
-
-            // Remove tag from previous
-            if (_hasLast && EntityManager.Exists(_lastHoveredEntity)
-                        && EntityManager.HasComponent<HexHoveredTag>(_lastHoveredEntity))
+            // Create overlay entity once
+            if (!_overlayCreated)
             {
-                EntityManager.RemoveComponent<HexHoveredTag>(_lastHoveredEntity);
-                _hasLast = false;
+                CreateOverlay();
+                if (!_overlayCreated) return;
             }
 
-            // O(1) lookup
-            if (_hexLookup.TryGetValue(mouse.HexCoord, out Entity entity))
-            {
-                EntityManager.AddComponent<HexHoveredTag>(entity);
-                _lastHoveredEntity = entity;
-                _hasLast = true;
+            var mouse = SystemAPI.GetSingleton<MouseState>();
+            if (!mouse.Changed) return;
+            if (mouse.HexCoord.Equals(_lastHex)) return;
+            _lastHex = mouse.HexCoord;
 
-                var biome = EntityManager.GetComponentData<BiomeType>(entity);
-                var publisher = GlobalMessagePipe.GetPublisher<HexHoverMessage>();
-                publisher.Publish(new HexHoverMessage(
-                    mouse.HexCoord.x, mouse.HexCoord.y, biome.Value, true
-                ));
+            // Always move overlay to hovered hex position
+            float3 pos = HexMeshUtil.HexToWorld(mouse.HexCoord.x, mouse.HexCoord.y, HexSize);
+            pos.z = -1f;
+            EntityManager.SetComponentData(_overlayEntity, LocalTransform.FromPosition(pos));
+
+            // Publish hover info
+            bool isLand = _hexLookup.TryGetValue(mouse.HexCoord, out Entity hexEntity);
+            var publisher = GlobalMessagePipe.GetPublisher<HexHoverMessage>();
+
+            if (isLand)
+            {
+                var biome = EntityManager.GetComponentData<BiomeType>(hexEntity);
+                publisher.Publish(new HexHoverMessage(mouse.HexCoord.x, mouse.HexCoord.y, biome.Value, true));
             }
             else
             {
-                var publisher = GlobalMessagePipe.GetPublisher<HexHoverMessage>();
-                publisher.Publish(new HexHoverMessage(
-                    mouse.HexCoord.x, mouse.HexCoord.y, 0, false
-                ));
+                publisher.Publish(new HexHoverMessage(mouse.HexCoord.x, mouse.HexCoord.y, 0, false));
             }
+        }
+
+        void CreateOverlay()
+        {
+            var shader = Shader.Find("RareIcon/HexHoverOverlay");
+            if (shader == null)
+            {
+                Debug.LogError("[HexHoverSystem] HexHoverOverlay shader not found");
+                return;
+            }
+
+            var mesh = HexMeshUtil.CreateHexMesh(HexSize * 1.1f); // slightly larger than tile
+            var material = new Material(shader);
+            material.enableInstancing = true;
+
+            var renderDesc = new RenderMeshDescription(
+                shadowCastingMode: ShadowCastingMode.Off,
+                receiveShadows: false
+            );
+
+            var renderArray = new RenderMeshArray(new[] { material }, new[] { mesh });
+
+            _overlayEntity = EntityManager.CreateEntity();
+            EntityManager.AddComponentData(_overlayEntity,
+                LocalTransform.FromPosition(new float3(99999, 99999, 99999)));
+            EntityManager.AddComponent<HexHoverOverlayTag>(_overlayEntity);
+
+            RenderMeshUtility.AddComponents(
+                _overlayEntity, EntityManager, renderDesc, renderArray,
+                MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0)
+            );
+
+            _overlayCreated = true;
+            Debug.Log("[HexHoverSystem] Hover overlay entity created");
         }
     }
 }
