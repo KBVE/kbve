@@ -62,14 +62,21 @@ COPY apps/mc/mc_auth/java/ mc_auth/java/
 COPY --from=rust-builder /build/target/release/libbehavior_statetree.so target/release/libbehavior_statetree.so
 COPY --from=rust-builder /build/target/release/libmc_auth.so target/release/libmc_auth.so
 
-# Build behavior_statetree JAR
+# Build behavior_statetree JAR — retry wrapper handles transient Mojang/Fabric
+# CDN failures when using the vanilla gradle:jdk21 image (no pre-warmed cache).
+# The pre-warmed JAVA_BUILDER_IMAGE (ghcr.io/kbve/mc:gradle) hits cache and
+# never downloads, so the retry is a no-op in production builds.
 WORKDIR /build/behavior_statetree/java
-RUN gradle build --no-daemon
+RUN gradle build --no-daemon \
+    || (echo "Retry 1: behavior_statetree" && gradle build --no-daemon) \
+    || (echo "Retry 2: behavior_statetree" && gradle build --no-daemon)
 # Output: /build/behavior_statetree/java/build/libs/*.jar
 
 # Build mc_auth JAR
 WORKDIR /build/mc_auth/java
-RUN gradle build --no-daemon
+RUN gradle build --no-daemon \
+    || (echo "Retry 1: mc_auth" && gradle build --no-daemon) \
+    || (echo "Retry 2: mc_auth" && gradle build --no-daemon)
 # Output: /build/mc_auth/java/build/libs/*.jar
 
 # ── Stage 3: Runtime ──────────────────────────────────────────────────
