@@ -175,29 +175,15 @@ public final class ShipNetworking {
                     return;
                 }
 
-                ShipManager.ActiveShip ship = manager.getShip(shipId);
+                ShipEntity ship = manager.getShip(shipId);
                 if (ship == null) return;
 
-                // Airship directional movement — WASD maps to world cardinal
-                // directions (north/south/east/west), not ship heading.
-                //   forward > 0  = W = north (-Z)
-                //   forward < 0  = S = south (+Z)
-                //   sideways > 0 = A = west  (-X)
-                //   sideways < 0 = D = east  (+X)
-                // H = hover (no input) = no movement.
-                if (!manager.getMover().isMoving(shipId)) {
-                    int dx = 0, dz = 0;
-                    // 1-block steps — with 25k blocks/tick the full
-                    // relocation finishes in 1 tick, so each keypress
-                    // translates to smooth 1-block-per-tick movement.
-                    if (payload.forward() > 0) dz = -1;       // N
-                    else if (payload.forward() < 0) dz = 1;   // S
-                    if (payload.sideways() > 0) dx = -1;      // W
-                    else if (payload.sideways() < 0) dx = 1;  // E
-                    if (dx != 0 || dz != 0) {
-                        manager.moveShipDirection(shipId, dx, 0, dz);
-                    }
-                }
+                // Entity-based ships use ShipEntity.steerFromRider for
+                // continuous physics movement. The helm input sets speed
+                // and heading directly on the entity.
+                ship.setTargetSpeed(payload.forward() > 0 ? 2.0f : 0f);
+                if (payload.sideways() > 0) ship.setHeading(ship.getHeading() - 2.0f);
+                if (payload.sideways() < 0) ship.setHeading(ship.getHeading() + 2.0f);
             });
         });
     }
@@ -207,13 +193,11 @@ public final class ShipNetworking {
     /** Send a ship spawn to all players — triggers client-side tracking. */
     public static void broadcastShipSpawn(
             net.minecraft.server.world.ServerWorld world,
-            ShipManager.ActiveShip ship) {
+            String shipId, String shipName,
+            int anchorX, int anchorY, int anchorZ,
+            int sizeX, int sizeY, int sizeZ) {
         ShipSpawnPayload payload = new ShipSpawnPayload(
-                ship.shipId.toString(),
-                ship.shipName,
-                ship.anchor.getX(), ship.anchor.getY(), ship.anchor.getZ(),
-                ship.data.sizeX(), ship.data.sizeY(), ship.data.sizeZ()
-        );
+                shipId, shipName, anchorX, anchorY, anchorZ, sizeX, sizeY, sizeZ);
         for (ServerPlayerEntity player : world.getPlayers()) {
             ServerPlayNetworking.send(player, payload);
         }
@@ -222,40 +206,8 @@ public final class ShipNetworking {
     /** Send a ship despawn to all players. */
     public static void broadcastShipDespawn(
             net.minecraft.server.world.ServerWorld world,
-            java.util.UUID shipId) {
-        ShipDespawnPayload payload = new ShipDespawnPayload(shipId.toString());
-        for (ServerPlayerEntity player : world.getPlayers()) {
-            ServerPlayNetworking.send(player, payload);
-        }
-    }
-
-    /** Send a ship move update to all players in the world. */
-    public static void broadcastShipMove(
-            net.minecraft.server.world.ServerWorld world,
-            ShipManager.ActiveShip ship) {
-        ShipMovePayload payload = new ShipMovePayload(
-                ship.shipId.toString(),
-                ship.anchor.getX(), ship.anchor.getY(), ship.anchor.getZ(),
-                ship.heading
-        );
-        for (ServerPlayerEntity player : world.getPlayers()) {
-            ServerPlayNetworking.send(player, payload);
-        }
-    }
-
-    /** Send a ship status update (damage event) to all players in the world. */
-    public static void broadcastShipStatus(
-            net.minecraft.server.world.ServerWorld world,
-            ShipManager.ActiveShip ship,
-            int damageX, int damageY, int damageZ,
-            byte action) {
-        ShipStatusPayload payload = new ShipStatusPayload(
-                ship.shipId.toString(),
-                ship.blockTracker.integrity(),
-                ship.blockTracker.blockCount(),
-                damageX, damageY, damageZ,
-                action
-        );
+            String shipId) {
+        ShipDespawnPayload payload = new ShipDespawnPayload(shipId);
         for (ServerPlayerEntity player : world.getPlayers()) {
             ServerPlayNetworking.send(player, payload);
         }
