@@ -23,11 +23,19 @@ namespace RareIcon
             builder.RegisterBuildCallback(container =>
             {
                 GlobalMessagePipe.SetProvider(container.AsServiceProvider());
+                container.Resolve<OceanBackground>();
+                container.Resolve<UIPanelManager>();
             });
 
             // -- Services --
+            builder.Register<CameraService>(Lifetime.Singleton);
             builder.Register<LocaleService>(Lifetime.Singleton);
             builder.Register<InventoryService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
+
+            // -- World (loaded on title for early rendering) --
+            builder.RegisterComponentOnNewGameObject<OceanBackground>(Lifetime.Singleton, "OceanBackground")
+                .DontDestroyOnLoad()
+                .AsSelf();
 
             // -- UI --
             builder.RegisterComponentOnNewGameObject<UIPanelManager>(Lifetime.Singleton, "UIPanelManager")
