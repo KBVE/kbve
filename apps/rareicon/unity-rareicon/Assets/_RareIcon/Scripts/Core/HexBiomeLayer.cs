@@ -62,25 +62,8 @@ namespace RareIcon
 
         void GenerateBiome()
         {
-            Debug.Log("[HexBiomeLayer] Generating biome data via Burst job...");
-
-            var generator = new BiomeGenerator(_texSize, 1337);
-            var handle = generator.Schedule(out NativeArray<byte> pixels);
-            handle.Complete();
-
-            _biomeTex = new Texture2D(_texSize, _texSize, TextureFormat.RGBA32, false);
-            _biomeTex.filterMode = FilterMode.Point;
-            _biomeTex.wrapMode = TextureWrapMode.Clamp;
-            _biomeTex.LoadRawTextureData(pixels);
-            _biomeTex.Apply();
-
-            pixels.Dispose();
-
-            _material.SetTexture(BiomeTexId, _biomeTex);
-            _material.SetFloat(BiomeTexSizeId, _texSize);
-            _material.SetFloat(BiomeWorldSizeId, 25f);
-
-            Debug.Log("[HexBiomeLayer] Biome texture uploaded");
+            // Biome generation handled by HexSpawnSystem (ECS entities)
+            Debug.Log("[HexBiomeLayer] Biome generation delegated to HexSpawnSystem");
         }
 
         void LateUpdate()

@@ -17,6 +17,7 @@ namespace RareIcon
         Entity _lastHoveredEntity;
         bool _hasLast;
         bool _lookupBuilt;
+        int _lastEntityCount;
 
         public void OnCreate(ref SystemState state)
         {
@@ -32,7 +33,10 @@ namespace RareIcon
 
         public void OnUpdate(ref SystemState state)
         {
-            if (!_lookupBuilt)
+            // Rebuild lookup when chunks change
+            var query = SystemAPI.QueryBuilder().WithAll<HexCoord, HexTileTag>().Build();
+            int currentCount = query.CalculateEntityCount();
+            if (!_lookupBuilt || currentCount != _lastEntityCount)
             {
                 BuildLookup(ref state);
                 if (!_lookupBuilt) return;
@@ -96,7 +100,7 @@ namespace RareIcon
             }
 
             _lookupBuilt = true;
-            Debug.Log($"[HexHoverSystem] Built lookup with {count} entries");
+            _lastEntityCount = count;
         }
     }
 }

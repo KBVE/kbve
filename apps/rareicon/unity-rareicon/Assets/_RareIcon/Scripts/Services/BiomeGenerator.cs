@@ -1,18 +1,18 @@
-using Unity.Burst;
-using Unity.Collections;
-using Unity.Jobs;
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using Unity.Mathematics;
 using UnityEngine;
 
 namespace RareIcon
 {
     /// <summary>
-    /// Generates biome data using Burst-compiled jobs on Unity's job scheduler.
-    /// Output is a NativeArray where each element = biome ID for that pixel.
+    /// Generates world biome data using FastNoiseLite on a worker thread.
+    /// Produces continental landmasses, islands, and biome distribution
+    /// from layered noise (elevation, moisture, temperature).
     ///
-    /// TODO: Replace with Rust FFI (uniti_biome_generate) for shared logic with server
-    /// TODO: Chunk-based generation for infinite world streaming
-    /// TODO: Seed from server/save state
+    /// TODO: Replace with Rust FFI for shared logic with server
+    /// TODO: Chunk-based streaming for infinite world
     /// </summary>
     public class BiomeGenerator
     {
@@ -34,127 +34,152 @@ namespace RareIcon
         }
 
         /// <summary>
-        /// Schedule a Burst-compiled job to generate biome data.
-        /// Call Complete() on the returned handle before reading the output.
-        /// Caller owns the NativeArray and must Dispose it.
+        /// Generate biome data on a worker thread via FastNoiseLite.
+        /// Returns RGBA32 byte array (R = biome ID, G = elevation, B = moisture, A = 255).
         /// </summary>
-        public JobHandle Schedule(out NativeArray<byte> output)
+        public async UniTask<byte[]> GenerateAsync(CancellationToken ct)
         {
-            output = new NativeArray<byte>(_size * _size * 4, Allocator.TempJob);
-
-            var job = new BiomeGenerateJob
-            {
-                Size = _size,
-                Seed = _seed,
-                Pixels = output,
-            };
-
-            return job.Schedule(_size * _size, 64);
+            var size = _size;
+            var seed = _seed;
+            return await UniTask.RunOnThreadPool(() => Generate(size, seed), cancellationToken: ct);
         }
 
-        [BurstCompile]
-        struct BiomeGenerateJob : IJobParallelFor
+        static byte[] Generate(int size, int seed)
         {
-            public int Size;
-            public int Seed;
+            // -- Continental shape: large landmasses --
+            var continental = new FastNoiseLite(seed);
+            continental.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
+            continental.SetCellularDistanceFunction(FastNoiseLite.CellularDistanceFunction.Hybrid);
+            continental.SetCellularReturnType(FastNoiseLite.CellularReturnType.Distance2Div);
+            continental.SetFrequency(0.003f);
+            continental.SetFractalType(FastNoiseLite.FractalType.None);
 
-            [NativeDisableParallelForRestriction]
-            public NativeArray<byte> Pixels;
+            // -- Elevation: terrain height detail --
+            var elevation = new FastNoiseLite(seed + 1);
+            elevation.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2S);
+            elevation.SetFrequency(0.008f);
+            elevation.SetFractalType(FastNoiseLite.FractalType.FBm);
+            elevation.SetFractalOctaves(6);
+            elevation.SetFractalLacunarity(2.0f);
+            elevation.SetFractalGain(0.5f);
 
-            public void Execute(int index)
+            // -- Island noise: creates smaller islands around continents --
+            var islands = new FastNoiseLite(seed + 2);
+            islands.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
+            islands.SetCellularDistanceFunction(FastNoiseLite.CellularDistanceFunction.EuclideanSq);
+            islands.SetCellularReturnType(FastNoiseLite.CellularReturnType.Distance);
+            islands.SetFrequency(0.015f);
+            islands.SetFractalType(FastNoiseLite.FractalType.None);
+
+            // -- Moisture: controls biome wetness --
+            var moisture = new FastNoiseLite(seed + 100);
+            moisture.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2S);
+            moisture.SetFrequency(0.006f);
+            moisture.SetFractalType(FastNoiseLite.FractalType.FBm);
+            moisture.SetFractalOctaves(4);
+            moisture.SetFractalLacunarity(2.0f);
+            moisture.SetFractalGain(0.5f);
+
+            // -- Temperature: latitude-like gradient with noise --
+            var temperature = new FastNoiseLite(seed + 200);
+            temperature.SetNoiseType(FastNoiseLite.NoiseType.Perlin);
+            temperature.SetFrequency(0.004f);
+            temperature.SetFractalType(FastNoiseLite.FractalType.FBm);
+            temperature.SetFractalOctaves(3);
+
+            // -- Warp: domain warping for organic coastlines --
+            var warp = new FastNoiseLite(seed + 300);
+            warp.SetDomainWarpType(FastNoiseLite.DomainWarpType.OpenSimplex2);
+            warp.SetDomainWarpAmp(40f);
+            warp.SetFrequency(0.005f);
+
+            var pixels = new byte[size * size * 4];
+            float half = size / 2f;
+
+            for (int y = 0; y < size; y++)
             {
-                int x = index % Size;
-                int y = index / Size;
-                float half = Size / 2f;
-                float nx = x - half;
-                float ny = y - half;
-
-                // Island falloff
-                float dist = math.sqrt(nx * nx + ny * ny) / half;
-                float falloff = 1f - math.saturate(dist * 1.2f);
-
-                // Noise layers using math.noise (simplex-like via hash)
-                float e = Fbm(nx * 0.02f, ny * 0.02f, Seed, 5) * falloff;
-                float m = Fbm(nx * 0.03f, ny * 0.03f, Seed + 100, 4);
-                float t = Fbm(nx * 0.015f, ny * 0.015f, Seed + 200, 3);
-
-                int biome = GetBiome(e, m, t);
-
-                int idx = index * 4;
-                Pixels[idx + 0] = (byte)biome;
-                Pixels[idx + 1] = (byte)(math.saturate(e) * 255);
-                Pixels[idx + 2] = (byte)(math.saturate(m * 0.5f + 0.5f) * 255);
-                Pixels[idx + 3] = 255;
-            }
-
-            static float Fbm(float x, float y, int seed, int octaves)
-            {
-                float value = 0f;
-                float amplitude = 0.5f;
-                float frequency = 1f;
-
-                for (int i = 0; i < octaves; i++)
+                for (int x = 0; x < size; x++)
                 {
-                    value += amplitude * Noise(x * frequency, y * frequency, seed + i * 31);
-                    amplitude *= 0.5f;
-                    frequency *= 2f;
+                    // Warp coordinates for organic shapes
+                    float wx = (float)x;
+                    float wy = (float)y;
+                    warp.DomainWarp(ref wx, ref wy);
+
+                    // Continental value — large landmass shapes
+                    float cont = continental.GetNoise(wx, wy);
+                    cont = (cont + 1f) * 0.5f; // normalize to 0-1
+
+                    // Elevation detail
+                    float elev = elevation.GetNoise(wx, wy);
+                    elev = (elev + 1f) * 0.5f;
+
+                    // Island bonus — small landmasses
+                    float isle = islands.GetNoise(wx, wy);
+                    isle = (isle + 1f) * 0.5f;
+                    isle = 1f - isle; // invert so cell centers are high
+
+                    // Combined land height
+                    // Continental shape drives major landmasses
+                    // Islands add smaller land patches
+                    // Elevation adds detail
+                    float landHeight = cont * 0.5f + isle * 0.25f + elev * 0.25f;
+
+                    // No edge falloff — infinite world
+                    float moist = (moisture.GetNoise(wx, wy) + 1f) * 0.5f;
+                    float tempNoise = temperature.GetNoise(wx, wy);
+                    float temp = math.saturate(0.5f + tempNoise * 0.4f);
+
+                    // Determine biome
+                    int biome = GetBiome(landHeight, moist, temp);
+
+                    int idx = (y * size + x) * 4;
+                    pixels[idx + 0] = (byte)biome;
+                    pixels[idx + 1] = (byte)(math.saturate(landHeight) * 255);
+                    pixels[idx + 2] = (byte)(moist * 255);
+                    pixels[idx + 3] = 255;
                 }
-                return value;
             }
 
-            // Simple value noise — Burst-compatible, no managed allocations
-            static float Noise(float x, float y, int seed)
+            return pixels;
+        }
+
+        static int GetBiome(float height, float moisture, float temperature)
+        {
+            // Deep ocean
+            if (height < 0.32f) return BIOME_OCEAN;
+
+            // Beach / shore
+            if (height < 0.36f) return BIOME_SAND;
+
+            // Highlands
+            if (height > 0.75f)
             {
-                int ix = (int)math.floor(x);
-                int iy = (int)math.floor(y);
-                float fx = x - ix;
-                float fy = y - iy;
-
-                fx = fx * fx * (3f - 2f * fx);
-                fy = fy * fy * (3f - 2f * fy);
-
-                float a = Hash(ix, iy, seed);
-                float b = Hash(ix + 1, iy, seed);
-                float c = Hash(ix, iy + 1, seed);
-                float d = Hash(ix + 1, iy + 1, seed);
-
-                return math.lerp(math.lerp(a, b, fx), math.lerp(c, d, fx), fy);
+                if (temperature < 0.35f) return BIOME_SNOW;
+                return BIOME_STONE;
             }
 
-            static float Hash(int x, int y, int seed)
+            // Mountains
+            if (height > 0.65f)
             {
-                int h = seed;
-                h ^= x * 374761393;
-                h ^= y * 668265263;
-                h = (h ^ (h >> 13)) * 1274126177;
-                return (h & 0x7FFFFFFF) / (float)0x7FFFFFFF;
+                if (temperature < 0.3f) return BIOME_SNOW;
+                if (moisture > 0.5f) return BIOME_FOREST;
+                return BIOME_STONE;
             }
 
-            static int GetBiome(float elevation, float moisture, float temperature)
-            {
-                if (elevation < 0.12f) return BIOME_OCEAN;
-                if (elevation < 0.15f) return BIOME_SAND;
+            // Lowlands — biome from moisture + temperature
+            if (temperature < 0.25f)
+                return BIOME_SNOW;
 
-                float m = moisture * 0.5f + 0.5f;
-                float t = temperature * 0.5f + 0.5f;
+            if (temperature > 0.7f && moisture < 0.35f)
+                return BIOME_SAND;
 
-                if (t > 0.7f)
-                {
-                    if (m > 0.5f) return BIOME_FOREST;
-                    return BIOME_GRASS;
-                }
+            if (moisture > 0.6f)
+                return BIOME_FOREST;
 
-                if (t < 0.3f)
-                {
-                    if (elevation > 0.35f) return BIOME_SNOW;
-                    return BIOME_STONE;
-                }
+            if (moisture < 0.3f)
+                return BIOME_DIRT;
 
-                if (m > 0.6f) return BIOME_FOREST;
-                if (m < 0.3f) return BIOME_DIRT;
-
-                return BIOME_GRASS;
-            }
+            return BIOME_GRASS;
         }
     }
 }

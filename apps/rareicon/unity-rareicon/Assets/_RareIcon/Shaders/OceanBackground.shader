@@ -5,7 +5,7 @@ Shader "RareIcon/OceanBackground"
         _WaterCol ("Water Color", Color) = (0.0, 0.4453, 0.7305, 1.0)
         _Water2Col ("Water Color 2", Color) = (0.0, 0.418, 0.6758, 1.0)
         _FoamCol ("Foam Color", Color) = (0.8125, 0.9609, 0.9648, 1.0)
-        _UVScale ("UV Scale (zoom)", Float) = 150.0
+        _UVScale ("UV Scale (zoom)", Float) = 800.0
         _DistortionSpeed ("Distortion Speed", Float) = 1.0
         _FBMStrength ("FBM Distortion", Float) = 0.0
         _WorldOffset ("World Offset", Vector) = (0, 0, 0, 0)

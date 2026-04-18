@@ -1,142 +1,267 @@
-using Unity.Burst;
-using Unity.Collections;
+using System;
+using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Rendering;
+using MessagePipe;
 
 namespace RareIcon
 {
     /// <summary>
-    /// Spawns hex tile entities from Burst-generated biome data.
-    /// Runs once at startup, spawns all land hexes as ECS entities
-    /// with Entity Graphics rendering components.
+    /// Chunk-based hex tile streaming. Generates chunks around the camera.
+    /// Subscribes to CameraService.Zoom via R3 for zoom-aware loading.
+    /// Limits spawning per frame to prevent hitching.
     ///
-    /// TODO: Chunk-based streaming — only spawn visible hexes
-    /// TODO: Biome data from Rust FFI
-    /// TODO: LOD — distant hexes use simpler rendering
+    /// TODO: Move generation to worker thread
+    /// TODO: Biome data from Rust FFI + SQLite cache
     /// </summary>
-    [UpdateInGroup(typeof(InitializationSystemGroup))]
-    public partial struct HexSpawnSystem : ISystem
+    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    public partial class HexChunkSystem : SystemBase
     {
-        bool _spawned;
+        const int ChunkSize = 32;
+        const float HexSize = 0.25f;
+        const int Seed = 1337;
+        const int BaseLoadRadius = 4;
+        const int MaxChunksPerFrame = 10;
 
-        public void OnCreate(ref SystemState state)
+        readonly Dictionary<int2, List<Entity>> _loadedChunks = new();
+        readonly Queue<int2> _spawnQueue = new();
+        int2 _lastCameraChunk = new(int.MinValue, int.MinValue);
+        int _currentLoadRadius;
+        bool _needsRequeue;
+
+        FastNoiseLite _continental, _elevation, _islands, _moisture, _temperature, _warp;
+        Mesh _hexMesh;
+        Material[] _biomeMaterials;
+        RenderMeshDescription _renderMeshDesc;
+        RenderMeshArray _renderMeshArray;
+
+        protected override void OnCreate()
         {
-            _spawned = false;
+            InitNoise();
+            InitRendering();
+            _currentLoadRadius = BaseLoadRadius;
+            _needsRequeue = true;
         }
 
-        public void OnUpdate(ref SystemState state)
+        void InitNoise()
         {
-            if (_spawned) return;
-            _spawned = true;
+            _continental = new FastNoiseLite(Seed);
+            _continental.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
+            _continental.SetCellularDistanceFunction(FastNoiseLite.CellularDistanceFunction.Hybrid);
+            _continental.SetCellularReturnType(FastNoiseLite.CellularReturnType.Distance2Div);
+            _continental.SetFrequency(0.006f);
 
-            int mapSize = 64;
-            int seed = 1337;
-            float hexSize = 0.25f;
+            _elevation = new FastNoiseLite(Seed + 1);
+            _elevation.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2S);
+            _elevation.SetFrequency(0.008f);
+            _elevation.SetFractalType(FastNoiseLite.FractalType.FBm);
+            _elevation.SetFractalOctaves(6);
+            _elevation.SetFractalLacunarity(2.0f);
+            _elevation.SetFractalGain(0.5f);
 
-            // Generate biome data via Burst job
-            var generator = new BiomeGenerator(mapSize, seed);
-            var handle = generator.Schedule(out NativeArray<byte> pixels);
-            handle.Complete();
+            _islands = new FastNoiseLite(Seed + 2);
+            _islands.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
+            _islands.SetCellularDistanceFunction(FastNoiseLite.CellularDistanceFunction.EuclideanSq);
+            _islands.SetCellularReturnType(FastNoiseLite.CellularReturnType.Distance);
+            _islands.SetFrequency(0.015f);
 
-            // Create shared hex mesh + one material per biome
-            var hexMesh = HexMeshUtil.CreateHexMesh(hexSize);
-            var biomeMaterials = new Material[7];
+            _moisture = new FastNoiseLite(Seed + 100);
+            _moisture.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2S);
+            _moisture.SetFrequency(0.006f);
+            _moisture.SetFractalType(FastNoiseLite.FractalType.FBm);
+            _moisture.SetFractalOctaves(4);
+
+            _temperature = new FastNoiseLite(Seed + 200);
+            _temperature.SetNoiseType(FastNoiseLite.NoiseType.Perlin);
+            _temperature.SetFrequency(0.004f);
+            _temperature.SetFractalType(FastNoiseLite.FractalType.FBm);
+            _temperature.SetFractalOctaves(3);
+
+            _warp = new FastNoiseLite(Seed + 300);
+            _warp.SetDomainWarpType(FastNoiseLite.DomainWarpType.OpenSimplex2);
+            _warp.SetDomainWarpAmp(40f);
+            _warp.SetFrequency(0.005f);
+        }
+
+        void InitRendering()
+        {
+            _hexMesh = HexMeshUtil.CreateHexMesh(HexSize);
+            _biomeMaterials = new Material[7];
             var hexShader = Shader.Find("RareIcon/HexTile");
-            if (hexShader == null)
-            {
-                Debug.LogError("[HexSpawnSystem] Shader 'RareIcon/HexTile' not found");
-                hexShader = Shader.Find("Universal Render Pipeline/Unlit");
-            }
+            if (hexShader == null) hexShader = Shader.Find("Universal Render Pipeline/Unlit");
 
             for (int i = 0; i < 7; i++)
             {
-                biomeMaterials[i] = new Material(hexShader);
-                biomeMaterials[i].enableInstancing = true;
+                _biomeMaterials[i] = new Material(hexShader);
+                _biomeMaterials[i].enableInstancing = true;
                 var c = HexMeshUtil.BiomeColor((byte)i);
-                biomeMaterials[i].SetColor("_BaseColor", new Color(c.x, c.y, c.z, c.w));
+                _biomeMaterials[i].SetColor("_BaseColor", new Color(c.x, c.y, c.z, c.w));
             }
 
-            var renderMeshDescription = new RenderMeshDescription(
+            _renderMeshDesc = new RenderMeshDescription(
                 shadowCastingMode: ShadowCastingMode.Off,
                 receiveShadows: false
             );
+            _renderMeshArray = new RenderMeshArray(_biomeMaterials, new[] { _hexMesh });
+        }
 
-            var renderMeshArray = new RenderMeshArray(
-                biomeMaterials,
-                new[] { hexMesh }
-            );
+        protected override void OnUpdate()
+        {
+            var cam = Camera.main;
+            if (cam == null) return;
 
-            var em = state.EntityManager;
-            int half = mapSize / 2;
-            int spawned = 0;
+            var camPos = cam.transform.position;
+            int2 cameraChunk = WorldToChunk(camPos.x, camPos.y);
 
-            for (int y = 0; y < mapSize; y++)
+            // Calculate load radius from zoom
+            float orthoSize = cam.orthographic ? cam.orthographicSize : 12f;
+            int loadRadius = math.max(BaseLoadRadius, (int)(orthoSize / (ChunkSize * HexSize * 0.8f)) + 2);
+            int unloadRadius = loadRadius + 3;
+
+            // Detect changes
+            bool chunkMoved = !cameraChunk.Equals(_lastCameraChunk);
+            bool radiusChanged = loadRadius != _currentLoadRadius;
+
+            if (chunkMoved || radiusChanged || _needsRequeue)
             {
-                for (int x = 0; x < mapSize; x++)
+                _lastCameraChunk = cameraChunk;
+                _currentLoadRadius = loadRadius;
+                _needsRequeue = false;
+
+                QueueMissingChunks(cameraChunk, loadRadius);
+                UnloadDistantChunks(cameraChunk, unloadRadius);
+            }
+
+            // Process spawn queue — limited per frame
+            int spawned = 0;
+            while (_spawnQueue.Count > 0 && spawned < MaxChunksPerFrame)
+            {
+                var coord = _spawnQueue.Dequeue();
+                if (!_loadedChunks.ContainsKey(coord))
                 {
-                    int idx = (y * mapSize + x) * 4;
-                    byte biomeId = pixels[idx];
-
-                    // Skip ocean — no entity needed
-                    if (biomeId == BiomeGenerator.BIOME_OCEAN) continue;
-
-                    int q = x - half;
-                    int r = y - half;
-                    float3 worldPos = HexMeshUtil.HexToWorld(q, r, hexSize);
-
-                    var entity = em.CreateEntity();
-
-                    // Transform
-                    em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
-
-                    // Hex data
-                    em.AddComponentData(entity, new HexCoord { Q = q, R = r });
-                    em.AddComponentData(entity, new BiomeType { Value = biomeId });
-                    em.AddComponent<HexTileTag>(entity);
-
-                    // Rendering — each biome uses its own material index
-                    RenderMeshUtility.AddComponents(
-                        entity,
-                        em,
-                        renderMeshDescription,
-                        renderMeshArray,
-                        MaterialMeshInfo.FromRenderMeshArrayIndices(biomeId, 0)
-                    );
-
+                    SpawnChunk(coord);
                     spawned++;
                 }
             }
+        }
 
-            pixels.Dispose();
-            Debug.Log($"[HexSpawnSystem] Spawned {spawned} hex tile entities (map {mapSize}x{mapSize}, seed {seed})");
+        void QueueMissingChunks(int2 center, int radius)
+        {
+            var needed = new List<(int2 coord, int dist)>();
 
-            // DEBUG: spawn one visible GameObject hex at origin to verify mesh/camera
-            var debugGO = new GameObject("DebugHex");
-            var debugMF = debugGO.AddComponent<MeshFilter>();
-            var debugMR = debugGO.AddComponent<MeshRenderer>();
-            debugMF.mesh = hexMesh;
-            debugMR.material = biomeMaterials[BiomeGenerator.BIOME_GRASS];
-            debugGO.transform.position = new Vector3(0, 0, 0);
-            Debug.Log("[HexSpawnSystem] DEBUG: placed green hex GameObject at origin");
-
-            // Debug: log components on first entity to verify rendering setup
-            var query = state.EntityManager.CreateEntityQuery(typeof(HexTileTag));
-            if (query.CalculateEntityCount() > 0)
+            for (int cy = -radius; cy <= radius; cy++)
             {
-                var entities = query.ToEntityArray(Allocator.Temp);
-                var first = entities[0];
-                var types = state.EntityManager.GetComponentTypes(first);
-                var sb = new System.Text.StringBuilder("[HexSpawnSystem] First entity components: ");
-                foreach (var t in types)
-                    sb.Append(t.GetManagedType()?.Name ?? "?").Append(", ");
-                Debug.Log(sb.ToString());
-                types.Dispose();
-                entities.Dispose();
+                for (int cx = -radius; cx <= radius; cx++)
+                {
+                    int2 coord = new int2(center.x + cx, center.y + cy);
+                    if (!_loadedChunks.ContainsKey(coord))
+                        needed.Add((coord, math.abs(cx) + math.abs(cy)));
+                }
             }
+
+            needed.Sort((a, b) => a.dist.CompareTo(b.dist));
+            _spawnQueue.Clear();
+            foreach (var n in needed)
+                _spawnQueue.Enqueue(n.coord);
+        }
+
+        void UnloadDistantChunks(int2 center, int radius)
+        {
+            var toRemove = new List<int2>();
+            foreach (var kvp in _loadedChunks)
+            {
+                int dist = math.max(math.abs(kvp.Key.x - center.x), math.abs(kvp.Key.y - center.y));
+                if (dist > radius)
+                    toRemove.Add(kvp.Key);
+            }
+            foreach (var key in toRemove)
+                DespawnChunk(key);
+        }
+
+        void SpawnChunk(int2 chunkCoord)
+        {
+            var entities = new List<Entity>();
+            var em = EntityManager;
+            int startX = chunkCoord.x * ChunkSize;
+            int startY = chunkCoord.y * ChunkSize;
+
+            for (int ly = 0; ly < ChunkSize; ly++)
+            {
+                for (int lx = 0; lx < ChunkSize; lx++)
+                {
+                    int gx = startX + lx;
+                    int gy = startY + ly;
+
+                    byte biome = GenerateBiome(gx, gy);
+                    if (biome == BiomeGenerator.BIOME_OCEAN) continue;
+
+                    float3 worldPos = HexMeshUtil.HexToWorld(gx, gy, HexSize);
+                    var entity = em.CreateEntity();
+                    em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
+                    em.AddComponentData(entity, new HexCoord { Q = gx, R = gy });
+                    em.AddComponentData(entity, new BiomeType { Value = biome });
+                    em.AddComponentData(entity, new ChunkCoord { Value = chunkCoord });
+                    em.AddComponent<HexTileTag>(entity);
+
+                    RenderMeshUtility.AddComponents(
+                        entity, em, _renderMeshDesc, _renderMeshArray,
+                        MaterialMeshInfo.FromRenderMeshArrayIndices(biome, 0)
+                    );
+                    entities.Add(entity);
+                }
+            }
+
+            _loadedChunks[chunkCoord] = entities;
+        }
+
+        void DespawnChunk(int2 chunkCoord)
+        {
+            if (!_loadedChunks.TryGetValue(chunkCoord, out var entities)) return;
+            foreach (var entity in entities)
+                if (EntityManager.Exists(entity))
+                    EntityManager.DestroyEntity(entity);
+            _loadedChunks.Remove(chunkCoord);
+        }
+
+        int2 WorldToChunk(float worldX, float worldY)
+        {
+            float q = worldX / (HexSize * math.sqrt(3f));
+            float r = worldY / (HexSize * 1.5f);
+            return new int2((int)math.floor(q / ChunkSize), (int)math.floor(r / ChunkSize));
+        }
+
+        byte GenerateBiome(int gx, int gy)
+        {
+            float wx = (float)gx;
+            float wy = (float)gy;
+            _warp.DomainWarp(ref wx, ref wy);
+
+            float cont = (_continental.GetNoise(wx, wy) + 1f) * 0.5f;
+            float elev = (_elevation.GetNoise(wx, wy) + 1f) * 0.5f;
+            float isle = 1f - (_islands.GetNoise(wx, wy) + 1f) * 0.5f;
+            float landHeight = cont * 0.4f + isle * 0.2f + elev * 0.15f;
+
+            float moist = (_moisture.GetNoise(wx, wy) + 1f) * 0.5f;
+            float tempNoise = _temperature.GetNoise(wx, wy);
+            float temp = math.saturate(0.5f + tempNoise * 0.4f);
+
+            if (landHeight < 0.32f) return BiomeGenerator.BIOME_OCEAN;
+            if (landHeight < 0.36f) return BiomeGenerator.BIOME_SAND;
+            if (landHeight > 0.75f) return (byte)(temp < 0.35f ? BiomeGenerator.BIOME_SNOW : BiomeGenerator.BIOME_STONE);
+            if (landHeight > 0.65f)
+            {
+                if (temp < 0.3f) return BiomeGenerator.BIOME_SNOW;
+                return (byte)(moist > 0.5f ? BiomeGenerator.BIOME_FOREST : BiomeGenerator.BIOME_STONE);
+            }
+            if (temp < 0.25f) return BiomeGenerator.BIOME_SNOW;
+            if (temp > 0.7f && moist < 0.35f) return BiomeGenerator.BIOME_SAND;
+            if (moist > 0.6f) return BiomeGenerator.BIOME_FOREST;
+            if (moist < 0.3f) return BiomeGenerator.BIOME_DIRT;
+            return BiomeGenerator.BIOME_GRASS;
         }
     }
 }

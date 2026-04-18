@@ -13,7 +13,7 @@ namespace RareIcon
     /// Runs once at initialization.
     /// </summary>
     [UpdateInGroup(typeof(InitializationSystemGroup))]
-    [UpdateBefore(typeof(HexSpawnSystem))]
+    [UpdateBefore(typeof(HexChunkSystem))]
     public partial struct OceanSpawnSystem : ISystem
     {
         bool _spawned;
