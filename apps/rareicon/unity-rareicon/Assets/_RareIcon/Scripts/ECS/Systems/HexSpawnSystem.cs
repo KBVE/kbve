@@ -43,15 +43,19 @@ namespace RareIcon
             handle.Complete();
 
             // Create shared hex mesh + one material per biome
-            var hexMesh = HexMeshUtil.CreateHexMesh(hexSize * 0.95f);
+            var hexMesh = HexMeshUtil.CreateHexMesh(hexSize);
             var biomeMaterials = new Material[7];
-            var baseShader = Shader.Find("Universal Render Pipeline/Unlit");
+            var hexShader = Shader.Find("RareIcon/HexTile");
+            if (hexShader == null)
+            {
+                Debug.LogError("[HexSpawnSystem] Shader 'RareIcon/HexTile' not found");
+                hexShader = Shader.Find("Universal Render Pipeline/Unlit");
+            }
 
             for (int i = 0; i < 7; i++)
             {
-                biomeMaterials[i] = new Material(baseShader);
+                biomeMaterials[i] = new Material(hexShader);
                 biomeMaterials[i].enableInstancing = true;
-                biomeMaterials[i].SetFloat("_Cull", 0); // Off — double-sided
                 var c = HexMeshUtil.BiomeColor((byte)i);
                 biomeMaterials[i].SetColor("_BaseColor", new Color(c.x, c.y, c.z, c.w));
             }
