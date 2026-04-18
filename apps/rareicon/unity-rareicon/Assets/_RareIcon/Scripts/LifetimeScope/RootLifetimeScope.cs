@@ -33,6 +33,9 @@ namespace RareIcon
             builder.RegisterComponentOnNewGameObject<UIPanelManager>(Lifetime.Singleton, "UIPanelManager")
                 .DontDestroyOnLoad()
                 .AsSelf();
+
+            // -- Entry Points --
+            builder.RegisterEntryPoint<TitleEntryPoint>();
         }
 
         protected override void Awake()
