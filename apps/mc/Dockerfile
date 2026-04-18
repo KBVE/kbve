@@ -55,6 +55,12 @@ WORKDIR /build
 COPY apps/mc/behavior_statetree/java/ behavior_statetree/java/
 COPY apps/mc/mc_auth/java/ mc_auth/java/
 
+# version.toml — single source of truth for the MC stack version.
+# build.gradle reads ../../version.toml relative to java/ so it
+# needs to land at /build/version.toml. Without this, the JAR
+# falls back to 0.0.0-dev and Modrinth publishes break.
+COPY apps/mc/version.toml version.toml
+
 # Place each .so where its Gradle processResources expects it.
 # build.gradle: from("../../target/release") relative to java/
 # behavior_statetree/java/ → ../../target/release = /build/target/release/
