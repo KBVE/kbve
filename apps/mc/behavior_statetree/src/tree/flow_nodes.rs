@@ -6,9 +6,7 @@
 //! return `Failure` so the behavior tree falls through to the classic
 //! blind `Wander` / `Flee` nodes.
 
-use crate::types::{NpcCommand, NpcObservation};
-
-use super::node::{BehaviorContext, BehaviorNode, NodeStatus};
+use crate::types::{BehaviorContext, BehaviorNode, NodeStatus, NpcCommand, NpcObservation};
 
 /// Move toward the nearest player using the precomputed flow field.
 ///
@@ -18,7 +16,7 @@ use super::node::{BehaviorContext, BehaviorNode, NodeStatus};
 /// can try classic movement as a fallback.
 pub struct FlowApproach;
 
-impl BehaviorNode for FlowApproach {
+impl BehaviorNode<NpcObservation, NpcCommand> for FlowApproach {
     fn evaluate(
         &self,
         observation: &NpcObservation,
@@ -42,7 +40,7 @@ impl BehaviorNode for FlowApproach {
 /// actually lead somewhere safe (around walls, through doors, etc.).
 pub struct FlowFlee;
 
-impl BehaviorNode for FlowFlee {
+impl BehaviorNode<NpcObservation, NpcCommand> for FlowFlee {
     fn evaluate(
         &self,
         observation: &NpcObservation,
@@ -66,7 +64,7 @@ impl BehaviorNode for FlowFlee {
 /// Falls through if no gates are detected in the current grid.
 pub struct PatrolGate;
 
-impl BehaviorNode for PatrolGate {
+impl BehaviorNode<NpcObservation, NpcCommand> for PatrolGate {
     fn evaluate(
         &self,
         observation: &NpcObservation,
@@ -93,7 +91,7 @@ impl BehaviorNode for PatrolGate {
 /// before flow-aware nodes in a Sequence.
 pub struct HasFlowField;
 
-impl BehaviorNode for HasFlowField {
+impl BehaviorNode<NpcObservation, NpcCommand> for HasFlowField {
     fn evaluate(
         &self,
         observation: &NpcObservation,
@@ -115,7 +113,7 @@ pub struct PlayerWithinFlowDistance {
     pub max_distance: u32,
 }
 
-impl BehaviorNode for PlayerWithinFlowDistance {
+impl BehaviorNode<NpcObservation, NpcCommand> for PlayerWithinFlowDistance {
     fn evaluate(
         &self,
         observation: &NpcObservation,
@@ -137,7 +135,7 @@ pub struct HasNearbyGates {
     pub min_gates: u32,
 }
 
-impl BehaviorNode for HasNearbyGates {
+impl BehaviorNode<NpcObservation, NpcCommand> for HasNearbyGates {
     fn evaluate(
         &self,
         observation: &NpcObservation,

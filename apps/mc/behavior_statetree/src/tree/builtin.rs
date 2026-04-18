@@ -1,15 +1,13 @@
 //! Built-in behavior tree leaf nodes.
 
-use crate::types::{NpcCommand, NpcObservation};
-
-use super::node::{BehaviorContext, BehaviorNode, NodeStatus};
+use crate::types::{BehaviorContext, BehaviorNode, NodeStatus, NpcCommand, NpcObservation};
 
 /// Wander randomly within a radius of the NPC's current position.
 pub struct Wander {
     pub radius: f64,
 }
 
-impl BehaviorNode for Wander {
+impl BehaviorNode<NpcObservation, NpcCommand> for Wander {
     fn evaluate(
         &self,
         observation: &NpcObservation,
@@ -35,7 +33,7 @@ pub struct Flee {
     pub flee_distance: f64,
 }
 
-impl BehaviorNode for Flee {
+impl BehaviorNode<NpcObservation, NpcCommand> for Flee {
     fn evaluate(
         &self,
         observation: &NpcObservation,
@@ -80,7 +78,7 @@ pub struct AttackNearest {
     pub range: f64,
 }
 
-impl BehaviorNode for AttackNearest {
+impl BehaviorNode<NpcObservation, NpcCommand> for AttackNearest {
     fn evaluate(
         &self,
         observation: &NpcObservation,
@@ -114,7 +112,7 @@ pub struct IsHealthLow {
     pub threshold: f32,
 }
 
-impl BehaviorNode for IsHealthLow {
+impl BehaviorNode<NpcObservation, NpcCommand> for IsHealthLow {
     fn evaluate(
         &self,
         observation: &NpcObservation,
@@ -139,7 +137,7 @@ pub struct CallAllies {
     pub reinforcement_count: u32,
 }
 
-impl BehaviorNode for CallAllies {
+impl BehaviorNode<NpcObservation, NpcCommand> for CallAllies {
     fn evaluate(
         &self,
         observation: &NpcObservation,
@@ -180,7 +178,7 @@ pub struct Idle {
     pub ticks: u32,
 }
 
-impl BehaviorNode for Idle {
+impl BehaviorNode<NpcObservation, NpcCommand> for Idle {
     fn evaluate(
         &self,
         _observation: &NpcObservation,
