@@ -43,7 +43,8 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
     private final AiCreatureManager creatureManager = new AiCreatureManager();
     private final ScaffoldTracker scaffoldTracker = new ScaffoldTracker();
     private final ObservationPublisher observationPublisher;
-    private final IntentInbox inbox = new IntentInbox();
+    private final BudgetMetrics metrics = new BudgetMetrics();
+    private final IntentInbox inbox = new IntentInbox(metrics);
     private final MobCommandApplier mobApplier = new MobCommandApplier();
     private final WorldCommandApplier worldApplier = new WorldCommandApplier();
     private final IntentExecutor executor;
@@ -53,7 +54,7 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
 
     public NpcTickHandler() {
         this.observationPublisher = new ObservationPublisher(creatureManager);
-        this.executor = new IntentExecutor(inbox, mobApplier, worldApplier, creatureManager);
+        this.executor = new IntentExecutor(inbox, mobApplier, worldApplier, creatureManager, metrics);
     }
 
     /** Inject the ship manager (called once during mod init). */
@@ -94,6 +95,11 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             CommandContext ctx = CommandContext.forWorld(
                     overworld, creatureManager, scaffoldTracker, shipManager);
             executor.applyBudgeted(ctx);
+        }
+
+        // 5. Metrics — periodic log when pressure detected
+        if (overworld != null) {
+            metrics.reportIfDue(overworld.getTime());
         }
     }
 }
