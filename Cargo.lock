@@ -1784,6 +1784,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_behavior"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "serde",
+]
+
+[[package]]
 name = "bevy_cam"
 version = "0.1.0"
 dependencies = [
