@@ -1,0 +1,63 @@
+---
+title: BSD 2-Clause License
+description: The BSD 2-Clause "Simplified" License as referenced by dependencies within the KBVE monorepo.
+sidebar:
+    label: BSD 2-Clause
+    order: 13
+tags:
+    - legal
+    - license
+    - bsd
+    - open-source
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## BSD 2-Clause "Simplified" License
+
+<Aside type="note" title="Scope">
+  This page is a reference for third-party dependencies and components that use
+  the BSD 2-Clause License. It does not apply to KBVE-authored code unless
+  explicitly stated in a component's license file.
+</Aside>
+
+```
+BSD 2-Clause License
+
+Copyright (c) <year>, <copyright holder>
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+### What this means
+
+The BSD 2-Clause License is a minimal permissive license with only two
+conditions: retain the copyright notice in source distributions and reproduce it
+in binary distributions. There are no patent grant provisions and no restriction
+on use of the licensor's name for endorsement (unlike BSD 3-Clause).
+
+### Where this applies
+
+Common in C/C++ libraries, system-level dependencies, and cryptographic tooling
+(e.g., OpenSSL derivatives, libc wrappers). When the KBVE monorepo depends on a
+BSD-2-Clause library, the binary distribution includes the required copyright
+notice in its attribution.
