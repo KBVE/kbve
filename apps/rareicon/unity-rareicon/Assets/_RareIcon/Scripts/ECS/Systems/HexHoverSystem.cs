@@ -1,13 +1,14 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using MessagePipe;
 using UnityEngine;
 
 namespace RareIcon
 {
     /// <summary>
     /// Reads MouseState singleton, looks up hovered hex via cached HashMap.
-    /// Tags entity with HexHoveredTag. No main-thread-only calls.
+    /// Tags entity with HexHoveredTag and publishes HexHoverMessage via MessagePipe.
     /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct HexHoverSystem : ISystem
@@ -54,6 +55,27 @@ namespace RareIcon
                 state.EntityManager.AddComponent<HexHoveredTag>(entity);
                 _lastHoveredEntity = entity;
                 _hasLast = true;
+
+                // Read biome and publish
+                var biome = state.EntityManager.GetComponentData<BiomeType>(entity);
+                var publisher = GlobalMessagePipe.GetPublisher<HexHoverMessage>();
+                publisher.Publish(new HexHoverMessage(
+                    mouse.HexCoord.x,
+                    mouse.HexCoord.y,
+                    biome.Value,
+                    true
+                ));
+            }
+            else
+            {
+                // Hovering ocean / empty
+                var publisher = GlobalMessagePipe.GetPublisher<HexHoverMessage>();
+                publisher.Publish(new HexHoverMessage(
+                    mouse.HexCoord.x,
+                    mouse.HexCoord.y,
+                    0,
+                    false
+                ));
             }
         }
 

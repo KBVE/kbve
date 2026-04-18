@@ -94,6 +94,24 @@ namespace RareIcon
             return dict;
         }
 
+        /// <summary>
+        /// Resolve biome ID to localized name.
+        /// </summary>
+        public string GetBiomeName(byte biomeId)
+        {
+            var key = biomeId switch
+            {
+                BiomeGenerator.BIOME_GRASS  => "biome.grass",
+                BiomeGenerator.BIOME_FOREST => "biome.forest",
+                BiomeGenerator.BIOME_SAND   => "biome.sand",
+                BiomeGenerator.BIOME_DIRT   => "biome.dirt",
+                BiomeGenerator.BIOME_SNOW   => "biome.snow",
+                BiomeGenerator.BIOME_STONE  => "biome.stone",
+                _ => "biome.ocean",
+            };
+            return Get(key);
+        }
+
         static int FindClosingQuote(string s, int start)
         {
             for (var i = start; i < s.Length; i++)

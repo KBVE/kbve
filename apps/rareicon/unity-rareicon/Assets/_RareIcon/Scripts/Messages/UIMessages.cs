@@ -8,6 +8,24 @@ namespace RareIcon
         public LocaleChangedMessage(string locale) => Locale = locale;
     }
 
+    // -- Hex hover --
+
+    public readonly struct HexHoverMessage
+    {
+        public readonly int Q;
+        public readonly int R;
+        public readonly byte BiomeId;
+        public readonly bool IsLand;
+
+        public HexHoverMessage(int q, int r, byte biomeId, bool isLand)
+        {
+            Q = q;
+            R = r;
+            BiomeId = biomeId;
+            IsLand = isLand;
+        }
+    }
+
     // -- Panel visibility --
 
     public readonly struct PanelShowMessage

@@ -8,5 +8,14 @@
 	"pause.resume": "Resume",
 	"pause.title": "Paused",
 	"dialogue.next": "Next",
-	"dialogue.skip": "Skip"
+	"dialogue.skip": "Skip",
+	"biome.ocean": "Ocean",
+	"biome.grass": "Grassland",
+	"biome.forest": "Forest",
+	"biome.sand": "Sandy Shore",
+	"biome.dirt": "Barren Land",
+	"biome.snow": "Frozen Tundra",
+	"biome.stone": "Rocky Highland",
+	"hex.coord": "Hex",
+	"hex.empty": "Open Sea"
 }

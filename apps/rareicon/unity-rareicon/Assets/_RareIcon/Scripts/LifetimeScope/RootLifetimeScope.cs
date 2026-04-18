@@ -19,11 +19,13 @@ namespace RareIcon
             builder.RegisterMessageBroker<SceneLoadedMessage>(options);
             builder.RegisterMessageBroker<PlayerDamagedMessage>(options);
             builder.RegisterMessageBroker<PlayerDeathMessage>(options);
+            builder.RegisterMessageBroker<HexHoverMessage>(options);
 
             builder.RegisterBuildCallback(container =>
             {
                 GlobalMessagePipe.SetProvider(container.AsServiceProvider());
                 container.Resolve<UIPanelManager>();
+                container.Resolve<HexInfoPanel>();
             });
 
             // -- Services --
@@ -33,6 +35,11 @@ namespace RareIcon
 
             // -- UI --
             builder.RegisterComponentOnNewGameObject<UIPanelManager>(Lifetime.Singleton, "UIPanelManager")
+                .DontDestroyOnLoad()
+                .AsSelf();
+
+            // -- HUD --
+            builder.RegisterComponentOnNewGameObject<HexInfoPanel>(Lifetime.Singleton, "HexInfoPanel")
                 .DontDestroyOnLoad()
                 .AsSelf();
 

@@ -27,6 +27,27 @@ namespace RareIcon
         void Awake()
         {
             _uiDocument = GetComponent<UIDocument>();
+
+            // Load PanelSettings from Resources, or create fallback
+            if (_uiDocument.panelSettings == null)
+            {
+                var ps = Resources.Load<PanelSettings>("UI/PanelSettings");
+                if (ps == null)
+                {
+                    ps = ScriptableObject.CreateInstance<PanelSettings>();
+                    ps.scaleMode = PanelScaleMode.ScaleWithScreenSize;
+                    ps.referenceResolution = new Vector2Int(1920, 1080);
+                    ps.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
+                    ps.match = 0.5f;
+
+                    // Try to load default theme
+                    var theme = Resources.Load<ThemeStyleSheet>("UnityThemes/UnityDefaultRuntimeTheme");
+                    if (theme != null) ps.themeStyleSheet = theme;
+                }
+                _uiDocument.panelSettings = ps;
+            }
+
+            _uiDocument.sortingOrder = 1000;
         }
 
         void Start()
