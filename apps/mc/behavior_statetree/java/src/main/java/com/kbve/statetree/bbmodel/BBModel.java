@@ -1,16 +1,29 @@
 package com.kbve.statetree.bbmodel;
 
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Identifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.LinkedList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.kbve.statetree.bbmodel.BBTexture.MISSING;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BBModel {
+    private static final Logger LOGGER = LoggerFactory.getLogger("behavior_statetree");
     public final BBMeta meta;
     public final List<BBTexture> textures = new LinkedList<>();
     public final LinkedList<BBObject> root;
@@ -18,9 +31,9 @@ public class BBModel {
     public final HashMap<String, BBObject> objectsByName;
     public final List<BBAnimation> animations = new LinkedList<>();
     public final float textureWidth, textureHeight;
-    public final ResourceLocation id;
+    public final Identifier id;
 
-    public BBModel(JsonObject model, ResourceLocation identifier) {
+    public BBModel(JsonObject model, Identifier identifier) {
         this.meta = new BBMeta(model.get("meta"));
         this.root = new LinkedList<>();
         this.objects = new HashMap<>();
@@ -47,7 +60,7 @@ public class BBModel {
                 this.objects.put(object.uuid, object);
                 this.objectsByName.put(object.name, object);
             } else {
-                Main.LOGGER.warn("Unknown object type {}", type);
+                LOGGER.warn("Unknown object type {}", type);
             }
         });
 
@@ -57,7 +70,7 @@ public class BBModel {
                 if (object != null) {
                     this.root.add(object);
                 } else {
-                    Main.LOGGER.warn("Object with uuid {} not found", element.getAsString());
+                    LOGGER.warn("Object with uuid {} not found", element.getAsString());
                 }
             } else {
                 BBObject bone = new BBBone(element.getAsJsonObject(), this);

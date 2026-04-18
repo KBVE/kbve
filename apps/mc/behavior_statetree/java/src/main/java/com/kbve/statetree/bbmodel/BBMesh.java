@@ -1,17 +1,34 @@
 package com.kbve.statetree.bbmodel;
 
 import com.google.gson.JsonArray;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.google.gson.JsonElement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.kbve.statetree.bbmodel.BBModelUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.LinkedList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BBMesh extends BBObject implements BBFaceContainer {
+    private static final Logger LOGGER = LoggerFactory.getLogger("behavior_statetree");
     public final List<BBFace> faces = new LinkedList<>();
 
     private static Map<String, float[]> getArrayMap(JsonElement element, int size) {
@@ -73,7 +90,7 @@ public class BBMesh extends BBObject implements BBFaceContainer {
                 }
 
                 if (vertexIdentifiers.size() != 4) {
-                    Main.LOGGER.warn("Non-quad face found in model: {}!", model.id);
+                    LOGGER.warn("Non-quad face found in model: {}!", model.id);
                 } else {
                     // Get normal vector
                     float[] n = getNormal(vertexIdentifiers, positions);

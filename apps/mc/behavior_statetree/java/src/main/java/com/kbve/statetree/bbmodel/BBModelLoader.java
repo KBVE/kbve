@@ -1,17 +1,14 @@
 package com.kbve.statetree.bbmodel;
 
-import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
-
-import com.kbve.statetree.bbmodel.BBModel;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.Resource;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.util.profiling.ProfilerFiller;
+import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.minecraft.resource.Resource;
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.util.Identifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,42 +16,44 @@ import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BBModelLoader extends SimplePreparableReloadListener<Map<ResourceLocation, JsonElement>> {
-    protected static final int PATH_SUFFIX_LENGTH = 8;
-    protected static final int PATH_PREFIX_LENGTH = 8;
+/**
+ * Loads .bbmodel files from resource packs at startup.
+ *
+ * <p>Adapted from ImmersiveAircraft (GPL-3.0).
+ */
+public class BBModelLoader implements SimpleSynchronousResourceReloadListener {
 
-    public static final Map<ResourceLocation, BBModel> MODELS = new HashMap<>();
-    private final Gson gson;
+    private static final Logger LOGGER = LoggerFactory.getLogger("behavior_statetree");
+    private static final int PATH_SUFFIX_LENGTH = ".bbmodel".length();
+    private static final int PATH_PREFIX_LENGTH = "objects/".length();
 
-    public BBModelLoader() {
-        gson = new Gson();
+    public static final Map<Identifier, BBModel> MODELS = new HashMap<>();
+    private final Gson gson = new Gson();
+
+    @Override
+    public Identifier getFabricId() {
+        return Identifier.of("behavior_statetree", "bbmodel_loader");
     }
 
     @Override
-    protected Map<ResourceLocation, JsonElement> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
-        HashMap<ResourceLocation, JsonElement> map = Maps.newHashMap();
-        for (Map.Entry<ResourceLocation, Resource> entry : resourceManager.listResources("objects", n -> n.getPath().endsWith(".bbmodel")).entrySet()) {
-            ResourceLocation location = entry.getKey();
-            String name = location.getPath();
-            ResourceLocation id = new ResourceLocation(location.getNamespace(), name.substring(PATH_PREFIX_LENGTH, name.length() - PATH_SUFFIX_LENGTH));
-            try {
-                BufferedReader reader = entry.getValue().openAsReader();
-                try {
-                    JsonElement jsonElement = GsonHelper.fromJson(this.gson, reader, JsonElement.class);
-                    map.put(id, jsonElement);
-                } finally {
-                    ((Reader) reader).close();
-                }
-            } catch (JsonParseException | IOException | IllegalArgumentException exception) {
-                Main.LOGGER.error("Couldn't parse data file {} from {}", id, location, exception);
+    public void reload(ResourceManager manager) {
+        MODELS.clear();
+        for (Map.Entry<Identifier, Resource> entry :
+                manager.findResources("objects", id -> id.getPath().endsWith(".bbmodel")).entrySet()) {
+            Identifier location = entry.getKey();
+            String path = location.getPath();
+            Identifier modelId = Identifier.of(
+                    location.getNamespace(),
+                    path.substring(PATH_PREFIX_LENGTH, path.length() - PATH_SUFFIX_LENGTH)
+            );
+            try (BufferedReader reader = entry.getValue().getReader()) {
+                JsonElement json = gson.fromJson(reader, JsonElement.class);
+                MODELS.put(modelId, new BBModel(json.getAsJsonObject(), modelId));
+                LOGGER.info("[BBModel] Loaded model '{}'", modelId);
+            } catch (JsonParseException | IOException e) {
+                LOGGER.error("[BBModel] Failed to load '{}' from {}: {}", modelId, location, e.getMessage());
             }
         }
-        return map;
-    }
-
-    @Override
-    protected void apply(Map<ResourceLocation, JsonElement> jsonMap, ResourceManager resourceManager, ProfilerFiller profiler) {
-        MODELS.clear();
-        jsonMap.forEach((identifier, jsonElement) -> MODELS.put(identifier, new BBModel(jsonElement.getAsJsonObject(), identifier)));
+        LOGGER.info("[BBModel] Loaded {} models total", MODELS.size());
     }
 }

@@ -1,10 +1,10 @@
 package com.kbve.statetree.bbmodel.render;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.util.math.MatrixStack;
 import com.kbve.statetree.bbmodel.BBModel;
 import com.kbve.statetree.bbmodel.BBObject;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.entity.Entity;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,14 +34,14 @@ public class ModelPartRenderHandler<T extends Entity> {
         return objects;
     }
 
-    public void animate(String name, T entity, PoseStack matrixStack, float time) {
+    public void animate(String name, T entity, MatrixStack matrixStack, float time) {
         ModelPartRenderer<T> o = objects.get(name);
         if (o != null && o.animationConsumer() != null) {
             o.animationConsumer().run(entity, 0, time, matrixStack);
         }
     }
 
-    public boolean render(String name, BBModel model, BBObject object, MultiBufferSource vertexConsumerProvider, T entity, PoseStack matrixStack, int light, float time, ModelPartRenderHandler<T> modelPartRenderer) {
+    public boolean render(String name, BBModel model, BBObject object, VertexConsumerProvider vertexConsumerProvider, T entity, MatrixStack matrixStack, int light, float time, ModelPartRenderHandler<T> modelPartRenderer) {
         ModelPartRenderer<T> o = objects.get(name);
         if (o != null && o.renderConsumer() != null) {
             o.renderConsumer().run(model, object, vertexConsumerProvider, entity, matrixStack, light, time, modelPartRenderer);
