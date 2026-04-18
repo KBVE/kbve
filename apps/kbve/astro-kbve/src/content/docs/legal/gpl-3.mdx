@@ -1,0 +1,98 @@
+---
+title: GNU General Public License v3.0
+description: The GPL-3.0 license as used by open-source components within the KBVE monorepo.
+sidebar:
+    label: GPL-3.0
+    order: 12
+tags:
+    - legal
+    - license
+    - gpl
+    - open-source
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## GNU General Public License v3.0
+
+<Aside type="caution" title="Copyleft">
+  GPL-3.0 is a copyleft license. Derivative works that link to or incorporate
+  GPL-3.0 code must also be distributed under GPL-3.0 or a compatible license.
+  This is a stronger requirement than the permissive MIT and Apache-2.0 licenses.
+  See the [EULA](/legal/eula/) for how proprietary KBVE applications interact
+  with GPL-licensed components.
+</Aside>
+
+```
+                    GNU GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+                            Preamble
+
+  The GNU General Public License is a free, copyleft license for
+software and other kinds of works.
+
+  The licenses for most software and other practical works are designed
+to take away your freedom to share and change the works.  By contrast,
+the GNU General Public License is intended to guarantee your freedom to
+share and change all versions of a program--to make sure it remains free
+software for all its users.  We, the Free Software Foundation, use the
+GNU General Public License for most of our software; it applies also to
+any other work released this way by its authors.  You can apply it to
+your programs, too.
+
+  When we speak of free software, we are referring to freedom, not
+price.  Our General Public Licenses are designed to make sure that you
+have the freedom to distribute copies of free software (and charge for
+them if you wish), that you receive source code or can get it if you
+want it, that you can change the software or use pieces of it in new
+free programs, and that you know you can do these things.
+
+  To protect your rights, we need to prevent others from denying you
+these rights or asking you to surrender the rights.  Therefore, you have
+certain responsibilities if you distribute copies of the software, or if
+you modify it: responsibilities to respect the freedom of others.
+```
+
+The full text of the GNU General Public License v3.0 is available at
+[https://www.gnu.org/licenses/gpl-3.0.en.html](https://www.gnu.org/licenses/gpl-3.0.en.html).
+
+The preamble above is excerpted for reference. The complete license terms,
+including all 18 sections covering definitions, source code requirements,
+copyleft obligations, patent protections, and termination conditions, are
+incorporated by reference from the FSF's canonical copy.
+
+### What this means
+
+The GPL-3.0 is a copyleft license that requires anyone who distributes
+GPL-licensed code — or derivative works based on it — to make the complete
+source code available under the same license. Key provisions include:
+
+- **Freedom to use**: Run the software for any purpose
+- **Freedom to study**: Access and modify source code
+- **Freedom to share**: Distribute copies of the original
+- **Freedom to improve**: Distribute modified versions
+- **Copyleft**: Derivative works must carry the same GPL-3.0 license
+- **Patent grant**: Contributors grant patent rights for their contributions
+- **Anti-Tivoization**: Hardware restrictions that prevent users from running
+  modified versions are prohibited
+
+### Which components use GPL-3.0
+
+Components in the KBVE monorepo that incorporate GPL-3.0 licensed dependencies
+or are themselves released under GPL-3.0 include select game mods, tools, and
+plugins where the upstream dependency requires copyleft compliance. Each
+component's `Cargo.toml`, `package.json`, or `LICENSE` file specifies its
+license. When a KBVE-authored component links against a GPL-3.0 library, the
+resulting binary is distributed under GPL-3.0 terms.
+
+### Interaction with the EULA
+
+Proprietary KBVE applications covered by the [EULA](/legal/eula/) are distributed
+separately from GPL-3.0 components. Where a proprietary application incorporates
+a GPL-3.0 dependency, the relevant source code is made available as required by
+the license, and the EULA's scope explicitly excludes those GPL-licensed portions.
