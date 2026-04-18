@@ -2,7 +2,7 @@ package com.kbve.statetree.bbmodel.render;
 
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderLayers;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.entity.Entity;
@@ -34,8 +34,8 @@ public class BBModelRenderer {
     public static final FaceBufferProvider DEFAULT_FACE_BUFFER_PROVIDER =
             (source, container, face) -> source.getBuffer(
                     container.enableCulling()
-                            ? RenderLayer.getEntityCutout(face.texture.location)
-                            : RenderLayer.getEntityCutoutNoCull(face.texture.location));
+                            ? RenderLayers.entityCutout(face.texture.location)
+                            : RenderLayers.entityCutoutNoCull(face.texture.location));
 
     public static <T extends Entity> void renderModel(
             BBModel model, MatrixStack matrixStack, VertexConsumerProvider vertexConsumers,
@@ -143,7 +143,7 @@ public class BBModelRenderer {
         Matrix4f positionMatrix = entry.getPositionMatrix();
         for (BBFace face : cube.getFaces()) {
             VertexConsumer vc = vertexConsumers.getBuffer(
-                    RenderLayer.getEntityCutoutNoCull(face.texture.location));
+                    RenderLayers.entityCutoutNoCull(face.texture.location));
             for (int i = 0; i < 4; i++) {
                 BBFace.BBVertex v = face.vertices[i];
                 float distance = Math.max(Math.max(Math.abs(v.x), Math.abs(v.y)), Math.abs(v.z));
