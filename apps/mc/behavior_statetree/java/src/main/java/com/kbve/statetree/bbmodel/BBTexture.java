@@ -2,7 +2,7 @@ package com.kbve.statetree.bbmodel;
 
 import com.google.gson.JsonObject;
 import com.kbve.statetree.bbmodel.BBModelUtils;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Identifier;
 
 public class BBTexture {
     public static final BBTexture MISSING = new BBTexture();
@@ -15,7 +15,7 @@ public class BBTexture {
     public final int uvWidth;
     public final int uvHeight;
 
-    public final ResourceLocation location;
+    public final Identifier location;
 
     public BBTexture() {
         this.uuid = "";
@@ -26,10 +26,10 @@ public class BBTexture {
         this.uvWidth = 16;
         this.uvHeight = 16;
 
-        this.location = new ResourceLocation("missing");
+        this.location = Identifier.of("missing");
     }
 
-    public BBTexture(JsonObject element, ResourceLocation identifier) {
+    public BBTexture(JsonObject element, Identifier identifier) {
         this.uuid = element.getAsJsonPrimitive("uuid").getAsString();
         this.id = element.getAsJsonPrimitive("id").getAsString();
         this.name = element.getAsJsonPrimitive("name").getAsString();
@@ -39,9 +39,9 @@ public class BBTexture {
         this.uvHeight = BBModelUtils.getIntElement(element, "uv_height", 16);
 
         if (this.name.contains(":")) {
-            this.location = new ResourceLocation(this.name);
+            this.location = Identifier.of(this.name);
         } else {
-            this.location = new ResourceLocation(identifier.getNamespace(), "textures/entity/" + this.name);
+            this.location = Identifier.of(identifier.getNamespace(), "textures/entity/" + this.name);
         }
     }
 }
