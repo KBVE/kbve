@@ -24,6 +24,7 @@ namespace RareIcon
             {
                 GlobalMessagePipe.SetProvider(container.AsServiceProvider());
                 container.Resolve<OceanBackground>();
+                container.Resolve<HexBiomeLayer>();
                 container.Resolve<UIPanelManager>();
             });
 
@@ -34,6 +35,10 @@ namespace RareIcon
 
             // -- World (loaded on title for early rendering) --
             builder.RegisterComponentOnNewGameObject<OceanBackground>(Lifetime.Singleton, "OceanBackground")
+                .DontDestroyOnLoad()
+                .AsSelf();
+
+            builder.RegisterComponentOnNewGameObject<HexBiomeLayer>(Lifetime.Singleton, "HexBiomeLayer")
                 .DontDestroyOnLoad()
                 .AsSelf();
 
