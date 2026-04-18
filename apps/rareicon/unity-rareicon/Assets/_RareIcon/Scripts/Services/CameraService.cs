@@ -1,4 +1,5 @@
 using R3;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer.Unity;
@@ -6,8 +7,9 @@ using VContainer.Unity;
 namespace RareIcon
 {
     /// <summary>
-    /// Camera management — cached ref, reactive zoom, WASD/arrow movement, scroll zoom.
+    /// Camera management — cached ref, reactive zoom/movement/hover.
     /// Uses new Input System. Registered as singleton with ITickable.
+    /// All state exposed as R3 reactive properties for zero-coupling subscriptions.
     /// </summary>
     public class CameraService : ITickable
     {
@@ -16,6 +18,12 @@ namespace RareIcon
 
         readonly ReactiveProperty<float> _zoom = new(12f);
         public ReadOnlyReactiveProperty<float> Zoom => _zoom;
+
+        readonly ReactiveProperty<int2> _hoveredHex = new(new int2(int.MinValue, int.MinValue));
+        public ReadOnlyReactiveProperty<int2> HoveredHex => _hoveredHex;
+
+        readonly ReactiveProperty<float2> _worldMousePos = new(float2.zero);
+        public ReadOnlyReactiveProperty<float2> WorldMousePos => _worldMousePos;
 
         public const float MinZoom = 3f;
         public const float MaxZoom = 50f;
@@ -59,6 +67,26 @@ namespace RareIcon
 
             HandleMovement();
             HandleZoom();
+            UpdateMouseWorldPos();
+        }
+
+        void UpdateMouseWorldPos()
+        {
+            var mouse = Mouse.current;
+            if (mouse == null) return;
+
+            var screenPos = mouse.position.ReadValue();
+            var worldPos = _camera.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0));
+            _worldMousePos.Value = new float2(worldPos.x, worldPos.y);
+        }
+
+        /// <summary>
+        /// Called by HexHoverSystem when it determines which hex the mouse is over.
+        /// </summary>
+        public void SetHoveredHex(int2 hexCoord)
+        {
+            if (!hexCoord.Equals(_hoveredHex.Value))
+                _hoveredHex.Value = hexCoord;
         }
 
         void HandleMovement()

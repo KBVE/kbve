@@ -16,7 +16,7 @@ namespace RareIcon
 
         // Base UV scale at ortho size 12 (our default zoom)
         const float BaseOrthoSize = 12f;
-        const float BaseUVScale = 40f;
+        const float BaseUVScale = 150f;
 
         Material _oceanMat;
 
