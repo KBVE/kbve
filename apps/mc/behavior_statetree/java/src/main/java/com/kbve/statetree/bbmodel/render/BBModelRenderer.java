@@ -1,40 +1,55 @@
 package com.kbve.statetree.bbmodel.render;
 
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.client.render.VertexConsumer;
-import com.mojang.datafixers.util.Pair;
-
-import com.kbve.statetree.bbmodel.*;
-import com.kbve.statetree.bbmodel.BBModelUtils;
-import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.TexturedRenderLayers;
-import net.minecraft.client.render.net.minecraft.client.render.OverlayTexture;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.DyeColor;
-import net.minecraft.block.entity.BannerPattern;
-import org.joml.Matrix3f;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.entity.Entity;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import com.kbve.statetree.bbmodel.*;
+
 import java.util.List;
 
+/**
+ * Renders BBModel meshes using Minecraft's vertex consumer pipeline.
+ *
+ * <p>Adapted from ImmersiveAircraft (GPL-3.0).
+ * Original: https://github.com/Luke100000/ImmersiveAircraft
+ *
+ * <p>Remapped from Mojang mappings to Yarn for Fabric 1.21.x.
+ */
 public class BBModelRenderer {
-    public interface VertexConsumerProvider {
+
+    /**
+     * Functional interface for custom vertex consumer selection per face.
+     * Named differently from MC's VertexConsumerProvider to avoid shadowing.
+     */
+    public interface FaceBufferProvider {
         VertexConsumer getBuffer(VertexConsumerProvider source, BBFaceContainer container, BBFace face);
     }
 
-    public static final VertexConsumerProvider DEFAULT_VERTEX_CONSUMER_PROVIDER = (source, container, face) -> source.getBuffer(container.enableCulling() ? RenderLayer.entityCutout(face.texture.location) : RenderLayer.entityCutoutNoCull(face.texture.location));
+    public static final FaceBufferProvider DEFAULT_FACE_BUFFER_PROVIDER =
+            (source, container, face) -> source.getBuffer(
+                    container.enableCulling()
+                            ? RenderLayer.getEntityCutout(face.texture.location)
+                            : RenderLayer.getEntityCutoutNoCull(face.texture.location));
 
-    public static <T extends Entity> void renderModel(BBModel model, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light, float time, T entity, ModelPartRenderHandler<T> modelPartRenderer, float red, float green, float blue, float alpha) {
-        model.root.forEach(object -> renderObject(model, object, matrixStack, vertexConsumerProvider, light, time, entity, modelPartRenderer, red, green, blue, alpha));
+    public static <T extends Entity> void renderModel(
+            BBModel model, MatrixStack matrixStack, VertexConsumerProvider vertexConsumers,
+            int light, float time, T entity, ModelPartRenderHandler<T> partRenderer,
+            float red, float green, float blue, float alpha) {
+        model.root.forEach(object -> renderObject(model, object, matrixStack, vertexConsumers,
+                light, time, entity, partRenderer, red, green, blue, alpha));
     }
 
-    /**
-     * Apply transformations, animations, and callbacks, and render the object.
-     */
-    public static <T extends Entity> void renderObject(BBModel model, BBObject object, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light, float time, T entity, ModelPartRenderHandler<T> modelPartRenderer, float red, float green, float blue, float alpha) {
-        matrixStack.pushPose();
+    public static <T extends Entity> void renderObject(
+            BBModel model, BBObject object, MatrixStack matrixStack, VertexConsumerProvider vertexConsumers,
+            int light, float time, T entity, ModelPartRenderHandler<T> partRenderer,
+            float red, float green, float blue, float alpha) {
+        matrixStack.push();
         matrixStack.translate(object.origin.x(), object.origin.y(), object.origin.z());
 
         // Apply animations
@@ -57,118 +72,92 @@ public class BBModelRenderer {
         // Apply object rotation
         matrixStack.multiply(BBModelUtils.fromXYZ(object.rotation));
 
-        // Apply additional, complex animations
-        if (object instanceof BBBone bone && modelPartRenderer != null) {
-            modelPartRenderer.animate(bone.name, entity, matrixStack, time);
+        // Apply additional animations via callback
+        if (object instanceof BBBone bone && partRenderer != null) {
+            partRenderer.animate(bone.name, entity, matrixStack, time);
         }
 
-        // The bones origin is only used during transformation
+        // Bone origin is only used during transformation
         if (object instanceof BBBone) {
             matrixStack.translate(-object.origin.x(), -object.origin.y(), -object.origin.z());
         }
 
-        // Render the object
-        if (modelPartRenderer == null || !modelPartRenderer.render(object.name, model, object, vertexConsumerProvider, entity, matrixStack, light, time, modelPartRenderer)) {
-            renderObjectInner(model, object, matrixStack, vertexConsumerProvider, light, time, entity, modelPartRenderer, red, green, blue, alpha);
+        // Render the object (callback can override)
+        if (partRenderer == null || !partRenderer.render(object.name, model, object,
+                vertexConsumers, entity, matrixStack, light, time, partRenderer)) {
+            renderObjectInner(model, object, matrixStack, vertexConsumers,
+                    light, time, entity, partRenderer, red, green, blue, alpha);
         }
 
-        matrixStack.popPose();
+        matrixStack.pop();
     }
 
-    /**
-     * Render the object without applying transformations, animations, or callbacks.
-     */
-    public static <T extends Entity> void renderObjectInner(BBModel model, BBObject object, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light, float time, T entity, ModelPartRenderHandler<T> modelPartRenderer, float red, float green, float blue, float alpha) {
+    public static <T extends Entity> void renderObjectInner(
+            BBModel model, BBObject object, MatrixStack matrixStack, VertexConsumerProvider vertexConsumers,
+            int light, float time, T entity, ModelPartRenderHandler<T> partRenderer,
+            float red, float green, float blue, float alpha) {
         if (object instanceof BBFaceContainer cube) {
-            renderFaces(cube, matrixStack, vertexConsumerProvider, light, red, green, blue, alpha, modelPartRenderer == null ? DEFAULT_VERTEX_CONSUMER_PROVIDER : modelPartRenderer.getVertexConsumerProvider());
+            FaceBufferProvider provider = partRenderer == null
+                    ? DEFAULT_FACE_BUFFER_PROVIDER
+                    : partRenderer.getFaceBufferProvider();
+            renderFaces(cube, matrixStack, vertexConsumers, light, red, green, blue, alpha, provider);
         } else if (object instanceof BBBone bone) {
-            boolean shouldRender = bone.visibility;
-            if (bone.name.equals("lod0")) {
-                shouldRender = entity.isWithinParticleRange();
-            } else if (bone.name.equals("lod1")) {
-                shouldRender = !entity.isWithinParticleRange();
-            }
-
-            if (shouldRender) {
-                bone.children.forEach(child -> renderObject(model, child, matrixStack, vertexConsumerProvider, light, time, entity, modelPartRenderer, red, green, blue, alpha));
+            if (bone.visibility) {
+                bone.children.forEach(child -> renderObject(model, child, matrixStack, vertexConsumers,
+                        light, time, entity, partRenderer, red, green, blue, alpha));
             }
         }
     }
 
-    public static void renderFaces(BBFaceContainer cube, MatrixStack matrixStack, VertexConsumerProvider source, int light, float red, float green, float blue, float alpha, VertexConsumerProvider provider) {
-        MatrixStack.Pose last = matrixStack.peek();
-        Matrix4f positionMatrix = last.pose();
-        Matrix3f normalMatrix = last.normal();
+    public static void renderFaces(
+            BBFaceContainer cube, MatrixStack matrixStack, VertexConsumerProvider source,
+            int light, float red, float green, float blue, float alpha,
+            FaceBufferProvider provider) {
+        MatrixStack.Entry entry = matrixStack.peek();
+        Matrix4f positionMatrix = entry.getPositionMatrix();
         for (BBFace face : cube.getFaces()) {
-            VertexConsumer vertexConsumer = provider.getBuffer(source, cube, face);
+            VertexConsumer vc = provider.getBuffer(source, cube, face);
             for (int i = 0; i < 4; i++) {
                 BBFace.BBVertex v = face.vertices[i];
-                vertexConsumer.vertex(positionMatrix, v.x, v.y, v.z);
-                vertexConsumer.color(red, green, blue, alpha);
-                vertexConsumer.uv(v.u, v.v);
-                vertexConsumer.overlay(net.minecraft.client.render.OverlayTexture.DEFAULT_UV);
-                vertexConsumer.uv2(light);
-                vertexConsumer.normal(normalMatrix, v.nx, v.ny, v.nz);
-                vertexConsumer.next();
+                vc.vertex(positionMatrix, v.x, v.y, v.z)
+                        .color(red, green, blue, alpha)
+                        .texture(v.u, v.v)
+                        .overlay(OverlayTexture.DEFAULT_UV)
+                        .light(light)
+                        .normal(entry, v.nx, v.ny, v.nz);
             }
         }
     }
 
-    public static void renderBanner(BBFaceContainer cube, MatrixStack matrixStack, VertexConsumerProvider vertexConsumers, int light, boolean isBanner, List<Pair<RegistryEntry<BannerPattern>, DyeColor>> patterns) {
-        matrixStack.pushPose();
-
-        if (cube instanceof BBObject object) {
-            matrixStack.translate(object.origin.x(), object.origin.y(), object.origin.z());
-        }
-
-        for (int i = 0; i < 17 && i < patterns.size(); ++i) {
-            Pair<RegistryEntry<BannerPattern>, DyeColor> pair = patterns.get(i);
-            RegistryEntry<BannerPattern> bannerPattern = pair.getFirst();
-            bannerPattern.unwrapKey()
-                    .map(key -> isBanner ? TexturedRenderLayers.getBannerPatternTexturedRenderLayer(key) : TexturedRenderLayers.getShieldPatternTexturedRenderLayer(key))
-                    .ifPresent(material -> {
-                        float[] fs = pair.getSecond().getTextureDiffuseColors();
-                        renderFaces(cube, matrixStack, vertexConsumers, light,
-                                fs[0], fs[1], fs[2], 1.0f,
-                                (source, container, face) -> material.buffer(vertexConsumers, RenderLayer::entityNoOutline));
-                    });
-        }
-
-        matrixStack.popPose();
+    public static void renderSailObject(
+            BBMesh cube, MatrixStack matrixStack, VertexConsumerProvider vertexConsumers,
+            int light, float time, float red, float green, float blue, float alpha) {
+        renderSailObject(cube, matrixStack, vertexConsumers, light, time, red, green, blue, alpha, 0.025f, 0.0f);
     }
 
-    public static void renderSailObject(BBMesh cube, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light, float time, float red, float green, float blue, float alpha) {
-        renderSailObject(cube, matrixStack, vertexConsumerProvider, light, time, red, green, blue, alpha, 0.025f, 0.0f);
-    }
-
-    public static void renderSailObject(BBMesh cube, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light, float time, float red, float green, float blue, float alpha, float distanceScale, float baseScale) {
-        MatrixStack.Pose last = matrixStack.peek();
-        Matrix4f positionMatrix = last.pose();
-        Matrix3f normalMatrix = last.normal();
+    public static void renderSailObject(
+            BBMesh cube, MatrixStack matrixStack, VertexConsumerProvider vertexConsumers,
+            int light, float time, float red, float green, float blue, float alpha,
+            float distanceScale, float baseScale) {
+        MatrixStack.Entry entry = matrixStack.peek();
+        Matrix4f positionMatrix = entry.getPositionMatrix();
         for (BBFace face : cube.getFaces()) {
-            VertexConsumer vertexConsumer = vertexConsumerProvider.getBuffer(RenderLayer.entityCutoutNoCull(face.texture.location));
+            VertexConsumer vc = vertexConsumers.getBuffer(
+                    RenderLayer.getEntityCutoutNoCull(face.texture.location));
             for (int i = 0; i < 4; i++) {
                 BBFace.BBVertex v = face.vertices[i];
-                float distance = Math.max(
-                        Math.max(
-                                Math.abs(v.x),
-                                Math.abs(v.y)
-                        ),
-                        Math.abs(v.z)
-                );
+                float distance = Math.max(Math.max(Math.abs(v.x), Math.abs(v.y)), Math.abs(v.z));
                 double angle = (v.x + v.z + v.y * 0.25) * 4.0f + time * 4.0f;
                 double scale = distanceScale * distance + baseScale;
-                float x = (float) ((Math.cos(angle) + Math.cos(angle * 1.7)) * scale);
-                float z = (float) ((Math.sin(angle) + Math.sin(angle * 1.7)) * scale);
+                float dx = (float) ((Math.cos(angle) + Math.cos(angle * 1.7)) * scale);
+                float dz = (float) ((Math.sin(angle) + Math.sin(angle * 1.7)) * scale);
 
-                vertexConsumer
-                        .vertex(positionMatrix, v.x + x, v.y, v.z + z)
+                vc.vertex(positionMatrix, v.x + dx, v.y, v.z + dz)
                         .color(red, green, blue, alpha)
-                        .uv(v.u, v.v)
-                        .overlay(net.minecraft.client.render.OverlayTexture.DEFAULT_UV)
-                        .uv2(light)
-                        .normal(normalMatrix, v.nx, v.ny, v.nz)
-                        .next();
+                        .texture(v.u, v.v)
+                        .overlay(OverlayTexture.DEFAULT_UV)
+                        .light(light)
+                        .normal(entry, v.nx, v.ny, v.nz);
             }
         }
     }

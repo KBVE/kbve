@@ -14,7 +14,7 @@ import java.util.Map;
  */
 public class ModelPartRenderHandler<T extends Entity> {
     private final Map<String, ModelPartRenderer<T>> objects = new HashMap<>();
-    private BBModelRenderer.VertexConsumerProvider vertexConsumerProvider = BBModelRenderer.DEFAULT_VERTEX_CONSUMER_PROVIDER;
+    private BBModelRenderer.FaceBufferProvider vertexConsumerProvider = BBModelRenderer.DEFAULT_VERTEX_CONSUMER_PROVIDER;
 
     public ModelPartRenderHandler<T> add(String id, ModelPartRenderer.AnimationConsumer<T> animationConsumer) {
         return add(id, animationConsumer, null);
@@ -54,12 +54,12 @@ public class ModelPartRenderHandler<T extends Entity> {
      * Set the vertex consumer provider for this model part renderer, allowing for custom render types.
      * @param vertexConsumerProvider The mapping between renderable and vertex consumers.
      */
-    public ModelPartRenderHandler<T> vertexConsumerProvider(BBModelRenderer.VertexConsumerProvider vertexConsumerProvider) {
+    public ModelPartRenderHandler<T> vertexConsumerProvider(BBModelRenderer.FaceBufferProvider vertexConsumerProvider) {
         this.vertexConsumerProvider = vertexConsumerProvider;
         return this;
     }
 
-    public BBModelRenderer.VertexConsumerProvider getVertexConsumerProvider() {
+    public BBModelRenderer.FaceBufferProvider getVertexConsumerProvider() {
         return vertexConsumerProvider;
     }
 }
