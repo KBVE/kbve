@@ -46,8 +46,8 @@ namespace RareIcon
                     if (EntityManager.HasComponent<RenderMeshArray>(entity))
                     {
                         var rma = EntityManager.GetSharedComponentManaged<RenderMeshArray>(entity);
-                        if (rma.Materials != null && rma.Materials.Length > 0)
-                            _oceanMat = rma.Materials[0] as Material;
+                        if (rma.MaterialReferences != null && rma.MaterialReferences.Length > 0)
+                            _oceanMat = rma.MaterialReferences[0].Value as Material;
                     }
                 }
             }
@@ -62,7 +62,13 @@ namespace RareIcon
                 float waveWorldSize = 0.8f; // each wave cell ~0.8 world units (~3 hex tiles)
                 float uvScale = entityScale / waveWorldSize;
                 _oceanMat.SetFloat(UVScaleId, uvScale);
-                _oceanMat.SetVector(WorldOffsetId, new Vector4(camPos.x, camPos.y, 0, 0));
+                // Offset UVs so waves stay anchored to world space
+                // The quad moves with the camera, so we subtract camera movement
+                // Divide by entityScale to convert world units to 0-1 UV space
+                _oceanMat.SetVector(WorldOffsetId, new Vector4(
+                    camPos.x / entityScale,
+                    camPos.y / entityScale,
+                    0, 0));
             }
             else
             {

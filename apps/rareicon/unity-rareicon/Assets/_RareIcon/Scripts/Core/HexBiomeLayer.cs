@@ -23,7 +23,6 @@ namespace RareIcon
         Material _material;
         Texture2D _biomeTex;
         float _worldScale = 20f;
-        int _texSize = 256;
 
         [Inject] CameraService _cameraService;
 

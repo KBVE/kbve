@@ -7,100 +7,92 @@ using UnityEngine;
 namespace RareIcon
 {
     /// <summary>
-    /// Reads MouseState singleton, looks up hovered hex via cached HashMap.
-    /// Tags entity with HexHoveredTag and publishes HexHoverMessage via MessagePipe.
+    /// Reads MouseState singleton, looks up hovered hex via persistent HashMap.
+    /// The HashMap is maintained by HexChunkSystem — add on spawn, remove on despawn.
+    /// One allocation, never rebuilt.
     /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    public partial struct HexHoverSystem : ISystem
+    public partial class HexHoverSystem : SystemBase
     {
-        NativeHashMap<int2, Entity> _hexLookup;
+        static NativeHashMap<int2, Entity> _hexLookup;
+        static bool _initialized;
+
         Entity _lastHoveredEntity;
         bool _hasLast;
-        bool _lookupBuilt;
-        int _lastEntityCount;
 
-        public void OnCreate(ref SystemState state)
+        public static void Initialize(int capacity)
         {
-            _hasLast = false;
-            _lookupBuilt = false;
-            state.RequireForUpdate<MouseState>();
+            if (_initialized && _hexLookup.IsCreated) _hexLookup.Dispose();
+            _hexLookup = new NativeHashMap<int2, Entity>(capacity, Allocator.Persistent);
+            _initialized = true;
         }
 
-        public void OnDestroy(ref SystemState state)
+        public static void AddHex(int2 coord, Entity entity)
         {
-            if (_hexLookup.IsCreated) _hexLookup.Dispose();
+            if (!_initialized) Initialize(4096);
+            _hexLookup.TryAdd(coord, entity);
         }
 
-        public void OnUpdate(ref SystemState state)
+        public static void RemoveHex(int2 coord)
         {
-            // Rebuild lookup when chunks change
-            var query = SystemAPI.QueryBuilder().WithAll<HexCoord, HexTileTag>().Build();
-            int currentCount = query.CalculateEntityCount();
-            if (!_lookupBuilt || currentCount != _lastEntityCount)
+            if (_initialized && _hexLookup.IsCreated)
+                _hexLookup.Remove(coord);
+        }
+
+        public static void Cleanup()
+        {
+            if (_initialized && _hexLookup.IsCreated)
             {
-                BuildLookup(ref state);
-                if (!_lookupBuilt) return;
+                _hexLookup.Dispose();
+                _initialized = false;
             }
+        }
+
+        protected override void OnCreate()
+        {
+            RequireForUpdate<MouseState>();
+        }
+
+        protected override void OnDestroy()
+        {
+            Cleanup();
+        }
+
+        protected override void OnUpdate()
+        {
+            if (!_initialized || !_hexLookup.IsCreated) return;
 
             var mouse = SystemAPI.GetSingleton<MouseState>();
             if (!mouse.Changed) return;
 
             // Remove tag from previous
-            if (_hasLast && state.EntityManager.Exists(_lastHoveredEntity)
-                        && state.EntityManager.HasComponent<HexHoveredTag>(_lastHoveredEntity))
+            if (_hasLast && EntityManager.Exists(_lastHoveredEntity)
+                        && EntityManager.HasComponent<HexHoveredTag>(_lastHoveredEntity))
             {
-                state.EntityManager.RemoveComponent<HexHoveredTag>(_lastHoveredEntity);
+                EntityManager.RemoveComponent<HexHoveredTag>(_lastHoveredEntity);
                 _hasLast = false;
             }
 
             // O(1) lookup
             if (_hexLookup.TryGetValue(mouse.HexCoord, out Entity entity))
             {
-                state.EntityManager.AddComponent<HexHoveredTag>(entity);
+                EntityManager.AddComponent<HexHoveredTag>(entity);
                 _lastHoveredEntity = entity;
                 _hasLast = true;
 
-                // Read biome and publish
-                var biome = state.EntityManager.GetComponentData<BiomeType>(entity);
+                var biome = EntityManager.GetComponentData<BiomeType>(entity);
                 var publisher = GlobalMessagePipe.GetPublisher<HexHoverMessage>();
                 publisher.Publish(new HexHoverMessage(
-                    mouse.HexCoord.x,
-                    mouse.HexCoord.y,
-                    biome.Value,
-                    true
+                    mouse.HexCoord.x, mouse.HexCoord.y, biome.Value, true
                 ));
             }
             else
             {
-                // Hovering ocean / empty
                 var publisher = GlobalMessagePipe.GetPublisher<HexHoverMessage>();
                 publisher.Publish(new HexHoverMessage(
-                    mouse.HexCoord.x,
-                    mouse.HexCoord.y,
-                    0,
-                    false
+                    mouse.HexCoord.x, mouse.HexCoord.y, 0, false
                 ));
             }
-        }
-
-        void BuildLookup(ref SystemState state)
-        {
-            var query = SystemAPI.QueryBuilder().WithAll<HexCoord, HexTileTag>().Build();
-            int count = query.CalculateEntityCount();
-            if (count == 0) return;
-
-            _hexLookup = new NativeHashMap<int2, Entity>(count, Allocator.Persistent);
-
-            foreach (var (coord, entity) in
-                     SystemAPI.Query<RefRO<HexCoord>>()
-                         .WithAll<HexTileTag>()
-                         .WithEntityAccess())
-            {
-                _hexLookup.TryAdd(new int2(coord.ValueRO.Q, coord.ValueRO.R), entity);
-            }
-
-            _lookupBuilt = true;
-            _lastEntityCount = count;
         }
     }
 }

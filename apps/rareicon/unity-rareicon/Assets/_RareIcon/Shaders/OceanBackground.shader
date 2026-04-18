@@ -235,14 +235,15 @@ Shader "RareIcon/OceanBackground"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
                 output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-                output.uv = input.uv + _WorldOffset.xy / _WorldScale;
+                output.uv = input.uv;
                 return output;
             }
 
             float4 frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
-                float2 uv = input.uv * _UVScale;
+                // Apply world offset AFTER scale so waves are anchored to world space
+                float2 uv = (input.uv + _WorldOffset.xy) * _UVScale;
                 float3 col = water(uv);
                 return float4(col, 1.0);
             }

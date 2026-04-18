@@ -14,12 +14,14 @@ namespace RareIcon
     {
         readonly LocaleService _locale;
         readonly InventoryService _inventory;
+        readonly ChunkGeneratorService _chunkGenerator;
 
         [Inject]
-        public TitleEntryPoint(LocaleService locale, InventoryService inventory)
+        public TitleEntryPoint(LocaleService locale, InventoryService inventory, ChunkGeneratorService chunkGenerator)
         {
             _locale = locale;
             _inventory = inventory;
+            _chunkGenerator = chunkGenerator;
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
@@ -37,6 +39,9 @@ namespace RareIcon
 
             // Clean up the test items
             _inventory.Remove(ItemId.HealthPotion, 3);
+
+            // Wire chunk generator to ECS system
+            HexChunkSystem.SetGenerator(_chunkGenerator);
 
             Debug.Log("[TitleEntryPoint] Ready.");
 
