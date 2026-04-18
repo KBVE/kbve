@@ -119,6 +119,9 @@ apps/rareicon/**/*.unityproj
 apps/rareicon/**/*.pidb
 apps/rareicon/**/*.pdb
 apps/rareicon/**/*.mdb
+apps/rareicon/**/Plugins/**/*.dylib
+apps/rareicon/**/Plugins/**/*.dll
+apps/rareicon/**/Plugins/**/*.so
 
 # Mono
 .mono/*

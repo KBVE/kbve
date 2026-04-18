@@ -16370,6 +16370,7 @@ dependencies = [
  "bevy_pathfinding",
  "bevy_skills",
  "csbindgen",
+ "serde",
 ]
 
 [[package]]
