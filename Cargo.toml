@@ -34,10 +34,12 @@ members = [
 	'packages/rust/bevy/bevy_db',
 	'packages/rust/bevy/bevy_supa',
 	'packages/rust/bevy/bevy_pathfinding',
+	'packages/rust/bevy/bevy_behavior',
 	'apps/vm/firecracker-ctl',
 	'apps/vm/kubectl',
 	'apps/mc/behavior_statetree',
 	'apps/mc/mc_auth',
+	'packages/rust/bevy/uniti',
 ]
 
 [profile.dev]
@@ -63,6 +65,12 @@ lto = 'fat'
 codegen-units = 1
 
 [profile.release.overrides.isometric-game]
+panic = 'unwind'
+opt-level = 3
+lto = 'fat'
+codegen-units = 1
+
+[profile.release.overrides.uniti]
 panic = 'unwind'
 opt-level = 3
 lto = 'fat'

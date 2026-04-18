@@ -5,7 +5,7 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.94"
 license = "MIT"
-description = "Generic Bevy inventory plugin with item stacking, slot limits, and loot events."
+description = "Generic slot-based inventory with item stacking — pure Rust core with optional Bevy ECS integration."
 homepage = "https://kbve.com/"
 repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_inventory"
 keywords = ["bevy", "inventory", "gamedev", "ecs", "plugin"]
@@ -13,15 +13,22 @@ categories = ["game-development", "game-engines"]
 readme = "README.md"
 
 [features]
-default = ["snapshot"]
+default = ["bevy", "snapshot"]
 snapshot = ["dep:serde_json"]
 
+# Bevy ECS integration — adds Resource/Event derives, Plugin, and systems.
+# Without this feature the crate is plain Rust with zero Bevy dependency,
+# suitable for FFI cdylibs (uniti) and non-Bevy consumers (discordsh-bot).
+bevy = ["dep:bevy"]
+
 [dependencies]
-bevy = { version = "0.18", default-features = false, features = [
-    "bevy_state",
-] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", optional = true }
+
+# Bevy — only pulled in under the `bevy` feature.
+bevy = { version = "0.18", default-features = false, features = [
+    "bevy_state",
+], optional = true }
 
 [package.metadata.docs.rs]
 all-features = true

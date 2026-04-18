@@ -1,0 +1,12 @@
+{
+	"title.play": "Play",
+	"title.settings": "Settings",
+	"title.quit": "Quit",
+	"hud.hp": "HP",
+	"hud.mp": "MP",
+	"hud.level": "Lv.",
+	"pause.resume": "Resume",
+	"pause.title": "Paused",
+	"dialogue.next": "Next",
+	"dialogue.skip": "Skip"
+}

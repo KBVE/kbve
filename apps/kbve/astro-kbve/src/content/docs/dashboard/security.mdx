@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-04-17T08:45:46Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-04-18T08:23:46Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**33** critical/high severity findings across the monorepo.
+**29** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,7 +26,7 @@ Last generated: **2026-04-17T08:45:46Z** — updated daily by `ci-dashboard`.
   <Card title="1 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="32 High" icon="error">
+  <Card title="28 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
   <Card title="48 Medium" icon="information">
@@ -41,7 +41,7 @@ Last generated: **2026-04-17T08:45:46Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **78** advisories
+    **74** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **36** advisories
@@ -63,7 +63,7 @@ Last generated: **2026-04-17T08:45:46Z** — updated daily by `ci-dashboard`.
 pie showData
     title Findings by Severity
     "Critical" : 1
-    "High" : 32
+    "High" : 28
     "Medium" : 48
     "Low" : 5
 ```
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 78
+    "npm" : 74
     "Cargo" : 36
 ```
 
@@ -82,12 +82,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 1 | 32 | 40 | 5 | 78 |
+| **npm** | 1 | 28 | 40 | 5 | 74 |
 | **Cargo** | 0 | 0 | 8 | 0 | 36 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 32 | 48 | 5 | 114 |
+| **Total** | 1 | 28 | 48 | 5 | 110 |
 
   </TabItem>
   <TabItem label="npm">
@@ -111,12 +111,8 @@ pie showData
 | High | `flatted` | Prototype Pollution via parse() in NodeJS flatted | [Details](https://github.com/advisories/GHSA-rf6f-7fwh-wjgh) |
 | High | `path-to-regexp` | path-to-regexp vulnerable to Regular Expression Denial of... | [Details](https://github.com/advisories/GHSA-37ch-88jc-xwx2) |
 | High | `handlebars` | Handlebars.js has JavaScript Injection via AST Type Confu... | [Details](https://github.com/advisories/GHSA-3mfm-83xf-c92r) |
-| High | `node-forge` | Forge has a basicConstraints bypass in its certificate ch... | [Details](https://github.com/advisories/GHSA-2328-f5f3-gj25) |
-| High | `node-forge` | Forge has signature forgery in Ed25519 due to missing S &gt;... | [Details](https://github.com/advisories/GHSA-q67f-28xg-22rw) |
-| High | `node-forge` | Forge has Denial of Service via Infinite Loop in BigInteg... | [Details](https://github.com/advisories/GHSA-5m6q-g25r-mvwx) |
 | High | `picomatch` | Picomatch has a ReDoS vulnerability via extglob quantifiers | [Details](https://github.com/advisories/GHSA-c2c7-rcm5-vvqj) |
 | High | `picomatch` | Picomatch has a ReDoS vulnerability via extglob quantifiers | [Details](https://github.com/advisories/GHSA-c2c7-rcm5-vvqj) |
-| High | `node-forge` | Forge has signature forgery in RSA-PKCS due to ASN.1 extr... | [Details](https://github.com/advisories/GHSA-ppp5-5v6c-4jwp) |
 | High | `handlebars` | Handlebars.js has JavaScript Injection in CLI Precompiler... | [Details](https://github.com/advisories/GHSA-xjpj-3mr7-gcpf) |
 | High | `handlebars` | Handlebars.js has JavaScript Injection via AST Type Confu... | [Details](https://github.com/advisories/GHSA-xhpv-hc6g-r9c6) |
 | High | `handlebars` | Handlebars.js has Denial of Service via Malformed Decorat... | [Details](https://github.com/advisories/GHSA-9cx6-37pm-9jff) |

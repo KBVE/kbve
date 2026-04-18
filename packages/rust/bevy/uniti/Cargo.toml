@@ -1,0 +1,25 @@
+[package]
+name = "uniti"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94"
+license = "MIT"
+description = "C FFI bridge from KBVE game logic crates to Unity via csbindgen"
+homepage = "https://kbve.com/"
+repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/uniti"
+keywords = ["ffi", "unity", "gamedev", "csbindgen"]
+categories = ["game-development", "api-bindings"]
+
+[lib]
+crate-type = ["cdylib"]
+
+[build-dependencies]
+csbindgen = "1.9"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+bevy_pathfinding = { path = "../bevy_pathfinding", default-features = false }
+bevy_inventory = { path = "../bevy_inventory", default-features = false }
+bevy_battle = { path = "../bevy_battle", default-features = false }
+bevy_skills = { path = "../bevy_skills", default-features = false }

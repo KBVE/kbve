@@ -1,0 +1,77 @@
+{
+	"name": "uniti",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/rust/bevy/uniti/src",
+	"tags": ["ffi", "cdylib"],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo build -p uniti --release"],
+				"cwd": "packages/rust/bevy/uniti"
+			}
+		},
+		"build:macos": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"cargo build -p uniti --release",
+					"mkdir -p ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/macOS",
+					"cp ../../../../dist/target/release/libuniti.dylib ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/macOS/libuniti.dylib"
+				],
+				"cwd": "packages/rust/bevy/uniti"
+			}
+		},
+		"build:windows": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"cargo xwin build -p uniti --release --target x86_64-pc-windows-msvc",
+					"mkdir -p ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/Windows/x86_64",
+					"cp ../../../../dist/target/x86_64-pc-windows-msvc/release/uniti.dll ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/Windows/x86_64/uniti.dll"
+				],
+				"cwd": "packages/rust/bevy/uniti"
+			}
+		},
+		"build:linux": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"cross build -p uniti --release --target x86_64-unknown-linux-gnu",
+					"mkdir -p ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/Linux/x86_64",
+					"cp ../../../../dist/target/x86_64-unknown-linux-gnu/release/libuniti.so ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/Linux/x86_64/libuniti.so"
+				],
+				"cwd": "packages/rust/bevy/uniti"
+			}
+		},
+		"build:all": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"npx nx run uniti:build:macos",
+					"npx nx run uniti:build:windows",
+					"npx nx run uniti:build:linux"
+				]
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo test -p uniti"],
+				"cwd": "packages/rust/bevy/uniti"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo clippy -p uniti -- -D warnings"],
+				"cwd": "packages/rust/bevy/uniti"
+			}
+		}
+	}
+}

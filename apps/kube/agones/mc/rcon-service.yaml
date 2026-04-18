@@ -1,0 +1,25 @@
+---
+# Headless RCON Service — allows in-cluster Jobs (graceful restart,
+# admin scripts) to reach the Fabric GameServer's RCON port via DNS
+# instead of discovering pod IPs through the Agones API.
+#
+# Headless (clusterIP: None) because the fleet may have 0-N replicas.
+# DNS returns the pod IPs directly so callers can detect "no endpoints"
+# as "no servers running" and exit gracefully.
+apiVersion: v1
+kind: Service
+metadata:
+    name: mc-fabric-rcon
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/part-of: mc
+        app.kubernetes.io/component: rcon
+spec:
+    clusterIP: None
+    selector:
+        app: mc-gameserver
+    ports:
+        - name: rcon
+          port: 25575
+          targetPort: 25575
+          protocol: TCP
