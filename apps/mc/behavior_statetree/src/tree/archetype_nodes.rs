@@ -5,9 +5,7 @@
 //! - **Mage**: teleports past obstacles
 //! - **Archer**: shoots arrows from range, seeks vantage points
 
-use crate::types::{NpcCommand, NpcObservation};
-
-use super::node::{BehaviorContext, BehaviorNode, NodeStatus};
+use crate::types::{BehaviorContext, BehaviorNode, NodeStatus, NpcCommand, NpcObservation};
 
 // ---------------------------------------------------------------------------
 // Shared condition: is the NPC stuck at a cliff?
@@ -17,7 +15,7 @@ use super::node::{BehaviorContext, BehaviorNode, NodeStatus};
 /// AND the target is above them (cliff). Reads from `flow_hint`.
 pub struct IsStuckAtCliff;
 
-impl BehaviorNode for IsStuckAtCliff {
+impl BehaviorNode<NpcObservation, NpcCommand> for IsStuckAtCliff {
     fn evaluate(
         &self,
         observation: &NpcObservation,
@@ -52,7 +50,7 @@ pub struct BuildScaffold {
     pub cleanup_ticks: u32,
 }
 
-impl BehaviorNode for BuildScaffold {
+impl BehaviorNode<NpcObservation, NpcCommand> for BuildScaffold {
     fn evaluate(
         &self,
         observation: &NpcObservation,
@@ -89,7 +87,7 @@ impl BehaviorNode for BuildScaffold {
 /// Used when the mage can't walk to the target (cliff, wall, etc.).
 pub struct TeleportToTarget;
 
-impl BehaviorNode for TeleportToTarget {
+impl BehaviorNode<NpcObservation, NpcCommand> for TeleportToTarget {
     fn evaluate(
         &self,
         observation: &NpcObservation,
@@ -108,7 +106,7 @@ impl BehaviorNode for TeleportToTarget {
 /// the target is above/below). Triggers teleport.
 pub struct IsPathBlocked;
 
-impl BehaviorNode for IsPathBlocked {
+impl BehaviorNode<NpcObservation, NpcCommand> for IsPathBlocked {
     fn evaluate(
         &self,
         observation: &NpcObservation,
@@ -158,7 +156,7 @@ pub struct ShootAtTarget {
     pub power: f32,
 }
 
-impl BehaviorNode for ShootAtTarget {
+impl BehaviorNode<NpcObservation, NpcCommand> for ShootAtTarget {
     fn evaluate(
         &self,
         observation: &NpcObservation,
@@ -205,7 +203,7 @@ pub struct MaintainRange {
     pub min_range: f64,
 }
 
-impl BehaviorNode for MaintainRange {
+impl BehaviorNode<NpcObservation, NpcCommand> for MaintainRange {
     fn evaluate(
         &self,
         observation: &NpcObservation,

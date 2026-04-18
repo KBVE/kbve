@@ -1,12 +1,15 @@
 //! Core behavior tree trait and composite nodes.
 //!
-//! Everything here is generic over `O` (observation), `C` (context), and
-//! `A` (action) so games can plug in their own types without touching this
-//! crate.
+//! Generic over `O` (observation) and `A` (action). The context type
+//! ([`BehaviorContext`]) is fixed as a method parameter — not a type
+//! parameter — so trait objects (`Box<dyn BehaviorNode<O, A>>`) work
+//! without lifetime gymnastics.
 
 mod builtin;
 
 pub use builtin::*;
+
+use crate::cooldown::BehaviorContext;
 
 /// Result of evaluating a single behavior tree node.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -23,27 +26,26 @@ pub enum NodeStatus {
 ///
 /// Generic over:
 /// - `O` — observation (immutable snapshot the NPC sees)
-/// - `C` — context (mutable per-evaluation state: cooldowns, tick, etc.)
 /// - `A` — action/command the NPC wants to execute
-pub trait BehaviorNode<O, C, A>: Send + Sync {
-    fn evaluate(&self, observation: &O, ctx: &mut C) -> (NodeStatus, Vec<A>);
+///
+/// The mutable [`BehaviorContext`] (tick counter + cooldowns) is passed
+/// as a method parameter so the trait is object-safe without lifetime
+/// parameters leaking into `Box<dyn BehaviorNode<O, A>>`.
+pub trait BehaviorNode<O, A>: Send + Sync {
+    fn evaluate(&self, observation: &O, ctx: &mut BehaviorContext<'_>) -> (NodeStatus, Vec<A>);
 }
 
 /// Runs children in order until one succeeds (OR / fallback).
-///
-/// Returns the status + commands of the first child that doesn't fail.
-/// If every child fails, the selector itself fails.
-pub struct Selector<O, C, A> {
-    pub children: Vec<Box<dyn BehaviorNode<O, C, A>>>,
+pub struct Selector<O, A> {
+    pub children: Vec<Box<dyn BehaviorNode<O, A>>>,
 }
 
-impl<O, C, A> BehaviorNode<O, C, A> for Selector<O, C, A>
+impl<O, A> BehaviorNode<O, A> for Selector<O, A>
 where
     O: Send + Sync,
-    C: Send + Sync,
     A: Send + Sync,
 {
-    fn evaluate(&self, observation: &O, ctx: &mut C) -> (NodeStatus, Vec<A>) {
+    fn evaluate(&self, observation: &O, ctx: &mut BehaviorContext<'_>) -> (NodeStatus, Vec<A>) {
         for child in &self.children {
             let (status, commands) = child.evaluate(observation, ctx);
             if status != NodeStatus::Failure {
@@ -55,20 +57,16 @@ where
 }
 
 /// Runs children in order until one fails (AND / sequence).
-///
-/// Accumulates commands from all successful children. Returns failure
-/// (plus whatever was accumulated so far) as soon as one child fails.
-pub struct Sequence<O, C, A> {
-    pub children: Vec<Box<dyn BehaviorNode<O, C, A>>>,
+pub struct Sequence<O, A> {
+    pub children: Vec<Box<dyn BehaviorNode<O, A>>>,
 }
 
-impl<O, C, A> BehaviorNode<O, C, A> for Sequence<O, C, A>
+impl<O, A> BehaviorNode<O, A> for Sequence<O, A>
 where
     O: Send + Sync,
-    C: Send + Sync,
     A: Send + Sync,
 {
-    fn evaluate(&self, observation: &O, ctx: &mut C) -> (NodeStatus, Vec<A>) {
+    fn evaluate(&self, observation: &O, ctx: &mut BehaviorContext<'_>) -> (NodeStatus, Vec<A>) {
         let mut all_commands = Vec::new();
         for child in &self.children {
             let (status, commands) = child.evaluate(observation, ctx);

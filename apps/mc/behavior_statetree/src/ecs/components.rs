@@ -3,7 +3,7 @@
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::tree::node::CooldownState;
+use crate::types::CooldownState;
 
 /// Marker for entities managed by the AI behavior system.
 #[derive(Component, Debug)]

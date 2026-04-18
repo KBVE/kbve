@@ -6,18 +6,21 @@
 
 use serde::{Deserialize, Serialize};
 
+// Re-export shared types from bevy_behavior so MC-specific nodes can
+// reference them without a second `use bevy_behavior::...` import.
+pub use bevy_behavior::{BehaviorContext, BehaviorNode, CooldownState, NodeStatus};
+
+/// MC-specific type aliases for the generic behavior tree engine.
+/// Pins the generic `Selector<O, A>` / `Sequence<O, A>` to MC types.
+pub type McSelector = bevy_behavior::Selector<NpcObservation, NpcCommand>;
+pub type McSequence = bevy_behavior::Sequence<NpcObservation, NpcCommand>;
+
 /// Unique identifier for an NPC goal (e.g. "patrol_village", "defend_area").
 pub type GoalId = u32;
 
-/// Snapshot of a nearby entity visible to the NPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntitySnapshot {
-    pub entity_id: u64,
-    pub entity_type: String,
-    pub position: [f64; 3],
-    pub health: f32,
-    pub is_hostile: bool,
-}
+/// Re-export the shared EntitySnapshot from bevy_behavior so MC code
+/// doesn't need a separate import. Same struct, one source of truth.
+pub use bevy_behavior::EntitySnapshot;
 
 /// Snapshot of a nearby block relevant to the NPC's decision.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -85,6 +88,38 @@ pub struct FlowFieldHint {
     pub nearest_gate: Option<[f64; 3]>,
     /// Number of flow gates within a reasonable patrol radius (~32 blocks).
     pub gates_in_range: u32,
+}
+
+// ---------------------------------------------------------------------------
+// Observation trait impls — lets bevy_behavior's built-in leaves query
+// NpcObservation without knowing the MC-specific struct.
+// ---------------------------------------------------------------------------
+
+impl bevy_behavior::Positioned for NpcObservation {
+    fn position(&self) -> [f64; 3] {
+        self.position
+    }
+}
+
+impl bevy_behavior::Healthed for NpcObservation {
+    fn current_health(&self) -> f32 {
+        self.health
+    }
+    fn max_health(&self) -> f32 {
+        20.0 // Minecraft default max health
+    }
+}
+
+impl bevy_behavior::Aware for NpcObservation {
+    fn nearby_entities(&self) -> &[bevy_behavior::EntitySnapshot] {
+        &self.nearby_entities
+    }
+}
+
+impl bevy_behavior::Ticked for NpcObservation {
+    fn tick(&self) -> u64 {
+        self.tick
+    }
 }
 
 /// Job submitted to the Tokio runtime for async processing.

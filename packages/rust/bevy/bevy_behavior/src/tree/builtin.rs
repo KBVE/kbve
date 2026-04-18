@@ -19,7 +19,7 @@ pub struct IsHealthLow {
     pub threshold: f32,
 }
 
-impl<O, A> BehaviorNode<O, BehaviorContext<'_>, A> for IsHealthLow
+impl<O, A> BehaviorNode<O, A> for IsHealthLow
 where
     O: Healthed + Send + Sync,
     A: Send + Sync,
@@ -36,7 +36,7 @@ where
 /// Succeeds if any hostile entity is within the observation's nearby list.
 pub struct HasHostileNearby;
 
-impl<O, A> BehaviorNode<O, BehaviorContext<'_>, A> for HasHostileNearby
+impl<O, A> BehaviorNode<O, A> for HasHostileNearby
 where
     O: Aware + Send + Sync,
     A: Send + Sync,
@@ -61,7 +61,7 @@ pub struct Wander<F> {
     pub make_move: F,
 }
 
-impl<O, A, F> BehaviorNode<O, BehaviorContext<'_>, A> for Wander<F>
+impl<O, A, F> BehaviorNode<O, A> for Wander<F>
 where
     O: Positioned + Ticked + Send + Sync,
     A: Send + Sync,
@@ -87,7 +87,7 @@ pub struct Flee<F> {
     pub make_move: F,
 }
 
-impl<O, A, F> BehaviorNode<O, BehaviorContext<'_>, A> for Flee<F>
+impl<O, A, F> BehaviorNode<O, A> for Flee<F>
 where
     O: Positioned + Aware + Send + Sync,
     A: Send + Sync,
@@ -132,7 +132,7 @@ pub struct AttackNearest<F> {
     pub make_attack: F,
 }
 
-impl<O, A, F> BehaviorNode<O, BehaviorContext<'_>, A> for AttackNearest<F>
+impl<O, A, F> BehaviorNode<O, A> for AttackNearest<F>
 where
     O: Positioned + Aware + Send + Sync,
     A: Send + Sync,
@@ -170,7 +170,7 @@ pub struct CallAllies<F> {
     pub make_actions: F,
 }
 
-impl<O, A, F> BehaviorNode<O, BehaviorContext<'_>, A> for CallAllies<F>
+impl<O, A, F> BehaviorNode<O, A> for CallAllies<F>
 where
     O: Healthed + Aware + Send + Sync,
     A: Send + Sync,

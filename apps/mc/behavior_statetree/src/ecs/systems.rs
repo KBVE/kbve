@@ -15,8 +15,9 @@ use crate::tree::builtin::{AttackNearest, CallAllies, Flee, IsHealthLow, Wander}
 use crate::tree::flow_nodes::{
     FlowApproach, FlowFlee, HasFlowField, PatrolGate, PlayerWithinFlowDistance,
 };
-use crate::tree::node::{BehaviorContext, BehaviorNode, Selector, Sequence};
-use crate::types::{NpcCommand, NpcObservation};
+use crate::types::{
+    BehaviorContext, BehaviorNode, McSelector, McSequence, NpcCommand, NpcObservation,
+};
 
 use super::components::*;
 use super::events::*;
@@ -449,7 +450,7 @@ pub fn plan_behavior(
         };
 
         // Select behavior tree based on archetype
-        let tree: Box<dyn BehaviorNode> = match archetype {
+        let tree: Box<dyn BehaviorNode<NpcObservation, NpcCommand>> = match archetype {
             Some(SkeletonArchetype::Melee) => Box::new(build_melee_tree()),
             Some(SkeletonArchetype::Mage) => Box::new(build_mage_tree()),
             Some(SkeletonArchetype::Archer) => Box::new(build_archer_tree()),
@@ -542,14 +543,14 @@ fn build_flow_hint(
 // ---------------------------------------------------------------------------
 
 /// Melee skeleton: approach → stuck at cliff? build scaffold → attack → wander
-fn build_melee_tree() -> Selector {
-    Selector {
+fn build_melee_tree() -> McSelector {
+    McSelector {
         children: vec![
             // Priority 1: Low HP → flee
-            Box::new(Sequence {
+            Box::new(McSequence {
                 children: vec![
                     Box::new(IsHealthLow { threshold: 5.0 }),
-                    Box::new(Selector {
+                    Box::new(McSelector {
                         children: vec![
                             Box::new(FlowFlee),
                             Box::new(Flee {
@@ -560,7 +561,7 @@ fn build_melee_tree() -> Selector {
                 ],
             }),
             // Priority 2: Call for help when hurt
-            Box::new(Sequence {
+            Box::new(McSequence {
                 children: vec![
                     Box::new(IsHealthLow { threshold: 6.0 }),
                     Box::new(CallAllies {
@@ -572,7 +573,7 @@ fn build_melee_tree() -> Selector {
             // Priority 3: Attack if in melee range
             Box::new(AttackNearest { range: 2.5 }),
             // Priority 4: Stuck at cliff → build scaffolding
-            Box::new(Sequence {
+            Box::new(McSequence {
                 children: vec![
                     Box::new(IsStuckAtCliff),
                     Box::new(BuildScaffold {
@@ -581,7 +582,7 @@ fn build_melee_tree() -> Selector {
                 ],
             }),
             // Priority 5: Flow field approach
-            Box::new(Sequence {
+            Box::new(McSequence {
                 children: vec![
                     Box::new(HasFlowField),
                     Box::new(PlayerWithinFlowDistance { max_distance: 24 }),
@@ -597,14 +598,14 @@ fn build_melee_tree() -> Selector {
 }
 
 /// Mage skeleton: teleport past obstacles → attack from close range → flee via teleport
-fn build_mage_tree() -> Selector {
-    Selector {
+fn build_mage_tree() -> McSelector {
+    McSelector {
         children: vec![
             // Priority 1: Low HP → teleport away, then flee
-            Box::new(Sequence {
+            Box::new(McSequence {
                 children: vec![
                     Box::new(IsHealthLow { threshold: 5.0 }),
-                    Box::new(Selector {
+                    Box::new(McSelector {
                         children: vec![
                             Box::new(FlowFlee),
                             Box::new(Flee {
@@ -617,15 +618,15 @@ fn build_mage_tree() -> Selector {
             // Priority 2: Attack if in melee range
             Box::new(AttackNearest { range: 2.5 }),
             // Priority 3: Path is blocked → teleport to target
-            Box::new(Sequence {
+            Box::new(McSequence {
                 children: vec![Box::new(IsPathBlocked), Box::new(TeleportToTarget)],
             }),
             // Priority 4: Stuck at cliff → teleport
-            Box::new(Sequence {
+            Box::new(McSequence {
                 children: vec![Box::new(IsStuckAtCliff), Box::new(TeleportToTarget)],
             }),
             // Priority 5: Flow field approach
-            Box::new(Sequence {
+            Box::new(McSequence {
                 children: vec![
                     Box::new(HasFlowField),
                     Box::new(PlayerWithinFlowDistance { max_distance: 32 }),
@@ -639,14 +640,14 @@ fn build_mage_tree() -> Selector {
 }
 
 /// Archer skeleton: maintain distance → shoot → reposition
-fn build_archer_tree() -> Selector {
-    Selector {
+fn build_archer_tree() -> McSelector {
+    McSelector {
         children: vec![
             // Priority 1: Low HP → flee
-            Box::new(Sequence {
+            Box::new(McSequence {
                 children: vec![
                     Box::new(IsHealthLow { threshold: 5.0 }),
-                    Box::new(Selector {
+                    Box::new(McSelector {
                         children: vec![
                             Box::new(FlowFlee),
                             Box::new(Flee {
@@ -667,7 +668,7 @@ fn build_archer_tree() -> Selector {
                 min_range: 6.0,
             }),
             // Priority 4: Flow field approach (close gap if too far)
-            Box::new(Sequence {
+            Box::new(McSequence {
                 children: vec![
                     Box::new(HasFlowField),
                     Box::new(PlayerWithinFlowDistance { max_distance: 30 }),
@@ -1010,14 +1011,14 @@ pub fn plan_pet_parrot_behavior(
     }
 }
 
-fn build_behavior_tree() -> Selector {
-    Selector {
+fn build_behavior_tree() -> McSelector {
+    McSelector {
         children: vec![
             // Priority 1: Low health → flee (prefer flow-aware, fall back to blind)
-            Box::new(Sequence {
+            Box::new(McSequence {
                 children: vec![
                     Box::new(IsHealthLow { threshold: 5.0 }),
-                    Box::new(Selector {
+                    Box::new(McSelector {
                         children: vec![
                             Box::new(FlowFlee),
                             Box::new(Flee {
@@ -1028,7 +1029,7 @@ fn build_behavior_tree() -> Selector {
                 ],
             }),
             // Priority 2: Call for help when hurt
-            Box::new(Sequence {
+            Box::new(McSequence {
                 children: vec![
                     Box::new(IsHealthLow { threshold: 6.0 }),
                     Box::new(CallAllies {
@@ -1040,7 +1041,7 @@ fn build_behavior_tree() -> Selector {
             // Priority 3: Attack if in melee range
             Box::new(AttackNearest { range: 2.5 }),
             // Priority 4: Flow-field approach when player is within BFS range
-            Box::new(Sequence {
+            Box::new(McSequence {
                 children: vec![
                     Box::new(HasFlowField),
                     Box::new(PlayerWithinFlowDistance { max_distance: 24 }),
