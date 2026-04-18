@@ -14,7 +14,7 @@ import java.util.Map;
  */
 public class ModelPartRenderHandler<T extends Entity> {
     private final Map<String, ModelPartRenderer<T>> objects = new HashMap<>();
-    private BBModelRenderer.FaceBufferProvider vertexConsumerProvider = BBModelRenderer.DEFAULT_VERTEX_CONSUMER_PROVIDER;
+    private BBModelRenderer.FaceBufferProvider vertexConsumerProvider = BBModelRenderer.DEFAULT_FACE_BUFFER_PROVIDER;
 
     public ModelPartRenderHandler<T> add(String id, ModelPartRenderer.AnimationConsumer<T> animationConsumer) {
         return add(id, animationConsumer, null);
@@ -59,7 +59,7 @@ public class ModelPartRenderHandler<T extends Entity> {
         return this;
     }
 
-    public BBModelRenderer.FaceBufferProvider getVertexConsumerProvider() {
+    public BBModelRenderer.FaceBufferProvider getFaceBufferProvider() {
         return vertexConsumerProvider;
     }
 }
