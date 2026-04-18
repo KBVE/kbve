@@ -12,22 +12,22 @@ import java.util.List;
 /**
  * Server tick handler — the sync boundary between Fabric and Tokio.
  *
- * <p>This class is deliberately boring. It orchestrates four concerns
+ * <p>This class is deliberately boring. It orchestrates five concerns
  * on a schedule and delegates all real work:
  * <ol>
  *   <li><b>Lifecycle</b> — evict dead entities, clean scaffolding.</li>
  *   <li><b>Observations</b> — publish player/creature snapshots to Rust
  *       on a throttled cadence.</li>
  *   <li><b>Ingest</b> — poll Rust for intents, decode JSON into typed
- *       DTOs, enqueue into the bounded inbox.</li>
- *   <li><b>Execute</b> — drain a budgeted batch of commands from the
- *       inbox and apply them through typed registries.</li>
+ *       DTOs, route into dual-channel inboxes.</li>
+ *   <li><b>Execute</b> — drain entity channel every tick, drain world
+ *       channel every {@link #WORLD_DRAIN_INTERVAL} ticks.</li>
+ *   <li><b>Metrics</b> — periodic log when pressure detected.</li>
  * </ol>
  *
- * <p>Game logic (particles, projectiles, spawning, ship ops) lives in
- * {@link MobCommandApplier} and {@link WorldCommandApplier}. JSON
- * decoding lives in {@link IntentDecoder}. Budget enforcement lives
- * in {@link IntentExecutor}. This class touches none of that.
+ * <p>The authority split ensures cheap entity intents (movement, combat)
+ * never compete with expensive world mutations (spawns, ship ops) for
+ * queue space or budget.
  */
 public class NpcTickHandler implements ServerTickEvents.EndTick {
 
@@ -39,12 +39,21 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
     /** Only scan map data every N ticks (60 = 3s at 20 TPS). */
     private static final int MAP_SCAN_INTERVAL = 60;
 
+    /**
+     * World channel drain cadence. Every N ticks, world intents are
+     * applied. Spreads expensive mutations (spawns, ship ops) across
+     * ticks so they don't cluster into a single spike.
+     */
+    private static final int WORLD_DRAIN_INTERVAL = 2;
+
     // ── Owned components ─────────────────────────────────────────────
     private final AiCreatureManager creatureManager = new AiCreatureManager();
     private final ScaffoldTracker scaffoldTracker = new ScaffoldTracker();
     private final ObservationPublisher observationPublisher;
     private final BudgetMetrics metrics = new BudgetMetrics();
-    private final IntentInbox inbox = new IntentInbox(metrics);
+    private final IntentInbox entityInbox = new IntentInbox(IntentChannel.ENTITY, metrics);
+    private final IntentInbox worldInbox = new IntentInbox(IntentChannel.WORLD, metrics);
+    private final IntentRouter router = new IntentRouter(entityInbox, worldInbox);
     private final MobCommandApplier mobApplier = new MobCommandApplier();
     private final WorldCommandApplier worldApplier = new WorldCommandApplier();
     private final IntentExecutor executor;
@@ -54,7 +63,10 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
 
     public NpcTickHandler() {
         this.observationPublisher = new ObservationPublisher(creatureManager);
-        this.executor = new IntentExecutor(inbox, mobApplier, worldApplier, creatureManager, metrics);
+        this.executor = new IntentExecutor(
+                entityInbox, worldInbox,
+                mobApplier, worldApplier,
+                creatureManager, metrics);
     }
 
     /** Inject the ship manager (called once during mod init). */
@@ -83,18 +95,26 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
             observationPublisher.publishMapScan(server);
         }
 
-        // 3. Ingest — poll, decode, enqueue
+        // 3. Ingest — poll, decode, route into dual-channel inboxes
         String payload = NativeRuntime.pollIntents();
         if (payload != null && !payload.equals("[]")) {
             List<DecodedIntent> intents = IntentDecoder.decode(payload);
-            inbox.enqueue(intents);
+            router.route(intents);
         }
 
-        // 4. Execute — budgeted drain from inbox
-        if (!inbox.isEmpty() && overworld != null) {
+        // 4a. Entity channel — drain every tick (cheap, high-frequency)
+        if (!entityInbox.isEmpty() && overworld != null) {
             CommandContext ctx = CommandContext.forWorld(
                     overworld, creatureManager, scaffoldTracker, shipManager);
-            executor.applyBudgeted(ctx);
+            executor.applyEntityChannel(ctx);
+        }
+
+        // 4b. World channel — drain on throttled cadence (expensive mutations)
+        if (tickCounter % WORLD_DRAIN_INTERVAL == 0
+                && !worldInbox.isEmpty() && overworld != null) {
+            CommandContext ctx = CommandContext.forWorld(
+                    overworld, creatureManager, scaffoldTracker, shipManager);
+            executor.applyWorldChannel(ctx);
         }
 
         // 5. Metrics — periodic log when pressure detected

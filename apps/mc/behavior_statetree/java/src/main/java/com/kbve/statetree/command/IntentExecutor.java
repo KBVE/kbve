@@ -10,50 +10,39 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * Budgeted command executor with split caps for entity vs world commands.
+ * Dual-channel budgeted command executor. Drains the entity inbox and
+ * world inbox independently, each with its own per-tick budget from
+ * {@link IntentChannel}.
  *
- * <p>Each tick, drains a bounded number of intents from the
- * {@link IntentInbox} and applies them through typed registries. Stale
- * intents (epoch mismatch, dead entity) are dropped at dequeue time —
- * before they consume budget — so expensive world mutations don't get
- * crowded out by dead-entity checks.
+ * <p>Entity intents are drained every tick (cheap, high-frequency).
+ * World intents are drained on a separate cadence controlled by the
+ * orchestrator — typically every 2 ticks to spread expensive mutations.
  *
- * <p>Budget caps (per tick):
- * <ul>
- *   <li>{@link #MAX_INTENTS_PER_TICK} — max intent envelopes drained</li>
- *   <li>{@link #MAX_MOB_COMMANDS} — max entity-scoped commands applied</li>
- *   <li>{@link #MAX_WORLD_COMMANDS} — max world-scoped commands applied
- *       (spawns, despawns, ship ops — expensive mutations)</li>
- * </ul>
+ * <p>Stale intents (epoch mismatch, dead entity) are dropped at dequeue
+ * time so they never consume budget.
  */
 public final class IntentExecutor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("behavior_statetree");
 
-    /** Max intent envelopes drained per tick. */
-    private static final int MAX_INTENTS_PER_TICK = 64;
+    /** Max intent envelopes drained per channel per call. */
+    private static final int MAX_INTENTS_PER_DRAIN = 64;
 
-    /** Max entity-scoped commands (MoveTo, Attack, etc.) per tick. Cheap. */
-    private static final int MAX_MOB_COMMANDS = 128;
-
-    /** Max world-scoped commands (Spawn, Despawn, ship ops) per tick. Expensive. */
-    private static final int MAX_WORLD_COMMANDS = 16;
-
-    private final IntentInbox inbox;
+    private final IntentInbox entityInbox;
+    private final IntentInbox worldInbox;
     private final MobCommandApplier mobApplier;
     private final WorldCommandApplier worldApplier;
     private final AiCreatureManager creatureManager;
     private final BudgetMetrics metrics;
 
-    private int mobCommandsThisTick;
-    private int worldCommandsThisTick;
-
-    public IntentExecutor(IntentInbox inbox,
+    public IntentExecutor(IntentInbox entityInbox,
+                          IntentInbox worldInbox,
                           MobCommandApplier mobApplier,
                           WorldCommandApplier worldApplier,
                           AiCreatureManager creatureManager,
                           BudgetMetrics metrics) {
-        this.inbox = inbox;
+        this.entityInbox = entityInbox;
+        this.worldInbox = worldInbox;
         this.mobApplier = mobApplier;
         this.worldApplier = worldApplier;
         this.creatureManager = creatureManager;
@@ -61,75 +50,92 @@ public final class IntentExecutor {
     }
 
     /**
-     * Drain and apply a budgeted batch of commands for this tick.
-     * Call once per server tick from the orchestrator.
+     * Drain and apply entity-scoped commands (every tick).
+     * Budget: {@link IntentChannel#ENTITY} maxCommandsPerTick.
      */
-    public void applyBudgeted(CommandContext worldCtx) {
-        mobCommandsThisTick = 0;
-        worldCommandsThisTick = 0;
-
-        List<DecodedIntent> batch = inbox.drain(MAX_INTENTS_PER_TICK);
-        for (DecodedIntent intent : batch) {
-            if (mobCommandsThisTick >= MAX_MOB_COMMANDS
-                    && worldCommandsThisTick >= MAX_WORLD_COMMANDS) {
-                break; // both budgets exhausted
-            }
-            applyIntent(worldCtx, intent);
-        }
-
-        if (mobCommandsThisTick >= MAX_MOB_COMMANDS) {
+    public void applyEntityChannel(CommandContext worldCtx) {
+        int budget = IntentChannel.ENTITY.maxCommandsPerTick();
+        int applied = drainEntityIntents(worldCtx, budget);
+        if (applied >= budget) {
             metrics.recordMobBudgetExhausted();
         }
-        if (worldCommandsThisTick >= MAX_WORLD_COMMANDS) {
+    }
+
+    /**
+     * Drain and apply world-scoped commands (throttled cadence).
+     * Budget: {@link IntentChannel#WORLD} maxCommandsPerTick.
+     */
+    public void applyWorldChannel(CommandContext worldCtx) {
+        int budget = IntentChannel.WORLD.maxCommandsPerTick();
+        int applied = drainWorldIntents(worldCtx, budget);
+        if (applied >= budget) {
             metrics.recordWorldBudgetExhausted();
         }
     }
 
-    private void applyIntent(CommandContext worldCtx, DecodedIntent intent) {
-        ServerWorld world = worldCtx.world();
+    // ------------------------------------------------------------------
+    // Entity channel drain
+    // ------------------------------------------------------------------
 
-        // World intents (entity_id == 0)
-        if (intent.entityId() == 0) {
+    private int drainEntityIntents(CommandContext worldCtx, int commandBudget) {
+        ServerWorld world = worldCtx.world();
+        int commandsApplied = 0;
+
+        List<DecodedIntent> batch = entityInbox.drain(MAX_INTENTS_PER_DRAIN);
+        for (DecodedIntent intent : batch) {
+            if (commandsApplied >= commandBudget) break;
+
+            int entityId = intent.entityId();
+
+            // Epoch-stale check at dequeue time
+            if (!creatureManager.isManaged(entityId)) {
+                metrics.recordEpochStaleDrop();
+                continue;
+            }
+            if (intent.epoch() != creatureManager.getEpoch(entityId)) {
+                metrics.recordEpochStaleDrop();
+                continue;
+            }
+
+            Entity entity = world.getEntityById(entityId);
+            if (entity == null || !entity.isAlive()) {
+                metrics.recordEntityDeadDrop();
+                continue;
+            }
+            if (!(entity instanceof MobEntity mob)) {
+                metrics.recordEntityDeadDrop();
+                continue;
+            }
+
+            CommandContext mobCtx = worldCtx.withMob(mob);
             for (AiCommand cmd : intent.commands()) {
-                if (worldCommandsThisTick >= MAX_WORLD_COMMANDS) break;
+                if (commandsApplied >= commandBudget) break;
+                mobApplier.apply(mobCtx, cmd);
+                commandsApplied++;
+                metrics.recordMobCommandApplied();
+            }
+        }
+        return commandsApplied;
+    }
+
+    // ------------------------------------------------------------------
+    // World channel drain
+    // ------------------------------------------------------------------
+
+    private int drainWorldIntents(CommandContext worldCtx, int commandBudget) {
+        int commandsApplied = 0;
+
+        List<DecodedIntent> batch = worldInbox.drain(MAX_INTENTS_PER_DRAIN);
+        for (DecodedIntent intent : batch) {
+            if (commandsApplied >= commandBudget) break;
+
+            for (AiCommand cmd : intent.commands()) {
+                if (commandsApplied >= commandBudget) break;
                 worldApplier.apply(worldCtx, cmd);
-                worldCommandsThisTick++;
+                commandsApplied++;
                 metrics.recordWorldCommandApplied();
             }
-            return;
         }
-
-        // ── Epoch-stale check at dequeue time ────────────────────────
-        // Drop the entire intent if the entity is stale or dead BEFORE
-        // iterating commands. This avoids wasting mob budget on intents
-        // that would be no-ops.
-        int entityId = intent.entityId();
-        if (!creatureManager.isManaged(entityId)) {
-            metrics.recordEpochStaleDrop();
-            return;
-        }
-        if (intent.epoch() != creatureManager.getEpoch(entityId)) {
-            metrics.recordEpochStaleDrop();
-            return;
-        }
-
-        Entity entity = world.getEntityById(entityId);
-        if (entity == null || !entity.isAlive()) {
-            metrics.recordEntityDeadDrop();
-            return;
-        }
-        if (!(entity instanceof MobEntity mob)) {
-            metrics.recordEntityDeadDrop();
-            return;
-        }
-
-        // ── Apply mob commands under budget ──────────────────────────
-        CommandContext mobCtx = worldCtx.withMob(mob);
-        for (AiCommand cmd : intent.commands()) {
-            if (mobCommandsThisTick >= MAX_MOB_COMMANDS) break;
-            mobApplier.apply(mobCtx, cmd);
-            mobCommandsThisTick++;
-            metrics.recordMobCommandApplied();
-        }
+        return commandsApplied;
     }
 }
