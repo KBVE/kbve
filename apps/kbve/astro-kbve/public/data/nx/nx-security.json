@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-04-17T08:45:46Z",
+  "generated_at": "2026-04-18T08:23:46Z",
   "summary": {
     "critical": 1,
-    "high": 32,
+    "high": 28,
     "medium": 48,
     "low": 5,
     "info": 28
   },
   "ecosystems": {
     "npm": {
-      "total": 78,
+      "total": 74,
       "severities": {
         "critical": 1,
-        "high": 32,
+        "high": 28,
         "medium": 40,
         "low": 5,
         "info": 0
@@ -327,27 +327,6 @@
           "url": "https://github.com/advisories/GHSA-2qvq-rjwj-gvw9"
         },
         {
-          "id": "1115545",
-          "title": "Forge has a basicConstraints bypass in its certificate chain verification (RFC 5280 violation)",
-          "severity": "high",
-          "package": "node-forge",
-          "url": "https://github.com/advisories/GHSA-2328-f5f3-gj25"
-        },
-        {
-          "id": "1115546",
-          "title": "Forge has signature forgery in Ed25519 due to missing S > L check",
-          "severity": "high",
-          "package": "node-forge",
-          "url": "https://github.com/advisories/GHSA-q67f-28xg-22rw"
-        },
-        {
-          "id": "1115548",
-          "title": "Forge has Denial of Service via Infinite Loop in BigInteger.modInverse() with Zero Input",
-          "severity": "high",
-          "package": "node-forge",
-          "url": "https://github.com/advisories/GHSA-5m6q-g25r-mvwx"
-        },
-        {
           "id": "1115549",
           "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
           "severity": "medium",
@@ -402,13 +381,6 @@
           "severity": "low",
           "package": "handlebars",
           "url": "https://github.com/advisories/GHSA-442j-39wm-28r2"
-        },
-        {
-          "id": "1115612",
-          "title": "Forge has signature forgery in RSA-PKCS due to ASN.1 extra field  ",
-          "severity": "high",
-          "package": "node-forge",
-          "url": "https://github.com/advisories/GHSA-ppp5-5v6c-4jwp"
         },
         {
           "id": "1115668",
