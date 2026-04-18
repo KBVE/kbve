@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
@@ -9,9 +10,9 @@ using UnityEngine.Rendering;
 namespace RareIcon
 {
     /// <summary>
-    /// Chunk-based hex tile streaming. Biome generation runs on a worker thread
-    /// via ChunkGeneratorService. Main thread only spawns entities from results.
-    /// Zero noise computation on the main thread.
+    /// Chunk streaming system. Worker thread generates biome data,
+    /// this system consumes results and spawns entities.
+    /// Entity creation uses archetype + ECB for minimal main thread impact.
     ///
     /// TODO: Rust FFI + SQLite chunk cache
     /// </summary>
@@ -20,28 +21,35 @@ namespace RareIcon
     {
         const int ChunkSize = 32;
         const float HexSize = 0.25f;
-        const int BaseLoadRadius = 4;
-        const int MaxSpawnsPerFrame = 6;
+        const int BaseLoadRadius = 5;
+        const int MaxSpawnsPerFrame = 3;
 
-        readonly Dictionary<int2, List<Entity>> _loadedChunks = new();
-        readonly HashSet<int2> _pendingChunks = new(); // requested but not yet generated
+        readonly Dictionary<int2, NativeList<Entity>> _loadedChunks = new();
+        readonly HashSet<int2> _pendingChunks = new();
         int2 _lastCameraChunk = new(int.MinValue, int.MinValue);
         int _currentLoadRadius;
+        bool _initialLoad;
 
         Mesh _hexMesh;
         Material[] _biomeMaterials;
         RenderMeshDescription _renderMeshDesc;
         RenderMeshArray _renderMeshArray;
 
-        // Resolved from VContainer via static — ECS can't inject
         static ChunkGeneratorService _generator;
-
         public static void SetGenerator(ChunkGeneratorService gen) => _generator = gen;
 
         protected override void OnCreate()
         {
             InitRendering();
             _currentLoadRadius = BaseLoadRadius;
+            _initialLoad = true;
+        }
+
+        protected override void OnDestroy()
+        {
+            foreach (var kvp in _loadedChunks)
+                if (kvp.Value.IsCreated) kvp.Value.Dispose();
+            _loadedChunks.Clear();
         }
 
         void InitRendering()
@@ -87,45 +95,48 @@ namespace RareIcon
             {
                 _lastCameraChunk = cameraChunk;
                 _currentLoadRadius = loadRadius;
-
-                // Queue needed chunks to worker thread
                 RequestMissingChunks(cameraChunk, loadRadius);
-                UnloadDistantChunks(cameraChunk, unloadRadius);
             }
 
-            // Consume results from worker thread — entity spawning only
+            UnloadDistantChunks(cameraChunk, unloadRadius);
+
+            // Consume worker thread results
+            int budget = _initialLoad ? 50 : MaxSpawnsPerFrame;
             int spawned = 0;
-            while (spawned < MaxSpawnsPerFrame && _generator.TryGetResult(out var result))
+
+            while (spawned < budget && _generator.TryGetResult(out var result))
             {
                 _pendingChunks.Remove(result.ChunkCoord);
-
                 if (!_loadedChunks.ContainsKey(result.ChunkCoord))
                 {
-                    SpawnChunkFromData(result.ChunkCoord, result.Biomes);
+                    SpawnChunk(result.ChunkCoord, result.Biomes);
                     spawned++;
                 }
             }
+
+            if (_initialLoad && _pendingChunks.Count == 0 && _generator.ResultCount == 0)
+                _initialLoad = false;
         }
 
         void RequestMissingChunks(int2 center, int radius)
         {
-            // Request closest chunks first
             var needed = new List<(int2 coord, int dist)>();
+            int r2 = radius * radius;
 
             for (int cy = -radius; cy <= radius; cy++)
             {
                 for (int cx = -radius; cx <= radius; cx++)
                 {
+                    int dist = cx * cx + cy * cy;
+                    if (dist > r2) continue;
+
                     int2 coord = new int2(center.x + cx, center.y + cy);
                     if (!_loadedChunks.ContainsKey(coord) && !_pendingChunks.Contains(coord))
-                    {
-                        needed.Add((coord, math.abs(cx) + math.abs(cy)));
-                    }
+                        needed.Add((coord, dist));
                 }
             }
 
             needed.Sort((a, b) => a.dist.CompareTo(b.dist));
-
             foreach (var n in needed)
             {
                 _pendingChunks.Add(n.coord);
@@ -136,22 +147,51 @@ namespace RareIcon
         void UnloadDistantChunks(int2 center, int radius)
         {
             var toRemove = new List<int2>();
+            int r2 = radius * radius;
+
             foreach (var kvp in _loadedChunks)
             {
-                int dist = math.max(math.abs(kvp.Key.x - center.x), math.abs(kvp.Key.y - center.y));
-                if (dist > radius)
+                int dx = kvp.Key.x - center.x;
+                int dy = kvp.Key.y - center.y;
+                if (dx * dx + dy * dy > r2)
                     toRemove.Add(kvp.Key);
             }
+
             foreach (var key in toRemove)
                 DespawnChunk(key);
         }
 
-        void SpawnChunkFromData(int2 chunkCoord, byte[] biomes)
+        void SpawnChunk(int2 chunkCoord, byte[] biomes)
         {
-            var entities = new List<Entity>();
+            var entities = new NativeList<Entity>(ChunkSize * ChunkSize, Allocator.Persistent);
             var em = EntityManager;
             int startX = chunkCoord.x * ChunkSize;
             int startY = chunkCoord.y * ChunkSize;
+
+            // Pre-count land tiles for ECB capacity
+            int landCount = 0;
+            for (int i = 0; i < biomes.Length; i++)
+                if (biomes[i] != BiomeGenerator.BIOME_OCEAN) landCount++;
+
+            if (landCount == 0)
+            {
+                entities.Dispose();
+                _loadedChunks[chunkCoord] = new NativeList<Entity>(0, Allocator.Persistent);
+                return;
+            }
+
+            // Batch create all entities at once with NativeArray
+            var archetype = em.CreateArchetype(
+                typeof(LocalTransform),
+                typeof(LocalToWorld),
+                typeof(HexCoord),
+                typeof(BiomeType),
+                typeof(ChunkCoord),
+                typeof(HexTileTag)
+            );
+
+            var batchEntities = em.CreateEntity(archetype, landCount, Allocator.Temp);
+            int idx = 0;
 
             for (int ly = 0; ly < ChunkSize; ly++)
             {
@@ -164,46 +204,49 @@ namespace RareIcon
                     int gy = startY + ly;
                     float3 worldPos = HexMeshUtil.HexToWorld(gx, gy, HexSize);
 
-                    var entity = em.CreateEntity();
-                    em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
-                    em.AddComponentData(entity, new HexCoord { Q = gx, R = gy });
-                    em.AddComponentData(entity, new BiomeType { Value = biome });
-                    em.AddComponentData(entity, new ChunkCoord { Value = chunkCoord });
-                    em.AddComponent<HexTileTag>(entity);
+                    var entity = batchEntities[idx++];
+                    em.SetComponentData(entity, LocalTransform.FromPosition(worldPos));
+                    em.SetComponentData(entity, new HexCoord { Q = gx, R = gy });
+                    em.SetComponentData(entity, new BiomeType { Value = biome });
+                    em.SetComponentData(entity, new ChunkCoord { Value = chunkCoord });
 
+                    // Rendering — must be on main thread (managed shared component)
                     RenderMeshUtility.AddComponents(
                         entity, em, _renderMeshDesc, _renderMeshArray,
                         MaterialMeshInfo.FromRenderMeshArrayIndices(biome, 0)
                     );
+
                     HexHoverSystem.AddHex(new int2(gx, gy), entity);
                     entities.Add(entity);
                 }
             }
 
+            batchEntities.Dispose();
             _loadedChunks[chunkCoord] = entities;
         }
 
         void DespawnChunk(int2 chunkCoord)
         {
             if (!_loadedChunks.TryGetValue(chunkCoord, out var entities)) return;
+
             int startX = chunkCoord.x * ChunkSize;
             int startY = chunkCoord.y * ChunkSize;
-
-            // Remove from hover lookup
             for (int ly = 0; ly < ChunkSize; ly++)
                 for (int lx = 0; lx < ChunkSize; lx++)
                     HexHoverSystem.RemoveHex(new int2(startX + lx, startY + ly));
 
-            foreach (var entity in entities)
-                if (EntityManager.Exists(entity))
-                    EntityManager.DestroyEntity(entity);
+            for (int i = 0; i < entities.Length; i++)
+                if (EntityManager.Exists(entities[i]))
+                    EntityManager.DestroyEntity(entities[i]);
+
+            entities.Dispose();
             _loadedChunks.Remove(chunkCoord);
         }
 
         int2 WorldToChunk(float worldX, float worldY)
         {
-            float q = worldX / (HexSize * math.sqrt(3f));
             float r = worldY / (HexSize * 1.5f);
+            float q = worldX / (HexSize * math.sqrt(3f)) - r * 0.5f;
             return new int2((int)math.floor(q / ChunkSize), (int)math.floor(r / ChunkSize));
         }
     }
