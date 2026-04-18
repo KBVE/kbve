@@ -23,6 +23,10 @@ dependencies {
     mappings "net.fabricmc:yarn:1.21.11+build.4:v2"
     modImplementation "net.fabricmc:fabric-loader:0.18.6"
     modImplementation "net.fabricmc.fabric-api:fabric-api:0.141.3+1.21.11"
+
+    // mXparser — math expression evaluator for BBModel animation variables
+    // (Blockbench keyframes use string expressions like "variable.speed * 0.5")
+    include implementation("org.mariuszgromada.math:MathParser.org-mXparser:6.1.0")
 }
 
 // Inject version into fabric.mod.json + copy Rust native libraries
