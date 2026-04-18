@@ -101,6 +101,25 @@ cache/
 
 # Next Outs
 
+# Unity (scoped to apps/rareicon)
+apps/rareicon/**/[Ll]ibrary/
+apps/rareicon/**/[Tt]emp/
+apps/rareicon/**/[Oo]bj/
+apps/rareicon/**/[Bb]uild/
+apps/rareicon/**/[Bb]uilds/
+apps/rareicon/**/[Ll]ogs/
+apps/rareicon/**/[Uu]ser[Ss]ettings/
+apps/rareicon/**/[Mm]emoryCaptures/
+apps/rareicon/**/[Rr]ecordings/
+apps/rareicon/**/[Aa]sset[Ss]tore[Tt]ools*/
+apps/rareicon/**/*.csproj
+apps/rareicon/**/*.sln
+apps/rareicon/**/*.slnx
+apps/rareicon/**/*.unityproj
+apps/rareicon/**/*.pidb
+apps/rareicon/**/*.pdb
+apps/rareicon/**/*.mdb
+
 # Mono
 .mono/*
 *.mono/
