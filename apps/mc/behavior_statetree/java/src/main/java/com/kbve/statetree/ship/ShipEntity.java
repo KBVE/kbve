@@ -15,11 +15,11 @@ import net.minecraft.world.World;
 import java.util.UUID;
 
 /**
- * Invisible anchor entity that represents a ship in the world.
+ * Entity-based ship rendered via BBModel. No blocks placed in the world.
  *
- * <p>The ship's blocks exist as real blocks placed by {@link ShipManager}.
- * This entity sits at the ship's anchor point and serves as:
+ * <p>The entity serves as:
  * <ul>
+ *   <li>The visual anchor — {@code BBModelShipRenderer} draws the model here</li>
  *   <li>The rideable target — players right-click to mount</li>
  *   <li>The movement controller — WASD steers while riding</li>
  *   <li>The network sync anchor — only this entity replicates</li>
@@ -29,12 +29,12 @@ public class ShipEntity extends Entity {
 
     private String shipIdStr = "";
     private String ownerUuidStr = "";
+    private String modelName = "immersive_aircraft/airship";
     private float heading = 0.0f;
     private float targetSpeed = 0.0f;
 
     public ShipEntity(EntityType<?> type, World world) {
         super(type, world);
-        this.setInvisible(true);
         this.setNoGravity(true);
     }
 
@@ -56,6 +56,9 @@ public class ShipEntity extends Entity {
         this.ownerUuidStr = uuid != null ? uuid.toString() : "";
     }
 
+    public String getModelName() { return modelName; }
+    public void setModelName(String name) { this.modelName = name != null ? name : ""; }
+
     public float getHeading() { return heading; }
     public void setHeading(float heading) { this.heading = heading % 360; }
 
@@ -68,7 +71,6 @@ public class ShipEntity extends Entity {
     public boolean damage(net.minecraft.server.world.ServerWorld world,
                           net.minecraft.entity.damage.DamageSource source,
                           float amount) {
-        // Ships are indestructible — damage goes to the blocks, not the anchor entity
         return false;
     }
 
@@ -76,11 +78,8 @@ public class ShipEntity extends Entity {
 
     @Override
     public ActionResult interact(PlayerEntity player, Hand hand) {
-        if (player.isSneaking()) {
-            return ActionResult.PASS;
-        }
+        if (player.isSneaking()) return ActionResult.PASS;
 
-        // Server-side only — ServerPlayerEntity only exists on server
         if (player instanceof ServerPlayerEntity && !this.hasPassengers()) {
             player.startRiding(this);
             return ActionResult.SUCCESS;
@@ -99,7 +98,6 @@ public class ShipEntity extends Entity {
     public void tick() {
         super.tick();
 
-        // Only move on server — check for rider being ServerPlayerEntity
         if (targetSpeed <= 0.0f) return;
         if (!this.hasPassengers()) return;
         Entity rider = this.getFirstPassenger();
@@ -112,9 +110,6 @@ public class ShipEntity extends Entity {
         this.move(MovementType.SELF, new Vec3d(dx, 0, dz));
     }
 
-    /**
-     * Steer the ship based on the rider's input.
-     */
     public void steerFromRider(PlayerEntity rider) {
         float forward = rider.forwardSpeed;
         float sideways = rider.sidewaysSpeed;
@@ -134,13 +129,13 @@ public class ShipEntity extends Entity {
 
     @Override
     protected void initDataTracker(net.minecraft.entity.data.DataTracker.Builder builder) {
-        // No tracked data — ship state is managed server-side
     }
 
     @Override
     public void readCustomData(ReadView view) {
         this.shipIdStr = view.getString("ShipId", "");
         this.ownerUuidStr = view.getString("OwnerUuid", "");
+        this.modelName = view.getString("ModelName", "immersive_aircraft/airship");
         this.heading = view.getFloat("Heading", 0.0f);
         this.targetSpeed = view.getFloat("TargetSpeed", 0.0f);
     }
@@ -149,6 +144,7 @@ public class ShipEntity extends Entity {
     public void writeCustomData(WriteView view) {
         view.putString("ShipId", shipIdStr);
         view.putString("OwnerUuid", ownerUuidStr);
+        view.putString("ModelName", modelName);
         view.putFloat("Heading", heading);
         view.putFloat("TargetSpeed", targetSpeed);
     }
