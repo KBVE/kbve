@@ -5,8 +5,9 @@ Shader "RareIcon/OceanBackground"
         _WaterCol ("Water Color", Color) = (0.0, 0.4453, 0.7305, 1.0)
         _Water2Col ("Water Color 2", Color) = (0.0, 0.418, 0.6758, 1.0)
         _FoamCol ("Foam Color", Color) = (0.8125, 0.9609, 0.9648, 1.0)
-        _Pixelization ("Pixelization", Float) = 160.0
-        _UVScale ("UV Scale (zoom)", Float) = 8.0
+        _UVScale ("UV Scale (zoom)", Float) = 40.0
+        _DistortionSpeed ("Distortion Speed", Float) = 1.0
+        _FBMStrength ("FBM Distortion", Float) = 0.0
         _WorldOffset ("World Offset", Vector) = (0, 0, 0, 0)
         _WorldScale ("World Scale", Float) = 20.0
     }
@@ -44,14 +45,52 @@ Shader "RareIcon/OceanBackground"
                 float4 _WaterCol;
                 float4 _Water2Col;
                 float4 _FoamCol;
-                float _Pixelization;
                 float _UVScale;
+                float _DistortionSpeed;
+                float _FBMStrength;
                 float4 _WorldOffset;
                 float _WorldScale;
             CBUFFER_END
 
             #define M_2PI 6.283185307
             #define M_6PI 18.84955592
+
+            float random(float2 uv)
+            {
+                return frac(sin(dot(uv.xy, float2(12.9898, 78.233))) * 43758.5453123);
+            }
+
+            float valueNoise(float2 uv)
+            {
+                float2 uv_index = floor(uv);
+                float2 uv_fract = frac(uv);
+
+                float a = random(uv_index);
+                float b = random(uv_index + float2(1.0, 0.0));
+                float c = random(uv_index + float2(0.0, 1.0));
+                float d = random(uv_index + float2(1.0, 1.0));
+
+                float2 blur = smoothstep(0.0, 1.0, uv_fract);
+
+                return lerp(a, b, blur.x) +
+                       (c - a) * blur.y * (1.0 - blur.x) +
+                       (d - b) * blur.x * blur.y;
+            }
+
+            float fbm(float2 uv)
+            {
+                float amplitude = 0.5;
+                float frequency = 3.0;
+                float value = 0.0;
+
+                for (int i = 0; i < 6; i++)
+                {
+                    value += amplitude * valueNoise(frequency * uv);
+                    amplitude *= 0.5;
+                    frequency *= 2.0;
+                }
+                return value;
+            }
 
             float circ(float2 pos, float2 c, float s)
             {
@@ -144,7 +183,12 @@ Shader "RareIcon/OceanBackground"
 
             float3 water(float2 uv)
             {
-                float t = _Time.y;
+                float t = _Time.y * _DistortionSpeed;
+
+                uv *= 0.25;
+
+                // FBM distortion for organic blobby shapes
+                uv += fbm(uv) * _FBMStrength;
 
                 // Parallax height distortion
                 float2 a = float2(0.025, 0.025);
@@ -166,11 +210,6 @@ Shader "RareIcon/OceanBackground"
                 float3 ret = lerp(_WaterCol.rgb, _Water2Col.rgb, waterlayer(uv + dist.xy));
                 ret = lerp(ret, _FoamCol.rgb, waterlayer(float2(1.0, 1.0) - uv - dist.yx));
                 return ret;
-            }
-
-            float2 pixelize(float2 coords)
-            {
-                return floor(coords * _Pixelization) / _Pixelization;
             }
 
             Varyings vert(Attributes input)
