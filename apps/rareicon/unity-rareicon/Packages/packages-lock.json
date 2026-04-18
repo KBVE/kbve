@@ -30,6 +30,13 @@
 			"dependencies": {},
 			"hash": "a9e27c03d411d2fca01cc7410c24c97cd77cb539"
 		},
+		"com.cysharp.zstring": {
+			"version": "https://github.com/Cysharp/ZString.git?path=src/ZString.Unity/Assets/Scripts/ZString",
+			"depth": 0,
+			"source": "git",
+			"dependencies": {},
+			"hash": "419759ee3b6bb17a65cba1348c084d41680184ea"
+		},
 		"com.github-glitchenzo.nugetforunity": {
 			"version": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
 			"depth": 0,

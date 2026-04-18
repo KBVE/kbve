@@ -25,9 +25,13 @@ namespace RareIcon
                 GlobalMessagePipe.SetProvider(container.AsServiceProvider());
             });
 
-            // -- State --
-
             // -- Services --
+            builder.Register<LocaleService>(Lifetime.Singleton);
+
+            // -- UI --
+            builder.RegisterComponentOnNewGameObject<UIPanelManager>(Lifetime.Singleton, "UIPanelManager")
+                .DontDestroyOnLoad()
+                .AsSelf();
         }
 
         protected override void Awake()
