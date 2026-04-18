@@ -4386,6 +4386,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "csbindgen"
+version = "1.9.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "710604f525e7b68070458083252602c2bf2afe255dfe019e83bd57bdfa50bdb4"
+dependencies = [
+ "regex",
+ "syn 2.0.117",
+]
+
+[[package]]
 name = "cssparser"
 version = "0.29.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -16342,6 +16352,17 @@ name = "unicode-xid"
 version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
+
+[[package]]
+name = "uniti"
+version = "0.1.0"
+dependencies = [
+ "bevy_battle",
+ "bevy_inventory",
+ "bevy_pathfinding",
+ "bevy_skills",
+ "csbindgen",
+]
 
 [[package]]
 name = "universal-hash"

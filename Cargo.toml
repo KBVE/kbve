@@ -38,6 +38,7 @@ members = [
 	'apps/vm/kubectl',
 	'apps/mc/behavior_statetree',
 	'apps/mc/mc_auth',
+	'packages/rust/bevy/uniti',
 ]
 
 [profile.dev]
