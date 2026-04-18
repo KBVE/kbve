@@ -27,6 +27,7 @@ namespace RareIcon
 
             // -- Services --
             builder.Register<LocaleService>(Lifetime.Singleton);
+            builder.Register<InventoryService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
 
             // -- UI --
             builder.RegisterComponentOnNewGameObject<UIPanelManager>(Lifetime.Singleton, "UIPanelManager")
