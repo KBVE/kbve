@@ -73,6 +73,10 @@ pub struct McPlayerList {
     pub cached_at: u64,
 }
 
+/// `(server_name, rcon_list_result)` returned by each parallel RCON
+/// poll. Factored out to silence the `type_complexity` clippy lint.
+type RconPollResult = (String, anyhow::Result<(Vec<String>, usize)>);
+
 /// One RCON endpoint. Multiple can be configured for lobby + survival +
 /// future backends.
 #[derive(Clone, Debug)]
@@ -281,7 +285,7 @@ impl McService {
                 (ep.name, result)
             }
         });
-        let results: Vec<(String, anyhow::Result<(Vec<String>, usize)>)> = join_all(polls).await;
+        let results: Vec<RconPollResult> = join_all(polls).await;
 
         let mut all_players: Vec<McPlayer> = Vec::new();
         let mut server_statuses: Vec<McServerStatus> = Vec::new();
@@ -470,7 +474,7 @@ async fn rcon_recv(stream: &mut TcpStream) -> anyhow::Result<(i32, i32, String)>
     stream.read_exact(&mut len_buf).await?;
     let length = i32::from_le_bytes(len_buf) as usize;
 
-    if length < 10 || length > 4096 {
+    if !(10..=4096).contains(&length) {
         anyhow::bail!("RCON packet length out of range: {length}");
     }
 
@@ -614,11 +618,9 @@ fn parse_list_response(response: &str) -> anyhow::Result<(Vec<String>, usize)> {
 /// The `properties` array contains a base64-encoded JSON with texture URLs.
 fn extract_skin_url(profile: &serde_json::Value) -> Option<String> {
     let properties = profile.get("properties")?.as_array()?;
-    let textures_prop = properties.iter().find(|p| {
-        p.get("name")
-            .and_then(|n| n.as_str())
-            .map_or(false, |n| n == "textures")
-    })?;
+    let textures_prop = properties
+        .iter()
+        .find(|p| p.get("name").and_then(|n| n.as_str()) == Some("textures"))?;
     let b64 = textures_prop.get("value")?.as_str()?;
 
     let decoded = base64_decode(b64)?;
