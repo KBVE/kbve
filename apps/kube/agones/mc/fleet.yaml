@@ -169,6 +169,21 @@ spec:
                                 value: 'mc-server'
                               - name: IRC_CHANNELS
                                 value: '#world-events'
+                              # HS256 signing key for short-lived player JWTs
+                              # used against the irc-gateway /minechat endpoint.
+                              # Synced into this namespace by the
+                              # mc-chat-jwt-signing-key ExternalSecret from the
+                              # canonical kilobase/mc-chat-jwt source. Marked
+                              # optional so pods still boot cleanly before the
+                              # key has propagated; the Rust minter then
+                              # returns an error that bubbles up as "token
+                              # minting unavailable" in /chat-token output.
+                              - name: MC_CHAT_JWT_SIGNING_KEY
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: mc-chat-jwt-signing-key
+                                        key: MC_CHAT_JWT_SIGNING_KEY
+                                        optional: true
                           resources:
                               requests:
                                   memory: 2Gi
