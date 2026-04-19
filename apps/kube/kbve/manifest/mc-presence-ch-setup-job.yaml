@@ -1,0 +1,143 @@
+# Creates the mc database and mc.player_snapshots ReplicatedMergeTree
+# table in ClickHouse on every ArgoCD PostSync. Idempotent via
+# CREATE ... IF NOT EXISTS.
+#
+# axum-kbve writes one row per player per poll to this table. Other
+# consumers (edge functions, dashboard) can read from it instead of
+# hitting RCON directly. 30-day TTL is a starting value — adjust if
+# historical queries push us over storage budget.
+#
+# Mirrors apps/kube/vector/manifests/observability-ch-setup-job.yaml.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: mc-presence-ch-setup-script
+    namespace: kbve
+data:
+    setup.sh: |
+        #!/bin/sh
+        set -eu
+
+        echo "Verifying ClickHouse connectivity..."
+        curl -sf --max-time 10 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "SELECT 1" >/dev/null || {
+          echo "ERROR: Cannot connect to ClickHouse at ${CLICKHOUSE_ENDPOINT}"
+          exit 1
+        }
+        echo "ClickHouse connection OK."
+
+        echo "Creating mc database..."
+        curl -sf --max-time 10 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "CREATE DATABASE IF NOT EXISTS mc ON CLUSTER 'cluster'" >/dev/null || {
+          echo "ERROR: Failed to create mc database"
+          exit 1
+        }
+        echo "Database 'mc' ready."
+
+        echo "Creating player_snapshots table (ReplicatedMergeTree)..."
+        curl -sf --max-time 30 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "
+        CREATE TABLE IF NOT EXISTS mc.player_snapshots ON CLUSTER 'cluster'
+        (
+            timestamp     DateTime64(3, 'UTC'),
+            server        LowCardinality(String),
+            name          String,
+            uuid          String DEFAULT '',
+            online_count  UInt32,
+            max_slots     UInt32,
+            ingested_at   DateTime64(3, 'UTC') DEFAULT now64(3)
+        )
+        ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/mc/player_snapshots', '{replica}')
+        ORDER BY (server, timestamp, name)
+        PARTITION BY toYYYYMMDD(timestamp)
+        TTL toDateTime(timestamp) + INTERVAL 30 DAY
+        " >/dev/null || {
+          echo "ERROR: Failed to create player_snapshots table"
+          exit 1
+        }
+        echo "Table 'mc.player_snapshots' ready."
+
+        echo "Creating player_snapshots_distributed table (Distributed)..."
+        curl -sf --max-time 30 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "
+        CREATE TABLE IF NOT EXISTS mc.player_snapshots_distributed ON CLUSTER 'cluster'
+        AS mc.player_snapshots
+        ENGINE = Distributed('cluster', 'mc', 'player_snapshots', rand())
+        " >/dev/null || {
+          echo "ERROR: Failed to create player_snapshots_distributed table"
+          exit 1
+        }
+        echo "Table 'mc.player_snapshots_distributed' ready."
+
+        echo ""
+        echo "MC presence schema setup complete."
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: mc-presence-ch-setup
+    namespace: kbve
+    labels:
+        app: mc-presence-ch-setup
+        app.kubernetes.io/part-of: mc
+    annotations:
+        argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+    ttlSecondsAfterFinished: 86400
+    backoffLimit: 3
+    template:
+        metadata:
+            labels:
+                app: mc-presence-ch-setup
+        spec:
+            restartPolicy: OnFailure
+            containers:
+                - name: setup
+                  image: curlimages/curl:8.12.1
+                  command: ['/bin/sh', '/scripts/setup.sh']
+                  env:
+                      - name: CLICKHOUSE_ENDPOINT
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: endpoint
+                      - name: CLICKHOUSE_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: username
+                      - name: CLICKHOUSE_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: password
+                  volumeMounts:
+                      - name: setup-script
+                        mountPath: /scripts
+                        readOnly: true
+                  resources:
+                      requests:
+                          memory: '32Mi'
+                          cpu: '50m'
+                      limits:
+                          memory: '64Mi'
+                          cpu: '100m'
+                  securityContext:
+                      runAsNonRoot: true
+                      runAsUser: 1000
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+            volumes:
+                - name: setup-script
+                  configMap:
+                      name: mc-presence-ch-setup-script
+                      defaultMode: 0555

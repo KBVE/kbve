@@ -1,9 +1,15 @@
-// MC RCON client with DashMap-cached player data and Mojang profile enrichment.
+// MC RCON client with multi-server support, DashMap-cached player data,
+// Mojang profile enrichment, and ClickHouse snapshot publishing.
 //
-// Background task polls RCON `list` every 15s, resolves UUIDs + textures
-// via Mojang API, and stores results in a single DashMap for instant lookups.
+// Background task polls every configured RCON endpoint in parallel every
+// 15s, tags each player with the backend server they're on, resolves
+// UUIDs + textures via Mojang, and writes a snapshot row per player to
+// `mc.player_snapshots_distributed` in ClickHouse. axum-kbve serves its
+// own /api/v1/mc/players from an in-memory cache for low latency; edge
+// functions and other consumers read historical state from ClickHouse.
 
 use dashmap::DashMap;
+use futures_util::future::join_all;
 use serde::Serialize;
 use std::sync::{Arc, OnceLock};
 use std::time::{Duration, Instant};
@@ -20,9 +26,15 @@ use super::ensure_https;
 const REFRESH_INTERVAL: Duration = Duration::from_secs(15);
 const PLAYER_TTL: Duration = Duration::from_secs(3600); // 1h
 const RCON_TIMEOUT: Duration = Duration::from_secs(5);
+const CH_WRITE_TIMEOUT: Duration = Duration::from_secs(10);
 
 const MOJANG_API: &str = "https://api.mojang.com/users/profiles/minecraft";
 const MOJANG_SESSION: &str = "https://sessionserver.mojang.com/session/minecraft/profile";
+
+// Names we probe for multi-server env var prefixes. Add new backends
+// by listing their env var suffix here — each maps to
+// MC_RCON_<NAME>_HOST / _PORT / _PASSWORD.
+const KNOWN_SERVERS: &[&str] = &["LOBBY", "SURVIVAL"];
 
 // ---------------------------------------------------------------------------
 // Types
@@ -34,14 +46,43 @@ pub struct McPlayer {
     pub name: String,
     pub uuid: Option<String>,
     pub skin_url: Option<String>,
+    /// Backend server the player is connected to ("lobby", "survival").
+    pub server: String,
+}
+
+/// Per-server status for API clients that want a breakdown by backend.
+/// `reachable=false` means the RCON call failed this interval — the
+/// player list for that server is stale or empty in the aggregate
+/// response.
+#[derive(Clone, Debug, Serialize)]
+pub struct McServerStatus {
+    pub server: String,
+    pub online: usize,
+    pub max: usize,
+    pub reachable: bool,
 }
 
 #[derive(Clone, Debug, Serialize)]
 pub struct McPlayerList {
+    /// Total online across all reachable servers.
     pub online: usize,
+    /// Sum of `max_slots` across all reachable servers.
     pub max: usize,
     pub players: Vec<McPlayer>,
+    pub servers: Vec<McServerStatus>,
     pub cached_at: u64,
+}
+
+/// One RCON endpoint. Multiple can be configured for lobby + survival +
+/// future backends.
+#[derive(Clone, Debug)]
+struct RconEndpoint {
+    /// Lowercase server name ("lobby", "survival"). Surfaced on each
+    /// McPlayer and written to ClickHouse.
+    name: String,
+    host: String,
+    port: u16,
+    password: String,
 }
 
 /// Single cache entry holding all resolved data for a Minecraft player.
@@ -64,10 +105,11 @@ impl CachedPlayer {
 }
 
 pub struct McService {
-    rcon_host: String,
-    rcon_port: u16,
-    rcon_password: String,
+    endpoints: Vec<RconEndpoint>,
     http: reqwest::Client,
+    /// Optional — writes every snapshot to ClickHouse when configured.
+    /// None means CH env vars were missing and we're in-memory only.
+    clickhouse: Option<ClickHouseWriter>,
     // Cached player list (refreshed by background task)
     player_list: Arc<tokio::sync::RwLock<Option<McPlayerList>>>,
     // Single cache for all player data (name → uuid + skin_url + texture_bytes)
@@ -85,24 +127,18 @@ pub fn get_mc_service() -> Option<&'static Arc<McService>> {
 }
 
 pub fn init_mc_service() -> bool {
-    let host = match std::env::var("MC_RCON_HOST") {
-        Ok(h) => h,
-        Err(_) => return false,
-    };
-    let port: u16 = std::env::var("MC_RCON_PORT")
-        .ok()
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(25575);
-    let password = std::env::var("MC_RCON_PASSWORD").unwrap_or_default();
+    let endpoints = parse_rcon_endpoints();
+    if endpoints.is_empty() {
+        return false;
+    }
 
     let svc = Arc::new(McService {
-        rcon_host: host,
-        rcon_port: port,
-        rcon_password: password,
+        endpoints,
         http: reqwest::Client::builder()
             .timeout(Duration::from_secs(10))
             .build()
             .unwrap_or_default(),
+        clickhouse: ClickHouseWriter::from_env(),
         player_list: Arc::new(tokio::sync::RwLock::new(None)),
         players: Arc::new(DashMap::new()),
     });
@@ -129,6 +165,48 @@ pub fn init_mc_service() -> bool {
     true
 }
 
+/// Parse RCON endpoints from env vars. Prefers the multi-server scheme
+/// (`MC_RCON_LOBBY_*`, `MC_RCON_SURVIVAL_*`). Falls back to the legacy
+/// single-server scheme (`MC_RCON_HOST`/`MC_RCON_PORT`/`MC_RCON_PASSWORD`,
+/// reported as server="default") if no prefixed vars are set.
+fn parse_rcon_endpoints() -> Vec<RconEndpoint> {
+    let mut out = Vec::new();
+
+    for name in KNOWN_SERVERS {
+        if let Ok(host) = std::env::var(format!("MC_RCON_{name}_HOST")) {
+            let port = std::env::var(format!("MC_RCON_{name}_PORT"))
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(25575);
+            let password = std::env::var(format!("MC_RCON_{name}_PASSWORD")).unwrap_or_default();
+            out.push(RconEndpoint {
+                name: name.to_lowercase(),
+                host,
+                port,
+                password,
+            });
+        }
+    }
+
+    if out.is_empty() {
+        if let Ok(host) = std::env::var("MC_RCON_HOST") {
+            let port = std::env::var("MC_RCON_PORT")
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(25575);
+            let password = std::env::var("MC_RCON_PASSWORD").unwrap_or_default();
+            out.push(RconEndpoint {
+                name: "default".to_string(),
+                host,
+                port,
+                password,
+            });
+        }
+    }
+
+    out
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -143,6 +221,7 @@ impl McService {
                 online: 0,
                 max: 0,
                 players: vec![],
+                servers: vec![],
                 cached_at: now_epoch(),
             })
     }
@@ -193,31 +272,60 @@ impl McService {
 
 impl McService {
     async fn refresh_player_list(&self) {
-        let rcon_result = self.rcon_list().await;
-
-        let (names, max) = match rcon_result {
-            Ok(r) => r,
-            Err(e) => {
-                warn!(error = %e, "RCON list failed");
-                return;
+        // Poll every configured endpoint in parallel. If one is down
+        // (e.g. Agones fleet has 0 Fabric pods), the others still land.
+        let polls = self.endpoints.iter().map(|ep| {
+            let ep = ep.clone();
+            async move {
+                let result = Self::rcon_list(&ep).await;
+                (ep.name, result)
             }
-        };
+        });
+        let results: Vec<(String, anyhow::Result<(Vec<String>, usize)>)> = join_all(polls).await;
 
-        let mut players = Vec::with_capacity(names.len());
+        let mut all_players: Vec<McPlayer> = Vec::new();
+        let mut server_statuses: Vec<McServerStatus> = Vec::new();
+        let mut total_online = 0usize;
+        let mut total_max = 0usize;
 
-        for name in &names {
-            let cached = self.resolve_player(name).await;
-            players.push(McPlayer {
-                name: name.clone(),
-                uuid: cached.as_ref().map(|c| c.uuid.clone()),
-                skin_url: cached.and_then(|c| c.skin_url),
-            });
+        for (server_name, result) in results {
+            match result {
+                Ok((names, max)) => {
+                    total_online += names.len();
+                    total_max += max;
+                    server_statuses.push(McServerStatus {
+                        server: server_name.clone(),
+                        online: names.len(),
+                        max,
+                        reachable: true,
+                    });
+                    for name in names {
+                        let cached = self.resolve_player(&name).await;
+                        all_players.push(McPlayer {
+                            name,
+                            uuid: cached.as_ref().map(|c| c.uuid.clone()),
+                            skin_url: cached.and_then(|c| c.skin_url),
+                            server: server_name.clone(),
+                        });
+                    }
+                }
+                Err(e) => {
+                    warn!(server = %server_name, error = %e, "RCON list failed");
+                    server_statuses.push(McServerStatus {
+                        server: server_name,
+                        online: 0,
+                        max: 0,
+                        reachable: false,
+                    });
+                }
+            }
         }
 
         let list = McPlayerList {
-            online: players.len(),
-            max,
-            players,
+            online: total_online,
+            max: total_max,
+            players: all_players.clone(),
+            servers: server_statuses.clone(),
             cached_at: now_epoch(),
         };
 
@@ -226,7 +334,19 @@ impl McService {
         // Evict expired entries
         self.players.retain(|_, v| !v.is_expired());
 
-        debug!("MC player list refreshed ({} players)", names.len());
+        debug!(
+            "MC refresh: {} players across {} servers",
+            all_players.len(),
+            server_statuses.len()
+        );
+
+        // ClickHouse write is best-effort — failures don't affect the
+        // in-memory cache that serves /api/v1/mc/players.
+        if let Some(ref ch) = self.clickhouse {
+            if let Err(e) = ch.write_snapshot(&server_statuses, &all_players).await {
+                warn!(error = %e, "ClickHouse snapshot write failed");
+            }
+        }
     }
 
     /// Resolve player name → full profile (UUID + skin URL) via DashMap cache
@@ -298,12 +418,14 @@ const RCON_EXEC: i32 = 2;
 
 impl McService {
     /// Connect to RCON, authenticate, run `list`, return (player_names, max_players).
-    async fn rcon_list(&self) -> anyhow::Result<(Vec<String>, usize)> {
-        let addr = format!("{}:{}", self.rcon_host, self.rcon_port);
+    /// Associated function so each endpoint can be polled in parallel without
+    /// borrowing &self across the join_all boundary.
+    async fn rcon_list(ep: &RconEndpoint) -> anyhow::Result<(Vec<String>, usize)> {
+        let addr = format!("{}:{}", ep.host, ep.port);
         let mut stream = tokio::time::timeout(RCON_TIMEOUT, TcpStream::connect(&addr)).await??;
 
         // Authenticate
-        rcon_send(&mut stream, 1, RCON_AUTH, &self.rcon_password).await?;
+        rcon_send(&mut stream, 1, RCON_AUTH, &ep.password).await?;
         let (req_id, _, _) = rcon_recv(&mut stream).await?;
         if req_id == -1 {
             anyhow::bail!("RCON authentication failed");
@@ -362,6 +484,91 @@ async fn rcon_recv(stream: &mut TcpStream) -> anyhow::Result<(i32, i32, String)>
     let body = String::from_utf8_lossy(&payload[8..body_end]).to_string();
 
     Ok((req_id, ptype, body))
+}
+
+// ---------------------------------------------------------------------------
+// ClickHouse writer — snapshot per player per poll into
+// mc.player_snapshots_distributed. Schema lives in
+// apps/kube/kbve/manifest/mc-presence-ch-setup-job.yaml.
+// ---------------------------------------------------------------------------
+
+struct ClickHouseWriter {
+    endpoint: String,
+    user: String,
+    password: String,
+    client: reqwest::Client,
+}
+
+impl ClickHouseWriter {
+    fn from_env() -> Option<Self> {
+        let endpoint = std::env::var("CLICKHOUSE_ENDPOINT").ok()?;
+        let user = std::env::var("CLICKHOUSE_USER").ok()?;
+        let password = std::env::var("CLICKHOUSE_PASSWORD").unwrap_or_default();
+        let client = reqwest::Client::builder()
+            .timeout(CH_WRITE_TIMEOUT)
+            .build()
+            .ok()?;
+        Some(Self {
+            endpoint: endpoint.trim_end_matches('/').to_string(),
+            user,
+            password,
+            client,
+        })
+    }
+
+    async fn write_snapshot(
+        &self,
+        servers: &[McServerStatus],
+        players: &[McPlayer],
+    ) -> anyhow::Result<()> {
+        // Skip empty snapshots — the schema is per-player, so there's
+        // nothing to record when every server is empty. The reachable
+        // flag + in-memory cache cover server liveness at query time.
+        if players.is_empty() {
+            return Ok(());
+        }
+
+        let timestamp = chrono::Utc::now()
+            .format("%Y-%m-%d %H:%M:%S%.3f")
+            .to_string();
+
+        let mut payload = String::with_capacity(players.len() * 128);
+        for p in players {
+            let status = servers.iter().find(|s| s.server == p.server);
+            let online = status.map(|s| s.online).unwrap_or(0);
+            let max = status.map(|s| s.max).unwrap_or(0);
+
+            let row = serde_json::json!({
+                "timestamp": timestamp,
+                "server": p.server,
+                "name": p.name,
+                "uuid": p.uuid.clone().unwrap_or_default(),
+                "online_count": online,
+                "max_slots": max,
+            });
+            payload.push_str(&row.to_string());
+            payload.push('\n');
+        }
+
+        let url = format!(
+            "{}/?query=INSERT+INTO+mc.player_snapshots_distributed+FORMAT+JSONEachRow",
+            self.endpoint
+        );
+        let resp = self
+            .client
+            .post(&url)
+            .basic_auth(&self.user, Some(&self.password))
+            .body(payload)
+            .send()
+            .await?;
+
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let body = resp.text().await.unwrap_or_default();
+            anyhow::bail!("ClickHouse insert failed: status={status} body={body}");
+        }
+        Ok(())
+    }
 }
 
 // ---------------------------------------------------------------------------

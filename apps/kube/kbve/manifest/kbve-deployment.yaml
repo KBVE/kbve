@@ -129,20 +129,50 @@ spec:
                         value: '/etc/ssl/webtransport-selfsigned/tls.key'
                       - name: CHUCKRPG_UPSTREAM_URL
                         value: 'http://rows.ows.svc.cluster.local:4322'
-                      # MC RCON — drives the /api/v1/mc/players endpoint
-                      # (kbve.com/mc/players). Service DNS resolves to the
-                      # current Agones lobby pod. Password synced from the
-                      # mc namespace via ExternalSecret — single source of
-                      # truth in mc/mc-rcon-password SealedSecret.
-                      - name: MC_RCON_HOST
+                      # MC RCON (multi-server) — drives /api/v1/mc/players.
+                      # axum-kbve polls both backends in parallel, tags each
+                      # player with the server they're on, and writes
+                      # snapshots to ClickHouse below for other consumers.
+                      # Password synced from the mc namespace via the
+                      # mc-rcon-credentials ExternalSecret — single source
+                      # of truth in mc/mc-rcon-password SealedSecret.
+                      - name: MC_RCON_LOBBY_HOST
                         value: 'mc-lobby-backend.arc-runners.svc.cluster.local'
-                      - name: MC_RCON_PORT
+                      - name: MC_RCON_LOBBY_PORT
                         value: '25575'
-                      - name: MC_RCON_PASSWORD
+                      - name: MC_RCON_LOBBY_PASSWORD
                         valueFrom:
                             secretKeyRef:
                                 name: mc-rcon-credentials
                                 key: rcon-password
+                      - name: MC_RCON_SURVIVAL_HOST
+                        value: 'mc-fabric-backend.arc-runners.svc.cluster.local'
+                      - name: MC_RCON_SURVIVAL_PORT
+                        value: '25575'
+                      - name: MC_RCON_SURVIVAL_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: mc-rcon-credentials
+                                key: rcon-password
+                      # ClickHouse — axum-kbve writes one snapshot row per
+                      # player per poll to mc.player_snapshots_distributed.
+                      # Credentials synced from the vector namespace via
+                      # the clickhouse-credentials ExternalSecret.
+                      - name: CLICKHOUSE_ENDPOINT
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: endpoint
+                      - name: CLICKHOUSE_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: username
+                      - name: CLICKHOUSE_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: password
                   volumeMounts:
                       - name: argocd-ca
                         mountPath: /etc/ssl/argocd
