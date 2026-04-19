@@ -6,6 +6,7 @@ members = [
     "packages/rust/kbve",
     "packages/rust/bevy/bevy_inventory",
     "packages/rust/bevy/bevy_items",
+    "packages/rust/bevy/bevy_behavior",
     "packages/rust/bevy/bevy_battle",
     "packages/rust/bevy/bevy_npc",
     "packages/rust/bevy/bevy_quests",
