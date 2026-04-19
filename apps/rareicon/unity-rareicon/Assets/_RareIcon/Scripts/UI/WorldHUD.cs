@@ -20,11 +20,13 @@ namespace RareIcon
         readonly LocaleService _locale;
         readonly UIPanelManager _panelManager;
         readonly AppStateController _appState;
+        readonly UIWorldSearch _worldSearch;
         readonly ISubscriber<HexHoverMessage> _hoverSub;
 
         readonly CompositeDisposable _disposables = new();
 
-        VisualElement _root;
+        VisualElement _hoverPanel;
+        VisualElement _toolbar;
         Label _biomeName;
         Label _hexCoord;
 
@@ -33,11 +35,13 @@ namespace RareIcon
             LocaleService locale,
             UIPanelManager panelManager,
             AppStateController appState,
+            UIWorldSearch worldSearch,
             ISubscriber<HexHoverMessage> hoverSub)
         {
             _locale = locale;
             _panelManager = panelManager;
             _appState = appState;
+            _worldSearch = worldSearch;
             _hoverSub = hoverSub;
         }
 
@@ -70,38 +74,48 @@ namespace RareIcon
             _disposables.Add(bag.Build());
 
             _appState.Current
-                .Subscribe(state => _root.style.display =
-                    state == AppInterfaceState.World ? DisplayStyle.Flex : DisplayStyle.None)
+                .Subscribe(state =>
+                {
+                    var display = state == AppInterfaceState.World ? DisplayStyle.Flex : DisplayStyle.None;
+                    _hoverPanel.style.display = display;
+                    _toolbar.style.display = display;
+                })
                 .AddTo(_disposables);
         }
 
         void BuildUI(VisualElement root)
         {
-            _root = new VisualElement();
-            _root.style.position = Position.Absolute;
-            _root.style.bottom = new Length(2, LengthUnit.Percent);
-            _root.style.right = new Length(2, LengthUnit.Percent);
-            _root.style.backgroundColor = new Color(0.05f, 0.05f, 0.1f, 0.85f);
-            _root.style.paddingTop = 10;
-            _root.style.paddingBottom = 10;
-            _root.style.paddingLeft = 16;
-            _root.style.paddingRight = 16;
-            _root.style.borderTopLeftRadius = 8;
-            _root.style.borderTopRightRadius = 8;
-            _root.style.borderBottomLeftRadius = 8;
-            _root.style.borderBottomRightRadius = 8;
-            _root.style.borderTopWidth = 1;
-            _root.style.borderBottomWidth = 1;
-            _root.style.borderLeftWidth = 1;
-            _root.style.borderRightWidth = 1;
+            BuildHoverPanel(root);
+            BuildToolbar(root);
+        }
+
+        void BuildHoverPanel(VisualElement root)
+        {
+            _hoverPanel = new VisualElement();
+            _hoverPanel.style.position = Position.Absolute;
+            _hoverPanel.style.bottom = new Length(2, LengthUnit.Percent);
+            _hoverPanel.style.right = new Length(2, LengthUnit.Percent);
+            _hoverPanel.style.backgroundColor = new Color(0.05f, 0.05f, 0.1f, 0.85f);
+            _hoverPanel.style.paddingTop = 10;
+            _hoverPanel.style.paddingBottom = 10;
+            _hoverPanel.style.paddingLeft = 16;
+            _hoverPanel.style.paddingRight = 16;
+            _hoverPanel.style.borderTopLeftRadius = 8;
+            _hoverPanel.style.borderTopRightRadius = 8;
+            _hoverPanel.style.borderBottomLeftRadius = 8;
+            _hoverPanel.style.borderBottomRightRadius = 8;
+            _hoverPanel.style.borderTopWidth = 1;
+            _hoverPanel.style.borderBottomWidth = 1;
+            _hoverPanel.style.borderLeftWidth = 1;
+            _hoverPanel.style.borderRightWidth = 1;
             var border = new Color(0.3f, 0.5f, 0.8f, 0.6f);
-            _root.style.borderTopColor = border;
-            _root.style.borderBottomColor = border;
-            _root.style.borderLeftColor = border;
-            _root.style.borderRightColor = border;
-            _root.style.minWidth = 160;
+            _hoverPanel.style.borderTopColor = border;
+            _hoverPanel.style.borderBottomColor = border;
+            _hoverPanel.style.borderLeftColor = border;
+            _hoverPanel.style.borderRightColor = border;
+            _hoverPanel.style.minWidth = 160;
             // Hover info shouldn't block world clicks underneath it.
-            _root.pickingMode = PickingMode.Ignore;
+            _hoverPanel.pickingMode = PickingMode.Ignore;
 
             _biomeName = new Label("---");
             _biomeName.style.color = Color.white;
@@ -115,9 +129,31 @@ namespace RareIcon
             _hexCoord.style.fontSize = 13;
             _hexCoord.pickingMode = PickingMode.Ignore;
 
-            _root.Add(_biomeName);
-            _root.Add(_hexCoord);
-            root.Add(_root);
+            _hoverPanel.Add(_biomeName);
+            _hoverPanel.Add(_hexCoord);
+            root.Add(_hoverPanel);
+        }
+
+        void BuildToolbar(VisualElement root)
+        {
+            // Top-left toolbar — opens the dedicated UIWorldSearch window.
+            _toolbar = new VisualElement();
+            _toolbar.style.position = Position.Absolute;
+            _toolbar.style.top = new Length(2, LengthUnit.Percent);
+            _toolbar.style.left = new Length(2, LengthUnit.Percent);
+            _toolbar.style.flexDirection = FlexDirection.Row;
+
+            var searchBtn = new Button(_worldSearch.Toggle) { text = "Search" };
+            searchBtn.style.height = 28;
+            searchBtn.style.paddingLeft = 12;
+            searchBtn.style.paddingRight = 12;
+            searchBtn.style.backgroundColor = new Color(0.15f, 0.20f, 0.32f, 0.95f);
+            searchBtn.style.color = Color.white;
+            searchBtn.style.fontSize = 13;
+            searchBtn.style.unityFontStyleAndWeight = FontStyle.Bold;
+
+            _toolbar.Add(searchBtn);
+            root.Add(_toolbar);
         }
 
         void OnHexHover(HexHoverMessage msg)

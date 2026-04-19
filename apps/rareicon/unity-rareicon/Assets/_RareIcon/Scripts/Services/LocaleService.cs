@@ -107,6 +107,7 @@ namespace RareIcon
                 BiomeGenerator.BIOME_DIRT   => "biome.dirt",
                 BiomeGenerator.BIOME_SNOW   => "biome.snow",
                 BiomeGenerator.BIOME_STONE  => "biome.stone",
+                BiomeGenerator.BIOME_LAKE   => "biome.lake",
                 _ => "biome.ocean",
             };
             return Get(key);

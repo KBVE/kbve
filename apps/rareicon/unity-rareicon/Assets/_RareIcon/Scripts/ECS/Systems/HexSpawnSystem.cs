@@ -66,20 +66,30 @@ namespace RareIcon
         void InitRendering()
         {
             _hexMesh = HexMeshUtil.CreateHexMesh(HexSize);
-            _biomeMaterials = new Material[7];
+            _biomeMaterials = new Material[BiomeGenerator.BIOME_COUNT];
+
             var hexShader = Shader.Find("RareIcon/HexTile");
             if (hexShader == null) hexShader = Shader.Find("Universal Render Pipeline/Unlit");
+            var lakeShader = Shader.Find("RareIcon/HexLake");
 
-            // Procedural grass on grass biome only — _BaseColor2 ≠ _BaseColor
-            // turns on the value-noise lerp in HexTile.shader. Other biomes
-            // leave _BaseColor2 == _BaseColor so they stay flat for now.
-            for (int i = 0; i < 7; i++)
+            for (int i = 0; i < BiomeGenerator.BIOME_COUNT; i++)
             {
-                _biomeMaterials[i] = new Material(hexShader);
+                // Lakes get the dedicated water shader; everything else uses
+                // the procedural ground shader with biome-specific colors.
+                bool isLake = i == BiomeGenerator.BIOME_LAKE && lakeShader != null;
+                _biomeMaterials[i] = new Material(isLake ? lakeShader : hexShader);
                 _biomeMaterials[i].enableInstancing = true;
+
                 var c = HexMeshUtil.BiomeColor((byte)i);
                 var primary = new Color(c.x, c.y, c.z, c.w);
                 _biomeMaterials[i].SetColor("_BaseColor", primary);
+
+                if (isLake)
+                {
+                    // Lake material reads world-space water from OceanWater.hlsl;
+                    // _BaseColor just nudges the regional palette.
+                    continue;
+                }
 
                 if (i == BiomeGenerator.BIOME_GRASS)
                 {
