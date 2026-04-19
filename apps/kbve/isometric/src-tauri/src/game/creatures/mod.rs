@@ -4,6 +4,8 @@ pub mod creature;
 mod firefly;
 pub mod generic;
 pub mod observation;
+pub mod pathfinding;
+pub mod shared_tree;
 pub mod sprite_material;
 
 use bevy::prelude::*;

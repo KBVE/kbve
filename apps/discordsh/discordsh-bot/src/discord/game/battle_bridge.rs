@@ -16,7 +16,7 @@ use bevy_battle::{
     FirstStrikeFired, FleeIntent, Health, Intent, Messages, MinimalPlugins, PlayerClass, PlayerTag,
     TickEffectsRequest, UseItemIntent,
 };
-use bevy_behavior::{BehaviorContext, BehaviorNode, Healthed, NodeStatus, Sequence};
+use bevy_behavior::{BehaviorContext, BehaviorNode, Healthed, NodeStatus, Selector};
 use bevy_inventory::Inventory;
 
 use super::content;
@@ -279,7 +279,7 @@ impl CombatWorld {
                     CombatIndex(es.index),
                     Combatant,
                     EnemyTag,
-                    BehaviorPolicy(build_enemy_tree()),
+                    BehaviorPolicy(build_enemy_tree(es.personality)),
                 ))
                 .id();
             enemies.push((es.index, entity));
@@ -837,26 +837,30 @@ pub fn run_enemy_turns_only(
     }
 }
 
-// ── Enemy behavior tree ────────────────────────────────────────────
+// ── Enemy behavior trees (per personality) ────────────────────────
 //
-// When an enemy drops below 30% HP and isn't enraged (berserk enemies
-// don't retreat), prefer HealSelf. Otherwise the tree returns no
-// action and bevy_battle's enemy_turn_system falls back to the
-// existing random roll table. Keeps current combat variety while
-// adding one bit of conditional intelligence — the foundation for
-// personality-driven trees in future PRs.
+// Each personality tree is a Selector — children evaluated top to
+// bottom, first successful one wins. Any child returning Failure
+// bubbles up and lets bevy_battle's `roll_new_intent()` pick from
+// the random table, preserving combat variety.
+//
+// The leaves below live in this file rather than bevy_behavior
+// because they emit bevy_battle's `Intent` enum directly. Migrating
+// them to closure-driven `bevy_behavior::AttackNearest<F>` etc. is
+// a follow-up once we have a full combat-observation layer.
 
-struct LowHpHeal {
+struct HealSelfIfLowHp {
     threshold_fraction: f32,
     heal_amount: i32,
 }
 
-impl BehaviorNode<CombatObservation, Intent> for LowHpHeal {
+impl BehaviorNode<CombatObservation, Intent> for HealSelfIfLowHp {
     fn evaluate(
         &self,
         observation: &CombatObservation,
         _ctx: &mut BehaviorContext<'_>,
     ) -> (NodeStatus, Vec<Intent>) {
+        // Enraged = berserk, won't stop to heal.
         if observation.enraged || observation.health_fraction() >= self.threshold_fraction {
             return (NodeStatus::Failure, vec![]);
         }
@@ -869,13 +873,140 @@ impl BehaviorNode<CombatObservation, Intent> for LowHpHeal {
     }
 }
 
-fn build_enemy_tree() -> Box<dyn BehaviorNode<CombatObservation, Intent>> {
-    Box::new(Sequence {
-        children: vec![Box::new(LowHpHeal {
-            threshold_fraction: 0.3,
-            heal_amount: 10,
-        })],
-    })
+/// Always attack — no conditional. For Aggressive / Feral personalities
+/// that should never retreat. Damage scales with level.
+struct AlwaysAttack;
+
+impl BehaviorNode<CombatObservation, Intent> for AlwaysAttack {
+    fn evaluate(
+        &self,
+        observation: &CombatObservation,
+        _ctx: &mut BehaviorContext<'_>,
+    ) -> (NodeStatus, Vec<Intent>) {
+        let mut dmg = 5 + observation.level as i32;
+        if observation.enraged {
+            dmg = (dmg as f32 * 1.5) as i32;
+        }
+        (NodeStatus::Success, vec![Intent::Attack { dmg }])
+    }
+}
+
+/// Flee when HP dips — Cowardly / Fearful break early. Returns Flee
+/// at higher HP thresholds than the default tree would.
+struct FleeIfLowHp {
+    threshold_fraction: f32,
+}
+
+impl BehaviorNode<CombatObservation, Intent> for FleeIfLowHp {
+    fn evaluate(
+        &self,
+        observation: &CombatObservation,
+        _ctx: &mut BehaviorContext<'_>,
+    ) -> (NodeStatus, Vec<Intent>) {
+        if observation.health_fraction() >= self.threshold_fraction {
+            return (NodeStatus::Failure, vec![]);
+        }
+        (NodeStatus::Success, vec![Intent::Flee])
+    }
+}
+
+/// AoE burst at low HP — Ancient personalities go out swinging.
+/// Damage scales with level.
+struct DesperateAoe {
+    threshold_fraction: f32,
+}
+
+impl BehaviorNode<CombatObservation, Intent> for DesperateAoe {
+    fn evaluate(
+        &self,
+        observation: &CombatObservation,
+        _ctx: &mut BehaviorContext<'_>,
+    ) -> (NodeStatus, Vec<Intent>) {
+        if observation.health_fraction() >= self.threshold_fraction {
+            return (NodeStatus::Failure, vec![]);
+        }
+        let dmg = 6 + observation.level as i32;
+        (NodeStatus::Success, vec![Intent::AoeAttack { dmg }])
+    }
+}
+
+/// Apply a debuff if the target isn't already weakened — for Cunning
+/// personalities that prefer to set up before swinging. Defaults to
+/// Weakened stacks since there's no target-observation yet; later PRs
+/// can feed player-effect snapshots through CombatObservation.
+struct ApplyWeakened;
+
+impl BehaviorNode<CombatObservation, Intent> for ApplyWeakened {
+    fn evaluate(
+        &self,
+        observation: &CombatObservation,
+        _ctx: &mut BehaviorContext<'_>,
+    ) -> (NodeStatus, Vec<Intent>) {
+        // Cunning enemies debuff only when not already damaged themselves.
+        if observation.health_fraction() < 0.5 {
+            return (NodeStatus::Failure, vec![]);
+        }
+        (
+            NodeStatus::Success,
+            vec![Intent::Debuff {
+                effect: EffectKind::Weakened,
+                stacks: 1,
+                turns: 3,
+            }],
+        )
+    }
+}
+
+fn build_enemy_tree(personality: Personality) -> Box<dyn BehaviorNode<CombatObservation, Intent>> {
+    match personality {
+        // Aggressive / Feral — never retreat, always swing hard.
+        Personality::Aggressive | Personality::Feral => Box::new(Selector {
+            children: vec![Box::new(AlwaysAttack)],
+        }),
+        // Cowardly / Fearful — flee early, heal when low, then fall
+        // through to random rolls for the middle-HP band.
+        Personality::Cowardly | Personality::Fearful => Box::new(Selector {
+            children: vec![
+                Box::new(FleeIfLowHp {
+                    threshold_fraction: 0.5,
+                }),
+                Box::new(HealSelfIfLowHp {
+                    threshold_fraction: 0.7,
+                    heal_amount: 8,
+                }),
+            ],
+        }),
+        // Ancient — AoE burst at low HP, otherwise let the random
+        // table handle it (preserves boss flavor variety).
+        Personality::Ancient => Box::new(Selector {
+            children: vec![Box::new(DesperateAoe {
+                threshold_fraction: 0.35,
+            })],
+        }),
+        // Cunning — open with a debuff if healthy, otherwise random.
+        Personality::Cunning => Box::new(Selector {
+            children: vec![Box::new(ApplyWeakened)],
+        }),
+        // Noble / Stoic — emergency heal only. Retains most of the
+        // random table for tactical variety.
+        Personality::Noble | Personality::Stoic => Box::new(Selector {
+            children: vec![Box::new(HealSelfIfLowHp {
+                threshold_fraction: 0.25,
+                heal_amount: 12,
+            })],
+        }),
+        // Cheerful / Mysterious / Passive — fall back to the original
+        // "heal at 30%" logic from the foundation PR. These don't have
+        // a strong combat bias yet.
+        Personality::Cheerful | Personality::Mysterious | Personality::Passive => {
+            Box::new(Selector {
+                children: vec![Box::new(HealSelfIfLowHp {
+                    threshold_fraction: 0.3,
+                    heal_amount: 10,
+                })],
+            })
+        }
+    }
 }
 
 #[cfg(test)]
