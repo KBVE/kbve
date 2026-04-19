@@ -37,6 +37,7 @@ pub fn enemy_turn_system(
         ),
         (With<PlayerTag>, Without<Dead>, Without<EnemyTag>),
     >,
+    policies: Query<&BehaviorPolicy, With<EnemyTag>>,
     modifiers: Res<CombatModifiers>,
     mut rng: ResMut<BattleRng>,
 ) {
@@ -242,9 +243,39 @@ pub fn enemy_turn_system(
             }
         }
 
-        // Roll new intent
-        if let Ok((_, _, _, _, _, mut ai, mut intent)) = enemies.get_mut(*enemy_entity) {
-            roll_and_set_intent(&mut ai, &mut intent, &mut rng.0);
+        // Roll new intent — check for an optional BehaviorPolicy tree
+        // first; fall back to the random table if no tree is attached or
+        // the tree returns no action.
+        if let Ok((_, _, hp, _, effects, mut ai, mut intent)) = enemies.get_mut(*enemy_entity) {
+            let tree_intent = policies.get(*enemy_entity).ok().and_then(|policy| {
+                let observation = CombatObservation {
+                    hp: hp.current as f32,
+                    max_hp: hp.max as f32,
+                    level: ai.level,
+                    enraged: ai.enraged,
+                    charged: ai.charged,
+                    weakened: effects.has(&EffectKind::Weakened),
+                    personality: ai.personality,
+                };
+                // Minimal context — cooldowns are unused for combat decisions
+                // right now but the trait requires a valid context. A future
+                // PR can wire per-enemy ability cooldowns through here.
+                let mut per_npc = bevy_behavior::TickCooldown::new(0);
+                let mut global = bevy_behavior::TickCooldown::new(0);
+                let mut ctx = bevy_behavior::BehaviorContext {
+                    current_tick: 0,
+                    per_npc: &mut per_npc,
+                    global: &mut global,
+                };
+                let (_, mut intents) = policy.0.evaluate(&observation, &mut ctx);
+                intents.pop()
+            });
+
+            if let Some(chosen) = tree_intent {
+                intent.0 = chosen;
+            } else {
+                roll_and_set_intent(&mut ai, &mut intent, &mut rng.0);
+            }
         }
     }
 }

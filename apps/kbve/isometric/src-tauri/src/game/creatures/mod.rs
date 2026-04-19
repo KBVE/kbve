@@ -3,6 +3,7 @@ pub mod common;
 pub mod creature;
 mod firefly;
 pub mod generic;
+pub mod observation;
 pub mod sprite_material;
 
 use bevy::prelude::*;

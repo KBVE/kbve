@@ -1780,6 +1780,7 @@ name = "bevy_battle"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy_behavior",
  "getrandom 0.4.2",
  "rand 0.10.0",
  "serde",
@@ -4880,6 +4881,7 @@ dependencies = [
  "askama",
  "axum 0.8.9",
  "bevy_battle",
+ "bevy_behavior",
  "bevy_chat",
  "bevy_inventory",
  "bevy_items",
@@ -7950,6 +7952,7 @@ dependencies = [
  "avian3d",
  "base64 0.22.1",
  "bevy",
+ "bevy_behavior",
  "bevy_cam",
  "bevy_chat",
  "bevy_db",
