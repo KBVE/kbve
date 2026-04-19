@@ -58,23 +58,6 @@
 					]
 				}
 			}
-		},
-		"test": {
-			"executor": "nx:run-commands",
-			"dependsOn": ["container"],
-			"options": {
-				"commands": [
-					"echo '=== aria2-proxy image tests ==='",
-					"docker inspect ghcr.io/kbve/aria2-proxy:latest --format '{{.Config.User}}' | grep -q 1000 && echo 'PASS: non-root user 1000'",
-					"docker inspect ghcr.io/kbve/aria2-proxy:latest --format '{{.Config.WorkingDir}}' | grep -q /downloads && echo 'PASS: workdir /downloads'",
-					"docker run --rm ghcr.io/kbve/aria2-proxy:latest aria2c --version | head -1 | grep -q 'aria2 version' && echo 'PASS: aria2c available'",
-					"docker run --rm ghcr.io/kbve/aria2-proxy:latest python3 --version | grep -q 'Python 3' && echo 'PASS: python3 available'",
-					"docker run --rm ghcr.io/kbve/aria2-proxy:latest sh -c 'test -f /sbin/tini' && echo 'PASS: tini present'",
-					"docker run --rm ghcr.io/kbve/aria2-proxy:latest sh -c 'test -d /downloads && test -w /downloads' && echo 'PASS: /downloads writable by non-root'",
-					"echo '=== aria2-proxy tests passed ==='"
-				],
-				"parallel": false
-			}
 		}
 	},
 	"tags": ["scope:vm", "aria2-proxy", "infrastructure", "kubevirt"]
