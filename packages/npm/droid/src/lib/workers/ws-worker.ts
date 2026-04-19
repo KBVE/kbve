@@ -6,15 +6,39 @@ interface SharedWorkerGlobalScope extends Worker {
 declare const self: SharedWorkerGlobalScope;
 
 let ws: WebSocket | null = null;
-let onMessageCallback: ((data: string | ArrayBuffer) => void) | null = null;
-let onStatusCallback: ((status: string) => void) | null = null;
 
-// BroadcastChannel for direct ws-worker → db-worker communication.
-// The db-worker listens on this channel and writes to IndexedDB,
-// keeping the main thread out of the data pipeline entirely.
+// ---------------------------------------------------------------------------
+// Transport channels
+//
+// `kbve_ws_data`   — raw WebSocket payloads for the db-worker to persist.
+//                    Payload: { type: 'ws.store', format, data, ts }
+//
+// `kbve_ws_events` — status + message events for UI consumers (chat service,
+//                    presence, overlays, etc.).
+//                    Payload:
+//                      { type: 'status',  status: string }
+//                      { type: 'message', format: 'text',   data: string }
+//                      { type: 'message', format: 'binary', data: Uint8Array }
+//
+// Keeping persistence and UI on separate channels means each consumer only
+// sees what it cares about, and a new subscriber (e.g. cross-tab presence)
+// drops in without filtering db-bound payloads.
+//
+// Historical note: an earlier design exposed onMessage(cb) / onStatus(cb)
+// through Comlink. That failed with DataCloneError because Comlink forwards
+// method args via postMessage, and functions are not structured-cloneable.
+// If a future strategy wants a different transport (SharedArrayBuffer,
+// MessagePort, proxied-Comlink callbacks), add it alongside — don't remove
+// the BroadcastChannel path, it's the fallback that works everywhere.
+// ---------------------------------------------------------------------------
 const dbChannel =
 	typeof BroadcastChannel !== 'undefined'
 		? new BroadcastChannel('kbve_ws_data')
+		: null;
+
+const eventsChannel =
+	typeof BroadcastChannel !== 'undefined'
+		? new BroadcastChannel('kbve_ws_events')
 		: null;
 
 // Heartbeat
@@ -62,7 +86,7 @@ function stopHeartbeat() {
 }
 
 function broadcastStatus(status: string) {
-	onStatusCallback?.(status);
+	eventsChannel?.postMessage({ type: 'status', status });
 }
 
 function attemptReconnect() {
@@ -87,7 +111,14 @@ function attemptReconnect() {
 	}, RECONNECT_DELAY_MS);
 }
 
-// --- WebSocket API ---
+// ---------------------------------------------------------------------------
+// WebSocket API exposed via Comlink
+//
+// Only commands that carry structured-cloneable data cross this bridge
+// (strings, typed arrays). Event subscription is deliberately NOT here —
+// it lives on the BroadcastChannel side to avoid DataCloneError when a
+// caller passes a raw function.
+// ---------------------------------------------------------------------------
 const wsInstanceAPI = {
 	async connect(url: string) {
 		if (ws && ws.readyState === WebSocket.OPEN) return;
@@ -126,12 +157,9 @@ const wsInstanceAPI = {
 					}
 				}
 
-				// Forward to main thread callback (UI rendering)
-				onMessageCallback?.(e.data);
-
-				// Forward to db-worker for storage (off main thread).
-				// BroadcastChannel requires structured-cloneable data,
-				// so we send text as-is and binary as a Uint8Array copy.
+				// Fan out to db-worker (persistence pipeline).
+				// Structured-cloneable payloads only — strings and
+				// Uint8Array are both safe across BroadcastChannel.
 				if (dbChannel) {
 					if (typeof e.data === 'string') {
 						dbChannel.postMessage({
@@ -146,6 +174,24 @@ const wsInstanceAPI = {
 							format: 'binary',
 							data: new Uint8Array(e.data),
 							ts: Date.now(),
+						});
+					}
+				}
+
+				// Fan out to UI consumers (chat service, presence, etc.).
+				// Same structured-cloneable constraint applies.
+				if (eventsChannel) {
+					if (typeof e.data === 'string') {
+						eventsChannel.postMessage({
+							type: 'message',
+							format: 'text',
+							data: e.data,
+						});
+					} else if (e.data instanceof ArrayBuffer) {
+						eventsChannel.postMessage({
+							type: 'message',
+							format: 'binary',
+							data: new Uint8Array(e.data),
 						});
 					}
 				}
@@ -174,7 +220,13 @@ const wsInstanceAPI = {
 
 	async send(payload: Uint8Array) {
 		if (ws?.readyState === WebSocket.OPEN) {
-			ws.send(payload);
+			// Cast narrows Uint8Array<ArrayBufferLike> to BufferSource for
+			// WebSocket.send. Newer TS DOM lib parameterizes Uint8Array over
+			// ArrayBuffer | SharedArrayBuffer, but send() only accepts
+			// ArrayBuffer-backed views. Every caller here posts a freshly
+			// encoded payload (Uint8Array from TextEncoder or similar), so
+			// the backing buffer is always a plain ArrayBuffer.
+			ws.send(payload as BufferSource);
 		} else {
 			console.warn('[WS] Tried to send while disconnected');
 		}
@@ -191,14 +243,6 @@ const wsInstanceAPI = {
 		ws?.close(1000, 'Client request');
 		ws = null;
 		broadcastStatus('disconnected');
-	},
-
-	onMessage(callback: (data: string | ArrayBuffer) => void) {
-		onMessageCallback = callback;
-	},
-
-	onStatus(callback: (status: string) => void) {
-		onStatusCallback = callback;
 	},
 
 	async getStatus(): Promise<string> {
