@@ -42,3 +42,13 @@ bevy_npc = { path = "../../../packages/rust/bevy/bevy_npc", features = ["creatur
 # inside our own ECS module).
 bevy_pathfinding = { path = "../../../packages/rust/bevy/bevy_pathfinding" }
 
+# Shared behavior tree engine — BehaviorNode trait, Selector/Sequence
+# composites, cooldown system, observation traits. MC-specific nodes
+# (archetype, flow field) stay local; the generic engine is shared.
+bevy_behavior = { path = "../../../packages/rust/bevy/bevy_behavior" }
+
+# Chat bridge — IRC client exposed via C-FFI so JNI can drive it
+# (kbve_chat_connect / send / poll / disconnect). Pulls in the ffi
+# feature which activates extern "C" entry points.
+bevy_chat = { path = "../../../packages/rust/bevy/bevy_chat", features = ["ffi"] }
+

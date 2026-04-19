@@ -16,6 +16,7 @@
 		"com.unity.2d.tilemap.extras": "6.0.1",
 		"com.unity.2d.tooling": "1.0.2",
 		"com.unity.collab-proxy": "2.11.3",
+		"com.unity.entities.graphics": "1.4.15",
 		"com.unity.feature.ecs": "1.0.0",
 		"com.unity.ide.rider": "3.0.39",
 		"com.unity.ide.visualstudio": "2.0.26",

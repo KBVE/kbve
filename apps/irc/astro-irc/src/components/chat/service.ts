@@ -91,6 +91,62 @@ function systemMessage(channel: string, content: string): void {
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
+// ---------------------------------------------------------------------------
+// Worker → UI bridge
+//
+// The ws-worker posts status + message events on the `kbve_ws_events`
+// BroadcastChannel. We subscribe here instead of calling kbve.ws.onMessage
+// / kbve.ws.onStatus through Comlink — Comlink forwards method args via
+// postMessage, and functions aren't structured-cloneable, so passing raw
+// callbacks across the SharedWorker boundary raised DataCloneError and
+// killed the connection handshake before it completed.
+//
+// Keeping the subscription at module scope means reconnects reuse the same
+// channel instead of stacking subscriptions on every connect() call.
+// ---------------------------------------------------------------------------
+let eventsChannel: BroadcastChannel | null = null;
+
+function ensureEventsSubscription(): void {
+	if (eventsChannel) return;
+	if (typeof BroadcastChannel === 'undefined') {
+		console.warn(
+			'[chat] BroadcastChannel unavailable — ws events will not reach the UI',
+		);
+		return;
+	}
+
+	eventsChannel = new BroadcastChannel('kbve_ws_events');
+	eventsChannel.onmessage = (e: MessageEvent) => {
+		const evt = e.data;
+		if (!evt || typeof evt !== 'object') return;
+
+		if (evt.type === 'status') {
+			const status = evt.status as string;
+			if (status === 'connected') {
+				$connectionStatus.set('connected');
+				systemMessage($activeChannel.get(), 'Connected to IRC');
+			} else if (status === 'disconnected' || status === 'error') {
+				$connectionStatus.set(status as ConnectionStatus);
+			}
+			return;
+		}
+
+		if (evt.type === 'message') {
+			const data = evt.data;
+			const text =
+				typeof data === 'string'
+					? data
+					: decoder.decode(
+							data instanceof ArrayBuffer
+								? new Uint8Array(data)
+								: data,
+						);
+			handleIncoming(text);
+			return;
+		}
+	};
+}
+
 export async function connect(wsUrl: string, token?: string): Promise<void> {
 	if ($connectionStatus.get() === 'connected') return;
 
@@ -107,28 +163,11 @@ export async function connect(wsUrl: string, token?: string): Promise<void> {
 			? `${wsUrl}${wsUrl.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}`
 			: wsUrl;
 
+		// Subscribe BEFORE connect so we don't miss the initial 'connected'
+		// status event from the worker.
+		ensureEventsSubscription();
+
 		await kbve.ws.connect(url);
-
-		kbve.ws.onStatus((status: string) => {
-			if (status === 'connected') {
-				$connectionStatus.set('connected');
-				systemMessage($activeChannel.get(), 'Connected to IRC');
-			} else if (status === 'disconnected' || status === 'error') {
-				$connectionStatus.set(status as ConnectionStatus);
-			}
-		});
-
-		kbve.ws.onMessage((data: ArrayBuffer | Uint8Array | string) => {
-			const text =
-				typeof data === 'string'
-					? data
-					: decoder.decode(
-							data instanceof ArrayBuffer
-								? new Uint8Array(data)
-								: data,
-						);
-			handleIncoming(text);
-		});
 	} catch (err: any) {
 		$connectionStatus.set('error');
 		$error.set(err.message ?? 'Connection failed');

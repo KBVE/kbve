@@ -8,5 +8,17 @@
 	"pause.resume": "再開",
 	"pause.title": "ポーズ",
 	"dialogue.next": "次へ",
-	"dialogue.skip": "スキップ"
+	"dialogue.skip": "スキップ",
+	"biome.ocean": "海",
+	"biome.grass": "草原",
+	"biome.forest": "森林",
+	"biome.sand": "砂浜",
+	"biome.dirt": "荒地",
+	"biome.snow": "凍土",
+	"biome.stone": "岩山",
+	"hex.coord": "座標",
+	"hex.empty": "外洋",
+	"hex.enter": "入る",
+	"common.confirm": "確認",
+	"common.cancel": "キャンセル"
 }

@@ -1,0 +1,845 @@
+fileFormatVersion: 2
+guid: 2650742bb9d814298a0d35d2ee63338d
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 4641454254407711067
+    second: ocean_base_0
+  - first:
+      213: 6214925540468999937
+    second: ocean_base_1
+  - first:
+      213: -4683080507195346893
+    second: ocean_base_2
+  - first:
+      213: -4074415569026077771
+    second: ocean_base_3
+  - first:
+      213: 3313689423491321417
+    second: ocean_base_4
+  - first:
+      213: -7027420772063027184
+    second: ocean_base_5
+  - first:
+      213: -3362912260048767712
+    second: ocean_base_6
+  - first:
+      213: 3045574128752897358
+    second: ocean_base_7
+  - first:
+      213: -3358411599827235779
+    second: ocean_base_8
+  - first:
+      213: 1581161285985497647
+    second: ocean_base_9
+  - first:
+      213: -7400912836594498465
+    second: ocean_base_10
+  - first:
+      213: 203878236570327761
+    second: ocean_base_11
+  - first:
+      213: 5131412101640008555
+    second: ocean_base_12
+  - first:
+      213: 319242855150420176
+    second: ocean_base_13
+  - first:
+      213: 5812460779087733567
+    second: ocean_base_14
+  - first:
+      213: 2238367155123729426
+    second: ocean_base_15
+  - first:
+      213: -4953980579267263205
+    second: ocean_base_16
+  - first:
+      213: -3709315516836592644
+    second: ocean_base_17
+  - first:
+      213: 4170962953979481625
+    second: ocean_base_18
+  - first:
+      213: -945481063750843315
+    second: ocean_base_19
+  - first:
+      213: -5232297531825648654
+    second: ocean_base_20
+  - first:
+      213: -6908811786781871656
+    second: ocean_base_21
+  - first:
+      213: -5971854536864819497
+    second: ocean_base_22
+  - first:
+      213: -2171740022976634080
+    second: ocean_base_23
+  - first:
+      213: 7097772683567612150
+    second: ocean_base_24
+  - first:
+      213: -3512587638214120232
+    second: ocean_base_25
+  - first:
+      213: -6031414366595195616
+    second: ocean_base_26
+  - first:
+      213: 3349351142938363838
+    second: ocean_base_27
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ocean_base_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 607
+        width: 161
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b59723b8d02c96040800000000000000
+      internalID: 4641454254407711067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_1
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 639
+        width: 32
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1074829d9d9df3650800000000000000
+      internalID: 6214925540468999937
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_2
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 639
+        width: 32
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 330b01a371b520fb0800000000000000
+      internalID: -4683080507195346893
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_3
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 639
+        width: 30
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bb21ec80a4c477c0800000000000000
+      internalID: -4074415569026077771
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_4
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 639
+        width: 29
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 94e4b2759f69cfd20800000000000000
+      internalID: 3313689423491321417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_5
+      rect:
+        serializedVersion: 2
+        x: 132
+        y: 639
+        width: 61
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0106bf96a06997e90800000000000000
+      internalID: -7027420772063027184
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_6
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 575
+        width: 161
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 025bcf0fd198451d0800000000000000
+      internalID: -3362912260048767712
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_7
+      rect:
+        serializedVersion: 2
+        x: 163
+        y: 579
+        width: 30
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e4daf61b88d044a20800000000000000
+      internalID: 3045574128752897358
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_8
+      rect:
+        serializedVersion: 2
+        x: 194
+        y: 581
+        width: 31
+        height: 55
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d3c0fbe81768461d0800000000000000
+      internalID: -3358411599827235779
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_9
+      rect:
+        serializedVersion: 2
+        x: 227
+        y: 585
+        width: 30
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f22f3cfefc961f510800000000000000
+      internalID: 1581161285985497647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_10
+      rect:
+        serializedVersion: 2
+        x: 261
+        y: 587
+        width: 28
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f540821acfcaa4990800000000000000
+      internalID: -7400912836594498465
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_11
+      rect:
+        serializedVersion: 2
+        x: 294
+        y: 582
+        width: 27
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1da153c0d2254d200800000000000000
+      internalID: 203878236570327761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_12
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 450
+        width: 30
+        height: 124
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b63b46a7e10763740800000000000000
+      internalID: 5131412101640008555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_13
+      rect:
+        serializedVersion: 2
+        x: 31
+        y: 451
+        width: 30
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d082527fad2e6400800000000000000
+      internalID: 319242855150420176
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_14
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 454
+        width: 26
+        height: 118
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f332a6868420aa050800000000000000
+      internalID: 5812460779087733567
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_15
+      rect:
+        serializedVersion: 2
+        x: 95
+        y: 456
+        width: 24
+        height: 114
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2143d067117401f10800000000000000
+      internalID: 2238367155123729426
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_16
+      rect:
+        serializedVersion: 2
+        x: 127
+        y: 453
+        width: 28
+        height: 118
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b15479419ecef3bb0800000000000000
+      internalID: -4953980579267263205
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_17
+      rect:
+        serializedVersion: 2
+        x: 159
+        y: 515
+        width: 31
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf34c13b03dd58cc0800000000000000
+      internalID: -3709315516836592644
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_18
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 516
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91ec24b35bc32e930800000000000000
+      internalID: 4170962953979481625
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_19
+      rect:
+        serializedVersion: 2
+        x: 248
+        y: 522
+        width: 36
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d44c54d5bf9f0e2f0800000000000000
+      internalID: -945481063750843315
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_20
+      rect:
+        serializedVersion: 2
+        x: 287
+        y: 517
+        width: 27
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fb0160ed152367b0800000000000000
+      internalID: -5232297531825648654
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_21
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 355
+        width: 321
+        height: 158
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d1b5dcc848fe10a0800000000000000
+      internalID: -6908811786781871656
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_22
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 287
+        width: 31
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d61edf50f5bf1da0800000000000000
+      internalID: -5971854536864819497
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_23
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 287
+        width: 32
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 023aaf994fd6cd1e0800000000000000
+      internalID: -2171740022976634080
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_24
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 287
+        width: 30
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f0c48c66aa508260800000000000000
+      internalID: 7097772683567612150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_25
+      rect:
+        serializedVersion: 2
+        x: 101
+        y: 287
+        width: 28
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8dca1dd4728c04fc0800000000000000
+      internalID: -3512587638214120232
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_26
+      rect:
+        serializedVersion: 2
+        x: 133
+        y: 287
+        width: 28
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02dd7e1e69c1c4ca0800000000000000
+      internalID: -6031414366595195616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ocean_base_27
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 416
+        height: 225
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb7c3ee6e194b7e20800000000000000
+      internalID: 3349351142938363838
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ocean_base_0: 4641454254407711067
+      ocean_base_1: 6214925540468999937
+      ocean_base_10: -7400912836594498465
+      ocean_base_11: 203878236570327761
+      ocean_base_12: 5131412101640008555
+      ocean_base_13: 319242855150420176
+      ocean_base_14: 5812460779087733567
+      ocean_base_15: 2238367155123729426
+      ocean_base_16: -4953980579267263205
+      ocean_base_17: -3709315516836592644
+      ocean_base_18: 4170962953979481625
+      ocean_base_19: -945481063750843315
+      ocean_base_2: -4683080507195346893
+      ocean_base_20: -5232297531825648654
+      ocean_base_21: -6908811786781871656
+      ocean_base_22: -5971854536864819497
+      ocean_base_23: -2171740022976634080
+      ocean_base_24: 7097772683567612150
+      ocean_base_25: -3512587638214120232
+      ocean_base_26: -6031414366595195616
+      ocean_base_27: 3349351142938363838
+      ocean_base_3: -4074415569026077771
+      ocean_base_4: 3313689423491321417
+      ocean_base_5: -7027420772063027184
+      ocean_base_6: -3362912260048767712
+      ocean_base_7: 3045574128752897358
+      ocean_base_8: -3358411599827235779
+      ocean_base_9: 1581161285985497647
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

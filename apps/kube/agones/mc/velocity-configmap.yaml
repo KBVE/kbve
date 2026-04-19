@@ -15,7 +15,7 @@ data:
 
         bind = "0.0.0.0:25565"
         motd = "<#FFD700>KBVE Minecraft Server"
-        show-max-players = 50
+        show-max-players = 67
         # Velocity authenticates clients against Mojang
         online-mode = true
         force-key-authentication = true

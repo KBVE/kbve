@@ -33,5 +33,5 @@ pub mod tree;
 
 // Re-exports for convenience
 pub use cooldown::{BehaviorContext, CooldownState, TickCooldown};
-pub use observation::{Aware, EntitySnapshot, Healthed, Positioned};
+pub use observation::{Aware, EntitySnapshot, Healthed, Positioned, Ticked};
 pub use tree::{BehaviorNode, NodeStatus, Selector, Sequence};

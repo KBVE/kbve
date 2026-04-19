@@ -1,0 +1,36 @@
+# Allow the kbve-external-secrets ServiceAccount (in kbve namespace)
+# to read mc-rcon-password from the mc namespace. Used by the
+# ExternalSecret in apps/kube/kbve/manifest/mc-rcon-externalsecret.yaml
+# to sync RCON credentials into the kbve namespace at runtime so
+# axum-kbve can drive the /api/v1/mc/players endpoint.
+#
+# Single source of truth remains the mc/mc-rcon-password SealedSecret.
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: mc-rcon-reader-for-kbve
+    namespace: mc
+    labels:
+        app.kubernetes.io/part-of: mc
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      verbs: ['get', 'list', 'watch']
+      resourceNames: ['mc-rcon-password']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: kbve-read-mc-rcon
+    namespace: mc
+    labels:
+        app.kubernetes.io/part-of: mc
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: mc-rcon-reader-for-kbve
+subjects:
+    - kind: ServiceAccount
+      name: kbve-external-secrets
+      namespace: kbve

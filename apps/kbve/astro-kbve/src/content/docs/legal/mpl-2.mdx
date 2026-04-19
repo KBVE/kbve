@@ -1,0 +1,45 @@
+---
+title: Mozilla Public License 2.0
+description: The MPL-2.0 License as referenced by dependencies within the KBVE monorepo.
+sidebar:
+    label: MPL-2.0
+    order: 16
+tags:
+    - legal
+    - license
+    - mpl
+    - open-source
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Mozilla Public License Version 2.0
+
+<Aside type="caution" title="File-Level Copyleft">
+  MPL-2.0 is a weak copyleft license. Modified **files** must remain under
+  MPL-2.0, but you can combine MPL-2.0 code with proprietary or differently
+  licensed code in the same project, provided the MPL-2.0 files stay available.
+  This is weaker than GPL (which covers the entire derivative work) but stronger
+  than MIT/Apache (which have no copyleft).
+</Aside>
+
+The full text of the Mozilla Public License 2.0 is available at
+[https://www.mozilla.org/en-US/MPL/2.0/](https://www.mozilla.org/en-US/MPL/2.0/).
+
+### What this means
+
+The MPL-2.0 is a file-level copyleft license created by Mozilla. Key provisions:
+
+- **Use, modify, distribute**: You can use, modify, and distribute MPL-2.0 code freely.
+- **File-level copyleft**: If you modify an MPL-2.0 file, the modified file must remain under MPL-2.0 and its source must be made available.
+- **Larger works**: You can combine MPL-2.0 files with files under other licenses (including proprietary) in a larger work. Only the MPL-2.0 files themselves carry the copyleft obligation.
+- **Patent grant**: Contributors grant a patent license for their contributions.
+- **GPL compatibility**: MPL-2.0 code can be relicensed under GPL-2.0+, LGPL-2.1+, or AGPL-3.0+ if needed for compatibility.
+
+### Where this applies
+
+Some Rust crates in the ecosystem use MPL-2.0 (e.g., certain crypto libraries,
+configuration parsers). When the KBVE monorepo depends on an MPL-2.0 library,
+the source of any modified MPL-2.0 files is made available as required.
+Unmodified MPL-2.0 dependencies used as-is satisfy the license by pointing to
+the upstream source repository.

@@ -15,7 +15,9 @@ import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.Perspective;
-import net.minecraft.client.render.entity.EmptyEntityRenderer;
+import com.kbve.statetree.bbmodel.BBModelLoader;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.minecraft.resource.ResourceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,8 +47,12 @@ public class ShipClientMod implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        // Register invisible renderer for ShipEntity (blocks are the visual)
-        EntityRendererRegistry.register(ShipEntityTypes.SHIP, EmptyEntityRenderer::new);
+        // Register BBModel renderer for ShipEntity (entity IS the visual)
+        EntityRendererRegistry.register(ShipEntityTypes.SHIP, BBModelShipRenderer::new);
+
+        // Register BBModel resource loader so .bbmodel files load from assets/
+        ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES)
+                .registerReloadListener(new BBModelLoader());
 
         // Register HUD overlay
         HudRenderCallback.EVENT.register(hud);

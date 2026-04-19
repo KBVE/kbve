@@ -147,6 +147,28 @@ spec:
                               # pick up a seed change.
                               - name: SEED
                                 value: '-4470905440626961808'
+                              # IRC / chat bridge (bevy_chat via JNI). The
+                              # behavior_statetree mod reads these at server
+                              # start and emits world events (player death,
+                              # boss kill, etc.) to #world-events. Unset
+                              # IRC_HOST disables the bridge entirely — the
+                              # mod degrades to a no-op and MC continues to
+                              # work normally. IRC_PASSWORD is intentionally
+                              # omitted for now; ergo's force-nick-equals-account
+                              # lets us reserve the "mc-server" nick on first
+                              # connect, and a sealed secret can be layered in
+                              # later once service-account provisioning is
+                              # formalised.
+                              - name: IRC_HOST
+                                value: 'ergo-irc-service.irc.svc.cluster.local'
+                              - name: IRC_PORT
+                                value: '6667'
+                              - name: IRC_TLS
+                                value: 'false'
+                              - name: IRC_NICK
+                                value: 'mc-server'
+                              - name: IRC_CHANNELS
+                                value: '#world-events'
                           resources:
                               requests:
                                   memory: 2Gi

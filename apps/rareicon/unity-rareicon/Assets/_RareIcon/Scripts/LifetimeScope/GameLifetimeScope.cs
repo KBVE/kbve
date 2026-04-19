@@ -8,8 +8,7 @@ namespace RareIcon
     {
         protected override void Configure(IContainerBuilder builder)
         {
-            // ECS Systems registered into the default world
-            // Systems use [Inject] method injection for dependencies
+            // -- ECS Systems --
             builder.UseDefaultWorld(systems =>
             {
                 // systems.Add<BulletPatternSystem>();

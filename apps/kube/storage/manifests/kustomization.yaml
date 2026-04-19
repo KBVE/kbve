@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
     - httproute.yaml
+    - ingress.yaml
 
 configMapGenerator:
     - name: longhorn-values

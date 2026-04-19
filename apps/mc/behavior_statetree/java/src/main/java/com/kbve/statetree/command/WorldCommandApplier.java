@@ -2,8 +2,7 @@ package com.kbve.statetree.command;
 
 import com.kbve.statetree.CreatureKind;
 import com.kbve.statetree.CreatureKinds;
-import com.kbve.statetree.ship.SchematicLoader;
-import com.kbve.statetree.ship.ShipData;
+// SchematicLoader and ShipData removed — ships are now entity-based (BBModel)
 import net.minecraft.entity.Entity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,11 +131,8 @@ public final class WorldCommandApplier {
         }
         Entity player = ctx.world().getEntityById(cmd.nearPlayer());
         if (player != null) {
-            ShipData data = SchematicLoader.loadFromResource(
-                    cmd.shipName(), "/schematics/" + cmd.shipName() + ".nbt");
-            if (data != null) {
-                ctx.shipManager().placeShip(ctx.world(), data, player.getUuid(), player.getBlockPos());
-            }
+            ctx.shipManager().placeShip(ctx.world(), cmd.shipName(),
+                    player.getUuid(), player.getBlockPos());
         }
     }
 }
