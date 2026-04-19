@@ -6,9 +6,13 @@ use crossbeam_channel::{Receiver, bounded};
 
 use super::super::common::{GameTime, patrol_seed};
 use super::super::creature::{Creature, SpriteData, SpriteHopState};
+use super::super::observation::CreatureObservation;
+use super::super::shared_tree::SharedBehaviorTree;
 use super::behavior::{CreatureIntent, WorldSnapshot, evaluate};
 use super::physics_lod::PlayerProximity;
 use super::types::{SpriteCreatureMarker, SpriteCreatureTypes};
+
+use bevy_behavior::EntitySnapshot;
 
 // ---------------------------------------------------------------------------
 // Components
@@ -56,6 +60,7 @@ pub fn dispatch_behavior_trees(
         &mut SpriteCreatureMarker,
         &mut CreatureBrain,
         Option<&PlayerProximity>,
+        Option<&SharedBehaviorTree>,
     )>,
 ) {
     let is_low = perf_tier
@@ -64,7 +69,7 @@ pub fn dispatch_behavior_trees(
     // Approximate frame counter from elapsed time (good enough for staggering)
     let frame = (time.elapsed_secs() * 60.0) as u32;
 
-    for (cr, sd, mut marker, mut brain, proximity) in &mut brain_q {
+    for (cr, sd, mut marker, mut brain, proximity, shared_tree) in &mut brain_q {
         // Skip if already has a pending evaluation or active intent
         if brain.pending {
             continue;
@@ -87,18 +92,76 @@ pub fn dispatch_behavior_trees(
             continue;
         }
 
-        // Look up behavior tree for this creature type
+        // Read player proximity early — used by both dispatch paths.
+        let (nearest_dist, nearest_dir) = proximity
+            .map(|p| (p.distance, p.direction))
+            .unwrap_or((f32::MAX, Vec3::ZERO));
+
+        // Shared-tree dispatch path: creatures with a `SharedBehaviorTree`
+        // component run their decision through the `bevy_behavior` engine
+        // instead of the local enum walker. The Arc clone is cheap; each
+        // async task gets its own cooldown context since Isometric doesn't
+        // use combat cooldowns yet.
+        if let Some(shared) = shared_tree {
+            marker.patrol_step = marker.patrol_step.wrapping_add(1);
+            let tick = game_time
+                .creature_seed
+                .wrapping_add(marker.patrol_step as u64);
+
+            // Synthesize one EntitySnapshot for the nearest player — enough
+            // for the demo wraith tree. Future PRs can broaden this to a
+            // full PlayerSnapshot list once more trees need richer awareness.
+            let mut nearby = Vec::new();
+            if nearest_dist.is_finite() && nearest_dist < f32::MAX {
+                let threat_pos = cr.anchor - nearest_dir * nearest_dist;
+                nearby.push(EntitySnapshot {
+                    entity_id: 0,
+                    entity_type: "player".to_string(),
+                    position: [
+                        threat_pos.x as f64,
+                        threat_pos.y as f64,
+                        threat_pos.z as f64,
+                    ],
+                    health: 20.0,
+                    is_hostile: true,
+                });
+            }
+
+            let observation = CreatureObservation {
+                position: cr.anchor,
+                health: 20.0, // placeholder until CreatureVitals is wired in
+                max_health: 20.0,
+                tick,
+                nearby,
+            };
+            let tree_handle = shared.0.clone();
+
+            let (tx, rx) = bounded::<CreatureIntent>(1);
+            bevy_tasker::spawn(async move {
+                let mut per_npc = bevy_behavior::TickCooldown::new(0);
+                let mut global = bevy_behavior::TickCooldown::new(0);
+                let mut ctx = bevy_behavior::BehaviorContext {
+                    current_tick: tick,
+                    per_npc: &mut per_npc,
+                    global: &mut global,
+                };
+                let (_, mut intents) = tree_handle.evaluate(&observation, &mut ctx);
+                let _ = tx.send(intents.pop().unwrap_or(CreatureIntent::None));
+            })
+            .detach();
+
+            brain.rx = Some(rx);
+            brain.pending = true;
+            continue;
+        }
+
+        // Look up behavior tree for this creature type (enum path)
         let Some(ctype) = types.types.iter().find(|t| t.npc_ref == marker.type_key) else {
             continue;
         };
         let Some(ref tree) = ctype.behavior_tree else {
             continue;
         };
-
-        // Read player proximity from cached component (updated by physics LOD system)
-        let (nearest_dist, nearest_dir) = proximity
-            .map(|p| (p.distance, p.direction))
-            .unwrap_or((f32::MAX, Vec3::ZERO));
 
         marker.patrol_step = marker.patrol_step.wrapping_add(1);
         let ps = patrol_seed(cr.slot_seed, marker.patrol_step, game_time.creature_seed);
