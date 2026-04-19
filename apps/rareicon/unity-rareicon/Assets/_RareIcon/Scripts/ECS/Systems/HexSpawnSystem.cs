@@ -70,12 +70,27 @@ namespace RareIcon
             var hexShader = Shader.Find("RareIcon/HexTile");
             if (hexShader == null) hexShader = Shader.Find("Universal Render Pipeline/Unlit");
 
+            // Procedural grass on grass biome only — _BaseColor2 ≠ _BaseColor
+            // turns on the value-noise lerp in HexTile.shader. Other biomes
+            // leave _BaseColor2 == _BaseColor so they stay flat for now.
             for (int i = 0; i < 7; i++)
             {
                 _biomeMaterials[i] = new Material(hexShader);
                 _biomeMaterials[i].enableInstancing = true;
                 var c = HexMeshUtil.BiomeColor((byte)i);
-                _biomeMaterials[i].SetColor("_BaseColor", new Color(c.x, c.y, c.z, c.w));
+                var primary = new Color(c.x, c.y, c.z, c.w);
+                _biomeMaterials[i].SetColor("_BaseColor", primary);
+
+                if (i == BiomeGenerator.BIOME_GRASS)
+                {
+                    // Two greens: dark (shadow) and bright (highlight) — noise
+                    // blends between them in world space across all grass hexes.
+                    _biomeMaterials[i].SetColor("_BaseColor2", new Color(0.42f, 0.72f, 0.28f, 1f));
+                }
+                else
+                {
+                    _biomeMaterials[i].SetColor("_BaseColor2", primary);
+                }
             }
 
             _renderMeshDesc = new RenderMeshDescription(
