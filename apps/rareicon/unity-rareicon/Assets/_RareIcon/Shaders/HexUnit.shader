@@ -9,6 +9,7 @@ Shader "RareIcon/HexUnit"
         _UnitWeapon ("Unit Weapon (per-instance)", Float) = 0
         _UnitHelmet ("Unit Helmet (per-instance)", Float) = 0
         _UnitShield ("Unit Shield (per-instance)", Float) = 0
+        _UnitMoving ("Unit Moving (per-instance, 0=idle 1=moving)", Float) = 1
 
         _UnitPixelGrid ("Unit Pixel Grid", Float) = 16.0
 
@@ -99,6 +100,7 @@ Shader "RareIcon/HexUnit"
                 float _UnitWeapon;
                 float _UnitHelmet;
                 float _UnitShield;
+                float _UnitMoving;
                 float _UnitPixelGrid;
                 float4 _GoblinSkin;
                 float4 _GoblinSkinShade;
@@ -138,6 +140,7 @@ Shader "RareIcon/HexUnit"
                 UNITY_DOTS_INSTANCED_PROP(float, _UnitWeapon)
                 UNITY_DOTS_INSTANCED_PROP(float, _UnitHelmet)
                 UNITY_DOTS_INSTANCED_PROP(float, _UnitShield)
+                UNITY_DOTS_INSTANCED_PROP(float, _UnitMoving)
             UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
             #define _UnitType   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitType)
@@ -145,6 +148,7 @@ Shader "RareIcon/HexUnit"
             #define _UnitWeapon UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitWeapon)
             #define _UnitHelmet UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitHelmet)
             #define _UnitShield UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitShield)
+            #define _UnitMoving UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitMoving)
             #endif
 
             // Must match constants in UnitComponents.cs.
@@ -286,7 +290,7 @@ Shader "RareIcon/HexUnit"
                         helmetPx.x = grid - 1.0 - helmetPx.x;
                         helmetFacing = 0;
                     }
-                    float2 helmetAnchor = UnitHelmetAnchor(grid);
+                    float2 helmetAnchor = UnitHelmetAnchor(grid, seed);
 
                     if (helmet == HELMET_CAP)
                     {

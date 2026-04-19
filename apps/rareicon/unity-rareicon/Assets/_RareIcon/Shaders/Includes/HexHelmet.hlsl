@@ -14,10 +14,13 @@
 // Helpers: rectMask, circleMask (HexShared.hlsl).
 
 // Head centre position used by every unit that follows HexUnitAnim
-// conventions — floor(grid*0.5, grid*0.45) + (0, 2).
-float2 UnitHelmetAnchor(float grid)
+// conventions — floor(grid*0.5, grid*0.45) + (0, 2). Adds the per-unit
+// _UnitBob so the helmet rides with the torso whether the unit is
+// breathing in place or walking — without this, equipment detaches
+// from the head whenever the body bobs up by 1px.
+float2 UnitHelmetAnchor(float grid, float seed)
 {
-    return floor(float2(grid * 0.5, grid * 0.45)) + float2(0, 2);
+    return floor(float2(grid * 0.5, grid * 0.45)) + float2(0, 2 + _UnitBob(seed));
 }
 
 void DrawHelmet(inout float3 color, inout float alpha, float2 px,

@@ -21,17 +21,27 @@ void _UnitShadow(inout float3 color, inout float alpha, float2 px,
     }
 }
 
-// 0 or 1 — alternating step frame. Seed-biased so crowds don't lockstep.
+// 0 or 1 — alternating step frame for the walking gait. Gated on
+// _UnitMoving so an idle unit doesn't kick its legs in place; idle units
+// only get the breathing bob below, no leg shuffle.
 float _UnitStep(float seed)
 {
-    return step(0.0, sin(_Time.y * 5.0 + seed * 6.28318));
+    return _UnitMoving * step(0.0, sin(_Time.y * 5.0 + seed * 6.28318));
 }
 
-// 0 or 1 — vertical bob (1 pixel). Offset by pi/2 from the step so the
-// torso rises as the forward leg leaves the ground.
+// 0 or 1 — vertical body bob (1 pixel). Two rhythms multiplexed by
+// _UnitMoving so units always look alive:
+//   - moving: fast walk bob (period ~1.25s) offset from the step, so the
+//     torso rises as the forward leg leaves the ground.
+//   - idle:   slow breathing bob (period ~5s) — the goblin standing in
+//     a forest hex still feels organic, the King at rest gently breathes.
+// Helmets anchored via UnitHelmetAnchor follow this bob too so equipment
+// stays glued to the head in both states.
 float _UnitBob(float seed)
 {
-    return step(0.0, sin(_Time.y * 5.0 + seed * 6.28318 + 1.57));
+    float walk = _UnitMoving * step(0.0, sin(_Time.y * 5.0 + seed * 6.28318 + 1.57));
+    float idle = (1.0 - _UnitMoving) * step(0.0, sin(_Time.y * 1.2 + seed * 6.28318));
+    return walk + idle;
 }
 
 #endif // RAREICON_HEX_UNIT_ANIM_INCLUDED
