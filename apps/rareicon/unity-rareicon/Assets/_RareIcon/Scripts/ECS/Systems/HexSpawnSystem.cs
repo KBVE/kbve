@@ -70,24 +70,24 @@ namespace RareIcon
 
             var hexShader = Shader.Find("RareIcon/HexTile");
             if (hexShader == null) hexShader = Shader.Find("Universal Render Pipeline/Unlit");
-            var lakeShader = Shader.Find("RareIcon/HexLake");
+            var riverTileShader = Shader.Find("RareIcon/HexRiverTile");
 
             for (int i = 0; i < BiomeGenerator.BIOME_COUNT; i++)
             {
-                // Lakes get the dedicated water shader; everything else uses
-                // the procedural ground shader with biome-specific colors.
-                bool isLake = i == BiomeGenerator.BIOME_LAKE && lakeShader != null;
-                _biomeMaterials[i] = new Material(isLake ? lakeShader : hexShader);
+                // Major-river hexes get the dedicated water shader; everything
+                // else uses the procedural ground shader.
+                bool isRiver = i == BiomeGenerator.BIOME_RIVER && riverTileShader != null;
+                _biomeMaterials[i] = new Material(isRiver ? riverTileShader : hexShader);
                 _biomeMaterials[i].enableInstancing = true;
 
                 var c = HexMeshUtil.BiomeColor((byte)i);
                 var primary = new Color(c.x, c.y, c.z, c.w);
                 _biomeMaterials[i].SetColor("_BaseColor", primary);
 
-                if (isLake)
+                if (isRiver)
                 {
-                    // Lake material reads world-space water from OceanWater.hlsl;
-                    // _BaseColor just nudges the regional palette.
+                    // River-tile material reads world-space water from
+                    // OceanWater.hlsl; _BaseColor nudges the regional palette.
                     continue;
                 }
 

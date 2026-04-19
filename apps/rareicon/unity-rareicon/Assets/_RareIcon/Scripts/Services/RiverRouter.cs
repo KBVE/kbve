@@ -7,25 +7,29 @@ namespace RareIcon
     /// <summary>
     /// Greedy steepest-descent river routing over BiomeGenerator's elevation
     /// field. Picks high-elevation source hexes on a regular grid, walks
-    /// downhill via 6-neighbor lookup, terminates at lake/ocean banks (or as
-    /// a tributary into an existing river, or stalls in a basin).
+    /// downhill via 6-neighbor lookup with a small deterministic jitter so
+    /// near-flat areas don't produce monotonic straight-line rivers, terminates
+    /// at lake/ocean banks (river ends on the last land hex, never inside the
+    /// water body) or merges into an existing river as a tributary.
     ///
     /// Deterministic from BiomeGenerator's seed — same world → same rivers.
-    /// Roads will follow the same emit-polyline pattern via a separate
-    /// RoadRouter (A* between cities) when that lands.
     /// </summary>
     public sealed class RiverRouter
     {
         const float HexSize = 0.25f;
 
         // Routing tuning.
-        const float SourceMinElevation = 0.42f;     // only highlands seed rivers
-        const int   SourceGridSpacing  = 12;        // hex spacing between candidates
-        const int   MaxStepsPerRiver   = 400;       // safety cap on walk length
-        const int   MinRiverHexes      = 6;         // discard trickles
+        const float SourceMinElevation = 0.48f;     // only true highlands seed rivers
+        const int   SourceGridSpacing  = 12;
+        const int   MaxStepsPerRiver   = 80;        // ~20 world units; longer feels artificial
+        const int   MinRiverHexes      = 12;        // drop trivial fragments
         const float StartWidth         = 0.10f;
-        const float EndWidth           = 0.40f;
+        const float EndWidth           = 0.30f;     // smaller cap → less lateral spillover
         const int   SmoothSubdivisions = 8;
+
+        // Per-hex elevation jitter — breaks ties and forces meandering on
+        // near-flat slopes. Small enough not to override real elevation drops.
+        const float ElevationJitter    = 0.015f;
 
         // Pointy-top axial neighbour offsets.
         static readonly int2[] HexNeighbors = new[]
@@ -44,7 +48,7 @@ namespace RareIcon
         public List<RiverDefinition> RouteRegion(int2 centerHex, int radiusHexes)
         {
             var rivers = new List<RiverDefinition>();
-            var occupied = new HashSet<long>(); // hexes already part of an emitted river
+            var occupied = new HashSet<long>();
 
             int min = -radiusHexes;
             int max = radiusHexes;
@@ -71,12 +75,12 @@ namespace RareIcon
 
             if (sourceSample.LandHeight < SourceMinElevation) return null;
             if (IsWater(sourceSample.Biome)) return null;
-            if (occupied.Contains(Pack(sourceHex))) return null; // overlapping headwater
+            if (occupied.Contains(Pack(sourceHex))) return null;
 
             var hexPath = new List<int2>(64);
             var localVisited = new HashSet<long>();
             int2 current = sourceHex;
-            float currentElev = sourceSample.LandHeight;
+            float currentElev = sourceSample.LandHeight + Jitter(sourceHex);
 
             hexPath.Add(current);
             localVisited.Add(Pack(current));
@@ -97,8 +101,6 @@ namespace RareIcon
                     int2 n = current + HexNeighbors[i];
                     if (localVisited.Contains(Pack(n))) continue;
 
-                    // Walking into an already-routed river → tributary join.
-                    // Take the first one we see and stop after this step.
                     if (occupied.Contains(Pack(n)))
                     {
                         seesTributary = true;
@@ -109,18 +111,18 @@ namespace RareIcon
                     var nWorld = HexMeshUtil.HexToWorld(n.x, n.y, HexSize);
                     var nSample = _biomes.SampleAll(nWorld.x, nWorld.y);
 
-                    // Reaching water terminates the river — but we DON'T add the
-                    // water hex; the river's mouth stays on the last land hex
-                    // so the strip ends at the lake/ocean bank, not inside it.
                     if (IsWater(nSample.Biome))
                     {
                         seesWater = true;
                         continue;
                     }
 
-                    if (nSample.LandHeight < bestElev)
+                    // Per-hex jitter forces variation when neighbours are
+                    // nearly equal in elevation (which is most of an FBm field).
+                    float effectiveElev = nSample.LandHeight + Jitter(n);
+                    if (effectiveElev < bestElev)
                     {
-                        bestElev = nSample.LandHeight;
+                        bestElev = effectiveElev;
                         best = n;
                     }
                 }
@@ -133,14 +135,12 @@ namespace RareIcon
                 }
                 if (seesTributary)
                 {
-                    // Include the join hex so meshes touch visibly.
                     hexPath.Add(tributaryHex);
                     mouth = tributaryHex;
                     terminatedAtWater = true;
                     break;
                 }
 
-                // No downhill neighbour — basin. Stop here.
                 if (best.Equals(current)) { mouth = current; break; }
 
                 current = best;
@@ -152,11 +152,9 @@ namespace RareIcon
 
             if (hexPath.Count < MinRiverHexes) return null;
 
-            // Reserve the path so future candidates find a tributary join here.
             for (int i = 0; i < hexPath.Count; i++)
                 occupied.Add(Pack(hexPath[i]));
 
-            // Hex centers → world points.
             var raw = new List<float2>(hexPath.Count);
             for (int i = 0; i < hexPath.Count; i++)
             {
@@ -164,14 +162,10 @@ namespace RareIcon
                 raw.Add(new float2(w.x, w.y));
             }
 
-            // Catmull-Rom smooth, then trim against water — covers the case
-            // where the smoothed curve overshoots into a lake/ocean even
-            // though every hex center on the walked path is dry.
             var smooth = PolylineDecalMeshUtil.Smooth(raw, SmoothSubdivisions);
-            smooth = TrimAtWater(smooth);
-            if (smooth.Count < 2) return null;
 
-            // Per-vertex linear width taper across the (possibly trimmed) length.
+            // Width profile (computed against the FULL smoothed length so
+            // clipped rivers stay narrow at their cut end).
             var widths = new List<float>(smooth.Count);
             for (int i = 0; i < smooth.Count; i++)
             {
@@ -179,34 +173,70 @@ namespace RareIcon
                 widths.Add(math.lerp(StartWidth, EndWidth, t));
             }
 
+            var (trimmedPoints, trimmedWidths) = TrimAtWater(smooth, widths);
+            if (trimmedPoints.Count < 2) return null;
+
             return new RiverDefinition
             {
-                Points = smooth,
-                Widths = widths,
+                Points = trimmedPoints,
+                Widths = trimmedWidths,
                 SourceHex = sourceHex,
                 MouthHex = mouth,
                 TerminatesAtWater = terminatedAtWater,
             };
         }
 
-        // Walk the smoothed polyline forward; cut at the first point whose
-        // world position falls inside a water biome. Catches Catmull-Rom
-        // overshoot into lakes that don't appear on the walked-hex path.
-        List<float2> TrimAtWater(List<float2> points)
+        // Trim the smoothed polyline at the first sample whose biome is water
+        // — sampling not just the centerline but also two lateral points at
+        // the strip's half-width, so the visible mesh edges never poke into
+        // ocean or lake hexes.
+        (List<float2>, List<float>) TrimAtWater(List<float2> points, List<float> widths)
         {
-            var result = new List<float2>(points.Count);
+            var resultPoints = new List<float2>(points.Count);
+            var resultWidths = new List<float>(points.Count);
+
             for (int i = 0; i < points.Count; i++)
             {
                 var p = points[i];
-                byte b = _biomes.Sample(p.x, p.y);
-                if (IsWater(b)) break;
-                result.Add(p);
+
+                // Centerline check.
+                if (IsWater(_biomes.Sample(p.x, p.y))) break;
+
+                // Lateral checks — perpendicular to flow direction at the
+                // strip's half-width on each side.
+                float2 tangent = i + 1 < points.Count
+                    ? math.normalizesafe(points[i + 1] - p, new float2(1f, 0f))
+                    : (i > 0 ? math.normalizesafe(p - points[i - 1], new float2(1f, 0f))
+                             : new float2(1f, 0f));
+                float2 perp = new float2(-tangent.y, tangent.x);
+                float halfW = widths[i] * 0.5f;
+
+                if (IsWater(_biomes.Sample(p.x + perp.x * halfW, p.y + perp.y * halfW))) break;
+                if (IsWater(_biomes.Sample(p.x - perp.x * halfW, p.y - perp.y * halfW))) break;
+
+                resultPoints.Add(p);
+                resultWidths.Add(widths[i]);
             }
-            return result;
+            return (resultPoints, resultWidths);
         }
 
+        // Deterministic per-hex jitter in [-amount, +amount]. Same hex coord
+        // always produces the same offset → reproducible rivers.
+        static float Jitter(int2 hex)
+        {
+            // Cheap integer hash — inlined so we don't allocate.
+            uint h = (uint)hex.x * 0x9E3779B1u ^ (uint)hex.y * 0x85EBCA77u;
+            h ^= h >> 13;
+            h *= 0xC2B2AE3Du;
+            h ^= h >> 16;
+            float u01 = (h & 0xFFFFFF) / (float)0xFFFFFF;
+            return (u01 - 0.5f) * 2f * ElevationJitter;
+        }
+
+        // Decal creeks terminate at any "water already here" — ocean OR a major
+        // river hex. So small rivers naturally merge into the BIOME_RIVER spine.
         static bool IsWater(byte biome) =>
-            biome == BiomeGenerator.BIOME_OCEAN || biome == BiomeGenerator.BIOME_LAKE;
+            biome == BiomeGenerator.BIOME_OCEAN || biome == BiomeGenerator.BIOME_RIVER;
 
         static long Pack(int2 v) => ((long)v.x << 32) | (uint)v.y;
     }

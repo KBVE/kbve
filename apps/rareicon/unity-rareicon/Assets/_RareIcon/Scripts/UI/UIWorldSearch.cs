@@ -49,7 +49,7 @@ namespace RareIcon
             BiomeGenerator.BIOME_DIRT,
             BiomeGenerator.BIOME_SNOW,
             BiomeGenerator.BIOME_STONE,
-            BiomeGenerator.BIOME_LAKE,
+            BiomeGenerator.BIOME_RIVER,
         };
 
         [Inject]

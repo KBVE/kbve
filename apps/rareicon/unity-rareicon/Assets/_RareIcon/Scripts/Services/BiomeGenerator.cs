@@ -23,7 +23,7 @@ namespace RareIcon
         public const int BIOME_DIRT = 4;
         public const int BIOME_SNOW = 5;
         public const int BIOME_STONE = 6;
-        public const int BIOME_LAKE = 7;
+        public const int BIOME_RIVER = 7;
         public const int BIOME_COUNT = 8;
 
         readonly int _size;
@@ -35,7 +35,7 @@ namespace RareIcon
         readonly FastNoiseLite _moisture;
         readonly FastNoiseLite _temperature;
         readonly FastNoiseLite _warp;
-        readonly FastNoiseLite _lake;
+        readonly FastNoiseLite _river;
 
         public BiomeGenerator(int size = 256, int seed = 1337)
         {
@@ -83,12 +83,15 @@ namespace RareIcon
             _warp.SetDomainWarpAmp(40f);
             _warp.SetFrequency(0.005f);
 
-            // Higher frequency = smaller Voronoi cells = smaller lake blobs.
-            _lake = new FastNoiseLite(seed + 400);
-            _lake.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
-            _lake.SetCellularDistanceFunction(FastNoiseLite.CellularDistanceFunction.EuclideanSq);
-            _lake.SetCellularReturnType(FastNoiseLite.CellularReturnType.Distance);
-            _lake.SetFrequency(0.045f);
+            // Major-river contour — biome cells fall on the zero-crossing of
+            // a smooth, low-frequency noise field warped through _warp. That
+            // gives long, snaky Amazon-style rivers (not blobs). Width comes
+            // from the threshold band in GetBiome below; restricting to one
+            // hex is a tuning knob (RiverContourThreshold).
+            _river = new FastNoiseLite(seed + 400);
+            _river.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2S);
+            _river.SetFrequency(0.0035f);
+            _river.SetFractalType(FastNoiseLite.FractalType.None);
         }
 
         /// <summary>
@@ -138,9 +141,9 @@ namespace RareIcon
 
             float moist = (_moisture.GetNoise(wx, wy) + 1f) * 0.5f;
             float temp = math.saturate(0.5f + _temperature.GetNoise(wx, wy) * 0.4f);
-            float lakeNoise = _lake.GetNoise(wx, wy);
+            float riverNoise = _river.GetNoise(wx, wy);
 
-            byte biome = (byte)GetBiome(landHeight, moist, temp, lakeNoise);
+            byte biome = (byte)GetBiome(landHeight, moist, temp, riverNoise);
             return new Sampled(biome, landHeight, moist, temp);
         }
 
@@ -172,9 +175,9 @@ namespace RareIcon
 
                     float moist = (_moisture.GetNoise(wx, wy) + 1f) * 0.5f;
                     float temp = math.saturate(0.5f + _temperature.GetNoise(wx, wy) * 0.4f);
-                    float lakeNoise = _lake.GetNoise(wx, wy);
+                    float riverNoise = _river.GetNoise(wx, wy);
 
-                    int biome = GetBiome(landHeight, moist, temp, lakeNoise);
+                    int biome = GetBiome(landHeight, moist, temp, riverNoise);
 
                     int idx = (y * size + x) * 4;
                     pixels[idx + 0] = (byte)biome;
@@ -187,25 +190,27 @@ namespace RareIcon
             return pixels;
         }
 
-        static int GetBiome(float height, float moisture, float temperature, float lakeNoise)
+        // Width of the major-river contour band, in noise-value units. Narrower
+        // = thinner river. With the chosen river noise frequency this gives a
+        // ~1 hex wide ribbon — single-tile snaky rivers like the Amazon.
+        const float RiverContourThreshold = 0.012f;
+
+        static int GetBiome(float height, float moisture, float temperature, float riverNoise)
         {
             // Deep ocean
             if (height < 0.32f) return BIOME_OCEAN;
 
+            // Major river — the zero-crossing band of a smooth low-freq noise.
+            // Checked BEFORE the beach so rivers cut through sand to reach the sea.
+            // Restricted to lowland/midland so rivers don't snake over peaks.
+            if (height < 0.62f
+                && math.abs(riverNoise) < RiverContourThreshold)
+            {
+                return BIOME_RIVER;
+            }
+
             // Beach / shore
             if (height < 0.36f) return BIOME_SAND;
-
-            // Lake gate — lowland or midland, wet enough, sitting in a Voronoi
-            // cell center (low cellular distance). Skips highlands so lakes
-            // don't perch on mountaintops. Threshold tightened so only the
-            // deepest cell centers qualify → fewer, smaller lakes.
-            if (height < 0.60f
-                && moisture > 0.50f
-                && temperature > 0.30f
-                && lakeNoise < -0.78f)
-            {
-                return BIOME_LAKE;
-            }
 
             // Highlands
             if (height > 0.75f)

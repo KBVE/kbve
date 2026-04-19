@@ -146,7 +146,7 @@ namespace RareIcon
                 BiomeGenerator.BIOME_DIRT   => new float4(0.50f, 0.38f, 0.22f, 1f),
                 BiomeGenerator.BIOME_SNOW   => new float4(0.92f, 0.94f, 0.96f, 1f),
                 BiomeGenerator.BIOME_STONE  => new float4(0.50f, 0.50f, 0.48f, 1f),
-                BiomeGenerator.BIOME_LAKE   => new float4(0.05f, 0.32f, 0.58f, 1f),
+                BiomeGenerator.BIOME_RIVER  => new float4(0.10f, 0.38f, 0.62f, 1f),
                 _ => new float4(0f, 0f, 0f, 0f), // ocean = no entity
             };
         }

@@ -1,16 +1,16 @@
-Shader "RareIcon/HexLake"
+Shader "RareIcon/HexRiverTile"
 {
     Properties
     {
-        // Same family as river — calm body, no foam by default. Slightly
-        // brighter than river so lakes read as standing water vs flowing.
+        // Major-river hex — calm flowing water, no foam. Same OceanWater
+        // recipe as ocean/decals so adjacent river/ocean hexes blend.
         _BaseColor ("Base Color (per-instance tint)", Color) = (0.10, 0.42, 0.66, 1.0)
         _WaterCol  ("Water Color", Color)        = (0.08, 0.38, 0.62, 1.0)
         _Water2Col ("Water Color 2", Color)      = (0.14, 0.46, 0.66, 1.0)
         _FoamCol   ("Foam Color", Color)         = (0.78, 0.92, 0.96, 1.0)
 
-        _BorderColor ("Shore Border Color", Color)            = (0.06, 0.20, 0.32, 0.7)
-        _BorderWidth ("Shore Border Width", Float)            = 0.05
+        _BorderColor ("Bank Color", Color)             = (0.06, 0.20, 0.32, 0.7)
+        _BorderWidth ("Bank Width", Float)             = 0.05
 
         _WorldUVScale ("World→UV Scale (matches ocean cell size)", Float) = 1.25
         _DistortionSpeed ("Distortion Speed", Float)             = 0.35
@@ -26,7 +26,7 @@ Shader "RareIcon/HexLake"
 
         Pass
         {
-            Name "HexLake"
+            Name "HexRiverTile"
 
             HLSLPROGRAM
             #pragma target 4.5
@@ -101,18 +101,18 @@ Shader "RareIcon/HexLake"
 
                 float d = hexSDF(input.localPos, 0.45);
 
-                // Stylised water in world space — same recipe as river/ocean,
-                // so adjacent lake hexes form a continuous body and lakes that
-                // touch the ocean blend visually.
+                // Stylised water in world space — same recipe as ocean and the
+                // decal river shader, so adjacent river hexes form a continuous
+                // ribbon and rivers that touch the sea blend visually.
                 float3 water = OceanWater(input.worldPos * _WorldUVScale,
                                           _DistortionSpeed, _FBMStrength, _FoamAmount,
                                           _WaterCol.rgb, _Water2Col.rgb, _FoamCol.rgb);
 
                 // Per-instance tint nudges the whole palette — lets us darken
-                // / lighten lakes regionally without rewriting the shader.
+                // / lighten rivers regionally without rewriting the shader.
                 water *= _BaseColor.rgb / 0.5;
 
-                // Shore border — darker ring at the hex edge reads as bank.
+                // Bank — darker ring at the hex edge.
                 float border = smoothstep(-_BorderWidth, -_BorderWidth * 0.3, d);
                 float3 col = lerp(water, _BorderColor.rgb, border * _BorderColor.a);
 
