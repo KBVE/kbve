@@ -1,0 +1,53 @@
+---
+title: Aria2 Proxy
+description: |
+    Alpine-based download proxy image for KubeVirt VM provisioning. Bundles aria2 + python3 HTTP server with a tini PID 1 reaper.
+sidebar:
+    label: Aria2 Proxy
+    order: 56
+tags:
+    - docker
+    - kubevirt
+    - infrastructure
+key: aria2_proxy
+pipeline: docker
+app_name: aria2-proxy
+version: "0.1.0"
+source_path: apps/vm/aria2-proxy
+version_toml: apps/vm/aria2-proxy/version.toml
+runner: arc-runner-set
+image: kbve/aria2-proxy
+has_test: false
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Overview
+
+Purpose-built Alpine image for the KubeVirt download-proxy Deployment in the `angelscript` namespace. Replaces the previous `FROM alpine:3.21 + apk add aria2` pattern that added a 30+ second cold start to every pod restart and made the proxy dependent on upstream mirror availability during CI build stages.
+
+### Why a custom image
+
+The download-proxy sits between the Windows/macOS builder VMs and the public internet. Its job is to pull large artefacts (UE5 ~40 GB, Visual Studio Build Tools ~5 GB, macOS Xcode .xip ~15 GB) with resume + multi-connection support, drop them on a shared PVC, and serve them back to the VM over plain HTTP to avoid Cilium VXLAN masquerade NAT dropping long-lived TCP connections.
+
+A custom image makes that reliable in three ways:
+
+1. **No cold-start `apk add`** — aria2 and python are baked in, so the pod is serving within seconds of scheduling.
+2. **Air-gap-safe** — the image's dependencies are pinned via the Alpine release tag; a transient Alpine mirror outage does not block VM provisioning.
+3. **Signal handling** — tini runs as PID 1 so kubelet's `SIGTERM` propagates cleanly, stopping in-flight downloads instead of leaving aria2 hanging through the grace period.
+
+### Image layout
+
+| Binary | Purpose |
+|--------|---------|
+| `aria2c` | Downloader with resume, retry, and multi-connection support |
+| `python3` | Serves completed downloads via `python3 -m http.server` |
+| `tini` | PID 1 reaper so `SIGTERM` shuts down cleanly |
+| `ca-certificates` | TLS trust for HTTPS upstream sources |
+
+Runs as uid/gid `1000` (`appuser`). Workdir is `/downloads`. Ports `6800` (aria2 RPC) and `8080` (file-server HTTP) are exposed; the Deployment's pod network namespace is shared across containers so both bind into the same netns.
+
+### Used by
+
+- `apps/kube/kubevirt/download-proxy/deployment.yaml` — both containers (`aria2` + `file-server`) use this image; the Deployment provides the `command:` per container.
