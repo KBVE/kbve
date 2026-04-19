@@ -1,0 +1,89 @@
+namespace RareIcon
+{
+    /// <summary>
+    /// Canonical per-hex resource yield table.
+    ///
+    /// Single source of truth for "what can a (biome, q, r) hex carry?".
+    /// Used at spawn (HexSpawnSystem) AND for regrow caps (ResourceRegrowSystem)
+    /// — that way a regenerating tile can never exceed the yield it would
+    /// have rolled at world-gen time.
+    ///
+    /// Pure math, Burst-compatible. Earmarked for the uniti (Rust) crate
+    /// once the data shapes settle — porting this file is a one-shot move
+    /// because nothing else depends on the internal hash mixing.
+    /// </summary>
+    public static class HexResourceTable
+    {
+        /// <summary>
+        /// Deterministic resource roll for a hex. Same (biome, q, r) always
+        /// yields the same result — no per-run RNG state.
+        /// Returns the populated HexResources + the decoration bitmask
+        /// (Wood is omitted from the mask — trees are its visual on forest).
+        /// </summary>
+        public static (HexResources res, int mask) Roll(byte biome, int q, int r)
+        {
+            // 5 independent uniform draws from per-hex hashes.
+            uint h = (uint)q * 0x9E3779B1u ^ (uint)r * 0x85EBCA77u;
+            h ^= h >> 13;
+            h *= 0xC2B2AE3Du;
+            h ^= h >> 16;
+            uint h2 = h * 0x27D4EB2Fu;
+            float r0 = ((h       ) & 0xFF) / 255f;  // wood
+            float r1 = ((h >>  8 ) & 0xFF) / 255f;  // stone
+            float r2 = ((h >> 16 ) & 0xFF) / 255f;  // mushrooms
+            float r3 = ((h >> 24 ) & 0xFF) / 255f;  // herbs
+            float r4 = ((h2 >> 16) & 0xFF) / 255f;  // berries
+
+            // Yield amounts derived from the same draws so a "lucky" hex is
+            // both more likely to have the resource AND has more of it.
+            byte AmountFrom(float roll, float chance)
+                => roll < chance ? (byte)(20 + (1f - roll / chance) * 80f) : (byte)0;
+
+            HexResources res = default;
+            switch (biome)
+            {
+                case BiomeGenerator.BIOME_FOREST:
+                    res.Wood      = AmountFrom(r0, 1.00f);   // every forest hex has wood
+                    res.Mushrooms = AmountFrom(r2, 0.35f);
+                    res.Berries   = AmountFrom(r4, 0.30f);
+                    res.Stone     = AmountFrom(r1, 0.15f);
+                    res.Herbs     = AmountFrom(r3, 0.20f);
+                    break;
+                case BiomeGenerator.BIOME_GRASS:
+                    res.Herbs   = AmountFrom(r3, 0.55f);
+                    res.Berries = AmountFrom(r4, 0.25f);
+                    res.Stone   = AmountFrom(r1, 0.05f);
+                    break;
+                case BiomeGenerator.BIOME_DIRT:
+                    res.Stone = AmountFrom(r1, 0.40f);
+                    res.Herbs = AmountFrom(r3, 0.15f);
+                    break;
+                case BiomeGenerator.BIOME_STONE:
+                    res.Stone = AmountFrom(r1, 0.85f);
+                    break;
+                case BiomeGenerator.BIOME_SAND:
+                    res.Stone = AmountFrom(r1, 0.08f);
+                    break;
+                // Snow / River / Ocean: nothing.
+            }
+
+            return (res, ComputeVisualMask(in res));
+        }
+
+        /// <summary>
+        /// Recompute the HexResourceVisual bitmask from a HexResources value.
+        /// Call any time resources cross the 0/non-zero boundary (harvest
+        /// drains a tile, regrow restores it) so the shader stops/starts
+        /// drawing decorations.
+        /// </summary>
+        public static int ComputeVisualMask(in HexResources res)
+        {
+            int mask = 0;
+            if (res.Stone     > 0) mask |= ResourceMask.Stone;
+            if (res.Mushrooms > 0) mask |= ResourceMask.Mushrooms;
+            if (res.Berries   > 0) mask |= ResourceMask.Berries;
+            if (res.Herbs     > 0) mask |= ResourceMask.Herbs;
+            return mask;
+        }
+    }
+}
