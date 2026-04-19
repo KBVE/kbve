@@ -10,11 +10,13 @@ use std::collections::HashMap;
 use poise::serenity_prelude as serenity;
 
 use bevy_battle::{
-    ActiveEffects, App, Armor, AttackIntent, BevyBattlePlugin, CombatIndex, CombatModifiers,
-    CombatName, CombatOutcome, CombatStats, Combatant, CurrentIntent, DefendIntent, EnemyAI,
-    EnemyTag, EnemyTurnRequest, Entity, EquippedGear, FirstStrikeFired, FleeIntent, Health,
-    Messages, MinimalPlugins, PlayerClass, PlayerTag, TickEffectsRequest, UseItemIntent,
+    ActiveEffects, App, Armor, AttackIntent, BehaviorPolicy, BevyBattlePlugin, CombatIndex,
+    CombatModifiers, CombatName, CombatObservation, CombatOutcome, CombatStats, Combatant,
+    CurrentIntent, DefendIntent, EnemyAI, EnemyTag, EnemyTurnRequest, Entity, EquippedGear,
+    FirstStrikeFired, FleeIntent, Health, Intent, Messages, MinimalPlugins, PlayerClass, PlayerTag,
+    TickEffectsRequest, UseItemIntent,
 };
+use bevy_behavior::{BehaviorContext, BehaviorNode, Healthed, NodeStatus, Sequence};
 use bevy_inventory::Inventory;
 
 use super::content;
@@ -277,6 +279,7 @@ impl CombatWorld {
                     CombatIndex(es.index),
                     Combatant,
                     EnemyTag,
+                    BehaviorPolicy(build_enemy_tree()),
                 ))
                 .id();
             enemies.push((es.index, entity));
@@ -832,6 +835,47 @@ pub fn run_enemy_turns_only(
         outcomes,
         snapshot,
     }
+}
+
+// ── Enemy behavior tree ────────────────────────────────────────────
+//
+// When an enemy drops below 30% HP and isn't enraged (berserk enemies
+// don't retreat), prefer HealSelf. Otherwise the tree returns no
+// action and bevy_battle's enemy_turn_system falls back to the
+// existing random roll table. Keeps current combat variety while
+// adding one bit of conditional intelligence — the foundation for
+// personality-driven trees in future PRs.
+
+struct LowHpHeal {
+    threshold_fraction: f32,
+    heal_amount: i32,
+}
+
+impl BehaviorNode<CombatObservation, Intent> for LowHpHeal {
+    fn evaluate(
+        &self,
+        observation: &CombatObservation,
+        _ctx: &mut BehaviorContext<'_>,
+    ) -> (NodeStatus, Vec<Intent>) {
+        if observation.enraged || observation.health_fraction() >= self.threshold_fraction {
+            return (NodeStatus::Failure, vec![]);
+        }
+        (
+            NodeStatus::Success,
+            vec![Intent::HealSelf {
+                amount: self.heal_amount,
+            }],
+        )
+    }
+}
+
+fn build_enemy_tree() -> Box<dyn BehaviorNode<CombatObservation, Intent>> {
+    Box::new(Sequence {
+        children: vec![Box::new(LowHpHeal {
+            threshold_fraction: 0.3,
+            heal_amount: 10,
+        })],
+    })
 }
 
 #[cfg(test)]
