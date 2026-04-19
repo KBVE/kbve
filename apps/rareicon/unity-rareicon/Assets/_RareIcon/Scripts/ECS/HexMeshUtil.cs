@@ -70,6 +70,70 @@ namespace RareIcon
         }
 
         /// <summary>
+        /// Inverse of HexToWorld — round a world XY back to the nearest axial hex.
+        /// </summary>
+        public static int2 WorldToHex(float worldX, float worldY, float size)
+        {
+            float q = (math.sqrt(3f) / 3f * worldX - 1f / 3f * worldY) / size;
+            float r = (2f / 3f * worldY) / size;
+
+            float3 cube = new float3(q, -q - r, r);
+            float3 rounded = math.round(cube);
+            float3 diff = math.abs(rounded - cube);
+
+            if (diff.x > diff.y && diff.x > diff.z)
+                rounded.x = -rounded.y - rounded.z;
+            else if (diff.y > diff.z)
+                rounded.y = -rounded.x - rounded.z;
+            else
+                rounded.z = -rounded.x - rounded.y;
+
+            return new int2((int)rounded.x, (int)rounded.z);
+        }
+
+        /// <summary>Cube/axial distance between two pointy-top hex coords.</summary>
+        public static int HexDistance(int2 a, int2 b)
+        {
+            int dq = a.x - b.x;
+            int dr = a.y - b.y;
+            return (math.abs(dq) + math.abs(dr) + math.abs(dq + dr)) / 2;
+        }
+
+        // Six axial direction vectors for ring traversal (pointy-top).
+        static readonly int2[] HexDirections = new[]
+        {
+            new int2( 1,  0),
+            new int2( 1, -1),
+            new int2( 0, -1),
+            new int2(-1,  0),
+            new int2(-1,  1),
+            new int2( 0,  1),
+        };
+
+        /// <summary>
+        /// Spiral outward from `center` up to and including ring `maxRadius`,
+        /// nearest first. Caller iterates the result lazily — useful for early
+        /// termination when searching for the nearest hex matching a predicate.
+        /// </summary>
+        public static System.Collections.Generic.IEnumerable<int2> Spiral(int2 center, int maxRadius)
+        {
+            yield return center;
+            for (int k = 1; k <= maxRadius; k++)
+            {
+                // Walk to the start of ring k, then trace its 6 sides.
+                int2 hex = center + HexDirections[4] * k;
+                for (int side = 0; side < 6; side++)
+                {
+                    for (int step = 0; step < k; step++)
+                    {
+                        yield return hex;
+                        hex += HexDirections[side];
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Get biome color as float4.
         /// </summary>
         public static float4 BiomeColor(byte biomeId)
@@ -82,6 +146,7 @@ namespace RareIcon
                 BiomeGenerator.BIOME_DIRT   => new float4(0.50f, 0.38f, 0.22f, 1f),
                 BiomeGenerator.BIOME_SNOW   => new float4(0.92f, 0.94f, 0.96f, 1f),
                 BiomeGenerator.BIOME_STONE  => new float4(0.50f, 0.50f, 0.48f, 1f),
+                BiomeGenerator.BIOME_RIVER  => new float4(0.10f, 0.38f, 0.62f, 1f),
                 _ => new float4(0f, 0f, 0f, 0f), // ocean = no entity
             };
         }

@@ -95,6 +95,36 @@ namespace RareIcon
         }
 
         /// <summary>
+        /// Resolve unit/creature ID to localized name.
+        /// </summary>
+        public string GetCreatureName(byte unitType)
+        {
+            var key = unitType switch
+            {
+                UnitType.Goblin => "creature.goblin",
+                _ => "creature.none",
+            };
+            return Get(key);
+        }
+
+        /// <summary>
+        /// Resolve resource ID to localized name.
+        /// </summary>
+        public string GetResourceName(byte resourceType)
+        {
+            var key = resourceType switch
+            {
+                ResourceType.Wood      => "resource.wood",
+                ResourceType.Stone     => "resource.stone",
+                ResourceType.Berries   => "resource.berries",
+                ResourceType.Mushrooms => "resource.mushrooms",
+                ResourceType.Herbs     => "resource.herbs",
+                _ => "resource.none",
+            };
+            return Get(key);
+        }
+
+        /// <summary>
         /// Resolve biome ID to localized name.
         /// </summary>
         public string GetBiomeName(byte biomeId)
@@ -107,6 +137,7 @@ namespace RareIcon
                 BiomeGenerator.BIOME_DIRT   => "biome.dirt",
                 BiomeGenerator.BIOME_SNOW   => "biome.snow",
                 BiomeGenerator.BIOME_STONE  => "biome.stone",
+                BiomeGenerator.BIOME_RIVER  => "biome.river",
                 _ => "biome.ocean",
             };
             return Get(key);

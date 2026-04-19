@@ -100,6 +100,23 @@ public final class NativeRuntime {
     /** Shutdown the Tokio runtime. Call during mod shutdown. */
     public static native void shutdown();
 
+    /**
+     * Mint a short-lived HS256 JWT for the irc-gateway {@code /minechat}
+     * endpoint. Synchronous — returns immediately with either a token
+     * payload or an error payload, never blocks on I/O.
+     *
+     * <p>Returns a JSON object:
+     * <ul>
+     *   <li>Success: {@code {"token":"eyJ...","expires_in":300}}</li>
+     *   <li>Failure: {@code {"error":"chat signing key is not configured on this server"}}</li>
+     * </ul>
+     *
+     * @param uuid     canonical Minecraft UUID (with dashes) — used as the {@code sub} claim
+     * @param username current in-game username — used as the {@code mc_username} claim
+     * @return JSON string (see above)
+     */
+    public static native String mintChatToken(String uuid, String username);
+
     /** Check if the native library loaded successfully. */
     public static boolean isLoaded() {
         return loaded;

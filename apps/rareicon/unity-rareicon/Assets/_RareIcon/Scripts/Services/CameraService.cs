@@ -89,6 +89,23 @@ namespace RareIcon
                 _hoveredHex.Value = hexCoord;
         }
 
+        /// <summary>
+        /// Instantly center the camera on a world XY position. Z is preserved.
+        /// Used by UIWorldSearch (Go-to-coord + Find biome).
+        /// </summary>
+        public void JumpTo(float2 worldPos)
+        {
+            if (_transform == null)
+            {
+                Refresh();
+                if (_transform == null) return;
+            }
+            var p = _transform.position;
+            p.x = worldPos.x;
+            p.y = worldPos.y;
+            _transform.position = p;
+        }
+
         void HandleMovement()
         {
             var keyboard = Keyboard.current;

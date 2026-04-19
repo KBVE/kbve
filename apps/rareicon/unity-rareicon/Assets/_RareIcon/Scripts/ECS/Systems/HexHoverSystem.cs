@@ -105,14 +105,55 @@ namespace RareIcon
             bool isLand = _hexLookup.TryGetValue(mouse.HexCoord, out Entity hexEntity);
             var publisher = GlobalMessagePipe.GetPublisher<HexHoverMessage>();
 
+            // Sweep units once per hex change — find any unit standing on this hex
+            // and grab its stats while we're at it.
+            byte unitType = 0;
+            float hp = 0, hpMax = 0, en = 0, enMax = 0, mp = 0, mpMax = 0;
+            foreach (var (transform, unit, entity) in
+                     SystemAPI.Query<RefRO<LocalTransform>, RefRO<Unit>>().WithEntityAccess())
+            {
+                var p = transform.ValueRO.Position;
+                var unitHex = HexMeshUtil.WorldToHex(p.x, p.y, HexSize);
+                if (unitHex.Equals(mouse.HexCoord))
+                {
+                    unitType = unit.ValueRO.Type;
+                    if (EntityManager.HasComponent<Health>(entity))
+                    {
+                        var h = EntityManager.GetComponentData<Health>(entity);
+                        hp = h.Value; hpMax = h.Max;
+                    }
+                    if (EntityManager.HasComponent<Energy>(entity))
+                    {
+                        var e = EntityManager.GetComponentData<Energy>(entity);
+                        en = e.Value; enMax = e.Max;
+                    }
+                    if (EntityManager.HasComponent<Mana>(entity))
+                    {
+                        var m = EntityManager.GetComponentData<Mana>(entity);
+                        mp = m.Value; mpMax = m.Max;
+                    }
+                    break;
+                }
+            }
+
             if (isLand)
             {
                 var biome = EntityManager.GetComponentData<BiomeType>(hexEntity);
-                publisher.Publish(new HexHoverMessage(mouse.HexCoord.x, mouse.HexCoord.y, biome.Value, true));
+                var res = EntityManager.HasComponent<HexResources>(hexEntity)
+                    ? EntityManager.GetComponentData<HexResources>(hexEntity)
+                    : default;
+                publisher.Publish(new HexHoverMessage(
+                    mouse.HexCoord.x, mouse.HexCoord.y, biome.Value, true,
+                    res.Wood, res.Stone, res.Berries, res.Mushrooms, res.Herbs,
+                    unitType,
+                    hp, hpMax, en, enMax, mp, mpMax));
             }
             else
             {
-                publisher.Publish(new HexHoverMessage(mouse.HexCoord.x, mouse.HexCoord.y, 0, false));
+                publisher.Publish(new HexHoverMessage(
+                    mouse.HexCoord.x, mouse.HexCoord.y, 0, false,
+                    0, 0, 0, 0, 0, unitType,
+                    hp, hpMax, en, enMax, mp, mpMax));
             }
         }
 

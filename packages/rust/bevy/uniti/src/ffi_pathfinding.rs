@@ -1,3 +1,7 @@
+// FFI bridge for the pathfinding system (Unity / C# consumer).
+// Shared safety contract for `pub unsafe extern "C" fn` items is
+// documented at the crate root (src/lib.rs).
+
 use std::ffi::c_void;
 
 use bevy_pathfinding::flow_field::FlowField;

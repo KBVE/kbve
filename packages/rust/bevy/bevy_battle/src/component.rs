@@ -140,3 +140,49 @@ pub struct EnemyTag;
 /// Marker: entity has died. Added on death, used for filtering.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Dead;
+
+// ── Behavior tree override ─────────────────────────────────────────
+
+/// Snapshot an enemy turn system passes to an attached [`BehaviorPolicy`]
+/// tree. Implements `bevy_behavior::Healthed` so generic leaves like
+/// `IsHealthLow` work without knowing about bevy_battle's internals.
+#[derive(Debug, Clone)]
+pub struct CombatObservation {
+    pub hp: f32,
+    pub max_hp: f32,
+    pub level: u8,
+    pub enraged: bool,
+    pub charged: bool,
+    pub weakened: bool,
+    pub personality: Personality,
+}
+
+impl bevy_behavior::Healthed for CombatObservation {
+    fn current_health(&self) -> f32 {
+        self.hp
+    }
+    fn max_health(&self) -> f32 {
+        self.max_hp
+    }
+}
+
+/// Optional behavior tree attached to an enemy. When present on an
+/// entity, the `enemy_turn_system` evaluates the tree first — only
+/// falling back to `roll_new_intent()`'s random table when the tree
+/// returns an empty action list.
+///
+/// Consumers build the tree using `bevy_behavior` primitives. Example:
+///
+/// ```ignore
+/// use bevy_battle::{BehaviorPolicy, CombatObservation, Intent};
+/// use bevy_behavior::{Sequence, IsHealthLow};
+///
+/// let tree = Sequence { children: vec![
+///     Box::new(IsHealthLow { threshold: 10.0 }),
+///     // closure-driven leaf emitting a HealSelf intent
+///     // ...
+/// ]};
+/// BehaviorPolicy(Box::new(tree))
+/// ```
+#[derive(Component)]
+pub struct BehaviorPolicy(pub Box<dyn bevy_behavior::BehaviorNode<CombatObservation, Intent>>);

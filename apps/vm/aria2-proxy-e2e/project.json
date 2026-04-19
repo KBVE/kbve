@@ -1,0 +1,31 @@
+{
+	"name": "aria2-proxy-e2e",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/vm/aria2-proxy-e2e/e2e",
+	"implicitDependencies": ["aria2-proxy"],
+	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": [
+					"docker rm -f aria2-proxy-e2e aria2-proxy-e2e-aria aria2-proxy-e2e-fs 2>/dev/null || true",
+					"docker buildx build --platform linux/amd64 -f apps/vm/aria2-proxy/Dockerfile -t kbve/aria2-proxy:latest --load apps/vm/aria2-proxy/",
+					"docker run -d --name aria2-proxy-e2e --entrypoint sleep kbve/aria2-proxy:latest infinity",
+					"echo 'Waiting for container...' && for i in $(seq 1 30); do if docker exec aria2-proxy-e2e /bin/sh -c 'echo ok' >/dev/null 2>&1; then echo 'Container ready after '\"$i\"'s'; break; fi; if [ $i -eq 30 ]; then echo 'Container did not become ready'; docker logs aria2-proxy-e2e 2>&1 | tail -20; docker rm -f aria2-proxy-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+					"cd apps/vm/aria2-proxy-e2e && npx vitest run; EC=$?; docker rm -f aria2-proxy-e2e aria2-proxy-e2e-aria aria2-proxy-e2e-fs 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false
+			},
+			"configurations": {
+				"ci": {}
+			}
+		}
+	},
+	"tags": ["scope:vm", "aria2-proxy", "e2e"]
+}

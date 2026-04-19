@@ -36,7 +36,10 @@ namespace RareIcon
             builder.Register<MouseStateSource>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             builder.Register<LocaleService>(Lifetime.Singleton);
             builder.Register<InventoryService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
+            // Factory so VContainer doesn't try to resolve the int defaults.
+            builder.Register(_ => new BiomeGenerator(), Lifetime.Singleton).AsSelf();
             builder.Register<ChunkGeneratorService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
+            builder.Register<RiverRouter>(Lifetime.Singleton).AsSelf();
 
             // -- UI --
             builder.RegisterComponentOnNewGameObject<UIPanelManager>(Lifetime.Singleton, "UIPanelManager")
@@ -45,6 +48,9 @@ namespace RareIcon
 
             // -- App state machine (DotsUI-style: single enum drives HUD visibility) --
             builder.RegisterEntryPoint<AppStateController>().AsSelf();
+
+            // -- World tools window (resolved by WorldHUD's toolbar button) --
+            builder.RegisterEntryPoint<UIWorldSearch>().AsSelf();
 
             // -- HUDs (VContainer-managed lifecycle, gated on AppInterfaceState) --
             builder.RegisterEntryPoint<WorldHUD>();

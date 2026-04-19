@@ -15,13 +15,19 @@ namespace RareIcon
         readonly LocaleService _locale;
         readonly InventoryService _inventory;
         readonly ChunkGeneratorService _chunkGenerator;
+        readonly RiverRouter _riverRouter;
 
         [Inject]
-        public TitleEntryPoint(LocaleService locale, InventoryService inventory, ChunkGeneratorService chunkGenerator)
+        public TitleEntryPoint(
+            LocaleService locale,
+            InventoryService inventory,
+            ChunkGeneratorService chunkGenerator,
+            RiverRouter riverRouter)
         {
             _locale = locale;
             _inventory = inventory;
             _chunkGenerator = chunkGenerator;
+            _riverRouter = riverRouter;
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
@@ -43,9 +49,14 @@ namespace RareIcon
             // Wire chunk generator to ECS system
             HexChunkSystem.SetGenerator(_chunkGenerator);
 
-            Debug.Log("[TitleEntryPoint] Ready.");
+            // Procedurally route rivers around origin (off-thread so we don't
+            // hitch on startup) and hand them to the spawn system.
+            var rivers = await UniTask.RunOnThreadPool(
+                () => _riverRouter.RouteRegion(new Unity.Mathematics.int2(0, 0), 200),
+                cancellationToken: cancellation);
+            RiverSpawnSystem.SetRivers(rivers);
 
-            await UniTask.CompletedTask;
+            Debug.Log("[TitleEntryPoint] Ready.");
         }
     }
 }

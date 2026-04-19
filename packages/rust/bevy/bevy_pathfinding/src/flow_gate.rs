@@ -225,10 +225,10 @@ pub fn detect_gates(grid: &BlockGrid) -> Vec<FlowGate> {
 
             let avg_clearance: f32 = cluster
                 .iter()
-                .filter_map(|&(x, z)| {
+                .map(|&(x, z)| {
                     let lx = (x - grid.origin_x) as u32;
                     let lz = (z - grid.origin_z) as u32;
-                    Some(clearance[(lz * w + lx) as usize] as f32)
+                    clearance[(lz * w + lx) as usize] as f32
                 })
                 .sum::<f32>()
                 / cluster.len() as f32;

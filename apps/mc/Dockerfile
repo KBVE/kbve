@@ -31,15 +31,18 @@ COPY apps/mc/mc_auth/ mc_auth/
 COPY packages/rust/bevy/bevy_npc/ bevy_npc/
 COPY packages/rust/bevy/bevy_supa/ bevy_supa/
 COPY packages/rust/bevy/bevy_pathfinding/ bevy_pathfinding/
+COPY packages/rust/bevy/bevy_behavior/ bevy_behavior/
+COPY packages/rust/bevy/bevy_chat/ bevy_chat/
 
 # Rewrite package path refs for the flattened Docker context.
-# - behavior_statetree ← ../../../packages/rust/bevy/bevy_npc
-# - behavior_statetree ← ../../../packages/rust/bevy/bevy_pathfinding
-# - mc_auth             ← ../../../packages/rust/bevy/bevy_supa
+# Every bevy_* path dep in behavior_statetree/mc_auth must be rewritten
+# from ../../../packages/rust/bevy/<crate> to ../<crate>.
 RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_npc"|path = "../bevy_npc"|' behavior_statetree/Cargo.toml
 RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_pathfinding"|path = "../bevy_pathfinding"|' behavior_statetree/Cargo.toml
+RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_behavior"|path = "../bevy_behavior"|' behavior_statetree/Cargo.toml
+RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_chat"|path = "../bevy_chat"|' behavior_statetree/Cargo.toml
 RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_supa"|path = "../bevy_supa"|' mc_auth/Cargo.toml
-RUN printf '[workspace]\nresolver = "2"\nmembers = ["behavior_statetree", "mc_auth", "bevy_npc", "bevy_supa", "bevy_pathfinding"]\n' > Cargo.toml
+RUN printf '[workspace]\nresolver = "2"\nmembers = ["behavior_statetree", "mc_auth", "bevy_npc", "bevy_supa", "bevy_pathfinding", "bevy_behavior", "bevy_chat"]\n' > Cargo.toml
 
 RUN cargo build -p behavior_statetree -p mc_auth --release
 # Outputs:
