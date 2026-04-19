@@ -13,3 +13,4 @@
 
 pub mod ffi_inventory;
 pub mod ffi_pathfinding;
+pub mod ffi_world;

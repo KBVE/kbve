@@ -3,6 +3,7 @@ fn main() {
         .input_extern_file("src/lib.rs")
         .input_extern_file("src/ffi_inventory.rs")
         .input_extern_file("src/ffi_pathfinding.rs")
+        .input_extern_file("src/ffi_world.rs")
         .csharp_dll_name("uniti")
         .csharp_dll_name_if("UNITY_IOS && !UNITY_EDITOR", "__Internal")
         .csharp_namespace("RareIcon.Native")
