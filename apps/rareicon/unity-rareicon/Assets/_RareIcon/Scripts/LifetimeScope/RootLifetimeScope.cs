@@ -39,6 +39,7 @@ namespace RareIcon
             // Factory so VContainer doesn't try to resolve the int defaults.
             builder.Register(_ => new BiomeGenerator(), Lifetime.Singleton).AsSelf();
             builder.Register<ChunkGeneratorService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
+            builder.Register<RiverRouter>(Lifetime.Singleton).AsSelf();
 
             // -- UI --
             builder.RegisterComponentOnNewGameObject<UIPanelManager>(Lifetime.Singleton, "UIPanelManager")
