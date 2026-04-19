@@ -11,6 +11,7 @@ use super::super::creature::{
     Creature, CreaturePoolIndex, CreatureRegistry, CreatureState, RenderKind, SpriteData,
     SpriteHopState,
 };
+use super::super::shared_tree::{SharedBehaviorTree, build_wraith_tree};
 use super::super::sprite_material::{SpriteAnimData, SpriteAtlasMaterial};
 use super::brain::CreatureBrain;
 use super::physics_lod::{PhysicsLod, PlayerProximity};
@@ -170,6 +171,14 @@ pub fn spawn_sprite_creatures(
             // Add brain if creature type has a behavior tree
             if creature_type.behavior_tree.is_some() {
                 entity.insert(CreatureBrain::new());
+            }
+
+            // Opt-in: wraiths evaluate through the shared `bevy_behavior`
+            // tree instead of the enum walker. All other creatures continue
+            // using their per-type enum tree. When both components are
+            // present the brain dispatch prefers SharedBehaviorTree.
+            if creature_type.npc_ref == "wraith" {
+                entity.insert(SharedBehaviorTree(build_wraith_tree()));
             }
 
             // Add physics LOD (starts as Ghost — no physics components)

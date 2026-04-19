@@ -1,15 +1,15 @@
 //! Opt-in `bevy_behavior` trees for Isometric creatures.
 //!
-//! Foundation layer — defines a `SharedBehaviorTree` component and a
-//! demo tree for the wraith creature type. The existing enum-based
-//! `BehaviorNode` in `generic/behavior.rs` continues running for every
-//! other creature; this module gives future PRs a concrete shape to
-//! migrate into without rewriting the full dispatch loop today.
+//! Attach [`SharedBehaviorTree`] to a creature entity and `brain.rs`
+//! will evaluate decisions through the shared `bevy_behavior` engine
+//! on its async dispatch path instead of the local enum walker.
 //!
-//! Next PR: extend `brain.rs` dispatch so that when an entity has
-//! `SharedBehaviorTree`, its observation is built via
-//! [`super::observation::CreatureObservation`] and evaluated against
-//! the shared tree instead of the local enum walker.
+//! The wraith type ships with [`build_wraith_tree`] as the first
+//! demo. Other creatures continue using the enum-based
+//! `BehaviorNode` in `generic/behavior.rs` until they're migrated
+//! one at a time in future PRs.
+
+use std::sync::Arc;
 
 use bevy::prelude::Component;
 use bevy_behavior::{BehaviorContext, BehaviorNode, NodeStatus, Selector};
@@ -17,12 +17,17 @@ use bevy_behavior::{BehaviorContext, BehaviorNode, NodeStatus, Selector};
 use super::generic::behavior::CreatureIntent;
 use super::observation::CreatureObservation;
 
+/// Type alias for the shared-tree trait object. `Arc` lets the brain
+/// dispatch clone a cheap handle into the async evaluation task
+/// without needing the tree itself to be `Clone`.
+pub type SharedTree = Arc<dyn BehaviorNode<CreatureObservation, CreatureIntent>>;
+
 /// Attach this component to a creature entity to evaluate its decisions
 /// through the shared `bevy_behavior` engine. Without it, the creature
 /// keeps using the existing `BehaviorProfile` / local `BehaviorNode`
 /// enum walker in `generic/behavior.rs`.
-#[derive(Component)]
-pub struct SharedBehaviorTree(pub Box<dyn BehaviorNode<CreatureObservation, CreatureIntent>>);
+#[derive(Component, Clone)]
+pub struct SharedBehaviorTree(pub SharedTree);
 
 /// Flee from the player when they're within `trigger_distance`.
 ///
@@ -84,8 +89,8 @@ impl BehaviorNode<CreatureObservation, CreatureIntent> for FleeWhenPlayerClose {
 /// "spooky but non-combat" archetype. Flees when any hostile closes
 /// within 4 blocks; otherwise returns no intent (the existing enum
 /// tree produces the normal wander-and-emote behavior).
-pub fn build_wraith_tree() -> Box<dyn BehaviorNode<CreatureObservation, CreatureIntent>> {
-    Box::new(Selector {
+pub fn build_wraith_tree() -> SharedTree {
+    Arc::new(Selector {
         children: vec![Box::new(FleeWhenPlayerClose {
             trigger_distance: 4.0,
             speed: 2.5,
