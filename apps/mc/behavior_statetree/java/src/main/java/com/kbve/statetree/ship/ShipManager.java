@@ -58,10 +58,9 @@ public final class ShipManager {
 
         activeShips.put(shipId, entity);
 
-        // Broadcast spawn to clients
-        ShipNetworking.broadcastShipSpawn(world, shipId.toString(), modelName,
-                nearPos.getX(), nearPos.getY() + SPAWN_HEIGHT_OFFSET, nearPos.getZ(),
-                4, 4, 4); // nominal size for client tracking
+        // Vanilla entity tracking handles spawn/despawn sync to clients —
+        // world.spawnEntity() above already sent the spawn packet, and
+        // entity.discard() handles despawn below.
 
         LOGGER.info("[Ship] Spawned '{}' (id={}) at [{}, {}, {}] for owner {}",
                 modelName, shipId,
@@ -76,10 +75,8 @@ public final class ShipManager {
     public void removeShip(ServerWorld world, UUID shipId) {
         ShipEntity entity = activeShips.remove(shipId);
         if (entity != null) {
-            // Eject passengers before discarding
             entity.removeAllPassengers();
             entity.discard();
-            ShipNetworking.broadcastShipDespawn(world, shipId.toString());
             LOGGER.info("[Ship] Removed ship {}", shipId);
         }
     }

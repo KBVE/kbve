@@ -12,119 +12,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Network packets for ship state synchronization.
+ * Network packets for the ship system.
  *
- * <p>Server → Client:
- * <ul>
- *   <li>{@link ShipMovePayload} — ship anchor moved, client should
- *       interpolate the visual position smoothly</li>
- *   <li>{@link ShipSpawnPayload} — new ship placed, client should
- *       start tracking it</li>
- *   <li>{@link ShipDespawnPayload} — ship removed</li>
- * </ul>
- *
- * <p>Client → Server:
- * <ul>
- *   <li>{@link HelmInputPayload} — WASD steering input from the helm</li>
- * </ul>
+ * <p>Only {@link HelmInputPayload} remains. Position, heading, modelName,
+ * and shipName all sync through vanilla entity tracking (position via
+ * entity motion, heading via {@code yaw}, the others via DataTracker).
+ * Previously there were ShipSpawn/Despawn/Move/Status payloads for the
+ * block-based ship system — those were deleted when ships became entities.
  */
 public final class ShipNetworking {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("behavior_statetree");
 
-    // -- Payload IDs --------------------------------------------------------
-
-    public static final Identifier SHIP_MOVE_ID = Identifier.of("behavior_statetree", "ship_move");
-    public static final Identifier SHIP_SPAWN_ID = Identifier.of("behavior_statetree", "ship_spawn");
-    public static final Identifier SHIP_DESPAWN_ID = Identifier.of("behavior_statetree", "ship_despawn");
-    public static final Identifier SHIP_STATUS_ID = Identifier.of("behavior_statetree", "ship_status");
     public static final Identifier HELM_INPUT_ID = Identifier.of("behavior_statetree", "helm_input");
-
-    // -- Server → Client payloads -------------------------------------------
-
-    /** Ship moved — client should interpolate to new anchor. */
-    public record ShipMovePayload(
-            String shipId,
-            double anchorX, double anchorY, double anchorZ,
-            float heading
-    ) implements CustomPayload {
-        public static final CustomPayload.Id<ShipMovePayload> ID = new CustomPayload.Id<>(SHIP_MOVE_ID);
-        public static final PacketCodec<RegistryByteBuf, ShipMovePayload> CODEC =
-                PacketCodec.tuple(
-                        PacketCodecs.STRING, ShipMovePayload::shipId,
-                        PacketCodecs.DOUBLE, ShipMovePayload::anchorX,
-                        PacketCodecs.DOUBLE, ShipMovePayload::anchorY,
-                        PacketCodecs.DOUBLE, ShipMovePayload::anchorZ,
-                        PacketCodecs.FLOAT, ShipMovePayload::heading,
-                        ShipMovePayload::new
-                );
-
-        @Override
-        public Id<? extends CustomPayload> getId() { return ID; }
-    }
-
-    /** New ship spawned — client should start tracking. */
-    public record ShipSpawnPayload(
-            String shipId,
-            String shipName,
-            double anchorX, double anchorY, double anchorZ,
-            int sizeX, int sizeY, int sizeZ
-    ) implements CustomPayload {
-        public static final CustomPayload.Id<ShipSpawnPayload> ID = new CustomPayload.Id<>(SHIP_SPAWN_ID);
-        public static final PacketCodec<RegistryByteBuf, ShipSpawnPayload> CODEC =
-                PacketCodec.tuple(
-                        PacketCodecs.STRING, ShipSpawnPayload::shipId,
-                        PacketCodecs.STRING, ShipSpawnPayload::shipName,
-                        PacketCodecs.DOUBLE, ShipSpawnPayload::anchorX,
-                        PacketCodecs.DOUBLE, ShipSpawnPayload::anchorY,
-                        PacketCodecs.DOUBLE, ShipSpawnPayload::anchorZ,
-                        PacketCodecs.INTEGER, ShipSpawnPayload::sizeX,
-                        PacketCodecs.INTEGER, ShipSpawnPayload::sizeY,
-                        PacketCodecs.INTEGER, ShipSpawnPayload::sizeZ,
-                        ShipSpawnPayload::new
-                );
-
-        @Override
-        public Id<? extends CustomPayload> getId() { return ID; }
-    }
-
-    /** Ship removed. */
-    public record ShipDespawnPayload(String shipId) implements CustomPayload {
-        public static final CustomPayload.Id<ShipDespawnPayload> ID = new CustomPayload.Id<>(SHIP_DESPAWN_ID);
-        public static final PacketCodec<RegistryByteBuf, ShipDespawnPayload> CODEC =
-                PacketCodec.tuple(
-                        PacketCodecs.STRING, ShipDespawnPayload::shipId,
-                        ShipDespawnPayload::new
-                );
-
-        @Override
-        public Id<? extends CustomPayload> getId() { return ID; }
-    }
-
-    /** Ship status update — hull integrity, block count, damage events. */
-    public record ShipStatusPayload(
-            String shipId,
-            float integrity,
-            int blockCount,
-            int damageX, int damageY, int damageZ,
-            byte action // 0 = block removed (damage), 1 = block added (repair)
-    ) implements CustomPayload {
-        public static final CustomPayload.Id<ShipStatusPayload> ID = new CustomPayload.Id<>(SHIP_STATUS_ID);
-        public static final PacketCodec<RegistryByteBuf, ShipStatusPayload> CODEC =
-                PacketCodec.tuple(
-                        PacketCodecs.STRING, ShipStatusPayload::shipId,
-                        PacketCodecs.FLOAT, ShipStatusPayload::integrity,
-                        PacketCodecs.INTEGER, ShipStatusPayload::blockCount,
-                        PacketCodecs.INTEGER, ShipStatusPayload::damageX,
-                        PacketCodecs.INTEGER, ShipStatusPayload::damageY,
-                        PacketCodecs.INTEGER, ShipStatusPayload::damageZ,
-                        PacketCodecs.BYTE, ShipStatusPayload::action,
-                        ShipStatusPayload::new
-                );
-
-        @Override
-        public Id<? extends CustomPayload> getId() { return ID; }
-    }
 
     // -- Client → Server payloads -------------------------------------------
 
@@ -149,17 +49,8 @@ public final class ShipNetworking {
 
     // -- Registration -------------------------------------------------------
 
-    /** Register all packet types. Call from both server and client init. */
     public static void registerPayloads() {
-        // Server → Client
-        PayloadTypeRegistry.playS2C().register(ShipMovePayload.ID, ShipMovePayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(ShipSpawnPayload.ID, ShipSpawnPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(ShipDespawnPayload.ID, ShipDespawnPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(ShipStatusPayload.ID, ShipStatusPayload.CODEC);
-
-        // Client → Server
         PayloadTypeRegistry.playC2S().register(HelmInputPayload.ID, HelmInputPayload.CODEC);
-
         LOGGER.info("[Ship] Network payloads registered");
     }
 
@@ -178,39 +69,13 @@ public final class ShipNetworking {
                 ShipEntity ship = manager.getShip(shipId);
                 if (ship == null) return;
 
-                // Entity-based ships use ShipEntity.steerFromRider for
-                // continuous physics movement. The helm input sets speed
-                // and heading directly on the entity.
+                // Entity-based ships: helm input drives speed + heading.
+                // Movement happens in ShipEntity.tick() based on those fields.
                 ship.setTargetSpeed(payload.forward() > 0 ? 2.0f : 0f);
                 if (payload.sideways() > 0) ship.setHeading(ship.getHeading() - 2.0f);
                 if (payload.sideways() < 0) ship.setHeading(ship.getHeading() + 2.0f);
             });
         });
-    }
-
-    // -- Broadcast helpers --------------------------------------------------
-
-    /** Send a ship spawn to all players — triggers client-side tracking. */
-    public static void broadcastShipSpawn(
-            net.minecraft.server.world.ServerWorld world,
-            String shipId, String shipName,
-            int anchorX, int anchorY, int anchorZ,
-            int sizeX, int sizeY, int sizeZ) {
-        ShipSpawnPayload payload = new ShipSpawnPayload(
-                shipId, shipName, anchorX, anchorY, anchorZ, sizeX, sizeY, sizeZ);
-        for (ServerPlayerEntity player : world.getPlayers()) {
-            ServerPlayNetworking.send(player, payload);
-        }
-    }
-
-    /** Send a ship despawn to all players. */
-    public static void broadcastShipDespawn(
-            net.minecraft.server.world.ServerWorld world,
-            String shipId) {
-        ShipDespawnPayload payload = new ShipDespawnPayload(shipId);
-        for (ServerPlayerEntity player : world.getPlayers()) {
-            ServerPlayNetworking.send(player, payload);
-        }
     }
 
     private ShipNetworking() {}

@@ -1,5 +1,7 @@
 package com.kbve.statetree.client;
 
+import com.kbve.statetree.bbmodel.BBAnimation;
+import com.kbve.statetree.bbmodel.BBAnimator;
 import com.kbve.statetree.bbmodel.BBBone;
 import com.kbve.statetree.bbmodel.BBFace;
 import com.kbve.statetree.bbmodel.BBFaceContainer;
@@ -7,6 +9,7 @@ import com.kbve.statetree.bbmodel.BBModel;
 import com.kbve.statetree.bbmodel.BBModelLoader;
 import com.kbve.statetree.bbmodel.BBModelUtils;
 import com.kbve.statetree.bbmodel.BBObject;
+import org.joml.Vector3f;
 import com.kbve.statetree.ship.ShipEntity;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
@@ -92,7 +95,7 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         // Walk the model tree — submit render commands per face
         int light = 0xF000F0; // full bright (airships fly in sky)
         for (BBObject obj : model.root) {
-            renderObject(obj, matrices, queue, light);
+            renderObject(model, obj, matrices, queue, light, state.animationTime);
         }
 
         matrices.pop();
@@ -100,12 +103,33 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
 
     // -- Tree traversal -----------------------------------------------------
 
-    private void renderObject(BBObject object, MatrixStack matrices,
-                              OrderedRenderCommandQueue queue, int light) {
+    private void renderObject(BBModel model, BBObject object, MatrixStack matrices,
+                              OrderedRenderCommandQueue queue, int light, float time) {
         matrices.push();
 
-        // Apply object origin + rotation
+        // Apply object origin
         matrices.translate(object.origin.x(), object.origin.y(), object.origin.z());
+
+        // Apply keyframe animation (propellers spin, sails flap, etc.)
+        // Only the first animation is sampled — BBModel files typically
+        // use one combined looped animation per model.
+        if (!model.animations.isEmpty()) {
+            BBAnimation animation = model.animations.get(0);
+            if (animation.hasAnimator(object.uuid)) {
+                Vector3f position = animation.sample(object.uuid, BBAnimator.Channel.POSITION, time);
+                position.mul(1.0f / 16.0f);
+                matrices.translate(position.x(), position.y(), position.z());
+
+                Vector3f rotation = animation.sample(object.uuid, BBAnimator.Channel.ROTATION, time);
+                rotation.mul((float) (Math.PI / 180.0));
+                matrices.multiply(BBModelUtils.fromXYZ(rotation));
+
+                Vector3f scale = animation.sample(object.uuid, BBAnimator.Channel.SCALE, time);
+                matrices.scale(scale.x(), scale.y(), scale.z());
+            }
+        }
+
+        // Apply object rotation
         matrices.multiply(BBModelUtils.fromXYZ(object.rotation));
 
         if (object instanceof BBBone bone) {
@@ -114,7 +138,7 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
 
             if (bone.visibility) {
                 for (BBObject child : bone.children) {
-                    renderObject(child, matrices, queue, light);
+                    renderObject(model, child, matrices, queue, light, time);
                 }
             }
         } else if (object instanceof BBFaceContainer container) {
