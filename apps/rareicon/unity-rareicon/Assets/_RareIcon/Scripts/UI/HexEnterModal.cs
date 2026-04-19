@@ -12,41 +12,34 @@ using R3;
 namespace RareIcon
 {
     /// <summary>
-    /// Pooled modal — appears on hex click via MessagePipe.
-    /// IStartable + IDisposable for VContainer-managed lifecycle.
-    /// ThrottleFirst prevents click bleed-through.
+    /// Pooled "Enter Tile" modal — visibility driven entirely by AppStateController.
+    /// We never subscribe to HexClickedMessage directly; the controller is the
+    /// single source of truth for which screen is showing.
     /// </summary>
     public class HexEnterModal : IAsyncStartable, IDisposable
     {
         readonly LocaleService _locale;
         readonly UIPanelManager _panelManager;
-        readonly ISubscriber<HexClickedMessage> _clickSub;
+        readonly AppStateController _appState;
         readonly IPublisher<EnterTileMessage> _enterPublisher;
 
         readonly CompositeDisposable _disposables = new();
-        // Modal state — main-thread only (MessagePipe + UI events are main thread)
-        readonly ReactiveProperty<bool> _isOpen = new(false);
-        public ReadOnlyReactiveProperty<bool> IsOpen => _isOpen;
 
         VisualElement _backdrop;
         Label _titleLabel;
         Button _confirmButton;
         Button _cancelButton;
 
-        int _q, _r;
-        byte _biomeId;
-        bool _isLand;
-
         [Inject]
         public HexEnterModal(
             LocaleService locale,
             UIPanelManager panelManager,
-            ISubscriber<HexClickedMessage> clickSub,
+            AppStateController appState,
             IPublisher<EnterTileMessage> enterPublisher)
         {
             _locale = locale;
             _panelManager = panelManager;
-            _clickSub = clickSub;
+            _appState = appState;
             _enterPublisher = enterPublisher;
         }
 
@@ -59,7 +52,6 @@ namespace RareIcon
                 return;
             }
 
-            // Wait for rootVisualElement to be ready
             int waited = 0;
             while (uiDoc.rootVisualElement == null && waited < 1000)
             {
@@ -75,13 +67,9 @@ namespace RareIcon
 
             BuildUI(uiDoc.rootVisualElement);
 
-            // Subscribe directly — hex click detection uses wasReleasedThisFrame
-            // so there's no need to throttle here
-            var msgBag = MessagePipe.DisposableBag.CreateBuilder();
-            _clickSub.Subscribe(OnHexClicked).AddTo(msgBag);
-            _disposables.Add(msgBag.Build());
-
-            Debug.Log("[HexEnterModal] Created");
+            _appState.Current
+                .Subscribe(OnAppStateChanged)
+                .AddTo(_disposables);
         }
 
         void BuildUI(VisualElement root)
@@ -95,33 +83,8 @@ namespace RareIcon
             _backdrop.style.backgroundColor = new Color(0, 0, 0, 0.5f);
             _backdrop.style.alignItems = Align.Center;
             _backdrop.style.justifyContent = Justify.Center;
-            var backdropClicks = new Subject<Unit>();
-            _disposables.Add(backdropClicks);
-
-            // Backdrop visibility driven by reactive property
-            _disposables.Add(
-                _isOpen.Subscribe(open =>
-                    _backdrop.style.display = open ? DisplayStyle.Flex : DisplayStyle.None)
-            );
-
-            // Manually manage the close subscription so each Show resets it
-            // (Switch-equivalent pattern — only the latest "wait for click" is alive)
-            SerialDisposable closeWatcher = new();
-            _disposables.Add(closeWatcher);
-
-            _disposables.Add(
-                _isOpen
-                    .Where(open => open)
-                    .Subscribe(_ =>
-                    {
-                        // Replace any prior subscription — disposes the old one
-                        closeWatcher.Disposable = backdropClicks
-                            .Skip(1)
-                            .Subscribe(__ => _isOpen.Value = false);
-                    })
-            );
-
-            _backdrop.RegisterCallback<ClickEvent>(_ => backdropClicks.OnNext(Unit.Default));
+            // Backdrop click closes via the controller; modal stops propagation below.
+            _backdrop.RegisterCallback<ClickEvent>(_ => _appState.RequestExitToWorld());
 
             var modal = new VisualElement();
             modal.style.backgroundColor = new Color(0.08f, 0.10f, 0.16f, 0.98f);
@@ -165,7 +128,7 @@ namespace RareIcon
             _confirmButton.style.color = Color.white;
             _confirmButton.style.unityFontStyleAndWeight = FontStyle.Bold;
 
-            _cancelButton = new Button(Hide) { text = "Cancel" };
+            _cancelButton = new Button(OnCancel) { text = "Cancel" };
             _cancelButton.style.width = 120;
             _cancelButton.style.height = 36;
             _cancelButton.style.fontSize = 14;
@@ -183,41 +146,37 @@ namespace RareIcon
             _backdrop.style.display = DisplayStyle.None;
         }
 
-        void OnHexClicked(HexClickedMessage msg)
+        void OnAppStateChanged(AppInterfaceState state)
         {
-            try
+            if (_backdrop == null) return;
+
+            if (state == AppInterfaceState.EnterModal)
             {
-            _q = msg.Q;
-            _r = msg.R;
-            _biomeId = msg.BiomeId;
-            _isLand = msg.IsLand;
-
-            string name = msg.IsLand ? _locale.GetBiomeName(msg.BiomeId) : _locale.Get("hex.empty");
-            _titleLabel.text = ZString.Format("{0} {1}", _locale.Get("hex.enter"), name);
-            _confirmButton.text = _locale.Get("common.confirm");
-            _cancelButton.text = _locale.Get("common.cancel");
-
-            Show();
+                var msg = _appState.LastClickedHex;
+                string name = msg.IsLand ? _locale.GetBiomeName(msg.BiomeId) : _locale.Get("hex.empty");
+                _titleLabel.text = ZString.Format("{0} {1}", _locale.Get("hex.enter"), name);
+                _confirmButton.text = _locale.Get("common.confirm");
+                _cancelButton.text = _locale.Get("common.cancel");
+                _backdrop.style.display = DisplayStyle.Flex;
             }
-            catch (System.Exception ex)
+            else
             {
-                Debug.LogError($"[HexEnterModal] Exception in OnHexClicked: {ex}");
+                _backdrop.style.display = DisplayStyle.None;
             }
         }
 
         void OnConfirm()
         {
-            _enterPublisher.Publish(new EnterTileMessage(_q, _r, _biomeId));
-            Hide();
+            var msg = _appState.LastClickedHex;
+            _enterPublisher.Publish(new EnterTileMessage(msg.Q, msg.R, msg.BiomeId));
+            // Controller flips to InTile when it sees EnterTileMessage.
         }
 
-        void Show() => _isOpen.Value = true;
-        void Hide() => _isOpen.Value = false;
+        void OnCancel() => _appState.RequestExitToWorld();
 
         public void Dispose()
         {
             _disposables?.Dispose();
-            _isOpen?.Dispose();
         }
     }
 }

@@ -78,7 +78,8 @@ namespace RareIcon
 
             var mouse = SystemAPI.GetSingleton<MouseState>();
 
-            // Click detection — singleton MouseState owns release/UI checks
+            // Click detection — MouseStateSource gates OverUI based on press-time
+            // capture, so a click that started over UI never publishes here.
             if (mouse.LeftReleasedThisFrame && !mouse.OverUI)
             {
                 bool clickIsLand = _hexLookup.TryGetValue(mouse.HexCoord, out Entity clickedEntity);

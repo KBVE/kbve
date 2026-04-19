@@ -21,6 +21,7 @@ namespace RareIcon
         [Inject] LocaleService _locale;
         [Inject] ISubscriber<PanelShowMessage> _showSub;
         [Inject] ISubscriber<PanelHideMessage> _hideSub;
+        [Inject] IUiPointerBlocker _uiBlocker;
 
         IDisposable _subscriptions;
 
@@ -52,6 +53,8 @@ namespace RareIcon
 
         void Start()
         {
+            _uiBlocker?.Register(_uiDocument);
+
             var bag = DisposableBag.CreateBuilder();
 
             _showSub.Subscribe(msg =>
@@ -71,6 +74,7 @@ namespace RareIcon
 
         void OnDestroy()
         {
+            _uiBlocker?.Unregister(_uiDocument);
             _subscriptions?.Dispose();
         }
 

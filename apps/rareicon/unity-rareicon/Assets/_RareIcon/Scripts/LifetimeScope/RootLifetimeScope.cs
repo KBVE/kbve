@@ -27,11 +27,13 @@ namespace RareIcon
             {
                 GlobalMessagePipe.SetProvider(container.AsServiceProvider());
                 container.Resolve<UIPanelManager>();
+                MouseStateBridge.Source = container.Resolve<IMouseStateSource>();
             });
 
             // -- Services --
             builder.Register<CameraService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
-            builder.Register<MouseInputService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
+            builder.Register<UiToolkitPointerBlocker>(Lifetime.Singleton).AsImplementedInterfaces();
+            builder.Register<MouseStateSource>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             builder.Register<LocaleService>(Lifetime.Singleton);
             builder.Register<InventoryService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             builder.Register<ChunkGeneratorService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
@@ -41,8 +43,12 @@ namespace RareIcon
                 .DontDestroyOnLoad()
                 .AsSelf();
 
-            // -- HUD (VContainer-managed lifecycle) --
-            builder.RegisterEntryPoint<HexInfoPanel>();
+            // -- App state machine (DotsUI-style: single enum drives HUD visibility) --
+            builder.RegisterEntryPoint<AppStateController>().AsSelf();
+
+            // -- HUDs (VContainer-managed lifecycle, gated on AppInterfaceState) --
+            builder.RegisterEntryPoint<WorldHUD>();
+            builder.RegisterEntryPoint<TileHUD>();
             builder.RegisterEntryPoint<HexEnterModal>();
 
             // -- Entry Points --
