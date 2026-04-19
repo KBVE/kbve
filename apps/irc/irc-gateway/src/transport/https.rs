@@ -86,6 +86,10 @@ fn router(static_config: &crate::astro::StaticConfig) -> Router {
         .route("/health", get(health))
         .route("/ws", get(crate::gateway::websocket::ws_handler))
         .route("/webirc", get(crate::gateway::websocket::ws_handler))
+        // JSON-framed WebSocket for game clients (Minecraft, Unity, etc.).
+        // Terminates the IRC protocol server-side; clients only see
+        // ChatMessage JSON. See gateway::minechat for the full contract.
+        .route("/minechat", get(crate::gateway::minechat::ws_handler))
         .nest("/api/v1", crate::gateway::rest::api_router());
 
     static_router.merge(api_router).layer(middleware)

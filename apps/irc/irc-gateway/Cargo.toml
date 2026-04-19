@@ -28,6 +28,11 @@ futures-util = { version = "0.3", default-features = false, features = ["sink"] 
 jedi = { path = "../../../packages/rust/jedi" }
 kbve = { path = "../../../packages/rust/kbve" }
 
+# Shared chat message schema — ChatMessage + MessageKind +
+# to_irc_privmsg/from_irc_privmsg. Default features only; we don't
+# need the plugin or ffi features here.
+bevy_chat = { path = "../../../packages/rust/bevy/bevy_chat" }
+
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.6", optional = true }
 
