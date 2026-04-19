@@ -52,14 +52,16 @@ namespace RareIcon
     public struct HexHoverOverlayTag : IComponentData { }
 
     /// <summary>
-    /// Singleton — cached mouse state for off-main-thread access.
-    /// Updated once per frame by CameraService on the main thread.
-    /// Any worker thread system can read this safely.
+    /// Singleton — cached mouse state. Computed once per frame on main thread.
+    /// Any system can read it without touching Camera/Mouse/UI APIs directly.
     /// </summary>
     public struct MouseState : IComponentData
     {
         public float2 WorldPos;
         public int2 HexCoord;
         public bool Changed;
+        public bool OverUI;             // true if pointer is over any UI element
+        public bool LeftPressedThisFrame;
+        public bool LeftReleasedThisFrame;
     }
 }

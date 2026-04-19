@@ -31,6 +31,7 @@ namespace RareIcon
 
             // -- Services --
             builder.Register<CameraService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
+            builder.Register<MouseInputService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             builder.Register<LocaleService>(Lifetime.Singleton);
             builder.Register<InventoryService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             builder.Register<ChunkGeneratorService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
