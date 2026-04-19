@@ -23,7 +23,7 @@ crossbeam-channel = { version = "0.5", optional = true }
 
 # Native (tokio TCP) — used by Discord bot and lightyear server
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { version = "1", features = ["net", "io-util", "sync", "time", "rt"] }
+tokio = { version = "1", features = ["net", "io-util", "sync", "time", "rt", "rt-multi-thread"] }
 
 # WASM (web_sys WebSocket) — used by isometric game in browser
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -36,3 +36,7 @@ default = []
 ## Enables the Bevy plugin (`ChatPlugin`) that bridges IRC messages into ECS events.
 ## Use this in the isometric game; omit for the Discord bot (which uses `ChatClient` directly).
 plugin = ["dep:bevy", "dep:crossbeam-channel"]
+## Enables the C-FFI surface (`chat_ffi` module) for non-Rust consumers.
+## Exposes opaque-handle extern "C" functions usable from JNI (MC Fabric)
+## and csbindgen (Unity). Native-only — not available on WASM.
+ffi = []

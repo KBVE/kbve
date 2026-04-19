@@ -280,3 +280,207 @@ pub extern "system" fn Java_com_kbve_statetree_NativeRuntime_shutdown(
     // OnceLock doesn't support take(), so we let it live until JVM shutdown.
     // The channels will be dropped, causing the consumer loop to exit.
 }
+
+// ── ChatBridge JNI entry points ───────────────────────────────────────
+//
+// Thin JNI shim over `bevy_chat::ffi::kbve_chat_*`. The Java side holds
+// the opaque handle as a `long` (native pointer) and passes it back on
+// every call. Handles are per-connection — typically one per MC server
+// at mod init.
+
+use bevy_chat::ffi::{
+    ChatHandle, kbve_chat_connect, kbve_chat_disconnect, kbve_chat_is_connected, kbve_chat_poll,
+    kbve_chat_send,
+};
+use jni::sys::jlong;
+use std::ffi::CString;
+
+/// Helper: convert a Java string to a C string. Returns None on invalid UTF-8 or
+/// null reference, which the caller translates into a failure return code.
+fn jstring_to_cstring(env: &mut JNIEnv, s: &JString) -> Option<CString> {
+    if s.is_null() {
+        return None;
+    }
+    let rust_str: String = env.get_string(s).ok()?.into();
+    CString::new(rust_str).ok()
+}
+
+/// Connect to an IRC server. Returns an opaque handle encoded as a `jlong`,
+/// or `0` on failure. The handle must be freed via `disconnect`.
+///
+/// `password` and `channels` can be null / empty strings for defaults.
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_kbve_statetree_ChatBridge_connect(
+    mut env: JNIEnv,
+    _class: JClass,
+    host: JString,
+    port: jni::sys::jint,
+    tls: jni::sys::jboolean,
+    nick: JString,
+    password: JString,
+    channels: JString,
+) -> jlong {
+    let host_c = match jstring_to_cstring(&mut env, &host) {
+        Some(c) => c,
+        None => return 0,
+    };
+    let nick_c = match jstring_to_cstring(&mut env, &nick) {
+        Some(c) => c,
+        None => return 0,
+    };
+    let channels_c = match jstring_to_cstring(&mut env, &channels) {
+        Some(c) => c,
+        None => return 0,
+    };
+    // Password is optional — empty or null both mean "no PASS".
+    let password_c = jstring_to_cstring(&mut env, &password);
+    let password_ptr = password_c
+        .as_ref()
+        .map(|c| c.as_ptr())
+        .unwrap_or(std::ptr::null());
+
+    let mut handle: *mut ChatHandle = std::ptr::null_mut();
+    let rc = unsafe {
+        kbve_chat_connect(
+            host_c.as_ptr(),
+            port as u16,
+            if tls == 0 { 0 } else { 1 },
+            nick_c.as_ptr(),
+            password_ptr,
+            channels_c.as_ptr(),
+            &mut handle,
+        )
+    };
+    if rc == 0 { handle as jlong } else { 0 }
+}
+
+/// Send a structured chat message. Returns `true` on success.
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_kbve_statetree_ChatBridge_send(
+    mut env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+    kind: JString,
+    sender: JString,
+    platform: JString,
+    channel: JString,
+    content: JString,
+    payload_json: JString,
+) -> jboolean {
+    if handle == 0 {
+        return 0;
+    }
+    let kind_c = match jstring_to_cstring(&mut env, &kind) {
+        Some(c) => c,
+        None => return 0,
+    };
+    let sender_c = match jstring_to_cstring(&mut env, &sender) {
+        Some(c) => c,
+        None => return 0,
+    };
+    let platform_c = match jstring_to_cstring(&mut env, &platform) {
+        Some(c) => c,
+        None => return 0,
+    };
+    let channel_c = match jstring_to_cstring(&mut env, &channel) {
+        Some(c) => c,
+        None => return 0,
+    };
+    let content_c = match jstring_to_cstring(&mut env, &content) {
+        Some(c) => c,
+        None => return 0,
+    };
+    // Payload is optional — null Java string → null C pointer.
+    let payload_c = jstring_to_cstring(&mut env, &payload_json);
+    let payload_ptr = payload_c
+        .as_ref()
+        .map(|c| c.as_ptr())
+        .unwrap_or(std::ptr::null());
+
+    let rc = unsafe {
+        kbve_chat_send(
+            handle as *mut ChatHandle,
+            kind_c.as_ptr(),
+            sender_c.as_ptr(),
+            platform_c.as_ptr(),
+            channel_c.as_ptr(),
+            content_c.as_ptr(),
+            payload_ptr,
+        )
+    };
+    if rc == 0 { 1 } else { 0 }
+}
+
+/// Drain pending incoming messages as a JSON array string. Returns null on
+/// error; returns `"[]"` if the queue is empty. Buffer sizes up adaptively.
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_kbve_statetree_ChatBridge_poll(
+    env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+) -> jstring {
+    if handle == 0 {
+        return std::ptr::null_mut();
+    }
+    // Grow the buffer on each ERR_BUF_TOO_SMALL until it fits. Starting at
+    // 4KiB covers typical batches; ceiling at 1MiB guards against runaway
+    // payloads on misbehaving senders.
+    let mut cap: usize = 4096;
+    let ceiling: usize = 1 << 20;
+    loop {
+        let mut buf = vec![0i8; cap];
+        let rc = unsafe {
+            kbve_chat_poll(
+                handle as *mut ChatHandle,
+                buf.as_mut_ptr() as *mut std::ffi::c_char,
+                cap,
+            )
+        };
+        if rc >= 0 {
+            let len = rc as usize;
+            let json = match std::str::from_utf8(unsafe {
+                std::slice::from_raw_parts(buf.as_ptr() as *const u8, len)
+            }) {
+                Ok(s) => s,
+                Err(_) => return std::ptr::null_mut(),
+            };
+            return match env.new_string(json) {
+                Ok(js) => js.into_raw(),
+                Err(_) => std::ptr::null_mut(),
+            };
+        }
+        if rc == -2 && cap < ceiling {
+            cap = (cap * 2).min(ceiling);
+            continue;
+        }
+        // Any other error, or buffer grew past ceiling — give up.
+        return std::ptr::null_mut();
+    }
+}
+
+/// Returns `true` if the handle is currently connected to IRC.
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_kbve_statetree_ChatBridge_isConnected(
+    _env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+) -> jboolean {
+    if handle == 0 {
+        return 0;
+    }
+    let rc = unsafe { kbve_chat_is_connected(handle as *mut ChatHandle) };
+    if rc == 1 { 1 } else { 0 }
+}
+
+/// Close the connection and free the handle. Safe to call on a `0` handle.
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_kbve_statetree_ChatBridge_disconnect(
+    _env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+) {
+    if handle == 0 {
+        return;
+    }
+    unsafe { kbve_chat_disconnect(handle as *mut ChatHandle) };
+}
