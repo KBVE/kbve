@@ -47,9 +47,20 @@ namespace RareIcon
 
         protected override void OnDestroy()
         {
+            // Destroy entities and free per-chunk native lists
             foreach (var kvp in _loadedChunks)
-                if (kvp.Value.IsCreated) kvp.Value.Dispose();
+            {
+                if (kvp.Value.IsCreated)
+                {
+                    for (int i = 0; i < kvp.Value.Length; i++)
+                        if (EntityManager.Exists(kvp.Value[i]))
+                            EntityManager.DestroyEntity(kvp.Value[i]);
+                    kvp.Value.Dispose();
+                }
+            }
             _loadedChunks.Clear();
+            _pendingChunks.Clear();
+            Debug.Log("[HexChunkSystem] Disposed");
         }
 
         void InitRendering()

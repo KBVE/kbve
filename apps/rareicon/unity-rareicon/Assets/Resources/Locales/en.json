@@ -17,5 +17,8 @@
 	"biome.snow": "Frozen Tundra",
 	"biome.stone": "Rocky Highland",
 	"hex.coord": "Hex",
-	"hex.empty": "Open Sea"
+	"hex.empty": "Open Sea",
+	"hex.enter": "Enter",
+	"common.confirm": "Confirm",
+	"common.cancel": "Cancel"
 }

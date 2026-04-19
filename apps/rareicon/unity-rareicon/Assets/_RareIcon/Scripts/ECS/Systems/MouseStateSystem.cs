@@ -34,7 +34,10 @@ namespace RareIcon
             if (cam == null || mouse == null) return;
 
             var screenPos = mouse.position.ReadValue();
-            var worldPos = cam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0));
+            // For orthographic cameras, Z is the distance from camera to the plane we want.
+            // Camera is at Z=-10 looking at +Z, hex tiles are at Z=0 → distance is 10.
+            float zDist = math.abs(cam.transform.position.z);
+            var worldPos = cam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, zDist));
             float2 wp = new float2(worldPos.x, worldPos.y);
 
             // World to hex (pointy-top axial)

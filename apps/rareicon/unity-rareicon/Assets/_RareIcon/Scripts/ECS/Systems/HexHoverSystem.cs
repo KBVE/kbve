@@ -5,6 +5,7 @@ using Unity.Rendering;
 using Unity.Transforms;
 using MessagePipe;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
 
 namespace RareIcon
@@ -77,6 +78,22 @@ namespace RareIcon
             }
 
             var mouse = SystemAPI.GetSingleton<MouseState>();
+
+            // Detect click on RELEASE so the modal opens after mouse is up.
+            // This prevents the same press from being interpreted as a click
+            // on the modal's buttons when they appear under the cursor.
+            if (Mouse.current != null && Mouse.current.leftButton.wasReleasedThisFrame)
+            {
+                bool clickIsLand = _hexLookup.TryGetValue(mouse.HexCoord, out Entity clickedEntity);
+                byte clickBiome = 0;
+                if (clickIsLand)
+                    clickBiome = EntityManager.GetComponentData<BiomeType>(clickedEntity).Value;
+
+                GlobalMessagePipe.GetPublisher<HexClickedMessage>().Publish(
+                    new HexClickedMessage(mouse.HexCoord.x, mouse.HexCoord.y, clickBiome, clickIsLand)
+                );
+            }
+
             if (!mouse.Changed) return;
             if (mouse.HexCoord.Equals(_lastHex)) return;
             _lastHex = mouse.HexCoord;
