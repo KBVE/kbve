@@ -103,11 +103,11 @@ impl FlowField {
             if !grid.in_bounds(gx, gz) || !grid.is_walkable(gx, gz) {
                 continue;
             }
-            if let Some(i) = Self::idx(gx, gz, grid.origin_x, grid.origin_z, w, d) {
-                if cost[i] == UNREACHABLE {
-                    cost[i] = 0;
-                    queue.push_back((gx, gz));
-                }
+            if let Some(i) = Self::idx(gx, gz, grid.origin_x, grid.origin_z, w, d)
+                && cost[i] == UNREACHABLE
+            {
+                cost[i] = 0;
+                queue.push_back((gx, gz));
             }
         }
 

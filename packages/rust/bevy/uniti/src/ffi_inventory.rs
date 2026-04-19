@@ -1,3 +1,7 @@
+// FFI bridge for the inventory system (Unity / C# consumer).
+// Shared safety contract for `pub unsafe extern "C" fn` items is
+// documented at the crate root (src/lib.rs).
+
 use std::ffi::c_void;
 
 use bevy_inventory::{Inventory, ItemKind};
@@ -100,7 +104,7 @@ pub unsafe extern "C" fn uniti_inventory_free(inv: *mut c_void) {
 /// Add items to the inventory. Returns overflow count (0 = all fit).
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_add(inv: *mut c_void, item_id: u16, quantity: u32) -> u32 {
-    let inv = match to_inv_mut(inv) {
+    let inv = match unsafe { to_inv_mut(inv) } {
         Some(i) => i,
         None => return quantity,
     };
@@ -118,7 +122,7 @@ pub unsafe extern "C" fn uniti_inventory_remove(
     item_id: u16,
     quantity: u32,
 ) -> u32 {
-    let inv = match to_inv_mut(inv) {
+    let inv = match unsafe { to_inv_mut(inv) } {
         Some(i) => i,
         None => return 0,
     };
@@ -136,7 +140,7 @@ pub unsafe extern "C" fn uniti_inventory_remove(
 /// Count total quantity of an item kind.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_count(inv: *const c_void, item_id: u16) -> u32 {
-    let inv = match to_inv(inv) {
+    let inv = match unsafe { to_inv(inv) } {
         Some(i) => i,
         None => return 0,
     };
@@ -150,7 +154,7 @@ pub unsafe extern "C" fn uniti_inventory_count(inv: *const c_void, item_id: u16)
 /// Number of occupied slots.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_slot_count(inv: *const c_void) -> u32 {
-    match to_inv(inv) {
+    match unsafe { to_inv(inv) } {
         Some(i) => i.slot_count() as u32,
         None => 0,
     }
@@ -159,7 +163,7 @@ pub unsafe extern "C" fn uniti_inventory_slot_count(inv: *const c_void) -> u32 {
 /// Read a specific slot. Returns FfiSlot with valid=0 if out of bounds.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_get_slot(inv: *const c_void, index: u32) -> FfiSlot {
-    let inv = match to_inv(inv) {
+    let inv = match unsafe { to_inv(inv) } {
         Some(i) => i,
         None => {
             return FfiSlot {
@@ -190,7 +194,7 @@ pub unsafe extern "C" fn uniti_inventory_has_room(
     item_id: u16,
     quantity: u32,
 ) -> u8 {
-    let inv = match to_inv(inv) {
+    let inv = match unsafe { to_inv(inv) } {
         Some(i) => i,
         None => return 0,
     };
@@ -208,7 +212,7 @@ pub unsafe extern "C" fn uniti_inventory_has_room(
 /// Swap two slots. Returns 1 on success, 0 on failure.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_swap(inv: *mut c_void, a: u32, b: u32) -> u8 {
-    match to_inv_mut(inv) {
+    match unsafe { to_inv_mut(inv) } {
         Some(i) => i.swap_slots(a as usize, b as usize) as u8,
         None => 0,
     }
@@ -217,7 +221,7 @@ pub unsafe extern "C" fn uniti_inventory_swap(inv: *mut c_void, a: u32, b: u32) 
 /// Split a stack. Returns 1 on success, 0 on failure.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_split(inv: *mut c_void, slot: u32, quantity: u32) -> u8 {
-    match to_inv_mut(inv) {
+    match unsafe { to_inv_mut(inv) } {
         Some(i) => i.split_stack(slot as usize, quantity) as u8,
         None => 0,
     }
@@ -226,7 +230,7 @@ pub unsafe extern "C" fn uniti_inventory_split(inv: *mut c_void, slot: u32, quan
 /// Merge slot `from` into slot `to`. Returns items moved.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_merge(inv: *mut c_void, from: u32, to: u32) -> u32 {
-    match to_inv_mut(inv) {
+    match unsafe { to_inv_mut(inv) } {
         Some(i) => i.merge_slots(from as usize, to as usize),
         None => 0,
     }
@@ -235,7 +239,7 @@ pub unsafe extern "C" fn uniti_inventory_merge(inv: *mut c_void, from: u32, to: 
 /// Compact fragmented stacks.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_compact(inv: *mut c_void) {
-    if let Some(i) = to_inv_mut(inv) {
+    if let Some(i) = unsafe { to_inv_mut(inv) } {
         i.compact();
     }
 }
@@ -243,7 +247,7 @@ pub unsafe extern "C" fn uniti_inventory_compact(inv: *mut c_void) {
 /// Clear all items.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_clear(inv: *mut c_void) {
-    if let Some(i) = to_inv_mut(inv) {
+    if let Some(i) = unsafe { to_inv_mut(inv) } {
         i.clear();
     }
 }
