@@ -5,3 +5,4 @@ namespace: cityvote
 resources:
     - cityvote-deployment.yaml
     - httproute.yaml
+    - nginx-ingress.yaml
