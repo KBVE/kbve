@@ -17,6 +17,7 @@ COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
 COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
 COPY packages/rust/bevy/bevy_inventory/Cargo.toml packages/rust/bevy/bevy_inventory/Cargo.toml
 COPY packages/rust/bevy/bevy_items/Cargo.toml packages/rust/bevy/bevy_items/Cargo.toml
+COPY packages/rust/bevy/bevy_behavior/Cargo.toml packages/rust/bevy/bevy_behavior/Cargo.toml
 COPY packages/rust/bevy/bevy_battle/Cargo.toml packages/rust/bevy/bevy_battle/Cargo.toml
 COPY packages/rust/bevy/bevy_npc/Cargo.toml packages/rust/bevy/bevy_npc/Cargo.toml
 COPY packages/rust/bevy/bevy_quests/Cargo.toml packages/rust/bevy/bevy_quests/Cargo.toml
@@ -30,6 +31,7 @@ RUN mkdir -p apps/discordsh/discordsh-bot/src && echo "fn main() {}" > apps/disc
     mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_inventory/src && echo "" > packages/rust/bevy/bevy_inventory/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_items/src && echo "" > packages/rust/bevy/bevy_items/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_behavior/src && echo "" > packages/rust/bevy/bevy_behavior/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_battle/src && echo "" > packages/rust/bevy/bevy_battle/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_npc/src && echo "" > packages/rust/bevy/bevy_npc/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_quests/src && echo "" > packages/rust/bevy/bevy_quests/src/lib.rs && \
@@ -72,6 +74,7 @@ COPY packages/rust/jedi packages/rust/jedi
 COPY packages/rust/kbve packages/rust/kbve
 COPY packages/rust/bevy/bevy_inventory packages/rust/bevy/bevy_inventory
 COPY packages/rust/bevy/bevy_items packages/rust/bevy/bevy_items
+COPY packages/rust/bevy/bevy_behavior packages/rust/bevy/bevy_behavior
 COPY packages/rust/bevy/bevy_battle packages/rust/bevy/bevy_battle
 COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
 COPY packages/rust/bevy/bevy_quests packages/rust/bevy/bevy_quests
@@ -81,7 +84,7 @@ COPY packages/rust/bevy/bevy_chat packages/rust/bevy/bevy_chat
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    cargo build --release -p kbve -p jedi -p bevy_inventory -p bevy_items -p bevy_battle -p bevy_npc -p bevy_quests -p bevy_skills -p bevy_chat
+    cargo build --release -p kbve -p jedi -p bevy_inventory -p bevy_items -p bevy_behavior -p bevy_battle -p bevy_npc -p bevy_quests -p bevy_skills -p bevy_chat
 
 # ============================================================================
 # [STAGE D] - Build Application
@@ -98,6 +101,7 @@ COPY packages/rust/jedi packages/rust/jedi
 COPY packages/rust/kbve packages/rust/kbve
 COPY packages/rust/bevy/bevy_inventory packages/rust/bevy/bevy_inventory
 COPY packages/rust/bevy/bevy_items packages/rust/bevy/bevy_items
+COPY packages/rust/bevy/bevy_behavior packages/rust/bevy/bevy_behavior
 COPY packages/rust/bevy/bevy_battle packages/rust/bevy/bevy_battle
 COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
 COPY packages/rust/bevy/bevy_quests packages/rust/bevy/bevy_quests
