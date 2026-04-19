@@ -7880,6 +7880,7 @@ dependencies = [
  "anyhow",
  "axum 0.8.9",
  "axum-extra",
+ "bevy_chat",
  "dotenvy",
  "futures-util",
  "http-body-util",
