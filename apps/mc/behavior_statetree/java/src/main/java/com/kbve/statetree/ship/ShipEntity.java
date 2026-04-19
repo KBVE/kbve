@@ -3,6 +3,9 @@ package com.kbve.statetree.ship;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MovementType;
+import net.minecraft.entity.data.DataTracker;
+import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.storage.ReadView;
@@ -27,9 +30,13 @@ import java.util.UUID;
  */
 public class ShipEntity extends Entity {
 
+    // modelName is tracked so it auto-syncs to clients via vanilla entity
+    // tracking — the renderer reads it in updateRenderState().
+    private static final TrackedData<String> MODEL_NAME =
+            DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
+
     private String shipIdStr = "";
     private String ownerUuidStr = "";
-    private String modelName = "immersive_aircraft/airship";
     private float heading = 0.0f;
     private float targetSpeed = 0.0f;
 
@@ -56,11 +63,17 @@ public class ShipEntity extends Entity {
         this.ownerUuidStr = uuid != null ? uuid.toString() : "";
     }
 
-    public String getModelName() { return modelName; }
-    public void setModelName(String name) { this.modelName = name != null ? name : ""; }
+    public String getModelName() { return this.dataTracker.get(MODEL_NAME); }
+    public void setModelName(String name) {
+        this.dataTracker.set(MODEL_NAME, name != null ? name : "");
+    }
 
     public float getHeading() { return heading; }
-    public void setHeading(float heading) { this.heading = heading % 360; }
+    public void setHeading(float heading) {
+        this.heading = heading % 360;
+        // Mirror to vanilla yaw so entity tracking syncs rotation to clients.
+        this.setYaw(this.heading);
+    }
 
     public float getTargetSpeed() { return targetSpeed; }
     public void setTargetSpeed(float speed) { this.targetSpeed = Math.max(0, speed); }
@@ -98,6 +111,10 @@ public class ShipEntity extends Entity {
     public void tick() {
         super.tick();
 
+        // Keep vanilla yaw in sync with our heading (important for clients
+        // that only see the entity via standard tracking — they use getYaw()).
+        this.setYaw(heading);
+
         if (targetSpeed <= 0.0f) return;
         if (!this.hasPassengers()) return;
         Entity rider = this.getFirstPassenger();
@@ -129,13 +146,14 @@ public class ShipEntity extends Entity {
 
     @Override
     protected void initDataTracker(net.minecraft.entity.data.DataTracker.Builder builder) {
+        builder.add(MODEL_NAME, "immersive_aircraft/airship");
     }
 
     @Override
     public void readCustomData(ReadView view) {
         this.shipIdStr = view.getString("ShipId", "");
         this.ownerUuidStr = view.getString("OwnerUuid", "");
-        this.modelName = view.getString("ModelName", "immersive_aircraft/airship");
+        setModelName(view.getString("ModelName", "immersive_aircraft/airship"));
         this.heading = view.getFloat("Heading", 0.0f);
         this.targetSpeed = view.getFloat("TargetSpeed", 0.0f);
     }
@@ -144,7 +162,7 @@ public class ShipEntity extends Entity {
     public void writeCustomData(WriteView view) {
         view.putString("ShipId", shipIdStr);
         view.putString("OwnerUuid", ownerUuidStr);
-        view.putString("ModelName", modelName);
+        view.putString("ModelName", getModelName());
         view.putFloat("Heading", heading);
         view.putFloat("TargetSpeed", targetSpeed);
     }
