@@ -178,6 +178,22 @@ namespace RareIcon
             return s;
         }
 
+        public static IStyle AnchorTopRight(this IStyle s, float marginPct = 2f)
+        {
+            s.position = Position.Absolute;
+            s.top      = new Length(marginPct, LengthUnit.Percent);
+            s.right    = new Length(marginPct, LengthUnit.Percent);
+            return s;
+        }
+
+        public static IStyle AnchorBottomLeft(this IStyle s, float marginPct = 2f)
+        {
+            s.position = Position.Absolute;
+            s.bottom   = new Length(marginPct, LengthUnit.Percent);
+            s.left     = new Length(marginPct, LengthUnit.Percent);
+            return s;
+        }
+
         // -- NieR/YoRHA primitives --
         // Visual atoms borrowed from the NieR design system. Use these
         // instead of raw labels when you want the YoRHA look.

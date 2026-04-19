@@ -99,76 +99,48 @@ namespace RareIcon
 
         void BuildUI(VisualElement parent)
         {
-            _root = new VisualElement();
-            _root.style.position = Position.Absolute;
-            _root.style.top = new Length(2, LengthUnit.Percent);
-            _root.style.right = new Length(2, LengthUnit.Percent);
+            _root = new VisualElement().ApplyPanelChrome(padV: 12, padH: 14);
+            _root.style.AnchorTopRight();
             _root.style.width = 320;
-            _root.style.backgroundColor = new Color(0.06f, 0.08f, 0.14f, 0.96f);
-            _root.style.paddingTop = 12;
-            _root.style.paddingBottom = 12;
-            _root.style.paddingLeft = 14;
-            _root.style.paddingRight = 14;
-            _root.style.borderTopLeftRadius = 8;
-            _root.style.borderTopRightRadius = 8;
-            _root.style.borderBottomLeftRadius = 8;
-            _root.style.borderBottomRightRadius = 8;
-            var border = new Color(0.3f, 0.55f, 0.85f, 0.7f);
-            _root.style.borderTopColor = border;
-            _root.style.borderBottomColor = border;
-            _root.style.borderLeftColor = border;
-            _root.style.borderRightColor = border;
-            _root.style.borderTopWidth = 1;
-            _root.style.borderBottomWidth = 1;
-            _root.style.borderLeftWidth = 1;
-            _root.style.borderRightWidth = 1;
+            _root.style.display = DisplayStyle.None;
             // Stop world clicks from leaking through the panel area.
             _root.RegisterCallback<ClickEvent>(e => e.StopPropagation());
 
-            // Title row
+            // Title row — marker square + title on the left, × close button right.
             var titleRow = new VisualElement();
             titleRow.style.flexDirection = FlexDirection.Row;
             titleRow.style.justifyContent = Justify.SpaceBetween;
             titleRow.style.alignItems = Align.Center;
-            titleRow.style.marginBottom = 10;
+            titleRow.style.marginBottom = 8;
 
-            var title = new Label("World Search");
-            title.style.color = Color.white;
-            title.style.fontSize = 16;
-            title.style.unityFontStyleAndWeight = FontStyle.Bold;
+            titleRow.Add(UIStyles.MakeMarkerRow("World Search", fontSize: 16));
 
-            _closeButton = new Button(Close) { text = "×" };
+            _closeButton = UIStyles.MakeYorhaButton("\u00D7", Close);
             _closeButton.style.width = 24;
             _closeButton.style.height = 24;
+            _closeButton.style.Padding(0);
             _closeButton.style.fontSize = 16;
-            _closeButton.style.backgroundColor = new Color(0.25f, 0.25f, 0.30f, 1f);
-            _closeButton.style.color = Color.white;
-
-            titleRow.Add(title);
             titleRow.Add(_closeButton);
             _root.Add(titleRow);
+            _root.Add(UIStyles.MakeStrip());
 
             BuildGotoSection();
             BuildDivider();
             BuildSearchSection();
 
             _resultLabel = new Label("");
-            _resultLabel.style.color = new Color(0.75f, 0.85f, 0.95f, 1f);
+            _resultLabel.style.color = UIStyles.Palette.TextMuted;
             _resultLabel.style.fontSize = 12;
             _resultLabel.style.marginTop = 8;
             _resultLabel.style.whiteSpace = WhiteSpace.Normal;
             _root.Add(_resultLabel);
 
             parent.Add(_root);
-            _root.style.display = DisplayStyle.None;
         }
 
         void BuildGotoSection()
         {
-            var heading = new Label("Go to Coordinate");
-            heading.style.color = new Color(0.65f, 0.80f, 0.95f, 1f);
-            heading.style.fontSize = 13;
-            heading.style.unityFontStyleAndWeight = FontStyle.Bold;
+            var heading = UIStyles.MakeHeading("Go to Coordinate", fontSize: 13);
             heading.style.marginBottom = 6;
             _root.Add(heading);
 
@@ -183,11 +155,9 @@ namespace RareIcon
             _rField.style.width = 90;
             _rField.style.marginRight = 6;
 
-            _goButton = new Button(OnGoClicked) { text = "Go" };
+            _goButton = UIStyles.MakeYorhaButton("Go", OnGoClicked);
             _goButton.style.height = 26;
             _goButton.style.flexGrow = 1;
-            _goButton.style.backgroundColor = new Color(0.20f, 0.45f, 0.30f, 1f);
-            _goButton.style.color = Color.white;
 
             row.Add(_qField);
             row.Add(_rField);
@@ -197,10 +167,7 @@ namespace RareIcon
 
         void BuildSearchSection()
         {
-            var heading = new Label("Find Biome");
-            heading.style.color = new Color(0.65f, 0.80f, 0.95f, 1f);
-            heading.style.fontSize = 13;
-            heading.style.unityFontStyleAndWeight = FontStyle.Bold;
+            var heading = UIStyles.MakeHeading("Find Biome", fontSize: 13);
             heading.style.marginBottom = 6;
             _root.Add(heading);
 
@@ -220,17 +187,19 @@ namespace RareIcon
             _radiusField.style.width = 130;
             _radiusField.style.marginRight = 6;
 
-            _findButton = new Button(OnFindClicked) { text = "Find" };
+            _findButton = UIStyles.MakeYorhaButton("Find", OnFindClicked);
             _findButton.style.height = 26;
             _findButton.style.flexGrow = 1;
-            _findButton.style.backgroundColor = new Color(0.20f, 0.40f, 0.65f, 1f);
-            _findButton.style.color = Color.white;
 
-            _cancelButton = new Button(OnCancelClicked) { text = "Cancel" };
+            // Cancel uses the alert palette so it reads as a destructive action.
+            _cancelButton = UIStyles.MakeYorhaButton("Cancel", OnCancelClicked);
             _cancelButton.style.height = 26;
             _cancelButton.style.marginLeft = 6;
-            _cancelButton.style.backgroundColor = new Color(0.40f, 0.20f, 0.20f, 1f);
-            _cancelButton.style.color = Color.white;
+            _cancelButton.style.borderTopColor = UIStyles.Palette.Alert;
+            _cancelButton.style.borderBottomColor = UIStyles.Palette.Alert;
+            _cancelButton.style.borderLeftColor = UIStyles.Palette.Alert;
+            _cancelButton.style.borderRightColor = UIStyles.Palette.Alert;
+            _cancelButton.style.color = UIStyles.Palette.Alert;
             _cancelButton.style.display = DisplayStyle.None;
 
             row.Add(_radiusField);
@@ -239,15 +208,7 @@ namespace RareIcon
             _root.Add(row);
         }
 
-        void BuildDivider()
-        {
-            var divider = new VisualElement();
-            divider.style.height = 1;
-            divider.style.backgroundColor = new Color(0.3f, 0.4f, 0.55f, 0.5f);
-            divider.style.marginTop = 10;
-            divider.style.marginBottom = 10;
-            _root.Add(divider);
-        }
+        void BuildDivider() => _root.Add(UIStyles.MakeStrip(thickness: 1));
 
         void OnGoClicked()
         {
