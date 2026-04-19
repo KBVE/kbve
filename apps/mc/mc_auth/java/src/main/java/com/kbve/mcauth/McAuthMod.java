@@ -52,6 +52,7 @@ public class McAuthMod implements ModInitializer {
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             LinkCommand.register(dispatcher);
+            ChatTokenCommand.register(dispatcher);
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {

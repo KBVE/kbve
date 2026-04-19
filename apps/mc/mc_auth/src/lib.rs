@@ -18,6 +18,7 @@
 //! downgraded to a graceful `Unlinked` event so players are never kicked.
 
 pub mod agones;
+pub mod chat_jwt;
 pub mod runtime;
 pub mod supabase;
 pub mod types;
@@ -136,6 +137,43 @@ pub extern "system" fn Java_com_kbve_mcauth_NativeRuntime_shutdown(
     }
 }
 
+/// Mint a short-lived HS256 JWT for the `/minechat` gateway.
+///
+/// Returns a JSON object — either `{"token":"<jwt>","expires_in":300}`
+/// on success or `{"error":"<reason>"}` on any failure. Java consumes
+/// this as-is (no async queue involved; minting is local and fast).
+///
+/// Why JSON and not just the raw token: the Java side surfaces errors
+/// to the player directly, so we need a stable shape that distinguishes
+/// "signing key not configured" (retry later) from "mint succeeded"
+/// without relying on out-of-band error codes.
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_kbve_mcauth_NativeRuntime_mintChatToken<'local>(
+    mut env: JNIEnv<'local>,
+    _class: JClass<'local>,
+    uuid: JString<'local>,
+    username: JString<'local>,
+) -> jstring {
+    let mc_uuid: String = match env.get_string(&uuid) {
+        Ok(s) => s.into(),
+        Err(_) => {
+            return make_chat_jstring(&mut env, ChatMintResult::err("invalid uuid string"));
+        }
+    };
+    let mc_username: String = match env.get_string(&username) {
+        Ok(s) => s.into(),
+        Err(_) => {
+            return make_chat_jstring(&mut env, ChatMintResult::err("invalid username string"));
+        }
+    };
+
+    let response = match chat_jwt::mint(&mc_uuid, &mc_username) {
+        Ok(token) => ChatMintResult::ok(token),
+        Err(e) => ChatMintResult::err(e.to_string()),
+    };
+    make_chat_jstring(&mut env, response)
+}
+
 // -----------------------------------------------------------------------
 // Helpers
 // -----------------------------------------------------------------------
@@ -145,5 +183,44 @@ fn make_jstring(env: &mut JNIEnv, response: &AuthResponse) -> jstring {
         serde_json::to_string(response).unwrap_or_else(|_| "{\"status\":\"error\"}".to_string());
     env.new_string(&json)
         .expect("failed to create auth response JSON string")
+        .into_raw()
+}
+
+/// Minimal result shape for `mintChatToken`. Kept out of `types.rs`
+/// because it doesn't participate in the AuthJob / PlayerEvent pipeline —
+/// minting is strictly synchronous and local to the JNI call.
+#[derive(serde::Serialize)]
+struct ChatMintResult {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    token: Option<String>,
+    /// Seconds until the minted token expires. Present on success only.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    expires_in: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    error: Option<String>,
+}
+
+impl ChatMintResult {
+    fn ok(token: String) -> Self {
+        Self {
+            token: Some(token),
+            expires_in: Some(300),
+            error: None,
+        }
+    }
+    fn err(msg: impl Into<String>) -> Self {
+        Self {
+            token: None,
+            expires_in: None,
+            error: Some(msg.into()),
+        }
+    }
+}
+
+fn make_chat_jstring(env: &mut JNIEnv, response: ChatMintResult) -> jstring {
+    let json = serde_json::to_string(&response)
+        .unwrap_or_else(|_| "{\"error\":\"serialize\"}".to_string());
+    env.new_string(&json)
+        .expect("failed to create chat mint response JSON string")
         .into_raw()
 }
