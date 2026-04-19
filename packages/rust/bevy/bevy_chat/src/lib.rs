@@ -57,3 +57,12 @@ pub use client_wasm::ChatClient;
 mod plugin;
 #[cfg(feature = "plugin")]
 pub use plugin::{ChatInbox, ChatOutbox, ChatPlugin, IncomingChatEvent};
+
+// ── Optional C-FFI surface (native only) ──────────────────────────────
+//
+// Exposes `extern "C"` functions usable from JNI (MC Fabric) and
+// csbindgen (Unity). Native-only — WASM consumers use `ChatClient`
+// directly via wasm-bindgen.
+
+#[cfg(all(feature = "ffi", not(target_arch = "wasm32")))]
+pub mod ffi;
