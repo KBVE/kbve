@@ -16,15 +16,27 @@ namespace RareIcon
     }
 
     /// <summary>
-    /// Per-creature defaults — base stats + default loadout + locale key.
-    /// UnitSpawnSystem pulls these so spawn code stays generic; per-instance
-    /// jitter (speed, RNG seed) layers on top at spawn time.
+    /// Per-creature defaults — base stats + attributes + default loadout +
+    /// locale key. UnitSpawnSystem pulls these so spawn code stays generic;
+    /// per-instance jitter (speed, RNG seed) layers on top at spawn time.
+    ///
+    /// Two stat tiers:
+    ///   - Vital stats (MaxHealth/Energy/Mana + regen) → become Health /
+    ///     Energy / Mana IComponentData on the spawned entity (composed by
+    ///     presence — Max=0 → component skipped).
+    ///   - Attributes (Strength / Agility / Intellect / Will) → spec data
+    ///     for now; will become a single Attributes IComponentData when the
+    ///     first gameplay system reads them (combat / magic / etc.). Stored
+    ///     as bytes so a creature sheet stays small; most values sit 1..20,
+    ///     boss / legendary can run higher (cap is 255).
     /// </summary>
     public readonly struct NPCDef
     {
         public readonly byte UnitType;
         public readonly string NameKey;
         public readonly NPCCategory Category;
+
+        // ---- Vital stats ----
         public readonly float MaxHealth;
         public readonly float MaxEnergy;
         public readonly float MaxMana;       // 0 = creature has no mana stat
@@ -32,12 +44,21 @@ namespace RareIcon
         public readonly float HealthRegen;   // per-second; 0 = no regen component
         public readonly float EnergyRegen;
         public readonly float ManaRegen;
+
+        // ---- Attributes ----
+        public readonly byte Strength;       // melee damage, carry weight
+        public readonly byte Agility;        // move-speed mod, dodge, ranged accuracy
+        public readonly byte Intellect;      // spell damage, mana scaling
+        public readonly byte Will;           // magic resistance, mana regen rate
+
+        // ---- Loadout ----
         public readonly byte DefaultWeapon;  // WeaponType.* constant
 
         public NPCDef(byte unitType, string nameKey, NPCCategory category,
                       float maxHealth, float maxEnergy, float maxMana,
                       float moveSpeed,
                       float healthRegen, float energyRegen, float manaRegen,
+                      byte strength, byte agility, byte intellect, byte will,
                       byte defaultWeapon)
         {
             UnitType    = unitType;
@@ -50,6 +71,10 @@ namespace RareIcon
             HealthRegen = healthRegen;
             EnergyRegen = energyRegen;
             ManaRegen   = manaRegen;
+            Strength    = strength;
+            Agility     = agility;
+            Intellect   = intellect;
+            Will        = will;
             DefaultWeapon = defaultWeapon;
         }
     }
@@ -85,7 +110,70 @@ namespace RareIcon
                 healthRegen:   0.5f,
                 energyRegen:   5.0f,
                 manaRegen:     0f,
+                // Weak, scrappy, dumb — but quick on their feet.
+                strength:      8,
+                agility:       12,
+                intellect:     4,
+                will:          5,
                 defaultWeapon: WeaponType.Club));
+
+            // Heavy human infantry — plate armour, closed helm. Tanks the
+            // front line; trades speed + agility for bulk HP and strength.
+            // DefaultWeapon stays None until HexSword.hlsl lands.
+            Add(new NPCDef(
+                unitType:      UnitType.Knight,
+                nameKey:       "creature.knight",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     120f,
+                maxEnergy:     120f,
+                maxMana:       0f,
+                moveSpeed:     0.55f,
+                healthRegen:   1.0f,
+                energyRegen:   4.0f,
+                manaRegen:     0f,
+                strength:      16,
+                agility:       8,
+                intellect:     8,
+                will:          11,
+                defaultWeapon: WeaponType.None));
+
+            // Light human infantry — leather vest over cloth shirt. Middle
+            // of the road: decent HP, good stamina, balanced attributes.
+            Add(new NPCDef(
+                unitType:      UnitType.Soldier,
+                nameKey:       "creature.soldier",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     70f,
+                maxEnergy:     140f,
+                maxMana:       0f,
+                moveSpeed:     0.8f,
+                healthRegen:   0.8f,
+                energyRegen:   6.0f,
+                manaRegen:     0f,
+                strength:      12,
+                agility:       12,
+                intellect:     9,
+                will:          9,
+                defaultWeapon: WeaponType.None));
+
+            // Robed caster — low HP, carries mana, average movement. Glass
+            // cannon profile: high intellect + will, poor physical stats.
+            Add(new NPCDef(
+                unitType:      UnitType.Mage,
+                nameKey:       "creature.mage",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     45f,
+                maxEnergy:     80f,
+                maxMana:       150f,
+                moveSpeed:     0.65f,
+                healthRegen:   0.4f,
+                energyRegen:   3.0f,
+                manaRegen:     4.0f,
+                strength:      6,
+                agility:       9,
+                intellect:     17,
+                will:          15,
+                defaultWeapon: WeaponType.None));
 
             // Future creatures land here — Wolf, Skeleton, GoblinShaman, etc.
         }
@@ -105,7 +193,8 @@ namespace RareIcon
             if (def.NameKey == null)
                 return new NPCDef(unitType, "creature.unknown",
                     NPCCategory.Humanoid, 10f, 10f, 0f, 0.5f, 0f, 0f, 0f,
-                    WeaponType.None);
+                    strength: 10, agility: 10, intellect: 10, will: 10,
+                    defaultWeapon: WeaponType.None);
             return def;
         }
     }
