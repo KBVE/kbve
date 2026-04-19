@@ -15,11 +15,15 @@ public final class ShipEntityTypes {
 
     private static final Identifier SHIP_ID = Identifier.of("behavior_statetree", "ship");
 
+    // 5x2 hitbox — covers a small airship deck. The BBModel visual may
+    // extend further (sails, masts, propellers) but this is the solid
+    // footprint players collide with and can stand on. Per-model
+    // dimension overrides can come later.
     public static final EntityType<ShipEntity> SHIP = Registry.register(
             Registries.ENTITY_TYPE,
             SHIP_ID,
             EntityType.Builder.<ShipEntity>create(ShipEntity::new, SpawnGroup.MISC)
-                    .dimensions(1.0f, 1.0f)
+                    .dimensions(5.0f, 2.0f)
                     .maxTrackingRange(128)
                     .trackingTickInterval(1)
                     .build(RegistryKey.of(RegistryKeys.ENTITY_TYPE, SHIP_ID))

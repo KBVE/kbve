@@ -30,9 +30,11 @@ import java.util.UUID;
  */
 public class ShipEntity extends Entity {
 
-    // modelName is tracked so it auto-syncs to clients via vanilla entity
-    // tracking — the renderer reads it in updateRenderState().
+    // Tracked data syncs to clients via vanilla entity tracking.
+    // Avoids the need for custom Spawn/Status network payloads.
     private static final TrackedData<String> MODEL_NAME =
+            DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
+    private static final TrackedData<String> SHIP_NAME =
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
 
     private String shipIdStr = "";
@@ -68,6 +70,11 @@ public class ShipEntity extends Entity {
         this.dataTracker.set(MODEL_NAME, name != null ? name : "");
     }
 
+    public String getShipName() { return this.dataTracker.get(SHIP_NAME); }
+    public void setShipName(String name) {
+        this.dataTracker.set(SHIP_NAME, name != null ? name : "");
+    }
+
     public float getHeading() { return heading; }
     public void setHeading(float heading) {
         this.heading = heading % 360;
@@ -85,6 +92,23 @@ public class ShipEntity extends Entity {
                           net.minecraft.entity.damage.DamageSource source,
                           float amount) {
         return false;
+    }
+
+    // -- Collision ----------------------------------------------------------
+    //
+    // Ships are solid — other entities collide with the hitbox and players
+    // can stand on the deck. The entity dimensions (set in ShipEntityTypes)
+    // define the AABB; BBModel visuals may extend beyond it, but the
+    // collision box is the simplified solid footprint.
+
+    @Override
+    public boolean isCollidable(Entity other) {
+        return true;
+    }
+
+    @Override
+    public boolean canHit() {
+        return true;
     }
 
     // -- Interaction --------------------------------------------------------
@@ -147,6 +171,7 @@ public class ShipEntity extends Entity {
     @Override
     protected void initDataTracker(net.minecraft.entity.data.DataTracker.Builder builder) {
         builder.add(MODEL_NAME, "immersive_aircraft/airship");
+        builder.add(SHIP_NAME, "");
     }
 
     @Override
@@ -154,6 +179,7 @@ public class ShipEntity extends Entity {
         this.shipIdStr = view.getString("ShipId", "");
         this.ownerUuidStr = view.getString("OwnerUuid", "");
         setModelName(view.getString("ModelName", "immersive_aircraft/airship"));
+        setShipName(view.getString("ShipName", ""));
         this.heading = view.getFloat("Heading", 0.0f);
         this.targetSpeed = view.getFloat("TargetSpeed", 0.0f);
     }
@@ -163,6 +189,7 @@ public class ShipEntity extends Entity {
         view.putString("ShipId", shipIdStr);
         view.putString("OwnerUuid", ownerUuidStr);
         view.putString("ModelName", getModelName());
+        view.putString("ShipName", getShipName());
         view.putFloat("Heading", heading);
         view.putFloat("TargetSpeed", targetSpeed);
     }
