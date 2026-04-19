@@ -43,6 +43,18 @@ spec:
           ports:
               - port: 25575
                 protocol: TCP
+        # axum-kbve (kbve namespace) → RCON for the /api/v1/mc/players
+        # endpoint on kbve.com/mc/players.
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: kbve
+                podSelector:
+                    matchLabels:
+                        app: kbve
+          ports:
+              - port: 25575
+                protocol: TCP
         # MC pods talking to each other → RCON
         - from:
               - podSelector:

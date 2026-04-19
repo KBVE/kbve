@@ -129,6 +129,20 @@ spec:
                         value: '/etc/ssl/webtransport-selfsigned/tls.key'
                       - name: CHUCKRPG_UPSTREAM_URL
                         value: 'http://rows.ows.svc.cluster.local:4322'
+                      # MC RCON — drives the /api/v1/mc/players endpoint
+                      # (kbve.com/mc/players). Service DNS resolves to the
+                      # current Agones lobby pod. Password synced from the
+                      # mc namespace via ExternalSecret — single source of
+                      # truth in mc/mc-rcon-password SealedSecret.
+                      - name: MC_RCON_HOST
+                        value: 'mc-lobby-backend.arc-runners.svc.cluster.local'
+                      - name: MC_RCON_PORT
+                        value: '25575'
+                      - name: MC_RCON_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: mc-rcon-credentials
+                                key: rcon-password
                   volumeMounts:
                       - name: argocd-ca
                         mountPath: /etc/ssl/argocd
