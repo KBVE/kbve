@@ -122,7 +122,14 @@ namespace RareIcon
                 WanderStep  = 0u,
                 DwellTimer  = (rngSeed % 100u) / 200f,
                 LastDir     = 255,
+                LastHarvestStep = uint.MaxValue, // != WanderStep so first arrival can harvest
             });
+
+            // Empty inventory buffer — HarvestSystem fills it as the unit
+            // wanders onto resource hexes. Same buffer shape any future
+            // entity (player, chest, NPC) carries.
+            em.AddBuffer<InventorySlot>(entity);
+
             em.AddComponent<UnitTestTag>(entity);
 
             RenderMeshUtility.AddComponents(

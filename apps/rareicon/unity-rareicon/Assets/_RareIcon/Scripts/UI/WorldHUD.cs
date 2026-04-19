@@ -31,6 +31,7 @@ namespace RareIcon
         Label _hexCoord;
         Label _creatureLine;
         Label _statsLine;
+        Label _inventoryLine;
         Label _resourceLine;
 
         [Inject]
@@ -145,6 +146,12 @@ namespace RareIcon
             _statsLine.style.marginTop = 2;
             _statsLine.pickingMode = PickingMode.Ignore;
 
+            _inventoryLine = new Label("");
+            _inventoryLine.style.color = new Color(0.85f, 0.75f, 0.95f, 1f);
+            _inventoryLine.style.fontSize = 12;
+            _inventoryLine.style.marginTop = 2;
+            _inventoryLine.pickingMode = PickingMode.Ignore;
+
             _resourceLine = new Label("");
             _resourceLine.style.color = new Color(0.85f, 0.80f, 0.55f, 1f);
             _resourceLine.style.fontSize = 13;
@@ -155,6 +162,7 @@ namespace RareIcon
             _hoverPanel.Add(_hexCoord);
             _hoverPanel.Add(_creatureLine);
             _hoverPanel.Add(_statsLine);
+            _hoverPanel.Add(_inventoryLine);
             _hoverPanel.Add(_resourceLine);
             root.Add(_hoverPanel);
         }
@@ -222,6 +230,29 @@ namespace RareIcon
                 _statsLine.style.display = DisplayStyle.None;
             }
 
+            // Inventory line — first 4 slots from HexHoverSystem's sweep.
+            // Empty slots have ItemId == 0 and are skipped by AppendInvSlot.
+            bool anyInv = (msg.UnitInvCount0 | msg.UnitInvCount1 |
+                           msg.UnitInvCount2 | msg.UnitInvCount3) != 0;
+            if (msg.UnitType != UnitType.None && anyInv)
+            {
+                var sb = ZString.CreateStringBuilder();
+                try
+                {
+                    AppendInvSlot(ref sb, msg.UnitInvId0, msg.UnitInvCount0);
+                    AppendInvSlot(ref sb, msg.UnitInvId1, msg.UnitInvCount1);
+                    AppendInvSlot(ref sb, msg.UnitInvId2, msg.UnitInvCount2);
+                    AppendInvSlot(ref sb, msg.UnitInvId3, msg.UnitInvCount3);
+                    _inventoryLine.text = sb.ToString();
+                }
+                finally { sb.Dispose(); }
+                _inventoryLine.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                _inventoryLine.style.display = DisplayStyle.None;
+            }
+
             if (msg.IsLand && (msg.Wood | msg.Stone | msg.Berries | msg.Mushrooms | msg.Herbs) != 0)
             {
                 // ZString builder appends mutate the struct, so it can't be a
@@ -255,6 +286,17 @@ namespace RareIcon
             sb.Append(_locale.GetResourceName(type));
             sb.Append(": ");
             sb.Append(amount);
+        }
+
+        // Appends "Name × Count" — skips empty slots (ItemId == 0) so the
+        // sparse 4-slot snapshot displays cleanly.
+        void AppendInvSlot(ref Utf16ValueStringBuilder sb, ushort itemId, ushort count)
+        {
+            if (itemId == 0 || count == 0) return;
+            if (sb.Length > 0) sb.Append(", ");
+            sb.Append(_locale.GetItemName(itemId));
+            sb.Append(" \u00D7 ");
+            sb.Append(count);
         }
 
         // Appends "LABEL Value/Max" — values rounded to ints for HUD display

@@ -17,9 +17,13 @@ namespace RareIcon
         IronArmor = 102,
 
         // Materials
-        WoodLog = 200,
-        IronOre = 201,
-        Crystal = 202,
+        WoodLog   = 200,
+        IronOre   = 201,
+        Crystal   = 202,
+        Stone     = 203,
+        Berry     = 204,
+        Mushroom  = 205,
+        Herb      = 206,
 
         // Quest
         QuestScroll = 300,
