@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.108",
+			"version": "1.0.114",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -12,6 +12,18 @@
 			"image": "kbve/kbve",
 			"e2e_name": "axum-kbve-e2e",
 			"deployment_yaml": "apps/kube/kbve/manifest/kbve-deployment.yaml",
+			"has_test": true
+		},
+		{
+			"key": "aria2_proxy",
+			"app_name": "aria2-proxy",
+			"version": "0.1.0",
+			"version_toml": "apps/vm/aria2-proxy/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/aria2-proxy.mdx",
+			"source_path": "apps/vm/aria2-proxy",
+			"runner": "arc-runner-set",
+			"image": "kbve/aria2-proxy",
+			"e2e_name": "aria2-proxy-e2e",
 			"has_test": true
 		},
 		{
@@ -123,6 +135,18 @@
 			"has_test": true
 		},
 		{
+			"key": "iot_edge_worker",
+			"app_name": "iot-edge-worker",
+			"version": "0.0.1",
+			"version_toml": "apps/vm/iot/edge-worker/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/iot-edge-worker.mdx",
+			"version_target": "apps/vm/iot/edge-worker/version.toml",
+			"source_path": "apps/vm/iot/edge-worker",
+			"runner": "arc-runner-set",
+			"image": "kbve/iot-edge-worker",
+			"has_test": false
+		},
+		{
 			"key": "irc_gateway",
 			"app_name": "irc-gateway",
 			"version": "0.1.10",
@@ -162,7 +186,7 @@
 		{
 			"key": "mc",
 			"app_name": "mc",
-			"version": "1.0.12",
+			"version": "1.0.24",
 			"version_toml": "apps/mc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
 			"source_path": "apps/mc",
@@ -175,7 +199,7 @@
 		{
 			"key": "mc_lobby",
 			"app_name": "mc-lobby",
-			"version": "1.0.1",
+			"version": "1.0.4",
 			"version_toml": "apps/mc/lobby/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc-lobby.mdx",
 			"source_path": "apps/mc/lobby",
@@ -188,7 +212,7 @@
 		{
 			"key": "mc_velocity",
 			"app_name": "mc-velocity",
-			"version": "1.0.1",
+			"version": "1.0.3",
 			"version_toml": "apps/mc/velocity/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc-velocity.mdx",
 			"source_path": "apps/mc/velocity",
@@ -489,12 +513,12 @@
 		}
 	],
 	"summary": {
-		"docker": 17,
+		"docker": 19,
 		"npm": 4,
 		"crates": 18,
 		"python": 2,
 		"unreal": 6,
 		"ue5_server": 2,
-		"total": 49
+		"total": 51
 	}
 }
