@@ -30,6 +30,7 @@ namespace RareIcon
         Label _biomeName;
         Label _hexCoord;
         Label _creatureLine;
+        Label _statsLine;
         Label _resourceLine;
 
         [Inject]
@@ -138,6 +139,12 @@ namespace RareIcon
             _creatureLine.style.unityFontStyleAndWeight = FontStyle.Bold;
             _creatureLine.pickingMode = PickingMode.Ignore;
 
+            _statsLine = new Label("");
+            _statsLine.style.color = new Color(0.75f, 0.90f, 0.85f, 1f);
+            _statsLine.style.fontSize = 12;
+            _statsLine.style.marginTop = 2;
+            _statsLine.pickingMode = PickingMode.Ignore;
+
             _resourceLine = new Label("");
             _resourceLine.style.color = new Color(0.85f, 0.80f, 0.55f, 1f);
             _resourceLine.style.fontSize = 13;
@@ -147,6 +154,7 @@ namespace RareIcon
             _hoverPanel.Add(_biomeName);
             _hoverPanel.Add(_hexCoord);
             _hoverPanel.Add(_creatureLine);
+            _hoverPanel.Add(_statsLine);
             _hoverPanel.Add(_resourceLine);
             root.Add(_hoverPanel);
         }
@@ -187,10 +195,31 @@ namespace RareIcon
             {
                 _creatureLine.text = _locale.GetCreatureName(msg.UnitType);
                 _creatureLine.style.display = DisplayStyle.Flex;
+
+                // Stats line — only includes stats the unit actually carries
+                // (Max == 0 → not present → skipped). Floats rounded for HUD.
+                var sb = ZString.CreateStringBuilder();
+                try
+                {
+                    AppendStat(ref sb, "HP", msg.UnitHealth, msg.UnitMaxHealth);
+                    AppendStat(ref sb, "EN", msg.UnitEnergy, msg.UnitMaxEnergy);
+                    AppendStat(ref sb, "MP", msg.UnitMana,   msg.UnitMaxMana);
+                    if (sb.Length > 0)
+                    {
+                        _statsLine.text = sb.ToString();
+                        _statsLine.style.display = DisplayStyle.Flex;
+                    }
+                    else
+                    {
+                        _statsLine.style.display = DisplayStyle.None;
+                    }
+                }
+                finally { sb.Dispose(); }
             }
             else
             {
                 _creatureLine.style.display = DisplayStyle.None;
+                _statsLine.style.display = DisplayStyle.None;
             }
 
             if (msg.IsLand && (msg.Wood | msg.Stone | msg.Berries | msg.Mushrooms | msg.Herbs) != 0)
@@ -226,6 +255,20 @@ namespace RareIcon
             sb.Append(_locale.GetResourceName(type));
             sb.Append(": ");
             sb.Append(amount);
+        }
+
+        // Appends "LABEL Value/Max" — values rounded to ints for HUD display
+        // even though the underlying floats are exact. Skips entirely when the
+        // unit doesn't carry the stat (max == 0).
+        static void AppendStat(ref Utf16ValueStringBuilder sb, string label, float value, float max)
+        {
+            if (max <= 0f) return;
+            if (sb.Length > 0) sb.Append("  ");
+            sb.Append(label);
+            sb.Append(' ');
+            sb.Append((int)Mathf.Round(value));
+            sb.Append('/');
+            sb.Append((int)Mathf.Round(max));
         }
 
         public void Dispose()

@@ -54,14 +54,22 @@ namespace RareIcon
                 int span = SpawnRadius * 2 + 1;
                 int q = (int)(h % (uint)span) - SpawnRadius;
                 int r = (int)((h >> 16) % (uint)span) - SpawnRadius;
-                SpawnGoblin(new int2(q, r), renderDesc, renderArray);
+                // Mix in a second hash for the per-unit RNG seed so adjacent
+                // goblins get different wander streams.
+                uint rng = h * 0xC2B2AE3Du ^ ((uint)i * 0x27D4EB2Fu);
+                SpawnGoblin(new int2(q, r), rng, renderDesc, renderArray);
             }
 
             Debug.Log($"[UnitSpawnSystem] Spawned {GoblinCount} test goblins around origin");
         }
 
-        void SpawnGoblin(int2 hex, RenderMeshDescription renderDesc, RenderMeshArray renderArray)
+        void SpawnGoblin(int2 hex, uint rngSeed, RenderMeshDescription renderDesc, RenderMeshArray renderArray)
         {
+            // All defaults pulled from NPCDB so spawn code stays generic — to
+            // spawn a different creature later, swap UnitType.Goblin for the
+            // new ID and the same code path picks up its stats / weapon.
+            var def = NPCDB.Get(UnitType.Goblin);
+
             var em = EntityManager;
             var entity = em.CreateEntity();
 
@@ -72,20 +80,48 @@ namespace RareIcon
             em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
             em.AddComponentData(entity, new Unit
             {
-                Type = UnitType.Goblin,
-                Weapon = WeaponType.Club,
-                Health = 100,
+                Type   = def.UnitType,
+                Weapon = def.DefaultWeapon,
             });
-            em.AddComponentData(entity, new UnitVisual       { Value = (float)UnitType.Goblin });
-            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)WeaponType.Club });
+
+            // Stats — only attach what NPCDB says the creature carries (Max=0
+            // → skip the component entirely so archetypes stay tight).
+            if (def.MaxHealth > 0)
+            {
+                em.AddComponentData(entity, new Health { Value = def.MaxHealth, Max = def.MaxHealth });
+                if (def.HealthRegen != 0f)
+                    em.AddComponentData(entity, new HealthRegen { PerSecond = def.HealthRegen });
+            }
+            if (def.MaxEnergy > 0)
+            {
+                em.AddComponentData(entity, new Energy { Value = def.MaxEnergy, Max = def.MaxEnergy });
+                if (def.EnergyRegen != 0f)
+                    em.AddComponentData(entity, new EnergyRegen { PerSecond = def.EnergyRegen });
+            }
+            if (def.MaxMana > 0)
+            {
+                em.AddComponentData(entity, new Mana { Value = def.MaxMana, Max = def.MaxMana });
+                if (def.ManaRegen != 0f)
+                    em.AddComponentData(entity, new ManaRegen { PerSecond = def.ManaRegen });
+            }
+
+            em.AddComponentData(entity, new UnitVisual       { Value = (float)def.UnitType });
+            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)def.DefaultWeapon });
             em.AddComponentData(entity, new UnitFacingVisual { Value = (float)UnitFacing.East });
+
+            // Per-unit speed jitter ~ ±20% around the def's base move speed
+            // → some goblins amble, others stride, crowd reads as individuals.
+            float speedJit = 0.8f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.4f;
             em.AddComponentData(entity, new UnitMovement
             {
-                // Start with current hex as target so the movement system
-                // immediately picks a fresh neighbour and starts walking.
-                TargetHex = hex,
-                MoveSpeed = 0.7f,             // ~1.4 hex per second — steady walk
-                Facing    = UnitFacing.East,
+                CurrentHex  = hex,
+                TargetHex   = hex,
+                MoveSpeed   = def.MoveSpeed * speedJit,
+                Facing      = UnitFacing.East,
+                RandomState = rngSeed | 1u,
+                WanderStep  = 0u,
+                DwellTimer  = (rngSeed % 100u) / 200f,
+                LastDir     = 255,
             });
             em.AddComponent<UnitTestTag>(entity);
 

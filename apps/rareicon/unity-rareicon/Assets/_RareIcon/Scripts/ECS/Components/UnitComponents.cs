@@ -16,15 +16,16 @@ namespace RareIcon
     }
 
     /// <summary>
-    /// Tag + per-unit gameplay data. Movement / AI components layer on top.
-    /// Weapon is intentionally separate from creature type: a Goblin can hold
-    /// a Club today and a Sword tomorrow without changing UnitType.
+    /// Tag + per-unit identity data. Movement / AI / stat components layer
+    /// on top. Health / Energy / Mana live in their own components (see
+    /// StatComponents.cs) so units only carry the stats they actually have.
+    /// Weapon is intentionally separate from creature type: a Goblin can
+    /// hold a Club today and a Sword tomorrow without changing UnitType.
     /// </summary>
     public struct Unit : IComponentData
     {
         public byte Type;     // UnitType.* constant
         public byte Weapon;   // WeaponType.* constant
-        public byte Health;   // 0..100 placeholder
     }
 
     /// <summary>Weapon IDs — each maps to one HexX.hlsl draw function.</summary>
@@ -82,13 +83,28 @@ namespace RareIcon
     }
 
     /// <summary>
-    /// Per-frame movement state for wandering units. v1: random walk between
-    /// adjacent hexes at a fixed speed. Replaces with pathfinding later.
+    /// Per-unit movement state for wandering. Sim stays in hex-space; world
+    /// position is derived only when interpolating between CurrentHex and
+    /// TargetHex. RandomState is a per-unit RNG so units that arrive at
+    /// the same hex on the same tick still pick different next directions
+    /// (no herd lockstep).
     /// </summary>
     public struct UnitMovement : IComponentData
     {
+        public int2 CurrentHex;
         public int2 TargetHex;
         public float MoveSpeed;   // world units / second
-        public byte Facing;       // mirrors UnitFacingVisual; convenient for queries
+        public byte Facing;       // mirrors UnitFacingVisual
+        public uint RandomState;  // per-unit xorshift state
+        public uint WanderStep;   // monotonic counter, advances each arrival
+        // Time remaining (seconds) the unit stands still at its current hex
+        // after arriving. Lets the sprite-facing flip happen while stationary,
+        // so a 90°/180° turn reads as a deliberate pause-then-walk instead of
+        // a teleport-flip.
+        public float DwellTimer;
+        // Last hex-neighbour direction (0..5) the unit moved in. Lets the
+        // wander pick bias toward "continue forward" instead of uniform-
+        // random ping-ponging. 255 = no previous direction (uniform pick).
+        public byte LastDir;
     }
 }
