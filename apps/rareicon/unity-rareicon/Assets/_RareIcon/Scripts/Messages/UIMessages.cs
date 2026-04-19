@@ -16,13 +16,26 @@ namespace RareIcon
         public readonly int R;
         public readonly byte BiomeId;
         public readonly bool IsLand;
+        // Each hex carries multiple resources at once. 0 means "not present".
+        public readonly byte Wood, Stone, Berries, Mushrooms, Herbs;
+        // UnitType.* of any creature standing on this hex (0 = none).
+        public readonly byte UnitType;
 
-        public HexHoverMessage(int q, int r, byte biomeId, bool isLand)
+        public HexHoverMessage(int q, int r, byte biomeId, bool isLand,
+                               byte wood = 0, byte stone = 0, byte berries = 0,
+                               byte mushrooms = 0, byte herbs = 0,
+                               byte unitType = 0)
         {
             Q = q;
             R = r;
             BiomeId = biomeId;
             IsLand = isLand;
+            Wood = wood;
+            Stone = stone;
+            Berries = berries;
+            Mushrooms = mushrooms;
+            Herbs = herbs;
+            UnitType = unitType;
         }
     }
 

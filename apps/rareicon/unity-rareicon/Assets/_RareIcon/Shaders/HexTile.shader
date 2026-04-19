@@ -20,6 +20,18 @@ Shader "RareIcon/HexTile"
         _CanopyDark    ("Canopy Dark", Color)        = (0.10, 0.30, 0.10, 1)
         _CanopyMid     ("Canopy Mid", Color)         = (0.18, 0.45, 0.18, 1)
         _CanopyLight   ("Canopy Light", Color)       = (0.30, 0.60, 0.25, 1)
+
+        // Forest floor — drawn under the trees. Bitmask in _ResourceType picks
+        // which decorations appear (a hex can show several at once).
+        _FloorDensity  ("Floor Density (0=none, 1=every tile)", Range(0,1)) = 0.0
+        _ResourceType  ("Resource Mask (per-instance bitmask)", Float) = 0
+        _StoneColor    ("Stone / Boulder Color", Color)    = (0.55, 0.55, 0.50, 1)
+        _StoneShade    ("Stone Shade Color", Color)        = (0.35, 0.35, 0.32, 1)
+        _BerryBushColor("Berry Bush Foliage Color", Color) = (0.16, 0.38, 0.16, 1)
+        _BerryColor    ("Berry Dot Color", Color)          = (0.82, 0.18, 0.20, 1)
+        _MushroomCap   ("Mushroom Cap Color", Color)       = (0.78, 0.22, 0.22, 1)
+        _MushroomStem  ("Mushroom Stem Color", Color)      = (0.92, 0.88, 0.78, 1)
+        _HerbColor     ("Herb Color", Color)               = (0.45, 0.65, 0.30, 1)
     }
 
     SubShader
@@ -56,6 +68,7 @@ Shader "RareIcon/HexTile"
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
+            // All uniforms declared here; included files reference them by name.
             CBUFFER_START(UnityPerMaterial)
                 float4 _BaseColor;
                 float4 _BaseColor2;
@@ -72,6 +85,15 @@ Shader "RareIcon/HexTile"
                 float4 _CanopyDark;
                 float4 _CanopyMid;
                 float4 _CanopyLight;
+                float _FloorDensity;
+                float _ResourceType;
+                float4 _StoneColor;
+                float4 _StoneShade;
+                float4 _BerryBushColor;
+                float4 _BerryColor;
+                float4 _MushroomCap;
+                float4 _MushroomStem;
+                float4 _HerbColor;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -79,124 +101,30 @@ Shader "RareIcon/HexTile"
                 UNITY_DOTS_INSTANCED_PROP(float4, _BaseColor)
                 UNITY_DOTS_INSTANCED_PROP(float4, _BorderColor)
                 UNITY_DOTS_INSTANCED_PROP(float, _BorderWidth)
+                UNITY_DOTS_INSTANCED_PROP(float, _ResourceType)
             UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
             #define _BaseColor    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _BaseColor)
             #define _BorderColor  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _BorderColor)
             #define _BorderWidth  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _BorderWidth)
+            #define _ResourceType UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _ResourceType)
             #endif
 
-            float hexSDF(float2 p, float size)
-            {
-                p = abs(p);
-                float d = dot(p, normalize(float2(1.0, 1.732)));
-                return max(d, p.x) - size;
-            }
+            // Bit flags for floor decorations — must match ResourceMask in
+            // HexComponents.cs. Wood is NOT in the mask: trees represent it.
+            #define MASK_STONE     1
+            #define MASK_MUSHROOMS 2
+            #define MASK_BERRIES   4
+            #define MASK_HERBS     8
 
-            float hash21(float2 p)
-            {
-                p = frac(p * float2(123.34, 456.21));
-                p += dot(p, p + 45.32);
-                return frac(p.x * p.y);
-            }
-
-            float valueNoise(float2 p)
-            {
-                float2 i = floor(p);
-                float2 f = frac(p);
-                float2 u = f * f * (3.0 - 2.0 * f);
-                float a = hash21(i);
-                float b = hash21(i + float2(1, 0));
-                float c = hash21(i + float2(0, 1));
-                float d = hash21(i + float2(1, 1));
-                return lerp(lerp(a, b, u.x), lerp(c, d, u.x), u.y);
-            }
-
-            // Hard pixel-grid masks for the tree drawing.
-            float rectMask(float2 p, float2 origin, float2 size)
-            {
-                float2 lo = step(origin, p);
-                float2 hi = step(p, origin + size - 1.0);
-                return lo.x * lo.y * hi.x * hi.y;
-            }
-            float circleMask(float2 p, float2 c, float r)
-            {
-                return step(length(p - c), r);
-            }
-
-            // Composite 1-3 procedural pixel trees onto the ground color.
-            // Trees cluster within a single tile so a forest hex reads as a
-            // small grove rather than a single isolated tree. Each tree has
-            // its own seed for position, blob count (3-5), blob sizes, and a
-            // canopy palette shift.
-            float3 ApplyPixelTree(float3 ground, float2 localPos, float seed)
-            {
-                // Tile-local UV in [0,1] across the hex bounding box, then quantize.
-                float2 tileUV = saturate(localPos / 0.5 + 0.5);
-                float grid = _TreePixelGrid;
-                float2 px = floor(tileUV * grid);
-
-                // 1-3 trees per tile, biased toward 2 so most forest hexes
-                // feel like a clump while edge tiles can be sparser.
-                int treeCount = 1 + (int)(hash21(float2(seed, 100.0)) * 2.99);
-
-                // Accumulate trunk + canopy masks across all trees so trunks
-                // always sit beneath canopies (no inter-tree painting order issues).
-                float trunkMask = 0.0;
-                float canopyMask = 0.0;
-                float minDist = 1e6;
-
-                [unroll]
-                for (int t = 0; t < 3; t++)
-                {
-                    if (t >= treeCount) break;
-                    float ts = seed * 17.0 + (float)t * 13.0;
-
-                    // Tree center spread across the tile interior so trees
-                    // don't stack on top of each other.
-                    float2 c = float2(grid * 0.5, grid * 0.55) + float2(
-                        floor((hash21(float2(ts, 11.0)) - 0.5) * grid * 0.45),
-                        floor((hash21(float2(ts, 22.0)) - 0.5) * grid * 0.30)
-                    );
-
-                    // Trunk — 2 wide, 3 tall, anchored under the canopy.
-                    trunkMask = max(trunkMask,
-                        rectMask(px, c + float2(-1, -4), float2(2, 3)));
-
-                    // 5 candidate canopy blobs per tree. Blob 0 is the anchor
-                    // (always drawn); blobs 1-4 are gated by per-blob hash so
-                    // each tree silhouette varies in shape and size.
-                    [unroll]
-                    for (int b = 0; b < 5; b++)
-                    {
-                        float bs = ts + (float)b * 7.0;
-                        bool present = b == 0 || hash21(float2(bs, 33.0)) > 0.30;
-                        if (!present) continue;
-
-                        float2 bo = float2(
-                            (hash21(float2(bs, 44.0)) - 0.5) * 5.0,
-                            (hash21(float2(bs, 55.0)) - 0.5) * 4.0 + 1.0
-                        );
-                        float br = 2.0 + hash21(float2(bs, 66.0)) * 2.0;
-                        float2 bc = c + bo;
-                        canopyMask = max(canopyMask, circleMask(px, bc, br));
-                        minDist = min(minDist, length(px - bc));
-                    }
-                }
-
-                // Banded canopy color — distance to nearest blob center picks
-                // one of three palette bands (light core → mid → dark rim).
-                float3 canopyCol = _CanopyMid.rgb;
-                if (minDist <= 1.5) canopyCol = _CanopyLight.rgb;
-                else if (minDist >= 3.0) canopyCol = _CanopyDark.rgb;
-
-                // Per-tile hue shift so adjacent groves aren't identical.
-                canopyCol *= 1.0 + (hash21(float2(seed, 44.0)) - 0.5) * 0.18;
-
-                float3 result = lerp(ground, _TrunkColor.rgb, trunkMask);
-                result = lerp(result, canopyCol, canopyMask);
-                return result;
-            }
+            // Decoration modules — each is a single file with one Apply* function.
+            // Include order: shared helpers first, then each decoration.
+            #include "Includes/HexShared.hlsl"
+            #include "Includes/HexBoulder.hlsl"
+            #include "Includes/HexBerryBush.hlsl"
+            #include "Includes/HexMushroom.hlsl"
+            #include "Includes/HexHerbs.hlsl"
+            #include "Includes/HexTree.hlsl"
 
             Varyings vert(Attributes input)
             {
@@ -233,14 +161,29 @@ Shader "RareIcon/HexTile"
                 float edgeFactor = saturate(1.0 + d / 0.18);
                 ground *= lerp(1.0 - _EdgeDarken, 1.0, edgeFactor);
 
-                // Procedural pixel tree — only on biomes that opt in via
-                // _TreeDensity (forest material sets ~0.6, others leave it at 0).
-                if (_TreeDensity > 0.001 && tileSeed < _TreeDensity)
+                // Tile-pixel grid coords used by every decoration. Compute once.
+                float2 tileUV = saturate(input.localPos / 0.5 + 0.5);
+                float grid = _TreePixelGrid;
+                float2 px = floor(tileUV * grid);
+
+                // Floor decorations — one bit per resource. Drawn UNDER the
+                // trees so canopies can occlude floor sprites that overlap.
+                int resMask = (int)(_ResourceType + 0.5);
+                if (_FloorDensity > 0.001 && resMask != 0 && tileSeed < _FloorDensity)
                 {
-                    ground = ApplyPixelTree(ground, input.localPos, tileSeed);
+                    if ((resMask & MASK_STONE)     != 0) ground = ApplyBoulder  (ground, px, grid, tileSeed);
+                    if ((resMask & MASK_BERRIES)   != 0) ground = ApplyBerryBush(ground, px, grid, tileSeed);
+                    if ((resMask & MASK_MUSHROOMS) != 0) ground = ApplyMushrooms(ground, px, grid, tileSeed);
+                    if ((resMask & MASK_HERBS)     != 0) ground = ApplyHerbs    (ground, px, grid, tileSeed);
                 }
 
-                // Border line on top.
+                // Trees on top of the forest floor.
+                if (_TreeDensity > 0.001 && tileSeed < _TreeDensity)
+                {
+                    ground = ApplyPixelTree(ground, px, grid, tileSeed);
+                }
+
+                // Border line on top of everything.
                 float border = smoothstep(-_BorderWidth, -_BorderWidth * 0.3, d);
                 float3 col = lerp(ground, _BorderColor.rgb, border * _BorderColor.a);
 

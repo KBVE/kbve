@@ -105,14 +105,36 @@ namespace RareIcon
             bool isLand = _hexLookup.TryGetValue(mouse.HexCoord, out Entity hexEntity);
             var publisher = GlobalMessagePipe.GetPublisher<HexHoverMessage>();
 
+            // Sweep units once per hex change — find any unit standing on this hex.
+            byte unitType = 0;
+            foreach (var (transform, unit) in
+                     SystemAPI.Query<RefRO<LocalTransform>, RefRO<Unit>>())
+            {
+                var p = transform.ValueRO.Position;
+                var unitHex = HexMeshUtil.WorldToHex(p.x, p.y, HexSize);
+                if (unitHex.Equals(mouse.HexCoord))
+                {
+                    unitType = unit.ValueRO.Type;
+                    break;
+                }
+            }
+
             if (isLand)
             {
                 var biome = EntityManager.GetComponentData<BiomeType>(hexEntity);
-                publisher.Publish(new HexHoverMessage(mouse.HexCoord.x, mouse.HexCoord.y, biome.Value, true));
+                var res = EntityManager.HasComponent<HexResources>(hexEntity)
+                    ? EntityManager.GetComponentData<HexResources>(hexEntity)
+                    : default;
+                publisher.Publish(new HexHoverMessage(
+                    mouse.HexCoord.x, mouse.HexCoord.y, biome.Value, true,
+                    res.Wood, res.Stone, res.Berries, res.Mushrooms, res.Herbs,
+                    unitType));
             }
             else
             {
-                publisher.Publish(new HexHoverMessage(mouse.HexCoord.x, mouse.HexCoord.y, 0, false));
+                publisher.Publish(new HexHoverMessage(
+                    mouse.HexCoord.x, mouse.HexCoord.y, 0, false,
+                    0, 0, 0, 0, 0, unitType));
             }
         }
 

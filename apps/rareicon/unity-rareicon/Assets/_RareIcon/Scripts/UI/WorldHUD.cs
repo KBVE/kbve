@@ -29,6 +29,8 @@ namespace RareIcon
         VisualElement _toolbar;
         Label _biomeName;
         Label _hexCoord;
+        Label _creatureLine;
+        Label _resourceLine;
 
         [Inject]
         public WorldHUD(
@@ -129,8 +131,23 @@ namespace RareIcon
             _hexCoord.style.fontSize = 13;
             _hexCoord.pickingMode = PickingMode.Ignore;
 
+            _creatureLine = new Label("");
+            _creatureLine.style.color = new Color(0.95f, 0.55f, 0.45f, 1f);
+            _creatureLine.style.fontSize = 14;
+            _creatureLine.style.marginTop = 4;
+            _creatureLine.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _creatureLine.pickingMode = PickingMode.Ignore;
+
+            _resourceLine = new Label("");
+            _resourceLine.style.color = new Color(0.85f, 0.80f, 0.55f, 1f);
+            _resourceLine.style.fontSize = 13;
+            _resourceLine.style.marginTop = 4;
+            _resourceLine.pickingMode = PickingMode.Ignore;
+
             _hoverPanel.Add(_biomeName);
             _hoverPanel.Add(_hexCoord);
+            _hoverPanel.Add(_creatureLine);
+            _hoverPanel.Add(_resourceLine);
             root.Add(_hoverPanel);
         }
 
@@ -165,6 +182,50 @@ namespace RareIcon
                 : _locale.Get("hex.empty");
 
             _hexCoord.text = ZString.Format("{0} ({1}, {2})", _locale.Get("hex.coord"), msg.Q, msg.R);
+
+            if (msg.UnitType != UnitType.None)
+            {
+                _creatureLine.text = _locale.GetCreatureName(msg.UnitType);
+                _creatureLine.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                _creatureLine.style.display = DisplayStyle.None;
+            }
+
+            if (msg.IsLand && (msg.Wood | msg.Stone | msg.Berries | msg.Mushrooms | msg.Herbs) != 0)
+            {
+                // ZString builder appends mutate the struct, so it can't be a
+                // 'using var' (refs to using-vars are illegal). Manual dispose.
+                var sb = ZString.CreateStringBuilder();
+                try
+                {
+                    AppendResource(ref sb, msg.Wood,      ResourceType.Wood);
+                    AppendResource(ref sb, msg.Stone,     ResourceType.Stone);
+                    AppendResource(ref sb, msg.Berries,   ResourceType.Berries);
+                    AppendResource(ref sb, msg.Mushrooms, ResourceType.Mushrooms);
+                    AppendResource(ref sb, msg.Herbs,     ResourceType.Herbs);
+                    _resourceLine.text = sb.ToString();
+                }
+                finally
+                {
+                    sb.Dispose();
+                }
+                _resourceLine.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                _resourceLine.style.display = DisplayStyle.None;
+            }
+        }
+
+        void AppendResource(ref Utf16ValueStringBuilder sb, byte amount, byte type)
+        {
+            if (amount == 0) return;
+            if (sb.Length > 0) sb.Append('\n');
+            sb.Append(_locale.GetResourceName(type));
+            sb.Append(": ");
+            sb.Append(amount);
         }
 
         public void Dispose()
