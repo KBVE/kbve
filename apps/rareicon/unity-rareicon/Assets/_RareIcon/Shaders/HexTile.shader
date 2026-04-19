@@ -12,6 +12,14 @@ Shader "RareIcon/HexTile"
         _DetailStrength ("Detail Brightness Variation", Range(0,1)) = 0.18
         _TileSeedJitter ("Per-Tile Hue/Value Jitter", Range(0,1)) = 0.08
         _EdgeDarken ("Edge Darken Strength", Range(0,1)) = 0.35
+
+        // Procedural pixel trees — composited inside the tile, no extra geometry.
+        _TreeDensity   ("Tree Density (0=none, 1=every tile)", Range(0,1)) = 0.0
+        _TreePixelGrid ("Tree Pixel Grid (resolution per tile)", Float)    = 16.0
+        _TrunkColor    ("Trunk Color", Color)        = (0.25, 0.16, 0.10, 1)
+        _CanopyDark    ("Canopy Dark", Color)        = (0.10, 0.30, 0.10, 1)
+        _CanopyMid     ("Canopy Mid", Color)         = (0.18, 0.45, 0.18, 1)
+        _CanopyLight   ("Canopy Light", Color)       = (0.30, 0.60, 0.25, 1)
     }
 
     SubShader
@@ -58,6 +66,12 @@ Shader "RareIcon/HexTile"
                 float _DetailStrength;
                 float _TileSeedJitter;
                 float _EdgeDarken;
+                float _TreeDensity;
+                float _TreePixelGrid;
+                float4 _TrunkColor;
+                float4 _CanopyDark;
+                float4 _CanopyMid;
+                float4 _CanopyLight;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -79,7 +93,6 @@ Shader "RareIcon/HexTile"
                 return max(d, p.x) - size;
             }
 
-            // Cheap 2D hash → [0,1]
             float hash21(float2 p)
             {
                 p = frac(p * float2(123.34, 456.21));
@@ -87,7 +100,6 @@ Shader "RareIcon/HexTile"
                 return frac(p.x * p.y);
             }
 
-            // Smooth value noise — bilinear interp of corner hashes.
             float valueNoise(float2 p)
             {
                 float2 i = floor(p);
@@ -100,6 +112,92 @@ Shader "RareIcon/HexTile"
                 return lerp(lerp(a, b, u.x), lerp(c, d, u.x), u.y);
             }
 
+            // Hard pixel-grid masks for the tree drawing.
+            float rectMask(float2 p, float2 origin, float2 size)
+            {
+                float2 lo = step(origin, p);
+                float2 hi = step(p, origin + size - 1.0);
+                return lo.x * lo.y * hi.x * hi.y;
+            }
+            float circleMask(float2 p, float2 c, float r)
+            {
+                return step(length(p - c), r);
+            }
+
+            // Composite 1-3 procedural pixel trees onto the ground color.
+            // Trees cluster within a single tile so a forest hex reads as a
+            // small grove rather than a single isolated tree. Each tree has
+            // its own seed for position, blob count (3-5), blob sizes, and a
+            // canopy palette shift.
+            float3 ApplyPixelTree(float3 ground, float2 localPos, float seed)
+            {
+                // Tile-local UV in [0,1] across the hex bounding box, then quantize.
+                float2 tileUV = saturate(localPos / 0.5 + 0.5);
+                float grid = _TreePixelGrid;
+                float2 px = floor(tileUV * grid);
+
+                // 1-3 trees per tile, biased toward 2 so most forest hexes
+                // feel like a clump while edge tiles can be sparser.
+                int treeCount = 1 + (int)(hash21(float2(seed, 100.0)) * 2.99);
+
+                // Accumulate trunk + canopy masks across all trees so trunks
+                // always sit beneath canopies (no inter-tree painting order issues).
+                float trunkMask = 0.0;
+                float canopyMask = 0.0;
+                float minDist = 1e6;
+
+                [unroll]
+                for (int t = 0; t < 3; t++)
+                {
+                    if (t >= treeCount) break;
+                    float ts = seed * 17.0 + (float)t * 13.0;
+
+                    // Tree center spread across the tile interior so trees
+                    // don't stack on top of each other.
+                    float2 c = float2(grid * 0.5, grid * 0.55) + float2(
+                        floor((hash21(float2(ts, 11.0)) - 0.5) * grid * 0.45),
+                        floor((hash21(float2(ts, 22.0)) - 0.5) * grid * 0.30)
+                    );
+
+                    // Trunk — 2 wide, 3 tall, anchored under the canopy.
+                    trunkMask = max(trunkMask,
+                        rectMask(px, c + float2(-1, -4), float2(2, 3)));
+
+                    // 5 candidate canopy blobs per tree. Blob 0 is the anchor
+                    // (always drawn); blobs 1-4 are gated by per-blob hash so
+                    // each tree silhouette varies in shape and size.
+                    [unroll]
+                    for (int b = 0; b < 5; b++)
+                    {
+                        float bs = ts + (float)b * 7.0;
+                        bool present = b == 0 || hash21(float2(bs, 33.0)) > 0.30;
+                        if (!present) continue;
+
+                        float2 bo = float2(
+                            (hash21(float2(bs, 44.0)) - 0.5) * 5.0,
+                            (hash21(float2(bs, 55.0)) - 0.5) * 4.0 + 1.0
+                        );
+                        float br = 2.0 + hash21(float2(bs, 66.0)) * 2.0;
+                        float2 bc = c + bo;
+                        canopyMask = max(canopyMask, circleMask(px, bc, br));
+                        minDist = min(minDist, length(px - bc));
+                    }
+                }
+
+                // Banded canopy color — distance to nearest blob center picks
+                // one of three palette bands (light core → mid → dark rim).
+                float3 canopyCol = _CanopyMid.rgb;
+                if (minDist <= 1.5) canopyCol = _CanopyLight.rgb;
+                else if (minDist >= 3.0) canopyCol = _CanopyDark.rgb;
+
+                // Per-tile hue shift so adjacent groves aren't identical.
+                canopyCol *= 1.0 + (hash21(float2(seed, 44.0)) - 0.5) * 0.18;
+
+                float3 result = lerp(ground, _TrunkColor.rgb, trunkMask);
+                result = lerp(result, canopyCol, canopyMask);
+                return result;
+            }
+
             Varyings vert(Attributes input)
             {
                 Varyings output;
@@ -109,7 +207,6 @@ Shader "RareIcon/HexTile"
                 output.localPos = input.positionOS.xy;
                 float3 wp = TransformObjectToWorld(input.positionOS.xyz);
                 output.worldPos = wp.xy;
-                // Object origin in world space = hex center; used for per-tile seed.
                 output.hexCenter = TransformObjectToWorld(float3(0,0,0)).xy;
                 return output;
             }
@@ -135,6 +232,13 @@ Shader "RareIcon/HexTile"
                 // Hex-edge darken (independent of the border line).
                 float edgeFactor = saturate(1.0 + d / 0.18);
                 ground *= lerp(1.0 - _EdgeDarken, 1.0, edgeFactor);
+
+                // Procedural pixel tree — only on biomes that opt in via
+                // _TreeDensity (forest material sets ~0.6, others leave it at 0).
+                if (_TreeDensity > 0.001 && tileSeed < _TreeDensity)
+                {
+                    ground = ApplyPixelTree(ground, input.localPos, tileSeed);
+                }
 
                 // Border line on top.
                 float border = smoothstep(-_BorderWidth, -_BorderWidth * 0.3, d);

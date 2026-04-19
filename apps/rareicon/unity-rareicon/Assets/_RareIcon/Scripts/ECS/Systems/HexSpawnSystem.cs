@@ -101,6 +101,16 @@ namespace RareIcon
                 {
                     _biomeMaterials[i].SetColor("_BaseColor2", primary);
                 }
+
+                // Procedural pixel trees — only forest opts in. The shader
+                // gates on _TreeDensity so other biomes never run the tree path.
+                if (i == BiomeGenerator.BIOME_FOREST)
+                {
+                    _biomeMaterials[i].SetFloat("_TreeDensity", 0.6f);
+                    // A second darker green pair makes the canopy read against
+                    // the forest base.
+                    _biomeMaterials[i].SetColor("_BaseColor2", new Color(0.20f, 0.50f, 0.15f, 1f));
+                }
             }
 
             _renderMeshDesc = new RenderMeshDescription(
