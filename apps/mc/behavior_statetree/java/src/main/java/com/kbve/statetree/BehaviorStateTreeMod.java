@@ -1,5 +1,6 @@
 package com.kbve.statetree;
 
+import com.kbve.statetree.chat.McChatEvents;
 import com.kbve.statetree.ship.ShipCommands;
 import com.kbve.statetree.ship.ShipEntityTypes;
 import com.kbve.statetree.ship.ShipManager;
@@ -74,6 +75,12 @@ public class BehaviorStateTreeMod implements ModInitializer {
         });
 
         LOGGER.info("[{}] Ship system registered (entity-based, BBModel rendered)", MOD_ID);
+
+        // MC ↔ IRC chat bridge. Safe to call before checking
+        // NativeRuntime.isLoaded — ChatBridge degrades to a no-op handle
+        // when IRC_HOST is unset or the connect call fails.
+        McChatEvents.register();
+        LOGGER.info("[{}] Chat bridge wired (env-gated)", MOD_ID);
 
         if (!NativeRuntime.isLoaded()) {
             LOGGER.error("[{}] Native library not loaded — NPC AI disabled (ships still work)", MOD_ID);

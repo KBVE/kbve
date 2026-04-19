@@ -1570,6 +1570,7 @@ version = "1.0.16"
 dependencies = [
  "bevy",
  "bevy_behavior",
+ "bevy_chat",
  "bevy_npc",
  "bevy_pathfinding",
  "crossbeam-channel",
