@@ -129,20 +129,21 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Any King or Hunter-role unit dwelling on a wild animal's hex tames it: flip Faction to Player, add TamedTag + OwnerRef.</summary>
+    /// <summary>Any King or Hunter-role unit dwelling on a wild animal's hex tames it: flip Faction to Player, add TamedTag + OwnerRef. Main thread snapshots (hex, owner) pairs into NativeLists; Burst ISystem job runs in parallel over each untamed animal, emits component-add commands via ECB.ParallelWriter.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
-    public partial class TamingSystem : SystemBase
+    public partial struct TamingSystem : ISystem
     {
-        protected override void OnUpdate()
-        {
-            var priorityLookup = SystemAPI.GetComponentLookup<JobPriorities>(isReadOnly: true);
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
-            // Gather (hex, tamer) pairs for every candidate standing still.
-            // DwellTimer > 0 → the unit just arrived via a goal (King click
-            // or Hunter job) and is paused here, so tame-on-contact reads
-            // as intentional, not drive-by.
-            var tamerHexes   = new NativeList<int2>(16, Allocator.Temp);
-            var tamerOwners  = new NativeList<Entity>(16, Allocator.Temp);
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            var priorityLookup = SystemAPI.GetComponentLookup<JobPriorities>(true);
+
+            var tamerHexes  = new NativeList<int2>(16, Allocator.TempJob);
+            var tamerOwners = new NativeList<Entity>(16, Allocator.TempJob);
 
             foreach (var (movement, entity) in
                      SystemAPI.Query<RefRO<UnitMovement>>().WithAll<KingTag>().WithEntityAccess())
@@ -169,33 +170,44 @@ namespace RareIcon
                 return;
             }
 
-            var ecb = new EntityCommandBuffer(Allocator.Temp);
-            var factionLookup = SystemAPI.GetComponentLookup<Faction>(isReadOnly: false);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
 
-            foreach (var (movement, entity) in
-                     SystemAPI.Query<RefRO<UnitMovement>>()
-                              .WithAll<PassiveAnimalTag>()
-                              .WithNone<TamedTag>()
-                              .WithEntityAccess())
+            state.Dependency = new TamingJob
             {
-                var animalHex = movement.ValueRO.CurrentHex;
-                Entity owner = Entity.Null;
-                for (int i = 0; i < tamerHexes.Length; i++)
-                {
-                    if (tamerHexes[i].Equals(animalHex)) { owner = tamerOwners[i]; break; }
-                }
-                if (owner == Entity.Null) continue;
+                TamerHexes  = tamerHexes.AsDeferredJobArray(),
+                TamerOwners = tamerOwners.AsDeferredJobArray(),
+                Ecb         = ecb,
+            }.ScheduleParallel(state.Dependency);
 
-                ecb.AddComponent<TamedTag>(entity);
-                ecb.AddComponent(entity, new OwnerRef { Value = owner });
-                if (factionLookup.HasComponent(entity))
-                    factionLookup[entity] = new Faction { Value = FactionType.Player };
+            state.Dependency = tamerHexes.Dispose(state.Dependency);
+            state.Dependency = tamerOwners.Dispose(state.Dependency);
+        }
+    }
+
+    [BurstCompile]
+    [WithAll(typeof(PassiveAnimalTag))]
+    [WithNone(typeof(TamedTag))]
+    public partial struct TamingJob : IJobEntity
+    {
+        [ReadOnly] public NativeArray<int2>   TamerHexes;
+        [ReadOnly] public NativeArray<Entity> TamerOwners;
+
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity entity, [ChunkIndexInQuery] int chunkIdx, in UnitMovement movement)
+        {
+            var animalHex = movement.CurrentHex;
+            Entity owner = Entity.Null;
+            for (int i = 0; i < TamerHexes.Length; i++)
+            {
+                if (TamerHexes[i].Equals(animalHex)) { owner = TamerOwners[i]; break; }
             }
+            if (owner == Entity.Null) return;
 
-            ecb.Playback(EntityManager);
-            ecb.Dispose();
-            tamerHexes.Dispose();
-            tamerOwners.Dispose();
+            Ecb.AddComponent<TamedTag>(chunkIdx, entity);
+            Ecb.AddComponent(chunkIdx, entity, new OwnerRef { Value = owner });
+            Ecb.SetComponent(chunkIdx, entity, new Faction { Value = FactionType.Player });
         }
     }
 
