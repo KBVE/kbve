@@ -1,10 +1,11 @@
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Drains each building's SurplusExport items into the Capital's InventorySlot each tick, respecting the per-item Floor. Building-agnostic — any entity with a SurplusExport buffer + InventorySlot participates. Buildings that want to retain their output locally (Barracks arrows as a forward arsenal, Capital itself) simply omit the SurplusExport buffer or that ItemId entry.</summary>
+    /// <summary>Drains each building's SurplusExport items into the Capital's InventorySlot each tick, respecting the per-item Floor. Parallel — source building's InventorySlot is written directly (per-entity, exclusive), Capital adds queue through PendingItemTransfer so every building can drain in parallel without contending on the Capital buffer. Buildings that want to retain output locally (Barracks arrows until the Floor, Capital itself) omit or tune the SurplusExport buffer.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct BuildingSurplusTransferSystem : ISystem
@@ -17,11 +18,14 @@ namespace RareIcon
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
 
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
+
             state.Dependency = new SurplusTransferJob
             {
-                Capital   = capital,
-                InvLookup = SystemAPI.GetBufferLookup<InventorySlot>(false),
-            }.Schedule(state.Dependency);
+                Capital = capital,
+                Ecb     = ecb,
+            }.ScheduleParallel(state.Dependency);
         }
     }
 
@@ -29,17 +33,14 @@ namespace RareIcon
     public partial struct SurplusTransferJob : IJobEntity
     {
         public Entity Capital;
-        [Unity.Collections.NativeDisableParallelForRestriction]
-        public BufferLookup<InventorySlot> InvLookup;
+        public EntityCommandBuffer.ParallelWriter Ecb;
 
-        void Execute(Entity entity, ref DynamicBuffer<SurplusExport> exports)
+        void Execute(Entity entity,
+                     [ChunkIndexInQuery] int chunkIdx,
+                     ref DynamicBuffer<InventorySlot> storage,
+                     in DynamicBuffer<SurplusExport> exports)
         {
             if (entity == Capital) return;
-            if (!InvLookup.HasBuffer(entity)) return;
-            if (!InvLookup.HasBuffer(Capital)) return;
-
-            var storage       = InvLookup[entity];
-            var capitalStore  = InvLookup[Capital];
 
             for (int e = 0; e < exports.Length; e++)
             {
@@ -47,13 +48,8 @@ namespace RareIcon
                 ushort floor  = exports[e].Floor;
 
                 int have = 0;
-                int firstIdx = -1;
                 for (int i = 0; i < storage.Length; i++)
-                {
-                    if (storage[i].ItemId != itemId) continue;
-                    have += storage[i].Count;
-                    if (firstIdx < 0) firstIdx = i;
-                }
+                    if (storage[i].ItemId == itemId) have += storage[i].Count;
                 if (have <= floor) continue;
 
                 int move = have - floor;
@@ -67,24 +63,15 @@ namespace RareIcon
                     storage[i] = slot;
                     remaining -= take;
                 }
-                AddCapital(capitalStore, itemId, (ushort)move);
-            }
-        }
 
-        static void AddCapital(DynamicBuffer<InventorySlot> storage, ushort itemId, ushort amount)
-        {
-            if (amount == 0) return;
-            for (int i = 0; i < storage.Length; i++)
-            {
-                if (storage[i].ItemId == itemId)
+                var req = Ecb.CreateEntity(chunkIdx);
+                Ecb.AddComponent(chunkIdx, req, new PendingItemTransfer
                 {
-                    var slot = storage[i];
-                    slot.Count = (ushort)math.min(slot.Count + amount, ushort.MaxValue);
-                    storage[i] = slot;
-                    return;
-                }
+                    Target = Capital,
+                    ItemId = itemId,
+                    Delta  = move,
+                });
             }
-            storage.Add(new InventorySlot { ItemId = itemId, Count = amount });
         }
     }
 }

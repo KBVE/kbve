@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Drains a Player-faction unit's inventory into the Capital's storage buffer when standing on a Capital-claimed hex. BanditCoin is withheld whenever any Barracks is below its StorageCapacity — the carrier keeps the coins for a Capital→Barracks supply run instead of cycling them through the central treasury.</summary>
+    /// <summary>Drains a Player-faction unit's inventory into the Capital's storage buffer when standing on a Capital-claimed hex. BanditCoin is withheld whenever any Barracks is below its StorageCapacity — the carrier keeps the coins for a Capital→Barracks supply run instead of cycling them through the central treasury. Parallelized via PendingItemTransfer: per-unit slot zeros happen directly (per-entity write, race-free), Capital adds queue through ECB.ParallelWriter for InventoryTransferApplierSystem to fold in.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct EmpireDepositSystem : ISystem
@@ -30,14 +30,17 @@ namespace RareIcon
                 if (total < cap.ValueRO.Total) { anyBarracksUnderstocked = true; break; }
             }
 
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
+
             state.Dependency = new EmpireDepositJob
             {
                 Capital                 = capital,
                 AnyBarracksUnderstocked = anyBarracksUnderstocked,
                 HexLookup               = hexLookup.Lookup,
                 OccupantLookup          = SystemAPI.GetComponentLookup<HexOccupant>(true),
-                InvLookup               = SystemAPI.GetBufferLookup<InventorySlot>(false),
-            }.Schedule(state.Dependency);
+                Ecb                     = ecb,
+            }.ScheduleParallel(state.Dependency);
         }
     }
 
@@ -50,15 +53,14 @@ namespace RareIcon
         [ReadOnly] public NativeHashMap<int2, Entity>  HexLookup;
         [ReadOnly] public ComponentLookup<HexOccupant> OccupantLookup;
 
-        [NativeDisableParallelForRestriction]
-        public BufferLookup<InventorySlot> InvLookup;
+        public EntityCommandBuffer.ParallelWriter Ecb;
 
-        void Execute(Entity entity, in UnitMovement movement, in Faction faction)
+        void Execute([ChunkIndexInQuery] int chunkIdx,
+                     in UnitMovement movement,
+                     in Faction faction,
+                     ref DynamicBuffer<InventorySlot> inv)
         {
             if (faction.Value != FactionType.Player) return;
-            if (!InvLookup.HasBuffer(entity)) return;
-
-            var inv = InvLookup[entity];
             if (inv.Length == 0) return;
 
             bool hasLoot = false;
@@ -70,8 +72,6 @@ namespace RareIcon
             if (!OccupantLookup.HasComponent(tile)) return;
             if (OccupantLookup[tile].Building != Capital) return;
 
-            var storage = InvLookup[Capital];
-
             for (int i = 0; i < inv.Length; i++)
             {
                 ushort itemId = inv[i].ItemId;
@@ -79,17 +79,13 @@ namespace RareIcon
                 if (itemId == 0 || count == 0) continue;
                 if (AnyBarracksUnderstocked && itemId == (ushort)ItemId.BanditCoin) continue;
 
-                bool merged = false;
-                for (int j = 0; j < storage.Length; j++)
+                var t = Ecb.CreateEntity(chunkIdx);
+                Ecb.AddComponent(chunkIdx, t, new PendingItemTransfer
                 {
-                    if (storage[j].ItemId != itemId) continue;
-                    var slot = storage[j];
-                    slot.Count = (ushort)math.min(slot.Count + count, ushort.MaxValue);
-                    storage[j] = slot;
-                    merged = true;
-                    break;
-                }
-                if (!merged) storage.Add(new InventorySlot { ItemId = itemId, Count = count });
+                    Target = Capital,
+                    ItemId = itemId,
+                    Delta  = count,
+                });
 
                 var src = inv[i];
                 src.Count = 0;
