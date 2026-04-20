@@ -41,11 +41,17 @@ namespace RareIcon
         VisualElement _clockIcon;
         Label _hoverName, _hoverCoord, _hoverCreature, _hoverStats, _hoverInv, _hoverRes;
         Label _controlLabel, _controlActivity;
-        EntityQuery _clockQuery, _controlledQuery;
-        bool _clockReady, _controlledReady;
+        EntityQuery _clockQuery, _controlledQuery, _selectionQuery;
+        bool _clockReady, _controlledReady, _selectionReady;
         Entity _lastControlled;
         byte _lastControlledType;
         IDisposable _controlActivitySub;
+
+        int _lastSelectionCount = -1;
+        int _lastGoblin, _lastSoldier, _lastKnight, _lastMage, _lastKing;
+
+        const int IdleSkipEvery = 4;
+        int _idleSkipCount;
 
         [Inject]
         public WorldHUD(
@@ -234,6 +240,14 @@ namespace RareIcon
 
         void RefreshControlIndicator()
         {
+            bool idle = _lastControlled == Entity.Null && _lastSelectionCount <= 0;
+            if (idle)
+            {
+                _idleSkipCount++;
+                if (_idleSkipCount < IdleSkipEvery) return;
+            }
+            _idleSkipCount = 0;
+
             var world = World.DefaultGameObjectInjectionWorld;
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
@@ -254,20 +268,24 @@ namespace RareIcon
                 type = em.GetComponentData<Unit>(current).Type;
             }
 
-            if (current == _lastControlled && type == _lastControlledType) return;
+            bool controlledChanged = (current != _lastControlled || type != _lastControlledType);
             _lastControlled = current;
             _lastControlledType = type;
 
             if (current == Entity.Null)
             {
-                _controlLabel.text = _locale.Get("hud.god_view");
-                _controlPanel.RemoveFromClassList("hud-strip--strong");
-                _releaseBtn.AddToClassList("is-hidden");
-                _controlActivity.AddToClassList("is-hidden");
-                _controlActivitySub?.Dispose();
-                _controlActivitySub = null;
+                if (controlledChanged)
+                {
+                    _controlActivitySub?.Dispose();
+                    _controlActivitySub = null;
+                    _lastSelectionCount = -1;
+                }
+                RefreshSelectionIndicator(em);
+                return;
             }
-            else
+
+            if (!controlledChanged) return;
+            _lastSelectionCount = -1;
             {
                 string name = string.Empty;
                 if (em.HasComponent<UnitName>(current))
@@ -293,6 +311,85 @@ namespace RareIcon
                 string seedAct = _locale.GetActivityName(seed.Kind);
                 _controlActivity.text = seedAct.Length > 0 ? seedAct : _locale.Get("activity.idle");
             }
+        }
+
+        // Selection-aware god view — repaints only when the count or
+        // per-type breakdown actually changed, so poll churn is cheap.
+        // No Release button (selection clears via ESC / right-click /
+        // empty drag, not a dedicated UI control).
+        void RefreshSelectionIndicator(EntityManager em)
+        {
+            if (!_selectionReady)
+            {
+                _selectionQuery = em.CreateEntityQuery(
+                    ComponentType.ReadOnly<SelectedTag>(),
+                    ComponentType.ReadOnly<Unit>());
+                _selectionReady = true;
+            }
+
+            int count = _selectionQuery.CalculateEntityCount();
+            if (count == 0)
+            {
+                if (_lastSelectionCount == 0) return;
+                _controlLabel.text = _locale.Get("hud.god_view");
+                _controlPanel.RemoveFromClassList("hud-strip--strong");
+                _releaseBtn.AddToClassList("is-hidden");
+                _controlActivity.AddToClassList("is-hidden");
+                _lastSelectionCount = 0;
+                _lastGoblin = _lastSoldier = _lastKnight = _lastMage = _lastKing = 0;
+                return;
+            }
+
+            int g = 0, s = 0, k = 0, m = 0, kg = 0;
+            using (var arr = _selectionQuery.ToEntityArray(Allocator.Temp))
+            {
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    byte t = em.GetComponentData<Unit>(arr[i]).Type;
+                    switch (t)
+                    {
+                        case UnitType.Goblin:  g++;  break;
+                        case UnitType.Soldier: s++;  break;
+                        case UnitType.Knight:  k++;  break;
+                        case UnitType.Mage:    m++;  break;
+                        case UnitType.King:    kg++; break;
+                    }
+                }
+            }
+
+            if (count == _lastSelectionCount
+                && g == _lastGoblin && s == _lastSoldier && k == _lastKnight
+                && m == _lastMage && kg == _lastKing) return;
+            _lastSelectionCount = count;
+            _lastGoblin = g; _lastSoldier = s; _lastKnight = k;
+            _lastMage = m; _lastKing = kg;
+
+            _controlLabel.text = ZString.Format("{0} · {1} selected",
+                _locale.Get("hud.god_view"), count);
+
+            var sb = ZString.CreateStringBuilder();
+            try
+            {
+                AppendTypeCount(ref sb, g,  "G");
+                AppendTypeCount(ref sb, s,  "S");
+                AppendTypeCount(ref sb, k,  "K");
+                AppendTypeCount(ref sb, m,  "M");
+                AppendTypeCount(ref sb, kg, "\u2655");
+                _controlActivity.text = sb.ToString();
+            }
+            finally { sb.Dispose(); }
+
+            _controlPanel.AddToClassList("hud-strip--strong");
+            _releaseBtn.AddToClassList("is-hidden");
+            _controlActivity.RemoveFromClassList("is-hidden");
+        }
+
+        static void AppendTypeCount(ref Cysharp.Text.Utf16ValueStringBuilder sb,
+                                    int count, string letter)
+        {
+            if (count <= 0) return;
+            if (sb.Length > 0) sb.Append(" · ");
+            sb.Append(count); sb.Append(letter);
         }
 
         void ReleaseControl()
@@ -328,7 +425,39 @@ namespace RareIcon
             if (msg.UnitType != UnitType.None)
             {
                 _hoverCreature.RemoveFromClassList("is-hidden");
-                _hoverCreature.text = _locale.GetCreatureName(msg.UnitType);
+
+                // Per-unit name with creature-type in parens as the baseline
+                // identity line — falls back to just the creature name when
+                // the unit has no UnitName (non-goblin mobs don't roll one).
+                string creatureName = _locale.GetCreatureName(msg.UnitType);
+                string personal = msg.UnitNameFirstId != 0
+                    ? _locale.GetGoblinName(msg.UnitNameFirstId, msg.UnitNameEpithetId)
+                    : string.Empty;
+                string factionLabel = _locale.GetFactionName(msg.UnitFaction);
+                if (personal.Length > 0)
+                    _hoverCreature.text = ZString.Format("{0} · {1} · {2}",
+                        personal, creatureName, factionLabel);
+                else
+                    _hoverCreature.text = ZString.Format("{0} · {1}",
+                        creatureName, factionLabel);
+
+                // Swap the faction-colour modifier — controller-driven so
+                // all five FactionType variants can share the same label
+                // element. Strip every variant first so stale classes from
+                // the previous hover never stick.
+                _hoverCreature.RemoveFromClassList("tile-info__line--faction-player");
+                _hoverCreature.RemoveFromClassList("tile-info__line--faction-hostile");
+                _hoverCreature.RemoveFromClassList("tile-info__line--faction-beast");
+                _hoverCreature.RemoveFromClassList("tile-info__line--faction-wildlife");
+                _hoverCreature.RemoveFromClassList("tile-info__line--faction-neutral");
+                _hoverCreature.AddToClassList(msg.UnitFaction switch
+                {
+                    FactionType.Player   => "tile-info__line--faction-player",
+                    FactionType.Hostile  => "tile-info__line--faction-hostile",
+                    FactionType.Beast    => "tile-info__line--faction-beast",
+                    FactionType.Wildlife => "tile-info__line--faction-wildlife",
+                    _                    => "tile-info__line--faction-neutral",
+                });
 
                 var sb = ZString.CreateStringBuilder();
                 try

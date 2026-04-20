@@ -30,6 +30,13 @@ namespace RareIcon
         public readonly ushort UnitInvId2, UnitInvCount2;
         public readonly ushort UnitInvId3, UnitInvCount3;
 
+        // Identity — per-unit name pool ids (0 if unset) and faction byte
+        // so the hover panel can title the unit by name and colour-code
+        // by allegiance (Player = gold, Hostile = red, Beast = amber).
+        public readonly ushort UnitNameFirstId;
+        public readonly ushort UnitNameEpithetId;
+        public readonly byte UnitFaction;
+
         public HexHoverMessage(int q, int r, byte biomeId, bool isLand,
                                byte wood = 0, byte stone = 0, byte berries = 0,
                                byte mushrooms = 0, byte herbs = 0,
@@ -43,7 +50,10 @@ namespace RareIcon
                                ushort invId0 = 0, ushort invCount0 = 0,
                                ushort invId1 = 0, ushort invCount1 = 0,
                                ushort invId2 = 0, ushort invCount2 = 0,
-                               ushort invId3 = 0, ushort invCount3 = 0)
+                               ushort invId3 = 0, ushort invCount3 = 0,
+                               ushort unitNameFirstId = 0,
+                               ushort unitNameEpithetId = 0,
+                               byte unitFaction = 0)
         {
             Q = q;
             R = r;
@@ -71,6 +81,9 @@ namespace RareIcon
             UnitInvId1 = invId1; UnitInvCount1 = invCount1;
             UnitInvId2 = invId2; UnitInvCount2 = invCount2;
             UnitInvId3 = invId3; UnitInvCount3 = invCount3;
+            UnitNameFirstId   = unitNameFirstId;
+            UnitNameEpithetId = unitNameEpithetId;
+            UnitFaction       = unitFaction;
         }
     }
 
@@ -155,6 +168,13 @@ namespace RareIcon
     {
         public readonly Unity.Entities.Entity Unit;
         public PossessUnitMessage(Unity.Entities.Entity unit) => Unit = unit;
+    }
+
+    /// <summary>"Player clicked a hex hosting a Player-faction unit" — opens Citizens → Roster with this entity selected. Possession is a separate explicit action from the Roster detail pane, so a misclick no longer hijacks control.</summary>
+    public readonly struct UnitInspectMessage
+    {
+        public readonly Unity.Entities.Entity Unit;
+        public UnitInspectMessage(Unity.Entities.Entity unit) => Unit = unit;
     }
 
     /// <summary>"Player clicked an empty hex while a unit is controlled" — move order.</summary>

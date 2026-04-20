@@ -10,7 +10,7 @@ using VContainer.Unity;
 
 namespace RareIcon
 {
-    /// <summary>Managed bridge between SelectionDragMessage (from MessagePipe) and the ECS SelectedTag component. Listens for drag-ends, clears the current selection, then re-tags every Player-faction unit whose world XY lies inside the drag rect. Lives on the managed side for the same reason BuildCommandHandler does — MessagePipe + VContainer are both managed, and the world mutation is cheap (AddComponent/RemoveComponent per selected unit).</summary>
+    /// <summary>Applies SelectedTag to every Player-faction unit inside a drag rect; clears the prior selection on each drag.</summary>
     public sealed class SelectionController : IAsyncStartable, IDisposable
     {
         readonly ISubscriber<SelectionDragMessage> _dragSub;
@@ -65,7 +65,7 @@ namespace RareIcon
             finally { hitUnits.Dispose(); }
         }
 
-        /// <summary>Drops every <see cref="SelectedTag"/> in the world. Callable from input-cancel paths (ESC / right-click) so classic RTS "clear selection" gestures work without forcing an empty drag.</summary>
+        /// <summary>Drops every <see cref="SelectedTag"/>.</summary>
         public void Clear()
         {
             var world = World.DefaultGameObjectInjectionWorld;

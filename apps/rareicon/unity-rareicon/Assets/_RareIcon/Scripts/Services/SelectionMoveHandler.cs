@@ -14,8 +14,6 @@ namespace RareIcon
     public sealed class SelectionMoveHandler : IAsyncStartable, IDisposable
     {
         const float HexSize = 0.25f;
-        // Ring radius cap — 4 rings yield 1 + 6 + 12 + 18 + 24 = 61 slots.
-        // Enough for any plausible drag-select and cheap to walk.
         const int MaxRingRadius = 4;
 
         readonly ISubscriber<SelectionMoveMessage> _moveSub;
@@ -50,10 +48,6 @@ namespace RareIcon
 
             using var entities = query.ToEntityArray(Allocator.Temp);
 
-            // Sort selected units by distance to the target so the closest
-            // unit takes the centre hex, nearer ones fill inner rings, and
-            // distant stragglers get the outer rings — produces a convex
-            // formation that matches player intent.
             var order = new NativeArray<int>(count, Allocator.Temp);
             var dists = new NativeArray<float>(count, Allocator.Temp);
             var target = new int2(msg.Q, msg.R);
@@ -68,7 +62,6 @@ namespace RareIcon
                     float dy = t.Position.y - targetWorld.y;
                     dists[i] = dx * dx + dy * dy;
                 }
-                // Insertion sort — N is tiny (rarely > 20).
                 for (int i = 1; i < count; i++)
                 {
                     int key = order[i];
@@ -82,10 +75,6 @@ namespace RareIcon
                     order[j + 1] = key;
                 }
 
-                // Walk the hex spiral outward from target; assign each unit
-                // (in nearest-first order) to the next spiral slot. Skip
-                // slots already occupied by a SELECTED unit standing there
-                // so the unit already in position doesn't waste a move.
                 int idx = 0;
                 foreach (var slot in HexMeshUtil.Spiral(target, MaxRingRadius))
                 {

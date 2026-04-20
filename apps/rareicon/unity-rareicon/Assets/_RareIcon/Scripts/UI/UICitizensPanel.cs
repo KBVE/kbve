@@ -20,6 +20,8 @@ namespace RareIcon
         public ReadOnlyReactiveProperty<bool> IsOpen => _isOpen;
 
         readonly ICitizensTab[] _tabs;
+        readonly RosterTab _rosterTab;
+        readonly int _rosterIndex;
         Button[] _tabButtons;
         VisualElement[] _tabBodies;
         int _activeIndex;
@@ -27,6 +29,7 @@ namespace RareIcon
         VisualElement _root, _panel, _sidebar, _content;
 
         readonly ISubscriber<PossessUnitMessage> _possessSub;
+        readonly ISubscriber<UnitInspectMessage> _inspectSub;
 
         [Inject]
         public UICitizensPanel(UIPanelManager panelManager,
@@ -34,18 +37,22 @@ namespace RareIcon
                                ActivityFeedService activity,
                                CameraService camera,
                                IPublisher<PossessUnitMessage> possessPub,
-                               ISubscriber<PossessUnitMessage> possessSub)
+                               ISubscriber<PossessUnitMessage> possessSub,
+                               ISubscriber<UnitInspectMessage> inspectSub)
         {
             _panelManager = panelManager;
             _locale = locale;
             _possessSub = possessSub;
+            _inspectSub = inspectSub;
+            _rosterTab = new RosterTab(locale, activity, camera, possessPub);
             _tabs = new ICitizensTab[]
             {
                 new JobsTab(),
-                new RosterTab(locale, activity, camera, possessPub),
+                _rosterTab,
                 new SkillsTab(),
                 new DietTab(locale),
             };
+            _rosterIndex = 1;
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
@@ -102,6 +109,15 @@ namespace RareIcon
             // their new avatar without an extra click.
             var bag = MessagePipe.DisposableBag.CreateBuilder();
             _possessSub.Subscribe(_ => Close()).AddTo(bag);
+            // Click-to-inspect — opens the panel onto the Roster tab with
+            // the clicked unit already selected so the player can audit
+            // stats / jobs / inventory in one gesture.
+            _inspectSub.Subscribe(msg =>
+            {
+                if (_activeIndex != _rosterIndex) SelectTab(_rosterIndex);
+                _rosterTab.ShowUnit(msg.Unit);
+                _isOpen.Value = true;
+            }).AddTo(bag);
             _disposables.Add(bag.Build());
         }
 

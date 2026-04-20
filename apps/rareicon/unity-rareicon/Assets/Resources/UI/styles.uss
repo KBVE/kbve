@@ -409,8 +409,16 @@
     white-space: normal;
 }
 .tile-info__line--muted    { color: var(--color-text-muted); }
-.tile-info__line--creature { color: var(--color-text-danger); -unity-font-style: bold; }
+.tile-info__line--creature { -unity-font-style: bold; }
 .tile-info__line--resource { color: var(--color-accent-deep); }
+
+/* Faction-coloured creature line — controller picks the right modifier
+   per hover so friendly goblins read as allies, not enemies. */
+.tile-info__line--faction-player   { color: var(--color-accent); }
+.tile-info__line--faction-hostile  { color: var(--color-text-danger); }
+.tile-info__line--faction-beast    { color: var(--color-accent-deep); }
+.tile-info__line--faction-wildlife { color: var(--color-text-muted); }
+.tile-info__line--faction-neutral  { color: var(--color-text-muted); }
 
 /* Inline variant — used when hover panel is mounted into the bottom
    bar instead of floating. Labels lay out horizontally with separators
@@ -471,10 +479,10 @@
 
 /* Section header inside a tab body */
 .cz-section {
-    font-size: var(--font-head);
+    font-size: var(--font-label);
     color: var(--color-text-strong);
     -unity-font-style: bold;
-    margin-top: var(--space-md);
+    margin-top: var(--space-sm);
     margin-bottom: var(--space-xs);
 }
 .cz-section.first { margin-top: 0; }
@@ -516,10 +524,10 @@
     margin-right: var(--space-md);
 }
 .roster-list__title {
-    font-size: var(--font-title);
+    font-size: var(--font-label);
     color: var(--color-text-strong);
     -unity-font-style: bold;
-    margin-bottom: var(--space-md);
+    margin-bottom: var(--space-sm);
 }
 .roster-scroll {
     flex-grow: 1;
@@ -591,15 +599,15 @@
     background-color: var(--color-bg-panel);
 }
 .roster-detail__title {
-    font-size: var(--font-title);
+    font-size: var(--font-label);
     color: var(--color-text-strong);
     -unity-font-style: bold;
     margin-bottom: var(--space-xs);
 }
 .roster-detail__activity {
-    font-size: var(--font-label);
+    font-size: var(--font-body);
     color: var(--color-accent-deep);
-    margin-bottom: var(--space-md);
+    margin-bottom: var(--space-sm);
 }
 .roster-detail__stats {
     flex-direction: column;
@@ -662,4 +670,45 @@
     background-color: rgba(252, 211, 77, 0.10);
     border-color: var(--color-accent);
     border-width: 1px;
+}
+
+/* ----- Slim scrollbars inside modal panels -----
+   Unity Toolkit's default scroller is chunky (≈16px wide with up/down
+   repeat buttons). Override just inside .panel--modal so list views in
+   the citizens / palette / inspector chrome get a ~6px rail instead.
+   Non-modal lists fall back to default styling. */
+.panel--modal .unity-scroller--vertical   { width: 6px; }
+.panel--modal .unity-scroller--horizontal { height: 6px; }
+
+/* Hide the ▲/▼ repeat buttons — they're useless on a mouse + too tall. */
+.panel--modal .unity-scroller__low-button,
+.panel--modal .unity-scroller__high-button {
+    display: none;
+}
+
+/* Track (background rail) — flat, no border. */
+.panel--modal .unity-base-slider__tracker {
+    background-color: var(--color-bg-muted);
+    border-width: 0;
+    border-radius: 0;
+    margin: 0;
+}
+
+/* Dragger (thumb) — gold, no border, fills the track. */
+.panel--modal .unity-base-slider__dragger {
+    background-color: var(--color-accent);
+    border-width: 0;
+    border-radius: 0;
+    min-width: 6px;
+    min-height: 6px;
+}
+.panel--modal .unity-base-slider__dragger:hover {
+    background-color: var(--color-accent-deep);
+}
+
+/* Scroller slider shell — strip inherited padding so the track fills. */
+.panel--modal .unity-scroller__slider {
+    margin: 0;
+    min-width: 6px;
+    min-height: 6px;
 }

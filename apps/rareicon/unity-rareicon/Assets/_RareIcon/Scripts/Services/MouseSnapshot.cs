@@ -13,9 +13,6 @@ namespace RareIcon
         public readonly bool LeftPressedThisFrame;
         public readonly bool LeftReleasedThisFrame;
 
-        // Drag tracking — a press that moves beyond DragThresholdPx while held
-        // becomes a drag. IsDragging stays true until release; DragStart/End
-        // fire exactly once per drag.
         public readonly bool IsDragging;
         public readonly bool DragStartedThisFrame;
         public readonly bool DragEndedThisFrame;

@@ -17,8 +17,6 @@ namespace RareIcon
     public sealed class MouseStateSource : IMouseStateSource, ITickable, IDisposable
     {
         const float HexSize = 0.25f;
-        // Press→release motion under this screen-px distance stays a click;
-        // anything past it is treated as a drag (selection marquee).
         const float DragThresholdPx = 6f;
 
         readonly CameraService _cameras;
@@ -73,9 +71,6 @@ namespace RareIcon
             }
 
             bool dragStartedThisFrame = false;
-            // Drag promotion — once the cursor leaves the threshold ring
-            // around the press point, subsequent ticks stay in drag mode
-            // until release, even if the cursor briefly re-enters the ring.
             if (_leftHeld && !_isDragging && !_pressWasOverUi)
             {
                 float2 delta = screen - _pressScreenPos;

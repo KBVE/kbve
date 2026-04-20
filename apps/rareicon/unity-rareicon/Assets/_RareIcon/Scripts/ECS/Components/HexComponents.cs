@@ -173,12 +173,9 @@ namespace RareIcon
         public float2 WorldPos;
         public int2 HexCoord;
         public bool Changed;
-        public bool OverUI;             // true if pointer is over any UI element
+        public bool OverUI;
         public bool LeftPressedThisFrame;
         public bool LeftReleasedThisFrame;
-        // Drag-select state — a release with DragEndedThisFrame means the
-        // gesture completed as a drag (selection marquee) and should NOT
-        // produce a HexClickedMessage.
         public bool IsDragging;
         public bool DragEndedThisFrame;
     }

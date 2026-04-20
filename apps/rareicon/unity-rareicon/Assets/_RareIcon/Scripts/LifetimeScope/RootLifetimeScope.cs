@@ -31,6 +31,7 @@ namespace RareIcon
             // instead of every raw HexClickedMessage.
             builder.RegisterMessageBroker<BuildingInspectMessage>(options);
             builder.RegisterMessageBroker<PossessUnitMessage>(options);
+            builder.RegisterMessageBroker<UnitInspectMessage>(options);
             builder.RegisterMessageBroker<ControlledUnitMoveMessage>(options);
 
             // Drag-select — DragSelectInput publishes the world rect on

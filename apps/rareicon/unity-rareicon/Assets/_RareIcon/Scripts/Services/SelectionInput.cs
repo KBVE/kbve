@@ -27,18 +27,12 @@ namespace RareIcon
         public void Tick()
         {
             if (_appState.Current.CurrentValue != AppInterfaceState.World) return;
-            // Build mode consumes ESC / RMB first (exit build). Skip so we
-            // don't both exit build AND clear an unrelated selection on the
-            // same frame.
             if (_buildMode.IsActive) return;
 
             bool escPressed = Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
             bool rmbPressed = Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame;
             if (!escPressed && !rmbPressed) return;
 
-            // Right-click on UI shouldn't clear selection (e.g. right-
-            // clicking inside a panel). ESC is a global cancel, though —
-            // it always clears regardless of pointer position.
             if (rmbPressed && !escPressed && _mouse.Value.OverUI) return;
 
             _selection.Clear();

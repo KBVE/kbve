@@ -19,22 +19,22 @@ namespace RareIcon
     /// VContainer land so HUDs can subscribe via R3 and clicks/enters
     /// arrive over MessagePipe.
     ///
-    /// Click routing (slice 3): a raw <see cref="HexClickedMessage"/> is
-    /// dispatched into one of three semantic outputs based on context —
-    /// <see cref="BuildingInspectMessage"/> when the hex hosts a building,
-    /// <see cref="PossessUnitMessage"/> when it hosts a Player-faction
-    /// unit other than the one already controlled, or
+    /// Click routing: a raw <see cref="HexClickedMessage"/> becomes one of
+    /// four semantic outputs — <see cref="SelectionMoveMessage"/> when any
+    /// units carry SelectedTag (bulk order wins first), else
+    /// <see cref="BuildingInspectMessage"/> for a building hex,
+    /// <see cref="UnitInspectMessage"/> for a Player-faction unit (opens
+    /// Citizens → Roster with the clicked unit selected; possession is
+    /// explicit via the Roster Possess button), or
     /// <see cref="ControlledUnitMoveMessage"/> when the player has a
-    /// controlled unit and clicked an empty land hex. Build mode is its
-    /// own modality and bypasses the router (BuildCommandHandler reads
-    /// raw HexClickedMessage directly).
-    /// </summary>
+    /// controlled unit and clicked empty land. Build mode is its own
+    /// modality and bypasses the router.</summary>
     public sealed class AppStateController : IAsyncStartable, IDisposable
     {
         readonly ISubscriber<HexClickedMessage> _clickSub;
         readonly ISubscriber<EnterTileMessage> _enterSub;
         readonly IPublisher<BuildingInspectMessage> _inspectPub;
-        readonly IPublisher<PossessUnitMessage> _possessPub;
+        readonly IPublisher<UnitInspectMessage> _unitInspectPub;
         readonly IPublisher<ControlledUnitMoveMessage> _movePub;
         readonly IPublisher<SelectionMoveMessage> _selectionMovePub;
         readonly BuildModeController _buildMode;
@@ -42,7 +42,6 @@ namespace RareIcon
         readonly ReactiveProperty<AppInterfaceState> _state = new(AppInterfaceState.Boot);
         public ReadOnlyReactiveProperty<AppInterfaceState> Current => _state;
 
-        // Context carried across transitions — read by HUDs after a state change.
         public HexClickedMessage LastClickedHex { get; private set; }
         public EnterTileMessage CurrentTile { get; private set; }
 
@@ -53,7 +52,7 @@ namespace RareIcon
             ISubscriber<HexClickedMessage> clickSub,
             ISubscriber<EnterTileMessage> enterSub,
             IPublisher<BuildingInspectMessage> inspectPub,
-            IPublisher<PossessUnitMessage> possessPub,
+            IPublisher<UnitInspectMessage> unitInspectPub,
             IPublisher<ControlledUnitMoveMessage> movePub,
             IPublisher<SelectionMoveMessage> selectionMovePub,
             BuildModeController buildMode)
@@ -61,7 +60,7 @@ namespace RareIcon
             _clickSub         = clickSub;
             _enterSub         = enterSub;
             _inspectPub       = inspectPub;
-            _possessPub       = possessPub;
+            _unitInspectPub   = unitInspectPub;
             _movePub          = movePub;
             _selectionMovePub = selectionMovePub;
             _buildMode        = buildMode;
@@ -81,13 +80,8 @@ namespace RareIcon
 
         void OnHexClicked(HexClickedMessage msg)
         {
-            // Only the world view should produce gameplay actions —
-            // defends against stray clicks from underneath modals.
             if (_state.Value != AppInterfaceState.World) return;
 
-            // Build mode is its own modality. BuildCommandHandler converts
-            // the click into a BuildRequest; the router stays out of it
-            // so placing a building can't also trigger possession / move.
             if (_buildMode.IsActive)
             {
                 LastClickedHex = msg;
@@ -100,43 +94,29 @@ namespace RareIcon
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
 
-            // 0) Selection mode — if any units carry SelectedTag, the click
-            //    is a bulk move order and we short-circuit the single-unit
-            //    inspect/possess/move routing. Empty selection falls through
-            //    to the original god-view behavior.
             if (msg.IsLand && HasSelection(em))
             {
                 _selectionMovePub.Publish(new SelectionMoveMessage(msg.Q, msg.R));
                 return;
             }
 
-            // 1) Building? Hex tile entity carries HexOccupant pointing at
-            //    the owning Building entity.
             if (TryGetBuildingAt(em, new int2(msg.Q, msg.R), out var building))
             {
                 _inspectPub.Publish(new BuildingInspectMessage(building));
                 return;
             }
 
-            // 2) Possessable unit? Any Player-faction unit on this hex
-            //    that isn't already the one being driven.
-            if (TryGetPossessableUnitAt(em, new int2(msg.Q, msg.R), out var unit))
+            if (TryGetUnitAt(em, new int2(msg.Q, msg.R), out var unit))
             {
-                _possessPub.Publish(new PossessUnitMessage(unit));
+                _unitInspectPub.Publish(new UnitInspectMessage(unit));
                 return;
             }
 
-            // 3) Move order — only if there's actually a controlled unit
-            //    AND the click is on land (open ocean is not walkable).
             if (msg.IsLand && HasControlledUnit(em))
             {
                 _movePub.Publish(new ControlledUnitMoveMessage(msg.Q, msg.R));
                 return;
             }
-
-            // 4) God view, empty land — nothing to do for v1. Future:
-            //    fall through to the enterable-tile modal for landmarks
-            //    (HexEnterableTag check goes here once we add it).
         }
 
         static bool TryGetBuildingAt(EntityManager em, int2 hex, out Entity building)
@@ -151,10 +131,7 @@ namespace RareIcon
             return true;
         }
 
-        // Sweep all Unit entities and find the first Player-faction one
-        // standing on this hex that doesn't already carry ControlledUnitTag.
-        // Cheap because units are sparse and this only runs on click.
-        static bool TryGetPossessableUnitAt(EntityManager em, int2 hex, out Entity unit)
+        static bool TryGetUnitAt(EntityManager em, int2 hex, out Entity unit)
         {
             const float HexSize = 0.25f;
             unit = Entity.Null;
@@ -172,11 +149,6 @@ namespace RareIcon
                 var t = em.GetComponentData<LocalTransform>(arr[i]);
                 var unitHex = HexMeshUtil.WorldToHex(t.Position.x, t.Position.y, HexSize);
                 if (!unitHex.Equals(hex)) continue;
-
-                // Clicking the unit you already drive is a no-op (could be
-                // a "deselect" later, but for v1 the toolbar Release button
-                // is the explicit way to drop control).
-                if (em.HasComponent<ControlledUnitTag>(arr[i])) continue;
 
                 unit = arr[i];
                 return true;

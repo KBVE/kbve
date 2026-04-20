@@ -20,9 +20,6 @@ namespace RareIcon
 
         public void OnUpdate(ref SystemState state)
         {
-            // Back-fill — any newly-spawned unit without the visual
-            // component gets one defaulted to 0. Structural change, so
-            // funnel through an ECB to avoid invalidating the enumerator.
             if (!_missingVisual.IsEmpty)
             {
                 var ecb = SystemAPI
@@ -33,15 +30,12 @@ namespace RareIcon
                     ecb.AddComponent(arr[i], new UnitSelectedVisual { Value = 0f });
             }
 
-            // Selected → 1. Only write when the value would change so the
-            // hybrid renderer doesn't re-upload every instance each frame.
             foreach (var vis in SystemAPI.Query<RefRW<UnitSelectedVisual>>()
                                           .WithAll<SelectedTag>())
             {
                 if (vis.ValueRO.Value != 1f) vis.ValueRW.Value = 1f;
             }
 
-            // Not selected → 0. Same write-gate as above.
             foreach (var vis in SystemAPI.Query<RefRW<UnitSelectedVisual>>()
                                           .WithNone<SelectedTag>())
             {

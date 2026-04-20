@@ -62,9 +62,6 @@ namespace RareIcon
             var panel = _marquee.panel;
             if (panel == null) return;
 
-            // Unity mouse pos has origin bottom-left; UIToolkit panels use
-            // top-left. RuntimePanelUtils.ScreenToPanel handles the flip
-            // and the DPI scale in one go.
             var flippedPress   = new Vector2(snap.PressScreenPos.x, Screen.height - snap.PressScreenPos.y);
             var flippedCurrent = new Vector2(snap.ScreenPos.x,      Screen.height - snap.ScreenPos.y);
             Vector2 p0 = RuntimePanelUtils.ScreenToPanel(panel, flippedPress);

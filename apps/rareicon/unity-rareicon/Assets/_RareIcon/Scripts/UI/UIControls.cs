@@ -36,7 +36,7 @@ namespace RareIcon
 
             var labelEl = new Label(label);
             labelEl.style.color = UIStyles.Palette.TextStrong;
-            labelEl.style.fontSize = 13;
+            labelEl.style.fontSize = 10;
             if (labelWidth > 0) labelEl.style.width = labelWidth;
             else labelEl.style.flexGrow = 1;
             row.Add(labelEl);
@@ -61,13 +61,13 @@ namespace RareIcon
                 Sync();
                 onChange?.Invoke(state);
             });
-            minusBtn.style.width = 24; minusBtn.style.height = 22; minusBtn.style.fontSize = 14;
+            minusBtn.style.width = 18; minusBtn.style.height = 16; minusBtn.style.fontSize = 11;
             row.Add(minusBtn);
 
             valueLabel = new Label(state.ToString());
             valueLabel.style.color = UIStyles.Palette.Gold;
-            valueLabel.style.fontSize = 14;
-            valueLabel.style.width = 24;
+            valueLabel.style.fontSize = 11;
+            valueLabel.style.width = 20;
             valueLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
             row.Add(valueLabel);
 
@@ -78,7 +78,7 @@ namespace RareIcon
                 Sync();
                 onChange?.Invoke(state);
             });
-            plusBtn.style.width = 24; plusBtn.style.height = 22; plusBtn.style.fontSize = 14;
+            plusBtn.style.width = 18; plusBtn.style.height = 16; plusBtn.style.fontSize = 11;
             row.Add(plusBtn);
 
             void SetExternal(int v)
@@ -95,11 +95,11 @@ namespace RareIcon
         public static Button MakeSidebarTab(string label, bool isActive, Action onClick)
         {
             var btn = UIStyles.MakeButton(label, onClick);
-            btn.style.height = 30;
-            btn.style.fontSize = 13;
+            btn.style.height = 22;
+            btn.style.fontSize = 11;
             btn.style.width = Length.Percent(100);
-            btn.style.marginBottom = 4;
-            btn.style.Padding(0, 10);
+            btn.style.marginBottom = 2;
+            btn.style.Padding(0, 8);
             btn.style.unityTextAlign = TextAnchor.MiddleLeft;
             ApplySidebarTabActive(btn, isActive);
             return btn;

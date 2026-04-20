@@ -115,8 +115,9 @@ namespace RareIcon
         [NativeDisableParallelForRestriction]
         public BufferLookup<ItemDrop> DropLookup;
 
-        void Execute(in UnitMovement movement, ref DynamicBuffer<InventorySlot> inventory)
+        void Execute(in UnitMovement movement, in Faction faction, ref DynamicBuffer<InventorySlot> inventory)
         {
+            if (faction.Value != FactionType.Player) return;
             if (!HexLookup.TryGetValue(movement.CurrentHex, out var hex)) return;
             if (!DropLookup.HasBuffer(hex)) return;
 
