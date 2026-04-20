@@ -17,18 +17,6 @@ namespace RareIcon
             var hashSys = World.GetExistingSystemManaged<SpatialHashSystem>();
             var hexResourceLookup = SystemAPI.GetComponentLookup<HexResources>(isReadOnly: true);
 
-            int2 capitalHex = default;
-            bool hasCapital = false;
-            foreach (var b in SystemAPI.Query<RefRO<Building>>())
-            {
-                if (b.ValueRO.Type == BuildingType.Capital)
-                {
-                    capitalHex = b.ValueRO.RootHex;
-                    hasCapital = true;
-                    break;
-                }
-            }
-
             Entity nearestFarm = Entity.Null;
             int2   farmHex     = default;
             bool   hasFarm     = false;
@@ -58,7 +46,12 @@ namespace RareIcon
                     continue;
                 }
 
-                if (EntityManager.HasComponent<KingTag>(entity))
+                // Manually-driven units (King by default, or any
+                // possessed goblin) skip job assignment — the player is
+                // steering them, the AI shouldn't assign work in
+                // parallel. Releasing control returns the unit to the
+                // job dispatcher next tick.
+                if (EntityManager.HasComponent<ControlledUnitTag>(entity))
                 {
                     jobIntentRef.ValueRW = default;
                     continue;
@@ -115,8 +108,6 @@ namespace RareIcon
                     TargetHex    = bestHex,
                     TargetEntity = bestEntity,
                 };
-
-                _ = hasCapital;
             }
         }
 

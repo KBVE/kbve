@@ -25,10 +25,12 @@ namespace RareIcon
         }
     }
 
-    // KingTag excluded — the King stays at rest until the player clicks.
-    // Every other unit with MovementGoal + UnitMovement wanders by default.
+    // ControlledUnitTag excluded — whichever unit the player is driving
+    // (King by default, or any possessed goblin) stays at rest until the
+    // player issues a click order. Every other unit with MovementGoal +
+    // UnitMovement wanders by default.
     [BurstCompile]
-    [WithNone(typeof(KingTag))]
+    [WithNone(typeof(ControlledUnitTag))]
     public partial struct WanderJob : IJobEntity
     {
         void Execute(ref MovementGoal goal, ref UnitMovement m)

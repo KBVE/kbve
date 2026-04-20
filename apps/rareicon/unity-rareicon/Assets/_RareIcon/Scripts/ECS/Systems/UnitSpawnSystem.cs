@@ -233,6 +233,10 @@ namespace RareIcon
                 inv.Add(new InventorySlot { ItemId = (ushort)ItemId.CapitalLandGrant, Count = 1 });
 
             em.AddComponent<KingTag>(entity);
+            // King defaults to player-controlled at game start so the
+            // out-of-the-box UX is unchanged. Click-to-possess (slice 3)
+            // moves ControlledUnitTag off the King onto a goblin.
+            em.AddComponent<ControlledUnitTag>(entity);
 
             RenderMeshUtility.AddComponents(
                 entity, em, _renderDesc, _renderArray,
@@ -332,7 +336,7 @@ namespace RareIcon
         static void AttachJobsIfPlayer(EntityManager em, Entity entity, byte faction, byte unitType)
         {
             if (faction != FactionType.Player) return;
-            em.AddComponentData(entity, JobDefaults.Get(unitType));
+            em.AddComponentData(entity, JobPreferencesStore.GetOrDefault(unitType));
             em.AddComponentData(entity, new JobIntent
             {
                 Kind         = JobKind.None,

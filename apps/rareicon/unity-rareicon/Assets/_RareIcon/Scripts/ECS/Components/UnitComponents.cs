@@ -32,11 +32,27 @@ namespace RareIcon
     public struct OwnerRef : IComponentData { public Entity Value; }
 
     /// <summary>
-    /// Tag for the player-controlled King. There's exactly one King in the
-    /// world. KingMoveCommandSystem queries this to find "the player" when
-    /// a hex is clicked; UnitMovementSystem checks it to skip auto-wander.
+    /// Tag for the player's King — identity marker, exactly one in the
+    /// world. Used as a cost source (King's pocket carries the
+    /// CapitalLandGrant) and as the default focus target for the
+    /// "King" toolbar button. Distinct from <see cref="ControlledUnitTag"/>
+    /// — the King is always the King, but may or may not be the unit
+    /// the player is actively driving.
     /// </summary>
     public struct KingTag : IComponentData { }
+
+    /// <summary>
+    /// "Player is currently driving this entity." At most one entity in
+    /// the world carries this at a time. Possessable by any unit (King
+    /// by default at game start; click-to-possess swaps it to a goblin
+    /// or any future selectable creature).
+    ///
+    /// Behavior systems that should treat the player avatar as
+    /// manually-driven (no auto-wander, no auto-job) gate on this tag
+    /// rather than KingTag — that way a possessed goblin gets the same
+    /// "manual control, suppress AI" treatment as the King would.
+    /// </summary>
+    public struct ControlledUnitTag : IComponentData { }
 
     /// <summary>
     /// Tag + per-unit identity data. Movement / AI / stat components layer
