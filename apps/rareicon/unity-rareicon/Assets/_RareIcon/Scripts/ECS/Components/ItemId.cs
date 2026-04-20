@@ -47,6 +47,8 @@ namespace RareIcon
         CookedChicken = 227,
         CookedMutton  = 228,
         CookedBeef    = 229,
+        Egg         = 230,
+        Milk        = 231,
 
         // Quest / key items
         QuestScroll       = 300,

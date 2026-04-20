@@ -127,6 +127,11 @@ namespace RareIcon
                 (ushort)ItemId.Wool        => "item.wool",
                 (ushort)ItemId.RawBeef     => "item.raw_beef",
                 (ushort)ItemId.Leather     => "item.leather",
+                (ushort)ItemId.CookedChicken => "item.cooked_chicken",
+                (ushort)ItemId.CookedMutton  => "item.cooked_mutton",
+                (ushort)ItemId.CookedBeef    => "item.cooked_beef",
+                (ushort)ItemId.Egg         => "item.egg",
+                (ushort)ItemId.Milk        => "item.milk",
                 _ => "item.unknown",
             };
             return Get(key);
