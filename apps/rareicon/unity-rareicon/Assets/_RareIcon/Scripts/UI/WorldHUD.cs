@@ -299,7 +299,7 @@ namespace RareIcon
                 _inventoryLine.style.display = DisplayStyle.None;
             }
 
-            if (msg.IsLand && (msg.Wood | msg.Stone | msg.Berries | msg.Mushrooms | msg.Herbs) != 0)
+            if (msg.IsLand && (msg.Wood | msg.Stone | msg.Berries | msg.Mushrooms | msg.Herbs | msg.Cactus) != 0)
             {
                 // ZString builder appends mutate the struct, so it can't be a
                 // 'using var' (refs to using-vars are illegal). Manual dispose.
@@ -311,6 +311,7 @@ namespace RareIcon
                     AppendResource(ref sb, msg.Berries,   ResourceType.Berries);
                     AppendResource(ref sb, msg.Mushrooms, ResourceType.Mushrooms);
                     AppendResource(ref sb, msg.Herbs,     ResourceType.Herbs);
+                    AppendResource(ref sb, msg.Cactus,    ResourceType.Cactus, msg.CactusVariant);
                     _resourceLine.text = sb.ToString();
                 }
                 finally
@@ -325,11 +326,14 @@ namespace RareIcon
             }
         }
 
-        void AppendResource(ref Utf16ValueStringBuilder sb, byte amount, byte type)
+        void AppendResource(ref Utf16ValueStringBuilder sb, byte amount, byte type, byte variant = 0)
         {
             if (amount == 0) return;
             if (sb.Length > 0) sb.Append('\n');
-            sb.Append(_locale.GetResourceName(type));
+            var label = (type == ResourceType.Cactus && variant != CactusVariantType.None)
+                ? _locale.GetCactusLabel(variant)
+                : _locale.GetResourceName(type);
+            sb.Append(label);
             sb.Append(": ");
             sb.Append(amount);
         }

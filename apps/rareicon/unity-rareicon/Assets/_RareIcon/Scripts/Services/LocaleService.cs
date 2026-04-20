@@ -102,11 +102,16 @@ namespace RareIcon
         {
             var key = itemId switch
             {
-                (ushort)ItemId.WoodLog  => "item.wood_log",
-                (ushort)ItemId.Stone    => "item.stone",
-                (ushort)ItemId.Berry    => "item.berry",
-                (ushort)ItemId.Mushroom => "item.mushroom",
-                (ushort)ItemId.Herb     => "item.herb",
+                (ushort)ItemId.WoodLog     => "item.wood_log",
+                (ushort)ItemId.Stone       => "item.stone",
+                (ushort)ItemId.Berry       => "item.berry",
+                (ushort)ItemId.Mushroom    => "item.mushroom",
+                (ushort)ItemId.Herb        => "item.herb",
+                (ushort)ItemId.RawCacti    => "item.raw_cacti",
+                (ushort)ItemId.CactiNeedle => "item.cacti_needle",
+                (ushort)ItemId.PricklyPear => "item.prickly_pear",
+                (ushort)ItemId.Dragonfruit => "item.dragonfruit",
+                (ushort)ItemId.CactiSeeds  => "item.cacti_seeds",
                 _ => "item.unknown",
             };
             return Get(key);
@@ -141,7 +146,20 @@ namespace RareIcon
                 ResourceType.Berries   => "resource.berries",
                 ResourceType.Mushrooms => "resource.mushrooms",
                 ResourceType.Herbs     => "resource.herbs",
+                ResourceType.Cactus    => "resource.cactus",
                 _ => "resource.none",
+            };
+            return Get(key);
+        }
+
+        /// <summary>Variant-specific cactus label (e.g. "Prickly Pear Cactus"); falls back to generic "Cactus".</summary>
+        public string GetCactusLabel(byte variant)
+        {
+            var key = variant switch
+            {
+                CactusVariantType.PricklyPear => "resource.cactus_prickly_pear",
+                CactusVariantType.Dragonfruit => "resource.cactus_dragonfruit",
+                _ => "resource.cactus",
             };
             return Get(key);
         }

@@ -29,6 +29,8 @@ pub struct FfiHexResources {
     pub berries: u8,
     pub mushrooms: u8,
     pub herbs: u8,
+    pub cactus: u8,
+    pub cactus_variant: u8,
 }
 
 /// Result of `uniti_world_get_hex` — `valid=0` means "no override stored,

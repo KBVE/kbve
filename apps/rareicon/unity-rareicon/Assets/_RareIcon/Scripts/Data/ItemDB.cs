@@ -100,6 +100,19 @@ namespace RareIcon
                 "item.herb",     ItemCategory.Material, 99, 5,
                 restoreEnergy: 25f));
 
+            Add(new ItemDef((ushort)ItemId.RawCacti,
+                "item.raw_cacti",    ItemCategory.Material, 99, 2));
+            Add(new ItemDef((ushort)ItemId.CactiNeedle,
+                "item.cacti_needle", ItemCategory.Material, 99, 3));
+            Add(new ItemDef((ushort)ItemId.PricklyPear,
+                "item.prickly_pear", ItemCategory.Material, 64, 8,
+                restoreEnergy: 30f));
+            Add(new ItemDef((ushort)ItemId.Dragonfruit,
+                "item.dragonfruit",  ItemCategory.Material, 64, 20,
+                restoreEnergy: 45f));
+            Add(new ItemDef((ushort)ItemId.CactiSeeds,
+                "item.cacti_seeds",  ItemCategory.Material, 64, 4));
+
             // Potions / equipment / quest items land here when the
             // systems that read them come online.
         }

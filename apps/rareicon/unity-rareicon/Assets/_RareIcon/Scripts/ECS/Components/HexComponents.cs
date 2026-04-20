@@ -35,12 +35,7 @@ namespace RareIcon
         public float4 Value;
     }
 
-    /// <summary>
-    /// Per-hex resource yields. Each hex can carry several resources at once
-    /// (a forest hex might have Wood + Mushrooms + Berries simultaneously).
-    /// All amounts are 0..100 and deterministic from the hex coord + biome.
-    /// Wood is implicit in the trees the shader draws — no fallen-log icon.
-    /// </summary>
+    /// <summary>Per-hex resource yields. Multiple resources may coexist; amounts are 0..100.</summary>
     public struct HexResources : IComponentData
     {
         public byte Wood;
@@ -48,11 +43,13 @@ namespace RareIcon
         public byte Berries;
         public byte Mushrooms;
         public byte Herbs;
+        public byte Cactus;
+        public byte CactusVariant;
 
-        public bool HasAny() => (Wood | Stone | Berries | Mushrooms | Herbs) != 0;
+        public bool HasAny() => (Wood | Stone | Berries | Mushrooms | Herbs | Cactus) != 0;
     }
 
-    /// <summary>Resource type IDs — used by LocaleService and the HUD.</summary>
+    /// <summary>Resource type IDs used by LocaleService and the HUD.</summary>
     public static class ResourceType
     {
         public const byte None      = 0;
@@ -61,15 +58,26 @@ namespace RareIcon
         public const byte Berries   = 3;
         public const byte Mushrooms = 4;
         public const byte Herbs     = 5;
+        public const byte Cactus    = 6;
     }
 
-    /// <summary>Bit flags for which floor decorations the shader should draw.</summary>
+    /// <summary>Cactus species on a hex; drives drop table and shader silhouette.</summary>
+    public static class CactusVariantType
+    {
+        public const byte None        = 0;
+        public const byte PricklyPear = 1;
+        public const byte Dragonfruit = 2;
+    }
+
+    /// <summary>Bit flags telling the shader which floor decorations to draw. Keep in sync with MASK_* in HexTile.shader.</summary>
     public static class ResourceMask
     {
-        public const int Stone     = 1 << 0;
-        public const int Mushrooms = 1 << 1;
-        public const int Berries   = 1 << 2;
-        public const int Herbs     = 1 << 3;
+        public const int Stone             = 1 << 0;
+        public const int Mushrooms         = 1 << 1;
+        public const int Berries           = 1 << 2;
+        public const int Herbs             = 1 << 3;
+        public const int Cactus            = 1 << 4;
+        public const int CactusDragonfruit = 1 << 5;
     }
 
     /// <summary>
