@@ -5,9 +5,7 @@ using Unity.Mathematics;
 namespace RareIcon
 {
     /// <summary>Opportunistic harvesting on arrival — respects JobPriorities + DietPreferencesStore, awards SkillXP. Scheduled single-worker off the main thread; shared hex component writes are serialised so parallel is avoided here.</summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(UnitMovementSystem))]
-    [UpdateAfter(typeof(HexChunkSystem))]
+    [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct HarvestSystem : ISystem
     {
         public void OnCreate(ref SystemState state) { }
@@ -19,6 +17,7 @@ namespace RareIcon
 
             state.Dependency = new HarvestJob
             {
+                DeltaTime            = SystemAPI.Time.DeltaTime,
                 HexLookup            = hexLookupSingleton.Lookup,
                 HexResLookup         = SystemAPI.GetComponentLookup<HexResources>(false),
                 HexResVisualLookup   = SystemAPI.GetComponentLookup<HexResourceVisual>(false),
@@ -32,8 +31,11 @@ namespace RareIcon
 
     public partial struct HarvestJob : IJobEntity
     {
-        const ushort HarvestPerTick = 3;
-        const ushort XPPerHarvest   = 12;
+        const ushort HarvestPerTick    = 3;
+        const ushort XPPerHarvest      = 12;
+        const float  HarvestIntervalSec = 0.8f;
+
+        public float DeltaTime;
 
         [ReadOnly] public NativeHashMap<int2, Entity> HexLookup;
 
@@ -51,10 +53,13 @@ namespace RareIcon
                      DynamicBuffer<InventorySlot> inventory,
                      in DynamicBuffer<EquippedBag> bags)
         {
-            if (movement.LastHarvestStep == movement.WanderStep) return;
-            if (movement.DwellTimer <= 0f) return;
+            if (movement.HarvestCooldown > 0f)
+            {
+                movement.HarvestCooldown = math.max(0f, movement.HarvestCooldown - DeltaTime);
+                return;
+            }
 
-            movement.LastHarvestStep = movement.WanderStep;
+            if (!movement.TargetHex.Equals(movement.CurrentHex)) return;
 
             if (!HexLookup.TryGetValue(movement.CurrentHex, out var hexEntity)) return;
             if (!HexResLookup.HasComponent(hexEntity)) return;
@@ -115,6 +120,8 @@ namespace RareIcon
             }
 
             if (!harvested) return;
+
+            movement.HarvestCooldown = HarvestIntervalSec;
 
             HexResLookup[hexEntity] = res;
             if (HexResVisualLookup.HasComponent(hexEntity))

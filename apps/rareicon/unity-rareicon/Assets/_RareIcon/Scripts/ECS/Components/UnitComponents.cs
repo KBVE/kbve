@@ -21,6 +21,7 @@ namespace RareIcon
         public const byte Cow     = 12;
         public const byte Wolf    = 13;  // Beast faction, forest pack hunter.
         public const byte Bandit  = 14;  // Hostile faction, raid waves alongside goblins.
+        public const byte Zombie  = 15;
         // Skeleton, etc. land here as we add them.
     }
 
@@ -246,6 +247,7 @@ namespace RareIcon
         // separate event tag — when LastHarvestStep != WanderStep the unit
         // hasn't harvested THIS stop yet.
         public uint LastHarvestStep;
+        public float HarvestCooldown;
     }
 
     /// <summary>Per-unit intra-hex world-space offset assigned by HexSlotAssignSystem. Units sharing a TargetHex get unique slots via rank-by-Entity.Index so their sprites never land on the same pixel; UnitMovementSystem walks to HexToWorld(targetHex) + Value instead of the raw hex centre. Seeded zero on missing units so first-frame behaviour is identical to the center-of-hex default.</summary>

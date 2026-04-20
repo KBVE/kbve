@@ -25,14 +25,16 @@ namespace RareIcon
     {
         const float HexSize = 0.25f;
         const float UnitSize = 0.5f;
-        const int   GoblinCount  = 50;
+        const int   GoblinCount  = 15;
         const int   SpawnRadius  = 8;
 
         static Mesh                  _mesh;
         static Material              _material;
+        static Material              _heroMaterial;
         static RenderMeshDescription _renderDesc;
         static RenderMeshArray       _renderArray;
         static bool                  _renderAssetsReady;
+        static bool                  _heroMaterialReady;
 
         bool _spawned;
 
@@ -54,8 +56,8 @@ namespace RareIcon
             SpawnGarrisonGoblinAt(EntityManager, new int2( 0,  1), 0xC332AAu);
             SpawnGarrisonGoblinAt(EntityManager, new int2( 0, -1), 0xD443BBu);
 
-            SpawnGoblinAt(EntityManager, new int2( 2,  0), 0x1001A1u, default, FactionType.Player, UnitType.Knight);
-            SpawnGoblinAt(EntityManager, new int2(-2,  0), 0x1002B2u, default, FactionType.Player, UnitType.Knight);
+            SpawnHeroAt(EntityManager, new int2( 2,  0), 0x1001A1u, HeroRole.MasterBlacksmith);
+            SpawnHeroAt(EntityManager, new int2(-2,  0), 0x1002B2u, HeroRole.MasterCraftsman);
             SpawnGoblinAt(EntityManager, new int2( 0,  2), 0x1003C3u, default, FactionType.Player, UnitType.Soldier);
             SpawnGoblinAt(EntityManager, new int2( 0, -2), 0x1004D4u, default, FactionType.Player, UnitType.Soldier);
             SpawnGoblinAt(EntityManager, new int2( 2, -2), 0x1005E5u, default, FactionType.Player, UnitType.Soldier);
@@ -128,7 +130,7 @@ namespace RareIcon
             AttachRangedAttackIfArmed(em, entity, def.DefaultWeapon);
             AttachMeleeAttackIfArmed(em, entity, def.DefaultWeapon, faction);
             AttachNeedsIfPlayer(em, entity, faction, def);
-            AttachJobsIfPlayer(em, entity, faction, def.UnitType);
+            AttachJobsIfPlayer(em, entity, faction, def.UnitType, rngSeed);
 
             // Player goblins get individual names — drives the "Controlling: X"
             // indicator + RosterTab + future tooltips. Hostile / Beast goblins
@@ -451,6 +453,77 @@ namespace RareIcon
             return entity;
         }
 
+        /// <summary>Spawn a Hostile-faction Zombie (undead humanoid) at the given hex. Unarmed bite/claw melee with PreferUnits — the horde chases and eats people rather than bashing walls. Slower than Bandits but tougher per body; clusters spawn at night via ZombieNightSpawnSystem.</summary>
+        public static Entity SpawnZombieAt(EntityManager em, int2 hex, uint rngSeed,
+                                           UnitSpawnState state = default)
+        {
+            if (!EnsureRenderAssets()) return Entity.Null;
+
+            var def = NPCDB.Get(UnitType.Zombie);
+            var entity = em.CreateEntity();
+
+            float3 worldPos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
+            worldPos.z = -0.7f;
+
+            em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
+            em.AddComponentData(entity, new Unit
+            {
+                Type   = def.UnitType,
+                Weapon = WeaponType.None,
+            });
+
+            float maxHp = state.MaxHealth > 0f ? state.MaxHealth : def.MaxHealth;
+            float hp    = state.Health    > 0f ? state.Health    : maxHp;
+            em.AddComponentData(entity, new Health { Value = hp, Max = maxHp });
+
+            em.AddComponentData(entity, new UnitVisual       { Value = (float)def.UnitType });
+            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)WeaponType.None });
+            em.AddComponentData(entity, new UnitFacingVisual { Value = (float)UnitFacing.East });
+            em.AddComponentData(entity, new UnitMovingVisual { Value = 1f });
+
+            em.AddComponentData(entity, new Faction    { Value = FactionType.Hostile });
+            em.AddComponentData(entity, new Collidable { Radius = 0.20f });
+
+            em.AddComponentData(entity, new MeleeAttack
+            {
+                Range         = 0.45f,
+                Damage        = 4.0f,
+                Cooldown      = 1.3f,
+                TimeSinceShot = 0f,
+                TargetMode    = MeleeTargetMode.PreferUnits,
+            });
+
+            em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
+            em.AddBuffer<StatusEffect>(entity);
+
+            float speedJit = 0.85f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.3f;
+            em.AddComponentData(entity, new UnitMovement
+            {
+                CurrentHex      = hex,
+                TargetHex       = hex,
+                MoveSpeed       = def.MoveSpeed * speedJit,
+                Facing          = UnitFacing.East,
+                RandomState     = rngSeed | 1u,
+                WanderStep      = 0u,
+                DwellTimer      = (rngSeed % 200u) / 200f,
+                LastDir         = 255,
+                LastHarvestStep = uint.MaxValue,
+            });
+
+            em.AddComponentData(entity, new MovementGoal
+            {
+                Kind      = GoalKind.None,
+                Priority  = GoalPriority.None,
+                TargetHex = hex,
+            });
+
+            RenderMeshUtility.AddComponents(
+                entity, em, _renderDesc, _renderArray,
+                MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+            return entity;
+        }
+
         /// <summary>Spawn an aggressive beast (Wolf, future Bear, etc.) at the given hex. Beast faction, no carried weapon, no jobs/needs, but does carry MeleeAttack so it bites adjacent Player / Wildlife units. Wanders by default; reactive combat handled by MeleeAttackSystem.</summary>
         public static Entity SpawnBeastAt(EntityManager em, int2 hex, uint rngSeed, byte unitType,
                                           UnitSpawnState state = default)
@@ -539,19 +612,64 @@ namespace RareIcon
 
             _mesh = CreateQuadMesh(UnitSize);
             _material = new Material(shader) { enableInstancing = true };
+            _heroMaterial = new Material(shader) { enableInstancing = true };
+            _heroMaterial.SetColor("_KnightArmor",      new Color(0.96f, 0.82f, 0.28f, 1f));
+            _heroMaterial.SetColor("_KnightArmorShade", new Color(0.64f, 0.48f, 0.10f, 1f));
+            _heroMaterial.SetColor("_KnightPlume",      new Color(0.72f, 0.14f, 0.18f, 1f));
+            _heroMaterialReady = true;
+
             _renderDesc = new RenderMeshDescription(
                 shadowCastingMode: ShadowCastingMode.Off,
                 receiveShadows: false);
-            _renderArray = new RenderMeshArray(new[] { _material }, new[] { _mesh });
+            _renderArray = new RenderMeshArray(new[] { _material, _heroMaterial }, new[] { _mesh });
 
             _renderAssetsReady = true;
             return true;
         }
 
-        static void AttachJobsIfPlayer(EntityManager em, Entity entity, byte faction, byte unitType)
+        public static Entity SpawnHeroAt(EntityManager em, int2 hex, uint rngSeed, byte heroRole)
+        {
+            if (!EnsureRenderAssets()) return Entity.Null;
+
+            var entity = SpawnGoblinAt(em, hex, rngSeed, default, FactionType.Player, UnitType.Knight);
+            if (entity == Entity.Null) return Entity.Null;
+
+            JobPriorities priorities = heroRole switch
+            {
+                HeroRole.MasterBlacksmith => JobDefaults.HeroMasterBlacksmith(),
+                HeroRole.MasterCraftsman  => JobDefaults.HeroMasterCraftsman(),
+                _                         => JobDefaults.Get(UnitType.Knight),
+            };
+            em.SetComponentData(entity, priorities);
+            em.AddComponentData(entity, new HeroTag { Role = heroRole });
+
+            var (heroFirst, heroEpithet) = UnitNaming.GenerateHero(rngSeed, heroRole);
+            em.SetComponentData(entity, new UnitName
+            {
+                FirstNameId = heroFirst,
+                EpithetId   = heroEpithet,
+            });
+
+            if (_heroMaterialReady)
+                em.SetComponentData(entity, MaterialMeshInfo.FromRenderMeshArrayIndices(1, 0));
+
+            return entity;
+        }
+
+        static void AttachJobsIfPlayer(EntityManager em, Entity entity, byte faction, byte unitType, uint archetypeSeed = 0u)
         {
             if (faction != FactionType.Player) return;
-            em.AddComponentData(entity, JobPreferencesStore.GetOrDefault(unitType));
+            JobPriorities priorities;
+            if (unitType == UnitType.Goblin && archetypeSeed != 0u
+                && !JobPreferencesStore.HasOverride(unitType))
+            {
+                priorities = JobDefaults.GoblinArchetype(archetypeSeed);
+            }
+            else
+            {
+                priorities = JobPreferencesStore.GetOrDefault(unitType);
+            }
+            em.AddComponentData(entity, priorities);
             em.AddComponentData(entity, new JobIntent
             {
                 Kind         = JobKind.None,
@@ -559,6 +677,11 @@ namespace RareIcon
                 TargetEntity = Entity.Null,
             });
             em.AddBuffer<TaskMemory>(entity);
+            em.AddComponentData(entity, new UnitBagStatus
+            {
+                FilledSlots = 0,
+                Capacity    = (byte)InventoryUtil.BaseSlotCap,
+            });
             em.AddComponentData(entity, new Skills());
             em.AddComponentData(entity, new SkillXP());
 

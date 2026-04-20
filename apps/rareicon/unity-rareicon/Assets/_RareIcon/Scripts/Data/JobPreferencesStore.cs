@@ -11,6 +11,8 @@ namespace RareIcon
         public static JobPriorities GetOrDefault(byte unitType)
             => _overrides.TryGetValue(unitType, out var p) ? p : JobDefaults.Get(unitType);
 
+        public static bool HasOverride(byte unitType) => _overrides.ContainsKey(unitType);
+
         public static void Set(byte unitType, JobPriorities p) => _overrides[unitType] = p;
 
         public static void Clear(byte unitType) => _overrides.Remove(unitType);

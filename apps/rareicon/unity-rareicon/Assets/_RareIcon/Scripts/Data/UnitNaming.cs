@@ -69,6 +69,70 @@ namespace RareIcon
             "epithet.knottail",
         };
 
+        public static readonly string[] HeroFirstNames =
+        {
+            "(unset)",
+            "Durek", "Thorin", "Balin", "Orik", "Borik",
+            "Hagrok", "Morrin", "Kaz", "Valdir", "Rurik",
+            "Brandir", "Ozrin", "Falk", "Gareth", "Tormun",
+        };
+
+        public static readonly string[] HeroEpithetKeys =
+        {
+            "",
+            "epithet.smith",
+            "epithet.craft",
+            "epithet.maker",
+            "epithet.forge",
+            "epithet.gilded",
+            "epithet.steady",
+            "epithet.master",
+        };
+
+        public const ushort HeroFirstIdOffset = 10000;
+        public const ushort HeroEpithetIdOffset = 10000;
+
+        public static (ushort firstId, ushort epithetId) GenerateHero(uint rngSeed, byte heroRole)
+        {
+            uint h1 = MixHash(rngSeed ^ 0x7A3C9B41u);
+            uint h2 = MixHash(rngSeed ^ 0xDEADBEEFu);
+
+            int firstCount = HeroFirstNames.Length - 1;
+            ushort firstId = (ushort)(HeroFirstIdOffset + 1 + (int)(h1 % (uint)firstCount));
+
+            ushort epithetId;
+            if (heroRole == HeroRole.MasterBlacksmith)
+                epithetId = (ushort)(HeroEpithetIdOffset + 1);
+            else if (heroRole == HeroRole.MasterCraftsman)
+                epithetId = (ushort)(HeroEpithetIdOffset + 2);
+            else
+            {
+                int epCount = HeroEpithetKeys.Length - 1;
+                epithetId = (ushort)(HeroEpithetIdOffset + 1 + (int)(h2 % (uint)epCount));
+            }
+
+            return (firstId, epithetId);
+        }
+
+        public static bool IsHeroFirstId(ushort id) => id > HeroFirstIdOffset;
+        public static bool IsHeroEpithetId(ushort id) => id > HeroEpithetIdOffset;
+
+        public static string GetHeroFirstName(ushort id)
+        {
+            if (!IsHeroFirstId(id)) return string.Empty;
+            int localId = id - HeroFirstIdOffset;
+            if (localId <= 0 || localId >= HeroFirstNames.Length) return string.Empty;
+            return HeroFirstNames[localId];
+        }
+
+        public static string GetHeroEpithetKey(ushort id)
+        {
+            if (!IsHeroEpithetId(id)) return string.Empty;
+            int localId = id - HeroEpithetIdOffset;
+            if (localId <= 0 || localId >= HeroEpithetKeys.Length) return string.Empty;
+            return HeroEpithetKeys[localId];
+        }
+
         /// <summary>Roll deterministic (firstNameId, epithetId) for a goblin from a seed. Same seed → same result across runs / serialization. Roughly 35% of goblins draw an epithet (id != 0).</summary>
         public static (ushort firstId, ushort epithetId) GenerateGoblin(uint rngSeed)
         {
