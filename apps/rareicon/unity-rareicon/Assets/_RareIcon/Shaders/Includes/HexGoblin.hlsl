@@ -13,33 +13,8 @@
 // Uniforms (HexUnit.shader UnityPerMaterial CBUFFER):
 //   _GoblinSkin, _GoblinSkinShade, _GoblinEye,
 //   _GoblinCloth, _GoblinClothShade
-// Helpers: rectMask, circleMask, hash21 (HexShared.hlsl).
-
-// ---- helpers -----------------------------------------------------------------
-void _GoblinShadow(inout float3 color, inout float alpha, float2 px,
-                   float2 cFixed)
-{
-    float shadow = circleMask(px, cFixed + float2(0, -3.5), 2.4)
-                 * step(px.y, cFixed.y - 3.0);
-    if (shadow > 0.5)
-    {
-        color = float3(0.05, 0.05, 0.07);
-        alpha = 0.35;
-    }
-}
-
-// Returns 0 or 1 — alternating "step" frame, biased per-spawn so neighbouring
-// goblins don't step in lockstep.
-float _GoblinStep(float seed)
-{
-    return step(0.0, sin(_Time.y * 5.0 + seed * 6.28318));
-}
-
-// Returns 0 or 1 — vertical bob in pixels. Slightly slower than the step.
-float _GoblinBob(float seed)
-{
-    return step(0.0, sin(_Time.y * 5.0 + seed * 6.28318 + 1.57));
-}
+// Helpers: rectMask, circleMask, hash21 (HexShared.hlsl) +
+//          _UnitShadow, _UnitStep, _UnitBob (HexUnitAnim.hlsl).
 
 // ---- side view (east; west re-uses this mirrored on x) -----------------------
 void DrawGoblinSide(inout float3 color, inout float alpha, float2 px,
@@ -48,11 +23,11 @@ void DrawGoblinSide(inout float3 color, inout float alpha, float2 px,
     // Pixel-aligned center — rectMask origins MUST be integer or rects
     // either fail to render or shrink by a row.
     float2 cFixed = floor(float2(grid * 0.5, grid * 0.45));
-    float bob   = _GoblinBob(seed);
-    float legSwap = _GoblinStep(seed);
+    float bob   = _UnitBob(seed);
+    float legSwap = _UnitStep(seed);
     float2 c = cFixed + float2(0, bob);
 
-    _GoblinShadow(color, alpha, px, cFixed);
+    _UnitShadow(color, alpha, px, cFixed);
 
     // Body first — so the legs (drawn last) paint over the body's lower edge
     // and read as actually attached to the torso.
@@ -101,11 +76,11 @@ void DrawGoblinBack(inout float3 color, inout float alpha, float2 px,
     // Pixel-aligned center — rectMask origins MUST be integer or rects
     // either fail to render or shrink by a row.
     float2 cFixed = floor(float2(grid * 0.5, grid * 0.45));
-    float bob   = _GoblinBob(seed);
-    float legSwap = _GoblinStep(seed);
+    float bob   = _UnitBob(seed);
+    float legSwap = _UnitStep(seed);
     float2 c = cFixed + float2(0, bob);
 
-    _GoblinShadow(color, alpha, px, cFixed);
+    _UnitShadow(color, alpha, px, cFixed);
 
     // Body — wider than side view since we see full back.
     float body = rectMask(px, c + float2(-2, -2), float2(5, 3));
@@ -156,11 +131,11 @@ void DrawGoblinFront(inout float3 color, inout float alpha, float2 px,
     // Pixel-aligned center — rectMask origins MUST be integer or rects
     // either fail to render or shrink by a row.
     float2 cFixed = floor(float2(grid * 0.5, grid * 0.45));
-    float bob   = _GoblinBob(seed);
-    float legSwap = _GoblinStep(seed);
+    float bob   = _UnitBob(seed);
+    float legSwap = _UnitStep(seed);
     float2 c = cFixed + float2(0, bob);
 
-    _GoblinShadow(color, alpha, px, cFixed);
+    _UnitShadow(color, alpha, px, cFixed);
 
     // Body — full chest visible.
     float body = rectMask(px, c + float2(-2, -2), float2(5, 3));

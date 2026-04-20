@@ -95,6 +95,24 @@ namespace RareIcon
         }
 
         /// <summary>
+        /// Resolve item ID (matches ItemId enum) to localized name.
+        /// Add new entries here AND in the locale JSON when new items land.
+        /// </summary>
+        public string GetItemName(ushort itemId)
+        {
+            var key = itemId switch
+            {
+                (ushort)ItemId.WoodLog  => "item.wood_log",
+                (ushort)ItemId.Stone    => "item.stone",
+                (ushort)ItemId.Berry    => "item.berry",
+                (ushort)ItemId.Mushroom => "item.mushroom",
+                (ushort)ItemId.Herb     => "item.herb",
+                _ => "item.unknown",
+            };
+            return Get(key);
+        }
+
+        /// <summary>
         /// Resolve unit/creature ID to localized name.
         /// </summary>
         public string GetCreatureName(byte unitType)

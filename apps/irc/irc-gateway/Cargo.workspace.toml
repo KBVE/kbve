@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "apps/irc/irc-gateway",
+    "packages/rust/bevy/bevy_chat",
     "packages/rust/jedi",
     "packages/rust/kbve",
 ]

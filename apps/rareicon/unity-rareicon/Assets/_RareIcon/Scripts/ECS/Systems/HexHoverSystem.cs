@@ -45,6 +45,19 @@ namespace RareIcon
                 _hexLookup.Remove(coord);
         }
 
+        /// <summary>
+        /// Hex coord → entity lookup. Used by HarvestSystem and any other
+        /// system that needs to resolve a hex coord into its underlying ECS
+        /// entity (for resource reads / writes / per-tile queries).
+        /// </summary>
+        public static bool TryGetHexEntity(int2 coord, out Entity entity)
+        {
+            if (_initialized && _hexLookup.IsCreated)
+                return _hexLookup.TryGetValue(coord, out entity);
+            entity = default;
+            return false;
+        }
+
         public static void Cleanup()
         {
             if (_initialized && _hexLookup.IsCreated)
@@ -106,9 +119,10 @@ namespace RareIcon
             var publisher = GlobalMessagePipe.GetPublisher<HexHoverMessage>();
 
             // Sweep units once per hex change — find any unit standing on this hex
-            // and grab its stats while we're at it.
+            // and grab its stats / first 4 inventory slots while we're at it.
             byte unitType = 0;
             float hp = 0, hpMax = 0, en = 0, enMax = 0, mp = 0, mpMax = 0;
+            ushort i0 = 0, c0 = 0, i1 = 0, c1 = 0, i2 = 0, c2 = 0, i3 = 0, c3 = 0;
             foreach (var (transform, unit, entity) in
                      SystemAPI.Query<RefRO<LocalTransform>, RefRO<Unit>>().WithEntityAccess())
             {
@@ -132,6 +146,14 @@ namespace RareIcon
                         var m = EntityManager.GetComponentData<Mana>(entity);
                         mp = m.Value; mpMax = m.Max;
                     }
+                    if (EntityManager.HasBuffer<InventorySlot>(entity))
+                    {
+                        var inv = EntityManager.GetBuffer<InventorySlot>(entity);
+                        if (inv.Length > 0) { i0 = inv[0].ItemId; c0 = inv[0].Count; }
+                        if (inv.Length > 1) { i1 = inv[1].ItemId; c1 = inv[1].Count; }
+                        if (inv.Length > 2) { i2 = inv[2].ItemId; c2 = inv[2].Count; }
+                        if (inv.Length > 3) { i3 = inv[3].ItemId; c3 = inv[3].Count; }
+                    }
                     break;
                 }
             }
@@ -146,14 +168,16 @@ namespace RareIcon
                     mouse.HexCoord.x, mouse.HexCoord.y, biome.Value, true,
                     res.Wood, res.Stone, res.Berries, res.Mushrooms, res.Herbs,
                     unitType,
-                    hp, hpMax, en, enMax, mp, mpMax));
+                    hp, hpMax, en, enMax, mp, mpMax,
+                    i0, c0, i1, c1, i2, c2, i3, c3));
             }
             else
             {
                 publisher.Publish(new HexHoverMessage(
                     mouse.HexCoord.x, mouse.HexCoord.y, 0, false,
                     0, 0, 0, 0, 0, unitType,
-                    hp, hpMax, en, enMax, mp, mpMax));
+                    hp, hpMax, en, enMax, mp, mpMax,
+                    i0, c0, i1, c1, i2, c2, i3, c3));
             }
         }
 

@@ -26,6 +26,13 @@ namespace RareIcon
         public readonly float UnitHealth, UnitMaxHealth;
         public readonly float UnitEnergy, UnitMaxEnergy;
         public readonly float UnitMana,   UnitMaxMana;
+        // First 4 inventory slots from the hovered unit. ItemId == 0 means
+        // empty. Goblin inventories are typically 1-3 stack types so 4 is
+        // generous; truncated by HexHoverSystem if the unit carries more.
+        public readonly ushort UnitInvId0, UnitInvCount0;
+        public readonly ushort UnitInvId1, UnitInvCount1;
+        public readonly ushort UnitInvId2, UnitInvCount2;
+        public readonly ushort UnitInvId3, UnitInvCount3;
 
         public HexHoverMessage(int q, int r, byte biomeId, bool isLand,
                                byte wood = 0, byte stone = 0, byte berries = 0,
@@ -33,7 +40,11 @@ namespace RareIcon
                                byte unitType = 0,
                                float unitHealth = 0, float unitMaxHealth = 0,
                                float unitEnergy = 0, float unitMaxEnergy = 0,
-                               float unitMana   = 0, float unitMaxMana   = 0)
+                               float unitMana   = 0, float unitMaxMana   = 0,
+                               ushort invId0 = 0, ushort invCount0 = 0,
+                               ushort invId1 = 0, ushort invCount1 = 0,
+                               ushort invId2 = 0, ushort invCount2 = 0,
+                               ushort invId3 = 0, ushort invCount3 = 0)
         {
             Q = q;
             R = r;
@@ -51,6 +62,10 @@ namespace RareIcon
             UnitMaxEnergy= unitMaxEnergy;
             UnitMana     = unitMana;
             UnitMaxMana  = unitMaxMana;
+            UnitInvId0 = invId0; UnitInvCount0 = invCount0;
+            UnitInvId1 = invId1; UnitInvCount1 = invCount1;
+            UnitInvId2 = invId2; UnitInvCount2 = invCount2;
+            UnitInvId3 = invId3; UnitInvCount3 = invCount3;
         }
     }
 

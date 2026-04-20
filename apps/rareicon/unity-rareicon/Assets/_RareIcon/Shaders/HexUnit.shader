@@ -2,10 +2,14 @@ Shader "RareIcon/HexUnit"
 {
     Properties
     {
-        // Per-instance: which creature + facing + weapon to draw.
+        // Per-instance: which creature + facing + loadout to draw.
+        // Weapon / Helmet / Shield are independent slots; 0 = empty.
         _UnitType   ("Unit Type (per-instance)",   Float) = 0
         _UnitFacing ("Unit Facing 0=E 1=N 2=W 3=S",Float) = 0
         _UnitWeapon ("Unit Weapon (per-instance)", Float) = 0
+        _UnitHelmet ("Unit Helmet (per-instance)", Float) = 0
+        _UnitShield ("Unit Shield (per-instance)", Float) = 0
+        _UnitMoving ("Unit Moving (per-instance, 0=idle 1=moving)", Float) = 1
 
         _UnitPixelGrid ("Unit Pixel Grid", Float) = 16.0
 
@@ -16,8 +20,43 @@ Shader "RareIcon/HexUnit"
         _GoblinCloth      ("Goblin Cloth",       Color) = (0.45, 0.28, 0.16, 1)
         _GoblinClothShade ("Goblin Cloth Shade", Color) = (0.28, 0.18, 0.10, 1)
 
+        // Knight palette (closed helm, no visible skin)
+        _KnightArmor      ("Knight Armor",       Color) = (0.72, 0.75, 0.82, 1)
+        _KnightArmorShade ("Knight Armor Shade", Color) = (0.42, 0.46, 0.55, 1)
+        _KnightPlume      ("Knight Plume",       Color) = (0.85, 0.18, 0.22, 1)
+
+        // Soldier palette (leather vest + cloth shirt)
+        _SoldierBody      ("Soldier Body",       Color) = (0.52, 0.36, 0.22, 1)
+        _SoldierBodyShade ("Soldier Body Shade", Color) = (0.34, 0.22, 0.12, 1)
+        _SoldierCloth     ("Soldier Cloth",      Color) = (0.82, 0.76, 0.62, 1)
+        _SoldierClothShade("Soldier Cloth Shade",Color) = (0.52, 0.46, 0.36, 1)
+        _SoldierSkin      ("Soldier Skin",       Color) = (0.92, 0.76, 0.60, 1)
+        _SoldierSkinShade ("Soldier Skin Shade", Color) = (0.66, 0.48, 0.36, 1)
+        _SoldierHair      ("Soldier Hair",       Color) = (0.28, 0.18, 0.10, 1)
+        _SoldierEye       ("Soldier Eye",        Color) = (0.10, 0.08, 0.12, 1)
+
+        // Mage palette (robe + trim + hood opening)
+        _MageRobe         ("Mage Robe",          Color) = (0.30, 0.22, 0.55, 1)
+        _MageRobeShade    ("Mage Robe Shade",    Color) = (0.18, 0.12, 0.35, 1)
+        _MageTrim         ("Mage Trim",          Color) = (0.88, 0.76, 0.28, 1)
+        _MageSkin         ("Mage Skin",          Color) = (0.92, 0.76, 0.60, 1)
+        _MageEye          ("Mage Eye",           Color) = (0.20, 0.50, 0.90, 1)
+
         // Weapon palette (shared by creatures — a club is a club).
         _GoblinClub       ("Wood / Club Color",  Color) = (0.30, 0.20, 0.12, 1)
+
+        // Crossbow palette (wood stock, dark prod, metal tip).
+        _CrossbowStock    ("Crossbow Stock",      Color) = (0.52, 0.36, 0.22, 1)
+        _CrossbowProd     ("Crossbow Prod",       Color) = (0.20, 0.14, 0.10, 1)
+        _CrossbowHead     ("Crossbow Head",       Color) = (0.65, 0.66, 0.70, 1)
+
+        // Helmet equipment palette (crown + darker rim band).
+        _HelmetCrown      ("Helmet Crown",        Color) = (0.68, 0.70, 0.76, 1)
+        _HelmetRim        ("Helmet Rim",          Color) = (0.36, 0.40, 0.46, 1)
+
+        // Shield equipment palette (face + boss at centre).
+        _ShieldFace       ("Shield Face",         Color) = (0.58, 0.30, 0.22, 1)
+        _ShieldBoss       ("Shield Boss",         Color) = (0.82, 0.78, 0.42, 1)
     }
 
     SubShader
@@ -59,13 +98,39 @@ Shader "RareIcon/HexUnit"
                 float _UnitType;
                 float _UnitFacing;
                 float _UnitWeapon;
+                float _UnitHelmet;
+                float _UnitShield;
+                float _UnitMoving;
                 float _UnitPixelGrid;
                 float4 _GoblinSkin;
                 float4 _GoblinSkinShade;
                 float4 _GoblinEye;
                 float4 _GoblinCloth;
                 float4 _GoblinClothShade;
+                float4 _KnightArmor;
+                float4 _KnightArmorShade;
+                float4 _KnightPlume;
+                float4 _SoldierBody;
+                float4 _SoldierBodyShade;
+                float4 _SoldierCloth;
+                float4 _SoldierClothShade;
+                float4 _SoldierSkin;
+                float4 _SoldierSkinShade;
+                float4 _SoldierHair;
+                float4 _SoldierEye;
+                float4 _MageRobe;
+                float4 _MageRobeShade;
+                float4 _MageTrim;
+                float4 _MageSkin;
+                float4 _MageEye;
                 float4 _GoblinClub;
+                float4 _CrossbowStock;
+                float4 _CrossbowProd;
+                float4 _CrossbowHead;
+                float4 _HelmetCrown;
+                float4 _HelmetRim;
+                float4 _ShieldFace;
+                float4 _ShieldBoss;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -73,23 +138,45 @@ Shader "RareIcon/HexUnit"
                 UNITY_DOTS_INSTANCED_PROP(float, _UnitType)
                 UNITY_DOTS_INSTANCED_PROP(float, _UnitFacing)
                 UNITY_DOTS_INSTANCED_PROP(float, _UnitWeapon)
+                UNITY_DOTS_INSTANCED_PROP(float, _UnitHelmet)
+                UNITY_DOTS_INSTANCED_PROP(float, _UnitShield)
+                UNITY_DOTS_INSTANCED_PROP(float, _UnitMoving)
             UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
             #define _UnitType   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitType)
             #define _UnitFacing UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitFacing)
             #define _UnitWeapon UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitWeapon)
+            #define _UnitHelmet UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitHelmet)
+            #define _UnitShield UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitShield)
+            #define _UnitMoving UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitMoving)
             #endif
 
             // Must match constants in UnitComponents.cs.
-            #define UNIT_GOBLIN     1
-            #define WEAPON_CLUB     1
+            #define UNIT_GOBLIN      1
+            #define UNIT_KNIGHT      2
+            #define UNIT_SOLDIER     3
+            #define UNIT_MAGE        4
 
-            // Per-creature includes.
+            #define WEAPON_CLUB      1
+            #define WEAPON_CROSSBOW  2
+
+            #define HELMET_CAP       1
+            #define SHIELD_ROUND     1
+
+            // Per-creature includes. Shared anim helpers first so every
+            // creature file can reference _UnitShadow / _UnitStep / _UnitBob.
             #include "Includes/HexShared.hlsl"
+            #include "Includes/HexUnitAnim.hlsl"
             #include "Includes/HexGoblin.hlsl"
-            // Weapon includes — composited on top of creature using the
-            // creature's hand anchor.
+            #include "Includes/HexKnight.hlsl"
+            #include "Includes/HexSoldier.hlsl"
+            #include "Includes/HexMage.hlsl"
+            // Weapon + equipment includes — composited on top of the
+            // creature at each unit's respective anchor.
             #include "Includes/HexClub.hlsl"
+            #include "Includes/HexCrossbow.hlsl"
+            #include "Includes/HexShield.hlsl"
+            #include "Includes/HexHelmet.hlsl"
 
             Varyings vert(Attributes input)
             {
@@ -110,9 +197,11 @@ Shader "RareIcon/HexUnit"
                 float2 px = floor(input.uv * grid);
                 float seed = hash21(floor(input.hexCenter * 10.0) + 0.5);
 
-                int unitType = (int)(_UnitType + 0.5);
+                int unitType = (int)(_UnitType   + 0.5);
                 int facing   = (int)(_UnitFacing + 0.5);
                 int weapon   = (int)(_UnitWeapon + 0.5);
+                int helmet   = (int)(_UnitHelmet + 0.5);
+                int shield   = (int)(_UnitShield + 0.5);
 
                 float3 color = float3(0, 0, 0);
                 float alpha = 0.0;
@@ -121,6 +210,18 @@ Shader "RareIcon/HexUnit"
                 if (unitType == UNIT_GOBLIN)
                 {
                     DrawGoblin(color, alpha, px, grid, seed, facing);
+                }
+                else if (unitType == UNIT_KNIGHT)
+                {
+                    DrawKnight(color, alpha, px, grid, seed, facing);
+                }
+                else if (unitType == UNIT_SOLDIER)
+                {
+                    DrawSoldier(color, alpha, px, grid, seed, facing);
+                }
+                else if (unitType == UNIT_MAGE)
+                {
+                    DrawMage(color, alpha, px, grid, seed, facing);
                 }
 
                 // -- 2. Weapon (composited on top of the creature) -------------
@@ -140,12 +241,60 @@ Shader "RareIcon/HexUnit"
                     float2 anchor;
                     if (unitType == UNIT_GOBLIN)
                         anchor = GoblinWeaponAnchor(grid, weaponFacing);
+                    else if (unitType == UNIT_KNIGHT)
+                        anchor = KnightWeaponAnchor(grid, weaponFacing);
+                    else if (unitType == UNIT_SOLDIER)
+                        anchor = SoldierWeaponAnchor(grid, weaponFacing);
+                    else if (unitType == UNIT_MAGE)
+                        anchor = MageWeaponAnchor(grid, weaponFacing);
                     else
                         anchor = float2(grid * 0.5, grid * 0.45); // generic fallback
 
                     if (weapon == WEAPON_CLUB)
                     {
                         DrawClub(color, alpha, weaponPx, anchor, weaponFacing);
+                    }
+                    else if (weapon == WEAPON_CROSSBOW)
+                    {
+                        DrawCrossbow(color, alpha, weaponPx, anchor, weaponFacing);
+                    }
+                }
+
+                // -- 3. Shield (off-hand equipment) ----------------------------
+                if (shield != 0)
+                {
+                    float2 shieldPx = px;
+                    int shieldFacing = facing;
+                    if (facing == 2)
+                    {
+                        shieldPx.x = grid - 1.0 - shieldPx.x;
+                        shieldFacing = 0;
+                    }
+                    float2 shieldAnchor = UnitShieldAnchor(grid, shieldFacing);
+
+                    if (shield == SHIELD_ROUND)
+                    {
+                        DrawShield(color, alpha, shieldPx, shieldAnchor, shieldFacing);
+                    }
+                }
+
+                // -- 4. Helmet (head equipment — painted last so it sits
+                //  above everything else at the head). Skip for Knight
+                //  since the knight sprite already ships an integral helm. -
+                if (helmet != 0 && unitType != UNIT_KNIGHT)
+                {
+                    float2 helmetPx = px;
+                    int helmetFacing = facing;
+                    if (facing == 2)
+                    {
+                        helmetPx.x = grid - 1.0 - helmetPx.x;
+                        helmetFacing = 0;
+                    }
+                    float2 helmetAnchor = UnitHelmetAnchor(grid, seed);
+
+                    if (helmet == HELMET_CAP)
+                    {
+                        DrawHelmet(color, alpha, helmetPx, helmetAnchor, helmetFacing);
                     }
                 }
 

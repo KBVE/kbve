@@ -12,7 +12,10 @@ namespace RareIcon
     {
         public const byte None    = 0;
         public const byte Goblin  = 1;
-        // Soldier, Wolf, Skeleton, etc. land here as we add them.
+        public const byte Knight  = 2;
+        public const byte Soldier = 3;
+        public const byte Mage    = 4;
+        // Wolf, Skeleton, etc. land here as we add them.
     }
 
     /// <summary>
@@ -31,9 +34,34 @@ namespace RareIcon
     /// <summary>Weapon IDs — each maps to one HexX.hlsl draw function.</summary>
     public static class WeaponType
     {
-        public const byte None  = 0;
-        public const byte Club  = 1;
+        public const byte None     = 0;
+        public const byte Club     = 1;
+        public const byte Crossbow = 2;
         // Sword, Bow, Spear, Staff, etc. land here as we add their .hlsl files.
+    }
+
+    /// <summary>
+    /// Helmet IDs — per-instance equipment slot layered over the unit's
+    /// head in HexUnit.shader. 0 = no helmet drawn. Knights already ship
+    /// an integral helm in their sprite, so the shader skips the helmet
+    /// slot on knights regardless of this value.
+    /// </summary>
+    public static class HelmetType
+    {
+        public const byte None = 0;
+        public const byte Cap  = 1;
+        // Horned, Hood, Bascinet, etc. land here as we add their variants.
+    }
+
+    /// <summary>
+    /// Shield IDs — per-instance equipment slot rendered on the unit's
+    /// off-hand side in HexUnit.shader. 0 = no shield drawn.
+    /// </summary>
+    public static class ShieldType
+    {
+        public const byte None  = 0;
+        public const byte Round = 1;
+        // Kite, Tower, Buckler, etc. land here as we add their variants.
     }
 
     /// <summary>
@@ -43,6 +71,26 @@ namespace RareIcon
     /// </summary>
     [MaterialProperty("_UnitWeapon")]
     public struct UnitWeaponVisual : IComponentData
+    {
+        public float Value;
+    }
+
+    /// <summary>
+    /// Per-instance MaterialProperty for the head equipment slot.
+    /// 0 = no helmet drawn, otherwise HelmetType.* constant.
+    /// </summary>
+    [MaterialProperty("_UnitHelmet")]
+    public struct UnitHelmetVisual : IComponentData
+    {
+        public float Value;
+    }
+
+    /// <summary>
+    /// Per-instance MaterialProperty for the off-hand equipment slot.
+    /// 0 = no shield drawn, otherwise ShieldType.* constant.
+    /// </summary>
+    [MaterialProperty("_UnitShield")]
+    public struct UnitShieldVisual : IComponentData
     {
         public float Value;
     }
@@ -106,5 +154,10 @@ namespace RareIcon
         // wander pick bias toward "continue forward" instead of uniform-
         // random ping-ponging. 255 = no previous direction (uniform pick).
         public byte LastDir;
+        // The WanderStep value at which this unit harvested its current hex.
+        // Lets HarvestSystem fire exactly once per arrival without needing a
+        // separate event tag — when LastHarvestStep != WanderStep the unit
+        // hasn't harvested THIS stop yet.
+        public uint LastHarvestStep;
     }
 }

@@ -74,71 +74,59 @@ namespace RareIcon
 
         void BuildUI(VisualElement root)
         {
+            // Full-screen scrim. Clicks dismiss the modal via the controller.
             _backdrop = new VisualElement();
             _backdrop.style.position = Position.Absolute;
             _backdrop.style.top = 0;
             _backdrop.style.left = 0;
             _backdrop.style.right = 0;
             _backdrop.style.bottom = 0;
-            _backdrop.style.backgroundColor = new Color(0, 0, 0, 0.5f);
+            _backdrop.style.backgroundColor = UIStyles.Palette.BackdropDim;
             _backdrop.style.alignItems = Align.Center;
             _backdrop.style.justifyContent = Justify.Center;
-            // Backdrop click closes via the controller; modal stops propagation below.
             _backdrop.RegisterCallback<ClickEvent>(_ => _appState.RequestExitToWorld());
 
-            var modal = new VisualElement();
-            modal.style.backgroundColor = new Color(0.08f, 0.10f, 0.16f, 0.98f);
-            modal.style.paddingTop = 24;
-            modal.style.paddingBottom = 24;
-            modal.style.paddingLeft = 32;
-            modal.style.paddingRight = 32;
-            modal.style.borderTopLeftRadius = 10;
-            modal.style.borderTopRightRadius = 10;
-            modal.style.borderBottomLeftRadius = 10;
-            modal.style.borderBottomRightRadius = 10;
-            modal.style.borderTopWidth = 2;
-            modal.style.borderBottomWidth = 2;
-            modal.style.borderLeftWidth = 2;
-            modal.style.borderRightWidth = 2;
-            var border = new Color(0.3f, 0.55f, 0.85f, 0.8f);
-            modal.style.borderTopColor = border;
-            modal.style.borderBottomColor = border;
-            modal.style.borderLeftColor = border;
-            modal.style.borderRightColor = border;
+            // Modal body — heavier chrome than a side panel: opaque ModalBg
+            // and 2px border to read as primary focus over the scrim.
+            var modal = new VisualElement().ApplyPanelChrome(
+                background: UIStyles.Palette.ModalBg,
+                borderWidth: 2f,
+                padV: 24, padH: 32);
             modal.style.minWidth = 320;
             modal.style.alignItems = Align.Center;
             modal.RegisterCallback<ClickEvent>(e => e.StopPropagation());
 
-            _titleLabel = new Label("Enter Tile");
-            _titleLabel.style.color = Color.white;
-            _titleLabel.style.fontSize = 22;
-            _titleLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _titleLabel = UIStyles.MakeHeading("Enter Tile", fontSize: 22);
             _titleLabel.style.marginBottom = 20;
+
+            // Visual rhythm under the title — ties the modal to the rest
+            // of the YoRHA UI vocabulary.
+            var titleStrip = UIStyles.MakeStrip(thickness: 2f);
+            titleStrip.style.width = new Length(60, LengthUnit.Percent);
+            titleStrip.style.marginBottom = 20;
 
             var buttonRow = new VisualElement();
             buttonRow.style.flexDirection = FlexDirection.Row;
             buttonRow.style.justifyContent = Justify.SpaceAround;
             buttonRow.style.width = Length.Percent(100);
 
-            _confirmButton = new Button(OnConfirm) { text = "Confirm" };
+            _confirmButton = UIStyles.MakeYorhaButton("Confirm", OnConfirm);
             _confirmButton.style.width = 120;
             _confirmButton.style.height = 36;
-            _confirmButton.style.fontSize = 14;
-            _confirmButton.style.backgroundColor = new Color(0.2f, 0.5f, 0.3f, 1f);
-            _confirmButton.style.color = Color.white;
-            _confirmButton.style.unityFontStyleAndWeight = FontStyle.Bold;
 
-            _cancelButton = new Button(OnCancel) { text = "Cancel" };
+            // Cancel uses the alert palette so it reads as a destructive
+            // action. Hover-invert behaviour from MakeYorhaButton still applies.
+            _cancelButton = UIStyles.MakeYorhaButton("Cancel", OnCancel);
             _cancelButton.style.width = 120;
             _cancelButton.style.height = 36;
-            _cancelButton.style.fontSize = 14;
-            _cancelButton.style.backgroundColor = new Color(0.4f, 0.2f, 0.2f, 1f);
-            _cancelButton.style.color = Color.white;
+            _cancelButton.style.BorderColor(UIStyles.Palette.Alert);
+            _cancelButton.style.color = UIStyles.Palette.Alert;
 
             buttonRow.Add(_confirmButton);
             buttonRow.Add(_cancelButton);
 
             modal.Add(_titleLabel);
+            modal.Add(titleStrip);
             modal.Add(buttonRow);
             _backdrop.Add(modal);
             root.Add(_backdrop);

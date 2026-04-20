@@ -161,6 +161,67 @@ namespace RareIcon.Native
         [DllImport(__DllName, EntryPoint = "uniti_flow_free", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void uniti_flow_free(void* field);
 
+        /// <summary>
+        ///  Create a new world store. Spawns a background tick thread immediately.
+        ///  Returns an opaque handle the caller must eventually pass to
+        ///  `uniti_world_free`. Returns null only if thread spawn fails.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void* uniti_world_new();
+
+        /// <summary>
+        ///  Drop the store. Stops the background thread and frees all chunk state.
+        ///  Calling this twice on the same handle is undefined behavior.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_free", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_world_free(void* world);
+
+        /// <summary>
+        ///  Returns 1 if any state is stored for the chunk that owns this hex.
+        ///  Cheap fast-path for chunk-load: skip the per-hex queries entirely if 0.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_has_chunk", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_world_has_chunk(void* world, int cx, int cy);
+
+        /// <summary>
+        ///  Read the saved override for a hex. `valid=0` means no override exists
+        ///  (caller falls back to deterministic gen).
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_get_hex", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern FfiHexLookup uniti_world_get_hex(void* world, int q, int r);
+
+        /// <summary>
+        ///  Save a hex's resource state. Caller is responsible for only calling
+        ///  this on hexes that actually diverged from the gen-time roll.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_save_hex", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_world_save_hex(void* world, int q, int r, FfiHexResources res);
+
+        /// <summary>
+        ///  Push a ghost unit into the store. Chunk is derived from unit position.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_save_unit", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_world_save_unit(void* world, FfiGhostUnit unit);
+
+        /// <summary>
+        ///  Drain all ghost units in a chunk into the caller's buffer.
+        ///  Returns the number of units written. Units that fit are removed from
+        ///  the store; if `cap` is too small, the unwritten ones stay (and the
+        ///  caller can call again with a bigger buffer to drain the rest).
+        ///
+        ///  `out_buf` must be a valid pointer to an array of at least `cap`
+        ///  `FfiGhostUnit` values.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_take_units_in_chunk", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_take_units_in_chunk(void* world, int cx, int cy, FfiGhostUnit* out_buf, uint cap);
+
+        /// <summary>
+        ///  How many ghost units are stored for a chunk. Useful for sizing the
+        ///  buffer before `uniti_world_take_units_in_chunk`.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_unit_count_in_chunk", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_unit_count_in_chunk(void* world, int cx, int cy);
+
 
     }
 
@@ -181,6 +242,56 @@ namespace RareIcon.Native
         public int dx;
         public int dz;
         public byte valid;
+    }
+
+    /// <summary>
+    ///  Per-hex resource amounts, mirrors the C# HexResources struct exactly.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct FfiHexResources
+    {
+        public byte wood;
+        public byte stone;
+        public byte berries;
+        public byte mushrooms;
+        public byte herbs;
+    }
+
+    /// <summary>
+    ///  Result of `uniti_world_get_hex` — `valid=0` means "no override stored,
+    ///  caller should fall back to deterministic gen".
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct FfiHexLookup
+    {
+        public byte valid;
+        public FfiHexResources res;
+    }
+
+    /// <summary>
+    ///  A ghost unit — abstract state of a unit that lived in an unloaded chunk.
+    ///  Position is in hex-axial coords; the chunk it belongs to is derived by
+    ///  the caller (currently `chunk = floor(q / 32), floor(r / 32)`).
+    ///
+    ///  Inventory carries the first 4 slots only — matches the HUD snapshot
+    ///  shape and keeps the FFI struct flat (~50 bytes per unit).
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct FfiGhostUnit
+    {
+        public byte unit_type;
+        public int q;
+        public int r;
+        public float health;
+        public float max_health;
+        public ushort inv0_id;
+        public ushort inv0_qty;
+        public ushort inv1_id;
+        public ushort inv1_qty;
+        public ushort inv2_id;
+        public ushort inv2_qty;
+        public ushort inv3_id;
+        public ushort inv3_qty;
     }
 
 

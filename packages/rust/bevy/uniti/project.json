@@ -19,7 +19,9 @@
 				"commands": [
 					"cargo build -p uniti --release",
 					"mkdir -p ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/macOS",
-					"cp ../../../../dist/target/release/libuniti.dylib ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/macOS/libuniti.dylib"
+					"cp ../../../../dist/target/release/libuniti.dylib ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/macOS/libuniti.dylib",
+					"xattr -cr ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/macOS/libuniti.dylib",
+					"codesign --force --deep --sign - ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/macOS/libuniti.dylib"
 				],
 				"cwd": "packages/rust/bevy/uniti"
 			}

@@ -69,48 +69,31 @@ namespace RareIcon
 
         void BuildUI(VisualElement root)
         {
-            _root = new VisualElement();
-            _root.style.position = Position.Absolute;
-            _root.style.top = new Length(2, LengthUnit.Percent);
-            _root.style.left = new Length(2, LengthUnit.Percent);
+            // Top-left in-tile bar — uses TileHudBg (the green-tinted
+            // surface) to read as a different "context" than the main
+            // World HUD. Same chrome helpers otherwise.
+            _root = new VisualElement().ApplyPanelChrome(
+                background: UIStyles.Palette.TileHudBg,
+                padV: 8, padH: 14);
+            _root.style.AnchorTopLeft();
             _root.style.flexDirection = FlexDirection.Row;
             _root.style.alignItems = Align.Center;
-            _root.style.backgroundColor = new Color(0.05f, 0.10f, 0.05f, 0.85f);
-            _root.style.paddingTop = 8;
-            _root.style.paddingBottom = 8;
-            _root.style.paddingLeft = 14;
-            _root.style.paddingRight = 14;
-            _root.style.borderTopLeftRadius = 8;
-            _root.style.borderTopRightRadius = 8;
-            _root.style.borderBottomLeftRadius = 8;
-            _root.style.borderBottomRightRadius = 8;
-            var border = new Color(0.4f, 0.7f, 0.4f, 0.7f);
-            _root.style.borderTopColor = border;
-            _root.style.borderBottomColor = border;
-            _root.style.borderLeftColor = border;
-            _root.style.borderRightColor = border;
-            _root.style.borderTopWidth = 1;
-            _root.style.borderBottomWidth = 1;
-            _root.style.borderLeftWidth = 1;
-            _root.style.borderRightWidth = 1;
+            _root.style.display = DisplayStyle.None;
 
-            _tileLabel = new Label("");
-            _tileLabel.style.color = Color.white;
-            _tileLabel.style.fontSize = 16;
-            _tileLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _tileLabel = UIStyles.MakeHeading("", fontSize: 16);
             _tileLabel.style.marginRight = 12;
 
-            _exitButton = new Button(OnExit) { text = "Exit" };
+            // Exit button uses the alert palette — leaving the tile is
+            // a destructive context switch.
+            _exitButton = UIStyles.MakeYorhaButton("Exit", OnExit);
             _exitButton.style.height = 28;
             _exitButton.style.fontSize = 13;
-            _exitButton.style.backgroundColor = new Color(0.3f, 0.2f, 0.2f, 1f);
-            _exitButton.style.color = Color.white;
+            _exitButton.style.BorderColor(UIStyles.Palette.Alert);
+            _exitButton.style.color = UIStyles.Palette.Alert;
 
             _root.Add(_tileLabel);
             _root.Add(_exitButton);
             root.Add(_root);
-
-            _root.style.display = DisplayStyle.None;
         }
 
         void OnAppStateChanged(AppInterfaceState state)
