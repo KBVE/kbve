@@ -256,6 +256,8 @@ namespace RareIcon
                 typeof(HexResources),
                 typeof(HexResourceVisual),
                 typeof(HexTreeVisual),
+                typeof(HexFloorAmounts),
+                typeof(HexCactusVisual),
                 typeof(ItemDrop)
             );
 
@@ -308,6 +310,14 @@ namespace RareIcon
                     em.SetComponentData(entity, new HexTreeVisual
                     {
                         Value = HexResourceTable.ComputeTreeAmount(in res)
+                    });
+                    em.SetComponentData(entity, new HexFloorAmounts
+                    {
+                        Value = HexResourceTable.ComputeFloorAmounts(in res)
+                    });
+                    em.SetComponentData(entity, new HexCactusVisual
+                    {
+                        Value = HexResourceTable.ComputeCactusAmount(in res)
                     });
 
                     // Rendering — must be on main thread (managed shared component)

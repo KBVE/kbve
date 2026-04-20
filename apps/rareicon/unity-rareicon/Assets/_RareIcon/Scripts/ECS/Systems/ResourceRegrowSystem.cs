@@ -69,13 +69,15 @@ namespace RareIcon
             _tickCounter++;
             uint tick = _tickCounter;
 
-            foreach (var (hexCoord, biome, resourcesRW, visualRW, treeRW) in
+            foreach (var (hexCoord, biome, resourcesRW, visualRW, treeRW, floorRW, cactusRW) in
                      SystemAPI.Query<
                          RefRO<HexCoord>,
                          RefRO<BiomeType>,
                          RefRW<HexResources>,
                          RefRW<HexResourceVisual>,
-                         RefRW<HexTreeVisual>>())
+                         RefRW<HexTreeVisual>,
+                         RefRW<HexFloorAmounts>,
+                         RefRW<HexCactusVisual>>())
             {
                 int  q = hexCoord.ValueRO.Q;
                 int  r = hexCoord.ValueRO.R;
@@ -119,12 +121,20 @@ namespace RareIcon
                 {
                     Value = HexResourceTable.ComputeVisualMask(in current)
                 };
-                // Wood is a continuous-amount visual, not a mask bit —
-                // the shader scales tree count from this value so a
-                // mid-regrowth hex shows fewer trees than a full forest.
+                // Continuous-amount visuals — shader scales decoration
+                // count by these so mid-regrowth hexes look distinct
+                // from fully-stocked ones.
                 treeRW.ValueRW = new HexTreeVisual
                 {
                     Value = HexResourceTable.ComputeTreeAmount(in current)
+                };
+                floorRW.ValueRW = new HexFloorAmounts
+                {
+                    Value = HexResourceTable.ComputeFloorAmounts(in current)
+                };
+                cactusRW.ValueRW = new HexCactusVisual
+                {
+                    Value = HexResourceTable.ComputeCactusAmount(in current)
                 };
             }
         }

@@ -12,6 +12,7 @@ namespace RareIcon
 
         protected override void OnUpdate()
         {
+            CompleteDependency();
             var skillXpLookup = SystemAPI.GetComponentLookup<SkillXP>(isReadOnly: false);
 
             foreach (var (movementRW, priorities, unit, inventory, entity) in
@@ -81,6 +82,20 @@ namespace RareIcon
                         EntityManager.SetComponentData(hexEntity, new HexTreeVisual
                         {
                             Value = HexResourceTable.ComputeTreeAmount(in res)
+                        });
+                    }
+                    if (EntityManager.HasComponent<HexFloorAmounts>(hexEntity))
+                    {
+                        EntityManager.SetComponentData(hexEntity, new HexFloorAmounts
+                        {
+                            Value = HexResourceTable.ComputeFloorAmounts(in res)
+                        });
+                    }
+                    if (EntityManager.HasComponent<HexCactusVisual>(hexEntity))
+                    {
+                        EntityManager.SetComponentData(hexEntity, new HexCactusVisual
+                        {
+                            Value = HexResourceTable.ComputeCactusAmount(in res)
                         });
                     }
 

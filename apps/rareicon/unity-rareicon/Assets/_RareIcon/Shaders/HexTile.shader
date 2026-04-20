@@ -26,6 +26,8 @@ Shader "RareIcon/HexTile"
         _FloorDensity  ("Floor Density (0=none, 1=every tile)", Range(0,1)) = 0.0
         _ResourceType  ("Resource Mask (per-instance bitmask)", Float) = 0
         _TreeAmount    ("Tree Amount (per-instance, 0=cleared, 1=full forest)", Range(0,1)) = 1.0
+        _FloorAmounts  ("Floor Amounts xyzw = Stone/Berries/Mushrooms/Herbs (per-instance, 0..1)", Vector) = (1,1,1,1)
+        _CactusAmount  ("Cactus Amount (per-instance, 0..1)", Range(0,1)) = 1.0
         _StoneColor    ("Stone / Boulder Color", Color)    = (0.55, 0.55, 0.50, 1)
         _StoneShade    ("Stone Shade Color", Color)        = (0.35, 0.35, 0.32, 1)
         _BerryBushColor("Berry Bush Foliage Color", Color) = (0.16, 0.38, 0.16, 1)
@@ -94,6 +96,8 @@ Shader "RareIcon/HexTile"
                 float _FloorDensity;
                 float _ResourceType;
                 float _TreeAmount;
+                float4 _FloorAmounts;
+                float _CactusAmount;
                 float4 _StoneColor;
                 float4 _StoneShade;
                 float4 _BerryBushColor;
@@ -115,6 +119,8 @@ Shader "RareIcon/HexTile"
                 UNITY_DOTS_INSTANCED_PROP(float, _BorderWidth)
                 UNITY_DOTS_INSTANCED_PROP(float, _ResourceType)
                 UNITY_DOTS_INSTANCED_PROP(float, _TreeAmount)
+                UNITY_DOTS_INSTANCED_PROP(float4, _FloorAmounts)
+                UNITY_DOTS_INSTANCED_PROP(float, _CactusAmount)
             UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
             #define _BaseColor    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _BaseColor)
@@ -122,6 +128,8 @@ Shader "RareIcon/HexTile"
             #define _BorderWidth  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _BorderWidth)
             #define _ResourceType UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _ResourceType)
             #define _TreeAmount   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _TreeAmount)
+            #define _FloorAmounts UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _FloorAmounts)
+            #define _CactusAmount UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _CactusAmount)
             #endif
 
             // Bit flags for floor decorations — must match ResourceMask in
@@ -186,17 +194,26 @@ Shader "RareIcon/HexTile"
 
                 // Floor decorations — one bit per resource. Drawn UNDER the
                 // trees so canopies can occlude floor sprites that overlap.
+                // Each per-instance amount (HexFloorAmounts.xyzw +
+                // _CactusAmount) scales how dense its decoration cluster
+                // appears, so a near-depleted patch reads visually thinner
+                // than a freshly-rolled one.
                 int resMask = (int)(_ResourceType + 0.5);
+                float4 floorAmt = _FloorAmounts;
                 if (_FloorDensity > 0.001 && resMask != 0 && tileSeed < _FloorDensity)
                 {
-                    if ((resMask & MASK_STONE)     != 0) ground = ApplyBoulder  (ground, px, grid, tileSeed);
-                    if ((resMask & MASK_BERRIES)   != 0) ground = ApplyBerryBush(ground, px, grid, tileSeed);
-                    if ((resMask & MASK_MUSHROOMS) != 0) ground = ApplyMushrooms(ground, px, grid, tileSeed);
-                    if ((resMask & MASK_HERBS)     != 0) ground = ApplyHerbs    (ground, px, grid, tileSeed);
-                    if ((resMask & MASK_CACTUS)    != 0)
+                    if ((resMask & MASK_STONE)     != 0 && floorAmt.x > 0.001)
+                        ground = ApplyBoulder  (ground, px, grid, tileSeed, floorAmt.x);
+                    if ((resMask & MASK_BERRIES)   != 0 && floorAmt.y > 0.001)
+                        ground = ApplyBerryBush(ground, px, grid, tileSeed, floorAmt.y);
+                    if ((resMask & MASK_MUSHROOMS) != 0 && floorAmt.z > 0.001)
+                        ground = ApplyMushrooms(ground, px, grid, tileSeed, floorAmt.z);
+                    if ((resMask & MASK_HERBS)     != 0 && floorAmt.w > 0.001)
+                        ground = ApplyHerbs    (ground, px, grid, tileSeed, floorAmt.w);
+                    if ((resMask & MASK_CACTUS)    != 0 && _CactusAmount > 0.001)
                     {
                         float isDragonfruit = ((resMask & MASK_CACTUS_DRAGONFRUIT) != 0) ? 1.0 : 0.0;
-                        ground = ApplyCactus(ground, px, grid, tileSeed, isDragonfruit);
+                        ground = ApplyCactus(ground, px, grid, tileSeed, isDragonfruit, _CactusAmount);
                     }
                 }
 

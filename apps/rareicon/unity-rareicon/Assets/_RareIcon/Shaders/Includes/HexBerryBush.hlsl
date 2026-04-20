@@ -7,8 +7,14 @@
 //
 // Uniforms: _BerryBushColor, _BerryColor
 // Helpers: circleMask, hash21 (from HexShared.hlsl).
-float3 ApplyBerryBush(float3 ground, float2 px, float grid, float seed)
+//
+// `amount` is the per-instance _FloorAmounts.y (HexResources.Berries /
+// 100): the bush silhouette always draws when called, but the visible
+// berry count is capped to ceil(amount * 5). A near-picked hex shows
+// the bush with one stubborn berry, full hex shows up to 5.
+float3 ApplyBerryBush(float3 ground, float2 px, float grid, float seed, float amount)
 {
+    int berryCap = clamp((int)ceil(amount * 5.0), 1, 5);
     float2 bc = float2(grid * 0.45, grid * 0.40) + float2(
         floor((hash21(float2(seed, 61.0)) - 0.5) * 4.0),
         floor((hash21(float2(seed, 62.0)) - 0.5) * 2.0));
@@ -25,6 +31,7 @@ float3 ApplyBerryBush(float3 ground, float2 px, float grid, float seed)
     [unroll]
     for (int b = 0; b < 5; b++)
     {
+        if (b >= berryCap) break;
         float bs = seed + (float)b * 3.0;
         if (hash21(float2(bs, 63.0)) < 0.40) continue;
 

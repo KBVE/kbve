@@ -97,6 +97,22 @@ namespace RareIcon
         public static float ComputeTreeAmount(in HexResources res)
             => res.Wood <= 0 ? 0f : math.min(res.Wood / WoodMaxForVisual, 1f);
 
+        /// <summary>Normalize a single resource byte to 0..1 against the same ceiling AmountFrom uses.</summary>
+        public static float NormalizeAmount(byte amount)
+            => amount <= 0 ? 0f : math.min(amount / WoodMaxForVisual, 1f);
+
+        /// <summary>Pack the four common floor-decoration amounts into the float4 the shader reads via _FloorAmounts (x=Stone, y=Berries, z=Mushrooms, w=Herbs).</summary>
+        public static float4 ComputeFloorAmounts(in HexResources res)
+            => new float4(
+                NormalizeAmount(res.Stone),
+                NormalizeAmount(res.Berries),
+                NormalizeAmount(res.Mushrooms),
+                NormalizeAmount(res.Herbs));
+
+        /// <summary>HexResources.Cactus normalized to 0..1 for HexCactusVisual.</summary>
+        public static float ComputeCactusAmount(in HexResources res)
+            => NormalizeAmount(res.Cactus);
+
         /// <summary>
         /// Recompute the HexResourceVisual bitmask from a HexResources value.
         /// Call any time resources cross the 0/non-zero boundary (harvest

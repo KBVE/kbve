@@ -112,6 +112,27 @@ namespace RareIcon
         public float Value;
     }
 
+    /// <summary>
+    /// Per-instance amounts (0..1) for the four common floor decorations,
+    /// packed into one float4 to keep the instanced-prop count low.
+    /// Channels: x=Stone, y=Berries, z=Mushrooms, w=Herbs. The shader
+    /// scales each Apply*'s internal cluster count by its channel — a
+    /// near-depleted herb hex shows 1 tuft instead of 5, a heavy stone
+    /// hex shows the boulder + companion pebble, and so on.
+    /// </summary>
+    [MaterialProperty("_FloorAmounts")]
+    public struct HexFloorAmounts : IComponentData
+    {
+        public float4 Value;
+    }
+
+    /// <summary>Per-instance cactus amount (Cactus/100); same scaling story as HexTreeVisual but kept separate because cactus only ever appears on sand biomes.</summary>
+    [MaterialProperty("_CactusAmount")]
+    public struct HexCactusVisual : IComponentData
+    {
+        public float Value;
+    }
+
     /// <summary>Ground-loot entry on a hex tile; picked up by any unit with an inventory walking onto it.</summary>
     [InternalBufferCapacity(4)]
     public struct ItemDrop : IBufferElementData
