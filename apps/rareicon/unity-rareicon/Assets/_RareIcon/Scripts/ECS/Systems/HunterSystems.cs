@@ -125,61 +125,76 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Tamed animal standing on a Farm hex shelters into it: ShelteredInside + DisableRendering + LivestockProduction. Per-animal Entity + state (HP, name, lineage) persists for future breeding / release. Cap counted via sheltered entities pointing at each farm.</summary>
+    /// <summary>Tamed animal standing on a Farm hex shelters into it: ShelteredInside + DisableRendering + LivestockProduction. Per-animal Entity + state (HP, name, lineage) persists for future breeding / release. Cap counted via sheltered entities pointing at each farm. Burst ISystem + single-worker Schedule so per-farm cap accounting stays consistent with structural-change ECB emits.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
-    public partial class FarmDepositSystem : SystemBase
+    public partial struct FarmDepositSystem : ISystem
     {
-        readonly Dictionary<Entity, int>           _livestockPerFarm = new();
-        readonly List<(Entity Animal, Entity Farm)> _toShelter       = new();
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
-        protected override void OnUpdate()
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
+            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
             uint currentTurn = SystemAPI.GetSingleton<WorldClock>().TurnIndex;
 
-            var hexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(isReadOnly: true);
-            var buildingLookup    = SystemAPI.GetComponentLookup<Building>(isReadOnly: true);
-
-            _livestockPerFarm.Clear();
+            var livestockPerFarm = new NativeHashMap<Entity, int>(32, Allocator.TempJob);
             foreach (var shelter in SystemAPI.Query<RefRO<ShelteredInside>>())
             {
                 var host = shelter.ValueRO.Host;
-                _livestockPerFarm[host] = _livestockPerFarm.TryGetValue(host, out var c) ? c + 1 : 1;
+                livestockPerFarm[host] = livestockPerFarm.TryGetValue(host, out var c) ? c + 1 : 1;
             }
 
-            _toShelter.Clear();
-            foreach (var (movement, entity) in
-                     SystemAPI.Query<RefRO<UnitMovement>>()
-                              .WithAll<PassiveAnimalTag, TamedTag>()
-                              .WithNone<ShelteredInside>()
-                              .WithEntityAccess())
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
+
+            state.Dependency = new FarmDepositJob
             {
-                var hex = movement.ValueRO.CurrentHex;
-                if (!HexHoverSystem.TryGetHexEntity(hex, out Entity tile)) continue;
-                if (!hexOccupantLookup.HasComponent(tile)) continue;
+                CurrentTurn        = currentTurn,
+                HexLookup          = hexLookup.Lookup,
+                OccupantLookup     = SystemAPI.GetComponentLookup<HexOccupant>(true),
+                BuildingLookup     = SystemAPI.GetComponentLookup<Building>(true),
+                LivestockPerFarm   = livestockPerFarm,
+                Ecb                = ecb,
+            }.Schedule(state.Dependency);
 
-                Entity building = hexOccupantLookup[tile].Building;
-                if (!buildingLookup.HasComponent(building)) continue;
-                if (buildingLookup[building].Type != BuildingType.Farm) continue;
+            state.Dependency = livestockPerFarm.Dispose(state.Dependency);
+        }
+    }
 
-                int count = _livestockPerFarm.TryGetValue(building, out var c) ? c : 0;
-                if (count >= FarmRanchConfig.LivestockCapPerFarm) continue;
+    [BurstCompile]
+    [WithAll(typeof(PassiveAnimalTag), typeof(TamedTag))]
+    [WithNone(typeof(ShelteredInside))]
+    public partial struct FarmDepositJob : IJobEntity
+    {
+        public uint CurrentTurn;
 
-                _toShelter.Add((entity, building));
-                _livestockPerFarm[building] = count + 1;
-            }
+        [ReadOnly] public NativeHashMap<int2, Entity>       HexLookup;
+        [ReadOnly] public ComponentLookup<HexOccupant>      OccupantLookup;
+        [ReadOnly] public ComponentLookup<Building>         BuildingLookup;
 
-            for (int i = 0; i < _toShelter.Count; i++)
-            {
-                var animal = _toShelter[i].Animal;
-                var farm   = _toShelter[i].Farm;
-                EntityManager.AddComponentData(animal, new ShelteredInside { Host = farm });
-                EntityManager.AddComponent<DisableRendering>(animal);
-                EntityManager.AddComponentData(animal, new LivestockProduction
-                {
-                    LastProducedTurn = currentTurn,
-                });
-            }
+        public NativeHashMap<Entity, int> LivestockPerFarm;
+        public EntityCommandBuffer        Ecb;
+
+        void Execute(Entity entity, in UnitMovement movement)
+        {
+            if (!HexLookup.TryGetValue(movement.CurrentHex, out var tile)) return;
+            if (!OccupantLookup.HasComponent(tile)) return;
+
+            Entity building = OccupantLookup[tile].Building;
+            if (!BuildingLookup.HasComponent(building)) return;
+            if (BuildingLookup[building].Type != BuildingType.Farm) return;
+
+            int count = LivestockPerFarm.TryGetValue(building, out var c) ? c : 0;
+            if (count >= FarmRanchConfig.LivestockCapPerFarm) return;
+
+            LivestockPerFarm[building] = count + 1;
+
+            Ecb.AddComponent(entity, new ShelteredInside { Host = building });
+            Ecb.AddComponent<DisableRendering>(entity);
+            Ecb.AddComponent(entity, new LivestockProduction { LastProducedTurn = CurrentTurn });
         }
     }
 
