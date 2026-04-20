@@ -22,6 +22,7 @@ namespace RareIcon
             builder.RegisterMessageBroker<HexHoverMessage>(options);
             builder.RegisterMessageBroker<HexClickedMessage>(options);
             builder.RegisterMessageBroker<EnterTileMessage>(options);
+            builder.RegisterMessageBroker<ToastMessage>(options);
 
             builder.RegisterBuildCallback(container =>
             {
@@ -62,6 +63,9 @@ namespace RareIcon
 
             // -- Treasury panel (capital storage viewer) --
             builder.RegisterEntryPoint<UITreasury>().AsSelf();
+
+            // -- Toast notification service (pool + queue, bottom-center) --
+            builder.RegisterEntryPoint<ToastService>().AsSelf();
 
             // -- HUDs (VContainer-managed lifecycle, gated on AppInterfaceState) --
             builder.RegisterEntryPoint<WorldHUD>();
