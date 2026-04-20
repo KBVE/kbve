@@ -150,6 +150,16 @@ namespace RareIcon
             _citizensBtn.clicked += _citizensPanel.Toggle;
             _releaseBtn.clicked  += ReleaseControl;
 
+            // Icon backgrounds baked from HexIcon.shader via IconFactory.
+            SetBg(_searchBtn,   IconFactory.IconType.Search);
+            SetBg(_buildBtn,    IconFactory.IconType.Build);
+            SetBg(_kingBtn,     IconFactory.IconType.Crown);
+            SetBg(_treasuryBtn, IconFactory.IconType.Coin);
+            SetBg(_militaryBtn, IconFactory.IconType.Shield);
+            SetBg(_citizensBtn, IconFactory.IconType.People);
+            var settingsBtn = _root.Q<Button>("hud-settings");
+            if (settingsBtn != null) SetBg(settingsBtn, IconFactory.IconType.Gear);
+
             // Highlight Build button while build mode is active.
             _buildMode.Target.Subscribe(target =>
             {
@@ -164,6 +174,13 @@ namespace RareIcon
         {
             if (el == null) return;
             el.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        static void SetBg(Button btn, IconFactory.IconType type)
+        {
+            if (btn == null) return;
+            var tex = IconFactory.GetIcon(type);
+            if (tex != null) btn.style.backgroundImage = new StyleBackground(tex);
         }
 
         // --- Clock ------------------------------------------------------------

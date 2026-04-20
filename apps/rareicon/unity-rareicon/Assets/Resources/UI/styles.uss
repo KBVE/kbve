@@ -319,6 +319,15 @@
     color: var(--color-text-on-gold);
 }
 
+/* Icon-only toolbar button — baked Texture2D as bg, text transparent. */
+.btn-icon {
+    width: 26px;
+    height: 22px;
+    padding: 0;
+    -unity-background-scale-mode: scale-to-fit;
+    color: rgba(0, 0, 0, 0);
+}
+
 /* ----- Hover tile-info panel — small anchored card at bottom-left
    (right column is reserved for toggleable panels). ----- */
 .tile-info {
