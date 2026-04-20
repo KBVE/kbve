@@ -1,18 +1,20 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="styles.uss" />
 
-    <ui:VisualElement name="citizens-root" class="panel anchor-tr below-hud w-wide h-tall is-hidden">
+    <ui:VisualElement name="citizens-wrapper" class="is-hidden">
+        <ui:VisualElement name="citizens-backdrop" class="modal-backdrop" />
 
-        <ui:VisualElement class="panel__header">
-            <ui:Label name="citizens-title" class="panel__title" text="Citizens" />
-            <ui:Button name="citizens-close" class="btn-close" text="×" />
+        <ui:VisualElement name="citizens-root" class="panel panel--modal">
+            <ui:VisualElement class="panel__header">
+                <ui:Label name="citizens-title" class="panel__title" text="Citizens" />
+                <ui:Button name="citizens-close" class="btn-close" text="×" />
+            </ui:VisualElement>
+            <ui:VisualElement class="panel__strip" />
+
+            <ui:VisualElement name="citizens-body" class="row grow">
+                <ui:VisualElement name="citizens-sidebar" class="col" style="min-width: 90px; margin-right: 8px;" />
+                <ui:VisualElement name="citizens-content" class="col grow" />
+            </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement class="panel__strip" />
-
-        <ui:VisualElement name="citizens-body" class="row grow">
-            <ui:VisualElement name="citizens-sidebar" class="col" style="min-width: 70px; margin-right: 6px;" />
-            <ui:VisualElement name="citizens-content" class="col grow" />
-        </ui:VisualElement>
-
     </ui:VisualElement>
 </ui:UXML>

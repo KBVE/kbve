@@ -60,11 +60,16 @@ namespace RareIcon
             _root = UIPanelLoader.Load(uiDoc, "UI/Citizens");
             if (_root == null) return;
 
-            _panel   = _root.Q<VisualElement>("citizens-root");
-            _sidebar = _root.Q<VisualElement>("citizens-sidebar");
-            _content = _root.Q<VisualElement>("citizens-content");
+            var wrapper  = _root.Q<VisualElement>("citizens-wrapper");
+            _panel       = wrapper; // toggle hides the whole modal (backdrop + card)
+            var card     = _root.Q<VisualElement>("citizens-root");
+            var backdrop = _root.Q<VisualElement>("citizens-backdrop");
+            _sidebar     = _root.Q<VisualElement>("citizens-sidebar");
+            _content     = _root.Q<VisualElement>("citizens-content");
             _root.Q<Label>("citizens-title").text = "Citizens";
             _root.Q<Button>("citizens-close").clicked += Close;
+            backdrop.RegisterCallback<ClickEvent>(_ => Close());
+            card.RegisterCallback<ClickEvent>(e => e.StopPropagation());
 
             _tabButtons = new Button[_tabs.Length];
             _tabBodies  = new VisualElement[_tabs.Length];

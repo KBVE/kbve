@@ -1,17 +1,22 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="styles.uss" />
 
-    <ui:VisualElement name="treasury-root" class="panel anchor-tr below-hud w-std h-std is-hidden">
+    <ui:VisualElement name="treasury-wrapper" class="is-hidden">
+        <ui:VisualElement name="treasury-backdrop" class="modal-backdrop" />
 
-        <ui:VisualElement class="panel__header">
-            <ui:Label name="treasury-title" class="panel__title" text="Treasury" />
-            <ui:Button name="treasury-close" class="btn-close" text="×" />
+        <ui:VisualElement name="treasury-root" class="panel panel--modal">
+            <ui:VisualElement class="panel__header">
+                <ui:Label name="treasury-title" class="panel__title" text="Treasury" />
+                <ui:Button name="treasury-close" class="btn-close" text="×" />
+            </ui:VisualElement>
+            <ui:VisualElement class="panel__strip" />
+
+            <ui:ScrollView name="treasury-scroll"
+                           class="panel__body--scroll"
+                           mode="Vertical"
+                           horizontal-scroller-visibility="Hidden">
+                <ui:Label name="treasury-body" class="text-bodylg" />
+            </ui:ScrollView>
         </ui:VisualElement>
-        <ui:VisualElement class="panel__strip" />
-
-        <ui:ScrollView name="treasury-scroll" class="panel__body--scroll">
-            <ui:Label name="treasury-body" class="text-bodylg" />
-        </ui:ScrollView>
-
     </ui:VisualElement>
 </ui:UXML>

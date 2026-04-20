@@ -52,10 +52,15 @@ namespace RareIcon
             _root = UIPanelLoader.Load(uiDoc, "UI/Palette");
             if (_root == null) return;
 
-            _panel = _root.Q<VisualElement>("palette-root");
-            _rowsHost = _root.Q<VisualElement>("palette-rows");
+            var wrapper  = _root.Q<VisualElement>("palette-wrapper");
+            _panel       = wrapper; // toggle hides the whole modal (backdrop + panel)
+            var card     = _root.Q<VisualElement>("palette-root");
+            var backdrop = _root.Q<VisualElement>("palette-backdrop");
+            _rowsHost    = _root.Q<VisualElement>("palette-rows");
             _root.Q<Label>("palette-title").text  = _locale.Get("palette.title");
             _root.Q<Button>("palette-close").clicked += Close;
+            backdrop.RegisterCallback<ClickEvent>(_ => Close());
+            card.RegisterCallback<ClickEvent>(e => e.StopPropagation());
 
             _rows = new Row[BuildingDB.AllBuildable.Length];
             for (int i = 0; i < _rows.Length; i++)

@@ -50,19 +50,23 @@ namespace RareIcon
             _root = UIPanelLoader.Load(uiDoc, "UI/Treasury");
             if (_root == null) return;
 
+            var wrapper    = _root.Q<VisualElement>("treasury-wrapper");
             var rootEl     = _root.Q<VisualElement>("treasury-root");
+            var backdrop   = _root.Q<VisualElement>("treasury-backdrop");
             var titleLabel = _root.Q<Label>("treasury-title");
             var closeBtn   = _root.Q<Button>("treasury-close");
             _bodyLabel     = _root.Q<Label>("treasury-body");
 
             titleLabel.text = _locale.Get("treasury.title");
             closeBtn.clicked += Close;
+            backdrop.RegisterCallback<ClickEvent>(_ => Close());
+            rootEl.RegisterCallback<ClickEvent>(e => e.StopPropagation());
 
             _isOpen
                 .Subscribe(open =>
                 {
-                    if (open) rootEl.RemoveFromClassList("is-hidden");
-                    else      rootEl.AddToClassList("is-hidden");
+                    if (open) wrapper.RemoveFromClassList("is-hidden");
+                    else      wrapper.AddToClassList("is-hidden");
 
                     if (open)
                     {
