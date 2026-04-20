@@ -1,0 +1,25 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="styles.uss" />
+
+    <ui:VisualElement name="inspector-root" class="panel anchor-bl w-narrow h-std is-hidden">
+
+        <ui:VisualElement class="panel__header">
+            <ui:Label name="inspector-title" class="panel__title" text="Inspector" />
+            <ui:Button name="inspector-close" class="btn-close" text="×" />
+        </ui:VisualElement>
+        <ui:VisualElement class="panel__strip" />
+
+        <ui:ScrollView name="inspector-scroll"
+                       class="panel__body--scroll"
+                       mode="Vertical"
+                       horizontal-scroller-visibility="Hidden">
+            <ui:Label name="inspector-owner"      class="text-tiny" />
+            <ui:Label name="inspector-health"     class="text-bodylg" />
+            <ui:Label name="inspector-production" class="text-bodylg" />
+            <ui:Label name="inspector-storage"    class="text-bodylg" />
+        </ui:ScrollView>
+
+        <ui:Button name="inspector-release" class="btn btn--sm is-hidden" text="Release King" />
+
+    </ui:VisualElement>
+</ui:UXML>

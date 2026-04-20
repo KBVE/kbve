@@ -3,17 +3,17 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using MessagePipe;
 using R3;
-using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
 using VContainer.Unity;
 
 namespace RareIcon
 {
-    /// <summary>Top-right population management panel with a vertical sidebar of tabs (Jobs, Roster, ...); each tab is a self-contained ICitizensTab.</summary>
+    /// <summary>Citizens panel — sidebar tabs + per-tab body. Chrome in Resources/UI/Citizens.uxml; the controller just wires tabs into the template's sidebar / content host.</summary>
     public class UICitizensPanel : IAsyncStartable, IDisposable
     {
         readonly UIPanelManager _panelManager;
+        readonly LocaleService _locale;
 
         readonly CompositeDisposable _disposables = new();
         readonly ReactiveProperty<bool> _isOpen = new(false);
@@ -24,8 +24,7 @@ namespace RareIcon
         VisualElement[] _tabBodies;
         int _activeIndex;
 
-        VisualElement _root;
-        VisualElement _content;
+        VisualElement _root, _panel, _sidebar, _content;
 
         [Inject]
         public UICitizensPanel(UIPanelManager panelManager,
@@ -35,6 +34,7 @@ namespace RareIcon
                                IPublisher<PossessUnitMessage> possessPub)
         {
             _panelManager = panelManager;
+            _locale = locale;
             _tabs = new ICitizensTab[]
             {
                 new JobsTab(),
@@ -57,38 +57,14 @@ namespace RareIcon
             }
             if (uiDoc.rootVisualElement == null) return;
 
-            BuildUI(uiDoc.rootVisualElement);
+            _root = UIPanelLoader.Load(uiDoc, "UI/Citizens");
+            if (_root == null) return;
 
-            _isOpen
-                .Subscribe(open =>
-                {
-                    _root.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
-                    if (open) _tabs[_activeIndex].OnActivated();
-                })
-                .AddTo(_disposables);
-        }
-
-        public void Toggle() => _isOpen.Value = !_isOpen.Value;
-        public void Close()  => _isOpen.Value = false;
-
-        void BuildUI(VisualElement parent)
-        {
-            _root = new VisualElement().ApplyPanelChrome();
-            _root.style.position = Position.Absolute;
-            _root.style.top = new Length(2f, LengthUnit.Percent);
-            _root.style.right = new Length(2f, LengthUnit.Percent);
-            _root.style.marginTop = 110;
-            _root.style.minWidth = 380;
-            _root.style.maxWidth = new Length(UIStyles.VwMaxPct.XWide, LengthUnit.Percent);
-            _root.style.minHeight = 360;
-            _root.style.maxHeight = new Length(UIStyles.VhMaxPct.Tall, LengthUnit.Percent);
-            _root.style.display = DisplayStyle.None;
-
-            UIStyles.MakePanelHeader(_root, "Citizens", Close);
-
-            var body = UIControls.MakeTabbedLayout(out var sidebar, out _content);
-            body.style.marginTop = UIStyles.Spacing.Sm;
-            _root.Add(body);
+            _panel   = _root.Q<VisualElement>("citizens-root");
+            _sidebar = _root.Q<VisualElement>("citizens-sidebar");
+            _content = _root.Q<VisualElement>("citizens-content");
+            _root.Q<Label>("citizens-title").text = "Citizens";
+            _root.Q<Button>("citizens-close").clicked += Close;
 
             _tabButtons = new Button[_tabs.Length];
             _tabBodies  = new VisualElement[_tabs.Length];
@@ -97,16 +73,24 @@ namespace RareIcon
                 int captured = i;
                 _tabButtons[i] = UIControls.MakeSidebarTab(
                     _tabs[i].Title, isActive: i == 0, onClick: () => SelectTab(captured));
-                sidebar.Add(_tabButtons[i]);
+                _sidebar.Add(_tabButtons[i]);
 
                 _tabBodies[i] = _tabs[i].Build();
                 _tabBodies[i].style.display = i == 0 ? DisplayStyle.Flex : DisplayStyle.None;
                 _content.Add(_tabBodies[i]);
             }
-
-            parent.Add(_root);
             _activeIndex = 0;
+
+            _isOpen.Subscribe(open =>
+            {
+                if (open) _panel.RemoveFromClassList("is-hidden");
+                else      _panel.AddToClassList("is-hidden");
+                if (open) _tabs[_activeIndex].OnActivated();
+            }).AddTo(_disposables);
         }
+
+        public void Toggle() => _isOpen.Value = !_isOpen.Value;
+        public void Close()  => _isOpen.Value = false;
 
         void SelectTab(int index)
         {
