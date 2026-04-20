@@ -72,6 +72,10 @@ namespace RareIcon
             // -- World tools window (resolved by WorldHUD's toolbar button) --
             builder.RegisterEntryPoint<UIWorldSearch>().AsSelf();
 
+            // -- Screen frame (root layout regions; mount FIRST so other
+            //    panels can await its Ready and grab region refs) --
+            builder.RegisterEntryPoint<ScreenFrameHost>().AsSelf();
+
             // -- Treasury panel (capital storage viewer) --
             builder.RegisterEntryPoint<UITreasury>().AsSelf();
 

@@ -243,6 +243,38 @@
     align-items: stretch;
 }
 
+/* ============================================================
+   ScreenFrame — root layout container with explicit regions.
+   Replaces ad-hoc absolute positioning. Each panel mounts into
+   ONE region; the region owns its layout. Two panels can't fight
+   for the same anchor because there's only one slot per region.
+   ============================================================ */
+.screen-frame {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    flex-direction: column;
+}
+.screen-bar {
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--color-bg-page);
+    border-color: var(--color-border-accent);
+    padding: 4px 8px;
+    flex-shrink: 0;
+    min-height: 28px;
+}
+.screen-bar--top    { border-bottom-width: 1px; }
+.screen-bar--bottom { border-top-width: 1px; }
+.screen-region {
+    flex-direction: row;
+    align-items: center;
+}
+.screen-world {
+    flex-grow: 1;
+    flex-direction: column;
+    overflow: hidden;
+}
+
 /* ----- HUD strip — always-visible compact panels (clock, controlling) ----- */
 .hud-strip {
     flex-direction: row;

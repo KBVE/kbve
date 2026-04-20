@@ -20,6 +20,7 @@ namespace RareIcon
     {
         readonly LocaleService _locale;
         readonly UIPanelManager _panelManager;
+        readonly ScreenFrameHost _frame;
         readonly AppStateController _appState;
         readonly UIWorldSearch _worldSearch;
         readonly UITreasury _treasury;
@@ -50,6 +51,7 @@ namespace RareIcon
         public WorldHUD(
             LocaleService locale,
             UIPanelManager panelManager,
+            ScreenFrameHost frame,
             AppStateController appState,
             UIWorldSearch worldSearch,
             UITreasury treasury,
@@ -63,6 +65,7 @@ namespace RareIcon
         {
             _locale = locale;
             _panelManager = panelManager;
+            _frame = frame;
             _appState = appState;
             _worldSearch = worldSearch;
             _treasury = treasury;
@@ -88,10 +91,13 @@ namespace RareIcon
             }
             if (uiDoc.rootVisualElement == null) return;
 
+            await _frame.Ready;
+
             _root = UIPanelLoader.Load(uiDoc, "UI/WorldHUD");
             if (_root == null) return;
 
             BindElements();
+            MountIntoFrame();
 
             // Toggle visibility on app state changes (Boot/InTile hide HUD).
             _appState.Current.Subscribe(state =>
@@ -174,6 +180,27 @@ namespace RareIcon
         {
             if (el == null) return;
             el.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        // Reparent the toolbar + clock/control stack into ScreenFrameHost
+        // regions and strip their absolute-anchor classes so the regions
+        // own layout. Hover panel stays anchored bottom-right of the
+        // viewport (independent of rails) for now.
+        void MountIntoFrame()
+        {
+            if (_toolbar != null && _frame.TopLeft != null)
+            {
+                _toolbar.RemoveFromHierarchy();
+                _toolbar.RemoveFromClassList("toolbar-pin");
+                _frame.TopLeft.Add(_toolbar);
+            }
+            if (_stack != null && _frame.TopRight != null)
+            {
+                _stack.RemoveFromHierarchy();
+                _stack.RemoveFromClassList("hud-stack-tr");
+                _stack.style.flexDirection = FlexDirection.Row;
+                _frame.TopRight.Add(_stack);
+            }
         }
 
         static void SetBg(Button btn, IconFactory.IconType type)
