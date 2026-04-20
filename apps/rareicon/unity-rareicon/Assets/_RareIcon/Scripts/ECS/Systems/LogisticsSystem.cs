@@ -226,57 +226,15 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Main-thread toast publisher for LogisticsReport. Reads the two role-mask bitfields LogisticsSystem writes each turn and fires MessagePipe toasts — info-kind for auto-filled roles ("No Chef was found, temp Chef assigned"), warning-kind for unfillable ones. Cooldown lives in the bitmask itself: LogisticsSystem only sets a bit on the tick a role flipped, so successive turns where the role stays filled/unfilled don't repeat the toast.</summary>
-    // TODO(toast-drain): Bursted producers + main-thread MessagePipe publish is
-    // the same pattern CapitalAttackAlertSystem hits, and future systems will
-    // keep cloning it. Replace this per-producer SystemBase with a shared
-    // ToastRequest intent entity + single ToastDrainSystem that pulls all
-    // pending toasts off the ECS side each frame and fans them out through
-    // GlobalMessagePipe. Lets every producer stay Burst ISystem and writes the
-    // toast crossing into one place — same shape as SpawnSoldierRequest /
-    // PendingItemTransfer.
-    [UpdateInGroup(typeof(CleanupSystemGroup))]
-    [UpdateAfter(typeof(LogisticsSystem))]
-    public partial class LogisticsWarningSystem : SystemBase
-    {
-        uint _lastReportedTurn = uint.MaxValue;
-
-        protected override void OnUpdate()
-        {
-            if (!SystemAPI.TryGetSingleton<LogisticsReport>(out var report)) return;
-            if (report.LastCheckedTurn == _lastReportedTurn) return;
-            _lastReportedTurn = report.LastCheckedTurn;
-
-            if (report.RolesAutoFilled != 0) EmitAutoFilled(report.RolesAutoFilled);
-            if (report.RolesUnfillable != 0) EmitUnfillable(report.RolesUnfillable);
-        }
-
-        void EmitAutoFilled(uint mask)
-        {
-            if ((mask & (1u << JobKind.Lumberjack)) != 0) Toast("No Lumberjack was found, temp Lumberjack assigned", ToastKind.Info);
-            if ((mask & (1u << JobKind.Miner))      != 0) Toast("No Miner was found, temp Miner assigned",           ToastKind.Info);
-            if ((mask & (1u << JobKind.Farmer))     != 0) Toast("No Farmer was found, temp Farmer assigned",         ToastKind.Info);
-            if ((mask & (1u << JobKind.Chef))       != 0) Toast("No Chef was found, temp Chef assigned",             ToastKind.Info);
-            if ((mask & (1u << JobKind.Guard))      != 0) Toast("No Guard was found, temp Guard assigned",           ToastKind.Info);
-        }
-
-        void EmitUnfillable(uint mask)
-        {
-            if ((mask & (1u << JobKind.Lumberjack)) != 0) Toast("Lumberjack unassigned — no free Looter",  ToastKind.Warning);
-            if ((mask & (1u << JobKind.Miner))      != 0) Toast("Miner unassigned — no free Looter",       ToastKind.Warning);
-            if ((mask & (1u << JobKind.Farmer))     != 0) Toast("Farmer unassigned — no free Looter",      ToastKind.Warning);
-            if ((mask & (1u << JobKind.Chef))       != 0) Toast("Chef unassigned — no free Looter",        ToastKind.Warning);
-            if ((mask & (1u << JobKind.Guard))      != 0) Toast("Guard unassigned — no free Looter",       ToastKind.Warning);
-        }
-
-        static void Toast(string text, ToastKind kind)
-        {
-            try
-            {
-                var pub = GlobalMessagePipe.GetPublisher<ToastMessage>();
-                pub?.Publish(new ToastMessage(text, kind));
-            }
-            catch { }
-        }
-    }
+    // TODO(toast-drain): LogisticsReport's RolesAutoFilled / RolesUnfillable
+    // bitmasks already carry the data a toast would need — "No Chef was found,
+    // temp Chef assigned" on info, "Chef unassigned — no free Looter" on
+    // warning. The main-thread drain was removed because reading LogisticsReport
+    // on main thread races with LogisticsCensusJob's ComponentLookup write. Once
+    // a shared ToastRequest intent entity + single ToastDrainSystem lands (same
+    // shape as SpawnSoldierRequest / PendingItemTransfer), switch LogisticsCensusJob
+    // over to emitting toast intents via ECB instead of setting the masks, or
+    // keep the masks and have the drain read LogisticsReport via a BurstCompiled
+    // ISystem. Either way keeps the producer Burst and puts the MessagePipe
+    // publish in one place.
 }
