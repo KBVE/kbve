@@ -1,5 +1,7 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace RareIcon
 {
@@ -15,59 +17,70 @@ namespace RareIcon
     ///   Default: 5 Wood          → 2 Coal + 1 Ash               (10s)
     ///   Forest : default recipe + PassiveProduction (+2 Coal / 30s)
     ///
-    /// SystemBase (not Burst) because attaching components is a structural
-    /// change — same once-per-spawn cadence as FarmInitSystem.
+    /// Burst ISystem: hex → biome resolved via HexLookupSingleton + a
+    /// ComponentLookup&lt;BiomeType&gt;, structural work via EndInitializationECB.
     /// </summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
-    public partial class FurnaceInitSystem : SystemBase
+    public partial struct FurnaceInitSystem : ISystem
     {
         EntityQuery _needsInit;
 
-        protected override void OnCreate()
+        [BurstCompile]
+        public void OnCreate(ref SystemState state)
         {
-            _needsInit = GetEntityQuery(
-                ComponentType.ReadOnly<FurnaceTag>(),
-                ComponentType.Exclude<FurnaceProduction>());
+            _needsInit = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<FurnaceTag, Building>()
+                .WithNone<FurnaceProduction>()
+                .Build(ref state);
+            state.RequireForUpdate(_needsInit);
         }
 
-        protected override void OnUpdate()
-        {
-            if (_needsInit.IsEmpty) return;
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
-            var arr = _needsInit.ToEntityArray(Allocator.Temp);
-            try
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
+
+            var ecb = SystemAPI.GetSingleton<EndInitializationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
+
+            state.Dependency = new FurnaceInitJob
             {
-                for (int i = 0; i < arr.Length; i++)
-                {
-                    var entity = arr[i];
-                    if (!EntityManager.HasComponent<Building>(entity)) continue;
-
-                    var building = EntityManager.GetComponentData<Building>(entity);
-                    byte biome = ResolveBiome(building.RootHex);
-                    AttachRecipe(entity, biome);
-                }
-            }
-            finally
-            {
-                arr.Dispose();
-            }
+                HexLookup   = hexLookup.Lookup,
+                BiomeLookup = SystemAPI.GetComponentLookup<BiomeType>(true),
+                Ecb         = ecb.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
         }
+    }
 
-        // Look up the biome at the building's root hex via the static
-        // hex-coord → entity table HexHoverSystem maintains. Returns
-        // BIOME_OCEAN as a sentinel "couldn't resolve" since ocean tiles
-        // never spawn buildings anyway.
-        static byte ResolveBiome(Unity.Mathematics.int2 rootHex)
+    [BurstCompile]
+    [WithAll(typeof(FurnaceTag))]
+    [WithNone(typeof(FurnaceProduction))]
+    public partial struct FurnaceInitJob : IJobEntity
+    {
+        [ReadOnly] public NativeHashMap<int2, Entity>  HexLookup;
+        [ReadOnly] public ComponentLookup<BiomeType>   BiomeLookup;
+
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity entity, [ChunkIndexInQuery] int chunkIdx, in Building building)
         {
-            if (!HexHoverSystem.TryGetHexEntity(rootHex, out var hexEntity))
-                return BiomeGenerator.BIOME_OCEAN;
-            var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-            if (!em.HasComponent<BiomeType>(hexEntity))
-                return BiomeGenerator.BIOME_OCEAN;
-            return em.GetComponentData<BiomeType>(hexEntity).Value;
+            byte biome = ResolveBiome(building.RootHex);
+            AttachRecipe(chunkIdx, entity, biome);
         }
 
-        void AttachRecipe(Entity entity, byte biome)
+        byte ResolveBiome(int2 rootHex)
+        {
+            if (!HexLookup.TryGetValue(rootHex, out var hexEntity))
+                return (byte)BiomeGenerator.BIOME_OCEAN;
+            if (!BiomeLookup.HasComponent(hexEntity))
+                return (byte)BiomeGenerator.BIOME_OCEAN;
+            return BiomeLookup[hexEntity].Value;
+        }
+
+        void AttachRecipe(int chunkIdx, Entity entity, byte biome)
         {
             ushort wood  = (ushort)ItemId.WoodLog;
             ushort coal  = (ushort)ItemId.Coal;
@@ -75,9 +88,10 @@ namespace RareIcon
             ushort sand  = (ushort)ItemId.NaturalSand;
             ushort glass = (ushort)ItemId.RawGlass;
 
-            FurnaceProduction prod = biome switch
+            FurnaceProduction prod;
+            if (biome == BiomeGenerator.BIOME_SAND)
             {
-                BiomeGenerator.BIOME_SAND => new FurnaceProduction
+                prod = new FurnaceProduction
                 {
                     Input1Id = wood, Input1Amount = 5,
                     Input2Id = sand, Input2Amount = 1,
@@ -85,8 +99,11 @@ namespace RareIcon
                     Output2Id = ash,   Output2Amount = 1,
                     Output3Id = glass, Output3Amount = 1,
                     CycleEndsAt = 0f, CycleDuration = 7f,    // desert bonus: faster
-                },
-                BiomeGenerator.BIOME_GRASS => new FurnaceProduction
+                };
+            }
+            else if (biome == BiomeGenerator.BIOME_GRASS)
+            {
+                prod = new FurnaceProduction
                 {
                     Input1Id = wood, Input1Amount = 5,
                     Input2Id = 0,    Input2Amount = 0,
@@ -94,8 +111,11 @@ namespace RareIcon
                     Output2Id = ash,  Output2Amount = 2,    // grass bonus: extra ash
                     Output3Id = 0,    Output3Amount = 0,
                     CycleEndsAt = 0f, CycleDuration = 10f,
-                },
-                _ => new FurnaceProduction
+                };
+            }
+            else
+            {
+                prod = new FurnaceProduction
                 {
                     Input1Id = wood, Input1Amount = 5,
                     Input2Id = 0,    Input2Amount = 0,
@@ -103,17 +123,17 @@ namespace RareIcon
                     Output2Id = ash,  Output2Amount = 1,
                     Output3Id = 0,    Output3Amount = 0,
                     CycleEndsAt = 0f, CycleDuration = 10f,
-                },
-            };
-            EntityManager.AddComponentData(entity, prod);
+                };
+            }
+            Ecb.AddComponent(chunkIdx, entity, prod);
 
             // Forest placement bonus — passive coal stream on top of the
             // active wood-fueled cycle. Composes via a separate component
-            // so PassiveProductionSystem ticks it without knowing or
-            // caring that it's a furnace.
+            // so PassiveProductionSystem ticks it without knowing or caring
+            // that it's a furnace.
             if (biome == BiomeGenerator.BIOME_FOREST)
             {
-                EntityManager.AddComponentData(entity, new PassiveProduction
+                Ecb.AddComponent(chunkIdx, entity, new PassiveProduction
                 {
                     OutputId      = coal,
                     OutputAmount  = 2,

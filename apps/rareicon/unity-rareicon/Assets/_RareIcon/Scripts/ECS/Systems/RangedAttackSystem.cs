@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -5,96 +6,100 @@ using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>Cooldown-gated auto-fire at the nearest enemy in range. Player shooters must draw an Arrow from the Capital treasury before firing; no ammo = no shot (cooldown stays primed so they fire the instant an arrow arrives). Hostile + other factions fire unlimited.</summary>
+    /// <summary>Cooldown-gated auto-fire at the nearest enemy in range. Player shooters must draw an Arrow from the Capital treasury before firing; no ammo = no shot (cooldown stays primed so they fire the instant an arrow arrives). Hostile + other factions fire unlimited. Burst ISystem on a single-worker Schedule — shooters share the Capital inventory buffer so serializing the consume keeps the stock race-free without a reservation atomic. ScheduleParallel would require claim-before-fire and is deferred.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(CombatSystemGroup))]
     [UpdateAfter(typeof(SpatialHashSystem))]
-    public partial class RangedAttackSystem : SystemBase
+    public partial struct RangedAttackSystem : ISystem
     {
-        protected override void OnCreate()
+        [BurstCompile]
+        public void OnCreate(ref SystemState state)
         {
-            RequireForUpdate<RangedAttack>();
+            state.RequireForUpdate<RangedAttack>();
         }
 
-        protected override void OnUpdate()
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial)) return;
             if (!spatial.Hash.IsCreated) return;
 
-            SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital);
+            bool hasCapital = SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital);
 
-            var hash = spatial.Hash;
-            float dt = SystemAPI.Time.DeltaTime;
-            var ecb  = new EntityCommandBuffer(Allocator.Temp);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
 
-            bool hasCapitalStore = capital != Entity.Null && EntityManager.HasBuffer<InventorySlot>(capital);
-            DynamicBuffer<InventorySlot> capInv = hasCapitalStore
-                ? EntityManager.GetBuffer<InventorySlot>(capital)
-                : default;
-
-            foreach (var (transform, faction, attackRef, entity) in
-                     SystemAPI.Query<RefRO<LocalTransform>, RefRO<Faction>, RefRW<RangedAttack>>()
-                              .WithEntityAccess())
+            state.Dependency = new RangedAttackJob
             {
-                var attack = attackRef.ValueRO;
-                attack.TimeSinceShot += dt;
+                Hash         = spatial.Hash,
+                Dt           = SystemAPI.Time.DeltaTime,
+                Capital      = hasCapital ? capital : Entity.Null,
+                CapInvLookup = SystemAPI.GetBufferLookup<InventorySlot>(false),
+                Ecb          = ecb,
+            }.Schedule(state.Dependency);
+        }
+    }
 
-                if (attack.TimeSinceShot < attack.Cooldown)
-                {
-                    attackRef.ValueRW = attack;
-                    continue;
-                }
+    [BurstCompile]
+    public partial struct RangedAttackJob : IJobEntity
+    {
+        [ReadOnly] public NativeParallelMultiHashMap<int, HashedTarget> Hash;
+        public float  Dt;
+        public Entity Capital;
 
-                if (!TryFindTarget(hash, transform.ValueRO.Position, faction.ValueRO.Value, attack.Range,
-                                   entity, out float2 targetPos))
-                {
-                    attackRef.ValueRW = attack;
-                    continue;
-                }
+        [NativeDisableParallelForRestriction]
+        public BufferLookup<InventorySlot> CapInvLookup;
 
-                // Player shooters need ammo from the Capital treasury. Hostiles /
-                // wildlife / anything else fires unlimited.
-                bool requiresAmmo = faction.ValueRO.Value == FactionType.Player
-                                 && (attack.ProjectileType == ProjectileType.Arrow ||
-                                     attack.ProjectileType == ProjectileType.Bolt);
-                if (requiresAmmo)
-                {
-                    if (!hasCapitalStore) { attackRef.ValueRW = attack; continue; }
-                    if (!ConsumeOne(capInv, (ushort)ItemId.Arrow))
-                    {
-                        // Out of ammo — keep cooldown primed so next frame retries.
-                        attackRef.ValueRW = attack;
-                        continue;
-                    }
-                }
+        public EntityCommandBuffer Ecb;
 
-                float2 shooterPos = new float2(transform.ValueRO.Position.x, transform.ValueRO.Position.y);
-                float2 toTarget = targetPos - shooterPos;
-                float dist = math.length(toTarget);
-                float2 dir = dist > 1e-5f ? toTarget / dist : new float2(1f, 0f);
+        void Execute(Entity entity,
+                     in LocalTransform transform,
+                     in Faction faction,
+                     ref RangedAttack attack)
+        {
+            attack.TimeSinceShot += Dt;
+            if (attack.TimeSinceShot < attack.Cooldown) return;
 
-                var req = ecb.CreateEntity();
-                ecb.AddComponent(req, new SpawnProjectileRequest
-                {
-                    Type         = attack.ProjectileType,
-                    Mod          = attack.ProjectileMod,
-                    Facing       = FacingFromDir(dir.x, dir.y),
-                    OwnerFaction = faction.ValueRO.Value,
-                    Position     = shooterPos,
-                    Velocity     = dir * attack.ProjectileSpeed,
-                    Lifetime     = attack.ProjectileLifetime,
-                    Damage       = attack.Damage,
-                });
+            if (!TryFindTarget(Hash, transform.Position, faction.Value, attack.Range,
+                               entity, out float2 targetPos))
+                return;
 
-                attack.TimeSinceShot = 0f;
-                attackRef.ValueRW = attack;
+            bool requiresAmmo = faction.Value == FactionType.Player
+                             && (attack.ProjectileType == ProjectileType.Arrow ||
+                                 attack.ProjectileType == ProjectileType.Bolt);
+            if (requiresAmmo)
+            {
+                if (Capital == Entity.Null) return;
+                if (!CapInvLookup.HasBuffer(Capital)) return;
+                var capInv = CapInvLookup[Capital];
+                if (!ConsumeOne(capInv, (ushort)ItemId.Arrow)) return;
             }
 
-            ecb.Playback(EntityManager);
-            ecb.Dispose();
+            float2 shooterPos = new float2(transform.Position.x, transform.Position.y);
+            float2 toTarget = targetPos - shooterPos;
+            float dist = math.length(toTarget);
+            float2 dir = dist > 1e-5f ? toTarget / dist : new float2(1f, 0f);
+
+            var req = Ecb.CreateEntity();
+            Ecb.AddComponent(req, new SpawnProjectileRequest
+            {
+                Type         = attack.ProjectileType,
+                Mod          = attack.ProjectileMod,
+                Facing       = FacingFromDir(dir.x, dir.y),
+                OwnerFaction = faction.Value,
+                Position     = shooterPos,
+                Velocity     = dir * attack.ProjectileSpeed,
+                Lifetime     = attack.ProjectileLifetime,
+                Damage       = attack.Damage,
+            });
+
+            attack.TimeSinceShot = 0f;
         }
 
         static bool TryFindTarget(
-            NativeParallelMultiHashMap<int, HashedTarget> hash,
+            in NativeParallelMultiHashMap<int, HashedTarget> hash,
             float3 originWorld, byte shooterFaction, float range,
             Entity shooter, out float2 bestPos)
         {
