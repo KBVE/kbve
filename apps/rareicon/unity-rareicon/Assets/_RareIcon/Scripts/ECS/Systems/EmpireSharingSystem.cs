@@ -9,12 +9,12 @@ namespace RareIcon
     [UpdateAfter(typeof(EmpireWithdrawSystem))]
     public partial class EmpireSharingSystem : SystemBase
     {
-        const float HungerThreshold = 0.30f;  // mirrors the rest of the food loop
+        const float HungerTrigger = 0.50f;
 
         protected override void OnUpdate()
         {
-            var invLookup     = SystemAPI.GetBufferLookup<InventorySlot>(isReadOnly: false);
-            var energyLookup  = SystemAPI.GetComponentLookup<Energy>(isReadOnly: true);
+            var invLookup    = SystemAPI.GetBufferLookup<InventorySlot>(isReadOnly: false);
+            var hungerLookup = SystemAPI.GetComponentLookup<Hunger>(isReadOnly: true);
 
             // Bucket empire units by hex. Capacity is a rough hint; the
             // hash map grows internally if we overflow.
@@ -35,14 +35,14 @@ namespace RareIcon
                 SystemAPI.Query<RefRO<UnitMovement>, RefRO<Faction>>().WithEntityAccess())
             {
                 if (faction.ValueRO.Value != FactionType.Player) continue;
-                if (!energyLookup.HasComponent(entity)) continue;
+                if (!hungerLookup.HasComponent(entity)) continue;
 
-                var e = energyLookup[entity];
-                if (e.Max <= 0f || e.Value / e.Max >= HungerThreshold) continue;
+                var h = hungerLookup[entity];
+                if (h.Max <= 0f || h.Value / h.Max < HungerTrigger) continue;
 
                 if (!invLookup.HasBuffer(entity)) continue;
                 var myInv = invLookup[entity];
-                if (HasEdible(myInv)) continue;   // already has food — skip
+                if (HasEdible(myInv)) continue;
 
                 int2 hex = movement.ValueRO.CurrentHex;
                 if (!hexBuckets.TryGetFirstValue(hex, out Entity peer, out var it)) continue;

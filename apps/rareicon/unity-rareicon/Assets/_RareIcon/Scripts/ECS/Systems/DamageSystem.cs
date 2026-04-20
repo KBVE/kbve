@@ -1,10 +1,11 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>Consumes DamageEvent, applies damage + mod-driven status effects, tags DeadTag on fatal hits.</summary>
+    /// <summary>Consumes DamageEvent, applies damage + mod-driven status effects, emits a blood decal on the victim, tags DeadTag on fatal hits.</summary>
     [UpdateInGroup(typeof(CombatSystemGroup))]
     [UpdateAfter(typeof(CollisionSystem))]
     public partial class DamageSystem : SystemBase
@@ -19,6 +20,11 @@ namespace RareIcon
         const float CurseDrainPerSec    = 3.0f;
         const float CurseSeconds        = 4.0f;
 
+        const float BloodDecalLifetime       = 25f;
+        const float FatalBloodDecalLifetime  = 60f;
+
+        uint _decalRng = 0xA11CE_Fu;
+
         protected override void OnCreate()
         {
             RequireForUpdate<DamageEvent>();
@@ -26,9 +32,10 @@ namespace RareIcon
 
         protected override void OnUpdate()
         {
-            var ecb          = new EntityCommandBuffer(Allocator.Temp);
-            var healthLookup = SystemAPI.GetComponentLookup<Health>(isReadOnly: false);
-            var effectLookup = SystemAPI.GetBufferLookup<StatusEffect>(isReadOnly: false);
+            var ecb            = new EntityCommandBuffer(Allocator.Temp);
+            var healthLookup   = SystemAPI.GetComponentLookup<Health>(isReadOnly: false);
+            var effectLookup   = SystemAPI.GetBufferLookup<StatusEffect>(isReadOnly: false);
+            var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(isReadOnly: true);
 
             foreach (var (damageRef, eventEntity) in
                 SystemAPI.Query<RefRO<DamageEvent>>().WithEntityAccess())
@@ -54,7 +61,8 @@ namespace RareIcon
                 health.Value = math.max(0f, health.Value - amount);
                 healthLookup[ev.Target] = health;
 
-                if (health.Value <= 0f)
+                bool fatal = health.Value <= 0f;
+                if (fatal)
                 {
                     ecb.AddComponent<DeadTag>(ev.Target);
                 }
@@ -63,11 +71,37 @@ namespace RareIcon
                     ApplyPersistentEffect(effectLookup, ev.Target, ev.Mod);
                 }
 
+                if (transformLookup.HasComponent(ev.Target))
+                {
+                    var pos = transformLookup[ev.Target].Position;
+                    _decalRng = XorShift(_decalRng);
+                    float jitterX = ((_decalRng & 0xFFFFu) / 65535f - 0.5f) * 0.12f;
+                    _decalRng = XorShift(_decalRng);
+                    float jitterY = ((_decalRng & 0xFFFFu) / 65535f - 0.5f) * 0.12f;
+                    _decalRng = XorShift(_decalRng);
+
+                    var req = ecb.CreateEntity();
+                    ecb.AddComponent(req, new SpawnBloodDecalRequest
+                    {
+                        Position = new float2(pos.x + jitterX, pos.y + jitterY),
+                        Lifetime = fatal ? FatalBloodDecalLifetime : BloodDecalLifetime,
+                        Seed     = (_decalRng & 0xFFFFFFu) / (float)0xFFFFFF,
+                    });
+                }
+
                 ecb.DestroyEntity(eventEntity);
             }
 
             ecb.Playback(EntityManager);
             ecb.Dispose();
+        }
+
+        static uint XorShift(uint s)
+        {
+            s ^= s << 13;
+            s ^= s >> 17;
+            s ^= s << 5;
+            return s == 0 ? 1u : s;
         }
 
         static void ApplyPersistentEffect(

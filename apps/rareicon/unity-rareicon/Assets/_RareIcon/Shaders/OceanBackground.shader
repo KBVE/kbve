@@ -31,6 +31,7 @@ Shader "RareIcon/OceanBackground"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Includes/OceanWater.hlsl"
+            #include "Includes/WorldAmbient.hlsl"
 
             struct Attributes
             {
@@ -87,7 +88,7 @@ Shader "RareIcon/OceanBackground"
                 float2 uv = (input.uv + _WorldOffset.xy) * _UVScale;
                 float3 col = OceanWater(uv, _DistortionSpeed, _FBMStrength, 1.0,
                                         _WaterCol.rgb, _Water2Col.rgb, _FoamCol.rgb);
-                return float4(col, 1.0);
+                return float4(ApplyWorldAmbient(col), 1.0);
             }
             ENDHLSL
         }

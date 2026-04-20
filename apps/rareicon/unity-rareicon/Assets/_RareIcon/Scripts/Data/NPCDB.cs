@@ -1,93 +1,75 @@
 namespace RareIcon
 {
-    /// <summary>
-    /// Behavioural / lore taxonomy for creatures. Drives high-level systems
-    /// (faction lookup, "is this undead?" damage modifiers, AI archetypes)
-    /// without coupling to the specific UnitType.
-    /// </summary>
+    /// <summary>Behavioural taxonomy driving high-level AI / damage modifiers without coupling to UnitType.</summary>
     public enum NPCCategory : byte
     {
         Civilian  = 0,
-        Humanoid  = 1,  // goblins, orcs, soldiers, knights
-        Beast     = 2,  // wolves, bears
+        Humanoid  = 1,
+        Beast     = 2,
         Undead    = 3,
         Elemental = 4,
         Boss      = 5,
     }
 
-    /// <summary>
-    /// Per-creature defaults — base stats + attributes + default loadout +
-    /// locale key. UnitSpawnSystem pulls these so spawn code stays generic;
-    /// per-instance jitter (speed, RNG seed) layers on top at spawn time.
-    ///
-    /// Two stat tiers:
-    ///   - Vital stats (MaxHealth/Energy/Mana + regen) → become Health /
-    ///     Energy / Mana IComponentData on the spawned entity (composed by
-    ///     presence — Max=0 → component skipped).
-    ///   - Attributes (Strength / Agility / Intellect / Will) → spec data
-    ///     for now; will become a single Attributes IComponentData when the
-    ///     first gameplay system reads them (combat / magic / etc.). Stored
-    ///     as bytes so a creature sheet stays small; most values sit 1..20,
-    ///     boss / legendary can run higher (cap is 255).
-    /// </summary>
+    /// <summary>Per-creature default stats + attributes + loadout; UnitSpawnSystem pulls these to stay generic across creature types.</summary>
     public readonly struct NPCDef
     {
         public readonly byte UnitType;
         public readonly string NameKey;
         public readonly NPCCategory Category;
 
-        // ---- Vital stats ----
         public readonly float MaxHealth;
         public readonly float MaxEnergy;
-        public readonly float MaxMana;       // 0 = creature has no mana stat
-        public readonly float MoveSpeed;     // base; spawn applies ±jitter
-        public readonly float HealthRegen;   // per-second; 0 = no regen component
+        public readonly float MaxMana;
+        public readonly float MaxHunger;
+        public readonly float MaxFatigue;
+        public readonly float MoveSpeed;
+        public readonly float HealthRegen;
         public readonly float EnergyRegen;
         public readonly float ManaRegen;
+        public readonly float HungerPerSec;
+        public readonly float FatiguePerSec;
 
-        // ---- Attributes ----
-        public readonly byte Strength;       // melee damage, carry weight
-        public readonly byte Agility;        // move-speed mod, dodge, ranged accuracy
-        public readonly byte Intellect;      // spell damage, mana scaling
-        public readonly byte Will;           // magic resistance, mana regen rate
+        public readonly byte Strength;
+        public readonly byte Agility;
+        public readonly byte Intellect;
+        public readonly byte Will;
 
-        // ---- Loadout ----
-        public readonly byte DefaultWeapon;  // WeaponType.* constant
+        public readonly byte DefaultWeapon;
 
         public NPCDef(byte unitType, string nameKey, NPCCategory category,
                       float maxHealth, float maxEnergy, float maxMana,
+                      float maxHunger, float maxFatigue,
                       float moveSpeed,
                       float healthRegen, float energyRegen, float manaRegen,
+                      float hungerPerSec, float fatiguePerSec,
                       byte strength, byte agility, byte intellect, byte will,
                       byte defaultWeapon)
         {
-            UnitType    = unitType;
-            NameKey     = nameKey;
-            Category    = category;
-            MaxHealth   = maxHealth;
-            MaxEnergy   = maxEnergy;
-            MaxMana     = maxMana;
-            MoveSpeed   = moveSpeed;
-            HealthRegen = healthRegen;
-            EnergyRegen = energyRegen;
-            ManaRegen   = manaRegen;
-            Strength    = strength;
-            Agility     = agility;
-            Intellect   = intellect;
-            Will        = will;
+            UnitType      = unitType;
+            NameKey       = nameKey;
+            Category      = category;
+            MaxHealth     = maxHealth;
+            MaxEnergy     = maxEnergy;
+            MaxMana       = maxMana;
+            MaxHunger     = maxHunger;
+            MaxFatigue    = maxFatigue;
+            MoveSpeed     = moveSpeed;
+            HealthRegen   = healthRegen;
+            EnergyRegen   = energyRegen;
+            ManaRegen     = manaRegen;
+            HungerPerSec  = hungerPerSec;
+            FatiguePerSec = fatiguePerSec;
+            Strength      = strength;
+            Agility       = agility;
+            Intellect     = intellect;
+            Will          = will;
             DefaultWeapon = defaultWeapon;
         }
     }
 
-    /// <summary>
-    /// Source of truth for creature defaults. Dense byte-indexed array —
-    /// UnitType IDs fit in 0..255 so we get O(1) lookup with zero GC and
-    /// no Dictionary overhead. Empty slots return a fallback "Unknown" def
-    /// so callers never null-deref.
-    ///
-    /// Long-term: this table mirrors a Rust crate (uniti) so the server
-    /// uses the same baseline stats as the client. For now: pure C#.
-    /// </summary>
+    /// <summary>Dense byte-indexed creature table — O(1) lookup, zero GC, fallback NPCDef for unknown IDs.</summary>
+    // TODO(rust-ffi): mirror this table in the uniti crate so server-authoritative code uses the same baseline stats (MaxHealth/Hunger/Fatigue + tick rates). Unity + Rust must stay in lockstep on values.
     public static class NPCDB
     {
         const int Capacity = 256;
@@ -105,30 +87,21 @@ namespace RareIcon
                 category:      NPCCategory.Humanoid,
                 maxHealth:     30f,
                 maxEnergy:     100f,
-                maxMana:       0f,             // goblins don't carry mana
-                moveSpeed:     0.7f,           // base — spawn jitters around this
-                // NO PASSIVE REGEN for Health or Energy on any creature
-                // — vitals only come back from consumables (food for
-                // Energy via AutoEatSystem / EmpireWithdrawSystem,
-                // potions/bandages for Health once those systems
-                // land). Applies to every def in this table; change
-                // here only if a creature has a clear lore reason
-                // (troll regeneration, angelic blessings, etc.). Mana
-                // still regens because it's already conceptually a
-                // magical resource.
+                maxMana:       0f,
+                maxHunger:     100f,
+                maxFatigue:    100f,
+                moveSpeed:     0.7f,
                 healthRegen:   0f,
-                energyRegen:   0f,
+                energyRegen:   5.0f,
                 manaRegen:     0f,
-                // Weak, scrappy, dumb — but quick on their feet.
+                hungerPerSec:  0.30f,
+                fatiguePerSec: 0.20f,
                 strength:      8,
                 agility:       12,
                 intellect:     4,
                 will:          5,
                 defaultWeapon: WeaponType.Club));
 
-            // Heavy human infantry — plate armour, closed helm. Tanks the
-            // front line; trades speed + agility for bulk HP and strength.
-            // DefaultWeapon stays None until HexSword.hlsl lands.
             Add(new NPCDef(
                 unitType:      UnitType.Knight,
                 nameKey:       "creature.knight",
@@ -136,18 +109,20 @@ namespace RareIcon
                 maxHealth:     120f,
                 maxEnergy:     120f,
                 maxMana:       0f,
+                maxHunger:     140f,
+                maxFatigue:    120f,
                 moveSpeed:     0.55f,
                 healthRegen:   0f,
-                energyRegen:   0f,
+                energyRegen:   6.0f,
                 manaRegen:     0f,
+                hungerPerSec:  0.35f,
+                fatiguePerSec: 0.22f,
                 strength:      16,
                 agility:       8,
                 intellect:     8,
                 will:          11,
                 defaultWeapon: WeaponType.None));
 
-            // Light human infantry — leather vest over cloth shirt. Middle
-            // of the road: decent HP, good stamina, balanced attributes.
             Add(new NPCDef(
                 unitType:      UnitType.Soldier,
                 nameKey:       "creature.soldier",
@@ -155,18 +130,20 @@ namespace RareIcon
                 maxHealth:     70f,
                 maxEnergy:     140f,
                 maxMana:       0f,
+                maxHunger:     120f,
+                maxFatigue:    110f,
                 moveSpeed:     0.8f,
                 healthRegen:   0f,
-                energyRegen:   0f,
+                energyRegen:   7.0f,
                 manaRegen:     0f,
+                hungerPerSec:  0.30f,
+                fatiguePerSec: 0.20f,
                 strength:      12,
                 agility:       12,
                 intellect:     9,
                 will:          9,
                 defaultWeapon: WeaponType.None));
 
-            // Robed caster — low HP, carries mana, average movement. Glass
-            // cannon profile: high intellect + will, poor physical stats.
             Add(new NPCDef(
                 unitType:      UnitType.Mage,
                 nameKey:       "creature.mage",
@@ -174,52 +151,54 @@ namespace RareIcon
                 maxHealth:     45f,
                 maxEnergy:     80f,
                 maxMana:       150f,
+                maxHunger:     90f,
+                maxFatigue:    100f,
                 moveSpeed:     0.65f,
                 healthRegen:   0f,
-                energyRegen:   0f,
+                energyRegen:   4.5f,
                 manaRegen:     4.0f,
+                hungerPerSec:  0.25f,
+                fatiguePerSec: 0.28f,
                 strength:      6,
                 agility:       9,
                 intellect:     17,
                 will:          15,
                 defaultWeapon: WeaponType.None));
 
-            // The player-controlled King. Visually a Soldier base + Crown
-            // helmet (HelmetType.Cap with gold palette) — see UnitSpawnSystem.
-            // High HP, balanced attributes; no weapon yet (regal scepter +
-            // royal sword variants are future polish). MoveSpeed sits between
-            // Knight and Soldier so the player feels deliberate, not sluggish.
             Add(new NPCDef(
                 unitType:      UnitType.King,
                 nameKey:       "creature.king",
                 category:      NPCCategory.Humanoid,
                 maxHealth:     200f,
                 maxEnergy:     150f,
-                maxMana:       100f,            // mana — kings dabble in magic too
+                maxMana:       100f,
+                maxHunger:     150f,
+                maxFatigue:    120f,
                 moveSpeed:     0.7f,
-                // King still has no passive Health/Energy regen — the
-                // "game over on death" weight comes from his HP pool
-                // (200) + your ability to pull him back to the capital
-                // to eat. Keep ManaRegen so he can still cast.
                 healthRegen:   0f,
-                energyRegen:   0f,
+                energyRegen:   7.0f,
                 manaRegen:     2.0f,
+                hungerPerSec:  0.33f,
+                fatiguePerSec: 0.22f,
                 strength:      14,
                 agility:       11,
                 intellect:     14,
                 will:          16,
-                defaultWeapon: WeaponType.None));
+                defaultWeapon: WeaponType.Crossbow));
 
-            // Passive wildlife — sand/grass fauna. No energy/mana/regen; tiny
-            // HP so a stray arrow or swing ends them cleanly. Slow MoveSpeed
-            // keeps them grounded as ambience rather than chasing anyone.
+            // Passive wildlife — sand/grass fauna. Zero hunger/fatigue/energy
+            // so the Need + Job executors skip them; tiny HP so a stray arrow
+            // or swing ends them cleanly. Slow MoveSpeed keeps them grounded
+            // as ambience rather than chasing anyone.
             Add(new NPCDef(
                 unitType:      UnitType.Chicken,
                 nameKey:       "creature.chicken",
                 category:      NPCCategory.Beast,
                 maxHealth:     5f,   maxEnergy: 0f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
                 moveSpeed:     0.45f,
                 healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
                 strength:      1, agility: 10, intellect: 1, will: 1,
                 defaultWeapon: WeaponType.None));
 
@@ -228,8 +207,10 @@ namespace RareIcon
                 nameKey:       "creature.sheep",
                 category:      NPCCategory.Beast,
                 maxHealth:     20f,  maxEnergy: 0f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
                 moveSpeed:     0.35f,
                 healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
                 strength:      3, agility: 5, intellect: 2, will: 2,
                 defaultWeapon: WeaponType.None));
 
@@ -238,8 +219,10 @@ namespace RareIcon
                 nameKey:       "creature.cow",
                 category:      NPCCategory.Beast,
                 maxHealth:     40f,  maxEnergy: 0f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
                 moveSpeed:     0.30f,
                 healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
                 strength:      6, agility: 3, intellect: 2, will: 3,
                 defaultWeapon: WeaponType.None));
 
@@ -248,19 +231,14 @@ namespace RareIcon
 
         static void Add(NPCDef def) => _byId[def.UnitType] = def;
 
-        /// <summary>
-        /// Look up the def by UnitType. Returns a placeholder NPCDef for
-        /// unknown IDs so spawn code never NPEs on missing entries.
-        /// </summary>
+        /// <summary>Look up the def by UnitType; returns a fallback for unknown IDs so spawn code never null-derefs.</summary>
         public static NPCDef Get(byte unitType)
         {
             EnsureInit();
             var def = _byId[unitType];
-            // UnitType.None entries default-construct with UnitType=0 — treat
-            // any zero-named def as "missing" and return a fallback.
             if (def.NameKey == null)
-                return new NPCDef(unitType, "creature.unknown",
-                    NPCCategory.Humanoid, 10f, 10f, 0f, 0.5f, 0f, 0f, 0f,
+                return new NPCDef(unitType, "creature.unknown", NPCCategory.Humanoid,
+                    10f, 10f, 0f, 100f, 100f, 0.5f, 0f, 0f, 0f, 0.3f, 0.2f,
                     strength: 10, agility: 10, intellect: 10, will: 10,
                     defaultWeapon: WeaponType.None);
             return def;

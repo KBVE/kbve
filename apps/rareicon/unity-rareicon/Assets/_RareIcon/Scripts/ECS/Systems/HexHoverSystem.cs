@@ -122,6 +122,7 @@ namespace RareIcon
             // and grab its stats / first 4 inventory slots while we're at it.
             byte unitType = 0;
             float hp = 0, hpMax = 0, en = 0, enMax = 0, mp = 0, mpMax = 0;
+            float hg = 0, hgMax = 0, fg = 0, fgMax = 0;
             ushort i0 = 0, c0 = 0, i1 = 0, c1 = 0, i2 = 0, c2 = 0, i3 = 0, c3 = 0;
             foreach (var (transform, unit, entity) in
                      SystemAPI.Query<RefRO<LocalTransform>, RefRO<Unit>>().WithEntityAccess())
@@ -145,6 +146,16 @@ namespace RareIcon
                     {
                         var m = EntityManager.GetComponentData<Mana>(entity);
                         mp = m.Value; mpMax = m.Max;
+                    }
+                    if (EntityManager.HasComponent<Hunger>(entity))
+                    {
+                        var h = EntityManager.GetComponentData<Hunger>(entity);
+                        hg = h.Value; hgMax = h.Max;
+                    }
+                    if (EntityManager.HasComponent<Fatigue>(entity))
+                    {
+                        var f = EntityManager.GetComponentData<Fatigue>(entity);
+                        fg = f.Value; fgMax = f.Max;
                     }
                     if (EntityManager.HasBuffer<InventorySlot>(entity))
                     {
@@ -170,6 +181,7 @@ namespace RareIcon
                     res.Cactus, res.CactusVariant,
                     unitType,
                     hp, hpMax, en, enMax, mp, mpMax,
+                    hg, hgMax, fg, fgMax,
                     i0, c0, i1, c1, i2, c2, i3, c3));
             }
             else
@@ -180,6 +192,7 @@ namespace RareIcon
                     0, 0,
                     unitType,
                     hp, hpMax, en, enMax, mp, mpMax,
+                    hg, hgMax, fg, fgMax,
                     i0, c0, i1, c1, i2, c2, i3, c3));
             }
         }

@@ -3,12 +3,12 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Hungry Player-faction unit on the Capital pulls one food item from storage into its inventory.</summary>
+    /// <summary>Hungry Player unit on a Capital-claimed hex pulls one edible from storage into its inventory.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireDepositSystem))]
     public partial class EmpireWithdrawSystem : SystemBase
     {
-        const float HungerThreshold = 0.30f; // below 30% max energy = hungry
+        const float HungerTrigger = 0.50f;
 
         protected override void OnUpdate()
         {
@@ -16,24 +16,21 @@ namespace RareIcon
             var buildingLookup      = SystemAPI.GetComponentLookup<Building>(isReadOnly: true);
             var storageBufferLookup = SystemAPI.GetBufferLookup<InventorySlot>(isReadOnly: false);
 
-            foreach (var (movement, faction, energy, inv) in
+            foreach (var (movement, faction, hunger, inv) in
                 SystemAPI.Query<
                     RefRO<UnitMovement>,
                     RefRO<Faction>,
-                    RefRO<Energy>,
+                    RefRO<Hunger>,
                     DynamicBuffer<InventorySlot>>())
             {
                 if (faction.ValueRO.Value != FactionType.Player) continue;
 
-                var e = energy.ValueRO;
-                if (e.Max <= 0f) continue;
-                if (e.Value / e.Max >= HungerThreshold) continue;
+                var h = hunger.ValueRO;
+                if (h.Max <= 0f) continue;
+                if (h.Value / h.Max < HungerTrigger) continue;
 
-                // Already carrying edible food? Let AutoEatSystem deal
-                // with it — no need to withdraw more until that's gone.
                 if (HasEdible(inv)) continue;
 
-                // Standing on a capital-claimed hex?
                 int2 hex = movement.ValueRO.CurrentHex;
                 if (!HexHoverSystem.TryGetHexEntity(hex, out Entity tile)) continue;
                 if (!hexOccupantLookup.HasComponent(tile)) continue;
@@ -58,9 +55,6 @@ namespace RareIcon
             return false;
         }
 
-        // Find the first edible stack in storage with count > 0, move 1
-        // into the unit's inventory. Silent no-op if storage has no
-        // food at all — the goblin just stays hungry and wanders off.
         static void PullOneFoodItem(
             DynamicBuffer<InventorySlot> storage,
             DynamicBuffer<InventorySlot> unitInv)
@@ -74,7 +68,6 @@ namespace RareIcon
                 slot.Count -= 1;
                 storage[i] = slot;
 
-                // Merge into unit's existing stack or append a new one.
                 bool merged = false;
                 for (int j = 0; j < unitInv.Length; j++)
                 {

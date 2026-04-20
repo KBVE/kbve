@@ -43,6 +43,9 @@ namespace RareIcon
 
             // Alert — tailwind `orange-500`, the NieR-red analogue.
             public static readonly Color Alert = FromHex(0xF9, 0x73, 0x16);
+            // Success — tailwind `emerald-500`. Reserved for positive
+            // notifications (build success, recipe completed, level-up).
+            public static readonly Color Success = FromHex(0x10, 0xB9, 0x81);
 
             // -- Semantic aliases --
             // Existing panels / future panels reference these names.

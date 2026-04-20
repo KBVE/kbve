@@ -34,6 +34,10 @@ namespace RareIcon
 
         VisualElement _hoverPanel;
         VisualElement _toolbar;
+        VisualElement _clockPanel;
+        Label _clockTurnLabel;
+        Label _clockTimeLabel;
+        VisualElement _clockIcon;
         Button _buildBtn;
         Label _biomeName;
         Label _hexCoord;
@@ -41,6 +45,8 @@ namespace RareIcon
         Label _statsLine;
         Label _inventoryLine;
         Label _resourceLine;
+        EntityQuery _clockQuery;
+        bool _clockQueryReady;
 
         [Inject]
         public WorldHUD(
@@ -97,14 +103,82 @@ namespace RareIcon
                     var display = state == AppInterfaceState.World ? DisplayStyle.Flex : DisplayStyle.None;
                     _hoverPanel.style.display = display;
                     _toolbar.style.display = display;
+                    _clockPanel.style.display = display;
                 })
                 .AddTo(_disposables);
+
+            _clockPanel.schedule.Execute(RefreshClock).Every(250);
+            RefreshClock();
         }
 
         void BuildUI(VisualElement root)
         {
             BuildHoverPanel(root);
             BuildToolbar(root);
+            BuildClockPanel(root);
+        }
+
+        void BuildClockPanel(VisualElement root)
+        {
+            _clockPanel = new VisualElement().ApplyPanelChrome(padV: 6, padH: 10);
+            _clockPanel.style.position = Position.Absolute;
+            _clockPanel.style.top = new Length(2f, LengthUnit.Percent);
+            _clockPanel.style.left = new Length(50f, LengthUnit.Percent);
+            _clockPanel.style.translate = new Translate(new Length(-50f, LengthUnit.Percent), 0);
+            _clockPanel.style.flexDirection = FlexDirection.Row;
+            _clockPanel.style.alignItems = Align.Center;
+            _clockPanel.pickingMode = PickingMode.Ignore;
+
+            _clockIcon = new VisualElement();
+            _clockIcon.style.width = 14;
+            _clockIcon.style.height = 14;
+            _clockIcon.style.borderTopLeftRadius = 7;
+            _clockIcon.style.borderTopRightRadius = 7;
+            _clockIcon.style.borderBottomLeftRadius = 7;
+            _clockIcon.style.borderBottomRightRadius = 7;
+            _clockIcon.style.backgroundColor = UIStyles.Palette.Gold;
+            _clockIcon.style.marginRight = 8;
+            _clockPanel.Add(_clockIcon);
+
+            _clockTurnLabel = UIStyles.MakeHeading("Turn 0 · Day", fontSize: 13);
+            _clockTurnLabel.style.marginRight = 10;
+            _clockPanel.Add(_clockTurnLabel);
+
+            _clockTimeLabel = new Label("00:00");
+            _clockTimeLabel.style.color = UIStyles.Palette.TextMuted;
+            _clockTimeLabel.style.fontSize = 13;
+            _clockTimeLabel.pickingMode = PickingMode.Ignore;
+            _clockPanel.Add(_clockTimeLabel);
+
+            root.Add(_clockPanel);
+        }
+
+        void RefreshClock()
+        {
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+
+            var em = world.EntityManager;
+            if (!_clockQueryReady)
+            {
+                _clockQuery = em.CreateEntityQuery(ComponentType.ReadOnly<WorldClock>());
+                _clockQueryReady = true;
+            }
+
+            if (_clockQuery.CalculateEntityCount() == 0) return;
+            var clock = _clockQuery.GetSingleton<WorldClock>();
+
+            string phase = clock.IsDay ? "Day" : "Night";
+            _clockTurnLabel.text = ZString.Format("Turn {0} · {1}", clock.TurnIndex, phase);
+
+            int totalSec = (int)clock.TurnElapsed;
+            int mm = totalSec / 60;
+            int ss = totalSec % 60;
+            _clockTimeLabel.text = ZString.Format("{0:00}:{1:00}", mm, ss);
+
+            _clockIcon.style.backgroundColor = clock.IsDay
+                ? UIStyles.Palette.Gold
+                : new Color(0.55f, 0.65f, 0.85f, 1f);
         }
 
         void BuildHoverPanel(VisualElement root)
@@ -255,9 +329,11 @@ namespace RareIcon
                 var sb = ZString.CreateStringBuilder();
                 try
                 {
-                    AppendStat(ref sb, "HP", msg.UnitHealth, msg.UnitMaxHealth);
-                    AppendStat(ref sb, "EN", msg.UnitEnergy, msg.UnitMaxEnergy);
-                    AppendStat(ref sb, "MP", msg.UnitMana,   msg.UnitMaxMana);
+                    AppendStat(ref sb, "HP", msg.UnitHealth,  msg.UnitMaxHealth);
+                    AppendStat(ref sb, "EN", msg.UnitEnergy,  msg.UnitMaxEnergy);
+                    AppendStat(ref sb, "MP", msg.UnitMana,    msg.UnitMaxMana);
+                    AppendStat(ref sb, "HU", msg.UnitHunger,  msg.UnitMaxHunger);
+                    AppendStat(ref sb, "FT", msg.UnitFatigue, msg.UnitMaxFatigue);
                     if (sb.Length > 0)
                     {
                         _statsLine.text = sb.ToString();

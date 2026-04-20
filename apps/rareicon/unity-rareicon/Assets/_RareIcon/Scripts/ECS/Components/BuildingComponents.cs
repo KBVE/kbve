@@ -15,6 +15,7 @@ namespace RareIcon
         public const byte Capital  = 1;
         public const byte Farm     = 2;
         public const byte Barracks = 3;
+        public const byte Furnace  = 4;
         // Tower, Wall, Mine, etc. land here as we add their .hlsl files.
     }
 
@@ -28,6 +29,22 @@ namespace RareIcon
         public const byte Capital  = 1;
         public const byte Farm     = 2;
         public const byte Barracks = 3;
+        public const byte Furnace  = 4;
+    }
+
+    /// <summary>Marker tag for the Capital — craft / governance systems query key.</summary>
+    public struct CapitalTag : IComponentData { }
+
+    /// <summary>Per-capital craft recipe — up to 3 inputs → 1 output, cycle anchored to WorldClock.AbsSeconds.</summary>
+    // TODO(rust-ffi): persist {Input*Id/Amount, OutputId/Amount, CycleEndsAt, CycleDuration} so in-flight crafts don't reset on chunk unload / server restart.
+    public struct CapitalProduction : IComponentData
+    {
+        public ushort Input1Id;  public ushort Input1Amount;
+        public ushort Input2Id;  public ushort Input2Amount;
+        public ushort Input3Id;  public ushort Input3Amount;
+        public ushort OutputId;  public ushort OutputAmount;
+        public float  CycleEndsAt;
+        public float  CycleDuration;
     }
 
     /// <summary>Marker tag for Farm buildings — production system query key.</summary>
@@ -36,10 +53,63 @@ namespace RareIcon
     /// <summary>Marker tag for Barracks buildings — recruitment system query key.</summary>
     public struct BarracksTag : IComponentData { }
 
+    /// <summary>Marker tag for Furnace buildings — production system query key.</summary>
+    public struct FurnaceTag : IComponentData { }
+
+    /// <summary>
+    /// Per-furnace active recipe — supports up to 2 inputs (e.g. Wood +
+    /// Sand for Glass) and 3 outputs (e.g. Coal + Ash + Glass). Cycle
+    /// timing is anchored to <see cref="WorldClock"/>.AbsSeconds so all
+    /// production reads from one global clock instead of per-system
+    /// accumulators. Set Input2Amount / OutputNAmount = 0 to skip the
+    /// slot. <see cref="FurnaceInitSystem"/> picks the recipe from the
+    /// underlying hex biome at spawn time.
+    /// </summary>
+    public struct FurnaceProduction : IComponentData
+    {
+        public ushort Input1Id;  public ushort Input1Amount;
+        public ushort Input2Id;  public ushort Input2Amount;
+        public ushort Output1Id; public ushort Output1Amount;
+        public ushort Output2Id; public ushort Output2Amount;
+        public ushort Output3Id; public ushort Output3Amount;
+        /// <summary>WorldClock.AbsSeconds at which the current cycle finishes; 0 = idle.</summary>
+        public float CycleEndsAt;
+        public float CycleDuration;
+    }
+
+    /// <summary>
+    /// Composable "this entity produces something on a timer with no input"
+    /// component. Currently used for the forest-Furnace passive coal bonus
+    /// (no fuel needed, just time). Reusable for Lumber Mill on forest,
+    /// Quarry on stone, Fishing Hut on river, etc.
+    /// </summary>
+    public struct PassiveProduction : IComponentData
+    {
+        public ushort OutputId;
+        public ushort OutputAmount;
+        /// <summary>WorldClock.AbsSeconds at which the current cycle finishes; 0 = "not started yet".</summary>
+        public float CycleEndsAt;
+        public float CycleDuration;
+    }
+
+    /// <summary>Per-farm Compost→Carrot (or future) recipe + cycle marker against the WorldClock.</summary>
+    public struct FarmProduction : IComponentData
+    {
+        public ushort InputItemId;
+        public ushort InputAmount;
+        public ushort OutputItemId;
+        public ushort OutputAmount;
+        /// <summary>WorldClock.AbsSeconds at which the current cycle finishes; 0 = idle (waiting for input).</summary>
+        public float CycleEndsAt;
+        /// <summary>Cycle length in seconds.</summary>
+        public float CycleDuration;
+    }
+
     /// <summary>
     /// Per-building instance data. `RootHex` is the centre tile; the 6
     /// neighbours are implicitly claimed via HexOccupant on each tile.
     /// </summary>
+    // TODO(rust-ffi): persist {Type, RootHex, OwnerFaction} + the Capital's InventorySlot treasury buffer so world state survives unload / server restart.
     public struct Building : IComponentData
     {
         public byte Type;
@@ -80,20 +150,23 @@ namespace RareIcon
     }
 
     /// <summary>
-    /// One-shot "please place a capital at this hex" message. Produced
-    /// by the click handler in build mode, consumed by BuildingSpawnSystem
-    /// which validates the 7-hex claim, spawns the capital, and decrements
-    /// the player's city token.
+    /// Generic one-shot "please place this building type at this hex"
+    /// message. Produced by BuildCommandHandler in build mode, consumed
+    /// by BuildingSpawnSystem which validates biome + cost + footprint
+    /// (per BuildingDB) and either spawns or drops the request.
     /// </summary>
-    public struct BuildCityRequest : IComponentData
+    public struct BuildRequest : IComponentData
     {
         public int2 CenterHex;
+        public byte BuildingType;
         public byte OwnerFaction;
     }
 
     /// <summary>
-    /// Per-player ability tokens. Starts with 1 city build; extended
-    /// later with other charges (walls, farms, unit drops, etc.).
+    /// Per-player ability tokens. Currently unused — Capital placement
+    /// is gated on the King's CapitalLandGrant inventory item, not a
+    /// counter. Kept as a reserved slot for future per-player charges
+    /// (e.g., one-shot summons, blessings, decree counts).
     /// </summary>
     public struct PlayerAbilities : IComponentData
     {

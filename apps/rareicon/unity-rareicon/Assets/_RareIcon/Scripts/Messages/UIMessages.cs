@@ -25,9 +25,11 @@ namespace RareIcon
         // Unit stats — Max=0 means the unit doesn't carry that stat (the
         // HUD hides the line entirely). Floats so partially-filled bars are
         // exact (no rounding when displayed).
-        public readonly float UnitHealth, UnitMaxHealth;
-        public readonly float UnitEnergy, UnitMaxEnergy;
-        public readonly float UnitMana,   UnitMaxMana;
+        public readonly float UnitHealth,  UnitMaxHealth;
+        public readonly float UnitEnergy,  UnitMaxEnergy;
+        public readonly float UnitMana,    UnitMaxMana;
+        public readonly float UnitHunger,  UnitMaxHunger;
+        public readonly float UnitFatigue, UnitMaxFatigue;
         // First 4 inventory slots from the hovered unit. ItemId == 0 means
         // empty. Goblin inventories are typically 1-3 stack types so 4 is
         // generous; truncated by HexHoverSystem if the unit carries more.
@@ -41,9 +43,11 @@ namespace RareIcon
                                byte mushrooms = 0, byte herbs = 0,
                                byte cactus = 0, byte cactusVariant = 0,
                                byte unitType = 0,
-                               float unitHealth = 0, float unitMaxHealth = 0,
-                               float unitEnergy = 0, float unitMaxEnergy = 0,
-                               float unitMana   = 0, float unitMaxMana   = 0,
+                               float unitHealth = 0,  float unitMaxHealth = 0,
+                               float unitEnergy = 0,  float unitMaxEnergy = 0,
+                               float unitMana   = 0,  float unitMaxMana   = 0,
+                               float unitHunger = 0,  float unitMaxHunger = 0,
+                               float unitFatigue = 0, float unitMaxFatigue = 0,
                                ushort invId0 = 0, ushort invCount0 = 0,
                                ushort invId1 = 0, ushort invCount1 = 0,
                                ushort invId2 = 0, ushort invCount2 = 0,
@@ -61,12 +65,16 @@ namespace RareIcon
             Cactus = cactus;
             CactusVariant = cactusVariant;
             UnitType = unitType;
-            UnitHealth   = unitHealth;
-            UnitMaxHealth= unitMaxHealth;
-            UnitEnergy   = unitEnergy;
-            UnitMaxEnergy= unitMaxEnergy;
-            UnitMana     = unitMana;
-            UnitMaxMana  = unitMaxMana;
+            UnitHealth     = unitHealth;
+            UnitMaxHealth  = unitMaxHealth;
+            UnitEnergy     = unitEnergy;
+            UnitMaxEnergy  = unitMaxEnergy;
+            UnitMana       = unitMana;
+            UnitMaxMana    = unitMaxMana;
+            UnitHunger     = unitHunger;
+            UnitMaxHunger  = unitMaxHunger;
+            UnitFatigue    = unitFatigue;
+            UnitMaxFatigue = unitMaxFatigue;
             UnitInvId0 = invId0; UnitInvCount0 = invCount0;
             UnitInvId1 = invId1; UnitInvCount1 = invCount1;
             UnitInvId2 = invId2; UnitInvCount2 = invCount2;
@@ -118,5 +126,31 @@ namespace RareIcon
     {
         public readonly string PanelKey;
         public PanelHideMessage(string panelKey) => PanelKey = panelKey;
+    }
+
+    // -- Toast notifications --
+
+    /// <summary>Severity of a toast — drives the panel border tint.</summary>
+    public enum ToastKind : byte
+    {
+        Info    = 0,
+        Success = 1,
+        Warning = 2,
+        Error   = 3,
+    }
+
+    /// <summary>
+    /// Player-facing notification published by gameplay systems and
+    /// consumed by ToastService which queues + displays them serially.
+    /// </summary>
+    public readonly struct ToastMessage
+    {
+        public readonly ToastKind Kind;
+        public readonly string Text;
+        public ToastMessage(string text, ToastKind kind = ToastKind.Info)
+        {
+            Kind = kind;
+            Text = text;
+        }
     }
 }

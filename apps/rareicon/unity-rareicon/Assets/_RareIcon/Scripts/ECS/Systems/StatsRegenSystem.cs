@@ -4,26 +4,13 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Ticks Health / Energy / Mana toward Max at each stat's PerSecond rate
-    /// (or away from it for negative regen — poison, hunger, drain). Three
-    /// independent queries so each only iterates entities that actually have
-    /// the stat + matching regen pair. Burst-compiled, no managed access.
-    ///
-    /// DeadTag is added when Health hits 0 — separate systems handle the
-    /// consequences (loot, despawn, animation) so we stay decoupled.
-    /// </summary>
+    /// <summary>Ticks Health / Energy / Mana toward Max; Energy regen is scaled by hungerFactor × fatigueFactor so starved or exhausted units don't recover stamina.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct StatsRegenSystem : ISystem
     {
-        EntityQuery _newlyDeadQuery;
-
-        [BurstCompile]
-        public void OnCreate(ref SystemState state) { }
-
-        [BurstCompile]
-        public void OnDestroy(ref SystemState state) { }
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
@@ -31,27 +18,38 @@ namespace RareIcon
             float dt = SystemAPI.Time.DeltaTime;
             var ecb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
 
-            // ---- Health ---------------------------------------------------
             foreach (var (h, hr, entity) in
                      SystemAPI.Query<RefRW<Health>, RefRO<HealthRegen>>().WithEntityAccess())
             {
-                float v = h.ValueRO.Value + hr.ValueRO.PerSecond * dt;
-                v = math.clamp(v, 0f, h.ValueRO.Max);
+                float v = math.clamp(h.ValueRO.Value + hr.ValueRO.PerSecond * dt, 0f, h.ValueRO.Max);
                 h.ValueRW.Value = v;
-
                 if (v <= 0f && !SystemAPI.HasComponent<DeadTag>(entity))
                     ecb.AddComponent<DeadTag>(entity);
             }
 
-            // ---- Energy ---------------------------------------------------
-            foreach (var (e, er) in
-                     SystemAPI.Query<RefRW<Energy>, RefRO<EnergyRegen>>())
+            var hungerLookup  = SystemAPI.GetComponentLookup<Hunger>(isReadOnly: true);
+            var fatigueLookup = SystemAPI.GetComponentLookup<Fatigue>(isReadOnly: true);
+
+            foreach (var (e, er, entity) in
+                     SystemAPI.Query<RefRW<Energy>, RefRO<EnergyRegen>>().WithEntityAccess())
             {
-                float v = e.ValueRO.Value + er.ValueRO.PerSecond * dt;
-                e.ValueRW.Value = math.clamp(v, 0f, e.ValueRO.Max);
+                float rate = er.ValueRO.PerSecond;
+                if (rate > 0f)
+                {
+                    if (hungerLookup.HasComponent(entity))
+                    {
+                        var h = hungerLookup[entity];
+                        rate *= math.saturate(1f - (h.Max > 0f ? h.Value / h.Max : 0f));
+                    }
+                    if (fatigueLookup.HasComponent(entity))
+                    {
+                        var f = fatigueLookup[entity];
+                        rate *= math.saturate(1f - (f.Max > 0f ? f.Value / f.Max : 0f));
+                    }
+                }
+                e.ValueRW.Value = math.clamp(e.ValueRO.Value + rate * dt, 0f, e.ValueRO.Max);
             }
 
-            // ---- Mana -----------------------------------------------------
             foreach (var (m, mr) in
                      SystemAPI.Query<RefRW<Mana>, RefRO<ManaRegen>>())
             {

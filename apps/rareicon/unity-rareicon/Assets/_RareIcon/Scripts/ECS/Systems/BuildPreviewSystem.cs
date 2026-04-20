@@ -7,25 +7,25 @@ using UnityEngine.Rendering;
 
 namespace RareIcon
 {
-    /// <summary>Positions the 7-hex overlay on the cursor while build mode is active; tints red on invalid footprint.</summary>
+    /// <summary>
+    /// Positions footprint overlays on the cursor while build mode is
+    /// active; tints red when the placement is invalid (biome bad, hex
+    /// occupied, off-map, OR cost not met). Footprint shape (1-hex vs
+    /// 7-hex flower) comes from <see cref="BuildingDB"/> so adding a new
+    /// building automatically gets the right preview without touching
+    /// this system.
+    ///
+    /// Allocates 7 preview entities up-front (max footprint = Capital
+    /// flower); single-hex builds simply hide the extra 6.
+    /// </summary>
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(HexHoverSystem))]
     public partial class BuildPreviewSystem : SystemBase
     {
         const float HexSize    = 0.25f;
         const float HiddenZ    = 99999f;
-        const float OverlayZ   = -0.95f;  // between tile plane and hover overlay
-
-        static readonly int2[] FlowerOffsets =
-        {
-            new int2( 0,  0), // centre
-            new int2( 1,  0), // E
-            new int2( 1, -1), // NE
-            new int2( 0, -1), // NW
-            new int2(-1,  0), // W
-            new int2(-1,  1), // SW
-            new int2( 0,  1), // SE
-        };
+        const float OverlayZ   = -0.95f;
+        const int   MaxPreviewSlots = 7;   // matches Capital flower footprint
 
         // Matches HexBuildPreview.shader Properties defaults.
         static readonly float4 ValidFill     = new(0.30f, 0.90f, 0.40f, 0.35f);
@@ -33,9 +33,10 @@ namespace RareIcon
         static readonly float4 InvalidFill   = new(0.92f, 0.22f, 0.22f, 0.40f);
         static readonly float4 InvalidBorder = new(0.92f, 0.22f, 0.22f, 0.90f);
 
-        Entity[] _previews;    // 7 overlays, index matches FlowerOffsets
+        Entity[] _previews;    // pool of MaxPreviewSlots overlays
         bool _initialized;
         int2 _lastAnchor;
+        byte _lastTarget;
         bool _wasActive;
         bool _lastValid;
 
@@ -46,10 +47,7 @@ namespace RareIcon
             _lastAnchor = new int2(int.MinValue, int.MinValue);
         }
 
-        protected override void OnDestroy()
-        {
-            // Entities cleaned up automatically on world teardown.
-        }
+        protected override void OnDestroy() { /* entities cleaned on world teardown */ }
 
         protected override void OnUpdate()
         {
@@ -60,48 +58,55 @@ namespace RareIcon
             }
 
             var buildMode = SystemAPI.GetSingleton<BuildMode>();
-            var mouse = SystemAPI.GetSingleton<MouseState>();
-            bool active = buildMode.Target != BuildTarget.None;
+            var mouse     = SystemAPI.GetSingleton<MouseState>();
+            bool active   = buildMode.Target != BuildTarget.None;
 
-            // Toggle off → stash previews off-screen, reset the anchor so
-            // a subsequent re-enter forces a reposition.
             if (!active)
             {
                 if (_wasActive)
                 {
-                    HidePreviews();
+                    HideAllPreviews();
                     _lastAnchor = new int2(int.MinValue, int.MinValue);
                 }
                 _wasActive = false;
                 return;
             }
 
-            bool justEntered = !_wasActive;
-            _wasActive = true;
+            bool justEntered  = !_wasActive;
+            bool targetChanged = buildMode.Target != _lastTarget;
+            _wasActive  = true;
+            _lastTarget = buildMode.Target;
 
-            // Skip unchanged frames — only move/recolour entities when
-            // the cursor crosses a hex boundary or we just entered build
-            // mode (so the initial paint paints valid-aware colours).
+            // Skip unchanged frames — only repaint when the cursor moves
+            // to a new hex, the target building changed, OR we just
+            // entered build mode (so the initial paint reflects validity).
             bool hexChanged = !mouse.HexCoord.Equals(_lastAnchor);
-            if (!justEntered && !hexChanged) return;
+            if (!justEntered && !hexChanged && !targetChanged) return;
             _lastAnchor = mouse.HexCoord;
 
             var em = EntityManager;
-            bool valid = IsFootprintValid(em, mouse.HexCoord);
+            var footprint = BuildingDB.GetFootprint(buildMode.Target);
+            bool valid = IsPlacementValid(em, mouse.HexCoord, buildMode.Target, footprint);
 
-            for (int i = 0; i < FlowerOffsets.Length; i++)
+            // Position the active preview slots, hide the rest.
+            for (int i = 0; i < footprint.Length && i < MaxPreviewSlots; i++)
             {
-                var hex = mouse.HexCoord + FlowerOffsets[i];
+                var hex = mouse.HexCoord + footprint[i];
                 float3 pos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
                 pos.z = OverlayZ;
                 em.SetComponentData(_previews[i], LocalTransform.FromPosition(pos));
             }
+            for (int i = footprint.Length; i < MaxPreviewSlots; i++)
+            {
+                em.SetComponentData(_previews[i], LocalTransform.FromPosition(
+                    new float3(HiddenZ, HiddenZ, HiddenZ)));
+            }
 
-            if (justEntered || valid != _lastValid)
+            if (justEntered || targetChanged || valid != _lastValid)
             {
                 var fill   = valid ? ValidFill   : InvalidFill;
                 var border = valid ? ValidBorder : InvalidBorder;
-                for (int i = 0; i < _previews.Length; i++)
+                for (int i = 0; i < footprint.Length && i < MaxPreviewSlots; i++)
                 {
                     em.SetComponentData(_previews[i], new HexBuildPreviewFill   { Value = fill });
                     em.SetComponentData(_previews[i], new HexBuildPreviewBorder { Value = border });
@@ -110,37 +115,93 @@ namespace RareIcon
             }
         }
 
-        // Mirrors the rules BuildingSpawnSystem applies at click time so
-        // the preview colour never lies about whether a click will land.
-        static bool IsFootprintValid(EntityManager em, int2 centerHex)
+        // Mirrors BuildingSpawnSystem's checks so the preview never lies
+        // about whether a click will succeed. Rejects on:
+        //   • any footprint hex off-map / unloaded
+        //   • any footprint hex already occupied
+        //   • any footprint hex on a disallowed biome (Ocean/River)
+        //   • cost source doesn't have the required ingredients
+        static bool IsPlacementValid(EntityManager em, int2 centerHex,
+                                     byte buildingType, int2[] footprint)
         {
-            for (int i = 0; i < FlowerOffsets.Length; i++)
+            // Footprint check — same logic as BuildingSpawnSystem.
+            for (int i = 0; i < footprint.Length; i++)
             {
-                var hex = centerHex + FlowerOffsets[i];
-                if (!HexHoverSystem.TryGetHexEntity(hex, out var tile))
-                    return false;
-                if (em.HasComponent<HexOccupant>(tile))
-                    return false;
+                var hex = centerHex + footprint[i];
+                if (!HexHoverSystem.TryGetHexEntity(hex, out var tile)) return false;
+                if (em.HasComponent<HexOccupant>(tile)) return false;
                 if (em.HasComponent<BiomeType>(tile))
                 {
                     byte biome = em.GetComponentData<BiomeType>(tile).Value;
-                    if (biome == BiomeGenerator.BIOME_OCEAN ||
-                        biome == BiomeGenerator.BIOME_RIVER)
-                        return false;
+                    if (!BuildingDB.IsBuildable(buildingType, biome)) return false;
                 }
+            }
+
+            // Cost check — find source inventory + verify each ingredient.
+            // Failures here paint red same as a bad biome would, so the
+            // player gets one consistent "you can't place here" signal.
+            if (!TryFindCostSourceInventory(em, buildingType, out var inv)) return false;
+
+            var cost = BuildingDB.GetCost(buildingType);
+            for (int i = 0; i < cost.Length; i++)
+            {
+                int total = 0;
+                for (int j = 0; j < inv.Length; j++)
+                    if (inv[j].ItemId == cost[i].ItemId) total += inv[j].Count;
+                if (total < cost[i].Amount) return false;
             }
             return true;
         }
 
-        void HidePreviews()
+        // Read-only resolution of the cost source's inventory buffer.
+        // Returns false if the source entity doesn't exist (e.g., trying
+        // to build a Farm with no Capital placed yet).
+        static bool TryFindCostSourceInventory(EntityManager em, byte buildingType,
+                                               out DynamicBuffer<InventorySlot> inv)
+        {
+            inv = default;
+            Entity source = Entity.Null;
+
+            if (BuildingDB.GetCostSource(buildingType) == BuildingDB.CostSource.KingInventory)
+            {
+                var q = em.CreateEntityQuery(ComponentType.ReadOnly<KingTag>());
+                if (q.CalculateEntityCount() == 0) return false;
+                var arr = q.ToEntityArray(Unity.Collections.Allocator.Temp);
+                source = arr[0];
+                arr.Dispose();
+            }
+            else
+            {
+                var q = em.CreateEntityQuery(ComponentType.ReadOnly<Building>());
+                if (q.CalculateEntityCount() == 0) return false;
+                var arr = q.ToEntityArray(Unity.Collections.Allocator.Temp);
+                try
+                {
+                    for (int i = 0; i < arr.Length; i++)
+                    {
+                        if (em.GetComponentData<Building>(arr[i]).Type == BuildingType.Capital)
+                        {
+                            source = arr[i];
+                            break;
+                        }
+                    }
+                }
+                finally { arr.Dispose(); }
+                if (source == Entity.Null) return false;
+            }
+
+            if (!em.HasBuffer<InventorySlot>(source)) return false;
+            inv = em.GetBuffer<InventorySlot>(source);
+            return true;
+        }
+
+        void HideAllPreviews()
         {
             if (_previews == null) return;
             var em = EntityManager;
             var off = LocalTransform.FromPosition(new float3(HiddenZ, HiddenZ, HiddenZ));
             for (int i = 0; i < _previews.Length; i++)
-            {
                 em.SetComponentData(_previews[i], off);
-            }
         }
 
         void Init()
@@ -162,18 +223,15 @@ namespace RareIcon
                 receiveShadows: false);
             var renderArray = new RenderMeshArray(new[] { material }, new[] { mesh });
 
-            _previews = new Entity[FlowerOffsets.Length];
+            _previews = new Entity[MaxPreviewSlots];
             var em = EntityManager;
             for (int i = 0; i < _previews.Length; i++)
             {
                 var e = em.CreateEntity();
                 em.AddComponentData(e, LocalTransform.FromPosition(new float3(HiddenZ, HiddenZ, HiddenZ)));
-                // MaterialProperty components MUST be attached before
+                // MaterialProperty components MUST be attached BEFORE
                 // RenderMeshUtility.AddComponents — Entities Graphics
-                // snapshots the property set at bind time and per-entity
-                // overrides added afterwards can be ignored until the
-                // next archetype change. (Same gotcha HexUnit / goblins
-                // avoid by AddComponentData-ing their Visuals first.)
+                // snapshots the property set at bind time.
                 em.AddComponentData(e, new HexBuildPreviewFill   { Value = ValidFill });
                 em.AddComponentData(e, new HexBuildPreviewBorder { Value = ValidBorder });
                 RenderMeshUtility.AddComponents(
