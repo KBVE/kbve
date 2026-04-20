@@ -28,6 +28,16 @@ namespace RareIcon
             "Ghu", "Skra", "Tib",  "Wak",  "Gort", "Nub",  "Plok", "Zik",
             "Snor","Vrek", "Glu",  "Crud", "Kob",  "Snerk","Hoog", "Rib",
             "Glub","Moz",
+            // +50 — second batch keeps the same gnarled-syllable feel and
+            // doubles the first-name pool so collisions stay rare even at
+            // ~100 live goblins (with the always-on epithet, 100×N combos).
+            "Brak", "Trog", "Nrr",  "Skog", "Vog",  "Mug",  "Bork", "Snib",
+            "Krog", "Ghez", "Ulk",  "Drogg","Fnar", "Rok",  "Skra", "Vil",
+            "Wrek", "Kib",  "Snug", "Burr", "Glok", "Mret", "Ozz",  "Krin",
+            "Snak", "Bog",  "Dnu",  "Hrok", "Pluk", "Sneg", "Vog",  "Wim",
+            "Gob",  "Zrak", "Tnug", "Brom", "Klak", "Mob",  "Nork", "Oggu",
+            "Prek", "Rud",  "Sib",  "Trok", "Ump",  "Vez",  "Wob",  "Yog",
+            "Zin",  "Goz",
         };
 
         // Epithet locale keys — fed into LocaleService.Get(...) so the
@@ -69,13 +79,12 @@ namespace RareIcon
             int firstCount = GoblinFirstNames.Length - 1;
             ushort firstId = (ushort)(1 + (int)(h1 % (uint)firstCount));
 
-            // ~35% epithet chance. Skip index 0 (no epithet).
-            ushort epithetId = 0;
-            if ((h2 & 0xFFu) < 90)
-            {
-                int epCount = GoblinEpithetKeys.Length - 1;
-                epithetId = (ushort)(1 + (int)((h2 >> 8) % (uint)epCount));
-            }
+            // Always draw an epithet — the bare-first-name space (~100 names)
+            // collides quickly via birthday paradox at 30+ goblins. Pairing
+            // FirstName × Epithet (~100 × 20 = 2000) keeps names distinctive
+            // out to ~50 live units.
+            int epCount = GoblinEpithetKeys.Length - 1;
+            ushort epithetId = (ushort)(1 + (int)(h2 % (uint)epCount));
 
             return (firstId, epithetId);
         }

@@ -13,24 +13,26 @@
 // `d` is the hex SDF in local-space (negative inside, zero at the edge).
 float3 ApplyTerritory(float3 ground, float d, float territory)
 {
-    // Branchless classify — kills the interior pass for tiles with
-    // territory < 0.5 and the stroke pass for tiles with territory < 1.5.
-    float inside = step(0.5, territory);
-    float edge   = step(1.5, territory);
-    if (inside < 0.5) return ground;
+    // territory == 0 → not owned, no-op. Branchless early-out.
+    if (territory < 0.5) return ground;
 
-    // Interior wash — lerp by a small factor so the biome base still
-    // dominates and the territory feels like a claim, not a paint job.
-    float3 tinted = lerp(ground, ground * _TerritoryTint.rgb, 0.18);
-    ground = lerp(ground, tinted, inside);
+    // Interior wash — blend toward the tint colour directly instead of
+    // modulating the ground (a multiply by a near-white colour is
+    // effectively invisible). 25% lerp reads as "claimed" at a glance
+    // without overpowering the biome base underneath.
+    ground = lerp(ground, _TerritoryTint.rgb, 0.25);
 
-    if (edge < 0.5) return ground;
+    // Edge classify — any tile with at least one neighbour outside the
+    // empire (set to 2 by TerritoryBakeSystem) gets the gold stroke.
+    if (territory < 1.5) return ground;
 
-    // Edge stroke — band just inside the hex rim. d is negative inside,
-    // so -d gives distance-from-edge; narrow window draws the gold line.
-    float strokeInner = 0.018;
-    float strokeOuter = 0.040;
-    float t = smoothstep(strokeOuter, strokeInner, -d);
+    // Stroke band — sits INSIDE the main border line (which lives at
+    // -d ∈ [0.018, 0.06]). We paint between 0.060 and 0.020 so the gold
+    // extends slightly past the dark border inward + is wide enough to
+    // read at camera height. Caller draws the main border AFTER this
+    // include, so the dark line settles over the outer rim and the gold
+    // sits just inside it — reads as a framed claim, not a fight.
+    float t = smoothstep(0.090, 0.030, -d);
     return lerp(ground, _TerritoryEdge.rgb, t * _TerritoryEdge.a);
 }
 

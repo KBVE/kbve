@@ -44,8 +44,8 @@ Shader "RareIcon/HexTile"
         // Territory — per-instance float written by TerritoryBakeSystem.
         //  0 = outside empire, 1 = interior (subtle tint), 2 = edge (gold line).
         _Territory        ("Territory (per-instance)", Float)   = 0
-        _TerritoryEdge    ("Territory Edge Color",     Color)   = (0.95, 0.82, 0.32, 1)
-        _TerritoryTint    ("Territory Interior Tint",  Color)   = (1.00, 0.95, 0.75, 1)
+        _TerritoryEdge    ("Territory Edge Color",     Color)   = (1.00, 0.82, 0.25, 1)
+        _TerritoryTint    ("Territory Interior Tint",  Color)   = (0.98, 0.78, 0.40, 1)
     }
 
     SubShader
@@ -249,14 +249,16 @@ Shader "RareIcon/HexTile"
                     ground = ApplyPixelTree(ground, px, grid, tileSeed, _TreeAmount);
                 }
 
-                // Territory wash + edge — sits above decorations/trees so the
-                // empire claim reads clearly, below the hex border line so the
-                // tile outline still fences things in.
-                ground = ApplyTerritory(ground, d, _Territory);
-
-                // Border line on top of everything.
+                // Main tile border first — the dark hex outline every tile
+                // gets. Drawing it BEFORE the territory pass means the
+                // gold empire stroke lands over it (not under it) and the
+                // claim actually reads at a glance.
                 float border = smoothstep(-_BorderWidth, -_BorderWidth * 0.3, d);
                 float3 col = lerp(ground, _BorderColor.rgb, border * _BorderColor.a);
+
+                // Territory wash + gold rim — painted LAST so it wins
+                // against both the biome ground and the dark border.
+                col = ApplyTerritory(col, d, _Territory);
 
                 clip(-d - 0.001);
                 return float4(ApplyWorldAmbient(col), 1.0);

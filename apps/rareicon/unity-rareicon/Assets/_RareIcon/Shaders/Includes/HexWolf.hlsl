@@ -90,16 +90,29 @@ void DrawWolfBack(inout float3 color, inout float alpha, float2 px,
     float3 back  = saturate(_WolfBody.rgb      * (1.0 + coatJit));
     float3 shade = saturate(_WolfBodyShade.rgb * (1.0 + coatJit));
 
-    // Square back silhouette + head peeking forward-up.
+    // Rump + back silhouette: 5-wide trunk, narrower head strip on
+    // top, ears as 1-pixel tips on the head corners. Without the head
+    // strip between body top (y=+1) and ears (y=+3) the ears float
+    // over a blank y=+2 row and read as disembodied.
     float body = rectMask(px, c + float2(-2, -1), float2(5, 3));
     if (body > 0.5) { color = back; alpha = 1.0; }
 
-    // Two pointed ears at the top.
+    // Darker spine strip along the top of the back so the silhouette
+    // tapers back → shoulders → head instead of reading as one flat slab.
+    float spine = rectMask(px, c + float2(-2, 1), float2(5, 1));
+    if (spine > 0.5) { color = shade; alpha = 1.0; }
+
+    // Head / neck — 3 wide, sits on top of the shoulders and connects
+    // the ears to the body.
+    float head = rectMask(px, c + float2(-1, 2), float2(3, 1));
+    if (head > 0.5) { color = back; alpha = 1.0; }
+
+    // Two pointed ears at the top corners of the head.
     float earL = rectMask(px, c + float2(-1, 3), float2(1, 1));
     float earR = rectMask(px, c + float2( 1, 3), float2(1, 1));
     if (earL > 0.5 || earR > 0.5) { color = back; alpha = 1.0; }
 
-    // Bushy upright tail behind.
+    // Tail tip hanging behind the rear legs.
     float tail = rectMask(px, c + float2(0, -2), float2(1, 1));
     if (tail > 0.5) { color = shade; alpha = 1.0; }
 

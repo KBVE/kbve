@@ -26,15 +26,19 @@ namespace RareIcon
 
         VisualElement _root, _panel, _sidebar, _content;
 
+        readonly ISubscriber<PossessUnitMessage> _possessSub;
+
         [Inject]
         public UICitizensPanel(UIPanelManager panelManager,
                                LocaleService locale,
                                ActivityFeedService activity,
                                CameraService camera,
-                               IPublisher<PossessUnitMessage> possessPub)
+                               IPublisher<PossessUnitMessage> possessPub,
+                               ISubscriber<PossessUnitMessage> possessSub)
         {
             _panelManager = panelManager;
             _locale = locale;
+            _possessSub = possessSub;
             _tabs = new ICitizensTab[]
             {
                 new JobsTab(),
@@ -92,6 +96,13 @@ namespace RareIcon
                 else      _panel.AddToClassList("is-hidden");
                 if (open) _tabs[_activeIndex].OnActivated();
             }).AddTo(_disposables);
+
+            // Possess implies "I want to control this unit out in the world"
+            // — close the citizens panel so the player can immediately drive
+            // their new avatar without an extra click.
+            var bag = MessagePipe.DisposableBag.CreateBuilder();
+            _possessSub.Subscribe(_ => Close()).AddTo(bag);
+            _disposables.Add(bag.Build());
         }
 
         public void Toggle() => _isOpen.Value = !_isOpen.Value;
