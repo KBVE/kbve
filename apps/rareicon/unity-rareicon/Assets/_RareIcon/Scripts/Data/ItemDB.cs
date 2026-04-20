@@ -135,6 +135,24 @@ namespace RareIcon
 
             Add(new ItemDef((ushort)ItemId.Arrow,
                 "item.arrow",        ItemCategory.Material, 255, 1));
+
+            // Wildlife drops. Picked up off the ground (ItemPickupSystem)
+            // rather than hand-harvested, so HarvestRole stays None.
+            Add(new ItemDef((ushort)ItemId.RawChicken,
+                "item.raw_chicken", ItemCategory.Material, 32, 6,
+                restoreEnergy: 18f));
+            Add(new ItemDef((ushort)ItemId.Feather,
+                "item.feather",     ItemCategory.Material, 99, 1));
+            Add(new ItemDef((ushort)ItemId.RawMutton,
+                "item.raw_mutton",  ItemCategory.Material, 32, 12,
+                restoreEnergy: 35f));
+            Add(new ItemDef((ushort)ItemId.Wool,
+                "item.wool",        ItemCategory.Material, 99, 4));
+            Add(new ItemDef((ushort)ItemId.RawBeef,
+                "item.raw_beef",    ItemCategory.Material, 32, 18,
+                restoreEnergy: 50f));
+            Add(new ItemDef((ushort)ItemId.Leather,
+                "item.leather",     ItemCategory.Material, 99, 8));
         }
 
         static void Add(ItemDef def) => _byId[def.Id] = def;

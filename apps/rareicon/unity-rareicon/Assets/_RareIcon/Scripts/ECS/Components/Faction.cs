@@ -10,10 +10,11 @@ namespace RareIcon
     /// </summary>
     public static class FactionType
     {
-        public const byte Neutral = 0;   // environmental, non-combatant
-        public const byte Player  = 1;   // knight / soldier / mage (for now)
-        public const byte Hostile = 2;   // goblin and future raider types
-        public const byte Beast   = 3;   // wolves, bears — hostile to everyone
+        public const byte Neutral  = 0;   // environmental, non-combatant
+        public const byte Player   = 1;   // knight / soldier / mage (for now)
+        public const byte Hostile  = 2;   // goblin and future raider types
+        public const byte Beast    = 3;   // wolves, bears — hostile to everyone
+        public const byte Wildlife = 4;   // chickens / sheep / cows — passive, killable in crossfire
     }
 
     /// <summary>

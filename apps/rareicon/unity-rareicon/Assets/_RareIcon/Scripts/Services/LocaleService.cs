@@ -121,6 +121,12 @@ namespace RareIcon
                 (ushort)ItemId.Coal        => "item.coal",
                 (ushort)ItemId.Ash         => "item.ash",
                 (ushort)ItemId.CapitalLandGrant => "item.capital_land_grant",
+                (ushort)ItemId.RawChicken  => "item.raw_chicken",
+                (ushort)ItemId.Feather     => "item.feather",
+                (ushort)ItemId.RawMutton   => "item.raw_mutton",
+                (ushort)ItemId.Wool        => "item.wool",
+                (ushort)ItemId.RawBeef     => "item.raw_beef",
+                (ushort)ItemId.Leather     => "item.leather",
                 _ => "item.unknown",
             };
             return Get(key);
@@ -138,6 +144,9 @@ namespace RareIcon
                 UnitType.Soldier => "creature.soldier",
                 UnitType.Mage    => "creature.mage",
                 UnitType.King    => "creature.king",
+                UnitType.Chicken => "creature.chicken",
+                UnitType.Sheep   => "creature.sheep",
+                UnitType.Cow     => "creature.cow",
                 _ => "creature.none",
             };
             return Get(key);

@@ -241,6 +241,71 @@ namespace RareIcon
             return entity;
         }
 
+        /// <summary>Spawn a passive wild animal (Chicken / Sheep / Cow) at the given hex. Wildlife faction, no weapon, no inventory.</summary>
+        public static Entity SpawnAnimalAt(EntityManager em, int2 hex, uint rngSeed, byte unitType,
+                                           UnitSpawnState state = default)
+        {
+            if (!EnsureRenderAssets()) return Entity.Null;
+
+            var def = NPCDB.Get(unitType);
+            var entity = em.CreateEntity();
+
+            float3 worldPos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
+            worldPos.z = -0.7f;
+
+            em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
+            em.AddComponentData(entity, new Unit { Type = def.UnitType, Weapon = WeaponType.None });
+
+            float maxHp = state.MaxHealth > 0f ? state.MaxHealth : def.MaxHealth;
+            float hp    = state.Health    > 0f ? state.Health    : maxHp;
+            em.AddComponentData(entity, new Health { Value = hp, Max = maxHp });
+
+            em.AddComponentData(entity, new UnitVisual       { Value = (float)def.UnitType });
+            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)WeaponType.None });
+            em.AddComponentData(entity, new UnitFacingVisual { Value = (float)UnitFacing.East });
+            em.AddComponentData(entity, new UnitMovingVisual { Value = 1f });
+
+            em.AddComponentData(entity, new Faction    { Value = FactionType.Wildlife });
+            em.AddComponentData(entity, new Collidable { Radius = 0.18f });
+
+            em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
+            em.AddBuffer<StatusEffect>(entity);
+
+            // Per-animal speed jitter — slower range than goblins so even
+            // fast chickens stay slower than the slowest goblin.
+            float speedJit = 0.85f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.3f;
+            em.AddComponentData(entity, new UnitMovement
+            {
+                CurrentHex      = hex,
+                TargetHex       = hex,
+                MoveSpeed       = def.MoveSpeed * speedJit,
+                Facing          = UnitFacing.East,
+                RandomState     = rngSeed | 1u,
+                WanderStep      = 0u,
+                DwellTimer      = (rngSeed % 200u) / 200f,
+                LastDir         = 255,
+                LastHarvestStep = uint.MaxValue,
+            });
+
+            em.AddComponentData(entity, new MovementGoal
+            {
+                Kind      = GoalKind.None,
+                Priority  = GoalPriority.None,
+                TargetHex = hex,
+            });
+
+            // No inventory buffer — HarvestSystem queries require it, so
+            // animals are automatically skipped from resource pickup.
+            // No RangedAttack / ReliefIntent / needs either: passive + mute.
+            em.AddComponent<PassiveAnimalTag>(entity);
+
+            RenderMeshUtility.AddComponents(
+                entity, em, _renderDesc, _renderArray,
+                MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+            return entity;
+        }
+
         // Lazily creates the shared render assets the first time anything
         static bool EnsureRenderAssets()
         {

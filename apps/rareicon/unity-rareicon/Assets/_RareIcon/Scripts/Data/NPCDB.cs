@@ -185,6 +185,48 @@ namespace RareIcon
                 intellect:     14,
                 will:          16,
                 defaultWeapon: WeaponType.Crossbow));
+
+            // Passive wildlife — sand/grass fauna. Zero hunger/fatigue/energy
+            // so the Need + Job executors skip them; tiny HP so a stray arrow
+            // or swing ends them cleanly. Slow MoveSpeed keeps them grounded
+            // as ambience rather than chasing anyone.
+            Add(new NPCDef(
+                unitType:      UnitType.Chicken,
+                nameKey:       "creature.chicken",
+                category:      NPCCategory.Beast,
+                maxHealth:     5f,   maxEnergy: 0f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.45f,
+                healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      1, agility: 10, intellect: 1, will: 1,
+                defaultWeapon: WeaponType.None));
+
+            Add(new NPCDef(
+                unitType:      UnitType.Sheep,
+                nameKey:       "creature.sheep",
+                category:      NPCCategory.Beast,
+                maxHealth:     20f,  maxEnergy: 0f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.35f,
+                healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      3, agility: 5, intellect: 2, will: 2,
+                defaultWeapon: WeaponType.None));
+
+            Add(new NPCDef(
+                unitType:      UnitType.Cow,
+                nameKey:       "creature.cow",
+                category:      NPCCategory.Beast,
+                maxHealth:     40f,  maxEnergy: 0f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.30f,
+                healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      6, agility: 3, intellect: 2, will: 3,
+                defaultWeapon: WeaponType.None));
+
+            // Future creatures land here — Wolf, Skeleton, GoblinShaman, etc.
         }
 
         static void Add(NPCDef def) => _byId[def.UnitType] = def;

@@ -38,6 +38,12 @@ namespace RareIcon
         Coal        = 218,
         Ash         = 219,
         Arrow       = 220,
+        RawChicken  = 221,
+        Feather     = 222,
+        RawMutton   = 223,
+        Wool        = 224,
+        RawBeef     = 225,
+        Leather     = 226,
 
         // Quest / key items
         QuestScroll       = 300,

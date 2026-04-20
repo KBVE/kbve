@@ -97,6 +97,14 @@ namespace RareIcon
         public float Value;
     }
 
+    /// <summary>Ground-loot entry on a hex tile; picked up by any unit with an inventory walking onto it.</summary>
+    [InternalBufferCapacity(4)]
+    public struct ItemDrop : IBufferElementData
+    {
+        public ushort ItemId;
+        public ushort Count;
+    }
+
     /// <summary>
     /// Tag added to the hex entity the mouse is currently hovering over.
     /// Added/removed by HexHoverSystem each frame.

@@ -57,6 +57,29 @@ Shader "RareIcon/HexUnit"
         // Shield equipment palette (face + boss at centre).
         _ShieldFace       ("Shield Face",         Color) = (0.58, 0.30, 0.22, 1)
         _ShieldBoss       ("Shield Boss",         Color) = (0.82, 0.78, 0.42, 1)
+
+        // Chicken palette
+        _ChickenBody      ("Chicken Body",       Color) = (0.96, 0.94, 0.88, 1)
+        _ChickenBodyShade ("Chicken Body Shade", Color) = (0.78, 0.72, 0.60, 1)
+        _ChickenComb      ("Chicken Comb",       Color) = (0.88, 0.18, 0.20, 1)
+        _ChickenBeak      ("Chicken Beak",       Color) = (0.98, 0.72, 0.18, 1)
+        _ChickenLeg       ("Chicken Leg",        Color) = (0.90, 0.55, 0.18, 1)
+        _ChickenEye       ("Chicken Eye",        Color) = (0.08, 0.06, 0.06, 1)
+
+        // Sheep palette
+        _SheepWool        ("Sheep Wool",         Color) = (0.94, 0.92, 0.88, 1)
+        _SheepWoolShade   ("Sheep Wool Shade",   Color) = (0.72, 0.70, 0.66, 1)
+        _SheepFace        ("Sheep Face",         Color) = (0.28, 0.22, 0.20, 1)
+        _SheepLeg         ("Sheep Leg",          Color) = (0.22, 0.18, 0.16, 1)
+        _SheepEye         ("Sheep Eye",          Color) = (0.05, 0.05, 0.05, 1)
+
+        // Cow palette (two body tones for patches)
+        _CowBodyA         ("Cow Body Base",      Color) = (0.96, 0.93, 0.86, 1)
+        _CowBodyB         ("Cow Body Patches",   Color) = (0.22, 0.18, 0.16, 1)
+        _CowHorn          ("Cow Horn",           Color) = (0.88, 0.82, 0.66, 1)
+        _CowHoof           ("Cow Hoof",          Color) = (0.18, 0.14, 0.12, 1)
+        _CowNose          ("Cow Nose",           Color) = (0.86, 0.58, 0.62, 1)
+        _CowEye           ("Cow Eye",            Color) = (0.08, 0.06, 0.06, 1)
     }
 
     SubShader
@@ -131,6 +154,23 @@ Shader "RareIcon/HexUnit"
                 float4 _HelmetRim;
                 float4 _ShieldFace;
                 float4 _ShieldBoss;
+                float4 _ChickenBody;
+                float4 _ChickenBodyShade;
+                float4 _ChickenComb;
+                float4 _ChickenBeak;
+                float4 _ChickenLeg;
+                float4 _ChickenEye;
+                float4 _SheepWool;
+                float4 _SheepWoolShade;
+                float4 _SheepFace;
+                float4 _SheepLeg;
+                float4 _SheepEye;
+                float4 _CowBodyA;
+                float4 _CowBodyB;
+                float4 _CowHorn;
+                float4 _CowHoof;
+                float4 _CowNose;
+                float4 _CowEye;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -156,6 +196,9 @@ Shader "RareIcon/HexUnit"
             #define UNIT_KNIGHT      2
             #define UNIT_SOLDIER     3
             #define UNIT_MAGE        4
+            #define UNIT_CHICKEN    10
+            #define UNIT_SHEEP      11
+            #define UNIT_COW        12
 
             #define WEAPON_CLUB      1
             #define WEAPON_CROSSBOW  2
@@ -172,6 +215,9 @@ Shader "RareIcon/HexUnit"
             #include "Includes/HexKnight.hlsl"
             #include "Includes/HexSoldier.hlsl"
             #include "Includes/HexMage.hlsl"
+            #include "Includes/HexChicken.hlsl"
+            #include "Includes/HexSheep.hlsl"
+            #include "Includes/HexCow.hlsl"
             // Weapon + equipment includes — composited on top of the
             // creature at each unit's respective anchor.
             #include "Includes/HexClub.hlsl"
@@ -223,6 +269,18 @@ Shader "RareIcon/HexUnit"
                 else if (unitType == UNIT_MAGE)
                 {
                     DrawMage(color, alpha, px, grid, seed, facing);
+                }
+                else if (unitType == UNIT_CHICKEN)
+                {
+                    DrawChicken(color, alpha, px, grid, seed, facing);
+                }
+                else if (unitType == UNIT_SHEEP)
+                {
+                    DrawSheep(color, alpha, px, grid, seed, facing);
+                }
+                else if (unitType == UNIT_COW)
+                {
+                    DrawCow(color, alpha, px, grid, seed, facing);
                 }
 
                 // -- 2. Weapon (composited on top of the creature) -------------
