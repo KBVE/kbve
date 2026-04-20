@@ -78,6 +78,9 @@ namespace RareIcon
             // -- Citizens panel (tabbed: Jobs, Roster, ...) --
             builder.RegisterEntryPoint<UICitizensPanel>().AsSelf();
 
+            // -- Military panel (quick list of armed Player units) --
+            builder.RegisterEntryPoint<UIMilitary>().AsSelf();
+
             // -- Toast notification service (pool + queue, bottom-center) --
             builder.RegisterEntryPoint<ToastService>().AsSelf();
 

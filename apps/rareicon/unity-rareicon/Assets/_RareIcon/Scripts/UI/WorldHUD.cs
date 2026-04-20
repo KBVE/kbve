@@ -24,6 +24,7 @@ namespace RareIcon
         readonly UIWorldSearch _worldSearch;
         readonly UITreasury _treasury;
         readonly UICitizensPanel _citizensPanel;
+        readonly UIMilitary _military;
         readonly UIBuildingPalette _buildingPalette;
         readonly BuildModeController _buildMode;
         readonly CameraService _camera;
@@ -34,7 +35,7 @@ namespace RareIcon
 
         VisualElement _root;
         VisualElement _toolbar, _hoverPanel, _clockPanel, _controlPanel, _stack;
-        Button _searchBtn, _buildBtn, _kingBtn, _treasuryBtn, _citizensBtn, _releaseBtn;
+        Button _searchBtn, _buildBtn, _kingBtn, _treasuryBtn, _militaryBtn, _citizensBtn, _releaseBtn;
         Label _clockTurn, _clockTime;
         VisualElement _clockIcon;
         Label _hoverName, _hoverCoord, _hoverCreature, _hoverStats, _hoverInv, _hoverRes;
@@ -53,6 +54,7 @@ namespace RareIcon
             UIWorldSearch worldSearch,
             UITreasury treasury,
             UICitizensPanel citizensPanel,
+            UIMilitary military,
             UIBuildingPalette buildingPalette,
             BuildModeController buildMode,
             CameraService camera,
@@ -65,6 +67,7 @@ namespace RareIcon
             _worldSearch = worldSearch;
             _treasury = treasury;
             _citizensPanel = citizensPanel;
+            _military = military;
             _buildingPalette = buildingPalette;
             _buildMode = buildMode;
             _camera = camera;
@@ -121,6 +124,7 @@ namespace RareIcon
             _buildBtn    = _root.Q<Button>("hud-build");
             _kingBtn     = _root.Q<Button>("hud-king");
             _treasuryBtn = _root.Q<Button>("hud-treasury");
+            _militaryBtn = _root.Q<Button>("hud-military");
             _citizensBtn = _root.Q<Button>("hud-citizens");
             _releaseBtn  = _root.Q<Button>("hud-release");
 
@@ -142,6 +146,7 @@ namespace RareIcon
             _buildBtn.clicked    += _buildingPalette.Toggle;
             _kingBtn.clicked     += JumpToKing;
             _treasuryBtn.clicked += _treasury.Toggle;
+            _militaryBtn.clicked += _military.Toggle;
             _citizensBtn.clicked += _citizensPanel.Toggle;
             _releaseBtn.clicked  += ReleaseControl;
 
