@@ -15,19 +15,21 @@ namespace RareIcon
             var service = ActivityFeedBridge.Source;
             if (service == null) return;
 
-            foreach (var (stateRW, jobIntent, reliefIntent, goal, entity) in
+            foreach (var (stateRW, jobIntent, reliefIntent, goal, movement, entity) in
                      SystemAPI.Query<
                          RefRW<ActivityState>,
                          RefRO<JobIntent>,
                          RefRO<ReliefIntent>,
-                         RefRO<MovementGoal>>()
+                         RefRO<MovementGoal>,
+                         RefRO<UnitMovement>>()
                               .WithAll<JobPriorities>()
                               .WithEntityAccess())
             {
                 byte kind = Classify(
                     reliefIntent.ValueRO,
                     jobIntent.ValueRO,
-                    goal.ValueRO);
+                    goal.ValueRO,
+                    movement.ValueRO.CurrentHex);
 
                 if (kind == stateRW.ValueRO.LastKind) continue;
                 stateRW.ValueRW.LastKind = kind;
@@ -46,7 +48,7 @@ namespace RareIcon
             }
         }
 
-        static byte Classify(in ReliefIntent relief, in JobIntent job, in MovementGoal goal)
+        static byte Classify(in ReliefIntent relief, in JobIntent job, in MovementGoal goal, int2 currentHex)
         {
             switch (relief.Kind)
             {
@@ -56,6 +58,9 @@ namespace RareIcon
                 case ReliefKind.ReturnToCapital: return ActivityKind.ReturningToBase;
                 case ReliefKind.SeekAid:         return ActivityKind.SeekingAid;
             }
+
+            if (job.Kind != JobKind.None && !math.all(job.TargetHex == currentHex))
+                return ActivityKind.Wandering;
 
             switch (job.Kind)
             {
