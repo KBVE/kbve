@@ -26,12 +26,18 @@ namespace RareIcon
                 if (total < prod.ValueRO.StorageCapacity) { anyBarracksUnderstocked = true; break; }
             }
 
-            foreach (var (movement, faction, inv) in
+            foreach (var (movement, faction, invRO) in
                 SystemAPI.Query<
                     RefRO<UnitMovement>,
                     RefRO<Faction>,
                     DynamicBuffer<InventorySlot>>())
             {
+                // Shadow the foreach iter var — DynamicBuffer wraps a
+                // pointer so the alias hits the same backing data, but
+                // C# won't let us call the indexer setter on the iter
+                // var directly.
+                var inv = invRO;
+
                 if (faction.ValueRO.Value != FactionType.Player) continue;
                 if (inv.Length == 0) continue;
 

@@ -124,9 +124,16 @@ namespace RareIcon
 
                 if (p.Guard > 0 && p.Guard >= bestPrio)
                 {
-                    bool foundHostile = spatial.Hash.IsCreated && TryFindHostile(
-                        spatial.Hash, transform.ValueRO.Position, friendlyEmitters.AsArray(),
-                        out var hostileHex, out var hostileEntity, out int hostileDist);
+                    int2   hostileHex    = default;
+                    Entity hostileEntity = Entity.Null;
+                    int    hostileDist   = int.MaxValue;
+                    bool   foundHostile  = false;
+                    if (spatial.Hash.IsCreated)
+                    {
+                        foundHostile = TryFindHostile(
+                            spatial.Hash, transform.ValueRO.Position, friendlyEmitters.AsArray(),
+                            out hostileHex, out hostileEntity, out hostileDist);
+                    }
 
                     if (foundHostile &&
                         (p.Guard > bestPrio || (p.Guard == bestPrio && hostileDist < bestDist)))
