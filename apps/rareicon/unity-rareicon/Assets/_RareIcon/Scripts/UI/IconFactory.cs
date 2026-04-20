@@ -19,9 +19,11 @@ namespace RareIcon
             People = 7,
         }
 
-        // 32 gives us 2x the shader's 16-pixel draw grid for a smoother edge
-        // on screens that upscale the button background.
-        const int BakeSize = 32;
+        // 48px texture against a 24px shader grid — 2x oversample so each
+        // logical pixel covers a 2x2 block on the bake. Point-filtered so
+        // the result still reads as crisp pixel art when scaled to the
+        // 26x22 button.
+        const int BakeSize = 48;
 
         static readonly Dictionary<IconType, Texture2D> _cache = new();
         static Material _material;
@@ -41,7 +43,7 @@ namespace RareIcon
                     return null;
                 }
                 _material = new Material(shader);
-                _material.SetFloat("_PixelGrid", 16f);
+                _material.SetFloat("_PixelGrid", 24f);
             }
 
             var tex = Bake(type);

@@ -64,108 +64,124 @@ Shader "RareIcon/HexIcon"
             // Callers lerp from bg to IconColor via main, then from that to
             // IconAccent via accent. Keeps two-tone icons cheap.
 
+            // Hammer — 24-grid: angled head + thick handle.
             void DrawBuild(out float main, out float accent, float2 px, float2 c)
             {
-                // Hammer: rectangular head, vertical handle.
-                float head    = rectMask(px, c + float2(-3,  1), float2(7, 3));
-                float handle  = rectMask(px, c + float2(-1, -5), float2(2, 6));
-                // Dark accent stripe across the head.
-                float headRim = rectMask(px, c + float2(-3,  1), float2(7, 1));
-                main   = max(head, handle);
-                accent = headRim + rectMask(px, c + float2(-1, -5), float2(2, 1));
-                accent = min(accent, 1.0);
+                float head     = rectMask(px, c + float2(-6,  3), float2(11, 5));
+                float headTop  = rectMask(px, c + float2(-5,  8), float2( 9, 1));
+                float handle   = rectMask(px, c + float2(-1, -8), float2( 3, 11));
+                float handleEnd= rectMask(px, c + float2(-2, -9), float2( 5, 1));
+                main = max(head, max(headTop, max(handle, handleEnd)));
+                // Highlight stripe down the head's lit side
+                accent = rectMask(px, c + float2(-5, 4), float2(2, 4));
             }
 
+            // Crown — 24-grid: wide band + 3 prominent points + jewels.
             void DrawCrown(out float main, out float accent, float2 px, float2 c)
             {
-                // Band along the bottom + three triangular peaks.
-                float band   = rectMask(px, c + float2(-5, -1), float2(10, 2));
-                float peakL  = rectMask(px, c + float2(-5,  1), float2(2, 2));
-                float peakM  = rectMask(px, c + float2(-1,  1), float2(2, 3));
-                float peakR  = rectMask(px, c + float2( 3,  1), float2(2, 2));
-                // Jewels (accent colour).
-                float jewelL = rectMask(px, c + float2(-4,  3), float2(1, 1));
-                float jewelM = rectMask(px, c + float2( 0,  4), float2(1, 1));
-                float jewelR = rectMask(px, c + float2( 4,  3), float2(1, 1));
-                main   = max(band, max(peakL, max(peakM, peakR)));
+                float band     = rectMask(px, c + float2(-8, -3), float2(16, 3));
+                float bandTop  = rectMask(px, c + float2(-8,  0), float2(16, 1));
+                float peakL    = rectMask(px, c + float2(-8,  1), float2( 3, 4));
+                float peakM    = rectMask(px, c + float2(-2,  1), float2( 4, 6));
+                float peakR    = rectMask(px, c + float2( 5,  1), float2( 3, 4));
+                float peakLtip = circleMask(px, c + float2(-7,  5), 1.6);
+                float peakMtip = circleMask(px, c + float2( 0,  7), 1.8);
+                float peakRtip = circleMask(px, c + float2( 6,  5), 1.6);
+                main = max(band, max(bandTop, max(peakL, max(peakM, max(peakR,
+                       max(peakLtip, max(peakMtip, peakRtip)))))));
+                // Three jewels along the band centre row
+                float jewelL = circleMask(px, c + float2(-5, -2), 1.0);
+                float jewelM = circleMask(px, c + float2( 0, -2), 1.2);
+                float jewelR = circleMask(px, c + float2( 5, -2), 1.0);
                 accent = max(jewelL, max(jewelM, jewelR));
             }
 
+            // Coin — bold disc with a clear $ stamp inside.
             void DrawCoin(out float main, out float accent, float2 px, float2 c)
             {
-                // Filled disc + stamped "$" stripes inside.
-                main = circleMask(px, c, 6.5);
-                // $ stem (vertical)
-                float stem = rectMask(px, c + float2(0, -4), float2(1, 8));
-                // $ top / mid / bottom bars
-                float bar1 = rectMask(px, c + float2(-2,  2), float2(4, 1));
-                float bar2 = rectMask(px, c + float2(-2,  0), float2(4, 1));
-                float bar3 = rectMask(px, c + float2(-2, -2), float2(4, 1));
-                accent = max(stem, max(bar1, max(bar2, bar3)));
-                // Keep accent inside the disc
-                accent *= main;
+                main = circleMask(px, c, 9.5);
+                // Inner rim — slightly darker accent line just inside the edge
+                float rim = ringMask(px, c, 7.5, 8.5);
+                // $ symbol — bold S curves + stem
+                float stem = rectMask(px, c + float2( 0, -6), float2(1, 12));
+                float topBar = rectMask(px, c + float2(-3,  3), float2(6, 1));
+                float midBar = rectMask(px, c + float2(-3,  0), float2(6, 1));
+                float botBar = rectMask(px, c + float2(-3, -3), float2(6, 1));
+                float topL   = rectMask(px, c + float2(-3,  0), float2(1, 4));
+                float botR   = rectMask(px, c + float2( 2, -3), float2(1, 3));
+                accent = max(rim, max(stem, max(topBar, max(midBar, max(botBar, max(topL, botR))))));
+                accent *= 1.0;
             }
 
+            // Shield — heater shape, two-tone with cross.
             void DrawShield(out float main, out float accent, float2 px, float2 c)
             {
-                // Top flat, sides straight, bottom V.
-                float top    = rectMask(px, c + float2(-4,  2), float2(8, 4));
-                float mid    = rectMask(px, c + float2(-3, -1), float2(6, 3));
-                float vBot   = rectMask(px, c + float2(-2, -3), float2(4, 2));
-                float tipBot = rectMask(px, c + float2(-1, -5), float2(2, 2));
-                main = max(top, max(mid, max(vBot, tipBot)));
-                // Accent: cross stripe
-                float crossV = rectMask(px, c + float2( 0, -3), float2(1, 8));
-                float crossH = rectMask(px, c + float2(-3,  0), float2(6, 1));
-                accent = (crossV + crossH) * min(main, 1.0);
+                // Body in three tiers + V tip
+                float top  = rectMask(px, c + float2(-7,  4), float2(14, 5));
+                float mid  = rectMask(px, c + float2(-6, -1), float2(12, 5));
+                float low  = rectMask(px, c + float2(-4, -5), float2( 8, 4));
+                float vTip = rectMask(px, c + float2(-2, -8), float2( 4, 3));
+                main = max(top, max(mid, max(low, vTip)));
+                // Cross fills inside the silhouette
+                float crossV = rectMask(px, c + float2(-1, -6), float2(2, 14));
+                float crossH = rectMask(px, c + float2(-7,  1), float2(14, 2));
+                accent = (crossV + crossH) * step(0.5, main);
                 accent = min(accent, 1.0);
             }
 
+            // Gear — central ring + 8 teeth at cardinals + diagonals.
             void DrawGear(out float main, out float accent, float2 px, float2 c)
             {
-                // Main body: a filled ring (disc minus centre hole).
-                float body = ringMask(px, c, 2.0, 5.5);
-                // Teeth — four stubs at cardinal directions.
-                float t1 = rectMask(px, c + float2(-1,  5), float2(2, 2));
-                float t2 = rectMask(px, c + float2(-1, -7), float2(2, 2));
-                float t3 = rectMask(px, c + float2( 5, -1), float2(2, 2));
-                float t4 = rectMask(px, c + float2(-7, -1), float2(2, 2));
-                main   = max(body, max(t1, max(t2, max(t3, t4))));
-                // Accent: centre dot
-                accent = circleMask(px, c, 1.5);
+                float body = ringMask(px, c, 3.5, 7.5);
+                // 8 teeth — N, S, E, W (rect) + 4 diagonals (small squares)
+                float tN  = rectMask(px, c + float2(-1.5,  7), float2(3, 3));
+                float tS  = rectMask(px, c + float2(-1.5,-10), float2(3, 3));
+                float tE  = rectMask(px, c + float2( 7,  -1.5), float2(3, 3));
+                float tW  = rectMask(px, c + float2(-10, -1.5), float2(3, 3));
+                float tNE = rectMask(px, c + float2( 5,   5),   float2(2, 2));
+                float tNW = rectMask(px, c + float2(-7,   5),   float2(2, 2));
+                float tSE = rectMask(px, c + float2( 5,  -7),   float2(2, 2));
+                float tSW = rectMask(px, c + float2(-7,  -7),   float2(2, 2));
+                main = max(body, max(tN, max(tS, max(tE, max(tW,
+                       max(tNE, max(tNW, max(tSE, tSW))))))));
+                accent = circleMask(px, c, 2.5);
             }
 
+            // Magnifying glass — ring upper-left, thick diagonal handle SE.
             void DrawSearch(out float main, out float accent, float2 px, float2 c)
             {
-                // Magnifying glass: ring at upper-left, diagonal handle to lower-right.
-                float2 lc = c + float2(-2, 1);
-                float ring = ringMask(px, lc, 2.0, 3.5);
-                // Handle: a 2-wide diagonal from lc + (1,-1) toward lower-right.
-                float2 hp = px - (c + float2(2, -4));
+                float2 lc = c + float2(-3, 3);
+                float ring = ringMask(px, lc, 3.5, 5.5);
                 float handle = 0;
-                // 45° line approximated by tight-radius circles at several pts
-                for (int i = 0; i < 4; i++)
+                [unroll] for (int i = 0; i < 7; i++)
                 {
-                    float2 step = float2(i, -i) * 0.9;
-                    handle = max(handle, circleMask(px, c + float2(1, -1) + step, 0.9));
+                    float2 d = float2(i, -i) * 1.1;
+                    handle = max(handle, circleMask(px, c + float2(2, -2) + d, 1.4));
                 }
-                main   = max(ring, handle);
-                // Glass highlight
-                accent = circleMask(px, lc + float2(-0.5, 1), 0.9);
+                main = max(ring, handle);
+                // Lens highlight — small dot upper-left of ring centre
+                accent = circleMask(px, lc + float2(-1.5, 1.5), 1.2);
             }
 
+            // People — three rounded silhouettes side by side.
             void DrawPeople(out float main, out float accent, float2 px, float2 c)
             {
-                // Three stylised figures: round heads + trapezoidal torsos.
-                float head1  = circleMask(px, c + float2(-4, 2), 1.5);
-                float head2  = circleMask(px, c + float2( 0, 3), 1.8);
-                float head3  = circleMask(px, c + float2( 4, 2), 1.5);
-                float body1  = rectMask(px, c + float2(-5, -4), float2(3, 5));
-                float body2  = rectMask(px, c + float2(-2, -4), float2(4, 6));
-                float body3  = rectMask(px, c + float2( 3, -4), float2(3, 5));
-                main   = max(head1, max(head2, max(head3, max(body1, max(body2, body3)))));
-                // Accent row along bottoms for a grouping line.
-                accent = rectMask(px, c + float2(-5, -4), float2(11, 1));
+                // Heads
+                float h1 = circleMask(px, c + float2(-7,  3), 2.3);
+                float h2 = circleMask(px, c + float2( 0,  5), 2.7);
+                float h3 = circleMask(px, c + float2( 7,  3), 2.3);
+                // Bodies — bell shapes via rect + bottom flare
+                float b1 = rectMask(px, c + float2(-9, -7), float2(5, 8));
+                float b2 = rectMask(px, c + float2(-3, -8), float2(7, 10));
+                float b3 = rectMask(px, c + float2( 4, -7), float2(5, 8));
+                // Round shoulders
+                float s1 = circleMask(px, c + float2(-7,  0), 2.5);
+                float s2 = circleMask(px, c + float2( 0,  2), 3.0);
+                float s3 = circleMask(px, c + float2( 7,  0), 2.5);
+                main = max(max(h1, h2), max(h3,
+                       max(max(b1, b2), max(b3, max(s1, max(s2, s3))))));
+                // Accent base line under the trio
+                accent = rectMask(px, c + float2(-9, -8), float2(18, 1));
             }
 
             float4 frag(Varyings input) : SV_Target

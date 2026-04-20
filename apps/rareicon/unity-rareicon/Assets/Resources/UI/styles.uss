@@ -147,24 +147,27 @@
 .panel__body  { flex-grow: 1; }
 .panel__body--scroll { /* applied to ScrollView; lets it consume remaining height */ flex-grow: 1; }
 
-/* Close X button — square, no padding, transparent until hover */
+/* Close X button — must read at modal scale. Filled by default,
+   inverts on hover. Big enough to be a no-miss target. */
 .btn-close {
-    width: 18px; height: 18px;
+    width: 28px; height: 28px;
     padding: 0;
     margin: 0;
     border-width: 1px;
-    border-color: var(--color-border-accent);
-    background-color: rgba(0, 0, 0, 0);
-    color: var(--color-text-strong);
-    font-size: var(--font-label);
+    border-color: var(--color-accent);
+    background-color: var(--color-bg-panel);
+    color: var(--color-accent);
+    font-size: 18px;
     -unity-font-style: bold;
+    -unity-text-align: middle-center;
     border-radius: 0;
     transition-duration: 0.12s;
-    transition-property: background-color, color;
+    transition-property: background-color, color, border-color;
 }
 .btn-close:hover {
-    background-color: var(--color-accent);
-    color: var(--color-text-on-gold);
+    background-color: var(--color-text-danger);
+    color: rgb(255, 255, 255);
+    border-color: var(--color-text-danger);
 }
 
 /* ----- Buttons ----- */
