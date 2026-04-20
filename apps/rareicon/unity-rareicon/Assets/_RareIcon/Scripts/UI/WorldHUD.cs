@@ -47,8 +47,15 @@ namespace RareIcon
         Label _statsLine;
         Label _inventoryLine;
         Label _resourceLine;
+        VisualElement _controlPanel;
+        Label _controlLabel;
+        Button _releaseBtn;
         EntityQuery _clockQuery;
+        EntityQuery _controlledQuery;
         bool _clockQueryReady;
+        bool _controlledQueryReady;
+        Entity _lastControlled;
+        byte _lastControlledType;
 
         [Inject]
         public WorldHUD(
@@ -110,11 +117,14 @@ namespace RareIcon
                     _hoverPanel.style.display = display;
                     _toolbar.style.display = display;
                     _clockPanel.style.display = display;
+                    _controlPanel.style.display = display;
                 })
                 .AddTo(_disposables);
 
             _clockPanel.schedule.Execute(RefreshClock).Every(250);
+            _controlPanel.schedule.Execute(RefreshControlIndicator).Every(250);
             RefreshClock();
+            RefreshControlIndicator();
         }
 
         void BuildUI(VisualElement root)
@@ -122,6 +132,7 @@ namespace RareIcon
             BuildHoverPanel(root);
             BuildToolbar(root);
             BuildClockPanel(root);
+            BuildControlPanel(root);
         }
 
         void BuildClockPanel(VisualElement root)
@@ -185,6 +196,114 @@ namespace RareIcon
             _clockIcon.style.backgroundColor = clock.IsDay
                 ? UIStyles.Palette.Gold
                 : new Color(0.55f, 0.65f, 0.85f, 1f);
+        }
+
+        void BuildControlPanel(VisualElement root)
+        {
+            // Top-center indicator below the clock — tells the player which
+            // unit they're driving, with an inline Release button to drop
+            // back to god view. Hidden out of Boot/InTile alongside the
+            // rest of the world-HUD elements (handled by AppState subscriber).
+            _controlPanel = new VisualElement().ApplyPanelChrome(padV: 4, padH: 10);
+            _controlPanel.style.position = Position.Absolute;
+            _controlPanel.style.top = new Length(7f, LengthUnit.Percent);
+            _controlPanel.style.left = new Length(50f, LengthUnit.Percent);
+            _controlPanel.style.translate = new Translate(new Length(-50f, LengthUnit.Percent), 0);
+            _controlPanel.style.flexDirection = FlexDirection.Row;
+            _controlPanel.style.alignItems = Align.Center;
+
+            _controlLabel = new Label(_locale.Get("hud.god_view"));
+            _controlLabel.style.color = UIStyles.Palette.TextStrong;
+            _controlLabel.style.fontSize = 12;
+            _controlLabel.style.marginRight = 8;
+            _controlPanel.Add(_controlLabel);
+
+            _releaseBtn = UIStyles.MakeYorhaButton(_locale.Get("hud.release"), ReleaseControl);
+            _releaseBtn.style.height = 20;
+            _releaseBtn.style.fontSize = 11;
+            _releaseBtn.style.Padding(0, 8);
+            _releaseBtn.style.display = DisplayStyle.None;
+            _controlPanel.Add(_releaseBtn);
+
+            root.Add(_controlPanel);
+        }
+
+        // Polls the controlled-unit query each tick. Cheap — at most one
+        // entity carries ControlledUnitTag and the query is cached. We
+        // also short-circuit when the held entity hasn't changed so the
+        // string format / ZString allocation only runs on transition.
+        void RefreshControlIndicator()
+        {
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+
+            if (!_controlledQueryReady)
+            {
+                _controlledQuery = em.CreateEntityQuery(
+                    ComponentType.ReadOnly<ControlledUnitTag>(),
+                    ComponentType.ReadOnly<Unit>());
+                _controlledQueryReady = true;
+            }
+
+            Entity current = Entity.Null;
+            byte type = UnitType.None;
+            if (_controlledQuery.CalculateEntityCount() > 0)
+            {
+                using var arr = _controlledQuery.ToEntityArray(Allocator.Temp);
+                current = arr[0];
+                type = em.GetComponentData<Unit>(current).Type;
+            }
+
+            if (current == _lastControlled && type == _lastControlledType) return;
+            _lastControlled     = current;
+            _lastControlledType = type;
+
+            if (current == Entity.Null)
+            {
+                _controlLabel.text = _locale.Get("hud.god_view");
+                _controlLabel.style.color = UIStyles.Palette.TextMuted;
+                _releaseBtn.style.display = DisplayStyle.None;
+            }
+            else
+            {
+                _controlLabel.text = ZString.Format(
+                    _locale.Get("hud.controlling"),
+                    _locale.GetCreatureName(type));
+                _controlLabel.style.color = UIStyles.Palette.Gold;
+                _releaseBtn.style.display = DisplayStyle.Flex;
+            }
+        }
+
+        // Drops ControlledUnitTag from whichever entity holds it and
+        // cancels any in-flight Order-priority MovementGoal so the
+        // released unit doesn't keep walking toward the player's last
+        // click. Returns the player to god view; click any Player-faction
+        // unit to repossess.
+        void ReleaseControl()
+        {
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+
+            using var query = em.CreateEntityQuery(ComponentType.ReadOnly<ControlledUnitTag>());
+            if (query.CalculateEntityCount() == 0) return;
+
+            using var arr = query.ToEntityArray(Allocator.Temp);
+            for (int i = 0; i < arr.Length; i++)
+            {
+                em.RemoveComponent<ControlledUnitTag>(arr[i]);
+                if (em.HasComponent<MovementGoal>(arr[i]))
+                {
+                    var g = em.GetComponentData<MovementGoal>(arr[i]);
+                    if (g.Priority == GoalPriority.Order)
+                        em.SetComponentData(arr[i], default(MovementGoal));
+                }
+            }
+
+            // Force the indicator to repaint immediately rather than wait
+            // for the 250ms tick — feels snappier when the button is hit.
+            RefreshControlIndicator();
         }
 
         void BuildHoverPanel(VisualElement root)
