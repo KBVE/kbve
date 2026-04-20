@@ -20,11 +20,7 @@ namespace RareIcon
             var hashSys = World.GetExistingSystemManaged<SpatialHashSystem>();
             if (hashSys == null || !hashSys.Hash.IsCreated) return;
 
-            Entity capital = Entity.Null;
-            foreach (var (b, e) in SystemAPI.Query<RefRO<Building>>().WithEntityAccess())
-            {
-                if (b.ValueRO.Type == BuildingType.Capital) { capital = e; break; }
-            }
+            SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital);
 
             var hash = hashSys.Hash;
             float dt = SystemAPI.Time.DeltaTime;

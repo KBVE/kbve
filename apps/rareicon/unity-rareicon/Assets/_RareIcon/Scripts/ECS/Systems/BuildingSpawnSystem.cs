@@ -226,12 +226,11 @@ namespace RareIcon
             }
             else
             {
-                foreach (var (b, e) in
-                    SystemAPI.Query<RefRO<Building>>().WithEntityAccess())
+                if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out source))
                 {
-                    if (b.ValueRO.Type == BuildingType.Capital) { source = e; break; }
+                    reason = "no Capital — build one first";
+                    return false;
                 }
-                if (source == Entity.Null) { reason = "no Capital — build one first"; return false; }
             }
 
             if (!em.HasBuffer<InventorySlot>(source))

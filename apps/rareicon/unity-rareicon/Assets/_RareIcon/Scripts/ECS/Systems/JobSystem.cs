@@ -17,27 +17,19 @@ namespace RareIcon
             var hashSys = World.GetExistingSystemManaged<SpatialHashSystem>();
             var hexResourceLookup = SystemAPI.GetComponentLookup<HexResources>(isReadOnly: true);
 
+            bool hasCapital = SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital);
+            int2 capitalHex = default;
+            if (hasCapital) capitalHex = SystemAPI.GetComponent<Building>(capital).RootHex;
+
             Entity nearestFarm = Entity.Null;
             int2   farmHex     = default;
             bool   hasFarm     = false;
-            Entity capital     = Entity.Null;
-            int2   capitalHex  = default;
-            bool   hasCapital  = false;
-            foreach (var (b, e) in SystemAPI.Query<RefRO<Building>>().WithEntityAccess())
+            foreach (var (b, e) in SystemAPI.Query<RefRO<Building>>().WithEntityAccess().WithAll<FarmTag>())
             {
-                if (!hasFarm && b.ValueRO.Type == BuildingType.Farm)
-                {
-                    nearestFarm = e;
-                    farmHex     = b.ValueRO.RootHex;
-                    hasFarm     = true;
-                }
-                if (!hasCapital && b.ValueRO.Type == BuildingType.Capital)
-                {
-                    capital    = e;
-                    capitalHex = b.ValueRO.RootHex;
-                    hasCapital = true;
-                }
-                if (hasFarm && hasCapital) break;
+                nearestFarm = e;
+                farmHex     = b.ValueRO.RootHex;
+                hasFarm     = true;
+                break;
             }
 
             using var siteQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<ConstructionSite>());

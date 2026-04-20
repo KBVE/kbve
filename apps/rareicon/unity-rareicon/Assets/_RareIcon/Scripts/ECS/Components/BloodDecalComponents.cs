@@ -34,4 +34,10 @@ namespace RareIcon
         public float  Lifetime;
         public float  Seed;
     }
+
+    /// <summary>Singleton holding the runtime-built decal prefab entity. Written once by BloodDecalBootstrapSystem (managed Mesh / Material setup); read by the Burst-compiled BloodDecalSpawnSystem ISystem so it never has to touch managed APIs.</summary>
+    public struct BloodDecalPrefabSingleton : IComponentData
+    {
+        public Entity Value;
+    }
 }

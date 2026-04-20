@@ -8,7 +8,7 @@ namespace RareIcon
     // TODO(burst): DietPreferencesStore + ItemDB.GetHarvestRole are backed by managed Dictionaries, blocking [BurstCompile]. Convert to NativeHashMap-backed stores and this job can Burst-compile.
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(UnitMovementSystem))]
-    [UpdateAfter(typeof(HexSpawnSystem))]
+    [UpdateAfter(typeof(HexChunkSystem))]
     public partial struct HarvestSystem : ISystem
     {
         public void OnCreate(ref SystemState state) { }

@@ -11,18 +11,8 @@ namespace RareIcon
     {
         protected override void OnUpdate()
         {
-            int2 capitalHex = default;
-            bool hasCapital = false;
-            foreach (var b in SystemAPI.Query<RefRO<Building>>())
-            {
-                if (b.ValueRO.Type == BuildingType.Capital)
-                {
-                    capitalHex = b.ValueRO.RootHex;
-                    hasCapital = true;
-                    break;
-                }
-            }
-            if (!hasCapital) return;
+            if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
+            int2 capitalHex = SystemAPI.GetComponent<Building>(capital).RootHex;
 
             var materialBufferLookup = SystemAPI.GetBufferLookup<ConstructionMaterial>(isReadOnly: true);
             var siteLookup           = SystemAPI.GetComponentLookup<ConstructionSite>(isReadOnly: true);
