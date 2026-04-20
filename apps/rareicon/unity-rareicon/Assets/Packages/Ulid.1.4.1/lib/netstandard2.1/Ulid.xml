@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Ulid</name>
+    </assembly>
+    <members>
+        <member name="T:System.Ulid">
+            <summary>
+            Represents a Universally Unique Lexicographically Sortable Identifier (ULID).
+            Spec: https://github.com/ulid/spec
+            </summary>
+        </member>
+        <member name="M:System.Ulid.Parse(System.String,System.IFormatProvider)">
+            <inheritdoc cref="!:IParsable&lt;TSelf&gt;.Parse(string, IFormatProvider?)" />
+        </member>
+        <member name="M:System.Ulid.TryParse(System.String,System.IFormatProvider,System.Ulid@)">
+            <inheritdoc cref="!:IParsable&lt;TSelf&gt;.TryParse(string?, IFormatProvider?, out TSelf)" />
+        </member>
+        <member name="M:System.Ulid.Parse(System.ReadOnlySpan{System.Char},System.IFormatProvider)">
+            <inheritdoc cref="!:ISpanParsable&lt;TSelf&gt;.Parse(ReadOnlySpan&lt;char&gt;, IFormatProvider?)" />
+        </member>
+        <member name="M:System.Ulid.TryParse(System.ReadOnlySpan{System.Char},System.IFormatProvider,System.Ulid@)">
+            <inheritdoc cref="!:ISpanParsable&lt;TSelf&gt;.TryParse(ReadOnlySpan&lt;char&gt;, IFormatProvider?, out TSelf)" />
+        </member>
+        <member name="M:System.Ulid.ToGuid">
+            <summary>
+            Convert this <c>Ulid</c> value to a <c>Guid</c> value with the same comparability.
+            </summary>
+            <remarks>
+            The byte arrangement between Ulid and Guid is not preserved.
+            </remarks>
+            <returns>The converted <c>Guid</c> value</returns>
+        </member>
+    </members>
+</doc>
