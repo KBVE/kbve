@@ -166,6 +166,7 @@ Shader "RareIcon/HexUnit"
             // Per-creature includes. Shared anim helpers first so every
             // creature file can reference _UnitShadow / _UnitStep / _UnitBob.
             #include "Includes/HexShared.hlsl"
+            #include "Includes/WorldAmbient.hlsl"
             #include "Includes/HexUnitAnim.hlsl"
             #include "Includes/HexGoblin.hlsl"
             #include "Includes/HexKnight.hlsl"
@@ -299,7 +300,7 @@ Shader "RareIcon/HexUnit"
                 }
 
                 clip(alpha - 0.001);
-                return float4(color, alpha);
+                return float4(ApplyWorldAmbient(color), alpha);
             }
             ENDHLSL
         }

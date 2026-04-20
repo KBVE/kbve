@@ -156,6 +156,7 @@ Shader "RareIcon/HexProjectile"
             #define MOD_OBSIDIAN  5
 
             #include "Includes/HexShared.hlsl"
+            #include "Includes/WorldAmbient.hlsl"
             #include "Includes/HexArrow.hlsl"
             #include "Includes/HexBolt.hlsl"
             #include "Includes/HexFireball.hlsl"
@@ -233,7 +234,7 @@ Shader "RareIcon/HexProjectile"
                 }
 
                 clip(alpha - 0.001);
-                return float4(color, alpha);
+                return float4(ApplyWorldAmbient(color, 0.6), alpha);
             }
             ENDHLSL
         }

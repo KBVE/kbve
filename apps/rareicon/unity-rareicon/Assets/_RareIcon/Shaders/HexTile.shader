@@ -132,6 +132,7 @@ Shader "RareIcon/HexTile"
             // Decoration modules — each is a single file with one Apply* function.
             // Include order: shared helpers first, then each decoration.
             #include "Includes/HexShared.hlsl"
+            #include "Includes/WorldAmbient.hlsl"
             #include "Includes/HexBoulder.hlsl"
             #include "Includes/HexBerryBush.hlsl"
             #include "Includes/HexMushroom.hlsl"
@@ -206,7 +207,7 @@ Shader "RareIcon/HexTile"
                 float3 col = lerp(ground, _BorderColor.rgb, border * _BorderColor.a);
 
                 clip(-d - 0.001);
-                return float4(col, 1.0);
+                return float4(ApplyWorldAmbient(col), 1.0);
             }
             ENDHLSL
         }
