@@ -89,38 +89,19 @@ namespace RareIcon
 
         void BuildUI(VisualElement parent)
         {
-            // Chrome via UIStyles — sharp corners + gold border on a
-            // shadcn-zinc panel background. Anchored top-right with the
-            // standard 2% margin used by every floating panel.
-            _root = new VisualElement().ApplyPanelChrome(padV: 12, padH: 14);
+            _root = new VisualElement().ApplyPanelChrome();
             _root.style.AnchorTopRight();
-            _root.style.width = 280;
+            _root.style.minWidth = UIStyles.PanelWidth.StdMin;
+            _root.style.maxWidth = UIStyles.PanelWidth.StdMax;
             _root.style.display = DisplayStyle.None;
 
-            // Header row — title on the left, close button on the right.
-            var header = new VisualElement();
-            header.style.flexDirection = FlexDirection.Row;
-            header.style.justifyContent = Justify.SpaceBetween;
-            header.style.alignItems = Align.Center;
-            header.style.marginBottom = 8;
-
-            header.Add(UIStyles.MakeMarkerRow(_locale.Get("treasury.title"), fontSize: 16));
-
-            var closeBtn = UIStyles.MakeYorhaButton("\u00D7", Close);
-            closeBtn.style.width = 24;
-            closeBtn.style.height = 24;
-            closeBtn.style.Padding(0);
-            closeBtn.style.fontSize = 16;
-            header.Add(closeBtn);
-
-            _root.Add(header);
-            _root.Add(UIStyles.MakeStrip());
+            UIStyles.MakePanelHeader(_root, _locale.Get("treasury.title"), Close);
 
             // Body — one big multi-line label so we don't churn child
             // elements every refresh. Re-rendered as a single string.
             _bodyLabel = new Label(string.Empty);
             _bodyLabel.style.color = UIStyles.Palette.TextStrong;
-            _bodyLabel.style.fontSize = 13;
+            _bodyLabel.style.fontSize = UIStyles.Type.BodyLg;
             _bodyLabel.style.whiteSpace = WhiteSpace.Normal;
             _root.Add(_bodyLabel);
 

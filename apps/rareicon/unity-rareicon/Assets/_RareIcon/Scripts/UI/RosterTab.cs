@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Cysharp.Text;
 using MessagePipe;
@@ -81,15 +82,15 @@ namespace RareIcon
             var leftCol = new VisualElement();
             leftCol.style.flexGrow = 1;
             leftCol.style.flexBasis = 0;
-            leftCol.style.marginRight = 8;
+            leftCol.style.marginRight = UIStyles.Spacing.Md;
 
-            var header = UIStyles.MakeHeading("Citizens", fontSize: 13);
-            header.style.marginBottom = 6;
+            var header = UIStyles.MakeHeading("Citizens", fontSize: UIStyles.Type.Heading);
+            header.style.marginBottom = UIStyles.Spacing.Sm;
             leftCol.Add(header);
 
             _list = new ScrollView(ScrollViewMode.Vertical);
             _list.style.flexGrow = 1;
-            _list.style.maxHeight = 280;
+            _list.style.maxHeight = 260;
             leftCol.Add(_list);
 
             parent.Add(leftCol);
@@ -102,7 +103,7 @@ namespace RareIcon
             _detail = new VisualElement();
             _detail.style.flexGrow = 1;
             _detail.style.flexBasis = 0;
-            _detail.style.Padding(8, 10);
+            _detail.style.Padding(UIStyles.Spacing.Md, UIStyles.Spacing.Lg);
             _detail.style.BorderRadius(UIStyles.Radius.Sharp);
             _detail.style.BorderWidth(1);
             _detail.style.BorderColor(UIStyles.Palette.BorderSubtle);
@@ -110,39 +111,39 @@ namespace RareIcon
 
             _detailTitle = new Label("Select a citizen");
             _detailTitle.style.color = UIStyles.Palette.TextStrong;
-            _detailTitle.style.fontSize = 14;
+            _detailTitle.style.fontSize = UIStyles.Type.Label;
             _detailTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _detailTitle.style.marginBottom = 6;
+            _detailTitle.style.marginBottom = UIStyles.Spacing.Sm;
             _detail.Add(_detailTitle);
 
             _detailActivity = new Label(string.Empty);
             _detailActivity.style.color = UIStyles.Palette.GoldDeep;
-            _detailActivity.style.fontSize = 12;
-            _detailActivity.style.marginBottom = 6;
+            _detailActivity.style.fontSize = UIStyles.Type.Body;
+            _detailActivity.style.marginBottom = UIStyles.Spacing.Sm;
             _detail.Add(_detailActivity);
 
             _detailStats = new Label(string.Empty);
             _detailStats.style.color = UIStyles.Palette.TextStrong;
-            _detailStats.style.fontSize = 12;
+            _detailStats.style.fontSize = UIStyles.Type.Body;
             _detailStats.style.whiteSpace = WhiteSpace.Normal;
-            _detailStats.style.marginBottom = 8;
+            _detailStats.style.marginBottom = UIStyles.Spacing.Md;
             _detail.Add(_detailStats);
 
             var actionRow = new VisualElement();
             actionRow.style.flexDirection = FlexDirection.Row;
 
             _jumpBtn = UIStyles.MakeYorhaButton(_locale.Get("ui.jump_to"), JumpToSelected);
-            _jumpBtn.style.height = 22;
-            _jumpBtn.style.fontSize = 11;
-            _jumpBtn.style.Padding(0, 8);
-            _jumpBtn.style.marginRight = 6;
+            _jumpBtn.style.height = 20;
+            _jumpBtn.style.fontSize = UIStyles.Type.Body;
+            _jumpBtn.style.Padding(0, UIStyles.Spacing.Md);
+            _jumpBtn.style.marginRight = UIStyles.Spacing.Sm;
             _jumpBtn.SetEnabled(false);
             actionRow.Add(_jumpBtn);
 
             _possessBtn = UIStyles.MakeYorhaButton(_locale.Get("ui.possess"), PossessSelected);
-            _possessBtn.style.height = 22;
-            _possessBtn.style.fontSize = 11;
-            _possessBtn.style.Padding(0, 8);
+            _possessBtn.style.height = 20;
+            _possessBtn.style.fontSize = UIStyles.Type.Body;
+            _possessBtn.style.Padding(0, UIStyles.Spacing.Md);
             _possessBtn.SetEnabled(false);
             actionRow.Add(_possessBtn);
 
@@ -224,18 +225,18 @@ namespace RareIcon
             row.style.flexDirection = FlexDirection.Row;
             row.style.alignItems = Align.Center;
             row.style.justifyContent = Justify.SpaceBetween;
-            row.style.Padding(4, 6);
-            row.style.marginBottom = 2;
+            row.style.Padding(UIStyles.Spacing.Xs, UIStyles.Spacing.Md);
+            row.style.marginBottom = UIStyles.Spacing.Xs;
             row.style.BorderRadius(UIStyles.Radius.Sharp);
 
             var name = new Label(string.Empty);
             name.style.color = UIStyles.Palette.TextStrong;
-            name.style.fontSize = 12;
+            name.style.fontSize = UIStyles.Type.Body;
             row.Add(name);
 
             var hp = new Label(string.Empty);
             hp.style.color = UIStyles.Palette.TextMuted;
-            hp.style.fontSize = 11;
+            hp.style.fontSize = UIStyles.Type.Tiny;
             row.Add(hp);
 
             var entry = new RosterEntry

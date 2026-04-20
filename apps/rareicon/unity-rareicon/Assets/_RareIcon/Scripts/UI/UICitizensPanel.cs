@@ -73,30 +73,19 @@ namespace RareIcon
 
         void BuildUI(VisualElement parent)
         {
-            _root = new VisualElement().ApplyPanelChrome(padV: 12, padH: 14);
+            _root = new VisualElement().ApplyPanelChrome();
             _root.style.position = Position.Absolute;
             _root.style.top = new Length(2f, LengthUnit.Percent);
             _root.style.right = new Length(2f, LengthUnit.Percent);
             _root.style.marginTop = 70;
-            _root.style.width = 420;
+            _root.style.minWidth = UIStyles.PanelWidth.WideMin;
+            _root.style.maxWidth = UIStyles.PanelWidth.WideMax;
             _root.style.display = DisplayStyle.None;
 
-            var header = new VisualElement();
-            header.style.flexDirection = FlexDirection.Row;
-            header.style.justifyContent = Justify.SpaceBetween;
-            header.style.alignItems = Align.Center;
-            header.style.marginBottom = 8;
-            header.Add(UIStyles.MakeMarkerRow("Citizens", fontSize: 16));
-            var closeBtn = UIStyles.MakeYorhaButton("\u00D7", Close);
-            closeBtn.style.width = 24;
-            closeBtn.style.height = 24;
-            closeBtn.style.fontSize = 16;
-            header.Add(closeBtn);
-            _root.Add(header);
-            _root.Add(UIStyles.MakeStrip());
+            UIStyles.MakePanelHeader(_root, "Citizens", Close);
 
             var body = UIControls.MakeTabbedLayout(out var sidebar, out _content);
-            body.style.marginTop = 8;
+            body.style.marginTop = UIStyles.Spacing.Sm;
             _root.Add(body);
 
             _tabButtons = new Button[_tabs.Length];

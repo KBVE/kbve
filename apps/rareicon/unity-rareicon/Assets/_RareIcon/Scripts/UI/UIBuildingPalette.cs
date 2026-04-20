@@ -117,30 +117,14 @@ namespace RareIcon
             // when both are open (Treasury is also top-right; player can
             // just close one to see the other for v1, future could
             // stagger via a side-panel registry).
-            _root = new VisualElement().ApplyPanelChrome(padV: 12, padH: 14);
+            _root = new VisualElement().ApplyPanelChrome();
             _root.style.AnchorTopRight();
-            _root.style.width = 280;
+            _root.style.minWidth = UIStyles.PanelWidth.StdMin;
+            _root.style.maxWidth = UIStyles.PanelWidth.StdMax;
             _root.style.display = DisplayStyle.None;
             _root.RegisterCallback<ClickEvent>(e => e.StopPropagation());
 
-            // Header row — title + close button.
-            var header = new VisualElement();
-            header.style.flexDirection = FlexDirection.Row;
-            header.style.justifyContent = Justify.SpaceBetween;
-            header.style.alignItems = Align.Center;
-            header.style.marginBottom = 8;
-
-            header.Add(UIStyles.MakeMarkerRow(_locale.Get("palette.title"), fontSize: 16));
-
-            var closeBtn = UIStyles.MakeYorhaButton("\u00D7", Close);
-            closeBtn.style.width = 24;
-            closeBtn.style.height = 24;
-            closeBtn.style.Padding(0);
-            closeBtn.style.fontSize = 16;
-            header.Add(closeBtn);
-
-            _root.Add(header);
-            _root.Add(UIStyles.MakeStrip());
+            UIStyles.MakePanelHeader(_root, _locale.Get("palette.title"), Close);
 
             // Building rows — one per BuildingDB.AllBuildable entry.
             _rows = new Row[BuildingDB.AllBuildable.Length];
@@ -205,8 +189,8 @@ namespace RareIcon
 
                 Element = new VisualElement();
                 Element.style.flexDirection = FlexDirection.Column;
-                Element.style.Padding(6, 8);
-                Element.style.marginBottom = 4;
+                Element.style.Padding(UIStyles.Spacing.Sm, UIStyles.Spacing.Md);
+                Element.style.marginBottom = UIStyles.Spacing.Xs;
                 Element.style.BorderRadius(UIStyles.Radius.Sharp);
                 Element.style.BorderWidth(1);
                 Element.style.BorderColor(UIStyles.Palette.BorderSubtle);
@@ -215,14 +199,14 @@ namespace RareIcon
 
                 _nameLabel = new Label(locale.Get(BuildingDB.GetLocaleKey(buildingType)));
                 _nameLabel.style.color = UIStyles.Palette.TextStrong;
-                _nameLabel.style.fontSize = 14;
+                _nameLabel.style.fontSize = UIStyles.Type.Label;
                 _nameLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
                 Element.Add(_nameLabel);
 
                 _costLabel = new Label("");
                 _costLabel.style.color = UIStyles.Palette.TextMuted;
-                _costLabel.style.fontSize = 11;
-                _costLabel.style.marginTop = 2;
+                _costLabel.style.fontSize = UIStyles.Type.Body;
+                _costLabel.style.marginTop = UIStyles.Spacing.Xs;
                 _costLabel.style.whiteSpace = WhiteSpace.Normal;
                 Element.Add(_costLabel);
             }

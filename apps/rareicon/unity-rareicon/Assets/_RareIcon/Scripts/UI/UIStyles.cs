@@ -84,6 +84,49 @@ namespace RareIcon
             public const float Soft  = 4f;
         }
 
+        // -- Spacing scale --
+        // shadcn/tailwind-flavoured ramp. Use these in place of raw pixel
+        // numbers so panel density stays consistent — bumping the ramp
+        // here re-spaces the entire UI in one edit.
+        //   Xs : pixel-pair gaps (label/value pair, icon flush)
+        //   Sm : intra-section gaps (list rows, button paddings)
+        //   Md : inter-element gaps (header→body, between rows)
+        //   Lg : section gaps (header bar margin, strip dividers)
+        //   Xl : panel-level gaps (rare — modal padding)
+        public static class Spacing
+        {
+            public const float Xs = 2f;
+            public const float Sm = 4f;
+            public const float Md = 6f;
+            public const float Lg = 8f;
+            public const float Xl = 12f;
+        }
+
+        // -- Type scale --
+        // Five sizes covering everything from dense list rows to panel
+        // titles. Body / Label are the workhorses; Heading / Title only
+        // for panel-level chrome. Stays small on purpose so panels can
+        // pack more data without scrolling at our standard zoom.
+        public static class Type
+        {
+            public const int Tiny    = 9;   // pip / unit annotation
+            public const int Body    = 10;  // dense list row body
+            public const int BodyLg  = 11;  // standard panel body
+            public const int Label   = 12;  // bold labels, button text
+            public const int Heading = 13;  // section headings inside a panel
+            public const int Title   = 15;  // panel title (top of card)
+        }
+
+        // -- Standard panel widths --
+        // Min/max pair so panels grow with content but cap at a width
+        // that doesn't dominate the viewport at 1920x1080 / smaller.
+        public static class PanelWidth
+        {
+            public const float NarrowMin = 200f; public const float NarrowMax = 280f;  // single-column inspector
+            public const float StdMin    = 240f; public const float StdMax    = 320f;  // floating side panels
+            public const float WideMin   = 320f; public const float WideMax   = 420f;  // tabbed / two-pane
+        }
+
         // -- Equal-sided setters (chainable) --
         // Each replaces 4 inline calls. Chain them with the C# initializer
         // pattern: `panel.style.BorderRadius(0).BorderWidth(1).BorderColor(...)`.
@@ -142,16 +185,18 @@ namespace RareIcon
 
         // -- Compound helpers --
         // ApplyPanelChrome handles the bg/border/radius/padding combo every
-        // panel sets in nearly-identical form. Defaults match the YoRHA
-        // aesthetic: sharp corners, gold border at low alpha, zinc-950 bg.
+        // panel sets in nearly-identical form. Defaults are tighter than
+        // the v1 spacing — old panels passed padV: 12 / padH: 14 ad-hoc
+        // which made everything feel oversized; new defaults pull from the
+        // Spacing ramp so the entire UI moves together when we re-tune.
         public static VisualElement ApplyPanelChrome(
             this VisualElement v,
             Color? background = null,
             Color? border     = null,
             float radius      = Radius.Sharp,
             float borderWidth = 1f,
-            float padV        = 10f,
-            float padH        = 16f)
+            float padV        = Spacing.Md,
+            float padH        = Spacing.Lg)
         {
             v.style.backgroundColor = background ?? Palette.PanelBg;
             v.style.BorderColor(border ?? Palette.BorderGold);
@@ -159,6 +204,16 @@ namespace RareIcon
             v.style.BorderWidth(borderWidth);
             v.style.Padding(padV, padH);
             return v;
+        }
+
+        /// <summary>Compact panel chrome — minimal padding, for ultra-dense panels (toast, tooltip, inline list rows). Half the standard padding so the chrome doesn't compete with the data.</summary>
+        public static VisualElement ApplyPanelChromeCompact(this VisualElement v,
+                                                            Color? background = null,
+                                                            Color? border     = null)
+        {
+            return v.ApplyPanelChrome(
+                background: background, border: border,
+                padV: Spacing.Sm, padH: Spacing.Md);
         }
 
         // -- Anchoring --
@@ -275,6 +330,50 @@ namespace RareIcon
             label.style.unityFontStyleAndWeight = FontStyle.Bold;
             return label;
         }
+
+        /// <summary>
+        /// Standard panel header — marker title on the left, close X on the
+        /// right, strip divider underneath. Every panel was duplicating
+        /// this 20-line block; the helper trims it to one call and keeps
+        /// the chrome consistent across panels.
+        ///
+        /// Returns the marker-row Label by `out` so callers can retext the
+        /// title at runtime (e.g. inspector swapping title per inspected
+        /// building). Pass `null` for onClose to skip the close button.
+        /// </summary>
+        public static VisualElement MakePanelHeader(VisualElement panel,
+                                                    string title,
+                                                    System.Action onClose,
+                                                    out Label titleLabel)
+        {
+            var header = new VisualElement();
+            header.style.flexDirection  = FlexDirection.Row;
+            header.style.justifyContent = Justify.SpaceBetween;
+            header.style.alignItems     = Align.Center;
+            header.style.marginBottom   = Spacing.Md;
+
+            var titleRow = MakeMarkerRow(title, fontSize: Type.Title);
+            titleLabel = titleRow.Q<Label>("marker-row-label");
+            header.Add(titleRow);
+
+            if (onClose != null)
+            {
+                var closeBtn = MakeYorhaButton("\u00D7", onClose);
+                closeBtn.style.width    = 18;
+                closeBtn.style.height   = 18;
+                closeBtn.style.fontSize = Type.Label;
+                closeBtn.style.Padding(0);
+                header.Add(closeBtn);
+            }
+
+            panel.Add(header);
+            panel.Add(MakeStrip(thickness: 1f, marginV: Spacing.Sm));
+            return header;
+        }
+
+        /// <summary>Convenience overload when the caller doesn't need to retext the title later.</summary>
+        public static VisualElement MakePanelHeader(VisualElement panel, string title, System.Action onClose)
+            => MakePanelHeader(panel, title, onClose, out _);
 
         /// <summary>
         /// Vertical bar accent — a wide stripe + a thinner stripe side by

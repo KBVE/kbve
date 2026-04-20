@@ -119,46 +119,29 @@ namespace RareIcon
         {
             // Bottom-left so it doesn't collide with the right-side
             // Treasury / Build palette stack or the bottom-right hover
-            // panel. Width matches Treasury for visual consistency.
-            _root = new VisualElement().ApplyPanelChrome(padV: 12, padH: 14);
+            // panel.
+            _root = new VisualElement().ApplyPanelChrome();
             _root.style.AnchorBottomLeft();
-            _root.style.width = 280;
+            _root.style.minWidth = UIStyles.PanelWidth.NarrowMin;
+            _root.style.maxWidth = UIStyles.PanelWidth.NarrowMax;
             _root.style.display = DisplayStyle.None;
             _root.RegisterCallback<ClickEvent>(e => e.StopPropagation());
 
-            var header = new VisualElement();
-            header.style.flexDirection = FlexDirection.Row;
-            header.style.justifyContent = Justify.SpaceBetween;
-            header.style.alignItems = Align.Center;
-            header.style.marginBottom = 8;
+            UIStyles.MakePanelHeader(_root, _locale.Get("inspector.title"), Close, out _titleLabel);
 
-            var titleRow = UIStyles.MakeMarkerRow(_locale.Get("inspector.title"), fontSize: 16);
-            _titleLabel = titleRow.Q<Label>("marker-row-label");
-            header.Add(titleRow);
-
-            var closeBtn = UIStyles.MakeYorhaButton("\u00D7", Close);
-            closeBtn.style.width = 24;
-            closeBtn.style.height = 24;
-            closeBtn.style.Padding(0);
-            closeBtn.style.fontSize = 16;
-            header.Add(closeBtn);
-
-            _root.Add(header);
-            _root.Add(UIStyles.MakeStrip());
-
-            _ownerLabel = MakeBodyLabel(UIStyles.Palette.TextMuted, 12);
-            _ownerLabel.style.marginBottom = 4;
+            _ownerLabel = MakeBodyLabel(UIStyles.Palette.TextMuted, UIStyles.Type.Body);
+            _ownerLabel.style.marginBottom = UIStyles.Spacing.Sm;
             _root.Add(_ownerLabel);
 
-            _healthLabel = MakeBodyLabel(UIStyles.Palette.TextStrong, 13);
-            _healthLabel.style.marginBottom = 4;
+            _healthLabel = MakeBodyLabel(UIStyles.Palette.TextStrong, UIStyles.Type.BodyLg);
+            _healthLabel.style.marginBottom = UIStyles.Spacing.Sm;
             _root.Add(_healthLabel);
 
-            _productionLabel = MakeBodyLabel(UIStyles.Palette.TextStrong, 13);
-            _productionLabel.style.marginBottom = 4;
+            _productionLabel = MakeBodyLabel(UIStyles.Palette.TextStrong, UIStyles.Type.BodyLg);
+            _productionLabel.style.marginBottom = UIStyles.Spacing.Sm;
             _root.Add(_productionLabel);
 
-            _storageLabel = MakeBodyLabel(UIStyles.Palette.TextStrong, 13);
+            _storageLabel = MakeBodyLabel(UIStyles.Palette.TextStrong, UIStyles.Type.BodyLg);
             _root.Add(_storageLabel);
 
             parent.Add(_root);
