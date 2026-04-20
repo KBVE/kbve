@@ -165,6 +165,26 @@ namespace RareIcon
             Add(new ItemDef((ushort)ItemId.CookedBeef,
                 "item.cooked_beef",    ItemCategory.Consumable, 32, 36,
                 restoreEnergy: 100f));
+
+            // Livestock production — emitted into FarmStorage by sheltered
+            // animals once per WorldClock cadence (chickens/cows every 2
+            // turns, sheep every 10). Edible so they flow through the same
+            // AutoEat / Empire withdraw pipelines as other food.
+            Add(new ItemDef((ushort)ItemId.Egg,
+                "item.egg",  ItemCategory.Material, 64, 3,
+                restoreEnergy: 12f));
+            Add(new ItemDef((ushort)ItemId.Milk,
+                "item.milk", ItemCategory.Material, 64, 5,
+                restoreEnergy: 20f));
+
+            // Chef outputs from livestock produce — higher energy return
+            // than raw so the cooking loop still pays off on farm yields.
+            Add(new ItemDef((ushort)ItemId.CookedEgg,
+                "item.cooked_egg", ItemCategory.Consumable, 32, 8,
+                restoreEnergy: 28f));
+            Add(new ItemDef((ushort)ItemId.Cheese,
+                "item.cheese",     ItemCategory.Consumable, 32, 15,
+                restoreEnergy: 45f));
         }
 
         static void Add(ItemDef def) => _byId[def.Id] = def;

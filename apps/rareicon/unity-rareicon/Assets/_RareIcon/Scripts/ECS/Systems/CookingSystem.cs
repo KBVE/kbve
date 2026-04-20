@@ -73,7 +73,9 @@ namespace RareIcon
         {
             return TryConvert(inv, (ushort)ItemId.RawChicken, (ushort)ItemId.CookedChicken)
                 || TryConvert(inv, (ushort)ItemId.RawMutton,  (ushort)ItemId.CookedMutton)
-                || TryConvert(inv, (ushort)ItemId.RawBeef,    (ushort)ItemId.CookedBeef);
+                || TryConvert(inv, (ushort)ItemId.RawBeef,    (ushort)ItemId.CookedBeef)
+                || TryConvert(inv, (ushort)ItemId.Egg,        (ushort)ItemId.CookedEgg)
+                || TryConvert(inv, (ushort)ItemId.Milk,       (ushort)ItemId.Cheese);
         }
 
         static bool TryConvert(DynamicBuffer<InventorySlot> inv, ushort rawId, ushort cookedId)

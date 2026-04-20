@@ -16,6 +16,7 @@ namespace RareIcon
         public const byte Farmer     = 6;
         public const byte Builder    = 7;
         public const byte Chef       = 8;
+        public const byte Hunter     = 9;
     }
 
     /// <summary>
@@ -33,6 +34,7 @@ namespace RareIcon
         public byte Farmer;
         public byte Builder;
         public byte Chef;
+        public byte Hunter;
 
         public byte Get(byte jobKind) => jobKind switch
         {
@@ -44,6 +46,7 @@ namespace RareIcon
             JobKind.Farmer     => Farmer,
             JobKind.Builder    => Builder,
             JobKind.Chef       => Chef,
+            JobKind.Hunter     => Hunter,
             _                  => (byte)0,
         };
 
@@ -59,6 +62,7 @@ namespace RareIcon
                 case JobKind.Farmer:     Farmer     = priority; break;
                 case JobKind.Builder:    Builder    = priority; break;
                 case JobKind.Chef:       Chef       = priority; break;
+                case JobKind.Hunter:     Hunter     = priority; break;
             }
         }
     }

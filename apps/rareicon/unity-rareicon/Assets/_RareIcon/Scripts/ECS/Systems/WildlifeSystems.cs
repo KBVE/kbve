@@ -95,32 +95,45 @@ namespace RareIcon
         }
     }
 
-    /// <summary>King stopped on a wild animal's hex tames it: flip Faction to Player, add TamedTag + OwnerRef.</summary>
+    /// <summary>Any King or Hunter-role unit dwelling on a wild animal's hex tames it: flip Faction to Player, add TamedTag + OwnerRef.</summary>
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     public partial class TamingSystem : SystemBase
     {
         protected override void OnUpdate()
         {
-            int2 kingHex = default;
-            bool haveKing = false;
-            Entity kingEntity = Entity.Null;
-            float kingDwell = 0f;
+            var priorityLookup = SystemAPI.GetComponentLookup<JobPriorities>(isReadOnly: true);
+
+            // Gather (hex, tamer) pairs for every candidate standing still.
+            // DwellTimer > 0 → the unit just arrived via a goal (King click
+            // or Hunter job) and is paused here, so tame-on-contact reads
+            // as intentional, not drive-by.
+            var tamerHexes   = new NativeList<int2>(16, Allocator.Temp);
+            var tamerOwners  = new NativeList<Entity>(16, Allocator.Temp);
 
             foreach (var (movement, entity) in
                      SystemAPI.Query<RefRO<UnitMovement>>().WithAll<KingTag>().WithEntityAccess())
             {
-                kingHex    = movement.ValueRO.CurrentHex;
-                kingDwell  = movement.ValueRO.DwellTimer;
-                kingEntity = entity;
-                haveKing   = true;
-                break;
+                if (movement.ValueRO.DwellTimer <= 0f) continue;
+                tamerHexes.Add(movement.ValueRO.CurrentHex);
+                tamerOwners.Add(entity);
             }
 
-            // DwellTimer > 0 means the King just arrived at this hex via a
-            // player click (PathfindingSystem sets it on arrival). Gating on
-            // it prevents taming on frame-zero spawn, when animals happen to
-            // walk onto the king, or as he passes through intermediate hexes.
-            if (!haveKing || kingDwell <= 0f) return;
+            foreach (var (movement, entity) in
+                     SystemAPI.Query<RefRO<UnitMovement>>().WithEntityAccess())
+            {
+                if (!priorityLookup.HasComponent(entity)) continue;
+                if (priorityLookup[entity].Hunter == 0) continue;
+                if (movement.ValueRO.DwellTimer <= 0f) continue;
+                tamerHexes.Add(movement.ValueRO.CurrentHex);
+                tamerOwners.Add(entity);
+            }
+
+            if (tamerHexes.Length == 0)
+            {
+                tamerHexes.Dispose();
+                tamerOwners.Dispose();
+                return;
+            }
 
             var ecb = new EntityCommandBuffer(Allocator.Temp);
             var factionLookup = SystemAPI.GetComponentLookup<Faction>(isReadOnly: false);
@@ -131,16 +144,24 @@ namespace RareIcon
                               .WithNone<TamedTag>()
                               .WithEntityAccess())
             {
-                if (!movement.ValueRO.CurrentHex.Equals(kingHex)) continue;
+                var animalHex = movement.ValueRO.CurrentHex;
+                Entity owner = Entity.Null;
+                for (int i = 0; i < tamerHexes.Length; i++)
+                {
+                    if (tamerHexes[i].Equals(animalHex)) { owner = tamerOwners[i]; break; }
+                }
+                if (owner == Entity.Null) continue;
 
                 ecb.AddComponent<TamedTag>(entity);
-                ecb.AddComponent(entity, new OwnerRef { Value = kingEntity });
+                ecb.AddComponent(entity, new OwnerRef { Value = owner });
                 if (factionLookup.HasComponent(entity))
                     factionLookup[entity] = new Faction { Value = FactionType.Player };
             }
 
             ecb.Playback(EntityManager);
             ecb.Dispose();
+            tamerHexes.Dispose();
+            tamerOwners.Dispose();
         }
     }
 
