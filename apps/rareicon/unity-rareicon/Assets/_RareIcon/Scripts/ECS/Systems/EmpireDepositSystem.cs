@@ -4,7 +4,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Drains a Player-faction unit's inventory into the Capital's storage buffer when standing on a claimed hex.</summary>
+    /// <summary>Drains a Player-faction unit's inventory into the Capital's storage buffer when standing on a claimed hex. BanditCoin is withheld whenever any Barracks is below its StorageCapacity — the carrier keeps the coins for a Capital→Barracks supply run instead of cycling them through the central treasury.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial class EmpireDepositSystem : SystemBase
     {
@@ -15,6 +15,16 @@ namespace RareIcon
             var hexOccupantLookup   = SystemAPI.GetComponentLookup<HexOccupant>(isReadOnly: true);
             var buildingLookup      = SystemAPI.GetComponentLookup<Building>(isReadOnly: true);
             var storageBufferLookup = SystemAPI.GetBufferLookup<InventorySlot>(isReadOnly: false);
+
+            bool anyBarracksUnderstocked = false;
+            foreach (var (prod, storage) in
+                     SystemAPI.Query<RefRO<BarracksProduction>, DynamicBuffer<BarracksStorage>>()
+                              .WithAll<BarracksTag>())
+            {
+                int total = 0;
+                for (int i = 0; i < storage.Length; i++) total += storage[i].Count;
+                if (total < prod.ValueRO.StorageCapacity) { anyBarracksUnderstocked = true; break; }
+            }
 
             foreach (var (movement, faction, inv) in
                 SystemAPI.Query<
@@ -56,6 +66,11 @@ namespace RareIcon
                     ushort count  = inv[i].Count;
                     if (itemId == 0 || count == 0) continue;
 
+                    // Reserve coins for the Barracks supply run whenever
+                    // any Barracks has capacity. BarracksSupplyJobSystem
+                    // will pick the unit up next tick and route it there.
+                    if (anyBarracksUnderstocked && itemId == (ushort)ItemId.BanditCoin) continue;
+
                     bool merged = false;
                     for (int j = 0; j < storage.Length; j++)
                     {
@@ -73,9 +88,11 @@ namespace RareIcon
                     {
                         storage.Add(new InventorySlot { ItemId = itemId, Count = count });
                     }
-                }
 
-                inv.Clear();
+                    var src = inv[i];
+                    src.Count = 0;
+                    inv[i] = src;
+                }
             }
         }
     }

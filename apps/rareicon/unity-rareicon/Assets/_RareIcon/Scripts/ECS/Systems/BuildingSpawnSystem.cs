@@ -122,11 +122,14 @@ namespace RareIcon
                 }
             }
 
-            // 3. Commit — Capital draws its cost immediately from the King's pocket
-            //    (it's a magical land grant). Everything else becomes a
-            //    ConstructionSite; Builders haul the materials from Capital
-            //    storage during the build, so nothing is deducted up front.
-            if (req.BuildingType == BuildingType.Capital)
+            // 3. Commit — Capital draws its cost immediately from the King's
+            //    pocket (magical land grant). Goblin Cave drains from the
+            //    Capital upfront too, because its cost includes the AnyFood
+            //    sentinel which can't be carried as a single item by a
+            //    Builder. Everything else becomes a ConstructionSite;
+            //    Builders haul the materials during the build, so nothing
+            //    is deducted up front.
+            if (BuildingDB.SpawnsFullyBuilt(req.BuildingType))
             {
                 for (int i = 0; i < cost.Length; i++)
                     Consume(sourceInv, cost[i].ItemId, cost[i].Amount);
@@ -195,6 +198,22 @@ namespace RareIcon
                 treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.CactiNeedle,  Count = 100 });
                 treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Berry,        Count = 50 });
                 treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.CookedBeef,   Count = 10 });
+                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.BanditCoin,   Count = 60 });
+            }
+            else if (req.BuildingType == BuildingType.GoblinCave)
+            {
+                // GoblinCave lands fully functional — cost has already been
+                // drained from the Capital in step 3 (AnyFood sentinel +
+                // stone + wood). No ConstructionSite, no Builder haul; the
+                // cave just needs its tag + per-turn production cadence.
+                ecb.AddComponent<GoblinCaveTag>(building);
+                ecb.AddComponent(building, new GoblinCaveProduction
+                {
+                    LastProducedTurn = 0,
+                    CadenceTurns     = 1,
+                    FoodPerGoblin    = 50,
+                    StorageCap       = 200,
+                });
             }
             else
             {
@@ -269,19 +288,24 @@ namespace RareIcon
         {
             int total = 0;
             for (int i = 0; i < inv.Length; i++)
-                if (inv[i].ItemId == itemId) total += inv[i].Count;
+            {
+                if (!MatchesCostItem(inv[i].ItemId, itemId)) continue;
+                total += inv[i].Count;
+            }
             return total >= amount;
         }
 
         // Walks slots and decrements until `amount` is satisfied. Caller
         // must have confirmed availability via HasItem first — this
-        // function assumes the inventory holds enough.
+        // function assumes the inventory holds enough. For the AnyFood
+        // sentinel the walk pulls from any edible slot in buffer order;
+        // which food gets spent first is arbitrary but stable.
         static void Consume(DynamicBuffer<InventorySlot> inv, ushort itemId, ushort amount)
         {
             int remaining = amount;
             for (int i = 0; i < inv.Length && remaining > 0; i++)
             {
-                if (inv[i].ItemId != itemId) continue;
+                if (!MatchesCostItem(inv[i].ItemId, itemId)) continue;
                 var slot = inv[i];
                 int take = slot.Count < remaining ? slot.Count : remaining;
                 slot.Count = (ushort)(slot.Count - take);
@@ -290,12 +314,23 @@ namespace RareIcon
             }
         }
 
+        // Matches a concrete inventory-slot ItemId against a cost-line ItemId.
+        // Cost lines usually name a specific item, but BuildingDB.AnyFoodSentinel
+        // means "any slot that holds an edible item" per ItemDB.RestoreEnergy.
+        static bool MatchesCostItem(ushort slotId, ushort costId)
+        {
+            if (costId == BuildingDB.AnyFoodSentinel)
+                return ItemDB.EnergyValue(slotId) > 0f;
+            return slotId == costId;
+        }
+
         static string BuildingTypeName(byte t) => t switch
         {
-            BuildingType.Capital  => "Capital",
-            BuildingType.Farm     => "Farm",
-            BuildingType.Barracks => "Barracks",
-            BuildingType.Furnace  => "Furnace",
+            BuildingType.Capital    => "Capital",
+            BuildingType.Farm       => "Farm",
+            BuildingType.Barracks   => "Barracks",
+            BuildingType.Furnace    => "Furnace",
+            BuildingType.GoblinCave => "Goblin Cave",
             _ => "Unknown",
         };
 
