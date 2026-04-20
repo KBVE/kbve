@@ -143,7 +143,7 @@ namespace RareIcon
 
         void BuildClockPanel(VisualElement root)
         {
-            _clockPanel = new VisualElement().ApplyPanelChrome(padV: 6, padH: 10);
+            _clockPanel = new VisualElement().ApplyPanelChromeCompact();
             _clockPanel.style.position = Position.Absolute;
             _clockPanel.style.top = new Length(2f, LengthUnit.Percent);
             _clockPanel.style.left = new Length(50f, LengthUnit.Percent);
@@ -153,23 +153,23 @@ namespace RareIcon
             _clockPanel.pickingMode = PickingMode.Ignore;
 
             _clockIcon = new VisualElement();
-            _clockIcon.style.width = 14;
-            _clockIcon.style.height = 14;
-            _clockIcon.style.borderTopLeftRadius = 7;
-            _clockIcon.style.borderTopRightRadius = 7;
-            _clockIcon.style.borderBottomLeftRadius = 7;
-            _clockIcon.style.borderBottomRightRadius = 7;
+            _clockIcon.style.width = 10;
+            _clockIcon.style.height = 10;
+            _clockIcon.style.borderTopLeftRadius = 5;
+            _clockIcon.style.borderTopRightRadius = 5;
+            _clockIcon.style.borderBottomLeftRadius = 5;
+            _clockIcon.style.borderBottomRightRadius = 5;
             _clockIcon.style.backgroundColor = UIStyles.Palette.Gold;
-            _clockIcon.style.marginRight = 8;
+            _clockIcon.style.marginRight = UIStyles.Spacing.Md;
             _clockPanel.Add(_clockIcon);
 
-            _clockTurnLabel = UIStyles.MakeHeading("Turn 0 · Day", fontSize: 13);
-            _clockTurnLabel.style.marginRight = 10;
+            _clockTurnLabel = UIStyles.MakeHeading("Turn 0 · Day", fontSize: UIStyles.Type.BodyLg);
+            _clockTurnLabel.style.marginRight = UIStyles.Spacing.Md;
             _clockPanel.Add(_clockTurnLabel);
 
             _clockTimeLabel = new Label("00:00");
             _clockTimeLabel.style.color = UIStyles.Palette.TextMuted;
-            _clockTimeLabel.style.fontSize = 13;
+            _clockTimeLabel.style.fontSize = UIStyles.Type.BodyLg;
             _clockTimeLabel.pickingMode = PickingMode.Ignore;
             _clockPanel.Add(_clockTimeLabel);
 
@@ -206,11 +206,7 @@ namespace RareIcon
 
         void BuildControlPanel(VisualElement root)
         {
-            // Top-center indicator below the clock — tells the player which
-            // unit they're driving, with an inline Release button to drop
-            // back to god view. Hidden out of Boot/InTile alongside the
-            // rest of the world-HUD elements (handled by AppState subscriber).
-            _controlPanel = new VisualElement().ApplyPanelChrome(padV: 4, padH: 10);
+            _controlPanel = new VisualElement().ApplyPanelChromeCompact();
             _controlPanel.style.position = Position.Absolute;
             _controlPanel.style.top = new Length(7f, LengthUnit.Percent);
             _controlPanel.style.left = new Length(50f, LengthUnit.Percent);
@@ -218,33 +214,29 @@ namespace RareIcon
             _controlPanel.style.flexDirection = FlexDirection.Column;
             _controlPanel.style.alignItems = Align.Center;
 
-            // Top row — name + Release button.
             var topRow = new VisualElement();
             topRow.style.flexDirection = FlexDirection.Row;
             topRow.style.alignItems = Align.Center;
 
             _controlLabel = new Label(_locale.Get("hud.god_view"));
             _controlLabel.style.color = UIStyles.Palette.TextStrong;
-            _controlLabel.style.fontSize = 12;
-            _controlLabel.style.marginRight = 8;
+            _controlLabel.style.fontSize = UIStyles.Type.Body;
+            _controlLabel.style.marginRight = UIStyles.Spacing.Md;
             topRow.Add(_controlLabel);
 
             _releaseBtn = UIStyles.MakeButton(_locale.Get("hud.release"), ReleaseControl);
-            _releaseBtn.style.height = 20;
-            _releaseBtn.style.fontSize = 11;
-            _releaseBtn.style.Padding(0, 8);
+            _releaseBtn.style.height = 18;
+            _releaseBtn.style.fontSize = UIStyles.Type.Tiny;
+            _releaseBtn.style.Padding(0, UIStyles.Spacing.Md);
             _releaseBtn.style.display = DisplayStyle.None;
             topRow.Add(_releaseBtn);
 
             _controlPanel.Add(topRow);
 
-            // Activity sub-line — bound to ActivityFeedService.For(controlled)
-            // when a unit is held; reads "what was the AI about to do
-            // before you took the wheel". Hidden in god view.
             _controlActivityLabel = new Label(string.Empty);
             _controlActivityLabel.style.color = UIStyles.Palette.GoldDeep;
-            _controlActivityLabel.style.fontSize = 11;
-            _controlActivityLabel.style.marginTop = 2;
+            _controlActivityLabel.style.fontSize = UIStyles.Type.Tiny;
+            _controlActivityLabel.style.marginTop = UIStyles.Spacing.Xs;
             _controlActivityLabel.style.display = DisplayStyle.None;
             _controlPanel.Add(_controlActivityLabel);
 
@@ -367,31 +359,30 @@ namespace RareIcon
 
         void BuildHoverPanel(VisualElement root)
         {
-            // Bottom-right hover info — black + gold chrome via UIStyles.
-            // pickingMode=Ignore on every label keeps world clicks unblocked.
-            _hoverPanel = new VisualElement().ApplyPanelChrome();
+            _hoverPanel = new VisualElement().ApplyPanelChromeCompact();
             _hoverPanel.style.AnchorBottomRight();
-            _hoverPanel.style.minWidth = 160;
+            _hoverPanel.style.minWidth = UIStyles.PanelWidth.NarrowMin;
+            _hoverPanel.style.maxWidth = new Length(UIStyles.VwMaxPct.Narrow, LengthUnit.Percent);
             _hoverPanel.pickingMode = PickingMode.Ignore;
 
-            _biomeName = UIStyles.MakeHeading("---", fontSize: 18);
-            _biomeName.style.marginBottom = 4;
+            _biomeName = UIStyles.MakeHeading("---", fontSize: UIStyles.Type.Heading);
+            _biomeName.style.marginBottom = UIStyles.Spacing.Xs;
             _biomeName.pickingMode = PickingMode.Ignore;
 
-            _hexCoord = MakeHoverLabel(UIStyles.Palette.TextMuted, fontSize: 13);
+            _hexCoord = MakeHoverLabel(UIStyles.Palette.TextMuted, fontSize: UIStyles.Type.Body);
 
-            _creatureLine = MakeHoverLabel(UIStyles.Palette.TextCreature, fontSize: 14);
-            _creatureLine.style.marginTop = 4;
+            _creatureLine = MakeHoverLabel(UIStyles.Palette.TextCreature, fontSize: UIStyles.Type.BodyLg);
+            _creatureLine.style.marginTop = UIStyles.Spacing.Xs;
             _creatureLine.style.unityFontStyleAndWeight = FontStyle.Bold;
 
-            _statsLine     = MakeHoverLabel(UIStyles.Palette.TextStat,      fontSize: 12);
-            _statsLine.style.marginTop = 2;
+            _statsLine     = MakeHoverLabel(UIStyles.Palette.TextStat,      fontSize: UIStyles.Type.Body);
+            _statsLine.style.marginTop = UIStyles.Spacing.Xs;
 
-            _inventoryLine = MakeHoverLabel(UIStyles.Palette.TextInventory, fontSize: 12);
-            _inventoryLine.style.marginTop = 2;
+            _inventoryLine = MakeHoverLabel(UIStyles.Palette.TextInventory, fontSize: UIStyles.Type.Body);
+            _inventoryLine.style.marginTop = UIStyles.Spacing.Xs;
 
-            _resourceLine  = MakeHoverLabel(UIStyles.Palette.TextResource,  fontSize: 13);
-            _resourceLine.style.marginTop = 4;
+            _resourceLine  = MakeHoverLabel(UIStyles.Palette.TextResource,  fontSize: UIStyles.Type.Body);
+            _resourceLine.style.marginTop = UIStyles.Spacing.Xs;
 
             _hoverPanel.Add(_biomeName);
             _hoverPanel.Add(_hexCoord);
@@ -402,8 +393,6 @@ namespace RareIcon
             root.Add(_hoverPanel);
         }
 
-        // Hover-panel labels share three traits — colored, sized, and
-        // non-blocking. Single helper so adding a new line is one call.
         static Label MakeHoverLabel(Color color, int fontSize)
         {
             var l = new Label("");
@@ -415,38 +404,19 @@ namespace RareIcon
 
         void BuildToolbar(VisualElement root)
         {
-            // Top-left toolbar — Search · Build · King · Treasury. Flex row
-            // so future tools slot in. Each button is a YoRHA-style toggle
-            // (dark fill + gold text + hover invert) via UIStyles.
             _toolbar = new VisualElement();
             _toolbar.style.AnchorTopLeft();
             _toolbar.style.flexDirection = FlexDirection.Row;
 
             _toolbar.Add(MakeToolbarButton("Search", _worldSearch.Toggle, marginLeft: 0));
 
-            // Build button now opens the multi-building palette instead
-            // of toggling the hardcoded Capital target. Player picks the
-            // type from the palette → BuildModeController flips into the
-            // matching mode → next hex click places it.
-            _buildBtn = MakeToolbarButton("Build",
-                _buildingPalette.Toggle, marginLeft: 6);
+            _buildBtn = MakeToolbarButton("Build", _buildingPalette.Toggle, marginLeft: UIStyles.Spacing.Sm);
             _toolbar.Add(_buildBtn);
 
-            // Quick re-center on the player. Common UX in strategy games —
-            // click "King" to snap back if you've panned the camera away.
-            // Silently no-ops while the King hasn't spawned yet (first frame).
-            _toolbar.Add(MakeToolbarButton("King", JumpToKing, marginLeft: 6));
+            _toolbar.Add(MakeToolbarButton("King", JumpToKing, marginLeft: UIStyles.Spacing.Sm));
+            _toolbar.Add(MakeToolbarButton("Treasury", _treasury.Toggle, marginLeft: UIStyles.Spacing.Sm));
+            _toolbar.Add(MakeToolbarButton("Citizens", _citizensPanel.Toggle, marginLeft: UIStyles.Spacing.Sm));
 
-            // Treasury — top-right panel listing capital storage. Toggles
-            // open/closed; refreshes itself while visible (UITreasury polls
-            // the EntityManager every 500ms so deposits / withdrawals
-            // appear in near real-time).
-            _toolbar.Add(MakeToolbarButton("Treasury", _treasury.Toggle, marginLeft: 6));
-            _toolbar.Add(MakeToolbarButton("Citizens", _citizensPanel.Toggle, marginLeft: 6));
-
-            // Reactive highlight — gold-fill the Build button while active.
-            // Reuses the YoRHA hover-invert palette (Gold / Zinc950) so the
-            // active state matches what a hover would produce.
             _buildMode.Target
                 .Subscribe(target =>
                 {
@@ -464,15 +434,12 @@ namespace RareIcon
             root.Add(_toolbar);
         }
 
-        // Single toolbar button factory — YoRHA chrome plus our 28px height
-        // / 6px gap convention. marginLeft=0 for the first button so the
-        // toolbar doesn't shift right of its anchor.
         static Button MakeToolbarButton(string text, System.Action onClick, float marginLeft)
         {
             var btn = UIStyles.MakeButton(text, onClick);
-            btn.style.height = 28;
-            btn.style.fontSize = 13;
-            btn.style.Padding(0, 12);
+            btn.style.height = 20;
+            btn.style.fontSize = UIStyles.Type.Body;
+            btn.style.Padding(0, UIStyles.Spacing.Md);
             btn.style.marginLeft = marginLeft;
             return btn;
         }
