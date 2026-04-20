@@ -5,31 +5,26 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Overrides idle Looter / Farmer JobIntents with a Barracks-supply task when an understocked Barracks exists. Two-phase routing (carrying → Barracks, empty → Capital) is refined each tick like BuilderJobSystem. Burst ISystem — single-worker Schedule keeps the shared Capital-hex capture race-free ahead of the multi-threaded push.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(JobSystem))]
-    [UpdateBefore(typeof(JobMovementExecutor))]
     public partial struct BarracksSupplyJobSystem : ISystem
     {
         [BurstCompile] public void OnCreate(ref SystemState state) { }
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             int2 capitalHex = SystemAPI.GetComponent<Building>(capital).RootHex;
 
             var needy = new NativeList<NeedyBarracks>(4, Allocator.TempJob);
-            foreach (var (building, cap, storage, entity) in
-                     SystemAPI.Query<RefRO<Building>, RefRO<StorageCapacity>, DynamicBuffer<InventorySlot>>()
+            foreach (var (building, status, entity) in
+                     SystemAPI.Query<RefRO<Building>, RefRO<BarracksSupplyStatus>>()
                               .WithAll<BarracksTag>()
                               .WithEntityAccess())
             {
-                int total = 0;
-                for (int i = 0; i < storage.Length; i++) total += storage[i].Count;
-                if (total >= cap.ValueRO.Total) continue;
+                if (status.ValueRO.IsNeedy == 0) continue;
                 needy.Add(new NeedyBarracks { Entity = entity, Hex = building.ValueRO.RootHex });
             }
 
@@ -39,13 +34,14 @@ namespace RareIcon
                 return;
             }
 
-            state.Dependency = new BarracksSupplyPlannerJob
+            var jobHandle = new BarracksSupplyPlannerJob
             {
                 CapitalHex = capitalHex,
                 Needy      = needy.AsDeferredJobArray(),
+                InvLookup  = SystemAPI.GetBufferLookup<InventorySlot>(true),
             }.ScheduleParallel(state.Dependency);
 
-            state.Dependency = needy.Dispose(state.Dependency);
+            state.Dependency = needy.Dispose(jobHandle);
         }
     }
 
@@ -60,10 +56,11 @@ namespace RareIcon
     {
         public int2 CapitalHex;
         [ReadOnly] public NativeArray<NeedyBarracks> Needy;
+        [ReadOnly] public BufferLookup<InventorySlot> InvLookup;
 
-        void Execute(in JobPriorities priorities,
+        void Execute(Entity entity,
+                     in JobPriorities priorities,
                      in UnitMovement movement,
-                     in DynamicBuffer<InventorySlot> inventory,
                      ref JobIntent intent)
         {
             if (priorities.Looter == 0 && priorities.Farmer == 0) return;
@@ -87,8 +84,9 @@ namespace RareIcon
                 }
             }
             if (bestEntity == Entity.Null) return;
+            if (!InvLookup.HasBuffer(entity)) return;
 
-            bool carrying = CarriesSupply(inventory);
+            bool carrying = CarriesSupply(InvLookup[entity]);
             intent = new JobIntent
             {
                 Kind         = JobKind.Looter,
@@ -110,8 +108,8 @@ namespace RareIcon
 
         static int HexDistance(int2 a, int2 b)
         {
-            int dq = b.x - a.x, dr = b.y - a.y, ds = -dq - dr;
-            return (math.abs(dq) + math.abs(dr) + math.abs(ds)) / 2;
+            int dq = a.x - b.x, dr = a.y - b.y;
+            return (math.abs(dq) + math.abs(dr) + math.abs(dq + dr)) / 2;
         }
     }
 }
