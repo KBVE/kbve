@@ -2,6 +2,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace RareIcon
 {
@@ -12,7 +13,20 @@ namespace RareIcon
     {
         const int SearchRadius = 5;
 
+        bool _diagLogged;
+
         protected override void OnUpdate()
+        {
+            RunDispatch();
+
+            if (!_diagLogged && SystemAPI.Time.ElapsedTime > 3.0)
+            {
+                _diagLogged = true;
+                LogDispatchDiagnostic();
+            }
+        }
+
+        void RunDispatch()
         {
             SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial);
             var hexResourceLookup = SystemAPI.GetComponentLookup<HexResources>(isReadOnly: true);
@@ -391,5 +405,35 @@ namespace RareIcon
         }
 
         static int HexDistance(int2 a, int2 b) => AxialDistance(b.x - a.x, b.y - a.y);
+
+        void LogDispatchDiagnostic()
+        {
+            var hexResourceLookup = SystemAPI.GetComponentLookup<HexResources>(isReadOnly: true);
+            int totalUnits = 0, idleUnits = 0, reliefBlocked = 0, controlled = 0;
+            int noHexEntity = 0, hasForageTarget = 0, hasLumberTarget = 0, hasMinerTarget = 0;
+
+            foreach (var (priorities, reliefIntent, jobIntent, movement, entity) in
+                     SystemAPI.Query<RefRO<JobPriorities>, RefRO<ReliefIntent>, RefRO<JobIntent>, RefRO<UnitMovement>>().WithEntityAccess())
+            {
+                totalUnits++;
+                if (reliefIntent.ValueRO.Kind != ReliefKind.None) { reliefBlocked++; continue; }
+                if (EntityManager.HasComponent<ControlledUnitTag>(entity)) { controlled++; continue; }
+                if (jobIntent.ValueRO.Kind != JobKind.None) continue;
+
+                idleUnits++;
+                var here = movement.ValueRO.CurrentHex;
+                if (!HexHoverSystem.TryGetHexEntity(here, out _)) noHexEntity++;
+
+                if (priorities.ValueRO.Forager > 0
+                    && TryFindResourceHex(HarvestRole.Forager, here, hexResourceLookup, out _, out _)) hasForageTarget++;
+                if (priorities.ValueRO.Lumberjack > 0
+                    && TryFindResourceHex(HarvestRole.Lumberjack, here, hexResourceLookup, out _, out _)) hasLumberTarget++;
+                if (priorities.ValueRO.Miner > 0
+                    && TryFindResourceHex(HarvestRole.Miner, here, hexResourceLookup, out _, out _)) hasMinerTarget++;
+            }
+
+            Debug.Log($"[JobSystem diag] units={totalUnits} idle={idleUnits} reliefBlocked={reliefBlocked} controlled={controlled} " +
+                      $"| of idle: currentHexUnloaded={noHexEntity} forageTargetFound={hasForageTarget} lumberTargetFound={hasLumberTarget} minerTargetFound={hasMinerTarget}");
+        }
     }
 }
