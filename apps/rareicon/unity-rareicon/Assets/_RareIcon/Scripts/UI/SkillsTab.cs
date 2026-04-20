@@ -12,12 +12,14 @@ namespace RareIcon
         static readonly byte[] UnitTypes = { UnitType.Goblin, UnitType.Soldier, UnitType.Knight, UnitType.Mage, UnitType.King };
         static readonly (byte Kind, string Label)[] SkillRows = new (byte, string)[]
         {
-            (SkillKind.Foraging,   "Foraging"),
-            (SkillKind.Lumberjack, "Lumberjack"),
-            (SkillKind.Mining,     "Mining"),
-            (SkillKind.Combat,     "Combat"),
-            (SkillKind.Scavenging, "Scavenging"),
-            (SkillKind.Husbandry,  "Husbandry"),
+            (SkillKind.Foraging,     "Foraging"),
+            (SkillKind.Lumberjack,   "Lumberjack"),
+            (SkillKind.Mining,       "Mining"),
+            (SkillKind.Combat,       "Combat"),
+            (SkillKind.Scavenging,   "Scavenging"),
+            (SkillKind.Husbandry,    "Husbandry"),
+            (SkillKind.Construction, "Construction"),
+            (SkillKind.Culinary,     "Culinary"),
         };
 
         public string Title => "Skills";

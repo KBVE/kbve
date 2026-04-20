@@ -153,6 +153,18 @@ namespace RareIcon
                 restoreEnergy: 50f));
             Add(new ItemDef((ushort)ItemId.Leather,
                 "item.leather",     ItemCategory.Material, 99, 8));
+
+            // Cooked foods — produced by CookingSystem from raw wildlife drops.
+            // Higher RestoreEnergy than raw so cooking is a worthwhile loop.
+            Add(new ItemDef((ushort)ItemId.CookedChicken,
+                "item.cooked_chicken", ItemCategory.Consumable, 32, 12,
+                restoreEnergy: 40f));
+            Add(new ItemDef((ushort)ItemId.CookedMutton,
+                "item.cooked_mutton",  ItemCategory.Consumable, 32, 24,
+                restoreEnergy: 70f));
+            Add(new ItemDef((ushort)ItemId.CookedBeef,
+                "item.cooked_beef",    ItemCategory.Consumable, 32, 36,
+                restoreEnergy: 100f));
         }
 
         static void Add(ItemDef def) => _byId[def.Id] = def;

@@ -17,6 +17,8 @@ namespace RareIcon
             (JobKind.Archer,     "Archer"),
             (JobKind.Looter,     "Looter"),
             (JobKind.Farmer,     "Farmer"),
+            (JobKind.Builder,    "Builder"),
+            (JobKind.Chef,       "Chef"),
         };
 
         public string Title => "Jobs";

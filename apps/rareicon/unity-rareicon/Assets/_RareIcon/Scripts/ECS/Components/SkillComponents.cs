@@ -6,12 +6,14 @@ namespace RareIcon
     // TODO(rust-ffi): mirror as #[repr(u8)] SkillKind enum.
     public static class SkillKind
     {
-        public const byte Foraging   = 0;
-        public const byte Lumberjack = 1;
-        public const byte Mining     = 2;
-        public const byte Combat     = 3;
-        public const byte Scavenging = 4;
-        public const byte Husbandry  = 5;
+        public const byte Foraging     = 0;
+        public const byte Lumberjack   = 1;
+        public const byte Mining       = 2;
+        public const byte Combat       = 3;
+        public const byte Scavenging   = 4;
+        public const byte Husbandry    = 5;
+        public const byte Construction = 6;
+        public const byte Culinary     = 7;
     }
 
     /// <summary>Per-unit skill levels (byte 0..SkillCap); lookups by SkillKind byte index.</summary>
@@ -26,28 +28,34 @@ namespace RareIcon
         public byte Combat;
         public byte Scavenging;
         public byte Husbandry;
+        public byte Construction;
+        public byte Culinary;
 
         public byte Get(byte kind) => kind switch
         {
-            SkillKind.Foraging   => Foraging,
-            SkillKind.Lumberjack => Lumberjack,
-            SkillKind.Mining     => Mining,
-            SkillKind.Combat     => Combat,
-            SkillKind.Scavenging => Scavenging,
-            SkillKind.Husbandry  => Husbandry,
-            _                    => (byte)0,
+            SkillKind.Foraging     => Foraging,
+            SkillKind.Lumberjack   => Lumberjack,
+            SkillKind.Mining       => Mining,
+            SkillKind.Combat       => Combat,
+            SkillKind.Scavenging   => Scavenging,
+            SkillKind.Husbandry    => Husbandry,
+            SkillKind.Construction => Construction,
+            SkillKind.Culinary     => Culinary,
+            _                      => (byte)0,
         };
 
         public void Set(byte kind, byte value)
         {
             switch (kind)
             {
-                case SkillKind.Foraging:   Foraging   = value; break;
-                case SkillKind.Lumberjack: Lumberjack = value; break;
-                case SkillKind.Mining:     Mining     = value; break;
-                case SkillKind.Combat:     Combat     = value; break;
-                case SkillKind.Scavenging: Scavenging = value; break;
-                case SkillKind.Husbandry:  Husbandry  = value; break;
+                case SkillKind.Foraging:     Foraging     = value; break;
+                case SkillKind.Lumberjack:   Lumberjack   = value; break;
+                case SkillKind.Mining:       Mining       = value; break;
+                case SkillKind.Combat:       Combat       = value; break;
+                case SkillKind.Scavenging:   Scavenging   = value; break;
+                case SkillKind.Husbandry:    Husbandry    = value; break;
+                case SkillKind.Construction: Construction = value; break;
+                case SkillKind.Culinary:     Culinary     = value; break;
             }
         }
     }
@@ -61,28 +69,34 @@ namespace RareIcon
         public ushort Combat;
         public ushort Scavenging;
         public ushort Husbandry;
+        public ushort Construction;
+        public ushort Culinary;
 
         public ushort Get(byte kind) => kind switch
         {
-            SkillKind.Foraging   => Foraging,
-            SkillKind.Lumberjack => Lumberjack,
-            SkillKind.Mining     => Mining,
-            SkillKind.Combat     => Combat,
-            SkillKind.Scavenging => Scavenging,
-            SkillKind.Husbandry  => Husbandry,
-            _                    => (ushort)0,
+            SkillKind.Foraging     => Foraging,
+            SkillKind.Lumberjack   => Lumberjack,
+            SkillKind.Mining       => Mining,
+            SkillKind.Combat       => Combat,
+            SkillKind.Scavenging   => Scavenging,
+            SkillKind.Husbandry    => Husbandry,
+            SkillKind.Construction => Construction,
+            SkillKind.Culinary     => Culinary,
+            _                      => (ushort)0,
         };
 
         public void Set(byte kind, ushort value)
         {
             switch (kind)
             {
-                case SkillKind.Foraging:   Foraging   = value; break;
-                case SkillKind.Lumberjack: Lumberjack = value; break;
-                case SkillKind.Mining:     Mining     = value; break;
-                case SkillKind.Combat:     Combat     = value; break;
-                case SkillKind.Scavenging: Scavenging = value; break;
-                case SkillKind.Husbandry:  Husbandry  = value; break;
+                case SkillKind.Foraging:     Foraging     = value; break;
+                case SkillKind.Lumberjack:   Lumberjack   = value; break;
+                case SkillKind.Mining:       Mining       = value; break;
+                case SkillKind.Combat:       Combat       = value; break;
+                case SkillKind.Scavenging:   Scavenging   = value; break;
+                case SkillKind.Husbandry:    Husbandry    = value; break;
+                case SkillKind.Construction: Construction = value; break;
+                case SkillKind.Culinary:     Culinary     = value; break;
             }
         }
     }

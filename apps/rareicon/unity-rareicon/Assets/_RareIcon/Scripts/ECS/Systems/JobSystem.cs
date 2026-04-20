@@ -20,16 +20,28 @@ namespace RareIcon
             Entity nearestFarm = Entity.Null;
             int2   farmHex     = default;
             bool   hasFarm     = false;
+            Entity capital     = Entity.Null;
+            int2   capitalHex  = default;
+            bool   hasCapital  = false;
             foreach (var (b, e) in SystemAPI.Query<RefRO<Building>>().WithEntityAccess())
             {
-                if (b.ValueRO.Type == BuildingType.Farm)
+                if (!hasFarm && b.ValueRO.Type == BuildingType.Farm)
                 {
                     nearestFarm = e;
                     farmHex     = b.ValueRO.RootHex;
                     hasFarm     = true;
-                    break;
                 }
+                if (!hasCapital && b.ValueRO.Type == BuildingType.Capital)
+                {
+                    capital    = e;
+                    capitalHex = b.ValueRO.RootHex;
+                    hasCapital = true;
+                }
+                if (hasFarm && hasCapital) break;
             }
+
+            using var siteQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<ConstructionSite>());
+            using var sites = siteQuery.ToEntityArray(Allocator.Temp);
 
             foreach (var (priorities, reliefIntent, jobIntentRef, movement, transform, entity) in
                      SystemAPI.Query<
@@ -100,6 +112,42 @@ namespace RareIcon
                         bestHex    = farmHex;
                         bestEntity = nearestFarm;
                     }
+                }
+
+                if (p.Builder > bestPrio && sites.Length > 0 && hasCapital)
+                {
+                    int siteBestDist = int.MaxValue;
+                    Entity siteBest = Entity.Null;
+                    int2   siteBestHex = default;
+                    for (int si = 0; si < sites.Length; si++)
+                    {
+                        var site = EntityManager.GetComponentData<ConstructionSite>(sites[si]);
+                        int d = HexDistance(currentHex, site.RootHex);
+                        if (d < siteBestDist)
+                        {
+                            siteBestDist = d;
+                            siteBest = sites[si];
+                            siteBestHex = site.RootHex;
+                        }
+                    }
+                    if (siteBest != Entity.Null)
+                    {
+                        bestKind   = JobKind.Builder;
+                        bestPrio   = p.Builder;
+                        bestDist   = siteBestDist;
+                        bestHex    = siteBestHex;
+                        bestEntity = siteBest;
+                    }
+                }
+
+                if (p.Chef > bestPrio && hasCapital)
+                {
+                    int capDist = HexDistance(currentHex, capitalHex);
+                    bestKind   = JobKind.Chef;
+                    bestPrio   = p.Chef;
+                    bestDist   = capDist;
+                    bestHex    = capitalHex;
+                    bestEntity = capital;
                 }
 
                 jobIntentRef.ValueRW = new JobIntent

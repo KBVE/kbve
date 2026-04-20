@@ -31,6 +31,8 @@ namespace RareIcon
             Roll(ref skills, ref xp, SkillKind.Combat);
             Roll(ref skills, ref xp, SkillKind.Scavenging);
             Roll(ref skills, ref xp, SkillKind.Husbandry);
+            Roll(ref skills, ref xp, SkillKind.Construction);
+            Roll(ref skills, ref xp, SkillKind.Culinary);
         }
 
         static void Roll(ref Skills skills, ref SkillXP xp, byte kind)

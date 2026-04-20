@@ -14,6 +14,8 @@ namespace RareIcon
         public const byte Archer     = 4;
         public const byte Looter     = 5;
         public const byte Farmer     = 6;
+        public const byte Builder    = 7;
+        public const byte Chef       = 8;
     }
 
     /// <summary>
@@ -29,6 +31,8 @@ namespace RareIcon
         public byte Archer;
         public byte Looter;
         public byte Farmer;
+        public byte Builder;
+        public byte Chef;
 
         public byte Get(byte jobKind) => jobKind switch
         {
@@ -38,6 +42,8 @@ namespace RareIcon
             JobKind.Archer     => Archer,
             JobKind.Looter     => Looter,
             JobKind.Farmer     => Farmer,
+            JobKind.Builder    => Builder,
+            JobKind.Chef       => Chef,
             _                  => (byte)0,
         };
 
@@ -51,6 +57,8 @@ namespace RareIcon
                 case JobKind.Archer:     Archer     = priority; break;
                 case JobKind.Looter:     Looter     = priority; break;
                 case JobKind.Farmer:     Farmer     = priority; break;
+                case JobKind.Builder:    Builder    = priority; break;
+                case JobKind.Chef:       Chef       = priority; break;
             }
         }
     }

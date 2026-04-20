@@ -44,6 +44,9 @@ namespace RareIcon
         Wool        = 224,
         RawBeef     = 225,
         Leather     = 226,
+        CookedChicken = 227,
+        CookedMutton  = 228,
+        CookedBeef    = 229,
 
         // Quest / key items
         QuestScroll       = 300,

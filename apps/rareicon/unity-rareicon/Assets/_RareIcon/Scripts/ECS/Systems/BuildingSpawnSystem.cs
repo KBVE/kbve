@@ -124,9 +124,15 @@ namespace RareIcon
                 }
             }
 
-            // 3. Commit — deduct cost, spawn entity, claim hexes.
-            for (int i = 0; i < cost.Length; i++)
-                Consume(sourceInv, cost[i].ItemId, cost[i].Amount);
+            // 3. Commit — Capital draws its cost immediately from the King's pocket
+            //    (it's a magical land grant). Everything else becomes a
+            //    ConstructionSite; Builders haul the materials from Capital
+            //    storage during the build, so nothing is deducted up front.
+            if (req.BuildingType == BuildingType.Capital)
+            {
+                for (int i = 0; i < cost.Length; i++)
+                    Consume(sourceInv, cost[i].ItemId, cost[i].Amount);
+            }
 
             float3 pos = HexMeshUtil.HexToWorld(req.CenterHex.x, req.CenterHex.y, HexSize);
             pos.z = BuildingZ;
@@ -144,23 +150,41 @@ namespace RareIcon
             // Per-type tag — production systems query on these so the
             // recipe components get auto-attached by the matching
             // *InitSystem (FarmInitSystem, FurnaceInitSystem, ...).
-            switch (req.BuildingType)
+            // Capital is a magical grant — it lands fully functional at
+            // placement. Everything else becomes a ConstructionSite and
+            // waits for Builders to deliver materials before
+            // ConstructionCompleteSystem wires up its tag + production.
+            if (req.BuildingType == BuildingType.Capital)
             {
-                case BuildingType.Capital:
-                    ecb.AddComponent<CapitalTag>(building);
-                    ecb.AddComponent(building, new CapitalProduction
+                ecb.AddComponent<CapitalTag>(building);
+                ecb.AddComponent(building, new CapitalProduction
+                {
+                    Input1Id     = (ushort)ItemId.WoodLog,     Input1Amount = 1,
+                    Input2Id     = (ushort)ItemId.CactiNeedle, Input2Amount = 1,
+                    Input3Id     = (ushort)ItemId.Stone,       Input3Amount = 1,
+                    OutputId     = (ushort)ItemId.Arrow,       OutputAmount = 10,
+                    CycleEndsAt   = 0f,
+                    CycleDuration = 18f,
+                });
+            }
+            else
+            {
+                ecb.AddComponent(building, new ConstructionSite
+                {
+                    RootHex      = req.CenterHex,
+                    OwnerFaction = req.OwnerFaction,
+                });
+                var mats = ecb.AddBuffer<ConstructionMaterial>(building);
+                var buildCost = BuildingDB.GetCost(req.BuildingType);
+                for (int i = 0; i < buildCost.Length; i++)
+                {
+                    mats.Add(new ConstructionMaterial
                     {
-                        Input1Id     = (ushort)ItemId.WoodLog,     Input1Amount = 1,
-                        Input2Id     = (ushort)ItemId.CactiNeedle, Input2Amount = 1,
-                        Input3Id     = (ushort)ItemId.Stone,       Input3Amount = 1,
-                        OutputId     = (ushort)ItemId.Arrow,       OutputAmount = 10,
-                        CycleEndsAt   = 0f,
-                        CycleDuration = 18f,
+                        ItemId    = buildCost[i].ItemId,
+                        Needed    = (ushort)buildCost[i].Amount,
+                        Delivered = 0,
                     });
-                    break;
-                case BuildingType.Farm:     ecb.AddComponent<FarmTag>(building);     break;
-                case BuildingType.Barracks: ecb.AddComponent<BarracksTag>(building); break;
-                case BuildingType.Furnace:  ecb.AddComponent<FurnaceTag>(building);  break;
+                }
             }
 
             // Claim every hex in the footprint — HexOccupant on each tile
