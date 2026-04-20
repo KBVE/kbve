@@ -6,6 +6,7 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Rendering;
+using RareIcon.Native;
 
 namespace RareIcon
 {
@@ -253,6 +254,13 @@ namespace RareIcon
             var batchEntities = em.CreateEntity(archetype, landCount, Allocator.Temp);
             int idx = 0;
 
+            // Cheap fast-path: only call into the Rust store if this chunk
+            // ever diverged from gen. Pristine chunks (the common case)
+            // skip the per-hex FFI hop entirely.
+            var world = WorldStoreSystem.Instance;
+            bool hasGhost = world != null && world.IsValid &&
+                            world.HasChunk(chunkCoord.x, chunkCoord.y);
+
             for (int ly = 0; ly < ChunkSize; ly++)
             {
                 for (int lx = 0; lx < ChunkSize; lx++)
@@ -271,6 +279,20 @@ namespace RareIcon
                     em.SetComponentData(entity, new ChunkCoord { Value = chunkCoord });
 
                     var (res, mask) = HexResourceTable.Roll(biome, gx, gy);
+                    // Override with stored ghost-chunk state if this hex
+                    // was harvested before the chunk previously unloaded.
+                    if (hasGhost && world.TryGetHex(gx, gy, out var stored))
+                    {
+                        res = new HexResources
+                        {
+                            Wood      = stored.wood,
+                            Stone     = stored.stone,
+                            Berries   = stored.berries,
+                            Mushrooms = stored.mushrooms,
+                            Herbs     = stored.herbs,
+                        };
+                        mask = HexResourceTable.ComputeVisualMask(in res);
+                    }
                     em.SetComponentData(entity, res);
                     em.SetComponentData(entity, new HexResourceVisual { Value = (float)mask });
 
@@ -287,6 +309,54 @@ namespace RareIcon
 
             batchEntities.Dispose();
             _loadedChunks[chunkCoord] = entities;
+
+            // Re-materialize any ghost units that were saved when this chunk
+            // last unloaded. Has to come AFTER the hex loop so the units land
+            // on top of restored hex state (otherwise their CurrentHex lookup
+            // races the chunk entity creation).
+            if (hasGhost)
+            {
+                int unitCount = (int)world.UnitCountInChunk(chunkCoord.x, chunkCoord.y);
+                if (unitCount > 0)
+                {
+                    var ghostBuf = new FfiGhostUnit[unitCount];
+                    var taken = world.TakeUnitsInChunk(chunkCoord.x, chunkCoord.y, ghostBuf);
+                    for (int i = 0; i < taken; i++)
+                    {
+                        var g = ghostBuf[i];
+                        var hex = new int2(g.q, g.r);
+                        var state = new UnitSpawnState
+                        {
+                            Health    = g.health,
+                            MaxHealth = g.max_health,
+                            Inv0Id = g.inv0_id, Inv0Qty = g.inv0_qty,
+                            Inv1Id = g.inv1_id, Inv1Qty = g.inv1_qty,
+                            Inv2Id = g.inv2_id, Inv2Qty = g.inv2_qty,
+                            Inv3Id = g.inv3_id, Inv3Qty = g.inv3_qty,
+                        };
+
+                        // Dispatch by unit_type so a saved King restores as
+                        // a King (KingTag, no auto-wander) rather than a
+                        // generic goblin. Future creature types add cases
+                        // here; default falls through to Goblin.
+                        if (g.unit_type == UnitType.King)
+                        {
+                            UnitSpawnSystem.SpawnKingAt(em, hex, state);
+                        }
+                        else
+                        {
+                            // Reseed RNG from position + index — restoration
+                            // loses the original RandomState (not in the FFI
+                            // struct yet), but two restored goblins at the
+                            // same coord still diverge thanks to the index mix.
+                            uint rng = (uint)g.q * 0x9E3779B1u
+                                     ^ (uint)g.r * 0x85EBCA77u
+                                     ^ ((uint)i + 1u);
+                            UnitSpawnSystem.SpawnGoblinAt(em, hex, rng | 1u, state);
+                        }
+                    }
+                }
+            }
         }
 
         void DespawnChunk(int2 chunkCoord)
@@ -299,9 +369,72 @@ namespace RareIcon
                 for (int lx = 0; lx < ChunkSize; lx++)
                     HexHoverSystem.RemoveHex(new int2(startX + lx, startY + ly));
 
+            // Save any hex whose resources have diverged from the gen-time
+            // roll. Pristine hexes (the common case) skip the FFI hop —
+            // saving them would just bloat the Rust store.
+            var world = WorldStoreSystem.Instance;
+            bool canSave = world != null && world.IsValid;
+
+            // Save + destroy any units whose CurrentHex falls inside this
+            // chunk. Has to happen BEFORE the hex entity cleanup below so
+            // the units are still fully queryable when we read their state.
+            if (canSave)
+            {
+                int chunkX0 = startX;
+                int chunkY0 = startY;
+                int chunkX1 = startX + ChunkSize;
+                int chunkY1 = startY + ChunkSize;
+
+                var unitQuery = GetEntityQuery(typeof(Unit), typeof(UnitMovement));
+                var unitArr = unitQuery.ToEntityArray(Allocator.Temp);
+                for (int u = 0; u < unitArr.Length; u++)
+                {
+                    var unitEntity = unitArr[u];
+                    var mov = EntityManager.GetComponentData<UnitMovement>(unitEntity);
+                    var hex = mov.CurrentHex;
+                    if (hex.x < chunkX0 || hex.x >= chunkX1 ||
+                        hex.y < chunkY0 || hex.y >= chunkY1) continue;
+
+                    world.SaveUnit(MakeGhostUnit(unitEntity, mov));
+                    EntityManager.DestroyEntity(unitEntity);
+                }
+                unitArr.Dispose();
+            }
+
             for (int i = 0; i < entities.Length; i++)
-                if (EntityManager.Exists(entities[i]))
-                    EntityManager.DestroyEntity(entities[i]);
+            {
+                var entity = entities[i];
+                if (!EntityManager.Exists(entity)) continue;
+
+                if (canSave &&
+                    EntityManager.HasComponent<HexResources>(entity) &&
+                    EntityManager.HasComponent<HexCoord>(entity) &&
+                    EntityManager.HasComponent<BiomeType>(entity))
+                {
+                    var coord   = EntityManager.GetComponentData<HexCoord>(entity);
+                    var biome   = EntityManager.GetComponentData<BiomeType>(entity);
+                    var current = EntityManager.GetComponentData<HexResources>(entity);
+                    var (gen, _) = HexResourceTable.Roll(biome.Value, coord.Q, coord.R);
+
+                    if (current.Wood      != gen.Wood      ||
+                        current.Stone     != gen.Stone     ||
+                        current.Berries   != gen.Berries   ||
+                        current.Mushrooms != gen.Mushrooms ||
+                        current.Herbs     != gen.Herbs)
+                    {
+                        world.SaveHex(coord.Q, coord.R, new FfiHexResources
+                        {
+                            wood      = current.Wood,
+                            stone     = current.Stone,
+                            berries   = current.Berries,
+                            mushrooms = current.Mushrooms,
+                            herbs     = current.Herbs,
+                        });
+                    }
+                }
+
+                EntityManager.DestroyEntity(entity);
+            }
 
             entities.Dispose();
             _loadedChunks.Remove(chunkCoord);
@@ -312,6 +445,47 @@ namespace RareIcon
             float r = worldY / (HexSize * 1.5f);
             float q = worldX / (HexSize * math.sqrt(3f)) - r * 0.5f;
             return new int2((int)math.floor(q / ChunkSize), (int)math.floor(r / ChunkSize));
+        }
+
+        // Snapshots a unit entity into the flat FFI struct so the Rust store
+        // can hold it across chunk reloads. Mirrors the per-unit data the
+        // hover sweep already reads (first 4 inventory slots + health).
+        // Energy/Mana/RandomState are NOT preserved in v1 — they reseed on
+        // restore, which is acceptable since regen fills stats and the unit
+        // only loses RNG continuity (next direction pick is fresh).
+        FfiGhostUnit MakeGhostUnit(Entity e, in UnitMovement mov)
+        {
+            var unit = EntityManager.GetComponentData<Unit>(e);
+
+            float health = 0f, maxHealth = 0f;
+            if (EntityManager.HasComponent<Health>(e))
+            {
+                var h = EntityManager.GetComponentData<Health>(e);
+                health = h.Value; maxHealth = h.Max;
+            }
+
+            ushort i0 = 0, c0 = 0, i1 = 0, c1 = 0, i2 = 0, c2 = 0, i3 = 0, c3 = 0;
+            if (EntityManager.HasBuffer<InventorySlot>(e))
+            {
+                var inv = EntityManager.GetBuffer<InventorySlot>(e);
+                if (inv.Length > 0) { i0 = inv[0].ItemId; c0 = inv[0].Count; }
+                if (inv.Length > 1) { i1 = inv[1].ItemId; c1 = inv[1].Count; }
+                if (inv.Length > 2) { i2 = inv[2].ItemId; c2 = inv[2].Count; }
+                if (inv.Length > 3) { i3 = inv[3].ItemId; c3 = inv[3].Count; }
+            }
+
+            return new FfiGhostUnit
+            {
+                unit_type  = unit.Type,
+                q          = mov.CurrentHex.x,
+                r          = mov.CurrentHex.y,
+                health     = health,
+                max_health = maxHealth,
+                inv0_id    = i0, inv0_qty = c0,
+                inv1_id    = i1, inv1_qty = c1,
+                inv2_id    = i2, inv2_qty = c2,
+                inv3_id    = i3, inv3_qty = c3,
+            };
         }
     }
 }
