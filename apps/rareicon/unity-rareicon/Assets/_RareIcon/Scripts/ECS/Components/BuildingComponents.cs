@@ -19,6 +19,7 @@ namespace RareIcon
         public const byte GoblinCave = 5;
         public const byte Inn        = 6;
         public const byte Market     = 7;
+        public const byte Outpost    = 8;
         // Tower, Wall, Mine, etc. land here as we add their .hlsl files.
     }
 
@@ -36,6 +37,7 @@ namespace RareIcon
         public const byte GoblinCave = 5;
         public const byte Inn        = 6;
         public const byte Market     = 7;
+        public const byte Outpost    = 8;
     }
 
     /// <summary>Marker tag for the Capital — craft / governance systems query key.</summary>
@@ -115,6 +117,15 @@ namespace RareIcon
         public ushort FoodCost;
     }
 
+    /// <summary>Transient request emitted by the Burst-compiled BarracksProductionSystem once a recruit cycle clears cost; SoldierSpawnApplierSystem drains these on the main thread and calls UnitSpawnSystem.SpawnGoblinAt since prefab spawn still requires managed asset access.</summary>
+    public struct SpawnSoldierRequest : IComponentData
+    {
+        public int2 Hex;
+        public uint Seed;
+        public byte Faction;
+        public byte UnitType;
+    }
+
     /// <summary>Transient tag — placed on a building that hasn't been assigned a dedicated worker yet. BuildingStaffingSystem consumes this and stacks the matching role (Farm→Farmer, Barracks→Guard, Furnace→Chef, Capital→Builder) onto a pure-Looter goblin at priority 5, then removes the tag.</summary>
     public struct NeedsStaffing : IComponentData { }
 
@@ -123,6 +134,12 @@ namespace RareIcon
 
     /// <summary>Marker tag for Goblin Cave buildings — production + refill system query key.</summary>
     public struct GoblinCaveTag : IComponentData { }
+
+    /// <summary>Marker tag for Outpost buildings — frontier forts that extend empire territory. Placement is gated to within 5 axial hexes of any same-faction TerritoryEmitter; on completion the entity gains its own TerritoryEmitter (radius 5). Connectivity back to Capital is resolved by EmpireConnectivitySystem via BFS; orphaned outposts lose the EmpireConnected tag and stop projecting territory until a new outpost reconnects the chain.</summary>
+    public struct OutpostTag : IComponentData { }
+
+    /// <summary>Tag indicating a TerritoryEmitter entity is reachable from its faction's Capital via a chain of same-faction emitters each within 5 hexes of the next. Added/removed by EmpireConnectivitySystem. TerritoryBakeSystem filters on this so orphaned emitters stop contributing to the territory union; visual systems key off it to dim the outpost's banner + torch when the chain breaks.</summary>
+    public struct EmpireConnected : IComponentData { }
 
     /// <summary>Per-cave turn-cadence state: consumes FoodPerGoblin rations from the cave's InventorySlot buffer each cadence turn and spawns one Looter-role goblin. Refill is carried out by Looters — JobSystem routes any Looter with food toward a needy cave and any empty-handed Looter toward the Capital to pick up; CapitalFoodPickupSystem + CaveFoodDeliverySystem handle the two transfer legs.</summary>
     public struct GoblinCaveProduction : IComponentData
@@ -167,6 +184,13 @@ namespace RareIcon
         /// <summary>WorldClock.AbsSeconds at which the current cycle finishes; 0 = "not started yet".</summary>
         public float CycleEndsAt;
         public float CycleDuration;
+    }
+
+    /// <summary>Generic per-building visual activity flag (0 = idle / cold, 1 = actively working). Individual per-type systems (FurnaceActiveVisualSystem, future InnActive / CaveActive / MarketActive writers) resolve "am I active?" from their own recipe state and write this value; every building shader include reads `_BuildingActive` to gate its fire / glow / smoke details on combustion state. Keeps the "no fuel, no smoke" + "empty inn, dark windows" rules uniform across the world.</summary>
+    [MaterialProperty("_BuildingActive")]
+    public struct BuildingActiveVisual : IComponentData
+    {
+        public float Value;
     }
 
     /// <summary>

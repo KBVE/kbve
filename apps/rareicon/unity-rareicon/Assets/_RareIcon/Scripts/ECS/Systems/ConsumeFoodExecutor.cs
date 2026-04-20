@@ -1,4 +1,5 @@
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
@@ -25,7 +26,7 @@ namespace RareIcon
     [BurstCompile]
     public partial struct ConsumeFoodJob : IJobEntity
     {
-        public ItemDBSingleton Db;
+        [ReadOnly] public ItemDBSingleton Db;
 
         void Execute(ref Hunger hunger,
                      in ReliefIntent intent,

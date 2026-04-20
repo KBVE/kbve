@@ -1,49 +1,75 @@
+using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Turn-cadence recruitment: once per BarracksProduction.CadenceTurns, consume CoinCost BanditCoin + FoodCost food (any FoodItems.IsFood item) from the building's InventorySlot storage and spawn one Soldier on an adjacent hex. Spawn only fires when the full cost is in stock; partial stock waits for the next hauler delivery.</summary>
+    /// <summary>Turn-cadence recruitment: once per BarracksProduction.CadenceTurns, consume CoinCost BanditCoin + FoodCost food (any FoodItems.IsFood item) from the building's InventorySlot storage and emit a SpawnSoldierRequest. Burst ISystem + ScheduleParallel over barracks entities — each barracks only touches its own inventory buffer, so the per-entity DynamicBuffer writes are race-free. Spawn fanout stays on the main thread in SoldierSpawnApplierSystem since UnitSpawnSystem.SpawnGoblinAt still needs managed prefab access.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
-    public partial class BarracksProductionSystem : SystemBase
+    public partial struct BarracksProductionSystem : ISystem
     {
-        protected override void OnUpdate()
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
             uint currentTurn = SystemAPI.GetSingleton<WorldClock>().TurnIndex;
 
-            var em = EntityManager;
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
 
-            foreach (var (prodRW, buildingRO, storageRO, entity) in
-                     SystemAPI.Query<RefRW<BarracksProduction>, RefRO<Building>, DynamicBuffer<InventorySlot>>()
-                              .WithAll<BarracksTag>()
-                              .WithEntityAccess())
+            state.Dependency = new BarracksProductionJob
             {
-                var prod = prodRW.ValueRO;
-                if (currentTurn < prod.LastProducedTurn + prod.CadenceTurns) continue;
+                CurrentTurn = currentTurn,
+                Ecb         = ecb.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
+        }
+    }
 
-                var storage = storageRO;
-                if (CountItem(storage, (ushort)ItemId.BanditCoin) < prod.CoinCost) continue;
-                if (FoodItems.Count(storage) < prod.FoodCost) continue;
+    [BurstCompile]
+    [WithAll(typeof(BarracksTag))]
+    public partial struct BarracksProductionJob : IJobEntity
+    {
+        public uint CurrentTurn;
+        public EntityCommandBuffer.ParallelWriter Ecb;
 
-                Consume(ref storage, (ushort)ItemId.BanditCoin, prod.CoinCost);
-                ConsumeFood(ref storage, prod.FoodCost);
+        void Execute(Entity entity,
+                     [ChunkIndexInQuery] int chunkIdx,
+                     ref BarracksProduction prod,
+                     in Building building,
+                     ref DynamicBuffer<InventorySlot> storage)
+        {
+            if (CurrentTurn < prod.LastProducedTurn + prod.CadenceTurns) return;
+            if (CountItem(storage, (ushort)ItemId.BanditCoin) < prod.CoinCost) return;
+            if (FoodItems.Count(storage) < prod.FoodCost) return;
 
-                int2 rootHex = buildingRO.ValueRO.RootHex;
-                int dir = (int)((uint)(entity.Index + (int)currentTurn) % 6u);
-                int2 spawnHex = rootHex + HexMeshUtil.HexNeighbor(dir);
+            Consume(ref storage, (ushort)ItemId.BanditCoin, prod.CoinCost);
+            ConsumeFood(ref storage, prod.FoodCost);
 
-                uint rng = (uint)entity.Index * 0x9E3779B1u ^ currentTurn * 0x85EBCA77u;
-                rng |= 1u;
-                UnitSpawnSystem.SpawnGoblinAt(em, spawnHex, rng,
-                    default, FactionType.Player, UnitType.Soldier);
+            int2 rootHex = building.RootHex;
+            int dir = (int)((uint)(entity.Index + (int)CurrentTurn) % 6u);
+            int2 spawnHex = rootHex + HexMeshUtil.HexNeighbor(dir);
 
-                prod.LastProducedTurn = currentTurn;
-                prodRW.ValueRW = prod;
-            }
+            uint rng = (uint)entity.Index * 0x9E3779B1u ^ CurrentTurn * 0x85EBCA77u;
+            rng |= 1u;
+
+            var request = Ecb.CreateEntity(chunkIdx);
+            Ecb.AddComponent(chunkIdx, request, new SpawnSoldierRequest
+            {
+                Hex      = spawnHex,
+                Seed     = rng,
+                Faction  = FactionType.Player,
+                UnitType = UnitType.Soldier,
+            });
+
+            prod.LastProducedTurn = CurrentTurn;
         }
 
-        static int CountItem(DynamicBuffer<InventorySlot> inv, ushort itemId)
+        static int CountItem(in DynamicBuffer<InventorySlot> inv, ushort itemId)
         {
             int total = 0;
             for (int i = 0; i < inv.Length; i++)
@@ -75,6 +101,35 @@ namespace RareIcon
                 amount -= take;
                 inv[i] = slot;
             }
+        }
+    }
+
+    /// <summary>Main-thread drain for SpawnSoldierRequest intents emitted by BarracksProductionSystem. Kept on SystemBase because UnitSpawnSystem.SpawnGoblinAt reaches into managed prefab/mesh/material caches.</summary>
+    [UpdateInGroup(typeof(EconomySystemGroup))]
+    [UpdateAfter(typeof(BarracksProductionSystem))]
+    public partial class SoldierSpawnApplierSystem : SystemBase
+    {
+        protected override void OnUpdate()
+        {
+            var em = EntityManager;
+
+            var requestEntities = new NativeList<Entity>(8, Allocator.Temp);
+            foreach (var (_, reqEntity) in
+                     SystemAPI.Query<RefRO<SpawnSoldierRequest>>().WithEntityAccess())
+            {
+                requestEntities.Add(reqEntity);
+            }
+
+            for (int i = 0; i < requestEntities.Length; i++)
+            {
+                var reqEntity = requestEntities[i];
+                var data = em.GetComponentData<SpawnSoldierRequest>(reqEntity);
+                UnitSpawnSystem.SpawnGoblinAt(em, data.Hex, data.Seed,
+                    default, data.Faction, data.UnitType);
+                em.DestroyEntity(reqEntity);
+            }
+
+            requestEntities.Dispose();
         }
     }
 }

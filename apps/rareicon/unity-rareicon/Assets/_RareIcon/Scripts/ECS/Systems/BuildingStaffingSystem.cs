@@ -1,20 +1,48 @@
-using System.Collections.Generic;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 
 namespace RareIcon
 {
-    /// <summary>When a building finishes (NeedsStaffing tag), promotes one pure-Looter goblin by stacking the matching specialty role at priority 5 on top of their existing Looter. Capital→Builder, Farm→Farmer, Barracks→Archer, Furnace→Chef. Unspecialized means Looter>0 and every other role==0 — already-promoted goblins are skipped so buildings don't poach dedicated workers. If no candidate exists, the tag persists for a future retry.</summary>
+    /// <summary>Promotes one pure-Looter goblin per freshly-staffed building. Capital→Builder, Farm→Farmer, Barracks→Guard, Furnace→Chef. Unspecialized = Looter>0 with every other role==0, so already-promoted goblins aren't poached. Tag persists when no candidate exists so a later tick retries.</summary>
+    public struct StaffingRequest
+    {
+        public Entity Building;
+        public byte   Role;
+    }
+
+    [BurstCompile]
     [UpdateInGroup(typeof(CleanupSystemGroup))]
-    public partial class BuildingStaffingSystem : SystemBase
+    public partial struct BuildingStaffingSystem : ISystem
     {
         const byte SpecialtyPriority = 5;
 
-        readonly List<(Entity Building, byte Role)> _toStaff = new();
+        EntityQuery _candidateQuery;
+        EntityQuery _buildingQuery;
 
-        protected override void OnUpdate()
+        [BurstCompile]
+        public void OnCreate(ref SystemState state)
         {
-            _toStaff.Clear();
+            _candidateQuery = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<Unit>()
+                .WithAllRW<JobPriorities>()
+                .Build(ref state);
+
+            _buildingQuery = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<Building, NeedsStaffing>()
+                .WithNone<ConstructionSite>()
+                .Build(ref state);
+
+            state.RequireForUpdate(_buildingQuery);
+        }
+
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            var requests = new NativeList<StaffingRequest>(8, Allocator.TempJob);
 
             foreach (var (building, entity) in
                      SystemAPI.Query<RefRO<Building>>()
@@ -22,40 +50,34 @@ namespace RareIcon
                               .WithNone<ConstructionSite>()
                               .WithEntityAccess())
             {
-                byte role = RoleForBuilding(building.ValueRO.Type);
-                if (role == JobKind.None) { EntityManager.RemoveComponent<NeedsStaffing>(entity); continue; }
-                _toStaff.Add((entity, role));
-            }
-
-            if (_toStaff.Count == 0) return;
-
-            using var query = EntityManager.CreateEntityQuery(
-                ComponentType.ReadOnly<Unit>(),
-                ComponentType.ReadWrite<JobPriorities>());
-            using var candidates = query.ToEntityArray(Allocator.Temp);
-
-            for (int i = 0; i < _toStaff.Count; i++)
-            {
-                var buildingEntity = _toStaff[i].Building;
-                var role           = _toStaff[i].Role;
-
-                Entity chosen = Entity.Null;
-                for (int c = 0; c < candidates.Length; c++)
+                requests.Add(new StaffingRequest
                 {
-                    var cand = candidates[c];
-                    var prios = EntityManager.GetComponentData<JobPriorities>(cand);
-                    if (!IsPureLooter(prios)) continue;
-                    chosen = cand;
-                    break;
-                }
-
-                if (chosen == Entity.Null) continue;
-
-                var existing = EntityManager.GetComponentData<JobPriorities>(chosen);
-                existing.Set(role, SpecialtyPriority);
-                EntityManager.SetComponentData(chosen, existing);
-                EntityManager.RemoveComponent<NeedsStaffing>(buildingEntity);
+                    Building = entity,
+                    Role     = RoleForBuilding(building.ValueRO.Type),
+                });
             }
+
+            if (requests.Length == 0)
+            {
+                requests.Dispose();
+                return;
+            }
+
+            var candidates = _candidateQuery.ToEntityArray(Allocator.TempJob);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
+
+            state.Dependency = new StaffingAssignJob
+            {
+                Requests          = requests,
+                Candidates        = candidates,
+                PrioritiesLookup  = SystemAPI.GetComponentLookup<JobPriorities>(false),
+                SpecialtyPriority = SpecialtyPriority,
+                Ecb               = ecb,
+            }.Schedule(state.Dependency);
+
+            state.Dependency = requests.Dispose(state.Dependency);
+            state.Dependency = candidates.Dispose(state.Dependency);
         }
 
         static byte RoleForBuilding(byte buildingType) => buildingType switch
@@ -66,6 +88,43 @@ namespace RareIcon
             BuildingType.Furnace  => JobKind.Chef,
             _                     => JobKind.None,
         };
+    }
+
+    [BurstCompile]
+    public struct StaffingAssignJob : IJob
+    {
+        [ReadOnly] public NativeList<StaffingRequest> Requests;
+        [ReadOnly] public NativeArray<Entity>         Candidates;
+
+        public ComponentLookup<JobPriorities> PrioritiesLookup;
+        public EntityCommandBuffer            Ecb;
+        public byte                           SpecialtyPriority;
+
+        public void Execute()
+        {
+            for (int i = 0; i < Requests.Length; i++)
+            {
+                var req = Requests[i];
+                if (req.Role == JobKind.None)
+                {
+                    Ecb.RemoveComponent<NeedsStaffing>(req.Building);
+                    continue;
+                }
+
+                for (int c = 0; c < Candidates.Length; c++)
+                {
+                    var cand = Candidates[c];
+                    if (!PrioritiesLookup.HasComponent(cand)) continue;
+                    var prios = PrioritiesLookup[cand];
+                    if (!IsPureLooter(prios)) continue;
+
+                    prios.Set(req.Role, SpecialtyPriority);
+                    PrioritiesLookup[cand] = prios;
+                    Ecb.RemoveComponent<NeedsStaffing>(req.Building);
+                    break;
+                }
+            }
+        }
 
         static bool IsPureLooter(in JobPriorities p)
         {

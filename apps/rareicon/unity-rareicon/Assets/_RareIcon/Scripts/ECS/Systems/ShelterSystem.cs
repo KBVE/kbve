@@ -1,104 +1,148 @@
-using System.Collections.Generic;
+using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Rendering;
 
 namespace RareIcon
 {
-    /// <summary>Auto-shelters the idle King onto the Capital footprint (hidden + suspended) and processes UI-published ReleaseShelterRequest entities. Sheltered units keep their Entity + state; only render / movement / collision / command participation is paused.</summary>
+    /// <summary>Auto-shelters the idle King onto the Capital footprint (hidden + suspended) and processes UI-published ReleaseShelterRequest entities. Sheltered units keep their Entity + state; only render / movement / collision / command participation pauses. Burst ISystem: release + destroy run ScheduleParallel via ECB, shelter-king pass runs ScheduleParallel with readonly HexLookup/Occupant/Capital lookups.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(CleanupSystemGroup))]
-    public partial class ShelterSystem : SystemBase
+    public partial struct ShelterSystem : ISystem
     {
-        readonly List<(Entity Unit, Entity Host)> _toShelter = new();
-        readonly List<Entity>                     _toRelease = new();
-        readonly List<Entity>                     _requests  = new();
-        readonly List<Entity>                     _hosts     = new();
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
-        protected override void OnUpdate()
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
-            ProcessReleases();
-            AutoShelterKing();
+            ProcessReleases(ref state);
+            AutoShelterKing(ref state);
         }
 
-        void AutoShelterKing()
+        void ProcessReleases(ref SystemState state)
         {
-            _toShelter.Clear();
+            var hosts = new NativeList<Entity>(4, Allocator.TempJob);
+            foreach (var req in SystemAPI.Query<RefRO<ReleaseShelterRequest>>())
+                hosts.Add(req.ValueRO.Host);
 
-            foreach (var (movement, goal, entity) in
-                     SystemAPI.Query<RefRO<UnitMovement>, RefRO<MovementGoal>>()
-                              .WithAll<KingTag, ControlledUnitTag>()
-                              .WithNone<ShelteredInside>()
-                              .WithEntityAccess())
+            if (hosts.Length == 0)
             {
-                if (goal.ValueRO.Kind != GoalKind.None) continue;
-                if (!movement.ValueRO.CurrentHex.Equals(movement.ValueRO.TargetHex)) continue;
-
-                if (SystemAPI.HasComponent<ShelterCooldown>(entity))
-                {
-                    var cd = SystemAPI.GetComponent<ShelterCooldown>(entity);
-                    if (cd.WanderStepAtRelease == movement.ValueRO.WanderStep) continue;
-                }
-
-                if (!HexHoverSystem.TryGetHexEntity(movement.ValueRO.CurrentHex, out var tile)) continue;
-                if (!SystemAPI.HasComponent<HexOccupant>(tile)) continue;
-
-                var building = SystemAPI.GetComponent<HexOccupant>(tile).Building;
-                if (building == Entity.Null) continue;
-                if (!SystemAPI.HasComponent<CapitalTag>(building)) continue;
-
-                _toShelter.Add((entity, building));
+                hosts.Dispose();
+                return;
             }
 
-            for (int i = 0; i < _toShelter.Count; i++)
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
+
+            state.Dependency = new ReleaseShelterJob
             {
-                var pair = _toShelter[i];
-                EntityManager.AddComponentData(pair.Unit, new ShelteredInside { Host = pair.Host });
-                EntityManager.AddComponent<DisableRendering>(pair.Unit);
-            }
+                Hosts = hosts.AsDeferredJobArray(),
+                Ecb   = ecb.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
+
+            state.Dependency = new DestroyReleaseRequestJob
+            {
+                Ecb = ecb.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
+
+            state.Dependency = hosts.Dispose(state.Dependency);
         }
 
-        void ProcessReleases()
+        void AutoShelterKing(ref SystemState state)
         {
-            _requests.Clear();
-            _toRelease.Clear();
-            _hosts.Clear();
+            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
 
-            foreach (var (req, reqEntity) in
-                     SystemAPI.Query<RefRO<ReleaseShelterRequest>>().WithEntityAccess())
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
+
+            state.Dependency = new AutoShelterKingJob
             {
-                _requests.Add(reqEntity);
-                _hosts.Add(req.ValueRO.Host);
-            }
+                HexLookup      = hexLookup.Lookup,
+                OccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
+                CapitalLookup  = SystemAPI.GetComponentLookup<CapitalTag>(true),
+                CooldownLookup = SystemAPI.GetComponentLookup<ShelterCooldown>(true),
+                Ecb            = ecb.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
+        }
+    }
 
-            if (_hosts.Count == 0) return;
+    [BurstCompile]
+    [WithAll(typeof(ShelteredInside))]
+    public partial struct ReleaseShelterJob : IJobEntity
+    {
+        [ReadOnly] public NativeArray<Entity> Hosts;
 
-            foreach (var (shelter, entity) in
-                     SystemAPI.Query<RefRO<ShelteredInside>>().WithEntityAccess())
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity entity,
+                     [ChunkIndexInQuery] int chunkIdx,
+                     in ShelteredInside shelter,
+                     in UnitMovement movement)
+        {
+            for (int i = 0; i < Hosts.Length; i++)
             {
-                for (int i = 0; i < _hosts.Count; i++)
+                if (shelter.Host != Hosts[i]) continue;
+
+                Ecb.RemoveComponent<ShelteredInside>(chunkIdx, entity);
+                Ecb.RemoveComponent<DisableRendering>(chunkIdx, entity);
+                Ecb.AddComponent(chunkIdx, entity, new ShelterCooldown
                 {
-                    if (shelter.ValueRO.Host == _hosts[i])
-                    {
-                        _toRelease.Add(entity);
-                        break;
-                    }
-                }
+                    WanderStepAtRelease = movement.WanderStep,
+                });
+                return;
             }
+        }
+    }
 
-            for (int i = 0; i < _toRelease.Count; i++)
+    [BurstCompile]
+    [WithAll(typeof(ReleaseShelterRequest))]
+    public partial struct DestroyReleaseRequestJob : IJobEntity
+    {
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity entity, [ChunkIndexInQuery] int chunkIdx)
+        {
+            Ecb.DestroyEntity(chunkIdx, entity);
+        }
+    }
+
+    [BurstCompile]
+    [WithAll(typeof(KingTag), typeof(ControlledUnitTag))]
+    [WithNone(typeof(ShelteredInside))]
+    public partial struct AutoShelterKingJob : IJobEntity
+    {
+        [ReadOnly] public NativeHashMap<int2, Entity>      HexLookup;
+        [ReadOnly] public ComponentLookup<HexOccupant>     OccupantLookup;
+        [ReadOnly] public ComponentLookup<CapitalTag>      CapitalLookup;
+        [ReadOnly] public ComponentLookup<ShelterCooldown> CooldownLookup;
+
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity entity,
+                     [ChunkIndexInQuery] int chunkIdx,
+                     in UnitMovement movement,
+                     in MovementGoal goal)
+        {
+            if (goal.Kind != GoalKind.None) return;
+            if (!movement.CurrentHex.Equals(movement.TargetHex)) return;
+
+            if (CooldownLookup.HasComponent(entity))
             {
-                var unit = _toRelease[i];
-                EntityManager.RemoveComponent<ShelteredInside>(unit);
-                EntityManager.RemoveComponent<DisableRendering>(unit);
-
-                uint step = EntityManager.GetComponentData<UnitMovement>(unit).WanderStep;
-                var cd = new ShelterCooldown { WanderStepAtRelease = step };
-                if (EntityManager.HasComponent<ShelterCooldown>(unit))
-                    EntityManager.SetComponentData(unit, cd);
-                else
-                    EntityManager.AddComponentData(unit, cd);
+                var cd = CooldownLookup[entity];
+                if (cd.WanderStepAtRelease == movement.WanderStep) return;
             }
-            for (int i = 0; i < _requests.Count; i++)
-                EntityManager.DestroyEntity(_requests[i]);
+
+            if (!HexLookup.TryGetValue(movement.CurrentHex, out var tile)) return;
+            if (!OccupantLookup.HasComponent(tile)) return;
+
+            var building = OccupantLookup[tile].Building;
+            if (building == Entity.Null) return;
+            if (!CapitalLookup.HasComponent(building)) return;
+
+            Ecb.AddComponent(chunkIdx, entity, new ShelteredInside { Host = building });
+            Ecb.AddComponent<DisableRendering>(chunkIdx, entity);
         }
     }
 }

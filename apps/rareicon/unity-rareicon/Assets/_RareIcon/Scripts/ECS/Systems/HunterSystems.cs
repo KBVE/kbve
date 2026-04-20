@@ -1,10 +1,8 @@
-using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
-using Unity.Transforms;
 
 namespace RareIcon
 {
@@ -14,63 +12,74 @@ namespace RareIcon
         public const int LivestockCapPerFarm = 100;
     }
 
-    /// <summary>Hunter-job units with no active goal target the nearest untamed PassiveAnimalTag within range; writes a Hunt MovementGoal so pathing takes over.</summary>
+    /// <summary>Hunter-job units with no active goal target the nearest untamed PassiveAnimalTag within range; writes a Hunt MovementGoal so pathing takes over. Burst ISystem: main-thread gathers animal hex positions into a TempJob NativeList (each hunter only writes its own MovementGoal), then ScheduleParallel runs the per-hunter pick.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(JobSystem))]
-    public partial class WildlifeHuntBehaviorSystem : SystemBase
+    public partial struct WildlifeHuntBehaviorSystem : ISystem
     {
         const int HuntRadius = 8;
 
-        protected override void OnUpdate()
-        {
-            var animals    = new NativeList<int2>(64, Allocator.Temp);
-            var animalEnts = new NativeList<Entity>(64, Allocator.Temp);
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
-            foreach (var (movement, entity) in
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            var animals = new NativeList<int2>(64, Allocator.TempJob);
+            foreach (var movement in
                      SystemAPI.Query<RefRO<UnitMovement>>()
                               .WithAll<PassiveAnimalTag>()
-                              .WithNone<TamedTag>()
-                              .WithEntityAccess())
+                              .WithNone<TamedTag>())
             {
                 animals.Add(movement.ValueRO.CurrentHex);
-                animalEnts.Add(entity);
             }
 
             if (animals.Length == 0)
             {
                 animals.Dispose();
-                animalEnts.Dispose();
                 return;
             }
 
-            foreach (var (priorities, movement, goalRW) in
-                     SystemAPI.Query<RefRO<JobPriorities>, RefRO<UnitMovement>, RefRW<MovementGoal>>())
+            state.Dependency = new WildlifeHuntJob
             {
-                if (priorities.ValueRO.Hunter == 0) continue;
-                if (goalRW.ValueRO.Priority > GoalPriority.Hunt) continue;
+                Animals    = animals.AsDeferredJobArray(),
+                HuntRadius = HuntRadius,
+            }.ScheduleParallel(state.Dependency);
 
-                var here = movement.ValueRO.CurrentHex;
-                int bestDist = int.MaxValue;
-                int2 bestHex = here;
-                bool found = false;
-                for (int i = 0; i < animals.Length; i++)
-                {
-                    int d = HexDistance(here, animals[i]);
-                    if (d > HuntRadius) continue;
-                    if (d < bestDist) { bestDist = d; bestHex = animals[i]; found = true; }
-                }
+            state.Dependency = animals.Dispose(state.Dependency);
+        }
+    }
 
-                if (!found) continue;
-                goalRW.ValueRW = new MovementGoal
-                {
-                    Kind      = GoalKind.Hunt,
-                    Priority  = GoalPriority.Hunt,
-                    TargetHex = bestHex,
-                };
+    [BurstCompile]
+    public partial struct WildlifeHuntJob : IJobEntity
+    {
+        [ReadOnly] public NativeArray<int2> Animals;
+        public int HuntRadius;
+
+        void Execute(in JobPriorities priorities, in UnitMovement movement, ref MovementGoal goal)
+        {
+            if (priorities.Hunter == 0) return;
+            if (goal.Priority > GoalPriority.Hunt) return;
+
+            var here = movement.CurrentHex;
+            int bestDist = int.MaxValue;
+            int2 bestHex = here;
+            bool found = false;
+            for (int i = 0; i < Animals.Length; i++)
+            {
+                int d = HexDistance(here, Animals[i]);
+                if (d > HuntRadius) continue;
+                if (d < bestDist) { bestDist = d; bestHex = Animals[i]; found = true; }
             }
 
-            animals.Dispose();
-            animalEnts.Dispose();
+            if (!found) return;
+            goal = new MovementGoal
+            {
+                Kind      = GoalKind.Hunt,
+                Priority  = GoalPriority.Hunt,
+                TargetHex = bestHex,
+            };
         }
 
         static int HexDistance(int2 a, int2 b)
