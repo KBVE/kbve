@@ -193,6 +193,13 @@ namespace RareIcon
         public float Value;
     }
 
+    /// <summary>Per-instance construction progress (0 = just placed, 1 = complete). Written each frame by ConstructionProgressSystem from the ConstructionMaterial delivered/needed sum. Shader fades desaturated translucent ghost → full-color as progress climbs.</summary>
+    [MaterialProperty("_ConstructionProgress")]
+    public struct ConstructionProgressVisual : IComponentData
+    {
+        public float Value;
+    }
+
     /// <summary>
     /// Per-building instance data. `RootHex` is the centre tile; the 6
     /// neighbours are implicitly claimed via HexOccupant on each tile.

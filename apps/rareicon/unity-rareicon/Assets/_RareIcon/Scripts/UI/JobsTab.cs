@@ -18,6 +18,7 @@ namespace RareIcon
             (JobKind.Farmer,     "Farmer"),
             (JobKind.Builder,    "Builder"),
             (JobKind.Chef,       "Chef"),
+            (JobKind.Blacksmith, "Blacksmith"),
         };
 
         public string Title => "Jobs";

@@ -35,12 +35,17 @@ namespace RareIcon
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
 
+            ItemDBSingleton itemDb = default;
+            if (SystemAPI.HasSingleton<ItemDBSingleton>())
+                itemDb = SystemAPI.GetSingleton<ItemDBSingleton>();
+
             state.Dependency = new EmpireWithdrawJob
             {
                 Capital         = capital,
                 HexLookup       = hexLookup.Lookup,
                 OccupantLookup  = SystemAPI.GetComponentLookup<HexOccupant>(true),
                 CapitalFoods    = snapshot.AsDeferredJobArray(),
+                ItemDb          = itemDb,
                 Ecb             = ecb,
             }.ScheduleParallel(state.Dependency);
 
@@ -63,6 +68,7 @@ namespace RareIcon
         [ReadOnly] public NativeHashMap<int2, Entity>  HexLookup;
         [ReadOnly] public ComponentLookup<HexOccupant> OccupantLookup;
         [ReadOnly] public NativeArray<FoodSlotSnapshot> CapitalFoods;
+        [ReadOnly] public ItemDBSingleton ItemDb;
 
         public EntityCommandBuffer.ParallelWriter Ecb;
 
@@ -70,7 +76,8 @@ namespace RareIcon
                      in UnitMovement movement,
                      in Faction faction,
                      in Hunger hunger,
-                     ref DynamicBuffer<InventorySlot> unitInv)
+                     ref DynamicBuffer<InventorySlot> unitInv,
+                     in DynamicBuffer<EquippedBag> bags)
         {
             if (faction.Value != FactionType.Player) return;
             if (hunger.Max <= 0f || hunger.Value / hunger.Max < HungerTrigger) return;
@@ -83,24 +90,15 @@ namespace RareIcon
 
             ushort take = CapitalFoods[0].ItemId;
 
-            bool merged = false;
-            for (int j = 0; j < unitInv.Length; j++)
-            {
-                if (unitInv[j].ItemId != take) continue;
-                var u = unitInv[j];
-                u.Count = (ushort)math.min(u.Count + 1, ushort.MaxValue);
-                unitInv[j] = u;
-                merged = true;
-                break;
-            }
-            if (!merged) unitInv.Add(new InventorySlot { ItemId = take, Count = 1 });
+            ushort added = unitInv.AddItemCapped(bags, ItemDb, take, 1);
+            if (added == 0) return;
 
             var req = Ecb.CreateEntity(chunkIdx);
             Ecb.AddComponent(chunkIdx, req, new PendingItemTransfer
             {
                 Target = Capital,
                 ItemId = take,
-                Delta  = -1,
+                Delta  = (sbyte)-added,
             });
         }
 

@@ -57,6 +57,10 @@ namespace RareIcon
         Meat          = 237,
         Hood          = 238,
 
+        Pouch         = 239,
+        Bag           = 240,
+        Pack          = 241,
+
         // Quest / key items
         QuestScroll       = 300,
         BossKey           = 301,

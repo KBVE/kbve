@@ -15,6 +15,7 @@ namespace RareIcon
         public const byte Builder    = 7;
         public const byte Chef       = 8;
         public const byte Hunter     = 9;
+        public const byte Blacksmith = 10;
     }
 
     /// <summary>Per-unit job priorities (0 = disabled, 1..5 = weighted preference). Fixed-layout struct so it's Burst-readable without a buffer walk.</summary>
@@ -28,6 +29,7 @@ namespace RareIcon
         public byte Builder;
         public byte Chef;
         public byte Hunter;
+        public byte Blacksmith;
 
         public byte Get(byte jobKind) => jobKind switch
         {
@@ -39,6 +41,7 @@ namespace RareIcon
             JobKind.Builder    => Builder,
             JobKind.Chef       => Chef,
             JobKind.Hunter     => Hunter,
+            JobKind.Blacksmith => Blacksmith,
             _                  => (byte)0,
         };
 
@@ -54,6 +57,7 @@ namespace RareIcon
                 case JobKind.Builder:    Builder    = priority; break;
                 case JobKind.Chef:       Chef       = priority; break;
                 case JobKind.Hunter:     Hunter     = priority; break;
+                case JobKind.Blacksmith: Blacksmith = priority; break;
             }
         }
     }

@@ -72,119 +72,118 @@ namespace RareIcon
             _initialized = true;
 
             Add(new ItemDef((ushort)ItemId.Berry,
-                "item.berry",    ItemCategory.Material, 99, 2,
+                "item.berry",    ItemCategory.Material, 30, 2,
                 restoreEnergy: 20f,
                 harvestRole: HarvestRole.Forager));
             Add(new ItemDef((ushort)ItemId.Mushroom,
-                "item.mushroom", ItemCategory.Material, 99, 3,
+                "item.mushroom", ItemCategory.Material, 30, 3,
                 restoreEnergy: 15f,
                 harvestRole: HarvestRole.Forager));
             Add(new ItemDef((ushort)ItemId.Herb,
-                "item.herb",     ItemCategory.Material, 99, 5,
+                "item.herb",     ItemCategory.Material, 30, 5,
                 restoreEnergy: 25f,
                 harvestRole: HarvestRole.Forager));
 
             Add(new ItemDef((ushort)ItemId.RawCacti,
-                "item.raw_cacti",    ItemCategory.Material, 99, 2,
+                "item.raw_cacti",    ItemCategory.Material, 20, 2,
                 harvestRole: HarvestRole.Forager));
             Add(new ItemDef((ushort)ItemId.CactiNeedle,
-                "item.cacti_needle", ItemCategory.Material, 99, 3,
+                "item.cacti_needle", ItemCategory.Material, 20, 3,
                 harvestRole: HarvestRole.Forager));
             Add(new ItemDef((ushort)ItemId.PricklyPear,
-                "item.prickly_pear", ItemCategory.Material, 64, 8,
+                "item.prickly_pear", ItemCategory.Material, 24, 8,
                 restoreEnergy: 30f,
                 harvestRole: HarvestRole.Forager));
             Add(new ItemDef((ushort)ItemId.Dragonfruit,
-                "item.dragonfruit",  ItemCategory.Material, 64, 20,
+                "item.dragonfruit",  ItemCategory.Material, 24, 20,
                 restoreEnergy: 45f,
                 harvestRole: HarvestRole.Forager));
             Add(new ItemDef((ushort)ItemId.CactiSeeds,
-                "item.cacti_seeds",  ItemCategory.Material, 64, 4,
+                "item.cacti_seeds",  ItemCategory.Material, 50, 4,
                 harvestRole: HarvestRole.Forager));
 
             Add(new ItemDef((ushort)ItemId.WoodLog,
-                "item.wood_log",  ItemCategory.Material, 99, 3,
+                "item.wood_log",  ItemCategory.Material, 12, 3,
                 harvestRole: HarvestRole.Lumberjack));
             Add(new ItemDef((ushort)ItemId.Branches,
-                "item.branches",  ItemCategory.Material, 99, 1,
+                "item.branches",  ItemCategory.Material, 30, 1,
                 harvestRole: HarvestRole.Lumberjack));
             Add(new ItemDef((ushort)ItemId.Leaves,
-                "item.leaves",    ItemCategory.Material, 99, 1,
+                "item.leaves",    ItemCategory.Material, 20, 1,
                 harvestRole: HarvestRole.Lumberjack));
 
             Add(new ItemDef((ushort)ItemId.Stone,
-                "item.stone",     ItemCategory.Material, 99, 2,
+                "item.stone",     ItemCategory.Material, 6, 2,
                 harvestRole: HarvestRole.Miner));
 
             // Station / crafted outputs + environmental biome markers — NONE
             // of these are hand-harvestable. Sand tiles exist as furnace
             // fuel source, not as something a goblin picks up in a bucket.
             Add(new ItemDef((ushort)ItemId.NaturalSand,
-                "item.natural_sand", ItemCategory.Material, 99, 1));
+                "item.natural_sand", ItemCategory.Material, 20, 1));
             Add(new ItemDef((ushort)ItemId.RawGlass,
-                "item.raw_glass",    ItemCategory.Material, 99, 8));
+                "item.raw_glass",    ItemCategory.Material, 24, 8));
             Add(new ItemDef((ushort)ItemId.Coal,
-                "item.coal",         ItemCategory.Material, 99, 4));
+                "item.coal",         ItemCategory.Material, 20, 4));
             Add(new ItemDef((ushort)ItemId.Ash,
-                "item.ash",          ItemCategory.Material, 99, 1));
+                "item.ash",          ItemCategory.Material, 20, 1));
             Add(new ItemDef((ushort)ItemId.Compost,
-                "item.compost",      ItemCategory.Material, 99, 2));
+                "item.compost",      ItemCategory.Material, 30, 2));
             Add(new ItemDef((ushort)ItemId.Carrot,
-                "item.carrot",       ItemCategory.Material, 99, 4,
+                "item.carrot",       ItemCategory.Material, 30, 4,
                 restoreEnergy: 18f));
 
             Add(new ItemDef((ushort)ItemId.Arrow,
-                "item.arrow",        ItemCategory.Material, 255, 1));
+                "item.arrow",        ItemCategory.Material, 50, 1));
 
             // Wildlife drops. Picked up off the ground (ItemPickupSystem)
             // rather than hand-harvested, so HarvestRole stays None.
             Add(new ItemDef((ushort)ItemId.RawChicken,
-                "item.raw_chicken", ItemCategory.Material, 32, 6,
+                "item.raw_chicken", ItemCategory.Material, 20, 6,
                 restoreEnergy: 18f));
             Add(new ItemDef((ushort)ItemId.Feather,
-                "item.feather",     ItemCategory.Material, 99, 1));
+                "item.feather",     ItemCategory.Material, 30, 1));
             Add(new ItemDef((ushort)ItemId.RawMutton,
-                "item.raw_mutton",  ItemCategory.Material, 32, 12,
+                "item.raw_mutton",  ItemCategory.Material, 20, 12,
                 restoreEnergy: 35f));
             Add(new ItemDef((ushort)ItemId.Wool,
-                "item.wool",        ItemCategory.Material, 99, 4));
+                "item.wool",        ItemCategory.Material, 30, 4));
             Add(new ItemDef((ushort)ItemId.RawBeef,
-                "item.raw_beef",    ItemCategory.Material, 32, 18,
+                "item.raw_beef",    ItemCategory.Material, 20, 18,
                 restoreEnergy: 50f));
             Add(new ItemDef((ushort)ItemId.Leather,
-                "item.leather",     ItemCategory.Material, 99, 8));
+                "item.leather",     ItemCategory.Material, 30, 8));
 
-            // Cooked foods — produced by CookingSystem from raw wildlife drops.
-            // Higher RestoreEnergy than raw so cooking is a worthwhile loop.
             Add(new ItemDef((ushort)ItemId.CookedChicken,
-                "item.cooked_chicken", ItemCategory.Consumable, 32, 12,
+                "item.cooked_chicken", ItemCategory.Consumable, 24, 12,
                 restoreEnergy: 40f));
             Add(new ItemDef((ushort)ItemId.CookedMutton,
-                "item.cooked_mutton",  ItemCategory.Consumable, 32, 24,
+                "item.cooked_mutton",  ItemCategory.Consumable, 24, 24,
                 restoreEnergy: 70f));
             Add(new ItemDef((ushort)ItemId.CookedBeef,
-                "item.cooked_beef",    ItemCategory.Consumable, 32, 36,
+                "item.cooked_beef",    ItemCategory.Consumable, 24, 36,
                 restoreEnergy: 100f));
 
-            // Livestock production — emitted into the farm's InventorySlot by sheltered
-            // animals once per WorldClock cadence (chickens/cows every 2
-            // turns, sheep every 10). Edible so they flow through the same
-            // AutoEat / Empire withdraw pipelines as other food.
             Add(new ItemDef((ushort)ItemId.Egg,
-                "item.egg",  ItemCategory.Material, 64, 3,
+                "item.egg",  ItemCategory.Material, 50, 3,
                 restoreEnergy: 12f));
             Add(new ItemDef((ushort)ItemId.Milk,
-                "item.milk", ItemCategory.Material, 64, 5,
+                "item.milk", ItemCategory.Material, 50, 5,
                 restoreEnergy: 20f));
 
-            // Chef outputs from livestock produce — higher energy return
-            // than raw so the cooking loop still pays off on farm yields.
             Add(new ItemDef((ushort)ItemId.CookedEgg,
-                "item.cooked_egg", ItemCategory.Consumable, 32, 8,
+                "item.cooked_egg", ItemCategory.Consumable, 24, 8,
                 restoreEnergy: 28f));
             Add(new ItemDef((ushort)ItemId.Cheese,
-                "item.cheese",     ItemCategory.Consumable, 32, 15,
+                "item.cheese",     ItemCategory.Consumable, 24, 15,
                 restoreEnergy: 45f));
+
+            Add(new ItemDef((ushort)ItemId.Pouch,
+                "item.pouch",   ItemCategory.Equipment, 2, 20));
+            Add(new ItemDef((ushort)ItemId.Bag,
+                "item.bag",     ItemCategory.Equipment, 2, 60));
+            Add(new ItemDef((ushort)ItemId.Pack,
+                "item.pack",    ItemCategory.Equipment, 2, 150));
         }
 
         static void Add(ItemDef def) => _byId[def.Id] = def;

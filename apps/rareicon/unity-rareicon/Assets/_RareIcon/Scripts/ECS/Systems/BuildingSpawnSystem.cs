@@ -261,6 +261,7 @@ namespace RareIcon
                     RootHex      = req.CenterHex,
                     OwnerFaction = req.OwnerFaction,
                 });
+                ecb.SetComponent(building, new ConstructionProgressVisual { Value = 0f });
                 var mats = ecb.AddBuffer<ConstructionMaterial>(building);
                 var buildCost = BuildingDB.GetCost(req.BuildingType);
                 for (int i = 0; i < buildCost.Length; i++)
@@ -416,6 +417,7 @@ namespace RareIcon
             // (Farm output queue, Furnace fuel hopper) reuse the slot too.
             em.AddBuffer<InventorySlot>(_buildingPrefab);
             em.AddComponentData(_buildingPrefab, new BuildingActiveVisual());
+            em.AddComponentData(_buildingPrefab, new ConstructionProgressVisual { Value = 1f });
             em.AddComponent<Prefab>(_buildingPrefab);
 
             var renderDesc = new RenderMeshDescription(

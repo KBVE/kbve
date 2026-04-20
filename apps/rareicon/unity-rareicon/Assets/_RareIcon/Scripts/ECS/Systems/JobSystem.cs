@@ -11,7 +11,10 @@ namespace RareIcon
     [UpdateAfter(typeof(ReliefSystem))]
     public partial class JobSystem : SystemBase
     {
-        const int SearchRadius = 5;
+        const int SearchRadius   = 12;
+        const int HexClusterCap  = 4;
+
+        NativeHashMap<int2, int> _hexOccupancy;
 
         const double DiagIntervalSeconds = 30.0;
         double _nextDiagTime = 3.0;
@@ -122,6 +125,16 @@ namespace RareIcon
             }
 
             var unitInvLookup = SystemAPI.GetBufferLookup<InventorySlot>(true);
+
+            if (_hexOccupancy.IsCreated) _hexOccupancy.Dispose();
+            _hexOccupancy = new NativeHashMap<int2, int>(64, Allocator.Temp);
+            foreach (var jobRO in
+                     SystemAPI.Query<RefRO<JobIntent>>().WithAll<JobPriorities>())
+            {
+                if (jobRO.ValueRO.Kind == JobKind.None) continue;
+                var th = jobRO.ValueRO.TargetHex;
+                _hexOccupancy[th] = _hexOccupancy.TryGetValue(th, out var c0) ? c0 + 1 : 1;
+            }
 
             foreach (var (priorities, reliefIntent, jobIntentRef, movement, transform, entity) in
                      SystemAPI.Query<
@@ -367,6 +380,11 @@ namespace RareIcon
                     }
                 }
 
+                var oldTarget = jobIntentRef.ValueRO.TargetHex;
+                if (_hexOccupancy.TryGetValue(oldTarget, out var oldCount) && oldCount > 0)
+                    _hexOccupancy[oldTarget] = oldCount - 1;
+                _hexOccupancy[bestHex] = _hexOccupancy.TryGetValue(bestHex, out var newCount) ? newCount + 1 : 1;
+
                 jobIntentRef.ValueRW = new JobIntent
                 {
                     Kind         = bestKind,
@@ -446,6 +464,10 @@ namespace RareIcon
 
                     var res = hexResourceLookup[tile];
                     if (!RoleMatches(role, in res)) continue;
+
+                    if (_hexOccupancy.IsCreated
+                        && _hexOccupancy.TryGetValue(hex, out var occ)
+                        && occ >= HexClusterCap) continue;
 
                     bestDist = dist;
                     bestHex  = hex;

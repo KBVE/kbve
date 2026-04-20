@@ -140,6 +140,9 @@ namespace RareIcon
                 (ushort)ItemId.Cheese      => "item.cheese",
                 (ushort)ItemId.Meat        => "item.meat",
                 (ushort)ItemId.Hood        => "item.hood",
+                (ushort)ItemId.Pouch       => "item.pouch",
+                (ushort)ItemId.Bag         => "item.bag",
+                (ushort)ItemId.Pack        => "item.pack",
                 BuildingDB.AnyFoodSentinel => "item.any_food",
                 _ => "item.unknown",
             };

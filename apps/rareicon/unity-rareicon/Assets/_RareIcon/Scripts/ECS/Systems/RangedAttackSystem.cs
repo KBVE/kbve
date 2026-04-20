@@ -26,18 +26,14 @@ namespace RareIcon
             if (!SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial)) return;
             if (!spatial.Hash.IsCreated) return;
 
-            bool hasCapital = SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital);
-
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);
 
             state.Dependency = new RangedAttackJob
             {
-                Hash         = spatial.Hash,
-                Dt           = SystemAPI.Time.DeltaTime,
-                Capital      = hasCapital ? capital : Entity.Null,
-                CapInvLookup = SystemAPI.GetBufferLookup<InventorySlot>(false),
-                Ecb          = ecb,
+                Hash = spatial.Hash,
+                Dt   = SystemAPI.Time.DeltaTime,
+                Ecb  = ecb,
             }.Schedule(state.Dependency);
         }
     }
@@ -46,18 +42,15 @@ namespace RareIcon
     public partial struct RangedAttackJob : IJobEntity
     {
         [ReadOnly] public NativeParallelMultiHashMap<int, HashedTarget> Hash;
-        public float  Dt;
-        public Entity Capital;
-
-        [NativeDisableParallelForRestriction]
-        public BufferLookup<InventorySlot> CapInvLookup;
+        public float Dt;
 
         public EntityCommandBuffer Ecb;
 
         void Execute(Entity entity,
                      in LocalTransform transform,
                      in Faction faction,
-                     ref RangedAttack attack)
+                     ref RangedAttack attack,
+                     DynamicBuffer<InventorySlot> unitInv)
         {
             attack.TimeSinceShot += Dt;
             if (attack.TimeSinceShot < attack.Cooldown) return;
@@ -71,10 +64,7 @@ namespace RareIcon
                                  attack.ProjectileType == ProjectileType.Bolt);
             if (requiresAmmo)
             {
-                if (Capital == Entity.Null) return;
-                if (!CapInvLookup.HasBuffer(Capital)) return;
-                var capInv = CapInvLookup[Capital];
-                if (!ConsumeOne(capInv, (ushort)ItemId.Arrow)) return;
+                if (!ConsumeOne(unitInv, (ushort)ItemId.Arrow)) return;
             }
 
             float2 shooterPos = new float2(transform.Position.x, transform.Position.y);

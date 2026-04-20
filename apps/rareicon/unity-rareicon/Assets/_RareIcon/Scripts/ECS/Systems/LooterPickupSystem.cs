@@ -21,11 +21,16 @@ namespace RareIcon
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);
 
+            ItemDBSingleton itemDb = default;
+            if (SystemAPI.HasSingleton<ItemDBSingleton>())
+                itemDb = SystemAPI.GetSingleton<ItemDBSingleton>();
+
             state.Dependency = new LooterPickupJob
             {
                 GroundArrowLookup = SystemAPI.GetComponentLookup<GroundArrow>(false),
                 TransformLookup   = SystemAPI.GetComponentLookup<LocalTransform>(true),
                 SkillXpLookup     = SystemAPI.GetComponentLookup<SkillXP>(false),
+                ItemDb            = itemDb,
                 Ecb               = ecb,
             }.Schedule(state.Dependency);
         }
@@ -41,12 +46,14 @@ namespace RareIcon
 
         public ComponentLookup<GroundArrow> GroundArrowLookup;
         public ComponentLookup<SkillXP>     SkillXpLookup;
+        [ReadOnly] public ItemDBSingleton   ItemDb;
         public EntityCommandBuffer          Ecb;
 
         void Execute(Entity entity,
                      in JobIntent intent,
                      in LocalTransform transform,
-                     DynamicBuffer<InventorySlot> inventory)
+                     DynamicBuffer<InventorySlot> inventory,
+                     in DynamicBuffer<EquippedBag> bags)
         {
             if (intent.Kind != JobKind.Looter) return;
 
@@ -64,10 +71,11 @@ namespace RareIcon
                      + (unitPos.y - arrowPos.y) * (unitPos.y - arrowPos.y);
             if (d2 > PickupRadiusSq) return;
 
+            ushort added = inventory.AddItemCapped(bags, ItemDb, (ushort)ItemId.Arrow, 1);
+            if (added == 0) return;
+
             arrowData.ClaimedBy = entity;
             GroundArrowLookup[arrow] = arrowData;
-
-            AddOne(inventory, (ushort)ItemId.Arrow);
             Ecb.DestroyEntity(arrow);
 
             if (SkillXpLookup.HasComponent(entity))
@@ -77,21 +85,6 @@ namespace RareIcon
                 xp.Set(SkillKind.Scavenging, (ushort)(next > ushort.MaxValue ? ushort.MaxValue : next));
                 SkillXpLookup[entity] = xp;
             }
-        }
-
-        static void AddOne(DynamicBuffer<InventorySlot> inv, ushort itemId)
-        {
-            for (int i = 0; i < inv.Length; i++)
-            {
-                if (inv[i].ItemId == itemId)
-                {
-                    var slot = inv[i];
-                    slot.Count = (ushort)math.min(slot.Count + 1, ushort.MaxValue);
-                    inv[i] = slot;
-                    return;
-                }
-            }
-            inv.Add(new InventorySlot { ItemId = itemId, Count = 1 });
         }
     }
 }

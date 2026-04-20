@@ -13,6 +13,7 @@ Shader "RareIcon/HexBuilding"
         // cave torches — on this same float. Default 0 so a freshly
         // spawned building reads as cold/dark until something lights it.
         _BuildingActive ("Building Active (per-instance)", Float) = 0
+        _ConstructionProgress ("Construction Progress (per-instance)", Float) = 1
 
         // 48-pixel grid matches unit pixel density at a 1.5 × 1.5 world
         // quad (1.5 / 48 = 0.03125 world-per-pixel, same as 0.5 / 16).
@@ -131,6 +132,7 @@ Shader "RareIcon/HexBuilding"
             CBUFFER_START(UnityPerMaterial)
                 float _BuildingType;
                 float _BuildingActive;
+                float _ConstructionProgress;
                 float _BuildingPixelGrid;
 
                 float4 _CapitalWall;
@@ -185,10 +187,12 @@ Shader "RareIcon/HexBuilding"
             UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
                 UNITY_DOTS_INSTANCED_PROP(float, _BuildingType)
                 UNITY_DOTS_INSTANCED_PROP(float, _BuildingActive)
+                UNITY_DOTS_INSTANCED_PROP(float, _ConstructionProgress)
             UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
-            #define _BuildingType    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _BuildingType)
-            #define _BuildingActive  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _BuildingActive)
+            #define _BuildingType          UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _BuildingType)
+            #define _BuildingActive        UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _BuildingActive)
+            #define _ConstructionProgress  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _ConstructionProgress)
             #endif
 
             // Must match constants in BuildingComponents.cs.
@@ -267,6 +271,12 @@ Shader "RareIcon/HexBuilding"
                 {
                     DrawOutpost(color, alpha, px, grid);
                 }
+
+                float progress = saturate(_ConstructionProgress);
+                float ghost = 1.0 - progress;
+                float luma = dot(color, float3(0.299, 0.587, 0.114));
+                color = lerp(color, float3(luma, luma, luma), ghost * 0.6);
+                alpha *= lerp(0.35, 1.0, progress);
 
                 clip(alpha - 0.001);
                 return float4(ApplyWorldAmbient(color), alpha);

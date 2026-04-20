@@ -28,6 +28,7 @@ namespace RareIcon
             (JobKind.Farmer,     "Farmer"),
             (JobKind.Builder,    "Builder"),
             (JobKind.Chef,       "Chef"),
+            (JobKind.Blacksmith, "Blacksmith"),
         };
 
         readonly LocaleService _locale;
@@ -165,6 +166,14 @@ namespace RareIcon
         {
             RebuildList();
             _refreshTick = _root.schedule.Execute(RebuildList).Every(RefreshIntervalMs);
+        }
+
+        /// <summary>Drive selection from outside the tab — used by the click-router when the player right-clicks / clicks a goblin out in the world and we want the Roster panel to open with that unit already chosen. Rebuilds the list first so freshly-spawned entities can be picked.</summary>
+        public void ShowUnit(Entity entity)
+        {
+            if (entity == Entity.Null) return;
+            RebuildList();
+            if (_entryByEntity.ContainsKey(entity)) Select(entity);
         }
 
         public void Dispose()
