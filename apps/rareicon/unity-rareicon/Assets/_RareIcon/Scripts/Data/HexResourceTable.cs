@@ -1,3 +1,5 @@
+using Unity.Mathematics;
+
 namespace RareIcon
 {
     /// <summary>
@@ -87,6 +89,29 @@ namespace RareIcon
 
             return (res, ComputeVisualMask(in res));
         }
+
+        /// <summary>Wood byte ceiling AmountFrom can return; used to normalize Wood to the 0..1 _TreeAmount shader uniform.</summary>
+        public const float WoodMaxForVisual = 100f;
+
+        /// <summary>HexResources.Wood normalized to 0..1 for HexTreeVisual; drives the per-instance tree count in HexTile.shader.</summary>
+        public static float ComputeTreeAmount(in HexResources res)
+            => res.Wood <= 0 ? 0f : math.min(res.Wood / WoodMaxForVisual, 1f);
+
+        /// <summary>Normalize a single resource byte to 0..1 against the same ceiling AmountFrom uses.</summary>
+        public static float NormalizeAmount(byte amount)
+            => amount <= 0 ? 0f : math.min(amount / WoodMaxForVisual, 1f);
+
+        /// <summary>Pack the four common floor-decoration amounts into the float4 the shader reads via _FloorAmounts (x=Stone, y=Berries, z=Mushrooms, w=Herbs).</summary>
+        public static float4 ComputeFloorAmounts(in HexResources res)
+            => new float4(
+                NormalizeAmount(res.Stone),
+                NormalizeAmount(res.Berries),
+                NormalizeAmount(res.Mushrooms),
+                NormalizeAmount(res.Herbs));
+
+        /// <summary>HexResources.Cactus normalized to 0..1 for HexCactusVisual.</summary>
+        public static float ComputeCactusAmount(in HexResources res)
+            => NormalizeAmount(res.Cactus);
 
         /// <summary>
         /// Recompute the HexResourceVisual bitmask from a HexResources value.

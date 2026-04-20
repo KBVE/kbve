@@ -9,7 +9,12 @@
 //
 // Uniforms: _StoneColor, _StoneShade
 // Helpers: circleMask, hash21 (from HexShared.hlsl).
-float3 ApplyBoulder(float3 ground, float2 px, float grid, float seed)
+//
+// `amount` is the per-instance _FloorAmounts.x (HexResources.Stone /
+// 100): main boulder always renders when called, but the optional
+// companion pebble is gated on amount > 0.5 so a heavily-mined hex
+// reads as a single weathered rock instead of a full outcrop.
+float3 ApplyBoulder(float3 ground, float2 px, float grid, float seed, float amount)
 {
     // Per-tile palette jitter — keeps boulders in the family but not identical.
     float colorJit = (hash21(float2(seed, 88.0)) - 0.5) * 0.18;
@@ -62,8 +67,8 @@ float3 ApplyBoulder(float3 ground, float2 px, float grid, float seed)
     float highlight = step(length(px - hp), 0.6) * boulder;
     result = lerp(result, lit * 1.25, highlight);
 
-    // === Companion pebble (~40% chance) ===
-    if (hash21(float2(seed, 89.0)) > 0.60)
+    // === Companion pebble (~40% chance, gated on full-stone hexes) ===
+    if (amount > 0.5 && hash21(float2(seed, 89.0)) > 0.60)
     {
         float side = (hash21(float2(seed, 90.0)) > 0.5) ? 1.0 : -1.0;
         float2 c2 = c1 + float2(

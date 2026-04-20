@@ -1,11 +1,10 @@
 using Unity.Burst;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Fades BloodDecal alpha over its lifetime and destroys it once past DespawnAtAbsSeconds (reads WorldClock for cross-unload consistency).</summary>
+    /// <summary>Fades BloodDecal alpha via (remaining/life)² and destroys past DespawnAtAbsSeconds; async ECB via EndSimulationEntityCommandBufferSystem.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(CleanupSystemGroup))]
     public partial struct BloodDecalDecaySystem : ISystem
@@ -23,32 +22,44 @@ namespace RareIcon
         public void OnUpdate(ref SystemState state)
         {
             float abs = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
-            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
 
-            foreach (var (decal, fade, entity) in
-                SystemAPI.Query<RefRO<BloodDecal>, RefRW<BloodDecalFadeVisual>>().WithEntityAccess())
+            state.Dependency = new BloodDecalDecayJob
             {
-                var d = decal.ValueRO;
-                float life = d.DespawnAtAbsSeconds - d.SpawnedAtAbsSeconds;
-                if (life <= 0f)
-                {
-                    ecb.DestroyEntity(entity);
-                    continue;
-                }
+                AbsNow = abs,
+                Ecb    = ecb.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
+        }
+    }
 
-                float remaining = d.DespawnAtAbsSeconds - abs;
-                if (remaining <= 0f)
-                {
-                    ecb.DestroyEntity(entity);
-                    continue;
-                }
+    [BurstCompile]
+    public partial struct BloodDecalDecayJob : IJobEntity
+    {
+        public float AbsNow;
+        public EntityCommandBuffer.ParallelWriter Ecb;
 
-                float t = math.saturate(remaining / life);
-                fade.ValueRW.Value = t * t;
+        void Execute(Entity entity,
+                     [ChunkIndexInQuery] int chunkIdx,
+                     in BloodDecal decal,
+                     ref BloodDecalFadeVisual fade)
+        {
+            float life = decal.DespawnAtAbsSeconds - decal.SpawnedAtAbsSeconds;
+            if (life <= 0f)
+            {
+                Ecb.DestroyEntity(chunkIdx, entity);
+                return;
             }
 
-            ecb.Playback(state.EntityManager);
-            ecb.Dispose();
+            float remaining = decal.DespawnAtAbsSeconds - AbsNow;
+            if (remaining <= 0f)
+            {
+                Ecb.DestroyEntity(chunkIdx, entity);
+                return;
+            }
+
+            float t = math.saturate(remaining / life);
+            fade.Value = t * t;
         }
     }
 }

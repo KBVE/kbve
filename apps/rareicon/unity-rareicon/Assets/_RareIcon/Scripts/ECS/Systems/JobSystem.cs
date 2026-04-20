@@ -17,31 +17,44 @@ namespace RareIcon
             var hashSys = World.GetExistingSystemManaged<SpatialHashSystem>();
             var hexResourceLookup = SystemAPI.GetComponentLookup<HexResources>(isReadOnly: true);
 
+            bool hasCapital = SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital);
+            int2 capitalHex = default;
+            if (hasCapital) capitalHex = SystemAPI.GetComponent<Building>(capital).RootHex;
+
             Entity nearestFarm = Entity.Null;
             int2   farmHex     = default;
             bool   hasFarm     = false;
-            Entity capital     = Entity.Null;
-            int2   capitalHex  = default;
-            bool   hasCapital  = false;
-            foreach (var (b, e) in SystemAPI.Query<RefRO<Building>>().WithEntityAccess())
+            foreach (var (b, e) in SystemAPI.Query<RefRO<Building>>().WithEntityAccess().WithAll<FarmTag>())
             {
-                if (!hasFarm && b.ValueRO.Type == BuildingType.Farm)
-                {
-                    nearestFarm = e;
-                    farmHex     = b.ValueRO.RootHex;
-                    hasFarm     = true;
-                }
-                if (!hasCapital && b.ValueRO.Type == BuildingType.Capital)
-                {
-                    capital    = e;
-                    capitalHex = b.ValueRO.RootHex;
-                    hasCapital = true;
-                }
-                if (hasFarm && hasCapital) break;
+                nearestFarm = e;
+                farmHex     = b.ValueRO.RootHex;
+                hasFarm     = true;
+                break;
             }
 
             using var siteQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<ConstructionSite>());
             using var sites = siteQuery.ToEntityArray(Allocator.Temp);
+
+            // Damaged Player buildings are repair candidates for the same
+            // Builder priority — collected once per tick so per-unit
+            // scoring below doesn't requery. Filter excludes
+            // ConstructionSite entities so we don't double-count
+            // incomplete builds (they're already in `sites`).
+            using var damagedQuery = EntityManager.CreateEntityQuery(
+                new EntityQueryDesc
+                {
+                    All  = new[] { ComponentType.ReadOnly<Building>(), ComponentType.ReadOnly<BuildingHealth>() },
+                    None = new[] { ComponentType.ReadOnly<ConstructionSite>() },
+                });
+            using var damagedCandidates = damagedQuery.ToEntityArray(Allocator.Temp);
+
+            // Ground arrows the Looter job can reclaim. Read the transforms
+            // up front so the per-unit scoring loop doesn't re-query each
+            // entity's LocalTransform.
+            using var groundArrowQuery = EntityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<GroundArrow>(),
+                ComponentType.ReadOnly<LocalTransform>());
+            using var groundArrows = groundArrowQuery.ToEntityArray(Allocator.Temp);
 
             foreach (var (priorities, reliefIntent, jobIntentRef, movement, transform, entity) in
                      SystemAPI.Query<
@@ -114,29 +127,52 @@ namespace RareIcon
                     }
                 }
 
-                if (p.Builder > bestPrio && sites.Length > 0 && hasCapital)
+                if (p.Builder > bestPrio && hasCapital)
                 {
-                    int siteBestDist = int.MaxValue;
-                    Entity siteBest = Entity.Null;
-                    int2   siteBestHex = default;
+                    // Construction sites and damaged Player-faction
+                    // buildings compete for the same Builder priority
+                    // slot — whichever target is closest wins. Repair is
+                    // construction's twin: same skill, same materials path.
+                    int    builderBestDist = int.MaxValue;
+                    Entity builderBest     = Entity.Null;
+                    int2   builderBestHex  = default;
+
                     for (int si = 0; si < sites.Length; si++)
                     {
                         var site = EntityManager.GetComponentData<ConstructionSite>(sites[si]);
                         int d = HexDistance(currentHex, site.RootHex);
-                        if (d < siteBestDist)
+                        if (d < builderBestDist)
                         {
-                            siteBestDist = d;
-                            siteBest = sites[si];
-                            siteBestHex = site.RootHex;
+                            builderBestDist = d;
+                            builderBest     = sites[si];
+                            builderBestHex  = site.RootHex;
                         }
                     }
-                    if (siteBest != Entity.Null)
+
+                    for (int di = 0; di < damagedCandidates.Length; di++)
+                    {
+                        var b = EntityManager.GetComponentData<Building>(damagedCandidates[di]);
+                        if (b.OwnerFaction != FactionType.Player) continue;
+                        var hp = EntityManager.GetComponentData<BuildingHealth>(damagedCandidates[di]);
+                        if (hp.Value >= hp.Max) continue;
+
+                        int d = HexDistance(currentHex, b.RootHex);
+                        if (d > SearchRadius * 2) continue;
+                        if (d < builderBestDist)
+                        {
+                            builderBestDist = d;
+                            builderBest     = damagedCandidates[di];
+                            builderBestHex  = b.RootHex;
+                        }
+                    }
+
+                    if (builderBest != Entity.Null)
                     {
                         bestKind   = JobKind.Builder;
                         bestPrio   = p.Builder;
-                        bestDist   = siteBestDist;
-                        bestHex    = siteBestHex;
-                        bestEntity = siteBest;
+                        bestDist   = builderBestDist;
+                        bestHex    = builderBestHex;
+                        bestEntity = builderBest;
                     }
                 }
 
@@ -148,6 +184,34 @@ namespace RareIcon
                     bestDist   = capDist;
                     bestHex    = capitalHex;
                     bestEntity = capital;
+                }
+
+                if (p.Looter > bestPrio && groundArrows.Length > 0)
+                {
+                    int   looterBestDist = int.MaxValue;
+                    Entity looterBest    = Entity.Null;
+                    int2   looterBestHex = default;
+                    for (int ai = 0; ai < groundArrows.Length; ai++)
+                    {
+                        var t = EntityManager.GetComponentData<LocalTransform>(groundArrows[ai]);
+                        var hex = HexMeshUtil.WorldToHex(t.Position.x, t.Position.y, 0.25f);
+                        int d = HexDistance(currentHex, hex);
+                        if (d > SearchRadius * 2) continue;
+                        if (d < looterBestDist)
+                        {
+                            looterBestDist = d;
+                            looterBest     = groundArrows[ai];
+                            looterBestHex  = hex;
+                        }
+                    }
+                    if (looterBest != Entity.Null)
+                    {
+                        bestKind   = JobKind.Looter;
+                        bestPrio   = p.Looter;
+                        bestDist   = looterBestDist;
+                        bestHex    = looterBestHex;
+                        bestEntity = looterBest;
+                    }
                 }
 
                 jobIntentRef.ValueRW = new JobIntent

@@ -80,6 +80,21 @@ Shader "RareIcon/HexUnit"
         _CowHoof           ("Cow Hoof",          Color) = (0.18, 0.14, 0.12, 1)
         _CowNose          ("Cow Nose",           Color) = (0.86, 0.58, 0.62, 1)
         _CowEye           ("Cow Eye",            Color) = (0.08, 0.06, 0.06, 1)
+
+        // Wolf palette
+        _WolfBody         ("Wolf Body",          Color) = (0.32, 0.30, 0.30, 1)
+        _WolfBodyShade    ("Wolf Body Shade",    Color) = (0.18, 0.16, 0.16, 1)
+        _WolfBelly        ("Wolf Belly",         Color) = (0.62, 0.58, 0.54, 1)
+        _WolfNose         ("Wolf Nose",          Color) = (0.06, 0.05, 0.05, 1)
+        _WolfEye          ("Wolf Eye",           Color) = (0.92, 0.78, 0.20, 1)
+
+        // Bandit palette
+        _BanditTunic      ("Bandit Tunic",       Color) = (0.42, 0.20, 0.18, 1)
+        _BanditTunicShade ("Bandit Tunic Shade", Color) = (0.26, 0.12, 0.10, 1)
+        _BanditPants      ("Bandit Pants",       Color) = (0.22, 0.18, 0.14, 1)
+        _BanditMask       ("Bandit Bandana",     Color) = (0.78, 0.18, 0.18, 1)
+        _BanditSkin       ("Bandit Skin",        Color) = (0.92, 0.76, 0.60, 1)
+        _BanditEye        ("Bandit Eye",         Color) = (0.10, 0.08, 0.10, 1)
     }
 
     SubShader
@@ -171,6 +186,17 @@ Shader "RareIcon/HexUnit"
                 float4 _CowHoof;
                 float4 _CowNose;
                 float4 _CowEye;
+                float4 _WolfBody;
+                float4 _WolfBodyShade;
+                float4 _WolfBelly;
+                float4 _WolfNose;
+                float4 _WolfEye;
+                float4 _BanditTunic;
+                float4 _BanditTunicShade;
+                float4 _BanditPants;
+                float4 _BanditMask;
+                float4 _BanditSkin;
+                float4 _BanditEye;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -199,6 +225,8 @@ Shader "RareIcon/HexUnit"
             #define UNIT_CHICKEN    10
             #define UNIT_SHEEP      11
             #define UNIT_COW        12
+            #define UNIT_WOLF       13
+            #define UNIT_BANDIT     14
 
             #define WEAPON_CLUB      1
             #define WEAPON_CROSSBOW  2
@@ -218,6 +246,8 @@ Shader "RareIcon/HexUnit"
             #include "Includes/HexChicken.hlsl"
             #include "Includes/HexSheep.hlsl"
             #include "Includes/HexCow.hlsl"
+            #include "Includes/HexWolf.hlsl"
+            #include "Includes/HexBandit.hlsl"
             // Weapon + equipment includes — composited on top of the
             // creature at each unit's respective anchor.
             #include "Includes/HexClub.hlsl"
@@ -282,6 +312,14 @@ Shader "RareIcon/HexUnit"
                 {
                     DrawCow(color, alpha, px, grid, seed, facing);
                 }
+                else if (unitType == UNIT_WOLF)
+                {
+                    DrawWolf(color, alpha, px, grid, seed, facing);
+                }
+                else if (unitType == UNIT_BANDIT)
+                {
+                    DrawBandit(color, alpha, px, grid, seed, facing);
+                }
 
                 // -- 2. Weapon (composited on top of the creature) -------------
                 // The weapon code stays facing-agnostic: when facing=West we
@@ -306,6 +344,8 @@ Shader "RareIcon/HexUnit"
                         anchor = SoldierWeaponAnchor(grid, weaponFacing);
                     else if (unitType == UNIT_MAGE)
                         anchor = MageWeaponAnchor(grid, weaponFacing);
+                    else if (unitType == UNIT_BANDIT)
+                        anchor = BanditWeaponAnchor(grid, weaponFacing);
                     else
                         anchor = float2(grid * 0.5, grid * 0.45); // generic fallback
 

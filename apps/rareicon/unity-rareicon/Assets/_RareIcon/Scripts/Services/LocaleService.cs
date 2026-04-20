@@ -130,8 +130,13 @@ namespace RareIcon
                 (ushort)ItemId.CookedChicken => "item.cooked_chicken",
                 (ushort)ItemId.CookedMutton  => "item.cooked_mutton",
                 (ushort)ItemId.CookedBeef    => "item.cooked_beef",
+                (ushort)ItemId.WolfPelt    => "item.wolf_pelt",
+                (ushort)ItemId.WolfFang    => "item.wolf_fang",
+                (ushort)ItemId.BanditCoin  => "item.bandit_coin",
                 (ushort)ItemId.Egg         => "item.egg",
                 (ushort)ItemId.Milk        => "item.milk",
+                (ushort)ItemId.CookedEgg   => "item.cooked_egg",
+                (ushort)ItemId.Cheese      => "item.cheese",
                 _ => "item.unknown",
             };
             return Get(key);
@@ -152,6 +157,8 @@ namespace RareIcon
                 UnitType.Chicken => "creature.chicken",
                 UnitType.Sheep   => "creature.sheep",
                 UnitType.Cow     => "creature.cow",
+                UnitType.Wolf    => "creature.wolf",
+                UnitType.Bandit  => "creature.bandit",
                 _ => "creature.none",
             };
             return Get(key);

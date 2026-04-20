@@ -1,65 +1,48 @@
 using Unity.Burst;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Advances every projectile's position along its velocity and ticks
-    /// the lifetime down. Projectiles whose lifetime reaches zero are
-    /// destroyed via the job's parallel command buffer.
-    ///
-    /// Burst-compiled `IJobEntity` — movement is embarrassingly parallel
-    /// (each projectile reads only its own components) so the work scales
-    /// linearly with thread count. 10k+ projectiles run comfortably.
-    ///
-    /// No collision yet — that lands as a separate pass (spatial hash
-    /// over units, queried per-arrow) once ranged units start firing.
-    /// </summary>
+    /// <summary>Advances projectiles and ticks lifetime. On Arrow/Bolt expiry converts in place to GroundArrow; other types destroy. ECB plays back via EndSimulationEntityCommandBufferSystem.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(MovementSystemGroup))]
     public partial struct ProjectileSystem : ISystem
     {
-        [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
-            state.RequireForUpdate<Projectile>();
-        }
+        const float GroundArrowLifetimeSec = 300f;
 
         [BurstCompile]
-        public void OnDestroy(ref SystemState state) { }
+        public void OnCreate(ref SystemState state) => state.RequireForUpdate<Projectile>();
+
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var ecb = new EntityCommandBuffer(Allocator.TempJob);
+            float abs = 0f;
+            if (SystemAPI.TryGetSingleton<WorldClock>(out var clock))
+                abs = clock.AbsSeconds;
 
-            new ProjectileTickJob
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
+
+            state.Dependency = new ProjectileTickJob
             {
-                Dt  = SystemAPI.Time.DeltaTime,
-                Ecb = ecb.AsParallelWriter(),
-            }.ScheduleParallel();
-
-            // Complete before playback so destroyed entities are removed
-            // this frame — avoids a one-frame render of expired projectiles.
-            state.CompleteDependency();
-            ecb.Playback(state.EntityManager);
-            ecb.Dispose();
+                Dt             = SystemAPI.Time.DeltaTime,
+                AbsNow         = abs,
+                GroundLifetime = GroundArrowLifetimeSec,
+                Ecb            = ecb.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
         }
     }
 
-    /// <summary>
-    /// Per-projectile tick. Reads velocity, writes transform + lifetime,
-    /// emits DestroyEntity on expiry. `in` on velocity tells Burst the
-    /// field is read-only so chunks can be iterated without aliasing
-    /// guards.
-    /// </summary>
     [BurstCompile]
     public partial struct ProjectileTickJob : IJobEntity
     {
         public float Dt;
+        public float AbsNow;
+        public float GroundLifetime;
         public EntityCommandBuffer.ParallelWriter Ecb;
 
         void Execute(Entity entity,
@@ -74,10 +57,25 @@ namespace RareIcon
             transform.Position = pos;
 
             projectile.Lifetime -= Dt;
-            if (projectile.Lifetime <= 0f)
+            if (projectile.Lifetime > 0f) return;
+
+            bool reclaimable = projectile.Type == ProjectileType.Arrow
+                            || projectile.Type == ProjectileType.Bolt;
+
+            if (reclaimable)
             {
-                Ecb.DestroyEntity(chunkIdx, entity);
+                Ecb.RemoveComponent<Projectile>(chunkIdx, entity);
+                Ecb.RemoveComponent<ProjectileVelocity>(chunkIdx, entity);
+                Ecb.AddComponent(chunkIdx, entity, new GroundArrow
+                {
+                    SpawnedAtAbsSeconds = AbsNow,
+                    DespawnAtAbsSeconds = AbsNow + GroundLifetime,
+                    ClaimedBy           = Entity.Null,
+                });
+                return;
             }
+
+            Ecb.DestroyEntity(chunkIdx, entity);
         }
     }
 }

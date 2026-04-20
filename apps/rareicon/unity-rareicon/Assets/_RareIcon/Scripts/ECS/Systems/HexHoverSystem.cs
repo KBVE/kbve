@@ -58,6 +58,9 @@ namespace RareIcon
             return false;
         }
 
+        /// <summary>Handle to the hex lookup for Burst jobs; assert IsCreated before passing in.</summary>
+        public static NativeHashMap<int2, Entity> HexLookup => _hexLookup;
+
         public static void Cleanup()
         {
             if (_initialized && _hexLookup.IsCreated)

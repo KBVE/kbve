@@ -176,6 +176,15 @@ namespace RareIcon
             Add(new ItemDef((ushort)ItemId.Milk,
                 "item.milk", ItemCategory.Material, 64, 5,
                 restoreEnergy: 20f));
+
+            // Chef outputs from livestock produce — higher energy return
+            // than raw so the cooking loop still pays off on farm yields.
+            Add(new ItemDef((ushort)ItemId.CookedEgg,
+                "item.cooked_egg", ItemCategory.Consumable, 32, 8,
+                restoreEnergy: 28f));
+            Add(new ItemDef((ushort)ItemId.Cheese,
+                "item.cheese",     ItemCategory.Consumable, 32, 15,
+                restoreEnergy: 45f));
         }
 
         static void Add(ItemDef def) => _byId[def.Id] = def;

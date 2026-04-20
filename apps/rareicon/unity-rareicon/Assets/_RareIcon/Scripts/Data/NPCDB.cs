@@ -226,7 +226,37 @@ namespace RareIcon
                 strength:      6, agility: 3, intellect: 2, will: 3,
                 defaultWeapon: WeaponType.None));
 
-            // Future creatures land here — Wolf, Skeleton, GoblinShaman, etc.
+            // Forest beast — fast, mid-HP melee predator. Bites adjacent
+            // Player / Wildlife units; the spawn helper hangs a MeleeAttack
+            // on it directly since wolves don't carry a weapon prop.
+            Add(new NPCDef(
+                unitType:      UnitType.Wolf,
+                nameKey:       "creature.wolf",
+                category:      NPCCategory.Beast,
+                maxHealth:     35f,  maxEnergy: 0f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.65f,
+                healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      9, agility: 14, intellect: 3, will: 6,
+                defaultWeapon: WeaponType.None));
+
+            // Hostile humanoid raider — sister to the Hostile Goblin but
+            // tougher, slightly slower, and drops a coin on death so the
+            // Looter job has reason to follow raids around.
+            Add(new NPCDef(
+                unitType:      UnitType.Bandit,
+                nameKey:       "creature.bandit",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     55f,  maxEnergy: 100f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.6f,
+                healthRegen:   0f,   energyRegen: 5.0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      11, agility: 11, intellect: 7, will: 8,
+                defaultWeapon: WeaponType.Club));
+
+            // Future creatures land here — Skeleton, GoblinShaman, etc.
         }
 
         static void Add(NPCDef def) => _byId[def.UnitType] = def;

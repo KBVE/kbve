@@ -1,66 +1,81 @@
+using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Chef-intent units standing on the Capital convert one raw wildlife drop → its cooked equivalent per tick; awards Culinary XP. Raw + cooked inventory both live in the Capital's treasury.</summary>
+    /// <summary>Chef-intent units on the Capital convert one raw wildlife drop → its cooked equivalent per tick, awarding Culinary XP. Writes to the shared Capital inventory, so scheduled single-threaded off the main thread.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(BuilderDepositSystem))]
-    public partial class CookingSystem : SystemBase
+    public partial struct CookingSystem : ISystem
+    {
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
+            if (!HexHoverSystem.HexLookup.IsCreated) return;
+
+            state.Dependency = new CookingJob
+            {
+                Capital           = capital,
+                HexLookup         = HexHoverSystem.HexLookup,
+                HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
+                InvLookup         = SystemAPI.GetBufferLookup<InventorySlot>(false),
+                SkillXpLookup     = SystemAPI.GetComponentLookup<SkillXP>(false),
+            }.Schedule(state.Dependency);
+        }
+    }
+
+    [BurstCompile]
+    public partial struct CookingJob : IJobEntity
     {
         const ushort XPPerCook = 15;
 
-        protected override void OnUpdate()
+        public Entity Capital;
+
+        [ReadOnly] public NativeHashMap<int2, Entity>   HexLookup;
+        [ReadOnly] public ComponentLookup<HexOccupant>  HexOccupantLookup;
+
+        [NativeDisableParallelForRestriction] public BufferLookup<InventorySlot>    InvLookup;
+        [NativeDisableParallelForRestriction] public ComponentLookup<SkillXP>       SkillXpLookup;
+
+        void Execute(Entity entity, in JobIntent intent, in UnitMovement movement)
         {
-            Entity capital = Entity.Null;
-            foreach (var (b, e) in SystemAPI.Query<RefRO<Building>>().WithEntityAccess())
+            if (intent.Kind != JobKind.Chef) return;
+            if (!IsOnCapital(movement.CurrentHex)) return;
+            if (!InvLookup.HasBuffer(Capital)) return;
+
+            var capInv = InvLookup[Capital];
+            if (!TryCookOne(capInv)) return;
+
+            if (SkillXpLookup.HasComponent(entity))
             {
-                if (b.ValueRO.Type == BuildingType.Capital)
-                {
-                    capital = e;
-                    break;
-                }
-            }
-            if (capital == Entity.Null) return;
-
-            var hexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(isReadOnly: true);
-            var invLookup         = SystemAPI.GetBufferLookup<InventorySlot>(isReadOnly: false);
-            var skillXpLookup     = SystemAPI.GetComponentLookup<SkillXP>(isReadOnly: false);
-
-            if (!invLookup.HasBuffer(capital)) return;
-
-            foreach (var (intent, movement, entity) in
-                     SystemAPI.Query<RefRO<JobIntent>, RefRO<UnitMovement>>().WithEntityAccess())
-            {
-                if (intent.ValueRO.Kind != JobKind.Chef) continue;
-                if (!IsOnCapital(movement.ValueRO.CurrentHex, hexOccupantLookup, capital)) continue;
-
-                var capInv = invLookup[capital];
-                if (!TryCookOne(capInv)) continue;
-
-                if (skillXpLookup.HasComponent(entity))
-                {
-                    var xp = skillXpLookup[entity];
-                    int next = xp.Get(SkillKind.Culinary) + XPPerCook;
-                    xp.Set(SkillKind.Culinary, (ushort)(next > ushort.MaxValue ? ushort.MaxValue : next));
-                    skillXpLookup[entity] = xp;
-                }
+                var xp = SkillXpLookup[entity];
+                int next = xp.Get(SkillKind.Culinary) + XPPerCook;
+                xp.Set(SkillKind.Culinary, (ushort)(next > ushort.MaxValue ? ushort.MaxValue : next));
+                SkillXpLookup[entity] = xp;
             }
         }
 
-        static bool IsOnCapital(int2 unitHex,
-                                ComponentLookup<HexOccupant> hexOccupantLookup, Entity capital)
+        bool IsOnCapital(int2 unitHex)
         {
-            if (!HexHoverSystem.TryGetHexEntity(unitHex, out var tile)) return false;
-            if (!hexOccupantLookup.HasComponent(tile)) return false;
-            return hexOccupantLookup[tile].Building == capital;
+            if (!HexLookup.TryGetValue(unitHex, out var tile)) return false;
+            if (!HexOccupantLookup.HasComponent(tile)) return false;
+            return HexOccupantLookup[tile].Building == Capital;
         }
 
         static bool TryCookOne(DynamicBuffer<InventorySlot> inv)
         {
             return TryConvert(inv, (ushort)ItemId.RawChicken, (ushort)ItemId.CookedChicken)
                 || TryConvert(inv, (ushort)ItemId.RawMutton,  (ushort)ItemId.CookedMutton)
-                || TryConvert(inv, (ushort)ItemId.RawBeef,    (ushort)ItemId.CookedBeef);
+                || TryConvert(inv, (ushort)ItemId.RawBeef,    (ushort)ItemId.CookedBeef)
+                || TryConvert(inv, (ushort)ItemId.Egg,        (ushort)ItemId.CookedEgg)
+                || TryConvert(inv, (ushort)ItemId.Milk,       (ushort)ItemId.Cheese);
         }
 
         static bool TryConvert(DynamicBuffer<InventorySlot> inv, ushort rawId, ushort cookedId)

@@ -172,22 +172,10 @@ namespace RareIcon
             }
             else
             {
-                var q = em.CreateEntityQuery(ComponentType.ReadOnly<Building>());
-                if (q.CalculateEntityCount() == 0) return false;
-                var arr = q.ToEntityArray(Unity.Collections.Allocator.Temp);
-                try
-                {
-                    for (int i = 0; i < arr.Length; i++)
-                    {
-                        if (em.GetComponentData<Building>(arr[i]).Type == BuildingType.Capital)
-                        {
-                            source = arr[i];
-                            break;
-                        }
-                    }
-                }
-                finally { arr.Dispose(); }
-                if (source == Entity.Null) return false;
+                var q = em.CreateEntityQuery(ComponentType.ReadOnly<CapitalTag>());
+                if (q.CalculateEntityCount() == 0) { q.Dispose(); return false; }
+                source = q.GetSingletonEntity();
+                q.Dispose();
             }
 
             if (!em.HasBuffer<InventorySlot>(source)) return false;

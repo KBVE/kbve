@@ -20,16 +20,7 @@ namespace RareIcon
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
             float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
 
-            Entity capital = Entity.Null;
-            foreach (var (b, e) in SystemAPI.Query<RefRO<Building>>().WithEntityAccess())
-            {
-                if (b.ValueRO.Type == BuildingType.Capital)
-                {
-                    capital = e;
-                    break;
-                }
-            }
-            if (capital == Entity.Null) return;
+            if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             if (!SystemAPI.HasBuffer<InventorySlot>(capital)) return;
 
             state.Dependency = new FarmTickJob

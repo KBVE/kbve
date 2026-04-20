@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -5,95 +6,114 @@ using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>Consumes DamageEvent, applies damage + mod-driven status effects, emits a blood decal on the victim, tags DeadTag on fatal hits.</summary>
+    /// <summary>Consumes DamageEvent; dispatches to Health (unit) or BuildingHealth (building). Unit hits drop blood decals + status effects, fatal hits add DeadTag. Async ECB via EndSimulationEntityCommandBufferSystem.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(CombatSystemGroup))]
     [UpdateAfter(typeof(CollisionSystem))]
-    public partial class DamageSystem : SystemBase
+    public partial struct DamageSystem : ISystem
     {
-        const float ObsidianDamageMul   = 1.35f;
-        const float PoisonDps           = 1.0f;
-        const float PoisonSeconds       = 5.0f;
-        const float FireDps             = 3.0f;
-        const float FireSeconds         = 2.0f;
-        const float IceSpeedMul         = 0.50f;
-        const float IceSeconds          = 3.0f;
-        const float CurseDrainPerSec    = 3.0f;
-        const float CurseSeconds        = 4.0f;
+        [BurstCompile]
+        public void OnCreate(ref SystemState state) => state.RequireForUpdate<DamageEvent>();
 
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
+
+            state.Dependency = new DamageJob
+            {
+                HealthLookup     = SystemAPI.GetComponentLookup<Health>(false),
+                BuildingHpLookup = SystemAPI.GetComponentLookup<BuildingHealth>(false),
+                EffectLookup     = SystemAPI.GetBufferLookup<StatusEffect>(false),
+                TransformLookup  = SystemAPI.GetComponentLookup<LocalTransform>(true),
+                DecalRngSeed     = (uint)(state.GlobalSystemVersion | 1u),
+                Ecb              = ecb.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
+        }
+    }
+
+    [BurstCompile]
+    public partial struct DamageJob : IJobEntity
+    {
+        const float ObsidianDamageMul        = 1.35f;
+        const float PoisonDps                = 1.0f;
+        const float PoisonSeconds            = 5.0f;
+        const float FireDps                  = 3.0f;
+        const float FireSeconds              = 2.0f;
+        const float IceSpeedMul              = 0.50f;
+        const float IceSeconds               = 3.0f;
+        const float CurseDrainPerSec         = 3.0f;
+        const float CurseSeconds             = 4.0f;
         const float BloodDecalLifetime       = 25f;
         const float FatalBloodDecalLifetime  = 60f;
 
-        uint _decalRng = 0xA11CE_Fu;
+        [NativeDisableParallelForRestriction] public ComponentLookup<Health>         HealthLookup;
+        [NativeDisableParallelForRestriction] public ComponentLookup<BuildingHealth> BuildingHpLookup;
+        [NativeDisableParallelForRestriction] public BufferLookup<StatusEffect>      EffectLookup;
 
-        protected override void OnCreate()
+        [Unity.Collections.ReadOnly] public ComponentLookup<LocalTransform> TransformLookup;
+
+        public uint DecalRngSeed;
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity eventEntity, [ChunkIndexInQuery] int chunkIdx, in DamageEvent ev)
         {
-            RequireForUpdate<DamageEvent>();
-        }
-
-        protected override void OnUpdate()
-        {
-            var ecb            = new EntityCommandBuffer(Allocator.Temp);
-            var healthLookup   = SystemAPI.GetComponentLookup<Health>(isReadOnly: false);
-            var effectLookup   = SystemAPI.GetBufferLookup<StatusEffect>(isReadOnly: false);
-            var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(isReadOnly: true);
-
-            foreach (var (damageRef, eventEntity) in
-                SystemAPI.Query<RefRO<DamageEvent>>().WithEntityAccess())
+            if (HealthLookup.HasComponent(ev.Target))
             {
-                var ev = damageRef.ValueRO;
-
-                if (!healthLookup.HasComponent(ev.Target))
-                {
-                    ecb.DestroyEntity(eventEntity);
-                    continue;
-                }
-
-                var health = healthLookup[ev.Target];
-                if (health.Value <= 0f)
-                {
-                    ecb.DestroyEntity(eventEntity);
-                    continue;
-                }
+                var health = HealthLookup[ev.Target];
+                if (health.Value <= 0f) { Ecb.DestroyEntity(chunkIdx, eventEntity); return; }
 
                 float amount = ev.Amount;
                 if (ev.Mod == ArrowMod.Obsidian) amount *= ObsidianDamageMul;
 
                 health.Value = math.max(0f, health.Value - amount);
-                healthLookup[ev.Target] = health;
+                HealthLookup[ev.Target] = health;
 
                 bool fatal = health.Value <= 0f;
-                if (fatal)
-                {
-                    ecb.AddComponent<DeadTag>(ev.Target);
-                }
-                else
-                {
-                    ApplyPersistentEffect(effectLookup, ev.Target, ev.Mod);
-                }
+                if (fatal) Ecb.AddComponent<DeadTag>(chunkIdx, ev.Target);
+                else       ApplyPersistentEffect(EffectLookup, ev.Target, ev.Mod);
 
-                if (transformLookup.HasComponent(ev.Target))
+                if (TransformLookup.HasComponent(ev.Target))
                 {
-                    var pos = transformLookup[ev.Target].Position;
-                    _decalRng = XorShift(_decalRng);
-                    float jitterX = ((_decalRng & 0xFFFFu) / 65535f - 0.5f) * 0.12f;
-                    _decalRng = XorShift(_decalRng);
-                    float jitterY = ((_decalRng & 0xFFFFu) / 65535f - 0.5f) * 0.12f;
-                    _decalRng = XorShift(_decalRng);
+                    var pos = TransformLookup[ev.Target].Position;
+                    uint rng = XorShift((uint)eventEntity.Index ^ DecalRngSeed);
+                    float jitterX = ((rng & 0xFFFFu) / 65535f - 0.5f) * 0.12f;
+                    rng = XorShift(rng);
+                    float jitterY = ((rng & 0xFFFFu) / 65535f - 0.5f) * 0.12f;
+                    rng = XorShift(rng);
 
-                    var req = ecb.CreateEntity();
-                    ecb.AddComponent(req, new SpawnBloodDecalRequest
+                    var req = Ecb.CreateEntity(chunkIdx);
+                    Ecb.AddComponent(chunkIdx, req, new SpawnBloodDecalRequest
                     {
                         Position = new float2(pos.x + jitterX, pos.y + jitterY),
                         Lifetime = fatal ? FatalBloodDecalLifetime : BloodDecalLifetime,
-                        Seed     = (_decalRng & 0xFFFFFFu) / (float)0xFFFFFF,
+                        Seed     = (rng & 0xFFFFFFu) / (float)0xFFFFFF,
                     });
                 }
 
-                ecb.DestroyEntity(eventEntity);
+                Ecb.DestroyEntity(chunkIdx, eventEntity);
+                return;
             }
 
-            ecb.Playback(EntityManager);
-            ecb.Dispose();
+            if (BuildingHpLookup.HasComponent(ev.Target))
+            {
+                var bh = BuildingHpLookup[ev.Target];
+                if (bh.Value == 0) { Ecb.DestroyEntity(chunkIdx, eventEntity); return; }
+
+                float amount = ev.Amount;
+                if (ev.Mod == ArrowMod.Obsidian) amount *= ObsidianDamageMul;
+                int next = bh.Value - (int)math.round(amount);
+                bh.Value = (ushort)math.max(0, next);
+                BuildingHpLookup[ev.Target] = bh;
+
+                Ecb.DestroyEntity(chunkIdx, eventEntity);
+                return;
+            }
+
+            Ecb.DestroyEntity(chunkIdx, eventEntity);
         }
 
         static uint XorShift(uint s)
@@ -104,8 +124,7 @@ namespace RareIcon
             return s == 0 ? 1u : s;
         }
 
-        static void ApplyPersistentEffect(
-            BufferLookup<StatusEffect> lookup, Entity target, byte mod)
+        static void ApplyPersistentEffect(BufferLookup<StatusEffect> lookup, Entity target, byte mod)
         {
             if (mod == ArrowMod.None || mod == ArrowMod.Obsidian) return;
             if (!lookup.HasBuffer(target)) return;
@@ -129,25 +148,37 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Destroys entities tagged DeadTag; future loot/XP/anim systems run before this in the same group.</summary>
+    /// <summary>Destroys entities tagged DeadTag; future loot / XP / anim systems hook in before this in the same group.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(CleanupSystemGroup))]
-    public partial class DeathCleanupSystem : SystemBase
+    public partial struct DeathCleanupSystem : ISystem
     {
-        protected override void OnCreate()
-        {
-            RequireForUpdate<DeadTag>();
-        }
+        [BurstCompile]
+        public void OnCreate(ref SystemState state) => state.RequireForUpdate<DeadTag>();
 
-        protected override void OnUpdate()
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
-            var ecb = new EntityCommandBuffer(Allocator.Temp);
-            foreach (var (_, entity) in
-                SystemAPI.Query<RefRO<DeadTag>>().WithEntityAccess())
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
+
+            state.Dependency = new DeathCleanupJob
             {
-                ecb.DestroyEntity(entity);
-            }
-            ecb.Playback(EntityManager);
-            ecb.Dispose();
+                Ecb = ecb.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
+        }
+    }
+
+    [BurstCompile]
+    public partial struct DeathCleanupJob : IJobEntity
+    {
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity entity, [ChunkIndexInQuery] int chunkIdx, in DeadTag _)
+        {
+            Ecb.DestroyEntity(chunkIdx, entity);
         }
     }
 }

@@ -20,8 +20,15 @@
 // Uniforms: _CactusBody, _CactusBodyShade, _CactusSpine,
 //           _CactusFlower, _DragonfruitFlesh
 // Helpers: rectMask, circleMask, hash21 (from HexShared.hlsl).
-float3 ApplyCactus(float3 ground, float2 px, float grid, float seed, float isDragonfruit)
+//
+// `amount` is the per-instance _CactusAmount (HexResources.Cactus /
+// 100): the main silhouette always renders when called, side pads /
+// arms appear only when amount > 0.5, and visible fruit count is
+// capped to ceil(amount * fullCount) so a heavily-foraged plant reads
+// as a sparse trunk while a fresh one shows the full cluster.
+float3 ApplyCactus(float3 ground, float2 px, float grid, float seed, float isDragonfruit, float amount)
 {
+    bool showSidePads = amount > 0.5;
     float3 result = ground;
 
     // Per-plant hue / brightness drift so neighbours don't clone.
@@ -49,11 +56,13 @@ float3 ApplyCactus(float3 ground, float2 px, float grid, float seed, float isDra
         // Side pads (two optional, slightly higher, offset left/right).
         float pad2 = circleMask(px, c + float2(-2.5, 1.2),       1.8);
         float pad3 = circleMask(px, c + float2( 2.5, 1.4),       1.8);
-        float pad2Gate = step(0.25, hash21(float2(seed, 14.0)));
-        float pad3Gate = step(0.35, hash21(float2(seed, 15.0)));
+        // Side / crown pads are gated on amount so a near-foraged
+        // plant reads as just the base pad.
+        float pad2Gate = showSidePads ? step(0.25, hash21(float2(seed, 14.0))) : 0.0;
+        float pad3Gate = showSidePads ? step(0.35, hash21(float2(seed, 15.0))) : 0.0;
         // Crown pad (smaller, centred above base).
         float crown = circleMask(px, c + float2(0.0, 2.4),       1.5);
-        float crownGate = step(0.20, hash21(float2(seed, 16.0)));
+        float crownGate = showSidePads ? step(0.20, hash21(float2(seed, 16.0))) : 0.0;
 
         float silhouette = max(basePad,
                              max(pad2 * pad2Gate,
@@ -80,9 +89,12 @@ float3 ApplyCactus(float3 ground, float2 px, float grid, float seed, float isDra
         }
 
         // Pear fruits — 0–3 bright magenta dots on the upper pads.
+        // Capped by amount so a near-foraged plant has fewer pears.
+        int pearCap = clamp((int)ceil(amount * 3.0), 0, 3);
         [unroll]
         for (int f = 0; f < 3; f++)
         {
+            if (f >= pearCap) break;
             float fs = seed + (float)f * 7.0;
             if (hash21(float2(fs, 21.0)) < 0.45) continue;
             float2 fp = c + float2(
@@ -106,7 +118,9 @@ float3 ApplyCactus(float3 ground, float2 px, float grid, float seed, float isDra
         float trunkTop = circleMask(px, c + float2(0.0, trunkH - 0.5), 1.3);
 
         // Optional bent arm — low-gated so ~40% of plants have one.
-        float armGate  = step(0.60, hash21(float2(seed, 33.0)));
+        // Suppressed entirely on heavily-foraged plants so the column
+        // looks weathered rather than ornamental.
+        float armGate  = showSidePads ? step(0.60, hash21(float2(seed, 33.0))) : 0.0;
         float armSide  = step(0.50, hash21(float2(seed, 34.0))); // 0 left, 1 right
         float armDx    = lerp(-2.0, 2.0, armSide);
         float2 armBase = c + float2(armDx, trunkH * 0.45);
@@ -134,10 +148,14 @@ float3 ApplyCactus(float3 ground, float2 px, float grid, float seed, float isDra
         }
 
         // Dragonfruit bulbs: 1–2 magenta ovals on the upper half, with
-        // a green bract flick on top to hint at the real fruit.
+        // a green bract flick on top to hint at the real fruit. Bulb
+        // count is capped by amount so a depleted dragonfruit cactus
+        // shows just a trunk.
+        int bulbCap = clamp((int)ceil(amount * 2.0), 0, 2);
         [unroll]
         for (int f = 0; f < 2; f++)
         {
+            if (f >= bulbCap) break;
             float fs = seed + (float)f * 9.0;
             if (f > 0 && hash21(float2(fs, 41.0)) < 0.55) continue;
             float fy = c.y + trunkH * 0.6

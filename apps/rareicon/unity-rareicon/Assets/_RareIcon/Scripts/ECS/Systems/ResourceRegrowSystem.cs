@@ -69,12 +69,15 @@ namespace RareIcon
             _tickCounter++;
             uint tick = _tickCounter;
 
-            foreach (var (hexCoord, biome, resourcesRW, visualRW) in
+            foreach (var (hexCoord, biome, resourcesRW, visualRW, treeRW, floorRW, cactusRW) in
                      SystemAPI.Query<
                          RefRO<HexCoord>,
                          RefRO<BiomeType>,
                          RefRW<HexResources>,
-                         RefRW<HexResourceVisual>>())
+                         RefRW<HexResourceVisual>,
+                         RefRW<HexTreeVisual>,
+                         RefRW<HexFloorAmounts>,
+                         RefRW<HexCactusVisual>>())
             {
                 int  q = hexCoord.ValueRO.Q;
                 int  r = hexCoord.ValueRO.R;
@@ -117,6 +120,21 @@ namespace RareIcon
                 visualRW.ValueRW = new HexResourceVisual
                 {
                     Value = HexResourceTable.ComputeVisualMask(in current)
+                };
+                // Continuous-amount visuals — shader scales decoration
+                // count by these so mid-regrowth hexes look distinct
+                // from fully-stocked ones.
+                treeRW.ValueRW = new HexTreeVisual
+                {
+                    Value = HexResourceTable.ComputeTreeAmount(in current)
+                };
+                floorRW.ValueRW = new HexFloorAmounts
+                {
+                    Value = HexResourceTable.ComputeFloorAmounts(in current)
+                };
+                cactusRW.ValueRW = new HexCactusVisual
+                {
+                    Value = HexResourceTable.ComputeCactusAmount(in current)
                 };
             }
         }

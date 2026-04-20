@@ -143,6 +143,15 @@ namespace RareIcon
         public float Value;
     }
 
+    /// <summary>Per-building HP. Damage drops Value, Builders restore it; LastRepairAbsSeconds rate-limits the per-building repair tick against WorldClock.</summary>
+    // TODO(rust-ffi): persist Value across chunk unload so damaged buildings don't auto-heal on reload.
+    public struct BuildingHealth : IComponentData
+    {
+        public ushort Value;
+        public ushort Max;
+        public float  LastRepairAbsSeconds;
+    }
+
     /// <summary>
     /// Attached to each hex tile that belongs to a building. Points back
     /// at the owning building so pathing / targeting / further builds

@@ -44,7 +44,8 @@ namespace RareIcon
             }
 
             var em  = EntityManager;
-            var ecb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(World.Unmanaged);
 
             // GlobalMessagePipe lazily — provider is set by RootLifetimeScope.Awake
             // which fires after our OnCreate but before any player click could
@@ -72,9 +73,6 @@ namespace RareIcon
                 }
                 ecb.DestroyEntity(reqEntity);
             }
-
-            ecb.Playback(em);
-            ecb.Dispose();
         }
 
         // Returns true on success (footprint claimed, building entity
@@ -146,6 +144,13 @@ namespace RareIcon
                 OwnerFaction = req.OwnerFaction,
             });
             ecb.SetComponent(building, new BuildingVisual { Value = req.BuildingType });
+
+            // Spawn at full HP regardless of construction state — the
+            // ConstructionSite tag tracks "incomplete", BuildingHealth
+            // tracks "damaged". Builders repair damage; construction
+            // completion is a separate flow handled by ConstructionCompleteSystem.
+            ushort maxHp = BuildingDB.GetMaxHealth(req.BuildingType);
+            ecb.AddComponent(building, new BuildingHealth { Value = maxHp, Max = maxHp });
 
             // Per-type tag — production systems query on these so the
             // recipe components get auto-attached by the matching
@@ -221,12 +226,11 @@ namespace RareIcon
             }
             else
             {
-                foreach (var (b, e) in
-                    SystemAPI.Query<RefRO<Building>>().WithEntityAccess())
+                if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out source))
                 {
-                    if (b.ValueRO.Type == BuildingType.Capital) { source = e; break; }
+                    reason = "no Capital — build one first";
+                    return false;
                 }
-                if (source == Entity.Null) { reason = "no Capital — build one first"; return false; }
             }
 
             if (!em.HasBuffer<InventorySlot>(source))

@@ -17,14 +17,21 @@
 //
 // Uniforms: _MushroomCap, _MushroomStem
 // Helpers: rectMask, circleMask, hash21 (from HexShared.hlsl).
-float3 ApplyMushrooms(float3 ground, float2 px, float grid, float seed)
+//
+// `amount` is the per-instance _FloorAmounts.z (HexResources.Mushrooms /
+// 100): cluster size is capped to ceil(amount * 3) so a near-foraged
+// hex shows a single mushroom while a freshly-grown patch shows the
+// full 1-3 cluster.
+float3 ApplyMushrooms(float3 ground, float2 px, float grid, float seed, float amount)
 {
     float3 result = ground;
     float3 spotCol = float3(0.96, 0.93, 0.85);
+    int mushroomCap = clamp((int)ceil(amount * 3.0), 1, 3);
 
     [unroll]
     for (int m = 0; m < 3; m++)
     {
+        if (m >= mushroomCap) break;
         float ms = seed + (float)m * 9.0;
         if (m > 0 && hash21(float2(ms, 81.0)) < 0.35) continue;
 

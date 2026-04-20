@@ -116,6 +116,16 @@ namespace RareIcon
             _ => BuildTarget.None,
         };
 
+        /// <summary>Per-type max HP. Drives BuildingHealth on spawn + the repair ceiling for Builders.</summary>
+        public static ushort GetMaxHealth(byte buildingType) => buildingType switch
+        {
+            BuildingType.Capital  => 600,
+            BuildingType.Farm     => 200,
+            BuildingType.Barracks => 400,
+            BuildingType.Furnace  => 300,
+            _                     => 100,
+        };
+
         /// <summary>All buildable types in display order — used by the palette panel.</summary>
         public static readonly byte[] AllBuildable =
         {

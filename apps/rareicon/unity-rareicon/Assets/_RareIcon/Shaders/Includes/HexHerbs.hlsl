@@ -5,13 +5,19 @@
 //
 // Uniforms: _HerbColor
 // Helpers: hash21 (from HexShared.hlsl).
-float3 ApplyHerbs(float3 ground, float2 px, float grid, float seed)
+//
+// `amount` is the per-instance _FloorAmounts.w (HexResources.Herbs /
+// 100): tuft count is capped to ceil(amount * 5) so a depleted patch
+// reads as a single tuft instead of a full cluster.
+float3 ApplyHerbs(float3 ground, float2 px, float grid, float seed, float amount)
 {
     float3 result = ground;
+    int tuftCap = clamp((int)ceil(amount * 5.0), 1, 5);
 
     [unroll]
     for (int h = 0; h < 5; h++)
     {
+        if (h >= tuftCap) break;
         float hs = seed + (float)h * 4.0;
         if (hash21(float2(hs, 51.0)) < 0.45) continue;
 
