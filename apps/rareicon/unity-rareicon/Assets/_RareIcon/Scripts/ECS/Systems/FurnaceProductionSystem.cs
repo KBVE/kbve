@@ -4,8 +4,9 @@ using Unity.Entities;
 namespace RareIcon
 {
     /// <summary>
-    /// Drives the per-furnace active cycle on a worker thread. Mirrors
-    /// <see cref="FarmProductionSystem"/> but supports up to 2 inputs and
+    /// Drives the per-furnace active cycle on a worker thread. Uses its
+    /// own FurnaceProduction component rather than the unified
+    /// ProductionRecipe buffer, supporting up to 2 inputs and
     /// 3 outputs per recipe (e.g. Wood + Sand → Coal + Ash + Glass on
     /// sand placement). Forest furnaces also carry a
     /// <see cref="PassiveProduction"/> component which

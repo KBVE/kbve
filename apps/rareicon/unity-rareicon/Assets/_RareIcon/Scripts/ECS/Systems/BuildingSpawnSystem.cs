@@ -166,14 +166,28 @@ namespace RareIcon
             {
                 ecb.AddComponent<CapitalTag>(building);
                 ecb.AddComponent<NeedsStaffing>(building);
-                ecb.AddComponent(building, new CapitalProduction
+
+                // Two recipes run in parallel — Arrow craft pulls wood /
+                // cacti / stone, Compost make pulls leaves + branches.
+                // Both consume from + emit to the Capital's own storage
+                // (PullsFromCapital = 0).
+                var recipes = ecb.AddBuffer<ProductionRecipe>(building);
+                recipes.Add(new ProductionRecipe
                 {
-                    Input1Id     = (ushort)ItemId.WoodLog,     Input1Amount = 1,
-                    Input2Id     = (ushort)ItemId.CactiNeedle, Input2Amount = 1,
-                    Input3Id     = (ushort)ItemId.Stone,       Input3Amount = 1,
-                    OutputId     = (ushort)ItemId.Arrow,       OutputAmount = 10,
-                    CycleEndsAt   = 0f,
+                    Input1Id      = (ushort)ItemId.WoodLog,     Input1Amount = 1,
+                    Input2Id      = (ushort)ItemId.CactiNeedle, Input2Amount = 1,
+                    Input3Id      = (ushort)ItemId.Stone,       Input3Amount = 1,
+                    Output1Id     = (ushort)ItemId.Arrow,       Output1Amount = 10,
                     CycleDuration = 18f,
+                    CycleEndsAt   = 0f,
+                });
+                recipes.Add(new ProductionRecipe
+                {
+                    Input1Id      = (ushort)ItemId.Leaves,    Input1Amount = 2,
+                    Input2Id      = (ushort)ItemId.Branches,  Input2Amount = 1,
+                    Output1Id     = (ushort)ItemId.Compost,   Output1Amount = 1,
+                    CycleDuration = 2f,
+                    CycleEndsAt   = 0f,
                 });
                 // Capital claims radius 4 from its centre (7-hex footprint +
                 // 3 rings of influence). Future Cities/Villages attach the

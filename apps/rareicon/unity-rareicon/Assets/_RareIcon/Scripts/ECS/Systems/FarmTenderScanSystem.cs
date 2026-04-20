@@ -1,23 +1,21 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Marks FarmProduction.TenderBonus = 1 when any Farmer-intent unit stands on the farm's 7-hex footprint; otherwise 0.</summary>
+    /// <summary>Writes TenderMultiplier.Value = 1 when any Farmer-intent unit stands on the farm's 7-hex footprint; otherwise 0. ProductionSystem reads TenderMultiplier when starting a recipe cycle to halve the duration.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(JobSystem))]
-    public partial class FarmTenderScanSystem : SystemBase
+    public partial struct FarmTenderScanSystem : ISystem
     {
-        static readonly int2[] FarmFootprint = new[]
-        {
-            new int2( 0,  0),
-            new int2( 1,  0), new int2(-1,  0),
-            new int2( 0,  1), new int2( 0, -1),
-            new int2( 1, -1), new int2(-1,  1),
-        };
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
-        protected override void OnUpdate()
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
             var tendedHexes = new NativeHashSet<int2>(16, Allocator.Temp);
             foreach (var (intent, movement) in
@@ -27,22 +25,19 @@ namespace RareIcon
                 tendedHexes.Add(movement.ValueRO.CurrentHex);
             }
 
-            foreach (var (building, prod) in
-                     SystemAPI.Query<RefRO<Building>, RefRW<FarmProduction>>())
+            foreach (var (building, tender) in
+                     SystemAPI.Query<RefRO<Building>, RefRW<TenderMultiplier>>()
+                              .WithAll<FarmTag>())
             {
-                if (building.ValueRO.Type != BuildingType.Farm)
-                {
-                    prod.ValueRW.TenderBonus = 0f;
-                    continue;
-                }
-
-                bool tended = false;
+                bool isTended = false;
                 var root = building.ValueRO.RootHex;
-                for (int i = 0; i < FarmFootprint.Length; i++)
+                for (int dq = -1; dq <= 1 && !isTended; dq++)
+                for (int dr = -1; dr <= 1 && !isTended; dr++)
                 {
-                    if (tendedHexes.Contains(root + FarmFootprint[i])) { tended = true; break; }
+                    if (dq + dr < -1 || dq + dr > 1) continue;
+                    if (tendedHexes.Contains(new int2(root.x + dq, root.y + dr))) isTended = true;
                 }
-                prod.ValueRW.TenderBonus = tended ? 1f : 0f;
+                tender.ValueRW.Value = isTended ? 1f : 0f;
             }
 
             tendedHexes.Dispose();

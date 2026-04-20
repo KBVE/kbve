@@ -3,21 +3,7 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Ensures every <see cref="FarmTag"/> entity carries a default
-    /// <see cref="FarmProduction"/> recipe. Lets BuildingSpawnSystem
-    /// stay simple — spawn the building with FarmTag, this system fills
-    /// in the production data on the next tick.
-    ///
-    /// V1 default: Compost → Carrot, 8s per cycle, 1:1 ratio. When
-    /// recipe selection (e.g. Wood→Mushroom from a build menu) lands,
-    /// BuildingSpawnSystem will attach FarmProduction explicitly with
-    /// the chosen recipe and this auto-init becomes a no-op fallback.
-    ///
-    /// SystemBase (not Burst) because attaching a component is a
-    /// structural change — cleanest with EntityManager on the main
-    /// thread for once-per-farm-spawn frequency.
-    /// </summary>
+    /// <summary>Ensures every FarmTag entity carries a default Compost → Carrot ProductionRecipe + InventorySlot + StorageReserve { Carrot, 8 } + TenderMultiplier + FarmLivestock buffer. Future recipe selection (Wood→Mushroom, etc.) just appends more ProductionRecipe entries.</summary>
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class FarmInitSystem : SystemBase
     {
@@ -27,7 +13,7 @@ namespace RareIcon
         {
             _needsInit = GetEntityQuery(
                 ComponentType.ReadOnly<FarmTag>(),
-                ComponentType.Exclude<FarmProduction>());
+                ComponentType.Exclude<ProductionRecipe>());
         }
 
         protected override void OnUpdate()
@@ -39,20 +25,25 @@ namespace RareIcon
             {
                 for (int i = 0; i < arr.Length; i++)
                 {
-                    EntityManager.AddComponentData(arr[i], new FarmProduction
+                    var e = arr[i];
+                    if (!EntityManager.HasBuffer<InventorySlot>(e))
+                        EntityManager.AddBuffer<InventorySlot>(e);
+
+                    var recipes = EntityManager.AddBuffer<ProductionRecipe>(e);
+                    recipes.Add(new ProductionRecipe
                     {
-                        InputItemId   = (ushort)ItemId.Compost,
-                        InputAmount   = 1,
-                        OutputItemId  = (ushort)ItemId.Carrot,
-                        OutputAmount  = 1,
-                        CycleEndsAt   = 0f,
-                        CycleDuration = 8f,
+                        Input1Id         = (ushort)ItemId.Compost, Input1Amount = 1,
+                        Output1Id        = (ushort)ItemId.Carrot,  Output1Amount = 1,
+                        CycleDuration    = 8f,
+                        CycleEndsAt      = 0f,
+                        PullsFromCapital = 1,
                     });
-                    if (!EntityManager.HasBuffer<InventorySlot>(arr[i]))
-                        EntityManager.AddBuffer<InventorySlot>(arr[i]);
-                    var reserves = EntityManager.AddBuffer<StorageReserve>(arr[i]);
+
+                    var reserves = EntityManager.AddBuffer<StorageReserve>(e);
                     reserves.Add(new StorageReserve { ItemId = (ushort)ItemId.Carrot, Reserve = 8 });
-                    EntityManager.AddBuffer<FarmLivestock>(arr[i]);
+
+                    EntityManager.AddComponentData(e, new TenderMultiplier { Value = 0f });
+                    EntityManager.AddBuffer<FarmLivestock>(e);
                 }
             }
             finally

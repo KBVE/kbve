@@ -46,16 +46,25 @@ namespace RareIcon
         public byte OwnerFaction;
     }
 
-    /// <summary>Per-capital craft recipe — up to 3 inputs → 1 output, cycle anchored to WorldClock.AbsSeconds.</summary>
-    // TODO(rust-ffi): persist {Input*Id/Amount, OutputId/Amount, CycleEndsAt, CycleDuration} so in-flight crafts don't reset on chunk unload / server restart.
-    public struct CapitalProduction : IComponentData
+    /// <summary>Data-driven production recipe. Up to 3 inputs / 3 outputs + a cycle clock anchored to WorldClock.AbsSeconds. Output always lands in the building's own InventorySlot (FarmSurplusTransferSystem drains farm surplus to Capital). PullsFromCapital = 1 means "consume inputs from the Capital's storage instead of self" — covers Farm's Compost → Carrot chain where the raw material lives at the Capital. Multiple recipes per building are permitted; ProductionSystem ticks each independently.</summary>
+    [InternalBufferCapacity(2)]
+    public struct ProductionRecipe : IBufferElementData
     {
         public ushort Input1Id;  public ushort Input1Amount;
         public ushort Input2Id;  public ushort Input2Amount;
         public ushort Input3Id;  public ushort Input3Amount;
-        public ushort OutputId;  public ushort OutputAmount;
-        public float  CycleEndsAt;
+        public ushort Output1Id; public ushort Output1Amount;
+        public ushort Output2Id; public ushort Output2Amount;
+        public ushort Output3Id; public ushort Output3Amount;
         public float  CycleDuration;
+        public float  CycleEndsAt;
+        public byte   PullsFromCapital;
+    }
+
+    /// <summary>Cycle-duration multiplier. 0 = no bonus, 1 = halves the duration. FarmTenderScanSystem writes 1 while a Farmer-intent unit stands on the farm footprint; ProductionSystem reads this when starting a new cycle. Omit the component entirely for buildings that don't have a "worker present" bonus.</summary>
+    public struct TenderMultiplier : IComponentData
+    {
+        public float Value;
     }
 
     /// <summary>Marker tag for Farm buildings — production system query key.</summary>
@@ -154,18 +163,6 @@ namespace RareIcon
         /// <summary>WorldClock.AbsSeconds at which the current cycle finishes; 0 = "not started yet".</summary>
         public float CycleEndsAt;
         public float CycleDuration;
-    }
-
-    /// <summary>Per-farm Compost→Carrot (or future) recipe + cycle marker against the WorldClock. TenderBonus [0..1] shortens the effective duration when a Farmer is on-hex.</summary>
-    public struct FarmProduction : IComponentData
-    {
-        public ushort InputItemId;
-        public ushort InputAmount;
-        public ushort OutputItemId;
-        public ushort OutputAmount;
-        public float CycleEndsAt;
-        public float CycleDuration;
-        public float TenderBonus;
     }
 
     /// <summary>

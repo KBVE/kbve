@@ -206,16 +206,27 @@ namespace RareIcon
             var sb = ZString.CreateStringBuilder();
             try
             {
-                if (em.HasComponent<FarmProduction>(_target))
+                if (em.HasBuffer<ProductionRecipe>(_target))
                 {
-                    var p = em.GetComponentData<FarmProduction>(_target);
+                    var recipes = em.GetBuffer<ProductionRecipe>(_target);
                     AppendProductionHeader(ref sb);
-                    AppendRecipe(ref sb, p.InputItemId, p.InputAmount, p.OutputItemId, p.OutputAmount);
-                    AppendCycle(ref sb, p.CycleEndsAt, p.CycleDuration, now);
-                    if (p.TenderBonus > 0f)
+                    for (int i = 0; i < recipes.Length; i++)
                     {
-                        sb.Append('\n'); sb.Append(_locale.Get("inspector.tender_bonus"));
-                        sb.Append(": +"); sb.Append((int)Mathf.Round(p.TenderBonus * 100f)); sb.Append('%');
+                        if (i > 0) sb.Append('\n');
+                        var r = recipes[i];
+                        AppendInputs(ref sb, r.Input1Id, r.Input1Amount, r.Input2Id, r.Input2Amount, r.Input3Id, r.Input3Amount);
+                        sb.Append(" \u2192 ");
+                        AppendOutputs(ref sb, r.Output1Id, r.Output1Amount, r.Output2Id, r.Output2Amount, r.Output3Id, r.Output3Amount);
+                        AppendCycle(ref sb, r.CycleEndsAt, r.CycleDuration, now);
+                    }
+                    if (em.HasComponent<TenderMultiplier>(_target))
+                    {
+                        float t = em.GetComponentData<TenderMultiplier>(_target).Value;
+                        if (t > 0f)
+                        {
+                            sb.Append('\n'); sb.Append(_locale.Get("inspector.tender_bonus"));
+                            sb.Append(": +"); sb.Append((int)Mathf.Round(t * 50f)); sb.Append('%');
+                        }
                     }
                 }
                 else if (em.HasComponent<FurnaceProduction>(_target))
@@ -225,15 +236,6 @@ namespace RareIcon
                     AppendInputs(ref sb, p.Input1Id, p.Input1Amount, p.Input2Id, p.Input2Amount, 0, 0);
                     sb.Append(" \u2192 ");
                     AppendOutputs(ref sb, p.Output1Id, p.Output1Amount, p.Output2Id, p.Output2Amount, p.Output3Id, p.Output3Amount);
-                    AppendCycle(ref sb, p.CycleEndsAt, p.CycleDuration, now);
-                }
-                else if (em.HasComponent<CapitalProduction>(_target))
-                {
-                    var p = em.GetComponentData<CapitalProduction>(_target);
-                    AppendProductionHeader(ref sb);
-                    AppendInputs(ref sb, p.Input1Id, p.Input1Amount, p.Input2Id, p.Input2Amount, p.Input3Id, p.Input3Amount);
-                    sb.Append(" \u2192 ");
-                    AppendOutputs(ref sb, p.OutputId, p.OutputAmount, 0, 0, 0, 0);
                     AppendCycle(ref sb, p.CycleEndsAt, p.CycleDuration, now);
                 }
                 else if (em.HasComponent<PassiveProduction>(_target))
