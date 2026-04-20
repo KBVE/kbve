@@ -109,6 +109,7 @@ namespace RareIcon
             em.AddComponentData(entity, new Collidable { Radius = 0.20f });
 
             AttachRangedAttackIfArmed(em, entity, def.DefaultWeapon);
+            AttachMeleeAttackIfArmed(em, entity, def.DefaultWeapon, faction);
             AttachNeedsIfPlayer(em, entity, faction, def);
             AttachJobsIfPlayer(em, entity, faction, def.UnitType);
 
@@ -391,6 +392,30 @@ namespace RareIcon
                     ProjectileLifetime = 2.5f,
                 });
             }
+        }
+
+        // Player-faction goblins use clubs for self-defence (PreferUnits —
+        // don't wander off to smack your own storehouses when a hostile is
+        // right there). Hostile-faction clubs bias toward PreferBuildings
+        // so raids actually feel like raids, with defenders running
+        // interference. Tune TargetMode per creature once we add more
+        // hostile archetypes (sapper = BuildingsOnly, raider = Closest, etc).
+        static void AttachMeleeAttackIfArmed(EntityManager em, Entity entity, byte weapon, byte faction)
+        {
+            if (weapon != WeaponType.Club) return;
+
+            byte mode = faction == FactionType.Hostile
+                ? MeleeTargetMode.PreferBuildings
+                : MeleeTargetMode.PreferUnits;
+
+            em.AddComponentData(entity, new MeleeAttack
+            {
+                Range         = 0.45f,
+                Damage        = 3.0f,
+                Cooldown      = 1.0f,
+                TimeSinceShot = 0f,
+                TargetMode    = mode,
+            });
         }
 
         static Mesh CreateQuadMesh(float size)

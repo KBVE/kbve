@@ -32,9 +32,10 @@ namespace RareIcon
 
         protected override void OnUpdate()
         {
-            var ecb            = new EntityCommandBuffer(Allocator.Temp);
-            var healthLookup   = SystemAPI.GetComponentLookup<Health>(isReadOnly: false);
-            var effectLookup   = SystemAPI.GetBufferLookup<StatusEffect>(isReadOnly: false);
+            var ecb             = new EntityCommandBuffer(Allocator.Temp);
+            var healthLookup    = SystemAPI.GetComponentLookup<Health>(isReadOnly: false);
+            var buildingHpLookup = SystemAPI.GetComponentLookup<BuildingHealth>(isReadOnly: false);
+            var effectLookup    = SystemAPI.GetBufferLookup<StatusEffect>(isReadOnly: false);
             var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(isReadOnly: true);
 
             foreach (var (damageRef, eventEntity) in
@@ -42,53 +43,62 @@ namespace RareIcon
             {
                 var ev = damageRef.ValueRO;
 
-                if (!healthLookup.HasComponent(ev.Target))
+                // Unit target path.
+                if (healthLookup.HasComponent(ev.Target))
                 {
-                    ecb.DestroyEntity(eventEntity);
-                    continue;
-                }
+                    var health = healthLookup[ev.Target];
+                    if (health.Value <= 0f) { ecb.DestroyEntity(eventEntity); continue; }
 
-                var health = healthLookup[ev.Target];
-                if (health.Value <= 0f)
-                {
-                    ecb.DestroyEntity(eventEntity);
-                    continue;
-                }
+                    float amount = ev.Amount;
+                    if (ev.Mod == ArrowMod.Obsidian) amount *= ObsidianDamageMul;
 
-                float amount = ev.Amount;
-                if (ev.Mod == ArrowMod.Obsidian) amount *= ObsidianDamageMul;
+                    health.Value = math.max(0f, health.Value - amount);
+                    healthLookup[ev.Target] = health;
 
-                health.Value = math.max(0f, health.Value - amount);
-                healthLookup[ev.Target] = health;
+                    bool fatal = health.Value <= 0f;
+                    if (fatal) ecb.AddComponent<DeadTag>(ev.Target);
+                    else       ApplyPersistentEffect(effectLookup, ev.Target, ev.Mod);
 
-                bool fatal = health.Value <= 0f;
-                if (fatal)
-                {
-                    ecb.AddComponent<DeadTag>(ev.Target);
-                }
-                else
-                {
-                    ApplyPersistentEffect(effectLookup, ev.Target, ev.Mod);
-                }
-
-                if (transformLookup.HasComponent(ev.Target))
-                {
-                    var pos = transformLookup[ev.Target].Position;
-                    _decalRng = XorShift(_decalRng);
-                    float jitterX = ((_decalRng & 0xFFFFu) / 65535f - 0.5f) * 0.12f;
-                    _decalRng = XorShift(_decalRng);
-                    float jitterY = ((_decalRng & 0xFFFFu) / 65535f - 0.5f) * 0.12f;
-                    _decalRng = XorShift(_decalRng);
-
-                    var req = ecb.CreateEntity();
-                    ecb.AddComponent(req, new SpawnBloodDecalRequest
+                    if (transformLookup.HasComponent(ev.Target))
                     {
-                        Position = new float2(pos.x + jitterX, pos.y + jitterY),
-                        Lifetime = fatal ? FatalBloodDecalLifetime : BloodDecalLifetime,
-                        Seed     = (_decalRng & 0xFFFFFFu) / (float)0xFFFFFF,
-                    });
+                        var pos = transformLookup[ev.Target].Position;
+                        _decalRng = XorShift(_decalRng);
+                        float jitterX = ((_decalRng & 0xFFFFu) / 65535f - 0.5f) * 0.12f;
+                        _decalRng = XorShift(_decalRng);
+                        float jitterY = ((_decalRng & 0xFFFFu) / 65535f - 0.5f) * 0.12f;
+                        _decalRng = XorShift(_decalRng);
+
+                        var req = ecb.CreateEntity();
+                        ecb.AddComponent(req, new SpawnBloodDecalRequest
+                        {
+                            Position = new float2(pos.x + jitterX, pos.y + jitterY),
+                            Lifetime = fatal ? FatalBloodDecalLifetime : BloodDecalLifetime,
+                            Seed     = (_decalRng & 0xFFFFFFu) / (float)0xFFFFFF,
+                        });
+                    }
+
+                    ecb.DestroyEntity(eventEntity);
+                    continue;
                 }
 
+                // Building target path — no blood decal, no status effects,
+                // no DeadTag. BuildingDeathSystem handles destruction at 0 HP.
+                if (buildingHpLookup.HasComponent(ev.Target))
+                {
+                    var bh = buildingHpLookup[ev.Target];
+                    if (bh.Value == 0) { ecb.DestroyEntity(eventEntity); continue; }
+
+                    float amount = ev.Amount;
+                    if (ev.Mod == ArrowMod.Obsidian) amount *= ObsidianDamageMul;
+                    int next = bh.Value - (int)math.round(amount);
+                    bh.Value = (ushort)math.max(0, next);
+                    buildingHpLookup[ev.Target] = bh;
+
+                    ecb.DestroyEntity(eventEntity);
+                    continue;
+                }
+
+                // Target has no Health/BuildingHealth — drop the event.
                 ecb.DestroyEntity(eventEntity);
             }
 
