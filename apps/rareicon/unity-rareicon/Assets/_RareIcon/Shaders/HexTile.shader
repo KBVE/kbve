@@ -32,6 +32,11 @@ Shader "RareIcon/HexTile"
         _MushroomCap   ("Mushroom Cap Color", Color)       = (0.78, 0.22, 0.22, 1)
         _MushroomStem  ("Mushroom Stem Color", Color)      = (0.92, 0.88, 0.78, 1)
         _HerbColor     ("Herb Color", Color)               = (0.45, 0.65, 0.30, 1)
+        _CactusBody       ("Cactus Body Color",      Color) = (0.30, 0.55, 0.28, 1)
+        _CactusBodyShade  ("Cactus Body Shade",      Color) = (0.18, 0.38, 0.20, 1)
+        _CactusSpine      ("Cactus Spine Color",     Color) = (0.96, 0.94, 0.82, 1)
+        _CactusFlower     ("Prickly Pear Fruit",     Color) = (0.86, 0.25, 0.55, 1)
+        _DragonfruitFlesh ("Dragonfruit Bulb Color", Color) = (0.90, 0.18, 0.40, 1)
     }
 
     SubShader
@@ -94,6 +99,11 @@ Shader "RareIcon/HexTile"
                 float4 _MushroomCap;
                 float4 _MushroomStem;
                 float4 _HerbColor;
+                float4 _CactusBody;
+                float4 _CactusBodyShade;
+                float4 _CactusSpine;
+                float4 _CactusFlower;
+                float4 _DragonfruitFlesh;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -112,10 +122,12 @@ Shader "RareIcon/HexTile"
 
             // Bit flags for floor decorations — must match ResourceMask in
             // HexComponents.cs. Wood is NOT in the mask: trees represent it.
-            #define MASK_STONE     1
-            #define MASK_MUSHROOMS 2
-            #define MASK_BERRIES   4
-            #define MASK_HERBS     8
+            #define MASK_STONE              1
+            #define MASK_MUSHROOMS          2
+            #define MASK_BERRIES            4
+            #define MASK_HERBS              8
+            #define MASK_CACTUS            16
+            #define MASK_CACTUS_DRAGONFRUIT 32
 
             // Decoration modules — each is a single file with one Apply* function.
             // Include order: shared helpers first, then each decoration.
@@ -124,6 +136,7 @@ Shader "RareIcon/HexTile"
             #include "Includes/HexBerryBush.hlsl"
             #include "Includes/HexMushroom.hlsl"
             #include "Includes/HexHerbs.hlsl"
+            #include "Includes/HexCactus.hlsl"
             #include "Includes/HexTree.hlsl"
 
             Varyings vert(Attributes input)
@@ -175,6 +188,11 @@ Shader "RareIcon/HexTile"
                     if ((resMask & MASK_BERRIES)   != 0) ground = ApplyBerryBush(ground, px, grid, tileSeed);
                     if ((resMask & MASK_MUSHROOMS) != 0) ground = ApplyMushrooms(ground, px, grid, tileSeed);
                     if ((resMask & MASK_HERBS)     != 0) ground = ApplyHerbs    (ground, px, grid, tileSeed);
+                    if ((resMask & MASK_CACTUS)    != 0)
+                    {
+                        float isDragonfruit = ((resMask & MASK_CACTUS_DRAGONFRUIT) != 0) ? 1.0 : 0.0;
+                        ground = ApplyCactus(ground, px, grid, tileSeed, isDragonfruit);
+                    }
                 }
 
                 // Trees on top of the forest floor.

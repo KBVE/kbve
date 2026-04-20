@@ -125,6 +125,12 @@ namespace RareIcon
                 {
                     _biomeMaterials[i].SetFloat("_FloorDensity", 0.55f);
                 }
+                else if (i == BiomeGenerator.BIOME_SAND)
+                {
+                    // Sand is sparse but cacti want to read clearly when they
+                    // do appear — high density gates nothing out on a 5% roll.
+                    _biomeMaterials[i].SetFloat("_FloorDensity", 0.95f);
+                }
             }
 
             _renderMeshDesc = new RenderMeshDescription(
@@ -285,11 +291,13 @@ namespace RareIcon
                     {
                         res = new HexResources
                         {
-                            Wood      = stored.wood,
-                            Stone     = stored.stone,
-                            Berries   = stored.berries,
-                            Mushrooms = stored.mushrooms,
-                            Herbs     = stored.herbs,
+                            Wood          = stored.wood,
+                            Stone         = stored.stone,
+                            Berries       = stored.berries,
+                            Mushrooms     = stored.mushrooms,
+                            Herbs         = stored.herbs,
+                            Cactus        = stored.cactus,
+                            CactusVariant = stored.cactus_variant,
                         };
                         mask = HexResourceTable.ComputeVisualMask(in res);
                     }
@@ -416,19 +424,23 @@ namespace RareIcon
                     var current = EntityManager.GetComponentData<HexResources>(entity);
                     var (gen, _) = HexResourceTable.Roll(biome.Value, coord.Q, coord.R);
 
-                    if (current.Wood      != gen.Wood      ||
-                        current.Stone     != gen.Stone     ||
-                        current.Berries   != gen.Berries   ||
-                        current.Mushrooms != gen.Mushrooms ||
-                        current.Herbs     != gen.Herbs)
+                    if (current.Wood          != gen.Wood          ||
+                        current.Stone         != gen.Stone         ||
+                        current.Berries       != gen.Berries       ||
+                        current.Mushrooms     != gen.Mushrooms     ||
+                        current.Herbs         != gen.Herbs         ||
+                        current.Cactus        != gen.Cactus        ||
+                        current.CactusVariant != gen.CactusVariant)
                     {
                         world.SaveHex(coord.Q, coord.R, new FfiHexResources
                         {
-                            wood      = current.Wood,
-                            stone     = current.Stone,
-                            berries   = current.Berries,
-                            mushrooms = current.Mushrooms,
-                            herbs     = current.Herbs,
+                            wood           = current.Wood,
+                            stone          = current.Stone,
+                            berries        = current.Berries,
+                            mushrooms      = current.Mushrooms,
+                            herbs          = current.Herbs,
+                            cactus         = current.Cactus,
+                            cactus_variant = current.CactusVariant,
                         });
                     }
                 }

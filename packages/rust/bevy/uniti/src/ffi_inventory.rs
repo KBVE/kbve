@@ -31,6 +31,11 @@ pub enum RareItem {
     WoodLog = 200,
     IronOre = 201,
     Crystal = 202,
+    RawCacti = 207,
+    CactiNeedle = 208,
+    PricklyPear = 209,
+    Dragonfruit = 210,
+    CactiSeeds = 211,
 
     // -- Quest --
     QuestScroll = 300,
@@ -49,6 +54,11 @@ impl ItemKind for RareItem {
             Self::WoodLog => "Wood Log",
             Self::IronOre => "Iron Ore",
             Self::Crystal => "Crystal",
+            Self::RawCacti => "Raw Cacti",
+            Self::CactiNeedle => "Cacti Needle",
+            Self::PricklyPear => "Prickly Pear",
+            Self::Dragonfruit => "Dragonfruit",
+            Self::CactiSeeds => "Cacti Seeds",
             Self::QuestScroll => "Quest Scroll",
             Self::BossKey => "Boss Key",
         }
@@ -58,6 +68,8 @@ impl ItemKind for RareItem {
         match self {
             Self::HealthPotion | Self::ManaPotion | Self::Antidote => 16,
             Self::WoodLog | Self::IronOre | Self::Crystal => 64,
+            Self::RawCacti | Self::CactiNeedle => 99,
+            Self::PricklyPear | Self::Dragonfruit | Self::CactiSeeds => 64,
             Self::QuestScroll => 1,
             Self::BossKey => 1,
             _ => 1, // equipment doesn't stack
@@ -283,6 +295,11 @@ fn id_to_item(id: u16) -> Option<RareItem> {
         200 => Some(RareItem::WoodLog),
         201 => Some(RareItem::IronOre),
         202 => Some(RareItem::Crystal),
+        207 => Some(RareItem::RawCacti),
+        208 => Some(RareItem::CactiNeedle),
+        209 => Some(RareItem::PricklyPear),
+        210 => Some(RareItem::Dragonfruit),
+        211 => Some(RareItem::CactiSeeds),
         300 => Some(RareItem::QuestScroll),
         301 => Some(RareItem::BossKey),
         _ => None,

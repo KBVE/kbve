@@ -33,6 +33,8 @@ namespace RareIcon
             float r2 = ((h >> 16 ) & 0xFF) / 255f;  // mushrooms
             float r3 = ((h >> 24 ) & 0xFF) / 255f;  // herbs
             float r4 = ((h2 >> 16) & 0xFF) / 255f;  // berries
+            float r5 = ((h2 >>  8) & 0xFF) / 255f;  // cactus presence
+            float r6 = ((h2      ) & 0xFF) / 255f;  // cactus variant
 
             // Yield amounts derived from the same draws so a "lucky" hex is
             // both more likely to have the resource AND has more of it.
@@ -62,7 +64,12 @@ namespace RareIcon
                     res.Stone = AmountFrom(r1, 0.85f);
                     break;
                 case BiomeGenerator.BIOME_SAND:
-                    res.Stone = AmountFrom(r1, 0.08f);
+                    res.Stone  = AmountFrom(r1, 0.08f);
+                    res.Cactus = AmountFrom(r5, 0.05f);
+                    if (res.Cactus > 0)
+                        res.CactusVariant = r6 < 0.20f
+                            ? CactusVariantType.Dragonfruit
+                            : CactusVariantType.PricklyPear;
                     break;
                 // Snow / River / Ocean: nothing.
             }
@@ -83,6 +90,12 @@ namespace RareIcon
             if (res.Mushrooms > 0) mask |= ResourceMask.Mushrooms;
             if (res.Berries   > 0) mask |= ResourceMask.Berries;
             if (res.Herbs     > 0) mask |= ResourceMask.Herbs;
+            if (res.Cactus    > 0)
+            {
+                mask |= ResourceMask.Cactus;
+                if (res.CactusVariant == CactusVariantType.Dragonfruit)
+                    mask |= ResourceMask.CactusDragonfruit;
+            }
             return mask;
         }
     }

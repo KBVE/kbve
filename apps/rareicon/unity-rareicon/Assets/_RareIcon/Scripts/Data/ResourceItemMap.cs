@@ -42,5 +42,6 @@ namespace RareIcon
         public const byte Berries   = 3;
         public const byte Mushrooms = 4;
         public const byte Herbs     = 5;
+        public const byte Cactus    = 6;
     }
 }

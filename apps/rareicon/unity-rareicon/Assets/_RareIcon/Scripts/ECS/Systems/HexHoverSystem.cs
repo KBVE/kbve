@@ -167,6 +167,7 @@ namespace RareIcon
                 publisher.Publish(new HexHoverMessage(
                     mouse.HexCoord.x, mouse.HexCoord.y, biome.Value, true,
                     res.Wood, res.Stone, res.Berries, res.Mushrooms, res.Herbs,
+                    res.Cactus, res.CactusVariant,
                     unitType,
                     hp, hpMax, en, enMax, mp, mpMax,
                     i0, c0, i1, c1, i2, c2, i3, c3));
@@ -175,7 +176,9 @@ namespace RareIcon
             {
                 publisher.Publish(new HexHoverMessage(
                     mouse.HexCoord.x, mouse.HexCoord.y, 0, false,
-                    0, 0, 0, 0, 0, unitType,
+                    0, 0, 0, 0, 0,
+                    0, 0,
+                    unitType,
                     hp, hpMax, en, enMax, mp, mpMax,
                     i0, c0, i1, c1, i2, c2, i3, c3));
             }

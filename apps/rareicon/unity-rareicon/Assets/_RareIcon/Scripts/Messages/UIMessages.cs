@@ -18,6 +18,8 @@ namespace RareIcon
         public readonly bool IsLand;
         // Each hex carries multiple resources at once. 0 means "not present".
         public readonly byte Wood, Stone, Berries, Mushrooms, Herbs;
+        public readonly byte Cactus;
+        public readonly byte CactusVariant;
         // UnitType.* of any creature standing on this hex (0 = none).
         public readonly byte UnitType;
         // Unit stats — Max=0 means the unit doesn't carry that stat (the
@@ -37,6 +39,7 @@ namespace RareIcon
         public HexHoverMessage(int q, int r, byte biomeId, bool isLand,
                                byte wood = 0, byte stone = 0, byte berries = 0,
                                byte mushrooms = 0, byte herbs = 0,
+                               byte cactus = 0, byte cactusVariant = 0,
                                byte unitType = 0,
                                float unitHealth = 0, float unitMaxHealth = 0,
                                float unitEnergy = 0, float unitMaxEnergy = 0,
@@ -55,6 +58,8 @@ namespace RareIcon
             Berries = berries;
             Mushrooms = mushrooms;
             Herbs = herbs;
+            Cactus = cactus;
+            CactusVariant = cactusVariant;
             UnitType = unitType;
             UnitHealth   = unitHealth;
             UnitMaxHealth= unitMaxHealth;

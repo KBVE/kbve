@@ -38,6 +38,8 @@ namespace RareIcon
         const float BerryRegrowChance    = 0.04f;
         const float HerbRegrowChance     = 0.03f;
         const float WoodRegrowChance     = 0.01f;
+        // Slowest: sand is meant to feel sparse — ~15–20 min to refill.
+        const float CactusRegrowChance   = 0.006f;
 
         float _accumTime;
         uint  _tickCounter; // perturbs per-hex hash so successive ticks diverge
@@ -87,6 +89,15 @@ namespace RareIcon
                 changed |= TryRegrow(ref current.Berries,   maxes.Berries,   BerryRegrowChance,    ref h);
                 changed |= TryRegrow(ref current.Herbs,     maxes.Herbs,     HerbRegrowChance,     ref h);
                 changed |= TryRegrow(ref current.Wood,      maxes.Wood,      WoodRegrowChance,     ref h);
+                // Cactus: restore the original variant when a depleted tile
+                // regrows its first charge, so the shader picks the correct
+                // silhouette again.
+                if (TryRegrow(ref current.Cactus, maxes.Cactus, CactusRegrowChance, ref h))
+                {
+                    if (current.CactusVariant == CactusVariantType.None)
+                        current.CactusVariant = maxes.CactusVariant;
+                    changed = true;
+                }
                 // Stone: never regrows.
 
                 if (!changed) continue;
