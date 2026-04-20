@@ -27,13 +27,19 @@ Shader "RareIcon/HexBuilding"
         _FarmRoof          ("Farm Roof",          Color) = (0.42, 0.20, 0.12, 1)
         _FarmCarrot        ("Farm Carrot",        Color) = (0.92, 0.50, 0.18, 1)
 
-        // Barracks palette — stone walls, foundation course, parapet
-        // tint, dark openings, heraldic insignia color accent.
+        // Barracks palette — fortified medieval hall: rough stone base,
+        // timber-framed upper story, tiled multi-peak roof, dark window
+        // slits, heraldic insignia. Upper story mixes plaster panels
+        // with exposed wood beams; tile / timber / plaster track the
+        // three dominant materials in the reference silhouette.
         _BarracksWall       ("Barracks Wall",       Color) = (0.62, 0.60, 0.55, 1)
         _BarracksFoundation ("Barracks Foundation", Color) = (0.38, 0.36, 0.32, 1)
         _BarracksRoof       ("Barracks Roof",       Color) = (0.32, 0.28, 0.24, 1)
         _BarracksDoor       ("Barracks Door",       Color) = (0.08, 0.06, 0.05, 1)
         _BarracksInsignia   ("Barracks Insignia",   Color) = (0.78, 0.18, 0.18, 1)
+        _BarracksTimber     ("Barracks Timber Beam",Color) = (0.26, 0.18, 0.12, 1)
+        _BarracksPlaster    ("Barracks Plaster",    Color) = (0.82, 0.72, 0.54, 1)
+        _BarracksTile       ("Barracks Roof Tile",  Color) = (0.48, 0.44, 0.42, 1)
 
         // Furnace palette — kiln stone, darker foundation, brick chimney,
         // near-black mouth, hot ember glow, drifting smoke.
@@ -100,6 +106,9 @@ Shader "RareIcon/HexBuilding"
                 float4 _BarracksRoof;
                 float4 _BarracksDoor;
                 float4 _BarracksInsignia;
+                float4 _BarracksTimber;
+                float4 _BarracksPlaster;
+                float4 _BarracksTile;
                 float4 _FurnaceStone;
                 float4 _FurnaceFoundation;
                 float4 _FurnaceChimney;
@@ -123,6 +132,7 @@ Shader "RareIcon/HexBuilding"
             #define BUILDING_FURNACE  4
 
             #include "Includes/HexShared.hlsl"
+            #include "Includes/HexBuildingShared.hlsl"
             #include "Includes/WorldAmbient.hlsl"
             #include "Includes/HexCapital.hlsl"
             #include "Includes/HexFarm.hlsl"
