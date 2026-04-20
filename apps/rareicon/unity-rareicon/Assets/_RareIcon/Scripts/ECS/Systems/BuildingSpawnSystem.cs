@@ -171,6 +171,19 @@ namespace RareIcon
                     CycleEndsAt   = 0f,
                     CycleDuration = 18f,
                 });
+
+                // Founding stockpile — arrows for immediate defence, enough
+                // raw materials to keep the craft cycle running, and some
+                // cooked food so goblins don't starve before Foragers/Farms
+                // kick in. Tuned so the first night is survivable without
+                // player micromanagement.
+                var treasury = ecb.SetBuffer<InventorySlot>(building);
+                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Arrow,        Count = 1000 });
+                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.WoodLog,      Count = 200 });
+                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Stone,        Count = 100 });
+                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.CactiNeedle,  Count = 100 });
+                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Berry,        Count = 50 });
+                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.CookedBeef,   Count = 10 });
             }
             else
             {

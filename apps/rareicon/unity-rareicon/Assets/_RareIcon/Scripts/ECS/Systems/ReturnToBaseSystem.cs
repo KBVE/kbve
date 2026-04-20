@@ -29,6 +29,7 @@ namespace RareIcon
     }
 
     [BurstCompile]
+    [WithNone(typeof(ControlledUnitTag))]
     public partial struct ReturnToBaseJob : IJobEntity
     {
         public int2 CapitalHex;
