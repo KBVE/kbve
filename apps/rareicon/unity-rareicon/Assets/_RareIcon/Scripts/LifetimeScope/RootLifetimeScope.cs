@@ -64,8 +64,14 @@ namespace RareIcon
             // -- Treasury panel (capital storage viewer) --
             builder.RegisterEntryPoint<UITreasury>().AsSelf();
 
+            // -- Citizens panel (tabbed: Jobs, Roster, ...) --
+            builder.RegisterEntryPoint<UICitizensPanel>().AsSelf();
+
             // -- Toast notification service (pool + queue, bottom-center) --
             builder.RegisterEntryPoint<ToastService>().AsSelf();
+
+            // -- Building palette panel (per-type cost + affordability) --
+            builder.RegisterEntryPoint<UIBuildingPalette>().AsSelf();
 
             // -- HUDs (VContainer-managed lifecycle, gated on AppInterfaceState) --
             builder.RegisterEntryPoint<WorldHUD>();

@@ -26,6 +26,8 @@ namespace RareIcon
         readonly AppStateController _appState;
         readonly UIWorldSearch _worldSearch;
         readonly UITreasury _treasury;
+        readonly UICitizensPanel _citizensPanel;
+        readonly UIBuildingPalette _buildingPalette;
         readonly BuildModeController _buildMode;
         readonly CameraService _camera;
         readonly ISubscriber<HexHoverMessage> _hoverSub;
@@ -55,6 +57,8 @@ namespace RareIcon
             AppStateController appState,
             UIWorldSearch worldSearch,
             UITreasury treasury,
+            UICitizensPanel citizensPanel,
+            UIBuildingPalette buildingPalette,
             BuildModeController buildMode,
             CameraService camera,
             ISubscriber<HexHoverMessage> hoverSub)
@@ -64,6 +68,8 @@ namespace RareIcon
             _appState = appState;
             _worldSearch = worldSearch;
             _treasury = treasury;
+            _citizensPanel = citizensPanel;
+            _buildingPalette = buildingPalette;
             _buildMode = buildMode;
             _camera = camera;
             _hoverSub = hoverSub;
@@ -240,8 +246,12 @@ namespace RareIcon
 
             _toolbar.Add(MakeToolbarButton("Search", _worldSearch.Toggle, marginLeft: 0));
 
+            // Build button now opens the multi-building palette instead
+            // of toggling the hardcoded Capital target. Player picks the
+            // type from the palette → BuildModeController flips into the
+            // matching mode → next hex click places it.
             _buildBtn = MakeToolbarButton("Build",
-                () => _buildMode.Toggle(BuildTarget.Capital), marginLeft: 6);
+                _buildingPalette.Toggle, marginLeft: 6);
             _toolbar.Add(_buildBtn);
 
             // Quick re-center on the player. Common UX in strategy games —
@@ -254,6 +264,7 @@ namespace RareIcon
             // the EntityManager every 500ms so deposits / withdrawals
             // appear in near real-time).
             _toolbar.Add(MakeToolbarButton("Treasury", _treasury.Toggle, marginLeft: 6));
+            _toolbar.Add(MakeToolbarButton("Citizens", _citizensPanel.Toggle, marginLeft: 6));
 
             // Reactive highlight — gold-fill the Build button while active.
             // Reuses the YoRHA hover-invert palette (Gold / Zinc950) so the

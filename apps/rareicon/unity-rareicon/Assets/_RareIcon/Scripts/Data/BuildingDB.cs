@@ -85,5 +85,44 @@ namespace RareIcon
             //   Wall might allow only Stone / Dirt for foundation, etc.
             return true;
         }
+
+        /// <summary>Locale key for the human-readable name of a building type.</summary>
+        public static string GetLocaleKey(byte buildingType) => buildingType switch
+        {
+            BuildingType.Capital  => "building.capital",
+            BuildingType.Farm     => "building.farm",
+            BuildingType.Barracks => "building.barracks",
+            BuildingType.Furnace  => "building.furnace",
+            _ => "building.unknown",
+        };
+
+        /// <summary>Maps a BuildTarget to its corresponding BuildingType. Returns 0 (None) if unknown.</summary>
+        public static byte BuildTargetToType(byte buildTarget) => buildTarget switch
+        {
+            BuildTarget.Capital  => BuildingType.Capital,
+            BuildTarget.Farm     => BuildingType.Farm,
+            BuildTarget.Barracks => BuildingType.Barracks,
+            BuildTarget.Furnace  => BuildingType.Furnace,
+            _ => BuildingType.None,
+        };
+
+        /// <summary>Reverse map — BuildingType to its placement target. Used by the palette to flip into build mode.</summary>
+        public static byte BuildingTypeToTarget(byte buildingType) => buildingType switch
+        {
+            BuildingType.Capital  => BuildTarget.Capital,
+            BuildingType.Farm     => BuildTarget.Farm,
+            BuildingType.Barracks => BuildTarget.Barracks,
+            BuildingType.Furnace  => BuildTarget.Furnace,
+            _ => BuildTarget.None,
+        };
+
+        /// <summary>All buildable types in display order — used by the palette panel.</summary>
+        public static readonly byte[] AllBuildable =
+        {
+            BuildingType.Capital,
+            BuildingType.Farm,
+            BuildingType.Barracks,
+            BuildingType.Furnace,
+        };
     }
 }
