@@ -27,13 +27,15 @@ namespace RareIcon
         VisualElement _content;
 
         [Inject]
-        public UICitizensPanel(UIPanelManager panelManager)
+        public UICitizensPanel(UIPanelManager panelManager, LocaleService locale)
         {
             _panelManager = panelManager;
             _tabs = new ICitizensTab[]
             {
                 new JobsTab(),
                 new RosterTab(),
+                new SkillsTab(),
+                new DietTab(locale),
             };
         }
 
@@ -71,7 +73,7 @@ namespace RareIcon
             _root.style.top = new Length(2f, LengthUnit.Percent);
             _root.style.right = new Length(2f, LengthUnit.Percent);
             _root.style.marginTop = 70;
-            _root.style.width = 380;
+            _root.style.width = 420;
             _root.style.display = DisplayStyle.None;
 
             var header = new VisualElement();

@@ -343,6 +343,8 @@ namespace RareIcon
                 TargetHex    = default,
                 TargetEntity = Entity.Null,
             });
+            em.AddComponentData(entity, new Skills());
+            em.AddComponentData(entity, new SkillXP());
         }
 
         static void AttachNeedsIfPlayer(EntityManager em, Entity entity, byte faction, NPCDef def)

@@ -187,5 +187,13 @@ namespace RareIcon
         /// <summary>0-100 preference weight; UI later edits this to let players focus collection on specific drops.</summary>
         public static byte GetHarvestWeight(ushort id)
             => TryGet(id, out var def) ? def.HarvestWeight : (byte)100;
+
+        /// <summary>Enumerate every item whose HarvestRole matches — used by the Diet UI to build per-item preference rows.</summary>
+        public static IEnumerable<ItemDef> EnumerateByRole(HarvestRole role)
+        {
+            EnsureInit();
+            foreach (var kv in _byId)
+                if (kv.Value.HarvestRole == role) yield return kv.Value;
+        }
     }
 }

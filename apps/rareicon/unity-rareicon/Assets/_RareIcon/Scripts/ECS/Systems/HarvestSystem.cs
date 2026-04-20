@@ -2,17 +2,20 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Opportunistic harvesting on arrival; filters by the unit's JobPriorities so Sand (HarvestRole.None) is ignored and each job only picks up its assigned items.</summary>
+    /// <summary>Opportunistic harvesting on arrival — respects unit's JobPriorities (which role to favor), DietPreferencesStore (per-UnitType item skip/preference), and awards SkillXP on success.</summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(UnitMovementSystem))]
     public partial class HarvestSystem : SystemBase
     {
         const ushort HarvestPerTick = 1;
+        const ushort XPPerHarvest   = 12;
 
         protected override void OnUpdate()
         {
-            foreach (var (movementRW, priorities, inventory, entity) in
-                     SystemAPI.Query<RefRW<UnitMovement>, RefRO<JobPriorities>, DynamicBuffer<InventorySlot>>()
+            var skillXpLookup = SystemAPI.GetComponentLookup<SkillXP>(isReadOnly: false);
+
+            foreach (var (movementRW, priorities, unit, inventory, entity) in
+                     SystemAPI.Query<RefRW<UnitMovement>, RefRO<JobPriorities>, RefRO<Unit>, DynamicBuffer<InventorySlot>>()
                               .WithEntityAccess())
             {
                 var movement = movementRW.ValueRO;
@@ -28,9 +31,8 @@ namespace RareIcon
 
                 var res = EntityManager.GetComponentData<HexResources>(hexEntity);
                 var p = priorities.ValueRO;
+                byte unitType = unit.ValueRO.Type;
 
-                // Pick the resource that matches the unit's highest-priority job.
-                // Cactus is special (produces multiple items) so it goes under Forager.
                 bool harvested = false;
                 byte bestPrio = 0;
                 byte bestRole = (byte)HarvestRole.None;
@@ -39,22 +41,28 @@ namespace RareIcon
                 if (p.Lumberjack > bestPrio && HasLumberWork(in res))     { bestPrio = p.Lumberjack; bestRole = (byte)HarvestRole.Lumberjack; }
                 if (p.Miner      > bestPrio && res.Stone != 0)            { bestPrio = p.Miner;      bestRole = (byte)HarvestRole.Miner; }
 
+                byte xpKind = SkillKind.Foraging;
+
                 switch ((HarvestRole)bestRole)
                 {
                     case HarvestRole.Forager:
+                        xpKind = SkillKind.Foraging;
                         harvested = TryTakeCactus(ref res, movement.WanderStep,
-                                                  movement.CurrentHex.x, movement.CurrentHex.y, inventory)
-                                 || TryTakeResource(ref res.Mushrooms, ResourceTag.Mushrooms, inventory)
-                                 || TryTakeResource(ref res.Berries,   ResourceTag.Berries,   inventory)
-                                 || TryTakeResource(ref res.Herbs,     ResourceTag.Herbs,     inventory);
+                                                  movement.CurrentHex.x, movement.CurrentHex.y,
+                                                  unitType, inventory)
+                                 || TryTakeResource(ref res.Mushrooms, ResourceTag.Mushrooms, unitType, inventory)
+                                 || TryTakeResource(ref res.Berries,   ResourceTag.Berries,   unitType, inventory)
+                                 || TryTakeResource(ref res.Herbs,     ResourceTag.Herbs,     unitType, inventory);
                         break;
                     case HarvestRole.Lumberjack:
-                        harvested = TryTakeResource(ref res.Leaves,    ResourceTag.Leaves,    inventory)
-                                 || TryTakeResource(ref res.Branches,  ResourceTag.Branches,  inventory)
-                                 || TryTakeResource(ref res.Wood,      ResourceTag.Wood,      inventory);
+                        xpKind = SkillKind.Lumberjack;
+                        harvested = TryTakeResource(ref res.Leaves,    ResourceTag.Leaves,    unitType, inventory)
+                                 || TryTakeResource(ref res.Branches,  ResourceTag.Branches,  unitType, inventory)
+                                 || TryTakeResource(ref res.Wood,      ResourceTag.Wood,      unitType, inventory);
                         break;
                     case HarvestRole.Miner:
-                        harvested = TryTakeResource(ref res.Stone,     ResourceTag.Stone,     inventory);
+                        xpKind = SkillKind.Mining;
+                        harvested = TryTakeResource(ref res.Stone,     ResourceTag.Stone,     unitType, inventory);
                         break;
                 }
 
@@ -68,6 +76,15 @@ namespace RareIcon
                             Value = HexResourceTable.ComputeVisualMask(in res)
                         });
                     }
+
+                    if (skillXpLookup.HasComponent(entity))
+                    {
+                        var xp = skillXpLookup[entity];
+                        ushort cur = xp.Get(xpKind);
+                        int next = cur + XPPerHarvest;
+                        xp.Set(xpKind, (ushort)(next > ushort.MaxValue ? ushort.MaxValue : next));
+                        skillXpLookup[entity] = xp;
+                    }
                 }
             }
         }
@@ -78,13 +95,14 @@ namespace RareIcon
         static bool HasLumberWork(in HexResources res)
             => (res.Wood | res.Leaves | res.Branches) != 0;
 
-        static bool TryTakeResource(ref byte amount, byte resourceTag,
+        static bool TryTakeResource(ref byte amount, byte resourceTag, byte unitType,
                                     DynamicBuffer<InventorySlot> inventory)
         {
             if (amount == 0) return false;
             ushort itemId = ResourceItemMap.ItemForResource(resourceTag);
             if (itemId == 0) return false;
             if (ItemDB.GetHarvestRole(itemId) == HarvestRole.None) return false;
+            if (DietPreferencesStore.Get(unitType, itemId) == 0) return false;
 
             ushort take = amount < HarvestPerTick ? amount : HarvestPerTick;
             amount -= (byte)take;
@@ -93,9 +111,12 @@ namespace RareIcon
         }
 
         static bool TryTakeCactus(ref HexResources res, uint harvestStep, int q, int r,
-                                  DynamicBuffer<InventorySlot> inventory)
+                                  byte unitType, DynamicBuffer<InventorySlot> inventory)
         {
             if (res.Cactus == 0 || res.CactusVariant == CactusVariantType.None) return false;
+            // Gate the whole cactus pickup on the player's preference for the primary drop (RawCacti).
+            // Zero-out here prevents unwanted CactiNeedle / Dragonfruit side drops too.
+            if (DietPreferencesStore.Get(unitType, (ushort)ItemId.RawCacti) == 0) return false;
 
             res.Cactus -= 1;
             if (res.Cactus == 0) res.CactusVariant = CactusVariantType.None;
@@ -112,15 +133,15 @@ namespace RareIcon
 
             if (res.CactusVariant == CactusVariantType.PricklyPear)
             {
-                if (d0 < 0.75f) inventory.AddItem((ushort)ItemId.CactiNeedle, 1);
-                if (d1 < 0.90f) inventory.AddItem((ushort)ItemId.PricklyPear, 1);
-                if (d2 < 0.15f) inventory.AddItem((ushort)ItemId.CactiSeeds,  1);
+                if (d0 < 0.75f && DietPreferencesStore.Get(unitType, (ushort)ItemId.CactiNeedle) > 0) inventory.AddItem((ushort)ItemId.CactiNeedle, 1);
+                if (d1 < 0.90f && DietPreferencesStore.Get(unitType, (ushort)ItemId.PricklyPear) > 0) inventory.AddItem((ushort)ItemId.PricklyPear, 1);
+                if (d2 < 0.15f && DietPreferencesStore.Get(unitType, (ushort)ItemId.CactiSeeds)  > 0) inventory.AddItem((ushort)ItemId.CactiSeeds,  1);
             }
             else
             {
-                if (d0 < 0.50f) inventory.AddItem((ushort)ItemId.CactiNeedle, 1);
-                if (d1 < 0.60f) inventory.AddItem((ushort)ItemId.Dragonfruit, 1);
-                if (d2 < 0.10f) inventory.AddItem((ushort)ItemId.CactiSeeds,  1);
+                if (d0 < 0.50f && DietPreferencesStore.Get(unitType, (ushort)ItemId.CactiNeedle) > 0) inventory.AddItem((ushort)ItemId.CactiNeedle, 1);
+                if (d1 < 0.60f && DietPreferencesStore.Get(unitType, (ushort)ItemId.Dragonfruit) > 0) inventory.AddItem((ushort)ItemId.Dragonfruit, 1);
+                if (d2 < 0.10f && DietPreferencesStore.Get(unitType, (ushort)ItemId.CactiSeeds)  > 0) inventory.AddItem((ushort)ItemId.CactiSeeds,  1);
             }
             return true;
         }
