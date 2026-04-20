@@ -37,8 +37,9 @@ namespace RareIcon
             {
                 GlobalMessagePipe.SetProvider(container.AsServiceProvider());
                 container.Resolve<UIPanelManager>();
-                MouseStateBridge.Source = container.Resolve<IMouseStateSource>();
-                BuildModeBridge.Source  = container.Resolve<BuildModeController>();
+                MouseStateBridge.Source    = container.Resolve<IMouseStateSource>();
+                BuildModeBridge.Source     = container.Resolve<BuildModeController>();
+                ActivityFeedBridge.Source  = container.Resolve<ActivityFeedService>();
             });
 
             // -- Services --
@@ -53,6 +54,7 @@ namespace RareIcon
             builder.RegisterEntryPoint<BuildInputSource>();
             builder.RegisterEntryPoint<BuildCommandHandler>();
             builder.Register<LocaleService>(Lifetime.Singleton);
+            builder.Register<ActivityFeedService>(Lifetime.Singleton).AsSelf();
             builder.Register<InventoryService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             // Factory so VContainer doesn't try to resolve the int defaults.
             builder.Register(_ => new BiomeGenerator(), Lifetime.Singleton).AsSelf();

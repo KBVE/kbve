@@ -45,6 +45,15 @@ namespace RareIcon
 
             SpawnKingAt(EntityManager, new int2(0, 0));
 
+            // Four garrison archers posted on the Capital's N/E/S/W footprint
+            // hexes. Crossbow loadout, zero JobPriorities, never wander —
+            // RangedAttackSystem auto-fires at any Hostile in 3 wu range
+            // while they hold the perimeter.
+            SpawnGarrisonGoblinAt(EntityManager, new int2( 1,  0), 0xA110C8u);
+            SpawnGarrisonGoblinAt(EntityManager, new int2(-1,  0), 0xB22199u);
+            SpawnGarrisonGoblinAt(EntityManager, new int2( 0,  1), 0xC332AAu);
+            SpawnGarrisonGoblinAt(EntityManager, new int2( 0, -1), 0xD443BBu);
+
             for (int i = 0; i < GoblinCount; i++)
             {
                 uint h = (uint)(i + 1) * 0x9E3779B1u;
@@ -162,6 +171,34 @@ namespace RareIcon
                 entity, em, _renderDesc, _renderArray,
                 MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
 
+            return entity;
+        }
+
+        /// <summary>Spawn a garrison archer (Crossbow goblin) posted at the given hex. Zero JobPriorities + GarrisonPost → never wanders, never harvests; RangedAttackSystem still auto-fires at hostiles in range.</summary>
+        public static Entity SpawnGarrisonGoblinAt(EntityManager em, int2 hex, uint rngSeed)
+        {
+            // Spawn a Player goblin, then overwrite Weapon → Crossbow,
+            // attach GarrisonPost, and zero the JobPriorities so the
+            // jobs / relief / wander pipelines leave it on-tile.
+            var entity = SpawnGoblinAt(em, hex, rngSeed, default, FactionType.Player);
+            if (entity == Entity.Null) return Entity.Null;
+
+            // Promote Unit.Weapon → Crossbow (drives the rendered sprite +
+            // fire animation) and attach RangedAttack for bolts. Keep the
+            // MeleeAttack that SpawnGoblinAt installed — when the Capital
+            // runs out of arrows, RangedAttackSystem's ammo gate silently
+            // skips the shot and MeleeAttackSystem picks up the slack
+            // against anything that reaches 0.45 wu.
+            em.SetComponentData(entity, new Unit
+            {
+                Type   = UnitType.Goblin,
+                Weapon = WeaponType.Crossbow,
+            });
+            em.SetComponentData(entity, new UnitWeaponVisual { Value = (float)WeaponType.Crossbow });
+            AttachRangedAttackIfArmed(em, entity, WeaponType.Crossbow);
+
+            em.AddComponentData(entity, new GarrisonPost { Hex = hex });
+            em.SetComponentData(entity, new JobPriorities());
             return entity;
         }
 
@@ -516,6 +553,12 @@ namespace RareIcon
             });
             em.AddComponentData(entity, new Skills());
             em.AddComponentData(entity, new SkillXP());
+
+            // Sticky per-entity record of the last activity the writer
+            // emitted for this unit. Initialised to None so the very
+            // first classification (whatever ReliefSystem / JobSystem
+            // pick on tick 1) registers as a delta and surfaces to UI.
+            em.AddComponentData(entity, new ActivityState { LastKind = ActivityKind.None });
         }
 
         static void AttachNeedsIfPlayer(EntityManager em, Entity entity, byte faction, NPCDef def)
