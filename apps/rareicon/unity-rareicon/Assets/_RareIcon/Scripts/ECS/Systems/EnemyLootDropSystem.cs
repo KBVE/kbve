@@ -75,6 +75,14 @@ namespace RareIcon
                 case UnitType.Goblin:
                     Append(Ecb, chunkIdx, hex, (ushort)ItemId.Meat, 3);
                     break;
+                case UnitType.Zombie:
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.Ash, 1);
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.Bones,
+                        (ushort)(1 + (int)(r0 * 1.99f)));
+                    if      (r1 < 0.10f) Append(Ecb, chunkIdx, hex, (ushort)ItemId.UnknownTome,   1);
+                    else if (r1 < 0.30f) Append(Ecb, chunkIdx, hex, (ushort)ItemId.UnknownScroll, 1);
+                    else if (r1 < 0.65f) Append(Ecb, chunkIdx, hex, (ushort)ItemId.UnknownKey,    1);
+                    break;
             }
         }
 

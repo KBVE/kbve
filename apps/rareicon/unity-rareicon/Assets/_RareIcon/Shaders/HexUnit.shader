@@ -97,6 +97,13 @@ Shader "RareIcon/HexUnit"
         _BanditMask       ("Bandit Bandana",     Color) = (0.78, 0.18, 0.18, 1)
         _BanditSkin       ("Bandit Skin",        Color) = (0.92, 0.76, 0.60, 1)
         _BanditEye        ("Bandit Eye",         Color) = (0.10, 0.08, 0.10, 1)
+
+        _ZombieSkin         ("Zombie Skin",         Color) = (0.52, 0.68, 0.62, 1)
+        _ZombieSkinShade    ("Zombie Skin Shade",   Color) = (0.30, 0.44, 0.40, 1)
+        _ZombieTatters      ("Zombie Rags",         Color) = (0.42, 0.40, 0.44, 1)
+        _ZombieTattersShade ("Zombie Rags Shade",   Color) = (0.22, 0.20, 0.24, 1)
+        _ZombieBlood        ("Zombie Blood",        Color) = (0.32, 0.10, 0.16, 1)
+        _ZombieEye          ("Zombie Eye",          Color) = (0.95, 0.92, 0.30, 1)
     }
 
     SubShader
@@ -201,6 +208,12 @@ Shader "RareIcon/HexUnit"
                 float4 _BanditMask;
                 float4 _BanditSkin;
                 float4 _BanditEye;
+                float4 _ZombieSkin;
+                float4 _ZombieSkinShade;
+                float4 _ZombieTatters;
+                float4 _ZombieTattersShade;
+                float4 _ZombieBlood;
+                float4 _ZombieEye;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -233,6 +246,7 @@ Shader "RareIcon/HexUnit"
             #define UNIT_COW        12
             #define UNIT_WOLF       13
             #define UNIT_BANDIT     14
+            #define UNIT_ZOMBIE     15
 
             #define WEAPON_CLUB      1
             #define WEAPON_CROSSBOW  2
@@ -254,6 +268,7 @@ Shader "RareIcon/HexUnit"
             #include "Includes/HexCow.hlsl"
             #include "Includes/HexWolf.hlsl"
             #include "Includes/HexBandit.hlsl"
+            #include "Includes/HexZombie.hlsl"
             // Weapon + equipment includes — composited on top of the
             // creature at each unit's respective anchor.
             #include "Includes/HexClub.hlsl"
@@ -326,6 +341,10 @@ Shader "RareIcon/HexUnit"
                 {
                     DrawBandit(color, alpha, px, grid, seed, facing);
                 }
+                else if (unitType == UNIT_ZOMBIE)
+                {
+                    DrawZombie(color, alpha, px, grid, seed, facing);
+                }
 
                 // -- 2. Weapon (composited on top of the creature) -------------
                 // The weapon code stays facing-agnostic: when facing=West we
@@ -352,6 +371,8 @@ Shader "RareIcon/HexUnit"
                         anchor = MageWeaponAnchor(grid, weaponFacing);
                     else if (unitType == UNIT_BANDIT)
                         anchor = BanditWeaponAnchor(grid, weaponFacing);
+                    else if (unitType == UNIT_ZOMBIE)
+                        anchor = ZombieWeaponAnchor(grid, weaponFacing);
                     else
                         anchor = float2(grid * 0.5, grid * 0.45); // generic fallback
 

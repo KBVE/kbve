@@ -256,6 +256,18 @@ namespace RareIcon
                 strength:      11, agility: 11, intellect: 7, will: 8,
                 defaultWeapon: WeaponType.Club));
 
+            Add(new NPCDef(
+                unitType:      UnitType.Zombie,
+                nameKey:       "creature.zombie",
+                category:      NPCCategory.Undead,
+                maxHealth:     50f,  maxEnergy: 0f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.28f,
+                healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      10, agility: 4, intellect: 1, will: 3,
+                defaultWeapon: WeaponType.None));
+
             // Future creatures land here — Skeleton, GoblinShaman, etc.
         }
 

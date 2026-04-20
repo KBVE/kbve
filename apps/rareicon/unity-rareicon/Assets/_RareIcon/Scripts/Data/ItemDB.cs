@@ -184,6 +184,15 @@ namespace RareIcon
                 "item.bag",     ItemCategory.Equipment, 2, 60));
             Add(new ItemDef((ushort)ItemId.Pack,
                 "item.pack",    ItemCategory.Equipment, 2, 150));
+
+            Add(new ItemDef((ushort)ItemId.Bones,
+                "item.bones",          ItemCategory.Material, 30, 2));
+            Add(new ItemDef((ushort)ItemId.UnknownKey,
+                "item.unknown_key",    ItemCategory.Quest,    10, 0));
+            Add(new ItemDef((ushort)ItemId.UnknownScroll,
+                "item.unknown_scroll", ItemCategory.Magic,    10, 0));
+            Add(new ItemDef((ushort)ItemId.UnknownTome,
+                "item.unknown_tome",   ItemCategory.Magic,     5, 0));
         }
 
         static void Add(ItemDef def) => _byId[def.Id] = def;

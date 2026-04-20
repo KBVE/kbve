@@ -65,5 +65,10 @@ namespace RareIcon
         QuestScroll       = 300,
         BossKey           = 301,
         CapitalLandGrant  = 302,
+
+        Bones             = 303,
+        UnknownKey        = 304,
+        UnknownScroll     = 305,
+        UnknownTome       = 306,
     }
 }
