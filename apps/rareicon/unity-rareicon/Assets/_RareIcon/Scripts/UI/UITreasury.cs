@@ -56,15 +56,21 @@ namespace RareIcon
             var styles = Resources.Load<StyleSheet>("UI/styles");
 
             var tree = template.CloneTree();
-            // Pluck the real root out of the TemplateContainer wrapper.
-            // Adding the wrapper directly stretches edge-to-edge because
-            // TemplateContainer defaults to flex-grow:1 with no positioning.
-            _root = tree.Q<VisualElement>("treasury-root");
-            _root.RemoveFromHierarchy();
-            if (styles != null) _root.styleSheets.Add(styles);
-            uiDoc.rootVisualElement.Add(_root);
+            // Make the TemplateContainer a transparent full-screen
+            // passthrough so the inner panel's absolute anchor (.anchor-tr
+            // etc.) positions relative to the viewport, AND the
+            // stylesheet baked into the UXML stays attached.
+            tree.style.position = Position.Absolute;
+            tree.style.left   = 0;
+            tree.style.right  = 0;
+            tree.style.top    = 0;
+            tree.style.bottom = 0;
+            tree.pickingMode  = PickingMode.Ignore;
+            if (styles != null) tree.styleSheets.Add(styles);
+            uiDoc.rootVisualElement.Add(tree);
+            _root = tree;
 
-            var rootEl     = _root;
+            var rootEl     = _root.Q<VisualElement>("treasury-root");
             var titleLabel = _root.Q<Label>("treasury-title");
             var closeBtn   = _root.Q<Button>("treasury-close");
             _bodyLabel     = _root.Q<Label>("treasury-body");
