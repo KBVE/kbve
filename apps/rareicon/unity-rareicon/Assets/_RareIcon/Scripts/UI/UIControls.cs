@@ -7,17 +7,21 @@ namespace RareIcon
     /// <summary>Composed behavioural widgets layered on top of UIStyles primitives; reuse across panels so we don't re-invent stepper rows / tab layouts.</summary>
     public static class UIControls
     {
-        /// <summary>Return handle for a stepper row so callers can drive the label from data without re-querying children.</summary>
+        /// <summary>Return handle for a stepper row. SetValue drives both the label AND the stepper's internal state so the next +/- click increments from the displayed value, not from whatever the initial parameter was at build time. Does not re-fire onChange — callers updating from data already hold the value.</summary>
         public readonly struct StepperHandle
         {
             public readonly VisualElement Row;
             public readonly Label Value;
             public readonly Button Minus;
             public readonly Button Plus;
-            public StepperHandle(VisualElement row, Label value, Button minus, Button plus)
+            readonly Action<int> _setValue;
+
+            public StepperHandle(VisualElement row, Label value, Button minus, Button plus, Action<int> setValue)
             {
-                Row = row; Value = value; Minus = minus; Plus = plus;
+                Row = row; Value = value; Minus = minus; Plus = plus; _setValue = setValue;
             }
+
+            public void SetValue(int v) => _setValue?.Invoke(v);
         }
 
         /// <summary>Label + [−] [value] [+] row clamped to [min, max]. Invokes onChange with the new value after each click.</summary>
@@ -77,8 +81,14 @@ namespace RareIcon
             plusBtn.style.width = 24; plusBtn.style.height = 22; plusBtn.style.fontSize = 14;
             row.Add(plusBtn);
 
+            void SetExternal(int v)
+            {
+                state = Mathf.Clamp(v, min, max);
+                Sync();
+            }
+
             Sync();
-            return new StepperHandle(row, valueLabel, minusBtn, plusBtn);
+            return new StepperHandle(row, valueLabel, minusBtn, plusBtn, SetExternal);
         }
 
         /// <summary>Vertical sidebar tab button; active tab highlights with the gold fill / zinc text swap used elsewhere in the YoRHA theme.</summary>

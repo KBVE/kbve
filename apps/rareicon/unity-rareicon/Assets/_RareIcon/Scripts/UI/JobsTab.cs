@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace RareIcon
 {
-    /// <summary>Citizens-panel tab for editing per-UnitType job priorities; writes JobPreferencesStore + mutates all live units of that type on Apply.</summary>
+    /// <summary>Citizens "Jobs" tab — per-UnitType priority editor (0-5 per job, multiple jobs per unit). Writes JobPreferencesStore + mutates all live units of that type on Apply.</summary>
     public class JobsTab : ICitizensTab
     {
         static readonly byte[] UnitTypes = { UnitType.Goblin, UnitType.Soldier, UnitType.Knight, UnitType.Mage, UnitType.King };
@@ -36,7 +36,7 @@ namespace RareIcon
             for (int i = 0; i < UnitTypes.Length; i++)
                 _unitTypeDropdown.choices.Add(UnitTypeLabel(UnitTypes[i]));
             _unitTypeDropdown.index = 0;
-            _unitTypeDropdown.style.marginBottom = 8;
+            _unitTypeDropdown.AddToClassList("cz-dropdown");
             _unitTypeDropdown.RegisterValueChangedCallback(_ =>
             {
                 _selectedUnitType = UnitTypes[_unitTypeDropdown.index];
@@ -56,23 +56,30 @@ namespace RareIcon
             }
 
             var footer = new VisualElement();
-            footer.style.flexDirection = FlexDirection.Row;
-            footer.style.justifyContent = Justify.SpaceBetween;
+            footer.AddToClassList("roster-detail__actions");
             footer.style.marginTop = 10;
 
-            var applyBtn = UIStyles.MakeButton("Apply", ApplyToLiveUnits);
-            applyBtn.style.height = 26;
-            applyBtn.style.flexGrow = 1;
-            applyBtn.style.marginRight = 4;
+            var applyBtn = MakeBtn("Apply", ApplyToLiveUnits);
             footer.Add(applyBtn);
 
-            var resetBtn = UIStyles.MakeButton("Reset", ResetToDefaults);
-            resetBtn.style.height = 26;
-            resetBtn.style.flexGrow = 1;
+            var resetBtn = MakeBtn("Reset", ResetToDefaults);
             footer.Add(resetBtn);
 
             root.Add(footer);
+
+            var hint = new Label("0 = never · 5 = top priority. Units pick the highest-priority job they can do.");
+            hint.AddToClassList("cz-hint");
+            root.Add(hint);
+
             return root;
+        }
+
+        static Button MakeBtn(string text, System.Action onClick)
+        {
+            var b = new Button(() => onClick?.Invoke()) { text = text };
+            b.AddToClassList("btn");
+            b.AddToClassList("btn--sm");
+            return b;
         }
 
         public void OnActivated() => LoadFromSelected();
@@ -82,7 +89,7 @@ namespace RareIcon
         {
             _working = JobPreferencesStore.GetOrDefault(_selectedUnitType);
             for (int i = 0; i < Jobs.Length; i++)
-                _rows[i].Value.text = _working.Get(Jobs[i].Kind).ToString();
+                _rows[i].SetValue(_working.Get(Jobs[i].Kind));
         }
 
         void ApplyToLiveUnits()
@@ -118,7 +125,7 @@ namespace RareIcon
             _working = JobDefaults.Get(_selectedUnitType);
             JobPreferencesStore.Clear(_selectedUnitType);
             for (int i = 0; i < Jobs.Length; i++)
-                _rows[i].Value.text = _working.Get(Jobs[i].Kind).ToString();
+                _rows[i].SetValue(_working.Get(Jobs[i].Kind));
         }
 
         static string UnitTypeLabel(byte unitType) => unitType switch
