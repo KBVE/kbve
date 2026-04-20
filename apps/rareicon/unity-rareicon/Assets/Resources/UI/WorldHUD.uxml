@@ -1,0 +1,39 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="styles.uss" />
+
+    <!-- Top-left toolbar -->
+    <ui:VisualElement name="hud-toolbar" class="toolbar-pin">
+        <ui:Button name="hud-search"   class="btn-tool first" text="Search" />
+        <ui:Button name="hud-build"    class="btn-tool"       text="Build" />
+        <ui:Button name="hud-king"     class="btn-tool"       text="King" />
+        <ui:Button name="hud-treasury" class="btn-tool"       text="Treasury" />
+        <ui:Button name="hud-citizens" class="btn-tool"       text="Citizens" />
+    </ui:VisualElement>
+
+    <!-- Top-right HUD stack: clock + controlling indicator -->
+    <ui:VisualElement name="hud-stack" class="hud-stack-tr">
+
+        <ui:VisualElement name="hud-clock" class="hud-strip" picking-mode="Ignore">
+            <ui:VisualElement name="hud-clock-icon" class="hud-strip__icon hud-strip__icon--day" />
+            <ui:Label name="hud-clock-turn" class="hud-strip__label" text="Turn 0 · Day" />
+            <ui:Label name="hud-clock-time" class="hud-strip__value" text="00:00" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="hud-control" class="hud-strip">
+            <ui:Label name="hud-control-label" class="hud-strip__label" text="God View" />
+            <ui:Button name="hud-release" class="btn btn--sm hud-strip__action is-hidden" text="Release" />
+            <ui:Label name="hud-control-activity" class="hud-strip__value is-hidden" />
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+
+    <!-- Bottom-right hover tile-info -->
+    <ui:VisualElement name="hud-hover" class="tile-info" picking-mode="Ignore">
+        <ui:Label name="hud-hover-name"      class="tile-info__name" text="---" />
+        <ui:Label name="hud-hover-coord"     class="tile-info__line tile-info__line--muted" />
+        <ui:Label name="hud-hover-creature"  class="tile-info__line tile-info__line--creature is-hidden" />
+        <ui:Label name="hud-hover-stats"     class="tile-info__line is-hidden" />
+        <ui:Label name="hud-hover-inventory" class="tile-info__line is-hidden" />
+        <ui:Label name="hud-hover-resources" class="tile-info__line tile-info__line--resource is-hidden" />
+    </ui:VisualElement>
+</ui:UXML>

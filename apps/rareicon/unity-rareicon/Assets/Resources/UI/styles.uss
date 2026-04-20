@@ -214,3 +214,118 @@
     flex-direction: column;
     align-items: stretch;
 }
+
+/* ----- HUD strip — always-visible compact panels (clock, controlling) ----- */
+.hud-strip {
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--color-bg-page);
+    border-color: var(--color-border-accent);
+    border-width: 1px;
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-sm);
+}
+.hud-strip__icon {
+    width: 8px; height: 8px;
+    border-radius: 4px;
+    margin-right: var(--space-md);
+    flex-shrink: 0;
+}
+.hud-strip__icon--day   { background-color: var(--color-accent); }
+.hud-strip__icon--night { background-color: rgb(140, 165, 215); }
+.hud-strip__label {
+    font-size: var(--font-bodylg);
+    color: var(--color-text-strong);
+    -unity-font-style: bold;
+    margin-right: var(--space-md);
+}
+.hud-strip__value {
+    font-size: var(--font-body);
+    color: var(--color-text-muted);
+}
+
+.hud-stack-tr {
+    position: absolute;
+    top: 2%;
+    right: 2%;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+/* ----- Toolbar (top-left always-visible) ----- */
+.toolbar-pin {
+    position: absolute;
+    top: 2%;
+    left: 2%;
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--color-bg-page);
+    border-color: var(--color-border-accent);
+    border-width: 1px;
+    padding: var(--space-xs) var(--space-sm);
+}
+.toolbar-pin > .btn-tool  { margin-left: var(--space-xs); }
+.toolbar-pin > .first     { margin-left: 0; }
+
+/* Toolbar buttons — borderless until hovered, sits flat on the bar */
+.btn-tool {
+    height: 22px;
+    padding: 0 var(--space-md);
+    margin: 0;
+    background-color: rgba(0, 0, 0, 0);
+    color: var(--color-accent);
+    border-width: 0;
+    border-radius: 0;
+    font-size: var(--font-body);
+    -unity-font-style: bold;
+    transition-duration: 0.10s;
+    transition-property: background-color, color;
+}
+.btn-tool:hover {
+    background-color: var(--color-accent);
+    color: var(--color-text-on-gold);
+}
+.btn-tool:active {
+    background-color: var(--color-accent-deep);
+    color: rgb(0, 0, 0);
+}
+.btn-tool.is-active {
+    background-color: var(--color-accent);
+    color: var(--color-text-on-gold);
+}
+
+/* ----- Hover tile-info panel (bottom-right, low-priority info) ----- */
+.tile-info {
+    position: absolute;
+    bottom: 2%;
+    right: 2%;
+    min-width: 150px;
+    max-width: 18%;
+    flex-direction: column;
+    background-color: var(--color-bg-page);
+    border-color: var(--color-border-accent);
+    border-width: 1px;
+    padding: var(--space-sm) var(--space-md);
+}
+.tile-info__name {
+    font-size: var(--font-head);
+    color: var(--color-text-strong);
+    -unity-font-style: bold;
+    margin-bottom: var(--space-xs);
+}
+.tile-info__line {
+    font-size: var(--font-body);
+    color: var(--color-text-primary);
+    margin-top: var(--space-xs);
+    white-space: normal;
+}
+.tile-info__line--muted    { color: var(--color-text-muted); }
+.tile-info__line--creature { color: var(--color-text-danger); -unity-font-style: bold; }
+.tile-info__line--resource { color: var(--color-accent-deep); }
+
+/* Stronger control panel (when player has a controlled unit) */
+.hud-strip--strong { border-color: var(--color-accent); }
+
+.hud-strip__action {
+    margin-left: var(--space-md);
+}

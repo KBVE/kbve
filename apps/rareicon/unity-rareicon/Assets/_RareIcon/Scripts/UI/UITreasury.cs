@@ -47,28 +47,8 @@ namespace RareIcon
             }
             if (uiDoc.rootVisualElement == null) return;
 
-            var template = Resources.Load<VisualTreeAsset>("UI/Treasury");
-            if (template == null)
-            {
-                Debug.LogError("[UITreasury] Resources/UI/Treasury.uxml not found");
-                return;
-            }
-            var styles = Resources.Load<StyleSheet>("UI/styles");
-
-            var tree = template.CloneTree();
-            // Make the TemplateContainer a transparent full-screen
-            // passthrough so the inner panel's absolute anchor (.anchor-tr
-            // etc.) positions relative to the viewport, AND the
-            // stylesheet baked into the UXML stays attached.
-            tree.style.position = Position.Absolute;
-            tree.style.left   = 0;
-            tree.style.right  = 0;
-            tree.style.top    = 0;
-            tree.style.bottom = 0;
-            tree.pickingMode  = PickingMode.Ignore;
-            if (styles != null) tree.styleSheets.Add(styles);
-            uiDoc.rootVisualElement.Add(tree);
-            _root = tree;
+            _root = UIPanelLoader.Load(uiDoc, "UI/Treasury");
+            if (_root == null) return;
 
             var rootEl     = _root.Q<VisualElement>("treasury-root");
             var titleLabel = _root.Q<Label>("treasury-title");

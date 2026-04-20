@@ -15,10 +15,7 @@ using R3;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Bottom-right hover info — visible only in AppInterfaceState.World.
-    /// (Renamed from HexInfoPanel; future world-map widgets land here.)
-    /// </summary>
+    /// <summary>World-state HUD — toolbar, clock, controlling indicator, hover tile-info. Layout in Resources/UI/WorldHUD.uxml; this controller wires events + pushes data.</summary>
     public class WorldHUD : IAsyncStartable, IDisposable
     {
         readonly LocaleService _locale;
@@ -30,36 +27,23 @@ namespace RareIcon
         readonly UIBuildingPalette _buildingPalette;
         readonly BuildModeController _buildMode;
         readonly CameraService _camera;
+        readonly ActivityFeedService _activity;
         readonly ISubscriber<HexHoverMessage> _hoverSub;
 
         readonly CompositeDisposable _disposables = new();
 
-        VisualElement _hoverPanel;
-        VisualElement _toolbar;
-        VisualElement _clockPanel;
-        Label _clockTurnLabel;
-        Label _clockTimeLabel;
+        VisualElement _root;
+        VisualElement _toolbar, _hoverPanel, _clockPanel, _controlPanel, _stack;
+        Button _searchBtn, _buildBtn, _kingBtn, _treasuryBtn, _citizensBtn, _releaseBtn;
+        Label _clockTurn, _clockTime;
         VisualElement _clockIcon;
-        Button _buildBtn;
-        Label _biomeName;
-        Label _hexCoord;
-        Label _creatureLine;
-        Label _statsLine;
-        Label _inventoryLine;
-        Label _resourceLine;
-        VisualElement _controlPanel;
-        Label _controlLabel;
-        Label _controlActivityLabel;
-        Button _releaseBtn;
-        IDisposable _controlActivitySub;
-        EntityQuery _clockQuery;
-        EntityQuery _controlledQuery;
-        bool _clockQueryReady;
-        bool _controlledQueryReady;
+        Label _hoverName, _hoverCoord, _hoverCreature, _hoverStats, _hoverInv, _hoverRes;
+        Label _controlLabel, _controlActivity;
+        EntityQuery _clockQuery, _controlledQuery;
+        bool _clockReady, _controlledReady;
         Entity _lastControlled;
         byte _lastControlledType;
-
-        readonly ActivityFeedService _activity;
+        IDisposable _controlActivitySub;
 
         [Inject]
         public WorldHUD(
@@ -91,11 +75,7 @@ namespace RareIcon
         public async UniTask StartAsync(CancellationToken cancellation)
         {
             var uiDoc = _panelManager.GetComponent<UIDocument>();
-            if (uiDoc == null)
-            {
-                Debug.LogError("[WorldHUD] UIPanelManager has no UIDocument");
-                return;
-            }
+            if (uiDoc == null) return;
 
             int waited = 0;
             while (uiDoc.rootVisualElement == null && waited < 1000)
@@ -103,29 +83,25 @@ namespace RareIcon
                 await UniTask.Delay(50, cancellationToken: cancellation);
                 waited += 50;
             }
+            if (uiDoc.rootVisualElement == null) return;
 
-            if (uiDoc.rootVisualElement == null)
+            _root = UIPanelLoader.Load(uiDoc, "UI/WorldHUD");
+            if (_root == null) return;
+
+            BindElements();
+
+            // Toggle visibility on app state changes (Boot/InTile hide HUD).
+            _appState.Current.Subscribe(state =>
             {
-                Debug.LogError("[WorldHUD] rootVisualElement still null");
-                return;
-            }
-
-            BuildUI(uiDoc.rootVisualElement);
+                var visible = state == AppInterfaceState.World;
+                SetDisplay(_toolbar, visible);
+                SetDisplay(_hoverPanel, visible);
+                SetDisplay(_stack, visible);
+            }).AddTo(_disposables);
 
             var bag = MessagePipe.DisposableBag.CreateBuilder();
             _hoverSub.Subscribe(OnHexHover).AddTo(bag);
             _disposables.Add(bag.Build());
-
-            _appState.Current
-                .Subscribe(state =>
-                {
-                    var display = state == AppInterfaceState.World ? DisplayStyle.Flex : DisplayStyle.None;
-                    _hoverPanel.style.display = display;
-                    _toolbar.style.display = display;
-                    _clockPanel.style.display = display;
-                    _controlPanel.style.display = display;
-                })
-                .AddTo(_disposables);
 
             _clockPanel.schedule.Execute(RefreshClock).Every(250);
             _controlPanel.schedule.Execute(RefreshControlIndicator).Every(250);
@@ -133,131 +109,102 @@ namespace RareIcon
             RefreshControlIndicator();
         }
 
-        void BuildUI(VisualElement root)
+        void BindElements()
         {
-            BuildHoverPanel(root);
-            BuildToolbar(root);
-            BuildClockPanel(root);
-            BuildControlPanel(root);
+            _toolbar       = _root.Q<VisualElement>("hud-toolbar");
+            _stack         = _root.Q<VisualElement>("hud-stack");
+            _clockPanel    = _root.Q<VisualElement>("hud-clock");
+            _controlPanel  = _root.Q<VisualElement>("hud-control");
+            _hoverPanel    = _root.Q<VisualElement>("hud-hover");
+
+            _searchBtn   = _root.Q<Button>("hud-search");
+            _buildBtn    = _root.Q<Button>("hud-build");
+            _kingBtn     = _root.Q<Button>("hud-king");
+            _treasuryBtn = _root.Q<Button>("hud-treasury");
+            _citizensBtn = _root.Q<Button>("hud-citizens");
+            _releaseBtn  = _root.Q<Button>("hud-release");
+
+            _clockIcon = _root.Q<VisualElement>("hud-clock-icon");
+            _clockTurn = _root.Q<Label>("hud-clock-turn");
+            _clockTime = _root.Q<Label>("hud-clock-time");
+
+            _hoverName     = _root.Q<Label>("hud-hover-name");
+            _hoverCoord    = _root.Q<Label>("hud-hover-coord");
+            _hoverCreature = _root.Q<Label>("hud-hover-creature");
+            _hoverStats    = _root.Q<Label>("hud-hover-stats");
+            _hoverInv      = _root.Q<Label>("hud-hover-inventory");
+            _hoverRes      = _root.Q<Label>("hud-hover-resources");
+
+            _controlLabel    = _root.Q<Label>("hud-control-label");
+            _controlActivity = _root.Q<Label>("hud-control-activity");
+
+            _searchBtn.clicked   += _worldSearch.Toggle;
+            _buildBtn.clicked    += _buildingPalette.Toggle;
+            _kingBtn.clicked     += JumpToKing;
+            _treasuryBtn.clicked += _treasury.Toggle;
+            _citizensBtn.clicked += _citizensPanel.Toggle;
+            _releaseBtn.clicked  += ReleaseControl;
+
+            // Highlight Build button while build mode is active.
+            _buildMode.Target.Subscribe(target =>
+            {
+                bool active = target != BuildTarget.None;
+                if (active) _buildBtn.AddToClassList("is-active");
+                else        _buildBtn.RemoveFromClassList("is-active");
+                _buildBtn.text = active ? "Build (on)" : "Build";
+            }).AddTo(_disposables);
         }
 
-        void BuildClockPanel(VisualElement root)
+        static void SetDisplay(VisualElement el, bool visible)
         {
-            _clockPanel = new VisualElement().ApplyPanelChromeCompact();
-            _clockPanel.style.position = Position.Absolute;
-            _clockPanel.style.top   = new Length(2f, LengthUnit.Percent);
-            _clockPanel.style.right = new Length(2f, LengthUnit.Percent);
-            _clockPanel.style.flexDirection = FlexDirection.Row;
-            _clockPanel.style.alignItems = Align.Center;
-            _clockPanel.pickingMode = PickingMode.Ignore;
-
-            _clockIcon = new VisualElement();
-            _clockIcon.style.width = 10;
-            _clockIcon.style.height = 10;
-            _clockIcon.style.borderTopLeftRadius = 5;
-            _clockIcon.style.borderTopRightRadius = 5;
-            _clockIcon.style.borderBottomLeftRadius = 5;
-            _clockIcon.style.borderBottomRightRadius = 5;
-            _clockIcon.style.backgroundColor = UIStyles.Palette.Gold;
-            _clockIcon.style.marginRight = UIStyles.Spacing.Md;
-            _clockPanel.Add(_clockIcon);
-
-            _clockTurnLabel = UIStyles.MakeHeading("Turn 0 · Day", fontSize: UIStyles.Type.BodyLg);
-            _clockTurnLabel.style.marginRight = UIStyles.Spacing.Md;
-            _clockPanel.Add(_clockTurnLabel);
-
-            _clockTimeLabel = new Label("00:00");
-            _clockTimeLabel.style.color = UIStyles.Palette.TextMuted;
-            _clockTimeLabel.style.fontSize = UIStyles.Type.BodyLg;
-            _clockTimeLabel.pickingMode = PickingMode.Ignore;
-            _clockPanel.Add(_clockTimeLabel);
-
-            root.Add(_clockPanel);
+            if (el == null) return;
+            el.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
+
+        // --- Clock ------------------------------------------------------------
 
         void RefreshClock()
         {
             var world = World.DefaultGameObjectInjectionWorld;
             if (world == null || !world.IsCreated) return;
-
             var em = world.EntityManager;
-            if (!_clockQueryReady)
+            if (!_clockReady)
             {
                 _clockQuery = em.CreateEntityQuery(ComponentType.ReadOnly<WorldClock>());
-                _clockQueryReady = true;
+                _clockReady = true;
             }
-
             if (_clockQuery.CalculateEntityCount() == 0) return;
             var clock = _clockQuery.GetSingleton<WorldClock>();
 
-            string phase = clock.IsDay ? "Day" : "Night";
-            _clockTurnLabel.text = ZString.Format("Turn {0} · {1}", clock.TurnIndex, phase);
-
+            _clockTurn.text = ZString.Format("Turn {0} · {1}", clock.TurnIndex, clock.IsDay ? "Day" : "Night");
             int totalSec = (int)clock.TurnElapsed;
-            int mm = totalSec / 60;
-            int ss = totalSec % 60;
-            _clockTimeLabel.text = ZString.Format("{0:00}:{1:00}", mm, ss);
+            _clockTime.text = ZString.Format("{0:00}:{1:00}", totalSec / 60, totalSec % 60);
 
-            _clockIcon.style.backgroundColor = clock.IsDay
-                ? UIStyles.Palette.Gold
-                : new Color(0.55f, 0.65f, 0.85f, 1f);
+            if (clock.IsDay)
+            {
+                _clockIcon.RemoveFromClassList("hud-strip__icon--night");
+                _clockIcon.AddToClassList("hud-strip__icon--day");
+            }
+            else
+            {
+                _clockIcon.RemoveFromClassList("hud-strip__icon--day");
+                _clockIcon.AddToClassList("hud-strip__icon--night");
+            }
         }
 
-        void BuildControlPanel(VisualElement root)
-        {
-            _controlPanel = new VisualElement().ApplyPanelChromeCompact();
-            _controlPanel.style.position = Position.Absolute;
-            _controlPanel.style.top   = new Length(2f, LengthUnit.Percent);
-            _controlPanel.style.right = new Length(2f, LengthUnit.Percent);
-            _controlPanel.style.marginTop = 36;
-            _controlPanel.style.flexDirection = FlexDirection.Column;
-            _controlPanel.style.alignItems = Align.FlexEnd;
+        // --- Controlled-unit indicator ---------------------------------------
 
-            var topRow = new VisualElement();
-            topRow.style.flexDirection = FlexDirection.Row;
-            topRow.style.alignItems = Align.Center;
-
-            _controlLabel = new Label(_locale.Get("hud.god_view"));
-            _controlLabel.style.color = UIStyles.Palette.TextStrong;
-            _controlLabel.style.fontSize = UIStyles.Type.Body;
-            _controlLabel.style.marginRight = UIStyles.Spacing.Md;
-            topRow.Add(_controlLabel);
-
-            _releaseBtn = UIStyles.MakeButton(_locale.Get("hud.release"), ReleaseControl);
-            _releaseBtn.style.height = 18;
-            _releaseBtn.style.fontSize = UIStyles.Type.Tiny;
-            _releaseBtn.style.Padding(0, UIStyles.Spacing.Md);
-            _releaseBtn.style.display = DisplayStyle.None;
-            topRow.Add(_releaseBtn);
-
-            _controlPanel.Add(topRow);
-
-            _controlActivityLabel = new Label(string.Empty);
-            _controlActivityLabel.style.color = UIStyles.Palette.GoldDeep;
-            _controlActivityLabel.style.fontSize = UIStyles.Type.Tiny;
-            _controlActivityLabel.style.marginTop = UIStyles.Spacing.Xs;
-            _controlActivityLabel.style.display = DisplayStyle.None;
-            _controlPanel.Add(_controlActivityLabel);
-
-            root.Add(_controlPanel);
-        }
-
-        // Polls the controlled-unit query each tick. Cheap — at most one
-        // entity carries ControlledUnitTag and the query is cached. We
-        // also short-circuit when the held entity hasn't changed so the
-        // string format / ZString allocation only runs on transition.
         void RefreshControlIndicator()
         {
             var world = World.DefaultGameObjectInjectionWorld;
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
-
-            if (!_controlledQueryReady)
+            if (!_controlledReady)
             {
                 _controlledQuery = em.CreateEntityQuery(
                     ComponentType.ReadOnly<ControlledUnitTag>(),
                     ComponentType.ReadOnly<Unit>());
-                _controlledQueryReady = true;
+                _controlledReady = true;
             }
 
             Entity current = Entity.Null;
@@ -270,75 +217,53 @@ namespace RareIcon
             }
 
             if (current == _lastControlled && type == _lastControlledType) return;
-            _lastControlled     = current;
+            _lastControlled = current;
             _lastControlledType = type;
 
             if (current == Entity.Null)
             {
                 _controlLabel.text = _locale.Get("hud.god_view");
-                _controlLabel.style.color = UIStyles.Palette.TextMuted;
-                _releaseBtn.style.display = DisplayStyle.None;
-
-                // Drop the activity sub-line; god view has no "doing what".
+                _controlPanel.RemoveFromClassList("hud-strip--strong");
+                _releaseBtn.AddToClassList("is-hidden");
+                _controlActivity.AddToClassList("is-hidden");
                 _controlActivitySub?.Dispose();
                 _controlActivitySub = null;
-                _controlActivityLabel.style.display = DisplayStyle.None;
-                _controlActivityLabel.text = string.Empty;
             }
             else
             {
-                // Prefer the per-entity UnitName when present (Player units
-                // get one at spawn). Fall back to the creature.* locale
-                // label so unnamed possessables (the King, future
-                // raid-defectors, etc.) still read cleanly.
-                string label = string.Empty;
+                string name = string.Empty;
                 if (em.HasComponent<UnitName>(current))
                 {
                     var nm = em.GetComponentData<UnitName>(current);
-                    label = _locale.GetGoblinName(nm.FirstNameId, nm.EpithetId);
+                    name = _locale.GetGoblinName(nm.FirstNameId, nm.EpithetId);
                 }
-                if (label.Length == 0) label = _locale.GetCreatureName(type);
+                if (name.Length == 0) name = _locale.GetCreatureName(type);
+                _controlLabel.text = ZString.Format(_locale.Get("hud.controlling"), name);
+                _controlPanel.AddToClassList("hud-strip--strong");
+                _releaseBtn.RemoveFromClassList("is-hidden");
+                _controlActivity.RemoveFromClassList("is-hidden");
 
-                _controlLabel.text = ZString.Format(_locale.Get("hud.controlling"), label);
-                _controlLabel.style.color = UIStyles.Palette.Gold;
-                _releaseBtn.style.display = DisplayStyle.Flex;
-
-                // Resubscribe the activity line to the new controlled entity.
-                // R3 dedupes — the label only flips when the writer detects
-                // a real activity transition. King carries ActivityState
-                // (added in AttachJobsIfPlayer), so this works for any
-                // Player unit including the King.
                 _controlActivitySub?.Dispose();
                 Entity captured = current;
-                _controlActivitySub = _activity.For(current).Subscribe(snapshot =>
+                _controlActivitySub = _activity.For(current).Subscribe(snap =>
                 {
                     if (_lastControlled != captured) return;
-                    string act = _locale.GetActivityName(snapshot.Kind);
-                    _controlActivityLabel.text = act.Length > 0 ? act : _locale.Get("activity.idle");
+                    string act = _locale.GetActivityName(snap.Kind);
+                    _controlActivity.text = act.Length > 0 ? act : _locale.Get("activity.idle");
                 });
-                _controlActivityLabel.style.display = DisplayStyle.Flex;
-                // Defensive prime — the writer hasn't necessarily emitted
-                // a transition yet on the first take-control frame.
-                var snap = _activity.CurrentFor(current);
-                string seed = _locale.GetActivityName(snap.Kind);
-                _controlActivityLabel.text = seed.Length > 0 ? seed : _locale.Get("activity.idle");
+                var seed = _activity.CurrentFor(current);
+                string seedAct = _locale.GetActivityName(seed.Kind);
+                _controlActivity.text = seedAct.Length > 0 ? seedAct : _locale.Get("activity.idle");
             }
         }
 
-        // Drops ControlledUnitTag from whichever entity holds it and
-        // cancels any in-flight Order-priority MovementGoal so the
-        // released unit doesn't keep walking toward the player's last
-        // click. Returns the player to god view; click any Player-faction
-        // unit to repossess.
         void ReleaseControl()
         {
             var world = World.DefaultGameObjectInjectionWorld;
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
-
             using var query = em.CreateEntityQuery(ComponentType.ReadOnly<ControlledUnitTag>());
             if (query.CalculateEntityCount() == 0) return;
-
             using var arr = query.ToEntityArray(Allocator.Temp);
             for (int i = 0; i < arr.Length; i++)
             {
@@ -350,137 +275,23 @@ namespace RareIcon
                         em.SetComponentData(arr[i], default(MovementGoal));
                 }
             }
-
-            // Force the indicator to repaint immediately rather than wait
-            // for the 250ms tick — feels snappier when the button is hit.
             RefreshControlIndicator();
         }
 
-        void BuildHoverPanel(VisualElement root)
-        {
-            _hoverPanel = new VisualElement().ApplyPanelChromeCompact();
-            _hoverPanel.style.AnchorBottomRight();
-            _hoverPanel.style.minWidth = UIStyles.PanelWidth.NarrowMin;
-            _hoverPanel.style.maxWidth = new Length(UIStyles.VwMaxPct.Narrow, LengthUnit.Percent);
-            _hoverPanel.pickingMode = PickingMode.Ignore;
-
-            _biomeName = UIStyles.MakeHeading("---", fontSize: UIStyles.Type.Heading);
-            _biomeName.style.marginBottom = UIStyles.Spacing.Xs;
-            _biomeName.pickingMode = PickingMode.Ignore;
-
-            _hexCoord = MakeHoverLabel(UIStyles.Palette.TextMuted, fontSize: UIStyles.Type.Body);
-
-            _creatureLine = MakeHoverLabel(UIStyles.Palette.TextCreature, fontSize: UIStyles.Type.BodyLg);
-            _creatureLine.style.marginTop = UIStyles.Spacing.Xs;
-            _creatureLine.style.unityFontStyleAndWeight = FontStyle.Bold;
-
-            _statsLine     = MakeHoverLabel(UIStyles.Palette.TextStat,      fontSize: UIStyles.Type.Body);
-            _statsLine.style.marginTop = UIStyles.Spacing.Xs;
-
-            _inventoryLine = MakeHoverLabel(UIStyles.Palette.TextInventory, fontSize: UIStyles.Type.Body);
-            _inventoryLine.style.marginTop = UIStyles.Spacing.Xs;
-
-            _resourceLine  = MakeHoverLabel(UIStyles.Palette.TextResource,  fontSize: UIStyles.Type.Body);
-            _resourceLine.style.marginTop = UIStyles.Spacing.Xs;
-
-            _hoverPanel.Add(_biomeName);
-            _hoverPanel.Add(_hexCoord);
-            _hoverPanel.Add(_creatureLine);
-            _hoverPanel.Add(_statsLine);
-            _hoverPanel.Add(_inventoryLine);
-            _hoverPanel.Add(_resourceLine);
-            root.Add(_hoverPanel);
-        }
-
-        static Label MakeHoverLabel(Color color, int fontSize)
-        {
-            var l = new Label("");
-            l.style.color = color;
-            l.style.fontSize = fontSize;
-            l.pickingMode = PickingMode.Ignore;
-            return l;
-        }
-
-        void BuildToolbar(VisualElement root)
-        {
-            _toolbar = new VisualElement();
-            _toolbar.style.AnchorTopLeft();
-            _toolbar.style.flexDirection = FlexDirection.Row;
-
-            _toolbar.Add(MakeToolbarButton("Search", _worldSearch.Toggle, marginLeft: 0));
-
-            _buildBtn = MakeToolbarButton("Build", _buildingPalette.Toggle, marginLeft: UIStyles.Spacing.Sm);
-            _toolbar.Add(_buildBtn);
-
-            _toolbar.Add(MakeToolbarButton("King", JumpToKing, marginLeft: UIStyles.Spacing.Sm));
-            _toolbar.Add(MakeToolbarButton("Treasury", _treasury.Toggle, marginLeft: UIStyles.Spacing.Sm));
-            _toolbar.Add(MakeToolbarButton("Citizens", _citizensPanel.Toggle, marginLeft: UIStyles.Spacing.Sm));
-
-            _buildMode.Target
-                .Subscribe(target =>
-                {
-                    bool active = target != BuildTarget.None;
-                    _buildBtn.style.backgroundColor = active
-                        ? UIStyles.Palette.Gold
-                        : UIStyles.Palette.ButtonBg;
-                    _buildBtn.style.color = active
-                        ? UIStyles.Palette.Zinc950
-                        : UIStyles.Palette.Gold;
-                    _buildBtn.text = active ? "Build (on)" : "Build";
-                })
-                .AddTo(_disposables);
-
-            root.Add(_toolbar);
-        }
-
-        static Button MakeToolbarButton(string text, System.Action onClick, float marginLeft)
-        {
-            var btn = UIStyles.MakeButton(text, onClick);
-            btn.style.height = 20;
-            btn.style.fontSize = UIStyles.Type.Body;
-            btn.style.Padding(0, UIStyles.Spacing.Md);
-            btn.style.marginLeft = marginLeft;
-            return btn;
-        }
-
-        // Single-button callsite for "where is the King?" → inlines the
-        // DOTS query instead of routing through a KingLocator static.
-        // Two managed calls (world lookup, one-entity query) per click
-        // is cheaper than the static-cache churn, and keeps UI → ECS
-        // glue visible where it happens rather than hidden in a helper.
-        void JumpToKing()
-        {
-            var world = World.DefaultGameObjectInjectionWorld;
-            if (world == null || !world.IsCreated) return;
-
-            var em = world.EntityManager;
-            using var query = em.CreateEntityQuery(
-                ComponentType.ReadOnly<KingTag>(),
-                ComponentType.ReadOnly<LocalTransform>());
-            if (query.CalculateEntityCount() == 0) return;  // pre-spawn
-
-            using var arr = query.ToEntityArray(Allocator.Temp);
-            var t = em.GetComponentData<LocalTransform>(arr[0]);
-            _camera.JumpTo(new float2(t.Position.x, t.Position.y));
-        }
+        // --- Hover tile-info -------------------------------------------------
 
         void OnHexHover(HexHoverMessage msg)
         {
-            if (_biomeName == null) return;
+            if (_hoverName == null) return;
 
-            _biomeName.text = msg.IsLand
-                ? _locale.GetBiomeName(msg.BiomeId)
-                : _locale.Get("hex.empty");
-
-            _hexCoord.text = ZString.Format("{0} ({1}, {2})", _locale.Get("hex.coord"), msg.Q, msg.R);
+            _hoverName.text = msg.IsLand ? _locale.GetBiomeName(msg.BiomeId) : _locale.Get("hex.empty");
+            _hoverCoord.text = ZString.Format("{0} ({1}, {2})", _locale.Get("hex.coord"), msg.Q, msg.R);
 
             if (msg.UnitType != UnitType.None)
             {
-                _creatureLine.text = _locale.GetCreatureName(msg.UnitType);
-                _creatureLine.style.display = DisplayStyle.Flex;
+                _hoverCreature.RemoveFromClassList("is-hidden");
+                _hoverCreature.text = _locale.GetCreatureName(msg.UnitType);
 
-                // Stats line — only includes stats the unit actually carries
-                // (Max == 0 → not present → skipped). Floats rounded for HUD.
                 var sb = ZString.CreateStringBuilder();
                 try
                 {
@@ -491,107 +302,100 @@ namespace RareIcon
                     AppendStat(ref sb, "FT", msg.UnitFatigue, msg.UnitMaxFatigue);
                     if (sb.Length > 0)
                     {
-                        _statsLine.text = sb.ToString();
-                        _statsLine.style.display = DisplayStyle.Flex;
+                        _hoverStats.RemoveFromClassList("is-hidden");
+                        _hoverStats.text = sb.ToString();
                     }
-                    else
-                    {
-                        _statsLine.style.display = DisplayStyle.None;
-                    }
+                    else _hoverStats.AddToClassList("is-hidden");
                 }
                 finally { sb.Dispose(); }
             }
             else
             {
-                _creatureLine.style.display = DisplayStyle.None;
-                _statsLine.style.display = DisplayStyle.None;
+                _hoverCreature.AddToClassList("is-hidden");
+                _hoverStats.AddToClassList("is-hidden");
             }
 
-            // Inventory line — first 4 slots from HexHoverSystem's sweep.
-            // Empty slots have ItemId == 0 and are skipped by AppendInvSlot.
-            bool anyInv = (msg.UnitInvCount0 | msg.UnitInvCount1 |
-                           msg.UnitInvCount2 | msg.UnitInvCount3) != 0;
+            bool anyInv = (msg.UnitInvCount0 | msg.UnitInvCount1 | msg.UnitInvCount2 | msg.UnitInvCount3) != 0;
             if (msg.UnitType != UnitType.None && anyInv)
             {
                 var sb = ZString.CreateStringBuilder();
                 try
                 {
-                    AppendInvSlot(ref sb, msg.UnitInvId0, msg.UnitInvCount0);
-                    AppendInvSlot(ref sb, msg.UnitInvId1, msg.UnitInvCount1);
-                    AppendInvSlot(ref sb, msg.UnitInvId2, msg.UnitInvCount2);
-                    AppendInvSlot(ref sb, msg.UnitInvId3, msg.UnitInvCount3);
-                    _inventoryLine.text = sb.ToString();
+                    AppendInv(ref sb, msg.UnitInvId0, msg.UnitInvCount0);
+                    AppendInv(ref sb, msg.UnitInvId1, msg.UnitInvCount1);
+                    AppendInv(ref sb, msg.UnitInvId2, msg.UnitInvCount2);
+                    AppendInv(ref sb, msg.UnitInvId3, msg.UnitInvCount3);
+                    _hoverInv.text = sb.ToString();
                 }
                 finally { sb.Dispose(); }
-                _inventoryLine.style.display = DisplayStyle.Flex;
+                _hoverInv.RemoveFromClassList("is-hidden");
             }
             else
             {
-                _inventoryLine.style.display = DisplayStyle.None;
+                _hoverInv.AddToClassList("is-hidden");
             }
 
             if (msg.IsLand && (msg.Wood | msg.Stone | msg.Berries | msg.Mushrooms | msg.Herbs | msg.Cactus) != 0)
             {
-                // ZString builder appends mutate the struct, so it can't be a
-                // 'using var' (refs to using-vars are illegal). Manual dispose.
                 var sb = ZString.CreateStringBuilder();
                 try
                 {
-                    AppendResource(ref sb, msg.Wood,      ResourceType.Wood);
-                    AppendResource(ref sb, msg.Stone,     ResourceType.Stone);
-                    AppendResource(ref sb, msg.Berries,   ResourceType.Berries);
-                    AppendResource(ref sb, msg.Mushrooms, ResourceType.Mushrooms);
-                    AppendResource(ref sb, msg.Herbs,     ResourceType.Herbs);
-                    AppendResource(ref sb, msg.Cactus,    ResourceType.Cactus, msg.CactusVariant);
-                    _resourceLine.text = sb.ToString();
+                    AppendRes(ref sb, msg.Wood,      ResourceType.Wood);
+                    AppendRes(ref sb, msg.Stone,     ResourceType.Stone);
+                    AppendRes(ref sb, msg.Berries,   ResourceType.Berries);
+                    AppendRes(ref sb, msg.Mushrooms, ResourceType.Mushrooms);
+                    AppendRes(ref sb, msg.Herbs,     ResourceType.Herbs);
+                    AppendRes(ref sb, msg.Cactus,    ResourceType.Cactus, msg.CactusVariant);
+                    _hoverRes.text = sb.ToString();
                 }
-                finally
-                {
-                    sb.Dispose();
-                }
-                _resourceLine.style.display = DisplayStyle.Flex;
+                finally { sb.Dispose(); }
+                _hoverRes.RemoveFromClassList("is-hidden");
             }
             else
             {
-                _resourceLine.style.display = DisplayStyle.None;
+                _hoverRes.AddToClassList("is-hidden");
             }
         }
 
-        void AppendResource(ref Utf16ValueStringBuilder sb, byte amount, byte type, byte variant = 0)
+        void AppendRes(ref Utf16ValueStringBuilder sb, byte amount, byte type, byte variant = 0)
         {
             if (amount == 0) return;
             if (sb.Length > 0) sb.Append('\n');
             var label = (type == ResourceType.Cactus && variant != CactusVariantType.None)
                 ? _locale.GetCactusLabel(variant)
                 : _locale.GetResourceName(type);
-            sb.Append(label);
-            sb.Append(": ");
-            sb.Append(amount);
+            sb.Append(label); sb.Append(": "); sb.Append(amount);
         }
 
-        // Appends "Name × Count" — skips empty slots (ItemId == 0) so the
-        // sparse 4-slot snapshot displays cleanly.
-        void AppendInvSlot(ref Utf16ValueStringBuilder sb, ushort itemId, ushort count)
+        void AppendInv(ref Utf16ValueStringBuilder sb, ushort itemId, ushort count)
         {
             if (itemId == 0 || count == 0) return;
             if (sb.Length > 0) sb.Append(", ");
-            sb.Append(_locale.GetItemName(itemId));
-            sb.Append(" \u00D7 ");
-            sb.Append(count);
+            sb.Append(_locale.GetItemName(itemId)); sb.Append(" \u00D7 "); sb.Append(count);
         }
 
-        // Appends "LABEL Value/Max" — values rounded to ints for HUD display
-        // even though the underlying floats are exact. Skips entirely when the
-        // unit doesn't carry the stat (max == 0).
         static void AppendStat(ref Utf16ValueStringBuilder sb, string label, float value, float max)
         {
             if (max <= 0f) return;
             if (sb.Length > 0) sb.Append("  ");
-            sb.Append(label);
-            sb.Append(' ');
-            sb.Append((int)Mathf.Round(value));
-            sb.Append('/');
-            sb.Append((int)Mathf.Round(max));
+            sb.Append(label); sb.Append(' ');
+            sb.Append((int)Mathf.Round(value)); sb.Append('/'); sb.Append((int)Mathf.Round(max));
+        }
+
+        // --- Action: jump-to King -------------------------------------------
+
+        void JumpToKing()
+        {
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            using var query = em.CreateEntityQuery(
+                ComponentType.ReadOnly<KingTag>(),
+                ComponentType.ReadOnly<LocalTransform>());
+            if (query.CalculateEntityCount() == 0) return;
+            using var arr = query.ToEntityArray(Allocator.Temp);
+            var t = em.GetComponentData<LocalTransform>(arr[0]);
+            _camera.JumpTo(new float2(t.Position.x, t.Position.y));
         }
 
         public void Dispose()
