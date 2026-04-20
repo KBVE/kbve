@@ -69,8 +69,8 @@ namespace RareIcon
             // -- App state machine (DotsUI-style: single enum drives HUD visibility) --
             builder.RegisterEntryPoint<AppStateController>().AsSelf();
 
-            // -- World tools window (resolved by WorldHUD's toolbar button) --
-            builder.RegisterEntryPoint<UIWorldSearch>().AsSelf();
+            // -- Settings window (tabbed; first tab is world Search) --
+            builder.RegisterEntryPoint<UISettings>().AsSelf();
 
             // -- Screen frame (root layout regions; mount FIRST so other
             //    panels can await its Ready and grab region refs) --

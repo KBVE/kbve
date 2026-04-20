@@ -1,46 +1,20 @@
-using System;
 using System.Threading;
 using Cysharp.Text;
 using Cysharp.Threading.Tasks;
-using R3;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UIElements;
-using VContainer;
-using VContainer.Unity;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// World tools panel — Go-to-coordinate and Find-biome (async, cancellable).
-    /// Pooled VisualElement parented under UIPanelManager's UIDocument.
-    /// Visibility owned via _isOpen; WorldHUD's Search button toggles it.
-    /// </summary>
-    public class UIWorldSearch : IAsyncStartable, IDisposable
+    /// <summary>Settings-panel tab — Go-to-coordinate + Find-biome (async, cancellable).</summary>
+    public class SearchTab : ISettingsTab
     {
         const float HexSize = 0.25f;
         const int DefaultRadius = 200;
         const int MaxRadius = 2000;
-        const int YieldEvery = 1024; // hexes per cancellation/yield check
+        const int YieldEvery = 1024;
 
-        readonly LocaleService _locale;
-        readonly UIPanelManager _panelManager;
-        readonly CameraService _cameraService;
-        readonly BiomeGenerator _biomes;
-
-        readonly CompositeDisposable _disposables = new();
-        readonly ReactiveProperty<bool> _isOpen = new(false);
-        public ReadOnlyReactiveProperty<bool> IsOpen => _isOpen;
-
-        VisualElement _root;
-        TextField _qField, _rField, _radiusField;
-        DropdownField _biomeDropdown;
-        Button _goButton, _findButton, _cancelButton, _closeButton;
-        Label _resultLabel;
-
-        CancellationTokenSource _searchCts;
-
-        // Dropdown index → biome id (skips ocean since hex map doesn't render ocean tiles).
         static readonly byte[] SearchableBiomes = new byte[]
         {
             BiomeGenerator.BIOME_GRASS,
@@ -52,101 +26,36 @@ namespace RareIcon
             BiomeGenerator.BIOME_RIVER,
         };
 
-        [Inject]
-        public UIWorldSearch(
-            LocaleService locale,
-            UIPanelManager panelManager,
-            CameraService cameraService,
-            BiomeGenerator biomes)
+        readonly LocaleService _locale;
+        readonly CameraService _camera;
+        readonly BiomeGenerator _biomes;
+
+        TextField _qField, _rField, _radiusField;
+        DropdownField _biomeDropdown;
+        Button _goButton, _findButton, _cancelButton;
+        Label _resultLabel;
+        CancellationTokenSource _searchCts;
+
+        public string Title => "Search";
+
+        public SearchTab(LocaleService locale, CameraService camera, BiomeGenerator biomes)
         {
             _locale = locale;
-            _panelManager = panelManager;
-            _cameraService = cameraService;
+            _camera = camera;
             _biomes = biomes;
         }
 
-        public async UniTask StartAsync(CancellationToken cancellation)
+        public VisualElement Build()
         {
-            var uiDoc = _panelManager.GetComponent<UIDocument>();
-            if (uiDoc == null)
-            {
-                Debug.LogError("[UIWorldSearch] UIPanelManager has no UIDocument");
-                return;
-            }
+            var root = new VisualElement();
 
-            int waited = 0;
-            while (uiDoc.rootVisualElement == null && waited < 1000)
-            {
-                await UniTask.Delay(50, cancellationToken: cancellation);
-                waited += 50;
-            }
-            if (uiDoc.rootVisualElement == null)
-            {
-                Debug.LogError("[UIWorldSearch] rootVisualElement still null");
-                return;
-            }
+            var gotoHeading = UIStyles.MakeHeading("Go to Coordinate", fontSize: 13);
+            gotoHeading.style.marginBottom = 6;
+            root.Add(gotoHeading);
 
-            BuildUI(uiDoc.rootVisualElement);
-
-            _isOpen
-                .Subscribe(open => _root.style.display = open ? DisplayStyle.Flex : DisplayStyle.None)
-                .AddTo(_disposables);
-        }
-
-        public void Toggle() => _isOpen.Value = !_isOpen.Value;
-        public void Open()   => _isOpen.Value = true;
-        public void Close()  => _isOpen.Value = false;
-
-        void BuildUI(VisualElement parent)
-        {
-            _root = new VisualElement().ApplyPanelChrome(padV: 12, padH: 14);
-            _root.style.AnchorTopRight();
-            _root.style.width = 320;
-            _root.style.display = DisplayStyle.None;
-            // Stop world clicks from leaking through the panel area.
-            _root.RegisterCallback<ClickEvent>(e => e.StopPropagation());
-
-            // Title row — marker square + title on the left, × close button right.
-            var titleRow = new VisualElement();
-            titleRow.style.flexDirection = FlexDirection.Row;
-            titleRow.style.justifyContent = Justify.SpaceBetween;
-            titleRow.style.alignItems = Align.Center;
-            titleRow.style.marginBottom = 8;
-
-            titleRow.Add(UIStyles.MakeMarkerRow("World Search", fontSize: 16));
-
-            _closeButton = UIStyles.MakeButton("\u00D7", Close);
-            _closeButton.style.width = 24;
-            _closeButton.style.height = 24;
-            _closeButton.style.Padding(0);
-            _closeButton.style.fontSize = 16;
-            titleRow.Add(_closeButton);
-            _root.Add(titleRow);
-            _root.Add(UIStyles.MakeStrip());
-
-            BuildGotoSection();
-            BuildDivider();
-            BuildSearchSection();
-
-            _resultLabel = new Label("");
-            _resultLabel.style.color = UIStyles.Palette.TextMuted;
-            _resultLabel.style.fontSize = 12;
-            _resultLabel.style.marginTop = 8;
-            _resultLabel.style.whiteSpace = WhiteSpace.Normal;
-            _root.Add(_resultLabel);
-
-            parent.Add(_root);
-        }
-
-        void BuildGotoSection()
-        {
-            var heading = UIStyles.MakeHeading("Go to Coordinate", fontSize: 13);
-            heading.style.marginBottom = 6;
-            _root.Add(heading);
-
-            var row = new VisualElement();
-            row.style.flexDirection = FlexDirection.Row;
-            row.style.alignItems = Align.Center;
+            var gotoRow = new VisualElement();
+            gotoRow.style.flexDirection = FlexDirection.Row;
+            gotoRow.style.alignItems = Align.Center;
 
             _qField = new TextField("Q") { value = "0" };
             _qField.style.width = 90;
@@ -159,17 +68,17 @@ namespace RareIcon
             _goButton.style.height = 26;
             _goButton.style.flexGrow = 1;
 
-            row.Add(_qField);
-            row.Add(_rField);
-            row.Add(_goButton);
-            _root.Add(row);
-        }
+            gotoRow.Add(_qField);
+            gotoRow.Add(_rField);
+            gotoRow.Add(_goButton);
+            root.Add(gotoRow);
 
-        void BuildSearchSection()
-        {
-            var heading = UIStyles.MakeHeading("Find Biome", fontSize: 13);
-            heading.style.marginBottom = 6;
-            _root.Add(heading);
+            root.Add(UIStyles.MakeStrip(thickness: 1));
+
+            var findHeading = UIStyles.MakeHeading("Find Biome", fontSize: 13);
+            findHeading.style.marginTop = 8;
+            findHeading.style.marginBottom = 6;
+            root.Add(findHeading);
 
             var biomeNames = new System.Collections.Generic.List<string>(SearchableBiomes.Length);
             foreach (var id in SearchableBiomes)
@@ -177,11 +86,11 @@ namespace RareIcon
 
             _biomeDropdown = new DropdownField("Biome", biomeNames, 0);
             _biomeDropdown.style.marginBottom = 6;
-            _root.Add(_biomeDropdown);
+            root.Add(_biomeDropdown);
 
-            var row = new VisualElement();
-            row.style.flexDirection = FlexDirection.Row;
-            row.style.alignItems = Align.Center;
+            var findRow = new VisualElement();
+            findRow.style.flexDirection = FlexDirection.Row;
+            findRow.style.alignItems = Align.Center;
 
             _radiusField = new TextField("Radius") { value = DefaultRadius.ToString() };
             _radiusField.style.width = 130;
@@ -191,7 +100,6 @@ namespace RareIcon
             _findButton.style.height = 26;
             _findButton.style.flexGrow = 1;
 
-            // Cancel uses the alert palette so it reads as a destructive action.
             _cancelButton = UIStyles.MakeButton("Cancel", OnCancelClicked);
             _cancelButton.style.height = 26;
             _cancelButton.style.marginLeft = 6;
@@ -202,13 +110,22 @@ namespace RareIcon
             _cancelButton.style.color = UIStyles.Palette.Alert;
             _cancelButton.style.display = DisplayStyle.None;
 
-            row.Add(_radiusField);
-            row.Add(_findButton);
-            row.Add(_cancelButton);
-            _root.Add(row);
+            findRow.Add(_radiusField);
+            findRow.Add(_findButton);
+            findRow.Add(_cancelButton);
+            root.Add(findRow);
+
+            _resultLabel = new Label("");
+            _resultLabel.style.color = UIStyles.Palette.TextMuted;
+            _resultLabel.style.fontSize = 12;
+            _resultLabel.style.marginTop = 8;
+            _resultLabel.style.whiteSpace = WhiteSpace.Normal;
+            root.Add(_resultLabel);
+
+            return root;
         }
 
-        void BuildDivider() => _root.Add(UIStyles.MakeStrip(thickness: 1));
+        public void OnActivated() { }
 
         void OnGoClicked()
         {
@@ -218,7 +135,7 @@ namespace RareIcon
                 return;
             }
             var world = HexMeshUtil.HexToWorld(q, r, HexSize);
-            _cameraService.JumpTo(new float2(world.x, world.y));
+            _camera.JumpTo(new float2(world.x, world.y));
             _resultLabel.text = ZString.Format("Jumped to ({0}, {1})", q, r);
         }
 
@@ -238,8 +155,7 @@ namespace RareIcon
             _searchCts?.Dispose();
             _searchCts = new CancellationTokenSource();
 
-            // Camera position read on main thread before spawning the task.
-            var cam = _cameraService.Camera;
+            var cam = _camera.Camera;
             var center = cam != null
                 ? HexMeshUtil.WorldToHex(cam.transform.position.x, cam.transform.position.y, HexSize)
                 : new int2(0, 0);
@@ -268,7 +184,7 @@ namespace RareIcon
             {
                 int dist = HexMeshUtil.HexDistance(center, hex);
                 var world = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
-                _cameraService.JumpTo(new float2(world.x, world.y));
+                _camera.JumpTo(new float2(world.x, world.y));
                 _resultLabel.text = ZString.Format(
                     "{0} at ({1}, {2}) — {3} hexes away. Jumped.",
                     biomeName, hex.x, hex.y, dist);
@@ -316,8 +232,7 @@ namespace RareIcon
         {
             _searchCts?.Cancel();
             _searchCts?.Dispose();
-            _disposables?.Dispose();
-            _isOpen?.Dispose();
+            _searchCts = null;
         }
     }
 }

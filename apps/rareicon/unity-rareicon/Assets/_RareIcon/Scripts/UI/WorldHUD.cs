@@ -22,7 +22,7 @@ namespace RareIcon
         readonly UIPanelManager _panelManager;
         readonly ScreenFrameHost _frame;
         readonly AppStateController _appState;
-        readonly UIWorldSearch _worldSearch;
+        readonly UISettings _settings;
         readonly UITreasury _treasury;
         readonly UICitizensPanel _citizensPanel;
         readonly UIMilitary _military;
@@ -36,7 +36,7 @@ namespace RareIcon
 
         VisualElement _root;
         VisualElement _toolbar, _hoverPanel, _clockPanel, _controlPanel, _stack;
-        Button _searchBtn, _buildBtn, _kingBtn, _treasuryBtn, _militaryBtn, _citizensBtn, _releaseBtn;
+        Button _settingsBtn, _buildBtn, _kingBtn, _treasuryBtn, _militaryBtn, _citizensBtn, _releaseBtn;
         Label _clockTurn, _clockTime;
         VisualElement _clockIcon;
         Label _hoverName, _hoverCoord, _hoverCreature, _hoverStats, _hoverInv, _hoverRes;
@@ -53,7 +53,7 @@ namespace RareIcon
             UIPanelManager panelManager,
             ScreenFrameHost frame,
             AppStateController appState,
-            UIWorldSearch worldSearch,
+            UISettings settings,
             UITreasury treasury,
             UICitizensPanel citizensPanel,
             UIMilitary military,
@@ -67,7 +67,7 @@ namespace RareIcon
             _panelManager = panelManager;
             _frame = frame;
             _appState = appState;
-            _worldSearch = worldSearch;
+            _settings = settings;
             _treasury = treasury;
             _citizensPanel = citizensPanel;
             _military = military;
@@ -126,12 +126,12 @@ namespace RareIcon
             _controlPanel  = _root.Q<VisualElement>("hud-control");
             _hoverPanel    = _root.Q<VisualElement>("hud-hover");
 
-            _searchBtn   = _root.Q<Button>("hud-search");
             _buildBtn    = _root.Q<Button>("hud-build");
             _kingBtn     = _root.Q<Button>("hud-king");
             _treasuryBtn = _root.Q<Button>("hud-treasury");
             _militaryBtn = _root.Q<Button>("hud-military");
             _citizensBtn = _root.Q<Button>("hud-citizens");
+            _settingsBtn = _root.Q<Button>("hud-settings");
             _releaseBtn  = _root.Q<Button>("hud-release");
 
             _clockIcon = _root.Q<VisualElement>("hud-clock-icon");
@@ -148,23 +148,13 @@ namespace RareIcon
             _controlLabel    = _root.Q<Label>("hud-control-label");
             _controlActivity = _root.Q<Label>("hud-control-activity");
 
-            _searchBtn.clicked   += _worldSearch.Toggle;
             _buildBtn.clicked    += _buildingPalette.Toggle;
             _kingBtn.clicked     += JumpToKing;
             _treasuryBtn.clicked += _treasury.Toggle;
             _militaryBtn.clicked += _military.Toggle;
             _citizensBtn.clicked += _citizensPanel.Toggle;
+            _settingsBtn.clicked += _settings.Toggle;
             _releaseBtn.clicked  += ReleaseControl;
-
-            // Icon backgrounds baked from HexIcon.shader via IconFactory.
-            SetBg(_searchBtn,   IconFactory.IconType.Search);
-            SetBg(_buildBtn,    IconFactory.IconType.Build);
-            SetBg(_kingBtn,     IconFactory.IconType.Crown);
-            SetBg(_treasuryBtn, IconFactory.IconType.Coin);
-            SetBg(_militaryBtn, IconFactory.IconType.Shield);
-            SetBg(_citizensBtn, IconFactory.IconType.People);
-            var settingsBtn = _root.Q<Button>("hud-settings");
-            if (settingsBtn != null) SetBg(settingsBtn, IconFactory.IconType.Gear);
 
             // Highlight Build button while build mode is active.
             _buildMode.Target.Subscribe(target =>
@@ -172,7 +162,6 @@ namespace RareIcon
                 bool active = target != BuildTarget.None;
                 if (active) _buildBtn.AddToClassList("is-active");
                 else        _buildBtn.RemoveFromClassList("is-active");
-                _buildBtn.text = "⚒";
             }).AddTo(_disposables);
         }
 
@@ -182,16 +171,16 @@ namespace RareIcon
             el.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
-        // Reparent the toolbar + clock/control stack into ScreenFrameHost
-        // regions and strip their absolute-anchor classes so the regions
-        // own layout. Hover panel stays anchored bottom-right of the
-        // viewport (independent of rails) for now.
+        // Reparent toolbar + HUD stack + hover tile-info into the
+        // ScreenFrame regions. Strip absolute-anchor classes and force
+        // row layout so contents sit on the bar instead of stacking.
         void MountIntoFrame()
         {
             if (_toolbar != null && _frame.TopLeft != null)
             {
                 _toolbar.RemoveFromHierarchy();
                 _toolbar.RemoveFromClassList("toolbar-pin");
+                _toolbar.AddToClassList("toolbar-embed");
                 _frame.TopLeft.Add(_toolbar);
             }
             if (_stack != null && _frame.TopRight != null)
@@ -201,13 +190,13 @@ namespace RareIcon
                 _stack.style.flexDirection = FlexDirection.Row;
                 _frame.TopRight.Add(_stack);
             }
-        }
-
-        static void SetBg(Button btn, IconFactory.IconType type)
-        {
-            if (btn == null) return;
-            var tex = IconFactory.GetIcon(type);
-            if (tex != null) btn.style.backgroundImage = new StyleBackground(tex);
+            if (_hoverPanel != null && _frame.BottomLeft != null)
+            {
+                _hoverPanel.RemoveFromHierarchy();
+                _hoverPanel.RemoveFromClassList("tile-info");
+                _hoverPanel.AddToClassList("tile-info--inline");
+                _frame.BottomLeft.Add(_hoverPanel);
+            }
         }
 
         // --- Clock ------------------------------------------------------------

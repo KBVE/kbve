@@ -259,9 +259,9 @@
     align-items: center;
     background-color: var(--color-bg-page);
     border-color: var(--color-border-accent);
-    padding: 4px 8px;
+    padding: 1px 6px;
     flex-shrink: 0;
-    min-height: 28px;
+    min-height: 22px;
 }
 .screen-bar--top    { border-bottom-width: 1px; }
 .screen-bar--bottom { border-top-width: 1px; }
@@ -275,32 +275,33 @@
     overflow: hidden;
 }
 
-/* ----- HUD strip — always-visible compact panels (clock, controlling) ----- */
+/* ----- HUD strip — compact clock/control rows that sit on the
+   top-bar. The bar already provides background + border, so the
+   strip is borderless here and just spaces its contents. ----- */
 .hud-strip {
     flex-direction: row;
     align-items: center;
-    background-color: var(--color-bg-page);
-    border-color: var(--color-border-accent);
-    border-width: 1px;
-    padding: var(--space-sm) var(--space-md);
-    margin-bottom: var(--space-sm);
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    padding: 0 var(--space-sm);
+    margin: 0;
 }
 .hud-strip__icon {
-    width: 8px; height: 8px;
-    border-radius: 4px;
-    margin-right: var(--space-md);
+    width: 6px; height: 6px;
+    border-radius: 3px;
+    margin-right: var(--space-xs);
     flex-shrink: 0;
 }
 .hud-strip__icon--day   { background-color: var(--color-accent); }
 .hud-strip__icon--night { background-color: rgb(140, 165, 215); }
 .hud-strip__label {
-    font-size: var(--font-bodylg);
+    font-size: var(--font-body);
     color: var(--color-text-strong);
     -unity-font-style: bold;
-    margin-right: var(--space-md);
+    margin-right: var(--space-xs);
 }
 .hud-strip__value {
-    font-size: var(--font-body);
+    font-size: var(--font-tiny);
     color: var(--color-text-muted);
 }
 
@@ -326,6 +327,15 @@
 }
 .toolbar-pin > .btn-tool  { margin-left: var(--space-xs); }
 .toolbar-pin > .first     { margin-left: 0; }
+
+/* Toolbar embedded in a ScreenFrame region — same row layout, no
+   absolute positioning or chrome (the bar already provides those). */
+.toolbar-embed {
+    flex-direction: row;
+    align-items: center;
+}
+.toolbar-embed > .btn-tool { margin-left: var(--space-xs); }
+.toolbar-embed > .first    { margin-left: 0; }
 
 /* Toolbar buttons — borderless until hovered, sits flat on the bar */
 .btn-tool {
@@ -363,6 +373,16 @@
     color: rgba(0, 0, 0, 0);
 }
 
+/* Letter toolbar button — single uppercase glyph (B / T / M / ...) */
+.btn-letter {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    -unity-text-align: middle-center;
+    font-size: var(--font-label);
+    -unity-font-style: bold;
+}
+
 /* ----- Hover tile-info panel — small anchored card at bottom-left
    (right column is reserved for toggleable panels). ----- */
 .tile-info {
@@ -391,6 +411,24 @@
 .tile-info__line--muted    { color: var(--color-text-muted); }
 .tile-info__line--creature { color: var(--color-text-danger); -unity-font-style: bold; }
 .tile-info__line--resource { color: var(--color-accent-deep); }
+
+/* Inline variant — used when hover panel is mounted into the bottom
+   bar instead of floating. Labels lay out horizontally with separators
+   so the strip reads left-to-right as a single status line. */
+.tile-info--inline {
+    flex-direction: row;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    padding: 0;
+}
+.tile-info--inline > .tile-info__name {
+    margin-right: var(--space-md);
+}
+.tile-info--inline > .tile-info__line {
+    margin-right: var(--space-md);
+    white-space: nowrap;
+}
 
 /* ----- Build palette row ----- */
 .palette-row {
@@ -426,3 +464,187 @@
 .hud-strip__action {
     margin-left: var(--space-md);
 }
+
+/* ============================================================
+   Citizens panel — shared styling for tabs (Roster/Jobs/Skills/Diet)
+   ============================================================ */
+
+/* Section header inside a tab body */
+.cz-section {
+    font-size: var(--font-head);
+    color: var(--color-text-strong);
+    -unity-font-style: bold;
+    margin-top: var(--space-md);
+    margin-bottom: var(--space-xs);
+}
+.cz-section.first { margin-top: 0; }
+
+/* Small hint/footnote text */
+.cz-hint {
+    font-size: var(--font-tiny);
+    color: var(--color-text-muted);
+    margin-top: var(--space-md);
+    white-space: normal;
+}
+
+/* Dropdown spacing inside tab bodies */
+.cz-dropdown { margin-bottom: var(--space-md); }
+
+/* Generic stepper-like rows: label left, value right */
+.cz-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: var(--space-xs);
+}
+.cz-row__label {
+    flex-grow: 1;
+    color: var(--color-text-strong);
+    font-size: var(--font-body);
+}
+.cz-row__value {
+    width: 64px;
+    -unity-text-align: middle-right;
+    color: var(--color-accent);
+    font-size: var(--font-body);
+}
+
+/* ----- Roster (left list) ----- */
+
+.roster-list {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin-right: var(--space-md);
+}
+.roster-list__title {
+    font-size: var(--font-title);
+    color: var(--color-text-strong);
+    -unity-font-style: bold;
+    margin-bottom: var(--space-md);
+}
+.roster-scroll {
+    flex-grow: 1;
+    max-height: 320px;
+}
+
+.roster-row {
+    flex-direction: row;
+    align-items: center;
+    padding: var(--space-xs) var(--space-md);
+    margin-bottom: 1px;
+    transition-duration: 0.10s;
+    transition-property: background-color;
+}
+.roster-row:hover { background-color: var(--color-bg-row-hover); }
+.roster-row.is-selected { background-color: var(--color-bg-row-selected); }
+
+.roster-row__badge {
+    width: 14px; height: 14px;
+    -unity-text-align: middle-center;
+    font-size: var(--font-tiny);
+    -unity-font-style: bold;
+    color: var(--color-text-on-gold);
+    background-color: var(--color-accent);
+    margin-right: var(--space-sm);
+    flex-shrink: 0;
+}
+.roster-row__badge--goblin  { background-color: rgb(132, 204, 22); }   /* lime */
+.roster-row__badge--soldier { background-color: rgb(96, 165, 250); }   /* blue */
+.roster-row__badge--knight  { background-color: rgb(244, 114, 182); }  /* pink */
+.roster-row__badge--mage    { background-color: rgb(167, 139, 250); }  /* violet */
+.roster-row__badge--king    { background-color: var(--color-accent); } /* gold */
+
+.roster-row__main {
+    flex-direction: column;
+    flex-grow: 1;
+    min-width: 0;
+}
+.roster-row__name {
+    font-size: var(--font-body);
+    color: var(--color-text-strong);
+    -unity-font-style: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.roster-row__activity {
+    font-size: var(--font-tiny);
+    color: var(--color-accent-deep);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.roster-row__bar {
+    width: 60px;
+    margin-left: var(--space-sm);
+    flex-shrink: 0;
+}
+
+/* ----- Roster detail pane ----- */
+
+.roster-detail {
+    flex-grow: 1;
+    flex-basis: 0;
+    padding: var(--space-md) var(--space-lg);
+    border-width: 1px;
+    border-color: var(--color-border-subtle);
+    background-color: var(--color-bg-panel);
+}
+.roster-detail__title {
+    font-size: var(--font-title);
+    color: var(--color-text-strong);
+    -unity-font-style: bold;
+    margin-bottom: var(--space-xs);
+}
+.roster-detail__activity {
+    font-size: var(--font-label);
+    color: var(--color-accent-deep);
+    margin-bottom: var(--space-md);
+}
+.roster-detail__stats {
+    flex-direction: column;
+    margin-bottom: var(--space-lg);
+}
+.roster-detail__actions {
+    flex-direction: row;
+}
+.roster-detail__actions > .btn { margin-right: var(--space-md); }
+
+/* ----- Mini stat-bar primitive (label · bar · value) ----- */
+
+.stat-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: var(--space-xs);
+}
+.stat-row__label {
+    width: 24px;
+    font-size: var(--font-tiny);
+    color: var(--color-text-muted);
+    -unity-font-style: bold;
+}
+.stat-row__bar {
+    flex-grow: 1;
+    margin: 0 var(--space-sm);
+}
+.stat-row__value {
+    width: 56px;
+    -unity-text-align: middle-right;
+    font-size: var(--font-tiny);
+    color: var(--color-text-strong);
+}
+
+.bar {
+    height: 6px;
+    background-color: var(--color-bg-muted);
+    border-width: 1px;
+    border-color: var(--color-border-subtle);
+}
+.bar__fill {
+    height: 100%;
+    background-color: var(--color-accent);
+}
+.bar__fill--hp { background-color: rgb(220, 38, 38); }    /* red */
+.bar__fill--hu { background-color: rgb(245, 158, 11); }   /* amber */
+.bar__fill--ft { background-color: rgb(96, 165, 250); }   /* blue */
+.bar__fill--en { background-color: rgb(34, 197, 94); }    /* green */

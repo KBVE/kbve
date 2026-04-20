@@ -1,30 +1,25 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="styles.uss" />
 
-    <!-- Always-visible chrome frame. Modal panels mount on top of this
-         (UIPanelLoader spawns them later in document order so they're
-         z-above by default; they call BringToFront on open as a belt-
-         and-suspenders.) The middle region passes pointer events
-         through to the world. -->
-    <ui:VisualElement name="screen-frame" class="screen-frame">
+    <!-- Always-visible chrome frame. Bars + regions are picking=Ignore
+         so empty bar space passes pointer events through to the world;
+         interactive children (buttons, hover panel) keep their default
+         Position picking and stay clickable. Modal panels mount on top
+         of this and call BringToFront on open as a belt-and-suspenders. -->
+    <ui:VisualElement name="screen-frame" class="screen-frame" picking-mode="Ignore">
 
-        <!-- TOP BAR — toolbar (left) | spacer | hud strip (right) -->
-        <ui:VisualElement name="top-bar" class="screen-bar screen-bar--top">
-            <ui:VisualElement name="region-top-left"   class="screen-region" />
-            <ui:VisualElement name="region-top-center" class="screen-region grow" />
-            <ui:VisualElement name="region-top-right"  class="screen-region" />
+        <ui:VisualElement name="top-bar" class="screen-bar screen-bar--top" picking-mode="Ignore">
+            <ui:VisualElement name="region-top-left"   class="screen-region" picking-mode="Ignore" />
+            <ui:VisualElement name="region-top-center" class="screen-region grow" picking-mode="Ignore" />
+            <ui:VisualElement name="region-top-right"  class="screen-region" picking-mode="Ignore" />
         </ui:VisualElement>
 
-        <!-- WORLD MIDDLE — overlay anchors live here (hover tile-info,
-             Inspector when shown). Picking is Ignore so map clicks
-             pass through; child panels with Position will pick. -->
         <ui:VisualElement name="region-world" class="screen-world" picking-mode="Ignore" />
 
-        <!-- BOTTOM BAR — empty for now; future action ribbon -->
-        <ui:VisualElement name="bottom-bar" class="screen-bar screen-bar--bottom">
-            <ui:VisualElement name="region-bottom-left"   class="screen-region" />
-            <ui:VisualElement name="region-bottom-center" class="screen-region grow" />
-            <ui:VisualElement name="region-bottom-right"  class="screen-region" />
+        <ui:VisualElement name="bottom-bar" class="screen-bar screen-bar--bottom" picking-mode="Ignore">
+            <ui:VisualElement name="region-bottom-left"   class="screen-region" picking-mode="Ignore" />
+            <ui:VisualElement name="region-bottom-center" class="screen-region grow" picking-mode="Ignore" />
+            <ui:VisualElement name="region-bottom-right"  class="screen-region" picking-mode="Ignore" />
         </ui:VisualElement>
 
     </ui:VisualElement>

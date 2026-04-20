@@ -1,12 +1,11 @@
 using Cysharp.Text;
 using Unity.Collections;
 using Unity.Entities;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace RareIcon
 {
-    /// <summary>Citizens-panel tab showing average skill levels across all live units of the selected UnitType; progresses via SkillProgressionSystem.</summary>
+    /// <summary>Citizens "Skills" tab — average skill levels across all live units of the selected UnitType; progresses via SkillProgressionSystem.</summary>
     public class SkillsTab : ICitizensTab
     {
         static readonly byte[] UnitTypes = { UnitType.Goblin, UnitType.Soldier, UnitType.Knight, UnitType.Mage, UnitType.King };
@@ -38,7 +37,7 @@ namespace RareIcon
             for (int i = 0; i < UnitTypes.Length; i++)
                 _unitTypeDropdown.choices.Add(UnitTypeLabel(UnitTypes[i]));
             _unitTypeDropdown.index = 0;
-            _unitTypeDropdown.style.marginBottom = 8;
+            _unitTypeDropdown.AddToClassList("cz-dropdown");
             _unitTypeDropdown.RegisterValueChangedCallback(_ =>
             {
                 _selectedUnitType = UnitTypes[_unitTypeDropdown.index];
@@ -50,21 +49,14 @@ namespace RareIcon
             for (int i = 0; i < SkillRows.Length; i++)
             {
                 var row = new VisualElement();
-                row.style.flexDirection = FlexDirection.Row;
-                row.style.alignItems = Align.Center;
-                row.style.marginTop = 4;
+                row.AddToClassList("cz-row");
 
                 var name = new Label(SkillRows[i].Label);
-                name.style.color = UIStyles.Palette.TextStrong;
-                name.style.fontSize = 13;
-                name.style.flexGrow = 1;
+                name.AddToClassList("cz-row__label");
                 row.Add(name);
 
                 var value = new Label("—");
-                value.style.color = UIStyles.Palette.Gold;
-                value.style.fontSize = 13;
-                value.style.width = 64;
-                value.style.unityTextAlign = TextAnchor.MiddleRight;
+                value.AddToClassList("cz-row__value");
                 _skillLabels[i] = value;
                 row.Add(value);
 
@@ -72,10 +64,7 @@ namespace RareIcon
             }
 
             var hint = new Label("Averaged across all live units of this type.");
-            hint.style.color = UIStyles.Palette.TextMuted;
-            hint.style.fontSize = 11;
-            hint.style.marginTop = 10;
-            hint.style.whiteSpace = WhiteSpace.Normal;
+            hint.AddToClassList("cz-hint");
             _root.Add(hint);
 
             return _root;

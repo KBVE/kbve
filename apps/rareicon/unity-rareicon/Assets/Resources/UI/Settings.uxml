@@ -1,0 +1,20 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="styles.uss" />
+
+    <ui:VisualElement name="settings-wrapper" class="modal-wrapper is-hidden">
+        <ui:VisualElement name="settings-backdrop" class="modal-backdrop" />
+
+        <ui:VisualElement name="settings-root" class="panel panel--modal">
+            <ui:VisualElement class="panel__header">
+                <ui:Label name="settings-title" class="panel__title" text="Settings" />
+                <ui:Button name="settings-close" class="btn-close" text="×" />
+            </ui:VisualElement>
+            <ui:VisualElement class="panel__strip" />
+
+            <ui:VisualElement name="settings-body" class="row grow">
+                <ui:VisualElement name="settings-sidebar" class="col" style="min-width: 90px; margin-right: 8px;" />
+                <ui:VisualElement name="settings-content" class="col grow" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

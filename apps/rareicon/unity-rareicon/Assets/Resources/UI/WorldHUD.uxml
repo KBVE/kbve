@@ -3,13 +3,12 @@
 
     <!-- Top-left toolbar -->
     <ui:VisualElement name="hud-toolbar" class="toolbar-pin">
-        <ui:Button name="hud-search"   class="btn-tool btn-icon first" />
-        <ui:Button name="hud-build"    class="btn-tool btn-icon" />
-        <ui:Button name="hud-king"     class="btn-tool btn-icon" />
-        <ui:Button name="hud-treasury" class="btn-tool btn-icon" />
-        <ui:Button name="hud-military" class="btn-tool btn-icon" />
-        <ui:Button name="hud-citizens" class="btn-tool btn-icon" />
-        <ui:Button name="hud-settings" class="btn-tool btn-icon" />
+        <ui:Button name="hud-build"    class="btn-tool btn-letter first" text="B" />
+        <ui:Button name="hud-king"     class="btn-tool btn-letter" text="K" />
+        <ui:Button name="hud-treasury" class="btn-tool btn-letter" text="T" />
+        <ui:Button name="hud-military" class="btn-tool btn-letter" text="M" />
+        <ui:Button name="hud-citizens" class="btn-tool btn-letter" text="C" />
+        <ui:Button name="hud-settings" class="btn-tool btn-letter" text="S" />
     </ui:VisualElement>
 
     <!-- Top-right HUD stack: clock + controlling indicator -->

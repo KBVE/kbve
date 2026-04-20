@@ -12,21 +12,7 @@ using UnityEngine.UIElements;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Citizens-panel "Roster" tab — two-pane layout with a scrollable
-    /// citizen list on the left and a detail card on the right showing
-    /// the selected unit's name, current activity (resolved through the
-    /// ActivityFeedService — Burst-side classifier feeds the value, no
-    /// per-frame managed query), HP/Hunger/Fatigue/Energy bars, and
-    /// quick action buttons (Jump To camera, Possess via the same
-    /// PossessUnitMessage the click router emits).
-    ///
-    /// Refresh model: rows + bars poll every 500ms while the tab is
-    /// open (HP/needs change continuously and don't have a reactive
-    /// source today); the activity line is a true subscription to
-    /// the per-entity SynchronizedReactiveProperty so it flips the
-    /// instant the writer detects a transition.
-    /// </summary>
+    /// <summary>Citizens "Roster" tab — scrollable list with badge + name + activity + HP, plus a detail card with full stat bars and Jump/Possess actions.</summary>
     public class RosterTab : ICitizensTab
     {
         const int RefreshIntervalMs = 500;
@@ -36,17 +22,17 @@ namespace RareIcon
         readonly CameraService _camera;
         readonly IPublisher<PossessUnitMessage> _possessPub;
 
-        readonly List<RosterEntry> _entries = new List<RosterEntry>();
-        readonly Dictionary<Entity, RosterEntry> _entryByEntity = new Dictionary<Entity, RosterEntry>();
+        readonly List<RosterEntry> _entries = new();
+        readonly Dictionary<Entity, RosterEntry> _entryByEntity = new();
 
         VisualElement _root;
         ScrollView _list;
         VisualElement _detail;
         Label _detailTitle;
         Label _detailActivity;
-        Label _detailStats;
-        Button _jumpBtn;
-        Button _possessBtn;
+        VisualElement _detailStats;
+        StatBar _detailHp, _detailEn, _detailHu, _detailFt;
+        Button _jumpBtn, _possessBtn;
         IVisualElementScheduledItem _refreshTick;
         IDisposable _activitySub;
         Entity _selected;
@@ -58,9 +44,9 @@ namespace RareIcon
                          CameraService camera,
                          IPublisher<PossessUnitMessage> possessPub)
         {
-            _locale     = locale;
-            _activity   = activity;
-            _camera     = camera;
+            _locale = locale;
+            _activity = activity;
+            _camera = camera;
             _possessPub = possessPub;
         }
 
@@ -71,87 +57,65 @@ namespace RareIcon
 
             BuildList(_root);
             BuildDetail(_root);
-
             return _root;
         }
 
-        // --- Left pane: scrollable citizen list -------------------------------
-
         void BuildList(VisualElement parent)
         {
-            var leftCol = new VisualElement();
-            leftCol.style.flexGrow = 1;
-            leftCol.style.flexBasis = 0;
-            leftCol.style.marginRight = UIStyles.Spacing.Md;
+            var col = new VisualElement();
+            col.AddToClassList("roster-list");
 
-            var header = UIStyles.MakeHeading("Citizens", fontSize: UIStyles.Type.Title);
-            header.style.marginBottom = UIStyles.Spacing.Md;
-            leftCol.Add(header);
+            var header = new Label("Citizens");
+            header.AddToClassList("roster-list__title");
+            col.Add(header);
 
             _list = new ScrollView(ScrollViewMode.Vertical);
-            _list.style.flexGrow = 1;
-            _list.style.maxHeight = 320;
-            leftCol.Add(_list);
+            _list.AddToClassList("roster-scroll");
+            col.Add(_list);
 
-            parent.Add(leftCol);
+            parent.Add(col);
         }
-
-        // --- Right pane: per-citizen detail card ------------------------------
 
         void BuildDetail(VisualElement parent)
         {
             _detail = new VisualElement();
-            _detail.style.flexGrow = 1;
-            _detail.style.flexBasis = 0;
-            _detail.style.Padding(UIStyles.Spacing.Md, UIStyles.Spacing.Lg);
-            _detail.style.BorderRadius(UIStyles.Radius.Sharp);
-            _detail.style.BorderWidth(1);
-            _detail.style.BorderColor(UIStyles.Palette.BorderSubtle);
-            _detail.style.backgroundColor = UIStyles.Palette.Zinc900;
+            _detail.AddToClassList("roster-detail");
 
             _detailTitle = new Label("Select a citizen");
-            _detailTitle.style.color = UIStyles.Palette.TextStrong;
-            _detailTitle.style.fontSize = UIStyles.Type.Title;
-            _detailTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _detailTitle.style.marginBottom = UIStyles.Spacing.Md;
+            _detailTitle.AddToClassList("roster-detail__title");
             _detail.Add(_detailTitle);
 
             _detailActivity = new Label(string.Empty);
-            _detailActivity.style.color = UIStyles.Palette.GoldDeep;
-            _detailActivity.style.fontSize = UIStyles.Type.Label;
-            _detailActivity.style.marginBottom = UIStyles.Spacing.Md;
+            _detailActivity.AddToClassList("roster-detail__activity");
             _detail.Add(_detailActivity);
 
-            _detailStats = new Label(string.Empty);
-            _detailStats.style.color = UIStyles.Palette.TextStrong;
-            _detailStats.style.fontSize = UIStyles.Type.BodyLg;
-            _detailStats.style.whiteSpace = WhiteSpace.Normal;
-            _detailStats.style.marginBottom = UIStyles.Spacing.Lg;
+            _detailStats = new VisualElement();
+            _detailStats.AddToClassList("roster-detail__stats");
+            _detailHp = new StatBar("HP", "hp", _detailStats);
+            _detailEn = new StatBar("EN", "en", _detailStats);
+            _detailHu = new StatBar("HU", "hu", _detailStats);
+            _detailFt = new StatBar("FT", "ft", _detailStats);
             _detail.Add(_detailStats);
 
-            var actionRow = new VisualElement();
-            actionRow.style.flexDirection = FlexDirection.Row;
+            var actions = new VisualElement();
+            actions.AddToClassList("roster-detail__actions");
+            _jumpBtn = MakeAction(_locale.Get("ui.jump_to"), JumpToSelected);
+            _possessBtn = MakeAction(_locale.Get("ui.possess"), PossessSelected);
+            actions.Add(_jumpBtn);
+            actions.Add(_possessBtn);
+            _detail.Add(actions);
 
-            _jumpBtn = UIStyles.MakeButton(_locale.Get("ui.jump_to"), JumpToSelected);
-            _jumpBtn.style.height = 24;
-            _jumpBtn.style.fontSize = UIStyles.Type.Label;
-            _jumpBtn.style.Padding(0, UIStyles.Spacing.Lg);
-            _jumpBtn.style.marginRight = UIStyles.Spacing.Md;
-            _jumpBtn.SetEnabled(false);
-            actionRow.Add(_jumpBtn);
-
-            _possessBtn = UIStyles.MakeButton(_locale.Get("ui.possess"), PossessSelected);
-            _possessBtn.style.height = 24;
-            _possessBtn.style.fontSize = UIStyles.Type.Label;
-            _possessBtn.style.Padding(0, UIStyles.Spacing.Lg);
-            _possessBtn.SetEnabled(false);
-            actionRow.Add(_possessBtn);
-
-            _detail.Add(actionRow);
             parent.Add(_detail);
         }
 
-        // --- Lifecycle --------------------------------------------------------
+        static Button MakeAction(string text, Action onClick)
+        {
+            var b = new Button(() => onClick?.Invoke()) { text = text };
+            b.AddToClassList("btn");
+            b.AddToClassList("btn--sm");
+            b.SetEnabled(false);
+            return b;
+        }
 
         public void OnActivated()
         {
@@ -167,10 +131,6 @@ namespace RareIcon
             _activitySub = null;
         }
 
-        // --- List rebuild + per-row refresh -----------------------------------
-
-        // Rows are created lazily; revisits update existing labels in place
-        // so the panel doesn't churn UI elements every 500ms.
         void RebuildList()
         {
             var world = World.DefaultGameObjectInjectionWorld;
@@ -182,8 +142,6 @@ namespace RareIcon
                 ComponentType.ReadOnly<Faction>());
             using var entities = query.ToEntityArray(Allocator.Temp);
 
-            // Mark all existing entries stale; we'll un-mark live ones below
-            // and remove anything still stale at the end.
             for (int i = 0; i < _entries.Count; i++) _entries[i].Live = false;
 
             for (int i = 0; i < entities.Length; i++)
@@ -194,7 +152,7 @@ namespace RareIcon
 
                 if (!_entryByEntity.TryGetValue(e, out var entry))
                 {
-                    entry = CreateRow(e);
+                    entry = CreateRow(e, em);
                     _entryByEntity[e] = entry;
                     _entries.Add(entry);
                     _list.Add(entry.Element);
@@ -203,7 +161,6 @@ namespace RareIcon
                 RefreshRow(entry, em);
             }
 
-            // Drop stale rows (entities that no longer exist).
             for (int i = _entries.Count - 1; i >= 0; i--)
             {
                 if (_entries[i].Live) continue;
@@ -213,38 +170,43 @@ namespace RareIcon
                 _entries.RemoveAt(i);
             }
 
-            // Refresh the detail card for the currently-selected unit
-            // (HP/needs change continuously and aren't reactive).
             if (_selected != Entity.Null && _entryByEntity.ContainsKey(_selected))
                 RefreshDetail(em, _selected);
         }
 
-        RosterEntry CreateRow(Entity entity)
+        RosterEntry CreateRow(Entity entity, EntityManager em)
         {
             var row = new VisualElement();
-            row.style.flexDirection = FlexDirection.Row;
-            row.style.alignItems = Align.Center;
-            row.style.justifyContent = Justify.SpaceBetween;
-            row.style.Padding(UIStyles.Spacing.Sm, UIStyles.Spacing.Md);
-            row.style.marginBottom = UIStyles.Spacing.Xs;
-            row.style.BorderRadius(UIStyles.Radius.Sharp);
+            row.AddToClassList("roster-row");
 
+            var unitType = em.HasComponent<Unit>(entity)
+                ? em.GetComponentData<Unit>(entity).Type
+                : UnitType.None;
+
+            var badge = new Label(BadgeLetter(unitType));
+            badge.AddToClassList("roster-row__badge");
+            badge.AddToClassList(BadgeVariant(unitType));
+            row.Add(badge);
+
+            var main = new VisualElement();
+            main.AddToClassList("roster-row__main");
             var name = new Label(string.Empty);
-            name.style.color = UIStyles.Palette.TextStrong;
-            name.style.fontSize = UIStyles.Type.Label;
-            row.Add(name);
+            name.AddToClassList("roster-row__name");
+            var activity = new Label(string.Empty);
+            activity.AddToClassList("roster-row__activity");
+            main.Add(name);
+            main.Add(activity);
+            row.Add(main);
 
-            var hp = new Label(string.Empty);
-            hp.style.color = UIStyles.Palette.TextMuted;
-            hp.style.fontSize = UIStyles.Type.Body;
-            row.Add(hp);
+            var bar = new StatBar(null, "hp", row, classOverride: "roster-row__bar");
 
             var entry = new RosterEntry
             {
                 Entity = entity,
                 Element = row,
                 NameLabel = name,
-                HpLabel = hp,
+                ActivityLabel = activity,
+                HpBar = bar,
                 Live = true,
             };
             row.RegisterCallback<ClickEvent>(_ => Select(entry.Entity));
@@ -256,42 +218,26 @@ namespace RareIcon
             var unit = em.GetComponentData<Unit>(entry.Entity);
             entry.NameLabel.text = ResolveLabel(em, entry.Entity, unit.Type);
 
+            var snap = _activity.CurrentFor(entry.Entity);
+            string actLabel = _locale.GetActivityName(snap.Kind);
+            entry.ActivityLabel.text = actLabel.Length > 0 ? actLabel : _locale.Get("activity.idle");
+
             if (em.HasComponent<Health>(entry.Entity))
             {
                 var h = em.GetComponentData<Health>(entry.Entity);
-                entry.HpLabel.text = ZString.Format("{0}/{1}",
-                    (int)Mathf.Round(h.Value), (int)Mathf.Round(h.Max));
-                bool wounded = h.Max > 0f && h.Value * 2f < h.Max;
-                entry.HpLabel.style.color = wounded
-                    ? UIStyles.Palette.Alert
-                    : UIStyles.Palette.TextMuted;
+                entry.HpBar.SetValue(h.Value, h.Max);
             }
-            else
-            {
-                entry.HpLabel.text = string.Empty;
-            }
+            else entry.HpBar.SetValue(0, 0);
 
-            // Highlight the selected row.
-            entry.Element.style.backgroundColor = entry.Entity == _selected
-                ? UIStyles.Palette.Zinc800
-                : new StyleColor(StyleKeyword.Initial);
+            entry.Element.EnableInClassList("is-selected", entry.Entity == _selected);
         }
-
-        // --- Selection + activity subscription --------------------------------
 
         void Select(Entity entity)
         {
             _selected = entity;
             for (int i = 0; i < _entries.Count; i++)
-            {
-                _entries[i].Element.style.backgroundColor = _entries[i].Entity == entity
-                    ? UIStyles.Palette.Zinc800
-                    : new StyleColor(StyleKeyword.Initial);
-            }
+                _entries[i].Element.EnableInClassList("is-selected", _entries[i].Entity == entity);
 
-            // Resubscribe the activity line to the new entity. R3 dedupes
-            // so the label only re-renders when the writer detects a
-            // transition — no per-frame label churn.
             _activitySub?.Dispose();
             _activitySub = _activity.For(entity).Subscribe(snapshot =>
             {
@@ -314,67 +260,40 @@ namespace RareIcon
             _activitySub = null;
             _detailTitle.text = "Select a citizen";
             _detailActivity.text = string.Empty;
-            _detailStats.text = string.Empty;
+            _detailHp.Clear(); _detailEn.Clear(); _detailHu.Clear(); _detailFt.Clear();
             _jumpBtn.SetEnabled(false);
             _possessBtn.SetEnabled(false);
         }
 
-        // --- Detail card refresh ---------------------------------------------
-
         void RefreshDetail(EntityManager em, Entity entity)
         {
-            if (!em.Exists(entity))
-            {
-                ClearSelection();
-                return;
-            }
+            if (!em.Exists(entity)) { ClearSelection(); return; }
 
             var unit = em.GetComponentData<Unit>(entity);
             _detailTitle.text = ResolveLabel(em, entity, unit.Type);
 
-            var sb = ZString.CreateStringBuilder();
-            try
-            {
-                AppendStat(ref sb, em, entity, "HP",
-                    has: em.HasComponent<Health>(entity),
-                    value: em.HasComponent<Health>(entity) ? em.GetComponentData<Health>(entity).Value : 0f,
-                    max:   em.HasComponent<Health>(entity) ? em.GetComponentData<Health>(entity).Max   : 0f);
-                AppendStat(ref sb, em, entity, "EN",
-                    has: em.HasComponent<Energy>(entity),
-                    value: em.HasComponent<Energy>(entity) ? em.GetComponentData<Energy>(entity).Value : 0f,
-                    max:   em.HasComponent<Energy>(entity) ? em.GetComponentData<Energy>(entity).Max   : 0f);
-                AppendStat(ref sb, em, entity, "HU",
-                    has: em.HasComponent<Hunger>(entity),
-                    value: em.HasComponent<Hunger>(entity) ? em.GetComponentData<Hunger>(entity).Value : 0f,
-                    max:   em.HasComponent<Hunger>(entity) ? em.GetComponentData<Hunger>(entity).Max   : 0f);
-                AppendStat(ref sb, em, entity, "FT",
-                    has: em.HasComponent<Fatigue>(entity),
-                    value: em.HasComponent<Fatigue>(entity) ? em.GetComponentData<Fatigue>(entity).Value : 0f,
-                    max:   em.HasComponent<Fatigue>(entity) ? em.GetComponentData<Fatigue>(entity).Max   : 0f);
-                _detailStats.text = sb.ToString();
-            }
-            finally { sb.Dispose(); }
+            UpdateBar(em, entity, _detailHp, has: em.HasComponent<Health>(entity),
+                value: em.HasComponent<Health>(entity)  ? em.GetComponentData<Health>(entity).Value  : 0f,
+                max:   em.HasComponent<Health>(entity)  ? em.GetComponentData<Health>(entity).Max    : 0f);
+            UpdateBar(em, entity, _detailEn, has: em.HasComponent<Energy>(entity),
+                value: em.HasComponent<Energy>(entity)  ? em.GetComponentData<Energy>(entity).Value  : 0f,
+                max:   em.HasComponent<Energy>(entity)  ? em.GetComponentData<Energy>(entity).Max    : 0f);
+            UpdateBar(em, entity, _detailHu, has: em.HasComponent<Hunger>(entity),
+                value: em.HasComponent<Hunger>(entity)  ? em.GetComponentData<Hunger>(entity).Value  : 0f,
+                max:   em.HasComponent<Hunger>(entity)  ? em.GetComponentData<Hunger>(entity).Max    : 0f);
+            UpdateBar(em, entity, _detailFt, has: em.HasComponent<Fatigue>(entity),
+                value: em.HasComponent<Fatigue>(entity) ? em.GetComponentData<Fatigue>(entity).Value : 0f,
+                max:   em.HasComponent<Fatigue>(entity) ? em.GetComponentData<Fatigue>(entity).Max   : 0f);
 
-            // Defensive — the activity property may not have an emitted
-            // value yet on the very first selection (writer hasn't run a
-            // transition for this entity). Pull the current snapshot
-            // directly so the label populates immediately.
             var snapshot = _activity.CurrentFor(entity);
             string activityLabel = _locale.GetActivityName(snapshot.Kind);
             _detailActivity.text = activityLabel.Length > 0 ? activityLabel : _locale.Get("activity.idle");
         }
 
-        static void AppendStat(ref Cysharp.Text.Utf16ValueStringBuilder sb,
-                               EntityManager em, Entity entity,
-                               string label, bool has, float value, float max)
+        static void UpdateBar(EntityManager em, Entity e, StatBar bar, bool has, float value, float max)
         {
-            if (!has || max <= 0f) return;
-            if (sb.Length > 0) sb.Append("  ");
-            sb.Append(label);
-            sb.Append(' ');
-            sb.Append((int)Mathf.Round(value));
-            sb.Append('/');
-            sb.Append((int)Mathf.Round(max));
+            if (!has || max <= 0f) bar.Clear();
+            else bar.SetValue(value, max);
         }
 
         string ResolveLabel(EntityManager em, Entity entity, byte unitType)
@@ -387,8 +306,6 @@ namespace RareIcon
             }
             return _locale.GetCreatureName(unitType);
         }
-
-        // --- Action buttons ---------------------------------------------------
 
         void JumpToSelected()
         {
@@ -408,13 +325,101 @@ namespace RareIcon
             _possessPub.Publish(new PossessUnitMessage(_selected));
         }
 
+        static string BadgeLetter(byte type) => type switch
+        {
+            UnitType.Goblin  => "G",
+            UnitType.Soldier => "S",
+            UnitType.Knight  => "K",
+            UnitType.Mage    => "M",
+            UnitType.King    => "♕",
+            _                => "U",
+        };
+
+        static string BadgeVariant(byte type) => type switch
+        {
+            UnitType.Goblin  => "roster-row__badge--goblin",
+            UnitType.Soldier => "roster-row__badge--soldier",
+            UnitType.Knight  => "roster-row__badge--knight",
+            UnitType.Mage    => "roster-row__badge--mage",
+            UnitType.King    => "roster-row__badge--king",
+            _                => "roster-row__badge--goblin",
+        };
+
         sealed class RosterEntry
         {
             public Entity Entity;
             public VisualElement Element;
             public Label NameLabel;
-            public Label HpLabel;
+            public Label ActivityLabel;
+            public StatBar HpBar;
             public bool Live;
+        }
+
+        // Mini bar control: optional label · filled bar · "n/m" value.
+        // When `classOverride` is set the wrapper takes that single class
+        // and skips the label/value (used for the inline row HP bar).
+        sealed class StatBar
+        {
+            public readonly VisualElement Root;
+            readonly VisualElement _fill;
+            readonly Label _value;
+
+            public StatBar(string label, string colorKind, VisualElement parent, string classOverride = null)
+            {
+                if (classOverride != null)
+                {
+                    Root = new VisualElement();
+                    Root.AddToClassList(classOverride);
+                    var bar = new VisualElement();
+                    bar.AddToClassList("bar");
+                    _fill = new VisualElement();
+                    _fill.AddToClassList("bar__fill");
+                    _fill.AddToClassList("bar__fill--" + colorKind);
+                    bar.Add(_fill);
+                    Root.Add(bar);
+                    parent.Add(Root);
+                    return;
+                }
+
+                Root = new VisualElement();
+                Root.AddToClassList("stat-row");
+
+                if (!string.IsNullOrEmpty(label))
+                {
+                    var l = new Label(label);
+                    l.AddToClassList("stat-row__label");
+                    Root.Add(l);
+                }
+
+                var bar2 = new VisualElement();
+                bar2.AddToClassList("stat-row__bar");
+                bar2.AddToClassList("bar");
+                _fill = new VisualElement();
+                _fill.AddToClassList("bar__fill");
+                _fill.AddToClassList("bar__fill--" + colorKind);
+                bar2.Add(_fill);
+                Root.Add(bar2);
+
+                _value = new Label(string.Empty);
+                _value.AddToClassList("stat-row__value");
+                Root.Add(_value);
+
+                parent.Add(Root);
+            }
+
+            public void SetValue(float v, float max)
+            {
+                float pct = max <= 0f ? 0f : math.saturate(v / max);
+                _fill.style.width = Length.Percent(pct * 100f);
+                if (_value != null)
+                    _value.text = ZString.Format("{0}/{1}", (int)Mathf.Round(v), (int)Mathf.Round(max));
+            }
+
+            public void Clear()
+            {
+                _fill.style.width = Length.Percent(0f);
+                if (_value != null) _value.text = string.Empty;
+            }
         }
     }
 }

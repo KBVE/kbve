@@ -11,9 +11,8 @@ namespace RareIcon
     /// VContainer service so input polling happens on the main thread
     /// alongside MouseStateSource.
     ///
-    /// Only acts while the app is in the World interface state — the
-    /// same gate UIWorldSearch uses, so keys don't fire on the title
-    /// screen or in menus.
+    /// Only acts while the app is in the World interface state, so keys
+    /// don't fire on the title screen or in menus.
     /// </summary>
     public sealed class BuildInputSource : ITickable, IDisposable
     {
