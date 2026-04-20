@@ -49,7 +49,7 @@ namespace RareIcon
         }
     }
 
-    internal struct NeedyBarracks
+    public struct NeedyBarracks
     {
         public Entity Entity;
         public int2   Hex;
