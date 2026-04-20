@@ -311,6 +311,83 @@ namespace RareIcon
             return entity;
         }
 
+        /// <summary>Spawn a Hostile-faction Bandit (humanoid raider) at the given hex. Carries a Club + MeleeAttack with PreferBuildings target mode like the Hostile goblin, but with higher HP / damage so the raid wave has weight.</summary>
+        public static Entity SpawnBanditAt(EntityManager em, int2 hex, uint rngSeed,
+                                           UnitSpawnState state = default)
+        {
+            if (!EnsureRenderAssets()) return Entity.Null;
+
+            var def = NPCDB.Get(UnitType.Bandit);
+            var entity = em.CreateEntity();
+
+            float3 worldPos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
+            worldPos.z = -0.7f;
+
+            em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
+            em.AddComponentData(entity, new Unit
+            {
+                Type   = def.UnitType,
+                Weapon = def.DefaultWeapon,
+            });
+
+            float maxHp = state.MaxHealth > 0f ? state.MaxHealth : def.MaxHealth;
+            float hp    = state.Health    > 0f ? state.Health    : maxHp;
+            em.AddComponentData(entity, new Health { Value = hp, Max = maxHp });
+            if (def.MaxEnergy > 0)
+                em.AddComponentData(entity, new Energy { Value = def.MaxEnergy, Max = def.MaxEnergy });
+
+            em.AddComponentData(entity, new UnitVisual       { Value = (float)def.UnitType });
+            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)def.DefaultWeapon });
+            em.AddComponentData(entity, new UnitFacingVisual { Value = (float)UnitFacing.East });
+            em.AddComponentData(entity, new UnitMovingVisual { Value = 1f });
+
+            em.AddComponentData(entity, new Faction    { Value = FactionType.Hostile });
+            em.AddComponentData(entity, new Collidable { Radius = 0.20f });
+
+            // Bandits hit harder than goblins and prefer buildings so a
+            // raid actually pressures the empire's structures.
+            em.AddComponentData(entity, new MeleeAttack
+            {
+                Range         = 0.45f,
+                Damage        = 5.0f,
+                Cooldown      = 1.1f,
+                TimeSinceShot = 0f,
+                TargetMode    = MeleeTargetMode.PreferBuildings,
+            });
+
+            em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
+            em.AddBuffer<StatusEffect>(entity);
+
+            float speedJit = 0.85f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.3f;
+            em.AddComponentData(entity, new UnitMovement
+            {
+                CurrentHex      = hex,
+                TargetHex       = hex,
+                MoveSpeed       = def.MoveSpeed * speedJit,
+                Facing          = UnitFacing.East,
+                RandomState     = rngSeed | 1u,
+                WanderStep      = 0u,
+                DwellTimer      = (rngSeed % 200u) / 200f,
+                LastDir         = 255,
+                LastHarvestStep = uint.MaxValue,
+            });
+
+            em.AddComponentData(entity, new MovementGoal
+            {
+                Kind      = GoalKind.None,
+                Priority  = GoalPriority.None,
+                TargetHex = hex,
+            });
+
+            // No inventory — death drops via EnemyLootDropSystem instead.
+
+            RenderMeshUtility.AddComponents(
+                entity, em, _renderDesc, _renderArray,
+                MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+            return entity;
+        }
+
         /// <summary>Spawn an aggressive beast (Wolf, future Bear, etc.) at the given hex. Beast faction, no carried weapon, no jobs/needs, but does carry MeleeAttack so it bites adjacent Player / Wildlife units. Wanders by default; reactive combat handled by MeleeAttackSystem.</summary>
         public static Entity SpawnBeastAt(EntityManager em, int2 hex, uint rngSeed, byte unitType,
                                           UnitSpawnState state = default)

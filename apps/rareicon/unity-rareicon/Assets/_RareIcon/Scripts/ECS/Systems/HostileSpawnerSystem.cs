@@ -3,16 +3,24 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Periodically spawns Hostile goblins on a ring around the Capital, capped by a max alive count.</summary>
+    /// <summary>Periodically spawns Hostile units (goblins + bandits) on a ring around the Capital, capped by a max alive count. Bandit chance ramps with the wave so early raids are pure goblin and later waves carry mixed bandits as the empire grows.</summary>
     // TODO(rust-ffi): wave cadence + max-alive cap belong on the server side so the cap is authoritative — replace local _timer / _rng with reads from a Rust-owned spawn director.
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     public partial class HostileSpawnerSystem : SystemBase
     {
-        const float Interval       = 8.0f;
-        const int   MaxHostiles    = 12;
-        const int   SpawnRingHexes = 32;
+        const float Interval        = 8.0f;
+        const int   MaxHostiles     = 12;
+        const int   SpawnRingHexes  = 32;
         const int   SpawnRingJitter = 6;
-        const int   SpawnBatchSize = 2;
+        const int   SpawnBatchSize  = 2;
+        // Bandit-share starts at 0 and ramps to ~50% by wave 10. Linear
+        // ramp keeps the early game digestible (goblins only) and gives
+        // raid composition something to escalate into.
+        const float BanditShareStart = 0.0f;
+        const float BanditShareCap   = 0.5f;
+        const int   BanditRampWaves  = 10;
+
+        int   _waveIndex;
 
         float _timer;
         uint  _rng = 0xB01D_FACEu;
@@ -49,6 +57,10 @@ namespace RareIcon
             if (alive >= MaxHostiles) return;
 
             int spawn = math.min(SpawnBatchSize, MaxHostiles - alive);
+            float banditShare = math.lerp(BanditShareStart, BanditShareCap,
+                math.saturate((float)_waveIndex / BanditRampWaves));
+            _waveIndex++;
+
             for (int i = 0; i < spawn; i++)
             {
                 _rng = XorShift(_rng);
@@ -60,12 +72,25 @@ namespace RareIcon
                 int r = capitalHex.y + (int)math.round(math.sin(angle) * radius);
 
                 _rng = XorShift(_rng);
-                UnitSpawnSystem.SpawnGoblinAt(
-                    EntityManager,
-                    new int2(q, r),
-                    _rng | 1u,
-                    default,
-                    FactionType.Hostile);
+                float kindRoll = (_rng & 0xFFFFu) / 65535f;
+
+                _rng = XorShift(_rng);
+                if (kindRoll < banditShare)
+                {
+                    UnitSpawnSystem.SpawnBanditAt(
+                        EntityManager,
+                        new int2(q, r),
+                        _rng | 1u);
+                }
+                else
+                {
+                    UnitSpawnSystem.SpawnGoblinAt(
+                        EntityManager,
+                        new int2(q, r),
+                        _rng | 1u,
+                        default,
+                        FactionType.Hostile);
+                }
             }
         }
 
