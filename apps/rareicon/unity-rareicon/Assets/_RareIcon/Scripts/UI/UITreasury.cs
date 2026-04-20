@@ -55,11 +55,16 @@ namespace RareIcon
             }
             var styles = Resources.Load<StyleSheet>("UI/styles");
 
-            _root = template.CloneTree();
+            var tree = template.CloneTree();
+            // Pluck the real root out of the TemplateContainer wrapper.
+            // Adding the wrapper directly stretches edge-to-edge because
+            // TemplateContainer defaults to flex-grow:1 with no positioning.
+            _root = tree.Q<VisualElement>("treasury-root");
+            _root.RemoveFromHierarchy();
             if (styles != null) _root.styleSheets.Add(styles);
             uiDoc.rootVisualElement.Add(_root);
 
-            var rootEl     = _root.Q<VisualElement>("treasury-root");
+            var rootEl     = _root;
             var titleLabel = _root.Q<Label>("treasury-title");
             var closeBtn   = _root.Q<Button>("treasury-close");
             _bodyLabel     = _root.Q<Label>("treasury-body");
