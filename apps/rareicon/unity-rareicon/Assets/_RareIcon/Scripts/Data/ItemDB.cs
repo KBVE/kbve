@@ -227,5 +227,27 @@ namespace RareIcon
             foreach (var kv in _byId)
                 if (kv.Value.HarvestRole == role) yield return kv.Value;
         }
+
+        /// <summary>Seed a Burst-safe NativeHashMap&lt;ushort, ItemDefRuntime&gt; from the managed table. Called once at startup by ItemDBBootstrapSystem so Burst jobs can query item stats without touching the managed Dictionary.</summary>
+        public static void PopulateRuntimeLookup(Unity.Collections.NativeHashMap<ushort, ItemDefRuntime> lookup)
+        {
+            EnsureInit();
+            foreach (var kv in _byId)
+            {
+                var d = kv.Value;
+                lookup.TryAdd(d.Id, new ItemDefRuntime
+                {
+                    Id            = d.Id,
+                    Category      = (byte)d.Category,
+                    StackMax      = d.StackMax,
+                    BaseValue     = d.BaseValue,
+                    RestoreHealth = d.RestoreHealth,
+                    RestoreEnergy = d.RestoreEnergy,
+                    RestoreMana   = d.RestoreMana,
+                    HarvestRole   = (byte)d.HarvestRole,
+                    HarvestWeight = d.HarvestWeight,
+                });
+            }
+        }
     }
 }

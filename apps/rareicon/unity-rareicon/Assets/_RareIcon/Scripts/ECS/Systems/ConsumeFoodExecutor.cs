@@ -1,38 +1,51 @@
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Executor for ReliefKind.Eat — pops one edible from inventory per frame and reduces Hunger by the item's food value.</summary>
+    /// <summary>Executor for ReliefKind.Eat — pops one edible from inventory per frame and reduces Hunger by the item's food value. Burst ISystem running ScheduleParallel; item stats resolved via ItemDBSingleton so the job is fully off the main thread.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireSharingSystem))]
-    public partial class ConsumeFoodExecutor : SystemBase
+    public partial struct ConsumeFoodExecutor : ISystem
     {
-        protected override void OnUpdate()
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
-            foreach (var (hungerRef, intentRef, invRO) in
-                SystemAPI.Query<RefRW<Hunger>, RefRO<ReliefIntent>, DynamicBuffer<InventorySlot>>())
+            if (!SystemAPI.TryGetSingleton<ItemDBSingleton>(out var db)) return;
+
+            state.Dependency = new ConsumeFoodJob { Db = db }.ScheduleParallel(state.Dependency);
+        }
+    }
+
+    [BurstCompile]
+    public partial struct ConsumeFoodJob : IJobEntity
+    {
+        public ItemDBSingleton Db;
+
+        void Execute(ref Hunger hunger,
+                     in ReliefIntent intent,
+                     ref DynamicBuffer<InventorySlot> inv)
+        {
+            if (intent.Kind != ReliefKind.Eat) return;
+            if (hunger.Max <= 0f) return;
+
+            for (int i = 0; i < inv.Length; i++)
             {
-                if (intentRef.ValueRO.Kind != ReliefKind.Eat) continue;
+                var slot = inv[i];
+                if (slot.Count == 0) continue;
+                float gain = Db.EnergyValue(slot.ItemId);
+                if (gain <= 0f) continue;
 
-                var hunger = hungerRef.ValueRO;
-                if (hunger.Max <= 0f) continue;
+                slot.Count -= 1;
+                inv[i] = slot;
 
-                var inv = invRO;
-                for (int i = 0; i < inv.Length; i++)
-                {
-                    var slot = inv[i];
-                    if (slot.Count == 0) continue;
-                    float gain = ItemDB.EnergyValue(slot.ItemId);
-                    if (gain <= 0f) continue;
-
-                    slot.Count -= 1;
-                    inv[i] = slot;
-
-                    hunger.Value = math.max(0f, hunger.Value - gain);
-                    hungerRef.ValueRW = hunger;
-                    break;
-                }
+                hunger.Value = math.max(0f, hunger.Value - gain);
+                return;
             }
         }
     }
