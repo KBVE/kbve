@@ -2,6 +2,7 @@ using Unity.Burst;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace RareIcon
 {
@@ -27,8 +28,7 @@ namespace RareIcon
     }
 
     /// <summary>Per-entity classifier — single-threaded so the un-thread-safe UnsafeRingQueue.TryEnqueue stays sound. Touches ActivityState writeably (one byte update on transition) and emits to the queue only on delta.</summary>
-    [BurstCompile]
-    [WithAll(typeof(JobPriorities))]  // proxy for "Player unit"; AttachJobsIfPlayer only adds JobPriorities for Player faction
+    [WithAll(typeof(JobPriorities))]
     public partial struct WriteJob : IJobEntity
     {
         public UnsafeRingQueue<ActivitySnapshot> Queue;
@@ -44,20 +44,20 @@ namespace RareIcon
 
             state.LastKind = kind;
 
-            // Job target wins when present; movement goal target as
-            // fallback so MovingToOrder / Wandering still carry their
-            // destination hex.
             int2 targetHex = jobIntent.TargetHex;
             if (math.all(targetHex == int2.zero) && movementGoal.Kind != GoalKind.None)
                 targetHex = movementGoal.TargetHex;
 
-            Queue.TryEnqueue(new ActivitySnapshot
+            bool queueAlive = Queue.IsCreated;
+            bool ok = queueAlive && Queue.TryEnqueue(new ActivitySnapshot
             {
                 Entity       = entity,
                 Kind         = kind,
                 TargetHex    = targetHex,
-                TargetItemId = 0,  // future: route Builder/Looter inventory item here
+                TargetItemId = 0,
             });
+
+            Debug.Log($"[WriteJob] entity={entity.Index} kind={kind} queueAlive={queueAlive} enqueueOk={ok}");
         }
 
         // Priority: Relief beats Job beats Movement. Mirrors the dispatch
