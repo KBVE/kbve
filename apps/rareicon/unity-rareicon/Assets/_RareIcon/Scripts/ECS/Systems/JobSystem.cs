@@ -210,10 +210,16 @@ namespace RareIcon
                     }
                 }
 
-                if (p.Farmer > bestPrio && hasFarm)
+                // Farmer / Builder / Chef use >= so equal-priority roles still
+                // compete on distance — with the all-2 default every role ties,
+                // and a strict > here meant Lumberjack (tested first) won every
+                // tiebreak forever. Distance is the second sort key, matching
+                // how TryRole / Guard / Looter handle ties.
+                if (p.Farmer >= bestPrio && hasFarm)
                 {
                     int farmDist = HexDistance(currentHex, farmHex);
-                    if (farmDist <= SearchRadius * 2)
+                    if (farmDist <= SearchRadius * 2
+                        && (p.Farmer > bestPrio || (p.Farmer == bestPrio && farmDist < bestDist)))
                     {
                         bestKind   = JobKind.Farmer;
                         bestPrio   = p.Farmer;
@@ -223,7 +229,7 @@ namespace RareIcon
                     }
                 }
 
-                if (p.Builder > bestPrio && hasCapital)
+                if (p.Builder >= bestPrio && hasCapital)
                 {
                     // Construction sites and damaged Player-faction
                     // buildings compete for the same Builder priority
@@ -262,7 +268,8 @@ namespace RareIcon
                         }
                     }
 
-                    if (builderBest != Entity.Null)
+                    if (builderBest != Entity.Null
+                        && (p.Builder > bestPrio || (p.Builder == bestPrio && builderBestDist < bestDist)))
                     {
                         bestKind   = JobKind.Builder;
                         bestPrio   = p.Builder;
@@ -272,14 +279,17 @@ namespace RareIcon
                     }
                 }
 
-                if (p.Chef > bestPrio && hasCapital)
+                if (p.Chef >= bestPrio && hasCapital)
                 {
                     int capDist = HexDistance(currentHex, capitalHex);
-                    bestKind   = JobKind.Chef;
-                    bestPrio   = p.Chef;
-                    bestDist   = capDist;
-                    bestHex    = capitalHex;
-                    bestEntity = capital;
+                    if (p.Chef > bestPrio || (p.Chef == bestPrio && capDist < bestDist))
+                    {
+                        bestKind   = JobKind.Chef;
+                        bestPrio   = p.Chef;
+                        bestDist   = capDist;
+                        bestHex    = capitalHex;
+                        bestEntity = capital;
+                    }
                 }
 
                 // Looter = generic hauler. Priority order within the
