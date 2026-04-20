@@ -13,15 +13,16 @@ namespace RareIcon
     {
         const int SearchRadius = 5;
 
-        bool _diagLogged;
+        const double DiagIntervalSeconds = 30.0;
+        double _nextDiagTime = 3.0;
 
         protected override void OnUpdate()
         {
             RunDispatch();
 
-            if (!_diagLogged && SystemAPI.Time.ElapsedTime > 3.0)
+            if (SystemAPI.Time.ElapsedTime >= _nextDiagTime)
             {
-                _diagLogged = true;
+                _nextDiagTime = SystemAPI.Time.ElapsedTime + DiagIntervalSeconds;
                 LogDispatchDiagnostic();
             }
         }

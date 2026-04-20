@@ -12,10 +12,12 @@ namespace RareIcon
 
         int _frameCounter;
 
-        int  _diagTotalDrained;
-        bool _diagLogged;
-        bool _diagSawNullService;
-        bool _diagSawNullSingleton;
+        const double DiagIntervalSeconds = 30.0;
+
+        int    _diagTotalDrained;
+        bool   _diagSawNullService;
+        bool   _diagSawNullSingleton;
+        double _nextDiagTime = 3.0;
 
         protected override void OnUpdate()
         {
@@ -44,9 +46,8 @@ namespace RareIcon
 
         void MaybeLogDiag(ActivityFeedService service, int drainedThisFrame)
         {
-            if (_diagLogged) return;
-            if (SystemAPI.Time.ElapsedTime < 3.0) return;
-            _diagLogged = true;
+            if (SystemAPI.Time.ElapsedTime < _nextDiagTime) return;
+            _nextDiagTime = SystemAPI.Time.ElapsedTime + DiagIntervalSeconds;
 
             int tracked = service == null ? 0 : service.GetTrackedEntities().Length;
             Debug.Log($"[ActivityDrain diag] sawNullService={_diagSawNullService} sawNullSingleton={_diagSawNullSingleton} " +
