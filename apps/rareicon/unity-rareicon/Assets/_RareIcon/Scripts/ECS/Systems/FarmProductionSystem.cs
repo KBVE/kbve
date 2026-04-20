@@ -3,25 +3,7 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Drives the per-farm production loop on a worker thread.
-    ///
-    /// State machine per farm — anchored to <see cref="WorldClock"/>:
-    ///   • Idle  (CycleEndsAt == 0): try pull <c>InputAmount</c> of
-    ///     <c>InputItemId</c> from capital storage. On success start a
-    ///     cycle by setting <c>CycleEndsAt = clock.AbsSeconds + Duration</c>.
-    ///   • Running (CycleEndsAt > 0): wait until <c>now >= CycleEndsAt</c>,
-    ///     then push <c>OutputAmount</c> of <c>OutputItemId</c> into
-    ///     capital storage and reset to Idle.
-    ///
-    /// Reads the WorldClock singleton on the system body (main thread,
-    /// pre-schedule), value-captures the float into the job — worker
-    /// thread reads its own copy, no shared memory or locks.
-    ///
-    /// Single capital is the I/O endpoint for v1 — same simplification
-    /// CompostingSystem uses. Multiple farms write to the same capital
-    /// buffer, so we use Schedule() (single worker), not ScheduleParallel.
-    /// </summary>
+    /// <summary>Per-farm production loop — pulls inputs from the Capital (common supply), pushes outputs into the farm's own FarmStorage so livestock consumption eats them before surplus drains to the Capital.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct FarmProductionSystem : ISystem
@@ -38,7 +20,6 @@ namespace RareIcon
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
             float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
 
-            // Locate the capital — production source/sink for v1.
             Entity capital = Entity.Null;
             foreach (var (b, e) in SystemAPI.Query<RefRO<Building>>().WithEntityAccess())
             {
@@ -53,60 +34,60 @@ namespace RareIcon
 
             state.Dependency = new FarmTickJob
             {
-                Capital       = capital,
-                StorageLookup = SystemAPI.GetBufferLookup<InventorySlot>(false),
-                Now           = now,
+                Capital           = capital,
+                CapitalLookup     = SystemAPI.GetBufferLookup<InventorySlot>(false),
+                FarmStorageLookup = SystemAPI.GetBufferLookup<FarmStorage>(false),
+                Now               = now,
             }.Schedule(state.Dependency);
         }
     }
 
-    /// <summary>Per-farm tick — advances state and brokers item transfer with capital storage.</summary>
+    /// <summary>Per-farm tick — consumes input from the Capital, deposits output into the farm's own FarmStorage.</summary>
     [BurstCompile]
     public partial struct FarmTickJob : IJobEntity
     {
         public Entity Capital;
-        public BufferLookup<InventorySlot> StorageLookup;
+        public BufferLookup<InventorySlot> CapitalLookup;
+        public BufferLookup<FarmStorage>   FarmStorageLookup;
         public float Now;
 
-        public void Execute(in FarmTag tag, ref FarmProduction prod)
+        public void Execute(Entity farm, in FarmTag tag, ref FarmProduction prod)
         {
-            var storage = StorageLookup[Capital];
+            if (!FarmStorageLookup.HasBuffer(farm)) return;
+            var capitalStorage = CapitalLookup[Capital];
+            var farmStorage    = FarmStorageLookup[farm];
 
             if (prod.CycleEndsAt > 0f)
             {
-                // Running cycle — wait for the clock to catch up.
                 if (Now < prod.CycleEndsAt) return;
 
-                // Cycle complete — push output to capital storage, reset.
-                AddItem(ref storage, prod.OutputItemId, prod.OutputAmount);
+                AddFarm(ref farmStorage, prod.OutputItemId, prod.OutputAmount);
                 prod.CycleEndsAt = 0f;
                 return;
             }
 
-            // Idle — try to start a new cycle. Farmer tender presence halves the duration at full bonus.
-            if (!TryConsume(ref storage, prod.InputItemId, prod.InputAmount)) return;
+            if (!TryConsumeCapital(ref capitalStorage, prod.InputItemId, prod.InputAmount)) return;
             float duration = prod.CycleDuration * (1f - 0.5f * Unity.Mathematics.math.saturate(prod.TenderBonus));
             prod.CycleEndsAt = Now + duration;
         }
 
-        static bool TryConsume(ref DynamicBuffer<InventorySlot> storage,
-                               ushort itemId, ushort amount)
+        static bool TryConsumeCapital(ref DynamicBuffer<InventorySlot> storage,
+                                      ushort itemId, ushort amount)
         {
-            int idx = -1;
             for (int i = 0; i < storage.Length; i++)
             {
-                if (storage[i].ItemId == itemId) { idx = i; break; }
-            }
-            if (idx < 0) return false;
-            if (storage[idx].Count < amount) return false;
+                if (storage[i].ItemId != itemId) continue;
+                if (storage[i].Count < amount) return false;
 
-            var slot = storage[idx];
-            slot.Count = (ushort)(slot.Count - amount);
-            storage[idx] = slot;
-            return true;
+                var slot = storage[i];
+                slot.Count = (ushort)(slot.Count - amount);
+                storage[i] = slot;
+                return true;
+            }
+            return false;
         }
 
-        static void AddItem(ref DynamicBuffer<InventorySlot> storage,
+        static void AddFarm(ref DynamicBuffer<FarmStorage> storage,
                             ushort itemId, ushort amount)
         {
             for (int i = 0; i < storage.Length; i++)
@@ -119,7 +100,7 @@ namespace RareIcon
                     return;
                 }
             }
-            storage.Add(new InventorySlot { ItemId = itemId, Count = amount });
+            storage.Add(new FarmStorage { ItemId = itemId, Count = amount });
         }
     }
 }

@@ -50,6 +50,23 @@ namespace RareIcon
     /// <summary>Marker tag for Farm buildings — production system query key.</summary>
     public struct FarmTag : IComponentData { }
 
+    /// <summary>Per-farm local inventory; production and livestock outputs land here before the surplus system drains to the Capital.</summary>
+    [InternalBufferCapacity(8)]
+    public struct FarmStorage : IBufferElementData
+    {
+        public ushort ItemId;
+        public ushort Count;
+    }
+
+    /// <summary>Per-farm sheltered-livestock entry; one per species currently in residence. LastProducedTurn is the WorldClock.TurnIndex of the last output.</summary>
+    [InternalBufferCapacity(4)]
+    public struct FarmLivestock : IBufferElementData
+    {
+        public byte   UnitType;
+        public ushort Count;
+        public uint   LastProducedTurn;
+    }
+
     /// <summary>Marker tag for Barracks buildings — recruitment system query key.</summary>
     public struct BarracksTag : IComponentData { }
 

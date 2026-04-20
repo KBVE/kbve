@@ -48,6 +48,8 @@ namespace RareIcon
                         CycleEndsAt   = 0f,        // idle until first input pull
                         CycleDuration = 8f,
                     });
+                    EntityManager.AddBuffer<FarmStorage>(arr[i]);
+                    EntityManager.AddBuffer<FarmLivestock>(arr[i]);
                 }
             }
             finally
