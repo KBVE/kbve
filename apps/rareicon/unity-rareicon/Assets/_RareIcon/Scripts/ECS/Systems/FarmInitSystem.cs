@@ -1,74 +1,59 @@
-using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Ensures every FarmTag entity carries the default farm composition — Compost → Carrot ProductionRecipe, InventorySlot, SurplusExport list (keep 8 Carrots locally for livestock feed, ship everything else), TenderMultiplier, FarmLivestock buffer. Future recipe selection (Wood → Mushroom, etc.) just appends more ProductionRecipe entries. Burst ISystem: structural work via EndInitializationECB so downstream Simulation systems see the new components the same frame.</summary>
-    [BurstCompile]
+    /// <summary>Ensures every FarmTag entity carries the default farm composition — Compost → Carrot ProductionRecipe, InventorySlot, SurplusExport list (keep 8 Carrots locally for livestock feed, ship everything else), TenderMultiplier, FarmLivestock buffer. Future recipe selection (Wood → Mushroom, etc.) just appends more ProductionRecipe entries.</summary>
     [UpdateInGroup(typeof(InitializationSystemGroup))]
-    public partial struct FarmInitSystem : ISystem
+    public partial class FarmInitSystem : SystemBase
     {
         EntityQuery _needsInit;
 
-        [BurstCompile]
-        public void OnCreate(ref SystemState state)
+        protected override void OnCreate()
         {
-            _needsInit = new EntityQueryBuilder(Allocator.Temp)
-                .WithAll<FarmTag>()
-                .WithNone<ProductionRecipe>()
-                .Build(ref state);
-            state.RequireForUpdate(_needsInit);
+            _needsInit = GetEntityQuery(
+                ComponentType.ReadOnly<FarmTag>(),
+                ComponentType.Exclude<ProductionRecipe>());
         }
 
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
-
-        [BurstCompile]
-        public void OnUpdate(ref SystemState state)
+        protected override void OnUpdate()
         {
-            var ecb = SystemAPI.GetSingleton<EndInitializationEntityCommandBufferSystem.Singleton>()
-                               .CreateCommandBuffer(state.WorldUnmanaged);
+            if (_needsInit.IsEmpty) return;
 
-            state.Dependency = new FarmInitJob
+            var arr = _needsInit.ToEntityArray(Allocator.Temp);
+            try
             {
-                Ecb       = ecb.AsParallelWriter(),
-                InvLookup = SystemAPI.GetBufferLookup<InventorySlot>(true),
-            }.ScheduleParallel(state.Dependency);
-        }
-    }
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    var e = arr[i];
+                    if (!EntityManager.HasBuffer<InventorySlot>(e))
+                        EntityManager.AddBuffer<InventorySlot>(e);
 
-    [BurstCompile]
-    [WithAll(typeof(FarmTag))]
-    [WithNone(typeof(ProductionRecipe))]
-    public partial struct FarmInitJob : IJobEntity
-    {
-        public EntityCommandBuffer.ParallelWriter     Ecb;
-        [ReadOnly] public BufferLookup<InventorySlot> InvLookup;
+                    var recipes = EntityManager.AddBuffer<ProductionRecipe>(e);
+                    recipes.Add(new ProductionRecipe
+                    {
+                        Input1Id         = (ushort)ItemId.Compost, Input1Amount = 1,
+                        Output1Id        = (ushort)ItemId.Carrot,  Output1Amount = 1,
+                        CycleDuration    = 8f,
+                        CycleEndsAt      = 0f,
+                        PullsFromCapital = 1,
+                    });
 
-        void Execute(Entity entity, [ChunkIndexInQuery] int chunkIdx)
-        {
-            if (!InvLookup.HasBuffer(entity))
-                Ecb.AddBuffer<InventorySlot>(chunkIdx, entity);
+                    var exports = EntityManager.AddBuffer<SurplusExport>(e);
+                    exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Carrot, Floor = 8 });
+                    exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Egg,    Floor = 0 });
+                    exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Milk,   Floor = 0 });
+                    exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Wool,   Floor = 0 });
+                    exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Meat,   Floor = 0 });
 
-            var recipes = Ecb.AddBuffer<ProductionRecipe>(chunkIdx, entity);
-            recipes.Add(new ProductionRecipe
+                    EntityManager.AddComponentData(e, new TenderMultiplier { Value = 0f });
+                    EntityManager.AddBuffer<FarmLivestock>(e);
+                }
+            }
+            finally
             {
-                Input1Id         = (ushort)ItemId.Compost, Input1Amount = 1,
-                Output1Id        = (ushort)ItemId.Carrot,  Output1Amount = 1,
-                CycleDuration    = 8f,
-                CycleEndsAt      = 0f,
-                PullsFromCapital = 1,
-            });
-
-            var exports = Ecb.AddBuffer<SurplusExport>(chunkIdx, entity);
-            exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Carrot, Floor = 8 });
-            exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Egg,    Floor = 0 });
-            exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Milk,   Floor = 0 });
-            exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Wool,   Floor = 0 });
-            exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Meat,   Floor = 0 });
-
-            Ecb.AddComponent(chunkIdx, entity, new TenderMultiplier { Value = 0f });
-            Ecb.AddBuffer<FarmLivestock>(chunkIdx, entity);
+                arr.Dispose();
+            }
         }
     }
 }
