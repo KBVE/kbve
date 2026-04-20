@@ -8,15 +8,16 @@ using UnityEngine;
 namespace RareIcon
 {
     /// <summary>
-    /// Translates left-click hex selections into a MoveToHex
-    /// <see cref="MovementGoal"/> on whichever entity carries
-    /// <see cref="ControlledUnitTag"/> — the player's currently
-    /// driven unit. Defaults to the King; click-to-possess (Slice 3)
+    /// Writes a MoveToHex <see cref="MovementGoal"/> on whichever entity
+    /// carries <see cref="ControlledUnitTag"/> — the player's currently
+    /// driven unit — in response to a <see cref="ControlledUnitMoveMessage"/>
+    /// from the click router. Defaults to the King; click-to-possess
     /// migrates the tag onto whichever unit the player wants to drive.
     ///
-    /// When no unit is controlled (god view), this system no-ops and
-    /// the click falls through to the building inspector / build mode
-    /// dispatch in <see cref="AppStateController"/>.
+    /// Listens to the semantic move message (not the raw click) so the
+    /// router in <see cref="AppStateController"/> stays the single
+    /// source of truth for "what does this click MEAN" — possession and
+    /// inspect clicks never spuriously dispatch a move order here.
     /// </summary>
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     public partial class ControlledUnitCommandSystem : SystemBase
@@ -40,8 +41,8 @@ namespace RareIcon
             try
             {
                 _sub = GlobalMessagePipe
-                    .GetSubscriber<HexClickedMessage>()
-                    .Subscribe(OnHexClicked);
+                    .GetSubscriber<ControlledUnitMoveMessage>()
+                    .Subscribe(OnMoveOrder);
             }
             catch (Exception ex)
             {
@@ -55,11 +56,8 @@ namespace RareIcon
             _sub = null;
         }
 
-        void OnHexClicked(HexClickedMessage msg)
+        void OnMoveOrder(ControlledUnitMoveMessage msg)
         {
-            // Don't try to walk onto open ocean.
-            if (!msg.IsLand) return;
-
             var arr = _controlledQuery.ToEntityArray(Allocator.Temp);
             if (arr.Length == 0)
             {
@@ -68,9 +66,9 @@ namespace RareIcon
             }
 
             // ControlledUnitTag should only be on one entity; if there's
-            // somehow more than one, the first wins. The click router
-            // (Slice 3) will skip this system's effect when the click
-            // hits a building or a possessable unit.
+            // somehow more than one, the first wins. The router has already
+            // verified land + no-building + no-possess-target, so this
+            // handler can blindly trust the message.
             var unit = arr[0];
             EntityManager.SetComponentData(unit, new MovementGoal
             {

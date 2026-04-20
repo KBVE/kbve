@@ -24,6 +24,15 @@ namespace RareIcon
             builder.RegisterMessageBroker<EnterTileMessage>(options);
             builder.RegisterMessageBroker<ToastMessage>(options);
 
+            // Click-router output — AppStateController emits one of these
+            // per left-click after deciding what the click MEANS. Subscribers
+            // (ControlledUnitCommandSystem, PossessSystem, future Building
+            // Inspector) then act only on the semantic event they care about
+            // instead of every raw HexClickedMessage.
+            builder.RegisterMessageBroker<BuildingInspectMessage>(options);
+            builder.RegisterMessageBroker<PossessUnitMessage>(options);
+            builder.RegisterMessageBroker<ControlledUnitMoveMessage>(options);
+
             builder.RegisterBuildCallback(container =>
             {
                 GlobalMessagePipe.SetProvider(container.AsServiceProvider());
