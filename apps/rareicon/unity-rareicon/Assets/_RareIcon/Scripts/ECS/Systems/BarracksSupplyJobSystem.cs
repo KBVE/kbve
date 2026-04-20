@@ -1,23 +1,27 @@
-using System.Collections.Generic;
+using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Overrides idle Looter / Farmer JobIntents with a Barracks-supply task when an understocked Barracks exists and the Capital has the matching items. Two-phase routing (carrying → Barracks, empty → Capital) is refined each tick like BuilderJobSystem. Understocked = building's InventorySlot total &lt; StorageCapacity.Total.</summary>
+    /// <summary>Overrides idle Looter / Farmer JobIntents with a Barracks-supply task when an understocked Barracks exists. Two-phase routing (carrying → Barracks, empty → Capital) is refined each tick like BuilderJobSystem. Burst ISystem — single-worker Schedule keeps the shared Capital-hex capture race-free ahead of the multi-threaded push.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(JobSystem))]
     [UpdateBefore(typeof(JobMovementExecutor))]
-    public partial class BarracksSupplyJobSystem : SystemBase
+    public partial struct BarracksSupplyJobSystem : ISystem
     {
-        readonly List<(Entity Barracks, int2 Hex)> _needy = new();
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
-        protected override void OnUpdate()
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             int2 capitalHex = SystemAPI.GetComponent<Building>(capital).RootHex;
 
-            _needy.Clear();
+            var needy = new NativeList<NeedyBarracks>(4, Allocator.TempJob);
             foreach (var (building, cap, storage, entity) in
                      SystemAPI.Query<RefRO<Building>, RefRO<StorageCapacity>, DynamicBuffer<InventorySlot>>()
                               .WithAll<BarracksTag>()
@@ -26,48 +30,74 @@ namespace RareIcon
                 int total = 0;
                 for (int i = 0; i < storage.Length; i++) total += storage[i].Count;
                 if (total >= cap.ValueRO.Total) continue;
-                _needy.Add((entity, building.ValueRO.RootHex));
+                needy.Add(new NeedyBarracks { Entity = entity, Hex = building.ValueRO.RootHex });
             }
-            if (_needy.Count == 0) return;
 
-            foreach (var (priorities, intentRW, inventory, movement) in
-                     SystemAPI.Query<RefRO<JobPriorities>, RefRW<JobIntent>,
-                                     DynamicBuffer<InventorySlot>, RefRO<UnitMovement>>())
+            if (needy.Length == 0)
             {
-                var p = priorities.ValueRO;
-                if (p.Looter == 0 && p.Farmer == 0) continue;
-
-                byte currentKind = intentRW.ValueRO.Kind;
-                if (currentKind != JobKind.None && currentKind != JobKind.Looter) continue;
-
-                var (barracks, barracksHex) = NearestNeedy(movement.ValueRO.CurrentHex);
-                if (barracks == Entity.Null) continue;
-
-                bool carrying = CarriesSupply(inventory);
-                intentRW.ValueRW = new JobIntent
-                {
-                    Kind         = JobKind.Looter,
-                    TargetHex    = carrying ? barracksHex : capitalHex,
-                    TargetEntity = barracks,
-                };
+                needy.Dispose();
+                return;
             }
-        }
 
-        (Entity, int2) NearestNeedy(int2 from)
+            state.Dependency = new BarracksSupplyPlannerJob
+            {
+                CapitalHex = capitalHex,
+                Needy      = needy.AsDeferredJobArray(),
+            }.Schedule(state.Dependency);
+
+            state.Dependency = needy.Dispose(state.Dependency);
+        }
+    }
+
+    internal struct NeedyBarracks
+    {
+        public Entity Entity;
+        public int2   Hex;
+    }
+
+    [BurstCompile]
+    public partial struct BarracksSupplyPlannerJob : IJobEntity
+    {
+        public int2 CapitalHex;
+        [ReadOnly] public NativeArray<NeedyBarracks> Needy;
+
+        void Execute(in JobPriorities priorities,
+                     in UnitMovement movement,
+                     in DynamicBuffer<InventorySlot> inventory,
+                     ref JobIntent intent)
         {
-            Entity best = Entity.Null;
-            int2   bestHex = default;
-            int    bestDist = int.MaxValue;
-            for (int i = 0; i < _needy.Count; i++)
+            if (priorities.Looter == 0 && priorities.Farmer == 0) return;
+
+            byte currentKind = intent.Kind;
+            if (currentKind != JobKind.None && currentKind != JobKind.Looter) return;
+
+            var here = movement.CurrentHex;
+            Entity bestEntity = Entity.Null;
+            int2   bestHex    = default;
+            int    bestDist   = int.MaxValue;
+            for (int i = 0; i < Needy.Length; i++)
             {
-                var n = _needy[i];
-                int d = HexDistance(from, n.Hex);
-                if (d < bestDist) { bestDist = d; best = n.Barracks; bestHex = n.Hex; }
+                var n = Needy[i];
+                int d = HexDistance(here, n.Hex);
+                if (d < bestDist)
+                {
+                    bestDist   = d;
+                    bestEntity = n.Entity;
+                    bestHex    = n.Hex;
+                }
             }
-            return (best, bestHex);
+            if (bestEntity == Entity.Null) return;
+
+            bool carrying = CarriesSupply(inventory);
+            intent = new JobIntent
+            {
+                Kind         = JobKind.Looter,
+                TargetHex    = carrying ? bestHex : CapitalHex,
+                TargetEntity = bestEntity,
+            };
         }
 
-        static bool CarriesSupply(DynamicBuffer<InventorySlot> inv)
+        static bool CarriesSupply(in DynamicBuffer<InventorySlot> inv)
         {
             for (int i = 0; i < inv.Length; i++)
             {

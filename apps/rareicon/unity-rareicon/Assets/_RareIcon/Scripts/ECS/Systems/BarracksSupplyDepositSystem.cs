@@ -1,64 +1,97 @@
+using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Two-phase transport for Looter / Farmer haulers targeting a Barracks: on the Capital hex with an empty inventory, pick up 1 BanditCoin or 1 food item; on the Barracks root hex, deposit matching carried items into the Barracks' InventorySlot buffer, respecting StorageCapacity. Main-thread SystemBase — shared buffers + low unit counts make bursted scheduling marginal.</summary>
+    /// <summary>Two-phase transport for Looter / Farmer haulers targeting a Barracks: on the Capital hex with an empty-of-supply inventory, pick up 1 BanditCoin or 1 food item; on the Barracks root hex, deposit matching carried items into the Barracks' InventorySlot buffer, respecting StorageCapacity. Burst ISystem — single-worker Schedule keeps shared Capital writes safe before we split into parallel jobs.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireSharingSystem))]
-    public partial class BarracksSupplyDepositSystem : SystemBase
+    public partial struct BarracksSupplyDepositSystem : ISystem
     {
-        protected override void OnUpdate()
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
+            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
 
-            var capitalInv = EntityManager.GetBuffer<InventorySlot>(capital);
-
-            foreach (var (intent, movement, inventoryRO) in
-                     SystemAPI.Query<RefRO<JobIntent>, RefRO<UnitMovement>, DynamicBuffer<InventorySlot>>())
+            state.Dependency = new BarracksSupplyDepositJob
             {
-                var inventory = inventoryRO;
+                Capital        = capital,
+                HexLookup      = hexLookup.Lookup,
+                OccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
+                BarracksTag    = SystemAPI.GetComponentLookup<BarracksTag>(true),
+                ProdLookup     = SystemAPI.GetComponentLookup<BarracksProduction>(true),
+                CapLookup      = SystemAPI.GetComponentLookup<StorageCapacity>(true),
+                BuildingLookup = SystemAPI.GetComponentLookup<Building>(true),
+                InvLookup      = SystemAPI.GetBufferLookup<InventorySlot>(false),
+            }.Schedule(state.Dependency);
+        }
+    }
 
-                if (intent.ValueRO.Kind != JobKind.Looter) continue;
-                var target = intent.ValueRO.TargetEntity;
-                if (target == Entity.Null) continue;
-                if (!SystemAPI.HasComponent<BarracksTag>(target)) continue;
-                if (!SystemAPI.HasComponent<StorageCapacity>(target)) continue;
-                if (!SystemAPI.HasComponent<BarracksProduction>(target)) continue;
+    [BurstCompile]
+    public partial struct BarracksSupplyDepositJob : IJobEntity
+    {
+        public Entity Capital;
 
-                var here = movement.ValueRO.CurrentHex;
-                var rootHex = SystemAPI.GetComponent<Building>(target).RootHex;
-                var prod = SystemAPI.GetComponent<BarracksProduction>(target);
-                ushort cap = SystemAPI.GetComponent<StorageCapacity>(target).Total;
+        [ReadOnly] public NativeHashMap<int2, Entity>       HexLookup;
+        [ReadOnly] public ComponentLookup<HexOccupant>      OccupantLookup;
+        [ReadOnly] public ComponentLookup<BarracksTag>      BarracksTag;
+        [ReadOnly] public ComponentLookup<BarracksProduction> ProdLookup;
+        [ReadOnly] public ComponentLookup<StorageCapacity>  CapLookup;
+        [ReadOnly] public ComponentLookup<Building>         BuildingLookup;
 
-                if (here.Equals(rootHex))
-                {
-                    var storage = SystemAPI.GetBuffer<InventorySlot>(target);
-                    DepositSupply(inventory, storage, cap);
-                    continue;
-                }
+        [NativeDisableParallelForRestriction]
+        public BufferLookup<InventorySlot> InvLookup;
 
-                if (IsOnCapital(here, capital))
-                {
-                    var storage = SystemAPI.GetBuffer<InventorySlot>(target);
-                    int total = StorageTotal(storage);
-                    if (total >= cap) continue;
+        void Execute(Entity entity, in JobIntent intent, in UnitMovement movement)
+        {
+            if (intent.Kind != JobKind.Looter) return;
+            if (intent.TargetEntity == Entity.Null) return;
+            var target = intent.TargetEntity;
+            if (!BarracksTag.HasComponent(target)) return;
+            if (!CapLookup.HasComponent(target)) return;
+            if (!ProdLookup.HasComponent(target)) return;
+            if (!BuildingLookup.HasComponent(target)) return;
+            if (!InvLookup.HasBuffer(entity)) return;
 
-                    int coinShortfall = math.max(0, prod.CoinCost - StorageCount(storage, (ushort)ItemId.BanditCoin));
-                    int foodShortfall = math.max(0, prod.FoodCost - FoodItems.Count(storage));
+            var unitInv = InvLookup[entity];
+            var rootHex = BuildingLookup[target].RootHex;
+            var prod    = ProdLookup[target];
+            ushort cap  = CapLookup[target].Total;
+            var here    = movement.CurrentHex;
 
-                    if (coinShortfall > 0) TryPickupOne(capitalInv, inventory, (ushort)ItemId.BanditCoin);
-                    else if (foodShortfall > 0) TryPickupFood(capitalInv, inventory);
-                }
+            if (here.Equals(rootHex))
+            {
+                var storage = InvLookup[target];
+                DepositSupply(unitInv, storage, cap);
+                return;
             }
+
+            if (!IsOnCapital(here)) return;
+
+            var barracksStorage = InvLookup[target];
+            int total = StorageTotal(barracksStorage);
+            if (total >= cap) return;
+
+            int coinShortfall = math.max(0, prod.CoinCost - StorageCount(barracksStorage, (ushort)ItemId.BanditCoin));
+            int foodShortfall = math.max(0, prod.FoodCost - FoodItems.Count(barracksStorage));
+
+            var capitalInv = InvLookup[Capital];
+            if (coinShortfall > 0) TryPickupOne(capitalInv, unitInv, (ushort)ItemId.BanditCoin);
+            else if (foodShortfall > 0) TryPickupFood(capitalInv, unitInv);
         }
 
-        bool IsOnCapital(int2 here, Entity capital)
+        bool IsOnCapital(int2 here)
         {
-            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return false;
-            if (!hexLookup.Lookup.TryGetValue(here, out var tile)) return false;
-            if (!SystemAPI.HasComponent<HexOccupant>(tile)) return false;
-            return SystemAPI.GetComponent<HexOccupant>(tile).Building == capital;
+            if (!HexLookup.TryGetValue(here, out var tile)) return false;
+            if (!OccupantLookup.HasComponent(tile)) return false;
+            return OccupantLookup[tile].Building == Capital;
         }
 
         static int StorageTotal(DynamicBuffer<InventorySlot> inv)
