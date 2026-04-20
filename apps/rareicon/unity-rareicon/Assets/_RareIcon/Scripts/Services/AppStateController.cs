@@ -20,6 +20,7 @@ namespace RareIcon
     {
         readonly ISubscriber<HexClickedMessage> _clickSub;
         readonly ISubscriber<EnterTileMessage> _enterSub;
+        readonly BuildModeController _buildMode;
 
         readonly ReactiveProperty<AppInterfaceState> _state = new(AppInterfaceState.Boot);
         public ReadOnlyReactiveProperty<AppInterfaceState> Current => _state;
@@ -33,10 +34,12 @@ namespace RareIcon
         [Inject]
         public AppStateController(
             ISubscriber<HexClickedMessage> clickSub,
-            ISubscriber<EnterTileMessage> enterSub)
+            ISubscriber<EnterTileMessage> enterSub,
+            BuildModeController buildMode)
         {
             _clickSub = clickSub;
             _enterSub = enterSub;
+            _buildMode = buildMode;
         }
 
         public UniTask StartAsync(CancellationToken cancellation)
@@ -56,8 +59,19 @@ namespace RareIcon
             // Only the world view can spawn the enter modal — defends against
             // stray clicks from underneath modals or in-tile views.
             if (_state.Value != AppInterfaceState.World) return;
+            // Build mode steals clicks — BuildCommandHandler turns the click
+            // into a BuildCityRequest. Skip the enter-modal transition so
+            // placing a building doesn't also open the tile modal.
+            if (_buildMode.IsActive) return;
+            // General-map clicks no longer auto-open the enter modal — most
+            // clicks are now King movement orders (KingMoveCommandSystem).
+            // TODO: re-fire the modal from systems whose hexes carry an
+            // "enterable" feature (buildings, landmark NPCs, dungeons).
+            // For that, gate on something like:
+            //   HexHoverSystem.TryGetHexEntity(...) → check HasComponent<HexEnterableTag>
+            // Keep LastClickedHex updated for any other consumer that might
+            // want it (e.g., a future build-mode preview).
             LastClickedHex = msg;
-            _state.Value = AppInterfaceState.EnterModal;
         }
 
         void OnEnterTile(EnterTileMessage msg)

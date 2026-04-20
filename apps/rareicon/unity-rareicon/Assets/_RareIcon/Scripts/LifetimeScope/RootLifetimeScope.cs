@@ -28,12 +28,20 @@ namespace RareIcon
                 GlobalMessagePipe.SetProvider(container.AsServiceProvider());
                 container.Resolve<UIPanelManager>();
                 MouseStateBridge.Source = container.Resolve<IMouseStateSource>();
+                BuildModeBridge.Source  = container.Resolve<BuildModeController>();
             });
 
             // -- Services --
             builder.Register<CameraService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             builder.Register<UiToolkitPointerBlocker>(Lifetime.Singleton).AsImplementedInterfaces();
             builder.Register<MouseStateSource>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
+            builder.Register<BuildModeController>(Lifetime.Singleton).AsSelf();
+            // EntryPoints so VContainer's player-loop runner ticks the
+            // keyboard Tick() each frame and the click-handler subscribes
+            // on startup — same lifecycle hook as the HUD / AppStateController
+            // entry points below.
+            builder.RegisterEntryPoint<BuildInputSource>();
+            builder.RegisterEntryPoint<BuildCommandHandler>();
             builder.Register<LocaleService>(Lifetime.Singleton);
             builder.Register<InventoryService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             // Factory so VContainer doesn't try to resolve the int defaults.
@@ -51,6 +59,9 @@ namespace RareIcon
 
             // -- World tools window (resolved by WorldHUD's toolbar button) --
             builder.RegisterEntryPoint<UIWorldSearch>().AsSelf();
+
+            // -- Treasury panel (capital storage viewer) --
+            builder.RegisterEntryPoint<UITreasury>().AsSelf();
 
             // -- HUDs (VContainer-managed lifecycle, gated on AppInterfaceState) --
             builder.RegisterEntryPoint<WorldHUD>();
