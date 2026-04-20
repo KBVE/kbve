@@ -62,7 +62,7 @@ namespace RareIcon
         {
             BuildingType.Capital  => JobKind.Builder,
             BuildingType.Farm     => JobKind.Farmer,
-            BuildingType.Barracks => JobKind.Archer,
+            BuildingType.Barracks => JobKind.Guard,
             BuildingType.Furnace  => JobKind.Chef,
             _                     => JobKind.None,
         };
@@ -72,7 +72,7 @@ namespace RareIcon
             if (p.Looter == 0) return false;
             return p.Lumberjack == 0
                 && p.Miner      == 0
-                && p.Archer     == 0
+                && p.Guard      == 0
                 && p.Farmer     == 0
                 && p.Builder    == 0
                 && p.Chef       == 0

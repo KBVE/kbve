@@ -138,6 +138,8 @@ namespace RareIcon
                 (ushort)ItemId.Milk        => "item.milk",
                 (ushort)ItemId.CookedEgg   => "item.cooked_egg",
                 (ushort)ItemId.Cheese      => "item.cheese",
+                (ushort)ItemId.Meat        => "item.meat",
+                (ushort)ItemId.Hood        => "item.hood",
                 _ => "item.unknown",
             };
             return Get(key);
@@ -239,6 +241,7 @@ namespace RareIcon
                 ActivityKind.Farming          => "activity.farming",
                 ActivityKind.Building         => "activity.building",
                 ActivityKind.Cooking          => "activity.cooking",
+                ActivityKind.Guarding         => "activity.guarding",
                 _ => string.Empty,
             };
             return key.Length == 0 ? string.Empty : Get(key);

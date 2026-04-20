@@ -63,7 +63,19 @@ namespace RareIcon
                 int q = (int)(h % (uint)span) - SpawnRadius;
                 int r = (int)((h >> 16) % (uint)span) - SpawnRadius;
                 uint rng = h * 0xC2B2AE3Du ^ ((uint)i * 0x27D4EB2Fu);
-                SpawnGoblinAt(EntityManager, new int2(q, r), rng);
+                var goblin = SpawnGoblinAt(EntityManager, new int2(q, r), rng);
+
+                // Seed one Lumberjack + one Miner on top of the default
+                // Looter so there's at least a trickle of wood + stone
+                // coming in from frame one, before any buildings exist.
+                if (goblin == Entity.Null) continue;
+                byte starterRole = i == 0 ? JobKind.Lumberjack
+                                 : i == 1 ? JobKind.Miner
+                                 : JobKind.None;
+                if (starterRole == JobKind.None) continue;
+                var prios = EntityManager.GetComponentData<JobPriorities>(goblin);
+                prios.Set(starterRole, 5);
+                EntityManager.SetComponentData(goblin, prios);
             }
         }
 

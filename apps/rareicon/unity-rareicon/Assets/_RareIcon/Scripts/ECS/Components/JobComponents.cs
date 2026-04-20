@@ -3,13 +3,13 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Stable byte IDs for jobs; mirrors a repr(u8) Rust enum for future FFI. Looter is the all-purpose default role — picks up ground arrows and forager-type resources (berries / mushrooms / herbs / cactus) within range.</summary>
+    /// <summary>Stable byte IDs for jobs; mirrors a repr(u8) Rust enum for future FFI. Looter is the default hauler role; Guard engages hostiles in range and patrols friendly territory otherwise.</summary>
     public static class JobKind
     {
         public const byte None       = 0;
         public const byte Lumberjack = 2;
         public const byte Miner      = 3;
-        public const byte Archer     = 4;
+        public const byte Guard      = 4;
         public const byte Looter     = 5;
         public const byte Farmer     = 6;
         public const byte Builder    = 7;
@@ -22,7 +22,7 @@ namespace RareIcon
     {
         public byte Lumberjack;
         public byte Miner;
-        public byte Archer;
+        public byte Guard;
         public byte Looter;
         public byte Farmer;
         public byte Builder;
@@ -33,7 +33,7 @@ namespace RareIcon
         {
             JobKind.Lumberjack => Lumberjack,
             JobKind.Miner      => Miner,
-            JobKind.Archer     => Archer,
+            JobKind.Guard      => Guard,
             JobKind.Looter     => Looter,
             JobKind.Farmer     => Farmer,
             JobKind.Builder    => Builder,
@@ -48,7 +48,7 @@ namespace RareIcon
             {
                 case JobKind.Lumberjack: Lumberjack = priority; break;
                 case JobKind.Miner:      Miner      = priority; break;
-                case JobKind.Archer:     Archer     = priority; break;
+                case JobKind.Guard:      Guard      = priority; break;
                 case JobKind.Looter:     Looter     = priority; break;
                 case JobKind.Farmer:     Farmer     = priority; break;
                 case JobKind.Builder:    Builder    = priority; break;

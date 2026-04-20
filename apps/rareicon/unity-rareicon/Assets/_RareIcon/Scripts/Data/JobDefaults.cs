@@ -6,10 +6,10 @@ namespace RareIcon
         public static JobPriorities Get(byte unitType) => unitType switch
         {
             UnitType.Goblin  => new JobPriorities { Looter = 3 },
-            UnitType.Soldier => new JobPriorities { Archer = 4, Looter = 1, Builder = 1 },
+            UnitType.Soldier => new JobPriorities { Guard = 4, Looter = 1, Builder = 1 },
             UnitType.Knight  => new JobPriorities(),
-            UnitType.Mage    => new JobPriorities { Archer = 2, Chef = 3, Looter = 1 },
-            UnitType.King    => new JobPriorities { Archer = 3 },
+            UnitType.Mage    => new JobPriorities { Guard = 2, Chef = 3, Looter = 1 },
+            UnitType.King    => new JobPriorities { Guard = 3 },
             _                => new JobPriorities { Looter = 2 },
         };
     }

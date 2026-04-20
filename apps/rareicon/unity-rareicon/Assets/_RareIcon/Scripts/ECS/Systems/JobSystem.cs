@@ -122,20 +122,43 @@ namespace RareIcon
                 TryRole(p.Miner,      JobKind.Miner,      HarvestRole.Miner,      currentHex,
                         hexResourceLookup, ref bestKind, ref bestPrio, ref bestDist, ref bestHex);
 
-                if (p.Archer > bestPrio && spatial.Hash.IsCreated)
+                if (p.Guard > 0 && p.Guard >= bestPrio)
                 {
-                    if (TryFindHostile(spatial.Hash, transform.ValueRO.Position,
-                                       friendlyEmitters.AsArray(),
-                                       out var hostileHex, out var hostileEntity, out int hostileDist))
+                    bool foundHostile = spatial.Hash.IsCreated && TryFindHostile(
+                        spatial.Hash, transform.ValueRO.Position, friendlyEmitters.AsArray(),
+                        out var hostileHex, out var hostileEntity, out int hostileDist);
+
+                    if (foundHostile &&
+                        (p.Guard > bestPrio || (p.Guard == bestPrio && hostileDist < bestDist)))
                     {
-                        if (p.Archer > bestPrio || (p.Archer == bestPrio && hostileDist < bestDist))
-                        {
-                            bestKind   = JobKind.Archer;
-                            bestPrio   = p.Archer;
-                            bestDist   = hostileDist;
-                            bestHex    = hostileHex;
-                            bestEntity = hostileEntity;
-                        }
+                        bestKind   = JobKind.Guard;
+                        bestPrio   = p.Guard;
+                        bestDist   = hostileDist;
+                        bestHex    = hostileHex;
+                        bestEntity = hostileEntity;
+                    }
+                    else if (!foundHostile && p.Guard > bestPrio && friendlyEmitters.Length > 0)
+                    {
+                        // Patrol fallback — pick a random hex inside the
+                        // Capital's territory disc. Seed mixes entity index
+                        // + WanderStep so each unit picks a different target
+                        // AND re-rolls on each arrival (WanderStep advances
+                        // when UnitMovementSystem snaps to the new hex).
+                        var e = friendlyEmitters[0];
+                        uint rng = (uint)entity.Index * 0x9E3779B1u
+                                 ^ movement.ValueRO.WanderStep * 0x85EBCA77u;
+                        rng ^= rng >> 13; rng *= 0xC2B2AE3Du; rng ^= rng >> 16;
+                        int span = e.Radius * 2 + 1;
+                        int dq = (int)(rng % (uint)span) - e.Radius;
+                        rng ^= rng >> 7; rng *= 0x27D4EB2Fu;
+                        int dr = (int)(rng % (uint)span) - e.Radius;
+                        int2 patrolHex = new int2(e.Center.x + dq, e.Center.y + dr);
+
+                        bestKind   = JobKind.Guard;
+                        bestPrio   = p.Guard;
+                        bestDist   = HexDistance(currentHex, patrolHex);
+                        bestHex    = patrolHex;
+                        bestEntity = Entity.Null;
                     }
                 }
 
@@ -459,7 +482,7 @@ namespace RareIcon
 
             Debug.Log($"[JobSystem diag] units={totalUnits} relief={reliefBlocked} controlled={controlled} " +
                       $"jobIntent: None={kindNone} Lumberjack={jobKindCounts[2]} Miner={jobKindCounts[3]} " +
-                      $"Archer={jobKindCounts[4]} Looter={jobKindCounts[5]} Farmer={jobKindCounts[6]} Builder={jobKindCounts[7]} Chef={jobKindCounts[8]} Hunter={jobKindCounts[9]} " +
+                      $"Guard={jobKindCounts[4]} Looter={jobKindCounts[5]} Farmer={jobKindCounts[6]} Builder={jobKindCounts[7]} Chef={jobKindCounts[8]} Hunter={jobKindCounts[9]} " +
                       $"| activityLastKind: None={lastKindCounts[0]} Idle={lastKindCounts[1]} Wandering={lastKindCounts[2]} MovingToOrder={lastKindCounts[3]} " +
                       $"Eating={lastKindCounts[5]} Foraging={lastKindCounts[9]} Lumberjacking={lastKindCounts[10]} Mining={lastKindCounts[11]} " +
                       $"| goalKind: None={goalNone} MoveToHex={goalMoveToHex} Wander={goalWander} Other={goalOther} " +

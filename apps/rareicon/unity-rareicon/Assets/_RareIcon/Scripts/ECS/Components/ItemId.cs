@@ -54,6 +54,8 @@ namespace RareIcon
         Milk          = 234,
         CookedEgg     = 235,
         Cheese        = 236,
+        Meat          = 237,
+        Hood          = 238,
 
         // Quest / key items
         QuestScroll       = 300,

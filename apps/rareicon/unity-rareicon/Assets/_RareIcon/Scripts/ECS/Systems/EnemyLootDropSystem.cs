@@ -45,14 +45,19 @@ namespace RareIcon
                             (ushort)(1 + (int)(r1 * 1.99f)));
                         break;
                     case UnitType.Bandit:
-                        // Bandits drop a coin every time + a chance to leave
-                        // their club behind for the Looter to recover.
+                        // 1-3 coins every time + ~35% chance to shed their
+                        // hood for the Looter to grab.
                         AddStack(buf, (ushort)ItemId.BanditCoin,
                             (ushort)(1 + (int)(r0 * 2.99f)));
+                        if (r1 < 0.35f) AddStack(buf, (ushort)ItemId.Hood, 1);
                         break;
-                    // Hostile Goblin currently drops nothing — kept that way
-                    // until a goblin-loot table lands; falling through here
-                    // is the explicit choice, not a TODO miss.
+                    case UnitType.Goblin:
+                        // Hostile-faction goblins drop meat on death — the
+                        // check at the top of the loop (f == Hostile/Beast)
+                        // gates Player goblins out, so this branch only
+                        // fires for raid-wave goblins.
+                        AddStack(buf, (ushort)ItemId.Meat, 3);
+                        break;
                 }
             }
         }

@@ -61,11 +61,12 @@ namespace RareIcon
             {
                 case JobKind.Lumberjack: return ActivityKind.Lumberjacking;
                 case JobKind.Miner:      return ActivityKind.Mining;
-                case JobKind.Archer:     return ActivityKind.Hunting;
+                case JobKind.Guard:      return ActivityKind.Guarding;
                 case JobKind.Looter:     return ActivityKind.Looting;
                 case JobKind.Farmer:     return ActivityKind.Farming;
                 case JobKind.Builder:    return ActivityKind.Building;
                 case JobKind.Chef:       return ActivityKind.Cooking;
+                case JobKind.Hunter:     return ActivityKind.Hunting;
             }
 
             switch (goal.Kind)

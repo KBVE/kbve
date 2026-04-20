@@ -24,7 +24,7 @@ namespace RareIcon
             (JobKind.Looter,     "Looter"),
             (JobKind.Lumberjack, "Lumberjack"),
             (JobKind.Miner,      "Miner"),
-            (JobKind.Archer,     "Archer"),
+            (JobKind.Guard,      "Guard"),
             (JobKind.Farmer,     "Farmer"),
             (JobKind.Builder,    "Builder"),
             (JobKind.Chef,       "Chef"),

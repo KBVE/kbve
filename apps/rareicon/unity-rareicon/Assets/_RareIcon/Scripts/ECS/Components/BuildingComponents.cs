@@ -11,11 +11,12 @@ namespace RareIcon
     /// </summary>
     public static class BuildingType
     {
-        public const byte None     = 0;
-        public const byte Capital  = 1;
-        public const byte Farm     = 2;
-        public const byte Barracks = 3;
-        public const byte Furnace  = 4;
+        public const byte None       = 0;
+        public const byte Capital    = 1;
+        public const byte Farm       = 2;
+        public const byte Barracks   = 3;
+        public const byte Furnace    = 4;
+        public const byte GoblinCave = 5;
         // Tower, Wall, Mine, etc. land here as we add their .hlsl files.
     }
 
@@ -25,11 +26,12 @@ namespace RareIcon
     /// </summary>
     public static class BuildTarget
     {
-        public const byte None     = 0;
-        public const byte Capital  = 1;
-        public const byte Farm     = 2;
-        public const byte Barracks = 3;
-        public const byte Furnace  = 4;
+        public const byte None       = 0;
+        public const byte Capital    = 1;
+        public const byte Farm       = 2;
+        public const byte Barracks   = 3;
+        public const byte Furnace    = 4;
+        public const byte GoblinCave = 5;
     }
 
     /// <summary>Marker tag for the Capital — craft / governance systems query key.</summary>
