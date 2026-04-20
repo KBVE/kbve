@@ -12,7 +12,7 @@
 //   barn anchor: top-right of the field, ~5×4 footprint with a
 //                triangular roof above
 //
-// Uniforms: _FarmField, _FarmCrop, _FarmBarn, _FarmRoof
+// Uniforms: _FarmField, _FarmCrop, _FarmBarn, _FarmRoof, _FarmCarrot
 // Helpers : rectMask (HexShared.hlsl)
 
 void DrawFarm(inout float3 color, inout float alpha, float2 px, float grid)
@@ -31,6 +31,28 @@ void DrawFarm(inout float3 color, inout float alpha, float2 px, float grid)
         float y = -5.0 + row * 3.0;     // y = -5, -2, +1, +4
         float strip = rectMask(px, c + float2(-7, y), float2(14, 1));
         if (strip > 0.5) { color = _FarmCrop.rgb; alpha = 1.0; }
+    }
+
+    // Growing crop accent — small orange pixels scattered across the
+    // field, sitting on the crop-row y values so they look like crops
+    // planted in furrows. Hand-placed to avoid the barn footprint
+    // (x=2..6, y=2..5) and to feel sparse rather than carpeted.
+    // For v1 the crop is hardcoded as carrots; when the Wood→Mushroom
+    // recipe lands we'll switch this color via a per-instance recipe
+    // MaterialProperty (e.g. _FarmRecipe selecting between palettes).
+    float crop1 = rectMask(px, c + float2(-5, -5), float2(1, 1));
+    float crop2 = rectMask(px, c + float2(-1, -5), float2(1, 1));
+    float crop3 = rectMask(px, c + float2(-5, -2), float2(1, 1));
+    float crop4 = rectMask(px, c + float2( 0, -2), float2(1, 1));
+    float crop5 = rectMask(px, c + float2(-3,  1), float2(1, 1));
+    float crop6 = rectMask(px, c + float2( 1,  1), float2(1, 1));
+    float crop7 = rectMask(px, c + float2(-5,  4), float2(1, 1));
+    float crop8 = rectMask(px, c + float2(-1,  4), float2(1, 1));
+    if (crop1 > 0.5 || crop2 > 0.5 || crop3 > 0.5 || crop4 > 0.5
+     || crop5 > 0.5 || crop6 > 0.5 || crop7 > 0.5 || crop8 > 0.5)
+    {
+        color = _FarmCarrot.rgb;
+        alpha = 1.0;
     }
 
     // Barn body — 5×4 wood block at the top-right of the hex.
