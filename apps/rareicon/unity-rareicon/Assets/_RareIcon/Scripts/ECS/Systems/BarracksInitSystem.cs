@@ -35,11 +35,12 @@ namespace RareIcon
                 em.AddComponentData(e, new StorageCapacity { Total = 200 });
 
                 // Arrow craft, same recipe as the Capital. Inputs pulled
-                // from the Capital treasury (Barracks doesn't stock raw
-                // materials itself — its storage is for coin + food only)
-                // and outputs land in the Barracks' own InventorySlot so
-                // nearby Guards / future bow-wielding goblins can draw
-                // from it when arrow-hauling lands.
+                // from the Capital treasury (Barracks stocks coin + food,
+                // not raw materials). Outputs land in the Barracks' own
+                // InventorySlot as a forward arsenal; anything above a
+                // floor of 20 drains back to the Capital via
+                // BuildingSurplusTransferSystem so the shooter pool never
+                // ends up stranded at the Barracks.
                 var recipes = em.AddBuffer<ProductionRecipe>(e);
                 recipes.Add(new ProductionRecipe
                 {
@@ -51,6 +52,9 @@ namespace RareIcon
                     CycleEndsAt      = 0f,
                     PullsFromCapital = 1,
                 });
+
+                var exports = em.AddBuffer<SurplusExport>(e);
+                exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Arrow, Floor = 20 });
             }
         }
     }

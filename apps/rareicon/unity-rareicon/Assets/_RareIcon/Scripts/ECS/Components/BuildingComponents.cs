@@ -76,12 +76,12 @@ namespace RareIcon
         public ushort Total;
     }
 
-    /// <summary>Optional per-item floor: "don't drain this ItemId below Reserve when shipping surplus out." Multiple entries per building allowed. Farm uses { Carrot, 8 } so livestock always has feed.</summary>
-    [InternalBufferCapacity(2)]
-    public struct StorageReserve : IBufferElementData
+    /// <summary>Per-item outflow declaration: "anything above Floor of this ItemId drains to the Capital each tick." Items not listed stay wherever they are (coin + food on a Barracks, raw inputs mid-recipe, etc.). Farm declares { Carrot, 8 } + livestock products at floor 0; Barracks declares { Arrow, 20 } to keep a local arsenal while the surplus flows to the treasury.</summary>
+    [InternalBufferCapacity(4)]
+    public struct SurplusExport : IBufferElementData
     {
         public ushort ItemId;
-        public ushort Reserve;
+        public ushort Floor;
     }
 
     /// <summary>Per-farm sheltered-livestock entry; one per species currently in residence. LastProducedTurn is the WorldClock.TurnIndex of the last output. Kept for future fungible residents (bees, pond fish) — livestock (chicken / cow / sheep) now live as individual sheltered entities with a LivestockProduction component.</summary>

@@ -3,7 +3,7 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Ensures every FarmTag entity carries a default Compost → Carrot ProductionRecipe + InventorySlot + StorageReserve { Carrot, 8 } + TenderMultiplier + FarmLivestock buffer. Future recipe selection (Wood→Mushroom, etc.) just appends more ProductionRecipe entries.</summary>
+    /// <summary>Ensures every FarmTag entity carries the default farm composition — Compost → Carrot ProductionRecipe, InventorySlot, SurplusExport list (keep 8 Carrots locally for livestock feed, ship everything else), TenderMultiplier, FarmLivestock buffer. Future recipe selection (Wood → Mushroom, etc.) just appends more ProductionRecipe entries.</summary>
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class FarmInitSystem : SystemBase
     {
@@ -39,8 +39,12 @@ namespace RareIcon
                         PullsFromCapital = 1,
                     });
 
-                    var reserves = EntityManager.AddBuffer<StorageReserve>(e);
-                    reserves.Add(new StorageReserve { ItemId = (ushort)ItemId.Carrot, Reserve = 8 });
+                    var exports = EntityManager.AddBuffer<SurplusExport>(e);
+                    exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Carrot, Floor = 8 });
+                    exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Egg,    Floor = 0 });
+                    exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Milk,   Floor = 0 });
+                    exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Wool,   Floor = 0 });
+                    exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Meat,   Floor = 0 });
 
                     EntityManager.AddComponentData(e, new TenderMultiplier { Value = 0f });
                     EntityManager.AddBuffer<FarmLivestock>(e);
