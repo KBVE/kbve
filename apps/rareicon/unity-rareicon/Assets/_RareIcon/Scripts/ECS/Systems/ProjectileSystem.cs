@@ -6,60 +6,42 @@ using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Advances every projectile's position along its velocity and ticks
-    /// the lifetime down. Projectiles whose lifetime reaches zero are
-    /// destroyed via the job's parallel command buffer.
-    ///
-    /// Burst-compiled `IJobEntity` — movement is embarrassingly parallel
-    /// (each projectile reads only its own components) so the work scales
-    /// linearly with thread count. 10k+ projectiles run comfortably.
-    ///
-    /// No collision yet — that lands as a separate pass (spatial hash
-    /// over units, queried per-arrow) once ranged units start firing.
-    /// </summary>
-    [BurstCompile]
+    /// <summary>Advances projectile positions and ticks lifetime. On Arrow/Bolt expiry the entity converts in-place to a GroundArrow (strip Projectile + Velocity, add GroundArrow) so Looter-priority units can reclaim it; other projectile types just destroy.</summary>
     [UpdateInGroup(typeof(MovementSystemGroup))]
-    public partial struct ProjectileSystem : ISystem
+    public partial class ProjectileSystem : SystemBase
     {
-        [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
-            state.RequireForUpdate<Projectile>();
-        }
+        const float GroundArrowLifetimeSec = 300f;
 
-        [BurstCompile]
-        public void OnDestroy(ref SystemState state) { }
+        protected override void OnCreate() => RequireForUpdate<Projectile>();
 
-        [BurstCompile]
-        public void OnUpdate(ref SystemState state)
+        protected override void OnUpdate()
         {
+            float abs = 0f;
+            if (SystemAPI.TryGetSingleton<WorldClock>(out var clock))
+                abs = clock.AbsSeconds;
+
             var ecb = new EntityCommandBuffer(Allocator.TempJob);
 
-            new ProjectileTickJob
+            Dependency = new ProjectileTickJob
             {
-                Dt  = SystemAPI.Time.DeltaTime,
-                Ecb = ecb.AsParallelWriter(),
-            }.ScheduleParallel();
+                Dt     = SystemAPI.Time.DeltaTime,
+                AbsNow = abs,
+                GroundLifetime = GroundArrowLifetimeSec,
+                Ecb    = ecb.AsParallelWriter(),
+            }.ScheduleParallel(Dependency);
 
-            // Complete before playback so destroyed entities are removed
-            // this frame — avoids a one-frame render of expired projectiles.
-            state.CompleteDependency();
-            ecb.Playback(state.EntityManager);
+            Dependency.Complete();
+            ecb.Playback(EntityManager);
             ecb.Dispose();
         }
     }
 
-    /// <summary>
-    /// Per-projectile tick. Reads velocity, writes transform + lifetime,
-    /// emits DestroyEntity on expiry. `in` on velocity tells Burst the
-    /// field is read-only so chunks can be iterated without aliasing
-    /// guards.
-    /// </summary>
     [BurstCompile]
     public partial struct ProjectileTickJob : IJobEntity
     {
         public float Dt;
+        public float AbsNow;
+        public float GroundLifetime;
         public EntityCommandBuffer.ParallelWriter Ecb;
 
         void Execute(Entity entity,
@@ -74,10 +56,28 @@ namespace RareIcon
             transform.Position = pos;
 
             projectile.Lifetime -= Dt;
-            if (projectile.Lifetime <= 0f)
+            if (projectile.Lifetime > 0f) return;
+
+            bool reclaimable = projectile.Type == ProjectileType.Arrow
+                            || projectile.Type == ProjectileType.Bolt;
+
+            if (reclaimable)
             {
-                Ecb.DestroyEntity(chunkIdx, entity);
+                // Convert in place — removes the moving-projectile components
+                // so ProjectileSystem stops iterating this entity, but keeps
+                // render + transform + visual properties so the sprite stays
+                // where it landed.
+                Ecb.RemoveComponent<Projectile>(chunkIdx, entity);
+                Ecb.RemoveComponent<ProjectileVelocity>(chunkIdx, entity);
+                Ecb.AddComponent(chunkIdx, entity, new GroundArrow
+                {
+                    SpawnedAtAbsSeconds = AbsNow,
+                    DespawnAtAbsSeconds = AbsNow + GroundLifetime,
+                });
+                return;
             }
+
+            Ecb.DestroyEntity(chunkIdx, entity);
         }
     }
 }

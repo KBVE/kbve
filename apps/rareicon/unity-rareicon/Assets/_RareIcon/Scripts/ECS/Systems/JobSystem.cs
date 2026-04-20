@@ -56,6 +56,14 @@ namespace RareIcon
                 });
             using var damagedCandidates = damagedQuery.ToEntityArray(Allocator.Temp);
 
+            // Ground arrows the Looter job can reclaim. Read the transforms
+            // up front so the per-unit scoring loop doesn't re-query each
+            // entity's LocalTransform.
+            using var groundArrowQuery = EntityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<GroundArrow>(),
+                ComponentType.ReadOnly<LocalTransform>());
+            using var groundArrows = groundArrowQuery.ToEntityArray(Allocator.Temp);
+
             foreach (var (priorities, reliefIntent, jobIntentRef, movement, transform, entity) in
                      SystemAPI.Query<
                          RefRO<JobPriorities>,
@@ -184,6 +192,34 @@ namespace RareIcon
                     bestDist   = capDist;
                     bestHex    = capitalHex;
                     bestEntity = capital;
+                }
+
+                if (p.Looter > bestPrio && groundArrows.Length > 0)
+                {
+                    int   looterBestDist = int.MaxValue;
+                    Entity looterBest    = Entity.Null;
+                    int2   looterBestHex = default;
+                    for (int ai = 0; ai < groundArrows.Length; ai++)
+                    {
+                        var t = EntityManager.GetComponentData<LocalTransform>(groundArrows[ai]);
+                        var hex = HexMeshUtil.WorldToHex(t.Position.x, t.Position.y, 0.25f);
+                        int d = HexDistance(currentHex, hex);
+                        if (d > SearchRadius * 2) continue;
+                        if (d < looterBestDist)
+                        {
+                            looterBestDist = d;
+                            looterBest     = groundArrows[ai];
+                            looterBestHex  = hex;
+                        }
+                    }
+                    if (looterBest != Entity.Null)
+                    {
+                        bestKind   = JobKind.Looter;
+                        bestPrio   = p.Looter;
+                        bestDist   = looterBestDist;
+                        bestHex    = looterBestHex;
+                        bestEntity = looterBest;
+                    }
                 }
 
                 jobIntentRef.ValueRW = new JobIntent
