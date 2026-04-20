@@ -50,9 +50,9 @@ namespace RareIcon
                                                       new(   (ushort)ItemId.Stone,            3) };
         static readonly Ingredient[] CostFurnace  = { new(   (ushort)ItemId.WoodLog,          6),
                                                       new(   (ushort)ItemId.Stone,            4) };
-        static readonly Ingredient[] CostGoblinCave = { new(AnyFoodSentinel,           50),
-                                                        new((ushort)ItemId.Stone,      50),
-                                                        new((ushort)ItemId.WoodLog,    50) };
+        static readonly Ingredient[] CostGoblinCave = { new((ushort)ItemId.Berry,      20),
+                                                        new((ushort)ItemId.Stone,      30),
+                                                        new((ushort)ItemId.WoodLog,    30) };
         static readonly Ingredient[] CostInn       = { new((ushort)ItemId.WoodLog,     25),
                                                        new((ushort)ItemId.Stone,       15) };
         static readonly Ingredient[] CostMarket    = { new((ushort)ItemId.WoodLog,     15),
@@ -78,10 +78,8 @@ namespace RareIcon
             ? CostSource.KingInventory
             : CostSource.CapitalStorage;
 
-        /// <summary>Buildings that skip the ConstructionSite/Builder-haul pipeline and deduct cost upfront from their cost source at spawn time. Capital always does this (magical land grant); Goblin Cave does it because its cost includes AnyFoodSentinel, which has no single item a Builder could carry.</summary>
         public static bool SpawnsFullyBuilt(byte buildingType)
-            => buildingType == BuildingType.Capital
-            || buildingType == BuildingType.GoblinCave;
+            => buildingType == BuildingType.Capital;
 
         // -- Footprints --
         // Capital claims the centre + 6 axial neighbours (7-hex flower);

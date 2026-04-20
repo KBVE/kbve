@@ -43,8 +43,26 @@ namespace RareIcon
             switch (building.Type)
             {
                 case BuildingType.Farm:     Ecb.AddComponent<FarmTag>(chunkIdx, entity);     break;
-                case BuildingType.Barracks: Ecb.AddComponent<BarracksTag>(chunkIdx, entity); break;
+                case BuildingType.Barracks:
+                    Ecb.AddComponent<BarracksTag>(chunkIdx, entity);
+                    Ecb.AddComponent(chunkIdx, entity, new BarracksSupplyStatus { IsNeedy = 1 });
+                    break;
                 case BuildingType.Furnace:  Ecb.AddComponent<FurnaceTag>(chunkIdx, entity);  break;
+                case BuildingType.GoblinCave:
+                    Ecb.AddComponent<GoblinCaveTag>(chunkIdx, entity);
+                    Ecb.AddComponent(chunkIdx, entity, new GoblinCaveProduction
+                    {
+                        LastProducedTurn = 0,
+                        CadenceTurns     = 1,
+                        FoodPerGoblin    = 50,
+                        StorageCap       = 200,
+                    });
+                    Ecb.AddComponent(chunkIdx, entity, new CaveFoodStatus
+                    {
+                        FoodCount = 0,
+                        Capacity  = 200,
+                    });
+                    break;
                 case BuildingType.Outpost:
                     Ecb.AddComponent<OutpostTag>(chunkIdx, entity);
                     Ecb.AddComponent(chunkIdx, entity, new TerritoryEmitter

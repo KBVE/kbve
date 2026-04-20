@@ -15,7 +15,6 @@ namespace RareIcon
         [BurstCompile] public void OnCreate(ref SystemState state) { }
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
@@ -24,6 +23,7 @@ namespace RareIcon
             state.Dependency = new BuilderJobRefineJob
             {
                 CapitalHex      = capitalHex,
+                InvLookup       = SystemAPI.GetBufferLookup<InventorySlot>(true),
                 MaterialLookup  = SystemAPI.GetBufferLookup<ConstructionMaterial>(true),
                 SiteLookup      = SystemAPI.GetComponentLookup<ConstructionSite>(true),
             }.ScheduleParallel(state.Dependency);
@@ -35,18 +35,21 @@ namespace RareIcon
     {
         public int2 CapitalHex;
 
+        [ReadOnly] public BufferLookup<InventorySlot>        InvLookup;
         [ReadOnly] public BufferLookup<ConstructionMaterial> MaterialLookup;
         [ReadOnly] public ComponentLookup<ConstructionSite>  SiteLookup;
 
-        void Execute(ref JobIntent intent, in DynamicBuffer<InventorySlot> inventory)
+        void Execute(Entity entity, ref JobIntent intent)
         {
             if (intent.Kind != JobKind.Builder) return;
             if (intent.TargetEntity == Entity.Null) return;
             if (!SiteLookup.HasComponent(intent.TargetEntity)) return;
             if (!MaterialLookup.HasBuffer(intent.TargetEntity)) return;
+            if (!InvLookup.HasBuffer(entity)) return;
 
-            var mats    = MaterialLookup[intent.TargetEntity];
-            var siteHex = SiteLookup[intent.TargetEntity].RootHex;
+            var inventory = InvLookup[entity];
+            var mats      = MaterialLookup[intent.TargetEntity];
+            var siteHex   = SiteLookup[intent.TargetEntity].RootHex;
 
             bool carrying = CarriesMatchingMaterial(inventory, mats);
             intent = new JobIntent

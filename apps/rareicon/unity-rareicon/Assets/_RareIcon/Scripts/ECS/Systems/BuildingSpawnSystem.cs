@@ -189,6 +189,7 @@ namespace RareIcon
             {
                 ecb.AddComponent<CapitalTag>(building);
                 ecb.AddComponent<NeedsStaffing>(building);
+                ecb.AddComponent(building, new CapitalStatus { HasFood = 0 });
 
                 // Two recipes run in parallel — Arrow craft pulls wood /
                 // cacti / stone, Compost make pulls leaves + branches.
@@ -232,27 +233,16 @@ namespace RareIcon
                 // player micromanagement.
                 var treasury = ecb.SetBuffer<InventorySlot>(building);
                 treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Arrow,        Count = 1000 });
-                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.WoodLog,      Count = 200 });
-                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Stone,        Count = 100 });
-                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.CactiNeedle,  Count = 100 });
-                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Berry,        Count = 50 });
-                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.CookedBeef,   Count = 10 });
-                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.BanditCoin,   Count = 60 });
-            }
-            else if (req.BuildingType == BuildingType.GoblinCave)
-            {
-                // GoblinCave lands fully functional — cost has already been
-                // drained from the Capital in step 3 (AnyFood sentinel +
-                // stone + wood). No ConstructionSite, no Builder haul; the
-                // cave just needs its tag + per-turn production cadence.
-                ecb.AddComponent<GoblinCaveTag>(building);
-                ecb.AddComponent(building, new GoblinCaveProduction
-                {
-                    LastProducedTurn = 0,
-                    CadenceTurns     = 1,
-                    FoodPerGoblin    = 50,
-                    StorageCap       = 200,
-                });
+                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.WoodLog,      Count = 300 });
+                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Stone,        Count = 200 });
+                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.CactiNeedle,  Count = 150 });
+                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Berry,        Count = 400 });
+                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Mushroom,     Count = 200 });
+                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.CookedBeef,   Count = 80 });
+                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.CookedChicken,Count = 40 });
+                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Egg,          Count = 60 });
+                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Milk,         Count = 40 });
+                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.BanditCoin,   Count = 120 });
             }
             else
             {

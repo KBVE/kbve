@@ -131,24 +131,39 @@ namespace RareIcon
                               DynamicBuffer<InventorySlot> unitInv,
                               DynamicBuffer<ConstructionMaterial> mats)
         {
+            bool anyPicked = false;
             for (int j = 0; j < mats.Length; j++)
             {
                 if (mats[j].Delivered >= mats[j].Needed) continue;
 
                 ushort needId = mats[j].ItemId;
-                for (int i = 0; i < capInv.Length; i++)
+                int    want   = mats[j].Needed - mats[j].Delivered
+                              - CountInUnit(unitInv, needId);
+                if (want <= 0) continue;
+
+                for (int i = 0; i < capInv.Length && want > 0; i++)
                 {
                     if (capInv[i].ItemId != needId || capInv[i].Count == 0) continue;
 
                     var capSlot = capInv[i];
-                    capSlot.Count -= 1;
+                    int take = capSlot.Count < want ? capSlot.Count : want;
+                    capSlot.Count = (ushort)(capSlot.Count - take);
                     capInv[i] = capSlot;
 
-                    MergeOrAdd(unitInv, needId, 1);
-                    return true;
+                    MergeOrAdd(unitInv, needId, (ushort)take);
+                    want     -= take;
+                    anyPicked = true;
                 }
             }
-            return false;
+            return anyPicked;
+        }
+
+        static int CountInUnit(in DynamicBuffer<InventorySlot> inv, ushort itemId)
+        {
+            int total = 0;
+            for (int i = 0; i < inv.Length; i++)
+                if (inv[i].ItemId == itemId) total += inv[i].Count;
+            return total;
         }
 
         static void MergeOrAdd(DynamicBuffer<InventorySlot> inv, ushort itemId, ushort amount)
