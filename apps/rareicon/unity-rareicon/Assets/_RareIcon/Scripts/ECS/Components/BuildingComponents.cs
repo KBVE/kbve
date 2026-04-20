@@ -87,11 +87,41 @@ namespace RareIcon
     /// <summary>Marker tag for Barracks buildings — recruitment system query key.</summary>
     public struct BarracksTag : IComponentData { }
 
-    /// <summary>Transient tag — placed on a building that hasn't been assigned a dedicated worker yet. BuildingStaffingSystem consumes this and stacks the matching role (Farm→Farmer, Barracks→Archer, Furnace→Chef, Capital→Builder) onto a pure-Looter goblin at priority 5, then removes the tag.</summary>
+    /// <summary>Per-barracks local inventory. Looters / Farmers haul BanditCoin + food here from the Capital; BarracksProductionSystem consumes on its turn cadence.</summary>
+    [InternalBufferCapacity(4)]
+    public struct BarracksStorage : IBufferElementData
+    {
+        public ushort ItemId;
+        public ushort Count;
+    }
+
+    /// <summary>Per-barracks recruitment cadence. Once per N turns, consumes CoinCost BanditCoin + FoodCost food (any ItemId flagged by FoodItems.IsFood) from BarracksStorage and spawns one Soldier on an adjacent hex. Capacity is the total-count ceiling haulers enforce when depositing.</summary>
+    public struct BarracksProduction : IComponentData
+    {
+        public uint   LastProducedTurn;
+        public byte   CadenceTurns;
+        public ushort CoinCost;
+        public ushort FoodCost;
+        public ushort StorageCapacity;
+    }
+
+    /// <summary>Transient tag — placed on a building that hasn't been assigned a dedicated worker yet. BuildingStaffingSystem consumes this and stacks the matching role (Farm→Farmer, Barracks→Guard, Furnace→Chef, Capital→Builder) onto a pure-Looter goblin at priority 5, then removes the tag.</summary>
     public struct NeedsStaffing : IComponentData { }
 
     /// <summary>Marker tag for Furnace buildings — production system query key.</summary>
     public struct FurnaceTag : IComponentData { }
+
+    /// <summary>Marker tag for Goblin Cave buildings — production + refill system query key.</summary>
+    public struct GoblinCaveTag : IComponentData { }
+
+    /// <summary>Per-cave turn-cadence state: consumes FoodPerGoblin rations from the cave's InventorySlot buffer each cadence turn and spawns one Looter-role goblin. Refill is handled by GoblinCaveRefillSystem, gated on Farmer-role presence in the empire.</summary>
+    public struct GoblinCaveProduction : IComponentData
+    {
+        public uint LastProducedTurn;
+        public uint CadenceTurns;
+        public ushort FoodPerGoblin;
+        public ushort StorageCap;
+    }
 
     /// <summary>
     /// Per-furnace active recipe — supports up to 2 inputs (e.g. Wood +

@@ -79,14 +79,15 @@ namespace RareIcon
             }
         }
 
-        /// <summary>Spawn a goblin at the given hex with the given faction; pass state to restore a ghost unit.</summary>
+        /// <summary>Spawn a humanoid (defaults to Goblin) at the given hex with the given faction. Used for garrisons, ghost-unit restore, and Barracks recruitment (Soldier).</summary>
         public static Entity SpawnGoblinAt(EntityManager em, int2 hex, uint rngSeed,
                                            UnitSpawnState state = default,
-                                           byte faction = FactionType.Player)
+                                           byte faction  = FactionType.Player,
+                                           byte unitType = UnitType.Goblin)
         {
             if (!EnsureRenderAssets()) return Entity.Null;
 
-            var def = NPCDB.Get(UnitType.Goblin);
+            var def = NPCDB.Get(unitType);
 
             var entity = em.CreateEntity();
 
