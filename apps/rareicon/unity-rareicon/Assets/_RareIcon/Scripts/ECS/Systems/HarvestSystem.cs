@@ -2,77 +2,65 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Opportunistic harvesting — when a unit arrives at a hex (DwellTimer
-    /// just set by UnitMovementSystem), pull 1 of any harvestable resource
-    /// from the hex into the unit's inventory buffer. Uses LastHarvestStep
-    /// vs WanderStep so each arrival fires the harvest exactly once, even
-    /// though dwell may span many frames.
-    ///
-    /// Currently SystemBase (not Burst) because it touches HexHoverSystem's
-    /// static NativeHashMap for the coord→entity lookup. When that lookup
-    /// moves into a singleton component (or a baked NativeHashMap held in
-    /// a component), this can flip to Burst ISystem.
-    ///
-    /// AI seeking ("walk toward known mushroom hexes") is a separate slice.
-    /// Until then, goblins only harvest tiles they happen to wander onto.
-    /// </summary>
+    /// <summary>Opportunistic harvesting on arrival; filters by the unit's JobPriorities so Sand (HarvestRole.None) is ignored and each job only picks up its assigned items.</summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(UnitMovementSystem))]
     public partial class HarvestSystem : SystemBase
     {
-        const ushort HarvestPerTick = 1; // amount taken per arrival
+        const ushort HarvestPerTick = 1;
 
         protected override void OnUpdate()
         {
-            foreach (var (movementRW, inventory, entity) in
-                     SystemAPI.Query<RefRW<UnitMovement>, DynamicBuffer<InventorySlot>>()
+            foreach (var (movementRW, priorities, inventory, entity) in
+                     SystemAPI.Query<RefRW<UnitMovement>, RefRO<JobPriorities>, DynamicBuffer<InventorySlot>>()
                               .WithEntityAccess())
             {
                 var movement = movementRW.ValueRO;
 
-                // Already harvested this stop, or in transit (no dwell yet).
                 if (movement.LastHarvestStep == movement.WanderStep) continue;
                 if (movement.DwellTimer <= 0f) continue;
 
-                // Mark this arrival as harvested up-front — even if there's
-                // nothing on this hex, we don't want to keep checking every
-                // frame of the dwell.
                 movementRW.ValueRW.LastHarvestStep = movement.WanderStep;
 
-                // Resolve the hex entity. If the chunk hasn't loaded the hex
-                // (e.g., unit walked off the streamed area), bail.
                 if (!HexHoverSystem.TryGetHexEntity(movement.CurrentHex, out var hexEntity))
                     continue;
                 if (!EntityManager.HasComponent<HexResources>(hexEntity)) continue;
 
                 var res = EntityManager.GetComponentData<HexResources>(hexEntity);
+                var p = priorities.ValueRO;
 
-                // Try each resource bucket; transfer first non-zero one with
-                // a known item mapping. (Goblins will pick up "whatever's
-                // there"; smarter creatures can prioritise later.)
-                // Priority order: foods > tree byproducts > wood > stone.
-                // Leaves/Branches sit above Wood because they're forest-floor
-                // litter (abundant, fast-regrowing), where Wood requires
-                // felling a tree (slow regrow). This keeps the Compost
-                // pipeline (Leaves+Branches → Compost) flowing without
-                // starving the slower Wood supply.
-                if (TryTakeCactus(ref res, movement.WanderStep,
-                                  movement.CurrentHex.x, movement.CurrentHex.y, inventory) ||
-                    TryTakeResource(ref res.Mushrooms, ResourceTag.Mushrooms, inventory) ||
-                    TryTakeResource(ref res.Berries,   ResourceTag.Berries,   inventory) ||
-                    TryTakeResource(ref res.Herbs,     ResourceTag.Herbs,     inventory) ||
-                    TryTakeResource(ref res.Leaves,    ResourceTag.Leaves,    inventory) ||
-                    TryTakeResource(ref res.Branches,  ResourceTag.Branches,  inventory) ||
-                    TryTakeResource(ref res.Wood,      ResourceTag.Wood,      inventory) ||
-                    TryTakeResource(ref res.Sand,      ResourceTag.Sand,      inventory) ||
-                    TryTakeResource(ref res.Stone,     ResourceTag.Stone,     inventory))
+                // Pick the resource that matches the unit's highest-priority job.
+                // Cactus is special (produces multiple items) so it goes under Forager.
+                bool harvested = false;
+                byte bestPrio = 0;
+                byte bestRole = (byte)HarvestRole.None;
+
+                if (p.Forager    > bestPrio && HasForagerWork(in res))    { bestPrio = p.Forager;    bestRole = (byte)HarvestRole.Forager; }
+                if (p.Lumberjack > bestPrio && HasLumberWork(in res))     { bestPrio = p.Lumberjack; bestRole = (byte)HarvestRole.Lumberjack; }
+                if (p.Miner      > bestPrio && res.Stone != 0)            { bestPrio = p.Miner;      bestRole = (byte)HarvestRole.Miner; }
+
+                switch ((HarvestRole)bestRole)
+                {
+                    case HarvestRole.Forager:
+                        harvested = TryTakeCactus(ref res, movement.WanderStep,
+                                                  movement.CurrentHex.x, movement.CurrentHex.y, inventory)
+                                 || TryTakeResource(ref res.Mushrooms, ResourceTag.Mushrooms, inventory)
+                                 || TryTakeResource(ref res.Berries,   ResourceTag.Berries,   inventory)
+                                 || TryTakeResource(ref res.Herbs,     ResourceTag.Herbs,     inventory);
+                        break;
+                    case HarvestRole.Lumberjack:
+                        harvested = TryTakeResource(ref res.Leaves,    ResourceTag.Leaves,    inventory)
+                                 || TryTakeResource(ref res.Branches,  ResourceTag.Branches,  inventory)
+                                 || TryTakeResource(ref res.Wood,      ResourceTag.Wood,      inventory);
+                        break;
+                    case HarvestRole.Miner:
+                        harvested = TryTakeResource(ref res.Stone,     ResourceTag.Stone,     inventory);
+                        break;
+                }
+
+                if (harvested)
                 {
                     EntityManager.SetComponentData(hexEntity, res);
-
-                    // Refresh the decoration mask — without this, a tile
-                    // harvested down to 0 still tells the shader "draw
-                    // mushrooms here" until a chunk reload.
                     if (EntityManager.HasComponent<HexResourceVisual>(hexEntity))
                     {
                         EntityManager.SetComponentData(hexEntity, new HexResourceVisual
@@ -84,14 +72,19 @@ namespace RareIcon
             }
         }
 
-        // Try to take HarvestPerTick of `amount` (a HexResources field).
-        // Returns true if anything was actually transferred.
+        static bool HasForagerWork(in HexResources res)
+            => (res.Berries | res.Mushrooms | res.Herbs | res.Cactus) != 0;
+
+        static bool HasLumberWork(in HexResources res)
+            => (res.Wood | res.Leaves | res.Branches) != 0;
+
         static bool TryTakeResource(ref byte amount, byte resourceTag,
                                     DynamicBuffer<InventorySlot> inventory)
         {
             if (amount == 0) return false;
             ushort itemId = ResourceItemMap.ItemForResource(resourceTag);
             if (itemId == 0) return false;
+            if (ItemDB.GetHarvestRole(itemId) == HarvestRole.None) return false;
 
             ushort take = amount < HarvestPerTick ? amount : HarvestPerTick;
             amount -= (byte)take;
@@ -99,7 +92,6 @@ namespace RareIcon
             return true;
         }
 
-        /// <summary>Consume one cactus charge and add its variant-specific drops to inventory.</summary>
         static bool TryTakeCactus(ref HexResources res, uint harvestStep, int q, int r,
                                   DynamicBuffer<InventorySlot> inventory)
         {
@@ -108,8 +100,6 @@ namespace RareIcon
             res.Cactus -= 1;
             if (res.Cactus == 0) res.CactusVariant = CactusVariantType.None;
 
-            // Deterministic per-harvest hash so yields don't clone across
-            // successive harvests on the same tile but remain replayable.
             uint h = (uint)q * 0x9E3779B1u ^ (uint)r * 0x85EBCA77u
                    ^ (harvestStep * 0x27D4EB2Fu + 1u);
             h ^= h >> 13; h *= 0xC2B2AE3Du; h ^= h >> 16;

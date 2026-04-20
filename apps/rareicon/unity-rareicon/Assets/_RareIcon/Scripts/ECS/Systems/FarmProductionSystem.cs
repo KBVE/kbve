@@ -83,9 +83,10 @@ namespace RareIcon
                 return;
             }
 
-            // Idle — try to start a new cycle.
+            // Idle — try to start a new cycle. Farmer tender presence halves the duration at full bonus.
             if (!TryConsume(ref storage, prod.InputItemId, prod.InputAmount)) return;
-            prod.CycleEndsAt = Now + prod.CycleDuration;
+            float duration = prod.CycleDuration * (1f - 0.5f * Unity.Mathematics.math.saturate(prod.TenderBonus));
+            prod.CycleEndsAt = Now + duration;
         }
 
         static bool TryConsume(ref DynamicBuffer<InventorySlot> storage,

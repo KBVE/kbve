@@ -181,11 +181,11 @@ namespace RareIcon
         public static bool IsEdible(ushort id) => EnergyValue(id) > 0f;
 
         /// <summary>Which job is allowed to hand-harvest this item from the world; None = crafted / environmental.</summary>
-        public static HarvestRole HarvestRole(ushort id)
-            => TryGet(id, out var def) ? def.HarvestRole : RareIcon.HarvestRole.None;
+        public static HarvestRole GetHarvestRole(ushort id)
+            => TryGet(id, out var def) ? def.HarvestRole : HarvestRole.None;
 
         /// <summary>0-100 preference weight; UI later edits this to let players focus collection on specific drops.</summary>
-        public static byte HarvestWeight(ushort id)
+        public static byte GetHarvestWeight(ushort id)
             => TryGet(id, out var def) ? def.HarvestWeight : (byte)100;
     }
 }

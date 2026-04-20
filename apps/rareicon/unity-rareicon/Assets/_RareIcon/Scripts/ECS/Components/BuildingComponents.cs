@@ -92,17 +92,16 @@ namespace RareIcon
         public float CycleDuration;
     }
 
-    /// <summary>Per-farm Compost→Carrot (or future) recipe + cycle marker against the WorldClock.</summary>
+    /// <summary>Per-farm Compost→Carrot (or future) recipe + cycle marker against the WorldClock. TenderBonus [0..1] shortens the effective duration when a Farmer is on-hex.</summary>
     public struct FarmProduction : IComponentData
     {
         public ushort InputItemId;
         public ushort InputAmount;
         public ushort OutputItemId;
         public ushort OutputAmount;
-        /// <summary>WorldClock.AbsSeconds at which the current cycle finishes; 0 = idle (waiting for input).</summary>
         public float CycleEndsAt;
-        /// <summary>Cycle length in seconds.</summary>
         public float CycleDuration;
+        public float TenderBonus;
     }
 
     /// <summary>
