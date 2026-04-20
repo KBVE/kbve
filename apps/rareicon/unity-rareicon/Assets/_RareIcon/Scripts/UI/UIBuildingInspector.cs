@@ -131,8 +131,9 @@ namespace RareIcon
             header.style.alignItems = Align.Center;
             header.style.marginBottom = 8;
 
-            _titleLabel = UIStyles.MakeMarkerRow(_locale.Get("inspector.title"), fontSize: 16);
-            header.Add(_titleLabel);
+            var titleRow = UIStyles.MakeMarkerRow(_locale.Get("inspector.title"), fontSize: 16);
+            _titleLabel = titleRow.Q<Label>("marker-row-label");
+            header.Add(titleRow);
 
             var closeBtn = UIStyles.MakeYorhaButton("\u00D7", Close);
             closeBtn.style.width = 24;
