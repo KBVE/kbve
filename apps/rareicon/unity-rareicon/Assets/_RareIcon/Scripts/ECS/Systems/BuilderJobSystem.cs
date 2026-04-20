@@ -26,7 +26,7 @@ namespace RareIcon
                 CapitalHex      = capitalHex,
                 MaterialLookup  = SystemAPI.GetBufferLookup<ConstructionMaterial>(true),
                 SiteLookup      = SystemAPI.GetComponentLookup<ConstructionSite>(true),
-            }.Schedule(state.Dependency);
+            }.ScheduleParallel(state.Dependency);
         }
     }
 

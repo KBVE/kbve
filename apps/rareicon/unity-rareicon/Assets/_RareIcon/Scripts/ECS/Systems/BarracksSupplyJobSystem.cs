@@ -43,7 +43,7 @@ namespace RareIcon
             {
                 CapitalHex = capitalHex,
                 Needy      = needy.AsDeferredJobArray(),
-            }.Schedule(state.Dependency);
+            }.ScheduleParallel(state.Dependency);
 
             state.Dependency = needy.Dispose(state.Dependency);
         }
