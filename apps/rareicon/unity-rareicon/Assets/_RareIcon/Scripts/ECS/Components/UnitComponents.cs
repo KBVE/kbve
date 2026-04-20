@@ -247,4 +247,10 @@ namespace RareIcon
         // hasn't harvested THIS stop yet.
         public uint LastHarvestStep;
     }
+
+    /// <summary>Per-unit intra-hex world-space offset assigned by HexSlotAssignSystem. Units sharing a TargetHex get unique slots via rank-by-Entity.Index so their sprites never land on the same pixel; UnitMovementSystem walks to HexToWorld(targetHex) + Value instead of the raw hex centre. Seeded zero on missing units so first-frame behaviour is identical to the center-of-hex default.</summary>
+    public struct HexSlotOffset : IComponentData
+    {
+        public float2 Value;
+    }
 }

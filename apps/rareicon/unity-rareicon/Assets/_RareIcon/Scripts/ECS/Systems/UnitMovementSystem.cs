@@ -37,6 +37,11 @@ namespace RareIcon
             // (ice slow, future haste buff) stack into SpeedMul here.
             // Units without the component behave as if SpeedMul = 1.0.
             var modifierLookup = SystemAPI.GetComponentLookup<MovementModifier>(true);
+            // Intra-hex slot offset written by HexSlotAssignSystem. Units
+            // sharing a TargetHex each land on a unique sub-hex point so
+            // sprites never stack. Missing component → zero offset (the
+            // raw hex centre, same behaviour as before the slot system).
+            var slotLookup     = SystemAPI.GetComponentLookup<HexSlotOffset>(true);
 
             foreach (var (transform, movement, facingVisual, movingVisual, entity) in
                      SystemAPI.Query<
@@ -73,6 +78,13 @@ namespace RareIcon
                 int2   targetHex = movement.ValueRO.TargetHex;
                 float3 target    = HexMeshUtil.HexToWorld(targetHex.x, targetHex.y, HexSize);
                 target.z = pos.z;
+
+                if (slotLookup.HasComponent(entity))
+                {
+                    float2 slot = slotLookup[entity].Value;
+                    target.x += slot.x;
+                    target.y += slot.y;
+                }
 
                 float3 toTarget = target - pos;
                 toTarget.z = 0f;
