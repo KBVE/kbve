@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="styles.uss" />
 
-    <ui:VisualElement name="palette-wrapper" class="is-hidden">
+    <ui:VisualElement name="palette-wrapper" class="modal-wrapper is-hidden">
         <ui:VisualElement name="palette-backdrop" class="modal-backdrop" />
 
         <ui:VisualElement name="palette-root" class="panel panel--modal">

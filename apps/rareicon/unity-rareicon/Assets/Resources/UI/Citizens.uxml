@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="styles.uss" />
 
-    <ui:VisualElement name="citizens-wrapper" class="is-hidden">
+    <ui:VisualElement name="citizens-wrapper" class="modal-wrapper is-hidden">
         <ui:VisualElement name="citizens-backdrop" class="modal-backdrop" />
 
         <ui:VisualElement name="citizens-root" class="panel panel--modal">

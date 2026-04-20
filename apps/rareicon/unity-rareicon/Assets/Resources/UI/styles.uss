@@ -94,20 +94,27 @@
 
 /* ----- Full-window panel (Build / Treasury / Citizens) -----
    Centered workspace panel — covers most of the viewport with a
-   dimmed backdrop behind so the world reads as secondary. Use in
-   place of an anchor class. */
-.panel--modal {
+   dimmed backdrop behind so the world reads as secondary. The
+   wrapper fills the screen; the backdrop + panel absolute-position
+   inside it. */
+.modal-wrapper {
     position: absolute;
-    top:    8%;
-    left:   10%;
-    right:  10%;
-    bottom: 8%;
-    flex-direction: column;
+    top: 0; left: 0; right: 0; bottom: 0;
 }
+.modal-wrapper.is-hidden { display: none; }
+
 .modal-backdrop {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     background-color: rgba(0, 0, 0, 0.55);
+}
+.panel--modal {
+    position: absolute;
+    top:    6%;
+    left:   12%;
+    right:  12%;
+    bottom: 6%;
+    flex-direction: column;
 }
 
 /* Height caps for togglable panels — paired with body scroll */

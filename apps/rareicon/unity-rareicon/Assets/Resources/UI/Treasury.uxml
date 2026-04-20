@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="styles.uss" />
 
-    <ui:VisualElement name="treasury-wrapper" class="is-hidden">
+    <ui:VisualElement name="treasury-wrapper" class="modal-wrapper is-hidden">
         <ui:VisualElement name="treasury-backdrop" class="modal-backdrop" />
 
         <ui:VisualElement name="treasury-root" class="panel panel--modal">
