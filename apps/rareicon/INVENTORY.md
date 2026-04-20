@@ -34,19 +34,49 @@ No amount of `UpdateAfter` / `OrderLast` / `CompleteDependencyBeforeRW` scoping 
 
 `InventorySlot` keeps its name — it's the building-side buffer that most systems already treat as "stockpile". Units move to `PackSlot`.
 
-### Shared schema
+### Shared schema — ULID-keyed stacks
 
-All three types share the same struct shape:
+Each slot is a timestamp-sortable stack with its own `Ulid`. All three buffer types share this shape, reusing the **[Cysharp.Ulid](https://github.com/Cysharp/Ulid)** package (installed via NuGetForUnity at `Assets/Packages/Ulid.1.4.1/`):
 
 ```csharp
+using System; // Cysharp's Ulid lives in the System namespace, matching System.Guid.
+
 public struct PackSlot : IBufferElementData
 {
-    public ushort ItemId;
-    public ushort Count;
+    public Ulid   Uid;     // 16 bytes — Cysharp.Ulid, blittable, Burst-safe
+    public ushort ItemId;  //  2 bytes
+    public ushort Count;   //  2 bytes
+    // 4 bytes pad → 24 bytes/slot
 }
+
+// InventorySlot and ContainerSlot use the same layout.
 ```
 
-This keeps item-transfer helpers portable across types via generic `where T : unmanaged, IBufferElementData, IItemSlot` with a shared `IItemSlot` interface exposing `ItemId` / `Count`. Alternatively, copy-paste each extension method set — less clever, zero runtime overhead.
+Cysharp's `Ulid` is a readonly 16-byte struct (48-bit unix-ms timestamp + 80 bits random), matches Rust's `ulid::Ulid` (u128) byte-for-byte for FFI, exposes `Ulid.NewUlid()` as the factory, and round-trips through Crockford base32 for logging. The type lives in `System` (not `Cysharp.*`) so the only import needed is `using System;`.
+
+**Why Uid on every stack:**
+
+- FFI to Rust: stack Uids become natural persistence keys in the Rust save store — no need to map ECS `Entity` indexes across save/load, which aren't stable.
+- Transfer audit / UI: "this pile was harvested 03:42 yesterday" comes free off the Uid's timestamp prefix.
+- Unique items later: an heirloom sword is just a stack with `Count=1` that doesn't merge — the Uid is the item's identity.
+- Cost: 6× the slot size (4 → 24 bytes). At 1000 buildings × 8 slots + 100 units × 8 slots = ~211 KB total. Negligible.
+
+**Merge semantics** (two stacks of the same `ItemId` in the same buffer):
+
+- Target stack (the one being added to) keeps its Uid.
+- Incoming stack's Uid is destroyed.
+- On cross-buffer transfer (deposit / pickup), if the destination has no existing stack of that `ItemId`, the incoming stack's Uid carries over. If it does, the destination's older Uid wins — merge by count into the older stack.
+- Rule of thumb: **the older Uid always wins**, so stack birthtime stays meaningful in audit views.
+
+**Consolidation Uids** (Section 3):
+
+- When 100 raw items roll up into 1 bulk item, the resulting bulk stack gets a **fresh Uid** stamped with the consolidation moment. No lineage table — contributing raw stack's Uid dies with it. Simple, re-addable later if audit needs it.
+
+**Generation:** `Ulid.NewUlid()` is the canonical factory and is safe from managed contexts (system `OnUpdate` bodies, deposit appliers, etc.). Inside Burst jobs that need deterministic seeding, we'll wrap a `UlidFactory` helper that takes `Unity.Mathematics.Random` + `SystemAPI.Time.ElapsedTime` and emits bytes into `Ulid.TryParse`/`new Ulid(ReadOnlySpan<byte>)` — no managed allocation. `Ulid.Empty` (`default(Ulid)`) is the sentinel for "not yet assigned".
+
+### Helper extensions
+
+`DynamicBuffer<PackSlot>.AddItemManaged(...)` etc. are duplicated per buffer type (not generic) so Burst doesn't fight an `IItemSlot` interface constraint. Zero-cost abstraction beats clever generics here.
 
 ### Access-domain win
 
@@ -57,7 +87,88 @@ After the split:
 - Cross-frame races disappear because the types are isolated.
 - Mental model aligns with gameplay: "what's on me" vs "what's in the warehouse" are different things in every RTS/colony sim, and now they're different things in the ECS too.
 
-## 3. Transfer semantics (the bridge layer)
+## 3. Storage compression — raw items consolidate 100:1 into bulk units
+
+Raw items carried in a `PackSlot` are fine-grained (per-chop, per-pickup). Building storage should hold the compressed bulk form so the economy can reason at ingredient scale instead of tallying thousands of individual items. Consolidation is one-way, at-deposit, and applied by a bridge system after the unit→building transfer lands.
+
+### Fixed 100:1 ratio, `ItemDB`-driven
+
+Every raw item declares its bulk form and ratio in `ItemDB`:
+
+| Raw (in-field / in-pack)                                                                            | Bulk (in storage) | Ratio                                             |
+| --------------------------------------------------------------------------------------------------- | ----------------- | ------------------------------------------------- |
+| `Log`                                                                                               | `Timber`          | 100:1                                             |
+| `Stone`                                                                                             | `StoneBlock`      | 100:1                                             |
+| `Arrow`                                                                                             | `Quiver`          | 100:1                                             |
+| `Berry` / `Mushroom` / `Herb` / `Cactus` / `RawBeef` / `CookedBeef` / `Egg` / `Milk` / `Cheese` / … | `Meal`            | 100:1 (shared pool — any food source contributes) |
+
+Ratio stays blanket 100:1 for simplicity — tune the numbers elsewhere (spawn rates, build costs, food consumption) rather than reasoning about mixed ratios per item. Build costs migrate from raw to bulk units: `Farm.Cost = 5 Timber` (not 5 Log), `Barracks.Cost = 8 Timber + 3 StoneBlock`, etc.
+
+### ItemDB schema
+
+```csharp
+public struct ItemDef
+{
+    public ushort Id;
+    public ushort CompressesTo;   // 0 = doesn't compress (already bulk / unique)
+    public ushort CompressRatio;  // e.g. 100
+    public ushort PoolGroup;      // shared pool for food → Meal (0 = standalone)
+    // existing fields: StackMax, StoreEnergy, ResourceTag, …
+}
+```
+
+`PoolGroup` handles the Meal case: all food items share a pool ID, the consolidator sums their raw counts across the building's inventory and rolls whole hundreds into `Meal`.
+
+### Consolidator system
+
+New `StorageConsolidatorSystem` in `EconomySystemGroup`, runs after all deposits (`OrderLast = true` alongside `UnitBagStatusSystem`, or a shared group slot). For each building `InventorySlot` buffer:
+
+1. **Single-source items** (Log, Stone, Arrow): if `count >= 100`, subtract 100, add 1 to `CompressesTo`. Loop until `count < 100`.
+2. **Pooled items** (food): sum all pool members' counts. Convert `floor(total / 100)` into `Meal`, then deduct 100 per meal proportionally across the pool members (oldest-first by slot order, or largest-first — design decision, same result at scale).
+
+Pure Burst IJobEntity, reads `ItemDB` definitions baked into a `NativeHashMap<ushort, ItemDef>` (already the direction for the Burst-friendly ItemDB per [project_rareicon_phase8_plan.md](../../.../memory/project_rareicon_phase8_plan.md)).
+
+### One-way by design
+
+Bulk units never de-compress back into raw. Consumers pay the bulk cost:
+
+- Builders deliver **Timber** (not Log) — `BuilderDepositSystem.TryPickup` walks `ConstructionMaterial` bill, pulls from Capital's `Timber` slot.
+- Barracks recruitment eats **Meal** (not Berry × 20) — `BarracksProductionSystem.FoodCost` counts from `Meal`.
+- Archers refill from **Quiver** (not Arrow × 100) — `ArcherRefillSystem` pulls a Quiver and the archer's pack receives 100 Arrows materialized on equip (this is the only exception — re-materialize at equip-time, not at storage).
+
+### In-pack identity — not individual entities
+
+`PackSlot { itemId, count }` stays a stackable slot for raw items. A goblin chopping accumulates `Log count=30` in one PackSlot entry, not 30 log entities. This keeps per-chop yield cheap while the world-placed log sprite on the ground (if we render them) can still be one visual per chop — the sprite is a presentation concern, decoupled from the inventory representation.
+
+Unique items — named weapons, heirlooms, quest items — will eventually want per-instance entities with `ItemIdentity { Ulid, OriginTimestamp, Quality, Durability }`. That's a later refactor on top of this; document it in a follow-up section or its own doc when the gameplay calls for it.
+
+### Build-cost migration checklist
+
+`BuildingDB.CostXxx` arrays switch from raw items to bulk units:
+
+- `CostCapital` — still the `CapitalLandGrant` (unique ingredient, stays).
+- `CostFarm` — `5 WoodLog` → `5 Timber`.
+- `CostBarracks` — `8 WoodLog + 3 Stone` → `8 Timber + 3 StoneBlock`.
+- `CostFurnace` — `6 WoodLog + 4 Stone` → `6 Timber + 4 StoneBlock`.
+- `CostGoblinCave` — current `20 Berry + 30 Stone + 30 WoodLog` → `2 Meal + 3 StoneBlock + 3 Timber` (numerically equivalent at scale).
+- `CostInn` / `CostMarket` / `CostOutpost` — convert similarly.
+
+### Production recipe migration
+
+`ProductionRecipe` + `FurnaceProduction` + `BarracksProduction` entries need case-by-case review against the bulk scale. Rule of thumb: if the recipe operates on what a _building_ has stockpiled, use bulk inputs; if it operates on what a _unit_ is actively carrying or processing at a workbench, stay raw.
+
+| Recipe                                         | Before (raw)                                   | After (bulk where appropriate)                                                          |
+| ---------------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Capital arrow craft                            | 1 WoodLog + 1 CactiNeedle + 1 Stone → 10 Arrow | 1 Timber + 1 CactiNeedle + 1 StoneBlock → 10 Arrow (consolidated into Quiver next tick) |
+| Capital compost                                | 1 Leaf + 1 Branch → 1 Compost                  | stays raw — compost is low-volume, not worth a bulk form                                |
+| Furnace smelting                               | Wood + Sand → Coal + Ash + Glass               | Timber + Sand → Coal + Ash + Glass                                                      |
+| Barracks recruitment                           | CoinCost BanditCoin + FoodCost (any food)      | CoinCost BanditCoin + FoodCost (Meal)                                                   |
+| Farm livestock                                 | 1 Carrot → 1 Egg / 1 Milk / 1 Wool             | stays raw — per-animal tick, low cycle output                                           |
+| BarracksCraftingSystem (Craftsman at Barracks) | 1 WoodLog + 1 CactiNeedle → 5 Arrow            | 1 Timber + 1 CactiNeedle → 5 Arrow (also consolidated)                                  |
+
+Output items that are raw (Arrow, Compost, Egg, Milk) get swept into their bulk form (Quiver, Meal) next tick by the Consolidator — the recipe doesn't need to know. Input items that were raw become bulk only where the _building_ is paying the cost; workbench-style recipes where a carrying unit provides the material keep raw inputs (the unit's pack holds raw items, can't carry a Timber).
+
+## 4. Transfer semantics (the bridge layer)
 
 Most inventory work in the game is **transfer between domains**. Each direction needs an explicit bridge function:
 
@@ -96,7 +207,7 @@ Most inventory work in the game is **transfer between domains**. Each direction 
 - **Caller:** `FurnaceTickJob`, `PassiveTickJob`, `ProductionJob`, `BarracksCraftingSystem`, `CookingJob`, `FarmLivestockProductionJob`
 - **Semantics:** direct mutation of `InventorySlot` on the producer building, or on Capital if the recipe says `PullsFromCapital`. All building-side — no unit involvement. No cross-domain concern.
 
-## 4. File-by-file migration inventory (42 files)
+## 5. File-by-file migration inventory (42 files)
 
 ### Component definitions
 
@@ -184,11 +295,25 @@ These are the interesting ones. Each needs to declare `BufferLookup<PackSlot>` *
 | `UIBuildingPalette.cs`         | Probably reads build cost (ConstructionMaterial). Audit. |
 | _Future:_ `UIUnitInventory.cs` | Would read PackSlot. Not yet present.                    |
 
-## 5. Execution order (safe, incremental)
+## 6. Execution order (safe, incremental)
+
+### Step 0 — wire Cysharp.Ulid into the slot schema
+
+The `Ulid` type is already available (Cysharp.Ulid 1.4.1 via NuGetForUnity, resolves as `global::System.Ulid`). What this step does:
+
+- Add `public Ulid Uid;` as the first field of the existing `InventorySlot` struct.
+- Add a thin `UlidFactory` helper at `Assets/_RareIcon/Scripts/ECS/Components/UlidFactory.cs` exposing:
+    - `static Ulid NewUid()` — main-thread path, calls `Ulid.NewUlid()`.
+    - `static Ulid NewUid(ref Unity.Mathematics.Random rng, double nowMs)` — Burst-safe path that builds the 16 bytes (6-byte ms timestamp + 10 random) and returns `new Ulid(span)`.
+    - `static readonly Ulid Empty = default;` for the sentinel.
+- Every existing call site that builds an `InventorySlot { ItemId = x, Count = y }` gets a compile error; fix each to also set `Uid = UlidFactory.NewUid()` at creation or `Uid = default` for migration-fill.
+- Save-load: old saves (no Uid field) load as `Uid = default`; the first post-load merge/deposit regenerates a real Uid for the stack.
+
+No new type is introduced in this step — it's purely "put the Uid on the existing buffer". PackSlot comes in Step 1.
 
 ### Step 1 — add `PackSlot` alongside `InventorySlot` (no removals)
 
-Define `PackSlot : IBufferElementData` + its extension methods. Compile — nothing breaks yet.
+Define `PackSlot : IBufferElementData` (with the same `Uid / ItemId / Count` layout) + its extension methods. Compile — nothing breaks yet.
 
 ### Step 2 — migrate unit spawn sites
 
@@ -223,14 +348,31 @@ No longer needed. The cross-domain races are gone.
 
 `UnitBagStatus`, `CaveFoodStatus`, `CapitalStatus`, `BarracksSupplyStatus` were added as workarounds to avoid cross-domain reads. After the split they're still useful (keep status aggregates out of hot paths), but some were pre-computed specifically to avoid `InventorySlot` races — audit whether any can be simplified or deleted.
 
-## 6. Naming and conventions
+### Step 8 — wire the 100:1 storage consolidator
+
+Independent of the PackSlot split but a natural follow-on — see Section 3.
+
+1. Extend `ItemDB` / `ItemDef` with `CompressesTo`, `CompressRatio`, `PoolGroup`.
+2. Add `Timber`, `StoneBlock`, `Quiver`, `Meal` item IDs. No raw-item analogue — they only exist in bulk form.
+3. `StorageConsolidatorSystem` in `EconomySystemGroup` (OrderLast peer of `UnitBagStatusSystem`): walks building `InventorySlot` buffers, rolls whole hundreds into their bulk form, handles food pool.
+4. Migrate `BuildingDB.CostXxx` arrays from raw → bulk units.
+5. Migrate `ProductionRecipe` / `FurnaceProduction` / `BarracksProduction` inputs where the building pays the cost (Furnace, Capital Arrow craft, Barracks recruitment) from raw → bulk. Outputs stay raw when the production cycle's natural scale is per-item (Arrow, Egg, Compost) — the Consolidator rolls them up after deposit.
+6. `ArcherRefillSystem` re-materializes Arrows at equip time (the one exception to one-way consolidation).
+
+### Step 9 — regression pass #2
+
+- Harvest → deposit → build a Farm with bulk Timber path end-to-end.
+- Confirm food pool consolidation handles mixed Berry / Mushroom / CookedBeef without leaking raw items at storage tick boundaries.
+- Confirm Quiver → Arrow re-materialization at archer refill.
+
+## 7. Naming and conventions
 
 - **Extension methods:** `DynamicBuffer<PackSlot>.AddItemManaged(...)` mirrors the existing `DynamicBuffer<InventorySlot>.AddItemManaged(...)`. Don't over-generic this with interfaces that break Burst — just duplicate the small extension set.
 - **`FoodItems.Count` overloads:** add `Count(DynamicBuffer<PackSlot>)` next to the existing InventorySlot version. Inline duplication is cheaper than a generic constraint.
 - **Consumer-side variable names:** `unitInv` / `pack` for PackSlot; `storage` / `treasury` / `cap_inv` for InventorySlot. Stay consistent.
 - **Transfer helpers:** put them in a new `InventoryTransfer.cs` static class so the domain boundary is explicit.
 
-## 7. Risk & rollback
+## 8. Risk & rollback
 
 - **Risk: incomplete migration leaves a system still reading old InventorySlot on a unit → silent "nothing happens"** (unit's InventorySlot is empty after the spawn-change).
     - _Mitigation:_ keep InventorySlot on units until the migration is complete (step 4 removes it). During the in-between, both buffers coexist — harmless if either is read.
@@ -243,14 +385,15 @@ No longer needed. The cross-domain races are gone.
 
 - **Rollback:** each step is a single commit. Revert the offending commit if a specific flow breaks; the types are additive until step 4.
 
-## 8. Follow-ups enabled by the split
+## 9. Follow-ups enabled by the split
 
 - **ContainerSlot** for ground-loot piles (dead animals, dropped items) — decouple from unit pack, enable "loot corpse" without bag-cap conflicts.
 - **Unit-to-unit trade / gifting** — add an `OfferedItem` tag that's only on PackSlot entities.
 - **Threaded inventory ticks** — pack tick loops (food rot, tool wear) can run completely in parallel with building economy ticks.
 - **Replay / save format** — separating buffers makes it easier to snapshot unit state vs world state.
+- **Per-instance unique items as entities** — named weapons, heirlooms, quest loot with `ItemIdentity { Ulid, OriginTimestamp, Quality, Durability, LineageOwner[] }`. Coexists with the stack-based representation for fungibles; the 100:1 consolidator from Section 3 only applies to fungible stacks, unique items stay as entities end-to-end.
 
-## 9. Band-aid in place today
+## 10. Band-aid in place today
 
 Until this refactor lands:
 
