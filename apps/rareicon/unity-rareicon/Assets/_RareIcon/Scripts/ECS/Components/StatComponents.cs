@@ -43,4 +43,16 @@ namespace RareIcon
     /// destroy) — separate systems handle each consequence.
     /// </summary>
     public struct DeadTag : IComponentData { }
+
+    /// <summary>
+    /// Attached to any entity whose Energy has hit 0 — StarvationSystem
+    /// increments TimeStarving each frame while they stay at zero, and
+    /// after a grace period starts draining Health. The component stays
+    /// on the entity even after Energy recovers (we just reset the
+    /// timer) so later bouts don't pay the add-component cost again.
+    /// </summary>
+    public struct StarvationTimer : IComponentData
+    {
+        public float TimeStarving; // seconds since Energy last hit 0
+    }
 }

@@ -19,8 +19,17 @@ namespace RareIcon
 
     /// <summary>
     /// Static per-item properties — name, stack size, base trade value,
-    /// category. Visual / icon data lives elsewhere (sprite sheets / shader
-    /// includes) so this struct stays blittable + Burst-friendly.
+    /// category, and on-consume restore effect. Visual / icon data lives
+    /// elsewhere (sprite sheets / shader includes) so this struct stays
+    /// blittable + Burst-friendly.
+    ///
+    /// Restore* fields do double duty: they describe the immediate
+    /// effect of consuming one unit of the item AND signal edibility /
+    /// potion-ness to systems that need to filter (AutoEatSystem looks
+    /// for RestoreEnergy > 0, a future DrinkPotionSystem would look for
+    /// RestoreHealth or RestoreMana > 0). Non-consumable items just
+    /// carry zeros — cheap (12 bytes) and the field set stays uniform
+    /// across every item.
     /// </summary>
     public readonly struct ItemDef
     {
@@ -30,25 +39,41 @@ namespace RareIcon
         public readonly byte StackMax;      // inventory stack limit
         public readonly ushort BaseValue;   // currency value at vendor
 
+        // Per-consume restore amounts. 0 = item doesn't restore that stat.
+        public readonly float RestoreHealth;
+        public readonly float RestoreEnergy;
+        public readonly float RestoreMana;
+
         public ItemDef(ushort id, string nameKey, ItemCategory category,
-                       byte stackMax, ushort baseValue)
+                       byte stackMax, ushort baseValue,
+                       float restoreHealth = 0f,
+                       float restoreEnergy = 0f,
+                       float restoreMana   = 0f)
         {
-            Id = id;
-            NameKey = nameKey;
-            Category = category;
-            StackMax = stackMax;
-            BaseValue = baseValue;
+            Id            = id;
+            NameKey       = nameKey;
+            Category      = category;
+            StackMax      = stackMax;
+            BaseValue     = baseValue;
+            RestoreHealth = restoreHealth;
+            RestoreEnergy = restoreEnergy;
+            RestoreMana   = restoreMana;
         }
     }
 
     /// <summary>
-    /// Source of truth for item properties. Stub: items are added as we wire
-    /// gameplay systems that consume them. Long-term path: this table is the
-    /// hand-off into a Rust crate (uniti) so client and server share defs.
+    /// Source of truth for item properties. Populated as gameplay systems
+    /// start consuming items — right now that's just the foraged foods
+    /// that EmpireWithdrawSystem / AutoEatSystem eat to refill Energy.
+    /// Add more as features come online (potions when combat needs them,
+    /// materials when crafting lands, etc.).
+    ///
+    /// Long-term path: this table is the hand-off into a Rust crate
+    /// (uniti) so client and server share defs.
     ///
     /// Lookup is Dictionary because ItemId is sparse (gaps between ranges).
-    /// Burst can't access static dicts directly; pre-bake into a NativeHashMap
-    /// or BlobAsset when a Burst system needs item lookups.
+    /// Burst can't access static dicts directly; pre-bake into a
+    /// NativeHashMap or BlobAsset when a Burst system needs item lookups.
     /// </summary>
     public static class ItemDB
     {
@@ -60,10 +85,23 @@ namespace RareIcon
             if (_initialized) return;
             _initialized = true;
 
-            // Add entries here as gameplay systems start consuming items.
-            // Example shape (uncomment when content lands):
-            // Add(new ItemDef((ushort)ItemId.HealthPotion,
-            //     "item.health_potion", ItemCategory.Consumable, 99, 25));
+            // --- Foraged foods (Material category so they also count
+            // as crafting reagents later — the category is about source,
+            // the Restore* fields are about consume behaviour). Tuned
+            // for goblin MaxEnergy 100 + 30% hunger threshold: one bite
+            // clears the hunger gate with room to spare.
+            Add(new ItemDef((ushort)ItemId.Berry,
+                "item.berry",    ItemCategory.Material, 99, 2,
+                restoreEnergy: 20f));
+            Add(new ItemDef((ushort)ItemId.Mushroom,
+                "item.mushroom", ItemCategory.Material, 99, 3,
+                restoreEnergy: 15f));
+            Add(new ItemDef((ushort)ItemId.Herb,
+                "item.herb",     ItemCategory.Material, 99, 5,
+                restoreEnergy: 25f));
+
+            // Potions / equipment / quest items land here when the
+            // systems that read them come online.
         }
 
         static void Add(ItemDef def) => _byId[def.Id] = def;
@@ -80,5 +118,28 @@ namespace RareIcon
             return _byId.TryGetValue(id, out var def) ? def
                  : new ItemDef(id, "item.unknown", ItemCategory.Misc, 1, 0);
         }
+
+        // --- Consumable helpers -------------------------------------
+        // Thin wrappers so callers don't have to spell out
+        // `ItemDB.TryGet(...).RestoreEnergy > 0` on every food check.
+
+        /// <summary>Energy restored by eating one unit (0 if not food).</summary>
+        public static float EnergyValue(ushort id)
+            => TryGet(id, out var def) ? def.RestoreEnergy : 0f;
+
+        /// <summary>Health restored by consuming one unit (0 if not a
+        /// healing item).</summary>
+        public static float HealthValue(ushort id)
+            => TryGet(id, out var def) ? def.RestoreHealth : 0f;
+
+        /// <summary>Mana restored by consuming one unit (0 if not a
+        /// mana item).</summary>
+        public static float ManaValue(ushort id)
+            => TryGet(id, out var def) ? def.RestoreMana : 0f;
+
+        /// <summary>True if eating one unit of this item would raise
+        /// Energy — used by AutoEatSystem + EmpireWithdrawSystem to
+        /// filter food out of generic inventories.</summary>
+        public static bool IsEdible(ushort id) => EnergyValue(id) > 0f;
     }
 }

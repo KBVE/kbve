@@ -107,8 +107,17 @@ namespace RareIcon
                 maxEnergy:     100f,
                 maxMana:       0f,             // goblins don't carry mana
                 moveSpeed:     0.7f,           // base — spawn jitters around this
-                healthRegen:   0.5f,
-                energyRegen:   5.0f,
+                // NO PASSIVE REGEN for Health or Energy on any creature
+                // — vitals only come back from consumables (food for
+                // Energy via AutoEatSystem / EmpireWithdrawSystem,
+                // potions/bandages for Health once those systems
+                // land). Applies to every def in this table; change
+                // here only if a creature has a clear lore reason
+                // (troll regeneration, angelic blessings, etc.). Mana
+                // still regens because it's already conceptually a
+                // magical resource.
+                healthRegen:   0f,
+                energyRegen:   0f,
                 manaRegen:     0f,
                 // Weak, scrappy, dumb — but quick on their feet.
                 strength:      8,
@@ -128,8 +137,8 @@ namespace RareIcon
                 maxEnergy:     120f,
                 maxMana:       0f,
                 moveSpeed:     0.55f,
-                healthRegen:   1.0f,
-                energyRegen:   4.0f,
+                healthRegen:   0f,
+                energyRegen:   0f,
                 manaRegen:     0f,
                 strength:      16,
                 agility:       8,
@@ -147,8 +156,8 @@ namespace RareIcon
                 maxEnergy:     140f,
                 maxMana:       0f,
                 moveSpeed:     0.8f,
-                healthRegen:   0.8f,
-                energyRegen:   6.0f,
+                healthRegen:   0f,
+                energyRegen:   0f,
                 manaRegen:     0f,
                 strength:      12,
                 agility:       12,
@@ -166,13 +175,39 @@ namespace RareIcon
                 maxEnergy:     80f,
                 maxMana:       150f,
                 moveSpeed:     0.65f,
-                healthRegen:   0.4f,
-                energyRegen:   3.0f,
+                healthRegen:   0f,
+                energyRegen:   0f,
                 manaRegen:     4.0f,
                 strength:      6,
                 agility:       9,
                 intellect:     17,
                 will:          15,
+                defaultWeapon: WeaponType.None));
+
+            // The player-controlled King. Visually a Soldier base + Crown
+            // helmet (HelmetType.Cap with gold palette) — see UnitSpawnSystem.
+            // High HP, balanced attributes; no weapon yet (regal scepter +
+            // royal sword variants are future polish). MoveSpeed sits between
+            // Knight and Soldier so the player feels deliberate, not sluggish.
+            Add(new NPCDef(
+                unitType:      UnitType.King,
+                nameKey:       "creature.king",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     200f,
+                maxEnergy:     150f,
+                maxMana:       100f,            // mana — kings dabble in magic too
+                moveSpeed:     0.7f,
+                // King still has no passive Health/Energy regen — the
+                // "game over on death" weight comes from his HP pool
+                // (200) + your ability to pull him back to the capital
+                // to eat. Keep ManaRegen so he can still cast.
+                healthRegen:   0f,
+                energyRegen:   0f,
+                manaRegen:     2.0f,
+                strength:      14,
+                agility:       11,
+                intellect:     14,
+                will:          16,
                 defaultWeapon: WeaponType.None));
 
             // Future creatures land here — Wolf, Skeleton, GoblinShaman, etc.

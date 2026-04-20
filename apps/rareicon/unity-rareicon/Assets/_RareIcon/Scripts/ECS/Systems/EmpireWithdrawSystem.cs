@@ -1,0 +1,114 @@
+using Unity.Entities;
+using Unity.Mathematics;
+
+namespace RareIcon
+{
+    /// <summary>
+    /// Empire-side withdraw pass: a hungry Player-faction unit standing
+    /// on the capital pulls one food item out of the capital's storage
+    /// buffer into its own inventory. AutoEatSystem then turns that item
+    /// into energy the same frame.
+    ///
+    /// The need-signal is low Energy — "hunger is just energy that's too
+    /// low". Threshold is a ratio of max so it works across unit types
+    /// without per-creature tuning (goblin max 100 and a future knight
+    /// max 120 both start pulling food below 30% of their own max).
+    ///
+    /// Extension point: when other needs land (crafting ingredients,
+    /// weapon swaps) the withdraw pass either grows more need-checks
+    /// here or splits into a shared "what does this unit want?" signal
+    /// (e.g. a DynamicBuffer&lt;PullRequest&gt;) that multiple producer
+    /// systems populate and this one drains.
+    /// </summary>
+    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateAfter(typeof(EmpireDepositSystem))]
+    public partial class EmpireWithdrawSystem : SystemBase
+    {
+        const float HungerThreshold = 0.30f; // below 30% max energy = hungry
+
+        protected override void OnUpdate()
+        {
+            var hexOccupantLookup   = SystemAPI.GetComponentLookup<HexOccupant>(isReadOnly: true);
+            var buildingLookup      = SystemAPI.GetComponentLookup<Building>(isReadOnly: true);
+            var storageBufferLookup = SystemAPI.GetBufferLookup<InventorySlot>(isReadOnly: false);
+
+            foreach (var (movement, faction, energy, inv) in
+                SystemAPI.Query<
+                    RefRO<UnitMovement>,
+                    RefRO<Faction>,
+                    RefRO<Energy>,
+                    DynamicBuffer<InventorySlot>>())
+            {
+                if (faction.ValueRO.Value != FactionType.Player) continue;
+
+                var e = energy.ValueRO;
+                if (e.Max <= 0f) continue;
+                if (e.Value / e.Max >= HungerThreshold) continue;
+
+                // Already carrying edible food? Let AutoEatSystem deal
+                // with it — no need to withdraw more until that's gone.
+                if (HasEdible(inv)) continue;
+
+                // Standing on a capital-claimed hex?
+                int2 hex = movement.ValueRO.CurrentHex;
+                if (!HexHoverSystem.TryGetHexEntity(hex, out Entity tile)) continue;
+                if (!hexOccupantLookup.HasComponent(tile)) continue;
+
+                Entity building = hexOccupantLookup[tile].Building;
+                if (!buildingLookup.HasComponent(building)) continue;
+                if (buildingLookup[building].Type != BuildingType.Capital) continue;
+                if (!storageBufferLookup.HasBuffer(building)) continue;
+
+                var storage = storageBufferLookup[building];
+                PullOneFoodItem(storage, inv);
+            }
+        }
+
+        static bool HasEdible(DynamicBuffer<InventorySlot> inv)
+        {
+            for (int i = 0; i < inv.Length; i++)
+            {
+                if (inv[i].Count > 0 && ItemDB.IsEdible(inv[i].ItemId))
+                    return true;
+            }
+            return false;
+        }
+
+        // Find the first edible stack in storage with count > 0, move 1
+        // into the unit's inventory. Silent no-op if storage has no
+        // food at all — the goblin just stays hungry and wanders off.
+        static void PullOneFoodItem(
+            DynamicBuffer<InventorySlot> storage,
+            DynamicBuffer<InventorySlot> unitInv)
+        {
+            for (int i = 0; i < storage.Length; i++)
+            {
+                var slot = storage[i];
+                if (slot.Count == 0) continue;
+                if (!ItemDB.IsEdible(slot.ItemId)) continue;
+
+                slot.Count -= 1;
+                storage[i] = slot;
+
+                // Merge into unit's existing stack or append a new one.
+                bool merged = false;
+                for (int j = 0; j < unitInv.Length; j++)
+                {
+                    if (unitInv[j].ItemId == slot.ItemId)
+                    {
+                        var u = unitInv[j];
+                        u.Count = (ushort)math.min(u.Count + 1, ushort.MaxValue);
+                        unitInv[j] = u;
+                        merged = true;
+                        break;
+                    }
+                }
+                if (!merged)
+                {
+                    unitInv.Add(new InventorySlot { ItemId = slot.ItemId, Count = 1 });
+                }
+                return;
+            }
+        }
+    }
+}
