@@ -31,6 +31,7 @@ namespace RareIcon
     // UnitMovement wanders by default.
     [BurstCompile]
     [WithNone(typeof(ControlledUnitTag))]
+    [WithNone(typeof(GarrisonPost))]
     public partial struct WanderJob : IJobEntity
     {
         void Execute(ref MovementGoal goal, ref UnitMovement m)

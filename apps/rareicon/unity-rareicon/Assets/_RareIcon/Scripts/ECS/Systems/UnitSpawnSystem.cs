@@ -183,18 +183,11 @@ namespace RareIcon
             var entity = SpawnGoblinAt(em, hex, rngSeed, default, FactionType.Player);
             if (entity == Entity.Null) return Entity.Null;
 
-            // Promote Unit.Weapon → Crossbow (drives the rendered sprite +
-            // fire animation) and attach RangedAttack for bolts. Keep the
-            // MeleeAttack that SpawnGoblinAt installed — when the Capital
-            // runs out of arrows, RangedAttackSystem's ammo gate silently
-            // skips the shot and MeleeAttackSystem picks up the slack
-            // against anything that reaches 0.45 wu.
             em.SetComponentData(entity, new Unit
             {
                 Type   = UnitType.Goblin,
                 Weapon = WeaponType.Crossbow,
             });
-            em.SetComponentData(entity, new UnitWeaponVisual { Value = (float)WeaponType.Crossbow });
             AttachRangedAttackIfArmed(em, entity, WeaponType.Crossbow);
 
             em.AddComponentData(entity, new GarrisonPost { Hex = hex });
@@ -220,6 +213,7 @@ namespace RareIcon
             {
                 Type   = def.UnitType,
                 Weapon = def.DefaultWeapon,
+                Helmet = HelmetType.Cap,
             });
 
             float maxHp = state.MaxHealth > 0f ? state.MaxHealth : def.MaxHealth;

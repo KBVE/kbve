@@ -183,10 +183,16 @@ namespace RareIcon
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
             uint currentTurn = SystemAPI.GetSingleton<WorldClock>().TurnIndex;
 
-            foreach (var (livestock, storage) in
+            foreach (var (livestockRO, storageRO) in
                      SystemAPI.Query<DynamicBuffer<FarmLivestock>, DynamicBuffer<FarmStorage>>()
                               .WithAll<FarmTag>())
             {
+                // Shadow the foreach iter vars into plain locals — DynamicBuffer
+                // wraps a pointer so the copies alias the same backing data,
+                // but C# lets us pass them ref / mutate indexers.
+                var livestock = livestockRO;
+                var storage   = storageRO;
+
                 for (int i = 0; i < livestock.Length; i++)
                 {
                     var entry = livestock[i];
@@ -267,8 +273,9 @@ namespace RareIcon
 
             var capitalStorage = SystemAPI.GetBuffer<InventorySlot>(capital);
 
-            foreach (var storage in SystemAPI.Query<DynamicBuffer<FarmStorage>>().WithAll<FarmTag>())
+            foreach (var storageRO in SystemAPI.Query<DynamicBuffer<FarmStorage>>().WithAll<FarmTag>())
             {
+                var storage = storageRO;
                 for (int i = 0; i < storage.Length; i++)
                 {
                     var slot = storage[i];

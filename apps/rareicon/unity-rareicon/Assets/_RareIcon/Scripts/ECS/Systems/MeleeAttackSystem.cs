@@ -18,10 +18,14 @@ namespace RareIcon
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<MeleeAttack>();
-            _buildingQuery = state.GetEntityQuery(
-                ComponentType.ReadOnly<Building>(),
-                ComponentType.ReadOnly<BuildingHealth>(),
-                ComponentType.ReadOnly<LocalTransform>());
+            // EntityQueryBuilder uses a stack-scratch Allocator.Temp buffer so the
+            // whole construction stays Burst-safe. The GetEntityQuery(params ComponentType[])
+            // overload allocates a managed array and trips Burst BC1028.
+            _buildingQuery = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<Building>()
+                .WithAll<BuildingHealth>()
+                .WithAll<LocalTransform>()
+                .Build(ref state);
         }
 
         [BurstCompile] public void OnDestroy(ref SystemState state) { }

@@ -64,17 +64,19 @@ namespace RareIcon
     /// </summary>
     public struct ControlledUnitTag : IComponentData { }
 
-    /// <summary>
-    /// Tag + per-unit identity data. Movement / AI / stat components layer
-    /// on top. Health / Energy / Mana live in their own components (see
-    /// StatComponents.cs) so units only carry the stats they actually have.
-    /// Weapon is intentionally separate from creature type: a Goblin can
-    /// hold a Club today and a Sword tomorrow without changing UnitType.
-    /// </summary>
+    /// <summary>Unit is posted to a specific hex (typically a Capital footprint tile) — excluded from wander, zero JobPriorities on spawn, RangedAttack still auto-fires at enemies in range. Hex stored for future "return to post" behaviour if they're ever knocked off-tile.</summary>
+    public struct GarrisonPost : IComponentData
+    {
+        public int2 Hex;
+    }
+
+    /// <summary>Per-unit identity + currently-equipped loadout. Source of truth for the shader — EquipmentVisualMirrorSystem pushes these slots to UnitXVisual each tick.</summary>
     public struct Unit : IComponentData
     {
-        public byte Type;     // UnitType.* constant
-        public byte Weapon;   // WeaponType.* constant
+        public byte Type;
+        public byte Weapon;
+        public byte Helmet;
+        public byte Shield;
     }
 
     /// <summary>Weapon IDs — each maps to one HexX.hlsl draw function.</summary>
