@@ -183,62 +183,56 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Per-animal turn-cadence production: Chicken+Cow every 2 turns (Egg / Milk), Sheep every 10 (Wool). Each cycle consumes 1 Carrot from the host farm's InventorySlot storage and emits 1 output; if no carrots, the animal's LastProducedTurn stays put so it catches up when feed returns.</summary>
+    /// <summary>Per-animal turn-cadence production: Chicken+Cow every 2 turns (Egg / Milk), Sheep every 10 (Wool). Each cycle consumes 1 Carrot from the host farm's InventorySlot and emits 1 output; out of carrots → LastProducedTurn stays put so the animal catches up when feed returns. Burst ISystem + single-worker Schedule — multiple animals on the same farm serialize on the shared farm buffer, no racing.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(FarmDepositSystem))]
-    public partial class FarmLivestockProductionSystem : SystemBase
+    public partial struct FarmLivestockProductionSystem : ISystem
     {
-        readonly Dictionary<Entity, List<Entity>> _animalsByFarm = new();
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
-        protected override void OnUpdate()
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
             uint currentTurn = SystemAPI.GetSingleton<WorldClock>().TurnIndex;
 
-            _animalsByFarm.Clear();
-            foreach (var (shelter, entity) in
-                     SystemAPI.Query<RefRO<ShelteredInside>>()
-                              .WithAll<LivestockProduction>()
-                              .WithEntityAccess())
+            state.Dependency = new FarmLivestockProductionJob
             {
-                var host = shelter.ValueRO.Host;
-                if (!_animalsByFarm.TryGetValue(host, out var list))
-                {
-                    list = new List<Entity>();
-                    _animalsByFarm[host] = list;
-                }
-                list.Add(entity);
-            }
+                CurrentTurn = currentTurn,
+                UnitLookup  = SystemAPI.GetComponentLookup<Unit>(true),
+                InvLookup   = SystemAPI.GetBufferLookup<InventorySlot>(false),
+            }.Schedule(state.Dependency);
+        }
+    }
 
-            var storageLookup = SystemAPI.GetBufferLookup<InventorySlot>(false);
-            var unitLookup    = SystemAPI.GetComponentLookup<Unit>(true);
-            var prodLookup    = SystemAPI.GetComponentLookup<LivestockProduction>(false);
+    [BurstCompile]
+    public partial struct FarmLivestockProductionJob : IJobEntity
+    {
+        public uint CurrentTurn;
 
-            foreach (var kv in _animalsByFarm)
-            {
-                var farm = kv.Key;
-                if (!storageLookup.HasBuffer(farm)) continue;
-                var storage = storageLookup[farm];
+        [ReadOnly] public ComponentLookup<Unit> UnitLookup;
 
-                var animals = kv.Value;
-                for (int i = 0; i < animals.Count; i++)
-                {
-                    var animal = animals[i];
-                    if (!unitLookup.HasComponent(animal) || !prodLookup.HasComponent(animal)) continue;
+        [NativeDisableParallelForRestriction]
+        public BufferLookup<InventorySlot> InvLookup;
 
-                    byte species = unitLookup[animal].Type;
-                    if (!TryGetRecipe(species, out ushort outputId, out uint cadence)) continue;
+        void Execute(Entity entity,
+                     in ShelteredInside shelter,
+                     ref LivestockProduction prod)
+        {
+            if (!UnitLookup.HasComponent(entity)) return;
+            byte species = UnitLookup[entity].Type;
+            if (!TryGetRecipe(species, out ushort outputId, out uint cadence)) return;
+            if (CurrentTurn < prod.LastProducedTurn + cadence) return;
 
-                    var prod = prodLookup[animal];
-                    if (currentTurn < prod.LastProducedTurn + cadence) continue;
+            var host = shelter.Host;
+            if (!InvLookup.HasBuffer(host)) return;
+            var storage = InvLookup[host];
 
-                    if (!TryConsume(ref storage, (ushort)ItemId.Carrot, 1)) continue;
-                    AddStorage(ref storage, outputId, 1);
-
-                    prod.LastProducedTurn += cadence;
-                    prodLookup[animal] = prod;
-                }
-            }
+            if (!TryConsume(ref storage, (ushort)ItemId.Carrot, 1)) return;
+            AddStorage(ref storage, outputId, 1);
+            prod.LastProducedTurn += cadence;
         }
 
         static bool TryGetRecipe(byte species, out ushort outputId, out uint cadence)
