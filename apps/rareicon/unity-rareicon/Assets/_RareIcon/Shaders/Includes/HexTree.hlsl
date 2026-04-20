@@ -21,9 +21,17 @@
 // Uniforms read from the parent shader's UnityPerMaterial CBUFFER:
 //   _TrunkColor, _CanopyDark, _CanopyMid, _CanopyLight
 // Helpers (rectMask, circleMask, hash21) come from HexShared.hlsl.
-float3 ApplyPixelTree(float3 ground, float2 px, float grid, float seed)
+//
+// `amount` is the per-instance _TreeAmount (HexResources.Wood / 100):
+// the natural 1..3 tree roll is capped to ceil(amount * 3), so a
+// half-harvested hex shows fewer trees than a full forest, and a
+// clear-cut hex (amount = 0) is gated out by the caller before this
+// function ever runs.
+float3 ApplyPixelTree(float3 ground, float2 px, float grid, float seed, float amount)
 {
-    int treeCount = 1 + (int)(hash21(float2(seed, 100.0)) * 2.99);
+    int rolledCount = 1 + (int)(hash21(float2(seed, 100.0)) * 2.99);
+    int amountCap   = clamp((int)ceil(amount * 3.0), 1, 3);
+    int treeCount   = min(rolledCount, amountCap);
 
     float trunkMask = 0.0;
     float trunkLightMask = 0.0;

@@ -1,3 +1,5 @@
+using Unity.Mathematics;
+
 namespace RareIcon
 {
     /// <summary>
@@ -87,6 +89,13 @@ namespace RareIcon
 
             return (res, ComputeVisualMask(in res));
         }
+
+        /// <summary>Wood byte ceiling AmountFrom can return; used to normalize Wood to the 0..1 _TreeAmount shader uniform.</summary>
+        public const float WoodMaxForVisual = 100f;
+
+        /// <summary>HexResources.Wood normalized to 0..1 for HexTreeVisual; drives the per-instance tree count in HexTile.shader.</summary>
+        public static float ComputeTreeAmount(in HexResources res)
+            => res.Wood <= 0 ? 0f : math.min(res.Wood / WoodMaxForVisual, 1f);
 
         /// <summary>
         /// Recompute the HexResourceVisual bitmask from a HexResources value.

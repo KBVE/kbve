@@ -25,6 +25,7 @@ Shader "RareIcon/HexTile"
         // which decorations appear (a hex can show several at once).
         _FloorDensity  ("Floor Density (0=none, 1=every tile)", Range(0,1)) = 0.0
         _ResourceType  ("Resource Mask (per-instance bitmask)", Float) = 0
+        _TreeAmount    ("Tree Amount (per-instance, 0=cleared, 1=full forest)", Range(0,1)) = 1.0
         _StoneColor    ("Stone / Boulder Color", Color)    = (0.55, 0.55, 0.50, 1)
         _StoneShade    ("Stone Shade Color", Color)        = (0.35, 0.35, 0.32, 1)
         _BerryBushColor("Berry Bush Foliage Color", Color) = (0.16, 0.38, 0.16, 1)
@@ -92,6 +93,7 @@ Shader "RareIcon/HexTile"
                 float4 _CanopyLight;
                 float _FloorDensity;
                 float _ResourceType;
+                float _TreeAmount;
                 float4 _StoneColor;
                 float4 _StoneShade;
                 float4 _BerryBushColor;
@@ -112,12 +114,14 @@ Shader "RareIcon/HexTile"
                 UNITY_DOTS_INSTANCED_PROP(float4, _BorderColor)
                 UNITY_DOTS_INSTANCED_PROP(float, _BorderWidth)
                 UNITY_DOTS_INSTANCED_PROP(float, _ResourceType)
+                UNITY_DOTS_INSTANCED_PROP(float, _TreeAmount)
             UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
             #define _BaseColor    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _BaseColor)
             #define _BorderColor  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _BorderColor)
             #define _BorderWidth  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _BorderWidth)
             #define _ResourceType UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _ResourceType)
+            #define _TreeAmount   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _TreeAmount)
             #endif
 
             // Bit flags for floor decorations — must match ResourceMask in
@@ -196,10 +200,15 @@ Shader "RareIcon/HexTile"
                     }
                 }
 
-                // Trees on top of the forest floor.
-                if (_TreeDensity > 0.001 && tileSeed < _TreeDensity)
+                // Trees on top of the forest floor. Per-instance _TreeAmount
+                // (driven by HexTreeVisual which mirrors HexResources.Wood)
+                // gates the branch entirely when the hex has been
+                // clear-cut, and scales the tree count inside ApplyPixelTree
+                // for partially-harvested hexes. Per-biome _TreeDensity
+                // is still the master forest-presence multiplier.
+                if (_TreeDensity > 0.001 && _TreeAmount > 0.001 && tileSeed < _TreeDensity)
                 {
-                    ground = ApplyPixelTree(ground, px, grid, tileSeed);
+                    ground = ApplyPixelTree(ground, px, grid, tileSeed, _TreeAmount);
                 }
 
                 // Border line on top of everything.

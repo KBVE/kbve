@@ -255,6 +255,7 @@ namespace RareIcon
                 typeof(HexTileTag),
                 typeof(HexResources),
                 typeof(HexResourceVisual),
+                typeof(HexTreeVisual),
                 typeof(ItemDrop)
             );
 
@@ -304,6 +305,10 @@ namespace RareIcon
                     }
                     em.SetComponentData(entity, res);
                     em.SetComponentData(entity, new HexResourceVisual { Value = (float)mask });
+                    em.SetComponentData(entity, new HexTreeVisual
+                    {
+                        Value = HexResourceTable.ComputeTreeAmount(in res)
+                    });
 
                     // Rendering — must be on main thread (managed shared component)
                     RenderMeshUtility.AddComponents(

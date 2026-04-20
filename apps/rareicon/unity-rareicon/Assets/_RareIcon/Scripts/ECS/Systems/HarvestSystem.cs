@@ -76,6 +76,13 @@ namespace RareIcon
                             Value = HexResourceTable.ComputeVisualMask(in res)
                         });
                     }
+                    if (EntityManager.HasComponent<HexTreeVisual>(hexEntity))
+                    {
+                        EntityManager.SetComponentData(hexEntity, new HexTreeVisual
+                        {
+                            Value = HexResourceTable.ComputeTreeAmount(in res)
+                        });
+                    }
 
                     if (skillXpLookup.HasComponent(entity))
                     {

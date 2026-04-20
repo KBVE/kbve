@@ -97,6 +97,21 @@ namespace RareIcon
         public float Value;
     }
 
+    /// <summary>
+    /// Per-instance MaterialProperty driving how many trees the shader
+    /// renders on this hex. Value is HexResources.Wood normalized to
+    /// 0..1 (Wood/WoodMaxForVisual). 0 = no trees, 1 = full canopy
+    /// (up to 3 procedural trees subject to the per-biome _TreeDensity
+    /// jitter). Lumberjacks chopping wood drop this value, the regrow
+    /// system raises it back over time — so deforestation and
+    /// reforestation both read visually.
+    /// </summary>
+    [MaterialProperty("_TreeAmount")]
+    public struct HexTreeVisual : IComponentData
+    {
+        public float Value;
+    }
+
     /// <summary>Ground-loot entry on a hex tile; picked up by any unit with an inventory walking onto it.</summary>
     [InternalBufferCapacity(4)]
     public struct ItemDrop : IBufferElementData
