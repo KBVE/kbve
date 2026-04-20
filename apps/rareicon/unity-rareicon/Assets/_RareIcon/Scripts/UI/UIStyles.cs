@@ -134,6 +134,13 @@ namespace RareIcon
             public const float XWide  = 50f;
         }
 
+        /// <summary>Viewport-height caps for toggleable panels so they never run off-screen — pair with a ScrollView body.</summary>
+        public static class VhMaxPct
+        {
+            public const float Std    = 70f;
+            public const float Tall   = 80f;
+        }
+
         // -- Equal-sided setters (chainable) --
         // Each replaces 4 inline calls. Chain them with the C# initializer
         // pattern: `panel.style.BorderRadius(0).BorderWidth(1).BorderColor(...)`.

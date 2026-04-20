@@ -125,6 +125,7 @@ namespace RareIcon
             _root.style.AnchorBottomLeft();
             _root.style.minWidth = UIStyles.PanelWidth.NarrowMin;
             _root.style.maxWidth = new Length(UIStyles.VwMaxPct.Narrow, LengthUnit.Percent);
+            _root.style.maxHeight = new Length(UIStyles.VhMaxPct.Std, LengthUnit.Percent);
             _root.style.display = DisplayStyle.None;
             _root.RegisterCallback<ClickEvent>(e => e.StopPropagation());
 

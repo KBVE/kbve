@@ -94,17 +94,19 @@ namespace RareIcon
             _root.style.marginTop = 110;
             _root.style.minWidth = UIStyles.PanelWidth.StdMin;
             _root.style.maxWidth = new Length(UIStyles.VwMaxPct.Std, LengthUnit.Percent);
+            _root.style.maxHeight = new Length(UIStyles.VhMaxPct.Std, LengthUnit.Percent);
             _root.style.display = DisplayStyle.None;
 
             UIStyles.MakePanelHeader(_root, _locale.Get("treasury.title"), Close);
 
-            // Body — one big multi-line label so we don't churn child
-            // elements every refresh. Re-rendered as a single string.
+            var scroll = new ScrollView(ScrollViewMode.Vertical);
+            scroll.style.flexGrow = 1;
             _bodyLabel = new Label(string.Empty);
             _bodyLabel.style.color = UIStyles.Palette.TextStrong;
             _bodyLabel.style.fontSize = UIStyles.Type.BodyLg;
             _bodyLabel.style.whiteSpace = WhiteSpace.Normal;
-            _root.Add(_bodyLabel);
+            scroll.Add(_bodyLabel);
+            _root.Add(scroll);
 
             parent.Add(_root);
         }

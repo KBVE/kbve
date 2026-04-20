@@ -122,18 +122,22 @@ namespace RareIcon
             _root.style.marginTop = 110;
             _root.style.minWidth = UIStyles.PanelWidth.StdMin;
             _root.style.maxWidth = new Length(UIStyles.VwMaxPct.Std, LengthUnit.Percent);
+            _root.style.maxHeight = new Length(UIStyles.VhMaxPct.Std, LengthUnit.Percent);
             _root.style.display = DisplayStyle.None;
             _root.RegisterCallback<ClickEvent>(e => e.StopPropagation());
 
             UIStyles.MakePanelHeader(_root, _locale.Get("palette.title"), Close);
 
-            // Building rows — one per BuildingDB.AllBuildable entry.
+            var scroll = new ScrollView(ScrollViewMode.Vertical);
+            scroll.style.flexGrow = 1;
+            _root.Add(scroll);
+
             _rows = new Row[BuildingDB.AllBuildable.Length];
             for (int i = 0; i < _rows.Length; i++)
             {
                 byte type = BuildingDB.AllBuildable[i];
                 _rows[i] = new Row(type, _locale, OnRowClicked);
-                _root.Add(_rows[i].Element);
+                scroll.Add(_rows[i].Element);
             }
 
             parent.Add(_root);
@@ -189,26 +193,23 @@ namespace RareIcon
                 _onClick = onClick;
 
                 Element = new VisualElement();
-                Element.style.flexDirection = FlexDirection.Column;
-                Element.style.Padding(UIStyles.Spacing.Sm, UIStyles.Spacing.Md);
+                Element.style.flexDirection = FlexDirection.Row;
+                Element.style.justifyContent = Justify.SpaceBetween;
+                Element.style.alignItems = Align.Center;
+                Element.style.Padding(UIStyles.Spacing.Xs, UIStyles.Spacing.Md);
                 Element.style.marginBottom = UIStyles.Spacing.Xs;
-                Element.style.BorderRadius(UIStyles.Radius.Sharp);
-                Element.style.BorderWidth(1);
-                Element.style.BorderColor(UIStyles.Palette.BorderSubtle);
-                Element.style.backgroundColor = UIStyles.Palette.Zinc900;
                 Element.RegisterCallback<ClickEvent>(_ => _onClick(BuildingType));
 
                 _nameLabel = new Label(locale.Get(BuildingDB.GetLocaleKey(buildingType)));
                 _nameLabel.style.color = UIStyles.Palette.TextStrong;
-                _nameLabel.style.fontSize = UIStyles.Type.Label;
+                _nameLabel.style.fontSize = UIStyles.Type.BodyLg;
                 _nameLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
                 Element.Add(_nameLabel);
 
                 _costLabel = new Label("");
                 _costLabel.style.color = UIStyles.Palette.TextMuted;
                 _costLabel.style.fontSize = UIStyles.Type.Body;
-                _costLabel.style.marginTop = UIStyles.Spacing.Xs;
-                _costLabel.style.whiteSpace = WhiteSpace.Normal;
+                _costLabel.style.whiteSpace = WhiteSpace.NoWrap;
                 Element.Add(_costLabel);
             }
 
