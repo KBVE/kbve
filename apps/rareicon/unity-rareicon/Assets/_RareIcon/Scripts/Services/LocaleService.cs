@@ -129,6 +129,9 @@ namespace RareIcon
                 UnitType.Soldier => "creature.soldier",
                 UnitType.Mage    => "creature.mage",
                 UnitType.King    => "creature.king",
+                UnitType.Chicken => "creature.chicken",
+                UnitType.Sheep   => "creature.sheep",
+                UnitType.Cow     => "creature.cow",
                 _ => "creature.none",
             };
             return Get(key);

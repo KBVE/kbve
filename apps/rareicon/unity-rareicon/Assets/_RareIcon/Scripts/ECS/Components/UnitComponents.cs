@@ -16,8 +16,14 @@ namespace RareIcon
         public const byte Soldier = 3;
         public const byte Mage    = 4;
         public const byte King    = 5;  // Player-controlled — visually a Soldier + Crown for v1.
+        public const byte Chicken = 10;
+        public const byte Sheep   = 11;
+        public const byte Cow     = 12;
         // Wolf, Skeleton, etc. land here as we add them.
     }
+
+    /// <summary>Tag marking wild animals so combat / harvest / AI systems skip them.</summary>
+    public struct PassiveAnimalTag : IComponentData { }
 
     /// <summary>
     /// Tag for the player-controlled King. There's exactly one King in the

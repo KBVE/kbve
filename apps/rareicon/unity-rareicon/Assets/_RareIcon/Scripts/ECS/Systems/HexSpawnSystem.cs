@@ -347,24 +347,75 @@ namespace RareIcon
                         // a King (KingTag, no auto-wander) rather than a
                         // generic goblin. Future creature types add cases
                         // here; default falls through to Goblin.
+                        uint rng = (uint)g.q * 0x9E3779B1u
+                                 ^ (uint)g.r * 0x85EBCA77u
+                                 ^ ((uint)i + 1u);
+                        rng |= 1u;
                         if (g.unit_type == UnitType.King)
                         {
                             UnitSpawnSystem.SpawnKingAt(em, hex, state);
                         }
+                        else if (g.unit_type == UnitType.Chicken
+                              || g.unit_type == UnitType.Sheep
+                              || g.unit_type == UnitType.Cow)
+                        {
+                            UnitSpawnSystem.SpawnAnimalAt(em, hex, rng, g.unit_type, state);
+                        }
                         else
                         {
-                            // Reseed RNG from position + index — restoration
-                            // loses the original RandomState (not in the FFI
-                            // struct yet), but two restored goblins at the
-                            // same coord still diverge thanks to the index mix.
-                            uint rng = (uint)g.q * 0x9E3779B1u
-                                     ^ (uint)g.r * 0x85EBCA77u
-                                     ^ ((uint)i + 1u);
-                            UnitSpawnSystem.SpawnGoblinAt(em, hex, rng | 1u, state);
+                            UnitSpawnSystem.SpawnGoblinAt(em, hex, rng, state);
                         }
                     }
                 }
             }
+            else
+            {
+                // Fresh chunks (no ghost state) roll for ambient wildlife.
+                // Ghost-bearing chunks skip this — any animals that existed
+                // are restored above, and a fresh roll would double-populate.
+                for (int ly = 0; ly < ChunkSize; ly++)
+                {
+                    for (int lx = 0; lx < ChunkSize; lx++)
+                    {
+                        byte biome = biomes[ly * ChunkSize + lx];
+                        if (biome == BiomeGenerator.BIOME_OCEAN) continue;
+                        TryRollAnimal(em, biome, startX + lx, startY + ly);
+                    }
+                }
+            }
+        }
+
+        /// <summary>Deterministic per-hex animal spawn roll. Low biome-gated chance; no-ops for most hexes.</summary>
+        static void TryRollAnimal(EntityManager em, byte biome, int gx, int gy)
+        {
+            // Hash distinct from HexResourceTable's so cactus and animal
+            // rolls don't collide on the same draw.
+            uint h = (uint)gx * 0x27D4EB2Fu ^ (uint)gy * 0xC2B2AE3Du;
+            h ^= h >> 13;
+            h *= 0x85EBCA77u;
+            h ^= h >> 16;
+            float roll = (h & 0xFFFFu) / 65535f;
+
+            byte species = UnitType.None;
+            switch (biome)
+            {
+                case BiomeGenerator.BIOME_GRASS:
+                    if      (roll < 0.010f) species = UnitType.Chicken;
+                    else if (roll < 0.018f) species = UnitType.Sheep;
+                    else if (roll < 0.024f) species = UnitType.Cow;
+                    break;
+                case BiomeGenerator.BIOME_SAND:
+                    if (roll < 0.008f) species = UnitType.Chicken;
+                    break;
+                case BiomeGenerator.BIOME_DIRT:
+                    if (roll < 0.006f) species = UnitType.Cow;
+                    break;
+            }
+
+            if (species == UnitType.None) return;
+
+            uint rng = (h * 0x9E3779B1u) | 1u;
+            UnitSpawnSystem.SpawnAnimalAt(em, new int2(gx, gy), rng, species);
         }
 
         void DespawnChunk(int2 chunkCoord)
