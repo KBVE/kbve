@@ -6,43 +6,29 @@ using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>Projectile-vs-unit overlap pass; emits DamageEvent on hit and destroys the projectile.</summary>
+    /// <summary>Projectile-vs-unit overlap pass; emits DamageEvent on hit and destroys the projectile. ECB plays back via EndSimulationEntityCommandBufferSystem so this system never stalls the main thread; DamageEvent resolves next frame.</summary>
     [UpdateInGroup(typeof(CombatSystemGroup))]
     [UpdateAfter(typeof(SpatialHashSystem))]
     public partial class CollisionSystem : SystemBase
     {
-        protected override void OnCreate()
-        {
-            RequireForUpdate<Projectile>();
-        }
+        protected override void OnCreate() => RequireForUpdate<Projectile>();
 
         protected override void OnUpdate()
         {
             var hashSys = World.GetExistingSystemManaged<SpatialHashSystem>();
             if (hashSys == null || !hashSys.Hash.IsCreated) return;
 
-            var ecb = new EntityCommandBuffer(Allocator.TempJob);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(World.Unmanaged);
 
             Dependency = new CollisionJob
             {
                 Hash = hashSys.Hash,
                 Ecb  = ecb.AsParallelWriter(),
             }.ScheduleParallel(Dependency);
-
-            // Sync before playback — damage events need to exist by the
-            // time DamageSystem runs next in the group.
-            Dependency.Complete();
-
-            ecb.Playback(EntityManager);
-            ecb.Dispose();
         }
     }
 
-    /// <summary>
-    /// Per-projectile overlap probe. Reads only its own projectile
-    /// position + the hash (both read-only) and writes solely through
-    /// the ECB, so all entity mutations are deferred to playback.
-    /// </summary>
     [BurstCompile]
     public partial struct CollisionJob : IJobEntity
     {
@@ -51,8 +37,6 @@ namespace RareIcon
 
         public EntityCommandBuffer.ParallelWriter Ecb;
 
-        // Arrow / bolt physical radius. Unit radius comes from each
-        // Collidable so big creatures can have bigger hitboxes.
         const float ProjectileRadius = 0.12f;
 
         void Execute(Entity entity,
@@ -64,10 +48,6 @@ namespace RareIcon
             int cx = (int)math.floor(pos.x / SpatialHashSystem.CellSize);
             int cy = (int)math.floor(pos.y / SpatialHashSystem.CellSize);
 
-            // 9-cell scan: self + all 8 neighbours. A projectile can
-            // only overlap a target whose centre is within
-            // (projR + targetR) world units, which is well below the
-            // CellSize for our values, so 3×3 coverage is sufficient.
             for (int dx = -1; dx <= 1; dx++)
             {
                 for (int dy = -1; dy <= 1; dy++)
@@ -78,13 +58,11 @@ namespace RareIcon
 
                     do
                     {
-                        // Faction filter — no friendly fire.
                         if (target.Faction == projectile.OwnerFaction) continue;
 
                         float reach = target.Radius + ProjectileRadius;
                         if (math.distancesq(pos, target.Position) < reach * reach)
                         {
-                            // Hit — emit damage event, kill projectile.
                             var evt = Ecb.CreateEntity(chunkIdx);
                             Ecb.AddComponent(chunkIdx, evt, new DamageEvent
                             {
@@ -94,7 +72,7 @@ namespace RareIcon
                                 SourceFaction = projectile.OwnerFaction,
                             });
                             Ecb.DestroyEntity(chunkIdx, entity);
-                            return;  // one hit per projectile
+                            return;
                         }
                     } while (Hash.TryGetNextValue(out target, ref it));
                 }

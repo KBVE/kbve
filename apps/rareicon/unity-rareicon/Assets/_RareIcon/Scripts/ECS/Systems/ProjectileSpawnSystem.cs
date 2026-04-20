@@ -40,7 +40,8 @@ namespace RareIcon
                 if (!_initialized) return;  // shader missing — skip frame
             }
 
-            var ecb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(World.Unmanaged);
 
             foreach (var (reqRef, entity) in
                 SystemAPI.Query<RefRO<SpawnProjectileRequest>>().WithEntityAccess())
@@ -66,9 +67,6 @@ namespace RareIcon
 
                 ecb.DestroyEntity(entity);
             }
-
-            ecb.Playback(EntityManager);
-            ecb.Dispose();
         }
 
         void Init()

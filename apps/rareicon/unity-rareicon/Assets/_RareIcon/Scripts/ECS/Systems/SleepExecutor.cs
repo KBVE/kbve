@@ -1,66 +1,84 @@
-using Unity.Collections;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Executor for ReliefKind.Sleep — while a unit is on a Capital-claimed hex with the Sleep intent, apply SleepingTag and drain Fatigue rapidly; remove the tag once rested.</summary>
+    /// <summary>Executor for ReliefKind.Sleep — on a Capital-claimed hex with Sleep intent, apply SleepingTag and drain Fatigue; remove the tag once rested. Async ECB via EndSimulationEntityCommandBufferSystem.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(ConsumeFoodExecutor))]
-    public partial class SleepExecutor : SystemBase
+    public partial struct SleepExecutor : ISystem
+    {
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            if (!HexHoverSystem.HexLookup.IsCreated) return;
+            if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
+
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
+
+            state.Dependency = new SleepJob
+            {
+                Dt                = SystemAPI.Time.DeltaTime,
+                Capital           = capital,
+                HexLookup         = HexHoverSystem.HexLookup,
+                HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
+                SleepingLookup    = SystemAPI.GetComponentLookup<SleepingTag>(true),
+                Ecb               = ecb.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
+        }
+    }
+
+    [BurstCompile]
+    public partial struct SleepJob : IJobEntity
     {
         const float SleepDrainPerSec = 20f;
         const float WakeThreshold    = 1f;
 
-        protected override void OnUpdate()
+        public float  Dt;
+        public Entity Capital;
+
+        [Unity.Collections.ReadOnly] public NativeHashMap<int2, Entity>  HexLookup;
+        [Unity.Collections.ReadOnly] public ComponentLookup<HexOccupant> HexOccupantLookup;
+        [Unity.Collections.ReadOnly] public ComponentLookup<SleepingTag> SleepingLookup;
+
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity entity,
+                     [ChunkIndexInQuery] int chunkIdx,
+                     ref Fatigue fatigue,
+                     in ReliefIntent intent,
+                     in UnitMovement movement)
         {
-            float dt = SystemAPI.Time.DeltaTime;
+            bool alreadySleeping = SleepingLookup.HasComponent(entity);
+            bool wantsSleep      = intent.Kind == ReliefKind.Sleep;
+            bool atCapital       = IsOnCapitalHex(movement.CurrentHex);
 
-            var hexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(isReadOnly: true);
-            var buildingLookup    = SystemAPI.GetComponentLookup<Building>(isReadOnly: true);
-
-            var ecb = new EntityCommandBuffer(Allocator.Temp);
-            var em = EntityManager;
-
-            foreach (var (fatigueRef, intentRef, movement, entity) in
-                SystemAPI.Query<RefRW<Fatigue>, RefRO<ReliefIntent>, RefRO<UnitMovement>>().WithEntityAccess())
+            if (wantsSleep && atCapital)
             {
-                var intent = intentRef.ValueRO;
-                bool alreadySleeping = em.HasComponent<SleepingTag>(entity);
+                if (!alreadySleeping) Ecb.AddComponent<SleepingTag>(chunkIdx, entity);
 
-                bool wantsSleep = intent.Kind == ReliefKind.Sleep;
-                bool atCapital  = IsOnCapitalHex(movement.ValueRO.CurrentHex, hexOccupantLookup, buildingLookup);
+                fatigue.Value = math.max(0f, fatigue.Value - SleepDrainPerSec * Dt);
 
-                if (wantsSleep && atCapital)
-                {
-                    if (!alreadySleeping) ecb.AddComponent<SleepingTag>(entity);
-
-                    var f = fatigueRef.ValueRO;
-                    f.Value = math.max(0f, f.Value - SleepDrainPerSec * dt);
-                    fatigueRef.ValueRW = f;
-
-                    if (f.Value <= WakeThreshold && alreadySleeping)
-                        ecb.RemoveComponent<SleepingTag>(entity);
-                    continue;
-                }
-
-                if (alreadySleeping)
-                    ecb.RemoveComponent<SleepingTag>(entity);
+                if (fatigue.Value <= WakeThreshold && alreadySleeping)
+                    Ecb.RemoveComponent<SleepingTag>(chunkIdx, entity);
+                return;
             }
 
-            ecb.Playback(em);
-            ecb.Dispose();
+            if (alreadySleeping)
+                Ecb.RemoveComponent<SleepingTag>(chunkIdx, entity);
         }
 
-        static bool IsOnCapitalHex(int2 hex,
-                                   ComponentLookup<HexOccupant> hexOccupantLookup,
-                                   ComponentLookup<Building> buildingLookup)
+        bool IsOnCapitalHex(int2 hex)
         {
-            if (!HexHoverSystem.TryGetHexEntity(hex, out var tile)) return false;
-            if (!hexOccupantLookup.HasComponent(tile)) return false;
-            var b = hexOccupantLookup[tile].Building;
-            if (!buildingLookup.HasComponent(b)) return false;
-            return buildingLookup[b].Type == BuildingType.Capital;
+            if (!HexLookup.TryGetValue(hex, out var tile)) return false;
+            if (!HexOccupantLookup.HasComponent(tile)) return false;
+            return HexOccupantLookup[tile].Building == Capital;
         }
     }
 }

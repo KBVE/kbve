@@ -44,7 +44,8 @@ namespace RareIcon
             }
 
             var em  = EntityManager;
-            var ecb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(World.Unmanaged);
 
             // GlobalMessagePipe lazily — provider is set by RootLifetimeScope.Awake
             // which fires after our OnCreate but before any player click could
@@ -72,9 +73,6 @@ namespace RareIcon
                 }
                 ecb.DestroyEntity(reqEntity);
             }
-
-            ecb.Playback(em);
-            ecb.Dispose();
         }
 
         // Returns true on success (footprint claimed, building entity

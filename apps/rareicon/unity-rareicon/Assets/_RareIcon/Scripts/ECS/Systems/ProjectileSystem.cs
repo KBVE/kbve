@@ -1,38 +1,39 @@
 using Unity.Burst;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>Advances projectile positions and ticks lifetime. On Arrow/Bolt expiry the entity converts in-place to a GroundArrow (strip Projectile + Velocity, add GroundArrow) so Looter-priority units can reclaim it; other projectile types just destroy.</summary>
+    /// <summary>Advances projectiles and ticks lifetime. On Arrow/Bolt expiry converts in place to GroundArrow; other types destroy. ECB plays back via EndSimulationEntityCommandBufferSystem.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(MovementSystemGroup))]
-    public partial class ProjectileSystem : SystemBase
+    public partial struct ProjectileSystem : ISystem
     {
         const float GroundArrowLifetimeSec = 300f;
 
-        protected override void OnCreate() => RequireForUpdate<Projectile>();
+        [BurstCompile]
+        public void OnCreate(ref SystemState state) => state.RequireForUpdate<Projectile>();
 
-        protected override void OnUpdate()
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
             float abs = 0f;
             if (SystemAPI.TryGetSingleton<WorldClock>(out var clock))
                 abs = clock.AbsSeconds;
 
-            var ecb = new EntityCommandBuffer(Allocator.TempJob);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
 
-            Dependency = new ProjectileTickJob
+            state.Dependency = new ProjectileTickJob
             {
-                Dt     = SystemAPI.Time.DeltaTime,
-                AbsNow = abs,
+                Dt             = SystemAPI.Time.DeltaTime,
+                AbsNow         = abs,
                 GroundLifetime = GroundArrowLifetimeSec,
-                Ecb    = ecb.AsParallelWriter(),
-            }.ScheduleParallel(Dependency);
-
-            Dependency.Complete();
-            ecb.Playback(EntityManager);
-            ecb.Dispose();
+                Ecb            = ecb.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
         }
     }
 
@@ -63,16 +64,13 @@ namespace RareIcon
 
             if (reclaimable)
             {
-                // Convert in place — removes the moving-projectile components
-                // so ProjectileSystem stops iterating this entity, but keeps
-                // render + transform + visual properties so the sprite stays
-                // where it landed.
                 Ecb.RemoveComponent<Projectile>(chunkIdx, entity);
                 Ecb.RemoveComponent<ProjectileVelocity>(chunkIdx, entity);
                 Ecb.AddComponent(chunkIdx, entity, new GroundArrow
                 {
                     SpawnedAtAbsSeconds = AbsNow,
                     DespawnAtAbsSeconds = AbsNow + GroundLifetime,
+                    ClaimedBy           = Entity.Null,
                 });
                 return;
             }

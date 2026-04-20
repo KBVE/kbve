@@ -30,7 +30,8 @@ namespace RareIcon
             if (SystemAPI.TryGetSingleton<WorldClock>(out var clock))
                 absSeconds = clock.AbsSeconds;
 
-            var ecb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(World.Unmanaged);
 
             foreach (var (reqRef, entity) in
                 SystemAPI.Query<RefRO<SpawnBloodDecalRequest>>().WithEntityAccess())
@@ -49,9 +50,6 @@ namespace RareIcon
                 ecb.SetComponent(decal, new BloodDecalFadeVisual { Value = 1f });
                 ecb.DestroyEntity(entity);
             }
-
-            ecb.Playback(EntityManager);
-            ecb.Dispose();
         }
 
         void Init()
