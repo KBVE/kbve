@@ -25,7 +25,6 @@ namespace RareIcon
                      SystemAPI.Query<RefRO<UnitMovement>, RefRO<Faction>>().WithEntityAccess())
             {
                 if (faction.ValueRO.Value != FactionType.Player) continue;
-                if (!invLookup.HasBuffer(entity)) continue;
                 hexBuckets.Add(movement.ValueRO.CurrentHex, entity);
             }
 
