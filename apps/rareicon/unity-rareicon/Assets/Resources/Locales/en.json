@@ -106,6 +106,7 @@
 	"building.farm": "Farm",
 	"building.barracks": "Barracks",
 	"building.furnace": "Furnace",
+	"building.goblin_cave": "Goblin Cave",
 	"building.unknown": "Building",
 	"palette.title": "Build",
 	"palette.cancel": "Cancel",
