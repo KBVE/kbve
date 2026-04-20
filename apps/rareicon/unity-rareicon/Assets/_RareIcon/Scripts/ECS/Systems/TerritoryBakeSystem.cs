@@ -65,7 +65,12 @@ namespace RareIcon
             state.Dependency = emitters.Dispose(state.Dependency);
         }
 
-        static int HashEmitters(ref SystemState state)
+        // Non-static on purpose: SystemAPI.Query is rewritten by the ISystem
+        // source generator into instance-field reads (__TypeHandle /
+        // __query_*), so it can only live on an instance method that sees
+        // `this`. Called from OnUpdate above.
+        [BurstCompile]
+        int HashEmitters(ref SystemState state)
         {
             int h = 17;
             foreach (var e in SystemAPI.Query<RefRO<TerritoryEmitter>>())

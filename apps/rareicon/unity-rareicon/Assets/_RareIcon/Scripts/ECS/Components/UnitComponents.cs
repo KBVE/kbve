@@ -70,6 +70,24 @@ namespace RareIcon
         public int2 Hex;
     }
 
+    /// <summary>Unit is resident inside Host building — hidden via DisableRendering, excluded from movement / collision / command queries until released. State (HP, inventory, stats) stays intact on the entity.</summary>
+    public struct ShelteredInside : IComponentData
+    {
+        public Entity Host;
+    }
+
+    /// <summary>Transient ECS request — published by UI ("Send Out" button on the Capital inspector) and consumed by ShelterSystem, which releases every ShelteredInside unit pointing at Host and destroys this entity.</summary>
+    public struct ReleaseShelterRequest : IComponentData
+    {
+        public Entity Host;
+    }
+
+    /// <summary>Records the unit's WanderStep at the moment it was released from shelter — ShelterSystem refuses to re-shelter until the step advances (i.e., the unit has actually walked somewhere), so "Send Out" isn't cancelled by the next frame's auto-shelter pass.</summary>
+    public struct ShelterCooldown : IComponentData
+    {
+        public uint WanderStepAtRelease;
+    }
+
     /// <summary>Per-unit identity + currently-equipped loadout. Source of truth for the shader — EquipmentVisualMirrorSystem pushes these slots to UnitXVisual each tick.</summary>
     public struct Unit : IComponentData
     {

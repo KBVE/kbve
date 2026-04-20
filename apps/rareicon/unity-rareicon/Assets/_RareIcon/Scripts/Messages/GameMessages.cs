@@ -2,8 +2,6 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    // -- Scene --
-
     public readonly struct SceneLoadRequestMessage
     {
         public readonly string SceneName;
@@ -15,8 +13,6 @@ namespace RareIcon
         public readonly string SceneName;
         public SceneLoadedMessage(string sceneName) => SceneName = sceneName;
     }
-
-    // -- Player --
 
     public readonly struct PlayerDamagedMessage
     {

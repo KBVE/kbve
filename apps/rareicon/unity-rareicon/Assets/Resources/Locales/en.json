@@ -144,6 +144,7 @@
 	"ui.jump_to": "Jump To",
 	"ui.possess": "Possess",
 	"ui.controlling": "Controlling",
+	"inspector.release_king": "Send King Out",
 	"hud.god_view": "God View",
 	"hud.release": "Release",
 	"hex.coord": "Hex",

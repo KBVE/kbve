@@ -117,6 +117,7 @@
 	"ui.jump_to": "ジャンプ",
 	"ui.possess": "操作",
 	"ui.controlling": "操作中",
+	"inspector.release_king": "王様を外へ送る",
 	"hud.god_view": "神視点",
 	"hud.release": "解放",
 	"hex.coord": "座標",

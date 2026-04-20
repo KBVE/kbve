@@ -16,23 +16,15 @@ namespace RareIcon
         public readonly int R;
         public readonly byte BiomeId;
         public readonly bool IsLand;
-        // Each hex carries multiple resources at once. 0 means "not present".
         public readonly byte Wood, Stone, Berries, Mushrooms, Herbs;
         public readonly byte Cactus;
         public readonly byte CactusVariant;
-        // UnitType.* of any creature standing on this hex (0 = none).
         public readonly byte UnitType;
-        // Unit stats — Max=0 means the unit doesn't carry that stat (the
-        // HUD hides the line entirely). Floats so partially-filled bars are
-        // exact (no rounding when displayed).
         public readonly float UnitHealth,  UnitMaxHealth;
         public readonly float UnitEnergy,  UnitMaxEnergy;
         public readonly float UnitMana,    UnitMaxMana;
         public readonly float UnitHunger,  UnitMaxHunger;
         public readonly float UnitFatigue, UnitMaxFatigue;
-        // First 4 inventory slots from the hovered unit. ItemId == 0 means
-        // empty. Goblin inventories are typically 1-3 stack types so 4 is
-        // generous; truncated by HexHoverSystem if the unit carries more.
         public readonly ushort UnitInvId0, UnitInvCount0;
         public readonly ushort UnitInvId1, UnitInvCount1;
         public readonly ushort UnitInvId2, UnitInvCount2;
@@ -82,8 +74,6 @@ namespace RareIcon
         }
     }
 
-    // -- Hex interactions --
-
     public readonly struct HexClickedMessage
     {
         public readonly int Q;
@@ -114,8 +104,6 @@ namespace RareIcon
         }
     }
 
-    // -- Panel visibility --
-
     public readonly struct PanelShowMessage
     {
         public readonly string PanelKey;
@@ -127,8 +115,6 @@ namespace RareIcon
         public readonly string PanelKey;
         public PanelHideMessage(string panelKey) => PanelKey = panelKey;
     }
-
-    // -- Toast notifications --
 
     /// <summary>Severity of a toast — drives the panel border tint.</summary>
     public enum ToastKind : byte

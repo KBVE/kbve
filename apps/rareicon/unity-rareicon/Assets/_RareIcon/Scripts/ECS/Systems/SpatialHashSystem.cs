@@ -21,10 +21,16 @@ namespace RareIcon
             Hash = new NativeParallelMultiHashMap<int, HashedTarget>(
                 1024, Allocator.Persistent);
 
-            _query = GetEntityQuery(
-                ComponentType.ReadOnly<LocalTransform>(),
-                ComponentType.ReadOnly<Faction>(),
-                ComponentType.ReadOnly<Collidable>());
+            _query = GetEntityQuery(new EntityQueryDesc
+            {
+                All = new[]
+                {
+                    ComponentType.ReadOnly<LocalTransform>(),
+                    ComponentType.ReadOnly<Faction>(),
+                    ComponentType.ReadOnly<Collidable>(),
+                },
+                None = new[] { ComponentType.ReadOnly<ShelteredInside>() },
+            });
             RequireForUpdate(_query);
 
             // Publish a singleton mirror so Burst-compiled ISystems can read
@@ -41,8 +47,6 @@ namespace RareIcon
 
         protected override void OnUpdate()
         {
-            // Pre-size the map so the parallel writer can never run out
-            // of capacity mid-write (that would corrupt the bucket list).
             int count = _query.CalculateEntityCount();
             if (Hash.Capacity < count * 2)
                 Hash.Capacity = count * 2;
@@ -83,6 +87,7 @@ namespace RareIcon
 
     /// <summary>Per-unit hash insert. Runs in parallel across all Collidable entities — lock-free because NativeParallelMultiHashMap's parallel writer serialises via atomics on each bucket head.</summary>
     [BurstCompile]
+    [WithNone(typeof(ShelteredInside))]
     public partial struct BuildHashJob : IJobEntity
     {
         public NativeParallelMultiHashMap<int, HashedTarget>.ParallelWriter Writer;

@@ -43,7 +43,9 @@ namespace RareIcon
                          RefRW<LocalTransform>,
                          RefRW<UnitMovement>,
                          RefRW<UnitFacingVisual>,
-                         RefRW<UnitMovingVisual>>().WithEntityAccess())
+                         RefRW<UnitMovingVisual>>()
+                              .WithNone<ShelteredInside>()
+                              .WithEntityAccess())
             {
                 // ---- 1. Dwelling (post-arrival pause) ----
                 float dwell = movement.ValueRO.DwellTimer;

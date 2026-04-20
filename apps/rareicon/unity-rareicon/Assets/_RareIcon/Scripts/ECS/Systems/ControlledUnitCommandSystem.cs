@@ -62,22 +62,20 @@ namespace RareIcon
             if (arr.Length == 0)
             {
                 arr.Dispose();
-                return; // god view — no unit currently controlled
+                return;
             }
 
-            // ControlledUnitTag should only be on one entity; if there's
-            // somehow more than one, the first wins. The router has already
-            // verified land + no-building + no-possess-target, so this
-            // handler can blindly trust the message.
             var unit = arr[0];
+            arr.Dispose();
+
+            if (EntityManager.HasComponent<ShelteredInside>(unit)) return;
+
             EntityManager.SetComponentData(unit, new MovementGoal
             {
                 Kind      = GoalKind.MoveToHex,
                 Priority  = GoalPriority.Order,
                 TargetHex = new int2(msg.Q, msg.R),
             });
-
-            arr.Dispose();
         }
     }
 }
