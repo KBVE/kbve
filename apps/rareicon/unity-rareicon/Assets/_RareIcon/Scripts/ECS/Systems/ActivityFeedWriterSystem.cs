@@ -1,69 +1,51 @@
-using Unity.Burst;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
 
 namespace RareIcon
 {
-    /// <summary>Pure-Burst per-tick activity classifier for Player units. Walks the (ReliefIntent → JobIntent → MovementGoal) chain to derive an ActivityKind, compares against ActivityState.LastKind, and only enqueues a snapshot when the kind changed (delta-only). Scheduled last in BehaviorSystemGroup via UpdateAfter on every goal-producing system so the read sees this tick's settled state. Single-threaded schedule because UnsafeRingQueue.TryEnqueue isn't thread-safe and player-unit counts (16-200) make a parallel split pointless overhead.</summary>
-    [BurstCompile]
+    /// <summary>Per-tick activity classifier for Player units. Walks the (ReliefIntent → JobIntent → MovementGoal) chain, derives an ActivityKind, and pushes a delta-only snapshot straight into ActivityFeedService. Main-thread SystemBase — player-unit counts (16-200) make the managed path free, and it sidesteps the UnsafeRingQueue cross-copy hazard the previous ring-queue design hit.</summary>
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(JobMovementExecutor))]
     [UpdateAfter(typeof(WanderBehaviorSystem))]
     [UpdateAfter(typeof(ReturnToBaseSystem))]
-    public partial struct ActivityFeedWriterSystem : ISystem
+    public partial class ActivityFeedWriterSystem : SystemBase
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
-
-        [BurstCompile]
-        public void OnUpdate(ref SystemState state)
+        protected override void OnUpdate()
         {
-            if (!SystemAPI.TryGetSingleton<ActivityFeedSingleton>(out var feed)) return;
-            if (!feed.Queue.IsCreated) return;
+            var service = ActivityFeedBridge.Source;
+            if (service == null) return;
 
-            new WriteJob { Queue = feed.Queue }.Schedule();
-        }
-    }
-
-    /// <summary>Per-entity classifier — single-threaded so the un-thread-safe UnsafeRingQueue.TryEnqueue stays sound. Touches ActivityState writeably (one byte update on transition) and emits to the queue only on delta.</summary>
-    [WithAll(typeof(JobPriorities))]
-    public partial struct WriteJob : IJobEntity
-    {
-        public UnsafeRingQueue<ActivitySnapshot> Queue;
-
-        void Execute(Entity entity,
-                     ref ActivityState state,
-                     in JobIntent jobIntent,
-                     in ReliefIntent reliefIntent,
-                     in MovementGoal movementGoal)
-        {
-            byte kind = Classify(in reliefIntent, in jobIntent, in movementGoal);
-            if (kind == state.LastKind) return;
-
-            state.LastKind = kind;
-
-            int2 targetHex = jobIntent.TargetHex;
-            if (math.all(targetHex == int2.zero) && movementGoal.Kind != GoalKind.None)
-                targetHex = movementGoal.TargetHex;
-
-            bool queueAlive = Queue.IsCreated;
-            bool ok = queueAlive && Queue.TryEnqueue(new ActivitySnapshot
+            foreach (var (stateRW, jobIntent, reliefIntent, goal, entity) in
+                     SystemAPI.Query<
+                         RefRW<ActivityState>,
+                         RefRO<JobIntent>,
+                         RefRO<ReliefIntent>,
+                         RefRO<MovementGoal>>()
+                              .WithAll<JobPriorities>()
+                              .WithEntityAccess())
             {
-                Entity       = entity,
-                Kind         = kind,
-                TargetHex    = targetHex,
-                TargetItemId = 0,
-            });
+                byte kind = Classify(
+                    reliefIntent.ValueRO,
+                    jobIntent.ValueRO,
+                    goal.ValueRO);
 
-            Debug.Log($"[WriteJob] entity={entity.Index} kind={kind} queueAlive={queueAlive} enqueueOk={ok}");
+                if (kind == stateRW.ValueRO.LastKind) continue;
+                stateRW.ValueRW.LastKind = kind;
+
+                int2 targetHex = jobIntent.ValueRO.TargetHex;
+                if (math.all(targetHex == int2.zero) && goal.ValueRO.Kind != GoalKind.None)
+                    targetHex = goal.ValueRO.TargetHex;
+
+                service.Push(new ActivitySnapshot
+                {
+                    Entity       = entity,
+                    Kind         = kind,
+                    TargetHex    = targetHex,
+                    TargetItemId = 0,
+                });
+            }
         }
 
-        // Priority: Relief beats Job beats Movement. Mirrors the dispatch
-        // order ReliefSystem / JobSystem / WanderBehaviorSystem already
-        // enforce on the goal pipeline — keeps the surfaced activity
-        // matching what the unit is actually about to do this tick.
         static byte Classify(in ReliefIntent relief, in JobIntent job, in MovementGoal goal)
         {
             switch (relief.Kind)
