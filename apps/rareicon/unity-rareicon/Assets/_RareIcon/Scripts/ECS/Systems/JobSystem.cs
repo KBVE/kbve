@@ -176,6 +176,14 @@ namespace RareIcon
             // ticks — the per-unit loop short-circuits for queue-empty
             // units in those frames.
             var offers = new NativeList<TaskOffer>(doFullDispatch ? 256 : 0, Allocator.Temp);
+            var offersPerKind = new NativeArray<int>(12, Allocator.Temp);
+            var activePerKind = new NativeArray<int>(12, Allocator.Temp);
+            foreach (var jobRO in SystemAPI.Query<RefRO<JobIntent>>().WithAll<JobPriorities>())
+            {
+                byte ak = jobRO.ValueRO.Kind;
+                if (ak < activePerKind.Length) activePerKind[ak]++;
+            }
+
             if (doFullDispatch)
             {
                 foreach (var (resRO, coordRO) in
@@ -213,6 +221,30 @@ namespace RareIcon
                 if (hasCapital)
                     offers.Add(new TaskOffer { Kind = JobKind.Chef, Variant = OfferVariant.Default, Hex = capitalHex, Target = capital });
 
+                foreach (var (barrackBuilding, barrackEntity) in
+                         SystemAPI.Query<RefRO<Building>>().WithAll<BarracksTag>().WithEntityAccess())
+                {
+                    offers.Add(new TaskOffer
+                    {
+                        Kind    = JobKind.Craftsman,
+                        Variant = OfferVariant.Default,
+                        Hex     = barrackBuilding.ValueRO.RootHex,
+                        Target  = barrackEntity,
+                    });
+                }
+
+                foreach (var (furnaceBuilding, furnaceEntity) in
+                         SystemAPI.Query<RefRO<Building>>().WithAll<FurnaceTag>().WithEntityAccess())
+                {
+                    offers.Add(new TaskOffer
+                    {
+                        Kind    = JobKind.Blacksmith,
+                        Variant = OfferVariant.Default,
+                        Hex     = furnaceBuilding.ValueRO.RootHex,
+                        Target  = furnaceEntity,
+                    });
+                }
+
                 for (int ci = 0; ci < needyCaves.Length; ci++)
                     offers.Add(new TaskOffer { Kind = JobKind.Looter, Variant = OfferVariant.LooterDeliver, Hex = needyCaves[ci].Hex, Target = needyCaves[ci].Entity });
 
@@ -224,6 +256,12 @@ namespace RareIcon
                     var t  = EntityManager.GetComponentData<LocalTransform>(groundArrows[ai]);
                     var ah = HexMeshUtil.WorldToHex(t.Position.x, t.Position.y, 0.25f);
                     offers.Add(new TaskOffer { Kind = JobKind.Looter, Variant = OfferVariant.LooterArrow, Hex = ah, Target = groundArrows[ai] });
+                }
+
+                for (int oi = 0; oi < offers.Length; oi++)
+                {
+                    byte ok = offers[oi].Kind;
+                    if (ok < offersPerKind.Length) offersPerKind[ok]++;
                 }
             }
 
@@ -359,6 +397,13 @@ namespace RareIcon
                     long score = (long)prio * PriorityWeight - (long)dist;
                     if (offer.Target != Entity.Null && offer.Target == currentTarget)
                         score += HysteresisBonus;
+                    if (offer.Kind < offersPerKind.Length)
+                    {
+                        int oN = offersPerKind[offer.Kind];
+                        int aN = activePerKind[offer.Kind];
+                        float pressure = (float)(oN + 1) / (float)(aN + 1);
+                        score += (long)(math.log(1f + pressure) * 30f);
+                    }
 
                     if (score > bestScore)
                     {
@@ -468,6 +513,8 @@ namespace RareIcon
             }
 
             offers.Dispose();
+            offersPerKind.Dispose();
+            activePerKind.Dispose();
             friendlyEmitters.Dispose();
             needyCaves.Dispose();
         }
@@ -511,6 +558,8 @@ namespace RareIcon
                 case JobKind.Builder:
                     return variant == OfferVariant.BuilderDamaged ? SearchRadius * 2 : int.MaxValue;
                 case JobKind.Chef:
+                case JobKind.Craftsman:
+                case JobKind.Blacksmith:
                     return int.MaxValue;
                 case JobKind.Looter:
                     if (variant == OfferVariant.LooterArrow)  return SearchRadius * 2;
@@ -623,14 +672,22 @@ namespace RareIcon
         void LogDispatchDiagnostic()
         {
             int totalUnits = 0, reliefBlocked = 0, controlled = 0, kindNone = 0;
-            var jobKindCounts = new int[10];
-            var lastKindCounts = new int[20];
-
-            int goalNone = 0, goalMoveToHex = 0, goalWander = 0, goalOther = 0;
+            var jobKindCounts  = new int[14];
+            var lastKindCounts = new int[24];
+            var goalKindCounts = new int[8];
+            var goalPrioBuckets = new int[6];
             int movementIdle = 0, movementStepping = 0, movementDwelling = 0;
+            int queueEmpty = 0, queueActive = 0, queuePending = 0, queueInvalid = 0, queueCompleted = 0;
+            int atTargetHarvestReady = 0, atTargetBlocked = 0, committedButIdle = 0;
 
-            foreach (var (jobIntent, reliefIntent, state, goal, movement, entity) in
-                     SystemAPI.Query<RefRO<JobIntent>, RefRO<ReliefIntent>, RefRO<ActivityState>, RefRO<MovementGoal>, RefRO<UnitMovement>>().WithEntityAccess())
+            foreach (var (jobIntent, reliefIntent, state, goal, movement, tasksRef, entity) in
+                     SystemAPI.Query<
+                         RefRO<JobIntent>,
+                         RefRO<ReliefIntent>,
+                         RefRO<ActivityState>,
+                         RefRO<MovementGoal>,
+                         RefRO<UnitMovement>,
+                         DynamicBuffer<TaskMemory>>().WithEntityAccess())
             {
                 totalUnits++;
                 if (reliefIntent.ValueRO.Kind != ReliefKind.None) reliefBlocked++;
@@ -644,25 +701,63 @@ namespace RareIcon
                 if (lk < lastKindCounts.Length) lastKindCounts[lk]++;
 
                 byte gk = goal.ValueRO.Kind;
-                if (gk == GoalKind.None) goalNone++;
-                else if (gk == GoalKind.MoveToHex) goalMoveToHex++;
-                else if (gk == GoalKind.Wander) goalWander++;
-                else goalOther++;
+                if (gk < goalKindCounts.Length) goalKindCounts[gk]++;
+
+                byte gp = goal.ValueRO.Priority;
+                if (gp == 0) goalPrioBuckets[0]++;
+                else if (gp <= 10) goalPrioBuckets[1]++;
+                else if (gp <= 30) goalPrioBuckets[2]++;
+                else if (gp <= 40) goalPrioBuckets[3]++;
+                else if (gp <= 50) goalPrioBuckets[4]++;
+                else               goalPrioBuckets[5]++;
 
                 var m = movement.ValueRO;
+                bool isIdle = !(m.DwellTimer > 0f) && m.TargetHex.Equals(m.CurrentHex);
                 if (m.DwellTimer > 0f) movementDwelling++;
-                else if (m.TargetHex.Equals(m.CurrentHex)) movementIdle++;
+                else if (isIdle) movementIdle++;
                 else movementStepping++;
+
+                var tasks = tasksRef;
+                if (tasks.Length == 0) queueEmpty++;
+                else
+                {
+                    byte st = tasks[0].State;
+                    if (st == TaskState.Active)      queueActive++;
+                    else if (st == TaskState.Pending) queuePending++;
+                    else if (st == TaskState.Invalidated) queueInvalid++;
+                    else if (st == TaskState.Completed)   queueCompleted++;
+                }
+
+                bool committed = tasks.Length > 0 && tasks[0].State == TaskState.Active;
+                bool atTarget  = k != JobKind.None && math.all(jobIntent.ValueRO.TargetHex == m.CurrentHex);
+                if (atTarget)
+                {
+                    if (m.HarvestCooldown <= 0f) atTargetHarvestReady++;
+                    else atTargetBlocked++;
+                }
+                if (committed && isIdle && !atTarget) committedButIdle++;
             }
 
-            Debug.Log($"[JobSystem diag] units={totalUnits} relief={reliefBlocked} controlled={controlled} " +
-                      $"jobIntent: None={kindNone} Lumberjack={jobKindCounts[2]} Miner={jobKindCounts[3]} " +
-                      $"Guard={jobKindCounts[4]} Looter={jobKindCounts[5]} Farmer={jobKindCounts[6]} Builder={jobKindCounts[7]} Chef={jobKindCounts[8]} Hunter={jobKindCounts[9]} " +
-                      $"| activityLastKind: None={lastKindCounts[0]} Idle={lastKindCounts[1]} Wandering={lastKindCounts[2]} MovingToOrder={lastKindCounts[3]} " +
-                      $"Eating={lastKindCounts[5]} Foraging={lastKindCounts[9]} Lumberjacking={lastKindCounts[10]} Mining={lastKindCounts[11]} " +
-                      $"Traveling={lastKindCounts[18]} " +
-                      $"| goalKind: None={goalNone} MoveToHex={goalMoveToHex} Wander={goalWander} Other={goalOther} " +
-                      $"| movement: idle={movementIdle} stepping={movementStepping} dwelling={movementDwelling}");
+            Debug.Log(
+                $"[JobSystem diag] units={totalUnits} relief={reliefBlocked} controlled={controlled}\n" +
+                $"  jobIntent:  None={kindNone} Lumberjack={jobKindCounts[JobKind.Lumberjack]} Miner={jobKindCounts[JobKind.Miner]} " +
+                $"Guard={jobKindCounts[JobKind.Guard]} Looter={jobKindCounts[JobKind.Looter]} Farmer={jobKindCounts[JobKind.Farmer]} " +
+                $"Builder={jobKindCounts[JobKind.Builder]} Chef={jobKindCounts[JobKind.Chef]} Hunter={jobKindCounts[JobKind.Hunter]} " +
+                $"Blacksmith={jobKindCounts[JobKind.Blacksmith]} Craftsman={jobKindCounts[JobKind.Craftsman]}\n" +
+                $"  activity:   None={lastKindCounts[0]} Idle={lastKindCounts[1]} Wandering={lastKindCounts[2]} MovingToOrder={lastKindCounts[3]} " +
+                $"Sleeping={lastKindCounts[4]} Eating={lastKindCounts[5]} Healing={lastKindCounts[6]} ReturningToBase={lastKindCounts[7]} " +
+                $"SeekingAid={lastKindCounts[8]} Foraging={lastKindCounts[9]} Lumberjacking={lastKindCounts[10]} Mining={lastKindCounts[11]} " +
+                $"Hunting={lastKindCounts[12]} Looting={lastKindCounts[13]} Farming={lastKindCounts[14]} Building={lastKindCounts[15]} " +
+                $"Cooking={lastKindCounts[16]} Guarding={lastKindCounts[17]} Traveling={lastKindCounts[18]} " +
+                $"Crafting={lastKindCounts[19]} Smithing={lastKindCounts[20]}\n" +
+                $"  goalKind:   None={goalKindCounts[GoalKind.None]} MoveToHex={goalKindCounts[GoalKind.MoveToHex]} " +
+                $"ReturnToBase={goalKindCounts[GoalKind.ReturnToBase]} Wander={goalKindCounts[GoalKind.Wander]} " +
+                $"Hunt={goalKindCounts[GoalKind.Hunt]} Flee={goalKindCounts[GoalKind.Flee]} Follow={goalKindCounts[GoalKind.Follow]}\n" +
+                $"  goalPrio:   None={goalPrioBuckets[0]} Wander<=10={goalPrioBuckets[1]} Harvest<=30={goalPrioBuckets[2]} " +
+                $"Hunt<=40={goalPrioBuckets[3]} Return<=50={goalPrioBuckets[4]} Order+={goalPrioBuckets[5]}\n" +
+                $"  movement:   idle={movementIdle} stepping={movementStepping} dwelling={movementDwelling}\n" +
+                $"  queue:      empty={queueEmpty} active={queueActive} pending={queuePending} invalidated={queueInvalid} completed={queueCompleted}\n" +
+                $"  harvest:    atTarget_ready={atTargetHarvestReady} atTarget_cooling={atTargetBlocked} committed_but_idle={committedButIdle}");
         }
     }
 }
