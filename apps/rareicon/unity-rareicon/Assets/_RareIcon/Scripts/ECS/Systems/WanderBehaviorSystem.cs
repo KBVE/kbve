@@ -4,7 +4,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Rolls a random 3–5 hex MovementGoal for any unit idle at Wander priority.</summary>
+    /// <summary>Rolls a random 3–5 hex MovementGoal for idle wildlife / beasts. Player units are excluded — Jobs / Relief / ReturnToBase / Shelter own their motion; a workerless goblin idles in place.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     public partial struct WanderBehaviorSystem : ISystem
@@ -25,13 +25,16 @@ namespace RareIcon
         }
     }
 
-    // ControlledUnitTag excluded — whichever unit the player is driving
-    // (King by default, or any possessed goblin) stays at rest until the
-    // player issues a click order. Every other unit with MovementGoal +
-    // UnitMovement wanders by default.
+    // Wander is wildlife / beast only. Player units (anything with
+    // JobPriorities) stay put when idle — Jobs / Relief / ReturnToBase
+    // / Shelter cover every legitimate "do something" path, and an
+    // aimless goblin drifting across the map reads as broken, not
+    // bored. ControlledUnitTag + GarrisonPost filters stay for the
+    // remaining wildlife archetypes (future tamed / posted beasts).
     [BurstCompile]
     [WithNone(typeof(ControlledUnitTag))]
     [WithNone(typeof(GarrisonPost))]
+    [WithNone(typeof(JobPriorities))]
     public partial struct WanderJob : IJobEntity
     {
         void Execute(ref MovementGoal goal, ref UnitMovement m)

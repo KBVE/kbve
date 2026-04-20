@@ -67,13 +67,19 @@ namespace RareIcon
         public ushort Count;
     }
 
-    /// <summary>Per-farm sheltered-livestock entry; one per species currently in residence. LastProducedTurn is the WorldClock.TurnIndex of the last output.</summary>
+    /// <summary>Per-farm sheltered-livestock entry; one per species currently in residence. LastProducedTurn is the WorldClock.TurnIndex of the last output. Kept for future fungible residents (bees, pond fish) — livestock (chicken / cow / sheep) now live as individual sheltered entities with a LivestockProduction component.</summary>
     [InternalBufferCapacity(4)]
     public struct FarmLivestock : IBufferElementData
     {
         public byte   UnitType;
         public ushort Count;
         public uint   LastProducedTurn;
+    }
+
+    /// <summary>Per-animal production cadence state for sheltered livestock. Species + output + cadence are derived from Unit.Type at iteration time; only the turn-stamp needs to persist per entity.</summary>
+    public struct LivestockProduction : IComponentData
+    {
+        public uint LastProducedTurn;
     }
 
     /// <summary>Marker tag for Barracks buildings — recruitment system query key.</summary>

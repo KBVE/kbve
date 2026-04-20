@@ -5,10 +5,12 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Pure-Burst per-tick activity classifier for Player units. Walks the (ReliefIntent → JobIntent → MovementGoal) chain to derive an ActivityKind, compares against ActivityState.LastKind, and only enqueues a snapshot when the kind changed (delta-only). Runs after JobMovementExecutor so the JobIntent + MovementGoal we read reflect this tick's decisions, not last tick's. Single-threaded schedule because UnsafeRingQueue.TryEnqueue isn't thread-safe and player-unit counts (16-200) make a parallel split pointless overhead.</summary>
+    /// <summary>Pure-Burst per-tick activity classifier for Player units. Walks the (ReliefIntent → JobIntent → MovementGoal) chain to derive an ActivityKind, compares against ActivityState.LastKind, and only enqueues a snapshot when the kind changed (delta-only). Scheduled last in BehaviorSystemGroup via UpdateAfter on every goal-producing system so the read sees this tick's settled state. Single-threaded schedule because UnsafeRingQueue.TryEnqueue isn't thread-safe and player-unit counts (16-200) make a parallel split pointless overhead.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(JobMovementExecutor))]
+    [UpdateAfter(typeof(WanderBehaviorSystem))]
+    [UpdateAfter(typeof(ReturnToBaseSystem))]
     public partial struct ActivityFeedWriterSystem : ISystem
     {
         [BurstCompile] public void OnCreate(ref SystemState state) { }
@@ -85,10 +87,19 @@ namespace RareIcon
                 case JobKind.Chef:       return ActivityKind.Cooking;
             }
 
-            if (goal.Kind == GoalKind.MoveToHex)
+            switch (goal.Kind)
             {
-                if (goal.Priority == GoalPriority.Order) return ActivityKind.MovingToOrder;
-                if (goal.Priority == GoalPriority.Wander) return ActivityKind.Wandering;
+                case GoalKind.MoveToHex:
+                    return goal.Priority == GoalPriority.Order
+                        ? ActivityKind.MovingToOrder
+                        : ActivityKind.Wandering;
+                case GoalKind.Wander:
+                case GoalKind.Follow:
+                    return ActivityKind.Wandering;
+                case GoalKind.ReturnToBase:
+                    return ActivityKind.ReturningToBase;
+                case GoalKind.Hunt:
+                    return ActivityKind.Hunting;
             }
 
             return ActivityKind.Idle;

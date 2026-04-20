@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Rendering;
 using Unity.Transforms;
 
 namespace RareIcon
@@ -90,7 +92,8 @@ namespace RareIcon
 
             foreach (var (ownerRef, goalRW, movement) in
                      SystemAPI.Query<RefRO<OwnerRef>, RefRW<MovementGoal>, RefRO<UnitMovement>>()
-                              .WithAll<TamedTag>())
+                              .WithAll<TamedTag>()
+                              .WithNone<ShelteredInside>())
             {
                 var owner = ownerRef.ValueRO.Value;
                 if (owner == Entity.Null || !movementLookup.HasComponent(owner)) continue;
@@ -109,10 +112,13 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Tamed animal standing on a Farm hex collapses into the farm's FarmLivestock buffer: destroy entity, increment count, stamp LastProducedTurn so it doesn't produce until the next eligible cadence.</summary>
+    /// <summary>Tamed animal standing on a Farm hex shelters into it: ShelteredInside + DisableRendering + LivestockProduction. Per-animal Entity + state (HP, name, lineage) persists for future breeding / release. Cap counted via sheltered entities pointing at each farm.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial class FarmDepositSystem : SystemBase
     {
+        readonly Dictionary<Entity, int>           _livestockPerFarm = new();
+        readonly List<(Entity Animal, Entity Farm)> _toShelter       = new();
+
         protected override void OnUpdate()
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
@@ -120,13 +126,19 @@ namespace RareIcon
 
             var hexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(isReadOnly: true);
             var buildingLookup    = SystemAPI.GetComponentLookup<Building>(isReadOnly: true);
-            var livestockLookup   = SystemAPI.GetBufferLookup<FarmLivestock>(isReadOnly: false);
 
-            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            _livestockPerFarm.Clear();
+            foreach (var shelter in SystemAPI.Query<RefRO<ShelteredInside>>())
+            {
+                var host = shelter.ValueRO.Host;
+                _livestockPerFarm[host] = _livestockPerFarm.TryGetValue(host, out var c) ? c + 1 : 1;
+            }
 
-            foreach (var (movement, unit, entity) in
-                     SystemAPI.Query<RefRO<UnitMovement>, RefRO<Unit>>()
+            _toShelter.Clear();
+            foreach (var (movement, entity) in
+                     SystemAPI.Query<RefRO<UnitMovement>>()
                               .WithAll<PassiveAnimalTag, TamedTag>()
+                              .WithNone<ShelteredInside>()
                               .WithEntityAccess())
             {
                 var hex = movement.ValueRO.CurrentHex;
@@ -136,99 +148,95 @@ namespace RareIcon
                 Entity building = hexOccupantLookup[tile].Building;
                 if (!buildingLookup.HasComponent(building)) continue;
                 if (buildingLookup[building].Type != BuildingType.Farm) continue;
-                if (!livestockLookup.HasBuffer(building)) continue;
 
-                var buf = livestockLookup[building];
-                int total = 0;
-                for (int i = 0; i < buf.Length; i++) total += buf[i].Count;
-                if (total >= FarmRanchConfig.LivestockCapPerFarm) continue;
+                int count = _livestockPerFarm.TryGetValue(building, out var c) ? c : 0;
+                if (count >= FarmRanchConfig.LivestockCapPerFarm) continue;
 
-                byte species = unit.ValueRO.Type;
-                int idx = -1;
-                for (int i = 0; i < buf.Length; i++)
-                {
-                    if (buf[i].UnitType == species) { idx = i; break; }
-                }
-                if (idx >= 0)
-                {
-                    var slot = buf[idx];
-                    slot.Count = (ushort)(slot.Count + 1);
-                    buf[idx] = slot;
-                }
-                else
-                {
-                    buf.Add(new FarmLivestock
-                    {
-                        UnitType         = species,
-                        Count            = 1,
-                        LastProducedTurn = currentTurn,
-                    });
-                }
-
-                ecb.DestroyEntity(entity);
+                _toShelter.Add((entity, building));
+                _livestockPerFarm[building] = count + 1;
             }
 
-            ecb.Playback(EntityManager);
-            ecb.Dispose();
+            for (int i = 0; i < _toShelter.Count; i++)
+            {
+                var animal = _toShelter[i].Animal;
+                var farm   = _toShelter[i].Farm;
+                EntityManager.AddComponentData(animal, new ShelteredInside { Host = farm });
+                EntityManager.AddComponent<DisableRendering>(animal);
+                EntityManager.AddComponentData(animal, new LivestockProduction
+                {
+                    LastProducedTurn = currentTurn,
+                });
+            }
         }
     }
 
-    /// <summary>Turn-cadence livestock production: Chicken+Cow every 2 turns, Sheep every 10; food-gated on the farm's Carrot reserve.</summary>
+    /// <summary>Per-animal turn-cadence production: Chicken+Cow every 2 turns (Egg / Milk), Sheep every 10 (Wool). Each cycle consumes 1 Carrot from the host farm's FarmStorage and emits 1 output; if no carrots, the animal's LastProducedTurn stays put so it catches up when feed returns.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(FarmDepositSystem))]
     public partial class FarmLivestockProductionSystem : SystemBase
     {
+        readonly Dictionary<Entity, List<Entity>> _animalsByFarm = new();
+
         protected override void OnUpdate()
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
             uint currentTurn = SystemAPI.GetSingleton<WorldClock>().TurnIndex;
 
-            foreach (var (livestockRO, storageRO) in
-                     SystemAPI.Query<DynamicBuffer<FarmLivestock>, DynamicBuffer<FarmStorage>>()
-                              .WithAll<FarmTag>())
+            _animalsByFarm.Clear();
+            foreach (var (shelter, entity) in
+                     SystemAPI.Query<RefRO<ShelteredInside>>()
+                              .WithAll<LivestockProduction>()
+                              .WithEntityAccess())
             {
-                // Shadow the foreach iter vars into plain locals — DynamicBuffer
-                // wraps a pointer so the copies alias the same backing data,
-                // but C# lets us pass them ref / mutate indexers.
-                var livestock = livestockRO;
-                var storage   = storageRO;
-
-                for (int i = 0; i < livestock.Length; i++)
+                var host = shelter.ValueRO.Host;
+                if (!_animalsByFarm.TryGetValue(host, out var list))
                 {
-                    var entry = livestock[i];
-                    if (entry.Count == 0) continue;
+                    list = new List<Entity>();
+                    _animalsByFarm[host] = list;
+                }
+                list.Add(entity);
+            }
 
-                    if (!TryProduce(entry, currentTurn,
-                                    out ushort outputId, out ushort outputCount, out uint turnsElapsed))
-                        continue;
+            var storageLookup = SystemAPI.GetBufferLookup<FarmStorage>(false);
+            var unitLookup    = SystemAPI.GetComponentLookup<Unit>(true);
+            var prodLookup    = SystemAPI.GetComponentLookup<LivestockProduction>(false);
 
-                    if (!TryConsume(ref storage, (ushort)ItemId.Carrot, entry.Count)) continue;
+            foreach (var kv in _animalsByFarm)
+            {
+                var farm = kv.Key;
+                if (!storageLookup.HasBuffer(farm)) continue;
+                var storage = storageLookup[farm];
 
-                    AddStorage(ref storage, outputId, (ushort)(outputCount * entry.Count));
-                    entry.LastProducedTurn += turnsElapsed;
-                    livestock[i] = entry;
+                var animals = kv.Value;
+                for (int i = 0; i < animals.Count; i++)
+                {
+                    var animal = animals[i];
+                    if (!unitLookup.HasComponent(animal) || !prodLookup.HasComponent(animal)) continue;
+
+                    byte species = unitLookup[animal].Type;
+                    if (!TryGetRecipe(species, out ushort outputId, out uint cadence)) continue;
+
+                    var prod = prodLookup[animal];
+                    if (currentTurn < prod.LastProducedTurn + cadence) continue;
+
+                    if (!TryConsume(ref storage, (ushort)ItemId.Carrot, 1)) continue;
+                    AddStorage(ref storage, outputId, 1);
+
+                    prod.LastProducedTurn += cadence;
+                    prodLookup[animal] = prod;
                 }
             }
         }
 
-        static bool TryProduce(FarmLivestock entry, uint currentTurn,
-                               out ushort outputId, out ushort outputCount, out uint turnsElapsed)
+        static bool TryGetRecipe(byte species, out ushort outputId, out uint cadence)
         {
-            outputId = 0; outputCount = 0; turnsElapsed = 0;
-            uint cadence;
-            switch (entry.UnitType)
+            switch (species)
             {
-                case UnitType.Chicken: outputId = (ushort)ItemId.Egg;  cadence = 2;  break;
-                case UnitType.Cow:     outputId = (ushort)ItemId.Milk; cadence = 2;  break;
-                case UnitType.Sheep:   outputId = (ushort)ItemId.Wool; cadence = 10; break;
-                default:                                                     return false;
+                case UnitType.Chicken: outputId = (ushort)ItemId.Egg;  cadence = 2;  return true;
+                case UnitType.Cow:     outputId = (ushort)ItemId.Milk; cadence = 2;  return true;
+                case UnitType.Sheep:   outputId = (ushort)ItemId.Wool; cadence = 10; return true;
+                default:               outputId = 0;                   cadence = 0;  return false;
             }
-
-            if (currentTurn < entry.LastProducedTurn + cadence) return false;
-            turnsElapsed = currentTurn - entry.LastProducedTurn;
-            outputCount = (ushort)(turnsElapsed / cadence);
-            turnsElapsed = outputCount * cadence;
-            return outputCount > 0;
         }
 
         static bool TryConsume(ref DynamicBuffer<FarmStorage> storage, ushort itemId, ushort amount)
