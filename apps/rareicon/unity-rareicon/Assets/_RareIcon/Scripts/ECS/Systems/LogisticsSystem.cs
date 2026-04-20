@@ -37,6 +37,7 @@ namespace RareIcon
     {
         EntityQuery _unitQuery;
         EntityQuery _buildingQuery;
+        EntityQuery _siteQuery;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state)
@@ -50,6 +51,10 @@ namespace RareIcon
             _buildingQuery = new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<Building>()
                 .WithNone<ConstructionSite>()
+                .Build(ref state);
+
+            _siteQuery = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<ConstructionSite>()
                 .Build(ref state);
         }
 
@@ -76,11 +81,13 @@ namespace RareIcon
 
             var units     = _unitQuery    .ToEntityArray(Allocator.TempJob);
             var buildings = _buildingQuery.ToEntityArray(Allocator.TempJob);
+            int siteCount = _siteQuery    .CalculateEntityCount();
 
             state.Dependency = new LogisticsCensusJob
             {
                 Units            = units,
                 Buildings        = buildings,
+                SiteCount        = siteCount,
                 FactionLookup    = SystemAPI.GetComponentLookup<Faction>(true),
                 BuildingLookup   = SystemAPI.GetComponentLookup<Building>(true),
                 PrioritiesLookup = SystemAPI.GetComponentLookup<JobPriorities>(false),
@@ -99,6 +106,8 @@ namespace RareIcon
     {
         [ReadOnly] public NativeArray<Entity> Units;
         [ReadOnly] public NativeArray<Entity> Buildings;
+
+        public int SiteCount;
 
         [ReadOnly] public ComponentLookup<Faction>  FactionLookup;
         [ReadOnly] public ComponentLookup<Building> BuildingLookup;
@@ -179,6 +188,17 @@ namespace RareIcon
                 else                                             unfillable  |= 1u << JobKind.Guard;
             }
 
+            // Builder keeps pace with open ConstructionSites — if there are
+            // more sites than Builders, promote one generalist each turn
+            // until the backlog is covered. BuildingStaffingSystem stamps a
+            // specialty Builder when the Capital lands, so tribes always
+            // start with at least one once construction's in flight.
+            if (SiteCount > builders)
+            {
+                if (TryPromote(pureLooters, JobKind.Builder))    { autoFilled |= 1u << JobKind.Builder; builders++; }
+                else                                             unfillable  |= 1u << JobKind.Builder;
+            }
+
             ReportLookup[ReportEntity] = new LogisticsReport
             {
                 LastCheckedTurn  = Turn,
@@ -213,16 +233,18 @@ namespace RareIcon
             return true;
         }
 
+        // "Promotable" = generalist still. The default goblin carries Looter +
+        // Lumberjack + Miner + Hunter, so those slots don't disqualify — only
+        // the specialty roles (Farmer / Chef / Guard / Builder) being set mean
+        // the goblin has already been dedicated by BuildingStaffingSystem or
+        // an earlier LogisticsSystem pass and shouldn't be re-promoted.
         static bool IsPureLooter(in JobPriorities p)
         {
             if (p.Looter == 0) return false;
-            return p.Lumberjack == 0
-                && p.Miner      == 0
-                && p.Guard      == 0
-                && p.Farmer     == 0
-                && p.Builder    == 0
-                && p.Chef       == 0
-                && p.Hunter     == 0;
+            return p.Farmer  == 0
+                && p.Chef    == 0
+                && p.Guard   == 0
+                && p.Builder == 0;
         }
     }
 

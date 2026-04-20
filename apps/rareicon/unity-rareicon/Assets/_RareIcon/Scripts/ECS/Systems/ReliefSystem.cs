@@ -13,6 +13,16 @@ namespace RareIcon
         public const float FatigueTrigger = 0.75f;
         public const float HealthTrigger  = 0.40f;
 
+        // Hysteresis exit thresholds. Once a unit starts a relief activity they
+        // stay in it until the underlying need drops below its exit threshold —
+        // otherwise sleep/eat/heal "complete" the moment they fall out of the
+        // trigger zone and the goblin walks away half-rested / half-fed. 15%
+        // residual means they actually finish the nap / meal / recovery instead
+        // of yo-yo-ing right back into Relief next tick.
+        public const float HungerExit  = 0.15f;
+        public const float FatigueExit = 0.15f;
+        public const float HealthLossExit = 0.15f;
+
         [BurstCompile] public void OnCreate(ref SystemState state) { }
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
@@ -68,20 +78,32 @@ namespace RareIcon
                 healthLoss = h.Max > 0f ? math.saturate(1f - h.Value / h.Max) : 0f;
             }
 
+            // Schmitt trigger: once Eat/Sleep/Heal is active, keep it active
+            // until the underlying need drops below the exit threshold, so the
+            // relief runs to completion instead of clicking off the moment the
+            // need dips under the entry trigger.
+            byte prev = intent.Kind;
+            bool eatActive   = (prev == ReliefKind.Eat   && hungerPct  > ReliefSystem.HungerExit)
+                             || hungerPct  > ReliefSystem.HungerTrigger;
+            bool sleepActive = (prev == ReliefKind.Sleep && fatiguePct > ReliefSystem.FatigueExit)
+                             || fatiguePct > ReliefSystem.FatigueTrigger;
+            bool healActive  = (prev == ReliefKind.Heal  && healthLoss > ReliefSystem.HealthLossExit)
+                             || healthLoss > (1f - ReliefSystem.HealthTrigger);
+
             byte  bestKind    = ReliefKind.None;
             float bestUrgency = 0f;
 
-            if (hungerPct > ReliefSystem.HungerTrigger && hungerPct > bestUrgency)
+            if (eatActive && hungerPct > bestUrgency)
             {
                 bestKind    = ReliefKind.Eat;
                 bestUrgency = hungerPct;
             }
-            if (fatiguePct > ReliefSystem.FatigueTrigger && fatiguePct > bestUrgency)
+            if (sleepActive && fatiguePct > bestUrgency)
             {
                 bestKind    = ReliefKind.Sleep;
                 bestUrgency = fatiguePct;
             }
-            if (healthLoss > (1f - ReliefSystem.HealthTrigger) && healthLoss > bestUrgency)
+            if (healActive && healthLoss > bestUrgency)
             {
                 bestKind    = ReliefKind.Heal;
                 bestUrgency = healthLoss;

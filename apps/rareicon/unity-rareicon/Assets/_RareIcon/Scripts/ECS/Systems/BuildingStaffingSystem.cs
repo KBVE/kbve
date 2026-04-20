@@ -126,16 +126,18 @@ namespace RareIcon
             }
         }
 
+        // "Promotable" = still a generalist. The default goblin carries
+        // Looter + Lumberjack + Miner + Hunter at low-to-mid priority, so
+        // those no longer block promotion; only the specialty roles
+        // (Farmer / Chef / Guard / Builder) being set mean this goblin
+        // has already been dedicated to something and shouldn't be poached.
         static bool IsPureLooter(in JobPriorities p)
         {
             if (p.Looter == 0) return false;
-            return p.Lumberjack == 0
-                && p.Miner      == 0
-                && p.Guard      == 0
-                && p.Farmer     == 0
-                && p.Builder    == 0
-                && p.Chef       == 0
-                && p.Hunter     == 0;
+            return p.Farmer  == 0
+                && p.Chef    == 0
+                && p.Guard   == 0
+                && p.Builder == 0;
         }
     }
 }

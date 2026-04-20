@@ -39,7 +39,12 @@ namespace RareIcon
     public partial struct SleepJob : IJobEntity
     {
         const float SleepDrainPerSec = 20f;
-        const float WakeThreshold    = 1f;
+        // Wake at 15% of Max — goblin's ~85% rested, matches the "don't over-nap"
+        // feel you get from sleeping until mostly-but-not-fully refreshed. Absolute
+        // threshold would pin every unit type to the same 1 fatigue no matter their
+        // MaxFatigue (goblin 100, knight 110, king 120), which reads as different
+        // rested levels per unit; ratio keeps the rested% consistent.
+        const float WakeThresholdPct = 0.15f;
 
         public float  Dt;
         public Entity Capital;
@@ -66,7 +71,7 @@ namespace RareIcon
 
                 fatigue.Value = math.max(0f, fatigue.Value - SleepDrainPerSec * Dt);
 
-                if (fatigue.Value <= WakeThreshold && alreadySleeping)
+                if (fatigue.Value <= fatigue.Max * WakeThresholdPct && alreadySleeping)
                     Ecb.RemoveComponent<SleepingTag>(chunkIdx, entity);
                 return;
             }
