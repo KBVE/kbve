@@ -163,4 +163,25 @@ namespace RareIcon
         public readonly int Q, R;
         public ControlledUnitMoveMessage(int q, int r) { Q = q; R = r; }
     }
+
+    // -- Selection (drag-select → bulk orders) --
+
+    /// <summary>"Drag completed" — world-space rect of the selection marquee. SelectionSystem re-tags every Player-faction unit inside with SelectedTag.</summary>
+    public readonly struct SelectionDragMessage
+    {
+        public readonly Unity.Mathematics.float2 MinWorld;
+        public readonly Unity.Mathematics.float2 MaxWorld;
+        public SelectionDragMessage(Unity.Mathematics.float2 minWorld, Unity.Mathematics.float2 maxWorld)
+        {
+            MinWorld = minWorld;
+            MaxWorld = maxWorld;
+        }
+    }
+
+    /// <summary>"Player clicked a hex while selection is non-empty" — SelectionMoveSystem spreads every SelectedTag unit into a ring formation around (Q,R).</summary>
+    public readonly struct SelectionMoveMessage
+    {
+        public readonly int Q, R;
+        public SelectionMoveMessage(int q, int r) { Q = q; R = r; }
+    }
 }

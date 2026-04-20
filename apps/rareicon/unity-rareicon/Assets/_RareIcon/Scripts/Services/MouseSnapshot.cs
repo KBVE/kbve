@@ -2,10 +2,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Immutable per-frame mouse snapshot. Produced by IMouseStateSource,
-    /// consumed by managed UI (via R3) and the ECS sync system.
-    /// </summary>
+    /// <summary>Immutable per-frame mouse snapshot. Produced by IMouseStateSource, consumed by managed UI (via R3) and the ECS sync system.</summary>
     public readonly struct MouseSnapshot
     {
         public readonly float2 ScreenPos;
@@ -16,6 +13,15 @@ namespace RareIcon
         public readonly bool LeftPressedThisFrame;
         public readonly bool LeftReleasedThisFrame;
 
+        // Drag tracking — a press that moves beyond DragThresholdPx while held
+        // becomes a drag. IsDragging stays true until release; DragStart/End
+        // fire exactly once per drag.
+        public readonly bool IsDragging;
+        public readonly bool DragStartedThisFrame;
+        public readonly bool DragEndedThisFrame;
+        public readonly float2 PressScreenPos;
+        public readonly float2 PressWorldPos;
+
         public MouseSnapshot(
             float2 screenPos,
             float2 worldPos,
@@ -23,7 +29,12 @@ namespace RareIcon
             bool hexChanged,
             bool overUI,
             bool leftPressedThisFrame,
-            bool leftReleasedThisFrame)
+            bool leftReleasedThisFrame,
+            bool isDragging,
+            bool dragStartedThisFrame,
+            bool dragEndedThisFrame,
+            float2 pressScreenPos,
+            float2 pressWorldPos)
         {
             ScreenPos = screenPos;
             WorldPos = worldPos;
@@ -32,12 +43,19 @@ namespace RareIcon
             OverUI = overUI;
             LeftPressedThisFrame = leftPressedThisFrame;
             LeftReleasedThisFrame = leftReleasedThisFrame;
+            IsDragging = isDragging;
+            DragStartedThisFrame = dragStartedThisFrame;
+            DragEndedThisFrame = dragEndedThisFrame;
+            PressScreenPos = pressScreenPos;
+            PressWorldPos = pressWorldPos;
         }
 
         public static MouseSnapshot Empty => new(
             float2.zero,
             float2.zero,
             new int2(int.MinValue, int.MinValue),
-            false, false, false, false);
+            false, false, false, false,
+            false, false, false,
+            float2.zero, float2.zero);
     }
 }

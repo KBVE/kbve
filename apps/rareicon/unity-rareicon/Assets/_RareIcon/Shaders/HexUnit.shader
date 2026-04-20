@@ -10,8 +10,10 @@ Shader "RareIcon/HexUnit"
         _UnitHelmet ("Unit Helmet (per-instance)", Float) = 0
         _UnitShield ("Unit Shield (per-instance)", Float) = 0
         _UnitMoving ("Unit Moving (per-instance, 0=idle 1=moving)", Float) = 1
+        _UnitSelected ("Unit Selected (per-instance, 0=no 1=yes)", Float) = 0
 
         _UnitPixelGrid ("Unit Pixel Grid", Float) = 16.0
+        _SelectionColor ("Selection Ring Color", Color) = (1.0, 0.83, 0.25, 1)
 
         // Goblin palette
         _GoblinSkin       ("Goblin Skin",        Color) = (0.32, 0.55, 0.22, 1)
@@ -139,7 +141,9 @@ Shader "RareIcon/HexUnit"
                 float _UnitHelmet;
                 float _UnitShield;
                 float _UnitMoving;
+                float _UnitSelected;
                 float _UnitPixelGrid;
+                float4 _SelectionColor;
                 float4 _GoblinSkin;
                 float4 _GoblinSkinShade;
                 float4 _GoblinEye;
@@ -207,14 +211,16 @@ Shader "RareIcon/HexUnit"
                 UNITY_DOTS_INSTANCED_PROP(float, _UnitHelmet)
                 UNITY_DOTS_INSTANCED_PROP(float, _UnitShield)
                 UNITY_DOTS_INSTANCED_PROP(float, _UnitMoving)
+                UNITY_DOTS_INSTANCED_PROP(float, _UnitSelected)
             UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
-            #define _UnitType   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitType)
-            #define _UnitFacing UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitFacing)
-            #define _UnitWeapon UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitWeapon)
-            #define _UnitHelmet UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitHelmet)
-            #define _UnitShield UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitShield)
-            #define _UnitMoving UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitMoving)
+            #define _UnitType     UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitType)
+            #define _UnitFacing   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitFacing)
+            #define _UnitWeapon   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitWeapon)
+            #define _UnitHelmet   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitHelmet)
+            #define _UnitShield   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitShield)
+            #define _UnitMoving   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitMoving)
+            #define _UnitSelected UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitSelected)
             #endif
 
             // Must match constants in UnitComponents.cs.
@@ -394,6 +400,27 @@ Shader "RareIcon/HexUnit"
                     if (helmet == HELMET_CAP)
                     {
                         DrawHelmet(color, alpha, helmetPx, helmetAnchor, helmetFacing);
+                    }
+                }
+
+                // -- 5. Selection ring — gold ellipse halo painted in the
+                //    quad's negative space (below the sprite) so a selected
+                //    unit reads as standing on a glowing disc. Skipped where
+                //    the sprite already covers the pixel so the creature
+                //    artwork always wins above the waist.
+                if (_UnitSelected > 0.5 && alpha < 0.05)
+                {
+                    float cx = grid * 0.5;
+                    float cy = grid * 0.15;  // near bottom of quad
+                    float rx = grid * 0.42;
+                    float ry = grid * 0.10;
+                    float2 d = float2((px.x + 0.5 - cx) / rx,
+                                      (px.y + 0.5 - cy) / ry);
+                    float rsq = dot(d, d);
+                    if (rsq > 0.55 && rsq < 1.10)
+                    {
+                        color = _SelectionColor.rgb;
+                        alpha = _SelectionColor.a;
                     }
                 }
 

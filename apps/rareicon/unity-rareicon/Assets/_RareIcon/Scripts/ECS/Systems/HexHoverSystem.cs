@@ -105,7 +105,10 @@ namespace RareIcon
 
             // Click detection — MouseStateSource gates OverUI based on press-time
             // capture, so a click that started over UI never publishes here.
-            if (mouse.LeftReleasedThisFrame && !mouse.OverUI)
+            // Drag gestures (marquee select) ALSO release the button — skip
+            // publishing HexClicked when DragEndedThisFrame; DragSelectInput
+            // handles those separately.
+            if (mouse.LeftReleasedThisFrame && !mouse.OverUI && !mouse.DragEndedThisFrame)
             {
                 bool clickIsLand = _hexLookup.TryGetValue(mouse.HexCoord, out Entity clickedEntity);
                 byte clickBiome = 0;

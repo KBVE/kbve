@@ -175,6 +175,13 @@ namespace RareIcon
         public float Value;
     }
 
+    /// <summary>Per-instance MaterialProperty mirroring <see cref="SelectedTag"/> into HexUnit.shader. The shader paints a gold ring at the unit's feet when Value > 0.5; SelectionVisualSystem writes 1 on units carrying SelectedTag and 0 otherwise every frame.</summary>
+    [MaterialProperty("_UnitSelected")]
+    public struct UnitSelectedVisual : IComponentData
+    {
+        public float Value;
+    }
+
     /// <summary>Tag for the spawn-system test goblin (cleanup later).</summary>
     public struct UnitTestTag : IComponentData { }
 

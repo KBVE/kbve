@@ -33,6 +33,14 @@ namespace RareIcon
             builder.RegisterMessageBroker<PossessUnitMessage>(options);
             builder.RegisterMessageBroker<ControlledUnitMoveMessage>(options);
 
+            // Drag-select — DragSelectInput publishes the world rect on
+            // drag end; SelectionController applies SelectedTag to units.
+            // AppStateController emits SelectionMoveMessage when a click
+            // lands while selection is non-empty; SelectionMoveHandler
+            // spreads the group into a ring around the target hex.
+            builder.RegisterMessageBroker<SelectionDragMessage>(options);
+            builder.RegisterMessageBroker<SelectionMoveMessage>(options);
+
             builder.RegisterBuildCallback(container =>
             {
                 GlobalMessagePipe.SetProvider(container.AsServiceProvider());
@@ -53,6 +61,13 @@ namespace RareIcon
             // entry points below.
             builder.RegisterEntryPoint<BuildInputSource>();
             builder.RegisterEntryPoint<BuildCommandHandler>();
+
+            // Selection pipeline — DragSelectInput listens to mouse drags
+            // and publishes the world rect; SelectionController tags units
+            // inside; SelectionMoveHandler consumes bulk move orders.
+            builder.RegisterEntryPoint<DragSelectInput>();
+            builder.RegisterEntryPoint<SelectionController>();
+            builder.RegisterEntryPoint<SelectionMoveHandler>();
             builder.Register<LocaleService>(Lifetime.Singleton);
             builder.Register<ActivityFeedService>(Lifetime.Singleton).AsSelf();
             builder.Register<InventoryService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
@@ -75,6 +90,10 @@ namespace RareIcon
             // -- Screen frame (root layout regions; mount FIRST so other
             //    panels can await its Ready and grab region refs) --
             builder.RegisterEntryPoint<ScreenFrameHost>().AsSelf();
+
+            // -- Drag-select marquee overlay (screen-space rect that
+            //    follows the cursor while the player is dragging) --
+            builder.RegisterEntryPoint<SelectionOverlay>().AsSelf();
 
             // -- Treasury panel (capital storage viewer) --
             builder.RegisterEntryPoint<UITreasury>().AsSelf();

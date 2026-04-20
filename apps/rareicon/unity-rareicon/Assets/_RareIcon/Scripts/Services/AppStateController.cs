@@ -36,6 +36,7 @@ namespace RareIcon
         readonly IPublisher<BuildingInspectMessage> _inspectPub;
         readonly IPublisher<PossessUnitMessage> _possessPub;
         readonly IPublisher<ControlledUnitMoveMessage> _movePub;
+        readonly IPublisher<SelectionMoveMessage> _selectionMovePub;
         readonly BuildModeController _buildMode;
 
         readonly ReactiveProperty<AppInterfaceState> _state = new(AppInterfaceState.Boot);
@@ -54,14 +55,16 @@ namespace RareIcon
             IPublisher<BuildingInspectMessage> inspectPub,
             IPublisher<PossessUnitMessage> possessPub,
             IPublisher<ControlledUnitMoveMessage> movePub,
+            IPublisher<SelectionMoveMessage> selectionMovePub,
             BuildModeController buildMode)
         {
-            _clickSub   = clickSub;
-            _enterSub   = enterSub;
-            _inspectPub = inspectPub;
-            _possessPub = possessPub;
-            _movePub    = movePub;
-            _buildMode  = buildMode;
+            _clickSub         = clickSub;
+            _enterSub         = enterSub;
+            _inspectPub       = inspectPub;
+            _possessPub       = possessPub;
+            _movePub          = movePub;
+            _selectionMovePub = selectionMovePub;
+            _buildMode        = buildMode;
         }
 
         public UniTask StartAsync(CancellationToken cancellation)
@@ -96,6 +99,16 @@ namespace RareIcon
             var world = World.DefaultGameObjectInjectionWorld;
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
+
+            // 0) Selection mode — if any units carry SelectedTag, the click
+            //    is a bulk move order and we short-circuit the single-unit
+            //    inspect/possess/move routing. Empty selection falls through
+            //    to the original god-view behavior.
+            if (msg.IsLand && HasSelection(em))
+            {
+                _selectionMovePub.Publish(new SelectionMoveMessage(msg.Q, msg.R));
+                return;
+            }
 
             // 1) Building? Hex tile entity carries HexOccupant pointing at
             //    the owning Building entity.
@@ -174,6 +187,12 @@ namespace RareIcon
         static bool HasControlledUnit(EntityManager em)
         {
             var query = em.CreateEntityQuery(ComponentType.ReadOnly<ControlledUnitTag>());
+            return query.CalculateEntityCount() > 0;
+        }
+
+        static bool HasSelection(EntityManager em)
+        {
+            var query = em.CreateEntityQuery(ComponentType.ReadOnly<SelectedTag>());
             return query.CalculateEntityCount() > 0;
         }
 
