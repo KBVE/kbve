@@ -5,22 +5,25 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Per-tile territory classifier. Runs on a 0.25s cadence (cheap distance-check job) and when the emitter set version changes. Writes TerritoryVisual.Value as 0 = outside, 1 = interior, 2 = edge (any neighbour outside).</summary>
+    /// <summary>Per-tile territory classifier. Event-driven: rebakes only when the emitter set changes (build/destroy/radius++) or the loaded tile count grows (chunk stream-in). No per-frame work on the steady-state — two ints compared per tick, then early-out.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateBefore(typeof(BehaviorSystemGroup))]
     public partial struct TerritoryBakeSystem : ISystem
     {
-        const float BakeInterval = 0.25f;
-
-        float _accum;
-        int   _lastEmitterHash;
+        int _lastEmitterHash;
+        int _lastTileCount;
+        EntityQuery _tileQuery;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            _accum = 0f;
             _lastEmitterHash = 0;
+            _lastTileCount   = 0;
+            _tileQuery = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<HexTileTag>()
+                .WithAll<TerritoryVisual>()
+                .Build(ref state);
         }
 
         [BurstCompile]
@@ -29,13 +32,23 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            _accum += SystemAPI.Time.DeltaTime;
             int emitterHash = HashEmitters(ref state);
-            bool emittersChanged = emitterHash != _lastEmitterHash;
-            if (!emittersChanged && _accum < BakeInterval) return;
+            int tileCount   = _tileQuery.CalculateEntityCount();
 
-            _accum = 0f;
+            // Bake only when something relevant actually changed. Territory
+            // geometry is static between emitter mutations and the byte we
+            // wrote last tick is still correct for every existing tile —
+            // the only reasons to redo the work are (a) a building was
+            // added/removed/expanded (emitter hash shifts), or (b) new
+            // chunks streamed in and their tiles are sitting at the default
+            // 0 waiting to be classified. A turn boundary doesn't change
+            // territory on its own, so we don't poll WorldClock here.
+            bool emittersChanged = emitterHash != _lastEmitterHash;
+            bool tilesChanged    = tileCount   != _lastTileCount;
+            if (!emittersChanged && !tilesChanged) return;
+
             _lastEmitterHash = emitterHash;
+            _lastTileCount   = tileCount;
 
             var emitters = new NativeList<TerritoryEmitter>(8, Allocator.TempJob);
             foreach (var e in SystemAPI.Query<RefRO<TerritoryEmitter>>())
