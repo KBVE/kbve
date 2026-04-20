@@ -26,6 +26,12 @@ namespace RareIcon
                 ComponentType.ReadOnly<Faction>(),
                 ComponentType.ReadOnly<Collidable>());
             RequireForUpdate(_query);
+
+            // Publish a singleton mirror so Burst-compiled ISystems can read
+            // the hash via SystemAPI.GetSingleton — state.World is managed
+            // and unreachable from Burst.
+            var singleton = EntityManager.CreateEntity(typeof(SpatialHashSingleton));
+            EntityManager.SetComponentData(singleton, new SpatialHashSingleton { Hash = Hash });
         }
 
         protected override void OnDestroy()
@@ -69,11 +75,13 @@ namespace RareIcon
         }
     }
 
-    /// <summary>
-    /// Per-unit hash insert. Runs in parallel across all Collidable
-    /// entities — lock-free because NativeParallelMultiHashMap's parallel
-    /// writer serialises via atomics on each bucket head.
-    /// </summary>
+    /// <summary>Singleton mirror of SpatialHashSystem.Hash; Burst ISystems read this via SystemAPI.GetSingleton since state.World is not Burst-accessible.</summary>
+    public struct SpatialHashSingleton : IComponentData
+    {
+        public NativeParallelMultiHashMap<int, HashedTarget> Hash;
+    }
+
+    /// <summary>Per-unit hash insert. Runs in parallel across all Collidable entities — lock-free because NativeParallelMultiHashMap's parallel writer serialises via atomics on each bucket head.</summary>
     [BurstCompile]
     public partial struct BuildHashJob : IJobEntity
     {

@@ -15,15 +15,15 @@ namespace RareIcon
 
         protected override void OnUpdate()
         {
-            var hashSys = World.GetExistingSystemManaged<SpatialHashSystem>();
-            if (hashSys == null || !hashSys.Hash.IsCreated) return;
+            if (!SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial)) return;
+            if (!spatial.Hash.IsCreated) return;
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(World.Unmanaged);
 
             Dependency = new CollisionJob
             {
-                Hash = hashSys.Hash,
+                Hash = spatial.Hash,
                 Ecb  = ecb.AsParallelWriter(),
             }.ScheduleParallel(Dependency);
         }

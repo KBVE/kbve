@@ -17,7 +17,7 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            if (!HexHoverSystem.HexLookup.IsCreated) return;
+            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookupSingleton)) return;
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
@@ -27,7 +27,7 @@ namespace RareIcon
             {
                 Dt                = SystemAPI.Time.DeltaTime,
                 Capital           = capital,
-                HexLookup         = HexHoverSystem.HexLookup,
+                HexLookup         = hexLookupSingleton.Lookup,
                 HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
                 SleepingLookup    = SystemAPI.GetComponentLookup<SleepingTag>(true),
                 Ecb               = ecb.AsParallelWriter(),

@@ -19,13 +19,13 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            if (!HexHoverSystem.HexLookup.IsCreated) return;
+            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookupSingleton)) return;
             float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
 
             state.Dependency = new BuildingRepairJob
             {
                 Now               = now,
-                HexLookup         = HexHoverSystem.HexLookup,
+                HexLookup         = hexLookupSingleton.Lookup,
                 HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
                 HealthLookup      = SystemAPI.GetComponentLookup<BuildingHealth>(false),
                 SiteLookup        = SystemAPI.GetComponentLookup<ConstructionSite>(true),

@@ -16,11 +16,11 @@ namespace RareIcon
 
         public void OnUpdate(ref SystemState state)
         {
-            if (!HexHoverSystem.HexLookup.IsCreated) return;
+            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookupSingleton)) return;
 
             state.Dependency = new HarvestJob
             {
-                HexLookup            = HexHoverSystem.HexLookup,
+                HexLookup            = hexLookupSingleton.Lookup,
                 HexResLookup         = SystemAPI.GetComponentLookup<HexResources>(false),
                 HexResVisualLookup   = SystemAPI.GetComponentLookup<HexResourceVisual>(false),
                 HexTreeVisualLookup  = SystemAPI.GetComponentLookup<HexTreeVisual>(false),

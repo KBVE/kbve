@@ -31,6 +31,18 @@ namespace RareIcon
             if (_initialized && _hexLookup.IsCreated) _hexLookup.Dispose();
             _hexLookup = new NativeHashMap<int2, Entity>(capacity, Allocator.Persistent);
             _initialized = true;
+
+            // Publish / refresh the singleton entity so Burst-compiled
+            // consumer systems can read the map via SystemAPI.GetSingleton,
+            // which is the only Burst-safe way to reach static data.
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            using var q = em.CreateEntityQuery(ComponentType.ReadWrite<HexLookupSingleton>());
+            Entity e = q.CalculateEntityCount() == 0
+                ? em.CreateEntity(typeof(HexLookupSingleton))
+                : q.GetSingletonEntity();
+            em.SetComponentData(e, new HexLookupSingleton { Lookup = _hexLookup });
         }
 
         public static void AddHex(int2 coord, Entity entity)
@@ -57,9 +69,6 @@ namespace RareIcon
             entity = default;
             return false;
         }
-
-        /// <summary>Handle to the hex lookup for Burst jobs; assert IsCreated before passing in.</summary>
-        public static NativeHashMap<int2, Entity> HexLookup => _hexLookup;
 
         public static void Cleanup()
         {
@@ -233,5 +242,11 @@ namespace RareIcon
             _overlayCreated = true;
             Debug.Log("[HexHoverSystem] Hover overlay entity created");
         }
+    }
+
+    /// <summary>Singleton mirror of HexHoverSystem's internal hex map; Burst-compiled systems read the NativeHashMap via SystemAPI.GetSingleton since static fields aren't Burst-accessible.</summary>
+    public struct HexLookupSingleton : IComponentData
+    {
+        public NativeHashMap<int2, Entity> Lookup;
     }
 }

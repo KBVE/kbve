@@ -5,7 +5,8 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Destroys buildings whose BuildingHealth hit 0 and releases HexOccupant on every footprint tile. Footprints are resolved on main thread into a NativeArray so the job doesn't touch BuildingDB's managed tables.</summary>
+    /// <summary>Destroys buildings whose BuildingHealth hit 0 and releases HexOccupant on every footprint tile. Filter + destroy happens in a Burst IJobEntity so the dependency chain handles sync with BuildingRepairSystem writes; no main-thread reads of BuildingHealth.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(CleanupSystemGroup))]
     [UpdateBefore(typeof(DeathCleanupSystem))]
     public partial struct BuildingDeathSystem : ISystem
@@ -15,78 +16,57 @@ namespace RareIcon
 
         public void OnUpdate(ref SystemState state)
         {
-            if (!HexHoverSystem.HexLookup.IsCreated) return;
-
-            // Resolve dead buildings + their footprint hexes on main thread
-            // (BuildingDB.GetFootprint returns a managed int2[]) so the job
-            // stays Burst-safe with a flat blittable buffer.
-            using var deadQuery = state.EntityManager.CreateEntityQuery(
-                ComponentType.ReadOnly<BuildingHealth>(),
-                ComponentType.ReadOnly<Building>());
-            using var candidates = deadQuery.ToEntityArray(Allocator.TempJob);
-
-            var hpLookup   = SystemAPI.GetComponentLookup<BuildingHealth>(true);
-            var buildLookup = SystemAPI.GetComponentLookup<Building>(true);
-
-            var deadEntities = new NativeList<Entity>(candidates.Length, Allocator.TempJob);
-            var deadHexes    = new NativeList<int2>(candidates.Length * 7, Allocator.TempJob);
-            for (int i = 0; i < candidates.Length; i++)
-            {
-                var e = candidates[i];
-                if (hpLookup[e].Value > 0) continue;
-                var b = buildLookup[e];
-                deadEntities.Add(e);
-
-                var footprint = BuildingDB.GetFootprint(b.Type);
-                for (int f = 0; f < footprint.Length; f++)
-                    deadHexes.Add(b.RootHex + footprint[f]);
-            }
-
-            if (deadEntities.Length == 0)
-            {
-                deadEntities.Dispose();
-                deadHexes.Dispose();
-                return;
-            }
+            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookupSingleton)) return;
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);
 
             state.Dependency = new BuildingDeathJob
             {
-                DeadEntities      = deadEntities.AsDeferredJobArray(),
-                DeadHexes         = deadHexes.AsDeferredJobArray(),
-                HexLookup         = HexHoverSystem.HexLookup,
+                HexLookup         = hexLookupSingleton.Lookup,
                 HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
-                Ecb               = ecb,
-            }.Schedule(state.Dependency);
-
-            state.Dependency = deadEntities.Dispose(state.Dependency);
-            state.Dependency = deadHexes.Dispose(state.Dependency);
+                Ecb               = ecb.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
         }
     }
 
     [BurstCompile]
-    public struct BuildingDeathJob : Unity.Jobs.IJob
+    public partial struct BuildingDeathJob : IJobEntity
     {
-        [ReadOnly] public NativeArray<Entity>           DeadEntities;
-        [ReadOnly] public NativeArray<int2>             DeadHexes;
         [ReadOnly] public NativeHashMap<int2, Entity>   HexLookup;
         [ReadOnly] public ComponentLookup<HexOccupant>  HexOccupantLookup;
 
-        public EntityCommandBuffer Ecb;
+        public EntityCommandBuffer.ParallelWriter Ecb;
 
-        public void Execute()
+        void Execute(Entity entity,
+                     [ChunkIndexInQuery] int chunkIdx,
+                     in BuildingHealth hp,
+                     in Building building)
         {
-            for (int i = 0; i < DeadEntities.Length; i++)
-                Ecb.DestroyEntity(DeadEntities[i]);
+            if (hp.Value > 0) return;
 
-            for (int i = 0; i < DeadHexes.Length; i++)
+            Ecb.DestroyEntity(chunkIdx, entity);
+
+            // Capital footprint is the 7-hex flower; every other building
+            // claims just its root hex. Hardcoded here because BuildingDB
+            // returns a managed int2[] that Burst can't reach.
+            FreeHex(chunkIdx, building.RootHex);
+            if (building.Type == BuildingType.Capital)
             {
-                if (!HexLookup.TryGetValue(DeadHexes[i], out var tile)) continue;
-                if (!HexOccupantLookup.HasComponent(tile)) continue;
-                Ecb.RemoveComponent<HexOccupant>(tile);
+                FreeHex(chunkIdx, building.RootHex + new int2( 1,  0));
+                FreeHex(chunkIdx, building.RootHex + new int2(-1,  0));
+                FreeHex(chunkIdx, building.RootHex + new int2( 0,  1));
+                FreeHex(chunkIdx, building.RootHex + new int2( 0, -1));
+                FreeHex(chunkIdx, building.RootHex + new int2( 1, -1));
+                FreeHex(chunkIdx, building.RootHex + new int2(-1,  1));
             }
+        }
+
+        void FreeHex(int chunkIdx, int2 hex)
+        {
+            if (!HexLookup.TryGetValue(hex, out var tile)) return;
+            if (!HexOccupantLookup.HasComponent(tile)) return;
+            Ecb.RemoveComponent<HexOccupant>(chunkIdx, tile);
         }
     }
 }

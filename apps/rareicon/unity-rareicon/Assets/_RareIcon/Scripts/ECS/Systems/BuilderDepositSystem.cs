@@ -18,12 +18,12 @@ namespace RareIcon
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
-            if (!HexHoverSystem.HexLookup.IsCreated) return;
+            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookupSingleton)) return;
 
             state.Dependency = new BuilderDepositJob
             {
                 Capital           = capital,
-                HexLookup         = HexHoverSystem.HexLookup,
+                HexLookup         = hexLookupSingleton.Lookup,
                 HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
                 InvLookup         = SystemAPI.GetBufferLookup<InventorySlot>(false),
                 MatLookup         = SystemAPI.GetBufferLookup<ConstructionMaterial>(false),

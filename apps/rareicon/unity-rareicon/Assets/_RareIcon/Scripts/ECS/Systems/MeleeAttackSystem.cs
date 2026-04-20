@@ -6,33 +6,39 @@ using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>Cooldown-gated melee strike. Scans SpatialHash for enemy units and a pre-baked building array for enemy buildings; nearest (biased by TargetMode) eats a DamageEvent. Async ECB via EndSimulationEntityCommandBufferSystem.</summary>
+    /// <summary>Cooldown-gated melee strike. SpatialHash feeds unit candidates; a per-frame NativeArray of building targets is staged on main thread so the Burst job can run over it without ComponentLookup per entity. Async ECB via EndSimulationEntityCommandBufferSystem.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(CombatSystemGroup))]
     [UpdateAfter(typeof(RangedAttackSystem))]
     public partial struct MeleeAttackSystem : ISystem
     {
+        EntityQuery _buildingQuery;
+
         [BurstCompile]
-        public void OnCreate(ref SystemState state) => state.RequireForUpdate<MeleeAttack>();
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<MeleeAttack>();
+            _buildingQuery = state.GetEntityQuery(
+                ComponentType.ReadOnly<Building>(),
+                ComponentType.ReadOnly<BuildingHealth>(),
+                ComponentType.ReadOnly<LocalTransform>());
+        }
 
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var hashSys = state.World.GetExistingSystemManaged<SpatialHashSystem>();
-            if (hashSys == null || !hashSys.Hash.IsCreated) return;
+            if (!SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial)) return;
+            if (!spatial.Hash.IsCreated) return;
 
-            // Pre-collect buildings once per frame (few entities) to keep the
-            // job's per-unit work trivial — pure distance checks against a
-            // flat array instead of per-entity ComponentLookup reads.
-            using var buildingQuery = state.EntityManager.CreateEntityQuery(
-                ComponentType.ReadOnly<Building>(),
-                ComponentType.ReadOnly<BuildingHealth>(),
-                ComponentType.ReadOnly<LocalTransform>());
-            using var buildingEntities = buildingQuery.ToEntityArray(Allocator.TempJob);
+            // Main-thread staging array is Allocator.Temp (auto-cleared at frame end);
+            // the TempJob copy that crosses into the parallel job is the only
+            // allocation that needs an explicit deferred dispose.
+            var buildingEntities = _buildingQuery.ToEntityArray(Allocator.Temp);
+            var buildingTargets  = new NativeArray<MeleeBuildingTarget>(
+                buildingEntities.Length, Allocator.TempJob);
 
-            var buildingTargets = new NativeArray<MeleeBuildingTarget>(buildingEntities.Length, Allocator.TempJob);
             var buildingLookup  = SystemAPI.GetComponentLookup<Building>(true);
             var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true);
             for (int i = 0; i < buildingEntities.Length; i++)
@@ -47,19 +53,19 @@ namespace RareIcon
                     Position     = new float2(t.Position.x, t.Position.y),
                 };
             }
+            buildingEntities.Dispose();
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);
 
             state.Dependency = new MeleeAttackJob
             {
-                Dt               = SystemAPI.Time.DeltaTime,
-                Hash             = hashSys.Hash,
-                BuildingTargets  = buildingTargets,
-                Ecb              = ecb.AsParallelWriter(),
+                Dt              = SystemAPI.Time.DeltaTime,
+                Hash            = spatial.Hash,
+                BuildingTargets = buildingTargets,
+                Ecb             = ecb.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
 
-            // Dispose deferred to job completion.
             state.Dependency = buildingTargets.Dispose(state.Dependency);
         }
     }

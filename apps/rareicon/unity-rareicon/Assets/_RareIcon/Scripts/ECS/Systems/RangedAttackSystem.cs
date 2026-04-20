@@ -17,12 +17,12 @@ namespace RareIcon
 
         protected override void OnUpdate()
         {
-            var hashSys = World.GetExistingSystemManaged<SpatialHashSystem>();
-            if (hashSys == null || !hashSys.Hash.IsCreated) return;
+            if (!SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial)) return;
+            if (!spatial.Hash.IsCreated) return;
 
             SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital);
 
-            var hash = hashSys.Hash;
+            var hash = spatial.Hash;
             float dt = SystemAPI.Time.DeltaTime;
             var ecb  = new EntityCommandBuffer(Allocator.Temp);
 

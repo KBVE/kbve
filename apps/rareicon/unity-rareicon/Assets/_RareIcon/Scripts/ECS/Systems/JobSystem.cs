@@ -14,7 +14,7 @@ namespace RareIcon
 
         protected override void OnUpdate()
         {
-            var hashSys = World.GetExistingSystemManaged<SpatialHashSystem>();
+            SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial);
             var hexResourceLookup = SystemAPI.GetComponentLookup<HexResources>(isReadOnly: true);
 
             bool hasCapital = SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital);
@@ -98,9 +98,9 @@ namespace RareIcon
                 TryRole(p.Miner,      JobKind.Miner,      HarvestRole.Miner,      currentHex,
                         hexResourceLookup, ref bestKind, ref bestPrio, ref bestDist, ref bestHex);
 
-                if (p.Archer > bestPrio && hashSys != null && hashSys.Hash.IsCreated)
+                if (p.Archer > bestPrio && spatial.Hash.IsCreated)
                 {
-                    if (TryFindHostile(hashSys.Hash, transform.ValueRO.Position,
+                    if (TryFindHostile(spatial.Hash, transform.ValueRO.Position,
                                        out var hostileHex, out var hostileEntity, out int hostileDist))
                     {
                         if (p.Archer > bestPrio || (p.Archer == bestPrio && hostileDist < bestDist))
