@@ -1,0 +1,215 @@
+/* =========================================================================
+   RareIcon — root design system
+   Tokens, layout primitives, panel chrome, buttons, lists, typography.
+   Per-panel stylesheets layer on top via <Style src="..." /> in UXML.
+   ========================================================================= */
+
+/* ----- Tokens (USS custom properties) ----- */
+:root {
+    --color-bg-page:    rgba(9, 9, 11, 0.92);
+    --color-bg-panel:   rgb(24, 24, 27);
+    --color-bg-muted:   rgb(39, 39, 42);
+    --color-bg-row:     rgba(255, 255, 255, 0);
+    --color-bg-row-hover:    rgba(255, 255, 255, 0.04);
+    --color-bg-row-selected: rgba(252, 211, 77, 0.10);
+
+    --color-border-subtle: rgb(63, 63, 70);
+    --color-border-accent: rgba(252, 211, 77, 0.45);
+    --color-border-strong: rgb(252, 211, 77);
+
+    --color-text-primary: rgb(252, 211, 77);
+    --color-text-strong:  rgb(253, 230, 138);
+    --color-text-muted:   rgba(252, 211, 77, 0.65);
+    --color-text-mute2:   rgb(113, 113, 122);
+    --color-text-on-gold: rgb(9, 9, 11);
+    --color-text-danger:  rgb(249, 115, 22);
+    --color-text-success: rgb(16, 185, 129);
+
+    --color-accent:       rgb(252, 211, 77);
+    --color-accent-deep:  rgb(245, 158, 11);
+
+    --space-xs: 2px;
+    --space-sm: 4px;
+    --space-md: 6px;
+    --space-lg: 8px;
+    --space-xl: 12px;
+
+    --font-tiny:    9px;
+    --font-body:   10px;
+    --font-bodylg: 11px;
+    --font-label:  12px;
+    --font-head:   13px;
+    --font-title:  15px;
+}
+
+/* ----- Layout primitives ----- */
+.row    { flex-direction: row; }
+.col    { flex-direction: column; }
+.grow   { flex-grow: 1; }
+.center { align-items: center; justify-content: center; }
+.between{ justify-content: space-between; }
+.middle { align-items: center; }
+.gap-xs { /* fallback gap; UIE uses 'gap' in newer versions */ }
+
+/* ----- Typography ----- */
+.text-tiny   { font-size: var(--font-tiny);   color: var(--color-text-muted); }
+.text-body   { font-size: var(--font-body);   color: var(--color-text-primary); }
+.text-bodylg { font-size: var(--font-bodylg); color: var(--color-text-primary); }
+.text-label  { font-size: var(--font-label);  color: var(--color-text-strong); -unity-font-style: bold; }
+.text-head   { font-size: var(--font-head);   color: var(--color-text-strong); -unity-font-style: bold; }
+.text-title  { font-size: var(--font-title);  color: var(--color-text-strong); -unity-font-style: bold; }
+.text-muted  { color: var(--color-text-muted); }
+.text-danger { color: var(--color-text-danger); }
+.text-deep   { color: var(--color-accent-deep); }
+
+/* ----- Panel chrome ----- */
+.panel {
+    background-color: var(--color-bg-page);
+    border-color:     var(--color-border-accent);
+    border-width:     1px;
+    border-radius:    0;
+    padding:          var(--space-md) var(--space-lg);
+    flex-direction:   column;
+}
+
+.panel--compact {
+    padding: var(--space-sm) var(--space-md);
+}
+
+/* Anchors */
+.anchor-tl { position: absolute; top:    2%; left:  2%; }
+.anchor-tr { position: absolute; top:    2%; right: 2%; }
+.anchor-bl { position: absolute; bottom: 2%; left:  2%; }
+.anchor-br { position: absolute; bottom: 2%; right: 2%; }
+
+/* Width tokens — pair min (px) + max (vw%) so panels grow with content
+   but cap on small viewports. */
+.w-narrow { min-width: 160px; max-width:  22%; }
+.w-std    { min-width: 200px; max-width:  26%; }
+.w-wide   { min-width: 240px; max-width:  32%; }
+.w-xwide  { min-width: 380px; max-width:  50%; }
+
+/* Height caps for togglable panels — paired with body scroll */
+.h-std    { max-height: 70%; }
+.h-tall   { max-height: 80%; }
+
+/* Below-stack offset — clears the always-on top-right HUD strip */
+.below-hud { margin-top: 110px; }
+
+/* Hidden / visible state for togglable panels */
+.is-hidden { display: none; }
+
+/* ----- Panel header (title row + close) ----- */
+.panel__header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+}
+.panel__title {
+    font-size: var(--font-title);
+    color: var(--color-text-strong);
+    -unity-font-style: bold;
+}
+.panel__strip {
+    height: 1px;
+    background-color: var(--color-accent);
+    margin-bottom: var(--space-sm);
+}
+.panel__body  { flex-grow: 1; }
+.panel__body--scroll { /* applied to ScrollView; lets it consume remaining height */ flex-grow: 1; }
+
+/* Close X button — square, no padding, transparent until hover */
+.btn-close {
+    width: 18px; height: 18px;
+    padding: 0;
+    margin: 0;
+    border-width: 1px;
+    border-color: var(--color-border-accent);
+    background-color: rgba(0, 0, 0, 0);
+    color: var(--color-text-strong);
+    font-size: var(--font-label);
+    -unity-font-style: bold;
+    border-radius: 0;
+    transition-duration: 0.12s;
+    transition-property: background-color, color;
+}
+.btn-close:hover {
+    background-color: var(--color-accent);
+    color: var(--color-text-on-gold);
+}
+
+/* ----- Buttons ----- */
+.btn {
+    padding: var(--space-sm) var(--space-lg);
+    margin: 0;
+    background-color: var(--color-bg-panel);
+    color: var(--color-accent);
+    border-width: 1px;
+    border-color: var(--color-accent);
+    border-radius: 0;
+    font-size: var(--font-label);
+    -unity-font-style: bold;
+    transition-duration: 0.12s;
+    transition-property: background-color, color, border-color;
+}
+.btn:hover {
+    background-color: var(--color-accent);
+    color: var(--color-text-on-gold);
+}
+.btn:active {
+    background-color: var(--color-accent-deep);
+    color: rgb(0, 0, 0);
+    border-color: var(--color-accent-deep);
+}
+.btn:disabled {
+    background-color: rgba(9, 9, 11, 0.92);
+    color: var(--color-text-mute2);
+    border-color: var(--color-border-subtle);
+}
+
+/* Compact button — toolbar / inline action sizes */
+.btn--sm {
+    padding: 0 var(--space-md);
+    height: 20px;
+    font-size: var(--font-body);
+}
+.btn--md {
+    height: 24px;
+    font-size: var(--font-label);
+    padding: 0 var(--space-lg);
+}
+
+/* ----- Toolbar (row of buttons sharing chrome) ----- */
+.toolbar {
+    flex-direction: row;
+    align-items: center;
+}
+.toolbar > .btn { margin-left: var(--space-sm); }
+.toolbar > .btn:nth-child(1) { margin-left: 0; }
+
+/* ----- List rows ----- */
+.list-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-xs);
+    background-color: var(--color-bg-row);
+    transition-duration: 0.10s;
+    transition-property: background-color;
+}
+.list-row--selectable:hover {
+    background-color: var(--color-bg-row-hover);
+}
+.list-row--selected {
+    background-color: var(--color-bg-row-selected);
+}
+
+/* Stacked rows (label / value on two lines instead of side-by-side) */
+.list-row--stacked {
+    flex-direction: column;
+    align-items: stretch;
+}
+</content>
+</invoke>
