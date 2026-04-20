@@ -198,6 +198,15 @@ Shader "RareIcon/HexTile"
                 // _CactusAmount) scales how dense its decoration cluster
                 // appears, so a near-depleted patch reads visually thinner
                 // than a freshly-rolled one.
+                //
+                // TODO: revisit the cluster-cap math in each Apply*. Currently
+                // all five include files use ceil(amount * N) which is
+                // conservative — a 5%-stocked tile still shows 1 of N. If
+                // playtest reads "near-depleted" tiles as too full, switch
+                // to floor() or shave the per-decoration thresholds (e.g.
+                // berries at amount > 0.15, mushrooms at > 0.2). Cactus
+                // already has a softer cliff via the showSidePads gate at
+                // amount > 0.5 — could be the template the others adopt.
                 int resMask = (int)(_ResourceType + 0.5);
                 float4 floorAmt = _FloorAmounts;
                 if (_FloorDensity > 0.001 && resMask != 0 && tileSeed < _FloorDensity)
