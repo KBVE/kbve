@@ -4,7 +4,7 @@
     <!-- Top-left toolbar -->
     <ui:VisualElement name="hud-toolbar" class="toolbar-pin">
         <ui:Button name="hud-search"   class="btn-tool first" text="Search" />
-        <ui:Button name="hud-build"    class="btn-tool"       text="Build" />
+        <ui:Button name="hud-build"    class="btn-tool"       text="⚒" />
         <ui:Button name="hud-king"     class="btn-tool"       text="King" />
         <ui:Button name="hud-treasury" class="btn-tool"       text="Treasury" />
         <ui:Button name="hud-citizens" class="btn-tool"       text="Citizens" />

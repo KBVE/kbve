@@ -151,7 +151,7 @@ namespace RareIcon
                 bool active = target != BuildTarget.None;
                 if (active) _buildBtn.AddToClassList("is-active");
                 else        _buildBtn.RemoveFromClassList("is-active");
-                _buildBtn.text = active ? "Build (on)" : "Build";
+                _buildBtn.text = "⚒";
             }).AddTo(_disposables);
         }
 
