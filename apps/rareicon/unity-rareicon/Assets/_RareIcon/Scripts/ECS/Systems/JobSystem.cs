@@ -413,8 +413,11 @@ namespace RareIcon
             var jobKindCounts = new int[10];
             var lastKindCounts = new int[17];
 
-            foreach (var (jobIntent, reliefIntent, state, entity) in
-                     SystemAPI.Query<RefRO<JobIntent>, RefRO<ReliefIntent>, RefRO<ActivityState>>().WithEntityAccess())
+            int goalNone = 0, goalMoveToHex = 0, goalWander = 0, goalOther = 0;
+            int movementIdle = 0, movementStepping = 0, movementDwelling = 0;
+
+            foreach (var (jobIntent, reliefIntent, state, goal, movement, entity) in
+                     SystemAPI.Query<RefRO<JobIntent>, RefRO<ReliefIntent>, RefRO<ActivityState>, RefRO<MovementGoal>, RefRO<UnitMovement>>().WithEntityAccess())
             {
                 totalUnits++;
                 if (reliefIntent.ValueRO.Kind != ReliefKind.None) reliefBlocked++;
@@ -426,13 +429,26 @@ namespace RareIcon
 
                 byte lk = state.ValueRO.LastKind;
                 if (lk < lastKindCounts.Length) lastKindCounts[lk]++;
+
+                byte gk = goal.ValueRO.Kind;
+                if (gk == GoalKind.None) goalNone++;
+                else if (gk == GoalKind.MoveToHex) goalMoveToHex++;
+                else if (gk == GoalKind.Wander) goalWander++;
+                else goalOther++;
+
+                var m = movement.ValueRO;
+                if (m.DwellTimer > 0f) movementDwelling++;
+                else if (m.TargetHex.Equals(m.CurrentHex)) movementIdle++;
+                else movementStepping++;
             }
 
             Debug.Log($"[JobSystem diag] units={totalUnits} relief={reliefBlocked} controlled={controlled} " +
                       $"jobIntent: None={kindNone} Forager={jobKindCounts[1]} Lumberjack={jobKindCounts[2]} Miner={jobKindCounts[3]} " +
                       $"Archer={jobKindCounts[4]} Looter={jobKindCounts[5]} Farmer={jobKindCounts[6]} Builder={jobKindCounts[7]} Chef={jobKindCounts[8]} Hunter={jobKindCounts[9]} " +
                       $"| activityLastKind: None={lastKindCounts[0]} Idle={lastKindCounts[1]} Wandering={lastKindCounts[2]} MovingToOrder={lastKindCounts[3]} " +
-                      $"Eating={lastKindCounts[5]} Foraging={lastKindCounts[9]} Lumberjacking={lastKindCounts[10]} Mining={lastKindCounts[11]}");
+                      $"Eating={lastKindCounts[5]} Foraging={lastKindCounts[9]} Lumberjacking={lastKindCounts[10]} Mining={lastKindCounts[11]} " +
+                      $"| goalKind: None={goalNone} MoveToHex={goalMoveToHex} Wander={goalWander} Other={goalOther} " +
+                      $"| movement: idle={movementIdle} stepping={movementStepping} dwelling={movementDwelling}");
         }
     }
 }
