@@ -65,9 +65,13 @@ namespace RareIcon
             byte bestPrio = 0;
             byte bestRole = (byte)HarvestRole.None;
 
-            if (priorities.Looter     > bestPrio && HasForagerWork(in res)) { bestPrio = priorities.Looter;     bestRole = (byte)HarvestRole.Forager; }
+            // Order matters — strict `>` makes the first-tested role win
+            // equal-priority ties. Lumber / Miner go first so a goblin
+            // standing on a mixed tree+berry hex (dispatched as a
+            // Lumberjack) actually chops wood instead of foraging air.
             if (priorities.Lumberjack > bestPrio && HasLumberWork(in res))  { bestPrio = priorities.Lumberjack; bestRole = (byte)HarvestRole.Lumberjack; }
             if (priorities.Miner      > bestPrio && res.Stone != 0)         { bestPrio = priorities.Miner;      bestRole = (byte)HarvestRole.Miner; }
+            if (priorities.Looter     > bestPrio && HasForagerWork(in res)) { bestPrio = priorities.Looter;     bestRole = (byte)HarvestRole.Forager; }
 
             byte xpKind = SkillKind.Foraging;
             bool harvested = false;
@@ -85,9 +89,24 @@ namespace RareIcon
                     break;
                 case HarvestRole.Lumberjack:
                     xpKind = SkillKind.Lumberjack;
-                    harvested = TryTakeResource(ref res.Leaves,    ResourceTag.Leaves,    unitType, inventory, bags)
-                             || TryTakeResource(ref res.Branches,  ResourceTag.Branches,  unitType, inventory, bags)
-                             || TryTakeResource(ref res.Wood,      ResourceTag.Wood,      unitType, inventory, bags);
+                    // Wood is the primary drop — every chop attempts it.
+                    // Leaves / Branches are byproducts rolled per-chop off
+                    // a hex+WanderStep seed (deterministic per unit per
+                    // arrival). A chop counts as harvested if any of the
+                    // three yielded, so depleted Wood still lets the unit
+                    // pick up lingering leaves/branches on later chops.
+                    uint lh = (uint)movement.CurrentHex.x * 0x9E3779B1u
+                            ^ (uint)movement.CurrentHex.y * 0x85EBCA77u
+                            ^ movement.WanderStep * 0x27D4EB2Fu;
+                    lh ^= lh >> 13; lh *= 0xC2B2AE3Du; lh ^= lh >> 16;
+                    float rollLeaves = (lh & 0xFFFFu) / 65535f;
+                    lh ^= lh >> 7; lh *= 0x85EBCA6Bu; lh ^= lh >> 16;
+                    float rollBranches = (lh & 0xFFFFu) / 65535f;
+
+                    bool gotWood     = TryTakeResource(ref res.Wood,     ResourceTag.Wood,     unitType, inventory, bags);
+                    bool gotLeaves   = rollLeaves   < 0.6f && TryTakeResource(ref res.Leaves,   ResourceTag.Leaves,   unitType, inventory, bags);
+                    bool gotBranches = rollBranches < 0.4f && TryTakeResource(ref res.Branches, ResourceTag.Branches, unitType, inventory, bags);
+                    harvested = gotWood | gotLeaves | gotBranches;
                     break;
                 case HarvestRole.Miner:
                     xpKind = SkillKind.Mining;

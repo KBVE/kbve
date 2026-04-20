@@ -60,7 +60,7 @@ namespace RareIcon
             }
 
             if (job.Kind != JobKind.None && !math.all(job.TargetHex == currentHex))
-                return ActivityKind.Wandering;
+                return ActivityKind.TravelingToWork;
 
             switch (job.Kind)
             {

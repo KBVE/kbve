@@ -558,6 +558,7 @@ namespace RareIcon
                 TargetHex    = default,
                 TargetEntity = Entity.Null,
             });
+            em.AddBuffer<TaskMemory>(entity);
             em.AddComponentData(entity, new Skills());
             em.AddComponentData(entity, new SkillXP());
 

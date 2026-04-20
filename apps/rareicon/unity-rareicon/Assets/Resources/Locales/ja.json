@@ -126,6 +126,7 @@
 	"activity.building": "建設・修理中",
 	"activity.cooking": "調理中",
 	"activity.guarding": "警備中",
+	"activity.traveling_to_work": "仕事へ向かう中",
 	"ui.jump_to": "ジャンプ",
 	"ui.possess": "操作",
 	"ui.controlling": "操作中",

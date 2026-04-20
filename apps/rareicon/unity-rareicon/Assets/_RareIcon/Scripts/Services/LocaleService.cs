@@ -246,6 +246,7 @@ namespace RareIcon
                 ActivityKind.Building         => "activity.building",
                 ActivityKind.Cooking          => "activity.cooking",
                 ActivityKind.Guarding         => "activity.guarding",
+                ActivityKind.TravelingToWork  => "activity.traveling_to_work",
                 _ => string.Empty,
             };
             return key.Length == 0 ? string.Empty : Get(key);

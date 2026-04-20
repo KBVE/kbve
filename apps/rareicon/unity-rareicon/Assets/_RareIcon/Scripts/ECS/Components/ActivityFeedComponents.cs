@@ -27,6 +27,7 @@ namespace RareIcon
         public const byte Building         = 15;  // construction OR repair (Builder role)
         public const byte Cooking          = 16;
         public const byte Guarding         = 17;  // guard patrolling friendly territory or chasing intruder
+        public const byte TravelingToWork  = 18;  // has a JobIntent but still en-route to the target hex
     }
 
     /// <summary>Per-snapshot activity payload pushed into the ring queue by the writer ISystem. POD; size kept compact (16 bytes) so a 1024-entry ring fits in a single page.</summary>

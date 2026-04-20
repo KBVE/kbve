@@ -24,21 +24,11 @@ namespace RareIcon
             builder.RegisterMessageBroker<EnterTileMessage>(options);
             builder.RegisterMessageBroker<ToastMessage>(options);
 
-            // Click-router output — AppStateController emits one of these
-            // per left-click after deciding what the click MEANS. Subscribers
-            // (ControlledUnitCommandSystem, PossessSystem, future Building
-            // Inspector) then act only on the semantic event they care about
-            // instead of every raw HexClickedMessage.
             builder.RegisterMessageBroker<BuildingInspectMessage>(options);
             builder.RegisterMessageBroker<PossessUnitMessage>(options);
             builder.RegisterMessageBroker<UnitInspectMessage>(options);
             builder.RegisterMessageBroker<ControlledUnitMoveMessage>(options);
 
-            // Drag-select — DragSelectInput publishes the world rect on
-            // drag end; SelectionController applies SelectedTag to units.
-            // AppStateController emits SelectionMoveMessage when a click
-            // lands while selection is non-empty; SelectionMoveHandler
-            // spreads the group into a ring around the target hex.
             builder.RegisterMessageBroker<SelectionDragMessage>(options);
             builder.RegisterMessageBroker<SelectionMoveMessage>(options);
 
@@ -56,17 +46,9 @@ namespace RareIcon
             builder.Register<UiToolkitPointerBlocker>(Lifetime.Singleton).AsImplementedInterfaces();
             builder.Register<MouseStateSource>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             builder.Register<BuildModeController>(Lifetime.Singleton).AsSelf();
-            // EntryPoints so VContainer's player-loop runner ticks the
-            // keyboard Tick() each frame and the click-handler subscribes
-            // on startup — same lifecycle hook as the HUD / AppStateController
-            // entry points below.
             builder.RegisterEntryPoint<BuildInputSource>();
             builder.RegisterEntryPoint<BuildCommandHandler>();
 
-            // Selection pipeline — DragSelectInput listens to mouse drags
-            // and publishes the world rect; SelectionController tags units
-            // inside; SelectionMoveHandler consumes bulk move orders;
-            // SelectionInput wipes the selection on ESC or right-click.
             builder.RegisterEntryPoint<DragSelectInput>();
             builder.RegisterEntryPoint<SelectionController>().AsSelf();
             builder.RegisterEntryPoint<SelectionMoveHandler>();
@@ -94,8 +76,6 @@ namespace RareIcon
             //    panels can await its Ready and grab region refs) --
             builder.RegisterEntryPoint<ScreenFrameHost>().AsSelf();
 
-            // -- Drag-select marquee overlay (screen-space rect that
-            //    follows the cursor while the player is dragging) --
             builder.RegisterEntryPoint<SelectionOverlay>().AsSelf();
 
             // -- Treasury panel (capital storage viewer) --

@@ -403,15 +403,11 @@ Shader "RareIcon/HexUnit"
                     }
                 }
 
-                // -- 5. Selection ring — gold ellipse halo painted in the
-                //    quad's negative space (below the sprite) so a selected
-                //    unit reads as standing on a glowing disc. Skipped where
-                //    the sprite already covers the pixel so the creature
-                //    artwork always wins above the waist.
+                // Selection ring — gold ellipse in the quad's negative space
                 if (_UnitSelected > 0.5 && alpha < 0.05)
                 {
                     float cx = grid * 0.5;
-                    float cy = grid * 0.15;  // near bottom of quad
+                    float cy = grid * 0.15;
                     float rx = grid * 0.42;
                     float ry = grid * 0.10;
                     float2 d = float2((px.x + 0.5 - cx) / rx,
