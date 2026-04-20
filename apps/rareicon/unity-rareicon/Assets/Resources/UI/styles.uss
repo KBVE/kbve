@@ -185,8 +185,8 @@
     flex-direction: row;
     align-items: center;
 }
-.toolbar > .btn { margin-left: var(--space-sm); }
-.toolbar > .btn:nth-child(1) { margin-left: 0; }
+.toolbar > .btn  { margin-left: var(--space-sm); }
+.toolbar > .first { margin-left: 0; }
 
 /* ----- List rows ----- */
 .list-row {
