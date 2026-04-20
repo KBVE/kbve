@@ -171,6 +171,16 @@ namespace RareIcon
                     CycleEndsAt   = 0f,
                     CycleDuration = 18f,
                 });
+                // Capital claims radius 4 from its centre (7-hex footprint +
+                // 3 rings of influence). Future Cities/Villages attach the
+                // same component with smaller radii; TerritoryBakeSystem
+                // unions all same-faction emitters.
+                ecb.AddComponent(building, new TerritoryEmitter
+                {
+                    Center       = req.CenterHex,
+                    Radius       = 4,
+                    OwnerFaction = req.OwnerFaction,
+                });
 
                 // Founding stockpile — arrows for immediate defence, enough
                 // raw materials to keep the craft cycle running, and some

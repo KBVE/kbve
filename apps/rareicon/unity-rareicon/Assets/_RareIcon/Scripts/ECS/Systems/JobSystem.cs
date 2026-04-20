@@ -56,6 +56,17 @@ namespace RareIcon
                 ComponentType.ReadOnly<LocalTransform>());
             using var groundArrows = groundArrowQuery.ToEntityArray(Allocator.Temp);
 
+            // Snapshot friendly territory emitters so Archers can prioritise
+            // hostiles that stepped across the border. Single Capital in MVP
+            // → array length == 1 → the per-unit check stays O(1).
+            var friendlyEmitters = new NativeList<TerritoryEmitter>(4, Allocator.Temp);
+            foreach (var e in SystemAPI.Query<RefRO<TerritoryEmitter>>())
+            {
+                if (e.ValueRO.Radius == 0) continue;
+                if (e.ValueRO.OwnerFaction != FactionType.Player) continue;
+                friendlyEmitters.Add(e.ValueRO);
+            }
+
             foreach (var (priorities, reliefIntent, jobIntentRef, movement, transform, entity) in
                      SystemAPI.Query<
                          RefRO<JobPriorities>,
@@ -101,6 +112,7 @@ namespace RareIcon
                 if (p.Archer > bestPrio && spatial.Hash.IsCreated)
                 {
                     if (TryFindHostile(spatial.Hash, transform.ValueRO.Position,
+                                       friendlyEmitters.AsArray(),
                                        out var hostileHex, out var hostileEntity, out int hostileDist))
                     {
                         if (p.Archer > bestPrio || (p.Archer == bestPrio && hostileDist < bestDist))
@@ -221,6 +233,8 @@ namespace RareIcon
                     TargetEntity = bestEntity,
                 };
             }
+
+            friendlyEmitters.Dispose();
         }
 
         void TryRole(byte priority, byte kind, HarvestRole role, int2 origin,
@@ -287,12 +301,18 @@ namespace RareIcon
         }
 
         bool TryFindHostile(NativeParallelMultiHashMap<int, HashedTarget> hash,
-                            float3 originWorld, out int2 outHex, out Entity outEntity, out int outDist)
+                            float3 originWorld,
+                            NativeArray<TerritoryEmitter> friendlyEmitters,
+                            out int2 outHex, out Entity outEntity, out int outDist)
         {
             const int ScanRadius = 6;
-            float3 bestPos = default;
-            Entity bestEntity = Entity.Null;
-            float  bestSq = float.MaxValue;
+            // Track nearest overall AND nearest inside friendly territory.
+            // If any intruder is in-territory the Archer targets them first,
+            // so the defender snaps to threats-at-home instead of whatever
+            // happens to be closest in world coords.
+            float3 bestPos = default, inBestPos = default;
+            Entity bestEntity = Entity.Null, inBestEntity = Entity.Null;
+            float  bestSq = float.MaxValue, inBestSq = float.MaxValue;
 
             int cx = (int)math.floor(originWorld.x / SpatialHashSystem.CellSize);
             int cy = (int)math.floor(originWorld.y / SpatialHashSystem.CellSize);
@@ -316,8 +336,28 @@ namespace RareIcon
                             bestPos = new float3(target.Position.x, target.Position.y, 0f);
                             bestEntity = target.Entity;
                         }
+
+                        if (friendlyEmitters.Length > 0 && d2 < inBestSq)
+                        {
+                            int2 hex = HexMeshUtil.WorldToHex(target.Position.x, target.Position.y, 0.25f);
+                            if (InsideAnyEmitter(hex, friendlyEmitters))
+                            {
+                                inBestSq = d2;
+                                inBestPos = new float3(target.Position.x, target.Position.y, 0f);
+                                inBestEntity = target.Entity;
+                            }
+                        }
                     } while (hash.TryGetNextValue(out target, ref it));
                 }
+            }
+
+            // Prefer the intruder inside our border if we found one.
+            if (inBestEntity != Entity.Null)
+            {
+                outHex = HexMeshUtil.WorldToHex(inBestPos.x, inBestPos.y, 0.25f);
+                outEntity = inBestEntity;
+                outDist = (int)math.round(math.sqrt(inBestSq));
+                return true;
             }
 
             if (bestEntity == Entity.Null)
@@ -332,6 +372,16 @@ namespace RareIcon
             outEntity = bestEntity;
             outDist = (int)math.round(math.sqrt(bestSq));
             return true;
+        }
+
+        static bool InsideAnyEmitter(int2 hex, NativeArray<TerritoryEmitter> emitters)
+        {
+            for (int i = 0; i < emitters.Length; i++)
+            {
+                var e = emitters[i];
+                if (AxialDistance(hex.x - e.Center.x, hex.y - e.Center.y) <= e.Radius) return true;
+            }
+            return false;
         }
 
         static int AxialDistance(int dq, int dr)

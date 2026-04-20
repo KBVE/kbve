@@ -40,6 +40,12 @@ Shader "RareIcon/HexTile"
         _CactusSpine      ("Cactus Spine Color",     Color) = (0.96, 0.94, 0.82, 1)
         _CactusFlower     ("Prickly Pear Fruit",     Color) = (0.86, 0.25, 0.55, 1)
         _DragonfruitFlesh ("Dragonfruit Bulb Color", Color) = (0.90, 0.18, 0.40, 1)
+
+        // Territory — per-instance float written by TerritoryBakeSystem.
+        //  0 = outside empire, 1 = interior (subtle tint), 2 = edge (gold line).
+        _Territory        ("Territory (per-instance)", Float)   = 0
+        _TerritoryEdge    ("Territory Edge Color",     Color)   = (0.95, 0.82, 0.32, 1)
+        _TerritoryTint    ("Territory Interior Tint",  Color)   = (1.00, 0.95, 0.75, 1)
     }
 
     SubShader
@@ -110,6 +116,9 @@ Shader "RareIcon/HexTile"
                 float4 _CactusSpine;
                 float4 _CactusFlower;
                 float4 _DragonfruitFlesh;
+                float  _Territory;
+                float4 _TerritoryEdge;
+                float4 _TerritoryTint;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -121,6 +130,7 @@ Shader "RareIcon/HexTile"
                 UNITY_DOTS_INSTANCED_PROP(float, _TreeAmount)
                 UNITY_DOTS_INSTANCED_PROP(float4, _FloorAmounts)
                 UNITY_DOTS_INSTANCED_PROP(float, _CactusAmount)
+                UNITY_DOTS_INSTANCED_PROP(float, _Territory)
             UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
             #define _BaseColor    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _BaseColor)
@@ -130,6 +140,7 @@ Shader "RareIcon/HexTile"
             #define _TreeAmount   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _TreeAmount)
             #define _FloorAmounts UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _FloorAmounts)
             #define _CactusAmount UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _CactusAmount)
+            #define _Territory    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _Territory)
             #endif
 
             // Bit flags for floor decorations — must match ResourceMask in
@@ -151,6 +162,7 @@ Shader "RareIcon/HexTile"
             #include "Includes/HexHerbs.hlsl"
             #include "Includes/HexCactus.hlsl"
             #include "Includes/HexTree.hlsl"
+            #include "Includes/HexTerritoryEdge.hlsl"
 
             Varyings vert(Attributes input)
             {
@@ -236,6 +248,11 @@ Shader "RareIcon/HexTile"
                 {
                     ground = ApplyPixelTree(ground, px, grid, tileSeed, _TreeAmount);
                 }
+
+                // Territory wash + edge — sits above decorations/trees so the
+                // empire claim reads clearly, below the hex border line so the
+                // tile outline still fences things in.
+                ground = ApplyTerritory(ground, d, _Territory);
 
                 // Border line on top of everything.
                 float border = smoothstep(-_BorderWidth, -_BorderWidth * 0.3, d);
