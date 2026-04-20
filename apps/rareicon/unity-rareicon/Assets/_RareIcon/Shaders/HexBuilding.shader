@@ -49,6 +49,32 @@ Shader "RareIcon/HexBuilding"
         _FurnaceMouth       ("Furnace Mouth",       Color) = (0.06, 0.04, 0.04, 1)
         _FurnaceEmber       ("Furnace Ember",       Color) = (1.00, 0.55, 0.18, 1)
         _FurnaceSmoke       ("Furnace Smoke",       Color) = (0.72, 0.68, 0.65, 1)
+
+        // Goblin Cave palette — mossy rock mound with a dark archway,
+        // torch-light on the mouth, scattered bones for flavor.
+        _CaveStone       ("Cave Stone",        Color) = (0.40, 0.36, 0.32, 1)
+        _CaveStoneShade  ("Cave Stone Shade",  Color) = (0.24, 0.22, 0.20, 1)
+        _CaveMoss        ("Cave Moss",         Color) = (0.26, 0.42, 0.22, 1)
+        _CaveMouth       ("Cave Mouth",        Color) = (0.05, 0.04, 0.05, 1)
+        _CaveTorch       ("Cave Torch Flame",  Color) = (1.00, 0.62, 0.20, 1)
+        _CaveBone        ("Cave Bone",         Color) = (0.92, 0.88, 0.76, 1)
+
+        // Inn palette — half-timbered tavern: stone footing, timber-framed
+        // plaster upper story, tile roof, warm-glow windows.
+        _InnStone        ("Inn Stone",         Color) = (0.58, 0.54, 0.48, 1)
+        _InnTimber       ("Inn Timber Beam",   Color) = (0.30, 0.20, 0.12, 1)
+        _InnPlaster      ("Inn Plaster",       Color) = (0.88, 0.80, 0.62, 1)
+        _InnRoof         ("Inn Roof Tile",     Color) = (0.48, 0.28, 0.22, 1)
+        _InnWindow       ("Inn Window Glow",   Color) = (1.00, 0.82, 0.32, 1)
+        _InnDoor         ("Inn Door",          Color) = (0.10, 0.07, 0.05, 1)
+
+        // Market palette — open stall: wooden posts, striped canvas awning,
+        // trestle table with goods, bright flag on top.
+        _MarketWood      ("Market Wood",       Color) = (0.42, 0.28, 0.18, 1)
+        _MarketCanvas1   ("Market Canvas A",   Color) = (0.82, 0.28, 0.22, 1)
+        _MarketCanvas2   ("Market Canvas B",   Color) = (0.94, 0.88, 0.70, 1)
+        _MarketGood1     ("Market Good A",     Color) = (0.70, 0.45, 0.20, 1)
+        _MarketGood2     ("Market Good B",     Color) = (0.92, 0.50, 0.18, 1)
     }
 
     SubShader
@@ -115,6 +141,23 @@ Shader "RareIcon/HexBuilding"
                 float4 _FurnaceMouth;
                 float4 _FurnaceEmber;
                 float4 _FurnaceSmoke;
+                float4 _CaveStone;
+                float4 _CaveStoneShade;
+                float4 _CaveMoss;
+                float4 _CaveMouth;
+                float4 _CaveTorch;
+                float4 _CaveBone;
+                float4 _InnStone;
+                float4 _InnTimber;
+                float4 _InnPlaster;
+                float4 _InnRoof;
+                float4 _InnWindow;
+                float4 _InnDoor;
+                float4 _MarketWood;
+                float4 _MarketCanvas1;
+                float4 _MarketCanvas2;
+                float4 _MarketGood1;
+                float4 _MarketGood2;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -126,10 +169,13 @@ Shader "RareIcon/HexBuilding"
             #endif
 
             // Must match constants in BuildingComponents.cs.
-            #define BUILDING_CAPITAL  1
-            #define BUILDING_FARM     2
-            #define BUILDING_BARRACKS 3
-            #define BUILDING_FURNACE  4
+            #define BUILDING_CAPITAL     1
+            #define BUILDING_FARM        2
+            #define BUILDING_BARRACKS    3
+            #define BUILDING_FURNACE     4
+            #define BUILDING_GOBLIN_CAVE 5
+            #define BUILDING_INN         6
+            #define BUILDING_MARKET      7
 
             #include "Includes/HexShared.hlsl"
             #include "Includes/HexBuildingShared.hlsl"
@@ -138,6 +184,9 @@ Shader "RareIcon/HexBuilding"
             #include "Includes/HexFarm.hlsl"
             #include "Includes/HexBarracks.hlsl"
             #include "Includes/HexFurnace.hlsl"
+            #include "Includes/HexGoblinCave.hlsl"
+            #include "Includes/HexInn.hlsl"
+            #include "Includes/HexMarket.hlsl"
 
             Varyings vert(Attributes input)
             {
@@ -176,6 +225,18 @@ Shader "RareIcon/HexBuilding"
                 else if (buildingType == BUILDING_FURNACE)
                 {
                     DrawFurnace(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_GOBLIN_CAVE)
+                {
+                    DrawGoblinCave(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_INN)
+                {
+                    DrawInn(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_MARKET)
+                {
+                    DrawMarket(color, alpha, px, grid);
                 }
 
                 clip(alpha - 0.001);

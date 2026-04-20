@@ -52,14 +52,7 @@ namespace RareIcon
             // (BuildTarget.X == BuildingType.X) so future buildings just
             // add a constant in BuildingComponents and slot in here.
             byte target = _buildMode.Target.CurrentValue;
-            byte buildingType = target switch
-            {
-                BuildTarget.Capital  => BuildingType.Capital,
-                BuildTarget.Farm     => BuildingType.Farm,
-                BuildTarget.Barracks => BuildingType.Barracks,
-                BuildTarget.Furnace  => BuildingType.Furnace,
-                _                    => BuildingType.None,
-            };
+            byte buildingType = BuildingDB.BuildTargetToType(target);
             if (buildingType == BuildingType.None) return;
 
             var world = World.DefaultGameObjectInjectionWorld;

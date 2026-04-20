@@ -345,6 +345,8 @@ namespace RareIcon
             BuildingType.Barracks   => "Barracks",
             BuildingType.Furnace    => "Furnace",
             BuildingType.GoblinCave => "Goblin Cave",
+            BuildingType.Inn        => "Inn",
+            BuildingType.Market     => "Market",
             _ => "Unknown",
         };
 

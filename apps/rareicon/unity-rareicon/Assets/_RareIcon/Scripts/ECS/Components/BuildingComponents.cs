@@ -17,6 +17,8 @@ namespace RareIcon
         public const byte Barracks   = 3;
         public const byte Furnace    = 4;
         public const byte GoblinCave = 5;
+        public const byte Inn        = 6;
+        public const byte Market     = 7;
         // Tower, Wall, Mine, etc. land here as we add their .hlsl files.
     }
 
@@ -32,6 +34,8 @@ namespace RareIcon
         public const byte Barracks   = 3;
         public const byte Furnace    = 4;
         public const byte GoblinCave = 5;
+        public const byte Inn        = 6;
+        public const byte Market     = 7;
     }
 
     /// <summary>Marker tag for the Capital — craft / governance systems query key.</summary>

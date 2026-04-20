@@ -15,6 +15,14 @@ namespace RareIcon
     /// </summary>
     public static class BuildingDB
     {
+        /// <summary>
+        /// Sentinel ItemId meaning "any edible item" — matches any slot whose
+        /// ItemDB entry reports RestoreEnergy > 0. Used by buildings whose
+        /// cost is narrative food rather than a specific crop (Goblin Cave).
+        /// BuildingSpawnSystem's HasItem/Consume branches on this value.
+        /// </summary>
+        public const ushort AnyFoodSentinel = 0xFFFE;
+
         /// <summary>One ingredient line in a building's recipe.</summary>
         public readonly struct Ingredient
         {
@@ -42,20 +50,43 @@ namespace RareIcon
                                                       new(   (ushort)ItemId.Stone,            3) };
         static readonly Ingredient[] CostFurnace  = { new(   (ushort)ItemId.WoodLog,          6),
                                                       new(   (ushort)ItemId.Stone,            4) };
+        // Goblin Cave drains straight from Capital at placement (no
+        // ConstructionSite) because the AnyFoodSentinel doesn't map onto
+        // a single deliverable item — builders don't know how to carry
+        // "50 of anything edible". Capital treats its own LandGrant the
+        // same way; the cave follows that upfront-drain pattern.
+        static readonly Ingredient[] CostGoblinCave = { new(AnyFoodSentinel,           50),
+                                                        new((ushort)ItemId.Stone,      50),
+                                                        new((ushort)ItemId.WoodLog,    50) };
+        // Inn is a mid-tier civic building — mostly timber with a stone
+        // footing, comparable to a Farm + Barracks hybrid in material cost.
+        static readonly Ingredient[] CostInn       = { new((ushort)ItemId.WoodLog,     12),
+                                                       new((ushort)ItemId.Stone,        4) };
+        // Market is a light wooden stall — cheap, quick to stand up. Fewer
+        // materials than anything else except the no-op default.
+        static readonly Ingredient[] CostMarket    = { new((ushort)ItemId.WoodLog,      6) };
         static readonly Ingredient[] CostNone     = System.Array.Empty<Ingredient>();
 
         public static Ingredient[] GetCost(byte buildingType) => buildingType switch
         {
-            BuildingType.Capital  => CostCapital,
-            BuildingType.Farm     => CostFarm,
-            BuildingType.Barracks => CostBarracks,
-            BuildingType.Furnace  => CostFurnace,
+            BuildingType.Capital    => CostCapital,
+            BuildingType.Farm       => CostFarm,
+            BuildingType.Barracks   => CostBarracks,
+            BuildingType.Furnace    => CostFurnace,
+            BuildingType.GoblinCave => CostGoblinCave,
+            BuildingType.Inn        => CostInn,
+            BuildingType.Market     => CostMarket,
             _ => CostNone,
         };
 
         public static CostSource GetCostSource(byte buildingType) => buildingType == BuildingType.Capital
             ? CostSource.KingInventory
             : CostSource.CapitalStorage;
+
+        /// <summary>Buildings that skip the ConstructionSite/Builder-haul pipeline and deduct cost upfront from their cost source at spawn time. Capital always does this (magical land grant); Goblin Cave does it because its cost includes AnyFoodSentinel, which has no single item a Builder could carry.</summary>
+        public static bool SpawnsFullyBuilt(byte buildingType)
+            => buildingType == BuildingType.Capital
+            || buildingType == BuildingType.GoblinCave;
 
         // -- Footprints --
         // Capital claims the centre + 6 axial neighbours (7-hex flower);
@@ -89,41 +120,53 @@ namespace RareIcon
         /// <summary>Locale key for the human-readable name of a building type.</summary>
         public static string GetLocaleKey(byte buildingType) => buildingType switch
         {
-            BuildingType.Capital  => "building.capital",
-            BuildingType.Farm     => "building.farm",
-            BuildingType.Barracks => "building.barracks",
-            BuildingType.Furnace  => "building.furnace",
+            BuildingType.Capital    => "building.capital",
+            BuildingType.Farm       => "building.farm",
+            BuildingType.Barracks   => "building.barracks",
+            BuildingType.Furnace    => "building.furnace",
+            BuildingType.GoblinCave => "building.goblin_cave",
+            BuildingType.Inn        => "building.inn",
+            BuildingType.Market     => "building.market",
             _ => "building.unknown",
         };
 
         /// <summary>Maps a BuildTarget to its corresponding BuildingType. Returns 0 (None) if unknown.</summary>
         public static byte BuildTargetToType(byte buildTarget) => buildTarget switch
         {
-            BuildTarget.Capital  => BuildingType.Capital,
-            BuildTarget.Farm     => BuildingType.Farm,
-            BuildTarget.Barracks => BuildingType.Barracks,
-            BuildTarget.Furnace  => BuildingType.Furnace,
+            BuildTarget.Capital    => BuildingType.Capital,
+            BuildTarget.Farm       => BuildingType.Farm,
+            BuildTarget.Barracks   => BuildingType.Barracks,
+            BuildTarget.Furnace    => BuildingType.Furnace,
+            BuildTarget.GoblinCave => BuildingType.GoblinCave,
+            BuildTarget.Inn        => BuildingType.Inn,
+            BuildTarget.Market     => BuildingType.Market,
             _ => BuildingType.None,
         };
 
         /// <summary>Reverse map — BuildingType to its placement target. Used by the palette to flip into build mode.</summary>
         public static byte BuildingTypeToTarget(byte buildingType) => buildingType switch
         {
-            BuildingType.Capital  => BuildTarget.Capital,
-            BuildingType.Farm     => BuildTarget.Farm,
-            BuildingType.Barracks => BuildTarget.Barracks,
-            BuildingType.Furnace  => BuildTarget.Furnace,
+            BuildingType.Capital    => BuildTarget.Capital,
+            BuildingType.Farm       => BuildTarget.Farm,
+            BuildingType.Barracks   => BuildTarget.Barracks,
+            BuildingType.Furnace    => BuildTarget.Furnace,
+            BuildingType.GoblinCave => BuildTarget.GoblinCave,
+            BuildingType.Inn        => BuildTarget.Inn,
+            BuildingType.Market     => BuildTarget.Market,
             _ => BuildTarget.None,
         };
 
         /// <summary>Per-type max HP. Drives BuildingHealth on spawn + the repair ceiling for Builders.</summary>
         public static ushort GetMaxHealth(byte buildingType) => buildingType switch
         {
-            BuildingType.Capital  => 600,
-            BuildingType.Farm     => 200,
-            BuildingType.Barracks => 400,
-            BuildingType.Furnace  => 300,
-            _                     => 100,
+            BuildingType.Capital    => 600,
+            BuildingType.Farm       => 200,
+            BuildingType.Barracks   => 400,
+            BuildingType.Furnace    => 300,
+            BuildingType.GoblinCave => 350,
+            BuildingType.Inn        => 280,
+            BuildingType.Market     => 140,
+            _                       => 100,
         };
 
         /// <summary>All buildable types in display order — used by the palette panel.</summary>
@@ -133,6 +176,9 @@ namespace RareIcon
             BuildingType.Farm,
             BuildingType.Barracks,
             BuildingType.Furnace,
+            BuildingType.GoblinCave,
+            BuildingType.Inn,
+            BuildingType.Market,
         };
     }
 }
