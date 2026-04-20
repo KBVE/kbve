@@ -34,11 +34,10 @@ namespace RareIcon
     {
         public int2 CapitalHex;
 
-        const int ReturnInventoryThreshold = 8;
-
         void Execute(in Faction faction,
                      in ReliefIntent intent,
                      in DynamicBuffer<InventorySlot> inv,
+                     in DynamicBuffer<EquippedBag> bags,
                      in UnitMovement movement,
                      ref MovementGoal goal)
         {
@@ -49,8 +48,8 @@ namespace RareIcon
                 intent.Kind == ReliefKind.Eat ||
                 intent.Kind == ReliefKind.Heal;
 
-            bool carrying = CountItems(inv) >= ReturnInventoryThreshold;
-            bool wantsReturn = reliefWantsCapital || carrying;
+            bool bagsFull = HasAnyItems(inv) && inv.Length >= InventoryUtil.SlotCap(bags);
+            bool wantsReturn = reliefWantsCapital || bagsFull;
 
             if (wantsReturn)
             {
@@ -77,11 +76,11 @@ namespace RareIcon
             }
         }
 
-        static int CountItems(DynamicBuffer<InventorySlot> inv)
+        static bool HasAnyItems(DynamicBuffer<InventorySlot> inv)
         {
-            int total = 0;
-            for (int i = 0; i < inv.Length; i++) total += inv[i].Count;
-            return total;
+            for (int i = 0; i < inv.Length; i++)
+                if (inv[i].Count > 0) return true;
+            return false;
         }
     }
 }
