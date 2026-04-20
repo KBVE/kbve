@@ -226,6 +226,14 @@ namespace RareIcon
     }
 
     /// <summary>Main-thread toast publisher for LogisticsReport. Reads the two role-mask bitfields LogisticsSystem writes each turn and fires MessagePipe toasts — info-kind for auto-filled roles ("No Chef was found, temp Chef assigned"), warning-kind for unfillable ones. Cooldown lives in the bitmask itself: LogisticsSystem only sets a bit on the tick a role flipped, so successive turns where the role stays filled/unfilled don't repeat the toast.</summary>
+    // TODO(toast-drain): Bursted producers + main-thread MessagePipe publish is
+    // the same pattern CapitalAttackAlertSystem hits, and future systems will
+    // keep cloning it. Replace this per-producer SystemBase with a shared
+    // ToastRequest intent entity + single ToastDrainSystem that pulls all
+    // pending toasts off the ECS side each frame and fans them out through
+    // GlobalMessagePipe. Lets every producer stay Burst ISystem and writes the
+    // toast crossing into one place — same shape as SpawnSoldierRequest /
+    // PendingItemTransfer.
     [UpdateInGroup(typeof(CleanupSystemGroup))]
     [UpdateAfter(typeof(LogisticsSystem))]
     public partial class LogisticsWarningSystem : SystemBase
