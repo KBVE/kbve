@@ -196,10 +196,24 @@ namespace RareIcon
                 {
                     int total = 0;
                     for (int j = 0; j < inv.Length; j++)
-                        if (inv[j].ItemId == cost[i].ItemId) total += inv[j].Count;
+                    {
+                        if (!MatchesCostItem(inv[j].ItemId, cost[i].ItemId)) continue;
+                        total += inv[j].Count;
+                    }
                     if (total < cost[i].Amount) return false;
                 }
                 return true;
+            }
+
+            // Mirror of BuildingSpawnSystem.MatchesCostItem — the palette
+            // has to count food the same way the spawner does, otherwise
+            // a Goblin Cave whose cost line is AnyFoodSentinel would show
+            // unaffordable even with a full treasury of berries.
+            static bool MatchesCostItem(ushort slotId, ushort costId)
+            {
+                if (costId == BuildingDB.AnyFoodSentinel)
+                    return ItemDB.EnergyValue(slotId) > 0f;
+                return slotId == costId;
             }
 
             static bool TryFindCostSourceInventory(EntityManager em, byte buildingType,
