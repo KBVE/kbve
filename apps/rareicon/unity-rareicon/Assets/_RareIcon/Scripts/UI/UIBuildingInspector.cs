@@ -43,6 +43,7 @@ namespace RareIcon
         Label _healthLabel;
         Label _productionLabel;
         Label _storageLabel;
+        Button _releaseBtn;
         IVisualElementScheduledItem _refreshTick;
         Entity _target;
 
@@ -144,7 +145,24 @@ namespace RareIcon
             _storageLabel = MakeBodyLabel(UIStyles.Palette.TextStrong, UIStyles.Type.BodyLg);
             _root.Add(_storageLabel);
 
+            _releaseBtn = UIStyles.MakeButton(
+                _locale.Get("inspector.release_king"), RequestRelease);
+            _releaseBtn.style.marginTop = UIStyles.Spacing.Sm;
+            _releaseBtn.style.display = DisplayStyle.None;
+            _root.Add(_releaseBtn);
+
             parent.Add(_root);
+        }
+
+        void RequestRelease()
+        {
+            if (_target == Entity.Null) return;
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+
+            var em = world.EntityManager;
+            var req = em.CreateEntity();
+            em.AddComponentData(req, new ReleaseShelterRequest { Host = _target });
         }
 
         static Label MakeBodyLabel(Color color, int fontSize)
@@ -201,6 +219,26 @@ namespace RareIcon
             RefreshHealth(em);
             RefreshProduction(em, now);
             RefreshStorage(em);
+            RefreshReleaseButton(em);
+        }
+
+        void RefreshReleaseButton(EntityManager em)
+        {
+            if (_releaseBtn == null) return;
+
+            bool hasResident = false;
+            using var q = em.CreateEntityQuery(ComponentType.ReadOnly<ShelteredInside>());
+            using var entities = q.ToEntityArray(Unity.Collections.Allocator.Temp);
+            for (int i = 0; i < entities.Length; i++)
+            {
+                if (em.GetComponentData<ShelteredInside>(entities[i]).Host == _target)
+                {
+                    hasResident = true;
+                    break;
+                }
+            }
+
+            _releaseBtn.style.display = hasResident ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         // HP line — red when below 50%, gold otherwise. Hidden when the
