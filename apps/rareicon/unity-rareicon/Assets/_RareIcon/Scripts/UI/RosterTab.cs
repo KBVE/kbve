@@ -9,9 +9,16 @@ namespace RareIcon
     /// <summary>Citizens-panel tab listing every live Player unit with quick stats; click-to-focus camera will layer on later.</summary>
     public class RosterTab : ICitizensTab
     {
+        readonly LocaleService _locale;
+
         public string Title => "Roster";
 
         Label _body;
+
+        public RosterTab(LocaleService locale)
+        {
+            _locale = locale;
+        }
 
         public VisualElement Build()
         {
@@ -60,7 +67,7 @@ namespace RareIcon
                     var unit = em.GetComponentData<Unit>(entities[i]);
 
                     if (count > 0) sb.Append('\n');
-                    sb.Append(UnitTypeLabel(unit.Type));
+                    sb.Append(ResolveLabel(em, entities[i], unit.Type));
 
                     if (em.HasComponent<Health>(entities[i]))
                     {
@@ -83,14 +90,18 @@ namespace RareIcon
             finally { sb.Dispose(); }
         }
 
-        static string UnitTypeLabel(byte unitType) => unitType switch
+        // Prefer the entity's UnitName (goblin first-name + epithet);
+        // fall back to the creature.* locale label for unnamed Player
+        // units like the King.
+        string ResolveLabel(EntityManager em, Entity entity, byte unitType)
         {
-            UnitType.Goblin  => "Goblin",
-            UnitType.Soldier => "Soldier",
-            UnitType.Knight  => "Knight",
-            UnitType.Mage    => "Mage",
-            UnitType.King    => "King",
-            _                => "Unit",
-        };
+            if (em.HasComponent<UnitName>(entity))
+            {
+                var nm = em.GetComponentData<UnitName>(entity);
+                string named = _locale.GetGoblinName(nm.FirstNameId, nm.EpithetId);
+                if (named.Length > 0) return named;
+            }
+            return _locale.GetCreatureName(unitType);
+        }
     }
 }

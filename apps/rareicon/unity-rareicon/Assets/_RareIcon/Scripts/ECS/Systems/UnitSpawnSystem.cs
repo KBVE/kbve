@@ -113,6 +113,19 @@ namespace RareIcon
             AttachNeedsIfPlayer(em, entity, faction, def);
             AttachJobsIfPlayer(em, entity, faction, def.UnitType);
 
+            // Player goblins get individual names — drives the "Controlling: X"
+            // indicator + RosterTab + future tooltips. Hostile / Beast goblins
+            // stay nameless; the UI falls back to the creature.* locale label.
+            if (faction == FactionType.Player)
+            {
+                var (firstId, epithetId) = UnitNaming.GenerateGoblin(rngSeed);
+                em.AddComponentData(entity, new UnitName
+                {
+                    FirstNameId = firstId,
+                    EpithetId   = epithetId,
+                });
+            }
+
             em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
             em.AddBuffer<StatusEffect>(entity);
 
@@ -193,6 +206,12 @@ namespace RareIcon
             AttachRangedAttackIfArmed(em, entity, def.DefaultWeapon);
             AttachNeedsIfPlayer(em, entity, FactionType.Player, def);
             AttachJobsIfPlayer(em, entity, FactionType.Player, def.UnitType);
+
+            // King intentionally has no UnitName — the goblin name pool
+            // doesn't fit, and the resolver falls back to the creature.king
+            // locale label which already reads as "The King" in EN / "王様"
+            // in JP. Future cosmetic-rename UI lands as a tagged override
+            // component, not by squeezing the King into the goblin pool.
 
             em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
             em.AddBuffer<StatusEffect>(entity);

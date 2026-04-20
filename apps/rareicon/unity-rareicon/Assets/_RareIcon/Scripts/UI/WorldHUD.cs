@@ -267,9 +267,19 @@ namespace RareIcon
             }
             else
             {
-                _controlLabel.text = ZString.Format(
-                    _locale.Get("hud.controlling"),
-                    _locale.GetCreatureName(type));
+                // Prefer the per-entity UnitName when present (Player units
+                // get one at spawn). Fall back to the creature.* locale
+                // label so unnamed possessables (the King, future
+                // raid-defectors, etc.) still read cleanly.
+                string label = string.Empty;
+                if (em.HasComponent<UnitName>(current))
+                {
+                    var nm = em.GetComponentData<UnitName>(current);
+                    label = _locale.GetGoblinName(nm.FirstNameId, nm.EpithetId);
+                }
+                if (label.Length == 0) label = _locale.GetCreatureName(type);
+
+                _controlLabel.text = ZString.Format(_locale.Get("hud.controlling"), label);
                 _controlLabel.style.color = UIStyles.Palette.Gold;
                 _releaseBtn.style.display = DisplayStyle.Flex;
             }

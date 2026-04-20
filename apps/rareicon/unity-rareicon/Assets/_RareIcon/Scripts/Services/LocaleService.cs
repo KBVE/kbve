@@ -197,6 +197,26 @@ namespace RareIcon
             return Get(key);
         }
 
+        /// <summary>
+        /// Resolve a UnitName (FirstNameId, EpithetId) pair to the
+        /// displayable string. First names are language-neutral (a goblin
+        /// "Skab" reads as "Skab" everywhere); epithets pull from the
+        /// epithet.* locale keys so "the Sly" / "ずる賢き" swap per locale.
+        /// Returns empty string when both ids are 0 — caller should fall
+        /// back to the creature.* label.
+        /// </summary>
+        public string GetGoblinName(ushort firstNameId, ushort epithetId)
+        {
+            string first = UnitNaming.GetFirstName(firstNameId);
+            if (first.Length == 0) return string.Empty;
+            if (epithetId == 0) return first;
+
+            string epKey = UnitNaming.GetEpithetKey(epithetId);
+            if (epKey.Length == 0) return first;
+
+            return ZString.Concat(first, " ", Get(epKey));
+        }
+
         /// <summary>Resolve a FactionType.* byte to its localized name.</summary>
         public string GetFactionName(byte faction)
         {

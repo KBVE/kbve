@@ -24,6 +24,14 @@ namespace RareIcon
         // Skeleton, etc. land here as we add them.
     }
 
+    /// <summary>Per-unit display name as two pool indexes — 4 bytes total. FirstNameId picks from a language-neutral pool (goblin names like "Skab" read the same in any locale); EpithetId picks from a localizable pool ("the Sly" / "ずる賢き"). 0 in either slot = unset; the UI falls back to the creature.* locale label when both are 0.</summary>
+    // TODO(rust-ffi): persist {FirstNameId, EpithetId} in the per-chunk store so a goblin keeps its name across chunk unload.
+    public struct UnitName : IComponentData
+    {
+        public ushort FirstNameId;
+        public ushort EpithetId;
+    }
+
     /// <summary>Tag marking wild animals so combat / harvest / AI systems skip them.</summary>
     public struct PassiveAnimalTag : IComponentData { }
 

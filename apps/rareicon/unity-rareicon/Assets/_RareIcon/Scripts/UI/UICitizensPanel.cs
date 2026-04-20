@@ -33,7 +33,7 @@ namespace RareIcon
             _tabs = new ICitizensTab[]
             {
                 new JobsTab(),
-                new RosterTab(),
+                new RosterTab(locale),
                 new SkillsTab(),
                 new DietTab(locale),
             };
