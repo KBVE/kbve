@@ -85,28 +85,47 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Units with an inventory standing on a hex that carries ground loot transfer the whole stack and clear it.</summary>
+    /// <summary>Units with an inventory standing on a hex that carries ground loot transfer the whole stack and clear it. Burst ISystem, single-worker Schedule — two units on the same loot hex in the same tick are rare but would race on both the hex drop buffer and their own inventories if parallelized; serialize instead.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(HarvestSystem))]
-    public partial class ItemPickupSystem : SystemBase
+    public partial struct ItemPickupSystem : ISystem
     {
-        protected override void OnUpdate()
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
-            var dropLookup = SystemAPI.GetBufferLookup<ItemDrop>(isReadOnly: false);
+            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
 
-            foreach (var (movement, inventory) in
-                     SystemAPI.Query<RefRO<UnitMovement>, DynamicBuffer<InventorySlot>>())
+            state.Dependency = new ItemPickupJob
             {
-                if (!HexHoverSystem.TryGetHexEntity(movement.ValueRO.CurrentHex, out var hex)) continue;
-                if (!dropLookup.HasBuffer(hex)) continue;
+                HexLookup  = hexLookup.Lookup,
+                DropLookup = SystemAPI.GetBufferLookup<ItemDrop>(false),
+            }.Schedule(state.Dependency);
+        }
+    }
 
-                var drops = dropLookup[hex];
-                if (drops.Length == 0) continue;
+    [BurstCompile]
+    public partial struct ItemPickupJob : IJobEntity
+    {
+        [ReadOnly] public NativeHashMap<int2, Entity> HexLookup;
 
-                for (int i = 0; i < drops.Length; i++)
-                    inventory.AddItem(drops[i].ItemId, drops[i].Count);
-                drops.Clear();
-            }
+        [NativeDisableParallelForRestriction]
+        public BufferLookup<ItemDrop> DropLookup;
+
+        void Execute(in UnitMovement movement, ref DynamicBuffer<InventorySlot> inventory)
+        {
+            if (!HexLookup.TryGetValue(movement.CurrentHex, out var hex)) return;
+            if (!DropLookup.HasBuffer(hex)) return;
+
+            var drops = DropLookup[hex];
+            if (drops.Length == 0) return;
+
+            for (int i = 0; i < drops.Length; i++)
+                inventory.AddItem(drops[i].ItemId, drops[i].Count);
+            drops.Clear();
         }
     }
 
