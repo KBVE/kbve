@@ -15,7 +15,7 @@ Shader "RareIcon/HexTile"
 
         // Procedural pixel trees — composited inside the tile, no extra geometry.
         _TreeDensity   ("Tree Density (0=none, 1=every tile)", Range(0,1)) = 0.0
-        _TreePixelGrid ("Tree Pixel Grid (resolution per tile)", Float)    = 16.0
+        _TreePixelGrid ("Tree Pixel Grid (resolution per tile)", Float)    = 32.0
         _TrunkColor    ("Trunk Color", Color)        = (0.25, 0.16, 0.10, 1)
         _CanopyDark    ("Canopy Dark", Color)        = (0.10, 0.30, 0.10, 1)
         _CanopyMid     ("Canopy Mid", Color)         = (0.18, 0.45, 0.18, 1)
