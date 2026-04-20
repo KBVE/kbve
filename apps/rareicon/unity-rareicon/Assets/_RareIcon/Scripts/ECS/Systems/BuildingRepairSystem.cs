@@ -1,69 +1,82 @@
+using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Builders standing on a damaged Player-owned building hex tick its HP back up against WorldClock; awards Construction XP per repair tick. Builder priority covers both new construction (BuilderDepositSystem) and repair (this system) — same skill, same job slot.</summary>
+    /// <summary>Builders on a damaged Player-owned building tick its HP back up against WorldClock, awarding Construction XP. Opportunistic — any Builder-intent unit on a damaged hex contributes. Shared BuildingHealth → single-worker Schedule.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(BuilderDepositSystem))]
-    public partial class BuildingRepairSystem : SystemBase
+    public partial struct BuildingRepairSystem : ISystem
+    {
+        [BurstCompile]
+        public void OnCreate(ref SystemState state) => state.RequireForUpdate<WorldClock>();
+
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            if (!HexHoverSystem.HexLookup.IsCreated) return;
+            float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
+
+            state.Dependency = new BuildingRepairJob
+            {
+                Now               = now,
+                HexLookup         = HexHoverSystem.HexLookup,
+                HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
+                HealthLookup      = SystemAPI.GetComponentLookup<BuildingHealth>(false),
+                SiteLookup        = SystemAPI.GetComponentLookup<ConstructionSite>(true),
+                SkillXpLookup     = SystemAPI.GetComponentLookup<SkillXP>(false),
+            }.Schedule(state.Dependency);
+        }
+    }
+
+    [BurstCompile]
+    public partial struct BuildingRepairJob : IJobEntity
     {
         const float  SecondsPerTick = 0.5f;
         const ushort HpPerTick      = 5;
         const ushort XPPerTick      = 6;
 
-        protected override void OnCreate()
+        public float Now;
+
+        [ReadOnly] public NativeHashMap<int2, Entity>       HexLookup;
+        [ReadOnly] public ComponentLookup<HexOccupant>      HexOccupantLookup;
+        [ReadOnly] public ComponentLookup<ConstructionSite> SiteLookup;
+
+        [NativeDisableParallelForRestriction] public ComponentLookup<BuildingHealth> HealthLookup;
+        [NativeDisableParallelForRestriction] public ComponentLookup<SkillXP>        SkillXpLookup;
+
+        void Execute(Entity entity, in JobIntent intent, in UnitMovement movement)
         {
-            RequireForUpdate<WorldClock>();
-        }
+            if (intent.Kind != JobKind.Builder) return;
 
-        protected override void OnUpdate()
-        {
-            float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
+            if (!HexLookup.TryGetValue(movement.CurrentHex, out var tile)) return;
+            if (!HexOccupantLookup.HasComponent(tile)) return;
 
-            var hexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(isReadOnly: true);
-            var healthLookup      = SystemAPI.GetComponentLookup<BuildingHealth>(isReadOnly: false);
-            var skillXpLookup     = SystemAPI.GetComponentLookup<SkillXP>(isReadOnly: false);
-            var siteLookup        = SystemAPI.GetComponentLookup<ConstructionSite>(isReadOnly: true);
+            Entity building = HexOccupantLookup[tile].Building;
+            if (building == Entity.Null) return;
+            if (SiteLookup.HasComponent(building)) return;
+            if (!HealthLookup.HasComponent(building)) return;
 
-            foreach (var (intent, movement, entity) in
-                     SystemAPI.Query<RefRO<JobIntent>, RefRO<UnitMovement>>().WithEntityAccess())
+            var hp = HealthLookup[building];
+            if (hp.Value >= hp.Max) return;
+            if (Now - hp.LastRepairAbsSeconds < SecondsPerTick) return;
+
+            int restored = math.min(HpPerTick, hp.Max - hp.Value);
+            hp.Value = (ushort)(hp.Value + restored);
+            hp.LastRepairAbsSeconds = Now;
+            HealthLookup[building] = hp;
+
+            if (SkillXpLookup.HasComponent(entity))
             {
-                if (intent.ValueRO.Kind != JobKind.Builder) continue;
-
-                // Resolve the hex the unit is standing on to a building.
-                // Repair is opportunistic — the unit just has to be on a
-                // damaged Player building's hex; we don't require their
-                // JobIntent to specifically target THIS building (a
-                // builder en route to a site that crosses a damaged
-                // building can still chip in for free).
-                if (!HexHoverSystem.TryGetHexEntity(movement.ValueRO.CurrentHex, out var tile)) continue;
-                if (!hexOccupantLookup.HasComponent(tile)) continue;
-
-                Entity building = hexOccupantLookup[tile].Building;
-                if (building == Entity.Null) continue;
-
-                // Construction sites belong to BuilderDepositSystem;
-                // repair only operates on completed buildings.
-                if (siteLookup.HasComponent(building)) continue;
-                if (!healthLookup.HasComponent(building)) continue;
-
-                var hp = healthLookup[building];
-                if (hp.Value >= hp.Max) continue;
-                if (now - hp.LastRepairAbsSeconds < SecondsPerTick) continue;
-
-                int restored = math.min(HpPerTick, hp.Max - hp.Value);
-                hp.Value = (ushort)(hp.Value + restored);
-                hp.LastRepairAbsSeconds = now;
-                healthLookup[building] = hp;
-
-                if (skillXpLookup.HasComponent(entity))
-                {
-                    var xp = skillXpLookup[entity];
-                    int next = xp.Get(SkillKind.Construction) + XPPerTick;
-                    xp.Set(SkillKind.Construction, (ushort)math.min(next, ushort.MaxValue));
-                    skillXpLookup[entity] = xp;
-                }
+                var xp = SkillXpLookup[entity];
+                int next = xp.Get(SkillKind.Construction) + XPPerTick;
+                xp.Set(SkillKind.Construction, (ushort)math.min(next, ushort.MaxValue));
+                SkillXpLookup[entity] = xp;
             }
         }
     }

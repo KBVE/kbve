@@ -1,113 +1,119 @@
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Opportunistic harvesting on arrival — respects unit's JobPriorities (which role to favor), DietPreferencesStore (per-UnitType item skip/preference), and awards SkillXP on success.</summary>
+    /// <summary>Opportunistic harvesting on arrival — respects JobPriorities + DietPreferencesStore, awards SkillXP. Scheduled single-worker off the main thread; shared hex component writes are serialised so parallel is avoided here.</summary>
+    // TODO(burst): DietPreferencesStore + ItemDB.GetHarvestRole are backed by managed Dictionaries, blocking [BurstCompile]. Convert to NativeHashMap-backed stores and this job can Burst-compile.
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(UnitMovementSystem))]
-    public partial class HarvestSystem : SystemBase
+    [UpdateAfter(typeof(HexSpawnSystem))]
+    public partial struct HarvestSystem : ISystem
+    {
+        public void OnCreate(ref SystemState state) { }
+        public void OnDestroy(ref SystemState state) { }
+
+        public void OnUpdate(ref SystemState state)
+        {
+            if (!HexHoverSystem.HexLookup.IsCreated) return;
+
+            state.Dependency = new HarvestJob
+            {
+                HexLookup            = HexHoverSystem.HexLookup,
+                HexResLookup         = SystemAPI.GetComponentLookup<HexResources>(false),
+                HexResVisualLookup   = SystemAPI.GetComponentLookup<HexResourceVisual>(false),
+                HexTreeVisualLookup  = SystemAPI.GetComponentLookup<HexTreeVisual>(false),
+                HexFloorLookup       = SystemAPI.GetComponentLookup<HexFloorAmounts>(false),
+                HexCactusLookup      = SystemAPI.GetComponentLookup<HexCactusVisual>(false),
+                SkillXpLookup        = SystemAPI.GetComponentLookup<SkillXP>(false),
+            }.Schedule(state.Dependency);
+        }
+    }
+
+    public partial struct HarvestJob : IJobEntity
     {
         const ushort HarvestPerTick = 1;
         const ushort XPPerHarvest   = 12;
 
-        protected override void OnUpdate()
+        [ReadOnly] public NativeHashMap<int2, Entity> HexLookup;
+
+        [NativeDisableParallelForRestriction] public ComponentLookup<HexResources>      HexResLookup;
+        [NativeDisableParallelForRestriction] public ComponentLookup<HexResourceVisual> HexResVisualLookup;
+        [NativeDisableParallelForRestriction] public ComponentLookup<HexTreeVisual>     HexTreeVisualLookup;
+        [NativeDisableParallelForRestriction] public ComponentLookup<HexFloorAmounts>   HexFloorLookup;
+        [NativeDisableParallelForRestriction] public ComponentLookup<HexCactusVisual>   HexCactusLookup;
+        [NativeDisableParallelForRestriction] public ComponentLookup<SkillXP>           SkillXpLookup;
+
+        void Execute(Entity entity,
+                     ref UnitMovement movement,
+                     in JobPriorities priorities,
+                     in Unit unit,
+                     DynamicBuffer<InventorySlot> inventory)
         {
-            CompleteDependency();
-            var skillXpLookup = SystemAPI.GetComponentLookup<SkillXP>(isReadOnly: false);
+            if (movement.LastHarvestStep == movement.WanderStep) return;
+            if (movement.DwellTimer <= 0f) return;
 
-            foreach (var (movementRW, priorities, unit, inventory, entity) in
-                     SystemAPI.Query<RefRW<UnitMovement>, RefRO<JobPriorities>, RefRO<Unit>, DynamicBuffer<InventorySlot>>()
-                              .WithEntityAccess())
+            movement.LastHarvestStep = movement.WanderStep;
+
+            if (!HexLookup.TryGetValue(movement.CurrentHex, out var hexEntity)) return;
+            if (!HexResLookup.HasComponent(hexEntity)) return;
+
+            var res = HexResLookup[hexEntity];
+            byte unitType = unit.Type;
+
+            byte bestPrio = 0;
+            byte bestRole = (byte)HarvestRole.None;
+
+            if (priorities.Forager    > bestPrio && HasForagerWork(in res)) { bestPrio = priorities.Forager;    bestRole = (byte)HarvestRole.Forager; }
+            if (priorities.Lumberjack > bestPrio && HasLumberWork(in res))  { bestPrio = priorities.Lumberjack; bestRole = (byte)HarvestRole.Lumberjack; }
+            if (priorities.Miner      > bestPrio && res.Stone != 0)         { bestPrio = priorities.Miner;      bestRole = (byte)HarvestRole.Miner; }
+
+            byte xpKind = SkillKind.Foraging;
+            bool harvested = false;
+
+            switch ((HarvestRole)bestRole)
             {
-                var movement = movementRW.ValueRO;
+                case HarvestRole.Forager:
+                    xpKind = SkillKind.Foraging;
+                    harvested = TryTakeCactus(ref res, movement.WanderStep,
+                                              movement.CurrentHex.x, movement.CurrentHex.y,
+                                              unitType, inventory)
+                             || TryTakeResource(ref res.Mushrooms, ResourceTag.Mushrooms, unitType, inventory)
+                             || TryTakeResource(ref res.Berries,   ResourceTag.Berries,   unitType, inventory)
+                             || TryTakeResource(ref res.Herbs,     ResourceTag.Herbs,     unitType, inventory);
+                    break;
+                case HarvestRole.Lumberjack:
+                    xpKind = SkillKind.Lumberjack;
+                    harvested = TryTakeResource(ref res.Leaves,    ResourceTag.Leaves,    unitType, inventory)
+                             || TryTakeResource(ref res.Branches,  ResourceTag.Branches,  unitType, inventory)
+                             || TryTakeResource(ref res.Wood,      ResourceTag.Wood,      unitType, inventory);
+                    break;
+                case HarvestRole.Miner:
+                    xpKind = SkillKind.Mining;
+                    harvested = TryTakeResource(ref res.Stone,     ResourceTag.Stone,     unitType, inventory);
+                    break;
+            }
 
-                if (movement.LastHarvestStep == movement.WanderStep) continue;
-                if (movement.DwellTimer <= 0f) continue;
+            if (!harvested) return;
 
-                movementRW.ValueRW.LastHarvestStep = movement.WanderStep;
+            HexResLookup[hexEntity] = res;
+            if (HexResVisualLookup.HasComponent(hexEntity))
+                HexResVisualLookup[hexEntity] = new HexResourceVisual { Value = HexResourceTable.ComputeVisualMask(in res) };
+            if (HexTreeVisualLookup.HasComponent(hexEntity))
+                HexTreeVisualLookup[hexEntity] = new HexTreeVisual { Value = HexResourceTable.ComputeTreeAmount(in res) };
+            if (HexFloorLookup.HasComponent(hexEntity))
+                HexFloorLookup[hexEntity] = new HexFloorAmounts { Value = HexResourceTable.ComputeFloorAmounts(in res) };
+            if (HexCactusLookup.HasComponent(hexEntity))
+                HexCactusLookup[hexEntity] = new HexCactusVisual { Value = HexResourceTable.ComputeCactusAmount(in res) };
 
-                if (!HexHoverSystem.TryGetHexEntity(movement.CurrentHex, out var hexEntity))
-                    continue;
-                if (!EntityManager.HasComponent<HexResources>(hexEntity)) continue;
-
-                var res = EntityManager.GetComponentData<HexResources>(hexEntity);
-                var p = priorities.ValueRO;
-                byte unitType = unit.ValueRO.Type;
-
-                bool harvested = false;
-                byte bestPrio = 0;
-                byte bestRole = (byte)HarvestRole.None;
-
-                if (p.Forager    > bestPrio && HasForagerWork(in res))    { bestPrio = p.Forager;    bestRole = (byte)HarvestRole.Forager; }
-                if (p.Lumberjack > bestPrio && HasLumberWork(in res))     { bestPrio = p.Lumberjack; bestRole = (byte)HarvestRole.Lumberjack; }
-                if (p.Miner      > bestPrio && res.Stone != 0)            { bestPrio = p.Miner;      bestRole = (byte)HarvestRole.Miner; }
-
-                byte xpKind = SkillKind.Foraging;
-
-                switch ((HarvestRole)bestRole)
-                {
-                    case HarvestRole.Forager:
-                        xpKind = SkillKind.Foraging;
-                        harvested = TryTakeCactus(ref res, movement.WanderStep,
-                                                  movement.CurrentHex.x, movement.CurrentHex.y,
-                                                  unitType, inventory)
-                                 || TryTakeResource(ref res.Mushrooms, ResourceTag.Mushrooms, unitType, inventory)
-                                 || TryTakeResource(ref res.Berries,   ResourceTag.Berries,   unitType, inventory)
-                                 || TryTakeResource(ref res.Herbs,     ResourceTag.Herbs,     unitType, inventory);
-                        break;
-                    case HarvestRole.Lumberjack:
-                        xpKind = SkillKind.Lumberjack;
-                        harvested = TryTakeResource(ref res.Leaves,    ResourceTag.Leaves,    unitType, inventory)
-                                 || TryTakeResource(ref res.Branches,  ResourceTag.Branches,  unitType, inventory)
-                                 || TryTakeResource(ref res.Wood,      ResourceTag.Wood,      unitType, inventory);
-                        break;
-                    case HarvestRole.Miner:
-                        xpKind = SkillKind.Mining;
-                        harvested = TryTakeResource(ref res.Stone,     ResourceTag.Stone,     unitType, inventory);
-                        break;
-                }
-
-                if (harvested)
-                {
-                    EntityManager.SetComponentData(hexEntity, res);
-                    if (EntityManager.HasComponent<HexResourceVisual>(hexEntity))
-                    {
-                        EntityManager.SetComponentData(hexEntity, new HexResourceVisual
-                        {
-                            Value = HexResourceTable.ComputeVisualMask(in res)
-                        });
-                    }
-                    if (EntityManager.HasComponent<HexTreeVisual>(hexEntity))
-                    {
-                        EntityManager.SetComponentData(hexEntity, new HexTreeVisual
-                        {
-                            Value = HexResourceTable.ComputeTreeAmount(in res)
-                        });
-                    }
-                    if (EntityManager.HasComponent<HexFloorAmounts>(hexEntity))
-                    {
-                        EntityManager.SetComponentData(hexEntity, new HexFloorAmounts
-                        {
-                            Value = HexResourceTable.ComputeFloorAmounts(in res)
-                        });
-                    }
-                    if (EntityManager.HasComponent<HexCactusVisual>(hexEntity))
-                    {
-                        EntityManager.SetComponentData(hexEntity, new HexCactusVisual
-                        {
-                            Value = HexResourceTable.ComputeCactusAmount(in res)
-                        });
-                    }
-
-                    if (skillXpLookup.HasComponent(entity))
-                    {
-                        var xp = skillXpLookup[entity];
-                        ushort cur = xp.Get(xpKind);
-                        int next = cur + XPPerHarvest;
-                        xp.Set(xpKind, (ushort)(next > ushort.MaxValue ? ushort.MaxValue : next));
-                        skillXpLookup[entity] = xp;
-                    }
-                }
+            if (SkillXpLookup.HasComponent(entity))
+            {
+                var xp = SkillXpLookup[entity];
+                ushort cur = xp.Get(xpKind);
+                int next = cur + XPPerHarvest;
+                xp.Set(xpKind, (ushort)(next > ushort.MaxValue ? ushort.MaxValue : next));
+                SkillXpLookup[entity] = xp;
             }
         }
 
@@ -136,8 +142,6 @@ namespace RareIcon
                                   byte unitType, DynamicBuffer<InventorySlot> inventory)
         {
             if (res.Cactus == 0 || res.CactusVariant == CactusVariantType.None) return false;
-            // Gate the whole cactus pickup on the player's preference for the primary drop (RawCacti).
-            // Zero-out here prevents unwanted CactiNeedle / Dragonfruit side drops too.
             if (DietPreferencesStore.Get(unitType, (ushort)ItemId.RawCacti) == 0) return false;
 
             res.Cactus -= 1;

@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -5,53 +6,74 @@ using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>When a Looter-intent unit is near its target GroundArrow, destroy the ground entity, add one Arrow to the unit's inventory, and award Scavenging XP. Carrying the arrow back to Capital is handled by the existing ReturnToBase → EmpireDeposit chain.</summary>
+    /// <summary>Looter-intent units near their target GroundArrow pick it up, add one Arrow to inventory, and award Scavenging XP. Return trip is handled by ReturnToBase → EmpireDeposit. Single-worker Schedule because two looters could theoretically race to the same arrow.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(CookingSystem))]
-    public partial class LooterPickupSystem : SystemBase
+    public partial struct LooterPickupSystem : ISystem
+    {
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            var ecb = new EntityCommandBuffer(Allocator.TempJob);
+
+            state.Dependency = new LooterPickupJob
+            {
+                GroundArrowLookup = SystemAPI.GetComponentLookup<GroundArrow>(true),
+                TransformLookup   = SystemAPI.GetComponentLookup<LocalTransform>(true),
+                SkillXpLookup     = SystemAPI.GetComponentLookup<SkillXP>(false),
+                Ecb               = ecb,
+            }.Schedule(state.Dependency);
+
+            state.Dependency.Complete();
+            ecb.Playback(state.EntityManager);
+            ecb.Dispose();
+        }
+    }
+
+    [BurstCompile]
+    public partial struct LooterPickupJob : IJobEntity
     {
         const float PickupRadiusSq = 0.12f * 0.12f;
         const ushort XPPerPickup   = 10;
 
-        protected override void OnUpdate()
+        [ReadOnly] public ComponentLookup<GroundArrow>    GroundArrowLookup;
+        [ReadOnly] public ComponentLookup<LocalTransform> TransformLookup;
+
+        public ComponentLookup<SkillXP> SkillXpLookup;
+        public EntityCommandBuffer      Ecb;
+
+        void Execute(Entity entity,
+                     in JobIntent intent,
+                     in LocalTransform transform,
+                     DynamicBuffer<InventorySlot> inventory)
         {
-            var groundArrowLookup = SystemAPI.GetComponentLookup<GroundArrow>(isReadOnly: true);
-            var transformLookup   = SystemAPI.GetComponentLookup<LocalTransform>(isReadOnly: true);
-            var skillXpLookup     = SystemAPI.GetComponentLookup<SkillXP>(isReadOnly: false);
+            if (intent.Kind != JobKind.Looter) return;
 
-            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            Entity arrow = intent.TargetEntity;
+            if (arrow == Entity.Null) return;
+            if (!GroundArrowLookup.HasComponent(arrow)) return;
+            if (!TransformLookup.HasComponent(arrow)) return;
 
-            foreach (var (intent, transform, inventory, entity) in
-                     SystemAPI.Query<RefRO<JobIntent>, RefRO<LocalTransform>, DynamicBuffer<InventorySlot>>()
-                              .WithEntityAccess())
+            float3 unitPos  = transform.Position;
+            float3 arrowPos = TransformLookup[arrow].Position;
+            float d2 = (unitPos.x - arrowPos.x) * (unitPos.x - arrowPos.x)
+                     + (unitPos.y - arrowPos.y) * (unitPos.y - arrowPos.y);
+            if (d2 > PickupRadiusSq) return;
+
+            AddOne(inventory, (ushort)ItemId.Arrow);
+            Ecb.DestroyEntity(arrow);
+
+            if (SkillXpLookup.HasComponent(entity))
             {
-                if (intent.ValueRO.Kind != JobKind.Looter) continue;
-
-                Entity arrow = intent.ValueRO.TargetEntity;
-                if (arrow == Entity.Null) continue;
-                if (!groundArrowLookup.HasComponent(arrow)) continue;
-                if (!transformLookup.HasComponent(arrow)) continue;
-
-                float3 unitPos  = transform.ValueRO.Position;
-                float3 arrowPos = transformLookup[arrow].Position;
-                float d2 = (unitPos.x - arrowPos.x) * (unitPos.x - arrowPos.x)
-                         + (unitPos.y - arrowPos.y) * (unitPos.y - arrowPos.y);
-                if (d2 > PickupRadiusSq) continue;
-
-                AddOne(inventory, (ushort)ItemId.Arrow);
-                ecb.DestroyEntity(arrow);
-
-                if (skillXpLookup.HasComponent(entity))
-                {
-                    var xp = skillXpLookup[entity];
-                    int next = xp.Get(SkillKind.Scavenging) + XPPerPickup;
-                    xp.Set(SkillKind.Scavenging, (ushort)(next > ushort.MaxValue ? ushort.MaxValue : next));
-                    skillXpLookup[entity] = xp;
-                }
+                var xp = SkillXpLookup[entity];
+                int next = xp.Get(SkillKind.Scavenging) + XPPerPickup;
+                xp.Set(SkillKind.Scavenging, (ushort)(next > ushort.MaxValue ? ushort.MaxValue : next));
+                SkillXpLookup[entity] = xp;
             }
-
-            ecb.Playback(EntityManager);
-            ecb.Dispose();
         }
 
         static void AddOne(DynamicBuffer<InventorySlot> inv, ushort itemId)
