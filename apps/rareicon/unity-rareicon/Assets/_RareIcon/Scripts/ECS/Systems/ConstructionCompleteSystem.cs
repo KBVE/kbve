@@ -45,6 +45,15 @@ namespace RareIcon
                 case BuildingType.Farm:     Ecb.AddComponent<FarmTag>(chunkIdx, entity);     break;
                 case BuildingType.Barracks: Ecb.AddComponent<BarracksTag>(chunkIdx, entity); break;
                 case BuildingType.Furnace:  Ecb.AddComponent<FurnaceTag>(chunkIdx, entity);  break;
+                case BuildingType.Outpost:
+                    Ecb.AddComponent<OutpostTag>(chunkIdx, entity);
+                    Ecb.AddComponent(chunkIdx, entity, new TerritoryEmitter
+                    {
+                        Center       = building.RootHex,
+                        Radius       = 5,
+                        OwnerFaction = building.OwnerFaction,
+                    });
+                    break;
             }
 
             Ecb.AddComponent<NeedsStaffing>(chunkIdx, entity);

@@ -105,7 +105,30 @@ namespace RareIcon
                 }
             }
 
-            // 2. Cost validation — find the source inventory (King for
+            if (req.BuildingType == BuildingType.Outpost)
+            {
+                if (!HasFriendlyEmitterWithin(em, req.CenterHex, BuildingDB.OutpostAnchorRadius, req.OwnerFaction))
+                {
+                    reason = "no friendly outpost or capital within range";
+                    return false;
+                }
+            }
+            else if (BuildingDB.RequiresInTerritory(req.BuildingType))
+            {
+                for (int i = 0; i < footprint.Length; i++)
+                {
+                    var hex = req.CenterHex + footprint[i];
+                    if (!HexHoverSystem.TryGetHexEntity(hex, out var tile)) continue;
+                    if (!em.HasComponent<TerritoryVisual>(tile)
+                        || em.GetComponentData<TerritoryVisual>(tile).Value <= 0f)
+                    {
+                        reason = "outside empire territory";
+                        return false;
+                    }
+                }
+            }
+
+            // 3. Cost validation — find the source inventory (King for
             //    Capital, Capital storage for everything else) and
             //    confirm every ingredient is in stock BEFORE deducting.
             if (!TryFindCostSource(em, req.BuildingType, out var sourceEntity, out reason))
@@ -199,6 +222,8 @@ namespace RareIcon
                     Radius       = 4,
                     OwnerFaction = req.OwnerFaction,
                 });
+
+                ecb.AddComponent<EmpireConnected>(building);
 
                 // Founding stockpile — arrows for immediate defence, enough
                 // raw materials to keep the craft cycle running, and some
@@ -347,8 +372,27 @@ namespace RareIcon
             BuildingType.GoblinCave => "Goblin Cave",
             BuildingType.Inn        => "Inn",
             BuildingType.Market     => "Market",
+            BuildingType.Outpost    => "Outpost",
             _ => "Unknown",
         };
+
+        bool HasFriendlyEmitterWithin(EntityManager em, int2 center, int radius, byte faction)
+        {
+            foreach (var e in SystemAPI.Query<RefRO<TerritoryEmitter>>())
+            {
+                var em_ = e.ValueRO;
+                if (em_.OwnerFaction != faction) continue;
+                if (em_.Radius == 0) continue;
+                if (AxialDistance(em_.Center - center) <= radius) return true;
+            }
+            return false;
+        }
+
+        static int AxialDistance(int2 d)
+        {
+            int ds = -d.x - d.y;
+            return (math.abs(d.x) + math.abs(d.y) + math.abs(ds)) / 2;
+        }
 
         void Init()
         {
@@ -371,6 +415,7 @@ namespace RareIcon
             // as central storage, future per-building input/output buffers
             // (Farm output queue, Furnace fuel hopper) reuse the slot too.
             em.AddBuffer<InventorySlot>(_buildingPrefab);
+            em.AddComponentData(_buildingPrefab, new BuildingActiveVisual());
             em.AddComponent<Prefab>(_buildingPrefab);
 
             var renderDesc = new RenderMeshDescription(

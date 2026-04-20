@@ -50,21 +50,15 @@ namespace RareIcon
                                                       new(   (ushort)ItemId.Stone,            3) };
         static readonly Ingredient[] CostFurnace  = { new(   (ushort)ItemId.WoodLog,          6),
                                                       new(   (ushort)ItemId.Stone,            4) };
-        // Goblin Cave drains straight from Capital at placement (no
-        // ConstructionSite) because the AnyFoodSentinel doesn't map onto
-        // a single deliverable item — builders don't know how to carry
-        // "50 of anything edible". Capital treats its own LandGrant the
-        // same way; the cave follows that upfront-drain pattern.
         static readonly Ingredient[] CostGoblinCave = { new(AnyFoodSentinel,           50),
                                                         new((ushort)ItemId.Stone,      50),
                                                         new((ushort)ItemId.WoodLog,    50) };
-        // Inn is a mid-tier civic building — mostly timber with a stone
-        // footing, comparable to a Farm + Barracks hybrid in material cost.
-        static readonly Ingredient[] CostInn       = { new((ushort)ItemId.WoodLog,     12),
-                                                       new((ushort)ItemId.Stone,        4) };
-        // Market is a light wooden stall — cheap, quick to stand up. Fewer
-        // materials than anything else except the no-op default.
-        static readonly Ingredient[] CostMarket    = { new((ushort)ItemId.WoodLog,      6) };
+        static readonly Ingredient[] CostInn       = { new((ushort)ItemId.WoodLog,     25),
+                                                       new((ushort)ItemId.Stone,       15) };
+        static readonly Ingredient[] CostMarket    = { new((ushort)ItemId.WoodLog,     15),
+                                                       new((ushort)ItemId.Stone,        5) };
+        static readonly Ingredient[] CostOutpost   = { new((ushort)ItemId.WoodLog,     20),
+                                                       new((ushort)ItemId.Stone,       12) };
         static readonly Ingredient[] CostNone     = System.Array.Empty<Ingredient>();
 
         public static Ingredient[] GetCost(byte buildingType) => buildingType switch
@@ -76,6 +70,7 @@ namespace RareIcon
             BuildingType.GoblinCave => CostGoblinCave,
             BuildingType.Inn        => CostInn,
             BuildingType.Market     => CostMarket,
+            BuildingType.Outpost    => CostOutpost,
             _ => CostNone,
         };
 
@@ -127,6 +122,7 @@ namespace RareIcon
             BuildingType.GoblinCave => "building.goblin_cave",
             BuildingType.Inn        => "building.inn",
             BuildingType.Market     => "building.market",
+            BuildingType.Outpost    => "building.outpost",
             _ => "building.unknown",
         };
 
@@ -140,6 +136,7 @@ namespace RareIcon
             BuildTarget.GoblinCave => BuildingType.GoblinCave,
             BuildTarget.Inn        => BuildingType.Inn,
             BuildTarget.Market     => BuildingType.Market,
+            BuildTarget.Outpost    => BuildingType.Outpost,
             _ => BuildingType.None,
         };
 
@@ -153,6 +150,7 @@ namespace RareIcon
             BuildingType.GoblinCave => BuildTarget.GoblinCave,
             BuildingType.Inn        => BuildTarget.Inn,
             BuildingType.Market     => BuildTarget.Market,
+            BuildingType.Outpost    => BuildTarget.Outpost,
             _ => BuildTarget.None,
         };
 
@@ -166,13 +164,21 @@ namespace RareIcon
             BuildingType.GoblinCave => 350,
             BuildingType.Inn        => 280,
             BuildingType.Market     => 140,
+            BuildingType.Outpost    => 220,
             _                       => 100,
         };
+
+        public static bool RequiresInTerritory(byte buildingType)
+            => buildingType != BuildingType.Capital
+            && buildingType != BuildingType.Outpost;
+
+        public const int OutpostAnchorRadius = 5;
 
         /// <summary>All buildable types in display order — used by the palette panel.</summary>
         public static readonly byte[] AllBuildable =
         {
             BuildingType.Capital,
+            BuildingType.Outpost,
             BuildingType.Farm,
             BuildingType.Barracks,
             BuildingType.Furnace,

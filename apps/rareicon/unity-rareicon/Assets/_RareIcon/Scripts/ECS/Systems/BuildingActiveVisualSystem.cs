@@ -27,6 +27,8 @@ namespace RareIcon
                 .ScheduleParallel(state.Dependency);
             state.Dependency = new ProductionRecipeActiveJob { Now = now }
                 .ScheduleParallel(state.Dependency);
+            state.Dependency = new OutpostActiveJob()
+                .ScheduleParallel(state.Dependency);
         }
     }
 
@@ -73,6 +75,15 @@ namespace RareIcon
                     return;
                 }
             }
+        }
+    }
+
+    [BurstCompile]
+    partial struct OutpostActiveJob : IJobEntity
+    {
+        void Execute(in OutpostTag _, in EmpireConnected __, ref BuildingActiveVisual vis)
+        {
+            vis.Value = 1f;
         }
     }
 }

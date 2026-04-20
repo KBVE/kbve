@@ -51,7 +51,7 @@ namespace RareIcon
             _lastTileCount   = tileCount;
 
             var emitters = new NativeList<TerritoryEmitter>(8, Allocator.TempJob);
-            foreach (var e in SystemAPI.Query<RefRO<TerritoryEmitter>>())
+            foreach (var e in SystemAPI.Query<RefRO<TerritoryEmitter>>().WithAll<EmpireConnected>())
             {
                 if (e.ValueRO.Radius == 0) continue;
                 emitters.Add(e.ValueRO);
@@ -65,15 +65,11 @@ namespace RareIcon
             state.Dependency = emitters.Dispose(state.Dependency);
         }
 
-        // Non-static on purpose: SystemAPI.Query is rewritten by the ISystem
-        // source generator into instance-field reads (__TypeHandle /
-        // __query_*), so it can only live on an instance method that sees
-        // `this`. Called from OnUpdate above.
         [BurstCompile]
         int HashEmitters(ref SystemState state)
         {
             int h = 17;
-            foreach (var e in SystemAPI.Query<RefRO<TerritoryEmitter>>())
+            foreach (var e in SystemAPI.Query<RefRO<TerritoryEmitter>>().WithAll<EmpireConnected>())
             {
                 h = h * 31 + e.ValueRO.Center.x;
                 h = h * 31 + e.ValueRO.Center.y;

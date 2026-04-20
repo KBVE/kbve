@@ -137,6 +137,25 @@ namespace RareIcon
                 }
             }
 
+            if (buildingType == BuildingType.Outpost)
+            {
+                if (!HasFriendlyEmitterWithin(em, centerHex,
+                                              BuildingDB.OutpostAnchorRadius,
+                                              FactionType.Player))
+                    return false;
+            }
+            else if (BuildingDB.RequiresInTerritory(buildingType))
+            {
+                for (int i = 0; i < footprint.Length; i++)
+                {
+                    var hex = centerHex + footprint[i];
+                    if (!HexHoverSystem.TryGetHexEntity(hex, out var tile)) return false;
+                    if (!em.HasComponent<TerritoryVisual>(tile)
+                        || em.GetComponentData<TerritoryVisual>(tile).Value <= 0f)
+                        return false;
+                }
+            }
+
             // Cost check — find source inventory + verify each ingredient.
             // Failures here paint red same as a bad biome would, so the
             // player gets one consistent "you can't place here" signal.
@@ -147,10 +166,45 @@ namespace RareIcon
             {
                 int total = 0;
                 for (int j = 0; j < inv.Length; j++)
-                    if (inv[j].ItemId == cost[i].ItemId) total += inv[j].Count;
+                {
+                    if (!MatchesCostItem(inv[j].ItemId, cost[i].ItemId)) continue;
+                    total += inv[j].Count;
+                }
                 if (total < cost[i].Amount) return false;
             }
             return true;
+        }
+
+        static bool MatchesCostItem(ushort slotId, ushort costId)
+        {
+            if (costId == BuildingDB.AnyFoodSentinel)
+                return ItemDB.EnergyValue(slotId) > 0f;
+            return slotId == costId;
+        }
+
+        static bool HasFriendlyEmitterWithin(EntityManager em, int2 center, int radius, byte faction)
+        {
+            var q = em.CreateEntityQuery(ComponentType.ReadOnly<TerritoryEmitter>());
+            if (q.CalculateEntityCount() == 0) return false;
+            var arr = q.ToEntityArray(Unity.Collections.Allocator.Temp);
+            try
+            {
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    var e = em.GetComponentData<TerritoryEmitter>(arr[i]);
+                    if (e.OwnerFaction != faction) continue;
+                    if (e.Radius == 0) continue;
+                    if (AxialDistance(e.Center - center) <= radius) return true;
+                }
+            }
+            finally { arr.Dispose(); }
+            return false;
+        }
+
+        static int AxialDistance(int2 d)
+        {
+            int ds = -d.x - d.y;
+            return (math.abs(d.x) + math.abs(d.y) + math.abs(ds)) / 2;
         }
 
         // Read-only resolution of the cost source's inventory buffer.

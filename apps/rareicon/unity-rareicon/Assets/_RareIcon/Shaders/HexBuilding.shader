@@ -5,6 +5,15 @@ Shader "RareIcon/HexBuilding"
         // Per-instance: which building type to draw. 0 = skip.
         _BuildingType ("Building Type (per-instance)", Float) = 0
 
+        // Per-instance "this building is doing work right now" flag.
+        // 0 = idle (no fuel, vacancy, closed), 1 = active (burning, lit,
+        // staffed). Written by per-type visual systems (currently just
+        // FurnaceActiveVisualSystem); individual shader includes gate
+        // their dynamic details — furnace smoke/ember, inn window glow,
+        // cave torches — on this same float. Default 0 so a freshly
+        // spawned building reads as cold/dark until something lights it.
+        _BuildingActive ("Building Active (per-instance)", Float) = 0
+
         // 48-pixel grid matches unit pixel density at a 1.5 × 1.5 world
         // quad (1.5 / 48 = 0.03125 world-per-pixel, same as 0.5 / 16).
         _BuildingPixelGrid ("Building Pixel Grid", Float) = 48.0
@@ -75,6 +84,12 @@ Shader "RareIcon/HexBuilding"
         _MarketCanvas2   ("Market Canvas B",   Color) = (0.94, 0.88, 0.70, 1)
         _MarketGood1     ("Market Good A",     Color) = (0.70, 0.45, 0.20, 1)
         _MarketGood2     ("Market Good B",     Color) = (0.92, 0.50, 0.18, 1)
+
+        _OutpostStone       ("Outpost Stone",       Color) = (0.54, 0.50, 0.44, 1)
+        _OutpostStoneShade  ("Outpost Stone Shade", Color) = (0.32, 0.30, 0.26, 1)
+        _OutpostTimber      ("Outpost Timber",      Color) = (0.32, 0.20, 0.12, 1)
+        _OutpostBanner      ("Outpost Banner",      Color) = (0.88, 0.28, 0.22, 1)
+        _OutpostTorch       ("Outpost Torch",       Color) = (1.00, 0.62, 0.22, 1)
     }
 
     SubShader
@@ -115,6 +130,7 @@ Shader "RareIcon/HexBuilding"
 
             CBUFFER_START(UnityPerMaterial)
                 float _BuildingType;
+                float _BuildingActive;
                 float _BuildingPixelGrid;
 
                 float4 _CapitalWall;
@@ -158,14 +174,21 @@ Shader "RareIcon/HexBuilding"
                 float4 _MarketCanvas2;
                 float4 _MarketGood1;
                 float4 _MarketGood2;
+                float4 _OutpostStone;
+                float4 _OutpostStoneShade;
+                float4 _OutpostTimber;
+                float4 _OutpostBanner;
+                float4 _OutpostTorch;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
             UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
                 UNITY_DOTS_INSTANCED_PROP(float, _BuildingType)
+                UNITY_DOTS_INSTANCED_PROP(float, _BuildingActive)
             UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
-            #define _BuildingType UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _BuildingType)
+            #define _BuildingType    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _BuildingType)
+            #define _BuildingActive  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _BuildingActive)
             #endif
 
             // Must match constants in BuildingComponents.cs.
@@ -176,6 +199,7 @@ Shader "RareIcon/HexBuilding"
             #define BUILDING_GOBLIN_CAVE 5
             #define BUILDING_INN         6
             #define BUILDING_MARKET      7
+            #define BUILDING_OUTPOST     8
 
             #include "Includes/HexShared.hlsl"
             #include "Includes/HexBuildingShared.hlsl"
@@ -187,6 +211,7 @@ Shader "RareIcon/HexBuilding"
             #include "Includes/HexGoblinCave.hlsl"
             #include "Includes/HexInn.hlsl"
             #include "Includes/HexMarket.hlsl"
+            #include "Includes/HexOutpost.hlsl"
 
             Varyings vert(Attributes input)
             {
@@ -237,6 +262,10 @@ Shader "RareIcon/HexBuilding"
                 else if (buildingType == BUILDING_MARKET)
                 {
                     DrawMarket(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_OUTPOST)
+                {
+                    DrawOutpost(color, alpha, px, grid);
                 }
 
                 clip(alpha - 0.001);

@@ -135,13 +135,13 @@ namespace RareIcon
     /// <summary>Marker tag for Goblin Cave buildings — production + refill system query key.</summary>
     public struct GoblinCaveTag : IComponentData { }
 
-    /// <summary>Marker tag for Outpost buildings — frontier forts that extend empire territory. Placement is gated to within 5 axial hexes of any same-faction TerritoryEmitter; on completion the entity gains its own TerritoryEmitter (radius 5). Connectivity back to Capital is resolved by EmpireConnectivitySystem via BFS; orphaned outposts lose the EmpireConnected tag and stop projecting territory until a new outpost reconnects the chain.</summary>
+    /// <summary>Marker tag for Outpost buildings.</summary>
     public struct OutpostTag : IComponentData { }
 
-    /// <summary>Tag indicating a TerritoryEmitter entity is reachable from its faction's Capital via a chain of same-faction emitters each within 5 hexes of the next. Added/removed by EmpireConnectivitySystem. TerritoryBakeSystem filters on this so orphaned emitters stop contributing to the territory union; visual systems key off it to dim the outpost's banner + torch when the chain breaks.</summary>
+    /// <summary>Tag indicating a TerritoryEmitter is reachable from its faction's Capital via BFS over same-faction emitters within OutpostAnchorRadius.</summary>
     public struct EmpireConnected : IComponentData { }
 
-    /// <summary>Per-cave turn-cadence state: consumes FoodPerGoblin rations from the cave's InventorySlot buffer each cadence turn and spawns one Looter-role goblin. Refill is carried out by Looters — JobSystem routes any Looter with food toward a needy cave and any empty-handed Looter toward the Capital to pick up; CapitalFoodPickupSystem + CaveFoodDeliverySystem handle the two transfer legs.</summary>
+    /// <summary>Per-cave turn cadence: consumes FoodPerGoblin rations and spawns one Looter goblin per cadence turn. Storage capped at StorageCap; Looters haul food from Capital via CapitalFoodPickupSystem + CaveFoodDeliverySystem.</summary>
     public struct GoblinCaveProduction : IComponentData
     {
         public uint LastProducedTurn;
@@ -186,7 +186,7 @@ namespace RareIcon
         public float CycleDuration;
     }
 
-    /// <summary>Generic per-building visual activity flag (0 = idle / cold, 1 = actively working). Individual per-type systems (FurnaceActiveVisualSystem, future InnActive / CaveActive / MarketActive writers) resolve "am I active?" from their own recipe state and write this value; every building shader include reads `_BuildingActive` to gate its fire / glow / smoke details on combustion state. Keeps the "no fuel, no smoke" + "empty inn, dark windows" rules uniform across the world.</summary>
+    /// <summary>Per-instance shader flag — 0 idle, 1 active. Written each frame by BuildingActiveVisualSystem writers; read by HexBuilding includes to gate dynamic details (smoke, glow, torch).</summary>
     [MaterialProperty("_BuildingActive")]
     public struct BuildingActiveVisual : IComponentData
     {

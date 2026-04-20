@@ -4,17 +4,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Per-turn production cadence for every GoblinCaveTag entity: if the
-    /// cave's InventorySlot buffer holds at least FoodPerGoblin edible items
-    /// (ItemDB.EnergyValue > 0), consume them and spawn one Player-faction
-    /// Goblin at the cave's RootHex with default JobPriorities (Looter = 3).
-    ///
-    /// Cadence is anchored to WorldClock.TurnIndex — no fractional cycles,
-    /// one goblin per cadence turn at most. If storage is too low the turn
-    /// skips and LastProducedTurn stays put so we catch up the instant a
-    /// hauler lands more rations.
-    /// </summary>
+    /// <summary>Per-turn cave cadence: consume FoodPerGoblin edible items and spawn one Player-faction Looter goblin.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial class GoblinCaveProductionSystem : SystemBase
     {
@@ -30,8 +20,6 @@ namespace RareIcon
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
             uint currentTurn = SystemAPI.GetSingleton<WorldClock>().TurnIndex;
 
-            // Complete any pending RW jobs on InventorySlot (e.g. FurnaceTickJob)
-            // before we take a main-thread BufferLookup on the same type.
             CompleteDependency();
 
             var invLookup = SystemAPI.GetBufferLookup<InventorySlot>(false);
@@ -65,15 +53,10 @@ namespace RareIcon
                 });
             }
 
-            // Spawn outside the iteration — SpawnGoblinAt does structural
-            // changes that would invalidate the ongoing Query otherwise.
             for (int i = 0; i < caves.Length; i++)
             {
                 var pending = caves[i];
                 byte spawnFaction = pending.Faction == 0 ? FactionType.Player : pending.Faction;
-
-                // RNG seed derived from (cave entity, turn) so two caves
-                // producing on the same turn don't share a seed.
                 uint rng = (uint)pending.Cave.Index ^ (currentTurn * 0x9E3779B1u) ^ 0xC0FFEE33u;
                 UnitSpawnSystem.SpawnGoblinAt(em, pending.Hex, rng, default, spawnFaction);
             }
@@ -81,7 +64,6 @@ namespace RareIcon
             caves.Dispose();
         }
 
-        /// <summary>Drains `amount` total food units (RestoreEnergy > 0) from `storage` across slots in buffer order. Returns false and leaves storage untouched if the total available is below `amount`.</summary>
         static bool TryConsumeFood(ref DynamicBuffer<InventorySlot> storage, ushort amount)
         {
             int available = 0;
@@ -107,18 +89,7 @@ namespace RareIcon
         }
     }
 
-    /// <summary>
-    /// Looter-driven food haul leg 1: a Looter (JobPriorities.Looter > 0)
-    /// standing on the Capital's claimed hex withdraws up to
-    /// GoblinCaveHaulConfig.PerTripAmount food from Capital storage into
-    /// its own InventorySlot buffer — but only if the empire actually
-    /// needs that food (at least one Goblin Cave has headroom). Otherwise
-    /// the Looter's normal loop (deposit → forage → return) plays out.
-    ///
-    /// Updates after EmpireDepositSystem so any loot the Looter just
-    /// dropped at Capital is already in the treasury and available to
-    /// hand back as ration freight.
-    /// </summary>
+    /// <summary>Looter on the Capital hex with room in inventory pulls up to PerTripAmount food items when at least one cave has headroom.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireDepositSystem))]
     public partial class CapitalFoodPickupSystem : SystemBase
@@ -133,8 +104,6 @@ namespace RareIcon
 
             int2 capitalHex = EntityManager.GetComponentData<Building>(capital).RootHex;
 
-            // Skip the whole pass if no cave is hungry — looters should
-            // stay on their default loop rather than spin Capital → Capital.
             if (!AnyCaveHasHeadroom()) return;
 
             var capitalStorage = EntityManager.GetBuffer<InventorySlot>(capital);
@@ -151,8 +120,6 @@ namespace RareIcon
                 if (priorities.ValueRO.Looter == 0) continue;
                 if (!movement.ValueRO.CurrentHex.Equals(capitalHex)) continue;
 
-                // Don't top up over the trip amount — Looter isn't a truck,
-                // it carries one run at a time.
                 int alreadyCarrying = CountFood(inv);
                 if (alreadyCarrying >= GoblinCaveHaulConfig.PerTripAmount) continue;
 
@@ -197,9 +164,6 @@ namespace RareIcon
             return total;
         }
 
-        // Moves up to `amount` food units from src → dst in src's slot
-        // order. Merges into an existing dst slot with matching ItemId,
-        // otherwise appends. Deterministic-but-arbitrary which food ships first.
         static void TransferFood(DynamicBuffer<InventorySlot> src, DynamicBuffer<InventorySlot> dst, ushort amount)
         {
             int remaining = amount;
@@ -232,16 +196,7 @@ namespace RareIcon
         }
     }
 
-    /// <summary>
-    /// Looter-driven food haul leg 2: any Player-faction unit standing on
-    /// a Goblin Cave's root hex with carried food drains its food into the
-    /// cave's InventorySlot buffer up to StorageCap. Non-food items are
-    /// left on the unit (they'll get dumped at Capital via EmpireDeposit).
-    ///
-    /// Not restricted to Looters — if a Farmer or anyone else happens to
-    /// be on the cave hex with food, we accept the drop. The filter is
-    /// "carried food + cave needs food", not "role match".
-    /// </summary>
+    /// <summary>Any Player-faction unit on a cave hex carrying food drains it into the cave's InventorySlot up to StorageCap.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateBefore(typeof(GoblinCaveProductionSystem))]
     public partial class CaveFoodDeliverySystem : SystemBase
@@ -339,10 +294,8 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Shared tuning for the Looter cave-haul loop.</summary>
     public static class GoblinCaveHaulConfig
     {
-        /// <summary>Max food units a Looter carries per Capital → cave run. Matches default FoodPerGoblin (one trip = one goblin's worth).</summary>
         public const ushort PerTripAmount = 50;
     }
 }
