@@ -7,19 +7,8 @@ using UnityEngine.Rendering;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Renders the 7-hex "green zone" that follows the cursor while build
-    /// mode is active. Seven overlay entities (centre + 6 axial neighbours)
-    /// are created once, then repositioned to the hovered hex each frame.
-    /// When build mode exits the entities are pushed off-screen rather
-    /// than destroyed — cheaper than churning render components on every
-    /// toggle, and keeps the draw count bounded.
-    ///
-    /// Uses HexBuildPreview.shader (filled tinted hex with a brighter
-    /// border ring). Future red-on-invalid tinting hooks in via a
-    /// per-entity MaterialProperty override on _FillColor / _BorderColor.
-    /// </summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    /// <summary>Positions the 7-hex overlay on the cursor while build mode is active; tints red on invalid footprint.</summary>
+    [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(HexHoverSystem))]
     public partial class BuildPreviewSystem : SystemBase
     {

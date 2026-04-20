@@ -4,35 +4,8 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Central-storage deposit pass for the player's empire. Any unit
-    /// on FactionType.Player that carries an InventorySlot buffer and
-    /// happens to stand on one of the 7 capital-claimed hexes drains
-    /// its inventory into the capital's own buffer and walks away
-    /// empty. Works for goblins today and any future empire creature
-    /// (knight quartermasters, soldiers hauling loot from kills, etc.)
-    /// without a code change — the query is keyed on the components,
-    /// not on UnitType.
-    ///
-    /// Companion to a future EmpireWithdrawSystem: that pass will run
-    /// the other direction, letting units *pull* from storage based
-    /// on need-signals produced by yet-to-be-built systems. Candidate
-    /// signals:
-    ///   • HungerSystem → publishes "give me N food items"
-    ///   • CraftingSystem → publishes "give me N wood + N stone"
-    ///   • Equipment swaps → publishes "give me a sword"
-    /// Until one of those lands, there's no demand to pull against,
-    /// so the withdraw system stays unwritten. When it lands, the
-    /// contract is: units carry a `DynamicBuffer<PullRequest>` (or
-    /// similar), the withdraw pass fulfils as much as storage can
-    /// give, and unsatisfied requests remain for later passes.
-    ///
-    /// Hostile / beast factions are skipped explicitly — even if a
-    /// raider goblin wanders onto the capital plaza its loot doesn't
-    /// go into our storage.
-    /// </summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(UnitMovementSystem))]
+    /// <summary>Drains a Player-faction unit's inventory into the Capital's storage buffer when standing on a claimed hex.</summary>
+    [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial class EmpireDepositSystem : SystemBase
     {
         protected override void OnUpdate()

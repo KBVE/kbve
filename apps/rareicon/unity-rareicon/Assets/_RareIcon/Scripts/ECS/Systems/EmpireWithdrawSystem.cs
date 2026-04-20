@@ -3,24 +3,8 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Empire-side withdraw pass: a hungry Player-faction unit standing
-    /// on the capital pulls one food item out of the capital's storage
-    /// buffer into its own inventory. AutoEatSystem then turns that item
-    /// into energy the same frame.
-    ///
-    /// The need-signal is low Energy — "hunger is just energy that's too
-    /// low". Threshold is a ratio of max so it works across unit types
-    /// without per-creature tuning (goblin max 100 and a future knight
-    /// max 120 both start pulling food below 30% of their own max).
-    ///
-    /// Extension point: when other needs land (crafting ingredients,
-    /// weapon swaps) the withdraw pass either grows more need-checks
-    /// here or splits into a shared "what does this unit want?" signal
-    /// (e.g. a DynamicBuffer&lt;PullRequest&gt;) that multiple producer
-    /// systems populate and this one drains.
-    /// </summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    /// <summary>Hungry Player-faction unit on the Capital pulls one food item from storage into its inventory.</summary>
+    [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireDepositSystem))]
     public partial class EmpireWithdrawSystem : SystemBase
     {

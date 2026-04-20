@@ -4,26 +4,8 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Starvation: when Energy hits 0 a grace period starts; past the
-    /// grace window Health drains until the unit either eats or dies.
-    /// Runs last in the food loop (deposit → withdraw → share → eat →
-    /// starvation) so same-frame recovery — the goblin finds food,
-    /// AutoEatSystem restores Energy, and this pass sees Energy > 0
-    /// and resets the timer — works cleanly.
-    ///
-    /// Death path: when Health reaches 0 from starvation, we tag the
-    /// entity with DeadTag. DeathCleanupSystem does the actual cleanup
-    /// later in the frame, same as damage-driven deaths.
-    ///
-    /// Tuning knobs:
-    ///   • GracePeriod — how long at 0 energy before Health ticks down.
-    ///     Short enough that players notice, long enough that a quick
-    ///     detour to the capital or a shared mushroom rescues them.
-    ///   • StarveDPS — how fast Health drops once the grace expires.
-    ///     Goblin HP 30 + StarveDPS 2 ⇒ ~15s to die once starving hits.
-    /// </summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    /// <summary>Drains Health from units whose Energy has been 0 past the grace period; tags DeadTag on fatal drain.</summary>
+    [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(AutoEatSystem))]
     public partial class StarvationSystem : SystemBase
     {

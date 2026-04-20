@@ -19,7 +19,7 @@ namespace RareIcon
     /// (Instantiate + DestroyEntity) so iteration over the request
     /// query stays safe.
     /// </summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateInGroup(typeof(MovementSystemGroup))]
     [UpdateBefore(typeof(ProjectileSystem))]
     public partial class ProjectileSpawnSystem : SystemBase
     {

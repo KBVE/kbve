@@ -3,22 +3,8 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Consumes one food item from a unit's inventory to restore energy
-    /// whenever Energy dips below the hunger threshold. Runs everywhere
-    /// — doesn't care if the unit is at the capital or out in the field,
-    /// so long as there's food in the bag the unit will eat it.
-    ///
-    /// Intentionally faction-agnostic: a hostile raider that looted
-    /// berries from a corpse can still eat them. "Hunger" is biology,
-    /// not politics.
-    ///
-    /// Per-tick behaviour: at most one item eaten per unit per frame.
-    /// If the unit is still below threshold after one bite it'll eat
-    /// another next frame — keeps per-frame work bounded and gives
-    /// animations / feedback a natural cadence to hang off.
-    /// </summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    /// <summary>Eats one food item per frame from a hungry unit's inventory, restoring Energy per ItemDB.EnergyValue.</summary>
+    [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireSharingSystem))]
     public partial class AutoEatSystem : SystemBase
     {

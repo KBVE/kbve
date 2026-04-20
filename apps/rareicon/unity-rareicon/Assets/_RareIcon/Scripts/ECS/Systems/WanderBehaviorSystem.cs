@@ -4,24 +4,9 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Passive roam — the default behavior for any unit with no higher-
-    /// priority goal set. Picks a random hex 3–5 tiles away and drops
-    /// it into <see cref="MovementGoal"/> at Wander priority;
-    /// PathfindingSystem handles the per-hex steps, and when the unit
-    /// reaches the target this system rolls a new one.
-    ///
-    /// Priority gating: only overwrites goals with priority ≤ Wander
-    /// (None or another Wander). Higher-priority behaviors
-    /// (ReturnToBase, player orders, flee) stay untouched.
-    ///
-    /// Burst + ScheduleParallel. Each entity writes only its own
-    /// MovementGoal + UnitMovement.RandomState → lock-free across
-    /// chunks, scales linearly with population.
-    /// </summary>
+    /// <summary>Rolls a random 3–5 hex MovementGoal for any unit idle at Wander priority.</summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateBefore(typeof(PathfindingSystem))]
+    [UpdateInGroup(typeof(BehaviorSystemGroup))]
     public partial struct WanderBehaviorSystem : ISystem
     {
         [BurstCompile]

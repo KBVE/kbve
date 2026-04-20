@@ -6,23 +6,8 @@ using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Builds a 2D spatial hash over every Collidable unit each frame so
-    /// CollisionSystem can answer "what's near this projectile?" in O(1)
-    /// average instead of scanning every unit per arrow.
-    ///
-    /// Cell size is ~1 world unit (roughly 4 hexes). At that scale a
-    /// projectile only has to probe its own cell + 8 neighbours to find
-    /// any overlap candidate — 9 bucket lookups per arrow regardless of
-    /// how many units exist. 10k arrows × 10k units becomes ≈ 90k bucket
-    /// probes with a handful of candidates each, linear in either count.
-    ///
-    /// The hash is rebuilt from scratch every frame rather than
-    /// maintained incrementally; incremental bookkeeping is fiddly and
-    /// rebuild-from-Burst is already fast.
-    /// </summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(UnitMovementSystem))]
+    /// <summary>Rebuilds a 2D spatial hash of all Collidable units each frame for O(1) "who's nearby" queries.</summary>
+    [UpdateInGroup(typeof(CombatSystemGroup))]
     public partial class SpatialHashSystem : SystemBase
     {
         public const float CellSize = 1.0f;

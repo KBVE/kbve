@@ -4,28 +4,9 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Faction-wide auto-return: any Player-faction unit that's either
-    /// carrying inventory (go deposit) or hungry (go eat) gets a
-    /// <see cref="MovementGoal"/> pointed at the Capital. Replaces the
-    /// goblin-wandering "if hungry → head home" logic that used to live
-    /// inside UnitMovementSystem and the older KingAutoReturnSystem that
-    /// only handled the King. Now one behavior, one rule, one priority
-    /// level — goblins, King, and future empire creatures all auto-return
-    /// through the same path.
-    ///
-    /// Clears the goal once the unit has arrived at the capital AND both
-    /// demands have been serviced (inventory empty, not hungry). That
-    /// drops priority back to zero so WanderBehaviorSystem naturally
-    /// picks back up and sends the unit back out to harvest.
-    ///
-    /// Burst ISystem + ScheduleParallel IJobEntity. The capital hex is
-    /// resolved once per frame in OnUpdate and passed into the job as
-    /// plain int2, so the job body stays fully blittable / FFI-clean.
-    /// </summary>
+    /// <summary>Empire units carrying inventory or hungry get a ReturnToBase MovementGoal aimed at the Capital.</summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateBefore(typeof(PathfindingSystem))]
+    [UpdateInGroup(typeof(BehaviorSystemGroup))]
     public partial struct ReturnToBaseSystem : ISystem
     {
         [BurstCompile]

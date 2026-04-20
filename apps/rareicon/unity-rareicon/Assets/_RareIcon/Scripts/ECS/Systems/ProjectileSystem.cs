@@ -19,7 +19,7 @@ namespace RareIcon
     /// over units, queried per-arrow) once ranged units start firing.
     /// </summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateInGroup(typeof(MovementSystemGroup))]
     public partial struct ProjectileSystem : ISystem
     {
         [BurstCompile]

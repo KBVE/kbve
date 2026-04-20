@@ -20,7 +20,7 @@ namespace RareIcon
     /// is a handful of EntityManager ops per request; fine at the rate
     /// a player hand-places cities.
     /// </summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateInGroup(typeof(MovementSystemGroup))]
     public partial class BuildingSpawnSystem : SystemBase
     {
         const float HexSize      = 0.25f;

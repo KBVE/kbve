@@ -7,25 +7,8 @@ using UnityEngine;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Translates left-click hex selections into "King, walk there"
-    /// orders by writing the King's <see cref="MovementGoal"/> at
-    /// Order priority. PathfindingSystem then plans the per-hex steps
-    /// and UnitMovementSystem does the smooth locomotion — the click
-    /// handler stays purely in the Behavior layer of the
-    /// Behavior → Pathfinding → Locomotion split.
-    ///
-    /// Order priority beats Wander (10) and ReturnToBase (50), so a
-    /// click always wins over autopilot. It doesn't beat Flee (200) —
-    /// the King shouldn't stand still and get arrow-pincushioned
-    /// because the player misclicked.
-    ///
-    /// V1 caveats (acceptable, fix in pathfinding slice):
-    /// - Pathfinder walks a straight-ish hex chain, no obstacle
-    ///   awareness yet (walks over ocean tiles once we support them).
-    /// - CurrentHex only updates on arrival, not per intermediate tile.
-    /// </summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    /// <summary>Translates left-click hex selections into a MoveToHex MovementGoal on the King.</summary>
+    [UpdateInGroup(typeof(BehaviorSystemGroup))]
     public partial class KingMoveCommandSystem : SystemBase
     {
         IDisposable _sub;

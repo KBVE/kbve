@@ -4,26 +4,8 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Citizens of the empire share food with each other: a hungry unit
-    /// with an empty larder on the same hex as a peer who's carrying
-    /// food gets 1 item handed over, no questions asked. The "Oh I have
-    /// 5 mushrooms, give 1 to the other guy" rule in one system.
-    ///
-    /// Runs between EmpireWithdrawSystem (capital pull) and AutoEatSystem
-    /// so the share-then-eat sequence fires in one frame: Alice shares
-    /// her mushroom with Bob on frame N, Bob eats it the same frame.
-    ///
-    /// Only Player faction participates — hostile raiders don't share
-    /// with each other through this pipeline (they can loot on kills
-    /// via future combat drops).
-    ///
-    /// Algorithm: bucket all empire units by CurrentHex so we only
-    /// pairwise-scan within the same hex instead of NxN across the whole
-    /// world. For 16 goblins the inner cost is trivial; the bucketing
-    /// keeps the system's budget bounded as the population grows.
-    /// </summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    /// <summary>Peer-to-peer food handoff: a hungry empire unit on the same hex as a peer carrying food gets one item transferred.</summary>
+    [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireWithdrawSystem))]
     public partial class EmpireSharingSystem : SystemBase
     {

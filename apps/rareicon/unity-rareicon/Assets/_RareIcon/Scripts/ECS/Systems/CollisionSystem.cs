@@ -6,18 +6,8 @@ using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Projectile-vs-unit collision pass. For every projectile, probes
-    /// the spatial hash for candidates in the 9 surrounding cells,
-    /// filters out same-faction targets, and emits a DamageEvent for
-    /// any overlap. Projectile is destroyed on first hit.
-    ///
-    /// Uses a Burst-compiled IJobEntity scheduled in parallel so the
-    /// scan distributes across all worker threads — the hot path is
-    /// purely math on pre-hashed data with zero managed lookups.
-    /// </summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(ProjectileSystem))]
+    /// <summary>Projectile-vs-unit overlap pass; emits DamageEvent on hit and destroys the projectile.</summary>
+    [UpdateInGroup(typeof(CombatSystemGroup))]
     [UpdateAfter(typeof(SpatialHashSystem))]
     public partial class CollisionSystem : SystemBase
     {
