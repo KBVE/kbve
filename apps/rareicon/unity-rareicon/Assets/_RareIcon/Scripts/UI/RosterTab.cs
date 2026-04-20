@@ -17,8 +17,6 @@ namespace RareIcon
     {
         const int RefreshIntervalMs = 500;
 
-        // Same job set as JobsTab; both UIs edit the same JobPriorities
-        // component, JobsTab in bulk-by-type, this tab per-individual.
         static readonly (byte Kind, string Label)[] Jobs = new (byte, string)[]
         {
             (JobKind.Looter,     "Looter"),
@@ -126,10 +124,6 @@ namespace RareIcon
             parent.Add(_detail);
         }
 
-        // Per-unit job priority editor — 8 stepper rows wired to the
-        // selected entity's JobPriorities component. Hidden until a unit
-        // is selected. Steppers fire onChange ONLY for user clicks (the
-        // SetValue path on RefreshDetail bypasses onChange).
         void BuildJobs(VisualElement parent)
         {
             _jobsSection = new VisualElement();
@@ -319,10 +313,6 @@ namespace RareIcon
             _possessBtn.SetEnabled(false);
         }
 
-        // User-driven stepper change → write priority back to the
-        // selected entity's JobPriorities. JobsTab's bulk Apply later
-        // would clobber this; that's the documented bulk-vs-override
-        // model (per-type defaults + per-individual overrides).
         void SetJobForSelected(byte jobKind, byte priority)
         {
             if (_selected == Entity.Null) return;
@@ -434,9 +424,6 @@ namespace RareIcon
             public bool Live;
         }
 
-        // Mini bar control: optional label · filled bar · "n/m" value.
-        // When `classOverride` is set the wrapper takes that single class
-        // and skips the label/value (used for the inline row HP bar).
         sealed class StatBar
         {
             public readonly VisualElement Root;

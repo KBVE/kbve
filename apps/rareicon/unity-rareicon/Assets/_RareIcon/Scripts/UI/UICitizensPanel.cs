@@ -104,14 +104,8 @@ namespace RareIcon
                 if (open) _tabs[_activeIndex].OnActivated();
             }).AddTo(_disposables);
 
-            // Possess implies "I want to control this unit out in the world"
-            // — close the citizens panel so the player can immediately drive
-            // their new avatar without an extra click.
             var bag = MessagePipe.DisposableBag.CreateBuilder();
             _possessSub.Subscribe(_ => Close()).AddTo(bag);
-            // Click-to-inspect — opens the panel onto the Roster tab with
-            // the clicked unit already selected so the player can audit
-            // stats / jobs / inventory in one gesture.
             _inspectSub.Subscribe(msg =>
             {
                 if (_activeIndex != _rosterIndex) SelectTab(_rosterIndex);

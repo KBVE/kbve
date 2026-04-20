@@ -177,9 +177,6 @@ namespace RareIcon
             el.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
-        // Reparent toolbar + HUD stack + hover tile-info into the
-        // ScreenFrame regions. Strip absolute-anchor classes and force
-        // row layout so contents sit on the bar instead of stacking.
         void MountIntoFrame()
         {
             if (_toolbar != null && _frame.TopLeft != null)
@@ -313,10 +310,6 @@ namespace RareIcon
             }
         }
 
-        // Selection-aware god view — repaints only when the count or
-        // per-type breakdown actually changed, so poll churn is cheap.
-        // No Release button (selection clears via ESC / right-click /
-        // empty drag, not a dedicated UI control).
         void RefreshSelectionIndicator(EntityManager em)
         {
             if (!_selectionReady)
@@ -426,9 +419,6 @@ namespace RareIcon
             {
                 _hoverCreature.RemoveFromClassList("is-hidden");
 
-                // Per-unit name with creature-type in parens as the baseline
-                // identity line — falls back to just the creature name when
-                // the unit has no UnitName (non-goblin mobs don't roll one).
                 string creatureName = _locale.GetCreatureName(msg.UnitType);
                 string personal = msg.UnitNameFirstId != 0
                     ? _locale.GetGoblinName(msg.UnitNameFirstId, msg.UnitNameEpithetId)
@@ -441,10 +431,6 @@ namespace RareIcon
                     _hoverCreature.text = ZString.Format("{0} · {1}",
                         creatureName, factionLabel);
 
-                // Swap the faction-colour modifier — controller-driven so
-                // all five FactionType variants can share the same label
-                // element. Strip every variant first so stale classes from
-                // the previous hover never stick.
                 _hoverCreature.RemoveFromClassList("tile-info__line--faction-player");
                 _hoverCreature.RemoveFromClassList("tile-info__line--faction-hostile");
                 _hoverCreature.RemoveFromClassList("tile-info__line--faction-beast");
