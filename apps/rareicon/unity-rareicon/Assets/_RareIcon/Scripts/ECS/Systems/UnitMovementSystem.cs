@@ -6,26 +6,41 @@ using Unity.Transforms;
 namespace RareIcon
 {
     /// <summary>
-    /// Burst-compiled wandering for units. Pure data-flow:
-    ///   • Sim state (CurrentHex / TargetHex) lives in hex-space; world position
-    ///     is just the interpolated render output.
-    ///   • Per-unit RandomState makes direction picks diverge even when many
-    ///     units arrive at the same hex on the same tick (no herd behaviour).
-    ///   • Facing updates exactly once per hex arrival so the sprite stays
-    ///     stable for the whole traversal.
-    ///   • No managed Unity API access in OnUpdate, so the whole loop Burst-
-    ///     compiles.
+    /// Pure locomotion layer of the Behavior → Pathfinding → Locomotion
+    /// split. Inputs are all written by upstream systems:
+    ///   • TargetHex ← PathfindingSystem (next per-hex waypoint)
+    ///   • DwellTimer / LastDir / RandomState ← PathfindingSystem
+    ///   • MovementGoal ← WanderBehavior / ReturnToBase / KingMoveCommand
+    ///
+    /// This system only does three things:
+    ///   1. Tick the dwell timer down during post-arrival pauses.
+    ///   2. Step Position smoothly toward TargetHex world space.
+    ///   3. On arrival, stamp CurrentHex = TargetHex, pay the per-step
+    ///      Energy cost, and bump WanderStep (HarvestSystem uses it as
+    ///      an arrival counter).
+    ///
+    /// Direction picking, hunger-triggered re-routing, and player orders
+    /// live in the behavior systems now — no more King-specific branches
+    /// or "if hungry, head home" overrides in here. Units with
+    /// MovementGoal.Kind == None naturally sit still because Pathfinding
+    /// doesn't touch their TargetHex and locomotion has nothing to
+    /// walk toward.
+    ///
+    /// Burst ISystem — per-entity body is int2 + float3 math + one
+    /// ComponentLookup. Convert to parallel IJobEntity if a single-
+    /// threaded locomotion loop ever shows up in the profile.
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct UnitMovementSystem : ISystem
     {
-        const float HexSize = 0.25f;
+        const float HexSize      = 0.25f;
         const float ArriveDistSq = 0.0025f; // (~0.05 world units)²
-        // Per-arrival pause so the sprite-facing flip happens while stationary.
-        // Random per-unit jitter on top so a crowd doesn't move in lockstep.
-        const float DwellMin = 0.12f;
-        const float DwellMax = 0.30f;
+        // Per-hex-step energy cost — "walking tires you out". Charged
+        // once on arrival, regardless of faction. With goblin MaxEnergy
+        // 100 and hunger threshold 30%, this gives ~70 hops before the
+        // goblin needs to eat, ~55s of continuous walking at 0.7u/s.
+        const float EnergyPerStep = 1.0f;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state) { }
@@ -38,85 +53,103 @@ namespace RareIcon
         {
             float dt = SystemAPI.Time.DeltaTime;
 
-            foreach (var (transform, movement, facingVisual) in
+            // Energy lookup for per-step walking cost. Entities without
+            // Energy (future wildlife, environmental props) skip the
+            // deduction branch.
+            var energyLookup = SystemAPI.GetComponentLookup<Energy>(false);
+
+            foreach (var (transform, movement, facingVisual, movingVisual, entity) in
                      SystemAPI.Query<
                          RefRW<LocalTransform>,
                          RefRW<UnitMovement>,
-                         RefRW<UnitFacingVisual>>())
+                         RefRW<UnitFacingVisual>,
+                         RefRW<UnitMovingVisual>>().WithEntityAccess())
             {
-                // ---- 1. Dwelling (paused at current hex after arrival) ----
-                // Sprite already shows the new facing; the goblin just stands
-                // still for a beat so a 90°/180° turn reads as deliberate.
+                // ---- 1. Dwelling (post-arrival pause) ----
                 float dwell = movement.ValueRO.DwellTimer;
                 if (dwell > 0f)
                 {
                     movement.ValueRW.DwellTimer = math.max(0f, dwell - dt);
+                    if (movingVisual.ValueRO.Value != 0f)
+                        movingVisual.ValueRW.Value = 0f;
                     continue;
                 }
 
-                float3 pos = transform.ValueRO.Position;
+                // ---- 2. Idle — TargetHex == CurrentHex ----
+                // No goal, or goal already satisfied, or behavior has
+                // cleared TargetHex back to CurrentHex. Either way,
+                // nothing to locomote toward; stop the animation and
+                // wait for upstream to set a new step.
+                if (movement.ValueRO.TargetHex.Equals(movement.ValueRO.CurrentHex))
+                {
+                    if (movingVisual.ValueRO.Value != 0f)
+                        movingVisual.ValueRW.Value = 0f;
+                    continue;
+                }
 
-                int2 targetHex = movement.ValueRO.TargetHex;
-                float3 target = HexMeshUtil.HexToWorld(targetHex.x, targetHex.y, HexSize);
+                float3 pos       = transform.ValueRO.Position;
+                int2   targetHex = movement.ValueRO.TargetHex;
+                float3 target    = HexMeshUtil.HexToWorld(targetHex.x, targetHex.y, HexSize);
                 target.z = pos.z;
 
                 float3 toTarget = target - pos;
                 toTarget.z = 0f;
                 float distSq = math.lengthsq(toTarget);
 
-                // ---- 2. Arrival ------------------------------------------------
+                // ---- 3. Arrival ----
                 if (distSq < ArriveDistSq)
                 {
                     transform.ValueRW.Position = target;
-
-                    int2 currentHex = targetHex;
-                    movement.ValueRW.CurrentHex = currentHex;
-
-                    // Advance per-unit RNG, pick next neighbour.
-                    uint rng = movement.ValueRO.RandomState;
-                    rng = NextRandom(rng ^ movement.ValueRO.WanderStep ^ HashHex(currentHex));
-                    movement.ValueRW.RandomState = rng;
+                    movement.ValueRW.CurrentHex = targetHex;
+                    // Monotonic arrival counter — HarvestSystem keys
+                    // "harvest once per new stop" off this.
                     movement.ValueRW.WanderStep = movement.ValueRO.WanderStep + 1u;
 
-                    // Pick the next direction with a forward bias so units
-                    // walk in meandering paths instead of uniform ping-pong.
-                    byte prevDir = movement.ValueRO.LastDir;
-                    int newDir = PickWeightedDir(rng, prevDir);
-                    int2 nextHex = currentHex + HexNeighbor(newDir);
-                    movement.ValueRW.TargetHex = nextHex;
-                    movement.ValueRW.LastDir = (byte)newDir;
+                    // Pay the per-step energy cost. Zero-clamp so units
+                    // can't dip negative; hunger kicks in via the 30%
+                    // ratio in AutoEatSystem / ReturnToBaseSystem.
+                    if (energyLookup.HasComponent(entity))
+                    {
+                        var energy = energyLookup[entity];
+                        energy.Value = math.max(0f, energy.Value - EnergyPerStep);
+                        energyLookup[entity] = energy;
+                    }
 
-                    // Update facing once, deterministic from the new heading.
-                    float3 nextWorld = HexMeshUtil.HexToWorld(nextHex.x, nextHex.y, HexSize);
-                    byte facing = FacingFromDir(nextWorld.x - target.x, nextWorld.y - target.y);
-                    movement.ValueRW.Facing = facing;
-                    facingVisual.ValueRW.Value = facing;
-
-                    // Per-arrival dwell — short when continuing forward, longer
-                    // when the unit just made a sharp turn. Plus per-unit
-                    // jitter so a crowd doesn't move in lockstep.
-                    float jitter = ((rng >> 16) & 0xFFFFu) / 65535f;
-                    float baseDwell = math.lerp(DwellMin, DwellMax, jitter);
-                    float turnScale = TurnSharpnessScale(prevDir, (byte)newDir);
-                    movement.ValueRW.DwellTimer = baseDwell * turnScale;
+                    // Snap facing to the direction we just arrived from
+                    // (the King wants this; for goblins Pathfinding's
+                    // next step will overwrite it next frame anyway).
+                    if (math.lengthsq(toTarget) > 1e-6f)
+                    {
+                        byte arrFacing = FacingFromDir(toTarget.x, toTarget.y);
+                        movement.ValueRW.Facing = arrFacing;
+                        facingVisual.ValueRW.Value = arrFacing;
+                    }
                     continue;
                 }
 
-                // ---- 3. Mid-traversal — smooth step toward target ------------
+                // ---- 4. Mid-traversal — smooth step toward TargetHex ----
                 float dist = math.sqrt(distSq);
                 float3 dir = toTarget / dist;
                 float step = math.min(dist, movement.ValueRO.MoveSpeed * dt);
                 transform.ValueRW.Position = pos + dir * step;
+
+                if (movingVisual.ValueRO.Value != 1f)
+                    movingVisual.ValueRW.Value = 1f;
+
+                // Live facing update during the step so a hard turn
+                // reads as the sprite pivoting, not teleport-flipping
+                // on arrival. Cheap (no trig, just sign tests).
+                byte live = FacingFromDir(dir.x, dir.y);
+                if (live != movement.ValueRO.Facing)
+                {
+                    movement.ValueRW.Facing = live;
+                    facingVisual.ValueRW.Value = live;
+                }
             }
         }
 
-        // ---- helpers (no [BurstCompile] — they get inlined into OnUpdate's
-        //  Burst-compiled body. Adding the attribute makes Burst treat them
-        //  as external entry points with strict ABI (no struct-by-value)
-        //  which breaks compilation of HexNeighbor / HashHex.) ----------------
-
-        // Map a 2D direction to one of four cardinal facings. Quadrants split
-        // on ±45° around each axis.
+        // Map a 2D direction to one of four cardinal facings. Quadrants
+        // split on ±45° around each axis.
         static byte FacingFromDir(float dx, float dy)
         {
             float ax = math.abs(dx);
@@ -124,78 +157,6 @@ namespace RareIcon
             if (ax >= ay)
                 return dx >= 0f ? UnitFacing.East : UnitFacing.West;
             return dy >= 0f ? UnitFacing.North : UnitFacing.South;
-        }
-
-        // Pick a hex direction (0..5) biased to continue forward (lastDir).
-        // Sentinel lastDir == 255 means "no previous heading" → uniform pick.
-        // Weight distribution gives ~37% forward, ~22% each forward-side,
-        // ~7% each back-side, ~4% reverse — feels like a meandering walk.
-        static int PickWeightedDir(uint rng, byte lastDir)
-        {
-            if (lastDir > 5) return (int)(rng % 6u);
-
-            // Cumulative weights summing to 27.
-            // forward = 10, ±1 = 6 each, ±2 = 2 each, opposite = 1.
-            uint roll = rng % 27u;
-            int relative;
-            if      (roll < 10u) relative =  0;   // forward
-            else if (roll < 16u) relative =  1;   // forward-right (CCW)
-            else if (roll < 22u) relative = -1;   // forward-left  (CW)
-            else if (roll < 24u) relative =  2;   // back-right
-            else if (roll < 26u) relative = -2;   // back-left
-            else                 relative =  3;   // reverse
-
-            return (((int)lastDir + relative) % 6 + 6) % 6;
-        }
-
-        // 1.0 = no turn (straight ahead); rises to ~2.0 for a 180° reverse.
-        // Scales the dwell time so sharp turns get a longer pause-to-reorient.
-        static float TurnSharpnessScale(byte lastDir, byte newDir)
-        {
-            if (lastDir > 5) return 1.0f;
-            int diff = math.abs(((int)newDir - (int)lastDir + 9) % 6 - 3);
-            // diff: 0=straight, 1=60°, 2=120°, 3=180°
-            return 0.6f + diff * 0.5f;
-        }
-
-        // Pointy-top axial neighbour by direction index 0..5.
-        static int2 HexNeighbor(int dir)
-        {
-            switch (dir)
-            {
-                case 0:  return new int2( 1,  0);
-                case 1:  return new int2( 1, -1);
-                case 2:  return new int2( 0, -1);
-                case 3:  return new int2(-1,  0);
-                case 4:  return new int2(-1,  1);
-                default: return new int2( 0,  1);
-            }
-        }
-
-        // FNV-style hash of a hex coord. Used to perturb the per-unit RNG
-        // by location so two units with the same RandomState still diverge
-        // when they meet at a tile.
-        static uint HashHex(int2 hex)
-        {
-            uint h = (uint)hex.x * 0x9E3779B1u;
-            h ^= (uint)hex.y * 0x85EBCA77u;
-            h ^= h >> 16;
-            h *= 0x7FEB352Du;
-            h ^= h >> 15;
-            h *= 0x846CA68Bu;
-            h ^= h >> 16;
-            return h;
-        }
-
-        // Mixing function for the per-unit RNG (xor-shift mult).
-        static uint NextRandom(uint x)
-        {
-            x ^= x >> 13;
-            x *= 0x85EBCA6Bu;
-            x ^= x >> 16;
-            x *= 0xC2B2AE35u;
-            x ^= x >> 16;
-            return x;
         }
     }
 }

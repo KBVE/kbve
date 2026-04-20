@@ -1,5 +1,9 @@
 using System;
 using System.Threading;
+using Unity.Collections;
+using Unity.Entities;
+using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UIElements;
 using MessagePipe;
@@ -210,10 +214,25 @@ namespace RareIcon
             return btn;
         }
 
+        // Single-button callsite for "where is the King?" → inlines the
+        // DOTS query instead of routing through a KingLocator static.
+        // Two managed calls (world lookup, one-entity query) per click
+        // is cheaper than the static-cache churn, and keeps UI → ECS
+        // glue visible where it happens rather than hidden in a helper.
         void JumpToKing()
         {
-            if (KingLocator.TryGetWorldPos(out var pos))
-                _camera.JumpTo(pos);
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+
+            var em = world.EntityManager;
+            using var query = em.CreateEntityQuery(
+                ComponentType.ReadOnly<KingTag>(),
+                ComponentType.ReadOnly<LocalTransform>());
+            if (query.CalculateEntityCount() == 0) return;  // pre-spawn
+
+            using var arr = query.ToEntityArray(Allocator.Temp);
+            var t = em.GetComponentData<LocalTransform>(arr[0]);
+            _camera.JumpTo(new float2(t.Position.x, t.Position.y));
         }
 
         void OnHexHover(HexHoverMessage msg)

@@ -100,6 +100,10 @@ namespace RareIcon
         }
 
         // Six axial direction vectors for ring traversal (pointy-top).
+        // Order must match the Rust uniti side of the FFI — any future
+        // server-authoritative pathfinding passes hex directions as
+        // byte indices, not as packed (q, r) pairs.
+        //   0 = E, 1 = NE, 2 = NW, 3 = W, 4 = SW, 5 = SE
         static readonly int2[] HexDirections = new[]
         {
             new int2( 1,  0),
@@ -109,6 +113,46 @@ namespace RareIcon
             new int2(-1,  1),
             new int2( 0,  1),
         };
+
+        /// <summary>
+        /// Offset vector for axial direction 0..5 (E, NE, NW, W, SW, SE).
+        /// Shared between pathfinding, movement, behavior systems so a
+        /// single table defines the hex topology.
+        /// </summary>
+        public static int2 HexNeighbor(int dir)
+        {
+            // Modulo so behavior code can pass signed relative indices
+            // without extra guards — WanderBehavior's forward-biased
+            // direction pick emits values like -2..+3 before wrap, and
+            // this table absorbs it.
+            int d = ((dir % 6) + 6) % 6;
+            return HexDirections[d];
+        }
+
+        /// <summary>
+        /// Greedy one-step path: picks the neighbor of <paramref name="from"/>
+        /// that most reduces hex distance to <paramref name="to"/>. Returns
+        /// the direction index (0..5). Good enough for open-field movement;
+        /// swap for proper BFS / A* once walls / water / mountains block
+        /// tiles. Deterministic tie-break: the first direction scanned wins,
+        /// which is stable for FFI round-trips and replay.
+        /// </summary>
+        public static int HexStepToward(int2 from, int2 to)
+        {
+            int bestDir = 0;
+            int bestDist = int.MaxValue;
+            for (int d = 0; d < 6; d++)
+            {
+                int2 n = from + HexDirections[d];
+                int dist = HexDistance(n, to);
+                if (dist < bestDist)
+                {
+                    bestDist = dist;
+                    bestDir  = d;
+                }
+            }
+            return bestDir;
+        }
 
         /// <summary>
         /// Spiral outward from `center` up to and including ring `maxRadius`,

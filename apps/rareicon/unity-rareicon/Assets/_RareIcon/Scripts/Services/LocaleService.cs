@@ -119,7 +119,11 @@ namespace RareIcon
         {
             var key = unitType switch
             {
-                UnitType.Goblin => "creature.goblin",
+                UnitType.Goblin  => "creature.goblin",
+                UnitType.Knight  => "creature.knight",
+                UnitType.Soldier => "creature.soldier",
+                UnitType.Mage    => "creature.mage",
+                UnitType.King    => "creature.king",
                 _ => "creature.none",
             };
             return Get(key);

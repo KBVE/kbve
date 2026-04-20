@@ -15,8 +15,16 @@ namespace RareIcon
         public const byte Knight  = 2;
         public const byte Soldier = 3;
         public const byte Mage    = 4;
+        public const byte King    = 5;  // Player-controlled — visually a Soldier + Crown for v1.
         // Wolf, Skeleton, etc. land here as we add them.
     }
+
+    /// <summary>
+    /// Tag for the player-controlled King. There's exactly one King in the
+    /// world. KingMoveCommandSystem queries this to find "the player" when
+    /// a hex is clicked; UnitMovementSystem checks it to skip auto-wander.
+    /// </summary>
+    public struct KingTag : IComponentData { }
 
     /// <summary>
     /// Tag + per-unit identity data. Movement / AI / stat components layer
@@ -91,6 +99,20 @@ namespace RareIcon
     /// </summary>
     [MaterialProperty("_UnitShield")]
     public struct UnitShieldVisual : IComponentData
+    {
+        public float Value;
+    }
+
+    /// <summary>
+    /// Per-instance MaterialProperty: 1 when the unit is actively moving
+    /// toward a target, 0 when at rest. The shader's _UnitStep / _UnitBob
+    /// helpers multiply by this so a stationary unit doesn't march in place.
+    /// Without this gate, the bob also detaches stationary helmets from
+    /// the head — the King's crown looks cut off because the body bobs but
+    /// the helmet anchor stays at the unbobbed position.
+    /// </summary>
+    [MaterialProperty("_UnitMoving")]
+    public struct UnitMovingVisual : IComponentData
     {
         public float Value;
     }
