@@ -16,6 +16,21 @@ Shader "RareIcon/HexBuilding"
         _CapitalRoof       ("Capital Roof",       Color) = (0.52, 0.22, 0.18, 1)
         _CapitalDoor       ("Capital Door",       Color) = (0.10, 0.08, 0.06, 1)
         _CapitalBanner     ("Capital Banner",     Color) = (0.88, 0.78, 0.28, 1)
+
+        // Farm palette — plowed field tone, darker crop rows, wood
+        // barn body, peaked roof.
+        _FarmField         ("Farm Field",         Color) = (0.62, 0.55, 0.32, 1)
+        _FarmCrop          ("Farm Crop",          Color) = (0.40, 0.50, 0.22, 1)
+        _FarmBarn          ("Farm Barn",          Color) = (0.55, 0.32, 0.18, 1)
+        _FarmRoof          ("Farm Roof",          Color) = (0.42, 0.20, 0.12, 1)
+
+        // Barracks palette — stone walls, foundation course, parapet
+        // tint, dark openings, heraldic insignia color accent.
+        _BarracksWall       ("Barracks Wall",       Color) = (0.62, 0.60, 0.55, 1)
+        _BarracksFoundation ("Barracks Foundation", Color) = (0.38, 0.36, 0.32, 1)
+        _BarracksRoof       ("Barracks Roof",       Color) = (0.32, 0.28, 0.24, 1)
+        _BarracksDoor       ("Barracks Door",       Color) = (0.08, 0.06, 0.05, 1)
+        _BarracksInsignia   ("Barracks Insignia",   Color) = (0.78, 0.18, 0.18, 1)
     }
 
     SubShader
@@ -63,6 +78,15 @@ Shader "RareIcon/HexBuilding"
                 float4 _CapitalRoof;
                 float4 _CapitalDoor;
                 float4 _CapitalBanner;
+                float4 _FarmField;
+                float4 _FarmCrop;
+                float4 _FarmBarn;
+                float4 _FarmRoof;
+                float4 _BarracksWall;
+                float4 _BarracksFoundation;
+                float4 _BarracksRoof;
+                float4 _BarracksDoor;
+                float4 _BarracksInsignia;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -74,10 +98,14 @@ Shader "RareIcon/HexBuilding"
             #endif
 
             // Must match constants in BuildingComponents.cs.
-            #define BUILDING_CAPITAL 1
+            #define BUILDING_CAPITAL  1
+            #define BUILDING_FARM     2
+            #define BUILDING_BARRACKS 3
 
             #include "Includes/HexShared.hlsl"
             #include "Includes/HexCapital.hlsl"
+            #include "Includes/HexFarm.hlsl"
+            #include "Includes/HexBarracks.hlsl"
 
             Varyings vert(Attributes input)
             {
@@ -104,6 +132,14 @@ Shader "RareIcon/HexBuilding"
                 if (buildingType == BUILDING_CAPITAL)
                 {
                     DrawCapital(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_FARM)
+                {
+                    DrawFarm(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_BARRACKS)
+                {
+                    DrawBarracks(color, alpha, px, grid);
                 }
 
                 clip(alpha - 0.001);

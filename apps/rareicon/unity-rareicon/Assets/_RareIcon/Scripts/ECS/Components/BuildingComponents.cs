@@ -11,9 +11,11 @@ namespace RareIcon
     /// </summary>
     public static class BuildingType
     {
-        public const byte None    = 0;
-        public const byte Capital = 1;
-        // Barracks, Farm, Tower, etc. land here as we add their .hlsl files.
+        public const byte None     = 0;
+        public const byte Capital  = 1;
+        public const byte Farm     = 2;
+        public const byte Barracks = 3;
+        // Tower, Wall, Mine, etc. land here as we add their .hlsl files.
     }
 
     /// <summary>
@@ -22,9 +24,17 @@ namespace RareIcon
     /// </summary>
     public static class BuildTarget
     {
-        public const byte None    = 0;
-        public const byte Capital = 1;
+        public const byte None     = 0;
+        public const byte Capital  = 1;
+        public const byte Farm     = 2;
+        public const byte Barracks = 3;
     }
+
+    /// <summary>Marker tag for Farm buildings — production system query key.</summary>
+    public struct FarmTag : IComponentData { }
+
+    /// <summary>Marker tag for Barracks buildings — recruitment system query key.</summary>
+    public struct BarracksTag : IComponentData { }
 
     /// <summary>
     /// Per-building instance data. `RootHex` is the centre tile; the 6
