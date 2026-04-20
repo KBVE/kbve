@@ -1,20 +1,20 @@
 {
-	"generated_at": "2026-04-19T08:26:25.466Z",
+	"generated_at": "2026-04-20T08:53:29.986Z",
 	"project": {
 		"title": "KBVE",
 		"url": "https://github.com/orgs/KBVE/projects/5",
-		"total_items": 262
+		"total_items": 256
 	},
 	"summary": {
-		"Theory": 24,
+		"Theory": 23,
 		"AI": 1,
 		"Todo": 8,
 		"Backlog": 7,
 		"Error": 11,
 		"Support": 0,
-		"Staging": 4,
+		"Staging": 3,
 		"Review": 1,
-		"Done": 200
+		"Done": 196
 	},
 	"columns": {
 		"Theory": [
@@ -85,24 +85,6 @@
 				],
 				"matrix": null,
 				"date": "2025-05-12",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 4812,
-				"title": "[Concept] : [Unity] : Elven Mage - Character",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/4812",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"enhancement",
-					"unity"
-				],
-				"matrix": null,
-				"date": "2025-05-25",
 				"milestone": null
 			},
 			{
@@ -950,23 +932,6 @@
 			},
 			{
 				"type": "ISSUE",
-				"number": 3396,
-				"title": "[Concept] : [Unity] : Adding Quirky Character Pack by Noiryt",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/3396",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"4",
-					"unity"
-				],
-				"matrix": null,
-				"date": "2024-11-27",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
 				"number": 6943,
 				"title": "Phase 2: Frontend - Orchestration Tab",
 				"state": "OPEN",
@@ -983,10 +948,10 @@
 		"Review": [
 			{
 				"type": "PULL_REQUEST",
-				"number": 10210,
-				"title": "Release: 1 feature, 1 chore → Main",
+				"number": 10237,
+				"title": "Release: 38 features, 10 fixes, 5 perfs, 9 refactors, 5 chores → Main",
 				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/pull/10210",
+				"url": "https://github.com/KBVE/kbve/pull/10237",
 				"assignees": [],
 				"labels": [
 					"auto-pr",
@@ -998,6 +963,41 @@
 			}
 		],
 		"Done": [
+			{
+				"type": "ISSUE",
+				"number": 3396,
+				"title": "[Concept] : [Unity] : Adding Quirky Character Pack by Noiryt",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/3396",
+				"assignees": [
+					"h0lybyte"
+				],
+				"labels": [
+					"4",
+					"unity"
+				],
+				"matrix": null,
+				"date": "2024-11-27",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 4812,
+				"title": "[Concept] : [Unity] : Elven Mage - Character",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/4812",
+				"assignees": [
+					"h0lybyte"
+				],
+				"labels": [
+					"0",
+					"enhancement",
+					"unity"
+				],
+				"matrix": null,
+				"date": "2025-05-25",
+				"milestone": null
+			},
 			{
 				"type": "ISSUE",
 				"number": 8172,
@@ -1095,183 +1095,6 @@
 				"assignees": [],
 				"labels": [
 					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 9652,
-				"title": "Release: 3 features, 5 fixes, 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/9652",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 9662,
-				"title": "Atomic: edge v0.1.23 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/9662",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 9663,
-				"title": "Release: 2 features, 4 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/9663",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 9664,
-				"title": "deploy(isometric): update WASM build",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/9664",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 9665,
-				"title": "Atomic: irc-gateway v0.1.8 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/9665",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 9667,
-				"title": "Atomic: axum-kbve v1.0.94 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/9667",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 9670,
-				"title": "deploy(isometric): update WASM build",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/9670",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 9671,
-				"title": "Atomic: axum-kbve v1.0.95 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/9671",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 9672,
-				"title": "Release: 1 refactor, 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/9672",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 9674,
-				"title": "chore(dashboard): daily sync — 2026-04-05",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/9674",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 9675,
-				"title": "Release: 2 features, 3 fixes, 2 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/9675",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 9683,
-				"title": "Atomic: irc-gateway v0.1.9 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/9683",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
 				],
 				"matrix": null,
 				"date": null,
@@ -3959,10 +3782,98 @@
 			},
 			{
 				"type": "PULL_REQUEST",
+				"number": 10210,
+				"title": "Release: 14 features, 3 fixes, 3 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10210",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
 				"number": 10211,
 				"title": "Atomic: axum-kbve v1.0.113 post-publish sync",
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/10211",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10212,
+				"title": "chore(dashboard): daily sync — 2026-04-19",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10212",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10229,
+				"title": "Release: 9 features, 3 fixes, 3 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10229",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10230,
+				"title": "Atomic: mc v1.0.24 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10230",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10233,
+				"title": "deploy(isometric): update WASM build",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10233",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10234,
+				"title": "Atomic: axum-kbve v1.0.114 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10234",
 				"assignees": [],
 				"labels": [
 					"auto-pr",
