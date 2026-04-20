@@ -217,6 +217,32 @@ namespace RareIcon
             return ZString.Concat(first, " ", Get(epKey));
         }
 
+        /// <summary>Resolve an ActivityKind.* byte to its localized "doing right now" label. Empty for ActivityKind.None so callers can hide the line.</summary>
+        public string GetActivityName(byte kind)
+        {
+            var key = kind switch
+            {
+                ActivityKind.Idle             => "activity.idle",
+                ActivityKind.Wandering        => "activity.wandering",
+                ActivityKind.MovingToOrder    => "activity.moving_to_order",
+                ActivityKind.Sleeping         => "activity.sleeping",
+                ActivityKind.Eating           => "activity.eating",
+                ActivityKind.Healing          => "activity.healing",
+                ActivityKind.ReturningToBase  => "activity.returning_to_base",
+                ActivityKind.SeekingAid       => "activity.seeking_aid",
+                ActivityKind.Foraging         => "activity.foraging",
+                ActivityKind.Lumberjacking    => "activity.lumberjacking",
+                ActivityKind.Mining           => "activity.mining",
+                ActivityKind.Hunting          => "activity.hunting",
+                ActivityKind.Looting          => "activity.looting",
+                ActivityKind.Farming          => "activity.farming",
+                ActivityKind.Building         => "activity.building",
+                ActivityKind.Cooking          => "activity.cooking",
+                _ => string.Empty,
+            };
+            return key.Length == 0 ? string.Empty : Get(key);
+        }
+
         /// <summary>Resolve a FactionType.* byte to its localized name.</summary>
         public string GetFactionName(byte faction)
         {

@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using MessagePipe;
 using R3;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -27,13 +28,17 @@ namespace RareIcon
         VisualElement _content;
 
         [Inject]
-        public UICitizensPanel(UIPanelManager panelManager, LocaleService locale)
+        public UICitizensPanel(UIPanelManager panelManager,
+                               LocaleService locale,
+                               ActivityFeedService activity,
+                               CameraService camera,
+                               IPublisher<PossessUnitMessage> possessPub)
         {
             _panelManager = panelManager;
             _tabs = new ICitizensTab[]
             {
                 new JobsTab(),
-                new RosterTab(locale),
+                new RosterTab(locale, activity, camera, possessPub),
                 new SkillsTab(),
                 new DietTab(locale),
             };

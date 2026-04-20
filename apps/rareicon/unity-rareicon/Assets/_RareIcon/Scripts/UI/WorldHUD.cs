@@ -49,13 +49,17 @@ namespace RareIcon
         Label _resourceLine;
         VisualElement _controlPanel;
         Label _controlLabel;
+        Label _controlActivityLabel;
         Button _releaseBtn;
+        IDisposable _controlActivitySub;
         EntityQuery _clockQuery;
         EntityQuery _controlledQuery;
         bool _clockQueryReady;
         bool _controlledQueryReady;
         Entity _lastControlled;
         byte _lastControlledType;
+
+        readonly ActivityFeedService _activity;
 
         [Inject]
         public WorldHUD(
@@ -68,6 +72,7 @@ namespace RareIcon
             UIBuildingPalette buildingPalette,
             BuildModeController buildMode,
             CameraService camera,
+            ActivityFeedService activity,
             ISubscriber<HexHoverMessage> hoverSub)
         {
             _locale = locale;
@@ -79,6 +84,7 @@ namespace RareIcon
             _buildingPalette = buildingPalette;
             _buildMode = buildMode;
             _camera = camera;
+            _activity = activity;
             _hoverSub = hoverSub;
         }
 
@@ -209,21 +215,38 @@ namespace RareIcon
             _controlPanel.style.top = new Length(7f, LengthUnit.Percent);
             _controlPanel.style.left = new Length(50f, LengthUnit.Percent);
             _controlPanel.style.translate = new Translate(new Length(-50f, LengthUnit.Percent), 0);
-            _controlPanel.style.flexDirection = FlexDirection.Row;
+            _controlPanel.style.flexDirection = FlexDirection.Column;
             _controlPanel.style.alignItems = Align.Center;
+
+            // Top row — name + Release button.
+            var topRow = new VisualElement();
+            topRow.style.flexDirection = FlexDirection.Row;
+            topRow.style.alignItems = Align.Center;
 
             _controlLabel = new Label(_locale.Get("hud.god_view"));
             _controlLabel.style.color = UIStyles.Palette.TextStrong;
             _controlLabel.style.fontSize = 12;
             _controlLabel.style.marginRight = 8;
-            _controlPanel.Add(_controlLabel);
+            topRow.Add(_controlLabel);
 
             _releaseBtn = UIStyles.MakeYorhaButton(_locale.Get("hud.release"), ReleaseControl);
             _releaseBtn.style.height = 20;
             _releaseBtn.style.fontSize = 11;
             _releaseBtn.style.Padding(0, 8);
             _releaseBtn.style.display = DisplayStyle.None;
-            _controlPanel.Add(_releaseBtn);
+            topRow.Add(_releaseBtn);
+
+            _controlPanel.Add(topRow);
+
+            // Activity sub-line — bound to ActivityFeedService.For(controlled)
+            // when a unit is held; reads "what was the AI about to do
+            // before you took the wheel". Hidden in god view.
+            _controlActivityLabel = new Label(string.Empty);
+            _controlActivityLabel.style.color = UIStyles.Palette.GoldDeep;
+            _controlActivityLabel.style.fontSize = 11;
+            _controlActivityLabel.style.marginTop = 2;
+            _controlActivityLabel.style.display = DisplayStyle.None;
+            _controlPanel.Add(_controlActivityLabel);
 
             root.Add(_controlPanel);
         }
@@ -264,6 +287,12 @@ namespace RareIcon
                 _controlLabel.text = _locale.Get("hud.god_view");
                 _controlLabel.style.color = UIStyles.Palette.TextMuted;
                 _releaseBtn.style.display = DisplayStyle.None;
+
+                // Drop the activity sub-line; god view has no "doing what".
+                _controlActivitySub?.Dispose();
+                _controlActivitySub = null;
+                _controlActivityLabel.style.display = DisplayStyle.None;
+                _controlActivityLabel.text = string.Empty;
             }
             else
             {
@@ -282,6 +311,26 @@ namespace RareIcon
                 _controlLabel.text = ZString.Format(_locale.Get("hud.controlling"), label);
                 _controlLabel.style.color = UIStyles.Palette.Gold;
                 _releaseBtn.style.display = DisplayStyle.Flex;
+
+                // Resubscribe the activity line to the new controlled entity.
+                // R3 dedupes — the label only flips when the writer detects
+                // a real activity transition. King carries ActivityState
+                // (added in AttachJobsIfPlayer), so this works for any
+                // Player unit including the King.
+                _controlActivitySub?.Dispose();
+                Entity captured = current;
+                _controlActivitySub = _activity.For(current).Subscribe(snapshot =>
+                {
+                    if (_lastControlled != captured) return;
+                    string act = _locale.GetActivityName(snapshot.Kind);
+                    _controlActivityLabel.text = act.Length > 0 ? act : _locale.Get("activity.idle");
+                });
+                _controlActivityLabel.style.display = DisplayStyle.Flex;
+                // Defensive prime — the writer hasn't necessarily emitted
+                // a transition yet on the first take-control frame.
+                var snap = _activity.CurrentFor(current);
+                string seed = _locale.GetActivityName(snap.Kind);
+                _controlActivityLabel.text = seed.Length > 0 ? seed : _locale.Get("activity.idle");
             }
         }
 
@@ -581,6 +630,8 @@ namespace RareIcon
 
         public void Dispose()
         {
+            _controlActivitySub?.Dispose();
+            _controlActivitySub = null;
             _disposables?.Dispose();
         }
     }
