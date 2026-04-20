@@ -65,7 +65,7 @@ namespace RareIcon
             _isOpen
                 .Subscribe(open =>
                 {
-                    if (open) wrapper.RemoveFromClassList("is-hidden");
+                    if (open) { wrapper.RemoveFromClassList("is-hidden"); _root.BringToFront(); }
                     else      wrapper.AddToClassList("is-hidden");
 
                     if (open)

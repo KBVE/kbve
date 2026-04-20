@@ -70,7 +70,7 @@ namespace RareIcon
 
             _isOpen.Subscribe(open =>
             {
-                if (open) _wrapper.RemoveFromClassList("is-hidden");
+                if (open) { _wrapper.RemoveFromClassList("is-hidden"); _root.BringToFront(); }
                 else      _wrapper.AddToClassList("is-hidden");
 
                 if (open)

@@ -88,7 +88,7 @@ namespace RareIcon
 
             _isOpen.Subscribe(open =>
             {
-                if (open) _panel.RemoveFromClassList("is-hidden");
+                if (open) { _panel.RemoveFromClassList("is-hidden"); _root.BringToFront(); }
                 else      _panel.AddToClassList("is-hidden");
                 if (open) _tabs[_activeIndex].OnActivated();
             }).AddTo(_disposables);
