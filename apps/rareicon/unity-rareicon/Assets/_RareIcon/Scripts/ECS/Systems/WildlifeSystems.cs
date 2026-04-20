@@ -5,69 +5,83 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Drops variant-specific loot onto the hex tile when a PassiveAnimal dies; runs before DeathCleanupSystem destroys the entity.</summary>
+    /// <summary>Drops variant-specific loot onto the hex tile when a PassiveAnimal dies; runs before DeathCleanupSystem destroys the entity. Parallel Burst — each kill appends via ECB.ParallelWriter, multiple same-hex deaths don't race.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(CleanupSystemGroup))]
     [UpdateBefore(typeof(DeathCleanupSystem))]
-    public partial class WildlifeLootDropSystem : SystemBase
+    public partial struct WildlifeLootDropSystem : ISystem
     {
-        protected override void OnCreate()
-        {
-            RequireForUpdate<DeadTag>();
-        }
+        [BurstCompile]
+        public void OnCreate(ref SystemState state) => state.RequireForUpdate<DeadTag>();
 
-        protected override void OnUpdate()
-        {
-            var dropLookup = SystemAPI.GetBufferLookup<ItemDrop>(isReadOnly: false);
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
-            foreach (var (movement, unit, _, entity) in
-                     SystemAPI.Query<RefRO<UnitMovement>, RefRO<Unit>, RefRO<PassiveAnimalTag>>()
-                              .WithAll<DeadTag>()
-                              .WithEntityAccess())
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
+
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
+
+            state.Dependency = new WildlifeLootDropJob
             {
-                if (!HexHoverSystem.TryGetHexEntity(movement.ValueRO.CurrentHex, out var hex)) continue;
-                if (!dropLookup.HasBuffer(hex)) continue;
+                HexLookup  = hexLookup.Lookup,
+                DropLookup = SystemAPI.GetBufferLookup<ItemDrop>(true),
+                Ecb        = ecb,
+            }.ScheduleParallel(state.Dependency);
+        }
+    }
 
-                var buf = dropLookup[hex];
-                // Per-kill hash so a single cow's drop counts don't clone
-                // across neighbours killed on the same tick.
-                uint h = (uint)entity.Index * 0x9E3779B1u ^ (uint)entity.Version * 0x85EBCA77u;
-                h ^= h >> 13; h *= 0xC2B2AE3Du; h ^= h >> 16;
-                float r0 = ((h       ) & 0xFFFFu) / 65535f;
-                float r1 = ((h >> 16 ) & 0xFFFFu) / 65535f;
+    [BurstCompile]
+    [WithAll(typeof(DeadTag), typeof(PassiveAnimalTag))]
+    public partial struct WildlifeLootDropJob : IJobEntity
+    {
+        [ReadOnly] public NativeHashMap<int2, Entity> HexLookup;
+        [ReadOnly] public BufferLookup<ItemDrop>      DropLookup;
 
-                switch (unit.ValueRO.Type)
-                {
-                    case UnitType.Chicken:
-                        AddStack(buf, (ushort)ItemId.RawChicken, 1);
-                        AddStack(buf, (ushort)ItemId.Feather, (ushort)(1 + (int)(r0 * 2.99f)));
-                        break;
-                    case UnitType.Sheep:
-                        AddStack(buf, (ushort)ItemId.RawMutton, 1);
-                        AddStack(buf, (ushort)ItemId.Wool, (ushort)(1 + (int)(r0 * 1.99f)));
-                        if (r1 < 0.25f) AddStack(buf, (ushort)ItemId.Leather, 1);
-                        break;
-                    case UnitType.Cow:
-                        AddStack(buf, (ushort)ItemId.RawBeef, (ushort)(2 + (int)(r0 * 1.99f)));
-                        AddStack(buf, (ushort)ItemId.Leather, (ushort)(1 + (int)(r1 * 1.99f)));
-                        break;
-                }
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity entity,
+                     [ChunkIndexInQuery] int chunkIdx,
+                     in UnitMovement movement,
+                     in Unit unit)
+        {
+            if (!HexLookup.TryGetValue(movement.CurrentHex, out var hex)) return;
+            if (!DropLookup.HasBuffer(hex)) return;
+
+            uint h = (uint)entity.Index * 0x9E3779B1u ^ (uint)entity.Version * 0x85EBCA77u;
+            h ^= h >> 13; h *= 0xC2B2AE3Du; h ^= h >> 16;
+            float r0 = ((h       ) & 0xFFFFu) / 65535f;
+            float r1 = ((h >> 16 ) & 0xFFFFu) / 65535f;
+
+            switch (unit.Type)
+            {
+                case UnitType.Chicken:
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.RawChicken, 1);
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.Feather,
+                        (ushort)(1 + (int)(r0 * 2.99f)));
+                    break;
+                case UnitType.Sheep:
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.RawMutton, 1);
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.Wool,
+                        (ushort)(1 + (int)(r0 * 1.99f)));
+                    if (r1 < 0.25f) Append(Ecb, chunkIdx, hex, (ushort)ItemId.Leather, 1);
+                    break;
+                case UnitType.Cow:
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.RawBeef,
+                        (ushort)(2 + (int)(r0 * 1.99f)));
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.Leather,
+                        (ushort)(1 + (int)(r1 * 1.99f)));
+                    break;
             }
         }
 
-        static void AddStack(DynamicBuffer<ItemDrop> buf, ushort id, ushort count)
+        static void Append(EntityCommandBuffer.ParallelWriter ecb, int chunkIdx,
+                           Entity hex, ushort itemId, ushort count)
         {
             if (count == 0) return;
-            for (int i = 0; i < buf.Length; i++)
-            {
-                if (buf[i].ItemId == id)
-                {
-                    var s = buf[i];
-                    s.Count = (ushort)math.min(ushort.MaxValue, s.Count + count);
-                    buf[i] = s;
-                    return;
-                }
-            }
-            buf.Add(new ItemDrop { ItemId = id, Count = count });
+            ecb.AppendToBuffer(chunkIdx, hex, new ItemDrop { ItemId = itemId, Count = count });
         }
     }
 

@@ -1,81 +1,88 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Drops UnitType-specific loot onto the hex when a Hostile / Beast unit dies. Sister to WildlifeLootDropSystem — gated on faction (and absence of PassiveAnimalTag) so passive animal drops don't double-fire here.</summary>
+    /// <summary>Drops UnitType-specific loot onto the hex when a Hostile / Beast unit dies. Sister to WildlifeLootDropSystem — gated on faction (and absence of PassiveAnimalTag) so passive animal drops don't double-fire here. Parallel Burst — each death appends ItemDrop elements via ECB.ParallelWriter; multiple deaths on the same hex don't race because AppendToBuffer is thread-safe.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(CleanupSystemGroup))]
     [UpdateBefore(typeof(DeathCleanupSystem))]
-    public partial class EnemyLootDropSystem : SystemBase
+    public partial struct EnemyLootDropSystem : ISystem
     {
-        protected override void OnCreate()
-        {
-            RequireForUpdate<DeadTag>();
-        }
+        [BurstCompile]
+        public void OnCreate(ref SystemState state) => state.RequireForUpdate<DeadTag>();
 
-        protected override void OnUpdate()
-        {
-            var dropLookup = SystemAPI.GetBufferLookup<ItemDrop>(isReadOnly: false);
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
-            foreach (var (movement, unit, faction, entity) in
-                     SystemAPI.Query<RefRO<UnitMovement>, RefRO<Unit>, RefRO<Faction>>()
-                              .WithAll<DeadTag>()
-                              .WithNone<PassiveAnimalTag>()
-                              .WithEntityAccess())
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
+
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
+
+            state.Dependency = new EnemyLootDropJob
             {
-                byte f = faction.ValueRO.Value;
-                if (f != FactionType.Hostile && f != FactionType.Beast) continue;
+                HexLookup  = hexLookup.Lookup,
+                DropLookup = SystemAPI.GetBufferLookup<ItemDrop>(true),
+                Ecb        = ecb,
+            }.ScheduleParallel(state.Dependency);
+        }
+    }
 
-                if (!HexHoverSystem.TryGetHexEntity(movement.ValueRO.CurrentHex, out var hex)) continue;
-                if (!dropLookup.HasBuffer(hex)) continue;
+    [BurstCompile]
+    [WithAll(typeof(DeadTag))]
+    [WithNone(typeof(PassiveAnimalTag))]
+    public partial struct EnemyLootDropJob : IJobEntity
+    {
+        [ReadOnly] public NativeHashMap<int2, Entity> HexLookup;
+        [ReadOnly] public BufferLookup<ItemDrop>      DropLookup;
 
-                var buf = dropLookup[hex];
-                uint h = (uint)entity.Index * 0x9E3779B1u ^ (uint)entity.Version * 0x85EBCA77u;
-                h ^= h >> 13; h *= 0xC2B2AE3Du; h ^= h >> 16;
-                float r0 = ((h       ) & 0xFFFFu) / 65535f;
-                float r1 = ((h >> 16 ) & 0xFFFFu) / 65535f;
+        public EntityCommandBuffer.ParallelWriter Ecb;
 
-                switch (unit.ValueRO.Type)
-                {
-                    case UnitType.Wolf:
-                        // Pelt is the reliable drop, fang is the lucky bonus.
-                        AddStack(buf, (ushort)ItemId.WolfPelt, 1);
-                        if (r0 < 0.55f) AddStack(buf, (ushort)ItemId.WolfFang,
-                            (ushort)(1 + (int)(r1 * 1.99f)));
-                        break;
-                    case UnitType.Bandit:
-                        // 1-3 coins every time + ~35% chance to shed their
-                        // hood for the Looter to grab.
-                        AddStack(buf, (ushort)ItemId.BanditCoin,
-                            (ushort)(1 + (int)(r0 * 2.99f)));
-                        if (r1 < 0.35f) AddStack(buf, (ushort)ItemId.Hood, 1);
-                        break;
-                    case UnitType.Goblin:
-                        // Hostile-faction goblins drop meat on death — the
-                        // check at the top of the loop (f == Hostile/Beast)
-                        // gates Player goblins out, so this branch only
-                        // fires for raid-wave goblins.
-                        AddStack(buf, (ushort)ItemId.Meat, 3);
-                        break;
-                }
+        void Execute(Entity entity,
+                     [ChunkIndexInQuery] int chunkIdx,
+                     in UnitMovement movement,
+                     in Unit unit,
+                     in Faction faction)
+        {
+            byte f = faction.Value;
+            if (f != FactionType.Hostile && f != FactionType.Beast) return;
+
+            if (!HexLookup.TryGetValue(movement.CurrentHex, out var hex)) return;
+            if (!DropLookup.HasBuffer(hex)) return;
+
+            uint h = (uint)entity.Index * 0x9E3779B1u ^ (uint)entity.Version * 0x85EBCA77u;
+            h ^= h >> 13; h *= 0xC2B2AE3Du; h ^= h >> 16;
+            float r0 = ((h       ) & 0xFFFFu) / 65535f;
+            float r1 = ((h >> 16 ) & 0xFFFFu) / 65535f;
+
+            switch (unit.Type)
+            {
+                case UnitType.Wolf:
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.WolfPelt, 1);
+                    if (r0 < 0.55f) Append(Ecb, chunkIdx, hex, (ushort)ItemId.WolfFang,
+                        (ushort)(1 + (int)(r1 * 1.99f)));
+                    break;
+                case UnitType.Bandit:
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.BanditCoin,
+                        (ushort)(1 + (int)(r0 * 2.99f)));
+                    if (r1 < 0.35f) Append(Ecb, chunkIdx, hex, (ushort)ItemId.Hood, 1);
+                    break;
+                case UnitType.Goblin:
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.Meat, 3);
+                    break;
             }
         }
 
-        static void AddStack(DynamicBuffer<ItemDrop> buf, ushort id, ushort count)
+        static void Append(EntityCommandBuffer.ParallelWriter ecb, int chunkIdx,
+                           Entity hex, ushort itemId, ushort count)
         {
             if (count == 0) return;
-            for (int i = 0; i < buf.Length; i++)
-            {
-                if (buf[i].ItemId == id)
-                {
-                    var s = buf[i];
-                    s.Count = (ushort)math.min(ushort.MaxValue, s.Count + count);
-                    buf[i] = s;
-                    return;
-                }
-            }
-            buf.Add(new ItemDrop { ItemId = id, Count = count });
+            ecb.AppendToBuffer(chunkIdx, hex, new ItemDrop { ItemId = itemId, Count = count });
         }
     }
 }
