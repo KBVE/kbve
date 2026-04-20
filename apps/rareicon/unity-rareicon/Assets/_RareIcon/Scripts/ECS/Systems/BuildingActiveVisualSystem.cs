@@ -6,7 +6,7 @@ namespace RareIcon
     /// <summary>Writes the per-instance BuildingActiveVisual flag each frame based on whatever production component the building carries. HexBuilding.shader reads this via the _BuildingActive per-instance float; includes (HexFurnace for smoke, HexInn for window glow, HexGoblinCave for torches) gate their dynamic details on it so an idle building reads as idle. Reset-then-set with OR semantics: all unified-recipe buildings (Farm / Capital / Barracks) flow through ProductionRecipeActiveJob; legacy FurnaceProduction + PassiveProduction each keep a narrow writer.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(FurnaceProductionSystem))]
+    [UpdateAfter(typeof(EconomySystemGroup))]
     public partial struct BuildingActiveVisualSystem : ISystem
     {
         [BurstCompile] public void OnCreate(ref SystemState state) { }

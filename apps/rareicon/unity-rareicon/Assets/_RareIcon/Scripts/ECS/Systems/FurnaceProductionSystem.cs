@@ -16,7 +16,7 @@ namespace RareIcon
     /// value-capture into the job — no per-system delta accumulator.
     /// </summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct FurnaceProductionSystem : ISystem
     {
         [BurstCompile]

@@ -20,7 +20,7 @@ namespace RareIcon
     /// systems.
     /// </summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateInGroup(typeof(EconomySystemGroup), OrderFirst = true)]
     public partial struct PassiveProductionSystem : ISystem
     {
         [BurstCompile]

@@ -7,7 +7,7 @@ namespace RareIcon
 {
     /// <summary>Data-driven production tick for every building carrying a ProductionRecipe buffer. Each recipe has its own CycleEndsAt, so a building with multiple recipes (Capital: Arrow craft + Leaves+Branches→Compost) runs them in parallel. Inputs pull from self or from the Capital per recipe; outputs always land in self storage (farm surplus drains to Capital via FarmSurplusTransferSystem).</summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct ProductionSystem : ISystem
     {
         [BurstCompile] public void OnCreate(ref SystemState state) { }
