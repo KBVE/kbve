@@ -28,6 +28,10 @@ float3 ApplyMushrooms(float3 ground, float2 px, float grid, float seed, float am
     float3 spotCol = float3(0.96, 0.93, 0.85);
     int mushroomCap = clamp((int)ceil(amount * 3.0), 1, 3);
 
+    // Pixel-space scale (1.0 at legacy 16-grid, 2.0 at 32-grid bump).
+    // Named `ps` to avoid shadowing the inner loop's `int s`.
+    float ps = grid * 0.0625;
+
     [unroll]
     for (int m = 0; m < 3; m++)
     {
@@ -55,41 +59,41 @@ float3 ApplyMushrooms(float3 ground, float2 px, float grid, float seed, float am
         float3 capGills = capBase * 0.55;
         float3 capHL    = saturate(capBase * 1.22 + 0.04);
 
-        // Integer-aligned centre.
+        // Integer-aligned centre. Grid-relative, auto-tracks density.
         float2 c = float2(floor(grid * 0.5), floor(grid * 0.42)) + float2(
             floor((hash21(float2(ms, 82.0)) - 0.5) * grid * 0.40),
             floor((hash21(float2(ms, 83.0)) - 0.5) * grid * 0.25));
 
         // Stem height by kind — chanterelle squat, fly agaric tallest.
-        float stemH = 3.0;
-        if (kind == 1) stemH = 1.0;
-        if (kind == 2) stemH = 4.0;
-        float stemBottomY = c.y - stemH + 1.0;
+        float stemH = 3.0 * ps;
+        if (kind == 1) stemH = 1.0 * ps;
+        if (kind == 2) stemH = 4.0 * ps;
+        float stemBottomY = c.y - stemH + 1.0 * ps;
 
         // Ground shadow — single pixel one row below stem bottom.
         float shadowMask = rectMask(px,
-            float2(c.x, stemBottomY - 1.0), float2(1, 1));
+            float2(c.x, stemBottomY - 1.0 * ps), float2(1, 1) * ps);
         result = lerp(result, ground * 0.68, shadowMask * 0.55);
 
-        // Stem — 1 pixel wide.
+        // Stem — 1 pixel wide at legacy, scales with density.
         float stem = rectMask(px,
-            float2(c.x, stemBottomY), float2(1, stemH));
+            float2(c.x, stemBottomY), float2(1.0 * ps, stemH));
         result = lerp(result, _MushroomStem.rgb, stem);
 
         // Cap — compact dome, chanterelle slightly wider.
-        float capR = 1.5 + hash21(float2(ms, 84.0)) * 0.6;   // 1.5–2.1
-        if (kind == 1) capR += 0.4;                           // 1.9–2.5
-        float2 capCenter = c + float2(0, 0.5);
+        float capR = (1.5 + hash21(float2(ms, 84.0)) * 0.6) * ps;   // 1.5–2.1
+        if (kind == 1) capR += 0.4 * ps;                             // 1.9–2.5
+        float2 capCenter = c + float2(0, 0.5 * ps);
         float capDist = length(px - capCenter);
         float cap = step(capDist, capR) * step(c.y, px.y);
         result = lerp(result, capBase, cap);
 
         // Gill line on the bottom row of the dome.
-        float gillMask = cap * step(px.y, c.y + 0.5);
+        float gillMask = cap * step(px.y, c.y + 0.5 * ps);
         result = lerp(result, capGills, gillMask);
 
         // Top highlight (rows c.y + 2 and up).
-        float topMask = cap * step(c.y + 2.0, px.y);
+        float topMask = cap * step(c.y + 2.0 * ps, px.y);
         result = lerp(result, capHL, topMask);
 
         // Spots — fly agaric only, 1-2 single-pixel dots on the upper cap.
@@ -100,9 +104,9 @@ float3 ApplyMushrooms(float3 ground, float2 px, float grid, float seed, float am
             float ss = ms + (float)s * 3.0;
             if (s > 0 && hash21(float2(ss, 87.0)) < 0.55) continue;
             float2 spotPos = c + float2(
-                floor(hash21(float2(ss, 89.0)) * 3.0) - 1.0,
-                1.0 + floor(hash21(float2(ss, 90.0)) * 2.0));
-            float spot = step(length(px - spotPos), 0.75) * cap * spotGate;
+                floor(hash21(float2(ss, 89.0)) * 3.0 * ps) - 1.0 * ps,
+                1.0 * ps + floor(hash21(float2(ss, 90.0)) * 2.0 * ps));
+            float spot = step(length(px - spotPos), 0.75 * ps) * cap * spotGate;
             result = lerp(result, spotCol, spot);
         }
     }
