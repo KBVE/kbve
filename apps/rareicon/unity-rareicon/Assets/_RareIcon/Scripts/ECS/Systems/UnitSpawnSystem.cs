@@ -7,45 +7,27 @@ using UnityEngine.Rendering;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Optional state passed to <see cref="UnitSpawnSystem.SpawnGoblinAt"/>
-    /// when re-materializing a ghost unit from the persistent world store.
-    /// All fields default to "use NPCDB / empty" so the initial spawn path
-    /// can pass <c>default</c> and behave the same as before.
-    /// </summary>
+    /// <summary>Optional restore state for ghost units pulled from the Rust persistence store; default = fresh NPCDB spawn.</summary>
+    // TODO(rust-ffi): extend with Hunger/Fatigue/Energy current values + ReliefIntent.Kind so ghost-restore picks up mid-loop state, not just HP + inventory. Struct must stay blittable and mirror a repr(C) Rust equivalent.
     public struct UnitSpawnState
     {
-        // Health.Value at restore time. Negative or zero → use NPCDB max.
         public float Health;
         public float MaxHealth;
-        // First 4 inventory slots. ItemId == 0 means empty slot.
         public ushort Inv0Id, Inv0Qty;
         public ushort Inv1Id, Inv1Qty;
         public ushort Inv2Id, Inv2Qty;
         public ushort Inv3Id, Inv3Qty;
     }
 
-    /// <summary>
-    /// Spawns the initial goblin cluster around origin and exposes a public
-    /// static <see cref="SpawnGoblinAt"/> so HexChunkSystem can re-materialize
-    /// ghost units pulled from the Rust persistence store on chunk reload.
-    ///
-    /// Render assets (mesh, material, RenderMeshArray) live in static fields
-    /// behind a lazy initializer so both the initial OnUpdate spawn AND
-    /// per-chunk ghost restores share one set of GPU resources.
-    /// </summary>
+    /// <summary>Spawns the initial King + ally-goblin cluster and exposes static spawn helpers for chunk-reload + hostile waves.</summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial class UnitSpawnSystem : SystemBase
     {
         const float HexSize = 0.25f;
-        const float UnitSize = 0.5f;   // matches hex bounding box → pixel-scale parity
+        const float UnitSize = 0.5f;
         const int   GoblinCount  = 16;
-        const int   SpawnRadius  = 8;  // hexes from origin (square footprint)
+        const int   SpawnRadius  = 8;
 
-        // -- Static render assets --
-        // Lazy-initialized on first spawn (OnUpdate or external SpawnGoblinAt
-        // call). Shared across all goblin entities so we don't allocate a
-        // material per chunk reload.
         static Mesh                  _mesh;
         static Material              _material;
         static RenderMeshDescription _renderDesc;
@@ -61,15 +43,8 @@ namespace RareIcon
 
             if (!EnsureRenderAssets()) return;
 
-            // The King spawns at origin first so ghost-restore (which keys
-            // off the King entity) has something to find from frame one.
             SpawnKingAt(EntityManager, new int2(0, 0));
 
-            // Deterministic scatter — each index hashes to a hex offset within
-            // [-SpawnRadius, +SpawnRadius]² so we get a recognisable cluster
-            // around origin instead of a single test entity. Goblins are now
-            // Player faction (allies of the King) — combat lands when we add
-            // a real Hostile faction (bandits / undead / etc.).
             for (int i = 0; i < GoblinCount; i++)
             {
                 uint h = (uint)(i + 1) * 0x9E3779B1u;
@@ -78,35 +53,23 @@ namespace RareIcon
                 int span = SpawnRadius * 2 + 1;
                 int q = (int)(h % (uint)span) - SpawnRadius;
                 int r = (int)((h >> 16) % (uint)span) - SpawnRadius;
-                // Mix in a second hash for the per-unit RNG seed so adjacent
-                // goblins get different wander streams.
                 uint rng = h * 0xC2B2AE3Du ^ ((uint)i * 0x27D4EB2Fu);
                 SpawnGoblinAt(EntityManager, new int2(q, r), rng);
             }
-
-            Debug.Log($"[UnitSpawnSystem] Spawned King at origin + {GoblinCount} ally goblins");
         }
 
-        /// <summary>
-        /// Spawn a goblin entity at the given hex coord. Public + static so
-        /// chunk-load code can re-materialize ghost units pulled from the
-        /// Rust store. Pass <paramref name="state"/> to restore health and
-        /// inventory; pass <c>default</c> for a fresh spawn (NPCDB defaults).
-        /// </summary>
+        /// <summary>Spawn a goblin at the given hex with the given faction; pass state to restore a ghost unit.</summary>
         public static Entity SpawnGoblinAt(EntityManager em, int2 hex, uint rngSeed,
-                                           UnitSpawnState state = default)
+                                           UnitSpawnState state = default,
+                                           byte faction = FactionType.Player)
         {
             if (!EnsureRenderAssets()) return Entity.Null;
 
-            // All defaults pulled from NPCDB so spawn code stays generic — to
-            // spawn a different creature later, swap UnitType.Goblin for the
-            // new ID and the same code path picks up its stats / weapon.
             var def = NPCDB.Get(UnitType.Goblin);
 
             var entity = em.CreateEntity();
 
             float3 worldPos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
-            // Above hex plane and above river decals (z = -0.5), below modal UI.
             worldPos.z = -0.7f;
 
             em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
@@ -116,9 +79,6 @@ namespace RareIcon
                 Weapon = def.DefaultWeapon,
             });
 
-            // Stats — only attach what NPCDB says the creature carries (Max=0
-            // → skip the component entirely so archetypes stay tight). Ghost-
-            // restore overrides the current value if state was passed.
             if (def.MaxHealth > 0)
             {
                 float maxHp = state.MaxHealth > 0f ? state.MaxHealth : def.MaxHealth;
@@ -143,25 +103,17 @@ namespace RareIcon
             em.AddComponentData(entity, new UnitVisual        { Value = (float)def.UnitType });
             em.AddComponentData(entity, new UnitWeaponVisual  { Value = (float)def.DefaultWeapon });
             em.AddComponentData(entity, new UnitFacingVisual  { Value = (float)UnitFacing.East });
-            em.AddComponentData(entity, new UnitMovingVisual  { Value = 1f }); // wandering by default
+            em.AddComponentData(entity, new UnitMovingVisual  { Value = 1f });
 
-            // Faction + collider — goblins are Player allies (the King's
-            // retainers / scouts). Combat lands when we add a real Hostile
-            // faction (bandits / undead / etc.) for them to fight.
-            // Collidable radius is chosen to comfortably cover the
-            // visible sprite so arrows land reliably at pixel scale.
-            em.AddComponentData(entity, new Faction    { Value = FactionType.Player });
+            em.AddComponentData(entity, new Faction    { Value = faction });
             em.AddComponentData(entity, new Collidable { Radius = 0.20f });
 
-            // Movement modifier + status-effect buffer — attached up
-            // front so StatusEffectSystem and the locomotion speed
-            // scaling don't have to branch on presence on the hot
-            // path. Both are near-zero cost at rest (empty buffer).
+            AttachRangedAttackIfArmed(em, entity, def.DefaultWeapon);
+            AttachNeedsIfPlayer(em, entity, faction, def);
+
             em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
             em.AddBuffer<StatusEffect>(entity);
 
-            // Per-unit speed jitter ~ ±20% around the def's base move speed
-            // → some goblins amble, others stride, crowd reads as individuals.
             float speedJit = 0.8f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.4f;
             em.AddComponentData(entity, new UnitMovement
             {
@@ -173,15 +125,9 @@ namespace RareIcon
                 WanderStep  = 0u,
                 DwellTimer  = (rngSeed % 100u) / 200f,
                 LastDir     = 255,
-                LastHarvestStep = uint.MaxValue, // != WanderStep so first arrival can harvest
+                LastHarvestStep = uint.MaxValue,
             });
 
-            // Empty goal — WanderBehaviorSystem picks it up on the
-            // first tick and rolls a random target so the goblin
-            // starts walking. ReturnToBase / player orders override
-            // as conditions change. Attach to every unit so the
-            // Behavior→Pathfinding→Locomotion split has a component
-            // to write to.
             em.AddComponentData(entity, new MovementGoal
             {
                 Kind      = GoalKind.None,
@@ -189,9 +135,6 @@ namespace RareIcon
                 TargetHex = hex,
             });
 
-            // Inventory — populated from state if any slot has a non-zero item
-            // (ghost-restore path); otherwise an empty buffer that
-            // HarvestSystem will fill as the unit wanders onto resources.
             var inv = em.AddBuffer<InventorySlot>(entity);
             if (state.Inv0Id != 0 && state.Inv0Qty > 0) inv.Add(new InventorySlot { ItemId = state.Inv0Id, Count = state.Inv0Qty });
             if (state.Inv1Id != 0 && state.Inv1Qty > 0) inv.Add(new InventorySlot { ItemId = state.Inv1Id, Count = state.Inv1Qty });
@@ -207,12 +150,7 @@ namespace RareIcon
             return entity;
         }
 
-        /// <summary>
-        /// Spawn the player-controlled King at the given hex. There should be
-        /// exactly one King in the world at any time (caller responsibility).
-        /// Visually a Soldier base + Cap helmet (Crown) — proper King-specific
-        /// shader with jeweled crown / royal robes is a polish pass.
-        /// </summary>
+        /// <summary>Spawn the player-controlled King at the given hex; there is exactly one in the world.</summary>
         public static Entity SpawnKingAt(EntityManager em, int2 hex,
                                          UnitSpawnState state = default)
         {
@@ -228,11 +166,10 @@ namespace RareIcon
             em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
             em.AddComponentData(entity, new Unit
             {
-                Type   = def.UnitType,           // mechanically a King…
+                Type   = def.UnitType,
                 Weapon = def.DefaultWeapon,
             });
 
-            // Stats — King carries HP/Energy/Mana per NPCDB.
             float maxHp = state.MaxHealth > 0f ? state.MaxHealth : def.MaxHealth;
             float hp    = state.Health    > 0f ? state.Health    : maxHp;
             em.AddComponentData(entity, new Health     { Value = hp,            Max = maxHp });
@@ -242,45 +179,34 @@ namespace RareIcon
             em.AddComponentData(entity, new Mana       { Value = def.MaxMana,   Max = def.MaxMana });
             em.AddComponentData(entity, new ManaRegen  { PerSecond = def.ManaRegen });
 
-            // …visually a Soldier with a (gold-tinted) Cap helmet. Setting
-            // UnitVisual.Value = King would give the shader an unknown unit
-            // type and draw nothing, so we override here. UnitWeaponVisual
-            // stays None for v1; royal sceptre / royal sword land later.
             em.AddComponentData(entity, new UnitVisual        { Value = (float)UnitType.Soldier });
-            em.AddComponentData(entity, new UnitWeaponVisual  { Value = (float)WeaponType.None });
+            em.AddComponentData(entity, new UnitWeaponVisual  { Value = (float)def.DefaultWeapon });
             em.AddComponentData(entity, new UnitFacingVisual  { Value = (float)UnitFacing.East });
             em.AddComponentData(entity, new UnitHelmetVisual  { Value = (float)HelmetType.Cap });
-            em.AddComponentData(entity, new UnitMovingVisual  { Value = 0f }); // King spawns at rest
+            em.AddComponentData(entity, new UnitMovingVisual  { Value = 0f });
 
             em.AddComponentData(entity, new Faction    { Value = FactionType.Player });
             em.AddComponentData(entity, new Collidable { Radius = 0.22f });
 
-            // Status-effect plumbing — same rationale as on goblins.
-            // The King is hit-able, can be slowed by ice, poisoned, etc.
+            AttachRangedAttackIfArmed(em, entity, def.DefaultWeapon);
+            AttachNeedsIfPlayer(em, entity, FactionType.Player, def);
+
             em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
             em.AddBuffer<StatusEffect>(entity);
 
-            // Movement: target = current so the King stays put until
-            // the player issues an order. WanderBehaviorSystem skips
-            // the King because we also attach a KingTag and WanderJob
-            // filters it out (see WithNone<KingTag> on the wander job).
             em.AddComponentData(entity, new UnitMovement
             {
                 CurrentHex      = hex,
                 TargetHex       = hex,
                 MoveSpeed       = def.MoveSpeed,
                 Facing          = UnitFacing.East,
-                RandomState     = 0xC0FFEE01u, // any non-zero seed; King doesn't wander
+                RandomState     = 0xC0FFEE01u,
                 WanderStep      = 0u,
                 DwellTimer      = 0f,
                 LastDir         = 255,
                 LastHarvestStep = uint.MaxValue,
             });
 
-            // Empty goal — KingMoveCommandSystem will populate this on
-            // the player's first click. ReturnToBaseSystem can also
-            // drive it home when the King is carrying items / hungry,
-            // sharing the auto-return code path with goblins.
             em.AddComponentData(entity, new MovementGoal
             {
                 Kind      = GoalKind.None,
@@ -294,6 +220,16 @@ namespace RareIcon
             if (state.Inv2Id != 0 && state.Inv2Qty > 0) inv.Add(new InventorySlot { ItemId = state.Inv2Id, Count = state.Inv2Qty });
             if (state.Inv3Id != 0 && state.Inv3Qty > 0) inv.Add(new InventorySlot { ItemId = state.Inv3Id, Count = state.Inv3Qty });
 
+            // Founding charter — only seeded on the FRESH spawn (state has
+            // no inventory). Ghost-restore preserves its own inventory and
+            // a returning King shouldn't get a duplicate grant. Once the
+            // Capital is placed the grant is consumed; future Royal Decree
+            // / event items can re-grant the privilege.
+            bool freshSpawn = state.Inv0Id == 0 && state.Inv1Id == 0
+                           && state.Inv2Id == 0 && state.Inv3Id == 0;
+            if (freshSpawn)
+                inv.Add(new InventorySlot { ItemId = (ushort)ItemId.CapitalLandGrant, Count = 1 });
+
             em.AddComponent<KingTag>(entity);
 
             RenderMeshUtility.AddComponents(
@@ -304,7 +240,6 @@ namespace RareIcon
         }
 
         // Lazily creates the shared render assets the first time anything
-        // tries to spawn a goblin. Returns false if the shader is missing.
         static bool EnsureRenderAssets()
         {
             if (_renderAssetsReady) return true;
@@ -327,8 +262,52 @@ namespace RareIcon
             return true;
         }
 
-        // Flat XY quad centered at origin — UV maps [0,1] across the quad,
-        // which the HexUnit shader quantizes to its pixel grid.
+        static void AttachNeedsIfPlayer(EntityManager em, Entity entity, byte faction, NPCDef def)
+        {
+            if (faction != FactionType.Player) return;
+            if (def.MaxHunger > 0f)
+            {
+                em.AddComponentData(entity, new Hunger
+                {
+                    Value     = 0f,
+                    Max       = def.MaxHunger,
+                    PerSecond = def.HungerPerSec,
+                });
+            }
+            if (def.MaxFatigue > 0f)
+            {
+                em.AddComponentData(entity, new Fatigue
+                {
+                    Value     = 0f,
+                    Max       = def.MaxFatigue,
+                    PerSecond = def.FatiguePerSec,
+                });
+            }
+            em.AddComponentData(entity, new ReliefIntent
+            {
+                Kind    = ReliefKind.None,
+                Urgency = 0f,
+            });
+        }
+
+        static void AttachRangedAttackIfArmed(EntityManager em, Entity entity, byte weapon)
+        {
+            if (weapon == WeaponType.Crossbow)
+            {
+                em.AddComponentData(entity, new RangedAttack
+                {
+                    Range              = 3.0f,
+                    Damage             = 8.0f,
+                    Cooldown           = 1.5f,
+                    TimeSinceShot      = 0f,
+                    ProjectileType     = ProjectileType.Bolt,
+                    ProjectileMod      = ArrowMod.None,
+                    ProjectileSpeed    = 6.0f,
+                    ProjectileLifetime = 2.5f,
+                });
+            }
+        }
+
         static Mesh CreateQuadMesh(float size)
         {
             float half = size * 0.5f;

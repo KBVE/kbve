@@ -47,25 +47,37 @@ namespace RareIcon
         {
             if (!_buildMode.IsActive) return;
 
-            // Currently only one build target exists (Capital); swap to a
-            // target-table lookup when more kinds land.
-            if (_buildMode.Target.CurrentValue != BuildTarget.Capital) return;
+            // Translate the BuildModeController's reactive target into
+            // the BuildingType we'll stamp on the request. Kept symmetric
+            // (BuildTarget.X == BuildingType.X) so future buildings just
+            // add a constant in BuildingComponents and slot in here.
+            byte target = _buildMode.Target.CurrentValue;
+            byte buildingType = target switch
+            {
+                BuildTarget.Capital  => BuildingType.Capital,
+                BuildTarget.Farm     => BuildingType.Farm,
+                BuildTarget.Barracks => BuildingType.Barracks,
+                BuildTarget.Furnace  => BuildingType.Furnace,
+                _                    => BuildingType.None,
+            };
+            if (buildingType == BuildingType.None) return;
 
             var world = World.DefaultGameObjectInjectionWorld;
             if (world == null) return;
 
             var em = world.EntityManager;
             var req = em.CreateEntity();
-            em.AddComponentData(req, new BuildCityRequest
+            em.AddComponentData(req, new BuildRequest
             {
                 CenterHex    = new int2(msg.Q, msg.R),
+                BuildingType = buildingType,
                 OwnerFaction = FactionType.Player,
             });
 
             // Exit build mode now — whether the spawn succeeds or fails
-            // the click is consumed. If the request fails (hex already
-            // occupied, no tokens) BuildingSpawnSystem won't consume the
-            // token and the user can re-toggle build mode to try again.
+            // the click is consumed. If the request fails (biome bad,
+            // cost not met) BuildingSpawnSystem won't deduct anything and
+            // the user can re-toggle build mode to try again.
             _buildMode.Exit();
         }
 

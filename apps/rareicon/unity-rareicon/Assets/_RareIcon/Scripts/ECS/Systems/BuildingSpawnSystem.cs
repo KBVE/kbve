@@ -1,3 +1,5 @@
+using Cysharp.Text;
+using MessagePipe;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
@@ -8,43 +10,29 @@ using UnityEngine.Rendering;
 namespace RareIcon
 {
     /// <summary>
-    /// Consumes BuildCityRequest message entities and spawns a Capital
-    /// building from a shared prefab. Validates the 7-hex flower claim
-    /// (centre + 6 axial neighbours) before anything is created — if
-    /// any target hex is already occupied or missing, the request is
-    /// dropped and the player's city token is preserved so they can
-    /// retry after cancelling build mode.
+    /// Consumes <see cref="BuildRequest"/> message entities and spawns the
+    /// requested building from a shared prefab. Validates per-type
+    /// footprint, biome eligibility, and cost (per <see cref="BuildingDB"/>)
+    /// before anything is created — if any check fails the request is
+    /// dropped and no resources / inventory items are consumed.
     ///
-    /// Managed SystemBase because prefab init needs Shader.Find + a
-    /// Mesh + Material + RenderMeshUtility.AddComponents. Spawn itself
-    /// is a handful of EntityManager ops per request; fine at the rate
-    /// a player hand-places cities.
+    /// One prefab is shared across all building types — HexBuilding.shader
+    /// dispatches by per-instance BuildingVisual, so the same mesh +
+    /// material renders Capital / Farm / Barracks / Furnace correctly.
     /// </summary>
     [UpdateInGroup(typeof(MovementSystemGroup))]
     public partial class BuildingSpawnSystem : SystemBase
     {
         const float HexSize      = 0.25f;
-        const float BuildingSize = 1.5f;    // quad covers the 7-hex flower
+        const float BuildingSize = 1.5f;    // quad covers the 7-hex Capital flower; smaller buildings render inside
         const float BuildingZ    = -0.6f;   // between tiles and units
 
-        // Same axial offsets as BuildPreviewSystem — keep these in sync.
-        static readonly int2[] FlowerOffsets =
-        {
-            new int2( 0,  0), // centre
-            new int2( 1,  0), // E
-            new int2( 1, -1), // NE
-            new int2( 0, -1), // NW
-            new int2(-1,  0), // W
-            new int2(-1,  1), // SW
-            new int2( 0,  1), // SE
-        };
-
-        Entity _capitalPrefab;
+        Entity _buildingPrefab;
         bool _initialized;
 
         protected override void OnCreate()
         {
-            RequireForUpdate<BuildCityRequest>();
+            RequireForUpdate<BuildRequest>();
         }
 
         protected override void OnUpdate()
@@ -55,116 +43,209 @@ namespace RareIcon
                 if (!_initialized) return;
             }
 
-            var em = EntityManager;
+            var em  = EntityManager;
             var ecb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
 
-            // Pull the player entity + ability counter once per update; most
-            // frames have zero or one build request.
-            Entity playerEntity = Entity.Null;
-            PlayerAbilities playerAbilities = default;
-            bool hasPlayer = false;
-            foreach (var (abilities, entity) in
-                SystemAPI.Query<RefRO<PlayerAbilities>>().WithAll<PlayerTag>().WithEntityAccess())
-            {
-                playerEntity = entity;
-                playerAbilities = abilities.ValueRO;
-                hasPlayer = true;
-                break;
-            }
+            // GlobalMessagePipe lazily — provider is set by RootLifetimeScope.Awake
+            // which fires after our OnCreate but before any player click could
+            // produce a BuildRequest, so by the time we have something to
+            // toast about the publisher exists.
+            IPublisher<ToastMessage> toast = null;
+            try { toast = GlobalMessagePipe.GetPublisher<ToastMessage>(); }
+            catch { /* provider not ready yet — silent skip, very early frames */ }
 
             foreach (var (reqRef, reqEntity) in
-                SystemAPI.Query<RefRO<BuildCityRequest>>().WithEntityAccess())
+                SystemAPI.Query<RefRO<BuildRequest>>().WithEntityAccess())
             {
                 var req = reqRef.ValueRO;
-
-                // Out of tokens — drop silently.
-                if (!hasPlayer || playerAbilities.CityBuildsRemaining <= 0)
+                if (TrySpawn(em, ecb, req, out var reason))
                 {
-                    Debug.Log("[BuildingSpawnSystem] Build rejected: no city tokens remaining");
-                    ecb.DestroyEntity(reqEntity);
-                    continue;
+                    toast?.Publish(new ToastMessage(
+                        ZString.Format("{0} placed", BuildingTypeName(req.BuildingType)),
+                        ToastKind.Success));
                 }
-
-                // Validate the 7 target hexes. All must:
-                //   - exist in the hex lookup (off-map / ocean rejected — ocean
-                //     tiles aren't spawned as entities so TryGetHexEntity fails)
-                //   - not already be claimed by another building
-                //   - not be a river tile (rivers are land entities but flooded)
-                bool valid = true;
-                string rejectReason = null;
-                for (int i = 0; i < FlowerOffsets.Length; i++)
+                else
                 {
-                    var hex = req.CenterHex + FlowerOffsets[i];
-                    if (!HexHoverSystem.TryGetHexEntity(hex, out var tileEntity))
-                    {
-                        valid = false;
-                        rejectReason = "off-map or ocean tile";
-                        break;
-                    }
-                    if (em.HasComponent<HexOccupant>(tileEntity))
-                    {
-                        valid = false;
-                        rejectReason = "tile already occupied";
-                        break;
-                    }
-                    if (em.HasComponent<BiomeType>(tileEntity))
-                    {
-                        byte biome = em.GetComponentData<BiomeType>(tileEntity).Value;
-                        if (biome == BiomeGenerator.BIOME_OCEAN ||
-                            biome == BiomeGenerator.BIOME_RIVER)
-                        {
-                            valid = false;
-                            rejectReason = "water tile (ocean or river)";
-                            break;
-                        }
-                    }
+                    toast?.Publish(new ToastMessage(
+                        ZString.Format("Cannot build {0}: {1}", BuildingTypeName(req.BuildingType), reason),
+                        ToastKind.Error));
                 }
-                if (!valid)
-                {
-                    Debug.Log($"[BuildingSpawnSystem] Build rejected: {rejectReason}");
-                    ecb.DestroyEntity(reqEntity);
-                    continue;
-                }
-
-                // Spawn the capital at the centre hex's world position.
-                float3 pos = HexMeshUtil.HexToWorld(req.CenterHex.x, req.CenterHex.y, HexSize);
-                pos.z = BuildingZ;
-
-                var building = ecb.Instantiate(_capitalPrefab);
-                ecb.SetComponent(building, LocalTransform.FromPosition(pos));
-                ecb.SetComponent(building, new Building
-                {
-                    Type         = BuildingType.Capital,
-                    RootHex      = req.CenterHex,
-                    OwnerFaction = req.OwnerFaction,
-                });
-                ecb.SetComponent(building, new BuildingVisual { Value = BuildingType.Capital });
-                // Central storage — ally goblins drain their harvest
-                // buffer into this one when they walk onto any of the
-                // 7 capital hexes. Buffer is inherited from the prefab
-                // and starts empty; slots are either merged (same
-                // ItemId) or appended as the capital collects more
-                // kinds of loot. See GoblinDepositSystem.
-
-                // Claim all 7 tiles — HexOccupant on each tile points back
-                // at the building so future queries can traverse either way.
-                for (int i = 0; i < FlowerOffsets.Length; i++)
-                {
-                    var hex = req.CenterHex + FlowerOffsets[i];
-                    HexHoverSystem.TryGetHexEntity(hex, out var tileEntity);
-                    ecb.AddComponent(tileEntity, new HexOccupant { Building = building });
-                }
-
-                // Decrement the player's token.
-                playerAbilities.CityBuildsRemaining -= 1;
-                ecb.SetComponent(playerEntity, playerAbilities);
-
                 ecb.DestroyEntity(reqEntity);
             }
 
             ecb.Playback(em);
             ecb.Dispose();
         }
+
+        // Returns true on success (footprint claimed, building entity
+        // queued, cost deducted). Rejection writes to `reason` and
+        // makes NO mutations — partial validation never half-applies.
+        bool TrySpawn(EntityManager em, EntityCommandBuffer ecb, BuildRequest req, out string reason)
+        {
+            // 1. Footprint validation — every claimed hex must exist on
+            //    the loaded map, be unoccupied, and pass the per-type
+            //    biome rule (Ocean / River refuse all builds).
+            var footprint = BuildingDB.GetFootprint(req.BuildingType);
+            for (int i = 0; i < footprint.Length; i++)
+            {
+                var hex = req.CenterHex + footprint[i];
+                if (!HexHoverSystem.TryGetHexEntity(hex, out var tile))
+                {
+                    reason = "off-map or unloaded chunk"; return false;
+                }
+                if (em.HasComponent<HexOccupant>(tile))
+                {
+                    reason = "tile already occupied"; return false;
+                }
+                if (em.HasComponent<BiomeType>(tile))
+                {
+                    byte biome = em.GetComponentData<BiomeType>(tile).Value;
+                    if (!BuildingDB.IsBuildable(req.BuildingType, biome))
+                    {
+                        reason = $"biome {biome} disallowed"; return false;
+                    }
+                }
+            }
+
+            // 2. Cost validation — find the source inventory (King for
+            //    Capital, Capital storage for everything else) and
+            //    confirm every ingredient is in stock BEFORE deducting.
+            if (!TryFindCostSource(em, req.BuildingType, out var sourceEntity, out reason))
+                return false;
+
+            var cost = BuildingDB.GetCost(req.BuildingType);
+            var sourceInv = em.GetBuffer<InventorySlot>(sourceEntity);
+            for (int i = 0; i < cost.Length; i++)
+            {
+                if (!HasItem(sourceInv, cost[i].ItemId, cost[i].Amount))
+                {
+                    reason = $"missing {cost[i].Amount}× item {cost[i].ItemId}";
+                    return false;
+                }
+            }
+
+            // 3. Commit — deduct cost, spawn entity, claim hexes.
+            for (int i = 0; i < cost.Length; i++)
+                Consume(sourceInv, cost[i].ItemId, cost[i].Amount);
+
+            float3 pos = HexMeshUtil.HexToWorld(req.CenterHex.x, req.CenterHex.y, HexSize);
+            pos.z = BuildingZ;
+
+            var building = ecb.Instantiate(_buildingPrefab);
+            ecb.SetComponent(building, LocalTransform.FromPosition(pos));
+            ecb.SetComponent(building, new Building
+            {
+                Type         = req.BuildingType,
+                RootHex      = req.CenterHex,
+                OwnerFaction = req.OwnerFaction,
+            });
+            ecb.SetComponent(building, new BuildingVisual { Value = req.BuildingType });
+
+            // Per-type tag — production systems query on these so the
+            // recipe components get auto-attached by the matching
+            // *InitSystem (FarmInitSystem, FurnaceInitSystem, ...).
+            switch (req.BuildingType)
+            {
+                case BuildingType.Capital:
+                    ecb.AddComponent<CapitalTag>(building);
+                    ecb.AddComponent(building, new CapitalProduction
+                    {
+                        Input1Id     = (ushort)ItemId.WoodLog,     Input1Amount = 1,
+                        Input2Id     = (ushort)ItemId.CactiNeedle, Input2Amount = 1,
+                        Input3Id     = (ushort)ItemId.Stone,       Input3Amount = 1,
+                        OutputId     = (ushort)ItemId.Arrow,       OutputAmount = 10,
+                        CycleEndsAt   = 0f,
+                        CycleDuration = 18f,
+                    });
+                    break;
+                case BuildingType.Farm:     ecb.AddComponent<FarmTag>(building);     break;
+                case BuildingType.Barracks: ecb.AddComponent<BarracksTag>(building); break;
+                case BuildingType.Furnace:  ecb.AddComponent<FurnaceTag>(building);  break;
+            }
+
+            // Claim every hex in the footprint — HexOccupant on each tile
+            // points back at the building so future queries can traverse
+            // either way.
+            for (int i = 0; i < footprint.Length; i++)
+            {
+                var hex = req.CenterHex + footprint[i];
+                HexHoverSystem.TryGetHexEntity(hex, out var tile);
+                ecb.AddComponent(tile, new HexOccupant { Building = building });
+            }
+
+            reason = null;
+            return true;
+        }
+
+        // Resolves the entity whose InventorySlot buffer holds the cost
+        // for this building type. Capital draws from the King's pocket
+        // (founding act), everything else draws from the empire pool.
+        bool TryFindCostSource(EntityManager em, byte buildingType, out Entity source, out string reason)
+        {
+            source = Entity.Null;
+            reason = null;
+
+            if (BuildingDB.GetCostSource(buildingType) == BuildingDB.CostSource.KingInventory)
+            {
+                foreach (var (tag, e) in
+                    SystemAPI.Query<RefRO<KingTag>>().WithEntityAccess())
+                {
+                    source = e;
+                    break;
+                }
+                if (source == Entity.Null) { reason = "no King in world"; return false; }
+            }
+            else
+            {
+                foreach (var (b, e) in
+                    SystemAPI.Query<RefRO<Building>>().WithEntityAccess())
+                {
+                    if (b.ValueRO.Type == BuildingType.Capital) { source = e; break; }
+                }
+                if (source == Entity.Null) { reason = "no Capital — build one first"; return false; }
+            }
+
+            if (!em.HasBuffer<InventorySlot>(source))
+            {
+                reason = "cost source has no inventory buffer";
+                return false;
+            }
+            return true;
+        }
+
+        static bool HasItem(DynamicBuffer<InventorySlot> inv, ushort itemId, ushort amount)
+        {
+            int total = 0;
+            for (int i = 0; i < inv.Length; i++)
+                if (inv[i].ItemId == itemId) total += inv[i].Count;
+            return total >= amount;
+        }
+
+        // Walks slots and decrements until `amount` is satisfied. Caller
+        // must have confirmed availability via HasItem first — this
+        // function assumes the inventory holds enough.
+        static void Consume(DynamicBuffer<InventorySlot> inv, ushort itemId, ushort amount)
+        {
+            int remaining = amount;
+            for (int i = 0; i < inv.Length && remaining > 0; i++)
+            {
+                if (inv[i].ItemId != itemId) continue;
+                var slot = inv[i];
+                int take = slot.Count < remaining ? slot.Count : remaining;
+                slot.Count = (ushort)(slot.Count - take);
+                inv[i] = slot;
+                remaining -= take;
+            }
+        }
+
+        static string BuildingTypeName(byte t) => t switch
+        {
+            BuildingType.Capital  => "Capital",
+            BuildingType.Farm     => "Farm",
+            BuildingType.Barracks => "Barracks",
+            BuildingType.Furnace  => "Furnace",
+            _ => "Unknown",
+        };
 
         void Init()
         {
@@ -179,22 +260,22 @@ namespace RareIcon
             var material = new Material(shader) { enableInstancing = true };
 
             var em = EntityManager;
-            _capitalPrefab = em.CreateEntity();
-            em.AddComponentData(_capitalPrefab, LocalTransform.Identity);
-            em.AddComponentData(_capitalPrefab, new Building());
-            em.AddComponentData(_capitalPrefab, new BuildingVisual());
-            // Prefab buffer so Instantiate preserves the storage buffer
-            // shape on each spawn (we still AddBuffer on spawn too so
-            // the component definitely exists — belt-and-suspenders).
-            em.AddBuffer<InventorySlot>(_capitalPrefab);
-            em.AddComponent<Prefab>(_capitalPrefab);
+            _buildingPrefab = em.CreateEntity();
+            em.AddComponentData(_buildingPrefab, LocalTransform.Identity);
+            em.AddComponentData(_buildingPrefab, new Building());
+            em.AddComponentData(_buildingPrefab, new BuildingVisual());
+            // Inventory buffer on every building prefab — Capital uses it
+            // as central storage, future per-building input/output buffers
+            // (Farm output queue, Furnace fuel hopper) reuse the slot too.
+            em.AddBuffer<InventorySlot>(_buildingPrefab);
+            em.AddComponent<Prefab>(_buildingPrefab);
 
             var renderDesc = new RenderMeshDescription(
                 shadowCastingMode: ShadowCastingMode.Off,
                 receiveShadows: false);
             var renderArray = new RenderMeshArray(new[] { material }, new[] { mesh });
             RenderMeshUtility.AddComponents(
-                _capitalPrefab, em, renderDesc, renderArray,
+                _buildingPrefab, em, renderDesc, renderArray,
                 MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
 
             _initialized = true;

@@ -18,11 +18,14 @@ Shader "RareIcon/HexBuilding"
         _CapitalBanner     ("Capital Banner",     Color) = (0.88, 0.78, 0.28, 1)
 
         // Farm palette — plowed field tone, darker crop rows, wood
-        // barn body, peaked roof.
+        // barn body, peaked roof, growing-crop accent (carrots for v1;
+        // swap to mushroom-cap colors when the Wood→Mushroom recipe
+        // lands and the field gains a per-instance recipe property).
         _FarmField         ("Farm Field",         Color) = (0.62, 0.55, 0.32, 1)
         _FarmCrop          ("Farm Crop",          Color) = (0.40, 0.50, 0.22, 1)
         _FarmBarn          ("Farm Barn",          Color) = (0.55, 0.32, 0.18, 1)
         _FarmRoof          ("Farm Roof",          Color) = (0.42, 0.20, 0.12, 1)
+        _FarmCarrot        ("Farm Carrot",        Color) = (0.92, 0.50, 0.18, 1)
 
         // Barracks palette — stone walls, foundation course, parapet
         // tint, dark openings, heraldic insignia color accent.
@@ -31,6 +34,15 @@ Shader "RareIcon/HexBuilding"
         _BarracksRoof       ("Barracks Roof",       Color) = (0.32, 0.28, 0.24, 1)
         _BarracksDoor       ("Barracks Door",       Color) = (0.08, 0.06, 0.05, 1)
         _BarracksInsignia   ("Barracks Insignia",   Color) = (0.78, 0.18, 0.18, 1)
+
+        // Furnace palette — kiln stone, darker foundation, brick chimney,
+        // near-black mouth, hot ember glow, drifting smoke.
+        _FurnaceStone       ("Furnace Stone",       Color) = (0.55, 0.50, 0.46, 1)
+        _FurnaceFoundation  ("Furnace Foundation",  Color) = (0.32, 0.28, 0.26, 1)
+        _FurnaceChimney     ("Furnace Chimney",     Color) = (0.45, 0.30, 0.24, 1)
+        _FurnaceMouth       ("Furnace Mouth",       Color) = (0.06, 0.04, 0.04, 1)
+        _FurnaceEmber       ("Furnace Ember",       Color) = (1.00, 0.55, 0.18, 1)
+        _FurnaceSmoke       ("Furnace Smoke",       Color) = (0.72, 0.68, 0.65, 1)
     }
 
     SubShader
@@ -82,11 +94,18 @@ Shader "RareIcon/HexBuilding"
                 float4 _FarmCrop;
                 float4 _FarmBarn;
                 float4 _FarmRoof;
+                float4 _FarmCarrot;
                 float4 _BarracksWall;
                 float4 _BarracksFoundation;
                 float4 _BarracksRoof;
                 float4 _BarracksDoor;
                 float4 _BarracksInsignia;
+                float4 _FurnaceStone;
+                float4 _FurnaceFoundation;
+                float4 _FurnaceChimney;
+                float4 _FurnaceMouth;
+                float4 _FurnaceEmber;
+                float4 _FurnaceSmoke;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -101,11 +120,14 @@ Shader "RareIcon/HexBuilding"
             #define BUILDING_CAPITAL  1
             #define BUILDING_FARM     2
             #define BUILDING_BARRACKS 3
+            #define BUILDING_FURNACE  4
 
             #include "Includes/HexShared.hlsl"
+            #include "Includes/WorldAmbient.hlsl"
             #include "Includes/HexCapital.hlsl"
             #include "Includes/HexFarm.hlsl"
             #include "Includes/HexBarracks.hlsl"
+            #include "Includes/HexFurnace.hlsl"
 
             Varyings vert(Attributes input)
             {
@@ -141,9 +163,13 @@ Shader "RareIcon/HexBuilding"
                 {
                     DrawBarracks(color, alpha, px, grid);
                 }
+                else if (buildingType == BUILDING_FURNACE)
+                {
+                    DrawFurnace(color, alpha, px, grid);
+                }
 
                 clip(alpha - 0.001);
-                return float4(color, alpha);
+                return float4(ApplyWorldAmbient(color), alpha);
             }
             ENDHLSL
         }
