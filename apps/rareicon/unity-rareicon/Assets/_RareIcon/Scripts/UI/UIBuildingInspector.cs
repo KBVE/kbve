@@ -40,6 +40,7 @@ namespace RareIcon
         VisualElement _root;
         Label _titleLabel;
         Label _ownerLabel;
+        Label _healthLabel;
         Label _productionLabel;
         Label _storageLabel;
         IVisualElementScheduledItem _refreshTick;
@@ -149,6 +150,10 @@ namespace RareIcon
             _ownerLabel.style.marginBottom = 4;
             _root.Add(_ownerLabel);
 
+            _healthLabel = MakeBodyLabel(UIStyles.Palette.TextStrong, 13);
+            _healthLabel.style.marginBottom = 4;
+            _root.Add(_healthLabel);
+
             _productionLabel = MakeBodyLabel(UIStyles.Palette.TextStrong, 13);
             _productionLabel.style.marginBottom = 4;
             _root.Add(_productionLabel);
@@ -210,8 +215,41 @@ namespace RareIcon
 
             float now = TryGetClockSeconds(em);
 
+            RefreshHealth(em);
             RefreshProduction(em, now);
             RefreshStorage(em);
+        }
+
+        // HP line — red when below 50%, gold otherwise. Hidden when the
+        // building doesn't carry BuildingHealth (defensive — every
+        // spawn path adds it, but a future tagged building might skip).
+        void RefreshHealth(EntityManager em)
+        {
+            if (!em.HasComponent<BuildingHealth>(_target))
+            {
+                _healthLabel.style.display = DisplayStyle.None;
+                _healthLabel.text = string.Empty;
+                return;
+            }
+
+            var hp = em.GetComponentData<BuildingHealth>(_target);
+            var sb = ZString.CreateStringBuilder();
+            try
+            {
+                sb.Append(_locale.Get("inspector.health"));
+                sb.Append(' ');
+                sb.Append(hp.Value);
+                sb.Append('/');
+                sb.Append(hp.Max);
+                _healthLabel.text = sb.ToString();
+            }
+            finally { sb.Dispose(); }
+
+            bool wounded = hp.Max > 0 && hp.Value * 2 < hp.Max;
+            _healthLabel.style.color = wounded
+                ? UIStyles.Palette.Alert
+                : UIStyles.Palette.Gold;
+            _healthLabel.style.display = DisplayStyle.Flex;
         }
 
         // Each production component carries CycleEndsAt + CycleDuration

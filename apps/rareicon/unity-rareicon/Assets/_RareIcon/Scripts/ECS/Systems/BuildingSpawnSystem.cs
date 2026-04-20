@@ -147,6 +147,13 @@ namespace RareIcon
             });
             ecb.SetComponent(building, new BuildingVisual { Value = req.BuildingType });
 
+            // Spawn at full HP regardless of construction state — the
+            // ConstructionSite tag tracks "incomplete", BuildingHealth
+            // tracks "damaged". Builders repair damage; construction
+            // completion is a separate flow handled by ConstructionCompleteSystem.
+            ushort maxHp = BuildingDB.GetMaxHealth(req.BuildingType);
+            ecb.AddComponent(building, new BuildingHealth { Value = maxHp, Max = maxHp });
+
             // Per-type tag — production systems query on these so the
             // recipe components get auto-attached by the matching
             // *InitSystem (FarmInitSystem, FurnaceInitSystem, ...).

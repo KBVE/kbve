@@ -43,6 +43,19 @@ namespace RareIcon
             using var siteQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<ConstructionSite>());
             using var sites = siteQuery.ToEntityArray(Allocator.Temp);
 
+            // Damaged Player buildings are repair candidates for the same
+            // Builder priority — collected once per tick so per-unit
+            // scoring below doesn't requery. Filter excludes
+            // ConstructionSite entities so we don't double-count
+            // incomplete builds (they're already in `sites`).
+            using var damagedQuery = EntityManager.CreateEntityQuery(
+                new EntityQueryDesc
+                {
+                    All  = new[] { ComponentType.ReadOnly<Building>(), ComponentType.ReadOnly<BuildingHealth>() },
+                    None = new[] { ComponentType.ReadOnly<ConstructionSite>() },
+                });
+            using var damagedCandidates = damagedQuery.ToEntityArray(Allocator.Temp);
+
             foreach (var (priorities, reliefIntent, jobIntentRef, movement, transform, entity) in
                      SystemAPI.Query<
                          RefRO<JobPriorities>,
@@ -114,29 +127,52 @@ namespace RareIcon
                     }
                 }
 
-                if (p.Builder > bestPrio && sites.Length > 0 && hasCapital)
+                if (p.Builder > bestPrio && hasCapital)
                 {
-                    int siteBestDist = int.MaxValue;
-                    Entity siteBest = Entity.Null;
-                    int2   siteBestHex = default;
+                    // Construction sites and damaged Player-faction
+                    // buildings compete for the same Builder priority
+                    // slot — whichever target is closest wins. Repair is
+                    // construction's twin: same skill, same materials path.
+                    int    builderBestDist = int.MaxValue;
+                    Entity builderBest     = Entity.Null;
+                    int2   builderBestHex  = default;
+
                     for (int si = 0; si < sites.Length; si++)
                     {
                         var site = EntityManager.GetComponentData<ConstructionSite>(sites[si]);
                         int d = HexDistance(currentHex, site.RootHex);
-                        if (d < siteBestDist)
+                        if (d < builderBestDist)
                         {
-                            siteBestDist = d;
-                            siteBest = sites[si];
-                            siteBestHex = site.RootHex;
+                            builderBestDist = d;
+                            builderBest     = sites[si];
+                            builderBestHex  = site.RootHex;
                         }
                     }
-                    if (siteBest != Entity.Null)
+
+                    for (int di = 0; di < damagedCandidates.Length; di++)
+                    {
+                        var b = EntityManager.GetComponentData<Building>(damagedCandidates[di]);
+                        if (b.OwnerFaction != FactionType.Player) continue;
+                        var hp = EntityManager.GetComponentData<BuildingHealth>(damagedCandidates[di]);
+                        if (hp.Value >= hp.Max) continue;
+
+                        int d = HexDistance(currentHex, b.RootHex);
+                        if (d > SearchRadius * 2) continue;
+                        if (d < builderBestDist)
+                        {
+                            builderBestDist = d;
+                            builderBest     = damagedCandidates[di];
+                            builderBestHex  = b.RootHex;
+                        }
+                    }
+
+                    if (builderBest != Entity.Null)
                     {
                         bestKind   = JobKind.Builder;
                         bestPrio   = p.Builder;
-                        bestDist   = siteBestDist;
-                        bestHex    = siteBestHex;
-                        bestEntity = siteBest;
+                        bestDist   = builderBestDist;
+                        bestHex    = builderBestHex;
+                        bestEntity = builderBest;
                     }
                 }
 

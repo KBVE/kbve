@@ -83,6 +83,7 @@
 	"inspector.idle": "Idle",
 	"inspector.tender_bonus": "Tender bonus",
 	"inspector.cycle": "Cycle",
+	"inspector.health": "HP",
 	"faction.neutral": "Neutral",
 	"faction.player": "Player",
 	"faction.hostile": "Hostile",
