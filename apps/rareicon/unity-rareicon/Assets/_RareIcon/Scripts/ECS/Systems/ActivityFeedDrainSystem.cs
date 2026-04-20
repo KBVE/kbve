@@ -1,4 +1,5 @@
 using Unity.Entities;
+using UnityEngine;
 
 namespace RareIcon
 {
@@ -11,12 +12,17 @@ namespace RareIcon
 
         int _frameCounter;
 
+        int  _diagTotalDrained;
+        bool _diagLogged;
+        bool _diagSawNullService;
+        bool _diagSawNullSingleton;
+
         protected override void OnUpdate()
         {
             var service = ActivityFeedBridge.Source;
-            if (service == null) return;
-            if (!SystemAPI.TryGetSingleton<ActivityFeedSingleton>(out var feed)) return;
-            if (!feed.Queue.IsCreated) return;
+            if (service == null) { _diagSawNullService = true; MaybeLogDiag(null, 0); return; }
+            if (!SystemAPI.TryGetSingleton<ActivityFeedSingleton>(out var feed)) { _diagSawNullSingleton = true; MaybeLogDiag(service, 0); return; }
+            if (!feed.Queue.IsCreated) { MaybeLogDiag(service, 0); return; }
 
             int drained = 0;
             while (drained < MaxDrainPerFrame && feed.Queue.TryDequeue(out var snapshot))
@@ -24,6 +30,7 @@ namespace RareIcon
                 service.Push(in snapshot);
                 drained++;
             }
+            _diagTotalDrained += drained;
 
             _frameCounter++;
             if (_frameCounter >= StaleSweepInterval)
@@ -31,6 +38,19 @@ namespace RareIcon
                 _frameCounter = 0;
                 SweepStaleEntries(service);
             }
+
+            MaybeLogDiag(service, drained);
+        }
+
+        void MaybeLogDiag(ActivityFeedService service, int drainedThisFrame)
+        {
+            if (_diagLogged) return;
+            if (SystemAPI.Time.ElapsedTime < 3.0) return;
+            _diagLogged = true;
+
+            int tracked = service == null ? 0 : service.GetTrackedEntities().Length;
+            Debug.Log($"[ActivityDrain diag] sawNullService={_diagSawNullService} sawNullSingleton={_diagSawNullSingleton} " +
+                      $"totalDrained={_diagTotalDrained} trackedEntities={tracked} drainedThisFrame={drainedThisFrame}");
         }
 
         void SweepStaleEntries(ActivityFeedService service)
