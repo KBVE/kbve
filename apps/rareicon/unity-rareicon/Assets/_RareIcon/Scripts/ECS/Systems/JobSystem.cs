@@ -408,32 +408,30 @@ namespace RareIcon
 
         void LogDispatchDiagnostic()
         {
-            var hexResourceLookup = SystemAPI.GetComponentLookup<HexResources>(isReadOnly: true);
-            int totalUnits = 0, idleUnits = 0, reliefBlocked = 0, controlled = 0;
-            int noHexEntity = 0, hasForageTarget = 0, hasLumberTarget = 0, hasMinerTarget = 0;
+            int totalUnits = 0, reliefBlocked = 0, controlled = 0, kindNone = 0;
+            var jobKindCounts = new int[10];
+            var lastKindCounts = new int[17];
 
-            foreach (var (priorities, reliefIntent, jobIntent, movement, entity) in
-                     SystemAPI.Query<RefRO<JobPriorities>, RefRO<ReliefIntent>, RefRO<JobIntent>, RefRO<UnitMovement>>().WithEntityAccess())
+            foreach (var (jobIntent, reliefIntent, state, entity) in
+                     SystemAPI.Query<RefRO<JobIntent>, RefRO<ReliefIntent>, RefRO<ActivityState>>().WithEntityAccess())
             {
                 totalUnits++;
-                if (reliefIntent.ValueRO.Kind != ReliefKind.None) { reliefBlocked++; continue; }
-                if (EntityManager.HasComponent<ControlledUnitTag>(entity)) { controlled++; continue; }
-                if (jobIntent.ValueRO.Kind != JobKind.None) continue;
+                if (reliefIntent.ValueRO.Kind != ReliefKind.None) reliefBlocked++;
+                if (EntityManager.HasComponent<ControlledUnitTag>(entity)) controlled++;
 
-                idleUnits++;
-                var here = movement.ValueRO.CurrentHex;
-                if (!HexHoverSystem.TryGetHexEntity(here, out _)) noHexEntity++;
+                byte k = jobIntent.ValueRO.Kind;
+                if (k == JobKind.None) kindNone++;
+                else if (k < jobKindCounts.Length) jobKindCounts[k]++;
 
-                if (priorities.ValueRO.Forager > 0
-                    && TryFindResourceHex(HarvestRole.Forager, here, hexResourceLookup, out _, out _)) hasForageTarget++;
-                if (priorities.ValueRO.Lumberjack > 0
-                    && TryFindResourceHex(HarvestRole.Lumberjack, here, hexResourceLookup, out _, out _)) hasLumberTarget++;
-                if (priorities.ValueRO.Miner > 0
-                    && TryFindResourceHex(HarvestRole.Miner, here, hexResourceLookup, out _, out _)) hasMinerTarget++;
+                byte lk = state.ValueRO.LastKind;
+                if (lk < lastKindCounts.Length) lastKindCounts[lk]++;
             }
 
-            Debug.Log($"[JobSystem diag] units={totalUnits} idle={idleUnits} reliefBlocked={reliefBlocked} controlled={controlled} " +
-                      $"| of idle: currentHexUnloaded={noHexEntity} forageTargetFound={hasForageTarget} lumberTargetFound={hasLumberTarget} minerTargetFound={hasMinerTarget}");
+            Debug.Log($"[JobSystem diag] units={totalUnits} relief={reliefBlocked} controlled={controlled} " +
+                      $"jobIntent: None={kindNone} Forager={jobKindCounts[1]} Lumberjack={jobKindCounts[2]} Miner={jobKindCounts[3]} " +
+                      $"Archer={jobKindCounts[4]} Looter={jobKindCounts[5]} Farmer={jobKindCounts[6]} Builder={jobKindCounts[7]} Chef={jobKindCounts[8]} Hunter={jobKindCounts[9]} " +
+                      $"| activityLastKind: None={lastKindCounts[0]} Idle={lastKindCounts[1]} Wandering={lastKindCounts[2]} MovingToOrder={lastKindCounts[3]} " +
+                      $"Eating={lastKindCounts[5]} Foraging={lastKindCounts[9]} Lumberjacking={lastKindCounts[10]} Mining={lastKindCounts[11]}");
         }
     }
 }
