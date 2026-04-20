@@ -100,21 +100,12 @@ namespace RareIcon
             offset.Value = SlotOffset(rank);
         }
 
-        // 19-slot packing: 1 centre + 6 at r=0.06 + 12 at r=0.12. When a cluster
-        // exceeds 19 units the slots wrap (rank % 19), so the 20th unit re-uses
-        // the centre — acceptable fallback since overflow on a single 0.25-hex
-        // is already a visual anomaly. Keeps the whole formation inside the hex.
         static float2 SlotOffset(int rank)
         {
-            int slot = rank % 19;
+            int slot = rank % 7;
             if (slot == 0) return float2.zero;
-            if (slot < 7)
-            {
-                float a = (slot - 1) * (math.PI / 3f);
-                return new float2(math.cos(a), math.sin(a)) * 0.06f;
-            }
-            float b = (slot - 7) * (math.PI / 6f);
-            return new float2(math.cos(b), math.sin(b)) * 0.12f;
+            float a = (slot - 1) * (math.PI / 3f);
+            return new float2(math.cos(a), math.sin(a)) * 0.18f;
         }
     }
 }
