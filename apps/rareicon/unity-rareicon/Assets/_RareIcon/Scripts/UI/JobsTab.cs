@@ -60,13 +60,13 @@ namespace RareIcon
             footer.style.justifyContent = Justify.SpaceBetween;
             footer.style.marginTop = 10;
 
-            var applyBtn = UIStyles.MakeYorhaButton("Apply", ApplyToLiveUnits);
+            var applyBtn = UIStyles.MakeButton("Apply", ApplyToLiveUnits);
             applyBtn.style.height = 26;
             applyBtn.style.flexGrow = 1;
             applyBtn.style.marginRight = 4;
             footer.Add(applyBtn);
 
-            var resetBtn = UIStyles.MakeYorhaButton("Reset", ResetToDefaults);
+            var resetBtn = UIStyles.MakeButton("Reset", ResetToDefaults);
             resetBtn.style.height = 26;
             resetBtn.style.flexGrow = 1;
             footer.Add(resetBtn);

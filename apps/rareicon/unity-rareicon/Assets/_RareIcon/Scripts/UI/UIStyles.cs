@@ -117,14 +117,20 @@ namespace RareIcon
             public const int Title   = 15;  // panel title (top of card)
         }
 
-        // -- Standard panel widths --
-        // Min/max pair so panels grow with content but cap at a width
-        // that doesn't dominate the viewport at 1920x1080 / smaller.
+        /// <summary>Min/max pixel widths sized for 1280-wide windows; pair with VwMaxPct to clamp on smaller viewports.</summary>
         public static class PanelWidth
         {
-            public const float NarrowMin = 200f; public const float NarrowMax = 280f;  // single-column inspector
-            public const float StdMin    = 240f; public const float StdMax    = 320f;  // floating side panels
-            public const float WideMin   = 320f; public const float WideMax   = 420f;  // tabbed / two-pane
+            public const float NarrowMin = 160f; public const float NarrowMax = 220f;
+            public const float StdMin    = 200f; public const float StdMax    = 260f;
+            public const float WideMin   = 240f; public const float WideMax   = 320f;
+        }
+
+        /// <summary>Viewport-percent caps applied alongside maxWidth so a panel never exceeds N% of the parent root.</summary>
+        public static class VwMaxPct
+        {
+            public const float Narrow = 22f;
+            public const float Std    = 26f;
+            public const float Wide   = 32f;
         }
 
         // -- Equal-sided setters (chainable) --
@@ -358,7 +364,7 @@ namespace RareIcon
 
             if (onClose != null)
             {
-                var closeBtn = MakeYorhaButton("\u00D7", onClose);
+                var closeBtn = MakeButton("\u00D7", onClose);
                 closeBtn.style.width    = 18;
                 closeBtn.style.height   = 18;
                 closeBtn.style.fontSize = Type.Label;
@@ -521,40 +527,58 @@ namespace RareIcon
             return wrapper;
         }
 
-        /// <summary>
-        /// YoRHA-themed button — dark fill + gold text + sharp corners,
-        /// inverts on hover (NieR's background-position trick adapted to
-        /// UI Toolkit's per-event color swap).
-        /// </summary>
-        public static Button MakeYorhaButton(string text, System.Action onClick = null)
+        /// <summary>Standard button with idle / hover / press / disabled states.</summary>
+        public static Button MakeButton(string text, System.Action onClick = null)
         {
             var btn = new Button(onClick) { text = text };
-            btn.style.backgroundColor = Palette.Zinc900;
-            btn.style.color           = Palette.Gold;
             btn.style.BorderRadius(Radius.Sharp);
             btn.style.BorderWidth(1);
-            btn.style.BorderColor(Palette.Gold);
-            btn.style.Padding(8, 16);
-            btn.style.fontSize = 14;
+            btn.style.Padding(Spacing.Sm, Spacing.Lg);
+            btn.style.fontSize = Type.Label;
             btn.style.unityFontStyleAndWeight = FontStyle.Bold;
-            // Unity's default Button has nonzero margins — clear them so
-            // sibling buttons sit flush in toolbars.
-            btn.style.marginLeft  = 0;
-            btn.style.marginRight = 0;
-            btn.style.marginTop   = 0;
-            btn.style.marginBottom= 0;
+            btn.style.marginLeft = 0; btn.style.marginRight = 0;
+            btn.style.marginTop  = 0; btn.style.marginBottom = 0;
 
-            btn.RegisterCallback<PointerEnterEvent>(_ =>
-            {
-                btn.style.backgroundColor = Palette.Gold;
-                btn.style.color           = Palette.Zinc950;
-            });
-            btn.RegisterCallback<PointerLeaveEvent>(_ =>
-            {
-                btn.style.backgroundColor = Palette.Zinc900;
-                btn.style.color           = Palette.Gold;
-            });
+            bool pressed = false;
+            bool hovered = false;
 
+            void Apply()
+            {
+                if (!btn.enabledSelf)
+                {
+                    btn.style.backgroundColor = Palette.Zinc950;
+                    btn.style.color           = Palette.Zinc500;
+                    btn.style.BorderColor(Palette.Zinc700);
+                    return;
+                }
+                if (pressed)
+                {
+                    btn.style.backgroundColor = Palette.GoldDeep;
+                    btn.style.color           = Palette.Black;
+                    btn.style.BorderColor(Palette.GoldDeep);
+                }
+                else if (hovered)
+                {
+                    btn.style.backgroundColor = Palette.Gold;
+                    btn.style.color           = Palette.Zinc950;
+                    btn.style.BorderColor(Palette.Gold);
+                }
+                else
+                {
+                    btn.style.backgroundColor = Palette.Zinc900;
+                    btn.style.color           = Palette.Gold;
+                    btn.style.BorderColor(Palette.Gold);
+                }
+            }
+
+            btn.RegisterCallback<PointerEnterEvent>(_ => { hovered = true;  Apply(); });
+            btn.RegisterCallback<PointerLeaveEvent>(_ => { hovered = false; pressed = false; Apply(); });
+            btn.RegisterCallback<PointerDownEvent>(_  => { pressed = true;  Apply(); });
+            btn.RegisterCallback<PointerUpEvent>(_    => { pressed = false; Apply(); });
+            btn.RegisterCallback<AttachToPanelEvent>(_ => Apply());
+            btn.RegisterCallback<CustomStyleResolvedEvent>(_ => Apply());
+
+            Apply();
             return btn;
         }
 

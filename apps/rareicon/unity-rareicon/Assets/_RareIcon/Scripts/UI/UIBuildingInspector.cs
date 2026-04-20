@@ -123,7 +123,7 @@ namespace RareIcon
             _root = new VisualElement().ApplyPanelChrome();
             _root.style.AnchorBottomLeft();
             _root.style.minWidth = UIStyles.PanelWidth.NarrowMin;
-            _root.style.maxWidth = UIStyles.PanelWidth.NarrowMax;
+            _root.style.maxWidth = new Length(UIStyles.VwMaxPct.Narrow, LengthUnit.Percent);
             _root.style.display = DisplayStyle.None;
             _root.RegisterCallback<ClickEvent>(e => e.StopPropagation());
 

@@ -115,7 +115,7 @@ namespace RareIcon
 
             titleRow.Add(UIStyles.MakeMarkerRow("World Search", fontSize: 16));
 
-            _closeButton = UIStyles.MakeYorhaButton("\u00D7", Close);
+            _closeButton = UIStyles.MakeButton("\u00D7", Close);
             _closeButton.style.width = 24;
             _closeButton.style.height = 24;
             _closeButton.style.Padding(0);
@@ -155,7 +155,7 @@ namespace RareIcon
             _rField.style.width = 90;
             _rField.style.marginRight = 6;
 
-            _goButton = UIStyles.MakeYorhaButton("Go", OnGoClicked);
+            _goButton = UIStyles.MakeButton("Go", OnGoClicked);
             _goButton.style.height = 26;
             _goButton.style.flexGrow = 1;
 
@@ -187,12 +187,12 @@ namespace RareIcon
             _radiusField.style.width = 130;
             _radiusField.style.marginRight = 6;
 
-            _findButton = UIStyles.MakeYorhaButton("Find", OnFindClicked);
+            _findButton = UIStyles.MakeButton("Find", OnFindClicked);
             _findButton.style.height = 26;
             _findButton.style.flexGrow = 1;
 
             // Cancel uses the alert palette so it reads as a destructive action.
-            _cancelButton = UIStyles.MakeYorhaButton("Cancel", OnCancelClicked);
+            _cancelButton = UIStyles.MakeButton("Cancel", OnCancelClicked);
             _cancelButton.style.height = 26;
             _cancelButton.style.marginLeft = 6;
             _cancelButton.style.borderTopColor = UIStyles.Palette.Alert;

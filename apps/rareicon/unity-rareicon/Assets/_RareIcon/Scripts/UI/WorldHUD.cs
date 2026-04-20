@@ -229,7 +229,7 @@ namespace RareIcon
             _controlLabel.style.marginRight = 8;
             topRow.Add(_controlLabel);
 
-            _releaseBtn = UIStyles.MakeYorhaButton(_locale.Get("hud.release"), ReleaseControl);
+            _releaseBtn = UIStyles.MakeButton(_locale.Get("hud.release"), ReleaseControl);
             _releaseBtn.style.height = 20;
             _releaseBtn.style.fontSize = 11;
             _releaseBtn.style.Padding(0, 8);
@@ -469,7 +469,7 @@ namespace RareIcon
         // toolbar doesn't shift right of its anchor.
         static Button MakeToolbarButton(string text, System.Action onClick, float marginLeft)
         {
-            var btn = UIStyles.MakeYorhaButton(text, onClick);
+            var btn = UIStyles.MakeButton(text, onClick);
             btn.style.height = 28;
             btn.style.fontSize = 13;
             btn.style.Padding(0, 12);

@@ -50,7 +50,7 @@ namespace RareIcon
                 plusBtn.SetEnabled(state < max);
             }
 
-            minusBtn = UIStyles.MakeYorhaButton("\u2212", () =>
+            minusBtn = UIStyles.MakeButton("\u2212", () =>
             {
                 if (state <= min) return;
                 state -= 1;
@@ -67,7 +67,7 @@ namespace RareIcon
             valueLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
             row.Add(valueLabel);
 
-            plusBtn = UIStyles.MakeYorhaButton("+", () =>
+            plusBtn = UIStyles.MakeButton("+", () =>
             {
                 if (state >= max) return;
                 state += 1;
@@ -84,7 +84,7 @@ namespace RareIcon
         /// <summary>Vertical sidebar tab button; active tab highlights with the gold fill / zinc text swap used elsewhere in the YoRHA theme.</summary>
         public static Button MakeSidebarTab(string label, bool isActive, Action onClick)
         {
-            var btn = UIStyles.MakeYorhaButton(label, onClick);
+            var btn = UIStyles.MakeButton(label, onClick);
             btn.style.height = 30;
             btn.style.fontSize = 13;
             btn.style.width = Length.Percent(100);

@@ -132,7 +132,7 @@ namespace RareIcon
             var actionRow = new VisualElement();
             actionRow.style.flexDirection = FlexDirection.Row;
 
-            _jumpBtn = UIStyles.MakeYorhaButton(_locale.Get("ui.jump_to"), JumpToSelected);
+            _jumpBtn = UIStyles.MakeButton(_locale.Get("ui.jump_to"), JumpToSelected);
             _jumpBtn.style.height = 20;
             _jumpBtn.style.fontSize = UIStyles.Type.Body;
             _jumpBtn.style.Padding(0, UIStyles.Spacing.Md);
@@ -140,7 +140,7 @@ namespace RareIcon
             _jumpBtn.SetEnabled(false);
             actionRow.Add(_jumpBtn);
 
-            _possessBtn = UIStyles.MakeYorhaButton(_locale.Get("ui.possess"), PossessSelected);
+            _possessBtn = UIStyles.MakeButton(_locale.Get("ui.possess"), PossessSelected);
             _possessBtn.style.height = 20;
             _possessBtn.style.fontSize = UIStyles.Type.Body;
             _possessBtn.style.Padding(0, UIStyles.Spacing.Md);
