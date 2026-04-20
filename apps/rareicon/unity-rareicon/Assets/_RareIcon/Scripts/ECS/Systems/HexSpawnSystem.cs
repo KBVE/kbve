@@ -258,7 +258,8 @@ namespace RareIcon
                 typeof(HexTreeVisual),
                 typeof(HexFloorAmounts),
                 typeof(HexCactusVisual),
-                typeof(ItemDrop)
+                typeof(ItemDrop),
+                typeof(TerritoryVisual)
             );
 
             var batchEntities = em.CreateEntity(archetype, landCount, Allocator.Temp);

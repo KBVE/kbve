@@ -35,6 +35,15 @@ namespace RareIcon
     /// <summary>Marker tag for the Capital — craft / governance systems query key.</summary>
     public struct CapitalTag : IComponentData { }
 
+    /// <summary>Per-building territory claim; any building may emit. Empire territory = union of all same-faction emitters. Radius is the axial hex range from Center.</summary>
+    // TODO(rust-ffi): persist alongside Building so territory survives chunk unload.
+    public struct TerritoryEmitter : IComponentData
+    {
+        public int2 Center;
+        public byte Radius;
+        public byte OwnerFaction;
+    }
+
     /// <summary>Per-capital craft recipe — up to 3 inputs → 1 output, cycle anchored to WorldClock.AbsSeconds.</summary>
     // TODO(rust-ffi): persist {Input*Id/Amount, OutputId/Amount, CycleEndsAt, CycleDuration} so in-flight crafts don't reset on chunk unload / server restart.
     public struct CapitalProduction : IComponentData

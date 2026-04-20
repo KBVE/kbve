@@ -97,6 +97,13 @@ namespace RareIcon
         public float Value;
     }
 
+    /// <summary>Territory classification for shader. 0 = outside any empire, 1 = interior (inside but no outside neighbour), 2 = edge (border draw). Rebaked by TerritoryBakeSystem.</summary>
+    [MaterialProperty("_Territory")]
+    public struct TerritoryVisual : IComponentData
+    {
+        public float Value;
+    }
+
     /// <summary>
     /// Per-instance MaterialProperty driving how many trees the shader
     /// renders on this hex. Value is HexResources.Wood normalized to
