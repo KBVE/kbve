@@ -29,6 +29,12 @@ namespace RareIcon
 
         void RunDispatch()
         {
+            // We do main-thread reads on InventorySlot (cave + Capital food
+            // counts) below. Background jobs like FurnaceTickJob schedule
+            // RW on that same buffer; SystemAPI.GetBufferLookup inside a
+            // SystemBase doesn't auto-complete those deps, so force it here.
+            CompleteDependency();
+
             SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial);
             var hexResourceLookup = SystemAPI.GetComponentLookup<HexResources>(isReadOnly: true);
 
@@ -81,6 +87,41 @@ namespace RareIcon
                 if (e.ValueRO.OwnerFaction != FactionType.Player) continue;
                 friendlyEmitters.Add(e.ValueRO);
             }
+
+            // Caves that need food — Looters haul Capital → cave. Collected
+            // once per tick so the per-unit scoring loop stays linear.
+            // Storing (entity, hex, headroom) keeps the inner scoring
+            // independent of the cave's live storage buffer.
+            var needyCaves = new NativeList<NeedyCave>(4, Allocator.Temp);
+            {
+                var caveInvLookup = SystemAPI.GetBufferLookup<InventorySlot>(true);
+                foreach (var (prodRO, buildingRO, e) in
+                         SystemAPI.Query<RefRO<GoblinCaveProduction>, RefRO<Building>>()
+                                  .WithAll<GoblinCaveTag>()
+                                  .WithEntityAccess())
+                {
+                    if (!caveInvLookup.HasBuffer(e)) continue;
+                    ushort cap = prodRO.ValueRO.StorageCap == 0 ? (ushort)200 : prodRO.ValueRO.StorageCap;
+                    int food  = CountFood(caveInvLookup[e]);
+                    if (food >= cap) continue;
+                    needyCaves.Add(new NeedyCave { Entity = e, Hex = buildingRO.ValueRO.RootHex });
+                }
+            }
+
+            // Does Capital actually have food to ship? If not, sending a
+            // Looter there is busywork — let them go forage instead.
+            bool capitalHasFood = false;
+            if (hasCapital && EntityManager.HasBuffer<InventorySlot>(capital))
+            {
+                var capInv = EntityManager.GetBuffer<InventorySlot>(capital);
+                for (int i = 0; i < capInv.Length; i++)
+                {
+                    if (capInv[i].Count == 0) continue;
+                    if (ItemDB.EnergyValue(capInv[i].ItemId) > 0f) { capitalHasFood = true; break; }
+                }
+            }
+
+            var unitInvLookup = SystemAPI.GetBufferLookup<InventorySlot>(true);
 
             foreach (var (priorities, reliefIntent, jobIntentRef, movement, transform, entity) in
                      SystemAPI.Query<
@@ -241,38 +282,68 @@ namespace RareIcon
                     bestEntity = capital;
                 }
 
-                // Looter = generic hauler. Scans BOTH ground arrows (loot)
-                // AND forager-type resource hexes (berries / mushrooms /
-                // herbs / cactus), picks whichever is closest. Lets a
-                // default-role goblin pick up scattered arrows from combat
-                // AND graze foragable hexes in the same priority slot.
+                // Looter = generic hauler. Priority order within the
+                // Looter slot:
+                //   1. If carrying food AND a cave has headroom → deliver
+                //      to the nearest needy cave. Finishes an in-flight
+                //      haul round trip before grabbing more work.
+                //   2. Else if a cave has headroom AND Capital has food →
+                //      fetch from Capital. Looter walks there; the
+                //      CapitalFoodPickupSystem loads food on arrival.
+                //   3. Else → existing behaviour: ground arrows + forager
+                //      resource hexes, whichever is closest.
                 if (p.Looter > 0 && p.Looter >= bestPrio)
                 {
                     int    looterBestDist = int.MaxValue;
                     Entity looterBest     = Entity.Null;
                     int2   looterBestHex  = default;
 
-                    for (int ai = 0; ai < groundArrows.Length; ai++)
+                    bool carryingFood = unitInvLookup.HasBuffer(entity)
+                                        && BufferHasFood(unitInvLookup[entity]);
+
+                    if (carryingFood && needyCaves.Length > 0)
                     {
-                        var t = EntityManager.GetComponentData<LocalTransform>(groundArrows[ai]);
-                        var hex = HexMeshUtil.WorldToHex(t.Position.x, t.Position.y, 0.25f);
-                        int d = HexDistance(currentHex, hex);
-                        if (d > SearchRadius * 2) continue;
-                        if (d < looterBestDist)
+                        for (int ci = 0; ci < needyCaves.Length; ci++)
                         {
-                            looterBestDist = d;
-                            looterBest     = groundArrows[ai];
-                            looterBestHex  = hex;
+                            int d = HexDistance(currentHex, needyCaves[ci].Hex);
+                            if (d < looterBestDist)
+                            {
+                                looterBestDist = d;
+                                looterBest     = needyCaves[ci].Entity;
+                                looterBestHex  = needyCaves[ci].Hex;
+                            }
                         }
                     }
-
-                    if (TryFindResourceHex(HarvestRole.Forager, currentHex, hexResourceLookup,
-                                           out int2 forageHex, out int forageDist)
-                        && forageDist < looterBestDist)
+                    else if (!carryingFood && needyCaves.Length > 0 && capitalHasFood && hasCapital)
                     {
-                        looterBestDist = forageDist;
-                        looterBest     = Entity.Null;
-                        looterBestHex  = forageHex;
+                        looterBestDist = HexDistance(currentHex, capitalHex);
+                        looterBest     = capital;
+                        looterBestHex  = capitalHex;
+                    }
+                    else
+                    {
+                        for (int ai = 0; ai < groundArrows.Length; ai++)
+                        {
+                            var t = EntityManager.GetComponentData<LocalTransform>(groundArrows[ai]);
+                            var hex = HexMeshUtil.WorldToHex(t.Position.x, t.Position.y, 0.25f);
+                            int d = HexDistance(currentHex, hex);
+                            if (d > SearchRadius * 2) continue;
+                            if (d < looterBestDist)
+                            {
+                                looterBestDist = d;
+                                looterBest     = groundArrows[ai];
+                                looterBestHex  = hex;
+                            }
+                        }
+
+                        if (TryFindResourceHex(HarvestRole.Forager, currentHex, hexResourceLookup,
+                                               out int2 forageHex, out int forageDist)
+                            && forageDist < looterBestDist)
+                        {
+                            looterBestDist = forageDist;
+                            looterBest     = Entity.Null;
+                            looterBestHex  = forageHex;
+                        }
                     }
 
                     if (looterBestDist < int.MaxValue
@@ -295,6 +366,34 @@ namespace RareIcon
             }
 
             friendlyEmitters.Dispose();
+            needyCaves.Dispose();
+        }
+
+        struct NeedyCave
+        {
+            public Entity Entity;
+            public int2   Hex;
+        }
+
+        static bool BufferHasFood(DynamicBuffer<InventorySlot> buf)
+        {
+            for (int i = 0; i < buf.Length; i++)
+            {
+                if (buf[i].Count == 0) continue;
+                if (ItemDB.EnergyValue(buf[i].ItemId) > 0f) return true;
+            }
+            return false;
+        }
+
+        static int CountFood(DynamicBuffer<InventorySlot> buf)
+        {
+            int total = 0;
+            for (int i = 0; i < buf.Length; i++)
+            {
+                if (ItemDB.EnergyValue(buf[i].ItemId) <= 0f) continue;
+                total += buf[i].Count;
+            }
+            return total;
         }
 
         void TryRole(byte priority, byte kind, HarvestRole role, int2 origin,
