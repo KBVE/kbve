@@ -59,7 +59,6 @@ namespace RareIcon
 
             switch (job.Kind)
             {
-                case JobKind.Forager:    return ActivityKind.Foraging;
                 case JobKind.Lumberjack: return ActivityKind.Lumberjacking;
                 case JobKind.Miner:      return ActivityKind.Mining;
                 case JobKind.Archer:     return ActivityKind.Hunting;

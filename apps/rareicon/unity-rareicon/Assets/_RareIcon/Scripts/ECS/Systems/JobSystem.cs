@@ -117,8 +117,6 @@ namespace RareIcon
                 int2  bestHex    = currentHex;
                 Entity bestEntity = Entity.Null;
 
-                TryRole(p.Forager,    JobKind.Forager,    HarvestRole.Forager,    currentHex,
-                        hexResourceLookup, ref bestKind, ref bestPrio, ref bestDist, ref bestHex);
                 TryRole(p.Lumberjack, JobKind.Lumberjack, HarvestRole.Lumberjack, currentHex,
                         hexResourceLookup, ref bestKind, ref bestPrio, ref bestDist, ref bestHex);
                 TryRole(p.Miner,      JobKind.Miner,      HarvestRole.Miner,      currentHex,
@@ -213,11 +211,17 @@ namespace RareIcon
                     bestEntity = capital;
                 }
 
-                if (p.Looter > bestPrio && groundArrows.Length > 0)
+                // Looter = generic hauler. Scans BOTH ground arrows (loot)
+                // AND forager-type resource hexes (berries / mushrooms /
+                // herbs / cactus), picks whichever is closest. Lets a
+                // default-role goblin pick up scattered arrows from combat
+                // AND graze foragable hexes in the same priority slot.
+                if (p.Looter > 0 && p.Looter >= bestPrio)
                 {
-                    int   looterBestDist = int.MaxValue;
-                    Entity looterBest    = Entity.Null;
-                    int2   looterBestHex = default;
+                    int    looterBestDist = int.MaxValue;
+                    Entity looterBest     = Entity.Null;
+                    int2   looterBestHex  = default;
+
                     for (int ai = 0; ai < groundArrows.Length; ai++)
                     {
                         var t = EntityManager.GetComponentData<LocalTransform>(groundArrows[ai]);
@@ -231,7 +235,18 @@ namespace RareIcon
                             looterBestHex  = hex;
                         }
                     }
-                    if (looterBest != Entity.Null)
+
+                    if (TryFindResourceHex(HarvestRole.Forager, currentHex, hexResourceLookup,
+                                           out int2 forageHex, out int forageDist)
+                        && forageDist < looterBestDist)
+                    {
+                        looterBestDist = forageDist;
+                        looterBest     = Entity.Null;
+                        looterBestHex  = forageHex;
+                    }
+
+                    if (looterBestDist < int.MaxValue
+                        && (p.Looter > bestPrio || (p.Looter == bestPrio && looterBestDist < bestDist)))
                     {
                         bestKind   = JobKind.Looter;
                         bestPrio   = p.Looter;
@@ -443,7 +458,7 @@ namespace RareIcon
             }
 
             Debug.Log($"[JobSystem diag] units={totalUnits} relief={reliefBlocked} controlled={controlled} " +
-                      $"jobIntent: None={kindNone} Forager={jobKindCounts[1]} Lumberjack={jobKindCounts[2]} Miner={jobKindCounts[3]} " +
+                      $"jobIntent: None={kindNone} Lumberjack={jobKindCounts[2]} Miner={jobKindCounts[3]} " +
                       $"Archer={jobKindCounts[4]} Looter={jobKindCounts[5]} Farmer={jobKindCounts[6]} Builder={jobKindCounts[7]} Chef={jobKindCounts[8]} Hunter={jobKindCounts[9]} " +
                       $"| activityLastKind: None={lastKindCounts[0]} Idle={lastKindCounts[1]} Wandering={lastKindCounts[2]} MovingToOrder={lastKindCounts[3]} " +
                       $"Eating={lastKindCounts[5]} Foraging={lastKindCounts[9]} Lumberjacking={lastKindCounts[10]} Mining={lastKindCounts[11]} " +

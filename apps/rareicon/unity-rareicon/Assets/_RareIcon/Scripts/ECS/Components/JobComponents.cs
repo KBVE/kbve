@@ -3,12 +3,10 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Stable byte IDs for jobs; mirrors a repr(u8) Rust enum for future FFI.</summary>
-    // TODO(rust-ffi): add matching #[repr(u8)] JobKind enum in uniti crate; values here are canonical IDs.
+    /// <summary>Stable byte IDs for jobs; mirrors a repr(u8) Rust enum for future FFI. Looter is the all-purpose default role — picks up ground arrows and forager-type resources (berries / mushrooms / herbs / cactus) within range.</summary>
     public static class JobKind
     {
         public const byte None       = 0;
-        public const byte Forager    = 1;
         public const byte Lumberjack = 2;
         public const byte Miner      = 3;
         public const byte Archer     = 4;
@@ -19,14 +17,9 @@ namespace RareIcon
         public const byte Hunter     = 9;
     }
 
-    /// <summary>
-    /// Per-unit job priorities (0 = disabled, 1..5 = weighted preference).
-    /// Fixed-layout struct so it's Burst-readable without a buffer walk.
-    /// </summary>
-    // TODO(rust-ffi): persist across chunk unload; mirror in uniti.
+    /// <summary>Per-unit job priorities (0 = disabled, 1..5 = weighted preference). Fixed-layout struct so it's Burst-readable without a buffer walk.</summary>
     public struct JobPriorities : IComponentData
     {
-        public byte Forager;
         public byte Lumberjack;
         public byte Miner;
         public byte Archer;
@@ -38,7 +31,6 @@ namespace RareIcon
 
         public byte Get(byte jobKind) => jobKind switch
         {
-            JobKind.Forager    => Forager,
             JobKind.Lumberjack => Lumberjack,
             JobKind.Miner      => Miner,
             JobKind.Archer     => Archer,
@@ -54,7 +46,6 @@ namespace RareIcon
         {
             switch (jobKind)
             {
-                case JobKind.Forager:    Forager    = priority; break;
                 case JobKind.Lumberjack: Lumberjack = priority; break;
                 case JobKind.Miner:      Miner      = priority; break;
                 case JobKind.Archer:     Archer     = priority; break;

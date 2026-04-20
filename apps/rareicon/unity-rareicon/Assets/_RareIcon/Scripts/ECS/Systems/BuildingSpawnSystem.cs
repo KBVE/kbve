@@ -162,6 +162,7 @@ namespace RareIcon
             if (req.BuildingType == BuildingType.Capital)
             {
                 ecb.AddComponent<CapitalTag>(building);
+                ecb.AddComponent<NeedsStaffing>(building);
                 ecb.AddComponent(building, new CapitalProduction
                 {
                     Input1Id     = (ushort)ItemId.WoodLog,     Input1Amount = 1,

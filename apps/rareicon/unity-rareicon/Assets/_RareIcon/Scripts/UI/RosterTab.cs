@@ -17,6 +17,19 @@ namespace RareIcon
     {
         const int RefreshIntervalMs = 500;
 
+        // Same job set as JobsTab; both UIs edit the same JobPriorities
+        // component, JobsTab in bulk-by-type, this tab per-individual.
+        static readonly (byte Kind, string Label)[] Jobs = new (byte, string)[]
+        {
+            (JobKind.Looter,     "Looter"),
+            (JobKind.Lumberjack, "Lumberjack"),
+            (JobKind.Miner,      "Miner"),
+            (JobKind.Archer,     "Archer"),
+            (JobKind.Farmer,     "Farmer"),
+            (JobKind.Builder,    "Builder"),
+            (JobKind.Chef,       "Chef"),
+        };
+
         readonly LocaleService _locale;
         readonly ActivityFeedService _activity;
         readonly CameraService _camera;
@@ -27,10 +40,12 @@ namespace RareIcon
 
         VisualElement _root;
         ScrollView _list;
-        VisualElement _detail;
+        ScrollView _detail;
         Label _detailTitle;
         Label _detailActivity;
         VisualElement _detailStats;
+        VisualElement _jobsSection;
+        UIControls.StepperHandle[] _jobSteppers;
         StatBar _detailHp, _detailEn, _detailHu, _detailFt;
         Button _jumpBtn, _possessBtn;
         IVisualElementScheduledItem _refreshTick;
@@ -78,7 +93,7 @@ namespace RareIcon
 
         void BuildDetail(VisualElement parent)
         {
-            _detail = new VisualElement();
+            _detail = new ScrollView(ScrollViewMode.Vertical);
             _detail.AddToClassList("roster-detail");
 
             _detailTitle = new Label("Select a citizen");
@@ -97,6 +112,8 @@ namespace RareIcon
             _detailFt = new StatBar("FT", "ft", _detailStats);
             _detail.Add(_detailStats);
 
+            BuildJobs(_detail);
+
             var actions = new VisualElement();
             actions.AddToClassList("roster-detail__actions");
             _jumpBtn = MakeAction(_locale.Get("ui.jump_to"), JumpToSelected);
@@ -106,6 +123,33 @@ namespace RareIcon
             _detail.Add(actions);
 
             parent.Add(_detail);
+        }
+
+        // Per-unit job priority editor — 8 stepper rows wired to the
+        // selected entity's JobPriorities component. Hidden until a unit
+        // is selected. Steppers fire onChange ONLY for user clicks (the
+        // SetValue path on RefreshDetail bypasses onChange).
+        void BuildJobs(VisualElement parent)
+        {
+            _jobsSection = new VisualElement();
+            _jobsSection.AddToClassList("roster-detail__jobs");
+
+            var header = new Label("Job Priorities");
+            header.AddToClassList("cz-section");
+            _jobsSection.Add(header);
+
+            _jobSteppers = new UIControls.StepperHandle[Jobs.Length];
+            for (int i = 0; i < Jobs.Length; i++)
+            {
+                int captured = i;
+                _jobSteppers[i] = UIControls.MakeStepperRow(
+                    Jobs[i].Label, initial: 0, min: 0, max: 5,
+                    onChange: v => SetJobForSelected(Jobs[captured].Kind, (byte)v));
+                _jobsSection.Add(_jobSteppers[i].Row);
+            }
+
+            _jobsSection.style.display = DisplayStyle.None;
+            parent.Add(_jobsSection);
         }
 
         static Button MakeAction(string text, Action onClick)
@@ -261,8 +305,25 @@ namespace RareIcon
             _detailTitle.text = "Select a citizen";
             _detailActivity.text = string.Empty;
             _detailHp.Clear(); _detailEn.Clear(); _detailHu.Clear(); _detailFt.Clear();
+            _jobsSection.style.display = DisplayStyle.None;
             _jumpBtn.SetEnabled(false);
             _possessBtn.SetEnabled(false);
+        }
+
+        // User-driven stepper change → write priority back to the
+        // selected entity's JobPriorities. JobsTab's bulk Apply later
+        // would clobber this; that's the documented bulk-vs-override
+        // model (per-type defaults + per-individual overrides).
+        void SetJobForSelected(byte jobKind, byte priority)
+        {
+            if (_selected == Entity.Null) return;
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.Exists(_selected) || !em.HasComponent<JobPriorities>(_selected)) return;
+            var jp = em.GetComponentData<JobPriorities>(_selected);
+            jp.Set(jobKind, priority);
+            em.SetComponentData(_selected, jp);
         }
 
         void RefreshDetail(EntityManager em, Entity entity)
@@ -281,6 +342,15 @@ namespace RareIcon
             UpdateBar(em, entity, _detailHu, has: em.HasComponent<Hunger>(entity),
                 value: em.HasComponent<Hunger>(entity)  ? em.GetComponentData<Hunger>(entity).Value  : 0f,
                 max:   em.HasComponent<Hunger>(entity)  ? em.GetComponentData<Hunger>(entity).Max    : 0f);
+            if (em.HasComponent<JobPriorities>(entity))
+            {
+                var jp = em.GetComponentData<JobPriorities>(entity);
+                for (int i = 0; i < Jobs.Length; i++)
+                    _jobSteppers[i].SetValue(jp.Get(Jobs[i].Kind));
+                _jobsSection.style.display = DisplayStyle.Flex;
+            }
+            else _jobsSection.style.display = DisplayStyle.None;
+
             UpdateBar(em, entity, _detailFt, has: em.HasComponent<Fatigue>(entity),
                 value: em.HasComponent<Fatigue>(entity) ? em.GetComponentData<Fatigue>(entity).Value : 0f,
                 max:   em.HasComponent<Fatigue>(entity) ? em.GetComponentData<Fatigue>(entity).Max   : 0f);

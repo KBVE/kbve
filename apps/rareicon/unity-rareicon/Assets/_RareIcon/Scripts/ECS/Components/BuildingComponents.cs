@@ -85,6 +85,9 @@ namespace RareIcon
     /// <summary>Marker tag for Barracks buildings — recruitment system query key.</summary>
     public struct BarracksTag : IComponentData { }
 
+    /// <summary>Transient tag — placed on a building that hasn't been assigned a dedicated worker yet. BuildingStaffingSystem consumes this and stacks the matching role (Farm→Farmer, Barracks→Archer, Furnace→Chef, Capital→Builder) onto a pure-Looter goblin at priority 5, then removes the tag.</summary>
+    public struct NeedsStaffing : IComponentData { }
+
     /// <summary>Marker tag for Furnace buildings — production system query key.</summary>
     public struct FurnaceTag : IComponentData { }
 

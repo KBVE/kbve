@@ -11,11 +11,10 @@ namespace RareIcon
         static readonly byte[] UnitTypes = { UnitType.Goblin, UnitType.Soldier, UnitType.Knight, UnitType.Mage, UnitType.King };
         static readonly (byte Kind, string Label)[] Jobs = new (byte, string)[]
         {
-            (JobKind.Forager,    "Forager"),
+            (JobKind.Looter,     "Looter"),
             (JobKind.Lumberjack, "Lumberjack"),
             (JobKind.Miner,      "Miner"),
             (JobKind.Archer,     "Archer"),
-            (JobKind.Looter,     "Looter"),
             (JobKind.Farmer,     "Farmer"),
             (JobKind.Builder,    "Builder"),
             (JobKind.Chef,       "Chef"),

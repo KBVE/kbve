@@ -47,6 +47,7 @@ namespace RareIcon
                 case BuildingType.Furnace:  Ecb.AddComponent<FurnaceTag>(chunkIdx, entity);  break;
             }
 
+            Ecb.AddComponent<NeedsStaffing>(chunkIdx, entity);
             Ecb.RemoveComponent<ConstructionSite>(chunkIdx, entity);
             Ecb.RemoveComponent<ConstructionMaterial>(chunkIdx, entity);
         }

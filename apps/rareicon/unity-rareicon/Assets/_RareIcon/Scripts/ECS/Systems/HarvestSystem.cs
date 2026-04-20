@@ -65,7 +65,7 @@ namespace RareIcon
             byte bestPrio = 0;
             byte bestRole = (byte)HarvestRole.None;
 
-            if (priorities.Forager    > bestPrio && HasForagerWork(in res)) { bestPrio = priorities.Forager;    bestRole = (byte)HarvestRole.Forager; }
+            if (priorities.Looter     > bestPrio && HasForagerWork(in res)) { bestPrio = priorities.Looter;     bestRole = (byte)HarvestRole.Forager; }
             if (priorities.Lumberjack > bestPrio && HasLumberWork(in res))  { bestPrio = priorities.Lumberjack; bestRole = (byte)HarvestRole.Lumberjack; }
             if (priorities.Miner      > bestPrio && res.Stone != 0)         { bestPrio = priorities.Miner;      bestRole = (byte)HarvestRole.Miner; }
 
