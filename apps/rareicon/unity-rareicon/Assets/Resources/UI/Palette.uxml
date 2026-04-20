@@ -1,0 +1,20 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="styles.uss" />
+
+    <ui:VisualElement name="palette-root" class="panel anchor-tr below-hud w-std h-std is-hidden">
+
+        <ui:VisualElement class="panel__header">
+            <ui:Label name="palette-title" class="panel__title" text="Build" />
+            <ui:Button name="palette-close" class="btn-close" text="×" />
+        </ui:VisualElement>
+        <ui:VisualElement class="panel__strip" />
+
+        <ui:ScrollView name="palette-scroll"
+                       class="panel__body--scroll"
+                       mode="Vertical"
+                       horizontal-scroller-visibility="Hidden">
+            <ui:VisualElement name="palette-rows" class="col" />
+        </ui:ScrollView>
+
+    </ui:VisualElement>
+</ui:UXML>

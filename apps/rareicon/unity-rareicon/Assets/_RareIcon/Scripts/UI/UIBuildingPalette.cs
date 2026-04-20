@@ -11,19 +11,7 @@ using VContainer.Unity;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Build menu — top-right panel listing every <see cref="BuildingType"/>
-    /// with its cost line and live affordability state. Replaces the old
-    /// hardcoded "Build → Capital" toolbar binding: clicking a row sets
-    /// the active <see cref="BuildModeController.Target"/> so the player
-    /// places that building type on the next hex click.
-    ///
-    /// Affordability check refreshes every 500ms while open — same poll
-    /// cadence as the Treasury panel. Unaffordable rows show muted text
-    /// and the "Insufficient" label, but stay clickable (so the player
-    /// can still enter build mode and see the red preview tint when the
-    /// cost source ticks up later).
-    /// </summary>
+    /// <summary>Build palette — lists every buildable type with cost + live affordability. Layout in Resources/UI/Palette.uxml; rows are generated per BuildingDB.AllBuildable entry, clicking toggles BuildModeController.Target.</summary>
     public class UIBuildingPalette : IAsyncStartable, IDisposable
     {
         const int RefreshIntervalMs = 500;
@@ -36,29 +24,22 @@ namespace RareIcon
         readonly ReactiveProperty<bool> _isOpen = new(false);
         public ReadOnlyReactiveProperty<bool> IsOpen => _isOpen;
 
-        VisualElement _root;
+        VisualElement _root, _panel, _rowsHost;
         Row[] _rows;
         IVisualElementScheduledItem _refreshTick;
 
         [Inject]
-        public UIBuildingPalette(
-            LocaleService locale,
-            UIPanelManager panelManager,
-            BuildModeController buildMode)
+        public UIBuildingPalette(LocaleService locale, UIPanelManager panelManager, BuildModeController buildMode)
         {
-            _locale       = locale;
+            _locale = locale;
             _panelManager = panelManager;
-            _buildMode    = buildMode;
+            _buildMode = buildMode;
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
         {
             var uiDoc = _panelManager.GetComponent<UIDocument>();
-            if (uiDoc == null)
-            {
-                Debug.LogError("[UIBuildingPalette] UIPanelManager has no UIDocument");
-                return;
-            }
+            if (uiDoc == null) return;
 
             int waited = 0;
             while (uiDoc.rootVisualElement == null && waited < 1000)
@@ -66,105 +47,67 @@ namespace RareIcon
                 await UniTask.Delay(50, cancellationToken: cancellation);
                 waited += 50;
             }
-            if (uiDoc.rootVisualElement == null)
-            {
-                Debug.LogError("[UIBuildingPalette] rootVisualElement still null");
-                return;
-            }
+            if (uiDoc.rootVisualElement == null) return;
 
-            BuildUI(uiDoc.rootVisualElement);
+            _root = UIPanelLoader.Load(uiDoc, "UI/Palette");
+            if (_root == null) return;
 
-            _isOpen
-                .Subscribe(open =>
-                {
-                    _root.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
-                    if (open)
-                    {
-                        Refresh();
-                        _refreshTick = _root.schedule.Execute(Refresh).Every(RefreshIntervalMs);
-                    }
-                    else
-                    {
-                        _refreshTick?.Pause();
-                        _refreshTick = null;
-                    }
-                })
-                .AddTo(_disposables);
-
-            // Mirror the BuildModeController target — when the player
-            // hits Escape (BuildInputSource.Exit) the panel should
-            // also close so the toolbar state stays coherent.
-            _buildMode.Target
-                .Subscribe(target =>
-                {
-                    if (target == BuildTarget.None && _isOpen.Value) return;
-                    // Highlight the matching row when a target is active.
-                    if (_rows == null) return;
-                    for (int i = 0; i < _rows.Length; i++)
-                        _rows[i].SetSelected(_rows[i].BuildingType
-                                             == BuildingDB.BuildTargetToType(target));
-                })
-                .AddTo(_disposables);
-        }
-
-        public void Toggle() => _isOpen.Value = !_isOpen.Value;
-        public void Open()   => _isOpen.Value = true;
-        public void Close()  => _isOpen.Value = false;
-
-        void BuildUI(VisualElement parent)
-        {
-            // Top-right anchor — sits below the Treasury panel position
-            // when both are open (Treasury is also top-right; player can
-            // just close one to see the other for v1, future could
-            // stagger via a side-panel registry).
-            _root = new VisualElement().ApplyPanelChrome();
-            _root.style.AnchorTopRight();
-            _root.style.marginTop = 110;
-            _root.style.minWidth = UIStyles.PanelWidth.StdMin;
-            _root.style.maxWidth = new Length(UIStyles.VwMaxPct.Std, LengthUnit.Percent);
-            _root.style.maxHeight = new Length(UIStyles.VhMaxPct.Std, LengthUnit.Percent);
-            _root.style.display = DisplayStyle.None;
-            _root.RegisterCallback<ClickEvent>(e => e.StopPropagation());
-
-            UIStyles.MakePanelHeader(_root, _locale.Get("palette.title"), Close);
-
-            var scroll = new ScrollView(ScrollViewMode.Vertical);
-            scroll.style.flexGrow = 1;
-            _root.Add(scroll);
+            _panel = _root.Q<VisualElement>("palette-root");
+            _rowsHost = _root.Q<VisualElement>("palette-rows");
+            _root.Q<Label>("palette-title").text  = _locale.Get("palette.title");
+            _root.Q<Button>("palette-close").clicked += Close;
 
             _rows = new Row[BuildingDB.AllBuildable.Length];
             for (int i = 0; i < _rows.Length; i++)
             {
                 byte type = BuildingDB.AllBuildable[i];
                 _rows[i] = new Row(type, _locale, OnRowClicked);
-                scroll.Add(_rows[i].Element);
+                _rowsHost.Add(_rows[i].Element);
             }
 
-            parent.Add(_root);
+            _isOpen.Subscribe(open =>
+            {
+                if (open) _panel.RemoveFromClassList("is-hidden");
+                else      _panel.AddToClassList("is-hidden");
+
+                if (open)
+                {
+                    Refresh();
+                    _refreshTick = _panel.schedule.Execute(Refresh).Every(RefreshIntervalMs);
+                }
+                else
+                {
+                    _refreshTick?.Pause();
+                    _refreshTick = null;
+                }
+            }).AddTo(_disposables);
+
+            _buildMode.Target.Subscribe(target =>
+            {
+                if (_rows == null) return;
+                for (int i = 0; i < _rows.Length; i++)
+                    _rows[i].SetSelected(_rows[i].BuildingType == BuildingDB.BuildTargetToType(target));
+            }).AddTo(_disposables);
         }
+
+        public void Toggle() => _isOpen.Value = !_isOpen.Value;
+        public void Open()   => _isOpen.Value = true;
+        public void Close()  => _isOpen.Value = false;
 
         void OnRowClicked(byte buildingType)
         {
-            // Selecting a row enters build mode for that type. If the
-            // same type is already active, treat it as a deselect (toggle).
             byte target = BuildingDB.BuildingTypeToTarget(buildingType);
-            if (_buildMode.Target.CurrentValue == target)
-                _buildMode.Exit();
-            else
-                _buildMode.Toggle(target);
+            if (_buildMode.Target.CurrentValue == target) _buildMode.Exit();
+            else                                           _buildMode.Toggle(target);
         }
 
-        // Walk every row and refresh its cost / affordability state
-        // against the current King + Capital inventories.
         void Refresh()
         {
             if (_rows == null) return;
             var world = World.DefaultGameObjectInjectionWorld;
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
-
-            for (int i = 0; i < _rows.Length; i++)
-                _rows[i].Refresh(em);
+            for (int i = 0; i < _rows.Length; i++) _rows[i].Refresh(em);
         }
 
         public void Dispose()
@@ -174,9 +117,8 @@ namespace RareIcon
             _disposables?.Dispose();
         }
 
-        // -- Per-building row --
-        // One UI line per buildable type. Caches its label refs so
-        // Refresh() only mutates strings + colors, no allocation.
+        // -- Per-building row — a row VisualElement with name + cost labels,
+        // refreshed in place on each poll. --
         sealed class Row
         {
             public readonly byte BuildingType;
@@ -193,34 +135,22 @@ namespace RareIcon
                 _onClick = onClick;
 
                 Element = new VisualElement();
-                Element.style.flexDirection = FlexDirection.Row;
-                Element.style.justifyContent = Justify.SpaceBetween;
-                Element.style.alignItems = Align.Center;
-                Element.style.Padding(UIStyles.Spacing.Xs, UIStyles.Spacing.Md);
-                Element.style.marginBottom = UIStyles.Spacing.Xs;
+                Element.AddToClassList("palette-row");
                 Element.RegisterCallback<ClickEvent>(_ => _onClick(BuildingType));
 
                 _nameLabel = new Label(locale.Get(BuildingDB.GetLocaleKey(buildingType)));
-                _nameLabel.style.color = UIStyles.Palette.TextStrong;
-                _nameLabel.style.fontSize = UIStyles.Type.BodyLg;
-                _nameLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+                _nameLabel.AddToClassList("palette-row__name");
                 Element.Add(_nameLabel);
 
-                _costLabel = new Label("");
-                _costLabel.style.color = UIStyles.Palette.TextMuted;
-                _costLabel.style.fontSize = UIStyles.Type.Body;
-                _costLabel.style.whiteSpace = WhiteSpace.NoWrap;
+                _costLabel = new Label(string.Empty);
+                _costLabel.AddToClassList("palette-row__cost");
                 Element.Add(_costLabel);
             }
 
             public void SetSelected(bool selected)
             {
-                Element.style.BorderColor(selected
-                    ? UIStyles.Palette.Gold
-                    : UIStyles.Palette.BorderSubtle);
-                Element.style.backgroundColor = selected
-                    ? UIStyles.Palette.Zinc800
-                    : UIStyles.Palette.Zinc900;
+                if (selected) Element.AddToClassList("is-selected");
+                else          Element.RemoveFromClassList("is-selected");
             }
 
             public void Refresh(EntityManager em)
@@ -238,28 +168,14 @@ namespace RareIcon
                         sb.Append(' ');
                         sb.Append(_locale.GetItemName(cost[i].ItemId));
                     }
-                    if (!affordable)
-                    {
-                        if (sb.Length > 0) sb.Append("  \u2022  ");
-                        sb.Append(_locale.Get("palette.unaffordable"));
-                    }
                     _costLabel.text = sb.ToString();
                 }
                 finally { sb.Dispose(); }
 
-                _costLabel.style.color = affordable
-                    ? UIStyles.Palette.TextMuted
-                    : UIStyles.Palette.Alert;
-                _nameLabel.style.color = affordable
-                    ? UIStyles.Palette.TextStrong
-                    : UIStyles.Palette.GoldMuted;
+                if (!affordable) _costLabel.AddToClassList("palette-row__cost--unaffordable");
+                else             _costLabel.RemoveFromClassList("palette-row__cost--unaffordable");
             }
 
-            // Mirrors BuildPreviewSystem's cost check — single source of
-            // truth would be nicer, but extracting it requires a refactor
-            // since the preview system also touches tile state. Worth a
-            // helper in BuildingDB once a 3rd consumer (inspector panel?)
-            // appears.
             static bool HasAllIngredients(EntityManager em, byte buildingType)
             {
                 if (!TryFindCostSourceInventory(em, buildingType, out var inv)) return false;
@@ -279,7 +195,6 @@ namespace RareIcon
             {
                 inv = default;
                 Entity source = Entity.Null;
-
                 if (BuildingDB.GetCostSource(buildingType) == BuildingDB.CostSource.KingInventory)
                 {
                     var q = em.CreateEntityQuery(ComponentType.ReadOnly<KingTag>());

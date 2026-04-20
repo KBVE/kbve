@@ -32,17 +32,17 @@
     --color-accent-deep:  rgb(245, 158, 11);
 
     --space-xs: 2px;
-    --space-sm: 4px;
-    --space-md: 6px;
-    --space-lg: 8px;
-    --space-xl: 12px;
+    --space-sm: 3px;
+    --space-md: 5px;
+    --space-lg: 7px;
+    --space-xl: 10px;
 
-    --font-tiny:    9px;
-    --font-body:   10px;
-    --font-bodylg: 11px;
-    --font-label:  12px;
-    --font-head:   13px;
-    --font-title:  15px;
+    --font-tiny:    8px;
+    --font-body:    9px;
+    --font-bodylg: 10px;
+    --font-label:  11px;
+    --font-head:   12px;
+    --font-title:  13px;
 }
 
 /* ----- Layout primitives ----- */
@@ -294,34 +294,62 @@
     color: var(--color-text-on-gold);
 }
 
-/* ----- Hover tile-info panel (bottom-right, low-priority info) ----- */
+/* ----- Hover tile-info panel — small anchored card at bottom-left
+   (right column is reserved for toggleable panels). ----- */
 .tile-info {
     position: absolute;
-    bottom: 2%;
-    right: 2%;
-    min-width: 150px;
-    max-width: 18%;
+    bottom: 1%;
+    left: 1%;
+    min-width: 90px;
+    max-width: 11%;
     flex-direction: column;
     background-color: var(--color-bg-page);
     border-color: var(--color-border-accent);
     border-width: 1px;
-    padding: var(--space-sm) var(--space-md);
+    padding: 2px 4px;
 }
 .tile-info__name {
-    font-size: var(--font-head);
+    font-size: var(--font-bodylg);
     color: var(--color-text-strong);
     -unity-font-style: bold;
-    margin-bottom: var(--space-xs);
 }
 .tile-info__line {
-    font-size: var(--font-body);
+    font-size: var(--font-tiny);
     color: var(--color-text-primary);
-    margin-top: var(--space-xs);
+    margin-top: 0;
     white-space: normal;
 }
 .tile-info__line--muted    { color: var(--color-text-muted); }
 .tile-info__line--creature { color: var(--color-text-danger); -unity-font-style: bold; }
 .tile-info__line--resource { color: var(--color-accent-deep); }
+
+/* ----- Build palette row ----- */
+.palette-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-xs) var(--space-sm);
+    margin-bottom: 1px;
+    transition-duration: 0.10s;
+    transition-property: background-color;
+}
+.palette-row:hover { background-color: var(--color-bg-row-hover); }
+.palette-row.is-selected { background-color: var(--color-bg-row-selected); }
+.palette-row__name {
+    font-size: var(--font-bodylg);
+    color: var(--color-text-strong);
+    -unity-font-style: bold;
+}
+.palette-row__cost {
+    font-size: var(--font-body);
+    color: var(--color-text-muted);
+    -unity-text-align: middle-right;
+    flex-shrink: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.palette-row__cost--unaffordable { color: var(--color-text-danger); }
 
 /* Stronger control panel (when player has a controlled unit) */
 .hud-strip--strong { border-color: var(--color-accent); }
