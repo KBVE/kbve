@@ -3678,7 +3678,9 @@
                 "commands": [
                   "cargo build -p uniti --release",
                   "mkdir -p ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/macOS",
-                  "cp ../../../../dist/target/release/libuniti.dylib ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/macOS/libuniti.dylib"
+                  "cp ../../../../dist/target/release/libuniti.dylib ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/macOS/libuniti.dylib",
+                  "xattr -cr ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/macOS/libuniti.dylib",
+                  "codesign --force --deep --sign - ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/macOS/libuniti.dylib"
                 ],
                 "cwd": "packages/rust/bevy/uniti"
               },
@@ -3762,6 +3764,123 @@
             }
           },
           "implicitDependencies": []
+        }
+      },
+      "aria2-proxy-e2e": {
+        "name": "aria2-proxy-e2e",
+        "type": "e2e",
+        "data": {
+          "root": "apps/vm/aria2-proxy-e2e",
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "aria2-proxy-e2e",
+              "packageVersion": "0.0.0",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "targets": {
+            "test": {
+              "executor": "nx:noop",
+              "cache": false,
+              "options": {},
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "options": {
+                "cwd": "apps/vm/aria2-proxy-e2e",
+                "command": "tsc --noEmit -p tsconfig.json"
+              },
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects aria2-proxy-e2e --includeDependentProjects -- pnpm exec nx build-deps aria2-proxy-e2e"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker rm -f aria2-proxy-e2e aria2-proxy-e2e-aria aria2-proxy-e2e-fs 2>/dev/null || true",
+                  "docker buildx build --platform linux/amd64 -f apps/vm/aria2-proxy/Dockerfile -t kbve/aria2-proxy:latest --load apps/vm/aria2-proxy/",
+                  "docker run -d --name aria2-proxy-e2e --entrypoint sleep kbve/aria2-proxy:latest infinity",
+                  "echo 'Waiting for container...' && for i in $(seq 1 30); do if docker exec aria2-proxy-e2e /bin/sh -c 'echo ok' >/dev/null 2>&1; then echo 'Container ready after '\"$i\"'s'; break; fi; if [ $i -eq 30 ]; then echo 'Container did not become ready'; docker logs aria2-proxy-e2e 2>&1 | tail -20; docker rm -f aria2-proxy-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+                  "cd apps/vm/aria2-proxy-e2e && npx vitest run; EC=$?; docker rm -f aria2-proxy-e2e aria2-proxy-e2e-aria aria2-proxy-e2e-fs 2>/dev/null || true; exit $EC"
+                ],
+                "parallel": false
+              },
+              "configurations": {
+                "ci": {}
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            }
+          },
+          "projectType": "application",
+          "name": "aria2-proxy-e2e",
+          "tags": [
+            "npm:private",
+            "scope:vm",
+            "aria2-proxy",
+            "e2e"
+          ],
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/vm/aria2-proxy-e2e/e2e",
+          "implicitDependencies": [
+            "aria2-proxy"
+          ]
         }
       },
       "axum-kbve-e2e": {
@@ -6247,6 +6366,87 @@
                 "cwd": "packages/python/kbve"
               },
               "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
+      "aria2-proxy": {
+        "name": "aria2-proxy",
+        "type": "lib",
+        "data": {
+          "root": "apps/vm/aria2-proxy",
+          "name": "aria2-proxy",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "library",
+          "sourceRoot": "apps/vm/aria2-proxy",
+          "tags": [
+            "scope:vm",
+            "aria2-proxy",
+            "infrastructure",
+            "kubevirt"
+          ],
+          "targets": {
+            "container": {
+              "executor": "nx:run-commands",
+              "defaultConfiguration": "local",
+              "options": {
+                "parallel": false
+              },
+              "configurations": {
+                "local": {
+                  "commands": [
+                    "./kbve.sh -nx aria2-proxy:containerx",
+                    "VERSION=$(grep '^version' apps/vm/aria2-proxy/version.toml | sed 's/version = \"\\(.*\\)\"/\\1/') && docker tag kbve/aria2-proxy:latest kbve/aria2-proxy:$VERSION && echo \"Tagged kbve/aria2-proxy:$VERSION\""
+                  ]
+                },
+                "production": {
+                  "commands": [
+                    "./kbve.sh -nx aria2-proxy:containerx --configuration=production",
+                    "VERSION=$(grep '^version' apps/vm/aria2-proxy/version.toml | sed 's/version = \"\\(.*\\)\"/\\1/') && docker tag kbve/aria2-proxy:latest kbve/aria2-proxy:$VERSION && docker tag kbve/aria2-proxy:latest ghcr.io/kbve/aria2-proxy:latest && docker tag kbve/aria2-proxy:latest ghcr.io/kbve/aria2-proxy:$VERSION && echo \"Tagged ghcr.io/kbve/aria2-proxy:$VERSION\""
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "containerx": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/vm/aria2-proxy/Dockerfile",
+                "load": true
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/aria2-proxy:latest"
+                  ]
+                },
+                "production": {
+                  "load": true,
+                  "push": false,
+                  "metadata": {
+                    "images": [
+                      "ghcr.io/kbve/aria2-proxy",
+                      "kbve/aria2-proxy"
+                    ],
+                    "tags": [
+                      "latest"
+                    ]
+                  },
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/aria2-proxy:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/aria2-proxy:buildcache,mode=max"
+                  ]
+                }
+              },
               "parallelism": true
             }
           },
@@ -10932,6 +11132,13 @@
         }
       ],
       "uniti": [],
+      "aria2-proxy-e2e": [
+        {
+          "source": "aria2-proxy-e2e",
+          "target": "aria2-proxy",
+          "type": "implicit"
+        }
+      ],
       "axum-kbve-e2e": [
         {
           "source": "axum-kbve-e2e",
@@ -11052,6 +11259,7 @@
         }
       ],
       "python-kbve": [],
+      "aria2-proxy": [],
       "axum-kbve": [],
       "data-proto": [],
       "devops": [],
