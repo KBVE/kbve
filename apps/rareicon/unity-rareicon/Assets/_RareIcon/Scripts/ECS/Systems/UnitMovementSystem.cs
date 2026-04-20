@@ -85,9 +85,6 @@ namespace RareIcon
                     // "harvest once per new stop" off this.
                     movement.ValueRW.WanderStep = movement.ValueRO.WanderStep + 1u;
 
-                    // Pay the per-step energy cost. Zero-clamp so units
-                    // can't dip negative; hunger kicks in via the 30%
-                    // ratio in AutoEatSystem / ReturnToBaseSystem.
                     if (energyLookup.HasComponent(entity))
                     {
                         var energy = energyLookup[entity];

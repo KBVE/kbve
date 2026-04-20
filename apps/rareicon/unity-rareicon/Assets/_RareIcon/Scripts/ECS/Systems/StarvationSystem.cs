@@ -4,13 +4,13 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Drains Health from units whose Energy has been 0 past the grace period; tags DeadTag on fatal drain.</summary>
+    /// <summary>Drains Health once Hunger has been at Max for longer than the grace period; tags DeadTag on fatal drain.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
-    [UpdateAfter(typeof(AutoEatSystem))]
+    [UpdateAfter(typeof(ConsumeFoodExecutor))]
     public partial class StarvationSystem : SystemBase
     {
-        const float GracePeriod = 3.0f;  // seconds at 0 energy before Health drain starts
-        const float StarveDPS   = 2.0f;  // Health lost per second while starving past grace
+        const float GracePeriod = 3.0f;
+        const float StarveDPS   = 2.0f;
 
         protected override void OnUpdate()
         {
@@ -18,17 +18,15 @@ namespace RareIcon
             var ecb = new EntityCommandBuffer(Allocator.Temp);
             var em = EntityManager;
 
-            foreach (var (energy, health, entity) in
-                SystemAPI.Query<RefRO<Energy>, RefRW<Health>>().WithEntityAccess())
+            foreach (var (hunger, health, entity) in
+                SystemAPI.Query<RefRO<Hunger>, RefRW<Health>>().WithEntityAccess())
             {
-                bool atZero = energy.ValueRO.Value <= 0f;
+                bool starving = hunger.ValueRO.Max > 0f &&
+                                hunger.ValueRO.Value >= hunger.ValueRO.Max;
                 bool hasTimer = em.HasComponent<StarvationTimer>(entity);
 
-                if (!atZero)
+                if (!starving)
                 {
-                    // Energy restored — reset the timer if it exists. We
-                    // leave the component in place so a subsequent bout
-                    // doesn't pay another add-component cost.
                     if (hasTimer)
                     {
                         var t = em.GetComponentData<StarvationTimer>(entity);
@@ -41,13 +39,8 @@ namespace RareIcon
                     continue;
                 }
 
-                // Still at 0 Energy this frame.
                 if (!hasTimer)
                 {
-                    // First frame of starvation — add the timer via ECB
-                    // so the structural change plays back at the end of
-                    // OnUpdate. No damage yet; the grace period starts
-                    // from here.
                     ecb.AddComponent(entity, new StarvationTimer { TimeStarving = dt });
                     continue;
                 }
@@ -58,7 +51,6 @@ namespace RareIcon
 
                 if (timer.TimeStarving <= GracePeriod) continue;
 
-                // Past grace → drain Health.
                 var h = health.ValueRO;
                 h.Value = math.max(0f, h.Value - StarveDPS * dt);
                 health.ValueRW = h;

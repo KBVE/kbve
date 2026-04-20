@@ -110,6 +110,7 @@ namespace RareIcon
 
             AttachRangedAttackIfArmed(em, entity, def.DefaultWeapon);
             AttachNeedsIfPlayer(em, entity, faction, def);
+            AttachJobsIfPlayer(em, entity, faction, def.UnitType);
 
             em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
             em.AddBuffer<StatusEffect>(entity);
@@ -190,6 +191,7 @@ namespace RareIcon
 
             AttachRangedAttackIfArmed(em, entity, def.DefaultWeapon);
             AttachNeedsIfPlayer(em, entity, FactionType.Player, def);
+            AttachJobsIfPlayer(em, entity, FactionType.Player, def.UnitType);
 
             em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
             em.AddBuffer<StatusEffect>(entity);
@@ -260,6 +262,18 @@ namespace RareIcon
 
             _renderAssetsReady = true;
             return true;
+        }
+
+        static void AttachJobsIfPlayer(EntityManager em, Entity entity, byte faction, byte unitType)
+        {
+            if (faction != FactionType.Player) return;
+            em.AddComponentData(entity, JobDefaults.Get(unitType));
+            em.AddComponentData(entity, new JobIntent
+            {
+                Kind         = JobKind.None,
+                TargetHex    = default,
+                TargetEntity = Entity.Null,
+            });
         }
 
         static void AttachNeedsIfPlayer(EntityManager em, Entity entity, byte faction, NPCDef def)
