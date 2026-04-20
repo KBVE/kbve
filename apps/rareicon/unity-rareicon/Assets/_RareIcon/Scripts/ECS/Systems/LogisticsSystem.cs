@@ -104,6 +104,20 @@ namespace RareIcon
     [BurstCompile]
     public struct LogisticsCensusJob : IJob
     {
+        // Promote at the same specialty priority BuildingStaffingSystem uses,
+        // so a logistics quota goblin and a building-staffed goblin look the
+        // same to JobSystem and to the IsPureLooter check (both gate on
+        // specialty roles being zero).
+        const byte SpecialtyPriority = 5;
+
+        // Tribe-wide quotas — counted as "role at specialty priority", not
+        // "role > 0" (every default goblin has Looter/Lumberjack/Miner/Hunter
+        // baselined, so anything counting "> 0" would always read 100%).
+        const int LumberjackQuota = 2;
+        const int MinerQuota      = 2;
+        const int HunterQuota     = 2;
+        const int LooterQuota     = 4;
+
         [ReadOnly] public NativeArray<Entity> Units;
         [ReadOnly] public NativeArray<Entity> Buildings;
 
@@ -119,8 +133,12 @@ namespace RareIcon
 
         public void Execute()
         {
+            // Counts here are SPECIALTY counts — goblins whose role priority
+            // is at SpecialtyPriority. Generalist baseline (priority 1-3) does
+            // not count toward a quota, so quotas measure "dedicated workers"
+            // not "goblins capable of the role".
             int lumberjacks = 0, miners = 0, guards = 0, looters = 0;
-            int farmers = 0, builders = 0, chefs = 0, hunters = 0;
+            int farmers = 0, builders = 0, chefs = 0, hunters = 0, blacksmiths = 0;
 
             var pureLooters = new NativeList<Entity>(16, Allocator.Temp);
 
@@ -132,14 +150,15 @@ namespace RareIcon
                 if (!PrioritiesLookup.HasComponent(e)) continue;
 
                 var p = PrioritiesLookup[e];
-                if (p.Lumberjack > 0) lumberjacks++;
-                if (p.Miner      > 0) miners++;
-                if (p.Guard      > 0) guards++;
-                if (p.Looter     > 0) looters++;
-                if (p.Farmer     > 0) farmers++;
-                if (p.Builder    > 0) builders++;
-                if (p.Chef       > 0) chefs++;
-                if (p.Hunter     > 0) hunters++;
+                if (p.Lumberjack >= SpecialtyPriority) lumberjacks++;
+                if (p.Miner      >= SpecialtyPriority) miners++;
+                if (p.Guard      >= SpecialtyPriority) guards++;
+                if (p.Looter     >= SpecialtyPriority) looters++;
+                if (p.Farmer     >= SpecialtyPriority) farmers++;
+                if (p.Builder    >= SpecialtyPriority) builders++;
+                if (p.Chef       >= SpecialtyPriority) chefs++;
+                if (p.Hunter     >= SpecialtyPriority) hunters++;
+                if (p.Blacksmith >= SpecialtyPriority) blacksmiths++;
 
                 if (IsPureLooter(p)) pureLooters.Add(e);
             }
@@ -156,47 +175,31 @@ namespace RareIcon
                 else if (b.Type == BuildingType.Barracks) barracks++;
             }
 
-            uint autoFilled   = 0u;
-            uint unfillable   = 0u;
+            uint autoFilled = 0u;
+            uint unfillable = 0u;
 
-            // Essential: Lumberjack + Miner always wanted (wood + stone chains).
-            if (lumberjacks == 0)
-            {
-                if (TryPromote(pureLooters, JobKind.Lumberjack)) { autoFilled |= 1u << JobKind.Lumberjack; lumberjacks++; }
-                else                                             unfillable  |= 1u << JobKind.Lumberjack;
-            }
-            if (miners == 0)
-            {
-                if (TryPromote(pureLooters, JobKind.Miner))      { autoFilled |= 1u << JobKind.Miner;      miners++; }
-                else                                             unfillable  |= 1u << JobKind.Miner;
-            }
+            // Tribe-wide raw-material quotas — Lumberjack and Miner first
+            // because the whole craft chain stalls without them.
+            FillQuota(JobKind.Lumberjack, ref lumberjacks, LumberjackQuota, pureLooters, ref autoFilled, ref unfillable);
+            FillQuota(JobKind.Miner,      ref miners,      MinerQuota,      pureLooters, ref autoFilled, ref unfillable);
+            FillQuota(JobKind.Hunter,     ref hunters,     HunterQuota,     pureLooters, ref autoFilled, ref unfillable);
+            FillQuota(JobKind.Looter,     ref looters,     LooterQuota,     pureLooters, ref autoFilled, ref unfillable);
 
-            // Building-conditional: only stamp Farmer if a Farm exists, etc.
-            if (farms > 0 && farmers == 0)
-            {
-                if (TryPromote(pureLooters, JobKind.Farmer))     { autoFilled |= 1u << JobKind.Farmer; farmers++; }
-                else                                             unfillable  |= 1u << JobKind.Farmer;
-            }
-            if (furnaces > 0 && chefs == 0)
-            {
-                if (TryPromote(pureLooters, JobKind.Chef))       { autoFilled |= 1u << JobKind.Chef; chefs++; }
-                else                                             unfillable  |= 1u << JobKind.Chef;
-            }
-            if (barracks > 0 && guards == 0)
-            {
-                if (TryPromote(pureLooters, JobKind.Guard))      { autoFilled |= 1u << JobKind.Guard; guards++; }
-                else                                             unfillable  |= 1u << JobKind.Guard;
-            }
+            // Building-conditional minima: only stamp Farmer/Chef/Blacksmith/
+            // Guard if the matching building actually exists. Each is gated at
+            // 1 — players can keep promoting via the Citizens UI past that.
+            if (farms    > 0) FillQuota(JobKind.Farmer,     ref farmers,     1, pureLooters, ref autoFilled, ref unfillable);
+            if (furnaces > 0) FillQuota(JobKind.Chef,       ref chefs,       1, pureLooters, ref autoFilled, ref unfillable);
+            if (furnaces > 0) FillQuota(JobKind.Blacksmith, ref blacksmiths, 1, pureLooters, ref autoFilled, ref unfillable);
+            if (barracks > 0) FillQuota(JobKind.Guard,      ref guards,      1, pureLooters, ref autoFilled, ref unfillable);
 
-            // Builder keeps pace with open ConstructionSites — if there are
-            // more sites than Builders, promote one generalist each turn
-            // until the backlog is covered. BuildingStaffingSystem stamps a
-            // specialty Builder when the Capital lands, so tribes always
-            // start with at least one once construction's in flight.
+            // Builder keeps pace with open ConstructionSites — one builder per
+            // site, capped to "match siteCount". BuildingStaffingSystem stamps
+            // a specialty Builder when the Capital lands so tribes start with
+            // at least one once construction's in flight.
             if (SiteCount > builders)
             {
-                if (TryPromote(pureLooters, JobKind.Builder))    { autoFilled |= 1u << JobKind.Builder; builders++; }
-                else                                             unfillable  |= 1u << JobKind.Builder;
+                FillQuota(JobKind.Builder, ref builders, SiteCount, pureLooters, ref autoFilled, ref unfillable);
             }
 
             ReportLookup[ReportEntity] = new LogisticsReport
@@ -220,31 +223,51 @@ namespace RareIcon
             pureLooters.Dispose();
         }
 
-        bool TryPromote(NativeList<Entity> pool, byte roleKind)
+        // Pump generalists into a role until either the pool is exhausted or
+        // the quota is met. Pops one promotion per call iteration so the same
+        // generalist never gets two specialties — once stamped at SpecialtyPriority
+        // they no longer pass IsPureLooter and the next pass skips them.
+        void FillQuota(byte roleKind, ref int currentCount, int quota,
+                       NativeList<Entity> pool, ref uint autoFilled, ref uint unfillable)
         {
-            if (pool.Length == 0) return false;
-            int idx = pool.Length - 1;
-            var e = pool[idx];
-            pool.RemoveAt(idx);
+            uint roleBit = 1u << roleKind;
+            bool didAny = false;
 
-            var p = PrioritiesLookup[e];
-            p.Set(roleKind, 1);
-            PrioritiesLookup[e] = p;
-            return true;
+            while (currentCount < quota && pool.Length > 0)
+            {
+                int idx = pool.Length - 1;
+                var e = pool[idx];
+                pool.RemoveAt(idx);
+
+                var p = PrioritiesLookup[e];
+                p.Set(roleKind, SpecialtyPriority);
+                PrioritiesLookup[e] = p;
+                currentCount++;
+                didAny = true;
+            }
+
+            if (didAny)               autoFilled |= roleBit;
+            if (currentCount < quota) unfillable |= roleBit;
         }
 
-        // "Promotable" = generalist still. The default goblin carries Looter +
-        // Lumberjack + Miner + Hunter, so those slots don't disqualify — only
-        // the specialty roles (Farmer / Chef / Guard / Builder) being set mean
-        // the goblin has already been dedicated by BuildingStaffingSystem or
-        // an earlier LogisticsSystem pass and shouldn't be re-promoted.
-        static bool IsPureLooter(in JobPriorities p)
+        // "Promotable" = no specialty stamp yet. The default goblin carries
+        // Looter / Lumberjack / Miner / Hunter / Builder at generalist priority
+        // (1-3), so the only filter is "no role is at SpecialtyPriority". Both
+        // BuildingStaffingSystem stamps and earlier LogisticsSystem stamps
+        // bump roles to SpecialtyPriority (5), so this check naturally avoids
+        // poaching anyone who's already been assigned somewhere.
+        bool IsPureLooter(in JobPriorities p)
         {
             if (p.Looter == 0) return false;
-            return p.Farmer  == 0
-                && p.Chef    == 0
-                && p.Guard   == 0
-                && p.Builder == 0;
+            return p.Lumberjack < SpecialtyPriority
+                && p.Miner      < SpecialtyPriority
+                && p.Guard      < SpecialtyPriority
+                && p.Looter     < SpecialtyPriority
+                && p.Farmer     < SpecialtyPriority
+                && p.Builder    < SpecialtyPriority
+                && p.Chef       < SpecialtyPriority
+                && p.Hunter     < SpecialtyPriority
+                && p.Blacksmith < SpecialtyPriority;
         }
     }
 

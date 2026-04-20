@@ -109,22 +109,35 @@ namespace RareIcon
             var capitalStorage = EntityManager.GetBuffer<InventorySlot>(capital);
             if (!AnyFoodInBuffer(capitalStorage)) return;
 
-            foreach (var (priorities, faction, movement, inv) in
+            foreach (var (jobIntent, reliefIntent, faction, movement, inv, bags) in
                      SystemAPI.Query<
-                         RefRO<JobPriorities>,
+                         RefRO<JobIntent>,
+                         RefRO<ReliefIntent>,
                          RefRO<Faction>,
                          RefRO<UnitMovement>,
-                         DynamicBuffer<InventorySlot>>())
+                         DynamicBuffer<InventorySlot>,
+                         DynamicBuffer<EquippedBag>>())
             {
                 if (faction.ValueRO.Value != FactionType.Player) continue;
-                if (priorities.ValueRO.Looter == 0) continue;
                 if (!movement.ValueRO.CurrentHex.Equals(capitalHex)) continue;
+
+                // Only goblins explicitly on a Looter→Capital cave-haul mission
+                // grab food. Without these checks any Player Looter who happens
+                // to walk onto the Capital hex (e.g. coming to Eat / Sleep /
+                // deposit) loaded up 50 food and waddled off — JobSystem clears
+                // JobIntent the moment a ReliefIntent fires, so gating on
+                // JobIntent.Kind == Looter + TargetEntity == capital + no
+                // active relief makes the pickup intent-aware instead of
+                // pickpocketing every Looter that crosses the tile.
+                if (reliefIntent.ValueRO.Kind != ReliefKind.None) continue;
+                if (jobIntent.ValueRO.Kind != JobKind.Looter) continue;
+                if (jobIntent.ValueRO.TargetEntity != capital) continue;
 
                 int alreadyCarrying = CountFood(inv);
                 if (alreadyCarrying >= GoblinCaveHaulConfig.PerTripAmount) continue;
 
                 ushort take = (ushort)(GoblinCaveHaulConfig.PerTripAmount - alreadyCarrying);
-                TransferFood(capitalStorage, inv, take);
+                TransferFoodToUnit(capitalStorage, inv, bags, take);
             }
         }
 
@@ -164,7 +177,10 @@ namespace RareIcon
             return total;
         }
 
-        static void TransferFood(DynamicBuffer<InventorySlot> src, DynamicBuffer<InventorySlot> dst, ushort amount)
+        static void TransferFoodToUnit(DynamicBuffer<InventorySlot> src,
+                                       DynamicBuffer<InventorySlot> dst,
+                                       in DynamicBuffer<EquippedBag> bags,
+                                       ushort amount)
         {
             int remaining = amount;
             for (int i = 0; i < src.Length && remaining > 0; i++)
@@ -173,25 +189,13 @@ namespace RareIcon
                 if (srcSlot.Count == 0) continue;
                 if (ItemDB.EnergyValue(srcSlot.ItemId) <= 0f) continue;
 
-                int take = srcSlot.Count < remaining ? srcSlot.Count : remaining;
-                srcSlot.Count = (ushort)(srcSlot.Count - take);
+                int want = srcSlot.Count < remaining ? srcSlot.Count : remaining;
+                ushort added = dst.AddItemManaged(bags, srcSlot.ItemId, (ushort)want);
+                if (added == 0) continue;
+
+                srcSlot.Count = (ushort)(srcSlot.Count - added);
                 src[i] = srcSlot;
-
-                bool merged = false;
-                for (int j = 0; j < dst.Length; j++)
-                {
-                    if (dst[j].ItemId != srcSlot.ItemId) continue;
-                    var dstSlot = dst[j];
-                    int sum = dstSlot.Count + take;
-                    dstSlot.Count = (ushort)math.min(sum, (int)ushort.MaxValue);
-                    dst[j] = dstSlot;
-                    merged = true;
-                    break;
-                }
-                if (!merged)
-                    dst.Add(new InventorySlot { ItemId = srcSlot.ItemId, Count = (ushort)take });
-
-                remaining -= take;
+                remaining -= added;
             }
         }
     }
