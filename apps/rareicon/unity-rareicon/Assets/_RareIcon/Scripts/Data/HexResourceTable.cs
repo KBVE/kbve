@@ -50,6 +50,14 @@ namespace RareIcon
                     res.Berries   = AmountFrom(r4, 0.30f);
                     res.Stone     = AmountFrom(r1, 0.15f);
                     res.Herbs     = AmountFrom(r3, 0.20f);
+                    // Tree byproducts — every forest hex carries leaves and
+                    // branches alongside its wood. Re-uses the wood roll so
+                    // a heavily-forested hex (high Wood) also has plenty of
+                    // leaves/branches; reads as one tree-yield bundle. No
+                    // shader visual — these are "hidden" pickup amounts the
+                    // goblin AI grabs on harvest, surfaced via Treasury.
+                    res.Leaves    = AmountFrom(r0, 1.00f);
+                    res.Branches  = (byte)(AmountFrom(r0, 1.00f) / 2);
                     break;
                 case BiomeGenerator.BIOME_GRASS:
                     res.Herbs   = AmountFrom(r3, 0.55f);
@@ -70,6 +78,9 @@ namespace RareIcon
                         res.CactusVariant = r6 < 0.20f
                             ? CactusVariantType.Dragonfruit
                             : CactusVariantType.PricklyPear;
+                    // Sand is the desert's defining yield — every sand hex
+                    // carries it. Drives the Furnace+Sand → Glass recipe.
+                    res.Sand = AmountFrom(r0, 1.00f);
                     break;
                 // Snow / River / Ocean: nothing.
             }

@@ -51,12 +51,21 @@ namespace RareIcon
                 // Try each resource bucket; transfer first non-zero one with
                 // a known item mapping. (Goblins will pick up "whatever's
                 // there"; smarter creatures can prioritise later.)
+                // Priority order: foods > tree byproducts > wood > stone.
+                // Leaves/Branches sit above Wood because they're forest-floor
+                // litter (abundant, fast-regrowing), where Wood requires
+                // felling a tree (slow regrow). This keeps the Compost
+                // pipeline (Leaves+Branches → Compost) flowing without
+                // starving the slower Wood supply.
                 if (TryTakeCactus(ref res, movement.WanderStep,
                                   movement.CurrentHex.x, movement.CurrentHex.y, inventory) ||
                     TryTakeResource(ref res.Mushrooms, ResourceTag.Mushrooms, inventory) ||
                     TryTakeResource(ref res.Berries,   ResourceTag.Berries,   inventory) ||
                     TryTakeResource(ref res.Herbs,     ResourceTag.Herbs,     inventory) ||
+                    TryTakeResource(ref res.Leaves,    ResourceTag.Leaves,    inventory) ||
+                    TryTakeResource(ref res.Branches,  ResourceTag.Branches,  inventory) ||
                     TryTakeResource(ref res.Wood,      ResourceTag.Wood,      inventory) ||
+                    TryTakeResource(ref res.Sand,      ResourceTag.Sand,      inventory) ||
                     TryTakeResource(ref res.Stone,     ResourceTag.Stone,     inventory))
                 {
                     EntityManager.SetComponentData(hexEntity, res);

@@ -40,6 +40,12 @@ namespace RareIcon
         const float WoodRegrowChance     = 0.01f;
         // Slowest: sand is meant to feel sparse — ~15–20 min to refill.
         const float CactusRegrowChance   = 0.006f;
+        // Tree byproducts — leaves drop fast (forest floor litter), branches
+        // slower (wind / aging). Tuned faster than wood so a goblin
+        // gathering loop actually outpaces the regen and creates the supply
+        // pressure that the Compost recipe consumes.
+        const float LeavesRegrowChance   = 0.06f;
+        const float BranchesRegrowChance = 0.03f;
 
         float _accumTime;
         uint  _tickCounter; // perturbs per-hex hash so successive ticks diverge
@@ -89,6 +95,8 @@ namespace RareIcon
                 changed |= TryRegrow(ref current.Berries,   maxes.Berries,   BerryRegrowChance,    ref h);
                 changed |= TryRegrow(ref current.Herbs,     maxes.Herbs,     HerbRegrowChance,     ref h);
                 changed |= TryRegrow(ref current.Wood,      maxes.Wood,      WoodRegrowChance,     ref h);
+                changed |= TryRegrow(ref current.Leaves,    maxes.Leaves,    LeavesRegrowChance,   ref h);
+                changed |= TryRegrow(ref current.Branches,  maxes.Branches,  BranchesRegrowChance, ref h);
                 // Cactus: restore the original variant when a depleted tile
                 // regrows its first charge, so the shader picks the correct
                 // silhouette again.

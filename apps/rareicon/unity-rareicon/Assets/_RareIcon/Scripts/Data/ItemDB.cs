@@ -2,11 +2,7 @@ using System.Collections.Generic;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Top-level item categories. Used both for inventory filtering and
-    /// for ID-range hints (consumables = 0-99, equipment = 100-199, etc.
-    /// — match the ranges in ItemId.cs / Rust RareItem enum).
-    /// </summary>
+    /// <summary>Top-level item category. Keep in sync with the Rust RareItem enum's ranges.</summary>
     public enum ItemCategory : byte
     {
         Misc       = 0,
@@ -17,38 +13,38 @@ namespace RareIcon
         Magic      = 5,
     }
 
-    /// <summary>
-    /// Static per-item properties — name, stack size, base trade value,
-    /// category, and on-consume restore effect. Visual / icon data lives
-    /// elsewhere (sprite sheets / shader includes) so this struct stays
-    /// blittable + Burst-friendly.
-    ///
-    /// Restore* fields do double duty: they describe the immediate
-    /// effect of consuming one unit of the item AND signal edibility /
-    /// potion-ness to systems that need to filter (AutoEatSystem looks
-    /// for RestoreEnergy > 0, a future DrinkPotionSystem would look for
-    /// RestoreHealth or RestoreMana > 0). Non-consumable items just
-    /// carry zeros — cheap (12 bytes) and the field set stays uniform
-    /// across every item.
-    /// </summary>
+    /// <summary>Which job is allowed to pick this up off the world; None = never hand-harvested (crafted / station-only / environmental).</summary>
+    public enum HarvestRole : byte
+    {
+        None       = 0,
+        Forager    = 1,
+        Lumberjack = 2,
+        Miner      = 3,
+    }
+
+    /// <summary>Static per-item data; Restore* fields double as filters (RestoreEnergy > 0 = edible, etc.).</summary>
     public readonly struct ItemDef
     {
-        public readonly ushort Id;          // matches ItemId enum value
-        public readonly string NameKey;     // locale key, e.g. "item.health_potion"
+        public readonly ushort Id;
+        public readonly string NameKey;
         public readonly ItemCategory Category;
-        public readonly byte StackMax;      // inventory stack limit
-        public readonly ushort BaseValue;   // currency value at vendor
+        public readonly byte StackMax;
+        public readonly ushort BaseValue;
 
-        // Per-consume restore amounts. 0 = item doesn't restore that stat.
         public readonly float RestoreHealth;
         public readonly float RestoreEnergy;
         public readonly float RestoreMana;
+
+        public readonly HarvestRole HarvestRole;
+        public readonly byte HarvestWeight;
 
         public ItemDef(ushort id, string nameKey, ItemCategory category,
                        byte stackMax, ushort baseValue,
                        float restoreHealth = 0f,
                        float restoreEnergy = 0f,
-                       float restoreMana   = 0f)
+                       float restoreMana   = 0f,
+                       HarvestRole harvestRole = HarvestRole.None,
+                       byte harvestWeight = 100)
         {
             Id            = id;
             NameKey       = nameKey;
@@ -58,23 +54,13 @@ namespace RareIcon
             RestoreHealth = restoreHealth;
             RestoreEnergy = restoreEnergy;
             RestoreMana   = restoreMana;
+            HarvestRole   = harvestRole;
+            HarvestWeight = harvestWeight;
         }
     }
 
-    /// <summary>
-    /// Source of truth for item properties. Populated as gameplay systems
-    /// start consuming items — right now that's just the foraged foods
-    /// that EmpireWithdrawSystem / AutoEatSystem eat to refill Energy.
-    /// Add more as features come online (potions when combat needs them,
-    /// materials when crafting lands, etc.).
-    ///
-    /// Long-term path: this table is the hand-off into a Rust crate
-    /// (uniti) so client and server share defs.
-    ///
-    /// Lookup is Dictionary because ItemId is sparse (gaps between ranges).
-    /// Burst can't access static dicts directly; pre-bake into a
-    /// NativeHashMap or BlobAsset when a Burst system needs item lookups.
-    /// </summary>
+    /// <summary>Source of truth for item properties; extend as new consumables / materials come online.</summary>
+    // TODO(rust-ffi): mirror table into uniti crate so client/server agree on HarvestRole + weights.
     public static class ItemDB
     {
         static readonly Dictionary<ushort, ItemDef> _byId = new();
@@ -85,36 +71,70 @@ namespace RareIcon
             if (_initialized) return;
             _initialized = true;
 
-            // --- Foraged foods (Material category so they also count
-            // as crafting reagents later — the category is about source,
-            // the Restore* fields are about consume behaviour). Tuned
-            // for goblin MaxEnergy 100 + 30% hunger threshold: one bite
-            // clears the hunger gate with room to spare.
             Add(new ItemDef((ushort)ItemId.Berry,
                 "item.berry",    ItemCategory.Material, 99, 2,
-                restoreEnergy: 20f));
+                restoreEnergy: 20f,
+                harvestRole: HarvestRole.Forager));
             Add(new ItemDef((ushort)ItemId.Mushroom,
                 "item.mushroom", ItemCategory.Material, 99, 3,
-                restoreEnergy: 15f));
+                restoreEnergy: 15f,
+                harvestRole: HarvestRole.Forager));
             Add(new ItemDef((ushort)ItemId.Herb,
                 "item.herb",     ItemCategory.Material, 99, 5,
-                restoreEnergy: 25f));
+                restoreEnergy: 25f,
+                harvestRole: HarvestRole.Forager));
 
             Add(new ItemDef((ushort)ItemId.RawCacti,
-                "item.raw_cacti",    ItemCategory.Material, 99, 2));
+                "item.raw_cacti",    ItemCategory.Material, 99, 2,
+                harvestRole: HarvestRole.Forager));
             Add(new ItemDef((ushort)ItemId.CactiNeedle,
-                "item.cacti_needle", ItemCategory.Material, 99, 3));
+                "item.cacti_needle", ItemCategory.Material, 99, 3,
+                harvestRole: HarvestRole.Forager));
             Add(new ItemDef((ushort)ItemId.PricklyPear,
                 "item.prickly_pear", ItemCategory.Material, 64, 8,
-                restoreEnergy: 30f));
+                restoreEnergy: 30f,
+                harvestRole: HarvestRole.Forager));
             Add(new ItemDef((ushort)ItemId.Dragonfruit,
                 "item.dragonfruit",  ItemCategory.Material, 64, 20,
-                restoreEnergy: 45f));
+                restoreEnergy: 45f,
+                harvestRole: HarvestRole.Forager));
             Add(new ItemDef((ushort)ItemId.CactiSeeds,
-                "item.cacti_seeds",  ItemCategory.Material, 64, 4));
+                "item.cacti_seeds",  ItemCategory.Material, 64, 4,
+                harvestRole: HarvestRole.Forager));
 
-            // Potions / equipment / quest items land here when the
-            // systems that read them come online.
+            Add(new ItemDef((ushort)ItemId.WoodLog,
+                "item.wood_log",  ItemCategory.Material, 99, 3,
+                harvestRole: HarvestRole.Lumberjack));
+            Add(new ItemDef((ushort)ItemId.Branches,
+                "item.branches",  ItemCategory.Material, 99, 1,
+                harvestRole: HarvestRole.Lumberjack));
+            Add(new ItemDef((ushort)ItemId.Leaves,
+                "item.leaves",    ItemCategory.Material, 99, 1,
+                harvestRole: HarvestRole.Lumberjack));
+
+            Add(new ItemDef((ushort)ItemId.Stone,
+                "item.stone",     ItemCategory.Material, 99, 2,
+                harvestRole: HarvestRole.Miner));
+
+            // Station / crafted outputs + environmental biome markers — NONE
+            // of these are hand-harvestable. Sand tiles exist as furnace
+            // fuel source, not as something a goblin picks up in a bucket.
+            Add(new ItemDef((ushort)ItemId.NaturalSand,
+                "item.natural_sand", ItemCategory.Material, 99, 1));
+            Add(new ItemDef((ushort)ItemId.RawGlass,
+                "item.raw_glass",    ItemCategory.Material, 99, 8));
+            Add(new ItemDef((ushort)ItemId.Coal,
+                "item.coal",         ItemCategory.Material, 99, 4));
+            Add(new ItemDef((ushort)ItemId.Ash,
+                "item.ash",          ItemCategory.Material, 99, 1));
+            Add(new ItemDef((ushort)ItemId.Compost,
+                "item.compost",      ItemCategory.Material, 99, 2));
+            Add(new ItemDef((ushort)ItemId.Carrot,
+                "item.carrot",       ItemCategory.Material, 99, 4,
+                restoreEnergy: 18f));
+
+            Add(new ItemDef((ushort)ItemId.Arrow,
+                "item.arrow",        ItemCategory.Material, 255, 1));
         }
 
         static void Add(ItemDef def) => _byId[def.Id] = def;
@@ -132,27 +152,22 @@ namespace RareIcon
                  : new ItemDef(id, "item.unknown", ItemCategory.Misc, 1, 0);
         }
 
-        // --- Consumable helpers -------------------------------------
-        // Thin wrappers so callers don't have to spell out
-        // `ItemDB.TryGet(...).RestoreEnergy > 0` on every food check.
-
-        /// <summary>Energy restored by eating one unit (0 if not food).</summary>
         public static float EnergyValue(ushort id)
             => TryGet(id, out var def) ? def.RestoreEnergy : 0f;
-
-        /// <summary>Health restored by consuming one unit (0 if not a
-        /// healing item).</summary>
         public static float HealthValue(ushort id)
             => TryGet(id, out var def) ? def.RestoreHealth : 0f;
-
-        /// <summary>Mana restored by consuming one unit (0 if not a
-        /// mana item).</summary>
         public static float ManaValue(ushort id)
             => TryGet(id, out var def) ? def.RestoreMana : 0f;
 
-        /// <summary>True if eating one unit of this item would raise
-        /// Energy — used by AutoEatSystem + EmpireWithdrawSystem to
-        /// filter food out of generic inventories.</summary>
+        /// <summary>True if eating one unit of this item would reduce Hunger.</summary>
         public static bool IsEdible(ushort id) => EnergyValue(id) > 0f;
+
+        /// <summary>Which job is allowed to hand-harvest this item from the world; None = crafted / environmental.</summary>
+        public static HarvestRole HarvestRole(ushort id)
+            => TryGet(id, out var def) ? def.HarvestRole : RareIcon.HarvestRole.None;
+
+        /// <summary>0-100 preference weight; UI later edits this to let players focus collection on specific drops.</summary>
+        public static byte HarvestWeight(ushort id)
+            => TryGet(id, out var def) ? def.HarvestWeight : (byte)100;
     }
 }

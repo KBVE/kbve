@@ -45,8 +45,11 @@ namespace RareIcon
         public byte Herbs;
         public byte Cactus;
         public byte CactusVariant;
+        public byte Leaves;
+        public byte Branches;
+        public byte Sand;
 
-        public bool HasAny() => (Wood | Stone | Berries | Mushrooms | Herbs | Cactus) != 0;
+        public bool HasAny() => (Wood | Stone | Berries | Mushrooms | Herbs | Cactus | Leaves | Branches | Sand) != 0;
     }
 
     /// <summary>Resource type IDs used by LocaleService and the HUD.</summary>
@@ -59,6 +62,9 @@ namespace RareIcon
         public const byte Mushrooms = 4;
         public const byte Herbs     = 5;
         public const byte Cactus    = 6;
+        public const byte Leaves    = 7;
+        public const byte Branches  = 8;
+        public const byte Sand      = 9;
     }
 
     /// <summary>Cactus species on a hex; drives drop table and shader silhouette.</summary>

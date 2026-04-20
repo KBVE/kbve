@@ -5,15 +5,8 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Off-thread chunk biome generation. Main thread queues chunk coords,
-    /// worker thread generates biome data, main thread reads results.
-    /// Thread-safe via ConcurrentQueues — zero locks on main thread.
-    ///
-    /// Biome decisions delegate to BiomeGenerator so chunks and on-demand
-    /// lookups (UIWorldSearch) stay in sync. FastNoiseLite is read-only after
-    /// configuration, so sharing one BiomeGenerator across threads is safe.
-    /// </summary>
+    /// <summary>Off-thread chunk biome generation; worker thread produces, main thread consumes via ConcurrentQueues.</summary>
+    // TODO(rust-ffi): swap the C# biome generator for a Rust-owned chunk store that returns {Biomes, PersistedUnits, PersistedBuildings, PersistedDecals, PersistedPickups} in one FFI call so chunk reload restores the full ghost state.
     public class ChunkGeneratorService : IDisposable
     {
         public struct ChunkResult

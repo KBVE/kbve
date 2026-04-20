@@ -29,9 +29,19 @@ namespace RareIcon
         PricklyPear = 209,
         Dragonfruit = 210,
         CactiSeeds  = 211,
+        Leaves      = 212,
+        Branches    = 213,
+        Compost     = 214,
+        Carrot      = 215,
+        NaturalSand = 216,
+        RawGlass    = 217,
+        Coal        = 218,
+        Ash         = 219,
+        Arrow       = 220,
 
-        // Quest
-        QuestScroll = 300,
-        BossKey = 301,
+        // Quest / key items
+        QuestScroll       = 300,
+        BossKey           = 301,
+        CapitalLandGrant  = 302,
     }
 }
