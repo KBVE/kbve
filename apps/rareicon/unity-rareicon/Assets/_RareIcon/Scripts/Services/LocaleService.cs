@@ -185,6 +185,20 @@ namespace RareIcon
             return Get(key);
         }
 
+        /// <summary>Resolve a FactionType.* byte to its localized name.</summary>
+        public string GetFactionName(byte faction)
+        {
+            var key = faction switch
+            {
+                FactionType.Player   => "faction.player",
+                FactionType.Hostile  => "faction.hostile",
+                FactionType.Beast    => "faction.beast",
+                FactionType.Wildlife => "faction.wildlife",
+                _ => "faction.neutral",
+            };
+            return Get(key);
+        }
+
         /// <summary>
         /// Resolve biome ID to localized name.
         /// </summary>

@@ -82,6 +82,10 @@ namespace RareIcon
             // -- Building palette panel (per-type cost + affordability) --
             builder.RegisterEntryPoint<UIBuildingPalette>().AsSelf();
 
+            // -- Building inspector (auto-opens on click router's
+            //    BuildingInspectMessage; closes via X button) --
+            builder.RegisterEntryPoint<UIBuildingInspector>().AsSelf();
+
             // -- HUDs (VContainer-managed lifecycle, gated on AppInterfaceState) --
             builder.RegisterEntryPoint<WorldHUD>();
             builder.RegisterEntryPoint<TileHUD>();
