@@ -65,6 +65,14 @@ namespace RareIcon
             finally { hitUnits.Dispose(); }
         }
 
+        /// <summary>Drops every <see cref="SelectedTag"/> in the world. Callable from input-cancel paths (ESC / right-click) so classic RTS "clear selection" gestures work without forcing an empty drag.</summary>
+        public void Clear()
+        {
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+            ClearSelection(world.EntityManager);
+        }
+
         static void ClearSelection(EntityManager em)
         {
             var query = em.CreateEntityQuery(ComponentType.ReadOnly<SelectedTag>());

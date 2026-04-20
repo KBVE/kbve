@@ -64,10 +64,12 @@ namespace RareIcon
 
             // Selection pipeline — DragSelectInput listens to mouse drags
             // and publishes the world rect; SelectionController tags units
-            // inside; SelectionMoveHandler consumes bulk move orders.
+            // inside; SelectionMoveHandler consumes bulk move orders;
+            // SelectionInput wipes the selection on ESC or right-click.
             builder.RegisterEntryPoint<DragSelectInput>();
-            builder.RegisterEntryPoint<SelectionController>();
+            builder.RegisterEntryPoint<SelectionController>().AsSelf();
             builder.RegisterEntryPoint<SelectionMoveHandler>();
+            builder.RegisterEntryPoint<SelectionInput>();
             builder.Register<LocaleService>(Lifetime.Singleton);
             builder.Register<ActivityFeedService>(Lifetime.Singleton).AsSelf();
             builder.Register<InventoryService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
