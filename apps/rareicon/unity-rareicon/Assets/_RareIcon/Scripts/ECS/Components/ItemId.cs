@@ -29,6 +29,12 @@ namespace RareIcon
         PricklyPear = 209,
         Dragonfruit = 210,
         CactiSeeds  = 211,
+        RawChicken  = 212,
+        Feather     = 213,
+        RawMutton   = 214,
+        Wool        = 215,
+        RawBeef     = 216,
+        Leather     = 217,
 
         // Quest
         QuestScroll = 300,

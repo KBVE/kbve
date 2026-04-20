@@ -112,6 +112,12 @@ namespace RareIcon
                 (ushort)ItemId.PricklyPear => "item.prickly_pear",
                 (ushort)ItemId.Dragonfruit => "item.dragonfruit",
                 (ushort)ItemId.CactiSeeds  => "item.cacti_seeds",
+                (ushort)ItemId.RawChicken  => "item.raw_chicken",
+                (ushort)ItemId.Feather     => "item.feather",
+                (ushort)ItemId.RawMutton   => "item.raw_mutton",
+                (ushort)ItemId.Wool        => "item.wool",
+                (ushort)ItemId.RawBeef     => "item.raw_beef",
+                (ushort)ItemId.Leather     => "item.leather",
                 _ => "item.unknown",
             };
             return Get(key);

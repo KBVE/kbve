@@ -25,6 +25,12 @@ namespace RareIcon
     /// <summary>Tag marking wild animals so combat / harvest / AI systems skip them.</summary>
     public struct PassiveAnimalTag : IComponentData { }
 
+    /// <summary>Tag added once an animal has been tamed by a player entity.</summary>
+    public struct TamedTag : IComponentData { }
+
+    /// <summary>Reference to the entity that tamed / owns this unit (used for follow / recall).</summary>
+    public struct OwnerRef : IComponentData { public Entity Value; }
+
     /// <summary>
     /// Tag for the player-controlled King. There's exactly one King in the
     /// world. KingMoveCommandSystem queries this to find "the player" when
