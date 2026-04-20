@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -80,34 +81,47 @@ namespace RareIcon
     }
 
     /// <summary>Tamed animals chase their OwnerRef's hex; runs before WanderBehaviorSystem so a Follow goal blocks the wander re-roll, but yields to Flee / player Order / Return.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateBefore(typeof(WanderBehaviorSystem))]
     [UpdateAfter(typeof(WildlifeFleeSystem))]
-    public partial class FollowOwnerSystem : SystemBase
+    public partial struct FollowOwnerSystem : ISystem
     {
-        protected override void OnUpdate()
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
-            var movementLookup = SystemAPI.GetComponentLookup<UnitMovement>(isReadOnly: true);
-
-            foreach (var (ownerRef, goalRW, movement) in
-                     SystemAPI.Query<RefRO<OwnerRef>, RefRW<MovementGoal>, RefRO<UnitMovement>>()
-                              .WithAll<TamedTag>()
-                              .WithNone<ShelteredInside>())
+            state.Dependency = new FollowOwnerJob
             {
-                var owner = ownerRef.ValueRO.Value;
-                if (owner == Entity.Null || !movementLookup.HasComponent(owner)) continue;
-                if (goalRW.ValueRO.Priority > GoalPriority.Wander) continue;
+                MovementLookup = SystemAPI.GetComponentLookup<UnitMovement>(true),
+            }.ScheduleParallel(state.Dependency);
+        }
+    }
 
-                var ownerHex = movementLookup[owner].CurrentHex;
-                if (movement.ValueRO.CurrentHex.Equals(ownerHex)) continue;
+    [BurstCompile]
+    [WithAll(typeof(TamedTag))]
+    [WithNone(typeof(ShelteredInside))]
+    public partial struct FollowOwnerJob : IJobEntity
+    {
+        [ReadOnly] public ComponentLookup<UnitMovement> MovementLookup;
 
-                goalRW.ValueRW = new MovementGoal
-                {
-                    Kind      = GoalKind.Follow,
-                    Priority  = GoalPriority.Wander,
-                    TargetHex = ownerHex,
-                };
-            }
+        void Execute(in OwnerRef ownerRef, ref MovementGoal goal, in UnitMovement movement)
+        {
+            var owner = ownerRef.Value;
+            if (owner == Entity.Null || !MovementLookup.HasComponent(owner)) return;
+            if (goal.Priority > GoalPriority.Wander) return;
+
+            var ownerHex = MovementLookup[owner].CurrentHex;
+            if (movement.CurrentHex.Equals(ownerHex)) return;
+
+            goal = new MovementGoal
+            {
+                Kind      = GoalKind.Follow,
+                Priority  = GoalPriority.Wander,
+                TargetHex = ownerHex,
+            };
         }
     }
 

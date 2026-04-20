@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -165,19 +166,19 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Passive animals override their Wander goal with a Flee goal when a non-Wildlife unit is within 2 hexes; cleared once safe.</summary>
+    /// <summary>Passive animals override their Wander goal with a Flee goal when a non-Wildlife unit is within 2 hexes; cleared once safe. Main-thread snapshots threats into a NativeList then hands off to a Burst IJobEntity that mutates animal goals off-thread.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateBefore(typeof(WanderBehaviorSystem))]
-    public partial class WildlifeFleeSystem : SystemBase
+    public partial struct WildlifeFleeSystem : ISystem
     {
-        const int FleeRadius = 2;
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
-        protected override void OnUpdate()
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
-            // Snapshot every potential threat (any non-Wildlife unit with a
-            // position). Small worlds → O(animals * threats) is cheap; if it
-            // ever matters we drop the threats into the spatial hash.
-            var threats = new NativeList<int2>(64, Allocator.Temp);
+            var threats = new NativeList<int2>(64, Allocator.TempJob);
             foreach (var (movement, faction) in
                      SystemAPI.Query<RefRO<UnitMovement>, RefRO<Faction>>()
                               .WithNone<PassiveAnimalTag>())
@@ -186,54 +187,61 @@ namespace RareIcon
                 threats.Add(movement.ValueRO.CurrentHex);
             }
 
-            foreach (var (movementRW, goalRW) in
-                     SystemAPI.Query<RefRW<UnitMovement>, RefRW<MovementGoal>>()
-                              .WithAll<PassiveAnimalTag>()
-                              .WithNone<TamedTag>())
+            state.Dependency = new WildlifeFleeJob
             {
-                var here = movementRW.ValueRO.CurrentHex;
-                int2 nearest = default;
-                int  nearestD = int.MaxValue;
-                for (int i = 0; i < threats.Length; i++)
-                {
-                    int d = HexDistance(here, threats[i]);
-                    if (d < nearestD) { nearestD = d; nearest = threats[i]; }
-                }
+                Threats = threats.AsDeferredJobArray(),
+            }.ScheduleParallel(state.Dependency);
 
-                if (nearestD <= FleeRadius)
+            state.Dependency = threats.Dispose(state.Dependency);
+        }
+    }
+
+    [BurstCompile]
+    [WithAll(typeof(PassiveAnimalTag))]
+    [WithNone(typeof(TamedTag))]
+    public partial struct WildlifeFleeJob : IJobEntity
+    {
+        const int FleeRadius = 2;
+
+        [ReadOnly] public NativeArray<int2> Threats;
+
+        void Execute(in UnitMovement movement, ref MovementGoal goal)
+        {
+            var here = movement.CurrentHex;
+            int2 nearest = default;
+            int  nearestD = int.MaxValue;
+            for (int i = 0; i < Threats.Length; i++)
+            {
+                int d = HexDistance(here, Threats[i]);
+                if (d < nearestD) { nearestD = d; nearest = Threats[i]; }
+            }
+
+            if (nearestD <= FleeRadius)
+            {
+                int2 away = new int2(here.x - nearest.x, here.y - nearest.y);
+                if (away.x == 0 && away.y == 0) away = new int2(1, 0);
+                int2 target = here + away * 2;
+                if (goal.Priority <= GoalPriority.Flee)
                 {
-                    // Flee direction = current hex + (current - threat) so the
-                    // new target moves away along the same axial line.
-                    int2 away = new int2(here.x - nearest.x, here.y - nearest.y);
-                    if (away.x == 0 && away.y == 0) away = new int2(1, 0);
-                    int2 target = here + away * 2;
-                    if (goalRW.ValueRO.Priority <= GoalPriority.Flee)
+                    goal = new MovementGoal
                     {
-                        goalRW.ValueRW = new MovementGoal
-                        {
-                            Kind      = GoalKind.Flee,
-                            Priority  = GoalPriority.Flee,
-                            TargetHex = target,
-                        };
-                    }
-                }
-                else if (goalRW.ValueRO.Kind == GoalKind.Flee)
-                {
-                    // Safe again — drop the flee goal so WanderBehaviorSystem
-                    // rolls a fresh wander target on the next tick.
-                    goalRW.ValueRW = new MovementGoal
-                    {
-                        Kind      = GoalKind.None,
-                        Priority  = GoalPriority.None,
-                        TargetHex = here,
+                        Kind      = GoalKind.Flee,
+                        Priority  = GoalPriority.Flee,
+                        TargetHex = target,
                     };
                 }
             }
-
-            threats.Dispose();
+            else if (goal.Kind == GoalKind.Flee)
+            {
+                goal = new MovementGoal
+                {
+                    Kind      = GoalKind.None,
+                    Priority  = GoalPriority.None,
+                    TargetHex = here,
+                };
+            }
         }
 
-        // Axial hex distance (q, r).
         static int HexDistance(int2 a, int2 b)
         {
             int dq = a.x - b.x;

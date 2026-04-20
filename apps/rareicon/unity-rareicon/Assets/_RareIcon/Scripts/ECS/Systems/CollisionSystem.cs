@@ -7,25 +7,30 @@ using Unity.Transforms;
 namespace RareIcon
 {
     /// <summary>Projectile-vs-unit overlap pass; emits DamageEvent on hit and destroys the projectile. ECB plays back via EndSimulationEntityCommandBufferSystem so this system never stalls the main thread; DamageEvent resolves next frame.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(CombatSystemGroup))]
     [UpdateAfter(typeof(SpatialHashSystem))]
-    public partial class CollisionSystem : SystemBase
+    public partial struct CollisionSystem : ISystem
     {
-        protected override void OnCreate() => RequireForUpdate<Projectile>();
+        [BurstCompile]
+        public void OnCreate(ref SystemState state) => state.RequireForUpdate<Projectile>();
 
-        protected override void OnUpdate()
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial)) return;
             if (!spatial.Hash.IsCreated) return;
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                               .CreateCommandBuffer(World.Unmanaged);
+                               .CreateCommandBuffer(state.WorldUnmanaged);
 
-            Dependency = new CollisionJob
+            state.Dependency = new CollisionJob
             {
                 Hash = spatial.Hash,
                 Ecb  = ecb.AsParallelWriter(),
-            }.ScheduleParallel(Dependency);
+            }.ScheduleParallel(state.Dependency);
         }
     }
 
