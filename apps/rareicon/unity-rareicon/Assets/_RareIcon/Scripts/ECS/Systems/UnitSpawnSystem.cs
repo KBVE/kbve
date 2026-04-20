@@ -153,6 +153,13 @@ namespace RareIcon
             em.AddComponentData(entity, new Faction    { Value = FactionType.Player });
             em.AddComponentData(entity, new Collidable { Radius = 0.20f });
 
+            // Movement modifier + status-effect buffer — attached up
+            // front so StatusEffectSystem and the locomotion speed
+            // scaling don't have to branch on presence on the hot
+            // path. Both are near-zero cost at rest (empty buffer).
+            em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
+            em.AddBuffer<StatusEffect>(entity);
+
             // Per-unit speed jitter ~ ±20% around the def's base move speed
             // → some goblins amble, others stride, crowd reads as individuals.
             float speedJit = 0.8f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.4f;
@@ -247,6 +254,11 @@ namespace RareIcon
 
             em.AddComponentData(entity, new Faction    { Value = FactionType.Player });
             em.AddComponentData(entity, new Collidable { Radius = 0.22f });
+
+            // Status-effect plumbing — same rationale as on goblins.
+            // The King is hit-able, can be slowed by ice, poisoned, etc.
+            em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
+            em.AddBuffer<StatusEffect>(entity);
 
             // Movement: target = current so the King stays put until
             // the player issues an order. WanderBehaviorSystem skips

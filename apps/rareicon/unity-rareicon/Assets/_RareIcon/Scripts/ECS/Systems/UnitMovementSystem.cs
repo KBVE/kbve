@@ -5,33 +5,9 @@ using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Pure locomotion layer of the Behavior → Pathfinding → Locomotion
-    /// split. Inputs are all written by upstream systems:
-    ///   • TargetHex ← PathfindingSystem (next per-hex waypoint)
-    ///   • DwellTimer / LastDir / RandomState ← PathfindingSystem
-    ///   • MovementGoal ← WanderBehavior / ReturnToBase / KingMoveCommand
-    ///
-    /// This system only does three things:
-    ///   1. Tick the dwell timer down during post-arrival pauses.
-    ///   2. Step Position smoothly toward TargetHex world space.
-    ///   3. On arrival, stamp CurrentHex = TargetHex, pay the per-step
-    ///      Energy cost, and bump WanderStep (HarvestSystem uses it as
-    ///      an arrival counter).
-    ///
-    /// Direction picking, hunger-triggered re-routing, and player orders
-    /// live in the behavior systems now — no more King-specific branches
-    /// or "if hungry, head home" overrides in here. Units with
-    /// MovementGoal.Kind == None naturally sit still because Pathfinding
-    /// doesn't touch their TargetHex and locomotion has nothing to
-    /// walk toward.
-    ///
-    /// Burst ISystem — per-entity body is int2 + float3 math + one
-    /// ComponentLookup. Convert to parallel IJobEntity if a single-
-    /// threaded locomotion loop ever shows up in the profile.
-    /// </summary>
+    /// <summary>Locomotion: dwell tick, smooth step to TargetHex, arrival bookkeeping, and per-step Energy drain.</summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateInGroup(typeof(MovementSystemGroup))]
     public partial struct UnitMovementSystem : ISystem
     {
         const float HexSize      = 0.25f;
@@ -56,7 +32,11 @@ namespace RareIcon
             // Energy lookup for per-step walking cost. Entities without
             // Energy (future wildlife, environmental props) skip the
             // deduction branch.
-            var energyLookup = SystemAPI.GetComponentLookup<Energy>(false);
+            var energyLookup   = SystemAPI.GetComponentLookup<Energy>(false);
+            // Movement modifier lookup (read-only) — status effects
+            // (ice slow, future haste buff) stack into SpeedMul here.
+            // Units without the component behave as if SpeedMul = 1.0.
+            var modifierLookup = SystemAPI.GetComponentLookup<MovementModifier>(true);
 
             foreach (var (transform, movement, facingVisual, movingVisual, entity) in
                      SystemAPI.Query<
@@ -130,7 +110,12 @@ namespace RareIcon
                 // ---- 4. Mid-traversal — smooth step toward TargetHex ----
                 float dist = math.sqrt(distSq);
                 float3 dir = toTarget / dist;
-                float step = math.min(dist, movement.ValueRO.MoveSpeed * dt);
+                // Base speed scaled by any stacked movement modifiers
+                // (ice slow → SpeedMul < 1, future haste → SpeedMul > 1).
+                float speedMul = modifierLookup.HasComponent(entity)
+                    ? modifierLookup[entity].SpeedMul
+                    : 1f;
+                float step = math.min(dist, movement.ValueRO.MoveSpeed * speedMul * dt);
                 transform.ValueRW.Position = pos + dir * step;
 
                 if (movingVisual.ValueRO.Value != 1f)

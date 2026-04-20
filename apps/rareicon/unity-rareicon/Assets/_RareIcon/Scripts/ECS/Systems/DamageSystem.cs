@@ -4,22 +4,21 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Consumes DamageEvent message entities produced by CollisionSystem,
-    /// subtracts the damage amount from the target's Health, and tags
-    /// the target with DeadTag if the hit takes HP to zero. The event
-    /// entity is always destroyed after processing.
-    ///
-    /// Single-threaded today because multiple events can target the same
-    /// entity in the same frame and parallel writes to Health would need
-    /// atomics or serialisation. For thousands of events per frame this
-    /// is still fast — the inner loop is trivial math + a component
-    /// lookup. Move to a parallel reduction job if the profile shows it.
-    /// </summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    /// <summary>Consumes DamageEvent, applies damage + mod-driven status effects, tags DeadTag on fatal hits.</summary>
+    [UpdateInGroup(typeof(CombatSystemGroup))]
     [UpdateAfter(typeof(CollisionSystem))]
     public partial class DamageSystem : SystemBase
     {
+        const float ObsidianDamageMul   = 1.35f;
+        const float PoisonDps           = 1.0f;
+        const float PoisonSeconds       = 5.0f;
+        const float FireDps             = 3.0f;
+        const float FireSeconds         = 2.0f;
+        const float IceSpeedMul         = 0.50f;
+        const float IceSeconds          = 3.0f;
+        const float CurseDrainPerSec    = 3.0f;
+        const float CurseSeconds        = 4.0f;
+
         protected override void OnCreate()
         {
             RequireForUpdate<DamageEvent>();
@@ -27,15 +26,15 @@ namespace RareIcon
 
         protected override void OnUpdate()
         {
-            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            var ecb          = new EntityCommandBuffer(Allocator.Temp);
             var healthLookup = SystemAPI.GetComponentLookup<Health>(isReadOnly: false);
+            var effectLookup = SystemAPI.GetBufferLookup<StatusEffect>(isReadOnly: false);
 
             foreach (var (damageRef, eventEntity) in
                 SystemAPI.Query<RefRO<DamageEvent>>().WithEntityAccess())
             {
                 var ev = damageRef.ValueRO;
 
-                // Target gone (already despawned) — drop the event.
                 if (!healthLookup.HasComponent(ev.Target))
                 {
                     ecb.DestroyEntity(eventEntity);
@@ -43,21 +42,25 @@ namespace RareIcon
                 }
 
                 var health = healthLookup[ev.Target];
-
-                // Target already dead from an earlier event this frame —
-                // don't double-tag, just swallow this hit.
                 if (health.Value <= 0f)
                 {
                     ecb.DestroyEntity(eventEntity);
                     continue;
                 }
 
-                health.Value = math.max(0f, health.Value - ev.Amount);
+                float amount = ev.Amount;
+                if (ev.Mod == ArrowMod.Obsidian) amount *= ObsidianDamageMul;
+
+                health.Value = math.max(0f, health.Value - amount);
                 healthLookup[ev.Target] = health;
 
                 if (health.Value <= 0f)
                 {
                     ecb.AddComponent<DeadTag>(ev.Target);
+                }
+                else
+                {
+                    ApplyPersistentEffect(effectLookup, ev.Target, ev.Mod);
                 }
 
                 ecb.DestroyEntity(eventEntity);
@@ -66,16 +69,34 @@ namespace RareIcon
             ecb.Playback(EntityManager);
             ecb.Dispose();
         }
+
+        static void ApplyPersistentEffect(
+            BufferLookup<StatusEffect> lookup, Entity target, byte mod)
+        {
+            if (mod == ArrowMod.None || mod == ArrowMod.Obsidian) return;
+            if (!lookup.HasBuffer(target)) return;
+
+            var buf = lookup[target];
+            switch (mod)
+            {
+                case ArrowMod.Poison:
+                    buf.Add(new StatusEffect { Kind = StatusEffectKind.Poison, Remaining = PoisonSeconds, Magnitude = PoisonDps });
+                    break;
+                case ArrowMod.Fire:
+                    buf.Add(new StatusEffect { Kind = StatusEffectKind.Fire, Remaining = FireSeconds, Magnitude = FireDps });
+                    break;
+                case ArrowMod.Ice:
+                    buf.Add(new StatusEffect { Kind = StatusEffectKind.Ice, Remaining = IceSeconds, Magnitude = IceSpeedMul });
+                    break;
+                case ArrowMod.Curse:
+                    buf.Add(new StatusEffect { Kind = StatusEffectKind.Curse, Remaining = CurseSeconds, Magnitude = CurseDrainPerSec });
+                    break;
+            }
+        }
     }
 
-    /// <summary>
-    /// Destroys entities tagged DeadTag. Split from DamageSystem so
-    /// future consequences of death (loot drop, death animation, XP
-    /// award) can run in between — each one reads DeadTag, does its
-    /// thing, and lets cleanup happen last.
-    /// </summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(DamageSystem))]
+    /// <summary>Destroys entities tagged DeadTag; future loot/XP/anim systems run before this in the same group.</summary>
+    [UpdateInGroup(typeof(CleanupSystemGroup))]
     public partial class DeathCleanupSystem : SystemBase
     {
         protected override void OnCreate()
