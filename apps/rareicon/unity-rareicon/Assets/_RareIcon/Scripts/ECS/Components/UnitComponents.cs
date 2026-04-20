@@ -19,7 +19,9 @@ namespace RareIcon
         public const byte Chicken = 10;
         public const byte Sheep   = 11;
         public const byte Cow     = 12;
-        // Wolf, Skeleton, etc. land here as we add them.
+        public const byte Wolf    = 13;  // Beast faction, forest pack hunter.
+        public const byte Bandit  = 14;  // Hostile faction, raid waves alongside goblins.
+        // Skeleton, etc. land here as we add them.
     }
 
     /// <summary>Tag marking wild animals so combat / harvest / AI systems skip them.</summary>

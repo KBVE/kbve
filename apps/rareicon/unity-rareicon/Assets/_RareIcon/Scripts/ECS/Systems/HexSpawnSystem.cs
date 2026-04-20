@@ -413,6 +413,7 @@ namespace RareIcon
             float roll = (h & 0xFFFFu) / 65535f;
 
             byte species = UnitType.None;
+            bool isBeast  = false;
             switch (biome)
             {
                 case BiomeGenerator.BIOME_GRASS:
@@ -426,12 +427,22 @@ namespace RareIcon
                 case BiomeGenerator.BIOME_DIRT:
                     if (roll < 0.006f) species = UnitType.Cow;
                     break;
+                case BiomeGenerator.BIOME_FOREST:
+                    // Wolves are rarer than wildlife rolls and use a
+                    // separate spawn helper because they're hostile, not
+                    // passive. Rate kept low so the forest reads as "risky"
+                    // rather than impassable.
+                    if (roll < 0.006f) { species = UnitType.Wolf; isBeast = true; }
+                    break;
             }
 
             if (species == UnitType.None) return;
 
             uint rng = (h * 0x9E3779B1u) | 1u;
-            UnitSpawnSystem.SpawnAnimalAt(em, new int2(gx, gy), rng, species);
+            if (isBeast)
+                UnitSpawnSystem.SpawnBeastAt(em, new int2(gx, gy), rng, species);
+            else
+                UnitSpawnSystem.SpawnAnimalAt(em, new int2(gx, gy), rng, species);
         }
 
         void DespawnChunk(int2 chunkCoord)

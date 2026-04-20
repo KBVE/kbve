@@ -47,6 +47,9 @@ namespace RareIcon
         CookedChicken = 227,
         CookedMutton  = 228,
         CookedBeef    = 229,
+        WolfPelt      = 230,
+        WolfFang      = 231,
+        BanditCoin    = 232,
 
         // Quest / key items
         QuestScroll       = 300,
