@@ -6,7 +6,7 @@ using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>Looter-intent units near their target GroundArrow pick it up, add one Arrow to inventory, and award Scavenging XP. Return trip is handled by ReturnToBase → EmpireDeposit. Single-worker Schedule because two looters could theoretically race to the same arrow.</summary>
+    /// <summary>Looter-intent units near their target GroundArrow claim it, add one Arrow to inventory, and award Scavenging XP. Destroy plays back through EndSimulationEntityCommandBufferSystem so this system stays fully async.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(CookingSystem))]
@@ -18,19 +18,16 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var ecb = new EntityCommandBuffer(Allocator.TempJob);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
 
             state.Dependency = new LooterPickupJob
             {
-                GroundArrowLookup = SystemAPI.GetComponentLookup<GroundArrow>(true),
+                GroundArrowLookup = SystemAPI.GetComponentLookup<GroundArrow>(false),
                 TransformLookup   = SystemAPI.GetComponentLookup<LocalTransform>(true),
                 SkillXpLookup     = SystemAPI.GetComponentLookup<SkillXP>(false),
                 Ecb               = ecb,
             }.Schedule(state.Dependency);
-
-            state.Dependency.Complete();
-            ecb.Playback(state.EntityManager);
-            ecb.Dispose();
         }
     }
 
@@ -40,11 +37,11 @@ namespace RareIcon
         const float PickupRadiusSq = 0.12f * 0.12f;
         const ushort XPPerPickup   = 10;
 
-        [ReadOnly] public ComponentLookup<GroundArrow>    GroundArrowLookup;
         [ReadOnly] public ComponentLookup<LocalTransform> TransformLookup;
 
-        public ComponentLookup<SkillXP> SkillXpLookup;
-        public EntityCommandBuffer      Ecb;
+        public ComponentLookup<GroundArrow> GroundArrowLookup;
+        public ComponentLookup<SkillXP>     SkillXpLookup;
+        public EntityCommandBuffer          Ecb;
 
         void Execute(Entity entity,
                      in JobIntent intent,
@@ -58,11 +55,17 @@ namespace RareIcon
             if (!GroundArrowLookup.HasComponent(arrow)) return;
             if (!TransformLookup.HasComponent(arrow)) return;
 
+            var arrowData = GroundArrowLookup[arrow];
+            if (arrowData.ClaimedBy != Entity.Null) return;
+
             float3 unitPos  = transform.Position;
             float3 arrowPos = TransformLookup[arrow].Position;
             float d2 = (unitPos.x - arrowPos.x) * (unitPos.x - arrowPos.x)
                      + (unitPos.y - arrowPos.y) * (unitPos.y - arrowPos.y);
             if (d2 > PickupRadiusSq) return;
+
+            arrowData.ClaimedBy = entity;
+            GroundArrowLookup[arrow] = arrowData;
 
             AddOne(inventory, (ushort)ItemId.Arrow);
             Ecb.DestroyEntity(arrow);

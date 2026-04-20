@@ -1,10 +1,9 @@
 using Unity.Burst;
-using Unity.Collections;
 using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Destroys GroundArrow entities once WorldClock.AbsSeconds passes their DespawnAtAbsSeconds; Looter pickups remove them earlier.</summary>
+    /// <summary>Destroys GroundArrow entities once WorldClock.AbsSeconds passes their DespawnAtAbsSeconds; Looter pickups remove them earlier. Destroys defer to EndSimulationEntityCommandBufferSystem.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(CleanupSystemGroup))]
     public partial struct GroundArrowDecaySystem : ISystem
@@ -21,18 +20,27 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            float abs = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
-            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
 
-            foreach (var (arrow, entity) in
-                     SystemAPI.Query<RefRO<GroundArrow>>().WithEntityAccess())
+            state.Dependency = new GroundArrowDecayJob
             {
-                if (abs >= arrow.ValueRO.DespawnAtAbsSeconds)
-                    ecb.DestroyEntity(entity);
-            }
+                AbsNow = SystemAPI.GetSingleton<WorldClock>().AbsSeconds,
+                Ecb    = ecb.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
+        }
+    }
 
-            ecb.Playback(state.EntityManager);
-            ecb.Dispose();
+    [BurstCompile]
+    public partial struct GroundArrowDecayJob : IJobEntity
+    {
+        public float AbsNow;
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity entity, [ChunkIndexInQuery] int chunkIdx, in GroundArrow arrow)
+        {
+            if (AbsNow >= arrow.DespawnAtAbsSeconds)
+                Ecb.DestroyEntity(chunkIdx, entity);
         }
     }
 }
