@@ -131,6 +131,7 @@ namespace RareIcon
             public const float Narrow = 22f;
             public const float Std    = 26f;
             public const float Wide   = 32f;
+            public const float XWide  = 50f;
         }
 
         // -- Equal-sided setters (chainable) --

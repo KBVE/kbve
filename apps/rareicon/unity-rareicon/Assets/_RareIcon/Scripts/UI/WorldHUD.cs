@@ -145,9 +145,8 @@ namespace RareIcon
         {
             _clockPanel = new VisualElement().ApplyPanelChromeCompact();
             _clockPanel.style.position = Position.Absolute;
-            _clockPanel.style.top = new Length(2f, LengthUnit.Percent);
-            _clockPanel.style.left = new Length(50f, LengthUnit.Percent);
-            _clockPanel.style.translate = new Translate(new Length(-50f, LengthUnit.Percent), 0);
+            _clockPanel.style.top   = new Length(2f, LengthUnit.Percent);
+            _clockPanel.style.right = new Length(2f, LengthUnit.Percent);
             _clockPanel.style.flexDirection = FlexDirection.Row;
             _clockPanel.style.alignItems = Align.Center;
             _clockPanel.pickingMode = PickingMode.Ignore;
@@ -208,11 +207,11 @@ namespace RareIcon
         {
             _controlPanel = new VisualElement().ApplyPanelChromeCompact();
             _controlPanel.style.position = Position.Absolute;
-            _controlPanel.style.top = new Length(7f, LengthUnit.Percent);
-            _controlPanel.style.left = new Length(50f, LengthUnit.Percent);
-            _controlPanel.style.translate = new Translate(new Length(-50f, LengthUnit.Percent), 0);
+            _controlPanel.style.top   = new Length(2f, LengthUnit.Percent);
+            _controlPanel.style.right = new Length(2f, LengthUnit.Percent);
+            _controlPanel.style.marginTop = 36;
             _controlPanel.style.flexDirection = FlexDirection.Column;
-            _controlPanel.style.alignItems = Align.Center;
+            _controlPanel.style.alignItems = Align.FlexEnd;
 
             var topRow = new VisualElement();
             topRow.style.flexDirection = FlexDirection.Row;

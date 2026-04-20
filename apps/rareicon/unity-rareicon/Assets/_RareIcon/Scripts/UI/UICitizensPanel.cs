@@ -77,9 +77,10 @@ namespace RareIcon
             _root.style.position = Position.Absolute;
             _root.style.top = new Length(2f, LengthUnit.Percent);
             _root.style.right = new Length(2f, LengthUnit.Percent);
-            _root.style.marginTop = 70;
-            _root.style.minWidth = UIStyles.PanelWidth.WideMin;
-            _root.style.maxWidth = new Length(UIStyles.VwMaxPct.Wide, LengthUnit.Percent);
+            _root.style.marginTop = 110;
+            _root.style.minWidth = 380;
+            _root.style.maxWidth = new Length(UIStyles.VwMaxPct.XWide, LengthUnit.Percent);
+            _root.style.minHeight = 360;
             _root.style.display = DisplayStyle.None;
 
             UIStyles.MakePanelHeader(_root, "Citizens", Close);

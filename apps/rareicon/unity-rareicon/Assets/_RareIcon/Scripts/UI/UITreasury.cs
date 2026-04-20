@@ -91,6 +91,7 @@ namespace RareIcon
         {
             _root = new VisualElement().ApplyPanelChrome();
             _root.style.AnchorTopRight();
+            _root.style.marginTop = 110;
             _root.style.minWidth = UIStyles.PanelWidth.StdMin;
             _root.style.maxWidth = new Length(UIStyles.VwMaxPct.Std, LengthUnit.Percent);
             _root.style.display = DisplayStyle.None;
