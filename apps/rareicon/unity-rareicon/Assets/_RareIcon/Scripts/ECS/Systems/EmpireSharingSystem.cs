@@ -1,89 +1,92 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Peer-to-peer food handoff: a hungry empire unit on the same hex as a peer carrying food gets one item transferred.</summary>
+    /// <summary>Peer-to-peer food handoff: a hungry empire unit on the same hex as a peer carrying food gets one item transferred. Main-thread step buckets units by hex into a NativeParallelMultiHashMap; the job iterates hungry units and grabs one item from a same-hex peer.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireWithdrawSystem))]
-    public partial class EmpireSharingSystem : SystemBase
+    public partial struct EmpireSharingSystem : ISystem
     {
-        const float HungerTrigger = 0.50f;
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
-        protected override void OnUpdate()
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
-            var invLookup    = SystemAPI.GetBufferLookup<InventorySlot>(isReadOnly: false);
-            var hungerLookup = SystemAPI.GetComponentLookup<Hunger>(isReadOnly: true);
+            var invLookup = SystemAPI.GetBufferLookup<InventorySlot>(false);
 
-            // Bucket empire units by hex. Capacity is a rough hint; the
-            // hash map grows internally if we overflow.
-            var hexBuckets = new NativeParallelMultiHashMap<int2, Entity>(64, Allocator.Temp);
+            var hexBuckets = new NativeParallelMultiHashMap<int2, Entity>(64, Allocator.TempJob);
+
             foreach (var (movement, faction, entity) in
-                SystemAPI.Query<RefRO<UnitMovement>, RefRO<Faction>>().WithEntityAccess())
+                     SystemAPI.Query<RefRO<UnitMovement>, RefRO<Faction>>().WithEntityAccess())
             {
                 if (faction.ValueRO.Value != FactionType.Player) continue;
                 if (!invLookup.HasBuffer(entity)) continue;
                 hexBuckets.Add(movement.ValueRO.CurrentHex, entity);
             }
 
-            // Hungry + empty-of-food units pull 1 food from a peer on
-            // the same hex. One transfer per unit per frame — keeps the
-            // redistribution gradual and gives eat/share a natural
-            // cadence.
-            foreach (var (movement, faction, entity) in
-                SystemAPI.Query<RefRO<UnitMovement>, RefRO<Faction>>().WithEntityAccess())
+            state.Dependency = new EmpireShareJob
             {
-                if (faction.ValueRO.Value != FactionType.Player) continue;
-                if (!hungerLookup.HasComponent(entity)) continue;
+                HexBuckets = hexBuckets,
+                InvLookup  = invLookup,
+            }.Schedule(state.Dependency);
 
-                var h = hungerLookup[entity];
-                if (h.Max <= 0f || h.Value / h.Max < HungerTrigger) continue;
+            state.Dependency = hexBuckets.Dispose(state.Dependency);
+        }
+    }
 
-                if (!invLookup.HasBuffer(entity)) continue;
-                var myInv = invLookup[entity];
-                if (HasEdible(myInv)) continue;
+    [BurstCompile]
+    public partial struct EmpireShareJob : IJobEntity
+    {
+        const float HungerTrigger = 0.50f;
 
-                int2 hex = movement.ValueRO.CurrentHex;
-                if (!hexBuckets.TryGetFirstValue(hex, out Entity peer, out var it)) continue;
+        [ReadOnly] public NativeParallelMultiHashMap<int2, Entity> HexBuckets;
 
-                bool transferred = false;
-                do
+        [NativeDisableParallelForRestriction]
+        public BufferLookup<InventorySlot> InvLookup;
+
+        void Execute(Entity entity, in UnitMovement movement, in Faction faction, in Hunger hunger)
+        {
+            if (faction.Value != FactionType.Player) return;
+            if (hunger.Max <= 0f || hunger.Value / hunger.Max < HungerTrigger) return;
+            if (!InvLookup.HasBuffer(entity)) return;
+
+            var myInv = InvLookup[entity];
+            if (HasEdible(myInv)) return;
+
+            int2 hex = movement.CurrentHex;
+            if (!HexBuckets.TryGetFirstValue(hex, out Entity peer, out var it)) return;
+
+            do
+            {
+                if (peer.Equals(entity)) continue;
+                if (!InvLookup.HasBuffer(peer)) continue;
+
+                var peerInv = InvLookup[peer];
+                for (int i = 0; i < peerInv.Length; i++)
                 {
-                    if (transferred) break;
-                    if (peer.Equals(entity)) continue;
-                    if (!invLookup.HasBuffer(peer)) continue;
+                    var slot = peerInv[i];
+                    if (slot.Count == 0 || !FoodItems.IsFood(slot.ItemId)) continue;
 
-                    var peerInv = invLookup[peer];
-                    for (int i = 0; i < peerInv.Length; i++)
-                    {
-                        var slot = peerInv[i];
-                        if (slot.Count == 0 || !ItemDB.IsEdible(slot.ItemId)) continue;
-
-                        slot.Count -= 1;
-                        peerInv[i] = slot;
-                        AddOne(myInv, slot.ItemId);
-                        transferred = true;
-                        break;
-                    }
-                } while (hexBuckets.TryGetNextValue(out peer, ref it));
-            }
-
-            hexBuckets.Dispose();
+                    slot.Count -= 1;
+                    peerInv[i] = slot;
+                    AddOne(myInv, slot.ItemId);
+                    return;
+                }
+            } while (HexBuckets.TryGetNextValue(out peer, ref it));
         }
 
-        static bool HasEdible(DynamicBuffer<InventorySlot> inv)
+        static bool HasEdible(in DynamicBuffer<InventorySlot> inv)
         {
             for (int i = 0; i < inv.Length; i++)
-            {
-                if (inv[i].Count > 0 && ItemDB.IsEdible(inv[i].ItemId))
-                    return true;
-            }
+                if (inv[i].Count > 0 && FoodItems.IsFood(inv[i].ItemId)) return true;
             return false;
         }
 
-        // Merge 1 unit of `itemId` into `inv`, appending a new stack
-        // when no existing one matches.
         static void AddOne(DynamicBuffer<InventorySlot> inv, ushort itemId)
         {
             for (int j = 0; j < inv.Length; j++)

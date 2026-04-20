@@ -1,45 +1,64 @@
+using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Two-phase target routing for Builder-intent units: go to Capital when empty (pickup), go to the target site when carrying matching materials (delivery). JobSystem picks the site; this refines the TargetHex.</summary>
+    /// <summary>Two-phase target routing for Builder-intent units: go to Capital when empty (pickup), go to the target site when carrying matching materials (delivery). JobSystem picks the site; this refines the TargetHex. Burst ISystem off the main thread — single-worker Schedule matches the other supply-job refiners.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(JobSystem))]
     [UpdateBefore(typeof(JobMovementExecutor))]
-    public partial class BuilderJobSystem : SystemBase
+    public partial struct BuilderJobSystem : ISystem
     {
-        protected override void OnUpdate()
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             int2 capitalHex = SystemAPI.GetComponent<Building>(capital).RootHex;
 
-            var materialBufferLookup = SystemAPI.GetBufferLookup<ConstructionMaterial>(isReadOnly: true);
-            var siteLookup           = SystemAPI.GetComponentLookup<ConstructionSite>(isReadOnly: true);
-
-            foreach (var (intentRef, inventory) in
-                     SystemAPI.Query<RefRW<JobIntent>, DynamicBuffer<InventorySlot>>())
+            state.Dependency = new BuilderJobRefineJob
             {
-                var intent = intentRef.ValueRO;
-                if (intent.Kind != JobKind.Builder) continue;
-                if (intent.TargetEntity == Entity.Null) continue;
-                if (!siteLookup.HasComponent(intent.TargetEntity)) continue;
-                if (!materialBufferLookup.HasBuffer(intent.TargetEntity)) continue;
+                CapitalHex      = capitalHex,
+                MaterialLookup  = SystemAPI.GetBufferLookup<ConstructionMaterial>(true),
+                SiteLookup      = SystemAPI.GetComponentLookup<ConstructionSite>(true),
+            }.Schedule(state.Dependency);
+        }
+    }
 
-                var mats    = materialBufferLookup[intent.TargetEntity];
-                var siteHex = siteLookup[intent.TargetEntity].RootHex;
+    [BurstCompile]
+    public partial struct BuilderJobRefineJob : IJobEntity
+    {
+        public int2 CapitalHex;
 
-                bool carrying = CarriesMatchingMaterial(inventory, mats);
-                intentRef.ValueRW = new JobIntent
-                {
-                    Kind         = JobKind.Builder,
-                    TargetHex    = carrying ? siteHex : capitalHex,
-                    TargetEntity = intent.TargetEntity,
-                };
-            }
+        [ReadOnly] public BufferLookup<ConstructionMaterial> MaterialLookup;
+        [ReadOnly] public ComponentLookup<ConstructionSite>  SiteLookup;
+
+        void Execute(ref JobIntent intent, in DynamicBuffer<InventorySlot> inventory)
+        {
+            if (intent.Kind != JobKind.Builder) return;
+            if (intent.TargetEntity == Entity.Null) return;
+            if (!SiteLookup.HasComponent(intent.TargetEntity)) return;
+            if (!MaterialLookup.HasBuffer(intent.TargetEntity)) return;
+
+            var mats    = MaterialLookup[intent.TargetEntity];
+            var siteHex = SiteLookup[intent.TargetEntity].RootHex;
+
+            bool carrying = CarriesMatchingMaterial(inventory, mats);
+            intent = new JobIntent
+            {
+                Kind         = JobKind.Builder,
+                TargetHex    = carrying ? siteHex : CapitalHex,
+                TargetEntity = intent.TargetEntity,
+            };
         }
 
-        static bool CarriesMatchingMaterial(DynamicBuffer<InventorySlot> inv, DynamicBuffer<ConstructionMaterial> mats)
+        static bool CarriesMatchingMaterial(in DynamicBuffer<InventorySlot> inv,
+                                            in DynamicBuffer<ConstructionMaterial> mats)
         {
             for (int i = 0; i < inv.Length; i++)
             {

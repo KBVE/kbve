@@ -1,74 +1,86 @@
+using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Hungry Player unit on a Capital-claimed hex pulls one edible from storage into its inventory.</summary>
+    /// <summary>Hungry Player unit on a Capital-claimed hex pulls one edible from storage into its inventory. Burst ISystem off the main thread — single-worker Schedule keeps the shared Capital-buffer writes serialized until the claim system lands.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireDepositSystem))]
-    public partial class EmpireWithdrawSystem : SystemBase
+    public partial struct EmpireWithdrawSystem : ISystem
     {
         const float HungerTrigger = 0.50f;
 
-        protected override void OnUpdate()
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
-            var hexOccupantLookup   = SystemAPI.GetComponentLookup<HexOccupant>(isReadOnly: true);
-            var buildingLookup      = SystemAPI.GetComponentLookup<Building>(isReadOnly: true);
-            var storageBufferLookup = SystemAPI.GetBufferLookup<InventorySlot>(isReadOnly: false);
+            if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
+            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
 
-            foreach (var (movement, faction, hunger, inv) in
-                SystemAPI.Query<
-                    RefRO<UnitMovement>,
-                    RefRO<Faction>,
-                    RefRO<Hunger>,
-                    DynamicBuffer<InventorySlot>>())
+            state.Dependency = new EmpireWithdrawJob
             {
-                if (faction.ValueRO.Value != FactionType.Player) continue;
+                Capital        = capital,
+                HexLookup      = hexLookup.Lookup,
+                OccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
+                InvLookup      = SystemAPI.GetBufferLookup<InventorySlot>(false),
+            }.Schedule(state.Dependency);
+        }
+    }
 
-                var h = hunger.ValueRO;
-                if (h.Max <= 0f) continue;
-                if (h.Value / h.Max < HungerTrigger) continue;
+    [BurstCompile]
+    public partial struct EmpireWithdrawJob : IJobEntity
+    {
+        const float HungerTrigger = 0.50f;
 
-                if (HasEdible(inv)) continue;
+        public Entity Capital;
 
-                int2 hex = movement.ValueRO.CurrentHex;
-                if (!HexHoverSystem.TryGetHexEntity(hex, out Entity tile)) continue;
-                if (!hexOccupantLookup.HasComponent(tile)) continue;
+        [ReadOnly] public NativeHashMap<int2, Entity>  HexLookup;
+        [ReadOnly] public ComponentLookup<HexOccupant> OccupantLookup;
 
-                Entity building = hexOccupantLookup[tile].Building;
-                if (!buildingLookup.HasComponent(building)) continue;
-                if (buildingLookup[building].Type != BuildingType.Capital) continue;
-                if (!storageBufferLookup.HasBuffer(building)) continue;
+        [NativeDisableParallelForRestriction]
+        public BufferLookup<InventorySlot> InvLookup;
 
-                var storage = storageBufferLookup[building];
-                PullOneFoodItem(storage, inv);
-            }
+        void Execute(Entity entity, in UnitMovement movement, in Faction faction, in Hunger hunger)
+        {
+            if (faction.Value != FactionType.Player) return;
+            if (hunger.Max <= 0f) return;
+            if (hunger.Value / hunger.Max < HungerTrigger) return;
+            if (!InvLookup.HasBuffer(entity)) return;
+
+            var unitInv = InvLookup[entity];
+            if (HasEdible(unitInv)) return;
+
+            if (!HexLookup.TryGetValue(movement.CurrentHex, out var tile)) return;
+            if (!OccupantLookup.HasComponent(tile)) return;
+            if (OccupantLookup[tile].Building != Capital) return;
+
+            var storage = InvLookup[Capital];
+            PullOneFoodItem(storage, unitInv);
         }
 
-        static bool HasEdible(DynamicBuffer<InventorySlot> inv)
+        static bool HasEdible(in DynamicBuffer<InventorySlot> inv)
         {
             for (int i = 0; i < inv.Length; i++)
-            {
-                if (inv[i].Count > 0 && ItemDB.IsEdible(inv[i].ItemId))
-                    return true;
-            }
+                if (inv[i].Count > 0 && FoodItems.IsFood(inv[i].ItemId)) return true;
             return false;
         }
 
-        static void PullOneFoodItem(
-            DynamicBuffer<InventorySlot> storage,
-            DynamicBuffer<InventorySlot> unitInv)
+        static void PullOneFoodItem(DynamicBuffer<InventorySlot> storage,
+                                    DynamicBuffer<InventorySlot> unitInv)
         {
             for (int i = 0; i < storage.Length; i++)
             {
                 var slot = storage[i];
-                if (slot.Count == 0) continue;
-                if (!ItemDB.IsEdible(slot.ItemId)) continue;
+                if (slot.Count == 0 || !FoodItems.IsFood(slot.ItemId)) continue;
 
                 slot.Count -= 1;
                 storage[i] = slot;
 
-                bool merged = false;
                 for (int j = 0; j < unitInv.Length; j++)
                 {
                     if (unitInv[j].ItemId == slot.ItemId)
@@ -76,14 +88,10 @@ namespace RareIcon
                         var u = unitInv[j];
                         u.Count = (ushort)math.min(u.Count + 1, ushort.MaxValue);
                         unitInv[j] = u;
-                        merged = true;
-                        break;
+                        return;
                     }
                 }
-                if (!merged)
-                {
-                    unitInv.Add(new InventorySlot { ItemId = slot.ItemId, Count = 1 });
-                }
+                unitInv.Add(new InventorySlot { ItemId = slot.ItemId, Count = 1 });
                 return;
             }
         }
