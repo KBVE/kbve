@@ -4,8 +4,11 @@
    Per-panel stylesheets layer on top via <Style src="..." /> in UXML.
    ========================================================================= */
 
-/* ----- Tokens (USS custom properties) ----- */
-:root {
+/* ----- Tokens (USS custom properties) -----
+   Unity USS scopes custom properties on the matching element, not on
+   the document root. `*` matches every VisualElement so vars cascade
+   down via inheritance the same way they would on :root in real CSS. */
+* {
     --color-bg-page:    rgba(9, 9, 11, 0.92);
     --color-bg-panel:   rgb(24, 24, 27);
     --color-bg-muted:   rgb(39, 39, 42);
