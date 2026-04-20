@@ -85,7 +85,7 @@ namespace RareIcon
             BuildingType.Capital  => JobKind.Builder,
             BuildingType.Farm     => JobKind.Farmer,
             BuildingType.Barracks => JobKind.Guard,
-            BuildingType.Furnace  => JobKind.Chef,
+            BuildingType.Furnace  => JobKind.Blacksmith,
             _                     => JobKind.None,
         };
     }
@@ -116,7 +116,7 @@ namespace RareIcon
                     var cand = Candidates[c];
                     if (!PrioritiesLookup.HasComponent(cand)) continue;
                     var prios = PrioritiesLookup[cand];
-                    if (!IsPureLooter(prios)) continue;
+                    if (prios.Get(req.Role) >= SpecialtyPriority) continue;
 
                     prios.Set(req.Role, SpecialtyPriority);
                     PrioritiesLookup[cand] = prios;
@@ -124,20 +124,6 @@ namespace RareIcon
                     break;
                 }
             }
-        }
-
-        // "Promotable" = still a generalist. The default goblin carries
-        // Looter + Lumberjack + Miner + Hunter at low-to-mid priority, so
-        // those no longer block promotion; only the specialty roles
-        // (Farmer / Chef / Guard / Builder) being set mean this goblin
-        // has already been dedicated to something and shouldn't be poached.
-        static bool IsPureLooter(in JobPriorities p)
-        {
-            if (p.Looter == 0) return false;
-            return p.Farmer  == 0
-                && p.Chef    == 0
-                && p.Guard   == 0
-                && p.Builder == 0;
         }
     }
 }

@@ -25,7 +25,7 @@ namespace RareIcon
     {
         const float HexSize = 0.25f;
         const float UnitSize = 0.5f;
-        const int   GoblinCount  = 16;
+        const int   GoblinCount  = 50;
         const int   SpawnRadius  = 8;
 
         static Mesh                  _mesh;
@@ -54,6 +54,13 @@ namespace RareIcon
             SpawnGarrisonGoblinAt(EntityManager, new int2( 0,  1), 0xC332AAu);
             SpawnGarrisonGoblinAt(EntityManager, new int2( 0, -1), 0xD443BBu);
 
+            SpawnGoblinAt(EntityManager, new int2( 2,  0), 0x1001A1u, default, FactionType.Player, UnitType.Knight);
+            SpawnGoblinAt(EntityManager, new int2(-2,  0), 0x1002B2u, default, FactionType.Player, UnitType.Knight);
+            SpawnGoblinAt(EntityManager, new int2( 0,  2), 0x1003C3u, default, FactionType.Player, UnitType.Soldier);
+            SpawnGoblinAt(EntityManager, new int2( 0, -2), 0x1004D4u, default, FactionType.Player, UnitType.Soldier);
+            SpawnGoblinAt(EntityManager, new int2( 2, -2), 0x1005E5u, default, FactionType.Player, UnitType.Soldier);
+            SpawnGoblinAt(EntityManager, new int2(-2,  2), 0x1006F6u, default, FactionType.Player, UnitType.Mage);
+
             for (int i = 0; i < GoblinCount; i++)
             {
                 uint h = (uint)(i + 1) * 0x9E3779B1u;
@@ -63,19 +70,7 @@ namespace RareIcon
                 int q = (int)(h % (uint)span) - SpawnRadius;
                 int r = (int)((h >> 16) % (uint)span) - SpawnRadius;
                 uint rng = h * 0xC2B2AE3Du ^ ((uint)i * 0x27D4EB2Fu);
-                var goblin = SpawnGoblinAt(EntityManager, new int2(q, r), rng);
-
-                // Seed one Lumberjack + one Miner on top of the default
-                // Looter so there's at least a trickle of wood + stone
-                // coming in from frame one, before any buildings exist.
-                if (goblin == Entity.Null) continue;
-                byte starterRole = i == 0 ? JobKind.Lumberjack
-                                 : i == 1 ? JobKind.Miner
-                                 : JobKind.None;
-                if (starterRole == JobKind.None) continue;
-                var prios = EntityManager.GetComponentData<JobPriorities>(goblin);
-                prios.Set(starterRole, 5);
-                EntityManager.SetComponentData(goblin, prios);
+                SpawnGoblinAt(EntityManager, new int2(q, r), rng);
             }
         }
 
@@ -172,6 +167,7 @@ namespace RareIcon
                 TargetHex = hex,
             });
 
+            em.AddBuffer<EquippedBag>(entity);
             var inv = em.AddBuffer<InventorySlot>(entity);
             if (state.Inv0Id != 0 && state.Inv0Qty > 0) inv.Add(new InventorySlot { ItemId = state.Inv0Id, Count = state.Inv0Qty });
             if (state.Inv1Id != 0 && state.Inv1Qty > 0) inv.Add(new InventorySlot { ItemId = state.Inv1Id, Count = state.Inv1Qty });
@@ -205,6 +201,9 @@ namespace RareIcon
 
             em.AddComponentData(entity, new GarrisonPost { Hex = hex });
             em.SetComponentData(entity, new JobPriorities());
+
+            var inv = em.GetBuffer<InventorySlot>(entity);
+            inv.Add(new InventorySlot { ItemId = (ushort)ItemId.Arrow, Count = ArcherRefillConfig.QuiverMax });
             return entity;
         }
 
@@ -280,6 +279,7 @@ namespace RareIcon
                 TargetHex = hex,
             });
 
+            em.AddBuffer<EquippedBag>(entity);
             var inv = em.AddBuffer<InventorySlot>(entity);
             if (state.Inv0Id != 0 && state.Inv0Qty > 0) inv.Add(new InventorySlot { ItemId = state.Inv0Id, Count = state.Inv0Qty });
             if (state.Inv1Id != 0 && state.Inv1Qty > 0) inv.Add(new InventorySlot { ItemId = state.Inv1Id, Count = state.Inv1Qty });
