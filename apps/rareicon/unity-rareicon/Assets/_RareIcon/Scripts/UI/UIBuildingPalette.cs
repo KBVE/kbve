@@ -102,8 +102,15 @@ namespace RareIcon
         void OnRowClicked(byte buildingType)
         {
             byte target = BuildingDB.BuildingTypeToTarget(buildingType);
-            if (_buildMode.Target.CurrentValue == target) _buildMode.Exit();
-            else                                           _buildMode.Toggle(target);
+            if (_buildMode.Target.CurrentValue == target)
+            {
+                _buildMode.Exit();
+            }
+            else
+            {
+                _buildMode.Toggle(target);
+                Close();
+            }
         }
 
         void Refresh()
