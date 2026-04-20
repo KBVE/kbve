@@ -214,11 +214,23 @@ namespace RareIcon
         /// </summary>
         public string GetGoblinName(ushort firstNameId, ushort epithetId)
         {
-            string first = UnitNaming.GetFirstName(firstNameId);
-            if (first.Length == 0) return string.Empty;
-            if (epithetId == 0) return first;
+            string first;
+            string epKey;
 
-            string epKey = UnitNaming.GetEpithetKey(epithetId);
+            if (UnitNaming.IsHeroFirstId(firstNameId))
+            {
+                first = UnitNaming.GetHeroFirstName(firstNameId);
+                epKey = UnitNaming.IsHeroEpithetId(epithetId)
+                    ? UnitNaming.GetHeroEpithetKey(epithetId)
+                    : UnitNaming.GetEpithetKey(epithetId);
+            }
+            else
+            {
+                first = UnitNaming.GetFirstName(firstNameId);
+                epKey = UnitNaming.GetEpithetKey(epithetId);
+            }
+
+            if (first.Length == 0) return string.Empty;
             if (epKey.Length == 0) return first;
 
             return ZString.Concat(first, " ", Get(epKey));
@@ -247,6 +259,8 @@ namespace RareIcon
                 ActivityKind.Cooking          => "activity.cooking",
                 ActivityKind.Guarding         => "activity.guarding",
                 ActivityKind.TravelingToWork  => "activity.traveling_to_work",
+                ActivityKind.Crafting         => "activity.crafting",
+                ActivityKind.Smithing         => "activity.smithing",
                 _ => string.Empty,
             };
             return key.Length == 0 ? string.Empty : Get(key);

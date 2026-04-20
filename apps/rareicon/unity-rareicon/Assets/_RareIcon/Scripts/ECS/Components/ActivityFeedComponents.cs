@@ -28,6 +28,8 @@ namespace RareIcon
         public const byte Cooking          = 16;
         public const byte Guarding         = 17;  // guard patrolling friendly territory or chasing intruder
         public const byte TravelingToWork  = 18;  // has a JobIntent but still en-route to the target hex
+        public const byte Crafting         = 19;
+        public const byte Smithing         = 20;
     }
 
     /// <summary>Per-snapshot activity payload pushed into the ring queue by the writer ISystem. POD; size kept compact (16 bytes) so a 1024-entry ring fits in a single page.</summary>

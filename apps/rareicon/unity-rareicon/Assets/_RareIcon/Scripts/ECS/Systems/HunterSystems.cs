@@ -12,81 +12,14 @@ namespace RareIcon
         public const int LivestockCapPerFarm = 100;
     }
 
-    /// <summary>Hunter-job units with no active goal target the nearest untamed PassiveAnimalTag within range; writes a Hunt MovementGoal so pathing takes over. Burst ISystem: main-thread gathers animal hex positions into a TempJob NativeList (each hunter only writes its own MovementGoal), then ScheduleParallel runs the per-hunter pick.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(JobSystem))]
     public partial struct WildlifeHuntBehaviorSystem : ISystem
     {
-        const int HuntRadius = 8;
-
         [BurstCompile] public void OnCreate(ref SystemState state) { }
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
-
-        [BurstCompile]
-        public void OnUpdate(ref SystemState state)
-        {
-            var animals = new NativeList<int2>(64, Allocator.TempJob);
-            foreach (var movement in
-                     SystemAPI.Query<RefRO<UnitMovement>>()
-                              .WithAll<PassiveAnimalTag>()
-                              .WithNone<TamedTag>())
-            {
-                animals.Add(movement.ValueRO.CurrentHex);
-            }
-
-            if (animals.Length == 0)
-            {
-                animals.Dispose();
-                return;
-            }
-
-            state.Dependency = new WildlifeHuntJob
-            {
-                Animals    = animals.AsDeferredJobArray(),
-                HuntRadius = HuntRadius,
-            }.ScheduleParallel(state.Dependency);
-
-            state.Dependency = animals.Dispose(state.Dependency);
-        }
-    }
-
-    [BurstCompile]
-    public partial struct WildlifeHuntJob : IJobEntity
-    {
-        [ReadOnly] public NativeArray<int2> Animals;
-        public int HuntRadius;
-
-        void Execute(in JobPriorities priorities, in UnitMovement movement, ref MovementGoal goal)
-        {
-            if (priorities.Hunter == 0) return;
-            if (goal.Priority > GoalPriority.Hunt) return;
-
-            var here = movement.CurrentHex;
-            int bestDist = int.MaxValue;
-            int2 bestHex = here;
-            bool found = false;
-            for (int i = 0; i < Animals.Length; i++)
-            {
-                int d = HexDistance(here, Animals[i]);
-                if (d > HuntRadius) continue;
-                if (d < bestDist) { bestDist = d; bestHex = Animals[i]; found = true; }
-            }
-
-            if (!found) return;
-            goal = new MovementGoal
-            {
-                Kind      = GoalKind.Hunt,
-                Priority  = GoalPriority.Hunt,
-                TargetHex = bestHex,
-            };
-        }
-
-        static int HexDistance(int2 a, int2 b)
-        {
-            int dq = a.x - b.x, dr = a.y - b.y;
-            return (math.abs(dq) + math.abs(dr) + math.abs(dq + dr)) / 2;
-        }
+        [BurstCompile] public void OnUpdate(ref SystemState state) { }
     }
 
     /// <summary>Tamed animals chase their OwnerRef's hex; runs before WanderBehaviorSystem so a Follow goal blocks the wander re-roll, but yields to Flee / player Order / Return.</summary>

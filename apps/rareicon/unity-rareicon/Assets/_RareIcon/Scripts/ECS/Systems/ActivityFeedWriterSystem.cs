@@ -72,6 +72,8 @@ namespace RareIcon
                 case JobKind.Builder:    return ActivityKind.Building;
                 case JobKind.Chef:       return ActivityKind.Cooking;
                 case JobKind.Hunter:     return ActivityKind.Hunting;
+                case JobKind.Blacksmith: return ActivityKind.Smithing;
+                case JobKind.Craftsman:  return ActivityKind.Crafting;
             }
 
             switch (goal.Kind)
