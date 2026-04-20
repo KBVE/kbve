@@ -17,13 +17,13 @@ namespace RareIcon
             var storageBufferLookup = SystemAPI.GetBufferLookup<InventorySlot>(isReadOnly: false);
 
             bool anyBarracksUnderstocked = false;
-            foreach (var (prod, storage) in
-                     SystemAPI.Query<RefRO<BarracksProduction>, DynamicBuffer<BarracksStorage>>()
+            foreach (var (cap, storage) in
+                     SystemAPI.Query<RefRO<StorageCapacity>, DynamicBuffer<InventorySlot>>()
                               .WithAll<BarracksTag>())
             {
                 int total = 0;
                 for (int i = 0; i < storage.Length; i++) total += storage[i].Count;
-                if (total < prod.ValueRO.StorageCapacity) { anyBarracksUnderstocked = true; break; }
+                if (total < cap.ValueRO.Total) { anyBarracksUnderstocked = true; break; }
             }
 
             foreach (var (movement, faction, invRO) in

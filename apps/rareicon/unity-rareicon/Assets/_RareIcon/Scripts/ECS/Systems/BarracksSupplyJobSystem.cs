@@ -4,13 +4,13 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Overrides idle Looter / Farmer JobIntents with a Barracks-supply task when an understocked Barracks exists and the Capital has the matching items. Two-phase routing (carrying → Barracks, empty → Capital) is refined each tick like BuilderJobSystem.</summary>
+    /// <summary>Overrides idle Looter / Farmer JobIntents with a Barracks-supply task when an understocked Barracks exists and the Capital has the matching items. Two-phase routing (carrying → Barracks, empty → Capital) is refined each tick like BuilderJobSystem. Understocked = building's InventorySlot total &lt; StorageCapacity.Total.</summary>
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(JobSystem))]
     [UpdateBefore(typeof(JobMovementExecutor))]
     public partial class BarracksSupplyJobSystem : SystemBase
     {
-        readonly List<(Entity Barracks, int2 Hex, int Stock, int Capacity)> _needy = new();
+        readonly List<(Entity Barracks, int2 Hex)> _needy = new();
 
         protected override void OnUpdate()
         {
@@ -18,15 +18,15 @@ namespace RareIcon
             int2 capitalHex = SystemAPI.GetComponent<Building>(capital).RootHex;
 
             _needy.Clear();
-            foreach (var (building, prod, storage, entity) in
-                     SystemAPI.Query<RefRO<Building>, RefRO<BarracksProduction>, DynamicBuffer<BarracksStorage>>()
+            foreach (var (building, cap, storage, entity) in
+                     SystemAPI.Query<RefRO<Building>, RefRO<StorageCapacity>, DynamicBuffer<InventorySlot>>()
                               .WithAll<BarracksTag>()
                               .WithEntityAccess())
             {
                 int total = 0;
                 for (int i = 0; i < storage.Length; i++) total += storage[i].Count;
-                if (total >= prod.ValueRO.StorageCapacity) continue;
-                _needy.Add((entity, building.ValueRO.RootHex, total, prod.ValueRO.StorageCapacity));
+                if (total >= cap.ValueRO.Total) continue;
+                _needy.Add((entity, building.ValueRO.RootHex));
             }
             if (_needy.Count == 0) return;
 
@@ -40,7 +40,7 @@ namespace RareIcon
                 byte currentKind = intentRW.ValueRO.Kind;
                 if (currentKind != JobKind.None && currentKind != JobKind.Looter) continue;
 
-                var (barracks, barracksHex, _, _) = NearestNeedy(movement.ValueRO.CurrentHex);
+                var (barracks, barracksHex) = NearestNeedy(movement.ValueRO.CurrentHex);
                 if (barracks == Entity.Null) continue;
 
                 bool carrying = CarriesSupply(inventory);
@@ -53,22 +53,18 @@ namespace RareIcon
             }
         }
 
-        (Entity, int2, int, int) NearestNeedy(int2 from)
+        (Entity, int2) NearestNeedy(int2 from)
         {
             Entity best = Entity.Null;
             int2   bestHex = default;
-            int    bestStock = 0, bestCap = 0, bestDist = int.MaxValue;
+            int    bestDist = int.MaxValue;
             for (int i = 0; i < _needy.Count; i++)
             {
                 var n = _needy[i];
                 int d = HexDistance(from, n.Hex);
-                if (d < bestDist)
-                {
-                    bestDist = d; best = n.Barracks; bestHex = n.Hex;
-                    bestStock = n.Stock; bestCap = n.Capacity;
-                }
+                if (d < bestDist) { bestDist = d; best = n.Barracks; bestHex = n.Hex; }
             }
-            return (best, bestHex, bestStock, bestCap);
+            return (best, bestHex);
         }
 
         static bool CarriesSupply(DynamicBuffer<InventorySlot> inv)

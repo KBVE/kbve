@@ -166,7 +166,7 @@ namespace RareIcon
                 "item.cooked_beef",    ItemCategory.Consumable, 32, 36,
                 restoreEnergy: 100f));
 
-            // Livestock production — emitted into FarmStorage by sheltered
+            // Livestock production — emitted into the farm's InventorySlot by sheltered
             // animals once per WorldClock cadence (chickens/cows every 2
             // turns, sheep every 10). Edible so they flow through the same
             // AutoEat / Empire withdraw pipelines as other food.

@@ -61,12 +61,18 @@ namespace RareIcon
     /// <summary>Marker tag for Farm buildings — production system query key.</summary>
     public struct FarmTag : IComponentData { }
 
-    /// <summary>Per-farm local inventory; production and livestock outputs land here before the surplus system drains to the Capital.</summary>
-    [InternalBufferCapacity(8)]
-    public struct FarmStorage : IBufferElementData
+    /// <summary>Optional per-building total-count ceiling. Absent = unlimited (current Capital behaviour). Haulers + producers read this to gate deposits.</summary>
+    public struct StorageCapacity : IComponentData
+    {
+        public ushort Total;
+    }
+
+    /// <summary>Optional per-item floor: "don't drain this ItemId below Reserve when shipping surplus out." Multiple entries per building allowed. Farm uses { Carrot, 8 } so livestock always has feed.</summary>
+    [InternalBufferCapacity(2)]
+    public struct StorageReserve : IBufferElementData
     {
         public ushort ItemId;
-        public ushort Count;
+        public ushort Reserve;
     }
 
     /// <summary>Per-farm sheltered-livestock entry; one per species currently in residence. LastProducedTurn is the WorldClock.TurnIndex of the last output. Kept for future fungible residents (bees, pond fish) — livestock (chicken / cow / sheep) now live as individual sheltered entities with a LivestockProduction component.</summary>
@@ -87,22 +93,13 @@ namespace RareIcon
     /// <summary>Marker tag for Barracks buildings — recruitment system query key.</summary>
     public struct BarracksTag : IComponentData { }
 
-    /// <summary>Per-barracks local inventory. Looters / Farmers haul BanditCoin + food here from the Capital; BarracksProductionSystem consumes on its turn cadence.</summary>
-    [InternalBufferCapacity(4)]
-    public struct BarracksStorage : IBufferElementData
-    {
-        public ushort ItemId;
-        public ushort Count;
-    }
-
-    /// <summary>Per-barracks recruitment cadence. Once per N turns, consumes CoinCost BanditCoin + FoodCost food (any ItemId flagged by FoodItems.IsFood) from BarracksStorage and spawns one Soldier on an adjacent hex. Capacity is the total-count ceiling haulers enforce when depositing.</summary>
+    /// <summary>Per-barracks recruitment cadence. Once per N turns, consumes CoinCost BanditCoin + FoodCost food (any ItemId flagged by FoodItems.IsFood) from the building's InventorySlot storage and spawns one Soldier on an adjacent hex. Storage capacity lives on the separate StorageCapacity component.</summary>
     public struct BarracksProduction : IComponentData
     {
         public uint   LastProducedTurn;
         public byte   CadenceTurns;
         public ushort CoinCost;
         public ushort FoodCost;
-        public ushort StorageCapacity;
     }
 
     /// <summary>Transient tag — placed on a building that hasn't been assigned a dedicated worker yet. BuildingStaffingSystem consumes this and stacks the matching role (Farm→Farmer, Barracks→Guard, Furnace→Chef, Capital→Builder) onto a pure-Looter goblin at priority 5, then removes the tag.</summary>
@@ -114,7 +111,7 @@ namespace RareIcon
     /// <summary>Marker tag for Goblin Cave buildings — production + refill system query key.</summary>
     public struct GoblinCaveTag : IComponentData { }
 
-    /// <summary>Per-cave turn-cadence state: consumes FoodPerGoblin rations from the cave's InventorySlot buffer each cadence turn and spawns one Looter-role goblin. Refill is handled by GoblinCaveRefillSystem, gated on Farmer-role presence in the empire.</summary>
+    /// <summary>Per-cave turn-cadence state: consumes FoodPerGoblin rations from the cave's InventorySlot buffer each cadence turn and spawns one Looter-role goblin. Refill is carried out by Looters — JobSystem routes any Looter with food toward a needy cave and any empty-handed Looter toward the Capital to pick up; CapitalFoodPickupSystem + CaveFoodDeliverySystem handle the two transfer legs.</summary>
     public struct GoblinCaveProduction : IComponentData
     {
         public uint LastProducedTurn;

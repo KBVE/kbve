@@ -45,10 +45,13 @@ namespace RareIcon
                         InputAmount   = 1,
                         OutputItemId  = (ushort)ItemId.Carrot,
                         OutputAmount  = 1,
-                        CycleEndsAt   = 0f,        // idle until first input pull
+                        CycleEndsAt   = 0f,
                         CycleDuration = 8f,
                     });
-                    EntityManager.AddBuffer<FarmStorage>(arr[i]);
+                    if (!EntityManager.HasBuffer<InventorySlot>(arr[i]))
+                        EntityManager.AddBuffer<InventorySlot>(arr[i]);
+                    var reserves = EntityManager.AddBuffer<StorageReserve>(arr[i]);
+                    reserves.Add(new StorageReserve { ItemId = (ushort)ItemId.Carrot, Reserve = 8 });
                     EntityManager.AddBuffer<FarmLivestock>(arr[i]);
                 }
             }

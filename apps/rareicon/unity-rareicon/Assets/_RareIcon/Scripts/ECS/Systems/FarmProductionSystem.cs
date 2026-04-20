@@ -3,16 +3,13 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Per-farm production loop — pulls inputs from the Capital (common supply), pushes outputs into the farm's own FarmStorage so livestock consumption eats them before surplus drains to the Capital.</summary>
+    /// <summary>Per-farm production loop — pulls inputs from the Capital (common supply), pushes outputs into the farm's own InventorySlot storage so livestock consumption eats them before surplus drains to the Capital.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct FarmProductionSystem : ISystem
     {
-        [BurstCompile]
-        public void OnCreate(ref SystemState state) { }
-
-        [BurstCompile]
-        public void OnDestroy(ref SystemState state) { }
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
@@ -25,51 +22,47 @@ namespace RareIcon
 
             state.Dependency = new FarmTickJob
             {
-                Capital           = capital,
-                CapitalLookup     = SystemAPI.GetBufferLookup<InventorySlot>(false),
-                FarmStorageLookup = SystemAPI.GetBufferLookup<FarmStorage>(false),
-                Now               = now,
+                Capital     = capital,
+                InvLookup   = SystemAPI.GetBufferLookup<InventorySlot>(false),
+                Now         = now,
             }.Schedule(state.Dependency);
         }
     }
 
-    /// <summary>Per-farm tick — consumes input from the Capital, deposits output into the farm's own FarmStorage.</summary>
+    /// <summary>Per-farm tick — consumes input from the Capital, deposits output into the farm's own InventorySlot buffer.</summary>
     [BurstCompile]
     public partial struct FarmTickJob : IJobEntity
     {
         public Entity Capital;
-        public BufferLookup<InventorySlot> CapitalLookup;
-        public BufferLookup<FarmStorage>   FarmStorageLookup;
+        [Unity.Collections.NativeDisableParallelForRestriction]
+        public BufferLookup<InventorySlot> InvLookup;
         public float Now;
 
         public void Execute(Entity farm, in FarmTag tag, ref FarmProduction prod)
         {
-            if (!FarmStorageLookup.HasBuffer(farm)) return;
-            var capitalStorage = CapitalLookup[Capital];
-            var farmStorage    = FarmStorageLookup[farm];
+            if (!InvLookup.HasBuffer(farm)) return;
+            var capitalStorage = InvLookup[Capital];
+            var farmStorage    = InvLookup[farm];
 
             if (prod.CycleEndsAt > 0f)
             {
                 if (Now < prod.CycleEndsAt) return;
-
-                AddFarm(ref farmStorage, prod.OutputItemId, prod.OutputAmount);
+                Add(ref farmStorage, prod.OutputItemId, prod.OutputAmount);
                 prod.CycleEndsAt = 0f;
                 return;
             }
 
-            if (!TryConsumeCapital(ref capitalStorage, prod.InputItemId, prod.InputAmount)) return;
+            if (!TryConsume(ref capitalStorage, prod.InputItemId, prod.InputAmount)) return;
             float duration = prod.CycleDuration * (1f - 0.5f * Unity.Mathematics.math.saturate(prod.TenderBonus));
             prod.CycleEndsAt = Now + duration;
         }
 
-        static bool TryConsumeCapital(ref DynamicBuffer<InventorySlot> storage,
-                                      ushort itemId, ushort amount)
+        static bool TryConsume(ref DynamicBuffer<InventorySlot> storage, ushort itemId, ushort amount)
         {
             for (int i = 0; i < storage.Length; i++)
             {
                 if (storage[i].ItemId != itemId) continue;
                 if (storage[i].Count < amount) return false;
-
                 var slot = storage[i];
                 slot.Count = (ushort)(slot.Count - amount);
                 storage[i] = slot;
@@ -78,8 +71,7 @@ namespace RareIcon
             return false;
         }
 
-        static void AddFarm(ref DynamicBuffer<FarmStorage> storage,
-                            ushort itemId, ushort amount)
+        static void Add(ref DynamicBuffer<InventorySlot> storage, ushort itemId, ushort amount)
         {
             for (int i = 0; i < storage.Length; i++)
             {
@@ -91,7 +83,7 @@ namespace RareIcon
                     return;
                 }
             }
-            storage.Add(new FarmStorage { ItemId = itemId, Count = amount });
+            storage.Add(new InventorySlot { ItemId = itemId, Count = amount });
         }
     }
 }

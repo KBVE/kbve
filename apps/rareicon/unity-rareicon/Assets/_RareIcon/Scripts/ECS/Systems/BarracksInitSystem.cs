@@ -3,7 +3,7 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Attaches BarracksStorage buffer + BarracksProduction component to any Barracks that's missing them. One-shot per entity — query filters on BarracksTag WithNone BarracksProduction.</summary>
+    /// <summary>Attaches an InventorySlot buffer + BarracksProduction + StorageCapacity to any Barracks that's missing them. One-shot per entity — query filters on BarracksTag WithNone BarracksProduction.</summary>
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class BarracksInitSystem : SystemBase
     {
@@ -23,15 +23,16 @@ namespace RareIcon
             for (int i = 0; i < entities.Length; i++)
             {
                 var e = entities[i];
-                em.AddBuffer<BarracksStorage>(e);
+                if (!em.HasBuffer<InventorySlot>(e))
+                    em.AddBuffer<InventorySlot>(e);
                 em.AddComponentData(e, new BarracksProduction
                 {
                     LastProducedTurn = 0,
                     CadenceTurns     = 1,
                     CoinCost         = 20,
                     FoodCost         = 20,
-                    StorageCapacity  = 200,
                 });
+                em.AddComponentData(e, new StorageCapacity { Total = 200 });
             }
         }
     }

@@ -7,11 +7,10 @@ using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>Caps Carrot reserve a farm holds back for livestock feed; anything above drains to Capital each tick.</summary>
+    /// <summary>Global farm tuning. Per-item floors (Carrot etc.) now live per-entity on StorageReserve, so only the cross-farm livestock cap remains here.</summary>
     public static class FarmRanchConfig
     {
-        public const int CarrotReserve       = 8;    // carrots kept locally per farm (livestock feed)
-        public const int LivestockCapPerFarm = 100;  // total animals across all species
+        public const int LivestockCapPerFarm = 100;
     }
 
     /// <summary>Hunter-job units with no active goal target the nearest untamed PassiveAnimalTag within range; writes a Hunt MovementGoal so pathing takes over.</summary>
@@ -170,7 +169,7 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Per-animal turn-cadence production: Chicken+Cow every 2 turns (Egg / Milk), Sheep every 10 (Wool). Each cycle consumes 1 Carrot from the host farm's FarmStorage and emits 1 output; if no carrots, the animal's LastProducedTurn stays put so it catches up when feed returns.</summary>
+    /// <summary>Per-animal turn-cadence production: Chicken+Cow every 2 turns (Egg / Milk), Sheep every 10 (Wool). Each cycle consumes 1 Carrot from the host farm's InventorySlot storage and emits 1 output; if no carrots, the animal's LastProducedTurn stays put so it catches up when feed returns.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(FarmDepositSystem))]
     public partial class FarmLivestockProductionSystem : SystemBase
@@ -197,7 +196,7 @@ namespace RareIcon
                 list.Add(entity);
             }
 
-            var storageLookup = SystemAPI.GetBufferLookup<FarmStorage>(false);
+            var storageLookup = SystemAPI.GetBufferLookup<InventorySlot>(false);
             var unitLookup    = SystemAPI.GetComponentLookup<Unit>(true);
             var prodLookup    = SystemAPI.GetComponentLookup<LivestockProduction>(false);
 
@@ -239,7 +238,7 @@ namespace RareIcon
             }
         }
 
-        static bool TryConsume(ref DynamicBuffer<FarmStorage> storage, ushort itemId, ushort amount)
+        static bool TryConsume(ref DynamicBuffer<InventorySlot> storage, ushort itemId, ushort amount)
         {
             for (int i = 0; i < storage.Length; i++)
             {
@@ -253,7 +252,7 @@ namespace RareIcon
             return false;
         }
 
-        static void AddStorage(ref DynamicBuffer<FarmStorage> storage, ushort itemId, ushort amount)
+        static void AddStorage(ref DynamicBuffer<InventorySlot> storage, ushort itemId, ushort amount)
         {
             for (int i = 0; i < storage.Length; i++)
             {
@@ -265,11 +264,11 @@ namespace RareIcon
                     return;
                 }
             }
-            storage.Add(new FarmStorage { ItemId = itemId, Count = amount });
+            storage.Add(new InventorySlot { ItemId = itemId, Count = amount });
         }
     }
 
-    /// <summary>Drains FarmStorage into the Capital each tick, retaining a small Carrot reserve so livestock can still feed on the next production cycle.</summary>
+    /// <summary>Drains farm InventorySlot surpluses into the Capital each tick; per-item floors come from StorageReserve entries on the farm (default farm seeds Carrot = 8).</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(FarmLivestockProductionSystem))]
     public partial class FarmSurplusTransferSystem : SystemBase
@@ -281,31 +280,33 @@ namespace RareIcon
 
             var capitalStorage = SystemAPI.GetBuffer<InventorySlot>(capital);
 
-            foreach (var storageRO in SystemAPI.Query<DynamicBuffer<FarmStorage>>().WithAll<FarmTag>())
+            foreach (var (storageRO, reservesRO) in
+                     SystemAPI.Query<DynamicBuffer<InventorySlot>, DynamicBuffer<StorageReserve>>()
+                              .WithAll<FarmTag>())
             {
-                var storage = storageRO;
+                var storage  = storageRO;
+                var reserves = reservesRO;
                 for (int i = 0; i < storage.Length; i++)
                 {
                     var slot = storage[i];
                     if (slot.Count == 0) continue;
 
-                    // Carrots: retain reserve, ship the rest.
-                    ushort move;
-                    if (slot.ItemId == (ushort)ItemId.Carrot)
-                    {
-                        if (slot.Count <= FarmRanchConfig.CarrotReserve) continue;
-                        move = (ushort)(slot.Count - FarmRanchConfig.CarrotReserve);
-                    }
-                    else
-                    {
-                        move = slot.Count;
-                    }
+                    ushort floor = ReserveFor(reserves, slot.ItemId);
+                    if (slot.Count <= floor) continue;
 
+                    ushort move = (ushort)(slot.Count - floor);
                     AddCapital(capitalStorage, slot.ItemId, move);
                     slot.Count = (ushort)(slot.Count - move);
                     storage[i] = slot;
                 }
             }
+        }
+
+        static ushort ReserveFor(DynamicBuffer<StorageReserve> reserves, ushort itemId)
+        {
+            for (int i = 0; i < reserves.Length; i++)
+                if (reserves[i].ItemId == itemId) return reserves[i].Reserve;
+            return 0;
         }
 
         static void AddCapital(DynamicBuffer<InventorySlot> storage, ushort itemId, ushort amount)

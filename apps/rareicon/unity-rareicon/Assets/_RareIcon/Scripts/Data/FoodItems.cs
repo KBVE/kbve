@@ -33,13 +33,5 @@ namespace RareIcon
                 if (IsFood(inv[i].ItemId)) total += inv[i].Count;
             return total;
         }
-
-        public static int Count(DynamicBuffer<BarracksStorage> inv)
-        {
-            int total = 0;
-            for (int i = 0; i < inv.Length; i++)
-                if (IsFood(inv[i].ItemId)) total += inv[i].Count;
-            return total;
-        }
     }
 }

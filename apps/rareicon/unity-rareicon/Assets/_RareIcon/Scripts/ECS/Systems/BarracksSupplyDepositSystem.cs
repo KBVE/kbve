@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Two-phase transport for Looter/Farmer haulers targeting a Barracks: on Capital hex with an empty inventory, pick up 1 BanditCoin or 1 food item; on the Barracks root hex, deposit matching carried items into BarracksStorage (respecting the StorageCapacity ceiling). Runs on the main thread — shared buffers + low unit counts make the bursted-job gain marginal.</summary>
+    /// <summary>Two-phase transport for Looter / Farmer haulers targeting a Barracks: on the Capital hex with an empty inventory, pick up 1 BanditCoin or 1 food item; on the Barracks root hex, deposit matching carried items into the Barracks' InventorySlot buffer, respecting StorageCapacity. Main-thread SystemBase — shared buffers + low unit counts make bursted scheduling marginal.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireSharingSystem))]
     public partial class BarracksSupplyDepositSystem : SystemBase
@@ -14,34 +14,38 @@ namespace RareIcon
 
             var capitalInv = EntityManager.GetBuffer<InventorySlot>(capital);
 
-            foreach (var (intent, movement, inventory) in
+            foreach (var (intent, movement, inventoryRO) in
                      SystemAPI.Query<RefRO<JobIntent>, RefRO<UnitMovement>, DynamicBuffer<InventorySlot>>())
             {
+                var inventory = inventoryRO;
+
                 if (intent.ValueRO.Kind != JobKind.Looter) continue;
                 var target = intent.ValueRO.TargetEntity;
                 if (target == Entity.Null) continue;
                 if (!SystemAPI.HasComponent<BarracksTag>(target)) continue;
+                if (!SystemAPI.HasComponent<StorageCapacity>(target)) continue;
                 if (!SystemAPI.HasComponent<BarracksProduction>(target)) continue;
 
                 var here = movement.ValueRO.CurrentHex;
                 var rootHex = SystemAPI.GetComponent<Building>(target).RootHex;
                 var prod = SystemAPI.GetComponent<BarracksProduction>(target);
+                ushort cap = SystemAPI.GetComponent<StorageCapacity>(target).Total;
 
                 if (here.Equals(rootHex))
                 {
-                    var storage = SystemAPI.GetBuffer<BarracksStorage>(target);
-                    DepositSupply(inventory, storage, prod.StorageCapacity);
+                    var storage = SystemAPI.GetBuffer<InventorySlot>(target);
+                    DepositSupply(inventory, storage, cap);
                     continue;
                 }
 
                 if (IsOnCapital(here, capital))
                 {
-                    var storage = SystemAPI.GetBuffer<BarracksStorage>(target);
+                    var storage = SystemAPI.GetBuffer<InventorySlot>(target);
                     int total = StorageTotal(storage);
-                    if (total >= prod.StorageCapacity) continue;
+                    if (total >= cap) continue;
 
                     int coinShortfall = math.max(0, prod.CoinCost - StorageCount(storage, (ushort)ItemId.BanditCoin));
-                    int foodShortfall = math.max(0, prod.FoodCost - StorageFoodCount(storage));
+                    int foodShortfall = math.max(0, prod.FoodCost - FoodItems.Count(storage));
 
                     if (coinShortfall > 0) TryPickupOne(capitalInv, inventory, (ushort)ItemId.BanditCoin);
                     else if (foodShortfall > 0) TryPickupFood(capitalInv, inventory);
@@ -57,26 +61,18 @@ namespace RareIcon
             return SystemAPI.GetComponent<HexOccupant>(tile).Building == capital;
         }
 
-        static int StorageTotal(DynamicBuffer<BarracksStorage> inv)
+        static int StorageTotal(DynamicBuffer<InventorySlot> inv)
         {
             int t = 0;
             for (int i = 0; i < inv.Length; i++) t += inv[i].Count;
             return t;
         }
 
-        static int StorageCount(DynamicBuffer<BarracksStorage> inv, ushort itemId)
+        static int StorageCount(DynamicBuffer<InventorySlot> inv, ushort itemId)
         {
             int t = 0;
             for (int i = 0; i < inv.Length; i++)
                 if (inv[i].ItemId == itemId) t += inv[i].Count;
-            return t;
-        }
-
-        static int StorageFoodCount(DynamicBuffer<BarracksStorage> inv)
-        {
-            int t = 0;
-            for (int i = 0; i < inv.Length; i++)
-                if (FoodItems.IsFood(inv[i].ItemId)) t += inv[i].Count;
             return t;
         }
 
@@ -112,7 +108,7 @@ namespace RareIcon
         }
 
         static void DepositSupply(DynamicBuffer<InventorySlot> unitInv,
-                                  DynamicBuffer<BarracksStorage> storage,
+                                  DynamicBuffer<InventorySlot> storage,
                                   ushort capacity)
         {
             int remaining = capacity - StorageTotal(storage);
@@ -129,7 +125,7 @@ namespace RareIcon
                 uslot.Count = (ushort)(uslot.Count - take);
                 unitInv[i] = uslot;
                 remaining -= take;
-                MergeOrAddStorage(storage, id, (ushort)take);
+                MergeOrAdd(storage, id, (ushort)take);
             }
         }
 
@@ -146,21 +142,6 @@ namespace RareIcon
                 }
             }
             inv.Add(new InventorySlot { ItemId = itemId, Count = amount });
-        }
-
-        static void MergeOrAddStorage(DynamicBuffer<BarracksStorage> inv, ushort itemId, ushort amount)
-        {
-            for (int i = 0; i < inv.Length; i++)
-            {
-                if (inv[i].ItemId == itemId)
-                {
-                    var slot = inv[i];
-                    slot.Count = (ushort)math.min(slot.Count + amount, ushort.MaxValue);
-                    inv[i] = slot;
-                    return;
-                }
-            }
-            inv.Add(new BarracksStorage { ItemId = itemId, Count = amount });
         }
     }
 }
