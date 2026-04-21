@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Ulid.MessagePack</id>
+    <version>1.4.1</version>
+    <authors>Cysharp</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>Icon.png</icon>
+    <projectUrl>https://github.com/Cysharp/Ulid</projectUrl>
+    <description>Ulid MessagePack Formatter.</description>
+    <copyright>© Cysharp, Inc.</copyright>
+    <tags>guid</tags>
+    <repository type="git" url="https://github.com/Cysharp/Ulid" commit="1bd7c099b51f17ed8c4cef5e8e7ef1864a2ecc9a" />
+    <dependencies>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="Ulid" version="1.4.1" exclude="Build,Analyzers" />
+        <dependency id="MessagePack" version="2.1.90" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.1">
+        <dependency id="Ulid" version="1.4.1" exclude="Build,Analyzers" />
+        <dependency id="MessagePack" version="2.1.90" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

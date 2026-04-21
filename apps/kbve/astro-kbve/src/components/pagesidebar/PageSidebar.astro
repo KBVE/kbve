@@ -53,8 +53,16 @@ const currentSlug = url
 	</a>
 </div>
 
-<!-- Site graph + backlinks — lazy-loaded on right sidebar expand -->
-<SiteGraphLoader client:only="react" currentSlug={currentSlug} />
+<!-- Site graph + backlinks — lazy-loaded on right sidebar expand.
+	 `.sg-slot` reserves vertical space at SSR time so React's client:only
+	 mount doesn't layout-shift. Spinner auto-hides via :has() once the
+	 `.sg-container` node appears. -->
+<div class="sg-slot">
+	<div class="sg-slot-loading" aria-hidden="true">
+		<div class="sg-spinner"></div>
+	</div>
+	<SiteGraphLoader client:only="react" currentSlug={currentSlug} />
+</div>
 
 <!-- Bento card dock — hidden cards appear here as restore buttons -->
 <BentoDock client:only="react" />
@@ -64,3 +72,7 @@ const currentSlug = url
 </Default>
 
 <br />
+
+<script>
+	import './right-sidebar';
+</script>

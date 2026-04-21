@@ -21,6 +21,8 @@ namespace RareIcon
                 OverUI = false,
                 LeftPressedThisFrame = false,
                 LeftReleasedThisFrame = false,
+                IsDragging = false,
+                DragEndedThisFrame = false,
             });
         }
 
@@ -38,6 +40,8 @@ namespace RareIcon
                 OverUI = snap.OverUI,
                 LeftPressedThisFrame = snap.LeftPressedThisFrame,
                 LeftReleasedThisFrame = snap.LeftReleasedThisFrame,
+                IsDragging = snap.IsDragging,
+                DragEndedThisFrame = snap.DragEndedThisFrame,
             });
         }
     }

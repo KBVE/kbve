@@ -21,9 +21,22 @@
 // Uniforms read from the parent shader's UnityPerMaterial CBUFFER:
 //   _TrunkColor, _CanopyDark, _CanopyMid, _CanopyLight
 // Helpers (rectMask, circleMask, hash21) come from HexShared.hlsl.
-float3 ApplyPixelTree(float3 ground, float2 px, float grid, float seed)
+//
+// `amount` is the per-instance _TreeAmount (HexResources.Wood / 100):
+// the natural 1..3 tree roll is capped to ceil(amount * 3), so a
+// half-harvested hex shows fewer trees than a full forest, and a
+// clear-cut hex (amount = 0) is gated out by the caller before this
+// function ever runs.
+float3 ApplyPixelTree(float3 ground, float2 px, float grid, float seed, float amount)
 {
-    int treeCount = 1 + (int)(hash21(float2(seed, 100.0)) * 2.99);
+    int rolledCount = 1 + (int)(hash21(float2(seed, 100.0)) * 2.99);
+    int amountCap   = clamp((int)ceil(amount * 3.0), 1, 3);
+    int treeCount   = min(rolledCount, amountCap);
+
+    // Pixel-space scale (1.0 at legacy 16-grid, 2.0 at 32-grid bump).
+    // Every raw pixel offset / size / radius multiplies by s; grid-relative
+    // coords (e.g. `grid * 0.5`) already track density automatically.
+    float s = grid * 0.0625;
 
     float trunkMask = 0.0;
     float trunkLightMask = 0.0;
@@ -32,7 +45,7 @@ float3 ApplyPixelTree(float3 ground, float2 px, float grid, float seed)
     float canopySunMask = 0.0;
     float minDist = 1e6;
     float2 nearestCenter = 0.0;
-    float nearestRadius = 1.0;
+    float nearestRadius = 1.0 * s;
 
     [unroll]
     for (int t = 0; t < 3; t++)
@@ -46,28 +59,28 @@ float3 ApplyPixelTree(float3 ground, float2 px, float grid, float seed)
             floor((hash21(float2(ts, 22.0)) - 0.5) * grid * 0.25));
 
         // Trunk core: 3 wide × 5 tall column.
-        float trunkCore = rectMask(px, c + float2(-1, -5), float2(3, 5));
+        float trunkCore = rectMask(px, c + float2(-1, -5) * s, float2(3, 5) * s);
 
         // Root flare: 60% of trees spread to 5 px on the bottom row.
         float flared = step(0.40, hash21(float2(ts, 77.0)));
-        float rootOx = lerp(-1.0, -2.0, flared);
-        float rootW  = lerp( 3.0,  5.0, flared);
-        float trunkRoot = rectMask(px, c + float2(rootOx, -5),
-                                   float2(rootW, 1));
+        float rootOx = lerp(-1.0, -2.0, flared) * s;
+        float rootW  = lerp( 3.0,  5.0, flared) * s;
+        float trunkRoot = rectMask(px, c + float2(rootOx, -5 * s),
+                                   float2(rootW, 1 * s));
 
         // Buttress knuckles one pixel out from the trunk on row c.y-4.
         // Gate with step() so the loop stays unroll-friendly.
         float buttressGate = step(0.55, hash21(float2(ts, 88.0)));
-        float buttressL = rectMask(px, c + float2(-2, -4), float2(1, 1));
-        float buttressR = rectMask(px, c + float2( 2, -4), float2(1, 1));
+        float buttressL = rectMask(px, c + float2(-2, -4) * s, float2(1, 1) * s);
+        float buttressR = rectMask(px, c + float2( 2, -4) * s, float2(1, 1) * s);
         float buttress = max(buttressL, buttressR) * buttressGate;
 
         trunkMask = max(trunkMask,
             max(trunkCore, max(trunkRoot, buttress)));
         trunkLightMask = max(trunkLightMask,
-            rectMask(px, c + float2(-1, -4), float2(1, 4)));
+            rectMask(px, c + float2(-1, -4) * s, float2(1, 4) * s));
         trunkShadeMask = max(trunkShadeMask,
-            rectMask(px, c + float2( 1, -4), float2(1, 4)));
+            rectMask(px, c + float2( 1, -4) * s, float2(1, 4) * s));
 
         // Canopy: up to 6 blobs, first two guaranteed.
         [unroll]
@@ -78,9 +91,9 @@ float3 ApplyPixelTree(float3 ground, float2 px, float grid, float seed)
             if (!present) continue;
 
             float2 bo = float2(
-                (hash21(float2(bs, 44.0)) - 0.5) * 7.0,
-                hash21(float2(bs, 55.0)) * 3.8 + 0.8);
-            float br = 2.5 + hash21(float2(bs, 66.0)) * 2.5;
+                (hash21(float2(bs, 44.0)) - 0.5) * 7.0 * s,
+                hash21(float2(bs, 55.0)) * 3.8 * s + 0.8 * s);
+            float br = (2.5 + hash21(float2(bs, 66.0)) * 2.5) * s;
             float2 bc = c + bo;
             canopyMask = max(canopyMask, circleMask(px, bc, br));
 
@@ -96,9 +109,9 @@ float3 ApplyPixelTree(float3 ground, float2 px, float grid, float seed)
             // canopyMask later so it never paints outside the silhouette.
             if (b == 0)
             {
-                float sunR = max(br - 2.8, 1.0);
+                float sunR = max(br - 2.8 * s, 1.0 * s);
                 canopySunMask = max(canopySunMask,
-                    circleMask(px, bc + float2(-1.5, 1.5), sunR));
+                    circleMask(px, bc + float2(-1.5, 1.5) * s, sunR));
             }
         }
     }

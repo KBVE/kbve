@@ -40,6 +40,7 @@ Shader "RareIcon/HexRiver"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Includes/OceanWater.hlsl"
+            #include "Includes/WorldAmbient.hlsl"
 
             struct Attributes
             {
@@ -114,7 +115,7 @@ Shader "RareIcon/HexRiver"
                 float right = smoothstep(0.0, _EdgeFade, (1.0 - u) - bankR);
                 float edge  = left * right;
 
-                return float4(water, edge);
+                return float4(ApplyWorldAmbient(water), edge);
             }
             ENDHLSL
         }

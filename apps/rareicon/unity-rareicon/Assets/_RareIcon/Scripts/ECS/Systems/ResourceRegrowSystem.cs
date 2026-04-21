@@ -38,6 +38,14 @@ namespace RareIcon
         const float BerryRegrowChance    = 0.04f;
         const float HerbRegrowChance     = 0.03f;
         const float WoodRegrowChance     = 0.01f;
+        // Slowest: sand is meant to feel sparse — ~15–20 min to refill.
+        const float CactusRegrowChance   = 0.006f;
+        // Tree byproducts — leaves drop fast (forest floor litter), branches
+        // slower (wind / aging). Tuned faster than wood so a goblin
+        // gathering loop actually outpaces the regen and creates the supply
+        // pressure that the Compost recipe consumes.
+        const float LeavesRegrowChance   = 0.06f;
+        const float BranchesRegrowChance = 0.03f;
 
         float _accumTime;
         uint  _tickCounter; // perturbs per-hex hash so successive ticks diverge
@@ -61,12 +69,15 @@ namespace RareIcon
             _tickCounter++;
             uint tick = _tickCounter;
 
-            foreach (var (hexCoord, biome, resourcesRW, visualRW) in
+            foreach (var (hexCoord, biome, resourcesRW, visualRW, treeRW, floorRW, cactusRW) in
                      SystemAPI.Query<
                          RefRO<HexCoord>,
                          RefRO<BiomeType>,
                          RefRW<HexResources>,
-                         RefRW<HexResourceVisual>>())
+                         RefRW<HexResourceVisual>,
+                         RefRW<HexTreeVisual>,
+                         RefRW<HexFloorAmounts>,
+                         RefRW<HexCactusVisual>>())
             {
                 int  q = hexCoord.ValueRO.Q;
                 int  r = hexCoord.ValueRO.R;
@@ -87,6 +98,17 @@ namespace RareIcon
                 changed |= TryRegrow(ref current.Berries,   maxes.Berries,   BerryRegrowChance,    ref h);
                 changed |= TryRegrow(ref current.Herbs,     maxes.Herbs,     HerbRegrowChance,     ref h);
                 changed |= TryRegrow(ref current.Wood,      maxes.Wood,      WoodRegrowChance,     ref h);
+                changed |= TryRegrow(ref current.Leaves,    maxes.Leaves,    LeavesRegrowChance,   ref h);
+                changed |= TryRegrow(ref current.Branches,  maxes.Branches,  BranchesRegrowChance, ref h);
+                // Cactus: restore the original variant when a depleted tile
+                // regrows its first charge, so the shader picks the correct
+                // silhouette again.
+                if (TryRegrow(ref current.Cactus, maxes.Cactus, CactusRegrowChance, ref h))
+                {
+                    if (current.CactusVariant == CactusVariantType.None)
+                        current.CactusVariant = maxes.CactusVariant;
+                    changed = true;
+                }
                 // Stone: never regrows.
 
                 if (!changed) continue;
@@ -98,6 +120,21 @@ namespace RareIcon
                 visualRW.ValueRW = new HexResourceVisual
                 {
                     Value = HexResourceTable.ComputeVisualMask(in current)
+                };
+                // Continuous-amount visuals — shader scales decoration
+                // count by these so mid-regrowth hexes look distinct
+                // from fully-stocked ones.
+                treeRW.ValueRW = new HexTreeVisual
+                {
+                    Value = HexResourceTable.ComputeTreeAmount(in current)
+                };
+                floorRW.ValueRW = new HexFloorAmounts
+                {
+                    Value = HexResourceTable.ComputeFloorAmounts(in current)
+                };
+                cactusRW.ValueRW = new HexCactusVisual
+                {
+                    Value = HexResourceTable.ComputeCactusAmount(in current)
                 };
             }
         }

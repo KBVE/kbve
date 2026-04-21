@@ -110,13 +110,13 @@ namespace RareIcon
             buttonRow.style.justifyContent = Justify.SpaceAround;
             buttonRow.style.width = Length.Percent(100);
 
-            _confirmButton = UIStyles.MakeYorhaButton("Confirm", OnConfirm);
+            _confirmButton = UIStyles.MakeButton("Confirm", OnConfirm);
             _confirmButton.style.width = 120;
             _confirmButton.style.height = 36;
 
             // Cancel uses the alert palette so it reads as a destructive
-            // action. Hover-invert behaviour from MakeYorhaButton still applies.
-            _cancelButton = UIStyles.MakeYorhaButton("Cancel", OnCancel);
+            // action. Hover-invert behaviour from MakeButton still applies.
+            _cancelButton = UIStyles.MakeButton("Cancel", OnCancel);
             _cancelButton.style.width = 120;
             _cancelButton.style.height = 36;
             _cancelButton.style.BorderColor(UIStyles.Palette.Alert);

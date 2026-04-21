@@ -24,6 +24,9 @@ namespace RareIcon
                 case ResourceTag.Berries:   return (ushort)ItemId.Berry;
                 case ResourceTag.Mushrooms: return (ushort)ItemId.Mushroom;
                 case ResourceTag.Herbs:     return (ushort)ItemId.Herb;
+                case ResourceTag.Leaves:    return (ushort)ItemId.Leaves;
+                case ResourceTag.Branches:  return (ushort)ItemId.Branches;
+                case ResourceTag.Sand:      return (ushort)ItemId.NaturalSand;
                 default:                    return 0;
             }
         }
@@ -42,5 +45,9 @@ namespace RareIcon
         public const byte Berries   = 3;
         public const byte Mushrooms = 4;
         public const byte Herbs     = 5;
+        public const byte Cactus    = 6;
+        public const byte Leaves    = 7;
+        public const byte Branches  = 8;
+        public const byte Sand      = 9;
     }
 }

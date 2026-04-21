@@ -1,0 +1,98 @@
+using Unity.Entities;
+using Unity.Mathematics;
+
+namespace RareIcon
+{
+    /// <summary>Per-tick activity classifier for Player units. Walks the (ReliefIntent → ProfessionIntent → MovementGoal) chain, derives an ActivityKind, and pushes a delta-only snapshot straight into ActivityFeedService. Main-thread SystemBase — player-unit counts (16-200) make the managed path free, and it sidesteps the UnsafeRingQueue cross-copy hazard the previous ring-queue design hit.</summary>
+    [UpdateInGroup(typeof(BehaviorSystemGroup))]
+    [UpdateAfter(typeof(JobMovementExecutor))]
+    [UpdateAfter(typeof(WanderBehaviorSystem))]
+    [UpdateAfter(typeof(ReturnToBaseSystem))]
+    public partial class ActivityFeedWriterSystem : SystemBase
+    {
+        protected override void OnUpdate()
+        {
+            var service = ActivityFeedBridge.Source;
+            if (service == null) return;
+
+            foreach (var (stateRW, jobIntent, reliefIntent, goal, movement, entity) in
+                     SystemAPI.Query<
+                         RefRW<ActivityState>,
+                         RefRO<ProfessionIntent>,
+                         RefRO<ReliefIntent>,
+                         RefRO<MovementGoal>,
+                         RefRO<UnitMovement>>()
+                              .WithAll<ProfessionPriorities>()
+                              .WithEntityAccess())
+            {
+                byte kind = Classify(
+                    reliefIntent.ValueRO,
+                    jobIntent.ValueRO,
+                    goal.ValueRO,
+                    movement.ValueRO.CurrentHex);
+
+                if (kind == stateRW.ValueRO.LastKind) continue;
+                stateRW.ValueRW.LastKind = kind;
+
+                int2 targetHex = jobIntent.ValueRO.TargetHex;
+                if (math.all(targetHex == int2.zero) && goal.ValueRO.Kind != GoalKind.None)
+                    targetHex = goal.ValueRO.TargetHex;
+
+                service.Push(new ActivitySnapshot
+                {
+                    Entity       = entity,
+                    Kind         = kind,
+                    TargetHex    = targetHex,
+                    TargetItemId = 0,
+                });
+            }
+        }
+
+        static byte Classify(in ReliefIntent relief, in ProfessionIntent job, in MovementGoal goal, int2 currentHex)
+        {
+            switch (relief.Kind)
+            {
+                case ReliefKind.Eat:             return ActivityKind.Eating;
+                case ReliefKind.Sleep:           return ActivityKind.Sleeping;
+                case ReliefKind.Heal:            return ActivityKind.Healing;
+                case ReliefKind.ReturnToCapital: return ActivityKind.ReturningToBase;
+                case ReliefKind.SeekAid:         return ActivityKind.SeekingAid;
+            }
+
+            if (job.Kind != ProfessionKind.None && !math.all(job.TargetHex == currentHex))
+                return ActivityKind.TravelingToWork;
+
+            switch (job.Kind)
+            {
+                case ProfessionKind.Lumberjack: return ActivityKind.Lumberjacking;
+                case ProfessionKind.Miner:      return ActivityKind.Mining;
+                case ProfessionKind.Guard:      return ActivityKind.Guarding;
+                case ProfessionKind.Looter:     return ActivityKind.Looting;
+                case ProfessionKind.Farmer:     return ActivityKind.Farming;
+                case ProfessionKind.Builder:    return ActivityKind.Building;
+                case ProfessionKind.Chef:       return ActivityKind.Cooking;
+                case ProfessionKind.Hunter:     return ActivityKind.Hunting;
+                case ProfessionKind.Blacksmith: return ActivityKind.Smithing;
+                case ProfessionKind.Craftsman:  return ActivityKind.Crafting;
+                case ProfessionKind.Medic:      return ActivityKind.Healing;
+            }
+
+            switch (goal.Kind)
+            {
+                case GoalKind.MoveToHex:
+                    return goal.Priority == GoalPriority.Order
+                        ? ActivityKind.MovingToOrder
+                        : ActivityKind.Wandering;
+                case GoalKind.Wander:
+                case GoalKind.Follow:
+                    return ActivityKind.Wandering;
+                case GoalKind.ReturnToBase:
+                    return ActivityKind.ReturningToBase;
+                case GoalKind.Hunt:
+                    return ActivityKind.Hunting;
+            }
+
+            return ActivityKind.Idle;
+        }
+    }
+}

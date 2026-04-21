@@ -15,7 +15,7 @@ Shader "RareIcon/HexTile"
 
         // Procedural pixel trees — composited inside the tile, no extra geometry.
         _TreeDensity   ("Tree Density (0=none, 1=every tile)", Range(0,1)) = 0.0
-        _TreePixelGrid ("Tree Pixel Grid (resolution per tile)", Float)    = 16.0
+        _TreePixelGrid ("Tree Pixel Grid (resolution per tile)", Float)    = 32.0
         _TrunkColor    ("Trunk Color", Color)        = (0.25, 0.16, 0.10, 1)
         _CanopyDark    ("Canopy Dark", Color)        = (0.10, 0.30, 0.10, 1)
         _CanopyMid     ("Canopy Mid", Color)         = (0.18, 0.45, 0.18, 1)
@@ -25,6 +25,9 @@ Shader "RareIcon/HexTile"
         // which decorations appear (a hex can show several at once).
         _FloorDensity  ("Floor Density (0=none, 1=every tile)", Range(0,1)) = 0.0
         _ResourceType  ("Resource Mask (per-instance bitmask)", Float) = 0
+        _TreeAmount    ("Tree Amount (per-instance, 0=cleared, 1=full forest)", Range(0,1)) = 1.0
+        _FloorAmounts  ("Floor Amounts xyzw = Stone/Berries/Mushrooms/Herbs (per-instance, 0..1)", Vector) = (1,1,1,1)
+        _CactusAmount  ("Cactus Amount (per-instance, 0..1)", Range(0,1)) = 1.0
         _StoneColor    ("Stone / Boulder Color", Color)    = (0.55, 0.55, 0.50, 1)
         _StoneShade    ("Stone Shade Color", Color)        = (0.35, 0.35, 0.32, 1)
         _BerryBushColor("Berry Bush Foliage Color", Color) = (0.16, 0.38, 0.16, 1)
@@ -32,6 +35,17 @@ Shader "RareIcon/HexTile"
         _MushroomCap   ("Mushroom Cap Color", Color)       = (0.78, 0.22, 0.22, 1)
         _MushroomStem  ("Mushroom Stem Color", Color)      = (0.92, 0.88, 0.78, 1)
         _HerbColor     ("Herb Color", Color)               = (0.45, 0.65, 0.30, 1)
+        _CactusBody       ("Cactus Body Color",      Color) = (0.30, 0.55, 0.28, 1)
+        _CactusBodyShade  ("Cactus Body Shade",      Color) = (0.18, 0.38, 0.20, 1)
+        _CactusSpine      ("Cactus Spine Color",     Color) = (0.96, 0.94, 0.82, 1)
+        _CactusFlower     ("Prickly Pear Fruit",     Color) = (0.86, 0.25, 0.55, 1)
+        _DragonfruitFlesh ("Dragonfruit Bulb Color", Color) = (0.90, 0.18, 0.40, 1)
+
+        // Territory — per-instance float written by TerritoryBakeSystem.
+        //  0 = outside empire, 1 = interior (subtle tint), 2 = edge (gold line).
+        _Territory        ("Territory (per-instance)", Float)   = 0
+        _TerritoryEdge    ("Territory Edge Color",     Color)   = (1.00, 0.82, 0.25, 1)
+        _TerritoryTint    ("Territory Interior Tint",  Color)   = (0.98, 0.78, 0.40, 1)
     }
 
     SubShader
@@ -87,6 +101,9 @@ Shader "RareIcon/HexTile"
                 float4 _CanopyLight;
                 float _FloorDensity;
                 float _ResourceType;
+                float _TreeAmount;
+                float4 _FloorAmounts;
+                float _CactusAmount;
                 float4 _StoneColor;
                 float4 _StoneShade;
                 float4 _BerryBushColor;
@@ -94,6 +111,14 @@ Shader "RareIcon/HexTile"
                 float4 _MushroomCap;
                 float4 _MushroomStem;
                 float4 _HerbColor;
+                float4 _CactusBody;
+                float4 _CactusBodyShade;
+                float4 _CactusSpine;
+                float4 _CactusFlower;
+                float4 _DragonfruitFlesh;
+                float  _Territory;
+                float4 _TerritoryEdge;
+                float4 _TerritoryTint;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -102,29 +127,42 @@ Shader "RareIcon/HexTile"
                 UNITY_DOTS_INSTANCED_PROP(float4, _BorderColor)
                 UNITY_DOTS_INSTANCED_PROP(float, _BorderWidth)
                 UNITY_DOTS_INSTANCED_PROP(float, _ResourceType)
+                UNITY_DOTS_INSTANCED_PROP(float, _TreeAmount)
+                UNITY_DOTS_INSTANCED_PROP(float4, _FloorAmounts)
+                UNITY_DOTS_INSTANCED_PROP(float, _CactusAmount)
+                UNITY_DOTS_INSTANCED_PROP(float, _Territory)
             UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
             #define _BaseColor    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _BaseColor)
             #define _BorderColor  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _BorderColor)
             #define _BorderWidth  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _BorderWidth)
             #define _ResourceType UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _ResourceType)
+            #define _TreeAmount   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _TreeAmount)
+            #define _FloorAmounts UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _FloorAmounts)
+            #define _CactusAmount UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _CactusAmount)
+            #define _Territory    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _Territory)
             #endif
 
             // Bit flags for floor decorations — must match ResourceMask in
             // HexComponents.cs. Wood is NOT in the mask: trees represent it.
-            #define MASK_STONE     1
-            #define MASK_MUSHROOMS 2
-            #define MASK_BERRIES   4
-            #define MASK_HERBS     8
+            #define MASK_STONE              1
+            #define MASK_MUSHROOMS          2
+            #define MASK_BERRIES            4
+            #define MASK_HERBS              8
+            #define MASK_CACTUS            16
+            #define MASK_CACTUS_DRAGONFRUIT 32
 
             // Decoration modules — each is a single file with one Apply* function.
             // Include order: shared helpers first, then each decoration.
             #include "Includes/HexShared.hlsl"
+            #include "Includes/WorldAmbient.hlsl"
             #include "Includes/HexBoulder.hlsl"
             #include "Includes/HexBerryBush.hlsl"
             #include "Includes/HexMushroom.hlsl"
             #include "Includes/HexHerbs.hlsl"
+            #include "Includes/HexCactus.hlsl"
             #include "Includes/HexTree.hlsl"
+            #include "Includes/HexTerritoryEdge.hlsl"
 
             Varyings vert(Attributes input)
             {
@@ -168,27 +206,62 @@ Shader "RareIcon/HexTile"
 
                 // Floor decorations — one bit per resource. Drawn UNDER the
                 // trees so canopies can occlude floor sprites that overlap.
+                // Each per-instance amount (HexFloorAmounts.xyzw +
+                // _CactusAmount) scales how dense its decoration cluster
+                // appears, so a near-depleted patch reads visually thinner
+                // than a freshly-rolled one.
+                //
+                // TODO: revisit the cluster-cap math in each Apply*. Currently
+                // all five include files use ceil(amount * N) which is
+                // conservative — a 5%-stocked tile still shows 1 of N. If
+                // playtest reads "near-depleted" tiles as too full, switch
+                // to floor() or shave the per-decoration thresholds (e.g.
+                // berries at amount > 0.15, mushrooms at > 0.2). Cactus
+                // already has a softer cliff via the showSidePads gate at
+                // amount > 0.5 — could be the template the others adopt.
                 int resMask = (int)(_ResourceType + 0.5);
+                float4 floorAmt = _FloorAmounts;
                 if (_FloorDensity > 0.001 && resMask != 0 && tileSeed < _FloorDensity)
                 {
-                    if ((resMask & MASK_STONE)     != 0) ground = ApplyBoulder  (ground, px, grid, tileSeed);
-                    if ((resMask & MASK_BERRIES)   != 0) ground = ApplyBerryBush(ground, px, grid, tileSeed);
-                    if ((resMask & MASK_MUSHROOMS) != 0) ground = ApplyMushrooms(ground, px, grid, tileSeed);
-                    if ((resMask & MASK_HERBS)     != 0) ground = ApplyHerbs    (ground, px, grid, tileSeed);
+                    if ((resMask & MASK_STONE)     != 0 && floorAmt.x > 0.001)
+                        ground = ApplyBoulder  (ground, px, grid, tileSeed, floorAmt.x);
+                    if ((resMask & MASK_BERRIES)   != 0 && floorAmt.y > 0.001)
+                        ground = ApplyBerryBush(ground, px, grid, tileSeed, floorAmt.y);
+                    if ((resMask & MASK_MUSHROOMS) != 0 && floorAmt.z > 0.001)
+                        ground = ApplyMushrooms(ground, px, grid, tileSeed, floorAmt.z);
+                    if ((resMask & MASK_HERBS)     != 0 && floorAmt.w > 0.001)
+                        ground = ApplyHerbs    (ground, px, grid, tileSeed, floorAmt.w);
+                    if ((resMask & MASK_CACTUS)    != 0 && _CactusAmount > 0.001)
+                    {
+                        float isDragonfruit = ((resMask & MASK_CACTUS_DRAGONFRUIT) != 0) ? 1.0 : 0.0;
+                        ground = ApplyCactus(ground, px, grid, tileSeed, isDragonfruit, _CactusAmount);
+                    }
                 }
 
-                // Trees on top of the forest floor.
-                if (_TreeDensity > 0.001 && tileSeed < _TreeDensity)
+                // Trees on top of the forest floor. Per-instance _TreeAmount
+                // (driven by HexTreeVisual which mirrors HexResources.Wood)
+                // gates the branch entirely when the hex has been
+                // clear-cut, and scales the tree count inside ApplyPixelTree
+                // for partially-harvested hexes. Per-biome _TreeDensity
+                // is still the master forest-presence multiplier.
+                if (_TreeDensity > 0.001 && _TreeAmount > 0.001 && tileSeed < _TreeDensity)
                 {
-                    ground = ApplyPixelTree(ground, px, grid, tileSeed);
+                    ground = ApplyPixelTree(ground, px, grid, tileSeed, _TreeAmount);
                 }
 
-                // Border line on top of everything.
+                // Main tile border first — the dark hex outline every tile
+                // gets. Drawing it BEFORE the territory pass means the
+                // gold empire stroke lands over it (not under it) and the
+                // claim actually reads at a glance.
                 float border = smoothstep(-_BorderWidth, -_BorderWidth * 0.3, d);
                 float3 col = lerp(ground, _BorderColor.rgb, border * _BorderColor.a);
 
+                // Territory wash + gold rim — painted LAST so it wins
+                // against both the biome ground and the dark border.
+                col = ApplyTerritory(col, d, _Territory);
+
                 clip(-d - 0.001);
-                return float4(col, 1.0);
+                return float4(ApplyWorldAmbient(col), 1.0);
             }
             ENDHLSL
         }

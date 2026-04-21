@@ -1,5 +1,9 @@
 using System;
 using System.Threading;
+using Unity.Collections;
+using Unity.Entities;
+using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UIElements;
 using MessagePipe;
@@ -11,62 +15,79 @@ using R3;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Bottom-right hover info — visible only in AppInterfaceState.World.
-    /// (Renamed from HexInfoPanel; future world-map widgets land here.)
-    /// </summary>
+    /// <summary>World-state HUD — toolbar, clock, controlling indicator, hover tile-info. Layout in Resources/UI/WorldHUD.uxml; this controller wires events + pushes data.</summary>
     public class WorldHUD : IAsyncStartable, IDisposable
     {
         readonly LocaleService _locale;
         readonly UIPanelManager _panelManager;
+        readonly ScreenFrameHost _frame;
         readonly AppStateController _appState;
-        readonly UIWorldSearch _worldSearch;
+        readonly UISettings _settings;
         readonly UITreasury _treasury;
+        readonly UICitizensPanel _citizensPanel;
+        readonly UIMilitary _military;
+        readonly UIBuildingPalette _buildingPalette;
         readonly BuildModeController _buildMode;
         readonly CameraService _camera;
+        readonly ActivityFeedService _activity;
         readonly ISubscriber<HexHoverMessage> _hoverSub;
 
         readonly CompositeDisposable _disposables = new();
 
-        VisualElement _hoverPanel;
-        VisualElement _toolbar;
-        Button _buildBtn;
-        Label _biomeName;
-        Label _hexCoord;
-        Label _creatureLine;
-        Label _statsLine;
-        Label _inventoryLine;
-        Label _resourceLine;
+        VisualElement _root;
+        VisualElement _toolbar, _hoverPanel, _clockPanel, _controlPanel, _stack;
+        Button _settingsBtn, _buildBtn, _kingBtn, _treasuryBtn, _militaryBtn, _citizensBtn, _releaseBtn;
+        Label _clockTurn, _clockTime;
+        VisualElement _clockIcon;
+        Label _hoverName, _hoverCoord, _hoverCreature, _hoverStats, _hoverInv, _hoverRes;
+        Label _controlLabel, _controlActivity;
+        EntityQuery _clockQuery, _controlledQuery, _selectionQuery;
+        bool _clockReady, _controlledReady, _selectionReady;
+        Entity _lastControlled;
+        byte _lastControlledType;
+        IDisposable _controlActivitySub;
+
+        int _lastSelectionCount = -1;
+        int _lastGoblin, _lastSoldier, _lastKnight, _lastMage, _lastKing;
+
+        const int IdleSkipEvery = 4;
+        int _idleSkipCount;
 
         [Inject]
         public WorldHUD(
             LocaleService locale,
             UIPanelManager panelManager,
+            ScreenFrameHost frame,
             AppStateController appState,
-            UIWorldSearch worldSearch,
+            UISettings settings,
             UITreasury treasury,
+            UICitizensPanel citizensPanel,
+            UIMilitary military,
+            UIBuildingPalette buildingPalette,
             BuildModeController buildMode,
             CameraService camera,
+            ActivityFeedService activity,
             ISubscriber<HexHoverMessage> hoverSub)
         {
             _locale = locale;
             _panelManager = panelManager;
+            _frame = frame;
             _appState = appState;
-            _worldSearch = worldSearch;
+            _settings = settings;
             _treasury = treasury;
+            _citizensPanel = citizensPanel;
+            _military = military;
+            _buildingPalette = buildingPalette;
             _buildMode = buildMode;
             _camera = camera;
+            _activity = activity;
             _hoverSub = hoverSub;
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
         {
             var uiDoc = _panelManager.GetComponent<UIDocument>();
-            if (uiDoc == null)
-            {
-                Debug.LogError("[WorldHUD] UIPanelManager has no UIDocument");
-                return;
-            }
+            if (uiDoc == null) return;
 
             int waited = 0;
             while (uiDoc.rootVisualElement == null && waited < 1000)
@@ -74,274 +95,466 @@ namespace RareIcon
                 await UniTask.Delay(50, cancellationToken: cancellation);
                 waited += 50;
             }
+            if (uiDoc.rootVisualElement == null) return;
 
-            if (uiDoc.rootVisualElement == null)
+            await _frame.Ready;
+
+            _root = UIPanelLoader.Load(uiDoc, "UI/WorldHUD");
+            if (_root == null) return;
+
+            BindElements();
+            MountIntoFrame();
+
+            // Toggle visibility on app state changes (Boot/InTile hide HUD).
+            _appState.Current.Subscribe(state =>
             {
-                Debug.LogError("[WorldHUD] rootVisualElement still null");
-                return;
-            }
-
-            BuildUI(uiDoc.rootVisualElement);
+                var visible = state == AppInterfaceState.World;
+                SetDisplay(_toolbar, visible);
+                SetDisplay(_hoverPanel, visible);
+                SetDisplay(_stack, visible);
+            }).AddTo(_disposables);
 
             var bag = MessagePipe.DisposableBag.CreateBuilder();
             _hoverSub.Subscribe(OnHexHover).AddTo(bag);
             _disposables.Add(bag.Build());
 
-            _appState.Current
-                .Subscribe(state =>
+            _clockPanel.schedule.Execute(RefreshClock).Every(250);
+            _controlPanel.schedule.Execute(RefreshControlIndicator).Every(250);
+            RefreshClock();
+            RefreshControlIndicator();
+        }
+
+        void BindElements()
+        {
+            _toolbar       = _root.Q<VisualElement>("hud-toolbar");
+            _stack         = _root.Q<VisualElement>("hud-stack");
+            _clockPanel    = _root.Q<VisualElement>("hud-clock");
+            _controlPanel  = _root.Q<VisualElement>("hud-control");
+            _hoverPanel    = _root.Q<VisualElement>("hud-hover");
+
+            _buildBtn    = _root.Q<Button>("hud-build");
+            _kingBtn     = _root.Q<Button>("hud-king");
+            _treasuryBtn = _root.Q<Button>("hud-treasury");
+            _militaryBtn = _root.Q<Button>("hud-military");
+            _citizensBtn = _root.Q<Button>("hud-citizens");
+            _settingsBtn = _root.Q<Button>("hud-settings");
+            _releaseBtn  = _root.Q<Button>("hud-release");
+
+            _clockIcon = _root.Q<VisualElement>("hud-clock-icon");
+            _clockTurn = _root.Q<Label>("hud-clock-turn");
+            _clockTime = _root.Q<Label>("hud-clock-time");
+
+            _hoverName     = _root.Q<Label>("hud-hover-name");
+            _hoverCoord    = _root.Q<Label>("hud-hover-coord");
+            _hoverCreature = _root.Q<Label>("hud-hover-creature");
+            _hoverStats    = _root.Q<Label>("hud-hover-stats");
+            _hoverInv      = _root.Q<Label>("hud-hover-inventory");
+            _hoverRes      = _root.Q<Label>("hud-hover-resources");
+
+            _controlLabel    = _root.Q<Label>("hud-control-label");
+            _controlActivity = _root.Q<Label>("hud-control-activity");
+
+            _buildBtn.clicked    += _buildingPalette.Toggle;
+            _kingBtn.clicked     += JumpToKing;
+            _treasuryBtn.clicked += _treasury.Toggle;
+            _militaryBtn.clicked += _military.Toggle;
+            _citizensBtn.clicked += _citizensPanel.Toggle;
+            _settingsBtn.clicked += _settings.Toggle;
+            _releaseBtn.clicked  += ReleaseControl;
+
+            // Highlight Build button while build mode is active.
+            _buildMode.Target.Subscribe(target =>
+            {
+                bool active = target != BuildTarget.None;
+                if (active) _buildBtn.AddToClassList("is-active");
+                else        _buildBtn.RemoveFromClassList("is-active");
+            }).AddTo(_disposables);
+        }
+
+        static void SetDisplay(VisualElement el, bool visible)
+        {
+            if (el == null) return;
+            el.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        void MountIntoFrame()
+        {
+            if (_toolbar != null && _frame.TopLeft != null)
+            {
+                _toolbar.RemoveFromHierarchy();
+                _toolbar.RemoveFromClassList("toolbar-pin");
+                _toolbar.AddToClassList("toolbar-embed");
+                _frame.TopLeft.Add(_toolbar);
+            }
+            if (_stack != null && _frame.TopRight != null)
+            {
+                _stack.RemoveFromHierarchy();
+                _stack.RemoveFromClassList("hud-stack-tr");
+                _stack.style.flexDirection = FlexDirection.Row;
+                _frame.TopRight.Add(_stack);
+            }
+            if (_hoverPanel != null && _frame.BottomLeft != null)
+            {
+                _hoverPanel.RemoveFromHierarchy();
+                _hoverPanel.RemoveFromClassList("tile-info");
+                _hoverPanel.AddToClassList("tile-info--inline");
+                _frame.BottomLeft.Add(_hoverPanel);
+            }
+        }
+
+        // --- Clock ------------------------------------------------------------
+
+        void RefreshClock()
+        {
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!_clockReady)
+            {
+                _clockQuery = em.CreateEntityQuery(ComponentType.ReadOnly<WorldClock>());
+                _clockReady = true;
+            }
+            if (_clockQuery.CalculateEntityCount() == 0) return;
+            var clock = _clockQuery.GetSingleton<WorldClock>();
+
+            _clockTurn.text = ZString.Format("Turn {0} · {1}", clock.TurnIndex, clock.IsDay ? "Day" : "Night");
+            int totalSec = (int)clock.TurnElapsed;
+            _clockTime.text = ZString.Format("{0:00}:{1:00}", totalSec / 60, totalSec % 60);
+
+            if (clock.IsDay)
+            {
+                _clockIcon.RemoveFromClassList("hud-strip__icon--night");
+                _clockIcon.AddToClassList("hud-strip__icon--day");
+            }
+            else
+            {
+                _clockIcon.RemoveFromClassList("hud-strip__icon--day");
+                _clockIcon.AddToClassList("hud-strip__icon--night");
+            }
+        }
+
+        // --- Controlled-unit indicator ---------------------------------------
+
+        void RefreshControlIndicator()
+        {
+            bool idle = _lastControlled == Entity.Null && _lastSelectionCount <= 0;
+            if (idle)
+            {
+                _idleSkipCount++;
+                if (_idleSkipCount < IdleSkipEvery) return;
+            }
+            _idleSkipCount = 0;
+
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!_controlledReady)
+            {
+                _controlledQuery = em.CreateEntityQuery(
+                    ComponentType.ReadOnly<ControlledUnitTag>(),
+                    ComponentType.ReadOnly<Unit>());
+                _controlledReady = true;
+            }
+
+            Entity current = Entity.Null;
+            byte type = UnitType.None;
+            if (_controlledQuery.CalculateEntityCount() > 0)
+            {
+                using var arr = _controlledQuery.ToEntityArray(Allocator.Temp);
+                current = arr[0];
+                type = em.GetComponentData<Unit>(current).Type;
+            }
+
+            bool controlledChanged = (current != _lastControlled || type != _lastControlledType);
+            _lastControlled = current;
+            _lastControlledType = type;
+
+            if (current == Entity.Null)
+            {
+                if (controlledChanged)
                 {
-                    var display = state == AppInterfaceState.World ? DisplayStyle.Flex : DisplayStyle.None;
-                    _hoverPanel.style.display = display;
-                    _toolbar.style.display = display;
-                })
-                .AddTo(_disposables);
-        }
+                    _controlActivitySub?.Dispose();
+                    _controlActivitySub = null;
+                    _lastSelectionCount = -1;
+                }
+                RefreshSelectionIndicator(em);
+                return;
+            }
 
-        void BuildUI(VisualElement root)
-        {
-            BuildHoverPanel(root);
-            BuildToolbar(root);
-        }
-
-        void BuildHoverPanel(VisualElement root)
-        {
-            // Bottom-right hover info — black + gold chrome via UIStyles.
-            // pickingMode=Ignore on every label keeps world clicks unblocked.
-            _hoverPanel = new VisualElement().ApplyPanelChrome();
-            _hoverPanel.style.AnchorBottomRight();
-            _hoverPanel.style.minWidth = 160;
-            _hoverPanel.pickingMode = PickingMode.Ignore;
-
-            _biomeName = UIStyles.MakeHeading("---", fontSize: 18);
-            _biomeName.style.marginBottom = 4;
-            _biomeName.pickingMode = PickingMode.Ignore;
-
-            _hexCoord = MakeHoverLabel(UIStyles.Palette.TextMuted, fontSize: 13);
-
-            _creatureLine = MakeHoverLabel(UIStyles.Palette.TextCreature, fontSize: 14);
-            _creatureLine.style.marginTop = 4;
-            _creatureLine.style.unityFontStyleAndWeight = FontStyle.Bold;
-
-            _statsLine     = MakeHoverLabel(UIStyles.Palette.TextStat,      fontSize: 12);
-            _statsLine.style.marginTop = 2;
-
-            _inventoryLine = MakeHoverLabel(UIStyles.Palette.TextInventory, fontSize: 12);
-            _inventoryLine.style.marginTop = 2;
-
-            _resourceLine  = MakeHoverLabel(UIStyles.Palette.TextResource,  fontSize: 13);
-            _resourceLine.style.marginTop = 4;
-
-            _hoverPanel.Add(_biomeName);
-            _hoverPanel.Add(_hexCoord);
-            _hoverPanel.Add(_creatureLine);
-            _hoverPanel.Add(_statsLine);
-            _hoverPanel.Add(_inventoryLine);
-            _hoverPanel.Add(_resourceLine);
-            root.Add(_hoverPanel);
-        }
-
-        // Hover-panel labels share three traits — colored, sized, and
-        // non-blocking. Single helper so adding a new line is one call.
-        static Label MakeHoverLabel(Color color, int fontSize)
-        {
-            var l = new Label("");
-            l.style.color = color;
-            l.style.fontSize = fontSize;
-            l.pickingMode = PickingMode.Ignore;
-            return l;
-        }
-
-        void BuildToolbar(VisualElement root)
-        {
-            // Top-left toolbar — Search · Build · King · Treasury. Flex row
-            // so future tools slot in. Each button is a YoRHA-style toggle
-            // (dark fill + gold text + hover invert) via UIStyles.
-            _toolbar = new VisualElement();
-            _toolbar.style.AnchorTopLeft();
-            _toolbar.style.flexDirection = FlexDirection.Row;
-
-            _toolbar.Add(MakeToolbarButton("Search", _worldSearch.Toggle, marginLeft: 0));
-
-            _buildBtn = MakeToolbarButton("Build",
-                () => _buildMode.Toggle(BuildTarget.Capital), marginLeft: 6);
-            _toolbar.Add(_buildBtn);
-
-            // Quick re-center on the player. Common UX in strategy games —
-            // click "King" to snap back if you've panned the camera away.
-            // Silently no-ops while the King hasn't spawned yet (first frame).
-            _toolbar.Add(MakeToolbarButton("King", JumpToKing, marginLeft: 6));
-
-            // Treasury — top-right panel listing capital storage. Toggles
-            // open/closed; refreshes itself while visible (UITreasury polls
-            // the EntityManager every 500ms so deposits / withdrawals
-            // appear in near real-time).
-            _toolbar.Add(MakeToolbarButton("Treasury", _treasury.Toggle, marginLeft: 6));
-
-            // Reactive highlight — gold-fill the Build button while active.
-            // Reuses the YoRHA hover-invert palette (Gold / Zinc950) so the
-            // active state matches what a hover would produce.
-            _buildMode.Target
-                .Subscribe(target =>
+            if (!controlledChanged) return;
+            _lastSelectionCount = -1;
+            {
+                string name = string.Empty;
+                if (em.HasComponent<UnitName>(current))
                 {
-                    bool active = target != BuildTarget.None;
-                    _buildBtn.style.backgroundColor = active
-                        ? UIStyles.Palette.Gold
-                        : UIStyles.Palette.ButtonBg;
-                    _buildBtn.style.color = active
-                        ? UIStyles.Palette.Zinc950
-                        : UIStyles.Palette.Gold;
-                    _buildBtn.text = active ? "Build (on)" : "Build";
-                })
-                .AddTo(_disposables);
+                    var nm = em.GetComponentData<UnitName>(current);
+                    name = _locale.GetGoblinName(nm.FirstNameId, nm.EpithetId);
+                }
+                if (name.Length == 0) name = _locale.GetCreatureName(type);
+                _controlLabel.text = ZString.Format(_locale.Get("hud.controlling"), name);
+                _controlPanel.AddToClassList("hud-strip--strong");
+                _releaseBtn.RemoveFromClassList("is-hidden");
+                _controlActivity.RemoveFromClassList("is-hidden");
 
-            root.Add(_toolbar);
+                _controlActivitySub?.Dispose();
+                Entity captured = current;
+                _controlActivitySub = _activity.For(current).Subscribe(snap =>
+                {
+                    if (_lastControlled != captured) return;
+                    string act = _locale.GetActivityName(snap.Kind);
+                    _controlActivity.text = act.Length > 0 ? act : _locale.Get("activity.idle");
+                });
+                var seed = _activity.CurrentFor(current);
+                string seedAct = _locale.GetActivityName(seed.Kind);
+                _controlActivity.text = seedAct.Length > 0 ? seedAct : _locale.Get("activity.idle");
+            }
         }
 
-        // Single toolbar button factory — YoRHA chrome plus our 28px height
-        // / 6px gap convention. marginLeft=0 for the first button so the
-        // toolbar doesn't shift right of its anchor.
-        static Button MakeToolbarButton(string text, System.Action onClick, float marginLeft)
+        void RefreshSelectionIndicator(EntityManager em)
         {
-            var btn = UIStyles.MakeYorhaButton(text, onClick);
-            btn.style.height = 28;
-            btn.style.fontSize = 13;
-            btn.style.Padding(0, 12);
-            btn.style.marginLeft = marginLeft;
-            return btn;
+            if (!_selectionReady)
+            {
+                _selectionQuery = em.CreateEntityQuery(
+                    ComponentType.ReadOnly<SelectedTag>(),
+                    ComponentType.ReadOnly<Unit>());
+                _selectionReady = true;
+            }
+
+            int count = _selectionQuery.CalculateEntityCount();
+            if (count == 0)
+            {
+                if (_lastSelectionCount == 0) return;
+                _controlLabel.text = _locale.Get("hud.god_view");
+                _controlPanel.RemoveFromClassList("hud-strip--strong");
+                _releaseBtn.AddToClassList("is-hidden");
+                _controlActivity.AddToClassList("is-hidden");
+                _lastSelectionCount = 0;
+                _lastGoblin = _lastSoldier = _lastKnight = _lastMage = _lastKing = 0;
+                return;
+            }
+
+            int g = 0, s = 0, k = 0, m = 0, kg = 0;
+            using (var arr = _selectionQuery.ToEntityArray(Allocator.Temp))
+            {
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    byte t = em.GetComponentData<Unit>(arr[i]).Type;
+                    switch (t)
+                    {
+                        case UnitType.Goblin:  g++;  break;
+                        case UnitType.Soldier: s++;  break;
+                        case UnitType.Knight:  k++;  break;
+                        case UnitType.Mage:    m++;  break;
+                        case UnitType.King:    kg++; break;
+                    }
+                }
+            }
+
+            if (count == _lastSelectionCount
+                && g == _lastGoblin && s == _lastSoldier && k == _lastKnight
+                && m == _lastMage && kg == _lastKing) return;
+            _lastSelectionCount = count;
+            _lastGoblin = g; _lastSoldier = s; _lastKnight = k;
+            _lastMage = m; _lastKing = kg;
+
+            _controlLabel.text = ZString.Format("{0} · {1} selected",
+                _locale.Get("hud.god_view"), count);
+
+            var sb = ZString.CreateStringBuilder();
+            try
+            {
+                AppendTypeCount(ref sb, g,  "G");
+                AppendTypeCount(ref sb, s,  "S");
+                AppendTypeCount(ref sb, k,  "K");
+                AppendTypeCount(ref sb, m,  "M");
+                AppendTypeCount(ref sb, kg, "\u2655");
+                _controlActivity.text = sb.ToString();
+            }
+            finally { sb.Dispose(); }
+
+            _controlPanel.AddToClassList("hud-strip--strong");
+            _releaseBtn.AddToClassList("is-hidden");
+            _controlActivity.RemoveFromClassList("is-hidden");
         }
 
-        void JumpToKing()
+        static void AppendTypeCount(ref Cysharp.Text.Utf16ValueStringBuilder sb,
+                                    int count, string letter)
         {
-            if (KingLocator.TryGetWorldPos(out var pos))
-                _camera.JumpTo(pos);
+            if (count <= 0) return;
+            if (sb.Length > 0) sb.Append(" · ");
+            sb.Append(count); sb.Append(letter);
         }
+
+        void ReleaseControl()
+        {
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            using var query = em.CreateEntityQuery(ComponentType.ReadOnly<ControlledUnitTag>());
+            if (query.CalculateEntityCount() == 0) return;
+            using var arr = query.ToEntityArray(Allocator.Temp);
+            for (int i = 0; i < arr.Length; i++)
+            {
+                em.RemoveComponent<ControlledUnitTag>(arr[i]);
+                if (em.HasComponent<MovementGoal>(arr[i]))
+                {
+                    var g = em.GetComponentData<MovementGoal>(arr[i]);
+                    if (g.Priority == GoalPriority.Order)
+                        em.SetComponentData(arr[i], default(MovementGoal));
+                }
+            }
+            RefreshControlIndicator();
+        }
+
+        // --- Hover tile-info -------------------------------------------------
 
         void OnHexHover(HexHoverMessage msg)
         {
-            if (_biomeName == null) return;
+            if (_hoverName == null) return;
 
-            _biomeName.text = msg.IsLand
-                ? _locale.GetBiomeName(msg.BiomeId)
-                : _locale.Get("hex.empty");
-
-            _hexCoord.text = ZString.Format("{0} ({1}, {2})", _locale.Get("hex.coord"), msg.Q, msg.R);
+            _hoverName.text = msg.IsLand ? _locale.GetBiomeName(msg.BiomeId) : _locale.Get("hex.empty");
+            _hoverCoord.text = ZString.Format("{0} ({1}, {2})", _locale.Get("hex.coord"), msg.Q, msg.R);
 
             if (msg.UnitType != UnitType.None)
             {
-                _creatureLine.text = _locale.GetCreatureName(msg.UnitType);
-                _creatureLine.style.display = DisplayStyle.Flex;
+                _hoverCreature.RemoveFromClassList("is-hidden");
 
-                // Stats line — only includes stats the unit actually carries
-                // (Max == 0 → not present → skipped). Floats rounded for HUD.
+                string creatureName = _locale.GetCreatureName(msg.UnitType);
+                string personal = msg.UnitNameFirstId != 0
+                    ? _locale.GetGoblinName(msg.UnitNameFirstId, msg.UnitNameEpithetId)
+                    : string.Empty;
+                string factionLabel = _locale.GetFactionName(msg.UnitFaction);
+                if (personal.Length > 0)
+                    _hoverCreature.text = ZString.Format("{0} · {1} · {2}",
+                        personal, creatureName, factionLabel);
+                else
+                    _hoverCreature.text = ZString.Format("{0} · {1}",
+                        creatureName, factionLabel);
+
+                _hoverCreature.RemoveFromClassList("tile-info__line--faction-player");
+                _hoverCreature.RemoveFromClassList("tile-info__line--faction-hostile");
+                _hoverCreature.RemoveFromClassList("tile-info__line--faction-beast");
+                _hoverCreature.RemoveFromClassList("tile-info__line--faction-wildlife");
+                _hoverCreature.RemoveFromClassList("tile-info__line--faction-neutral");
+                _hoverCreature.AddToClassList(msg.UnitFaction switch
+                {
+                    FactionType.Player   => "tile-info__line--faction-player",
+                    FactionType.Hostile  => "tile-info__line--faction-hostile",
+                    FactionType.Beast    => "tile-info__line--faction-beast",
+                    FactionType.Wildlife => "tile-info__line--faction-wildlife",
+                    _                    => "tile-info__line--faction-neutral",
+                });
+
                 var sb = ZString.CreateStringBuilder();
                 try
                 {
-                    AppendStat(ref sb, "HP", msg.UnitHealth, msg.UnitMaxHealth);
-                    AppendStat(ref sb, "EN", msg.UnitEnergy, msg.UnitMaxEnergy);
-                    AppendStat(ref sb, "MP", msg.UnitMana,   msg.UnitMaxMana);
+                    AppendStat(ref sb, "HP", msg.UnitHealth,  msg.UnitMaxHealth);
+                    AppendStat(ref sb, "EN", msg.UnitEnergy,  msg.UnitMaxEnergy);
+                    AppendStat(ref sb, "MP", msg.UnitMana,    msg.UnitMaxMana);
+                    AppendStat(ref sb, "HU", msg.UnitHunger,  msg.UnitMaxHunger);
+                    AppendStat(ref sb, "FT", msg.UnitFatigue, msg.UnitMaxFatigue);
                     if (sb.Length > 0)
                     {
-                        _statsLine.text = sb.ToString();
-                        _statsLine.style.display = DisplayStyle.Flex;
+                        _hoverStats.RemoveFromClassList("is-hidden");
+                        _hoverStats.text = sb.ToString();
                     }
-                    else
-                    {
-                        _statsLine.style.display = DisplayStyle.None;
-                    }
+                    else _hoverStats.AddToClassList("is-hidden");
                 }
                 finally { sb.Dispose(); }
             }
             else
             {
-                _creatureLine.style.display = DisplayStyle.None;
-                _statsLine.style.display = DisplayStyle.None;
+                _hoverCreature.AddToClassList("is-hidden");
+                _hoverStats.AddToClassList("is-hidden");
             }
 
-            // Inventory line — first 4 slots from HexHoverSystem's sweep.
-            // Empty slots have ItemId == 0 and are skipped by AppendInvSlot.
-            bool anyInv = (msg.UnitInvCount0 | msg.UnitInvCount1 |
-                           msg.UnitInvCount2 | msg.UnitInvCount3) != 0;
+            bool anyInv = (msg.UnitInvCount0 | msg.UnitInvCount1 | msg.UnitInvCount2 | msg.UnitInvCount3) != 0;
             if (msg.UnitType != UnitType.None && anyInv)
             {
                 var sb = ZString.CreateStringBuilder();
                 try
                 {
-                    AppendInvSlot(ref sb, msg.UnitInvId0, msg.UnitInvCount0);
-                    AppendInvSlot(ref sb, msg.UnitInvId1, msg.UnitInvCount1);
-                    AppendInvSlot(ref sb, msg.UnitInvId2, msg.UnitInvCount2);
-                    AppendInvSlot(ref sb, msg.UnitInvId3, msg.UnitInvCount3);
-                    _inventoryLine.text = sb.ToString();
+                    AppendInv(ref sb, msg.UnitInvId0, msg.UnitInvCount0);
+                    AppendInv(ref sb, msg.UnitInvId1, msg.UnitInvCount1);
+                    AppendInv(ref sb, msg.UnitInvId2, msg.UnitInvCount2);
+                    AppendInv(ref sb, msg.UnitInvId3, msg.UnitInvCount3);
+                    _hoverInv.text = sb.ToString();
                 }
                 finally { sb.Dispose(); }
-                _inventoryLine.style.display = DisplayStyle.Flex;
+                _hoverInv.RemoveFromClassList("is-hidden");
             }
             else
             {
-                _inventoryLine.style.display = DisplayStyle.None;
+                _hoverInv.AddToClassList("is-hidden");
             }
 
-            if (msg.IsLand && (msg.Wood | msg.Stone | msg.Berries | msg.Mushrooms | msg.Herbs) != 0)
+            if (msg.IsLand && (msg.Wood | msg.Stone | msg.Berries | msg.Mushrooms | msg.Herbs | msg.Cactus) != 0)
             {
-                // ZString builder appends mutate the struct, so it can't be a
-                // 'using var' (refs to using-vars are illegal). Manual dispose.
                 var sb = ZString.CreateStringBuilder();
                 try
                 {
-                    AppendResource(ref sb, msg.Wood,      ResourceType.Wood);
-                    AppendResource(ref sb, msg.Stone,     ResourceType.Stone);
-                    AppendResource(ref sb, msg.Berries,   ResourceType.Berries);
-                    AppendResource(ref sb, msg.Mushrooms, ResourceType.Mushrooms);
-                    AppendResource(ref sb, msg.Herbs,     ResourceType.Herbs);
-                    _resourceLine.text = sb.ToString();
+                    AppendRes(ref sb, msg.Wood,      ResourceType.Wood);
+                    AppendRes(ref sb, msg.Stone,     ResourceType.Stone);
+                    AppendRes(ref sb, msg.Berries,   ResourceType.Berries);
+                    AppendRes(ref sb, msg.Mushrooms, ResourceType.Mushrooms);
+                    AppendRes(ref sb, msg.Herbs,     ResourceType.Herbs);
+                    AppendRes(ref sb, msg.Cactus,    ResourceType.Cactus, msg.CactusVariant);
+                    _hoverRes.text = sb.ToString();
                 }
-                finally
-                {
-                    sb.Dispose();
-                }
-                _resourceLine.style.display = DisplayStyle.Flex;
+                finally { sb.Dispose(); }
+                _hoverRes.RemoveFromClassList("is-hidden");
             }
             else
             {
-                _resourceLine.style.display = DisplayStyle.None;
+                _hoverRes.AddToClassList("is-hidden");
             }
         }
 
-        void AppendResource(ref Utf16ValueStringBuilder sb, byte amount, byte type)
+        void AppendRes(ref Utf16ValueStringBuilder sb, byte amount, byte type, byte variant = 0)
         {
             if (amount == 0) return;
             if (sb.Length > 0) sb.Append('\n');
-            sb.Append(_locale.GetResourceName(type));
-            sb.Append(": ");
-            sb.Append(amount);
+            var label = (type == ResourceType.Cactus && variant != CactusVariantType.None)
+                ? _locale.GetCactusLabel(variant)
+                : _locale.GetResourceName(type);
+            sb.Append(label); sb.Append(": "); sb.Append(amount);
         }
 
-        // Appends "Name × Count" — skips empty slots (ItemId == 0) so the
-        // sparse 4-slot snapshot displays cleanly.
-        void AppendInvSlot(ref Utf16ValueStringBuilder sb, ushort itemId, ushort count)
+        void AppendInv(ref Utf16ValueStringBuilder sb, ushort itemId, ushort count)
         {
             if (itemId == 0 || count == 0) return;
             if (sb.Length > 0) sb.Append(", ");
-            sb.Append(_locale.GetItemName(itemId));
-            sb.Append(" \u00D7 ");
-            sb.Append(count);
+            sb.Append(_locale.GetItemName(itemId)); sb.Append(" \u00D7 "); sb.Append(count);
         }
 
-        // Appends "LABEL Value/Max" — values rounded to ints for HUD display
-        // even though the underlying floats are exact. Skips entirely when the
-        // unit doesn't carry the stat (max == 0).
         static void AppendStat(ref Utf16ValueStringBuilder sb, string label, float value, float max)
         {
             if (max <= 0f) return;
             if (sb.Length > 0) sb.Append("  ");
-            sb.Append(label);
-            sb.Append(' ');
-            sb.Append((int)Mathf.Round(value));
-            sb.Append('/');
-            sb.Append((int)Mathf.Round(max));
+            sb.Append(label); sb.Append(' ');
+            sb.Append((int)Mathf.Round(value)); sb.Append('/'); sb.Append((int)Mathf.Round(max));
+        }
+
+        // --- Action: jump-to King -------------------------------------------
+
+        void JumpToKing()
+        {
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            using var query = em.CreateEntityQuery(
+                ComponentType.ReadOnly<KingTag>(),
+                ComponentType.ReadOnly<LocalTransform>());
+            if (query.CalculateEntityCount() == 0) return;
+            using var arr = query.ToEntityArray(Allocator.Temp);
+            var t = em.GetComponentData<LocalTransform>(arr[0]);
+            _camera.JumpTo(new float2(t.Position.x, t.Position.y));
         }
 
         public void Dispose()
         {
+            _controlActivitySub?.Dispose();
+            _controlActivitySub = null;
             _disposables?.Dispose();
         }
     }

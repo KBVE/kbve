@@ -1,3 +1,5 @@
+using Unity.Mathematics;
+
 namespace RareIcon
 {
     /// <summary>
@@ -33,6 +35,8 @@ namespace RareIcon
             float r2 = ((h >> 16 ) & 0xFF) / 255f;  // mushrooms
             float r3 = ((h >> 24 ) & 0xFF) / 255f;  // herbs
             float r4 = ((h2 >> 16) & 0xFF) / 255f;  // berries
+            float r5 = ((h2 >>  8) & 0xFF) / 255f;  // cactus presence
+            float r6 = ((h2      ) & 0xFF) / 255f;  // cactus variant
 
             // Yield amounts derived from the same draws so a "lucky" hex is
             // both more likely to have the resource AND has more of it.
@@ -48,6 +52,14 @@ namespace RareIcon
                     res.Berries   = AmountFrom(r4, 0.30f);
                     res.Stone     = AmountFrom(r1, 0.15f);
                     res.Herbs     = AmountFrom(r3, 0.20f);
+                    // Tree byproducts — every forest hex carries leaves and
+                    // branches alongside its wood. Re-uses the wood roll so
+                    // a heavily-forested hex (high Wood) also has plenty of
+                    // leaves/branches; reads as one tree-yield bundle. No
+                    // shader visual — these are "hidden" pickup amounts the
+                    // goblin AI grabs on harvest, surfaced via Treasury.
+                    res.Leaves    = AmountFrom(r0, 1.00f);
+                    res.Branches  = (byte)(AmountFrom(r0, 1.00f) / 2);
                     break;
                 case BiomeGenerator.BIOME_GRASS:
                     res.Herbs   = AmountFrom(r3, 0.55f);
@@ -62,13 +74,44 @@ namespace RareIcon
                     res.Stone = AmountFrom(r1, 0.85f);
                     break;
                 case BiomeGenerator.BIOME_SAND:
-                    res.Stone = AmountFrom(r1, 0.08f);
+                    res.Stone  = AmountFrom(r1, 0.08f);
+                    res.Cactus = AmountFrom(r5, 0.05f);
+                    if (res.Cactus > 0)
+                        res.CactusVariant = r6 < 0.20f
+                            ? CactusVariantType.Dragonfruit
+                            : CactusVariantType.PricklyPear;
+                    // Sand is the desert's defining yield — every sand hex
+                    // carries it. Drives the Furnace+Sand → Glass recipe.
+                    res.Sand = AmountFrom(r0, 1.00f);
                     break;
                 // Snow / River / Ocean: nothing.
             }
 
             return (res, ComputeVisualMask(in res));
         }
+
+        /// <summary>Wood byte ceiling AmountFrom can return; used to normalize Wood to the 0..1 _TreeAmount shader uniform.</summary>
+        public const float WoodMaxForVisual = 100f;
+
+        /// <summary>HexResources.Wood normalized to 0..1 for HexTreeVisual; drives the per-instance tree count in HexTile.shader.</summary>
+        public static float ComputeTreeAmount(in HexResources res)
+            => res.Wood <= 0 ? 0f : math.min(res.Wood / WoodMaxForVisual, 1f);
+
+        /// <summary>Normalize a single resource byte to 0..1 against the same ceiling AmountFrom uses.</summary>
+        public static float NormalizeAmount(byte amount)
+            => amount <= 0 ? 0f : math.min(amount / WoodMaxForVisual, 1f);
+
+        /// <summary>Pack the four common floor-decoration amounts into the float4 the shader reads via _FloorAmounts (x=Stone, y=Berries, z=Mushrooms, w=Herbs).</summary>
+        public static float4 ComputeFloorAmounts(in HexResources res)
+            => new float4(
+                NormalizeAmount(res.Stone),
+                NormalizeAmount(res.Berries),
+                NormalizeAmount(res.Mushrooms),
+                NormalizeAmount(res.Herbs));
+
+        /// <summary>HexResources.Cactus normalized to 0..1 for HexCactusVisual.</summary>
+        public static float ComputeCactusAmount(in HexResources res)
+            => NormalizeAmount(res.Cactus);
 
         /// <summary>
         /// Recompute the HexResourceVisual bitmask from a HexResources value.
@@ -83,6 +126,12 @@ namespace RareIcon
             if (res.Mushrooms > 0) mask |= ResourceMask.Mushrooms;
             if (res.Berries   > 0) mask |= ResourceMask.Berries;
             if (res.Herbs     > 0) mask |= ResourceMask.Herbs;
+            if (res.Cactus    > 0)
+            {
+                mask |= ResourceMask.Cactus;
+                if (res.CactusVariant == CactusVariantType.Dragonfruit)
+                    mask |= ResourceMask.CactusDragonfruit;
+            }
             return mask;
         }
     }

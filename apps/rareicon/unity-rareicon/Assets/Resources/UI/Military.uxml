@@ -1,0 +1,23 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="styles.uss" />
+
+    <ui:VisualElement name="military-wrapper" class="modal-wrapper is-hidden">
+        <ui:VisualElement name="military-backdrop" class="modal-backdrop" />
+
+        <ui:VisualElement name="military-root" class="panel panel--modal">
+            <ui:VisualElement class="panel__header">
+                <ui:Label name="military-title" class="panel__title" text="Military" />
+                <ui:Button name="military-close" class="btn-close" text="×" />
+            </ui:VisualElement>
+            <ui:VisualElement class="panel__strip" />
+
+            <ui:ScrollView name="military-scroll"
+                           class="panel__body--scroll"
+                           mode="Vertical"
+                           horizontal-scroller-visibility="Hidden">
+                <ui:VisualElement name="military-rows" class="col" />
+                <ui:Label name="military-empty" class="text-muted" text="No armed forces yet." />
+            </ui:ScrollView>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,162 @@
+---
+interface Props {
+	foreground: string;
+	background?: string;
+	backgroundColor?: string;
+	alt?: string;
+	end?: string;
+	scale?: number;
+	depth?: number;
+	translateY?: number;
+	backgroundScale?: number;
+	perspective?: string;
+}
+
+const {
+	foreground,
+	background,
+	backgroundColor,
+	alt = '',
+	end = '+=150%',
+	scale = 2,
+	depth = 350,
+	translateY = 0,
+	backgroundScale = 1.1,
+	perspective = '500px',
+} = Astro.props;
+
+const heroStyle = [
+	background ? `background-image: url(${background});` : '',
+	backgroundColor
+		? `background-color: ${backgroundColor};`
+		: !background
+			? 'background-color: var(--sl-color-bg, #121312);'
+			: '',
+]
+	.filter(Boolean)
+	.join(' ');
+---
+
+<div
+	class="szh not-content"
+	data-szh-root
+	data-szh-end={end}
+	data-szh-scale={String(scale)}
+	data-szh-depth={String(depth)}
+	data-szh-translate-y={String(translateY)}
+	data-szh-bg-scale={String(backgroundScale)}
+	style={`--szh-perspective: ${perspective};`}>
+	<div class="szh__content">
+		<section class="szh__hero" aria-hidden="true" style={heroStyle}>
+		</section>
+	</div>
+	<div class="szh__image">
+		<img src={foreground} alt={alt} />
+	</div>
+</div>
+
+<script>
+	import { gsap } from 'gsap';
+	import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+	gsap.registerPlugin(ScrollTrigger);
+
+	const init = () => {
+		document
+			.querySelectorAll<HTMLElement>('[data-szh-root]')
+			.forEach((root) => {
+				if (root.dataset.szhInit === 'true') return;
+				root.dataset.szhInit = 'true';
+
+				const end = root.dataset.szhEnd || '+=150%';
+				const scale = Number(root.dataset.szhScale) || 2;
+				const depth = Number(root.dataset.szhDepth) || 350;
+				const translateY = Number(root.dataset.szhTranslateY) || 0;
+				const bgScale = Number(root.dataset.szhBgScale) || 1.1;
+
+				const img = root.querySelector<HTMLElement>('.szh__image img');
+				const hero = root.querySelector<HTMLElement>('.szh__hero');
+				if (!img || !hero) return;
+
+				const getNavHeight = () => {
+					const nav = document.querySelector<HTMLElement>(
+						'header.header, header[data-header], .header',
+					);
+					return nav?.offsetHeight ?? 56;
+				};
+
+				gsap.timeline({
+					scrollTrigger: {
+						trigger: root,
+						start: () => `top top+=${getNavHeight()}`,
+						end,
+						pin: true,
+						pinSpacing: true,
+						scrub: true,
+						invalidateOnRefresh: true,
+					},
+				})
+					.to(img, {
+						scale,
+						z: depth,
+						y: translateY,
+						transformOrigin: 'center center',
+						ease: 'power1.inOut',
+					})
+					.to(
+						hero,
+						{
+							scale: bgScale,
+							transformOrigin: 'center center',
+							ease: 'power1.inOut',
+						},
+						'<',
+					);
+			});
+	};
+
+	init();
+	document.addEventListener('astro:after-swap', init);
+</script>
+
+<style>
+	.szh {
+		position: relative;
+		width: 100%;
+		z-index: 1;
+	}
+
+	.szh__content {
+		position: relative;
+		width: 100%;
+		overflow-x: hidden;
+		z-index: 1;
+	}
+
+	.szh__hero {
+		width: 100%;
+		height: 100vh;
+		background-position: center center;
+		background-repeat: no-repeat;
+		background-size: cover;
+	}
+
+	.szh__image {
+		width: 100%;
+		height: 100vh;
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		z-index: 2;
+		perspective: var(--szh-perspective);
+		overflow: hidden;
+	}
+
+	.szh__image img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center center;
+	}
+</style>

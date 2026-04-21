@@ -1,0 +1,139 @@
+---
+import { parseYouTubeId, buildYouTubeBgEmbed } from './_video';
+
+interface Props {
+	heading?: string;
+	image?: string;
+	video?: string;
+	overlay?: string;
+}
+
+const {
+	heading,
+	image,
+	video,
+	overlay = 'linear-gradient(180deg, rgba(0, 0, 0, 0.55) 50%, rgba(0, 0, 0, 0.15) 100%)',
+} = Astro.props;
+
+const videoId = video ? parseYouTubeId(video) : null;
+const embedSrc = videoId ? buildYouTubeBgEmbed(videoId) : null;
+const baseBg = image && !embedSrc ? `url(${image})` : '';
+---
+
+<section class="obs__section" data-obs-section>
+	<div class="obs__outer">
+		<div class="obs__inner">
+			<div
+				class="obs__bg"
+				data-obs-image={image}
+				data-obs-overlay={overlay}
+				style={baseBg ? `background-image: ${baseBg};` : ''}>
+				{
+					embedSrc && (
+						<iframe
+							class="obs__bg-video"
+							src={embedSrc}
+							title="Background video"
+							loading="lazy"
+							allow="autoplay; encrypted-media; picture-in-picture"
+							aria-hidden="true"
+							tabindex="-1"
+						/>
+					)
+				}
+				<div
+					class="obs__bg-overlay"
+					aria-hidden="true"
+					style={`background-image: ${overlay};`}>
+				</div>
+				{heading && <h2 class="obs__heading">{heading}</h2>}
+				<div class="obs__content">
+					<slot />
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<style>
+	.obs__section {
+		position: absolute;
+		inset: 0;
+		visibility: hidden;
+		pointer-events: none;
+		z-index: 0;
+		contain: layout paint;
+		will-change: transform;
+	}
+
+	.obs__section[data-obs-active='true'] {
+		pointer-events: auto;
+	}
+
+	.obs__outer,
+	.obs__inner {
+		width: 100%;
+		height: 100%;
+		overflow-y: hidden;
+		will-change: transform;
+		transform: translateZ(0);
+	}
+
+	.obs__bg {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 1.5rem;
+		padding: 2rem;
+		background-size: cover;
+		background-position: center;
+		color: #fff;
+		text-align: center;
+		overflow: hidden;
+		will-change: transform;
+		transform: translateZ(0);
+		backface-visibility: hidden;
+	}
+
+	.obs__bg-video {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 120%;
+		height: 120%;
+		min-width: 120vw;
+		min-height: 120vh;
+		transform: translate(-50%, -50%);
+		border: 0;
+		pointer-events: none;
+		user-select: none;
+		z-index: 0;
+	}
+
+	.obs__bg-overlay {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		z-index: 1;
+		background-size: cover;
+		background-position: center;
+	}
+
+	.obs__heading {
+		font-size: clamp(1.75rem, 6vw, 6rem);
+		font-weight: 600;
+		line-height: 1.2;
+		margin: 0;
+		z-index: 2;
+		will-change: transform, opacity;
+	}
+
+	.obs__content {
+		z-index: 2;
+		max-width: 72rem;
+		width: 100%;
+	}
+</style>

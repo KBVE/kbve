@@ -1,3 +1,4 @@
+using System;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -9,11 +10,7 @@ using UnityEngine.Rendering;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Reads MouseState singleton, moves a single hover overlay entity
-    /// to the hovered hex position. No per-entity component changes.
-    /// One overlay entity, one position update per frame.
-    /// </summary>
+    /// <summary>Moves the hover overlay entity to the hovered hex and publishes <see cref="HexHoverMessage"/> / <see cref="HexClickedMessage"/> on mouse activity.</summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial class HexHoverSystem : SystemBase
     {
@@ -31,6 +28,18 @@ namespace RareIcon
             if (_initialized && _hexLookup.IsCreated) _hexLookup.Dispose();
             _hexLookup = new NativeHashMap<int2, Entity>(capacity, Allocator.Persistent);
             _initialized = true;
+
+            // Publish / refresh the singleton entity so Burst-compiled
+            // consumer systems can read the map via SystemAPI.GetSingleton,
+            // which is the only Burst-safe way to reach static data.
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            using var q = em.CreateEntityQuery(ComponentType.ReadWrite<HexLookupSingleton>());
+            Entity e = q.CalculateEntityCount() == 0
+                ? em.CreateEntity(typeof(HexLookupSingleton))
+                : q.GetSingletonEntity();
+            em.SetComponentData(e, new HexLookupSingleton { Lookup = _hexLookup });
         }
 
         public static void AddHex(int2 coord, Entity entity)
@@ -91,9 +100,7 @@ namespace RareIcon
 
             var mouse = SystemAPI.GetSingleton<MouseState>();
 
-            // Click detection — MouseStateSource gates OverUI based on press-time
-            // capture, so a click that started over UI never publishes here.
-            if (mouse.LeftReleasedThisFrame && !mouse.OverUI)
+            if (mouse.LeftReleasedThisFrame && !mouse.OverUI && !mouse.DragEndedThisFrame)
             {
                 bool clickIsLand = _hexLookup.TryGetValue(mouse.HexCoord, out Entity clickedEntity);
                 byte clickBiome = 0;
@@ -121,7 +128,10 @@ namespace RareIcon
             // Sweep units once per hex change — find any unit standing on this hex
             // and grab its stats / first 4 inventory slots while we're at it.
             byte unitType = 0;
+            byte unitFaction = 0;
+            ushort nameFirst = 0, nameEpithet = 0;
             float hp = 0, hpMax = 0, en = 0, enMax = 0, mp = 0, mpMax = 0;
+            float hg = 0, hgMax = 0, fg = 0, fgMax = 0;
             ushort i0 = 0, c0 = 0, i1 = 0, c1 = 0, i2 = 0, c2 = 0, i3 = 0, c3 = 0;
             foreach (var (transform, unit, entity) in
                      SystemAPI.Query<RefRO<LocalTransform>, RefRO<Unit>>().WithEntityAccess())
@@ -131,6 +141,14 @@ namespace RareIcon
                 if (unitHex.Equals(mouse.HexCoord))
                 {
                     unitType = unit.ValueRO.Type;
+                    if (EntityManager.HasComponent<Faction>(entity))
+                        unitFaction = EntityManager.GetComponentData<Faction>(entity).Value;
+                    if (EntityManager.HasComponent<UnitName>(entity))
+                    {
+                        var nm = EntityManager.GetComponentData<UnitName>(entity);
+                        nameFirst = nm.FirstNameId;
+                        nameEpithet = nm.EpithetId;
+                    }
                     if (EntityManager.HasComponent<Health>(entity))
                     {
                         var h = EntityManager.GetComponentData<Health>(entity);
@@ -146,13 +164,52 @@ namespace RareIcon
                         var m = EntityManager.GetComponentData<Mana>(entity);
                         mp = m.Value; mpMax = m.Max;
                     }
-                    if (EntityManager.HasBuffer<InventorySlot>(entity))
+                    if (EntityManager.HasComponent<Hunger>(entity))
                     {
-                        var inv = EntityManager.GetBuffer<InventorySlot>(entity);
-                        if (inv.Length > 0) { i0 = inv[0].ItemId; c0 = inv[0].Count; }
-                        if (inv.Length > 1) { i1 = inv[1].ItemId; c1 = inv[1].Count; }
-                        if (inv.Length > 2) { i2 = inv[2].ItemId; c2 = inv[2].Count; }
-                        if (inv.Length > 3) { i3 = inv[3].ItemId; c3 = inv[3].Count; }
+                        var h = EntityManager.GetComponentData<Hunger>(entity);
+                        hg = h.Value; hgMax = h.Max;
+                    }
+                    if (EntityManager.HasComponent<Fatigue>(entity))
+                    {
+                        var f = EntityManager.GetComponentData<Fatigue>(entity);
+                        fg = f.Value; fgMax = f.Max;
+                    }
+                    if (EntityManager.HasBuffer<PackSlot>(entity))
+                    {
+                        var inv = EntityManager.GetBuffer<PackSlot>(entity);
+                        const int MaxAgg = 32;
+                        Span<ushort> aggIds    = stackalloc ushort[MaxAgg];
+                        Span<int>    aggCounts = stackalloc int   [MaxAgg];
+                        int uniq = 0;
+                        for (int k = 0; k < inv.Length; k++)
+                        {
+                            ushort id = inv[k].ItemId;
+                            ushort cnt = inv[k].Count;
+                            if (id == 0 || cnt == 0) continue;
+                            int hit = -1;
+                            for (int j = 0; j < uniq; j++)
+                                if (aggIds[j] == id) { hit = j; break; }
+                            if (hit >= 0) aggCounts[hit] += cnt;
+                            else if (uniq < MaxAgg)
+                            { aggIds[uniq] = id; aggCounts[uniq] = cnt; uniq++; }
+                        }
+                        for (int a = 1; a < uniq; a++)
+                        {
+                            int kc = aggCounts[a]; ushort ki = aggIds[a];
+                            int b = a - 1;
+                            while (b >= 0 && aggCounts[b] < kc)
+                            {
+                                aggCounts[b + 1] = aggCounts[b];
+                                aggIds[b + 1]    = aggIds[b];
+                                b--;
+                            }
+                            aggCounts[b + 1] = kc;
+                            aggIds[b + 1]    = ki;
+                        }
+                        if (uniq > 0) { i0 = aggIds[0]; c0 = (ushort)math.min(aggCounts[0], ushort.MaxValue); }
+                        if (uniq > 1) { i1 = aggIds[1]; c1 = (ushort)math.min(aggCounts[1], ushort.MaxValue); }
+                        if (uniq > 2) { i2 = aggIds[2]; c2 = (ushort)math.min(aggCounts[2], ushort.MaxValue); }
+                        if (uniq > 3) { i3 = aggIds[3]; c3 = (ushort)math.min(aggCounts[3], ushort.MaxValue); }
                     }
                     break;
                 }
@@ -167,17 +224,24 @@ namespace RareIcon
                 publisher.Publish(new HexHoverMessage(
                     mouse.HexCoord.x, mouse.HexCoord.y, biome.Value, true,
                     res.Wood, res.Stone, res.Berries, res.Mushrooms, res.Herbs,
+                    res.Cactus, res.CactusVariant,
                     unitType,
                     hp, hpMax, en, enMax, mp, mpMax,
-                    i0, c0, i1, c1, i2, c2, i3, c3));
+                    hg, hgMax, fg, fgMax,
+                    i0, c0, i1, c1, i2, c2, i3, c3,
+                    nameFirst, nameEpithet, unitFaction));
             }
             else
             {
                 publisher.Publish(new HexHoverMessage(
                     mouse.HexCoord.x, mouse.HexCoord.y, 0, false,
-                    0, 0, 0, 0, 0, unitType,
+                    0, 0, 0, 0, 0,
+                    0, 0,
+                    unitType,
                     hp, hpMax, en, enMax, mp, mpMax,
-                    i0, c0, i1, c1, i2, c2, i3, c3));
+                    hg, hgMax, fg, fgMax,
+                    i0, c0, i1, c1, i2, c2, i3, c3,
+                    nameFirst, nameEpithet, unitFaction));
             }
         }
 
@@ -214,5 +278,11 @@ namespace RareIcon
             _overlayCreated = true;
             Debug.Log("[HexHoverSystem] Hover overlay entity created");
         }
+    }
+
+    /// <summary>Singleton mirror of HexHoverSystem's internal hex map; Burst-compiled systems read the NativeHashMap via SystemAPI.GetSingleton since static fields aren't Burst-accessible.</summary>
+    public struct HexLookupSingleton : IComponentData
+    {
+        public NativeHashMap<int2, Entity> Lookup;
     }
 }

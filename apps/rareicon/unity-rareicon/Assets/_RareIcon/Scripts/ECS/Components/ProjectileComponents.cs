@@ -119,4 +119,10 @@ namespace RareIcon
         public float Lifetime;     // seconds before auto-despawn
         public float Damage;
     }
+
+    /// <summary>Singleton holding the runtime-built projectile prefab entity. Written once by ProjectileBootstrapSystem (managed Mesh / Material setup); read by the Burst-compiled ProjectileSpawnSystem ISystem so it never has to touch managed APIs.</summary>
+    public struct ProjectilePrefabSingleton : IComponentData
+    {
+        public Entity Value;
+    }
 }

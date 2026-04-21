@@ -102,11 +102,52 @@ namespace RareIcon
         {
             var key = itemId switch
             {
-                (ushort)ItemId.WoodLog  => "item.wood_log",
-                (ushort)ItemId.Stone    => "item.stone",
-                (ushort)ItemId.Berry    => "item.berry",
-                (ushort)ItemId.Mushroom => "item.mushroom",
-                (ushort)ItemId.Herb     => "item.herb",
+                (ushort)ItemId.WoodLog     => "item.wood_log",
+                (ushort)ItemId.Stone       => "item.stone",
+                (ushort)ItemId.Berry       => "item.berry",
+                (ushort)ItemId.Mushroom    => "item.mushroom",
+                (ushort)ItemId.Herb        => "item.herb",
+                (ushort)ItemId.RawCacti    => "item.raw_cacti",
+                (ushort)ItemId.CactiNeedle => "item.cacti_needle",
+                (ushort)ItemId.PricklyPear => "item.prickly_pear",
+                (ushort)ItemId.Dragonfruit => "item.dragonfruit",
+                (ushort)ItemId.CactiSeeds  => "item.cacti_seeds",
+                (ushort)ItemId.Leaves      => "item.leaves",
+                (ushort)ItemId.Branches    => "item.branches",
+                (ushort)ItemId.Compost     => "item.compost",
+                (ushort)ItemId.Carrot      => "item.carrot",
+                (ushort)ItemId.NaturalSand => "item.natural_sand",
+                (ushort)ItemId.RawGlass    => "item.raw_glass",
+                (ushort)ItemId.Coal        => "item.coal",
+                (ushort)ItemId.Ash         => "item.ash",
+                (ushort)ItemId.Arrow       => "item.arrow",
+                (ushort)ItemId.CapitalLandGrant => "item.capital_land_grant",
+                (ushort)ItemId.RawChicken  => "item.raw_chicken",
+                (ushort)ItemId.Feather     => "item.feather",
+                (ushort)ItemId.RawMutton   => "item.raw_mutton",
+                (ushort)ItemId.Wool        => "item.wool",
+                (ushort)ItemId.RawBeef     => "item.raw_beef",
+                (ushort)ItemId.Leather     => "item.leather",
+                (ushort)ItemId.CookedChicken => "item.cooked_chicken",
+                (ushort)ItemId.CookedMutton  => "item.cooked_mutton",
+                (ushort)ItemId.CookedBeef    => "item.cooked_beef",
+                (ushort)ItemId.WolfPelt    => "item.wolf_pelt",
+                (ushort)ItemId.WolfFang    => "item.wolf_fang",
+                (ushort)ItemId.BanditCoin  => "item.bandit_coin",
+                (ushort)ItemId.Egg         => "item.egg",
+                (ushort)ItemId.Milk        => "item.milk",
+                (ushort)ItemId.CookedEgg   => "item.cooked_egg",
+                (ushort)ItemId.Cheese      => "item.cheese",
+                (ushort)ItemId.Meat        => "item.meat",
+                (ushort)ItemId.Hood        => "item.hood",
+                (ushort)ItemId.Pouch       => "item.pouch",
+                (ushort)ItemId.Bag         => "item.bag",
+                (ushort)ItemId.Pack        => "item.pack",
+                (ushort)ItemId.Timber      => "item.timber",
+                (ushort)ItemId.StoneBlock  => "item.stone_block",
+                (ushort)ItemId.Quiver      => "item.quiver",
+                (ushort)ItemId.Meal        => "item.meal",
+                BuildingDB.AnyFoodSentinel => "item.any_food",
                 _ => "item.unknown",
             };
             return Get(key);
@@ -119,7 +160,16 @@ namespace RareIcon
         {
             var key = unitType switch
             {
-                UnitType.Goblin => "creature.goblin",
+                UnitType.Goblin  => "creature.goblin",
+                UnitType.Knight  => "creature.knight",
+                UnitType.Soldier => "creature.soldier",
+                UnitType.Mage    => "creature.mage",
+                UnitType.King    => "creature.king",
+                UnitType.Chicken => "creature.chicken",
+                UnitType.Sheep   => "creature.sheep",
+                UnitType.Cow     => "creature.cow",
+                UnitType.Wolf    => "creature.wolf",
+                UnitType.Bandit  => "creature.bandit",
                 _ => "creature.none",
             };
             return Get(key);
@@ -137,7 +187,99 @@ namespace RareIcon
                 ResourceType.Berries   => "resource.berries",
                 ResourceType.Mushrooms => "resource.mushrooms",
                 ResourceType.Herbs     => "resource.herbs",
+                ResourceType.Cactus    => "resource.cactus",
+                ResourceType.Leaves    => "resource.leaves",
+                ResourceType.Branches  => "resource.branches",
+                ResourceType.Sand      => "resource.sand",
                 _ => "resource.none",
+            };
+            return Get(key);
+        }
+
+        /// <summary>Variant-specific cactus label (e.g. "Prickly Pear Cactus"); falls back to generic "Cactus".</summary>
+        public string GetCactusLabel(byte variant)
+        {
+            var key = variant switch
+            {
+                CactusVariantType.PricklyPear => "resource.cactus_prickly_pear",
+                CactusVariantType.Dragonfruit => "resource.cactus_dragonfruit",
+                _ => "resource.cactus",
+            };
+            return Get(key);
+        }
+
+        /// <summary>
+        /// Resolve a UnitName (FirstNameId, EpithetId) pair to the
+        /// displayable string. First names are language-neutral (a goblin
+        /// "Skab" reads as "Skab" everywhere); epithets pull from the
+        /// epithet.* locale keys so "the Sly" / "ずる賢き" swap per locale.
+        /// Returns empty string when both ids are 0 — caller should fall
+        /// back to the creature.* label.
+        /// </summary>
+        public string GetGoblinName(ushort firstNameId, ushort epithetId)
+        {
+            string first;
+            string epKey;
+
+            if (UnitNaming.IsHeroFirstId(firstNameId))
+            {
+                first = UnitNaming.GetHeroFirstName(firstNameId);
+                epKey = UnitNaming.IsHeroEpithetId(epithetId)
+                    ? UnitNaming.GetHeroEpithetKey(epithetId)
+                    : UnitNaming.GetEpithetKey(epithetId);
+            }
+            else
+            {
+                first = UnitNaming.GetFirstName(firstNameId);
+                epKey = UnitNaming.GetEpithetKey(epithetId);
+            }
+
+            if (first.Length == 0) return string.Empty;
+            if (epKey.Length == 0) return first;
+
+            return ZString.Concat(first, " ", Get(epKey));
+        }
+
+        /// <summary>Resolve an ActivityKind.* byte to its localized "doing right now" label. Empty for ActivityKind.None so callers can hide the line.</summary>
+        public string GetActivityName(byte kind)
+        {
+            var key = kind switch
+            {
+                ActivityKind.Idle             => "activity.idle",
+                ActivityKind.Wandering        => "activity.wandering",
+                ActivityKind.MovingToOrder    => "activity.moving_to_order",
+                ActivityKind.Sleeping         => "activity.sleeping",
+                ActivityKind.Eating           => "activity.eating",
+                ActivityKind.Healing          => "activity.healing",
+                ActivityKind.ReturningToBase  => "activity.returning_to_base",
+                ActivityKind.SeekingAid       => "activity.seeking_aid",
+                ActivityKind.Foraging         => "activity.foraging",
+                ActivityKind.Lumberjacking    => "activity.lumberjacking",
+                ActivityKind.Mining           => "activity.mining",
+                ActivityKind.Hunting          => "activity.hunting",
+                ActivityKind.Looting          => "activity.looting",
+                ActivityKind.Farming          => "activity.farming",
+                ActivityKind.Building         => "activity.building",
+                ActivityKind.Cooking          => "activity.cooking",
+                ActivityKind.Guarding         => "activity.guarding",
+                ActivityKind.TravelingToWork  => "activity.traveling_to_work",
+                ActivityKind.Crafting         => "activity.crafting",
+                ActivityKind.Smithing         => "activity.smithing",
+                _ => string.Empty,
+            };
+            return key.Length == 0 ? string.Empty : Get(key);
+        }
+
+        /// <summary>Resolve a FactionType.* byte to its localized name.</summary>
+        public string GetFactionName(byte faction)
+        {
+            var key = faction switch
+            {
+                FactionType.Player   => "faction.player",
+                FactionType.Hostile  => "faction.hostile",
+                FactionType.Beast    => "faction.beast",
+                FactionType.Wildlife => "faction.wildlife",
+                _ => "faction.neutral",
             };
             return Get(key);
         }

@@ -10,8 +10,10 @@ Shader "RareIcon/HexUnit"
         _UnitHelmet ("Unit Helmet (per-instance)", Float) = 0
         _UnitShield ("Unit Shield (per-instance)", Float) = 0
         _UnitMoving ("Unit Moving (per-instance, 0=idle 1=moving)", Float) = 1
+        _UnitSelected ("Unit Selected (per-instance, 0=no 1=yes)", Float) = 0
 
         _UnitPixelGrid ("Unit Pixel Grid", Float) = 16.0
+        _SelectionColor ("Selection Ring Color", Color) = (1.0, 0.83, 0.25, 1)
 
         // Goblin palette
         _GoblinSkin       ("Goblin Skin",        Color) = (0.32, 0.55, 0.22, 1)
@@ -57,6 +59,51 @@ Shader "RareIcon/HexUnit"
         // Shield equipment palette (face + boss at centre).
         _ShieldFace       ("Shield Face",         Color) = (0.58, 0.30, 0.22, 1)
         _ShieldBoss       ("Shield Boss",         Color) = (0.82, 0.78, 0.42, 1)
+
+        // Chicken palette
+        _ChickenBody      ("Chicken Body",       Color) = (0.96, 0.94, 0.88, 1)
+        _ChickenBodyShade ("Chicken Body Shade", Color) = (0.78, 0.72, 0.60, 1)
+        _ChickenComb      ("Chicken Comb",       Color) = (0.88, 0.18, 0.20, 1)
+        _ChickenBeak      ("Chicken Beak",       Color) = (0.98, 0.72, 0.18, 1)
+        _ChickenLeg       ("Chicken Leg",        Color) = (0.90, 0.55, 0.18, 1)
+        _ChickenEye       ("Chicken Eye",        Color) = (0.08, 0.06, 0.06, 1)
+
+        // Sheep palette
+        _SheepWool        ("Sheep Wool",         Color) = (0.94, 0.92, 0.88, 1)
+        _SheepWoolShade   ("Sheep Wool Shade",   Color) = (0.72, 0.70, 0.66, 1)
+        _SheepFace        ("Sheep Face",         Color) = (0.28, 0.22, 0.20, 1)
+        _SheepLeg         ("Sheep Leg",          Color) = (0.22, 0.18, 0.16, 1)
+        _SheepEye         ("Sheep Eye",          Color) = (0.05, 0.05, 0.05, 1)
+
+        // Cow palette (two body tones for patches)
+        _CowBodyA         ("Cow Body Base",      Color) = (0.96, 0.93, 0.86, 1)
+        _CowBodyB         ("Cow Body Patches",   Color) = (0.22, 0.18, 0.16, 1)
+        _CowHorn          ("Cow Horn",           Color) = (0.88, 0.82, 0.66, 1)
+        _CowHoof           ("Cow Hoof",          Color) = (0.18, 0.14, 0.12, 1)
+        _CowNose          ("Cow Nose",           Color) = (0.86, 0.58, 0.62, 1)
+        _CowEye           ("Cow Eye",            Color) = (0.08, 0.06, 0.06, 1)
+
+        // Wolf palette
+        _WolfBody         ("Wolf Body",          Color) = (0.32, 0.30, 0.30, 1)
+        _WolfBodyShade    ("Wolf Body Shade",    Color) = (0.18, 0.16, 0.16, 1)
+        _WolfBelly        ("Wolf Belly",         Color) = (0.62, 0.58, 0.54, 1)
+        _WolfNose         ("Wolf Nose",          Color) = (0.06, 0.05, 0.05, 1)
+        _WolfEye          ("Wolf Eye",           Color) = (0.92, 0.78, 0.20, 1)
+
+        // Bandit palette
+        _BanditTunic      ("Bandit Tunic",       Color) = (0.42, 0.20, 0.18, 1)
+        _BanditTunicShade ("Bandit Tunic Shade", Color) = (0.26, 0.12, 0.10, 1)
+        _BanditPants      ("Bandit Pants",       Color) = (0.22, 0.18, 0.14, 1)
+        _BanditMask       ("Bandit Bandana",     Color) = (0.78, 0.18, 0.18, 1)
+        _BanditSkin       ("Bandit Skin",        Color) = (0.92, 0.76, 0.60, 1)
+        _BanditEye        ("Bandit Eye",         Color) = (0.10, 0.08, 0.10, 1)
+
+        _ZombieSkin         ("Zombie Skin",         Color) = (0.52, 0.68, 0.62, 1)
+        _ZombieSkinShade    ("Zombie Skin Shade",   Color) = (0.30, 0.44, 0.40, 1)
+        _ZombieTatters      ("Zombie Rags",         Color) = (0.42, 0.40, 0.44, 1)
+        _ZombieTattersShade ("Zombie Rags Shade",   Color) = (0.22, 0.20, 0.24, 1)
+        _ZombieBlood        ("Zombie Blood",        Color) = (0.32, 0.10, 0.16, 1)
+        _ZombieEye          ("Zombie Eye",          Color) = (0.95, 0.92, 0.30, 1)
     }
 
     SubShader
@@ -101,7 +148,9 @@ Shader "RareIcon/HexUnit"
                 float _UnitHelmet;
                 float _UnitShield;
                 float _UnitMoving;
+                float _UnitSelected;
                 float _UnitPixelGrid;
+                float4 _SelectionColor;
                 float4 _GoblinSkin;
                 float4 _GoblinSkinShade;
                 float4 _GoblinEye;
@@ -131,6 +180,40 @@ Shader "RareIcon/HexUnit"
                 float4 _HelmetRim;
                 float4 _ShieldFace;
                 float4 _ShieldBoss;
+                float4 _ChickenBody;
+                float4 _ChickenBodyShade;
+                float4 _ChickenComb;
+                float4 _ChickenBeak;
+                float4 _ChickenLeg;
+                float4 _ChickenEye;
+                float4 _SheepWool;
+                float4 _SheepWoolShade;
+                float4 _SheepFace;
+                float4 _SheepLeg;
+                float4 _SheepEye;
+                float4 _CowBodyA;
+                float4 _CowBodyB;
+                float4 _CowHorn;
+                float4 _CowHoof;
+                float4 _CowNose;
+                float4 _CowEye;
+                float4 _WolfBody;
+                float4 _WolfBodyShade;
+                float4 _WolfBelly;
+                float4 _WolfNose;
+                float4 _WolfEye;
+                float4 _BanditTunic;
+                float4 _BanditTunicShade;
+                float4 _BanditPants;
+                float4 _BanditMask;
+                float4 _BanditSkin;
+                float4 _BanditEye;
+                float4 _ZombieSkin;
+                float4 _ZombieSkinShade;
+                float4 _ZombieTatters;
+                float4 _ZombieTattersShade;
+                float4 _ZombieBlood;
+                float4 _ZombieEye;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -141,14 +224,16 @@ Shader "RareIcon/HexUnit"
                 UNITY_DOTS_INSTANCED_PROP(float, _UnitHelmet)
                 UNITY_DOTS_INSTANCED_PROP(float, _UnitShield)
                 UNITY_DOTS_INSTANCED_PROP(float, _UnitMoving)
+                UNITY_DOTS_INSTANCED_PROP(float, _UnitSelected)
             UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
-            #define _UnitType   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitType)
-            #define _UnitFacing UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitFacing)
-            #define _UnitWeapon UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitWeapon)
-            #define _UnitHelmet UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitHelmet)
-            #define _UnitShield UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitShield)
-            #define _UnitMoving UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitMoving)
+            #define _UnitType     UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitType)
+            #define _UnitFacing   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitFacing)
+            #define _UnitWeapon   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitWeapon)
+            #define _UnitHelmet   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitHelmet)
+            #define _UnitShield   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitShield)
+            #define _UnitMoving   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitMoving)
+            #define _UnitSelected UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitSelected)
             #endif
 
             // Must match constants in UnitComponents.cs.
@@ -156,6 +241,12 @@ Shader "RareIcon/HexUnit"
             #define UNIT_KNIGHT      2
             #define UNIT_SOLDIER     3
             #define UNIT_MAGE        4
+            #define UNIT_CHICKEN    10
+            #define UNIT_SHEEP      11
+            #define UNIT_COW        12
+            #define UNIT_WOLF       13
+            #define UNIT_BANDIT     14
+            #define UNIT_ZOMBIE     15
 
             #define WEAPON_CLUB      1
             #define WEAPON_CROSSBOW  2
@@ -166,11 +257,18 @@ Shader "RareIcon/HexUnit"
             // Per-creature includes. Shared anim helpers first so every
             // creature file can reference _UnitShadow / _UnitStep / _UnitBob.
             #include "Includes/HexShared.hlsl"
+            #include "Includes/WorldAmbient.hlsl"
             #include "Includes/HexUnitAnim.hlsl"
             #include "Includes/HexGoblin.hlsl"
             #include "Includes/HexKnight.hlsl"
             #include "Includes/HexSoldier.hlsl"
             #include "Includes/HexMage.hlsl"
+            #include "Includes/HexChicken.hlsl"
+            #include "Includes/HexSheep.hlsl"
+            #include "Includes/HexCow.hlsl"
+            #include "Includes/HexWolf.hlsl"
+            #include "Includes/HexBandit.hlsl"
+            #include "Includes/HexZombie.hlsl"
             // Weapon + equipment includes — composited on top of the
             // creature at each unit's respective anchor.
             #include "Includes/HexClub.hlsl"
@@ -223,6 +321,30 @@ Shader "RareIcon/HexUnit"
                 {
                     DrawMage(color, alpha, px, grid, seed, facing);
                 }
+                else if (unitType == UNIT_CHICKEN)
+                {
+                    DrawChicken(color, alpha, px, grid, seed, facing);
+                }
+                else if (unitType == UNIT_SHEEP)
+                {
+                    DrawSheep(color, alpha, px, grid, seed, facing);
+                }
+                else if (unitType == UNIT_COW)
+                {
+                    DrawCow(color, alpha, px, grid, seed, facing);
+                }
+                else if (unitType == UNIT_WOLF)
+                {
+                    DrawWolf(color, alpha, px, grid, seed, facing);
+                }
+                else if (unitType == UNIT_BANDIT)
+                {
+                    DrawBandit(color, alpha, px, grid, seed, facing);
+                }
+                else if (unitType == UNIT_ZOMBIE)
+                {
+                    DrawZombie(color, alpha, px, grid, seed, facing);
+                }
 
                 // -- 2. Weapon (composited on top of the creature) -------------
                 // The weapon code stays facing-agnostic: when facing=West we
@@ -247,6 +369,10 @@ Shader "RareIcon/HexUnit"
                         anchor = SoldierWeaponAnchor(grid, weaponFacing);
                     else if (unitType == UNIT_MAGE)
                         anchor = MageWeaponAnchor(grid, weaponFacing);
+                    else if (unitType == UNIT_BANDIT)
+                        anchor = BanditWeaponAnchor(grid, weaponFacing);
+                    else if (unitType == UNIT_ZOMBIE)
+                        anchor = ZombieWeaponAnchor(grid, weaponFacing);
                     else
                         anchor = float2(grid * 0.5, grid * 0.45); // generic fallback
 
@@ -298,8 +424,25 @@ Shader "RareIcon/HexUnit"
                     }
                 }
 
+                // Selection ring — gold ellipse in the quad's negative space
+                if (_UnitSelected > 0.5 && alpha < 0.05)
+                {
+                    float cx = grid * 0.5;
+                    float cy = grid * 0.15;
+                    float rx = grid * 0.42;
+                    float ry = grid * 0.10;
+                    float2 d = float2((px.x + 0.5 - cx) / rx,
+                                      (px.y + 0.5 - cy) / ry);
+                    float rsq = dot(d, d);
+                    if (rsq > 0.55 && rsq < 1.10)
+                    {
+                        color = _SelectionColor.rgb;
+                        alpha = _SelectionColor.a;
+                    }
+                }
+
                 clip(alpha - 0.001);
-                return float4(color, alpha);
+                return float4(ApplyWorldAmbient(color), alpha);
             }
             ENDHLSL
         }

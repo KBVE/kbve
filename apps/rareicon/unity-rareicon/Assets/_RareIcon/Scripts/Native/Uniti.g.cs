@@ -255,6 +255,8 @@ namespace RareIcon.Native
         public byte berries;
         public byte mushrooms;
         public byte herbs;
+        public byte cactus;
+        public byte cactus_variant;
     }
 
     /// <summary>

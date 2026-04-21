@@ -16,35 +16,44 @@ namespace RareIcon
         public readonly int R;
         public readonly byte BiomeId;
         public readonly bool IsLand;
-        // Each hex carries multiple resources at once. 0 means "not present".
         public readonly byte Wood, Stone, Berries, Mushrooms, Herbs;
-        // UnitType.* of any creature standing on this hex (0 = none).
+        public readonly byte Cactus;
+        public readonly byte CactusVariant;
         public readonly byte UnitType;
-        // Unit stats — Max=0 means the unit doesn't carry that stat (the
-        // HUD hides the line entirely). Floats so partially-filled bars are
-        // exact (no rounding when displayed).
-        public readonly float UnitHealth, UnitMaxHealth;
-        public readonly float UnitEnergy, UnitMaxEnergy;
-        public readonly float UnitMana,   UnitMaxMana;
-        // First 4 inventory slots from the hovered unit. ItemId == 0 means
-        // empty. Goblin inventories are typically 1-3 stack types so 4 is
-        // generous; truncated by HexHoverSystem if the unit carries more.
+        public readonly float UnitHealth,  UnitMaxHealth;
+        public readonly float UnitEnergy,  UnitMaxEnergy;
+        public readonly float UnitMana,    UnitMaxMana;
+        public readonly float UnitHunger,  UnitMaxHunger;
+        public readonly float UnitFatigue, UnitMaxFatigue;
         public readonly ushort UnitInvId0, UnitInvCount0;
         public readonly ushort UnitInvId1, UnitInvCount1;
         public readonly ushort UnitInvId2, UnitInvCount2;
         public readonly ushort UnitInvId3, UnitInvCount3;
 
+        // Identity — per-unit name pool ids (0 if unset) and faction byte
+        // so the hover panel can title the unit by name and colour-code
+        // by allegiance (Player = gold, Hostile = red, Beast = amber).
+        public readonly ushort UnitNameFirstId;
+        public readonly ushort UnitNameEpithetId;
+        public readonly byte UnitFaction;
+
         public HexHoverMessage(int q, int r, byte biomeId, bool isLand,
                                byte wood = 0, byte stone = 0, byte berries = 0,
                                byte mushrooms = 0, byte herbs = 0,
+                               byte cactus = 0, byte cactusVariant = 0,
                                byte unitType = 0,
-                               float unitHealth = 0, float unitMaxHealth = 0,
-                               float unitEnergy = 0, float unitMaxEnergy = 0,
-                               float unitMana   = 0, float unitMaxMana   = 0,
+                               float unitHealth = 0,  float unitMaxHealth = 0,
+                               float unitEnergy = 0,  float unitMaxEnergy = 0,
+                               float unitMana   = 0,  float unitMaxMana   = 0,
+                               float unitHunger = 0,  float unitMaxHunger = 0,
+                               float unitFatigue = 0, float unitMaxFatigue = 0,
                                ushort invId0 = 0, ushort invCount0 = 0,
                                ushort invId1 = 0, ushort invCount1 = 0,
                                ushort invId2 = 0, ushort invCount2 = 0,
-                               ushort invId3 = 0, ushort invCount3 = 0)
+                               ushort invId3 = 0, ushort invCount3 = 0,
+                               ushort unitNameFirstId = 0,
+                               ushort unitNameEpithetId = 0,
+                               byte unitFaction = 0)
         {
             Q = q;
             R = r;
@@ -55,21 +64,28 @@ namespace RareIcon
             Berries = berries;
             Mushrooms = mushrooms;
             Herbs = herbs;
+            Cactus = cactus;
+            CactusVariant = cactusVariant;
             UnitType = unitType;
-            UnitHealth   = unitHealth;
-            UnitMaxHealth= unitMaxHealth;
-            UnitEnergy   = unitEnergy;
-            UnitMaxEnergy= unitMaxEnergy;
-            UnitMana     = unitMana;
-            UnitMaxMana  = unitMaxMana;
+            UnitHealth     = unitHealth;
+            UnitMaxHealth  = unitMaxHealth;
+            UnitEnergy     = unitEnergy;
+            UnitMaxEnergy  = unitMaxEnergy;
+            UnitMana       = unitMana;
+            UnitMaxMana    = unitMaxMana;
+            UnitHunger     = unitHunger;
+            UnitMaxHunger  = unitMaxHunger;
+            UnitFatigue    = unitFatigue;
+            UnitMaxFatigue = unitMaxFatigue;
             UnitInvId0 = invId0; UnitInvCount0 = invCount0;
             UnitInvId1 = invId1; UnitInvCount1 = invCount1;
             UnitInvId2 = invId2; UnitInvCount2 = invCount2;
             UnitInvId3 = invId3; UnitInvCount3 = invCount3;
+            UnitNameFirstId   = unitNameFirstId;
+            UnitNameEpithetId = unitNameEpithetId;
+            UnitFaction       = unitFaction;
         }
     }
-
-    // -- Hex interactions --
 
     public readonly struct HexClickedMessage
     {
@@ -101,8 +117,6 @@ namespace RareIcon
         }
     }
 
-    // -- Panel visibility --
-
     public readonly struct PanelShowMessage
     {
         public readonly string PanelKey;
@@ -113,5 +127,81 @@ namespace RareIcon
     {
         public readonly string PanelKey;
         public PanelHideMessage(string panelKey) => PanelKey = panelKey;
+    }
+
+    /// <summary>Severity of a toast — drives the panel border tint.</summary>
+    public enum ToastKind : byte
+    {
+        Info    = 0,
+        Success = 1,
+        Warning = 2,
+        Error   = 3,
+    }
+
+    /// <summary>
+    /// Player-facing notification published by gameplay systems and
+    /// consumed by ToastService which queues + displays them serially.
+    /// </summary>
+    public readonly struct ToastMessage
+    {
+        public readonly ToastKind Kind;
+        public readonly string Text;
+        public ToastMessage(string text, ToastKind kind = ToastKind.Info)
+        {
+            Kind = kind;
+            Text = text;
+        }
+    }
+
+    // -- Click router output (AppStateController emits one of these
+    //    per left-click after deciding what the click MEANS) --
+
+    /// <summary>"Player clicked a building hex" — Building Inspector panel target.</summary>
+    public readonly struct BuildingInspectMessage
+    {
+        public readonly Unity.Entities.Entity Building;
+        public BuildingInspectMessage(Unity.Entities.Entity building) => Building = building;
+    }
+
+    /// <summary>"Player clicked a unit hex (not the one already controlled)" — possession target.</summary>
+    public readonly struct PossessUnitMessage
+    {
+        public readonly Unity.Entities.Entity Unit;
+        public PossessUnitMessage(Unity.Entities.Entity unit) => Unit = unit;
+    }
+
+    /// <summary>"Player clicked a hex hosting a Player-faction unit" — opens Citizens → Roster with this entity selected. Possession is a separate explicit action from the Roster detail pane, so a misclick no longer hijacks control.</summary>
+    public readonly struct UnitInspectMessage
+    {
+        public readonly Unity.Entities.Entity Unit;
+        public UnitInspectMessage(Unity.Entities.Entity unit) => Unit = unit;
+    }
+
+    /// <summary>"Player clicked an empty hex while a unit is controlled" — move order.</summary>
+    public readonly struct ControlledUnitMoveMessage
+    {
+        public readonly int Q, R;
+        public ControlledUnitMoveMessage(int q, int r) { Q = q; R = r; }
+    }
+
+    // -- Selection (drag-select → bulk orders) --
+
+    /// <summary>"Drag completed" — world-space rect of the selection marquee. SelectionSystem re-tags every Player-faction unit inside with SelectedTag.</summary>
+    public readonly struct SelectionDragMessage
+    {
+        public readonly Unity.Mathematics.float2 MinWorld;
+        public readonly Unity.Mathematics.float2 MaxWorld;
+        public SelectionDragMessage(Unity.Mathematics.float2 minWorld, Unity.Mathematics.float2 maxWorld)
+        {
+            MinWorld = minWorld;
+            MaxWorld = maxWorld;
+        }
+    }
+
+    /// <summary>"Player clicked a hex while selection is non-empty" — SelectionMoveSystem spreads every SelectedTag unit into a ring formation around (Q,R).</summary>
+    public readonly struct SelectionMoveMessage
+    {
+        public readonly int Q, R;
+        public SelectionMoveMessage(int q, int r) { Q = q; R = r; }
     }
 }

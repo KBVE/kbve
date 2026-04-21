@@ -1,0 +1,705 @@
+/* =========================================================================
+   RareIcon — root design system
+   Tokens, layout primitives, panel chrome, buttons, lists, typography.
+   Per-panel stylesheets layer on top via <Style src="..." /> in UXML.
+   ========================================================================= */
+
+/* ----- Tokens (USS custom properties) -----
+   Unity USS scopes custom properties on the matching element, not on
+   the document root. `*` matches every VisualElement so vars cascade
+   down via inheritance the same way they would on :root in real CSS. */
+* {
+    --color-bg-page:    rgba(9, 9, 11, 0.92);
+    --color-bg-panel:   rgb(24, 24, 27);
+    --color-bg-muted:   rgb(39, 39, 42);
+    --color-bg-row:     rgba(255, 255, 255, 0);
+    --color-bg-row-hover:    rgba(255, 255, 255, 0.04);
+    --color-bg-row-selected: rgba(252, 211, 77, 0.10);
+
+    --color-border-subtle: rgb(63, 63, 70);
+    --color-border-accent: rgba(252, 211, 77, 0.45);
+    --color-border-strong: rgb(252, 211, 77);
+
+    --color-text-primary: rgb(252, 211, 77);
+    --color-text-strong:  rgb(253, 230, 138);
+    --color-text-muted:   rgba(252, 211, 77, 0.65);
+    --color-text-mute2:   rgb(113, 113, 122);
+    --color-text-on-gold: rgb(9, 9, 11);
+    --color-text-danger:  rgb(249, 115, 22);
+    --color-text-success: rgb(16, 185, 129);
+
+    --color-accent:       rgb(252, 211, 77);
+    --color-accent-deep:  rgb(245, 158, 11);
+
+    --space-xs: 2px;
+    --space-sm: 3px;
+    --space-md: 5px;
+    --space-lg: 7px;
+    --space-xl: 10px;
+
+    --font-tiny:    8px;
+    --font-body:    9px;
+    --font-bodylg: 10px;
+    --font-label:  11px;
+    --font-head:   12px;
+    --font-title:  13px;
+}
+
+/* ----- Layout primitives ----- */
+.row    { flex-direction: row; }
+.col    { flex-direction: column; }
+.grow   { flex-grow: 1; }
+.center { align-items: center; justify-content: center; }
+.between{ justify-content: space-between; }
+.middle { align-items: center; }
+.gap-xs { /* fallback gap; UIE uses 'gap' in newer versions */ }
+
+/* ----- Typography ----- */
+.text-tiny   { font-size: var(--font-tiny);   color: var(--color-text-muted); }
+.text-body   { font-size: var(--font-body);   color: var(--color-text-primary); }
+.text-bodylg { font-size: var(--font-bodylg); color: var(--color-text-primary); }
+.text-label  { font-size: var(--font-label);  color: var(--color-text-strong); -unity-font-style: bold; }
+.text-head   { font-size: var(--font-head);   color: var(--color-text-strong); -unity-font-style: bold; }
+.text-title  { font-size: var(--font-title);  color: var(--color-text-strong); -unity-font-style: bold; }
+.text-muted  { color: var(--color-text-muted); }
+.text-danger { color: var(--color-text-danger); }
+.text-deep   { color: var(--color-accent-deep); }
+
+/* ----- Panel chrome ----- */
+.panel {
+    background-color: var(--color-bg-page);
+    border-color:     var(--color-border-accent);
+    border-width:     1px;
+    border-radius:    0;
+    padding:          var(--space-md) var(--space-lg);
+    flex-direction:   column;
+}
+
+.panel--compact {
+    padding: var(--space-sm) var(--space-md);
+}
+
+/* Anchors */
+.anchor-tl { position: absolute; top:    2%; left:  2%; }
+.anchor-tr { position: absolute; top:    2%; right: 2%; }
+.anchor-bl { position: absolute; bottom: 2%; left:  2%; }
+.anchor-br { position: absolute; bottom: 2%; right: 2%; }
+
+/* Width tokens — pair min (px) + max (vw%) so panels grow with content
+   but cap on small viewports. */
+.w-narrow { min-width: 160px; max-width:  22%; }
+.w-std    { min-width: 200px; max-width:  26%; }
+.w-wide   { min-width: 240px; max-width:  32%; }
+.w-xwide  { min-width: 380px; max-width:  50%; }
+
+/* ----- Full-window panel (Build / Treasury / Citizens) -----
+   Centered workspace panel — covers most of the viewport with a
+   dimmed backdrop behind so the world reads as secondary. The
+   wrapper fills the screen; the backdrop + panel absolute-position
+   inside it. */
+.modal-wrapper {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+}
+.modal-wrapper.is-hidden { display: none; }
+
+.modal-backdrop {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.55);
+}
+.panel--modal {
+    position: absolute;
+    top:    6%;
+    left:   12%;
+    right:  12%;
+    bottom: 6%;
+    flex-direction: column;
+}
+
+/* Height caps for togglable panels — paired with body scroll */
+.h-std    { max-height: 70%; }
+.h-tall   { max-height: 80%; }
+
+/* Below-stack offset — clears the always-on top-right HUD strip */
+.below-hud { margin-top: 110px; }
+
+/* Hidden / visible state for togglable panels */
+.is-hidden { display: none; }
+
+/* ----- Panel header (title row + close) ----- */
+.panel__header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+}
+.panel__title {
+    font-size: var(--font-title);
+    color: var(--color-text-strong);
+    -unity-font-style: bold;
+}
+.panel__strip {
+    height: 1px;
+    background-color: var(--color-accent);
+    margin-bottom: var(--space-sm);
+}
+.panel__body  { flex-grow: 1; }
+.panel__body--scroll { /* applied to ScrollView; lets it consume remaining height */ flex-grow: 1; }
+
+/* Close X button — must read at modal scale. Filled by default,
+   inverts on hover. Big enough to be a no-miss target. */
+.btn-close {
+    width: 28px; height: 28px;
+    padding: 0;
+    margin: 0;
+    border-width: 1px;
+    border-color: var(--color-accent);
+    background-color: var(--color-bg-panel);
+    color: var(--color-accent);
+    font-size: 18px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    border-radius: 0;
+    transition-duration: 0.12s;
+    transition-property: background-color, color, border-color;
+}
+.btn-close:hover {
+    background-color: var(--color-text-danger);
+    color: rgb(255, 255, 255);
+    border-color: var(--color-text-danger);
+}
+
+/* ----- Buttons ----- */
+.btn {
+    padding: var(--space-sm) var(--space-lg);
+    margin: 0;
+    background-color: var(--color-bg-panel);
+    color: var(--color-accent);
+    border-width: 1px;
+    border-color: var(--color-accent);
+    border-radius: 0;
+    font-size: var(--font-label);
+    -unity-font-style: bold;
+    transition-duration: 0.12s;
+    transition-property: background-color, color, border-color;
+}
+.btn:hover {
+    background-color: var(--color-accent);
+    color: var(--color-text-on-gold);
+}
+.btn:active {
+    background-color: var(--color-accent-deep);
+    color: rgb(0, 0, 0);
+    border-color: var(--color-accent-deep);
+}
+.btn:disabled {
+    background-color: rgba(9, 9, 11, 0.92);
+    color: var(--color-text-mute2);
+    border-color: var(--color-border-subtle);
+}
+
+/* Compact button — toolbar / inline action sizes */
+.btn--sm {
+    padding: 0 var(--space-md);
+    height: 20px;
+    font-size: var(--font-body);
+}
+.btn--md {
+    height: 24px;
+    font-size: var(--font-label);
+    padding: 0 var(--space-lg);
+}
+
+/* ----- Toolbar (row of buttons sharing chrome) ----- */
+.toolbar {
+    flex-direction: row;
+    align-items: center;
+}
+.toolbar > .btn  { margin-left: var(--space-sm); }
+.toolbar > .first { margin-left: 0; }
+
+/* ----- List rows ----- */
+.list-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-xs);
+    background-color: var(--color-bg-row);
+    transition-duration: 0.10s;
+    transition-property: background-color;
+}
+.list-row--selectable:hover {
+    background-color: var(--color-bg-row-hover);
+}
+.list-row--selected {
+    background-color: var(--color-bg-row-selected);
+}
+
+/* Stacked rows (label / value on two lines instead of side-by-side) */
+.list-row--stacked {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* ============================================================
+   ScreenFrame — root layout container with explicit regions.
+   Replaces ad-hoc absolute positioning. Each panel mounts into
+   ONE region; the region owns its layout. Two panels can't fight
+   for the same anchor because there's only one slot per region.
+   ============================================================ */
+.screen-frame {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    flex-direction: column;
+}
+.screen-bar {
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--color-bg-page);
+    border-color: var(--color-border-accent);
+    padding: 1px 6px;
+    flex-shrink: 0;
+    min-height: 22px;
+}
+.screen-bar--top    { border-bottom-width: 1px; }
+.screen-bar--bottom { border-top-width: 1px; }
+.screen-region {
+    flex-direction: row;
+    align-items: center;
+}
+.screen-world {
+    flex-grow: 1;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ----- HUD strip — compact clock/control rows that sit on the
+   top-bar. The bar already provides background + border, so the
+   strip is borderless here and just spaces its contents. ----- */
+.hud-strip {
+    flex-direction: row;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    padding: 0 var(--space-sm);
+    margin: 0;
+}
+.hud-strip__icon {
+    width: 6px; height: 6px;
+    border-radius: 3px;
+    margin-right: var(--space-xs);
+    flex-shrink: 0;
+}
+.hud-strip__icon--day   { background-color: var(--color-accent); }
+.hud-strip__icon--night { background-color: rgb(140, 165, 215); }
+.hud-strip__label {
+    font-size: var(--font-body);
+    color: var(--color-text-strong);
+    -unity-font-style: bold;
+    margin-right: var(--space-xs);
+}
+.hud-strip__value {
+    font-size: var(--font-tiny);
+    color: var(--color-text-muted);
+}
+
+.hud-stack-tr {
+    position: absolute;
+    top: 2%;
+    right: 2%;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+/* ----- Toolbar (top-left always-visible) ----- */
+.toolbar-pin {
+    position: absolute;
+    top: 2%;
+    left: 2%;
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--color-bg-page);
+    border-color: var(--color-border-accent);
+    border-width: 1px;
+    padding: var(--space-xs) var(--space-sm);
+}
+.toolbar-pin > .btn-tool  { margin-left: var(--space-xs); }
+.toolbar-pin > .first     { margin-left: 0; }
+
+/* Toolbar embedded in a ScreenFrame region — same row layout, no
+   absolute positioning or chrome (the bar already provides those). */
+.toolbar-embed {
+    flex-direction: row;
+    align-items: center;
+}
+.toolbar-embed > .btn-tool { margin-left: var(--space-xs); }
+.toolbar-embed > .first    { margin-left: 0; }
+
+/* Toolbar buttons — borderless until hovered, sits flat on the bar */
+.btn-tool {
+    height: 22px;
+    padding: 0 var(--space-md);
+    margin: 0;
+    background-color: rgba(0, 0, 0, 0);
+    color: var(--color-accent);
+    border-width: 0;
+    border-radius: 0;
+    font-size: var(--font-body);
+    -unity-font-style: bold;
+    transition-duration: 0.10s;
+    transition-property: background-color, color;
+}
+.btn-tool:hover {
+    background-color: var(--color-accent);
+    color: var(--color-text-on-gold);
+}
+.btn-tool:active {
+    background-color: var(--color-accent-deep);
+    color: rgb(0, 0, 0);
+}
+.btn-tool.is-active {
+    background-color: var(--color-accent);
+    color: var(--color-text-on-gold);
+}
+
+/* Icon-only toolbar button — baked Texture2D as bg, text transparent. */
+.btn-icon {
+    width: 26px;
+    height: 22px;
+    padding: 0;
+    -unity-background-scale-mode: scale-to-fit;
+    color: rgba(0, 0, 0, 0);
+}
+
+/* Letter toolbar button — single uppercase glyph (B / T / M / ...) */
+.btn-letter {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    -unity-text-align: middle-center;
+    font-size: var(--font-label);
+    -unity-font-style: bold;
+}
+
+/* ----- Hover tile-info panel — small anchored card at bottom-left
+   (right column is reserved for toggleable panels). ----- */
+.tile-info {
+    position: absolute;
+    bottom: 1%;
+    left: 1%;
+    min-width: 90px;
+    max-width: 11%;
+    flex-direction: column;
+    background-color: var(--color-bg-page);
+    border-color: var(--color-border-accent);
+    border-width: 1px;
+    padding: 2px 4px;
+}
+.tile-info__name {
+    font-size: var(--font-bodylg);
+    color: var(--color-text-strong);
+    -unity-font-style: bold;
+}
+.tile-info__line {
+    font-size: var(--font-tiny);
+    color: var(--color-text-primary);
+    margin-top: 0;
+    white-space: normal;
+}
+.tile-info__line--muted    { color: var(--color-text-muted); }
+.tile-info__line--creature { -unity-font-style: bold; }
+.tile-info__line--resource { color: var(--color-accent-deep); }
+
+/* Faction-coloured creature line */
+.tile-info__line--faction-player   { color: var(--color-accent); }
+.tile-info__line--faction-hostile  { color: var(--color-text-danger); }
+.tile-info__line--faction-beast    { color: var(--color-accent-deep); }
+.tile-info__line--faction-wildlife { color: var(--color-text-muted); }
+.tile-info__line--faction-neutral  { color: var(--color-text-muted); }
+
+/* Inline variant — hover panel mounted in the bottom bar */
+.tile-info--inline {
+    flex-direction: row;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    padding: 0;
+}
+.tile-info--inline > .tile-info__name {
+    margin-right: var(--space-md);
+}
+.tile-info--inline > .tile-info__line {
+    margin-right: var(--space-md);
+    white-space: nowrap;
+}
+
+/* ----- Build palette row ----- */
+.palette-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-xs) var(--space-sm);
+    margin-bottom: 1px;
+    transition-duration: 0.10s;
+    transition-property: background-color;
+}
+.palette-row:hover { background-color: var(--color-bg-row-hover); }
+.palette-row.is-selected { background-color: var(--color-bg-row-selected); }
+.palette-row__name {
+    font-size: var(--font-bodylg);
+    color: var(--color-text-strong);
+    -unity-font-style: bold;
+}
+.palette-row__cost {
+    font-size: var(--font-body);
+    color: var(--color-text-muted);
+    -unity-text-align: middle-right;
+    flex-shrink: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.palette-row__cost--unaffordable { color: var(--color-text-danger); }
+
+/* Stronger control panel (when player has a controlled unit) */
+.hud-strip--strong { border-color: var(--color-accent); }
+
+.hud-strip__action {
+    margin-left: var(--space-md);
+}
+
+/* ============================================================
+   Citizens panel — shared styling for tabs (Roster/Jobs/Skills/Diet)
+   ============================================================ */
+
+/* Section header inside a tab body */
+.cz-section {
+    font-size: var(--font-label);
+    color: var(--color-text-strong);
+    -unity-font-style: bold;
+    margin-top: var(--space-sm);
+    margin-bottom: var(--space-xs);
+}
+.cz-section.first { margin-top: 0; }
+
+/* Small hint/footnote text */
+.cz-hint {
+    font-size: var(--font-tiny);
+    color: var(--color-text-muted);
+    margin-top: var(--space-md);
+    white-space: normal;
+}
+
+/* Dropdown spacing inside tab bodies */
+.cz-dropdown { margin-bottom: var(--space-md); }
+
+/* Generic stepper-like rows: label left, value right */
+.cz-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: var(--space-xs);
+}
+.cz-row__label {
+    flex-grow: 1;
+    color: var(--color-text-strong);
+    font-size: var(--font-body);
+}
+.cz-row__value {
+    width: 64px;
+    -unity-text-align: middle-right;
+    color: var(--color-accent);
+    font-size: var(--font-body);
+}
+
+/* ----- Roster (left list) ----- */
+
+.roster-list {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin-right: var(--space-md);
+}
+.roster-list__title {
+    font-size: var(--font-label);
+    color: var(--color-text-strong);
+    -unity-font-style: bold;
+    margin-bottom: var(--space-sm);
+}
+.roster-scroll {
+    flex-grow: 1;
+    max-height: 320px;
+}
+
+.roster-row {
+    flex-direction: row;
+    align-items: center;
+    padding: var(--space-xs) var(--space-md);
+    margin-bottom: 1px;
+    transition-duration: 0.10s;
+    transition-property: background-color;
+}
+.roster-row:hover { background-color: var(--color-bg-row-hover); }
+.roster-row.is-selected { background-color: var(--color-bg-row-selected); }
+
+.roster-row__badge {
+    width: 14px; height: 14px;
+    -unity-text-align: middle-center;
+    font-size: var(--font-tiny);
+    -unity-font-style: bold;
+    color: var(--color-text-on-gold);
+    background-color: var(--color-accent);
+    margin-right: var(--space-sm);
+    flex-shrink: 0;
+}
+.roster-row__badge--goblin  { background-color: rgb(132, 204, 22); }   /* lime */
+.roster-row__badge--soldier { background-color: rgb(96, 165, 250); }   /* blue */
+.roster-row__badge--knight  { background-color: rgb(244, 114, 182); }  /* pink */
+.roster-row__badge--mage    { background-color: rgb(167, 139, 250); }  /* violet */
+.roster-row__badge--king    { background-color: var(--color-accent); } /* gold */
+
+.roster-row__main {
+    flex-direction: column;
+    flex-grow: 1;
+    min-width: 0;
+}
+.roster-row__name {
+    font-size: var(--font-body);
+    color: var(--color-text-strong);
+    -unity-font-style: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.roster-row__activity {
+    font-size: var(--font-tiny);
+    color: var(--color-accent-deep);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.roster-row__bar {
+    width: 60px;
+    margin-left: var(--space-sm);
+    flex-shrink: 0;
+}
+
+/* ----- Roster detail pane ----- */
+
+.roster-detail {
+    flex-grow: 1;
+    flex-basis: 0;
+    padding: var(--space-md) var(--space-lg);
+    border-width: 1px;
+    border-color: var(--color-border-subtle);
+    background-color: var(--color-bg-panel);
+}
+.roster-detail__title {
+    font-size: var(--font-label);
+    color: var(--color-text-strong);
+    -unity-font-style: bold;
+    margin-bottom: var(--space-xs);
+}
+.roster-detail__activity {
+    font-size: var(--font-body);
+    color: var(--color-accent-deep);
+    margin-bottom: var(--space-sm);
+}
+.roster-detail__stats {
+    flex-direction: column;
+    margin-bottom: var(--space-lg);
+}
+.roster-detail__jobs {
+    flex-direction: column;
+    margin-bottom: var(--space-lg);
+    padding-top: var(--space-sm);
+    border-top-width: 1px;
+    border-top-color: var(--color-border-subtle);
+}
+.roster-detail__actions {
+    flex-direction: row;
+}
+.roster-detail__actions > .btn { margin-right: var(--space-md); }
+
+/* ----- Mini stat-bar primitive (label · bar · value) ----- */
+
+.stat-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: var(--space-xs);
+}
+.stat-row__label {
+    width: 24px;
+    font-size: var(--font-tiny);
+    color: var(--color-text-muted);
+    -unity-font-style: bold;
+}
+.stat-row__bar {
+    flex-grow: 1;
+    margin: 0 var(--space-sm);
+}
+.stat-row__value {
+    width: 56px;
+    -unity-text-align: middle-right;
+    font-size: var(--font-tiny);
+    color: var(--color-text-strong);
+}
+
+.bar {
+    height: 6px;
+    background-color: var(--color-bg-muted);
+    border-width: 1px;
+    border-color: var(--color-border-subtle);
+}
+.bar__fill {
+    height: 100%;
+    background-color: var(--color-accent);
+}
+.bar__fill--hp { background-color: rgb(220, 38, 38); }    /* red */
+.bar__fill--hu { background-color: rgb(245, 158, 11); }   /* amber */
+.bar__fill--ft { background-color: rgb(96, 165, 250); }   /* blue */
+.bar__fill--en { background-color: rgb(34, 197, 94); }    /* green */
+
+/* Drag-select marquee */
+.drag-marquee {
+    background-color: rgba(252, 211, 77, 0.20);
+    border-color: var(--color-accent);
+    border-top-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
+}
+
+/* ----- Slim scrollbars in modal panels ----- */
+.panel--modal .unity-scroller--vertical   { width: 6px; }
+.panel--modal .unity-scroller--horizontal { height: 6px; }
+
+.panel--modal .unity-scroller__low-button,
+.panel--modal .unity-scroller__high-button {
+    display: none;
+}
+
+.panel--modal .unity-base-slider__tracker {
+    background-color: var(--color-bg-muted);
+    border-width: 0;
+    border-radius: 0;
+    margin: 0;
+}
+
+.panel--modal .unity-base-slider__dragger {
+    background-color: var(--color-accent);
+    border-width: 0;
+    border-radius: 0;
+    min-width: 6px;
+    min-height: 6px;
+}
+.panel--modal .unity-base-slider__dragger:hover {
+    background-color: var(--color-accent-deep);
+}
+
+.panel--modal .unity-scroller__slider {
+    margin: 0;
+    min-width: 6px;
+    min-height: 6px;
+}

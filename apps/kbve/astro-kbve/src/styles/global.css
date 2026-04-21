@@ -46,63 +46,164 @@ html[data-auth-tone='staff'] li[data-auth-visibility='anon'] {
 	display: none;
 }
 
-/* Right sidebar is off-canvas, left sidebar stays in flow */
-/* Content uses all freed space */
-@layer my-overrides {
-	@media (min-width: 50rem) {
-		:root {
-			--sl-content-width: 100%;
-			--sl-content-margin-inline: 0;
-			--sl-content-pad-x: 5rem;
-		}
+/* ── KBVE Luxury Palette: red + gold + near-black ──
+   Brand tokens are the source of truth. Starlight vars below
+   reference them so the shell (nav, sidebar, page bg) picks up
+   the palette automatically. */
+:root {
+	/* Brand tokens */
+	--color-red: #ad0013;
+	--color-red-dark: #7a000d;
+	--color-gold: #a67d43;
+	--color-gold-light: #c9a56a;
+	--color-gold-dark: #7a5a2e;
+	--color-bg: #121312;
+	--color-bg-raised: #1a1a1a;
+	--color-bg-sunken: #0b0c0b;
+	--color-parchment: #f5ecd8;
 
-		[data-has-sidebar] .main-pane,
-		[data-has-sidebar][data-has-toc] .main-pane {
-			width: 100% !important;
-			--sl-content-margin-inline: 0 !important;
-		}
+	/* Dark-first defaults — paint the page in brand near-black even before
+	   data-theme resolves, so cross-doc view transitions don't flash a
+	   lighter surface. Light theme overrides below via :not selector. */
+	--sl-color-bg: var(--color-bg);
+	--sl-color-bg-nav: var(--color-bg-raised);
+	--sl-color-bg-sidebar: var(--color-bg-raised);
+	--sl-color-bg-inline-code: var(--color-bg-raised);
 
-		.sl-container {
-			max-width: none !important;
-			margin-inline: 0 !important;
-		}
-	}
+	/* Light-theme Starlight mapping (applies only when data-theme is light) */
+	--sl-color-accent-low: var(--color-parchment);
+	--sl-color-accent: var(--color-gold);
+	--sl-color-accent-high: var(--color-gold-dark);
+	--sl-color-text-accent: var(--color-red);
+	--sl-color-link: var(--color-red);
+	--sl-color-link-hover: var(--color-red-dark);
+	--sl-color-bg-accent: var(--color-parchment);
+	--sl-color-code-bg: #1a1413;
+	--sl-color-border: var(--color-gold);
 }
 
-:root {
-	--sl-color-accent-low: #ecfeff;
-	--sl-color-accent: #06b6d4;
-	--sl-color-accent-high: #0e7490;
-	--sl-color-text-accent: #0891b2;
-	--sl-color-link: #06b6d4;
-	--sl-color-link-hover: #22d3ee;
-	--sl-color-bg-accent: #cffafe;
-	--sl-color-code-bg: #083344;
-	--sl-color-border: #67e8f9;
+/* Light theme: override only when data-theme is explicitly 'light'.
+   Unset/missing data-theme falls through to the dark defaults above. */
+:root[data-theme='light'] {
+	--sl-color-bg: #fefefe;
+	--sl-color-bg-nav: #fefefe;
+	--sl-color-bg-sidebar: #faf8f2;
+	--sl-color-bg-inline-code: #f5ecd8;
 }
 :root[data-theme='dark'] {
-	--sl-color-accent-low: #083344;
-	--sl-color-accent: #06b6d4;
-	--sl-color-accent-high: #a5f3fc;
-	--sl-color-text-accent: #22d3ee;
-	--sl-color-link: #22d3ee;
-	--sl-color-link-hover: #67e8f9;
-	--sl-color-bg-accent: #164e63;
-	--sl-color-code-bg: #083344;
-	--sl-color-border: #155e75;
+	/* Dark-theme accent overrides (bg vars already set in base :root) */
+	--sl-color-accent-low: #3a2615;
+	--sl-color-accent: var(--color-gold);
+	--sl-color-accent-high: var(--color-gold-light);
+	--sl-color-text-accent: var(--color-gold-light);
+	--sl-color-link: var(--color-gold-light);
+	--sl-color-link-hover: var(--color-red);
+	--sl-color-bg-accent: var(--color-red-dark);
+	--sl-color-code-bg: var(--color-bg-sunken);
+	--sl-color-border: var(--color-gold-dark);
+}
+
+/* ── Typography: Playfair Display for display, Lora for body ── */
+:root {
+	--sl-font:
+		'Playfair Display', 'Cormorant Garamond', 'Palatino Linotype', Georgia,
+		serif;
+	--kbve-font-body: 'Lora', Georgia, 'Times New Roman', serif;
+}
+
+/* Paint the root element so view-transitions and initial renders
+   never reveal the browser default (white) behind the Starlight shell. */
+html {
+	background-color: var(--sl-color-bg);
+}
+
+:root[data-theme='dark'] {
+	color-scheme: dark;
+}
+
+body {
+	font-family: var(--kbve-font-body);
+}
+
+/* Match the view-transition pseudo-elements to the shell bg so the
+   cross-fade between old/new page snapshots stays on-brand. */
+::view-transition-old(root),
+::view-transition-new(root) {
+	background-color: var(--sl-color-bg);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: var(--sl-font);
+}
+
+/* ── Scrollbar: dark gold on near-black ── */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: #121312;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #7a5a2e;
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #a67d43;
+}
+
+/* Firefox */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: #7a5a2e #121312;
+}
+
+/* ── Focus styles: gold ring for keyboard navigation ── */
+:focus-visible {
+	outline: 2px solid #a67d43;
+	outline-offset: 2px;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+	outline: 2px solid #a67d43;
+	outline-offset: 2px;
+}
+
+/* ── Reduced motion: respect vestibular preferences ── */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
 }
 
 @layer utilities {
 	.focus-ring {
-		@apply ring-cyan-500 ring-offset-2 focus:outline-none focus-visible:ring-2;
+		@apply ring-[#a67d43] ring-offset-2 focus:outline-none focus-visible:ring-2;
 	}
 }
 @layer components {
 	.sl-link-button {
-		@apply bg-cyan-600 hover:bg-cyan-700 text-white;
+		@apply bg-[#ad0013] hover:bg-[#7a000d] text-white;
 	}
 	.sl-markdown-content a {
-		@apply text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300;
+		@apply text-[#ad0013] hover:text-[#7a000d] dark:text-[#c9a56a] dark:hover:text-[#a67d43];
 	}
 }
 
@@ -126,7 +227,7 @@ html[data-auth-tone='staff'] li[data-auth-visibility='anon'] {
 	}
 
 	.osrs-price-loading__spinner {
-		@apply w-4 h-4 border-2 border-slate-300 dark:border-slate-600 border-t-cyan-500 rounded-full animate-spin;
+		@apply w-4 h-4 border-2 border-slate-300 dark:border-slate-600 border-t-[#a67d43] rounded-full animate-spin;
 	}
 
 	.osrs-price-error {
@@ -158,7 +259,7 @@ html[data-auth-tone='staff'] li[data-auth-visibility='anon'] {
 	}
 
 	.osrs-price-card--avg {
-		@apply bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800;
+		@apply bg-[#f5ecd8] dark:bg-[#3a2615] border border-[#c9a56a] dark:border-[#7a5a2e];
 	}
 
 	.osrs-price-card__label {
@@ -170,7 +271,7 @@ html[data-auth-tone='staff'] li[data-auth-visibility='anon'] {
 	}
 
 	.osrs-price-card__gp {
-		@apply text-sm font-normal text-amber-600 dark:text-amber-400;
+		@apply text-sm font-normal text-[#7a5a2e] dark:text-[#c9a56a];
 	}
 
 	.osrs-price-card__time {
@@ -182,17 +283,13 @@ html[data-auth-tone='staff'] li[data-auth-visibility='anon'] {
 	}
 
 	.osrs-price-footer__refresh {
-		@apply px-2 py-1 bg-cyan-100 dark:bg-cyan-900/30 hover:bg-cyan-200 dark:hover:bg-cyan-800/50 text-cyan-700 dark:text-cyan-300 rounded transition-colors;
+		@apply px-2 py-1 bg-[#f5ecd8] dark:bg-[#3a2615] hover:bg-[#c9a56a] dark:hover:bg-[#7a5a2e] text-[#7a5a2e] dark:text-[#c9a56a] rounded transition-colors;
 	}
 }
 
-/* Collapsible sidebar toggles (left + right) */
+/* Right-sidebar toggle (PageSidebar) */
 @layer my-overrides {
 	/* Shared toggle-button styles */
-	.sl-sidebar-toggle-wrap {
-		display: none;
-	}
-
 	.sl-sidebar-collapse-btn {
 		display: flex;
 		align-items: center;
@@ -223,583 +320,89 @@ html[data-auth-tone='staff'] li[data-auth-visibility='anon'] {
 		display: none;
 	}
 
-	/* Desktop only: show toggles + enable collapse */
+	/* Site graph zoom slider — desktop sidebar only */
 	@media (min-width: 50rem) {
-		/* --- Left sidebar toggles (top + bottom) --- */
-		.sl-sidebar-toggle-wrap {
-			display: flex;
-			justify-content: flex-end;
-			padding: 0.75rem;
-			margin-top: auto;
-		}
-
-		.sl-sidebar-toggle-wrap--top {
-			margin-top: 0;
-			padding: 0.5rem 0.75rem;
-			border-bottom: 1px solid var(--sl-color-hairline-shade);
-		}
-
-		/* ── Left sidebar: off-canvas overlay ── */
-		.sidebar-pane {
-			z-index: 20;
-			box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
-			transition:
-				transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-				box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-		}
-
-		/* Main content ignores sidebar — no left padding */
-		.main-frame {
-			padding-inline-start: 0 !important;
-		}
-
-		/* Make sidebar content a flex column, kill Starlight's horizontal padding */
-		.sidebar-content {
-			display: flex;
-			flex-direction: column;
-			min-height: 100%;
-			padding-inline: 0 !important;
-		}
-
-		/* ── Custom sidebar list base styles ── */
-		.sl-sidebar-list-wrap {
-			flex: 1;
-			overflow-y: auto;
-			overflow-x: hidden;
-			padding: 0.25rem 0;
-		}
-
-		.sl-sidebar-list-wrap ul {
-			--sl-sidebar-item-padding-inline: 0.5rem;
-			list-style: none;
-			padding: 0;
-		}
-
-		.sl-sidebar-list-wrap li {
-			overflow-wrap: anywhere;
-		}
-
-		.sl-sidebar-list-wrap ul ul li {
-			margin-inline-start: var(--sl-sidebar-item-padding-inline);
-			border-inline-start: 1px solid var(--sl-color-hairline-light);
-			padding-inline-start: var(--sl-sidebar-item-padding-inline);
-		}
-
-		.sl-sidebar-list-wrap .large {
-			font-size: var(--sl-text-lg);
-			font-weight: 600;
-			color: var(--sl-color-white);
-		}
-
-		.sl-sidebar-list-wrap .top-level > li + li {
-			margin-top: 0.75rem;
-		}
-
-		.sl-sidebar-list-wrap summary {
-			display: flex;
-			align-items: center;
-			gap: 0.5rem;
-			padding: 0.4rem var(--sl-sidebar-item-padding-inline);
-			line-height: 1;
-			cursor: pointer;
-			user-select: none;
-		}
-		.sl-sidebar-list-wrap summary::marker,
-		.sl-sidebar-list-wrap summary::-webkit-details-marker {
-			display: none;
-		}
-
-		.sl-sidebar-list-wrap .sl-sidebar-caret {
-			transition: transform 0.2s ease-in-out;
-			flex-shrink: 0;
-			margin-inline-start: auto;
-		}
-		[dir='rtl'] .sl-sidebar-list-wrap .sl-sidebar-caret {
-			transform: rotateZ(180deg);
-		}
-		.sl-sidebar-list-wrap [open] > summary .sl-sidebar-caret {
-			transform: rotateZ(90deg);
-		}
-
-		.sl-sidebar-list-wrap a {
-			display: flex;
-			align-items: center;
-			gap: 0.5rem;
-			border-radius: 0.25rem;
-			text-decoration: none;
-			color: var(--sl-color-gray-2);
-			padding: 0.3em var(--sl-sidebar-item-padding-inline);
-			line-height: 1.4;
-			transition: color 0.15s;
-		}
-
-		.sl-sidebar-list-wrap a:hover,
-		.sl-sidebar-list-wrap a:focus {
-			color: var(--sl-color-white);
-		}
-
-		.sl-sidebar-list-wrap [aria-current='page'],
-		.sl-sidebar-list-wrap [aria-current='page']:hover,
-		.sl-sidebar-list-wrap [aria-current='page']:focus {
-			font-weight: 600;
-			color: var(--sl-color-text-invert);
-			background-color: var(--sl-color-text-accent);
-		}
-
-		.sl-sidebar-list-wrap .group-label > *:not(:last-child) {
-			margin-inline-end: 0.25em;
-		}
-
-		/* ── Sidebar group icons (inline with labels) ── */
-		.sl-sidebar-group-icon {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			width: 1.25rem;
-			height: 1.25rem;
-			flex-shrink: 0;
-			color: var(--sl-color-gray-3);
-			transition: color 0.15s;
-		}
-
-		.sl-sidebar-list-wrap summary:hover .sl-sidebar-group-icon,
-		.sl-sidebar-list-wrap a:hover .sl-sidebar-group-icon {
-			color: var(--sl-color-text-accent);
-			animation: none;
-		}
-
-		/* ── Icon quicklinks popover (collapsed sidebar only) ── */
-		.sl-icon-quicklinks {
-			position: fixed;
-			z-index: 100;
-			transform: translateY(-50%);
-			min-width: 140px;
-			max-width: 200px;
-			padding: 0.375rem 0;
-			background: var(--sl-color-bg-nav, #111);
-			border: 1px solid var(--sl-color-gray-5, #262626);
-			border-radius: 8px;
-			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-			animation: sl-quicklinks-in 0.15s ease-out both;
-		}
-
-		.sl-icon-quicklinks::before {
-			content: '';
-			position: absolute;
-			top: 50%;
-			left: -5px;
-			transform: translateY(-50%) rotate(45deg);
-			width: 8px;
-			height: 8px;
-			background: var(--sl-color-bg-nav, #111);
-			border-left: 1px solid var(--sl-color-gray-5, #262626);
-			border-bottom: 1px solid var(--sl-color-gray-5, #262626);
-		}
-
-		.sl-icon-quicklinks-header {
-			padding: 0.25rem 0.75rem 0.375rem;
-			font-size: 0.65rem;
-			font-weight: 600;
-			text-transform: uppercase;
-			letter-spacing: 0.05em;
-			color: var(--sl-color-gray-3, #8b949e);
-			border-bottom: 1px solid var(--sl-color-gray-5, #262626);
-			margin-bottom: 0.25rem;
-		}
-
-		.sl-icon-quicklinks-item {
-			display: block;
-			padding: 0.375rem 0.75rem;
-			font-size: 0.8rem;
-			color: var(--sl-color-gray-2, #c9d1d9);
-			text-decoration: none;
-			transition:
-				background 0.1s,
-				color 0.1s;
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
-		}
-
-		.sl-icon-quicklinks-item:hover {
-			background: var(--sl-color-bg-accent, rgba(6, 182, 212, 0.1));
-			color: var(--sl-color-text-accent, #06b6d4);
-		}
-
-		@keyframes sl-quicklinks-in {
-			from {
-				opacity: 0;
-				transform: translateY(-50%) translateX(-4px);
-			}
-			to {
-				opacity: 1;
-				transform: translateY(-50%) translateX(0);
-			}
-		}
-
-		/* ── Site graph zoom slider thumb ── */
 		.sg-container input[type='range']::-webkit-slider-thumb {
 			-webkit-appearance: none;
 			width: 10px;
 			height: 10px;
 			border-radius: 50%;
-			background: var(--sl-color-accent, #06b6d4);
+			background: var(--sl-color-accent, #a67d43);
 			border: none;
 			cursor: pointer;
-			box-shadow: 0 0 4px rgba(6, 182, 212, 0.4);
+			box-shadow: 0 0 4px rgba(166, 125, 67, 0.45);
 		}
 
 		.sg-container input[type='range']::-moz-range-thumb {
 			width: 10px;
 			height: 10px;
 			border-radius: 50%;
-			background: var(--sl-color-accent, #06b6d4);
+			background: var(--sl-color-accent, #a67d43);
 			border: none;
 			cursor: pointer;
-			box-shadow: 0 0 4px rgba(6, 182, 212, 0.4);
+			box-shadow: 0 0 4px rgba(166, 125, 67, 0.45);
 		}
+	}
 
-		/* Desktop overrides */
-		.sl-sidebar-list-wrap .top-level > li + li {
-			margin-top: 0.125rem;
-			/* On expand: delay until sidebar width finishes */
-			transition: margin-top 0.01s 0.25s;
+	/* Backlinks panel (right sidebar) — keep it off the canvas edge */
+	.sg-backlinks {
+		padding: 0.75rem 1rem 1rem;
+		margin-top: 0.75rem;
+		border-top: 1px solid var(--sl-color-hairline);
+	}
+
+	/* Site-graph slot: reserves SSR space so React's client:only mount
+	   doesn't shift layout. Spinner cross-fades with the graph container. */
+	.sg-slot {
+		position: relative;
+		min-height: 360px;
+	}
+
+	.sg-slot-loading {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		pointer-events: none;
+		opacity: 1;
+		transition: opacity 650ms ease;
+	}
+
+	/* Fade spinner out when React mounts the graph container */
+	.sg-slot:has(.sg-container) .sg-slot-loading {
+		opacity: 0;
+	}
+
+	/* Graph container fades in while the spinner fades out — the overlap
+	   is the cross-fade; delay lets the spinner start to dissolve first */
+	.sg-container {
+		animation: sg-fade-in 900ms cubic-bezier(0.16, 1, 0.3, 1) 150ms both;
+	}
+
+	.sg-spinner {
+		width: 32px;
+		height: 32px;
+		border: 3px solid var(--sl-color-gray-5, #252220);
+		border-top-color: var(--sl-color-accent);
+		border-radius: 50%;
+		animation: sg-spin 1s linear infinite;
+	}
+
+	@keyframes sg-spin {
+		to {
+			transform: rotate(360deg);
 		}
-		.sl-sidebar-list-wrap .large {
-			font-size: var(--sl-text-base);
-		}
-		.sl-sidebar-list-wrap a {
-			font-size: var(--sl-text-sm);
-		}
+	}
 
-		/* ── Left-sidebar collapsed — slide off, peek icon strip ── */
-		:root[data-sidebar-collapsed='true'] .sidebar-pane {
-			transform: translateX(calc(-100% + 3rem));
-			box-shadow: none;
-		}
-
-		:root[data-sidebar-collapsed='true']
-			.sl-sidebar-toggle-wrap
-			.sl-sidebar-collapse-icon {
-			transform: rotate(180deg);
-		}
-
-		/* Toggle buttons: position in the visible 3rem peek strip (right edge) */
-		:root[data-sidebar-collapsed='true'] .sl-sidebar-toggle-wrap {
-			justify-content: flex-end;
-			padding: 0.5rem 0.25rem;
-		}
-
-		:root[data-sidebar-collapsed='true'] .sl-sidebar-toggle-wrap--top {
-			border-bottom: none;
-			justify-content: flex-end;
-			padding: 0.5rem 0.25rem;
-		}
-
-		/* ═══════════════════════════════════════════
-		   Sidebar collapse/expand keyframe animations
-		   ═══════════════════════════════════════════ */
-
-		/* ── Keyframes ── */
-		@keyframes sl-text-fade-in {
-			0% {
-				opacity: 0;
-				transform: translateX(-8px);
-				filter: blur(4px);
-			}
-			60% {
-				opacity: 0.7;
-				transform: translateX(1px);
-				filter: blur(0px);
-			}
-			100% {
-				opacity: 1;
-				transform: translateX(0);
-				filter: blur(0px);
-			}
-		}
-
-		@keyframes sl-text-fade-out {
-			0% {
-				opacity: 1;
-				transform: translateX(0);
-				filter: blur(0px);
-			}
-			100% {
-				opacity: 0;
-				transform: translateX(-6px);
-				filter: blur(3px);
-			}
-		}
-
-		@keyframes sl-icon-glow {
-			0% {
-				color: var(--sl-color-gray-3);
-			}
-			20% {
-				color: var(--sl-color-gray-3);
-			}
-			50% {
-				color: var(--sl-color-text-accent);
-			}
-			80% {
-				color: var(--sl-color-gray-3);
-			}
-			100% {
-				color: var(--sl-color-gray-3);
-			}
-		}
-
-		/* ── Text + caret base state (expanded) ── */
-		.sl-sidebar-group-text {
-			opacity: 1;
-			transform: translateX(0);
-			filter: blur(0px);
-			white-space: nowrap;
-			overflow: hidden;
-		}
-
-		.sl-sidebar-caret {
-			opacity: 1;
-		}
-
-		/* ── Icons: never move, only color changes ── */
-
-		/* ── Expanded → Collapsed (closing) ── */
-		:root[data-sidebar-collapsed='true'] .sl-sidebar-group-text {
-			animation: sl-text-fade-out 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
-			position: absolute;
-			width: 0;
-			height: 0;
-			pointer-events: none;
-		}
-
-		:root[data-sidebar-collapsed='true'] .sl-sidebar-caret {
+	@keyframes sg-fade-in {
+		from {
 			opacity: 0;
-			position: absolute;
-			width: 0;
-			height: 0;
-			overflow: hidden;
-			pointer-events: none;
+			transform: translateY(8px);
 		}
-
-		:root[data-sidebar-collapsed='true'] .sl-sidebar-group-icon {
-			animation: sl-icon-glow 1.2s ease 0.1s both;
-		}
-
-		/* Stagger each icon so the glow ripples down */
-		:root[data-sidebar-collapsed='true']
-			.top-level
-			> li:nth-child(1)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.05s;
-		}
-		:root[data-sidebar-collapsed='true']
-			.top-level
-			> li:nth-child(2)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.1s;
-		}
-		:root[data-sidebar-collapsed='true']
-			.top-level
-			> li:nth-child(3)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.15s;
-		}
-		:root[data-sidebar-collapsed='true']
-			.top-level
-			> li:nth-child(4)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.2s;
-		}
-		:root[data-sidebar-collapsed='true']
-			.top-level
-			> li:nth-child(5)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.25s;
-		}
-		:root[data-sidebar-collapsed='true']
-			.top-level
-			> li:nth-child(6)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.3s;
-		}
-		:root[data-sidebar-collapsed='true']
-			.top-level
-			> li:nth-child(7)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.35s;
-		}
-		:root[data-sidebar-collapsed='true']
-			.top-level
-			> li:nth-child(8)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.4s;
-		}
-		:root[data-sidebar-collapsed='true']
-			.top-level
-			> li:nth-child(9)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.45s;
-		}
-		:root[data-sidebar-collapsed='true']
-			.top-level
-			> li:nth-child(10)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.5s;
-		}
-		:root[data-sidebar-collapsed='true']
-			.top-level
-			> li:nth-child(11)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.55s;
-		}
-		:root[data-sidebar-collapsed='true']
-			.top-level
-			> li:nth-child(12)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.6s;
-		}
-		:root[data-sidebar-collapsed='true']
-			.top-level
-			> li:nth-child(13)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.65s;
-		}
-		:root[data-sidebar-collapsed='true']
-			.top-level
-			> li:nth-child(14)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.7s;
-		}
-		:root[data-sidebar-collapsed='true']
-			.top-level
-			> li:nth-child(15)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.75s;
-		}
-
-		/* Icons align to right edge of sidebar (visible in peek strip) */
-		:root[data-sidebar-collapsed='true'] .sl-sidebar-list-wrap summary {
-			justify-content: flex-end;
-			padding-inline: 0 0.5rem;
-		}
-
-		:root[data-sidebar-collapsed='true']
-			.sl-sidebar-list-wrap
-			details
-			> :not(summary) {
-			display: none;
-		}
-
-		:root[data-sidebar-collapsed='true'] .sl-sidebar-list-wrap ul ul {
-			display: none;
-		}
-
-		:root[data-sidebar-collapsed='true'] .sidebar-content {
-			overflow: hidden;
-		}
-
-		/* ── Collapsed → Expanded (opening) ── */
-		:root:not([data-sidebar-collapsed='true']) .sl-sidebar-group-text {
-			animation: sl-text-fade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.15s
-				both;
-		}
-
-		:root:not([data-sidebar-collapsed='true']) .sl-sidebar-group-icon {
-			animation: sl-icon-glow 1.2s ease 0.15s both;
-		}
-
-		/* Stagger glow on expand too */
-		:root:not([data-sidebar-collapsed='true'])
-			.top-level
-			> li:nth-child(1)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.05s;
-		}
-		:root:not([data-sidebar-collapsed='true'])
-			.top-level
-			> li:nth-child(2)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.1s;
-		}
-		:root:not([data-sidebar-collapsed='true'])
-			.top-level
-			> li:nth-child(3)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.15s;
-		}
-		:root:not([data-sidebar-collapsed='true'])
-			.top-level
-			> li:nth-child(4)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.2s;
-		}
-		:root:not([data-sidebar-collapsed='true'])
-			.top-level
-			> li:nth-child(5)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.25s;
-		}
-		:root:not([data-sidebar-collapsed='true'])
-			.top-level
-			> li:nth-child(6)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.3s;
-		}
-		:root:not([data-sidebar-collapsed='true'])
-			.top-level
-			> li:nth-child(7)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.35s;
-		}
-		:root:not([data-sidebar-collapsed='true'])
-			.top-level
-			> li:nth-child(8)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.4s;
-		}
-		:root:not([data-sidebar-collapsed='true'])
-			.top-level
-			> li:nth-child(9)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.45s;
-		}
-		:root:not([data-sidebar-collapsed='true'])
-			.top-level
-			> li:nth-child(10)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.5s;
-		}
-		:root:not([data-sidebar-collapsed='true'])
-			.top-level
-			> li:nth-child(11)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.55s;
-		}
-		:root:not([data-sidebar-collapsed='true'])
-			.top-level
-			> li:nth-child(12)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.6s;
-		}
-		:root:not([data-sidebar-collapsed='true'])
-			.top-level
-			> li:nth-child(13)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.65s;
-		}
-		:root:not([data-sidebar-collapsed='true'])
-			.top-level
-			> li:nth-child(14)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.7s;
-		}
-		:root:not([data-sidebar-collapsed='true'])
-			.top-level
-			> li:nth-child(15)
-			.sl-sidebar-group-icon {
-			animation-delay: 0.75s;
+		to {
+			opacity: 1;
+			transform: translateY(0);
 		}
 	}
 
@@ -853,6 +456,12 @@ html[data-auth-tone='staff'] li[data-auth-visibility='anon'] {
 			position: relative;
 		}
 
+		/* Default state = COLLAPSED (peek strip).
+		   This is intentional so cross-doc view-transitions that capture
+		   a snapshot before the inline `data-right-sidebar-collapsed`
+		   setter runs don't show the expanded sidebar flashing in then
+		   sliding out. Explicit `data-right-sidebar-collapsed='false'`
+		   reopens it below. */
 		.right-sidebar {
 			position: fixed;
 			top: 0;
@@ -861,12 +470,12 @@ html[data-auth-tone='staff'] li[data-auth-visibility='anon'] {
 			padding-top: var(--sl-nav-height, 3.5rem);
 			width: var(--sl-sidebar-width, 18.75rem);
 			background: var(--sl-color-bg-sidebar, var(--sl-color-bg));
-			border-inline-start: 1px solid var(--sl-color-hairline);
-			box-shadow: -8px 0 24px rgba(0, 0, 0, 0.15);
+			border-inline-start: 1px solid transparent;
+			box-shadow: none;
 			z-index: 20;
 			overflow-y: auto;
 			overflow-x: hidden;
-			transform: translateX(0%);
+			transform: translateX(calc(100% - 2.5rem));
 			transition:
 				transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
 				box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
@@ -878,55 +487,57 @@ html[data-auth-tone='staff'] li[data-auth-visibility='anon'] {
 			transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 		}
 
-		/* ═══ Right sidebar COLLAPSED — peek strip for toggle ═══ */
-		:root[data-right-sidebar-collapsed='true'] .right-sidebar {
-			transform: translateX(calc(100% - 2.5rem));
-			box-shadow: none;
-			border-inline-start-color: transparent;
-		}
-
-		/* Content fades out */
-		:root[data-right-sidebar-collapsed='true']
-			.right-sidebar
-			.sl-right-sidebar-toggle-wrap
-			~ * {
-			animation: sl-right-content-fade-out 0.2s cubic-bezier(0.4, 0, 1, 1)
-				forwards;
+		/* Default content state: hidden (pointer-events off, faded out).
+		   No animation on initial paint — just static hidden state. */
+		.right-sidebar .sl-right-sidebar-toggle-wrap ~ *,
+		.right-sidebar-panel {
+			opacity: 0;
+			transform: translateX(6px);
+			filter: blur(3px);
 			pointer-events: none;
 		}
 
-		:root[data-right-sidebar-collapsed='true'] .right-sidebar-panel {
-			animation: sl-right-content-fade-out 0.2s cubic-bezier(0.4, 0, 1, 1)
-				forwards;
-			pointer-events: none;
-		}
-
-		/* Toggle sits in the visible peek strip — same vertical padding, only horizontal differs */
-		:root[data-right-sidebar-collapsed='true']
-			.sl-right-sidebar-toggle-wrap {
+		/* Toggle default position (peek strip) */
+		.sl-right-sidebar-toggle-wrap {
 			justify-content: flex-start;
 			padding: 1.5rem 0.25rem 0.5rem;
 		}
 
-		/* Chevron points LEFT when collapsed (← click to open) */
-		:root[data-right-sidebar-collapsed='true']
-			.sl-right-sidebar-toggle-wrap
-			.sl-sidebar-collapse-icon {
+		/* Chevron points LEFT by default (← click to open) */
+		.sl-right-sidebar-toggle-wrap .sl-sidebar-collapse-icon {
 			transform: rotate(180deg);
 		}
 
-		/* ═══ Right sidebar EXPANDED (open) ═══ */
+		/* ═══ Right sidebar EXPANDED — explicit data-right-sidebar-collapsed='false' ═══ */
+		:root[data-right-sidebar-collapsed='false'] .right-sidebar {
+			transform: translateX(0);
+			border-inline-start-color: var(--sl-color-hairline);
+			box-shadow: -8px 0 24px rgba(0, 0, 0, 0.15);
+		}
 
-		/* Chevron points RIGHT when open (→ click to close/push away) */
-		/* (default orientation, no transform needed) */
-
-		/* Content slides in from right with blur */
+		/* Content fades in when explicitly expanded */
 		:root[data-right-sidebar-collapsed='false']
 			.right-sidebar
 			.sl-right-sidebar-toggle-wrap
-			~ * {
+			~ *,
+		:root[data-right-sidebar-collapsed='false'] .right-sidebar-panel {
 			animation: sl-right-content-fade-in 0.35s
 				cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+			pointer-events: auto;
+		}
+
+		/* Toggle repositions when expanded (wider padding, flex-end) */
+		:root[data-right-sidebar-collapsed='false']
+			.sl-right-sidebar-toggle-wrap {
+			justify-content: flex-start;
+			padding: 1.5rem 0.5rem 0.5rem;
+		}
+
+		/* Chevron flips back to pointing right when expanded */
+		:root[data-right-sidebar-collapsed='false']
+			.sl-right-sidebar-toggle-wrap
+			.sl-sidebar-collapse-icon {
+			transform: rotate(0deg);
 		}
 	}
 }

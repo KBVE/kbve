@@ -15,20 +15,87 @@ namespace RareIcon
         public const byte Knight  = 2;
         public const byte Soldier = 3;
         public const byte Mage    = 4;
-        // Wolf, Skeleton, etc. land here as we add them.
+        public const byte King    = 5;  // Player-controlled — visually a Soldier + Crown for v1.
+        public const byte Chicken = 10;
+        public const byte Sheep   = 11;
+        public const byte Cow     = 12;
+        public const byte Wolf    = 13;  // Beast faction, forest pack hunter.
+        public const byte Bandit  = 14;  // Hostile faction, raid waves alongside goblins.
+        public const byte Zombie  = 15;
+        // Skeleton, etc. land here as we add them.
     }
 
+    /// <summary>Per-unit display name as two pool indexes — 4 bytes total. FirstNameId picks from a language-neutral pool (goblin names like "Skab" read the same in any locale); EpithetId picks from a localizable pool ("the Sly" / "ずる賢き"). 0 in either slot = unset; the UI falls back to the creature.* locale label when both are 0.</summary>
+    // TODO(rust-ffi): persist {FirstNameId, EpithetId} in the per-chunk store so a goblin keeps its name across chunk unload.
+    public struct UnitName : IComponentData
+    {
+        public ushort FirstNameId;
+        public ushort EpithetId;
+    }
+
+    /// <summary>Tag marking wild animals so combat / harvest / AI systems skip them.</summary>
+    public struct PassiveAnimalTag : IComponentData { }
+
+    /// <summary>Tag added once an animal has been tamed by a player entity.</summary>
+    public struct TamedTag : IComponentData { }
+
+    /// <summary>Reference to the entity that tamed / owns this unit (used for follow / recall).</summary>
+    public struct OwnerRef : IComponentData { public Entity Value; }
+
     /// <summary>
-    /// Tag + per-unit identity data. Movement / AI / stat components layer
-    /// on top. Health / Energy / Mana live in their own components (see
-    /// StatComponents.cs) so units only carry the stats they actually have.
-    /// Weapon is intentionally separate from creature type: a Goblin can
-    /// hold a Club today and a Sword tomorrow without changing UnitType.
+    /// Tag for the player's King — identity marker, exactly one in the
+    /// world. Used as a cost source (King's pocket carries the
+    /// CapitalLandGrant) and as the default focus target for the
+    /// "King" toolbar button. Distinct from <see cref="ControlledUnitTag"/>
+    /// — the King is always the King, but may or may not be the unit
+    /// the player is actively driving.
     /// </summary>
+    public struct KingTag : IComponentData { }
+
+    /// <summary>
+    /// "Player is currently driving this entity." At most one entity in
+    /// the world carries this at a time. Possessable by any unit (King
+    /// by default at game start; click-to-possess swaps it to a goblin
+    /// or any future selectable creature).
+    ///
+    /// Behavior systems that should treat the player avatar as
+    /// manually-driven (no auto-wander, no auto-job) gate on this tag
+    /// rather than KingTag — that way a possessed goblin gets the same
+    /// "manual control, suppress AI" treatment as the King would.
+    /// </summary>
+    public struct ControlledUnitTag : IComponentData { }
+
+    /// <summary>Unit is posted to a specific hex (typically a Capital footprint tile) — excluded from wander, zero ProfessionPriorities on spawn, RangedAttack still auto-fires at enemies in range. Hex stored for future "return to post" behaviour if they're ever knocked off-tile.</summary>
+    public struct GarrisonPost : IComponentData
+    {
+        public int2 Hex;
+    }
+
+    /// <summary>Unit is resident inside Host building — hidden via DisableRendering, excluded from movement / collision / command queries until released. State (HP, inventory, stats) stays intact on the entity.</summary>
+    public struct ShelteredInside : IComponentData
+    {
+        public Entity Host;
+    }
+
+    /// <summary>Transient ECS request — published by UI ("Send Out" button on the Capital inspector) and consumed by ShelterSystem, which releases every ShelteredInside unit pointing at Host and destroys this entity.</summary>
+    public struct ReleaseShelterRequest : IComponentData
+    {
+        public Entity Host;
+    }
+
+    /// <summary>Records the unit's WanderStep at the moment it was released from shelter — ShelterSystem refuses to re-shelter until the step advances (i.e., the unit has actually walked somewhere), so "Send Out" isn't cancelled by the next frame's auto-shelter pass.</summary>
+    public struct ShelterCooldown : IComponentData
+    {
+        public uint WanderStepAtRelease;
+    }
+
+    /// <summary>Per-unit identity + currently-equipped loadout. Source of truth for the shader — EquipmentVisualMirrorSystem pushes these slots to UnitXVisual each tick.</summary>
     public struct Unit : IComponentData
     {
-        public byte Type;     // UnitType.* constant
-        public byte Weapon;   // WeaponType.* constant
+        public byte Type;
+        public byte Weapon;
+        public byte Helmet;
+        public byte Shield;
     }
 
     /// <summary>Weapon IDs — each maps to one HexX.hlsl draw function.</summary>
@@ -91,6 +158,27 @@ namespace RareIcon
     /// </summary>
     [MaterialProperty("_UnitShield")]
     public struct UnitShieldVisual : IComponentData
+    {
+        public float Value;
+    }
+
+    /// <summary>
+    /// Per-instance MaterialProperty: 1 when the unit is actively moving
+    /// toward a target, 0 when at rest. The shader's _UnitStep / _UnitBob
+    /// helpers multiply by this so a stationary unit doesn't march in place.
+    /// Without this gate, the bob also detaches stationary helmets from
+    /// the head — the King's crown looks cut off because the body bobs but
+    /// the helmet anchor stays at the unbobbed position.
+    /// </summary>
+    [MaterialProperty("_UnitMoving")]
+    public struct UnitMovingVisual : IComponentData
+    {
+        public float Value;
+    }
+
+    /// <summary>Per-instance MaterialProperty mirroring <see cref="SelectedTag"/> into HexUnit.shader. The shader paints a gold ring at the unit's feet when Value > 0.5; SelectionVisualSystem writes 1 on units carrying SelectedTag and 0 otherwise every frame.</summary>
+    [MaterialProperty("_UnitSelected")]
+    public struct UnitSelectedVisual : IComponentData
     {
         public float Value;
     }
@@ -159,5 +247,12 @@ namespace RareIcon
         // separate event tag — when LastHarvestStep != WanderStep the unit
         // hasn't harvested THIS stop yet.
         public uint LastHarvestStep;
+        public float HarvestCooldown;
+    }
+
+    /// <summary>Per-unit intra-hex world-space offset assigned by HexSlotAssignSystem. Units sharing a TargetHex get unique slots via rank-by-Entity.Index so their sprites never land on the same pixel; UnitMovementSystem walks to HexToWorld(targetHex) + Value instead of the raw hex centre. Seeded zero on missing units so first-frame behaviour is identical to the center-of-hex default.</summary>
+    public struct HexSlotOffset : IComponentData
+    {
+        public float2 Value;
     }
 }

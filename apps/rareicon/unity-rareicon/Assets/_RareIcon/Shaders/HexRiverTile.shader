@@ -36,6 +36,7 @@ Shader "RareIcon/HexRiverTile"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Includes/OceanWater.hlsl"
+            #include "Includes/WorldAmbient.hlsl"
 
             struct Attributes
             {
@@ -117,7 +118,7 @@ Shader "RareIcon/HexRiverTile"
                 float3 col = lerp(water, _BorderColor.rgb, border * _BorderColor.a);
 
                 clip(-d - 0.001);
-                return float4(col, 1.0);
+                return float4(ApplyWorldAmbient(col), 1.0);
             }
             ENDHLSL
         }

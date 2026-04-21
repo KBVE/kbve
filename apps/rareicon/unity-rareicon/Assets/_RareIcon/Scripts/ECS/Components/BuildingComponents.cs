@@ -1,0 +1,305 @@
+using Unity.Entities;
+using Unity.Mathematics;
+using Unity.Rendering;
+
+namespace RareIcon
+{
+    /// <summary>
+    /// Building type IDs — passed to HexBuilding.shader via _BuildingType
+    /// to pick which pixel-art include draws the structure. Must match
+    /// the BUILDING_* defines in HexBuilding.shader.
+    /// </summary>
+    public static class BuildingType
+    {
+        public const byte None       = 0;
+        public const byte Capital    = 1;
+        public const byte Farm       = 2;
+        public const byte Barracks   = 3;
+        public const byte Furnace    = 4;
+        public const byte GoblinCave = 5;
+        public const byte Inn        = 6;
+        public const byte Market     = 7;
+        public const byte Outpost    = 8;
+        // Tower, Wall, Mine, etc. land here as we add their .hlsl files.
+    }
+
+    /// <summary>
+    /// What the player is currently trying to place. Drives the preview
+    /// overlay and gates click-to-place. `None` means build mode is off.
+    /// </summary>
+    public static class BuildTarget
+    {
+        public const byte None       = 0;
+        public const byte Capital    = 1;
+        public const byte Farm       = 2;
+        public const byte Barracks   = 3;
+        public const byte Furnace    = 4;
+        public const byte GoblinCave = 5;
+        public const byte Inn        = 6;
+        public const byte Market     = 7;
+        public const byte Outpost    = 8;
+    }
+
+    /// <summary>Marker tag for the Capital — craft / governance systems query key.</summary>
+    public struct CapitalTag : IComponentData { }
+
+    /// <summary>Per-building territory claim; any building may emit. Empire territory = union of all same-faction emitters. Radius is the axial hex range from Center.</summary>
+    // TODO(rust-ffi): persist alongside Building so territory survives chunk unload.
+    public struct TerritoryEmitter : IComponentData
+    {
+        public int2 Center;
+        public byte Radius;
+        public byte OwnerFaction;
+    }
+
+    /// <summary>Data-driven production recipe. Up to 3 inputs / 3 outputs + a cycle clock anchored to WorldClock.AbsSeconds. Output always lands in the building's own InventorySlot (FarmSurplusTransferSystem drains farm surplus to Capital). PullsFromCapital = 1 means "consume inputs from the Capital's storage instead of self" — covers Farm's Compost → Carrot chain where the raw material lives at the Capital. Multiple recipes per building are permitted; ProductionSystem ticks each independently.</summary>
+    [InternalBufferCapacity(2)]
+    public struct ProductionRecipe : IBufferElementData
+    {
+        public ushort Input1Id;  public ushort Input1Amount;
+        public ushort Input2Id;  public ushort Input2Amount;
+        public ushort Input3Id;  public ushort Input3Amount;
+        public ushort Output1Id; public ushort Output1Amount;
+        public ushort Output2Id; public ushort Output2Amount;
+        public ushort Output3Id; public ushort Output3Amount;
+        public float  CycleDuration;
+        public float  CycleEndsAt;
+        public byte   PullsFromCapital;
+    }
+
+    /// <summary>Cycle-duration multiplier. 0 = no bonus, 1 = halves the duration. FarmTenderScanSystem writes 1 while a Farmer-intent unit stands on the farm footprint; ProductionSystem reads this when starting a new cycle. Omit the component entirely for buildings that don't have a "worker present" bonus.</summary>
+    public struct TenderMultiplier : IComponentData
+    {
+        public float Value;
+    }
+
+    /// <summary>Marker tag for Farm buildings — production system query key.</summary>
+    public struct FarmTag : IComponentData { }
+
+    /// <summary>Optional per-building total-count ceiling. Absent = unlimited (current Capital behaviour). Haulers + producers read this to gate deposits.</summary>
+    public struct StorageCapacity : IComponentData
+    {
+        public ushort Total;
+    }
+
+    /// <summary>Per-item outflow declaration: "anything above Floor of this ItemId drains to the Capital each tick." Items not listed stay wherever they are (coin + food on a Barracks, raw inputs mid-recipe, etc.). Farm declares { Carrot, 8 } + livestock products at floor 0; Barracks declares { Arrow, 20 } to keep a local arsenal while the surplus flows to the treasury.</summary>
+    [InternalBufferCapacity(4)]
+    public struct SurplusExport : IBufferElementData
+    {
+        public ushort ItemId;
+        public ushort Floor;
+    }
+
+    /// <summary>Per-farm sheltered-livestock entry; one per species currently in residence. LastProducedTurn is the WorldClock.TurnIndex of the last output. Kept for future fungible residents (bees, pond fish) — livestock (chicken / cow / sheep) now live as individual sheltered entities with a LivestockProduction component.</summary>
+    [InternalBufferCapacity(4)]
+    public struct FarmLivestock : IBufferElementData
+    {
+        public byte   UnitType;
+        public ushort Count;
+        public uint   LastProducedTurn;
+    }
+
+    /// <summary>Per-animal production cadence state for sheltered livestock. Species + output + cadence are derived from Unit.Type at iteration time; only the turn-stamp needs to persist per entity.</summary>
+    public struct LivestockProduction : IComponentData
+    {
+        public uint LastProducedTurn;
+    }
+
+    /// <summary>Marker tag for Barracks buildings — recruitment system query key.</summary>
+    public struct BarracksTag : IComponentData { }
+
+    /// <summary>Per-barracks recruitment cadence. Once per N turns, consumes CoinCost BanditCoin + FoodCost food (any ItemId flagged by FoodItems.IsFood) from the building's InventorySlot storage and spawns one Soldier on an adjacent hex. Storage capacity lives on the separate StorageCapacity component.</summary>
+    public struct BarracksProduction : IComponentData
+    {
+        public uint   LastProducedTurn;
+        public byte   CadenceTurns;
+        public ushort CoinCost;
+        public ushort FoodCost;
+    }
+
+    /// <summary>Transient request emitted by the Burst-compiled BarracksProductionSystem once a recruit cycle clears cost; SoldierSpawnApplierSystem drains these on the main thread and calls UnitSpawnSystem.SpawnGoblinAt since prefab spawn still requires managed asset access.</summary>
+    public struct SpawnSoldierRequest : IComponentData
+    {
+        public int2 Hex;
+        public uint Seed;
+        public byte Faction;
+        public byte UnitType;
+    }
+
+    /// <summary>Transient tag — placed on a building that hasn't been assigned a dedicated worker yet. BuildingStaffingSystem consumes this and stacks the matching role (Farm→Farmer, Barracks→Guard, Furnace→Chef, Capital→Builder) onto a pure-Looter goblin at priority 5, then removes the tag.</summary>
+    public struct NeedsStaffing : IComponentData { }
+
+    /// <summary>Marker tag for Furnace buildings — production system query key.</summary>
+    public struct FurnaceTag : IComponentData { }
+
+    /// <summary>Marker tag for Goblin Cave buildings — production + refill system query key.</summary>
+    public struct GoblinCaveTag : IComponentData { }
+
+    /// <summary>Marker tag for Outpost buildings.</summary>
+    public struct OutpostTag : IComponentData { }
+
+    /// <summary>Tag indicating a TerritoryEmitter is reachable from its faction's Capital via BFS over same-faction emitters within OutpostAnchorRadius.</summary>
+    public struct EmpireConnected : IComponentData { }
+
+    /// <summary>Per-cave turn cadence: consumes FoodPerGoblin rations and spawns one Looter goblin per cadence turn. Storage capped at StorageCap; Looters haul food from Capital via CapitalFoodPickupSystem + CaveFoodDeliverySystem.</summary>
+    public struct GoblinCaveProduction : IComponentData
+    {
+        public uint LastProducedTurn;
+        public uint CadenceTurns;
+        public ushort FoodPerGoblin;
+        public ushort StorageCap;
+    }
+
+    /// <summary>
+    /// Per-furnace active recipe — supports up to 2 inputs (e.g. Wood +
+    /// Sand for Glass) and 3 outputs (e.g. Coal + Ash + Glass). Cycle
+    /// timing is anchored to <see cref="WorldClock"/>.AbsSeconds so all
+    /// production reads from one global clock instead of per-system
+    /// accumulators. Set Input2Amount / OutputNAmount = 0 to skip the
+    /// slot. <see cref="FurnaceInitSystem"/> picks the recipe from the
+    /// underlying hex biome at spawn time.
+    /// </summary>
+    public struct FurnaceProduction : IComponentData
+    {
+        public ushort Input1Id;  public ushort Input1Amount;
+        public ushort Input2Id;  public ushort Input2Amount;
+        public ushort Output1Id; public ushort Output1Amount;
+        public ushort Output2Id; public ushort Output2Amount;
+        public ushort Output3Id; public ushort Output3Amount;
+        /// <summary>WorldClock.AbsSeconds at which the current cycle finishes; 0 = idle.</summary>
+        public float CycleEndsAt;
+        public float CycleDuration;
+    }
+
+    /// <summary>
+    /// Composable "this entity produces something on a timer with no input"
+    /// component. Currently used for the forest-Furnace passive coal bonus
+    /// (no fuel needed, just time). Reusable for Lumber Mill on forest,
+    /// Quarry on stone, Fishing Hut on river, etc.
+    /// </summary>
+    public struct PassiveProduction : IComponentData
+    {
+        public ushort OutputId;
+        public ushort OutputAmount;
+        /// <summary>WorldClock.AbsSeconds at which the current cycle finishes; 0 = "not started yet".</summary>
+        public float CycleEndsAt;
+        public float CycleDuration;
+    }
+
+    /// <summary>Per-instance shader flag — 0 idle, 1 active. Written each frame by BuildingActiveVisualSystem writers; read by HexBuilding includes to gate dynamic details (smoke, glow, torch).</summary>
+    [MaterialProperty("_BuildingActive")]
+    public struct BuildingActiveVisual : IComponentData
+    {
+        public float Value;
+    }
+
+    /// <summary>Per-instance construction progress (0 = just placed, 1 = complete). Written each frame by ConstructionProgressSystem from the ConstructionMaterial delivered/needed sum. Shader fades desaturated translucent ghost → full-color as progress climbs.</summary>
+    [MaterialProperty("_ConstructionProgress")]
+    public struct ConstructionProgressVisual : IComponentData
+    {
+        public float Value;
+    }
+
+    /// <summary>
+    /// Per-building instance data. `RootHex` is the centre tile; the 6
+    /// neighbours are implicitly claimed via HexOccupant on each tile.
+    /// </summary>
+    // TODO(rust-ffi): persist {Type, RootHex, OwnerFaction} + the Capital's InventorySlot treasury buffer so world state survives unload / server restart.
+    public struct Building : IComponentData
+    {
+        public byte Type;
+        public int2 RootHex;
+        public byte OwnerFaction;
+    }
+
+    /// <summary>
+    /// Per-instance MaterialProperty for HexBuilding.shader's _BuildingType.
+    /// Value is the BuildingType byte cast to float.
+    /// </summary>
+    [MaterialProperty("_BuildingType")]
+    public struct BuildingVisual : IComponentData
+    {
+        public float Value;
+    }
+
+    /// <summary>Per-building HP. Damage drops Value, Builders restore it; LastRepairAbsSeconds rate-limits the per-building repair tick against WorldClock.</summary>
+    // TODO(rust-ffi): persist Value across chunk unload so damaged buildings don't auto-heal on reload.
+    public struct BuildingHealth : IComponentData
+    {
+        public ushort Value;
+        public ushort Max;
+        public float  LastRepairAbsSeconds;
+    }
+
+    /// <summary>
+    /// Attached to each hex tile that belongs to a building. Points back
+    /// at the owning building so pathing / targeting / further builds
+    /// can answer "is this hex claimed?" with a single component query.
+    /// </summary>
+    public struct HexOccupant : IComponentData
+    {
+        public Entity Building;
+    }
+
+    /// <summary>
+    /// Singleton — mirrors BuildModeController's reactive state so ECS
+    /// systems (preview, click handler) can read build mode without
+    /// touching managed code. Written each frame by BuildModeSystem
+    /// from BuildModeBridge.Source.
+    /// </summary>
+    public struct BuildMode : IComponentData
+    {
+        public byte Target;   // BuildTarget.* — None = off
+        public bool Active => Target != BuildTarget.None;
+    }
+
+    /// <summary>
+    /// Generic one-shot "please place this building type at this hex"
+    /// message. Produced by BuildCommandHandler in build mode, consumed
+    /// by BuildingSpawnSystem which validates biome + cost + footprint
+    /// (per BuildingDB) and either spawns or drops the request.
+    /// </summary>
+    public struct BuildRequest : IComponentData
+    {
+        public int2 CenterHex;
+        public byte BuildingType;
+        public byte OwnerFaction;
+    }
+
+    /// <summary>
+    /// Per-player ability tokens. Currently unused — Capital placement
+    /// is gated on the King's CapitalLandGrant inventory item, not a
+    /// counter. Kept as a reserved slot for future per-player charges
+    /// (e.g., one-shot summons, blessings, decree counts).
+    /// </summary>
+    public struct PlayerAbilities : IComponentData
+    {
+        public int CityBuildsRemaining;
+    }
+
+    /// <summary>Marker — "this entity is the local player".</summary>
+    public struct PlayerTag : IComponentData { }
+
+    /// <summary>
+    /// Per-instance MaterialProperty for HexBuildPreview.shader's fill
+    /// colour. BuildPreviewSystem flips it between green (valid) and red
+    /// (invalid footprint — water, off-map, or occupied) so the player
+    /// sees the rejection before they click.
+    /// </summary>
+    [MaterialProperty("_FillColor")]
+    public struct HexBuildPreviewFill : IComponentData
+    {
+        public float4 Value;
+    }
+
+    /// <summary>
+    /// Per-instance MaterialProperty for the preview's border ring.
+    /// Paired with HexBuildPreviewFill so the border + fill swap as a
+    /// unit on valid↔invalid transitions.
+    /// </summary>
+    [MaterialProperty("_BorderColor")]
+    public struct HexBuildPreviewBorder : IComponentData
+    {
+        public float4 Value;
+    }
+}

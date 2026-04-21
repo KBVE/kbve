@@ -1,41 +1,70 @@
+using System;
 using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Per-entity inventory slot. Stored as a DynamicBuffer&lt;InventorySlot&gt;
-    /// on any entity that holds items — goblin, future player, chest, shop NPC,
-    /// dropped-item pile. ItemId values match the project-wide ItemId enum
-    /// (which mirrors the Rust RareItem enum, ushort-wide).
-    ///
-    /// InternalBufferCapacity(8) keeps up to 8 stack types inline in the
-    /// chunk (no heap alloc) — fits most goblin / NPC inventories. Spills
-    /// to heap automatically if more types are added.
-    /// </summary>
-    [InternalBufferCapacity(8)]
-    public struct InventorySlot : IBufferElementData
+    /// <summary>Shape contract shared by per-unit PackSlot so read-only generic helpers (ItemSlotOps) can iterate any IItemSlot buffer. Building-side ledgers use the IBankLedger marker + BankLedgerBase Reinterpret pattern instead — per §12 the per-bank types (CapitalLedger, FurnaceLedger, FarmLedger, BarracksLedger, GoblinCaveLedger) don't share this interface.</summary>
+    public interface IItemSlot
     {
-        public ushort ItemId;   // matches RareIcon.ItemId enum
-        public ushort Count;
+        Ulid   GetUid();
+        ushort GetItemId();
+        ushort GetCount();
+        void   SetCount(ushort count);
     }
 
-    /// <summary>
-    /// Burst-friendly add/remove helpers on the inventory buffer. All callers
-    /// (HarvestSystem, future trade / crafting / drop systems) go through
-    /// these so stacking semantics stay consistent.
-    /// </summary>
-    public static class InventoryBufferExtensions
+    /// <summary>Per-unit carried-item slot. Distinct IBufferElementData so Unity's job-safety system tracks unit access independently from every building ledger. Each stack carries a Cysharp.Ulid for FFI / save-key / birth-time ordering.</summary>
+    [InternalBufferCapacity(8)]
+    public struct PackSlot : IBufferElementData, IItemSlot
     {
-        /// <summary>
-        /// Add `count` of `itemId` to the buffer. Stacks onto an existing
-        /// slot if one exists for the item; otherwise appends a new slot.
-        /// (Stack-max enforcement comes later via ItemDB lookup; for now
-        /// stacks are unbounded.)
-        /// </summary>
-        public static void AddItem(this DynamicBuffer<InventorySlot> buffer, ushort itemId, ushort count)
+        public Ulid   Uid;
+        public ushort ItemId;
+        public ushort Count;
+
+        public Ulid   GetUid()                 => Uid;
+        public ushort GetItemId()              => ItemId;
+        public ushort GetCount()               => Count;
+        public void   SetCount(ushort count)   { Count = count; }
+    }
+
+    /// <summary>Equipped bag item IDs on a unit. Each entry adds slot capacity per InventoryUtil.BagBonus. Hard cap 2 equipped bags per unit.</summary>
+    [InternalBufferCapacity(2)]
+    public struct EquippedBag : IBufferElementData
+    {
+        public ushort ItemId;
+    }
+
+    public static class InventoryUtil
+    {
+        public const int BaseSlotCap = 8;
+        public const int MaxEquippedBags = 2;
+
+        public static int BagBonus(ushort bagItemId)
+        {
+            if (bagItemId == (ushort)ItemId.Pouch) return 3;
+            if (bagItemId == (ushort)ItemId.Bag)   return 6;
+            if (bagItemId == (ushort)ItemId.Pack)  return 10;
+            return 0;
+        }
+
+        public static bool IsBag(ushort itemId)
+            => itemId == (ushort)ItemId.Pouch
+            || itemId == (ushort)ItemId.Bag
+            || itemId == (ushort)ItemId.Pack;
+
+        public static int SlotCap(in DynamicBuffer<EquippedBag> bags)
+        {
+            int total = BaseSlotCap;
+            for (int i = 0; i < bags.Length; i++)
+                total += BagBonus(bags[i].ItemId);
+            return total;
+        }
+    }
+
+    public static class PackBufferExtensions
+    {
+        public static void AddItem(this DynamicBuffer<PackSlot> buffer, ushort itemId, ushort count)
         {
             if (count == 0) return;
-
             for (int i = 0; i < buffer.Length; i++)
             {
                 if (buffer[i].ItemId == itemId)
@@ -46,20 +75,65 @@ namespace RareIcon
                     return;
                 }
             }
-
-            buffer.Add(new InventorySlot { ItemId = itemId, Count = count });
+            buffer.Add(new PackSlot { ItemId = itemId, Count = count });
         }
 
-        /// <summary>
-        /// Remove up to `count` of `itemId`. Returns the actual amount
-        /// removed (could be less than requested). Empty slots are pruned.
-        /// </summary>
-        public static ushort RemoveItem(this DynamicBuffer<InventorySlot> buffer, ushort itemId, ushort count)
+        public static ushort AddItemCapped(
+            this DynamicBuffer<PackSlot> buffer,
+            ushort itemId, ushort count, int stackMax, int slotCap)
+        {
+            if (count == 0 || itemId == 0) return 0;
+            if (stackMax <= 0) stackMax = 99;
+            if (slotCap <= 0) slotCap = InventoryUtil.BaseSlotCap;
+
+            int remaining = count;
+            for (int i = 0; i < buffer.Length && remaining > 0; i++)
+            {
+                if (buffer[i].ItemId != itemId) continue;
+                int room = stackMax - buffer[i].Count;
+                if (room <= 0) continue;
+                int take = remaining < room ? remaining : room;
+                var slot = buffer[i];
+                slot.Count = (ushort)(slot.Count + take);
+                buffer[i] = slot;
+                remaining -= take;
+            }
+            while (remaining > 0 && buffer.Length < slotCap)
+            {
+                int take = remaining < stackMax ? remaining : stackMax;
+                buffer.Add(new PackSlot { ItemId = itemId, Count = (ushort)take });
+                remaining -= take;
+            }
+            return (ushort)(count - remaining);
+        }
+
+        public static ushort AddItemCapped(
+            this DynamicBuffer<PackSlot> buffer,
+            in DynamicBuffer<EquippedBag> bags,
+            in ItemDBSingleton itemDb,
+            ushort itemId, ushort count)
+        {
+            int stackMax = 99;
+            if (itemDb.TryGet(itemId, out var def) && def.StackMax > 0) stackMax = def.StackMax;
+            int cap = InventoryUtil.SlotCap(bags);
+            return buffer.AddItemCapped(itemId, count, stackMax, cap);
+        }
+
+        public static ushort AddItemManaged(
+            this DynamicBuffer<PackSlot> buffer,
+            in DynamicBuffer<EquippedBag> bags,
+            ushort itemId, ushort count)
+        {
+            int stackMax = ItemDB.TryGet(itemId, out var def) && def.StackMax > 0 ? def.StackMax : 99;
+            int cap = InventoryUtil.SlotCap(bags);
+            return buffer.AddItemCapped(itemId, count, stackMax, cap);
+        }
+
+        public static ushort RemoveItem(this DynamicBuffer<PackSlot> buffer, ushort itemId, ushort count)
         {
             for (int i = 0; i < buffer.Length; i++)
             {
                 if (buffer[i].ItemId != itemId) continue;
-
                 var slot = buffer[i];
                 ushort taken = slot.Count <= count ? slot.Count : count;
                 slot.Count = (ushort)(slot.Count - taken);
@@ -72,8 +146,7 @@ namespace RareIcon
             return 0;
         }
 
-        /// <summary>Total count of `itemId` currently in the buffer.</summary>
-        public static ushort CountOf(this DynamicBuffer<InventorySlot> buffer, ushort itemId)
+        public static ushort CountOf(this DynamicBuffer<PackSlot> buffer, ushort itemId)
         {
             for (int i = 0; i < buffer.Length; i++)
                 if (buffer[i].ItemId == itemId) return buffer[i].Count;

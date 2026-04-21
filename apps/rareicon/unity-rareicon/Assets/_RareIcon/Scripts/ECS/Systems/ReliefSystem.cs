@@ -1,0 +1,116 @@
+using Unity.Burst;
+using Unity.Entities;
+using Unity.Mathematics;
+
+namespace RareIcon
+{
+    /// <summary>Scores unmet needs (Hunger, Fatigue, Health) and writes a single ReliefIntent per unit; executors react to Kind.</summary>
+    [BurstCompile]
+    [UpdateInGroup(typeof(BehaviorSystemGroup))]
+    public partial struct ReliefSystem : ISystem
+    {
+        public const float HungerTrigger  = 0.70f;
+        public const float FatigueTrigger = 0.75f;
+        public const float HealthTrigger  = 0.40f;
+
+        // Hysteresis exit thresholds. Once a unit starts a relief activity they
+        // stay in it until the underlying need drops below its exit threshold —
+        // otherwise sleep/eat/heal "complete" the moment they fall out of the
+        // trigger zone and the goblin walks away half-rested / half-fed. 15%
+        // residual means they actually finish the nap / meal / recovery instead
+        // of yo-yo-ing right back into Relief next tick.
+        public const float HungerExit  = 0.15f;
+        public const float FatigueExit = 0.15f;
+        public const float HealthLossExit = 0.15f;
+
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            var hungerLookup  = SystemAPI.GetComponentLookup<Hunger>(isReadOnly: true);
+            var fatigueLookup = SystemAPI.GetComponentLookup<Fatigue>(isReadOnly: true);
+            var healthLookup  = SystemAPI.GetComponentLookup<Health>(isReadOnly: true);
+
+            new ScoreReliefJob
+            {
+                HungerLookup  = hungerLookup,
+                FatigueLookup = fatigueLookup,
+                HealthLookup  = healthLookup,
+            }.ScheduleParallel();
+        }
+    }
+
+    [BurstCompile]
+    public partial struct ScoreReliefJob : IJobEntity
+    {
+        [Unity.Collections.ReadOnly] public ComponentLookup<Hunger>  HungerLookup;
+        [Unity.Collections.ReadOnly] public ComponentLookup<Fatigue> FatigueLookup;
+        [Unity.Collections.ReadOnly] public ComponentLookup<Health>  HealthLookup;
+
+        void Execute(Entity entity, in Faction faction, ref ReliefIntent intent)
+        {
+            if (faction.Value != FactionType.Player)
+            {
+                intent.Kind    = ReliefKind.None;
+                intent.Urgency = 0f;
+                return;
+            }
+
+            float hungerPct  = 0f;
+            float fatiguePct = 0f;
+            float healthLoss = 0f;
+
+            if (HungerLookup.HasComponent(entity))
+            {
+                var h = HungerLookup[entity];
+                hungerPct = h.Max > 0f ? math.saturate(h.Value / h.Max) : 0f;
+            }
+            if (FatigueLookup.HasComponent(entity))
+            {
+                var f = FatigueLookup[entity];
+                fatiguePct = f.Max > 0f ? math.saturate(f.Value / f.Max) : 0f;
+            }
+            if (HealthLookup.HasComponent(entity))
+            {
+                var h = HealthLookup[entity];
+                healthLoss = h.Max > 0f ? math.saturate(1f - h.Value / h.Max) : 0f;
+            }
+
+            // Schmitt trigger: once Eat/Sleep/Heal is active, keep it active
+            // until the underlying need drops below the exit threshold, so the
+            // relief runs to completion instead of clicking off the moment the
+            // need dips under the entry trigger.
+            byte prev = intent.Kind;
+            bool eatActive   = (prev == ReliefKind.Eat   && hungerPct  > ReliefSystem.HungerExit)
+                             || hungerPct  > ReliefSystem.HungerTrigger;
+            bool sleepActive = (prev == ReliefKind.Sleep && fatiguePct > ReliefSystem.FatigueExit)
+                             || fatiguePct > ReliefSystem.FatigueTrigger;
+            bool healActive  = (prev == ReliefKind.Heal  && healthLoss > ReliefSystem.HealthLossExit)
+                             || healthLoss > (1f - ReliefSystem.HealthTrigger);
+
+            byte  bestKind    = ReliefKind.None;
+            float bestUrgency = 0f;
+
+            if (eatActive && hungerPct > bestUrgency)
+            {
+                bestKind    = ReliefKind.Eat;
+                bestUrgency = hungerPct;
+            }
+            if (sleepActive && fatiguePct > bestUrgency)
+            {
+                bestKind    = ReliefKind.Sleep;
+                bestUrgency = fatiguePct;
+            }
+            if (healActive && healthLoss > bestUrgency)
+            {
+                bestKind    = ReliefKind.Heal;
+                bestUrgency = healthLoss;
+            }
+
+            intent.Kind    = bestKind;
+            intent.Urgency = bestUrgency;
+        }
+    }
+}

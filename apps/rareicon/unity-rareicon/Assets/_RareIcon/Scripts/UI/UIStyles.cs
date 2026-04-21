@@ -43,6 +43,9 @@ namespace RareIcon
 
             // Alert — tailwind `orange-500`, the NieR-red analogue.
             public static readonly Color Alert = FromHex(0xF9, 0x73, 0x16);
+            // Success — tailwind `emerald-500`. Reserved for positive
+            // notifications (build success, recipe completed, level-up).
+            public static readonly Color Success = FromHex(0x10, 0xB9, 0x81);
 
             // -- Semantic aliases --
             // Existing panels / future panels reference these names.
@@ -79,6 +82,63 @@ namespace RareIcon
         {
             public const float Sharp = 0f;
             public const float Soft  = 4f;
+        }
+
+        // -- Spacing scale --
+        // shadcn/tailwind-flavoured ramp. Use these in place of raw pixel
+        // numbers so panel density stays consistent — bumping the ramp
+        // here re-spaces the entire UI in one edit.
+        //   Xs : pixel-pair gaps (label/value pair, icon flush)
+        //   Sm : intra-section gaps (list rows, button paddings)
+        //   Md : inter-element gaps (header→body, between rows)
+        //   Lg : section gaps (header bar margin, strip dividers)
+        //   Xl : panel-level gaps (rare — modal padding)
+        public static class Spacing
+        {
+            public const float Xs = 2f;
+            public const float Sm = 4f;
+            public const float Md = 6f;
+            public const float Lg = 8f;
+            public const float Xl = 12f;
+        }
+
+        // -- Type scale --
+        // Five sizes covering everything from dense list rows to panel
+        // titles. Body / Label are the workhorses; Heading / Title only
+        // for panel-level chrome. Stays small on purpose so panels can
+        // pack more data without scrolling at our standard zoom.
+        public static class Type
+        {
+            public const int Tiny    = 9;   // pip / unit annotation
+            public const int Body    = 10;  // dense list row body
+            public const int BodyLg  = 11;  // standard panel body
+            public const int Label   = 12;  // bold labels, button text
+            public const int Heading = 13;  // section headings inside a panel
+            public const int Title   = 15;  // panel title (top of card)
+        }
+
+        /// <summary>Min/max pixel widths sized for 1280-wide windows; pair with VwMaxPct to clamp on smaller viewports.</summary>
+        public static class PanelWidth
+        {
+            public const float NarrowMin = 160f; public const float NarrowMax = 220f;
+            public const float StdMin    = 200f; public const float StdMax    = 260f;
+            public const float WideMin   = 240f; public const float WideMax   = 320f;
+        }
+
+        /// <summary>Viewport-percent caps applied alongside maxWidth so a panel never exceeds N% of the parent root.</summary>
+        public static class VwMaxPct
+        {
+            public const float Narrow = 22f;
+            public const float Std    = 26f;
+            public const float Wide   = 32f;
+            public const float XWide  = 50f;
+        }
+
+        /// <summary>Viewport-height caps for toggleable panels so they never run off-screen — pair with a ScrollView body.</summary>
+        public static class VhMaxPct
+        {
+            public const float Std    = 70f;
+            public const float Tall   = 80f;
         }
 
         // -- Equal-sided setters (chainable) --
@@ -139,16 +199,18 @@ namespace RareIcon
 
         // -- Compound helpers --
         // ApplyPanelChrome handles the bg/border/radius/padding combo every
-        // panel sets in nearly-identical form. Defaults match the YoRHA
-        // aesthetic: sharp corners, gold border at low alpha, zinc-950 bg.
+        // panel sets in nearly-identical form. Defaults are tighter than
+        // the v1 spacing — old panels passed padV: 12 / padH: 14 ad-hoc
+        // which made everything feel oversized; new defaults pull from the
+        // Spacing ramp so the entire UI moves together when we re-tune.
         public static VisualElement ApplyPanelChrome(
             this VisualElement v,
             Color? background = null,
             Color? border     = null,
             float radius      = Radius.Sharp,
             float borderWidth = 1f,
-            float padV        = 10f,
-            float padH        = 16f)
+            float padV        = Spacing.Md,
+            float padH        = Spacing.Lg)
         {
             v.style.backgroundColor = background ?? Palette.PanelBg;
             v.style.BorderColor(border ?? Palette.BorderGold);
@@ -156,6 +218,16 @@ namespace RareIcon
             v.style.BorderWidth(borderWidth);
             v.style.Padding(padV, padH);
             return v;
+        }
+
+        /// <summary>Compact panel chrome — minimal padding, for ultra-dense panels (toast, tooltip, inline list rows). Half the standard padding so the chrome doesn't compete with the data.</summary>
+        public static VisualElement ApplyPanelChromeCompact(this VisualElement v,
+                                                            Color? background = null,
+                                                            Color? border     = null)
+        {
+            return v.ApplyPanelChrome(
+                background: background, border: border,
+                padV: Spacing.Sm, padH: Spacing.Md);
         }
 
         // -- Anchoring --
@@ -272,6 +344,50 @@ namespace RareIcon
             label.style.unityFontStyleAndWeight = FontStyle.Bold;
             return label;
         }
+
+        /// <summary>
+        /// Standard panel header — marker title on the left, close X on the
+        /// right, strip divider underneath. Every panel was duplicating
+        /// this 20-line block; the helper trims it to one call and keeps
+        /// the chrome consistent across panels.
+        ///
+        /// Returns the marker-row Label by `out` so callers can retext the
+        /// title at runtime (e.g. inspector swapping title per inspected
+        /// building). Pass `null` for onClose to skip the close button.
+        /// </summary>
+        public static VisualElement MakePanelHeader(VisualElement panel,
+                                                    string title,
+                                                    System.Action onClose,
+                                                    out Label titleLabel)
+        {
+            var header = new VisualElement();
+            header.style.flexDirection  = FlexDirection.Row;
+            header.style.justifyContent = Justify.SpaceBetween;
+            header.style.alignItems     = Align.Center;
+            header.style.marginBottom   = Spacing.Md;
+
+            var titleRow = MakeMarkerRow(title, fontSize: Type.Title);
+            titleLabel = titleRow.Q<Label>("marker-row-label");
+            header.Add(titleRow);
+
+            if (onClose != null)
+            {
+                var closeBtn = MakeButton("\u00D7", onClose);
+                closeBtn.style.width    = 18;
+                closeBtn.style.height   = 18;
+                closeBtn.style.fontSize = Type.Label;
+                closeBtn.style.Padding(0);
+                header.Add(closeBtn);
+            }
+
+            panel.Add(header);
+            panel.Add(MakeStrip(thickness: 1f, marginV: Spacing.Sm));
+            return header;
+        }
+
+        /// <summary>Convenience overload when the caller doesn't need to retext the title later.</summary>
+        public static VisualElement MakePanelHeader(VisualElement panel, string title, System.Action onClose)
+            => MakePanelHeader(panel, title, onClose, out _);
 
         /// <summary>
         /// Vertical bar accent — a wide stripe + a thinner stripe side by
@@ -419,40 +535,58 @@ namespace RareIcon
             return wrapper;
         }
 
-        /// <summary>
-        /// YoRHA-themed button — dark fill + gold text + sharp corners,
-        /// inverts on hover (NieR's background-position trick adapted to
-        /// UI Toolkit's per-event color swap).
-        /// </summary>
-        public static Button MakeYorhaButton(string text, System.Action onClick = null)
+        /// <summary>Standard button with idle / hover / press / disabled states.</summary>
+        public static Button MakeButton(string text, System.Action onClick = null)
         {
             var btn = new Button(onClick) { text = text };
-            btn.style.backgroundColor = Palette.Zinc900;
-            btn.style.color           = Palette.Gold;
             btn.style.BorderRadius(Radius.Sharp);
             btn.style.BorderWidth(1);
-            btn.style.BorderColor(Palette.Gold);
-            btn.style.Padding(8, 16);
-            btn.style.fontSize = 14;
+            btn.style.Padding(Spacing.Sm, Spacing.Lg);
+            btn.style.fontSize = Type.Label;
             btn.style.unityFontStyleAndWeight = FontStyle.Bold;
-            // Unity's default Button has nonzero margins — clear them so
-            // sibling buttons sit flush in toolbars.
-            btn.style.marginLeft  = 0;
-            btn.style.marginRight = 0;
-            btn.style.marginTop   = 0;
-            btn.style.marginBottom= 0;
+            btn.style.marginLeft = 0; btn.style.marginRight = 0;
+            btn.style.marginTop  = 0; btn.style.marginBottom = 0;
 
-            btn.RegisterCallback<PointerEnterEvent>(_ =>
-            {
-                btn.style.backgroundColor = Palette.Gold;
-                btn.style.color           = Palette.Zinc950;
-            });
-            btn.RegisterCallback<PointerLeaveEvent>(_ =>
-            {
-                btn.style.backgroundColor = Palette.Zinc900;
-                btn.style.color           = Palette.Gold;
-            });
+            bool pressed = false;
+            bool hovered = false;
 
+            void Apply()
+            {
+                if (!btn.enabledSelf)
+                {
+                    btn.style.backgroundColor = Palette.Zinc950;
+                    btn.style.color           = Palette.Zinc500;
+                    btn.style.BorderColor(Palette.Zinc700);
+                    return;
+                }
+                if (pressed)
+                {
+                    btn.style.backgroundColor = Palette.GoldDeep;
+                    btn.style.color           = Palette.Black;
+                    btn.style.BorderColor(Palette.GoldDeep);
+                }
+                else if (hovered)
+                {
+                    btn.style.backgroundColor = Palette.Gold;
+                    btn.style.color           = Palette.Zinc950;
+                    btn.style.BorderColor(Palette.Gold);
+                }
+                else
+                {
+                    btn.style.backgroundColor = Palette.Zinc900;
+                    btn.style.color           = Palette.Gold;
+                    btn.style.BorderColor(Palette.Gold);
+                }
+            }
+
+            btn.RegisterCallback<PointerEnterEvent>(_ => { hovered = true;  Apply(); });
+            btn.RegisterCallback<PointerLeaveEvent>(_ => { hovered = false; pressed = false; Apply(); });
+            btn.RegisterCallback<PointerDownEvent>(_  => { pressed = true;  Apply(); });
+            btn.RegisterCallback<PointerUpEvent>(_    => { pressed = false; Apply(); });
+            btn.RegisterCallback<AttachToPanelEvent>(_ => Apply());
+            btn.RegisterCallback<CustomStyleResolvedEvent>(_ => Apply());
+
+            Apply();
             return btn;
         }
 

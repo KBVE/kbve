@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
@@ -7,76 +8,23 @@ using UnityEngine.Rendering;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Consumes `SpawnProjectileRequest` message entities and creates
-    /// projectile entities from a shared prefab. Needs managed Unity
-    /// APIs (Shader.Find, Material, Mesh, RenderMeshUtility) so it's a
-    /// SystemBase rather than a Burst ISystem.
-    ///
-    /// Runs before ProjectileSystem so a projectile spawned this frame
-    /// still ticks once, matching the "fire-and-step" expectation of
-    /// callers. Uses EntityCommandBuffer for every structural change
-    /// (Instantiate + DestroyEntity) so iteration over the request
-    /// query stays safe.
-    /// </summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateBefore(typeof(ProjectileSystem))]
-    public partial class ProjectileSpawnSystem : SystemBase
+    /// <summary>One-shot bootstrap that builds the shared projectile prefab and publishes it as <see cref="ProjectilePrefabSingleton"/> for the Burst spawn consumer.</summary>
+    [UpdateInGroup(typeof(InitializationSystemGroup))]
+    public partial class ProjectileBootstrapSystem : SystemBase
     {
-        // Quad footprint matches UnitSpawnSystem.UnitSize so projectile
-        // pixels render at the same scale as creature pixels.
+        // Matches UnitSpawnSystem.UnitSize so projectile pixels render at creature scale.
         const float ProjectileSize = 0.5f;
-        // Z keeps projectiles above tiles + units but below modal UI.
-        const float ProjectileZ = -0.8f;
 
-        Entity _prefab;
         bool _initialized;
 
         protected override void OnUpdate()
         {
-            if (!_initialized)
-            {
-                Init();
-                if (!_initialized) return;  // shader missing — skip frame
-            }
+            if (_initialized) return;
 
-            var ecb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
-
-            foreach (var (reqRef, entity) in
-                SystemAPI.Query<RefRO<SpawnProjectileRequest>>().WithEntityAccess())
-            {
-                var req = reqRef.ValueRO;
-
-                var proj = ecb.Instantiate(_prefab);
-                ecb.SetComponent(proj, LocalTransform.FromPosition(
-                    new float3(req.Position.x, req.Position.y, ProjectileZ)));
-                ecb.SetComponent(proj, new Projectile
-                {
-                    Type         = req.Type,
-                    Mod          = req.Mod,
-                    Facing       = req.Facing,
-                    OwnerFaction = req.OwnerFaction,
-                    Lifetime     = req.Lifetime,
-                    Damage       = req.Damage,
-                });
-                ecb.SetComponent(proj, new ProjectileVelocity { Value = req.Velocity });
-                ecb.SetComponent(proj, new ProjectileVisual        { Value = req.Type });
-                ecb.SetComponent(proj, new ProjectileFacingVisual  { Value = req.Facing });
-                ecb.SetComponent(proj, new ProjectileModVisual     { Value = req.Mod });
-
-                ecb.DestroyEntity(entity);
-            }
-
-            ecb.Playback(EntityManager);
-            ecb.Dispose();
-        }
-
-        void Init()
-        {
             var shader = Shader.Find("RareIcon/HexProjectile");
             if (shader == null)
             {
-                Debug.LogError("[ProjectileSpawnSystem] HexProjectile shader not found");
+                Debug.LogError("[ProjectileBootstrap] HexProjectile shader not found");
                 return;
             }
 
@@ -84,28 +32,29 @@ namespace RareIcon
             var material = new Material(shader) { enableInstancing = true };
 
             var em = EntityManager;
-            _prefab = em.CreateEntity();
-            em.AddComponentData(_prefab, LocalTransform.Identity);
-            em.AddComponentData(_prefab, new Projectile());
-            em.AddComponentData(_prefab, new ProjectileVelocity());
-            em.AddComponentData(_prefab, new ProjectileVisual());
-            em.AddComponentData(_prefab, new ProjectileFacingVisual());
-            em.AddComponentData(_prefab, new ProjectileModVisual());
-            em.AddComponent<Prefab>(_prefab);
+            var prefab = em.CreateEntity();
+            em.AddComponentData(prefab, LocalTransform.Identity);
+            em.AddComponentData(prefab, new Projectile());
+            em.AddComponentData(prefab, new ProjectileVelocity());
+            em.AddComponentData(prefab, new ProjectileVisual());
+            em.AddComponentData(prefab, new ProjectileFacingVisual());
+            em.AddComponentData(prefab, new ProjectileModVisual());
+            em.AddComponent<Prefab>(prefab);
 
             var renderDesc = new RenderMeshDescription(
                 shadowCastingMode: ShadowCastingMode.Off,
                 receiveShadows: false);
             var renderArray = new RenderMeshArray(new[] { material }, new[] { mesh });
             RenderMeshUtility.AddComponents(
-                _prefab, em, renderDesc, renderArray,
+                prefab, em, renderDesc, renderArray,
                 MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+            var singletonEntity = em.CreateEntity(typeof(ProjectilePrefabSingleton));
+            em.SetComponentData(singletonEntity, new ProjectilePrefabSingleton { Value = prefab });
 
             _initialized = true;
         }
 
-        // Flat XY quad centred at origin — UV maps [0,1] across the quad
-        // so HexProjectile.shader can quantise it to its pixel grid.
         static Mesh CreateQuadMesh(float size)
         {
             float half = size * 0.5f;
@@ -127,6 +76,53 @@ namespace RareIcon
             };
             mesh.RecalculateBounds();
             return mesh;
+        }
+    }
+
+    /// <summary>Instantiates the projectile prefab for each <see cref="SpawnProjectileRequest"/> and destroys the request. Runs before <see cref="ProjectileSystem"/> so the new projectile ticks once this frame.</summary>
+    [BurstCompile]
+    [UpdateInGroup(typeof(MovementSystemGroup))]
+    [UpdateBefore(typeof(ProjectileSystem))]
+    public partial struct ProjectileSpawnSystem : ISystem
+    {
+        const float ProjectileZ = -0.8f;
+
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            if (!SystemAPI.TryGetSingleton<ProjectilePrefabSingleton>(out var prefabSingleton))
+                return;
+
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
+
+            foreach (var (reqRef, entity) in
+                     SystemAPI.Query<RefRO<SpawnProjectileRequest>>().WithEntityAccess())
+            {
+                var req = reqRef.ValueRO;
+
+                var proj = ecb.Instantiate(prefabSingleton.Value);
+                ecb.SetComponent(proj, LocalTransform.FromPosition(
+                    new float3(req.Position.x, req.Position.y, ProjectileZ)));
+                ecb.SetComponent(proj, new Projectile
+                {
+                    Type         = req.Type,
+                    Mod          = req.Mod,
+                    Facing       = req.Facing,
+                    OwnerFaction = req.OwnerFaction,
+                    Lifetime     = req.Lifetime,
+                    Damage       = req.Damage,
+                });
+                ecb.SetComponent(proj, new ProjectileVelocity { Value = req.Velocity });
+                ecb.SetComponent(proj, new ProjectileVisual        { Value = req.Type });
+                ecb.SetComponent(proj, new ProjectileFacingVisual  { Value = req.Facing });
+                ecb.SetComponent(proj, new ProjectileModVisual     { Value = req.Mod });
+
+                ecb.DestroyEntity(entity);
+            }
         }
     }
 }

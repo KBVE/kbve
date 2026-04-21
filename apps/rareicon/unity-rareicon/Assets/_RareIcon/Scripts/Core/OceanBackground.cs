@@ -4,8 +4,7 @@ using VContainer;
 namespace RareIcon
 {
     /// <summary>
-    /// Created by RootLifetimeScope. Procedural ocean shader — no textures needed.
-    /// Tracks camera via CameraService for infinite scrolling.
+    /// Created by RootLifetimeScope. Procedural ocean shader with no textures needed; tracks camera via CameraService for infinite scrolling.
     /// </summary>
     public class OceanBackground : MonoBehaviour
     {

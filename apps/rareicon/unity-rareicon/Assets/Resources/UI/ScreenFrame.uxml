@@ -1,0 +1,26 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="styles.uss" />
+
+    <!-- Always-visible chrome frame. Bars + regions are picking=Ignore
+         so empty bar space passes pointer events through to the world;
+         interactive children (buttons, hover panel) keep their default
+         Position picking and stay clickable. Modal panels mount on top
+         of this and call BringToFront on open as a belt-and-suspenders. -->
+    <ui:VisualElement name="screen-frame" class="screen-frame" picking-mode="Ignore">
+
+        <ui:VisualElement name="top-bar" class="screen-bar screen-bar--top" picking-mode="Ignore">
+            <ui:VisualElement name="region-top-left"   class="screen-region" picking-mode="Ignore" />
+            <ui:VisualElement name="region-top-center" class="screen-region grow" picking-mode="Ignore" />
+            <ui:VisualElement name="region-top-right"  class="screen-region" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="region-world" class="screen-world" picking-mode="Ignore" />
+
+        <ui:VisualElement name="bottom-bar" class="screen-bar screen-bar--bottom" picking-mode="Ignore">
+            <ui:VisualElement name="region-bottom-left"   class="screen-region" picking-mode="Ignore" />
+            <ui:VisualElement name="region-bottom-center" class="screen-region grow" picking-mode="Ignore" />
+            <ui:VisualElement name="region-bottom-right"  class="screen-region" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:UXML>

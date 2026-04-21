@@ -1,18 +1,25 @@
+using MessagePipe;
 using R3;
+using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer.Unity;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Camera management — cached ref, reactive zoom/movement/hover.
-    /// Uses new Input System. Registered as singleton with ITickable.
-    /// All state exposed as R3 reactive properties for zero-coupling subscriptions.
-    /// </summary>
+    /// <summary>Camera controller + possession bridge. Free mode: WASD moves the camera. Possession mode (detected by ControlledUnitTag): WASD publishes ControlledUnitMoveMessage against the possessed unit, camera smoothly follows.</summary>
     public class CameraService : ITickable
     {
+        public const float MinZoom             = 3f;
+        public const float MaxZoom             = 50f;
+        public const float ZoomSpeed           = 3f;
+        public const float MoveSpeed           = 15f;
+        public const float PossessedZoom       = 6f;
+        public const float FollowLerpPerSecond = 8f;
+        public const float UnitMoveCooldown    = 0.15f;
+
         Camera _camera;
         Transform _transform;
 
@@ -25,34 +32,26 @@ namespace RareIcon
         readonly ReactiveProperty<float2> _worldMousePos = new(float2.zero);
         public ReadOnlyReactiveProperty<float2> WorldMousePos => _worldMousePos;
 
-        public const float MinZoom = 3f;
-        public const float MaxZoom = 50f;
-        public const float ZoomSpeed = 3f;
-        public const float MoveSpeed = 15f;
+        EntityQuery _controlledQuery;
+        bool _queryReady;
+        Entity _lastControlled = Entity.Null;
+        float _nextUnitMoveTime;
+        IPublisher<ControlledUnitMoveMessage> _movePublisher;
 
         public Camera Camera
         {
-            get
-            {
-                if (_camera == null) Refresh();
-                return _camera;
-            }
+            get { if (_camera == null) Refresh(); return _camera; }
         }
 
         public Transform Transform
         {
-            get
-            {
-                if (_transform == null) Refresh();
-                return _transform;
-            }
+            get { if (_transform == null) Refresh(); return _transform; }
         }
 
         public void Refresh()
         {
             _camera = Camera.main;
             _transform = _camera != null ? _camera.transform : null;
-
             if (_camera != null && _camera.orthographic)
                 _camera.orthographicSize = _zoom.Value;
         }
@@ -65,7 +64,49 @@ namespace RareIcon
                 if (_camera == null) return;
             }
 
-            HandleMovement();
+            var world = World.DefaultGameObjectInjectionWorld;
+            Entity controlled = Entity.Null;
+            if (world != null && world.IsCreated)
+            {
+                if (!_queryReady)
+                {
+                    _controlledQuery = world.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<ControlledUnitTag>());
+                    _queryReady = true;
+                }
+                if (_controlledQuery.TryGetSingletonEntity<ControlledUnitTag>(out var e))
+                    controlled = e;
+            }
+
+            if (controlled != _lastControlled)
+            {
+                if (controlled != Entity.Null && world != null)
+                {
+                    var em = world.EntityManager;
+                    if (em.HasComponent<LocalTransform>(controlled))
+                    {
+                        var p = em.GetComponentData<LocalTransform>(controlled).Position;
+                        JumpTo(new float2(p.x, p.y));
+                        SetZoom(PossessedZoom);
+                    }
+                }
+                _lastControlled = controlled;
+            }
+
+            if (controlled != Entity.Null && world != null)
+            {
+                var em = world.EntityManager;
+                if (em.HasComponent<LocalTransform>(controlled))
+                {
+                    var p = em.GetComponentData<LocalTransform>(controlled).Position;
+                    SmoothFollow(new float2(p.x, p.y));
+                }
+                HandleUnitMovement(world, controlled);
+            }
+            else
+            {
+                HandleMovement();
+            }
+
             HandleZoom();
             UpdateMouseWorldPos();
         }
@@ -74,35 +115,41 @@ namespace RareIcon
         {
             var mouse = Mouse.current;
             if (mouse == null) return;
-
             var screenPos = mouse.position.ReadValue();
             var worldPos = _camera.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0));
             _worldMousePos.Value = new float2(worldPos.x, worldPos.y);
         }
 
-        /// <summary>
-        /// Called by HexHoverSystem when it determines which hex the mouse is over.
-        /// </summary>
         public void SetHoveredHex(int2 hexCoord)
         {
             if (!hexCoord.Equals(_hoveredHex.Value))
                 _hoveredHex.Value = hexCoord;
         }
 
-        /// <summary>
-        /// Instantly center the camera on a world XY position. Z is preserved.
-        /// Used by UIWorldSearch (Go-to-coord + Find biome).
-        /// </summary>
         public void JumpTo(float2 worldPos)
         {
-            if (_transform == null)
-            {
-                Refresh();
-                if (_transform == null) return;
-            }
+            if (_transform == null) { Refresh(); if (_transform == null) return; }
             var p = _transform.position;
             p.x = worldPos.x;
             p.y = worldPos.y;
+            _transform.position = p;
+        }
+
+        public void SetZoom(float value)
+        {
+            float clamped = Mathf.Clamp(value, MinZoom, MaxZoom);
+            if (Mathf.Approximately(clamped, _zoom.Value)) return;
+            _zoom.Value = clamped;
+            if (_camera != null) _camera.orthographicSize = clamped;
+        }
+
+        void SmoothFollow(float2 target)
+        {
+            if (_transform == null) return;
+            float t = Mathf.Clamp01(Time.deltaTime * FollowLerpPerSecond);
+            var p = _transform.position;
+            p.x = Mathf.Lerp(p.x, target.x, t);
+            p.y = Mathf.Lerp(p.y, target.y, t);
             _transform.position = p;
         }
 
@@ -111,9 +158,7 @@ namespace RareIcon
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
 
-            float h = 0f;
-            float v = 0f;
-
+            float h = 0f, v = 0f;
             if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed) v += 1f;
             if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed) v -= 1f;
             if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) h -= 1f;
@@ -126,6 +171,34 @@ namespace RareIcon
             pos.x += h * speed;
             pos.y += v * speed;
             _transform.position = pos;
+        }
+
+        void HandleUnitMovement(World world, Entity controlled)
+        {
+            if (Time.time < _nextUnitMoveTime) return;
+            var keyboard = Keyboard.current;
+            if (keyboard == null) return;
+
+            int dQ = 0, dR = 0;
+            if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed)    dR += 1;
+            if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed)  dR -= 1;
+            if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) dQ += 1;
+            if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed)  dQ -= 1;
+            if (dQ == 0 && dR == 0) return;
+
+            var em = world.EntityManager;
+            if (!em.HasComponent<UnitMovement>(controlled)) return;
+            var movement = em.GetComponentData<UnitMovement>(controlled);
+            var target = new int2(movement.CurrentHex.x + dQ, movement.CurrentHex.y + dR);
+
+            if (_movePublisher == null)
+            {
+                try { _movePublisher = GlobalMessagePipe.GetPublisher<ControlledUnitMoveMessage>(); }
+                catch { return; }
+            }
+
+            _movePublisher.Publish(new ControlledUnitMoveMessage(target.x, target.y));
+            _nextUnitMoveTime = Time.time + UnitMoveCooldown;
         }
 
         void HandleZoom()

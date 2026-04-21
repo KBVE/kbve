@@ -85,7 +85,7 @@ namespace RareIcon
 
             // Exit button uses the alert palette — leaving the tile is
             // a destructive context switch.
-            _exitButton = UIStyles.MakeYorhaButton("Exit", OnExit);
+            _exitButton = UIStyles.MakeButton("Exit", OnExit);
             _exitButton.style.height = 28;
             _exitButton.style.fontSize = 13;
             _exitButton.style.BorderColor(UIStyles.Palette.Alert);
