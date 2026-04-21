@@ -90,6 +90,44 @@ const heroBgStyle = [
 	<div class="obs__pager">
 		<slot />
 	</div>
+	<nav class="obs__nav" aria-label="Section navigation">
+		<button
+			type="button"
+			class="obs__nav-btn"
+			data-obs-nav="up"
+			aria-label="Previous section">
+			<svg
+				viewBox="0 0 24 24"
+				width="20"
+				height="20"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true">
+				<polyline points="18 15 12 9 6 15"></polyline>
+			</svg>
+		</button>
+		<button
+			type="button"
+			class="obs__nav-btn"
+			data-obs-nav="down"
+			aria-label="Next section">
+			<svg
+				viewBox="0 0 24 24"
+				width="20"
+				height="20"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true">
+				<polyline points="6 9 12 15 18 9"></polyline>
+			</svg>
+		</button>
+	</nav>
 </div>
 
 <script>
@@ -217,6 +255,21 @@ const heroBgStyle = [
 					});
 					if (active && !document.hidden) ytPlay(active);
 				};
+
+				const setPagerActive = (active: boolean) => {
+					root.dataset.obsPagerActive = String(active);
+				};
+				setPagerActive(!heroEl);
+
+				const navButtons =
+					root.querySelectorAll<HTMLButtonElement>('[data-obs-nav]');
+				navButtons.forEach((btn) => {
+					btn.addEventListener('click', () => {
+						if (animating) return;
+						const dir = btn.dataset.obsNav === 'up' ? -1 : 1;
+						gotoSection(currentIndex + dir, dir);
+					});
+				});
 
 				const gotoSection = (rawIndex: number, direction: number) => {
 					const index = wrap(rawIndex);
@@ -360,11 +413,13 @@ const heroBgStyle = [
 								onLeave: () => {
 									observer.enable();
 									heroActive = false;
+									setPagerActive(true);
 									syncVideos();
 								},
 								onEnterBack: () => {
 									observer.disable();
 									heroActive = true;
+									setPagerActive(false);
 									syncVideos();
 								},
 							},
@@ -392,8 +447,10 @@ const heroBgStyle = [
 							entries.forEach((entry) => {
 								if (entry.isIntersecting) {
 									observer.enable();
+									setPagerActive(true);
 								} else {
 									observer.disable();
+									setPagerActive(false);
 								}
 							});
 						},
@@ -478,5 +535,58 @@ const heroBgStyle = [
 		object-fit: cover;
 		object-position: center center;
 		will-change: transform;
+	}
+
+	.obs__nav {
+		position: fixed;
+		top: 50%;
+		right: 1.25rem;
+		transform: translateY(-50%);
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+		z-index: 40;
+		opacity: 0;
+		pointer-events: none;
+		transition:
+			opacity 260ms ease,
+			transform 260ms ease;
+	}
+
+	.obs[data-obs-pager-active='true'] .obs__nav {
+		opacity: 1;
+		pointer-events: auto;
+	}
+
+	.obs__nav-btn {
+		width: 2.75rem;
+		height: 2.75rem;
+		border-radius: 9999px;
+		display: grid;
+		place-items: center;
+		background: rgba(0, 0, 0, 0.45);
+		color: #fff;
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		backdrop-filter: blur(8px);
+		cursor: pointer;
+		transition:
+			background 180ms ease,
+			transform 180ms ease,
+			border-color 180ms ease;
+	}
+
+	.obs__nav-btn:hover {
+		background: rgba(0, 0, 0, 0.7);
+		border-color: rgba(255, 255, 255, 0.55);
+		transform: scale(1.05);
+	}
+
+	.obs__nav-btn:active {
+		transform: scale(0.95);
+	}
+
+	.obs__nav-btn:focus-visible {
+		outline: 2px solid var(--sl-color-text-accent, #c9a56a);
+		outline-offset: 2px;
 	}
 </style>
