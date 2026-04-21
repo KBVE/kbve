@@ -31,18 +31,15 @@ namespace RareIcon
             long nowMs = (long)(SystemAPI.Time.ElapsedTime * 1000.0);
             uint  seed = (uint)math.max(1, nowMs & 0xFFFFFFFF);
 
-            var capH  = new ConsolidateCapitalJob    { Db = db, NowMs = nowMs, Seed = seed, Queue = queue }.ScheduleParallel(state.Dependency);
-            var furnH = new ConsolidateFurnaceJob    { Db = db, NowMs = nowMs, Seed = seed, Queue = queue }.ScheduleParallel(state.Dependency);
-            var farmH = new ConsolidateFarmJob       { Db = db, NowMs = nowMs, Seed = seed, Queue = queue }.ScheduleParallel(state.Dependency);
-            var barrH = new ConsolidateBarracksJob   { Db = db, NowMs = nowMs, Seed = seed, Queue = queue }.ScheduleParallel(state.Dependency);
-            var caveH = new ConsolidateGoblinCaveJob { Db = db, NowMs = nowMs, Seed = seed, Queue = queue }.ScheduleParallel(state.Dependency);
+            var dep = state.Dependency;
+            dep = new ConsolidateCapitalJob    { Db = db, NowMs = nowMs, Seed = seed, Queue = queue }.ScheduleParallel(dep);
+            dep = new ConsolidateFurnaceJob    { Db = db, NowMs = nowMs, Seed = seed, Queue = queue }.ScheduleParallel(dep);
+            dep = new ConsolidateFarmJob       { Db = db, NowMs = nowMs, Seed = seed, Queue = queue }.ScheduleParallel(dep);
+            dep = new ConsolidateBarracksJob   { Db = db, NowMs = nowMs, Seed = seed, Queue = queue }.ScheduleParallel(dep);
+            dep = new ConsolidateGoblinCaveJob { Db = db, NowMs = nowMs, Seed = seed, Queue = queue }.ScheduleParallel(dep);
 
-            var combined = JobHandle.CombineDependencies(
-                JobHandle.CombineDependencies(capH, furnH, farmH),
-                JobHandle.CombineDependencies(barrH, caveH));
-
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(combined);
-            state.Dependency = combined;
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(dep);
+            state.Dependency = dep;
         }
     }
 

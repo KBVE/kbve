@@ -27,15 +27,13 @@ namespace RareIcon
 
             var queue = _queue.AsParallelWriter();
 
-            var farmH = new FarmSurplusJob     { Capital = capital, Queue = queue }.ScheduleParallel(state.Dependency);
-            var furnH = new FurnaceSurplusJob  { Capital = capital, Queue = queue }.ScheduleParallel(state.Dependency);
-            var barrH = new BarracksSurplusJob { Capital = capital, Queue = queue }.ScheduleParallel(state.Dependency);
+            var dep = state.Dependency;
+            dep = new FarmSurplusJob     { Capital = capital, Queue = queue }.ScheduleParallel(dep);
+            dep = new FurnaceSurplusJob  { Capital = capital, Queue = queue }.ScheduleParallel(dep);
+            dep = new BarracksSurplusJob { Capital = capital, Queue = queue }.ScheduleParallel(dep);
 
-            var combined = JobHandle.CombineDependencies(
-                JobHandle.CombineDependencies(farmH, furnH), barrH);
-
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(combined);
-            state.Dependency = combined;
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(dep);
+            state.Dependency = dep;
         }
     }
 
