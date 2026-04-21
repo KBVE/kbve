@@ -91,6 +91,16 @@ Shader "RareIcon/HexBuilding"
         _OutpostTimber      ("Outpost Timber",      Color) = (0.32, 0.20, 0.12, 1)
         _OutpostBanner      ("Outpost Banner",      Color) = (0.88, 0.28, 0.22, 1)
         _OutpostTorch       ("Outpost Torch",       Color) = (1.00, 0.62, 0.22, 1)
+
+        _DockPlank       ("Dock Plank",       Color) = (0.62, 0.44, 0.28, 1)
+        _DockPlankShade  ("Dock Plank Shade", Color) = (0.36, 0.24, 0.14, 1)
+        _DockPiling      ("Dock Piling",      Color) = (0.40, 0.26, 0.15, 1)
+        _DockShack       ("Dock Shack",       Color) = (0.52, 0.36, 0.22, 1)
+        _DockShackShade  ("Dock Shack Shade", Color) = (0.30, 0.20, 0.12, 1)
+        _DockRoof        ("Dock Roof",        Color) = (0.42, 0.20, 0.12, 1)
+        _DockNet         ("Dock Net",         Color) = (0.65, 0.60, 0.46, 1)
+        _DockLantern     ("Dock Lantern",     Color) = (0.98, 0.82, 0.35, 1)
+        _DockSmoke       ("Dock Smoke",       Color) = (0.72, 0.72, 0.76, 0.85)
     }
 
     SubShader
@@ -181,6 +191,15 @@ Shader "RareIcon/HexBuilding"
                 float4 _OutpostTimber;
                 float4 _OutpostBanner;
                 float4 _OutpostTorch;
+                float4 _DockPlank;
+                float4 _DockPlankShade;
+                float4 _DockPiling;
+                float4 _DockShack;
+                float4 _DockShackShade;
+                float4 _DockRoof;
+                float4 _DockNet;
+                float4 _DockLantern;
+                float4 _DockSmoke;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -204,6 +223,7 @@ Shader "RareIcon/HexBuilding"
             #define BUILDING_INN         6
             #define BUILDING_MARKET      7
             #define BUILDING_OUTPOST     8
+            #define BUILDING_DOCK        9
 
             #include "Includes/HexShared.hlsl"
             #include "Includes/HexBuildingShared.hlsl"
@@ -216,6 +236,7 @@ Shader "RareIcon/HexBuilding"
             #include "Includes/HexInn.hlsl"
             #include "Includes/HexMarket.hlsl"
             #include "Includes/HexOutpost.hlsl"
+            #include "Includes/HexDock.hlsl"
 
             Varyings vert(Attributes input)
             {
@@ -270,6 +291,10 @@ Shader "RareIcon/HexBuilding"
                 else if (buildingType == BUILDING_OUTPOST)
                 {
                     DrawOutpost(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_DOCK)
+                {
+                    DrawDock(color, alpha, px, grid);
                 }
 
                 float progress = saturate(_ConstructionProgress);
