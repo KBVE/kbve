@@ -5,13 +5,11 @@ using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>Advances projectiles and ticks lifetime. On Arrow/Bolt expiry converts in place to GroundArrow; other types destroy. ECB plays back via EndSimulationEntityCommandBufferSystem.</summary>
+    /// <summary>Advances projectiles; destroys all types on lifetime expiry.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(MovementSystemGroup))]
     public partial struct ProjectileSystem : ISystem
     {
-        const float GroundArrowLifetimeSec = 300f;
-
         [BurstCompile]
         public void OnCreate(ref SystemState state) => state.RequireForUpdate<Projectile>();
 
@@ -20,19 +18,13 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            float abs = 0f;
-            if (SystemAPI.TryGetSingleton<WorldClock>(out var clock))
-                abs = clock.AbsSeconds;
-
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);
 
             state.Dependency = new ProjectileTickJob
             {
-                Dt             = SystemAPI.Time.DeltaTime,
-                AbsNow         = abs,
-                GroundLifetime = GroundArrowLifetimeSec,
-                Ecb            = ecb.AsParallelWriter(),
+                Dt  = SystemAPI.Time.DeltaTime,
+                Ecb = ecb.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
         }
     }
@@ -41,8 +33,6 @@ namespace RareIcon
     public partial struct ProjectileTickJob : IJobEntity
     {
         public float Dt;
-        public float AbsNow;
-        public float GroundLifetime;
         public EntityCommandBuffer.ParallelWriter Ecb;
 
         void Execute(Entity entity,
@@ -58,22 +48,6 @@ namespace RareIcon
 
             projectile.Lifetime -= Dt;
             if (projectile.Lifetime > 0f) return;
-
-            bool reclaimable = projectile.Type == ProjectileType.Arrow
-                            || projectile.Type == ProjectileType.Bolt;
-
-            if (reclaimable)
-            {
-                Ecb.RemoveComponent<Projectile>(chunkIdx, entity);
-                Ecb.RemoveComponent<ProjectileVelocity>(chunkIdx, entity);
-                Ecb.AddComponent(chunkIdx, entity, new GroundArrow
-                {
-                    SpawnedAtAbsSeconds = AbsNow,
-                    DespawnAtAbsSeconds = AbsNow + GroundLifetime,
-                    ClaimedBy           = Entity.Null,
-                });
-                return;
-            }
 
             Ecb.DestroyEntity(chunkIdx, entity);
         }

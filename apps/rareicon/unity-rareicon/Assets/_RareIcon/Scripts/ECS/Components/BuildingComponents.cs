@@ -76,6 +76,21 @@ namespace RareIcon
     /// <summary>Marker tag for Farm buildings — production system query key.</summary>
     public struct FarmTag : IComponentData { }
 
+    /// <summary>Marker tag for Inn buildings — food + sleep service provider.</summary>
+    public struct InnTag : IComponentData { }
+
+    /// <summary>Service tag: unit on this building's footprint with Eat relief can draw food from its ledger. Attached to Capital, Farm, Inn. Priority breaks ties when multiple providers are equidistant (higher wins).</summary>
+    public struct ProvidesFood : IComponentData
+    {
+        public byte Priority;
+    }
+
+    /// <summary>Service tag: unit on this building's footprint with Sleep relief can rest here. Capacity caps concurrent sleepers (Capital ~255, Inn 5).</summary>
+    public struct ProvidesSleep : IComponentData
+    {
+        public byte Capacity;
+    }
+
     /// <summary>Optional per-building total-count ceiling. Absent = unlimited (current Capital behaviour). Haulers + producers read this to gate deposits.</summary>
     public struct StorageCapacity : IComponentData
     {

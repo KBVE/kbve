@@ -29,8 +29,8 @@ namespace RareIcon
     [BurstCompile]
     public partial struct PathfindingJob : IJobEntity
     {
-        const float DwellMin = 0.12f;
-        const float DwellMax = 0.30f;
+        const float DwellMin = 0.0f;
+        const float DwellMax = 0.06f;
 
         void Execute(ref MovementGoal goal, ref UnitMovement m)
         {
@@ -69,9 +69,10 @@ namespace RareIcon
 
         static float TurnSharpnessScale(byte lastDir, byte newDir)
         {
-            if (lastDir > 5) return 1.0f;
+            if (lastDir > 5) return 0f;
             int diff = math.abs(((int)newDir - (int)lastDir + 9) % 6 - 3);
-            return 0.6f + diff * 0.5f;
+            if (diff == 0) return 0f;
+            return 0.3f + diff * 0.4f;
         }
 
         static uint Rng(uint x)

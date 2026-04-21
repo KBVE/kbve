@@ -67,6 +67,16 @@ namespace RareIcon
         public ushort Count;
     }
 
+    /// <summary>Inn larder. Cooked food + meals staged for guests (sleepers + diners). Filled by Looter haulers from the Capital surplus; drained by EmpireWithdrawSystem when a hungry unit walks in.</summary>
+    [InternalBufferCapacity(8)]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct InnLedger : IBankLedger
+    {
+        public Ulid   Uid;
+        public ushort ItemId;
+        public ushort Count;
+    }
+
     /// <summary>Shared algorithm helpers over any per-bank ledger. Callers Reinterpret their concrete DynamicBuffer&lt;CapitalLedger&gt;/&lt;FurnaceLedger&gt;/etc. into DynamicBuffer&lt;BankLedgerBase&gt; at the call boundary, then pass the view here. One implementation, no generics, no interface method calls — Burst compiles these as plain struct-field loops. Writes through the reinterpreted view alias the original buffer's memory so mutations stick.</summary>
     public static class BankLedgerOps
     {

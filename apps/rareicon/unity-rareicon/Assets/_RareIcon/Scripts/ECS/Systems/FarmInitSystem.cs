@@ -54,6 +54,7 @@ namespace RareIcon
 
                 ecb.AddComponent(e, new TenderMultiplier { Value = 0f });
                 ecb.AddBuffer<FarmLivestock>(e);
+                ecb.AddComponent(e, new ProvidesFood { Priority = 2 });
             }
             entities.Dispose();
         }

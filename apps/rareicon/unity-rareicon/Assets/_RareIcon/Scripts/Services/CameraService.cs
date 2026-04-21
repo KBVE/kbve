@@ -175,30 +175,72 @@ namespace RareIcon
 
         void HandleUnitMovement(World world, Entity controlled)
         {
-            if (Time.time < _nextUnitMoveTime) return;
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
 
-            int dQ = 0, dR = 0;
-            if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed)    dR += 1;
-            if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed)  dR -= 1;
-            if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) dQ += 1;
-            if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed)  dQ -= 1;
-            if (dQ == 0 && dR == 0) return;
+            float2 dir = float2.zero;
+            if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed)    dir.y += 1f;
+            if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed)  dir.y -= 1f;
+            if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) dir.x += 1f;
+            if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed)  dir.x -= 1f;
 
             var em = world.EntityManager;
+            if (!em.HasComponent<LocalTransform>(controlled)) return;
             if (!em.HasComponent<UnitMovement>(controlled)) return;
-            var movement = em.GetComponentData<UnitMovement>(controlled);
-            var target = new int2(movement.CurrentHex.x + dQ, movement.CurrentHex.y + dR);
+            if (em.HasComponent<ShelteredInside>(controlled)) return;
 
-            if (_movePublisher == null)
+            var movement = em.GetComponentData<UnitMovement>(controlled);
+
+            if (math.lengthsq(dir) < 1e-4f)
             {
-                try { _movePublisher = GlobalMessagePipe.GetPublisher<ControlledUnitMoveMessage>(); }
-                catch { return; }
+                if (!movement.TargetHex.Equals(movement.CurrentHex))
+                {
+                    movement.TargetHex = movement.CurrentHex;
+                    em.SetComponentData(controlled, movement);
+                }
+                if (em.HasComponent<UnitMovingVisual>(controlled))
+                    em.SetComponentData(controlled, new UnitMovingVisual { Value = 0f });
+                return;
             }
 
-            _movePublisher.Publish(new ControlledUnitMoveMessage(target.x, target.y));
-            _nextUnitMoveTime = Time.time + UnitMoveCooldown;
+            dir = math.normalize(dir);
+            float speed = movement.MoveSpeed * 1.6f;
+            var transform = em.GetComponentData<LocalTransform>(controlled);
+            float3 next = transform.Position + new float3(dir.x * speed * Time.deltaTime,
+                                                          dir.y * speed * Time.deltaTime,
+                                                          0f);
+
+            var nowHex = HexMeshUtil.WorldToHex(next.x, next.y, HexMeshHexSize);
+
+            transform.Position = next;
+            em.SetComponentData(controlled, transform);
+
+            movement.CurrentHex = nowHex;
+            movement.TargetHex  = nowHex;
+            movement.Facing     = FacingFromDir(dir);
+            em.SetComponentData(controlled, movement);
+
+            if (em.HasComponent<UnitFacingVisual>(controlled))
+                em.SetComponentData(controlled, new UnitFacingVisual { Value = (float)movement.Facing });
+            if (em.HasComponent<UnitMovingVisual>(controlled))
+                em.SetComponentData(controlled, new UnitMovingVisual { Value = 1f });
+
+            if (em.HasComponent<MovementGoal>(controlled))
+            {
+                var goal = em.GetComponentData<MovementGoal>(controlled);
+                if (goal.Priority <= GoalPriority.Order)
+                    em.SetComponentData(controlled, new MovementGoal { Kind = GoalKind.None, Priority = GoalPriority.None, TargetHex = nowHex });
+            }
+        }
+
+        const float HexMeshHexSize = 0.25f;
+
+        static byte FacingFromDir(float2 dir)
+        {
+            float ax = math.abs(dir.x);
+            float ay = math.abs(dir.y);
+            if (ax >= ay) return dir.x >= 0f ? UnitFacing.East : UnitFacing.West;
+            return dir.y >= 0f ? UnitFacing.North : UnitFacing.South;
         }
 
         void HandleZoom()

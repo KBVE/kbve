@@ -25,7 +25,7 @@ namespace RareIcon
     {
         const float HexSize = 0.25f;
         const float UnitSize = 0.5f;
-        const int   GoblinCount  = 15;
+        const int   GoblinCount  = 25;
         const int   SpawnRadius  = 8;
 
         static Mesh                  _mesh;
@@ -47,14 +47,10 @@ namespace RareIcon
 
             SpawnKingAt(EntityManager, new int2(0, 0));
 
-            // Four garrison archers posted on the Capital's N/E/S/W footprint
-            // hexes. Crossbow loadout, zero ProfessionPriorities, never wander —
-            // RangedAttackSystem auto-fires at any Hostile in 3 wu range
-            // while they hold the perimeter.
-            SpawnGarrisonGoblinAt(EntityManager, new int2( 1,  0), 0xA110C8u);
-            SpawnGarrisonGoblinAt(EntityManager, new int2(-1,  0), 0xB22199u);
-            SpawnGarrisonGoblinAt(EntityManager, new int2( 0,  1), 0xC332AAu);
-            SpawnGarrisonGoblinAt(EntityManager, new int2( 0, -1), 0xD443BBu);
+            SpawnGuardGoblinAt(EntityManager, new int2( 1,  0), 0xA110C8u);
+            SpawnGuardGoblinAt(EntityManager, new int2(-1,  0), 0xB22199u);
+            SpawnGuardGoblinAt(EntityManager, new int2( 0,  1), 0xC332AAu);
+            SpawnGuardGoblinAt(EntityManager, new int2( 0, -1), 0xD443BBu);
 
             SpawnHeroAt(EntityManager, new int2( 2,  0), 0x1001A1u, HeroRole.MasterBlacksmith);
             SpawnHeroAt(EntityManager, new int2(-2,  0), 0x1002B2u, HeroRole.MasterCraftsman);
@@ -62,6 +58,12 @@ namespace RareIcon
             SpawnGoblinAt(EntityManager, new int2( 0, -2), 0x1004D4u, default, FactionType.Player, UnitType.Soldier);
             SpawnGoblinAt(EntityManager, new int2( 2, -2), 0x1005E5u, default, FactionType.Player, UnitType.Soldier);
             SpawnGoblinAt(EntityManager, new int2(-2,  2), 0x1006F6u, default, FactionType.Player, UnitType.Mage);
+
+            SpawnArcherSoldierAt(EntityManager, new int2( 3,  0), 0x2001A1u);
+            SpawnArcherSoldierAt(EntityManager, new int2(-3,  0), 0x2002B2u);
+            SpawnArcherSoldierAt(EntityManager, new int2( 0,  3), 0x2003C3u);
+            SpawnArcherSoldierAt(EntityManager, new int2( 0, -3), 0x2004D4u);
+            SpawnArcherSoldierAt(EntityManager, new int2( 3, -3), 0x2005E5u);
 
             for (int i = 0; i < GoblinCount; i++)
             {
@@ -129,6 +131,7 @@ namespace RareIcon
 
             AttachRangedAttackIfArmed(em, entity, def.DefaultWeapon);
             AttachMeleeAttackIfArmed(em, entity, def.DefaultWeapon, faction);
+            AttachSpellsIfMagical(em, entity, def.UnitType, faction);
             AttachNeedsIfPlayer(em, entity, faction, def);
             AttachJobsIfPlayer(em, entity, faction, def.UnitType, rngSeed);
 
@@ -185,12 +188,9 @@ namespace RareIcon
             return entity;
         }
 
-        /// <summary>Spawn a garrison archer (Crossbow goblin) posted at the given hex. Zero ProfessionPriorities + GarrisonPost → never wanders, never harvests; RangedAttackSystem still auto-fires at hostiles in range.</summary>
-        public static Entity SpawnGarrisonGoblinAt(EntityManager em, int2 hex, uint rngSeed)
+        /// <summary>Spawn a Player goblin armed with a crossbow and Guard=5 priority over its archetype preferences.</summary>
+        public static Entity SpawnGuardGoblinAt(EntityManager em, int2 hex, uint rngSeed)
         {
-            // Spawn a Player goblin, then overwrite Weapon → Crossbow,
-            // attach GarrisonPost, and zero the ProfessionPriorities so the
-            // jobs / relief / wander pipelines leave it on-tile.
             var entity = SpawnGoblinAt(em, hex, rngSeed, default, FactionType.Player);
             if (entity == Entity.Null) return Entity.Null;
 
@@ -199,10 +199,31 @@ namespace RareIcon
                 Type   = UnitType.Goblin,
                 Weapon = WeaponType.Crossbow,
             });
+            em.SetComponentData(entity, new UnitWeaponVisual { Value = (float)WeaponType.Crossbow });
             AttachRangedAttackIfArmed(em, entity, WeaponType.Crossbow);
 
-            em.AddComponentData(entity, new GarrisonPost { Hex = hex });
-            em.SetComponentData(entity, new ProfessionPriorities());
+            var priorities = em.GetComponentData<ProfessionPriorities>(entity);
+            priorities.Guard = 5;
+            em.SetComponentData(entity, priorities);
+
+            var pack = em.GetBuffer<PackSlot>(entity);
+            pack.Add(new PackSlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Arrow, Count = ArcherRefillConfig.QuiverMax });
+            return entity;
+        }
+
+        /// <summary>Spawn a Player Soldier armed with a crossbow — human archer.</summary>
+        public static Entity SpawnArcherSoldierAt(EntityManager em, int2 hex, uint rngSeed)
+        {
+            var entity = SpawnGoblinAt(em, hex, rngSeed, default, FactionType.Player, UnitType.Soldier);
+            if (entity == Entity.Null) return Entity.Null;
+
+            em.SetComponentData(entity, new Unit
+            {
+                Type   = UnitType.Soldier,
+                Weapon = WeaponType.Crossbow,
+            });
+            em.SetComponentData(entity, new UnitWeaponVisual { Value = (float)WeaponType.Crossbow });
+            AttachRangedAttackIfArmed(em, entity, WeaponType.Crossbow);
 
             var pack = em.GetBuffer<PackSlot>(entity);
             pack.Add(new PackSlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Arrow, Count = ArcherRefillConfig.QuiverMax });
@@ -716,6 +737,52 @@ namespace RareIcon
             });
         }
 
+        static void AttachSpellsIfMagical(EntityManager em, Entity entity, byte unitType, byte faction)
+        {
+            if (faction != FactionType.Player) return;
+
+            if (unitType == UnitType.Mage)
+            {
+                em.AddComponentData(entity, new SpellCast
+                {
+                    Range              = 5.0f,
+                    Damage             = 12f,
+                    Cooldown           = 2.5f,
+                    TimeSinceCast      = 0f,
+                    ManaCost           = 15f,
+                    ProjectileType     = ProjectileType.Fireball,
+                    ProjectileMod      = ArrowMod.Fire,
+                    ProjectileSpeed    = 7f,
+                    ProjectileLifetime = 1.5f,
+                });
+                em.AddComponentData(entity, new HealingAura
+                {
+                    Range         = 4f,
+                    Amount        = 15f,
+                    Period        = 2f,
+                    TimeSinceHeal = 0f,
+                    ManaCost      = 20f,
+                });
+                return;
+            }
+
+            if (unitType == UnitType.Goblin)
+            {
+                em.AddComponentData(entity, new SpellCast
+                {
+                    Range              = 3.5f,
+                    Damage             = 4f,
+                    Cooldown           = 8f,
+                    TimeSinceCast      = 0f,
+                    ManaCost           = 20f,
+                    ProjectileType     = ProjectileType.IceShard,
+                    ProjectileMod      = ArrowMod.Ice,
+                    ProjectileSpeed    = 5f,
+                    ProjectileLifetime = 1.2f,
+                });
+            }
+        }
+
         static void AttachRangedAttackIfArmed(EntityManager em, Entity entity, byte weapon)
         {
             if (weapon == WeaponType.Crossbow)
@@ -723,7 +790,7 @@ namespace RareIcon
                 em.AddComponentData(entity, new RangedAttack
                 {
                     Range              = 3.0f,
-                    Damage             = 8.0f,
+                    Damage             = 9.0f,
                     Cooldown           = 1.5f,
                     TimeSinceShot      = 0f,
                     ProjectileType     = ProjectileType.Bolt,

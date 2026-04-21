@@ -44,21 +44,20 @@ namespace RareIcon
         // Capital is intentionally just the Land Grant — the scroll is
         // imbued with the materials, narratively. All other buildings
         // draw real materials from the empire's central stockpile.
-        static readonly Ingredient[] CostCapital  = { new(   (ushort)ItemId.CapitalLandGrant, 1) };
-        static readonly Ingredient[] CostFarm     = { new(   (ushort)ItemId.WoodLog,          5) };
-        static readonly Ingredient[] CostBarracks = { new(   (ushort)ItemId.WoodLog,          8),
-                                                      new(   (ushort)ItemId.Stone,            3) };
-        static readonly Ingredient[] CostFurnace  = { new(   (ushort)ItemId.WoodLog,          6),
-                                                      new(   (ushort)ItemId.Stone,            4) };
-        static readonly Ingredient[] CostGoblinCave = { new((ushort)ItemId.Berry,      20),
-                                                        new((ushort)ItemId.Stone,      30),
-                                                        new((ushort)ItemId.WoodLog,    30) };
-        static readonly Ingredient[] CostInn       = { new((ushort)ItemId.WoodLog,     25),
-                                                       new((ushort)ItemId.Stone,       15) };
-        static readonly Ingredient[] CostMarket    = { new((ushort)ItemId.WoodLog,     15),
-                                                       new((ushort)ItemId.Stone,        5) };
-        static readonly Ingredient[] CostOutpost   = { new((ushort)ItemId.WoodLog,     20),
-                                                       new((ushort)ItemId.Stone,       12) };
+        static readonly Ingredient[] CostCapital    = { new((ushort)ItemId.CapitalLandGrant, 1) };
+        static readonly Ingredient[] CostFarm       = { new((ushort)ItemId.Timber,     1) };
+        static readonly Ingredient[] CostBarracks   = { new((ushort)ItemId.Timber,     3),
+                                                        new((ushort)ItemId.StoneBlock, 3) };
+        static readonly Ingredient[] CostFurnace    = { new((ushort)ItemId.Timber,     2),
+                                                        new((ushort)ItemId.StoneBlock, 4) };
+        static readonly Ingredient[] CostGoblinCave = { new((ushort)ItemId.Timber,     1),
+                                                        new((ushort)ItemId.StoneBlock, 5) };
+        static readonly Ingredient[] CostInn        = { new((ushort)ItemId.Timber,     3),
+                                                        new((ushort)ItemId.StoneBlock, 2) };
+        static readonly Ingredient[] CostMarket     = { new((ushort)ItemId.Timber,     2),
+                                                        new((ushort)ItemId.StoneBlock, 1) };
+        static readonly Ingredient[] CostOutpost    = { new((ushort)ItemId.Timber,     2),
+                                                        new((ushort)ItemId.StoneBlock, 2) };
         static readonly Ingredient[] CostNone     = System.Array.Empty<Ingredient>();
 
         public static Ingredient[] GetCost(byte buildingType) => buildingType switch
