@@ -49,6 +49,7 @@ namespace RareIcon
                     Ecb.AddComponent<BarracksTag>(chunkIdx, entity);
                     Ecb.AddComponent(chunkIdx, entity, new BarracksSupplyStatus { IsNeedy = 1 });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesHealing { Priority = 2 });
+                    Ecb.AddComponent(chunkIdx, entity, new ProvidesSleep   { Capacity = 5 });
                     break;
                 case BuildingType.Furnace:
                     Ecb.AddComponent<FurnaceTag>(chunkIdx, entity);
