@@ -83,6 +83,19 @@ namespace RareIcon
                         Radius       = 5,
                         OwnerFaction = building.OwnerFaction,
                     });
+                    Ecb.AddComponent(chunkIdx, entity, new OutpostVolley
+                    {
+                        CooldownSeconds    = 30f,
+                        TimeSinceVolley    = 30f,
+                        Range              = 15f,
+                        ArrowsPerVolley    = 20,
+                        ArrowCost          = 5,
+                        SpreadHalfAngleRad = 0.52f,
+                        ProjectileSpeed    = 14f,
+                        ProjectileLifetime = 3f,
+                        DamagePerArrow     = 8f,
+                    });
+                    Ecb.AddComponent(chunkIdx, entity, new OutpostArrowPool { Stock = 100 });
                     break;
             }
 

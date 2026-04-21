@@ -165,6 +165,26 @@ namespace RareIcon
     /// <summary>Marker tag for Outpost buildings.</summary>
     public struct OutpostTag : IComponentData { }
 
+    /// <summary>Per-outpost cooldown-gated arrow volley. Every CooldownSeconds the outpost fires ArrowsPerVolley projectiles in a cone of half-angle SpreadHalfAngleRad around the closest CombatDB threat within Range. Burns ArrowCost from the sibling OutpostArrowPool per firing.</summary>
+    public struct OutpostVolley : IComponentData
+    {
+        public float CooldownSeconds;
+        public float TimeSinceVolley;
+        public float Range;
+        public byte  ArrowsPerVolley;
+        public byte  ArrowCost;
+        public float SpreadHalfAngleRad;
+        public float ProjectileSpeed;
+        public float ProjectileLifetime;
+        public float DamagePerArrow;
+    }
+
+    /// <summary>Ammunition reserve for OutpostVolleySystem. Initialised at construction; future refill system (haul arrows from Barracks / Capital) lands in Phase 2b.</summary>
+    public struct OutpostArrowPool : IComponentData
+    {
+        public ushort Stock;
+    }
+
     /// <summary>Tag indicating a TerritoryEmitter is reachable from its faction's Capital via BFS over same-faction emitters within OutpostAnchorRadius.</summary>
     public struct EmpireConnected : IComponentData { }
 
