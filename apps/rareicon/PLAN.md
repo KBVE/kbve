@@ -475,3 +475,9 @@ Target after §0 lands in Logistics + Professions: **200–300 fps** at current 
 - Replacing the Logistics tick-phase pipeline (Reservation → Resolve → Reduce → Commit → Mirror) — that's §15's domain, not §0's. §0 only touches the event-fanout layer.
 - Sub-frame event ordering or priority. Coalescing is last-write-wins by entity; subscribers must tolerate it.
 - Moving existing producers' internal state into the domain singleton. Only event pipeline moves; per-system state stays local.
+
+### Adjacent follow-ups (logistics polish, not §0-blocking)
+
+- **Inn supply loop.** Inn has `ProvidesFood` + `InnLedger` + `EmpireWithdrawSystem` read-support but no hauler stocks it, so it's a ghost food provider today. Need an `InnSupplyDepositSystem` that mirrors `BarracksSupplyDepositSystem` (haul food from Capital → Inn), plus make the Inn a _kitchen_: generalize `CookingSystem` off its hard-coded `CapitalTag` gate so Chefs can cook at any `ProvidesKitchen`-tagged building (add the tag to Capital + Inn).
+- **Dynamic RoutePriority system.** Today the `Priority` byte on `ProvidesFood` / `ProvidesHealing` / `ProvidesSleep` is set at construction and never re-read. Add a turn-cadence `RoutePriorityUpdateSystem` (piggyback on `ProfessionOfferBuildSystem.BuildIntervalSeconds`) that rewrites priorities based on stock level + CombatDB threat proximity, then upgrade `UnitBehaviorSystem.PickClosestSpread` to use `(priority × k) − distance` instead of pure distance. Ship the writer first so we can observe values in the diagnostic before wiring the reader.
+- **Cross-building arrow refill.** `OutpostArrowPool` is seeded to 100 at construction and never refilled. Needs a haul path (Looter brings arrows from Barracks / Capital → Outpost) with the same reservation shape as `ArcherRefillSystem`.
