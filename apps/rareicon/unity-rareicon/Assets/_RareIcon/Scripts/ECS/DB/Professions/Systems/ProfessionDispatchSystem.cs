@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -5,13 +6,14 @@ using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>Picks the highest-priority profession with nearby work for each Player unit; writes ProfessionIntent. If no scored offer wins, assigns ProfessionKind.Default and rolls a Wander MovementGoal so units never sit idle. Reads the dispatch context + TaskOffer pool from ProfessionOffersSingleton (rebuilt on cadence by ProfessionOfferBuildSystem). Emits ProfessionChangedMessage via ProfessionEventSink on any kind/target change — coalesced + published by ProfessionMessagePipeBridgeSystem.</summary>
+    /// <summary>Picks the highest-priority profession with nearby work for each Player unit; writes ProfessionIntent. If no scored offer wins, assigns ProfessionKind.Default and rolls a Wander MovementGoal so units never sit idle. Reads the dispatch context + TaskOffer pool from ProfessionOffersSingleton (rebuilt on cadence by ProfessionOfferBuildSystem). Emits ProfessionChangedMessage via ProfessionEventSink on any kind/target change — coalesced + published by ProfessionMessagePipeBridgeSystem. ISystem + [BurstCompile] — every managed dependency routes through ComponentLookup / BufferLookup / Burst-safe singletons.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(ReliefSystem))]
     [UpdateAfter(typeof(ProfessionsDomainSystem))]
     [UpdateAfter(typeof(ProfessionOfferBuildSystem))]
     [UpdateAfter(typeof(CombatThreatScanSystem))]
-    public partial class ProfessionDispatchSystem : SystemBase
+    public partial struct ProfessionDispatchSystem : ISystem
     {
         const int  SearchRadius          = 12;
         const int  HexClusterCap         = 4;
@@ -26,25 +28,28 @@ namespace RareIcon
 
         NativeHashMap<int2, int> _hexOccupancy;
 
-        protected override void OnCreate()
+        public void OnCreate(ref SystemState state)
         {
-            RequireForUpdate<ProfessionOffersSingleton>();
-            RequireForUpdate<CombatDBSingleton>();
-            RequireForUpdate<ItemDBSingleton>();
+            state.RequireForUpdate<ProfessionOffersSingleton>();
+            state.RequireForUpdate<CombatDBSingleton>();
+            state.RequireForUpdate<ItemDBSingleton>();
+
+            _hexOccupancy = new NativeHashMap<int2, int>(64, Allocator.Persistent);
         }
 
-        protected override void OnDestroy()
+        public void OnDestroy(ref SystemState state)
         {
             if (_hexOccupancy.IsCreated) _hexOccupancy.Dispose();
-            base.OnDestroy();
         }
 
-        protected override void OnUpdate()
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
-            RunDispatch();
+            RunDispatch(ref state);
         }
 
-        void RunDispatch()
+        [BurstCompile]
+        void RunDispatch(ref SystemState state)
         {
             var offersDB = SystemAPI.GetSingleton<ProfessionOffersSingleton>();
             var combatDB = SystemAPI.GetSingleton<CombatDBSingleton>();
@@ -54,7 +59,7 @@ namespace RareIcon
             if (doFullDispatch)
             {
                 _lastSeenBuildVersion = offersDB.BuildVersion;
-                CompleteDependency();
+                state.CompleteDependency();
             }
 
             bool hasCapital     = offersDB.HasCapital;
@@ -68,6 +73,8 @@ namespace RareIcon
             var friendlyEmitters = combatDB.FriendlyEmitters;
             bool anyHostile      = threats.Length > 0;
 
+            var controlledLookup = SystemAPI.GetComponentLookup<ControlledUnitTag>(true);
+
             var justAssignedPerKind = new NativeArray<int>(13, Allocator.Temp);
 
             BufferLookup<PackSlot> unitPackLookup = default;
@@ -78,10 +85,7 @@ namespace RareIcon
             {
                 unitPackLookup = SystemAPI.GetBufferLookup<PackSlot>(true);
 
-                if (!_hexOccupancy.IsCreated)
-                    _hexOccupancy = new NativeHashMap<int2, int>(64, Allocator.Persistent);
-                else
-                    _hexOccupancy.Clear();
+                _hexOccupancy.Clear();
 
                 activePerKind   = new NativeArray<int>(13, Allocator.Temp);
                 reservedPerKind = new NativeArray<int>(13, Allocator.Temp);
@@ -156,7 +160,7 @@ namespace RareIcon
                 // steering them, the AI shouldn't assign work in
                 // parallel. Releasing control returns the unit to the
                 // dispatcher next tick.
-                if (EntityManager.HasComponent<ControlledUnitTag>(entity))
+                if (controlledLookup.HasComponent(entity))
                 {
                     if (tasks.Length > 0) tasks.Clear();
                     var prev = jobIntentRef.ValueRO;
