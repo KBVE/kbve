@@ -1,3 +1,4 @@
+using System;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -40,7 +41,7 @@ namespace RareIcon
 
         void Execute([EntityIndexInQuery] int eiq, Entity entity, ref DynamicBuffer<InventorySlot> inv)
         {
-            var rng = new Random(Seed ^ (uint)(eiq * 0x9E3779B1u) ^ 1u);
+            var rng = new Unity.Mathematics.Random(Seed ^ (uint)(eiq * 0x9E3779B1u) ^ 1u);
 
             // Pass 1 — single-source rollup (anything with CompressesTo that
             // isn't in a PoolGroup). 100 raw → 1 bulk, loops until the slot

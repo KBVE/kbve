@@ -1,16 +1,15 @@
 using System;
-using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Cysharp.Ulid factory helpers. Main-thread path calls Ulid.NewUlid (managed); Burst-safe path assembles 16 bytes from a ref Random + millisecond timestamp so it runs inside jobs.</summary>
+    /// <summary>Cysharp.Ulid factory helpers. Main-thread path calls Ulid.NewUlid (managed); Burst-safe path assembles 16 bytes from a ref Unity.Mathematics.Random + millisecond timestamp so it runs inside jobs.</summary>
     public static class UlidFactory
     {
         public static readonly Ulid Empty = default;
 
         public static Ulid NewUid() => Ulid.NewUlid();
 
-        public static Ulid NewUid(ref Random rng, long unixMs)
+        public static Ulid NewUid(ref Unity.Mathematics.Random rng, long unixMs)
         {
             Span<byte> bytes = stackalloc byte[16];
             bytes[0] = (byte)(unixMs >> 40);
