@@ -197,7 +197,7 @@ namespace RareIcon
                 catch { return; }
             }
 
-            _movePublisher.Publish(new ControlledUnitMoveMessage { Q = target.x, R = target.y });
+            _movePublisher.Publish(new ControlledUnitMoveMessage(target.x, target.y));
             _nextUnitMoveTime = Time.time + UnitMoveCooldown;
         }
 
