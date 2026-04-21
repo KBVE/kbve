@@ -33,5 +33,13 @@ namespace RareIcon
                 if (IsFood(inv[i].ItemId)) total += inv[i].Count;
             return total;
         }
+
+        public static int Count(DynamicBuffer<PackSlot> pack)
+        {
+            int total = 0;
+            for (int i = 0; i < pack.Length; i++)
+                if (IsFood(pack[i].ItemId)) total += pack[i].Count;
+            return total;
+        }
     }
 }
