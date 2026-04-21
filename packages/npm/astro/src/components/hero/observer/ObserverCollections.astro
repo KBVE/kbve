@@ -66,16 +66,26 @@ const { duration = 1.25, threshold = 0.85 } = Astro.props;
 
 				if (sections.length === 0) return;
 
+				const preloaded: HTMLImageElement[] = [];
 				images.forEach((bg) => {
 					const raw = bg.dataset.obsImage;
 					if (!raw) return;
 					const overlay = bg.dataset.obsOverlay || '';
 					const resolved = upgradeUnsplashUrl(raw);
-					if (resolved === raw) return;
-					bg.style.backgroundImage = overlay
-						? `${overlay}, url(${resolved})`
-						: `url(${resolved})`;
+					if (resolved !== raw) {
+						bg.style.backgroundImage = overlay
+							? `${overlay}, url(${resolved})`
+							: `url(${resolved})`;
+					}
+					const preload = new Image();
+					preload.decoding = 'async';
+					preload.src = resolved;
+					if (typeof preload.decode === 'function') {
+						preload.decode().catch(() => {});
+					}
+					preloaded.push(preload);
 				});
+				(root as any)._obsPreload = preloaded;
 
 				const headingChars: HTMLElement[][] = headings.map(
 					(heading) => {
@@ -109,7 +119,11 @@ const { duration = 1.25, threshold = 0.85 } = Astro.props;
 					animating = true;
 					const dFactor = direction === -1 ? -1 : 1;
 					const tl = gsap.timeline({
-						defaults: { duration, ease: 'power1.inOut' },
+						defaults: {
+							duration,
+							ease: 'power1.inOut',
+							force3D: true,
+						},
 						onComplete: () => {
 							animating = false;
 						},
@@ -117,12 +131,16 @@ const { duration = 1.25, threshold = 0.85 } = Astro.props;
 
 					if (currentIndex >= 0) {
 						gsap.set(sections[currentIndex], { zIndex: 0 });
+						sections[currentIndex].removeAttribute(
+							'data-obs-active',
+						);
 						tl.to(images[currentIndex], {
 							yPercent: -15 * dFactor,
 						}).set(sections[currentIndex], { autoAlpha: 0 });
 					}
 
 					gsap.set(sections[index], { autoAlpha: 1, zIndex: 1 });
+					sections[index].setAttribute('data-obs-active', 'true');
 					tl.fromTo(
 						[outerWrappers[index], innerWrappers[index]],
 						{

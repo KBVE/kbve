@@ -422,6 +422,34 @@ namespace RareIcon
                         };
                         continue;
                     }
+                    if (head.State == TaskState.Active
+                        && head.Kind != ProfessionKind.Guard
+                        && priorities.ValueRO.Guard > 0
+                        && spatial.Hash.IsCreated
+                        && TryFindHostile(spatial.Hash, transform.ValueRO.Position,
+                                          friendlyEmitters.AsArray(),
+                                          out var preemptHex, out var preemptHostile, out _))
+                    {
+                        tasks.Clear();
+                        var prevIntent = jobIntentRef.ValueRO;
+                        jobIntentRef.ValueRW = new ProfessionIntent
+                        {
+                            Kind         = ProfessionKind.Guard,
+                            TargetHex    = preemptHex,
+                            TargetEntity = preemptHostile,
+                        };
+                        tasks.Add(new TaskMemory
+                        {
+                            Kind         = ProfessionKind.Guard,
+                            TargetHex    = preemptHex,
+                            TargetEntity = preemptHostile,
+                            State        = TaskState.Active,
+                            IssuedTick   = nowTick,
+                        });
+                        if (events.IsCreated && prevIntent.Kind != ProfessionKind.Guard)
+                            events.Add(new ProfessionChangedMessage(entity, prevIntent.Kind, ProfessionKind.Guard, preemptHex, preemptHostile));
+                        continue;
+                    }
                     if (head.State == TaskState.Active)
                     {
                         // Unit is committed — don't re-score. ProfessionIntent is
