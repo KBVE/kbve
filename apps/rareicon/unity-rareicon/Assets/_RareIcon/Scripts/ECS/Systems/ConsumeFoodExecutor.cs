@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Executor for ReliefKind.Eat — Meal gets special-case full-stat restore gated by Sated; everything else pops one edible per tick and drops Hunger by the item's EnergyValue. Single-worker Schedule because the Meal path touches multiple component lookups + ECB, parallel scheduling would require splitting into per-stat ParallelWriter shards with little headroom gain at typical unit counts.</summary>
+    /// <summary>Executor for ReliefKind.Eat — Meal gets special-case full-stat restore gated by Sated; everything else pops one edible per tick and drops Hunger by the item's EnergyValue. Burst ScheduleParallel: every unit writes only its own Health/Mana/Energy/PackSlot components (NDFR annotations on ComponentLookup are safe because each Execute touches a single entity), Sated structural change queues through ECB.ParallelWriter.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireSharingSystem))]
@@ -20,7 +20,7 @@ namespace RareIcon
             if (!SystemAPI.TryGetSingleton<ItemDBSingleton>(out var db)) return;
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                               .CreateCommandBuffer(state.WorldUnmanaged);
+                               .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
 
             state.Dependency = new ConsumeFoodJob
             {
@@ -30,7 +30,7 @@ namespace RareIcon
                 EnergyLookup = SystemAPI.GetComponentLookup<Energy>(false),
                 SatedLookup  = SystemAPI.GetComponentLookup<Sated>(false),
                 Ecb          = ecb,
-            }.Schedule(state.Dependency);
+            }.ScheduleParallel(state.Dependency);
         }
     }
 
@@ -46,9 +46,10 @@ namespace RareIcon
         [NativeDisableParallelForRestriction] public ComponentLookup<Energy> EnergyLookup;
         [NativeDisableParallelForRestriction] public ComponentLookup<Sated>  SatedLookup;
 
-        public EntityCommandBuffer Ecb;
+        public EntityCommandBuffer.ParallelWriter Ecb;
 
-        void Execute(Entity entity,
+        void Execute([ChunkIndexInQuery] int chunkIdx,
+                     Entity entity,
                      ref Hunger hunger,
                      in ReliefIntent intent,
                      ref DynamicBuffer<PackSlot> inv)
@@ -91,7 +92,7 @@ namespace RareIcon
                         e.Value = e.Max;
                         EnergyLookup[entity] = e;
                     }
-                    Ecb.AddComponent(entity, new Sated { SecondsRemaining = SatedDurationSec });
+                    Ecb.AddComponent(chunkIdx, entity, new Sated { SecondsRemaining = SatedDurationSec });
                 }
                 else
                 {
