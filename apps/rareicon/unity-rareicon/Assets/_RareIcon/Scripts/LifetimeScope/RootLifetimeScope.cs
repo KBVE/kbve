@@ -32,6 +32,8 @@ namespace RareIcon
             builder.RegisterMessageBroker<SelectionDragMessage>(options);
             builder.RegisterMessageBroker<SelectionMoveMessage>(options);
 
+            builder.RegisterMessageBroker<InventoryChangedMessage>(options);
+
             builder.RegisterBuildCallback(container =>
             {
                 GlobalMessagePipe.SetProvider(container.AsServiceProvider());

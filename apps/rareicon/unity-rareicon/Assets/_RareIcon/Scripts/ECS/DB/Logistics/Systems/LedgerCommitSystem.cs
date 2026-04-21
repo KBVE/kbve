@@ -24,8 +24,9 @@ namespace RareIcon
 
             state.Dependency = new LedgerCommitJob
             {
-                PendingDeltas  = db.PendingDeltas,
-                CurrentAmounts = db.CurrentAmounts,
+                PendingDeltas   = db.PendingDeltas,
+                CurrentAmounts  = db.CurrentAmounts,
+                CommittedEvents = db.CommittedEvents,
             }.Schedule(dep);
 
             db.PipelineHandle = state.Dependency;
@@ -37,6 +38,7 @@ namespace RareIcon
     {
         [ReadOnly] public NativeParallelMultiHashMap<LedgerKey, int> PendingDeltas;
         public NativeParallelHashMap<LedgerKey, int>                 CurrentAmounts;
+        public NativeList<InventoryChangedMessage>                   CommittedEvents;
 
         public void Execute()
         {
@@ -58,6 +60,8 @@ namespace RareIcon
                 CurrentAmounts.TryGetValue(key, out var current);
                 int updated = math.max(0, current + sum);
                 CurrentAmounts[key] = updated;
+
+                CommittedEvents.Add(new InventoryChangedMessage(key.Bank, key.ItemId, sum, updated));
             }
 
             keys.Dispose();

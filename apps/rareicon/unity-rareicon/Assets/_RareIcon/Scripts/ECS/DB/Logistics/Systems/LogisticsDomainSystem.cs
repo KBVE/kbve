@@ -17,12 +17,13 @@ namespace RareIcon
             {
                 var db = new LogisticsDBSingleton
                 {
-                    CurrentAmounts = new NativeParallelHashMap<LedgerKey, int>(1024, Allocator.Persistent),
-                    Reservations   = new NativeParallelMultiHashMap<LedgerKey, ReservationRecord>(1024, Allocator.Persistent),
-                    PendingDeltas  = new NativeParallelMultiHashMap<LedgerKey, int>(1024, Allocator.Persistent),
-                    PackDeliveries = new NativeParallelMultiHashMap<Entity, PackDelivery>(256, Allocator.Persistent),
-                    Deliveries     = default,
-                    PipelineHandle = default,
+                    CurrentAmounts  = new NativeParallelHashMap<LedgerKey, int>(1024, Allocator.Persistent),
+                    Reservations    = new NativeParallelMultiHashMap<LedgerKey, ReservationRecord>(1024, Allocator.Persistent),
+                    PendingDeltas   = new NativeParallelMultiHashMap<LedgerKey, int>(1024, Allocator.Persistent),
+                    PackDeliveries  = new NativeParallelMultiHashMap<Entity, PackDelivery>(256, Allocator.Persistent),
+                    CommittedEvents = new NativeList<InventoryChangedMessage>(256, Allocator.Persistent),
+                    Deliveries      = default,
+                    PipelineHandle  = default,
                 };
                 _singleton = EntityManager.CreateEntity(typeof(LogisticsDBSingleton));
                 EntityManager.SetName(_singleton, "LogisticsDB");
@@ -38,6 +39,7 @@ namespace RareIcon
             live.Reservations.Clear();
             live.PendingDeltas.Clear();
             live.PackDeliveries.Clear();
+            live.CommittedEvents.Clear();
             live.Deliveries     = new NativeStream(1, Allocator.TempJob);
             live.PipelineHandle = default;
         }
@@ -47,11 +49,12 @@ namespace RareIcon
             if (!_initialized) return;
             if (!EntityManager.Exists(_singleton)) return;
             var db = EntityManager.GetComponentData<LogisticsDBSingleton>(_singleton);
-            if (db.CurrentAmounts.IsCreated) db.CurrentAmounts.Dispose();
-            if (db.Reservations.IsCreated)   db.Reservations.Dispose();
-            if (db.PendingDeltas.IsCreated)  db.PendingDeltas.Dispose();
-            if (db.PackDeliveries.IsCreated) db.PackDeliveries.Dispose();
-            if (db.Deliveries.IsCreated)     db.Deliveries.Dispose();
+            if (db.CurrentAmounts.IsCreated)  db.CurrentAmounts.Dispose();
+            if (db.Reservations.IsCreated)    db.Reservations.Dispose();
+            if (db.PendingDeltas.IsCreated)   db.PendingDeltas.Dispose();
+            if (db.PackDeliveries.IsCreated)  db.PackDeliveries.Dispose();
+            if (db.CommittedEvents.IsCreated) db.CommittedEvents.Dispose();
+            if (db.Deliveries.IsCreated)      db.Deliveries.Dispose();
         }
     }
 }

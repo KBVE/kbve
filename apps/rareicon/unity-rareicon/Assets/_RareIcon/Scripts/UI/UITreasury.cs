@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using Cysharp.Text;
 using Cysharp.Threading.Tasks;
+using MessagePipe;
 using R3;
 using Unity.Entities;
 using UnityEngine;
@@ -11,13 +12,12 @@ using VContainer.Unity;
 
 namespace RareIcon
 {
-    /// <summary>Top-right treasury panel listing the Capital's stockpile. UXML-driven (Resources/UI/Treasury.uxml + styles.uss); controller does asset load + per-tick refresh.</summary>
+    /// <summary>Top-right treasury panel listing the Capital's stockpile. UXML-driven (Resources/UI/Treasury.uxml + styles.uss); refreshes on InventoryChangedMessage filtered by Capital.</summary>
     public class UITreasury : IAsyncStartable, IDisposable
     {
-        const int RefreshIntervalMs = 500;
-
         readonly LocaleService _locale;
         readonly UIPanelManager _panelManager;
+        readonly ISubscriber<InventoryChangedMessage> _inventorySub;
 
         readonly CompositeDisposable _disposables = new();
         readonly ReactiveProperty<bool> _isOpen = new(false);
@@ -25,13 +25,14 @@ namespace RareIcon
 
         VisualElement _root;
         Label _bodyLabel;
-        IVisualElementScheduledItem _refreshTick;
 
         [Inject]
-        public UITreasury(LocaleService locale, UIPanelManager panelManager)
+        public UITreasury(LocaleService locale, UIPanelManager panelManager,
+                          ISubscriber<InventoryChangedMessage> inventorySub)
         {
-            _locale = locale;
-            _panelManager = panelManager;
+            _locale        = locale;
+            _panelManager  = panelManager;
+            _inventorySub  = inventorySub;
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
@@ -65,21 +66,22 @@ namespace RareIcon
             _isOpen
                 .Subscribe(open =>
                 {
-                    if (open) { wrapper.RemoveFromClassList("is-hidden"); _root.BringToFront(); }
+                    if (open) { wrapper.RemoveFromClassList("is-hidden"); _root.BringToFront(); Refresh(); }
                     else      wrapper.AddToClassList("is-hidden");
-
-                    if (open)
-                    {
-                        Refresh();
-                        _refreshTick = rootEl.schedule.Execute(Refresh).Every(RefreshIntervalMs);
-                    }
-                    else
-                    {
-                        _refreshTick?.Pause();
-                        _refreshTick = null;
-                    }
                 })
                 .AddTo(_disposables);
+
+            var bag = MessagePipe.DisposableBag.CreateBuilder();
+            _inventorySub.Subscribe(OnInventoryChanged).AddTo(bag);
+            _disposables.Add(bag.Build());
+        }
+
+        void OnInventoryChanged(InventoryChangedMessage msg)
+        {
+            if (!_isOpen.Value) return;
+            if (!CapitalLocator.TryGetEntity(out var capital)) return;
+            if (msg.Bank != capital) return;
+            Refresh();
         }
 
         public void Toggle() => _isOpen.Value = !_isOpen.Value;
@@ -134,8 +136,6 @@ namespace RareIcon
 
         public void Dispose()
         {
-            _refreshTick?.Pause();
-            _refreshTick = null;
             _disposables?.Dispose();
         }
     }

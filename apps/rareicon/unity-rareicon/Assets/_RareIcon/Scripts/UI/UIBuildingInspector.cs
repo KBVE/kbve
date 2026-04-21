@@ -13,14 +13,13 @@ using VContainer.Unity;
 
 namespace RareIcon
 {
-    /// <summary>Bottom-left panel that shows the building the player just clicked. Layout in Resources/UI/Inspector.uxml; controller swaps text / visibility per the inspected entity.</summary>
+    /// <summary>Bottom-left panel that shows the building the player just clicked. Refreshes on InventoryChangedMessage filtered by the currently-inspected entity.</summary>
     public class UIBuildingInspector : IAsyncStartable, IDisposable
     {
-        const int RefreshIntervalMs = 500;
-
         readonly LocaleService _locale;
         readonly UIPanelManager _panelManager;
         readonly ISubscriber<BuildingInspectMessage> _inspectSub;
+        readonly ISubscriber<InventoryChangedMessage> _inventorySub;
 
         readonly CompositeDisposable _disposables = new();
         readonly ReactiveProperty<bool> _isOpen = new(false);
@@ -29,16 +28,17 @@ namespace RareIcon
         VisualElement _root, _panel;
         Label _titleLabel, _ownerLabel, _healthLabel, _productionLabel, _storageLabel;
         Button _releaseBtn;
-        IVisualElementScheduledItem _refreshTick;
         Entity _target;
 
         [Inject]
         public UIBuildingInspector(LocaleService locale, UIPanelManager panelManager,
-                                   ISubscriber<BuildingInspectMessage> inspectSub)
+                                   ISubscriber<BuildingInspectMessage> inspectSub,
+                                   ISubscriber<InventoryChangedMessage> inventorySub)
         {
-            _locale = locale;
-            _panelManager = panelManager;
-            _inspectSub = inspectSub;
+            _locale        = locale;
+            _panelManager  = panelManager;
+            _inspectSub    = inspectSub;
+            _inventorySub  = inventorySub;
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
@@ -75,24 +75,22 @@ namespace RareIcon
 
             var bag = MessagePipe.DisposableBag.CreateBuilder();
             _inspectSub.Subscribe(OnInspect).AddTo(bag);
+            _inventorySub.Subscribe(OnInventoryChanged).AddTo(bag);
             _disposables.Add(bag.Build());
 
             _isOpen.Subscribe(open =>
             {
-                if (open) _panel.RemoveFromClassList("is-hidden");
+                if (open) { _panel.RemoveFromClassList("is-hidden"); Refresh(); }
                 else      _panel.AddToClassList("is-hidden");
-
-                if (open)
-                {
-                    Refresh();
-                    _refreshTick = _panel.schedule.Execute(Refresh).Every(RefreshIntervalMs);
-                }
-                else
-                {
-                    _refreshTick?.Pause();
-                    _refreshTick = null;
-                }
             }).AddTo(_disposables);
+        }
+
+        void OnInventoryChanged(InventoryChangedMessage msg)
+        {
+            if (!_isOpen.Value) return;
+            if (_target == Entity.Null) return;
+            if (msg.Bank != _target) return;
+            Refresh();
         }
 
         public void Close() => _isOpen.Value = false;
@@ -334,8 +332,6 @@ namespace RareIcon
 
         public void Dispose()
         {
-            _refreshTick?.Pause();
-            _refreshTick = null;
             _disposables?.Dispose();
         }
     }

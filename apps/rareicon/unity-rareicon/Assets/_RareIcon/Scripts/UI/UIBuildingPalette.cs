@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using Cysharp.Text;
 using Cysharp.Threading.Tasks;
+using MessagePipe;
 using R3;
 using Unity.Entities;
 using UnityEngine;
@@ -11,14 +12,13 @@ using VContainer.Unity;
 
 namespace RareIcon
 {
-    /// <summary>Build palette — lists every buildable type with cost + live affordability. Layout in Resources/UI/Palette.uxml; rows are generated per BuildingDB.AllBuildable entry, clicking toggles BuildModeController.Target.</summary>
+    /// <summary>Build palette — lists every buildable type with cost + live affordability. Refreshes rows on InventoryChangedMessage filtered by Capital.</summary>
     public class UIBuildingPalette : IAsyncStartable, IDisposable
     {
-        const int RefreshIntervalMs = 500;
-
         readonly LocaleService _locale;
         readonly UIPanelManager _panelManager;
         readonly BuildModeController _buildMode;
+        readonly ISubscriber<InventoryChangedMessage> _inventorySub;
 
         readonly CompositeDisposable _disposables = new();
         readonly ReactiveProperty<bool> _isOpen = new(false);
@@ -26,14 +26,15 @@ namespace RareIcon
 
         VisualElement _root, _panel, _rowsHost;
         Row[] _rows;
-        IVisualElementScheduledItem _refreshTick;
 
         [Inject]
-        public UIBuildingPalette(LocaleService locale, UIPanelManager panelManager, BuildModeController buildMode)
+        public UIBuildingPalette(LocaleService locale, UIPanelManager panelManager, BuildModeController buildMode,
+                                 ISubscriber<InventoryChangedMessage> inventorySub)
         {
-            _locale = locale;
-            _panelManager = panelManager;
-            _buildMode = buildMode;
+            _locale        = locale;
+            _panelManager  = panelManager;
+            _buildMode     = buildMode;
+            _inventorySub  = inventorySub;
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
@@ -72,20 +73,13 @@ namespace RareIcon
 
             _isOpen.Subscribe(open =>
             {
-                if (open) { _panel.RemoveFromClassList("is-hidden"); _root.BringToFront(); }
+                if (open) { _panel.RemoveFromClassList("is-hidden"); _root.BringToFront(); Refresh(); }
                 else      _panel.AddToClassList("is-hidden");
-
-                if (open)
-                {
-                    Refresh();
-                    _refreshTick = _panel.schedule.Execute(Refresh).Every(RefreshIntervalMs);
-                }
-                else
-                {
-                    _refreshTick?.Pause();
-                    _refreshTick = null;
-                }
             }).AddTo(_disposables);
+
+            var bag = MessagePipe.DisposableBag.CreateBuilder();
+            _inventorySub.Subscribe(OnInventoryChanged).AddTo(bag);
+            _disposables.Add(bag.Build());
 
             _buildMode.Target.Subscribe(target =>
             {
@@ -122,10 +116,16 @@ namespace RareIcon
             for (int i = 0; i < _rows.Length; i++) _rows[i].Refresh(em);
         }
 
+        void OnInventoryChanged(InventoryChangedMessage msg)
+        {
+            if (!_isOpen.Value) return;
+            if (!CapitalLocator.TryGetEntity(out var capital)) return;
+            if (msg.Bank != capital) return;
+            Refresh();
+        }
+
         public void Dispose()
         {
-            _refreshTick?.Pause();
-            _refreshTick = null;
             _disposables?.Dispose();
         }
 
