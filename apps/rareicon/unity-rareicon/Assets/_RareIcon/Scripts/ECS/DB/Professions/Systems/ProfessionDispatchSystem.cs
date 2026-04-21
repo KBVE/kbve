@@ -10,6 +10,7 @@ namespace RareIcon
     [UpdateAfter(typeof(ReliefSystem))]
     [UpdateAfter(typeof(ProfessionsDomainSystem))]
     [UpdateAfter(typeof(ProfessionOfferBuildSystem))]
+    [UpdateAfter(typeof(CombatThreatScanSystem))]
     public partial class ProfessionDispatchSystem : SystemBase
     {
         const int  SearchRadius          = 12;
@@ -28,6 +29,7 @@ namespace RareIcon
         protected override void OnCreate()
         {
             RequireForUpdate<ProfessionOffersSingleton>();
+            RequireForUpdate<CombatDBSingleton>();
         }
 
         protected override void OnDestroy()
@@ -44,20 +46,13 @@ namespace RareIcon
         void RunDispatch()
         {
             var offersDB = SystemAPI.GetSingleton<ProfessionOffersSingleton>();
+            var combatDB = SystemAPI.GetSingleton<CombatDBSingleton>();
 
             bool doFullDispatch = offersDB.BuildVersion != _lastSeenBuildVersion;
             if (doFullDispatch)
             {
                 _lastSeenBuildVersion = offersDB.BuildVersion;
                 CompleteDependency();
-            }
-
-            SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial);
-
-            bool anyHostile = false;
-            foreach (var f in SystemAPI.Query<RefRO<Faction>>())
-            {
-                if (f.ValueRO.Value == FactionType.Hostile) { anyHostile = true; break; }
             }
 
             bool hasCapital     = offersDB.HasCapital;
@@ -67,13 +62,9 @@ namespace RareIcon
             var offersPerKind = offersDB.OffersPerKind;
             var needyCaves    = offersDB.NeedyCaves;
 
-            var friendlyEmitters = new NativeList<TerritoryEmitter>(4, Allocator.Temp);
-            foreach (var e in SystemAPI.Query<RefRO<TerritoryEmitter>>())
-            {
-                if (e.ValueRO.Radius == 0) continue;
-                if (e.ValueRO.OwnerFaction != FactionType.Player) continue;
-                friendlyEmitters.Add(e.ValueRO);
-            }
+            var threats          = combatDB.Threats;
+            var friendlyEmitters = combatDB.FriendlyEmitters;
+            bool anyHostile      = threats.Length > 0;
 
             var justAssignedPerKind = new NativeArray<int>(13, Allocator.Temp);
 
@@ -139,7 +130,15 @@ namespace RareIcon
 
                 if (reliefIntent.ValueRO.Kind != ReliefKind.None)
                 {
-                    if (tasks.Length > 0) tasks.Clear();
+                    if (tasks.Length > 0)
+                    {
+                        var head = tasks[0];
+                        if (head.State == TaskState.Active)
+                        {
+                            head.State = TaskState.Pending;
+                            tasks[0]   = head;
+                        }
+                    }
                     var prev = jobIntentRef.ValueRO;
                     if (prev.Kind != ProfessionKind.None)
                     {
@@ -198,10 +197,8 @@ namespace RareIcon
                         && head.State == TaskState.Active
                         && head.Kind != ProfessionKind.Guard
                         && priorities.ValueRO.Guard >= GuardPreemptThreshold
-                        && spatial.Hash.IsCreated
-                        && TryFindHostile(spatial.Hash, transform.ValueRO.Position,
-                                          friendlyEmitters.AsArray(),
-                                          out var preemptHex, out var preemptHostile, out _))
+                        && TryFindClosestThreat(threats, transform.ValueRO.Position,
+                                                out var preemptHex, out var preemptHostile, out _))
                     {
                         tasks.Clear();
                         var preemptedIntent = jobIntentRef.ValueRO;
@@ -322,10 +319,10 @@ namespace RareIcon
                     Entity hostileEntity = Entity.Null;
                     int    hostileDist   = int.MaxValue;
                     bool   foundHostile  = false;
-                    if (spatial.Hash.IsCreated && p.Guard >= GuardPreemptThreshold)
+                    if (anyHostile && p.Guard >= GuardPreemptThreshold)
                     {
-                        foundHostile = TryFindHostile(
-                            spatial.Hash, transform.ValueRO.Position, friendlyEmitters.AsArray(),
+                        foundHostile = TryFindClosestThreat(
+                            threats, transform.ValueRO.Position,
                             out hostileHex, out hostileEntity, out hostileDist);
                     }
 
@@ -461,7 +458,6 @@ namespace RareIcon
             if (activePerKind.IsCreated)   activePerKind.Dispose();
             if (reservedPerKind.IsCreated) reservedPerKind.Dispose();
             justAssignedPerKind.Dispose();
-            friendlyEmitters.Dispose();
         }
 
         static bool PackHasFood(DynamicBuffer<PackSlot> buf)
@@ -504,88 +500,53 @@ namespace RareIcon
                 || (kind == ProfessionKind.Looter && variant == OfferVariant.LooterForage);
         }
 
-        bool TryFindHostile(NativeParallelMultiHashMap<int, HashedTarget> hash,
-                            float3 originWorld,
-                            NativeArray<TerritoryEmitter> friendlyEmitters,
-                            out int2 outHex, out Entity outEntity, out int outDist)
+        static bool TryFindClosestThreat(
+            NativeList<ThreatRecord> threats,
+            float3 originWorld,
+            out int2 outHex, out Entity outEntity, out int outDist)
         {
-            const int ScanRadius = 6;
-            // Track nearest overall AND nearest inside friendly territory.
-            // If any intruder is in-territory the Archer targets them first,
-            // so the defender snaps to threats-at-home instead of whatever
-            // happens to be closest in world coords.
-            float3 bestPos = default, inBestPos = default;
+            const float ScanRadiusSq = 6f * 6f;
+
             Entity bestEntity = Entity.Null, inBestEntity = Entity.Null;
-            float  bestSq = float.MaxValue, inBestSq = float.MaxValue;
+            int2   bestHex    = default,     inBestHex    = default;
+            float  bestSq     = float.MaxValue, inBestSq   = float.MaxValue;
 
-            int cx = (int)math.floor(originWorld.x / SpatialHashSystem.CellSize);
-            int cy = (int)math.floor(originWorld.y / SpatialHashSystem.CellSize);
+            var origin = new float2(originWorld.x, originWorld.y);
 
-            for (int dx = -ScanRadius; dx <= ScanRadius; dx++)
+            for (int i = 0; i < threats.Length; i++)
             {
-                for (int dy = -ScanRadius; dy <= ScanRadius; dy++)
+                var t = threats[i];
+                float d2 = math.distancesq(origin, t.Position);
+                if (d2 > ScanRadiusSq) continue;
+
+                if (d2 < bestSq)
                 {
-                    int key = SpatialHashSystem.CellKey(cx + dx, cy + dy);
-                    if (!hash.TryGetFirstValue(key, out var target, out var it)) continue;
-
-                    do
-                    {
-                        if (target.Faction != FactionType.Hostile) continue;
-                        float d2 = math.distancesq(
-                            new float2(originWorld.x, originWorld.y),
-                            target.Position);
-                        if (d2 < bestSq)
-                        {
-                            bestSq = d2;
-                            bestPos = new float3(target.Position.x, target.Position.y, 0f);
-                            bestEntity = target.Entity;
-                        }
-
-                        if (friendlyEmitters.Length > 0 && d2 < inBestSq)
-                        {
-                            int2 hex = HexMeshUtil.WorldToHex(target.Position.x, target.Position.y, 0.25f);
-                            if (InsideAnyEmitter(hex, friendlyEmitters))
-                            {
-                                inBestSq = d2;
-                                inBestPos = new float3(target.Position.x, target.Position.y, 0f);
-                                inBestEntity = target.Entity;
-                            }
-                        }
-                    } while (hash.TryGetNextValue(out target, ref it));
+                    bestSq = d2; bestHex = t.Hex; bestEntity = t.Entity;
+                }
+                if (t.InsideFriendlyTerritory && d2 < inBestSq)
+                {
+                    inBestSq = d2; inBestHex = t.Hex; inBestEntity = t.Entity;
                 }
             }
 
-            // Prefer the intruder inside our border if we found one.
             if (inBestEntity != Entity.Null)
             {
-                outHex = HexMeshUtil.WorldToHex(inBestPos.x, inBestPos.y, 0.25f);
+                outHex    = inBestHex;
                 outEntity = inBestEntity;
-                outDist = (int)math.round(math.sqrt(inBestSq));
+                outDist   = (int)math.round(math.sqrt(inBestSq));
                 return true;
             }
 
             if (bestEntity == Entity.Null)
             {
-                outHex = default;
-                outEntity = Entity.Null;
-                outDist = int.MaxValue;
+                outHex = default; outEntity = Entity.Null; outDist = int.MaxValue;
                 return false;
             }
 
-            outHex = HexMeshUtil.WorldToHex(bestPos.x, bestPos.y, 0.25f);
+            outHex    = bestHex;
             outEntity = bestEntity;
-            outDist = (int)math.round(math.sqrt(bestSq));
+            outDist   = (int)math.round(math.sqrt(bestSq));
             return true;
-        }
-
-        static bool InsideAnyEmitter(int2 hex, NativeArray<TerritoryEmitter> emitters)
-        {
-            for (int i = 0; i < emitters.Length; i++)
-            {
-                var e = emitters[i];
-                if (AxialDistance(hex.x - e.Center.x, hex.y - e.Center.y) <= e.Radius) return true;
-            }
-            return false;
         }
 
         static int AxialDistance(int dq, int dr)
