@@ -3,12 +3,12 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Phase 6 boundary: completes the logistics pipeline handle, drains LogisticsDBSingleton.CommittedEvents on the main thread, and publishes each entry via IPublisher&lt;InventoryChangedMessage&gt;. The publisher is resolved lazily from GlobalMessagePipe so this system can exist before VContainer initialization.</summary>
+    /// <summary>Phase 6 boundary: completes the logistics pipeline handle and hands ReadBuffer to the LogisticsEventDispatcher which publishes each entry via IPublisher&lt;InventoryChangedMessage&gt;. Dispatcher is resolved lazily from GlobalMessagePipe so this system can exist before VContainer initialisation.</summary>
     [UpdateInGroup(typeof(LogisticsEndGroup))]
     [UpdateAfter(typeof(LedgerMirrorSystem))]
     public partial class InventoryMessagePipeBridgeSystem : SystemBase
     {
-        IPublisher<InventoryChangedMessage> _publisher;
+        ILogisticsEventDispatcher _dispatcher;
 
         protected override void OnCreate()
         {
@@ -21,19 +21,20 @@ namespace RareIcon
 
             db.PipelineHandle.Complete();
 
-            var list = db.CommittedEvents;
-            if (!list.IsCreated || list.Length == 0) return;
+            var read = db.ReadBuffer;
+            if (!read.IsCreated || read.Length == 0) return;
 
-            if (_publisher == null)
+            if (_dispatcher == null)
             {
-                try { _publisher = GlobalMessagePipe.GetPublisher<InventoryChangedMessage>(); }
+                try
+                {
+                    var publisher = GlobalMessagePipe.GetPublisher<InventoryChangedMessage>();
+                    _dispatcher   = new LogisticsEventDispatcher(publisher);
+                }
                 catch { return; }
             }
 
-            for (int i = 0; i < list.Length; i++)
-                _publisher.Publish(list[i]);
-
-            list.Clear();
+            _dispatcher.PublishBatch(read);
         }
     }
 }

@@ -184,3 +184,294 @@ Full write-up: [INVENTORY.md](INVENTORY.md). Summary: unit-side `PackSlot` split
 - [INVENTORY.md](INVENTORY.md) — §12 / §13 implementation record.
 - [MESSAGING.md](MESSAGING.md) — §14 MessagePipe boundary plan.
 - [MAINTHREAD.md](MAINTHREAD.md) — main-thread budget notes.
+
+## §0
+
+Here is a clean, production-grade v3 pattern for your ECS → MessagePipe pipeline.
+No fluff — just the structure you want:
+
+1. Message (with frame + reason)
+   public enum ProfessionChangeReason : byte
+   {
+   Assigned,
+   Cleared,
+   Retargeted,
+   Preempted,
+   ReliefOverride,
+   ManualOverride,
+   Fallback
+   }
+
+public struct ProfessionChangedMessage
+{
+public Entity Entity;
+public byte OldKind;
+public byte NewKind;
+public int2 TargetHex;
+public Entity TargetEntity;
+
+    public uint   Frame;
+    public ProfessionChangeReason Reason;
+
+    public ProfessionChangedMessage(
+        Entity entity,
+        byte oldKind,
+        byte newKind,
+        int2 hex,
+        Entity target,
+        uint frame,
+        ProfessionChangeReason reason)
+    {
+        Entity        = entity;
+        OldKind       = oldKind;
+        NewKind       = newKind;
+        TargetHex     = hex;
+        TargetEntity  = target;
+        Frame         = frame;
+        Reason        = reason;
+    }
+
+} 2. Domain Singleton (DOUBLE BUFFER)
+public struct ProfessionsDBSingleton : IComponentData
+{
+// WRITE BUFFER (ECS systems append here)
+public NativeList<ProfessionChangedMessage> WriteBuffer;
+
+    // READ BUFFER (bridge drains this)
+    public NativeList<ProfessionChangedMessage> ReadBuffer;
+
+    public JobHandle PipelineHandle;
+
+} 3. Domain System (SWAP BUFFERS)
+[UpdateInGroup(typeof(BehaviorSystemGroup), OrderFirst = true)]
+public partial struct ProfessionsDomainSystem : ISystem
+{
+Entity \_singleton;
+bool \_init;
+
+    public void OnUpdate(ref SystemState state)
+    {
+        if (!_init)
+        {
+            var db = new ProfessionsDBSingleton
+            {
+                WriteBuffer = new NativeList<ProfessionChangedMessage>(256, Allocator.Persistent),
+                ReadBuffer  = new NativeList<ProfessionChangedMessage>(256, Allocator.Persistent),
+                PipelineHandle = default
+            };
+
+            _singleton = state.EntityManager.CreateEntity(typeof(ProfessionsDBSingleton));
+            state.EntityManager.SetComponentData(_singleton, db);
+            _init = true;
+        }
+
+        ref var db = ref SystemAPI.GetSingletonRW<ProfessionsDBSingleton>().ValueRW;
+
+        db.PipelineHandle.Complete();
+
+        // SWAP (no copy)
+        var tmp        = db.ReadBuffer;
+        db.ReadBuffer  = db.WriteBuffer;
+        db.WriteBuffer = tmp;
+
+        db.WriteBuffer.Clear(); // new writes go here
+        db.PipelineHandle = default;
+    }
+
+    public void OnDestroy(ref SystemState state)
+    {
+        if (!_init) return;
+
+        var db = state.EntityManager.GetComponentData<ProfessionsDBSingleton>(_singleton);
+
+        if (db.WriteBuffer.IsCreated) db.WriteBuffer.Dispose();
+        if (db.ReadBuffer.IsCreated)  db.ReadBuffer.Dispose();
+    }
+
+} 4. ECS Event Sink (ALL SYSTEMS USE THIS)
+public static class ProfessionEventSink
+{
+public static void Add(
+ref NativeList<ProfessionChangedMessage> buffer,
+Entity entity,
+byte oldKind,
+byte newKind,
+int2 hex,
+Entity target,
+uint frame,
+ProfessionChangeReason reason)
+{
+buffer.Add(new ProfessionChangedMessage(
+entity, oldKind, newKind, hex, target, frame, reason));
+}
+} 5. Managed Dispatcher (COALESCE + BATCH)
+using MessagePipe;
+using System.Buffers;
+using System.Collections.Generic;
+
+public interface IProfessionEventDispatcher
+{
+void PublishBatch(NativeList<ProfessionChangedMessage> native);
+}
+
+public class ProfessionEventDispatcher : IProfessionEventDispatcher
+{
+readonly IPublisher<ProfessionChangedMessage> \_publisher;
+
+    // reused each frame
+    readonly Dictionary<Entity, ProfessionChangedMessage> _coalesced
+        = new Dictionary<Entity, ProfessionChangedMessage>(512);
+
+    public ProfessionEventDispatcher(IPublisher<ProfessionChangedMessage> publisher)
+    {
+        _publisher = publisher;
+    }
+
+    public void PublishBatch(NativeList<ProfessionChangedMessage> native)
+    {
+        if (!native.IsCreated || native.Length == 0) return;
+
+        _coalesced.Clear();
+
+        // COALESCE: last write wins per entity
+        for (int i = 0; i < native.Length; i++)
+        {
+            var msg = native[i];
+
+            if (_coalesced.TryGetValue(msg.Entity, out var existing))
+            {
+                // preserve ORIGINAL oldKind, update everything else
+                existing.NewKind      = msg.NewKind;
+                existing.TargetHex    = msg.TargetHex;
+                existing.TargetEntity = msg.TargetEntity;
+                existing.Frame        = msg.Frame;
+                existing.Reason       = msg.Reason;
+
+                _coalesced[msg.Entity] = existing;
+            }
+            else
+            {
+                _coalesced[msg.Entity] = msg;
+            }
+        }
+
+        // PUBLISH FINAL
+        foreach (var kv in _coalesced)
+        {
+            _publisher.Publish(kv.Value);
+        }
+    }
+
+} 6. Bridge System (PURE FLUSH POINT)
+[UpdateInGroup(typeof(BehaviorSystemGroup))]
+[UpdateAfter(typeof(ProfessionsDomainSystem))]
+public partial class ProfessionMessagePipeBridgeSystem : SystemBase
+{
+IProfessionEventDispatcher \_dispatcher;
+
+    protected override void OnCreate()
+    {
+        RequireForUpdate<ProfessionsDBSingleton>();
+
+        // resolve once
+        var publisher = GlobalMessagePipe.GetPublisher<ProfessionChangedMessage>();
+        _dispatcher = new ProfessionEventDispatcher(publisher);
+    }
+
+    protected override void OnUpdate()
+    {
+        ref var db = ref SystemAPI.GetSingletonRW<ProfessionsDBSingleton>().ValueRW;
+
+        db.PipelineHandle.Complete();
+
+        var read = db.ReadBuffer;
+        if (!read.IsCreated || read.Length == 0) return;
+
+        _dispatcher.PublishBatch(read);
+    }
+
+} 7. Usage inside your Dispatch System (REPLACE DIRECT .Add)
+var db = SystemAPI.GetSingletonRW<ProfessionsDBSingleton>();
+var buffer = db.ValueRW.WriteBuffer;
+
+uint frame = (uint)SystemAPI.Time.ElapsedTime;
+
+// example usage:
+ProfessionEventSink.Add(
+ref buffer,
+entity,
+prevKind,
+newKind,
+bestHex,
+bestEntity,
+frame,
+ProfessionChangeReason.Assigned);
+What you now have (no explanation, just facts)
+Zero contention (write buffer only)
+No main-thread contention until flush
+Deterministic frame boundary
+Coalesced events (no spam)
+Centralized publish point
+Extendable to ANY system
+
+# §0 BIG0
+
+> **Domain subsystem template.** The structural contract every simulation domain (Logistics, Professions, Combat, Skills, Needs, …) is built from. §0 exists so new domains inherit "off-main-thread + coalesced + burst-ready" by default instead of each one reinventing the pipeline and getting a different part wrong.
+
+### Motivation
+
+Every domain needs the same plumbing: authoritative state, parallel writes from jobs, a single boundary to the managed world (MessagePipe). Without a template we end up with mixed SystemBase producers calling `IPublisher.Publish` inline from hot loops — which is what drove fps below target. §0 locks the shape so that cost lives in one place (the bridge), not per-producer.
+
+### Template — four parts per domain
+
+| Part                              | Type                   | Role                                                                                                                                  |
+| --------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `<Domain>DBSingleton`             | `IComponentData`       | Double-buffered event list (`WriteBuffer` / `ReadBuffer`) + any domain-owned native containers + `JobHandle PipelineHandle`.          |
+| `<Domain>DomainSystem`            | `ISystem` (OrderFirst) | Owns singleton lifecycle. Each tick: complete `PipelineHandle`, swap buffers, clear the new `WriteBuffer`.                            |
+| `<Domain>EventSink`               | `static` helpers       | The **only** way producers append events. Burst-safe, takes `ref NativeList<TMessage>`.                                               |
+| `I<Domain>EventDispatcher` + impl | managed class          | Coalesces `ReadBuffer` by entity (last-write-wins, preserve original `OldKind`), publishes via `IPublisher<TMessage>` once per frame. |
+| `<Domain>MessagePipeBridgeSystem` | `SystemBase`           | Drains `ReadBuffer`, delegates to dispatcher, nothing else.                                                                           |
+
+### Folder convention
+
+```
+ECS/DB/<Domain>/
+  Components/   <Domain>DBSingleton.cs + message structs + reason enum
+  Messages/     <Domain>EventSink.cs + <Domain>EventDispatcher.cs
+  Systems/      <Domain>DomainSystem.cs + <Domain>MessagePipeBridgeSystem.cs + domain logic
+```
+
+### Rules (binding)
+
+- Producers never call `IPublisher.Publish` directly — always `<Domain>EventSink.Add`.
+- Events are coalesced; subscribers must tolerate missing intermediate states.
+- `PipelineHandle` is the sole sync point between jobs and the bridge.
+- No shared `DomainEventDispatcher<T>` generic base until ≥3 domains prove the shape is stable.
+- Messages are `struct` (not `readonly struct`) so the dispatcher can mutate during coalesce.
+- Domain logic systems prefer `ISystem + [BurstCompile]` over `SystemBase`. Keep `SystemBase` only where main-thread access is unavoidable (bridge publish, managed UI hooks).
+
+### Performance levers (the fps story)
+
+§0 is the enabling refactor; the fps wins come from what it unblocks:
+
+- `SystemBase` → `ISystem + Burst` for hot producers (dispatcher scoring, producer ticks).
+- Offer / candidate enumeration moves to a parallel job writing a cached singleton `NativeList<TOffer>`, not re-queried per unit.
+- `EntityManager.CreateEntityQuery` + `ToEntityArray` per tick → `SystemAPI.Query` with cached type handles.
+- Direct `IPublisher.Publish` from hot loops → one coalesced publish per entity per frame via the dispatcher.
+
+Target after §0 lands in Logistics + Professions: **200–300 fps** at current unit counts, with the dispatcher and producers off the main thread except at the bridge boundary.
+
+### Adoption order
+
+1. **§0-A Professions (§16).** Reference implementation. Split `ProfessionDispatchSystem.cs` into the four template files. Replace 4 event-emit sites in `RunDispatch` with `ProfessionEventSink.Add(... Reason)`. No code-motion from `RunDispatch` yet — diff stays reviewable.
+2. **§0-B Logistics (§15).** Retrofit `LogisticsDBSingleton` to double-buffer, add `LogisticsEventSink` + `LogisticsEventDispatcher`, rewrite `InventoryMessagePipeBridgeSystem` as the pure flush point. Strip any direct `IPublisher` calls in producers.
+3. **§0-C Professions burst pass.** Convert `ProfessionDispatchSystem` from `SystemBase` to `ISystem`, lift offer enumeration into a separate burst system that writes a cached offer singleton. This is where the fps needle actually moves.
+4. **§0-D Combat (§17).** First greenfield domain built from §0 — proves the template.
+5. **§0-E+ Skills / Needs / ….** Copy-paste-rename.
+
+### Explicitly NOT in §0
+
+- Shared `DomainEventDispatcher<T>` generic base. Wait for domain #3.
+- Replacing the Logistics tick-phase pipeline (Reservation → Resolve → Reduce → Commit → Mirror) — that's §15's domain, not §0's. §0 only touches the event-fanout layer.
+- Sub-frame event ordering or priority. Coalescing is last-write-wins by entity; subscribers must tolerate it.
+- Moving existing producers' internal state into the domain singleton. Only event pipeline moves; per-system state stays local.
