@@ -170,11 +170,12 @@ namespace RareIcon
             });
 
             em.AddBuffer<EquippedBag>(entity);
-            var inv = em.AddBuffer<InventorySlot>(entity);
-            if (state.Inv0Id != 0 && state.Inv0Qty > 0) inv.Add(new InventorySlot { ItemId = state.Inv0Id, Count = state.Inv0Qty });
-            if (state.Inv1Id != 0 && state.Inv1Qty > 0) inv.Add(new InventorySlot { ItemId = state.Inv1Id, Count = state.Inv1Qty });
-            if (state.Inv2Id != 0 && state.Inv2Qty > 0) inv.Add(new InventorySlot { ItemId = state.Inv2Id, Count = state.Inv2Qty });
-            if (state.Inv3Id != 0 && state.Inv3Qty > 0) inv.Add(new InventorySlot { ItemId = state.Inv3Id, Count = state.Inv3Qty });
+            var inv  = em.AddBuffer<InventorySlot>(entity);
+            var pack = em.AddBuffer<PackSlot>(entity);
+            if (state.Inv0Id != 0 && state.Inv0Qty > 0) { var uid = UlidFactory.NewUid(); inv.Add(new InventorySlot { Uid = uid, ItemId = state.Inv0Id, Count = state.Inv0Qty }); pack.Add(new PackSlot { Uid = uid, ItemId = state.Inv0Id, Count = state.Inv0Qty }); }
+            if (state.Inv1Id != 0 && state.Inv1Qty > 0) { var uid = UlidFactory.NewUid(); inv.Add(new InventorySlot { Uid = uid, ItemId = state.Inv1Id, Count = state.Inv1Qty }); pack.Add(new PackSlot { Uid = uid, ItemId = state.Inv1Id, Count = state.Inv1Qty }); }
+            if (state.Inv2Id != 0 && state.Inv2Qty > 0) { var uid = UlidFactory.NewUid(); inv.Add(new InventorySlot { Uid = uid, ItemId = state.Inv2Id, Count = state.Inv2Qty }); pack.Add(new PackSlot { Uid = uid, ItemId = state.Inv2Id, Count = state.Inv2Qty }); }
+            if (state.Inv3Id != 0 && state.Inv3Qty > 0) { var uid = UlidFactory.NewUid(); inv.Add(new InventorySlot { Uid = uid, ItemId = state.Inv3Id, Count = state.Inv3Qty }); pack.Add(new PackSlot { Uid = uid, ItemId = state.Inv3Id, Count = state.Inv3Qty }); }
 
             em.AddComponent<UnitTestTag>(entity);
 
@@ -204,8 +205,11 @@ namespace RareIcon
             em.AddComponentData(entity, new GarrisonPost { Hex = hex });
             em.SetComponentData(entity, new JobPriorities());
 
-            var inv = em.GetBuffer<InventorySlot>(entity);
-            inv.Add(new InventorySlot { ItemId = (ushort)ItemId.Arrow, Count = ArcherRefillConfig.QuiverMax });
+            var arrowUid = UlidFactory.NewUid();
+            var inv  = em.GetBuffer<InventorySlot>(entity);
+            var pack = em.GetBuffer<PackSlot>(entity);
+            inv.Add(new InventorySlot { Uid = arrowUid, ItemId = (ushort)ItemId.Arrow, Count = ArcherRefillConfig.QuiverMax });
+            pack.Add(new PackSlot     { Uid = arrowUid, ItemId = (ushort)ItemId.Arrow, Count = ArcherRefillConfig.QuiverMax });
             return entity;
         }
 
@@ -282,11 +286,12 @@ namespace RareIcon
             });
 
             em.AddBuffer<EquippedBag>(entity);
-            var inv = em.AddBuffer<InventorySlot>(entity);
-            if (state.Inv0Id != 0 && state.Inv0Qty > 0) inv.Add(new InventorySlot { ItemId = state.Inv0Id, Count = state.Inv0Qty });
-            if (state.Inv1Id != 0 && state.Inv1Qty > 0) inv.Add(new InventorySlot { ItemId = state.Inv1Id, Count = state.Inv1Qty });
-            if (state.Inv2Id != 0 && state.Inv2Qty > 0) inv.Add(new InventorySlot { ItemId = state.Inv2Id, Count = state.Inv2Qty });
-            if (state.Inv3Id != 0 && state.Inv3Qty > 0) inv.Add(new InventorySlot { ItemId = state.Inv3Id, Count = state.Inv3Qty });
+            var inv  = em.AddBuffer<InventorySlot>(entity);
+            var pack = em.AddBuffer<PackSlot>(entity);
+            if (state.Inv0Id != 0 && state.Inv0Qty > 0) { var uid = UlidFactory.NewUid(); inv.Add(new InventorySlot { Uid = uid, ItemId = state.Inv0Id, Count = state.Inv0Qty }); pack.Add(new PackSlot { Uid = uid, ItemId = state.Inv0Id, Count = state.Inv0Qty }); }
+            if (state.Inv1Id != 0 && state.Inv1Qty > 0) { var uid = UlidFactory.NewUid(); inv.Add(new InventorySlot { Uid = uid, ItemId = state.Inv1Id, Count = state.Inv1Qty }); pack.Add(new PackSlot { Uid = uid, ItemId = state.Inv1Id, Count = state.Inv1Qty }); }
+            if (state.Inv2Id != 0 && state.Inv2Qty > 0) { var uid = UlidFactory.NewUid(); inv.Add(new InventorySlot { Uid = uid, ItemId = state.Inv2Id, Count = state.Inv2Qty }); pack.Add(new PackSlot { Uid = uid, ItemId = state.Inv2Id, Count = state.Inv2Qty }); }
+            if (state.Inv3Id != 0 && state.Inv3Qty > 0) { var uid = UlidFactory.NewUid(); inv.Add(new InventorySlot { Uid = uid, ItemId = state.Inv3Id, Count = state.Inv3Qty }); pack.Add(new PackSlot { Uid = uid, ItemId = state.Inv3Id, Count = state.Inv3Qty }); }
 
             // Founding charter — only seeded on the FRESH spawn (state has
             // no inventory). Ghost-restore preserves its own inventory and
@@ -296,7 +301,11 @@ namespace RareIcon
             bool freshSpawn = state.Inv0Id == 0 && state.Inv1Id == 0
                            && state.Inv2Id == 0 && state.Inv3Id == 0;
             if (freshSpawn)
-                inv.Add(new InventorySlot { ItemId = (ushort)ItemId.CapitalLandGrant, Count = 1 });
+            {
+                var charterUid = UlidFactory.NewUid();
+                inv.Add(new InventorySlot  { Uid = charterUid, ItemId = (ushort)ItemId.CapitalLandGrant, Count = 1 });
+                pack.Add(new PackSlot      { Uid = charterUid, ItemId = (ushort)ItemId.CapitalLandGrant, Count = 1 });
+            }
 
             em.AddComponent<KingTag>(entity);
             // King defaults to player-controlled at game start so the

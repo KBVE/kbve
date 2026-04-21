@@ -232,17 +232,17 @@ namespace RareIcon
                 // kick in. Tuned so the first night is survivable without
                 // player micromanagement.
                 var treasury = ecb.SetBuffer<InventorySlot>(building);
-                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Arrow,        Count = 1000 });
-                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.WoodLog,      Count = 300 });
-                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Stone,        Count = 200 });
-                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.CactiNeedle,  Count = 150 });
-                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Berry,        Count = 400 });
-                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Mushroom,     Count = 200 });
-                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.CookedBeef,   Count = 80 });
-                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.CookedChicken,Count = 40 });
-                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Egg,          Count = 60 });
-                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.Milk,         Count = 40 });
-                treasury.Add(new InventorySlot { ItemId = (ushort)ItemId.BanditCoin,   Count = 120 });
+                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Arrow,        Count = 1000 });
+                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.WoodLog,      Count = 300 });
+                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Stone,        Count = 200 });
+                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CactiNeedle,  Count = 150 });
+                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Berry,        Count = 400 });
+                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Mushroom,     Count = 200 });
+                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CookedBeef,   Count = 80 });
+                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CookedChicken,Count = 40 });
+                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Egg,          Count = 60 });
+                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Milk,         Count = 40 });
+                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.BanditCoin,   Count = 120 });
             }
             else
             {
