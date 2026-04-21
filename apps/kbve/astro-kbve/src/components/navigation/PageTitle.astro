@@ -1,0 +1,43 @@
+---
+const route = Astro.locals.starlightRoute;
+const isSplash = route.entry.data.template === 'splash';
+---
+
+{
+	isSplash ? (
+		<span data-splash-no-title aria-hidden="true" style="display:none" />
+	) : (
+		<h1 id="_top">{route.entry.data.title}</h1>
+	)
+}
+
+<style is:global>
+	.content-panel:has([data-splash-no-title]) {
+		display: none !important;
+	}
+	.content-panel:has([data-splash-no-title]) + .content-panel {
+		padding: 0 !important;
+	}
+	.content-panel:has([data-splash-no-title])
+		+ .content-panel
+		> .sl-container {
+		max-width: none !important;
+		padding: 0 !important;
+	}
+	main:has([data-splash-no-title]),
+	.main-pane:has([data-splash-no-title]) {
+		padding: 0 !important;
+		margin: 0 !important;
+	}
+	.main-pane:has([data-splash-no-title]) article {
+		padding: 0 !important;
+		margin: 0 !important;
+	}
+	.main-pane:has([data-splash-no-title]) .sl-markdown-content,
+	.main-pane:has([data-splash-no-title]) .sl-markdown-content > :first-child {
+		margin-block-start: 0 !important;
+	}
+	body:has([data-splash-no-title]) #kbve-footer {
+		display: none !important;
+	}
+</style>

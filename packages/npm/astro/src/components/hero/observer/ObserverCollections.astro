@@ -1,0 +1,202 @@
+---
+interface Props {
+	duration?: number;
+	threshold?: number;
+}
+
+const { duration = 1.25, threshold = 0.85 } = Astro.props;
+---
+
+<div
+	class="obs not-content"
+	data-obs-root
+	data-obs-duration={String(duration)}
+	data-obs-threshold={String(threshold)}>
+	<slot />
+</div>
+
+<script>
+	import { gsap } from 'gsap';
+	import { Observer } from 'gsap/Observer';
+
+	gsap.registerPlugin(Observer);
+
+	const upgradeUnsplashUrl = (url: string): string => {
+		if (!url.includes('images.unsplash.com')) return url;
+		try {
+			const u = new URL(url);
+			const target = Math.round(
+				window.innerWidth * (window.devicePixelRatio || 1),
+			);
+			u.searchParams.set('w', String(target));
+			if (!u.searchParams.has('auto'))
+				u.searchParams.set('auto', 'format');
+			if (!u.searchParams.has('fit')) u.searchParams.set('fit', 'crop');
+			return u.toString();
+		} catch {
+			return url;
+		}
+	};
+
+	const init = () => {
+		document
+			.querySelectorAll<HTMLElement>('[data-obs-root]')
+			.forEach((root) => {
+				if (root.dataset.obsInit === 'true') return;
+				root.dataset.obsInit = 'true';
+
+				const duration = Number(root.dataset.obsDuration) || 1.25;
+				const threshold = Number(root.dataset.obsThreshold) || 0.85;
+
+				const sections = Array.from(
+					root.querySelectorAll<HTMLElement>('.obs__section'),
+				);
+				const outerWrappers = gsap.utils.toArray<HTMLElement>(
+					root.querySelectorAll('.obs__outer'),
+				);
+				const innerWrappers = gsap.utils.toArray<HTMLElement>(
+					root.querySelectorAll('.obs__inner'),
+				);
+				const images = gsap.utils.toArray<HTMLElement>(
+					root.querySelectorAll('.obs__bg'),
+				);
+				const headings = gsap.utils.toArray<HTMLElement>(
+					root.querySelectorAll('.obs__heading'),
+				);
+
+				if (sections.length === 0) return;
+
+				images.forEach((bg) => {
+					const raw = bg.dataset.obsImage;
+					if (!raw) return;
+					const overlay = bg.dataset.obsOverlay || '';
+					const resolved = upgradeUnsplashUrl(raw);
+					if (resolved === raw) return;
+					bg.style.backgroundImage = overlay
+						? `${overlay}, url(${resolved})`
+						: `url(${resolved})`;
+				});
+
+				const headingChars: HTMLElement[][] = headings.map(
+					(heading) => {
+						const text = heading.textContent ?? '';
+						heading.textContent = '';
+						const chars: HTMLElement[] = [];
+						for (const ch of Array.from(text)) {
+							const span = document.createElement('span');
+							span.textContent = ch === ' ' ? '\u00A0' : ch;
+							span.style.display = 'inline-block';
+							span.style.willChange = 'transform, opacity';
+							heading.appendChild(span);
+							chars.push(span);
+						}
+						return chars;
+					},
+				);
+
+				gsap.set(outerWrappers, { yPercent: 100 });
+				gsap.set(innerWrappers, { yPercent: -100 });
+				headingChars.forEach((chars) =>
+					gsap.set(chars, { autoAlpha: 0 }),
+				);
+
+				let currentIndex = -1;
+				let animating = false;
+				const wrap = gsap.utils.wrap(0, sections.length);
+
+				const gotoSection = (rawIndex: number, direction: number) => {
+					const index = wrap(rawIndex);
+					animating = true;
+					const dFactor = direction === -1 ? -1 : 1;
+					const tl = gsap.timeline({
+						defaults: { duration, ease: 'power1.inOut' },
+						onComplete: () => {
+							animating = false;
+						},
+					});
+
+					if (currentIndex >= 0) {
+						gsap.set(sections[currentIndex], { zIndex: 0 });
+						tl.to(images[currentIndex], {
+							yPercent: -15 * dFactor,
+						}).set(sections[currentIndex], { autoAlpha: 0 });
+					}
+
+					gsap.set(sections[index], { autoAlpha: 1, zIndex: 1 });
+					tl.fromTo(
+						[outerWrappers[index], innerWrappers[index]],
+						{
+							yPercent: (i: number) =>
+								i ? -100 * dFactor : 100 * dFactor,
+						},
+						{ yPercent: 0 },
+						0,
+					)
+						.fromTo(
+							images[index],
+							{ yPercent: 15 * dFactor },
+							{ yPercent: 0 },
+							0,
+						)
+						.fromTo(
+							headingChars[index],
+							{
+								autoAlpha: 0,
+								yPercent: 150 * dFactor,
+							},
+							{
+								autoAlpha: 1,
+								yPercent: 0,
+								duration: duration * 0.75,
+								ease: 'power2',
+								stagger: { each: 0.02, from: 'random' },
+							},
+							0.2,
+						);
+
+					currentIndex = index;
+				};
+
+				gotoSection(0, 1);
+
+				const observer = Observer.create({
+					target: window,
+					type: 'wheel,touch,pointer',
+					wheelSpeed: -1,
+					onDown: () =>
+						!animating && gotoSection(currentIndex - 1, -1),
+					onUp: () => !animating && gotoSection(currentIndex + 1, 1),
+					tolerance: 10,
+					preventDefault: true,
+				});
+
+				observer.disable();
+
+				const io = new IntersectionObserver(
+					(entries) => {
+						entries.forEach((entry) => {
+							if (entry.isIntersecting) {
+								observer.enable();
+							} else {
+								observer.disable();
+							}
+						});
+					},
+					{ threshold },
+				);
+				io.observe(root);
+			});
+	};
+
+	init();
+	document.addEventListener('astro:after-swap', init);
+</script>
+
+<style>
+	.obs {
+		position: relative;
+		width: 100%;
+		height: 100vh;
+		overflow: hidden;
+	}
+</style>
