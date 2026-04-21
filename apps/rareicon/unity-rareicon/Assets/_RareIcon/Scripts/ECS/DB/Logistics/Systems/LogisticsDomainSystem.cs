@@ -1,39 +1,37 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Jobs;
 
 namespace RareIcon
 {
-    /// <summary>Owns the LogisticsDBSingleton lifecycle: bootstraps persistent containers on first tick, clears per-frame state and reallocates the Deliveries stream every frame, swaps the event double-buffer, disposes on world teardown. ISystem — pure native-container orchestration, no managed state per tick.</summary>
+    /// <summary>Owns the LogisticsDBSingleton lifecycle. Persistent containers bootstrap in OnCreate; the per-frame reset (complete pipeline handle, clear per-frame maps, swap the event double-buffer, recycle the Deliveries stream) runs under Burst. Managed CreateEntity / SetName / SetComponentData are isolated to OnCreate so they only happen once per world.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(LogisticsBeginGroup), OrderFirst = true)]
     public partial struct LogisticsDomainSystem : ISystem
     {
         Entity _singleton;
-        bool   _initialized;
 
-        public void OnCreate(ref SystemState state) { }
+        public void OnCreate(ref SystemState state)
+        {
+            var db = new LogisticsDBSingleton
+            {
+                CurrentAmounts = new NativeParallelHashMap<LedgerKey, int>(1024, Allocator.Persistent),
+                Reservations   = new NativeParallelMultiHashMap<LedgerKey, ReservationRecord>(1024, Allocator.Persistent),
+                PendingDeltas  = new NativeParallelMultiHashMap<LedgerKey, int>(1024, Allocator.Persistent),
+                PackDeliveries = new NativeParallelMultiHashMap<Entity, PackDelivery>(256, Allocator.Persistent),
+                WriteBuffer    = new NativeList<InventoryChangedMessage>(256, Allocator.Persistent),
+                ReadBuffer     = new NativeList<InventoryChangedMessage>(256, Allocator.Persistent),
+                Deliveries     = default,
+                PipelineHandle = default,
+            };
+            _singleton = state.EntityManager.CreateEntity(typeof(LogisticsDBSingleton));
+            state.EntityManager.SetName(_singleton, "LogisticsDB");
+            state.EntityManager.SetComponentData(_singleton, db);
+        }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            if (!_initialized)
-            {
-                var db = new LogisticsDBSingleton
-                {
-                    CurrentAmounts = new NativeParallelHashMap<LedgerKey, int>(1024, Allocator.Persistent),
-                    Reservations   = new NativeParallelMultiHashMap<LedgerKey, ReservationRecord>(1024, Allocator.Persistent),
-                    PendingDeltas  = new NativeParallelMultiHashMap<LedgerKey, int>(1024, Allocator.Persistent),
-                    PackDeliveries = new NativeParallelMultiHashMap<Entity, PackDelivery>(256, Allocator.Persistent),
-                    WriteBuffer    = new NativeList<InventoryChangedMessage>(256, Allocator.Persistent),
-                    ReadBuffer     = new NativeList<InventoryChangedMessage>(256, Allocator.Persistent),
-                    Deliveries     = default,
-                    PipelineHandle = default,
-                };
-                _singleton = state.EntityManager.CreateEntity(typeof(LogisticsDBSingleton));
-                state.EntityManager.SetName(_singleton, "LogisticsDB");
-                state.EntityManager.SetComponentData(_singleton, db);
-                _initialized = true;
-            }
-
             ref var live = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
 
             live.PipelineHandle.Complete();
@@ -54,7 +52,6 @@ namespace RareIcon
 
         public void OnDestroy(ref SystemState state)
         {
-            if (!_initialized) return;
             if (!state.EntityManager.Exists(_singleton)) return;
             var db = state.EntityManager.GetComponentData<LogisticsDBSingleton>(_singleton);
             if (db.CurrentAmounts.IsCreated) db.CurrentAmounts.Dispose();
