@@ -6,25 +6,30 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Hungry Player unit on a Capital-claimed hex pulls one edible from storage into its inventory. Parallel Burst job — unit inventory grows directly (per-entity write), Capital subtract queues through a PendingItemTransfer for InventoryTransferApplierSystem. Snapshot build is itself a Burst IJob so the Capital CapitalLedger read participates in the job dep graph and can't race SurplusTransferJob or any other CapitalLedger writer.</summary>
-    [BurstCompile]
+    /// <summary>Hungry Player unit on a Capital-claimed hex pulls one edible from storage into its inventory. Parallel Burst job — unit pack grows directly (per-entity write), Capital subtract queues through a BankTransfer for InventoryTransferApplierSystem. Snapshot build is itself a Burst IJob so the Capital CapitalLedger read participates in the job dep graph and can't race any other CapitalLedger writer.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireDepositSystem))]
     public partial struct EmpireWithdrawSystem : ISystem
     {
         const float HungerTrigger = 0.50f;
 
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        NativeQueue<BankTransfer> _queue;
 
-        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
+            _queue = bus.AllocateProducerQueue();
+        }
+
+        public void OnDestroy(ref SystemState state) { }
+
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
             if (!SystemAPI.HasBuffer<CapitalLedger>(capital)) return;
             if (!SystemAPI.TryGetSingleton<ItemDBSingleton>(out var itemDb)) return;
-            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
 
             var snapshot = new NativeList<FoodSlotSnapshot>(8, Allocator.TempJob);
 
@@ -35,17 +40,18 @@ namespace RareIcon
                 Snapshot = snapshot,
             }.Schedule(state.Dependency);
 
-            state.Dependency = new EmpireWithdrawJob
+            var handle = new EmpireWithdrawJob
             {
                 Capital         = capital,
                 HexLookup       = hexLookup.Lookup,
                 OccupantLookup  = SystemAPI.GetComponentLookup<HexOccupant>(true),
                 CapitalFoods    = snapshot.AsDeferredJobArray(),
                 ItemDb          = itemDb,
-                Queue           = qSingleton.Queue.AsParallelWriter(),
+                Queue           = _queue.AsParallelWriter(),
             }.ScheduleParallel(snapshotHandle);
 
-            state.Dependency = snapshot.Dispose(state.Dependency);
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
+            state.Dependency = snapshot.Dispose(handle);
         }
     }
 

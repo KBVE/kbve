@@ -39,7 +39,10 @@ namespace RareIcon
             var header = new GUIStyle(GUI.skin.label) { richText = true, fontSize = 13 };
             GUILayout.Label("<b>Logistics Debug Overlay</b>", header);
 
-            SyntheticProducerSystem.Enabled = GUILayout.Toggle(SyntheticProducerSystem.Enabled, "Enable synthetic producer");
+            var producer = world.GetExistingSystemManaged<SyntheticProducerSystem>();
+            if (producer != null)
+                producer.Enabled = GUILayout.Toggle(producer.Enabled, "Enable synthetic producer");
+
             Visible = GUILayout.Toggle(Visible, "Overlay visible");
 
             int currentKeys   = db.CurrentAmounts.IsCreated ? db.CurrentAmounts.Count()   : 0;

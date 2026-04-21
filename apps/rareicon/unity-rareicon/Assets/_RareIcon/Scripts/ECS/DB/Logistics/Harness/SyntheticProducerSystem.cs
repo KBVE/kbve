@@ -3,19 +3,17 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Harness-only producer that seeds a handful of synthetic bank entities with starting balances, then submits random pull-style reservations between them every tick. Toggled via the static Enabled flag exposed through LogisticsDebugOverlay. Smoke-tests the full four-phase pipeline with no game-side dependencies.</summary>
+    /// <summary>Harness-only producer that seeds a handful of synthetic bank entities with starting balances, then submits random pull-style reservations between them every tick. Starts disabled; toggle via ComponentSystemBase.Enabled from the debug overlay.</summary>
     [UpdateInGroup(typeof(LogisticsSystemGroup))]
     [UpdateAfter(typeof(LogisticsDomainSystem))]
     [UpdateBefore(typeof(ReservationResolveSystem))]
     public partial class SyntheticProducerSystem : SystemBase
     {
-        public const int   BankCount      = 4;
-        public const ushort ItemCount     = 3;
-        public const int   StartingAmount = 1000;
-        public const int   ReservationsPerTick = 6;
-        public const uint  RngSeed        = 0x5EEDu;
-
-        public static bool Enabled;
+        public const int    BankCount           = 4;
+        public const ushort ItemCount           = 3;
+        public const int    StartingAmount      = 1000;
+        public const int    ReservationsPerTick = 6;
+        public const uint   RngSeed             = 0x5EEDu;
 
         NativeList<Entity> _banks;
         bool               _seeded;
@@ -25,8 +23,9 @@ namespace RareIcon
         protected override void OnCreate()
         {
             RequireForUpdate<LogisticsDBSingleton>();
-            _banks = new NativeList<Entity>(BankCount, Allocator.Persistent);
-            _rng   = RngSeed;
+            _banks  = new NativeList<Entity>(BankCount, Allocator.Persistent);
+            _rng    = RngSeed;
+            Enabled = false;
         }
 
         protected override void OnDestroy()
@@ -36,8 +35,6 @@ namespace RareIcon
 
         protected override void OnUpdate()
         {
-            if (!Enabled) return;
-
             CompleteDependency();
 
             var db = SystemAPI.GetSingleton<LogisticsDBSingleton>();
