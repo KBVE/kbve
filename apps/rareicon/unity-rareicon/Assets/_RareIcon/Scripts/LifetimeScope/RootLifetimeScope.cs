@@ -42,6 +42,7 @@ namespace RareIcon
                 MouseStateBridge.Source    = container.Resolve<IMouseStateSource>();
                 BuildModeBridge.Source     = container.Resolve<BuildModeController>();
                 ActivityFeedBridge.Source  = container.Resolve<ActivityFeedService>();
+                PauseBridge.Source         = container.Resolve<PauseService>();
             });
 
             // -- Services --
@@ -57,6 +58,7 @@ namespace RareIcon
             builder.RegisterEntryPoint<SelectionMoveHandler>();
             builder.RegisterEntryPoint<SelectionInput>();
             builder.Register<LocaleService>(Lifetime.Singleton);
+            builder.Register<PauseService>(Lifetime.Singleton).AsSelf();
             builder.Register<ActivityFeedService>(Lifetime.Singleton).AsSelf();
             builder.Register<InventoryService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             // Factory so VContainer doesn't try to resolve the int defaults.
@@ -92,6 +94,9 @@ namespace RareIcon
 
             // -- Toast notification service (pool + queue, bottom-center) --
             builder.RegisterEntryPoint<ToastService>().AsSelf();
+
+            // -- Pause indicator (top-right overlay + F9 debug toggle) --
+            builder.RegisterEntryPoint<PauseIndicator>().AsSelf();
 
             // -- Building palette panel (per-type cost + affordability) --
             builder.RegisterEntryPoint<UIBuildingPalette>().AsSelf();

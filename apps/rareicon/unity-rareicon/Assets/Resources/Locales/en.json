@@ -7,6 +7,8 @@
 	"hud.level": "Lv.",
 	"pause.resume": "Resume",
 	"pause.title": "Paused",
+	"pause.reason.manual": "Manual",
+	"pause.reason.dialogue": "Dialogue",
 	"dialogue.next": "Next",
 	"dialogue.skip": "Skip",
 	"biome.ocean": "Ocean",

@@ -7,6 +7,8 @@
 	"hud.level": "Lv.",
 	"pause.resume": "再開",
 	"pause.title": "ポーズ",
+	"pause.reason.manual": "手動",
+	"pause.reason.dialogue": "会話",
 	"dialogue.next": "次へ",
 	"dialogue.skip": "スキップ",
 	"biome.ocean": "海",
