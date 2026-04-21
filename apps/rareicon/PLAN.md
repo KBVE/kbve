@@ -12,7 +12,8 @@
 | §14   | MessagePipe boundary / per-domain pipes                | Plan drafted — see [MESSAGING.md](MESSAGING.md); executes after §15-E             |
 | §15   | ECS/DB subsystem + Logistics domain                    | **Shipped** — Chunks A/B/C complete; CurrentAmounts authoritative, MessagePipe UI |
 | §16   | Professions domain (dispatch + events)                 | **Active** — rename + DB + event bridge landed; Burst conversion deferred         |
-| §17+  | Subsequent domains (Combat, Skills, etc.)              | Future — reuse `ECS/DB/<Domain>/` pattern                                         |
+| §17   | Combat domain                                          | **Planned** — pull hostile-scan + preemption out of Professions, see §17 notes    |
+| §18+  | Subsequent domains (Skills, Needs, etc.)               | Future — reuse `ECS/DB/<Domain>/` pattern                                         |
 
 ## §15 — ECS/DB subsystem + Logistics domain
 
@@ -136,6 +137,39 @@ The dispatcher previously named `JobSystem` collided with Unity's `IJob` / `Unit
 
 - **Burst IJobParallelFor dispatcher rewrite.** The 400-line scoring loop in `ProfessionDispatchSystem` is still `SystemBase` main-thread. Converting to `IJobParallelFor` over units requires: lifting the offer-enumeration pass into a singleton-cached `NativeList<TaskOffer>`, replacing all `EntityManager.GetComponentData` lookups with `ComponentLookup<T>` passed in, and resolving the `TaskMemory` DynamicBuffer access through `BufferLookup<TaskMemory>` with `[NativeDisableParallelForRestriction]`. The Guard hostile-lookup branch (`TryFindHostile` against `SpatialHashSingleton`) is already Burst-ready. Land as `§16-Burst` in a focused session after a real scaling need appears.
 - **UI subscriber conversion.** `RosterTab` still polls — partially because it also displays unit-spawn / death / stat state, not just professions. When those domains get their own events (`UnitLifecycleMessage`, etc.) the whole panel can migrate.
+
+## §17 — Combat domain (planned)
+
+### Motivation
+
+Hostile detection, threat scoring, and preemption logic currently live in `ProfessionDispatchSystem` — specifically `TryFindHostile` (169-cell spatial-hash scan), the `friendlyEmitters` snapshot, and the per-unit preemption branch that drops an Active task when a hostile crosses into territory. That's the wrong home: dispatch is "who does what"; combat is "what's threatening us right now."
+
+Today the dispatcher pays a per-frame cost proportional to `units × scan-radius²` even when zero hostiles exist. Gated with an `anyHostile` early-exit for now (§16 performance patch), but the proper fix is architectural.
+
+### Target shape
+
+New `ECS/DB/Combat/` domain, same pattern as Logistics / Professions:
+
+- `CombatDBSingleton` — `NativeList<ThreatRecord>` of current hostiles inside friendly territory, rebuilt per frame by a Burst job walking `SpatialHashSingleton` + `TerritoryEmitter`.
+- `Messages/ThreatDetectedMessage`, `ThreatClearedMessage` — published on transitions.
+- Subscribers:
+    - `ProfessionDispatchSystem` reads `CombatDBSingleton` (or subscribes to the messages) to decide whether to preempt. No more per-unit 13×13 scan.
+    - `AudioCueService` / toast layer can react to threat entry without reaching into ECS.
+    - A future `DefenseRallySystem` could assign specific defenders to threats explicitly.
+
+### What moves
+
+From `ProfessionDispatchSystem.RunDispatch`:
+
+- The `friendlyEmitters` NativeList snapshot.
+- `TryFindHostile`, `InsideAnyEmitter`, `AxialDistance` helpers.
+- The per-unit preemption branch — simplified to "read CombatDBSingleton, preempt if a threat exists inside territory and unit has Guard priority".
+
+Guard patrol-fallback scoring stays in Professions (choosing a hex to patrol is a dispatch concern, not a combat concern).
+
+### Scope note
+
+Not urgent. The §16 performance patch makes the current code cheap enough when no hostiles are present. Migrate when either (a) we add more combat-side subscribers that would duplicate the scan logic, or (b) combat gets richer (multi-faction, threat levels, etc.).
 
 ## §14 — MessagePipe boundary (planned)
 

@@ -130,20 +130,22 @@ namespace RareIcon
         {
             // We do main-thread reads on InventorySlot (cave + Capital food
             // counts) below. Background jobs like FurnaceTickJob schedule
-            // RW on that same buffer; SystemAPI.GetBufferLookup inside a
-            // SystemBase doesn't auto-complete those deps, so force it here.
-            CompleteDependency();
-
-            // Full dispatch (offer enumeration + per-unit scoring) runs
-            // every N ticks. Queue reconciliation still runs every tick
-            // so units transition cleanly from Pending → Active and pop
-            // Invalidated heads immediately. Modulo-zero on the first
-            // tick so cold-start units get jobs right away.
             float now = (float)SystemAPI.Time.ElapsedTime;
             bool doFullDispatch = (now - _lastDispatchTime) >= DispatchIntervalSeconds;
-            if (doFullDispatch) _lastDispatchTime = now;
+            if (doFullDispatch)
+            {
+                _lastDispatchTime = now;
+                CompleteDependency();
+            }
 
             SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial);
+
+            bool anyHostile = false;
+            foreach (var f in SystemAPI.Query<RefRO<Faction>>())
+            {
+                byte fv = f.ValueRO.Value;
+                if (fv == FactionType.Hostile || fv == FactionType.Beast) { anyHostile = true; break; }
+            }
 
             bool hasCapital = SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital);
             int2 capitalHex = default;
@@ -436,7 +438,8 @@ namespace RareIcon
                         };
                         continue;
                     }
-                    if (head.State == TaskState.Active
+                    if (anyHostile
+                        && head.State == TaskState.Active
                         && head.Kind != ProfessionKind.Guard
                         && priorities.ValueRO.Guard > 0
                         && spatial.Hash.IsCreated
