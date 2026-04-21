@@ -27,6 +27,9 @@ namespace RareIcon
             (ProfessionKind.Builder,    "Builder"),
             (ProfessionKind.Chef,       "Chef"),
             (ProfessionKind.Blacksmith, "Blacksmith"),
+            (ProfessionKind.Craftsman,  "Craftsman"),
+            (ProfessionKind.Hunter,     "Hunter"),
+            (ProfessionKind.Medic,      "Medic"),
         };
 
         readonly LocaleService _locale;

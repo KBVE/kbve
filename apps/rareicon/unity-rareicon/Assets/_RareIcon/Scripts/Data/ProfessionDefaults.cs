@@ -8,16 +8,16 @@ namespace RareIcon
             UnitType.Soldier => new ProfessionPriorities
             {
                 Guard = 4, Hunter = 2, Builder = 3, Looter = 2, Craftsman = 1,
-                Lumberjack = 1, Miner = 1, Farmer = 1, Chef = 1, Blacksmith = 1,
+                Lumberjack = 1, Miner = 1, Farmer = 1, Chef = 1, Blacksmith = 1, Medic = 1,
             },
             UnitType.Knight  => new ProfessionPriorities
             {
                 Guard = 5, Hunter = 3, Builder = 4, Looter = 2, Craftsman = 1, Blacksmith = 2,
-                Lumberjack = 1, Miner = 1, Farmer = 1, Chef = 1,
+                Lumberjack = 1, Miner = 1, Farmer = 1, Chef = 1, Medic = 1,
             },
             UnitType.Mage    => new ProfessionPriorities
             {
-                Guard = 2, Chef = 3, Hunter = 1, Builder = 2, Looter = 1, Craftsman = 2,
+                Medic = 5, Chef = 3, Craftsman = 2, Builder = 2, Looter = 1, Guard = 1, Hunter = 1,
                 Lumberjack = 1, Miner = 1, Farmer = 1, Blacksmith = 1,
             },
             UnitType.King    => new ProfessionPriorities { Guard = 3 },
@@ -25,7 +25,7 @@ namespace RareIcon
             {
                 Looter = 2, Builder = 2,
                 Lumberjack = 1, Miner = 1, Guard = 1, Farmer = 1, Hunter = 1,
-                Chef = 1, Blacksmith = 1, Craftsman = 1,
+                Chef = 1, Blacksmith = 1, Craftsman = 1, Medic = 1,
             },
         };
 

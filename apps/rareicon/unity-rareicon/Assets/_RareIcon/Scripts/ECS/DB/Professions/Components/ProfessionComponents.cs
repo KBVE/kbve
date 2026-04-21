@@ -20,6 +20,7 @@ namespace RareIcon
         public const byte Hunter     = 9;
         public const byte Blacksmith = 10;
         public const byte Craftsman  = 11;
+        public const byte Medic      = 12;
     }
 
     /// <summary>Per-unit profession priorities (0 = disabled, 1..5 = weighted preference). Fixed-layout struct so it's Burst-readable without a buffer walk.</summary>
@@ -35,6 +36,7 @@ namespace RareIcon
         public byte Hunter;
         public byte Blacksmith;
         public byte Craftsman;
+        public byte Medic;
 
         public byte Get(byte jobKind) => jobKind switch
         {
@@ -48,6 +50,7 @@ namespace RareIcon
             ProfessionKind.Hunter     => Hunter,
             ProfessionKind.Blacksmith => Blacksmith,
             ProfessionKind.Craftsman  => Craftsman,
+            ProfessionKind.Medic      => Medic,
             _                         => (byte)0,
         };
 
@@ -65,6 +68,7 @@ namespace RareIcon
                 case ProfessionKind.Hunter:     Hunter     = priority; break;
                 case ProfessionKind.Blacksmith: Blacksmith = priority; break;
                 case ProfessionKind.Craftsman:  Craftsman  = priority; break;
+                case ProfessionKind.Medic:      Medic      = priority; break;
             }
         }
     }

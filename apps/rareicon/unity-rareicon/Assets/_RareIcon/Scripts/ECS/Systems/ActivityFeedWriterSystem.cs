@@ -74,6 +74,7 @@ namespace RareIcon
                 case ProfessionKind.Hunter:     return ActivityKind.Hunting;
                 case ProfessionKind.Blacksmith: return ActivityKind.Smithing;
                 case ProfessionKind.Craftsman:  return ActivityKind.Crafting;
+                case ProfessionKind.Medic:      return ActivityKind.Healing;
             }
 
             switch (goal.Kind)
