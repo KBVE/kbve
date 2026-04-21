@@ -1,8 +1,84 @@
+using MessagePipe;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+
+namespace RareIcon
+{
+    /// <summary>Owns the ProfessionsDBSingleton lifecycle: bootstraps the CommittedEvents list on first tick, clears it per frame, disposes on teardown. Runs in BehaviorSystemGroup OrderFirst so the dispatcher downstream sees an empty list.</summary>
+    [UpdateInGroup(typeof(BehaviorSystemGroup), OrderFirst = true)]
+    public partial class ProfessionsDomainSystem : SystemBase
+    {
+        Entity _singleton;
+        bool   _initialized;
+
+        protected override void OnUpdate()
+        {
+            if (!_initialized)
+            {
+                var db = new ProfessionsDBSingleton
+                {
+                    CommittedEvents = new NativeList<ProfessionChangedMessage>(64, Allocator.Persistent),
+                    PipelineHandle  = default,
+                };
+                _singleton = EntityManager.CreateEntity(typeof(ProfessionsDBSingleton));
+                EntityManager.SetName(_singleton, "ProfessionsDB");
+                EntityManager.SetComponentData(_singleton, db);
+                _initialized = true;
+            }
+
+            ref var live = ref SystemAPI.GetSingletonRW<ProfessionsDBSingleton>().ValueRW;
+            live.PipelineHandle.Complete();
+            live.CommittedEvents.Clear();
+            live.PipelineHandle = default;
+        }
+
+        protected override void OnDestroy()
+        {
+            if (!_initialized) return;
+            if (!EntityManager.Exists(_singleton)) return;
+            var db = EntityManager.GetComponentData<ProfessionsDBSingleton>(_singleton);
+            if (db.CommittedEvents.IsCreated) db.CommittedEvents.Dispose();
+        }
+    }
+
+    /// <summary>Drains ProfessionsDBSingleton.CommittedEvents each frame and publishes via IPublisher&lt;ProfessionChangedMessage&gt;. Runs after ProfessionDispatchSystem so all per-frame intent changes are captured before the list resets.</summary>
+    [UpdateInGroup(typeof(BehaviorSystemGroup))]
+    [UpdateAfter(typeof(ProfessionDispatchSystem))]
+    public partial class ProfessionMessagePipeBridgeSystem : SystemBase
+    {
+        IPublisher<ProfessionChangedMessage> _publisher;
+
+        protected override void OnCreate()
+        {
+            RequireForUpdate<ProfessionsDBSingleton>();
+        }
+
+        protected override void OnUpdate()
+        {
+            ref var db = ref SystemAPI.GetSingletonRW<ProfessionsDBSingleton>().ValueRW;
+
+            db.PipelineHandle.Complete();
+
+            var list = db.CommittedEvents;
+            if (!list.IsCreated || list.Length == 0) return;
+
+            if (_publisher == null)
+            {
+                try { _publisher = GlobalMessagePipe.GetPublisher<ProfessionChangedMessage>(); }
+                catch { return; }
+            }
+
+            for (int i = 0; i < list.Length; i++)
+                _publisher.Publish(list[i]);
+
+            list.Clear();
+        }
+    }
+}
 
 namespace RareIcon
 {
@@ -418,6 +494,9 @@ namespace RareIcon
                     {
                         int oN = offersPerKind[offer.Kind];
                         int aN = activePerKind[offer.Kind];
+                        int deficit = oN - aN;
+                        if (deficit > 0)
+                            score += (long)deficit * PriorityWeight;
                         float pressure = (float)(oN + 1) / (float)(aN + 1);
                         score += (long)(math.log(1f + pressure) * 30f);
                     }

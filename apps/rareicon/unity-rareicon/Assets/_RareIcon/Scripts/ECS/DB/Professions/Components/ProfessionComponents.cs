@@ -1,4 +1,6 @@
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
@@ -20,7 +22,7 @@ namespace RareIcon
         public const byte Craftsman  = 11;
     }
 
-    /// <summary>Per-unit job priorities (0 = disabled, 1..5 = weighted preference). Fixed-layout struct so it's Burst-readable without a buffer walk.</summary>
+    /// <summary>Per-unit profession priorities (0 = disabled, 1..5 = weighted preference). Fixed-layout struct so it's Burst-readable without a buffer walk.</summary>
     public struct ProfessionPriorities : IComponentData
     {
         public byte Lumberjack;
@@ -46,7 +48,7 @@ namespace RareIcon
             ProfessionKind.Hunter     => Hunter,
             ProfessionKind.Blacksmith => Blacksmith,
             ProfessionKind.Craftsman  => Craftsman,
-            _                  => (byte)0,
+            _                         => (byte)0,
         };
 
         public void Set(byte jobKind, byte priority)
@@ -67,11 +69,37 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Current chosen job + target; rewritten each tick by ProfessionDispatchSystem when Relief isn't active.</summary>
+    /// <summary>Current chosen profession + target; rewritten each tick by ProfessionDispatchSystem when Relief isn't active.</summary>
     public struct ProfessionIntent : IComponentData
     {
-        public byte  Kind;
-        public int2  TargetHex;
+        public byte   Kind;
+        public int2   TargetHex;
         public Entity TargetEntity;
+    }
+
+    /// <summary>Per-frame professions domain state. CommittedEvents is populated by ProfessionDispatchSystem every time a unit's ProfessionIntent changes and drained by ProfessionMessagePipeBridgeSystem. PipelineHandle reserved for future Burst split.</summary>
+    public struct ProfessionsDBSingleton : IComponentData
+    {
+        public NativeList<ProfessionChangedMessage> CommittedEvents;
+        public JobHandle                            PipelineHandle;
+    }
+
+    /// <summary>Published by ProfessionMessagePipeBridgeSystem every frame a unit's ProfessionIntent changes. Subscribers get post-change state so they never need to requery the component.</summary>
+    public readonly struct ProfessionChangedMessage
+    {
+        public readonly Entity Unit;
+        public readonly byte   PreviousKind;
+        public readonly byte   NewKind;
+        public readonly int2   NewTargetHex;
+        public readonly Entity NewTargetEntity;
+
+        public ProfessionChangedMessage(Entity unit, byte previousKind, byte newKind, int2 newTargetHex, Entity newTargetEntity)
+        {
+            Unit            = unit;
+            PreviousKind    = previousKind;
+            NewKind         = newKind;
+            NewTargetHex    = newTargetHex;
+            NewTargetEntity = newTargetEntity;
+        }
     }
 }
