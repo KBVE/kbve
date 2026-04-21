@@ -2,9 +2,43 @@
 interface Props {
 	duration?: number;
 	threshold?: number;
+	foreground?: string;
+	background?: string;
+	backgroundColor?: string;
+	alt?: string;
+	heroEnd?: string;
+	heroScale?: number;
+	heroDepth?: number;
+	heroTranslateY?: number;
+	heroBackgroundScale?: number;
+	heroPerspective?: string;
 }
 
-const { duration = 1.25, threshold = 0.85 } = Astro.props;
+const {
+	duration = 1.25,
+	threshold = 0.85,
+	foreground,
+	background,
+	backgroundColor,
+	alt = '',
+	heroEnd = '+=150%',
+	heroScale = 2,
+	heroDepth = 350,
+	heroTranslateY = 0,
+	heroBackgroundScale = 1.1,
+	heroPerspective = '500px',
+} = Astro.props;
+
+const heroBgStyle = [
+	background ? `background-image: url(${background});` : '',
+	backgroundColor
+		? `background-color: ${backgroundColor};`
+		: !background
+			? 'background-color: var(--sl-color-bg, #121312);'
+			: '',
+]
+	.filter(Boolean)
+	.join(' ');
 ---
 
 <div
@@ -12,14 +46,41 @@ const { duration = 1.25, threshold = 0.85 } = Astro.props;
 	data-obs-root
 	data-obs-duration={String(duration)}
 	data-obs-threshold={String(threshold)}>
-	<slot />
+	{
+		foreground && (
+			<div
+				class="obs__hero"
+				data-obs-hero
+				data-obs-hero-end={heroEnd}
+				data-obs-hero-scale={String(heroScale)}
+				data-obs-hero-depth={String(heroDepth)}
+				data-obs-hero-translate-y={String(heroTranslateY)}
+				data-obs-hero-bg-scale={String(heroBackgroundScale)}
+				style={`--obs-hero-perspective: ${heroPerspective};`}>
+				<div class="obs__hero-content">
+					<section
+						class="obs__hero-bg"
+						aria-hidden="true"
+						style={heroBgStyle}
+					/>
+				</div>
+				<div class="obs__hero-image">
+					<img src={foreground} alt={alt} />
+				</div>
+			</div>
+		)
+	}
+	<div class="obs__pager">
+		<slot />
+	</div>
 </div>
 
 <script>
 	import { gsap } from 'gsap';
 	import { Observer } from 'gsap/Observer';
+	import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-	gsap.registerPlugin(Observer);
+	gsap.registerPlugin(Observer, ScrollTrigger);
 
 	const upgradeUnsplashUrl = (url: string): string => {
 		if (!url.includes('images.unsplash.com')) return url;
@@ -190,19 +251,72 @@ const { duration = 1.25, threshold = 0.85 } = Astro.props;
 
 				observer.disable();
 
-				const io = new IntersectionObserver(
-					(entries) => {
-						entries.forEach((entry) => {
-							if (entry.isIntersecting) {
-								observer.enable();
-							} else {
-								observer.disable();
-							}
-						});
-					},
-					{ threshold },
-				);
-				io.observe(root);
+				const hero = root.querySelector<HTMLElement>('[data-obs-hero]');
+				if (hero) {
+					const heroImg = hero.querySelector<HTMLElement>(
+						'.obs__hero-image img',
+					);
+					const heroBg =
+						hero.querySelector<HTMLElement>('.obs__hero-bg');
+					const end = hero.dataset.obsHeroEnd || '+=150%';
+					const hScale = Number(hero.dataset.obsHeroScale) || 2;
+					const hDepth = Number(hero.dataset.obsHeroDepth) || 350;
+					const hTransY = Number(hero.dataset.obsHeroTranslateY) || 0;
+					const hBgScale = Number(hero.dataset.obsHeroBgScale) || 1.1;
+
+					if (heroImg && heroBg) {
+						const getNavHeight = () => {
+							const nav = document.querySelector<HTMLElement>(
+								'header.header, header[data-header], .header',
+							);
+							return nav?.offsetHeight ?? 56;
+						};
+
+						gsap.timeline({
+							scrollTrigger: {
+								trigger: hero,
+								start: () => `top top+=${getNavHeight()}`,
+								end,
+								pin: true,
+								pinSpacing: true,
+								scrub: true,
+								invalidateOnRefresh: true,
+								onLeave: () => observer.enable(),
+								onEnterBack: () => observer.disable(),
+							},
+						})
+							.to(heroImg, {
+								scale: hScale,
+								z: hDepth,
+								y: hTransY,
+								transformOrigin: 'center center',
+								ease: 'power1.inOut',
+							})
+							.to(
+								heroBg,
+								{
+									scale: hBgScale,
+									transformOrigin: 'center center',
+									ease: 'power1.inOut',
+								},
+								'<',
+							);
+					}
+				} else {
+					const io = new IntersectionObserver(
+						(entries) => {
+							entries.forEach((entry) => {
+								if (entry.isIntersecting) {
+									observer.enable();
+								} else {
+									observer.disable();
+								}
+							});
+						},
+						{ threshold },
+					);
+					io.observe(root);
+				}
 			});
 	};
 
@@ -214,7 +328,55 @@ const { duration = 1.25, threshold = 0.85 } = Astro.props;
 	.obs {
 		position: relative;
 		width: 100%;
+	}
+
+	.obs__pager {
+		position: relative;
+		width: 100%;
 		height: 100vh;
 		overflow: hidden;
+	}
+
+	.obs__hero {
+		position: relative;
+		width: 100%;
+		z-index: 1;
+	}
+
+	.obs__hero-content {
+		position: relative;
+		width: 100%;
+		overflow-x: hidden;
+		z-index: 1;
+	}
+
+	.obs__hero-bg {
+		width: 100%;
+		height: 100vh;
+		background-position: center center;
+		background-repeat: no-repeat;
+		background-size: cover;
+		will-change: transform;
+		transform: translateZ(0);
+	}
+
+	.obs__hero-image {
+		width: 100%;
+		height: 100vh;
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		z-index: 2;
+		perspective: var(--obs-hero-perspective);
+		overflow: hidden;
+	}
+
+	.obs__hero-image img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center center;
+		will-change: transform;
 	}
 </style>
