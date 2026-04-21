@@ -107,7 +107,7 @@ namespace RareIcon
             if (!AnyCaveHasHeadroom()) return;
 
             var capitalStorage = EntityManager.GetBuffer<InventorySlot>(capital);
-            if (!AnyFoodInBuffer(capitalStorage)) return;
+            if (!ItemSlotOps.HasFood(capitalStorage)) return;
 
             foreach (var (jobIntent, reliefIntent, faction, movement, pack, bags) in
                      SystemAPI.Query<
@@ -133,7 +133,7 @@ namespace RareIcon
                 if (jobIntent.ValueRO.Kind != JobKind.Looter) continue;
                 if (jobIntent.ValueRO.TargetEntity != capital) continue;
 
-                int alreadyCarrying = CountFood(pack);
+                int alreadyCarrying = ItemSlotOps.CountFood(pack);
                 if (alreadyCarrying >= GoblinCaveHaulConfig.PerTripAmount) continue;
 
                 ushort take = (ushort)(GoblinCaveHaulConfig.PerTripAmount - alreadyCarrying);
@@ -151,41 +151,9 @@ namespace RareIcon
             {
                 if (!invLookup.HasBuffer(entity)) continue;
                 ushort cap = prodRO.ValueRO.StorageCap == 0 ? (ushort)200 : prodRO.ValueRO.StorageCap;
-                if (CountFood(invLookup[entity]) < cap) return true;
+                if (ItemSlotOps.CountFood(invLookup[entity]) < cap) return true;
             }
             return false;
-        }
-
-        static bool AnyFoodInBuffer(DynamicBuffer<InventorySlot> buf)
-        {
-            for (int i = 0; i < buf.Length; i++)
-            {
-                if (buf[i].Count == 0) continue;
-                if (ItemDB.EnergyValue(buf[i].ItemId) > 0f) return true;
-            }
-            return false;
-        }
-
-        static int CountFood(DynamicBuffer<InventorySlot> buf)
-        {
-            int total = 0;
-            for (int i = 0; i < buf.Length; i++)
-            {
-                if (ItemDB.EnergyValue(buf[i].ItemId) <= 0f) continue;
-                total += buf[i].Count;
-            }
-            return total;
-        }
-
-        static int CountFood(DynamicBuffer<PackSlot> buf)
-        {
-            int total = 0;
-            for (int i = 0; i < buf.Length; i++)
-            {
-                if (ItemDB.EnergyValue(buf[i].ItemId) <= 0f) continue;
-                total += buf[i].Count;
-            }
-            return total;
         }
 
         static void TransferFoodToUnit(DynamicBuffer<InventorySlot> src,
@@ -233,7 +201,7 @@ namespace RareIcon
             {
                 if (faction.ValueRO.Value != FactionType.Player) continue;
                 if (pack.Length == 0) continue;
-                if (!AnyFoodInPack(pack)) continue;
+                if (!ItemSlotOps.HasFood(pack)) continue;
 
                 int2 hex = movement.ValueRO.CurrentHex;
                 if (!HexHoverSystem.TryGetHexEntity(hex, out Entity tile)) continue;
@@ -249,32 +217,11 @@ namespace RareIcon
                 ushort cap      = prodLookup[building].StorageCap == 0
                                   ? (ushort)200
                                   : prodLookup[building].StorageCap;
-                int headroom    = cap - CountFoodInv(caveStorage);
+                int headroom    = cap - ItemSlotOps.CountFood(caveStorage);
                 if (headroom <= 0) continue;
 
                 TransferFood(pack, caveStorage, (ushort)math.min(headroom, ushort.MaxValue));
             }
-        }
-
-        static bool AnyFoodInPack(DynamicBuffer<PackSlot> buf)
-        {
-            for (int i = 0; i < buf.Length; i++)
-            {
-                if (buf[i].Count == 0) continue;
-                if (ItemDB.EnergyValue(buf[i].ItemId) > 0f) return true;
-            }
-            return false;
-        }
-
-        static int CountFoodInv(DynamicBuffer<InventorySlot> buf)
-        {
-            int total = 0;
-            for (int i = 0; i < buf.Length; i++)
-            {
-                if (ItemDB.EnergyValue(buf[i].ItemId) <= 0f) continue;
-                total += buf[i].Count;
-            }
-            return total;
         }
 
         static void TransferFood(DynamicBuffer<PackSlot> src, DynamicBuffer<InventorySlot> dst, ushort amount)

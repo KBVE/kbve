@@ -3,22 +3,41 @@ using Unity.Entities;
 
 namespace RareIcon
 {
+    /// <summary>Shape contract shared by InventorySlot and PackSlot so read-only generic helpers can iterate either buffer type without duplicating the implementation. Burst monomorphizes one specialization per concrete T per "Burst supports generic types used with structs. It supports full instantiation of generic calls for generic types that have interface constraints" (Burst 1.8 C# type support doc).</summary>
+    public interface IItemSlot
+    {
+        Ulid   GetUid();
+        ushort GetItemId();
+        ushort GetCount();
+        void   SetCount(ushort count);
+    }
+
     /// <summary>Per-building stockpile slot. Cap is 8 base + equipped bag bonuses. Each stack carries a Cysharp.Ulid for FFI / save-key / birth-time ordering; Uid=default is legal during migration and the consolidator stamps fresh Uids on bulk rollup.</summary>
     [InternalBufferCapacity(8)]
-    public struct InventorySlot : IBufferElementData
+    public struct InventorySlot : IBufferElementData, IItemSlot
     {
         public Ulid   Uid;
         public ushort ItemId;
         public ushort Count;
+
+        public Ulid   GetUid()                 => Uid;
+        public ushort GetItemId()              => ItemId;
+        public ushort GetCount()               => Count;
+        public void   SetCount(ushort count)   { Count = count; }
     }
 
     /// <summary>Per-unit carried-item slot. Same shape as InventorySlot but a distinct IBufferElementData so Unity's job-safety system tracks unit access independently from building storage.</summary>
     [InternalBufferCapacity(8)]
-    public struct PackSlot : IBufferElementData
+    public struct PackSlot : IBufferElementData, IItemSlot
     {
         public Ulid   Uid;
         public ushort ItemId;
         public ushort Count;
+
+        public Ulid   GetUid()                 => Uid;
+        public ushort GetItemId()              => ItemId;
+        public ushort GetCount()               => Count;
+        public void   SetCount(ushort count)   { Count = count; }
     }
 
     /// <summary>Equipped bag item IDs on a unit. Each entry adds slot capacity per InventoryUtil.BagBonus. Hard cap 2 equipped bags per unit.</summary>

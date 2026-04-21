@@ -202,15 +202,7 @@ namespace RareIcon
                     if (!em.HasBuffer<PackSlot>(king)) return false;
                     var pack = em.GetBuffer<PackSlot>(king);
                     for (int i = 0; i < cost.Length; i++)
-                    {
-                        int total = 0;
-                        for (int j = 0; j < pack.Length; j++)
-                        {
-                            if (!MatchesCostItem(pack[j].ItemId, cost[i].ItemId)) continue;
-                            total += pack[j].Count;
-                        }
-                        if (total < cost[i].Amount) return false;
-                    }
+                        if (!ItemSlotOps.HasBuildCost(pack, cost[i].ItemId, cost[i].Amount)) return false;
                     return true;
                 }
 
@@ -236,28 +228,9 @@ namespace RareIcon
                 if (capital == Entity.Null) return false;
                 if (!em.HasBuffer<InventorySlot>(capital)) return false;
                 var inv = em.GetBuffer<InventorySlot>(capital);
-                for (int k = 0; k < cost.Length; k++)
-                {
-                    int total = 0;
-                    for (int j = 0; j < inv.Length; j++)
-                    {
-                        if (!MatchesCostItem(inv[j].ItemId, cost[k].ItemId)) continue;
-                        total += inv[j].Count;
-                    }
-                    if (total < cost[k].Amount) return false;
-                }
+                for (int i = 0; i < cost.Length; i++)
+                    if (!ItemSlotOps.HasBuildCost(inv, cost[i].ItemId, cost[i].Amount)) return false;
                 return true;
-            }
-
-            // Mirror of BuildingSpawnSystem.MatchesCostItem — the palette
-            // has to count food the same way the spawner does, otherwise
-            // a Goblin Cave whose cost line is AnyFoodSentinel would show
-            // unaffordable even with a full treasury of berries.
-            static bool MatchesCostItem(ushort slotId, ushort costId)
-            {
-                if (costId == BuildingDB.AnyFoodSentinel)
-                    return ItemDB.EnergyValue(slotId) > 0f;
-                return slotId == costId;
             }
 
         }

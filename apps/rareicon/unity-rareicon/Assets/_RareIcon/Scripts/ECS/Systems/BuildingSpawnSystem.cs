@@ -140,7 +140,7 @@ namespace RareIcon
                 var sourcePack = em.GetBuffer<PackSlot>(sourceEntity);
                 for (int i = 0; i < cost.Length; i++)
                 {
-                    if (!HasItemPack(sourcePack, cost[i].ItemId, cost[i].Amount))
+                    if (!ItemSlotOps.HasBuildCost(sourcePack, cost[i].ItemId, cost[i].Amount))
                     {
                         reason = $"missing {cost[i].Amount}× item {cost[i].ItemId}";
                         return false;
@@ -157,7 +157,7 @@ namespace RareIcon
                 var sourceInv = em.GetBuffer<InventorySlot>(sourceEntity);
                 for (int i = 0; i < cost.Length; i++)
                 {
-                    if (!HasItem(sourceInv, cost[i].ItemId, cost[i].Amount))
+                    if (!ItemSlotOps.HasBuildCost(sourceInv, cost[i].ItemId, cost[i].Amount))
                     {
                         reason = $"missing {cost[i].Amount}× item {cost[i].ItemId}";
                         return false;
@@ -329,28 +329,6 @@ namespace RareIcon
                 return false;
             }
             return true;
-        }
-
-        static bool HasItem(DynamicBuffer<InventorySlot> inv, ushort itemId, ushort amount)
-        {
-            int total = 0;
-            for (int i = 0; i < inv.Length; i++)
-            {
-                if (!MatchesCostItem(inv[i].ItemId, itemId)) continue;
-                total += inv[i].Count;
-            }
-            return total >= amount;
-        }
-
-        static bool HasItemPack(DynamicBuffer<PackSlot> pack, ushort itemId, ushort amount)
-        {
-            int total = 0;
-            for (int i = 0; i < pack.Length; i++)
-            {
-                if (!MatchesCostItem(pack[i].ItemId, itemId)) continue;
-                total += pack[i].Count;
-            }
-            return total >= amount;
         }
 
         // Walks slots and decrements until `amount` is satisfied. Caller

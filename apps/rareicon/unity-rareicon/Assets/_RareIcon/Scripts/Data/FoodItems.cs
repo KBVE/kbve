@@ -27,19 +27,16 @@ namespace RareIcon
             _                    => false,
         };
 
-        public static int Count(DynamicBuffer<InventorySlot> inv)
+        /// <summary>Sum Count across every slot whose ItemId is flagged by IsFood. Generic over IItemSlot so InventorySlot + PackSlot share the implementation — Burst monomorphizes per concrete T.</summary>
+        public static int Count<T>(in DynamicBuffer<T> buf)
+            where T : unmanaged, IBufferElementData, IItemSlot
         {
             int total = 0;
-            for (int i = 0; i < inv.Length; i++)
-                if (IsFood(inv[i].ItemId)) total += inv[i].Count;
-            return total;
-        }
-
-        public static int Count(DynamicBuffer<PackSlot> pack)
-        {
-            int total = 0;
-            for (int i = 0; i < pack.Length; i++)
-                if (IsFood(pack[i].ItemId)) total += pack[i].Count;
+            for (int i = 0; i < buf.Length; i++)
+            {
+                var s = buf[i];
+                if (IsFood(s.GetItemId())) total += s.GetCount();
+            }
             return total;
         }
     }

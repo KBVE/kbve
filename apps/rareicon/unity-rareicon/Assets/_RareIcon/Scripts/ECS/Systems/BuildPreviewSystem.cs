@@ -176,18 +176,9 @@ namespace RareIcon
                 if (!em.HasBuffer<PackSlot>(king)) return false;
                 var pack = em.GetBuffer<PackSlot>(king);
                 for (int i = 0; i < cost.Length; i++)
-                {
-                    int total = 0;
-                    for (int j = 0; j < pack.Length; j++)
-                    {
-                        if (!MatchesCostItem(pack[j].ItemId, cost[i].ItemId)) continue;
-                        total += pack[j].Count;
-                    }
-                    if (total < cost[i].Amount) return false;
-                }
+                    if (!ItemSlotOps.HasBuildCost(pack, cost[i].ItemId, cost[i].Amount)) return false;
                 return true;
             }
-            else
             {
                 var q = em.CreateEntityQuery(ComponentType.ReadOnly<CapitalTag>());
                 if (q.CalculateEntityCount() == 0) { q.Dispose(); return false; }
@@ -196,24 +187,9 @@ namespace RareIcon
                 if (!em.HasBuffer<InventorySlot>(capital)) return false;
                 var inv = em.GetBuffer<InventorySlot>(capital);
                 for (int i = 0; i < cost.Length; i++)
-                {
-                    int total = 0;
-                    for (int j = 0; j < inv.Length; j++)
-                    {
-                        if (!MatchesCostItem(inv[j].ItemId, cost[i].ItemId)) continue;
-                        total += inv[j].Count;
-                    }
-                    if (total < cost[i].Amount) return false;
-                }
+                    if (!ItemSlotOps.HasBuildCost(inv, cost[i].ItemId, cost[i].Amount)) return false;
                 return true;
             }
-        }
-
-        static bool MatchesCostItem(ushort slotId, ushort costId)
-        {
-            if (costId == BuildingDB.AnyFoodSentinel)
-                return ItemDB.EnergyValue(slotId) > 0f;
-            return slotId == costId;
         }
 
         static bool HasFriendlyEmitterWithin(EntityManager em, int2 center, int radius, byte faction)
