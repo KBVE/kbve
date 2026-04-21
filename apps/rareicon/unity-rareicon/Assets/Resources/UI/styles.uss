@@ -663,9 +663,12 @@
 
 /* Drag-select marquee */
 .drag-marquee {
-    background-color: rgba(252, 211, 77, 0.10);
+    background-color: rgba(252, 211, 77, 0.20);
     border-color: var(--color-accent);
-    border-width: 1px;
+    border-top-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
 }
 
 /* ----- Slim scrollbars in modal panels ----- */

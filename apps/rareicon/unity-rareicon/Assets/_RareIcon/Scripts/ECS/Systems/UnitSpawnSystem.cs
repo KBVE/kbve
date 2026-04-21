@@ -299,10 +299,6 @@ namespace RareIcon
                 pack.Add(new PackSlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CapitalLandGrant, Count = 1 });
 
             em.AddComponent<KingTag>(entity);
-            // King defaults to player-controlled at game start so the
-            // out-of-the-box UX is unchanged. Click-to-possess (slice 3)
-            // moves ControlledUnitTag off the King onto a goblin.
-            em.AddComponent<ControlledUnitTag>(entity);
 
             RenderMeshUtility.AddComponents(
                 entity, em, _renderDesc, _renderArray,
