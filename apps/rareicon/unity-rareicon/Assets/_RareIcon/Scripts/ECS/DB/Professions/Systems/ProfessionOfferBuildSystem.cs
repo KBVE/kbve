@@ -1,49 +1,25 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Rebuilds the world-level TaskOffer pool + dispatch context on cadence (§0-C). Keeps offer enumeration out of ProfessionDispatchSystem so the per-unit scoring loop reads one flat list and the world-scan cost amortises. BuildVersion increments each rebuild so the dispatcher can gate "full dispatch" frames off the singleton instead of owning its own timer.</summary>
+    /// <summary>Rebuilds the world-level TaskOffer pool + dispatch context on cadence (§0-C). Keeps offer enumeration out of ProfessionDispatchSystem so the per-unit scoring loop reads one flat list and the world-scan cost amortises. BuildVersion increments each rebuild so the dispatcher can gate "full dispatch" frames off the singleton instead of owning its own timer. ISystem + [BurstCompile] — managed bootstrap lives in OnCreate; the per-frame cadence check + Rebuild run on Burst.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateBefore(typeof(ProfessionDispatchSystem))]
-    public partial class ProfessionOfferBuildSystem : SystemBase
+    public partial struct ProfessionOfferBuildSystem : ISystem
     {
         public const float BuildIntervalSeconds = 5f;
 
         Entity _singleton;
-        bool   _initialized;
-        float  _lastBuildTime = -BuildIntervalSeconds;
+        float  _lastBuildTime;
 
-        protected override void OnCreate()
+        public void OnCreate(ref SystemState state)
         {
-            RequireForUpdate<ItemDBSingleton>();
-        }
+            state.RequireForUpdate<ItemDBSingleton>();
 
-        protected override void OnUpdate()
-        {
-            if (!_initialized) Bootstrap();
-
-            float now = (float)SystemAPI.Time.ElapsedTime;
-            if (now - _lastBuildTime < BuildIntervalSeconds) return;
-            _lastBuildTime = now;
-
-            Rebuild();
-        }
-
-        protected override void OnDestroy()
-        {
-            if (!_initialized) { base.OnDestroy(); return; }
-            if (!EntityManager.Exists(_singleton)) { base.OnDestroy(); return; }
-            var db = EntityManager.GetComponentData<ProfessionOffersSingleton>(_singleton);
-            if (db.Offers.IsCreated)        db.Offers.Dispose();
-            if (db.OffersPerKind.IsCreated) db.OffersPerKind.Dispose();
-            if (db.NeedyCaves.IsCreated)    db.NeedyCaves.Dispose();
-            base.OnDestroy();
-        }
-
-        void Bootstrap()
-        {
             var db = new ProfessionOffersSingleton
             {
                 Offers        = new NativeList<TaskOffer>(256, Allocator.Persistent),
@@ -51,24 +27,47 @@ namespace RareIcon
                 NeedyCaves    = new NativeList<NeedyCave>(4, Allocator.Persistent),
                 BuildVersion  = 0,
             };
-            _singleton = EntityManager.CreateEntity(typeof(ProfessionOffersSingleton));
-            EntityManager.SetName(_singleton, "ProfessionOffers");
-            EntityManager.SetComponentData(_singleton, db);
-            _initialized = true;
+            _singleton = state.EntityManager.CreateEntity(typeof(ProfessionOffersSingleton));
+            state.EntityManager.SetName(_singleton, "ProfessionOffers");
+            state.EntityManager.SetComponentData(_singleton, db);
+
+            _lastBuildTime = -BuildIntervalSeconds;
         }
 
-        void Rebuild()
+        public void OnDestroy(ref SystemState state)
         {
-            ref var db = ref SystemAPI.GetSingletonRW<ProfessionOffersSingleton>().ValueRW;
-            var itemDB = SystemAPI.GetSingleton<ItemDBSingleton>();
+            if (!state.EntityManager.Exists(_singleton)) return;
+            var db = state.EntityManager.GetComponentData<ProfessionOffersSingleton>(_singleton);
+            if (db.Offers.IsCreated)        db.Offers.Dispose();
+            if (db.OffersPerKind.IsCreated) db.OffersPerKind.Dispose();
+            if (db.NeedyCaves.IsCreated)    db.NeedyCaves.Dispose();
+        }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            float now = (float)SystemAPI.Time.ElapsedTime;
+            if (now - _lastBuildTime < BuildIntervalSeconds) return;
+            _lastBuildTime = now;
+
+            Rebuild(ref state);
+        }
+
+        [BurstCompile]
+        void Rebuild(ref SystemState state)
+        {
+            ref var db   = ref SystemAPI.GetSingletonRW<ProfessionOffersSingleton>().ValueRW;
+            var itemDB   = SystemAPI.GetSingleton<ItemDBSingleton>();
+            var capLookup  = SystemAPI.GetBufferLookup<CapitalLedger>(true);
+            var caveLookup = SystemAPI.GetBufferLookup<GoblinCaveLedger>(true);
 
             db.Offers.Clear();
             db.NeedyCaves.Clear();
             for (int i = 0; i < db.OffersPerKind.Length; i++) db.OffersPerKind[i] = 0;
 
-            db.HasCapital     = SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital);
-            db.Capital        = capital;
-            db.CapitalHex     = db.HasCapital ? SystemAPI.GetComponent<Building>(capital).RootHex : default;
+            db.HasCapital = SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital);
+            db.Capital    = capital;
+            db.CapitalHex = db.HasCapital ? SystemAPI.GetComponent<Building>(capital).RootHex : default;
 
             db.HasFarm     = false;
             db.NearestFarm = Entity.Null;
@@ -81,23 +80,22 @@ namespace RareIcon
                 break;
             }
 
-            var caveInvLookup = SystemAPI.GetBufferLookup<GoblinCaveLedger>(true);
             foreach (var (prodRO, buildingRO, e) in
                      SystemAPI.Query<RefRO<GoblinCaveProduction>, RefRO<Building>>()
                               .WithAll<GoblinCaveTag>()
                               .WithEntityAccess())
             {
-                if (!caveInvLookup.HasBuffer(e)) continue;
+                if (!caveLookup.HasBuffer(e)) continue;
                 ushort cap = prodRO.ValueRO.StorageCap == 0 ? (ushort)200 : prodRO.ValueRO.StorageCap;
-                int food  = CountFood(itemDB, caveInvLookup[e].Reinterpret<BankLedgerBase>());
+                int food   = CountFood(itemDB, caveLookup[e].Reinterpret<BankLedgerBase>());
                 if (food >= cap) continue;
                 db.NeedyCaves.Add(new NeedyCave { Entity = e, Hex = buildingRO.ValueRO.RootHex });
             }
 
             db.CapitalHasFood = false;
-            if (db.HasCapital && EntityManager.HasBuffer<CapitalLedger>(capital))
+            if (db.HasCapital && capLookup.HasBuffer(capital))
             {
-                var capInv = EntityManager.GetBuffer<CapitalLedger>(capital);
+                var capInv = capLookup[capital];
                 for (int i = 0; i < capInv.Length; i++)
                 {
                     if (capInv[i].Count == 0) continue;
