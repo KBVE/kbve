@@ -7,7 +7,7 @@ using Unity.Mathematics;
 namespace RareIcon
 {
     /// <summary>Phase 4: sole writer of CurrentAmounts. Walks unique keys in PendingDeltas, sums values per key, applies the result clamped at zero. Runs as a single IJob to keep the authoritative map single-writer.</summary>
-    [UpdateInGroup(typeof(LogisticsSystemGroup))]
+    [UpdateInGroup(typeof(LogisticsEndGroup))]
     [UpdateAfter(typeof(DeliveryReduceSystem))]
     public partial struct LedgerCommitSystem : ISystem
     {

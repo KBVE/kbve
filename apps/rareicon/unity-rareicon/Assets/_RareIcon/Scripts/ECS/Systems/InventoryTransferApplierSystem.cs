@@ -2,11 +2,10 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Sole RW writer of every bank ledger. Chains one drain job per producer queue so producers run fully in parallel; drain jobs serialize against each other through the ledger BufferLookup RW handles. Reads the combined producer JobHandle from BankTransferQueueSystem and gates the first drain on it.</summary>
+    /// <summary>Chunk-A shim: drains every legacy NativeQueue&lt;BankTransfer&gt; producer queue into LogisticsDBSingleton.PendingDeltas as raw per-key deltas (skipping the reservation phase because legacy producers aren't reservation-aware). Goes away entirely in Chunk B once every producer emits ReservationRecord directly. Runs OrderLast in EconomySystemGroup — the last touch before LogisticsEndGroup resolves / commits / mirrors.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup), OrderLast = true)]
     public partial class InventoryTransferApplierSystem : SystemBase
     {
@@ -16,6 +15,7 @@ namespace RareIcon
         {
             _bus = World.GetExistingSystemManaged<BankTransferQueueSystem>()
                 ?? World.CreateSystemManaged<BankTransferQueueSystem>();
+            RequireForUpdate<LogisticsDBSingleton>();
         }
 
         protected override void OnUpdate()
@@ -23,106 +23,37 @@ namespace RareIcon
             var queues = _bus.Queues;
             if (queues.Count == 0) return;
 
-            var capitalLookup    = SystemAPI.GetBufferLookup<CapitalLedger>(false);
-            var furnaceLookup    = SystemAPI.GetBufferLookup<FurnaceLedger>(false);
-            var farmLookup       = SystemAPI.GetBufferLookup<FarmLedger>(false);
-            var barracksLookup   = SystemAPI.GetBufferLookup<BarracksLedger>(false);
-            var goblinCaveLookup = SystemAPI.GetBufferLookup<GoblinCaveLedger>(false);
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
 
-            var dep = JobHandle.CombineDependencies(Dependency, _bus.GetProducerHandle());
+            var dep = JobHandle.CombineDependencies(Dependency, _bus.GetProducerHandle(), db.PipelineHandle);
 
             for (int i = 0; i < queues.Count; i++)
             {
-                dep = new ApplyBankTransfersJob
+                dep = new TranslateBankTransferJob
                 {
-                    Queue            = queues[i],
-                    CapitalLookup    = capitalLookup,
-                    FurnaceLookup    = furnaceLookup,
-                    FarmLookup       = farmLookup,
-                    BarracksLookup   = barracksLookup,
-                    GoblinCaveLookup = goblinCaveLookup,
+                    Queue         = queues[i],
+                    PendingDeltas = db.PendingDeltas.AsParallelWriter(),
                 }.Schedule(dep);
             }
 
-            Dependency = dep;
+            Dependency        = dep;
+            db.PipelineHandle = dep;
             _bus.ResetProducerHandle();
         }
     }
 
     [BurstCompile]
-    public struct ApplyBankTransfersJob : IJob
+    public struct TranslateBankTransferJob : IJob
     {
-        public NativeQueue<BankTransfer>      Queue;
-        public BufferLookup<CapitalLedger>    CapitalLookup;
-        public BufferLookup<FurnaceLedger>    FurnaceLookup;
-        public BufferLookup<FarmLedger>       FarmLookup;
-        public BufferLookup<BarracksLedger>   BarracksLookup;
-        public BufferLookup<GoblinCaveLedger> GoblinCaveLookup;
+        public NativeQueue<BankTransfer>                                 Queue;
+        public NativeParallelMultiHashMap<LedgerKey, int>.ParallelWriter PendingDeltas;
 
         public void Execute()
         {
             while (Queue.TryDequeue(out var t))
             {
                 if (t.Delta == 0) continue;
-
-                if (CapitalLookup.HasBuffer(t.Target))
-                {
-                    var view = CapitalLookup[t.Target].Reinterpret<BankLedgerBase>();
-                    Apply(view, t.ItemId, t.Delta);
-                }
-                else if (FurnaceLookup.HasBuffer(t.Target))
-                {
-                    var view = FurnaceLookup[t.Target].Reinterpret<BankLedgerBase>();
-                    Apply(view, t.ItemId, t.Delta);
-                }
-                else if (FarmLookup.HasBuffer(t.Target))
-                {
-                    var view = FarmLookup[t.Target].Reinterpret<BankLedgerBase>();
-                    Apply(view, t.ItemId, t.Delta);
-                }
-                else if (BarracksLookup.HasBuffer(t.Target))
-                {
-                    var view = BarracksLookup[t.Target].Reinterpret<BankLedgerBase>();
-                    Apply(view, t.ItemId, t.Delta);
-                }
-                else if (GoblinCaveLookup.HasBuffer(t.Target))
-                {
-                    var view = GoblinCaveLookup[t.Target].Reinterpret<BankLedgerBase>();
-                    Apply(view, t.ItemId, t.Delta);
-                }
-            }
-        }
-
-        static void Apply(DynamicBuffer<BankLedgerBase> buf, ushort itemId, int delta)
-        {
-            if (delta > 0)
-            {
-                for (int i = 0; i < buf.Length; i++)
-                {
-                    if (buf[i].ItemId != itemId) continue;
-                    var slot = buf[i];
-                    slot.Count = (ushort)math.min(slot.Count + delta, ushort.MaxValue);
-                    buf[i] = slot;
-                    return;
-                }
-                buf.Add(new BankLedgerBase
-                {
-                    Uid    = default,
-                    ItemId = itemId,
-                    Count  = (ushort)math.min(delta, ushort.MaxValue),
-                });
-                return;
-            }
-
-            int remaining = -delta;
-            for (int i = 0; i < buf.Length && remaining > 0; i++)
-            {
-                if (buf[i].ItemId != itemId) continue;
-                var slot = buf[i];
-                int take = math.min(slot.Count, remaining);
-                slot.Count = (ushort)(slot.Count - take);
-                buf[i] = slot;
-                remaining -= take;
+                PendingDeltas.Add(new LedgerKey { Bank = t.Target, ItemId = t.ItemId }, t.Delta);
             }
         }
     }

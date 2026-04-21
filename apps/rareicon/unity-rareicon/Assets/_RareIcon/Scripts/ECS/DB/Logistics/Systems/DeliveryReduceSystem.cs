@@ -6,7 +6,7 @@ using Unity.Jobs;
 namespace RareIcon
 {
     /// <summary>Phase 3: drains the Deliveries stream and accumulates per-destination positive deltas into PendingDeltas. Skips records whose Dest.Bank is Entity.Null (out-of-DB pack-side recipient).</summary>
-    [UpdateInGroup(typeof(LogisticsSystemGroup))]
+    [UpdateInGroup(typeof(LogisticsEndGroup))]
     [UpdateAfter(typeof(ReservationResolveSystem))]
     public partial struct DeliveryReduceSystem : ISystem
     {

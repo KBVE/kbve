@@ -7,9 +7,8 @@ using Unity.Jobs;
 namespace RareIcon
 {
     /// <summary>Editor-only harness. Seeds a handful of synthetic bank entities on first tick, then submits pull-style reservations between them every frame via a Burst job. Never compiles in player builds.</summary>
-    [UpdateInGroup(typeof(LogisticsSystemGroup))]
+    [UpdateInGroup(typeof(LogisticsBeginGroup))]
     [UpdateAfter(typeof(LogisticsDomainSystem))]
-    [UpdateBefore(typeof(ReservationResolveSystem))]
     public partial struct SyntheticProducerSystem : ISystem
     {
         const int    BankCount           = 4;
