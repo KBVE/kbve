@@ -8,14 +8,16 @@ using UnityEngine;
 
 namespace RareIcon
 {
-    /// <summary>Owns the ProfessionsDBSingleton lifecycle: bootstraps the CommittedEvents list on first tick, clears it per frame, disposes on teardown. Runs in BehaviorSystemGroup OrderFirst so the dispatcher downstream sees an empty list.</summary>
+    /// <summary>Owns the ProfessionsDBSingleton lifecycle: bootstraps the CommittedEvents list on first tick, clears it per frame, disposes on teardown. ISystem — pure native-container orchestration.</summary>
     [UpdateInGroup(typeof(BehaviorSystemGroup), OrderFirst = true)]
-    public partial class ProfessionsDomainSystem : SystemBase
+    public partial struct ProfessionsDomainSystem : ISystem
     {
         Entity _singleton;
         bool   _initialized;
 
-        protected override void OnUpdate()
+        public void OnCreate(ref SystemState state) { }
+
+        public void OnUpdate(ref SystemState state)
         {
             if (!_initialized)
             {
@@ -24,9 +26,9 @@ namespace RareIcon
                     CommittedEvents = new NativeList<ProfessionChangedMessage>(64, Allocator.Persistent),
                     PipelineHandle  = default,
                 };
-                _singleton = EntityManager.CreateEntity(typeof(ProfessionsDBSingleton));
-                EntityManager.SetName(_singleton, "ProfessionsDB");
-                EntityManager.SetComponentData(_singleton, db);
+                _singleton = state.EntityManager.CreateEntity(typeof(ProfessionsDBSingleton));
+                state.EntityManager.SetName(_singleton, "ProfessionsDB");
+                state.EntityManager.SetComponentData(_singleton, db);
                 _initialized = true;
             }
 
@@ -36,11 +38,11 @@ namespace RareIcon
             live.PipelineHandle = default;
         }
 
-        protected override void OnDestroy()
+        public void OnDestroy(ref SystemState state)
         {
             if (!_initialized) return;
-            if (!EntityManager.Exists(_singleton)) return;
-            var db = EntityManager.GetComponentData<ProfessionsDBSingleton>(_singleton);
+            if (!state.EntityManager.Exists(_singleton)) return;
+            var db = state.EntityManager.GetComponentData<ProfessionsDBSingleton>(_singleton);
             if (db.CommittedEvents.IsCreated) db.CommittedEvents.Dispose();
         }
     }
