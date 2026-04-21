@@ -21,18 +21,18 @@ namespace RareIcon
             var buildingLookup    = SystemAPI.GetComponentLookup<Building>(true);
             var invLookup         = SystemAPI.GetBufferLookup<InventorySlot>(false);
 
-            foreach (var (attack, faction, movement, inv) in
+            foreach (var (attack, faction, movement, pack) in
                      SystemAPI.Query<
                          RefRO<RangedAttack>,
                          RefRO<Faction>,
                          RefRO<UnitMovement>,
-                         DynamicBuffer<InventorySlot>>())
+                         DynamicBuffer<PackSlot>>())
             {
                 if (faction.ValueRO.Value != FactionType.Player) continue;
                 byte pt = attack.ValueRO.ProjectileType;
                 if (pt != ProjectileType.Arrow && pt != ProjectileType.Bolt) continue;
 
-                int carrying = CountOf(inv, (ushort)ItemId.Arrow);
+                int carrying = CountOfPack(pack, (ushort)ItemId.Arrow);
                 if (carrying >= ArcherRefillConfig.QuiverMax) continue;
 
                 if (!HexHoverSystem.TryGetHexEntity(movement.ValueRO.CurrentHex, out Entity tile)) continue;
@@ -45,19 +45,19 @@ namespace RareIcon
                 if (!invLookup.HasBuffer(building)) continue;
 
                 var storage = invLookup[building];
-                int available = CountOf(storage, (ushort)ItemId.Arrow);
+                int available = CountOfInv(storage, (ushort)ItemId.Arrow);
                 if (available <= 0) continue;
 
                 int room = ArcherRefillConfig.QuiverMax - carrying;
                 int transfer = math.min(room, available);
                 if (transfer <= 0) continue;
 
-                Consume(storage, (ushort)ItemId.Arrow, (ushort)transfer);
-                AddArrows(inv, (ushort)transfer);
+                ConsumeInv(storage, (ushort)ItemId.Arrow, (ushort)transfer);
+                AddArrowsPack(pack, (ushort)transfer);
             }
         }
 
-        static int CountOf(DynamicBuffer<InventorySlot> buf, ushort itemId)
+        static int CountOfInv(DynamicBuffer<InventorySlot> buf, ushort itemId)
         {
             int total = 0;
             for (int i = 0; i < buf.Length; i++)
@@ -65,7 +65,15 @@ namespace RareIcon
             return total;
         }
 
-        static void Consume(DynamicBuffer<InventorySlot> buf, ushort itemId, ushort amount)
+        static int CountOfPack(DynamicBuffer<PackSlot> buf, ushort itemId)
+        {
+            int total = 0;
+            for (int i = 0; i < buf.Length; i++)
+                if (buf[i].ItemId == itemId) total += buf[i].Count;
+            return total;
+        }
+
+        static void ConsumeInv(DynamicBuffer<InventorySlot> buf, ushort itemId, ushort amount)
         {
             int remaining = amount;
             for (int i = 0; i < buf.Length && remaining > 0; i++)
@@ -79,7 +87,7 @@ namespace RareIcon
             }
         }
 
-        static void AddArrows(DynamicBuffer<InventorySlot> buf, ushort amount)
+        static void AddArrowsPack(DynamicBuffer<PackSlot> buf, ushort amount)
         {
             for (int i = 0; i < buf.Length; i++)
             {
@@ -89,7 +97,7 @@ namespace RareIcon
                 buf[i] = slot;
                 return;
             }
-            buf.Add(new InventorySlot { ItemId = (ushort)ItemId.Arrow, Count = amount });
+            buf.Add(new PackSlot { ItemId = (ushort)ItemId.Arrow, Count = amount });
         }
     }
 }

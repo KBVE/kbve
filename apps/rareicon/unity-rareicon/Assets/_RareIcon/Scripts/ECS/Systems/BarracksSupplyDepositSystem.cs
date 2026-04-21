@@ -29,6 +29,7 @@ namespace RareIcon
                 ProdLookup     = SystemAPI.GetComponentLookup<BarracksProduction>(true),
                 CapLookup      = SystemAPI.GetComponentLookup<StorageCapacity>(true),
                 BuildingLookup = SystemAPI.GetComponentLookup<Building>(true),
+                PackLookup     = SystemAPI.GetBufferLookup<PackSlot>(false),
                 InvLookup      = SystemAPI.GetBufferLookup<InventorySlot>(false),
             }.Schedule(state.Dependency);
         }
@@ -47,6 +48,9 @@ namespace RareIcon
         [ReadOnly] public ComponentLookup<Building>         BuildingLookup;
 
         [NativeDisableParallelForRestriction]
+        public BufferLookup<PackSlot> PackLookup;
+
+        [NativeDisableParallelForRestriction]
         public BufferLookup<InventorySlot> InvLookup;
 
         void Execute(Entity entity, in JobIntent intent, in UnitMovement movement)
@@ -58,18 +62,18 @@ namespace RareIcon
             if (!CapLookup.HasComponent(target)) return;
             if (!ProdLookup.HasComponent(target)) return;
             if (!BuildingLookup.HasComponent(target)) return;
-            if (!InvLookup.HasBuffer(entity)) return;
+            if (!PackLookup.HasBuffer(entity)) return;
 
-            var unitInv = InvLookup[entity];
-            var rootHex = BuildingLookup[target].RootHex;
-            var prod    = ProdLookup[target];
-            ushort cap  = CapLookup[target].Total;
-            var here    = movement.CurrentHex;
+            var unitPack = PackLookup[entity];
+            var rootHex  = BuildingLookup[target].RootHex;
+            var prod     = ProdLookup[target];
+            ushort cap   = CapLookup[target].Total;
+            var here     = movement.CurrentHex;
 
             if (here.Equals(rootHex))
             {
                 var storage = InvLookup[target];
-                DepositSupply(unitInv, storage, cap);
+                DepositSupply(unitPack, storage, cap);
                 return;
             }
 
@@ -83,8 +87,8 @@ namespace RareIcon
             int foodShortfall = math.max(0, prod.FoodCost - FoodItems.Count(barracksStorage));
 
             var capitalInv = InvLookup[Capital];
-            if (coinShortfall > 0) TryPickupOne(capitalInv, unitInv, (ushort)ItemId.BanditCoin);
-            else if (foodShortfall > 0) TryPickupFood(capitalInv, unitInv);
+            if (coinShortfall > 0) TryPickupOne(capitalInv, unitPack, (ushort)ItemId.BanditCoin);
+            else if (foodShortfall > 0) TryPickupFood(capitalInv, unitPack);
         }
 
         bool IsOnCapital(int2 here)
@@ -110,7 +114,7 @@ namespace RareIcon
         }
 
         static void TryPickupOne(DynamicBuffer<InventorySlot> capInv,
-                                 DynamicBuffer<InventorySlot> unitInv,
+                                 DynamicBuffer<PackSlot> unitPack,
                                  ushort itemId)
         {
             for (int i = 0; i < capInv.Length; i++)
@@ -119,13 +123,13 @@ namespace RareIcon
                 var slot = capInv[i];
                 slot.Count -= 1;
                 capInv[i] = slot;
-                MergeOrAdd(unitInv, itemId, 1);
+                MergeOrAddPack(unitPack, itemId, 1);
                 return;
             }
         }
 
         static void TryPickupFood(DynamicBuffer<InventorySlot> capInv,
-                                  DynamicBuffer<InventorySlot> unitInv)
+                                  DynamicBuffer<PackSlot> unitPack)
         {
             for (int i = 0; i < capInv.Length; i++)
             {
@@ -135,34 +139,34 @@ namespace RareIcon
                 var slot = capInv[i];
                 slot.Count -= 1;
                 capInv[i] = slot;
-                MergeOrAdd(unitInv, id, 1);
+                MergeOrAddPack(unitPack, id, 1);
                 return;
             }
         }
 
-        static void DepositSupply(DynamicBuffer<InventorySlot> unitInv,
+        static void DepositSupply(DynamicBuffer<PackSlot> unitPack,
                                   DynamicBuffer<InventorySlot> storage,
                                   ushort capacity)
         {
             int remaining = capacity - StorageTotal(storage);
             if (remaining <= 0) return;
 
-            for (int i = 0; i < unitInv.Length && remaining > 0; i++)
+            for (int i = 0; i < unitPack.Length && remaining > 0; i++)
             {
-                if (unitInv[i].Count == 0) continue;
-                ushort id = unitInv[i].ItemId;
+                if (unitPack[i].Count == 0) continue;
+                ushort id = unitPack[i].ItemId;
                 if (id != (ushort)ItemId.BanditCoin && !FoodItems.IsFood(id)) continue;
 
-                int take = math.min(unitInv[i].Count, remaining);
-                var uslot = unitInv[i];
+                int take = math.min(unitPack[i].Count, remaining);
+                var uslot = unitPack[i];
                 uslot.Count = (ushort)(uslot.Count - take);
-                unitInv[i] = uslot;
+                unitPack[i] = uslot;
                 remaining -= take;
-                MergeOrAdd(storage, id, (ushort)take);
+                MergeOrAddInv(storage, id, (ushort)take);
             }
         }
 
-        static void MergeOrAdd(DynamicBuffer<InventorySlot> inv, ushort itemId, ushort amount)
+        static void MergeOrAddInv(DynamicBuffer<InventorySlot> inv, ushort itemId, ushort amount)
         {
             for (int i = 0; i < inv.Length; i++)
             {
@@ -175,6 +179,21 @@ namespace RareIcon
                 }
             }
             inv.Add(new InventorySlot { ItemId = itemId, Count = amount });
+        }
+
+        static void MergeOrAddPack(DynamicBuffer<PackSlot> pack, ushort itemId, ushort amount)
+        {
+            for (int i = 0; i < pack.Length; i++)
+            {
+                if (pack[i].ItemId == itemId)
+                {
+                    var slot = pack[i];
+                    slot.Count = (ushort)math.min(slot.Count + amount, ushort.MaxValue);
+                    pack[i] = slot;
+                    return;
+                }
+            }
+            pack.Add(new PackSlot { ItemId = itemId, Count = amount });
         }
     }
 }

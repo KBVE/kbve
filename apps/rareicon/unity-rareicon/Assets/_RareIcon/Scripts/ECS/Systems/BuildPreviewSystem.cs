@@ -159,20 +159,54 @@ namespace RareIcon
             // Cost check — find source inventory + verify each ingredient.
             // Failures here paint red same as a bad biome would, so the
             // player gets one consistent "you can't place here" signal.
-            if (!TryFindCostSourceInventory(em, buildingType, out var inv)) return false;
+            return CostSourceHasIngredients(em, buildingType);
+        }
 
+        static bool CostSourceHasIngredients(EntityManager em, byte buildingType)
+        {
             var cost = BuildingDB.GetCost(buildingType);
-            for (int i = 0; i < cost.Length; i++)
+            if (BuildingDB.GetCostSource(buildingType) == BuildingDB.CostSource.KingInventory)
             {
-                int total = 0;
-                for (int j = 0; j < inv.Length; j++)
+                var q = em.CreateEntityQuery(ComponentType.ReadOnly<KingTag>());
+                if (q.CalculateEntityCount() == 0) { q.Dispose(); return false; }
+                var arr = q.ToEntityArray(Unity.Collections.Allocator.Temp);
+                Entity king = arr[0];
+                arr.Dispose();
+                q.Dispose();
+                if (!em.HasBuffer<PackSlot>(king)) return false;
+                var pack = em.GetBuffer<PackSlot>(king);
+                for (int i = 0; i < cost.Length; i++)
                 {
-                    if (!MatchesCostItem(inv[j].ItemId, cost[i].ItemId)) continue;
-                    total += inv[j].Count;
+                    int total = 0;
+                    for (int j = 0; j < pack.Length; j++)
+                    {
+                        if (!MatchesCostItem(pack[j].ItemId, cost[i].ItemId)) continue;
+                        total += pack[j].Count;
+                    }
+                    if (total < cost[i].Amount) return false;
                 }
-                if (total < cost[i].Amount) return false;
+                return true;
             }
-            return true;
+            else
+            {
+                var q = em.CreateEntityQuery(ComponentType.ReadOnly<CapitalTag>());
+                if (q.CalculateEntityCount() == 0) { q.Dispose(); return false; }
+                Entity capital = q.GetSingletonEntity();
+                q.Dispose();
+                if (!em.HasBuffer<InventorySlot>(capital)) return false;
+                var inv = em.GetBuffer<InventorySlot>(capital);
+                for (int i = 0; i < cost.Length; i++)
+                {
+                    int total = 0;
+                    for (int j = 0; j < inv.Length; j++)
+                    {
+                        if (!MatchesCostItem(inv[j].ItemId, cost[i].ItemId)) continue;
+                        total += inv[j].Count;
+                    }
+                    if (total < cost[i].Amount) return false;
+                }
+                return true;
+            }
         }
 
         static bool MatchesCostItem(ushort slotId, ushort costId)
@@ -207,35 +241,6 @@ namespace RareIcon
             return (math.abs(d.x) + math.abs(d.y) + math.abs(ds)) / 2;
         }
 
-        // Read-only resolution of the cost source's inventory buffer.
-        // Returns false if the source entity doesn't exist (e.g., trying
-        // to build a Farm with no Capital placed yet).
-        static bool TryFindCostSourceInventory(EntityManager em, byte buildingType,
-                                               out DynamicBuffer<InventorySlot> inv)
-        {
-            inv = default;
-            Entity source = Entity.Null;
-
-            if (BuildingDB.GetCostSource(buildingType) == BuildingDB.CostSource.KingInventory)
-            {
-                var q = em.CreateEntityQuery(ComponentType.ReadOnly<KingTag>());
-                if (q.CalculateEntityCount() == 0) return false;
-                var arr = q.ToEntityArray(Unity.Collections.Allocator.Temp);
-                source = arr[0];
-                arr.Dispose();
-            }
-            else
-            {
-                var q = em.CreateEntityQuery(ComponentType.ReadOnly<CapitalTag>());
-                if (q.CalculateEntityCount() == 0) { q.Dispose(); return false; }
-                source = q.GetSingletonEntity();
-                q.Dispose();
-            }
-
-            if (!em.HasBuffer<InventorySlot>(source)) return false;
-            inv = em.GetBuffer<InventorySlot>(source);
-            return true;
-        }
 
         void HideAllPreviews()
         {

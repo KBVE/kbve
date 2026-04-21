@@ -58,24 +58,24 @@ namespace RareIcon
         void Execute([ChunkIndexInQuery] int chunkIdx,
                      in UnitMovement movement,
                      in Faction faction,
-                     ref DynamicBuffer<InventorySlot> inv)
+                     ref DynamicBuffer<PackSlot> pack)
         {
             if (faction.Value != FactionType.Player) return;
-            if (inv.Length == 0) return;
+            if (pack.Length == 0) return;
 
             bool hasLoot = false;
-            for (int i = 0; i < inv.Length; i++)
-                if (inv[i].Count > 0) { hasLoot = true; break; }
+            for (int i = 0; i < pack.Length; i++)
+                if (pack[i].Count > 0) { hasLoot = true; break; }
             if (!hasLoot) return;
 
             if (!HexLookup.TryGetValue(movement.CurrentHex, out var tile)) return;
             if (!OccupantLookup.HasComponent(tile)) return;
             if (OccupantLookup[tile].Building != Capital) return;
 
-            for (int i = 0; i < inv.Length; i++)
+            for (int i = 0; i < pack.Length; i++)
             {
-                ushort itemId = inv[i].ItemId;
-                ushort count  = inv[i].Count;
+                ushort itemId = pack[i].ItemId;
+                ushort count  = pack[i].Count;
                 if (itemId == 0 || count == 0) continue;
                 if (AnyBarracksUnderstocked && itemId == (ushort)ItemId.BanditCoin) continue;
 
@@ -87,9 +87,9 @@ namespace RareIcon
                     Delta  = count,
                 });
 
-                var src = inv[i];
+                var src = pack[i];
                 src.Count = 0;
-                inv[i] = src;
+                pack[i] = src;
             }
         }
     }

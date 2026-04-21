@@ -556,9 +556,9 @@ namespace RareIcon
             }
 
             ushort i0 = 0, c0 = 0, i1 = 0, c1 = 0, i2 = 0, c2 = 0, i3 = 0, c3 = 0;
-            if (EntityManager.HasBuffer<InventorySlot>(e))
+            if (EntityManager.HasBuffer<PackSlot>(e))
             {
-                var inv = EntityManager.GetBuffer<InventorySlot>(e);
+                var inv = EntityManager.GetBuffer<PackSlot>(e);
                 if (inv.Length > 0) { i0 = inv[0].ItemId; c0 = inv[0].Count; }
                 if (inv.Length > 1) { i1 = inv[1].ItemId; c1 = inv[1].Count; }
                 if (inv.Length > 2) { i2 = inv[2].ItemId; c2 = inv[2].Count; }

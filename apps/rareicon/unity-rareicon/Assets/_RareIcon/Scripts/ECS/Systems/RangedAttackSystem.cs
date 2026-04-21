@@ -50,7 +50,7 @@ namespace RareIcon
                      in LocalTransform transform,
                      in Faction faction,
                      ref RangedAttack attack,
-                     DynamicBuffer<InventorySlot> unitInv)
+                     DynamicBuffer<PackSlot> unitInv)
         {
             attack.TimeSinceShot += Dt;
             if (attack.TimeSinceShot < attack.Cooldown) return;
@@ -126,7 +126,7 @@ namespace RareIcon
             return found;
         }
 
-        static bool ConsumeOne(DynamicBuffer<InventorySlot> inv, ushort itemId)
+        static bool ConsumeOne(DynamicBuffer<PackSlot> inv, ushort itemId)
         {
             for (int i = 0; i < inv.Length; i++)
             {

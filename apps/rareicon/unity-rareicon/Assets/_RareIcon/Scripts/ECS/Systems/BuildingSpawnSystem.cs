@@ -131,31 +131,43 @@ namespace RareIcon
             // 3. Cost validation — find the source inventory (King for
             //    Capital, Capital storage for everything else) and
             //    confirm every ingredient is in stock BEFORE deducting.
-            if (!TryFindCostSource(em, req.BuildingType, out var sourceEntity, out reason))
+            if (!TryFindCostSource(em, req.BuildingType, out var sourceEntity, out var sourceIsKing, out reason))
                 return false;
 
             var cost = BuildingDB.GetCost(req.BuildingType);
-            var sourceInv = em.GetBuffer<InventorySlot>(sourceEntity);
-            for (int i = 0; i < cost.Length; i++)
+            if (sourceIsKing)
             {
-                if (!HasItem(sourceInv, cost[i].ItemId, cost[i].Amount))
+                var sourcePack = em.GetBuffer<PackSlot>(sourceEntity);
+                for (int i = 0; i < cost.Length; i++)
                 {
-                    reason = $"missing {cost[i].Amount}× item {cost[i].ItemId}";
-                    return false;
+                    if (!HasItemPack(sourcePack, cost[i].ItemId, cost[i].Amount))
+                    {
+                        reason = $"missing {cost[i].Amount}× item {cost[i].ItemId}";
+                        return false;
+                    }
+                }
+                if (BuildingDB.SpawnsFullyBuilt(req.BuildingType))
+                {
+                    for (int i = 0; i < cost.Length; i++)
+                        ConsumePack(sourcePack, cost[i].ItemId, cost[i].Amount);
                 }
             }
-
-            // 3. Commit — Capital draws its cost immediately from the King's
-            //    pocket (magical land grant). Goblin Cave drains from the
-            //    Capital upfront too, because its cost includes the AnyFood
-            //    sentinel which can't be carried as a single item by a
-            //    Builder. Everything else becomes a ConstructionSite;
-            //    Builders haul the materials during the build, so nothing
-            //    is deducted up front.
-            if (BuildingDB.SpawnsFullyBuilt(req.BuildingType))
+            else
             {
+                var sourceInv = em.GetBuffer<InventorySlot>(sourceEntity);
                 for (int i = 0; i < cost.Length; i++)
-                    Consume(sourceInv, cost[i].ItemId, cost[i].Amount);
+                {
+                    if (!HasItem(sourceInv, cost[i].ItemId, cost[i].Amount))
+                    {
+                        reason = $"missing {cost[i].Amount}× item {cost[i].ItemId}";
+                        return false;
+                    }
+                }
+                if (BuildingDB.SpawnsFullyBuilt(req.BuildingType))
+                {
+                    for (int i = 0; i < cost.Length; i++)
+                        Consume(sourceInv, cost[i].ItemId, cost[i].Amount);
+                }
             }
 
             float3 pos = HexMeshUtil.HexToWorld(req.CenterHex.x, req.CenterHex.y, HexSize);
@@ -279,12 +291,13 @@ namespace RareIcon
             return true;
         }
 
-        // Resolves the entity whose InventorySlot buffer holds the cost
-        // for this building type. Capital draws from the King's pocket
-        // (founding act), everything else draws from the empire pool.
-        bool TryFindCostSource(EntityManager em, byte buildingType, out Entity source, out string reason)
+        // Resolves the entity whose inventory buffer holds the cost for
+        // this building type. Capital draws from the King's PackSlot
+        // (founding act); everything else draws from Capital's InventorySlot.
+        bool TryFindCostSource(EntityManager em, byte buildingType, out Entity source, out bool sourceIsKing, out string reason)
         {
             source = Entity.Null;
+            sourceIsKing = false;
             reason = null;
 
             if (BuildingDB.GetCostSource(buildingType) == BuildingDB.CostSource.KingInventory)
@@ -296,19 +309,23 @@ namespace RareIcon
                     break;
                 }
                 if (source == Entity.Null) { reason = "no King in world"; return false; }
-            }
-            else
-            {
-                if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out source))
+                if (!em.HasBuffer<PackSlot>(source))
                 {
-                    reason = "no Capital — build one first";
+                    reason = "King has no PackSlot buffer";
                     return false;
                 }
+                sourceIsKing = true;
+                return true;
             }
 
+            if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out source))
+            {
+                reason = "no Capital — build one first";
+                return false;
+            }
             if (!em.HasBuffer<InventorySlot>(source))
             {
-                reason = "cost source has no inventory buffer";
+                reason = "Capital has no InventorySlot buffer";
                 return false;
             }
             return true;
@@ -321,6 +338,17 @@ namespace RareIcon
             {
                 if (!MatchesCostItem(inv[i].ItemId, itemId)) continue;
                 total += inv[i].Count;
+            }
+            return total >= amount;
+        }
+
+        static bool HasItemPack(DynamicBuffer<PackSlot> pack, ushort itemId, ushort amount)
+        {
+            int total = 0;
+            for (int i = 0; i < pack.Length; i++)
+            {
+                if (!MatchesCostItem(pack[i].ItemId, itemId)) continue;
+                total += pack[i].Count;
             }
             return total >= amount;
         }
@@ -340,6 +368,20 @@ namespace RareIcon
                 int take = slot.Count < remaining ? slot.Count : remaining;
                 slot.Count = (ushort)(slot.Count - take);
                 inv[i] = slot;
+                remaining -= take;
+            }
+        }
+
+        static void ConsumePack(DynamicBuffer<PackSlot> pack, ushort itemId, ushort amount)
+        {
+            int remaining = amount;
+            for (int i = 0; i < pack.Length && remaining > 0; i++)
+            {
+                if (!MatchesCostItem(pack[i].ItemId, itemId)) continue;
+                var slot = pack[i];
+                int take = slot.Count < remaining ? slot.Count : remaining;
+                slot.Count = (ushort)(slot.Count - take);
+                pack[i] = slot;
                 remaining -= take;
             }
         }

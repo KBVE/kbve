@@ -178,9 +178,9 @@ namespace RareIcon
                         var f = EntityManager.GetComponentData<Fatigue>(entity);
                         fg = f.Value; fgMax = f.Max;
                     }
-                    if (EntityManager.HasBuffer<InventorySlot>(entity))
+                    if (EntityManager.HasBuffer<PackSlot>(entity))
                     {
-                        var inv = EntityManager.GetBuffer<InventorySlot>(entity);
+                        var inv = EntityManager.GetBuffer<PackSlot>(entity);
                         const int MaxAgg = 32;
                         Span<ushort> aggIds    = stackalloc ushort[MaxAgg];
                         Span<int>    aggCounts = stackalloc int   [MaxAgg];

@@ -14,16 +14,14 @@ namespace RareIcon
 
         public void OnUpdate(ref SystemState state)
         {
-            state.EntityManager.CompleteDependencyBeforeRW<InventorySlot>();
-            state.EntityManager.CompleteDependencyBeforeRW<EquippedBag>();
-
-            var invLookup = SystemAPI.GetBufferLookup<InventorySlot>(true);
-            var bagLookup = SystemAPI.GetBufferLookup<EquippedBag>(true);
+            var packLookup = SystemAPI.GetBufferLookup<PackSlot>(true);
+            var invLookup  = SystemAPI.GetBufferLookup<InventorySlot>(true);
+            var bagLookup  = SystemAPI.GetBufferLookup<EquippedBag>(true);
 
             var unitHandle = new UpdateBagStatusJob
             {
-                InvLookup = invLookup,
-                BagLookup = bagLookup,
+                PackLookup = packLookup,
+                BagLookup  = bagLookup,
             }.ScheduleParallel(state.Dependency);
 
             var caveHandle = new UpdateCaveFoodStatusJob
@@ -51,17 +49,17 @@ namespace RareIcon
     [WithAll(typeof(JobPriorities))]
     public partial struct UpdateBagStatusJob : IJobEntity
     {
-        [ReadOnly] public BufferLookup<InventorySlot> InvLookup;
-        [ReadOnly] public BufferLookup<EquippedBag>   BagLookup;
+        [ReadOnly] public BufferLookup<PackSlot>    PackLookup;
+        [ReadOnly] public BufferLookup<EquippedBag> BagLookup;
 
         void Execute(Entity entity, ref UnitBagStatus status)
         {
             int filled = 0;
-            if (InvLookup.HasBuffer(entity))
+            if (PackLookup.HasBuffer(entity))
             {
-                var inv = InvLookup[entity];
-                for (int i = 0; i < inv.Length; i++)
-                    if (inv[i].Count > 0) filled++;
+                var pack = PackLookup[entity];
+                for (int i = 0; i < pack.Length; i++)
+                    if (pack[i].Count > 0) filled++;
             }
 
             int cap = InventoryUtil.BaseSlotCap;

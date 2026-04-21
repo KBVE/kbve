@@ -50,7 +50,7 @@ namespace RareIcon
                      ref UnitMovement movement,
                      in JobPriorities priorities,
                      in Unit unit,
-                     DynamicBuffer<InventorySlot> inventory,
+                     DynamicBuffer<PackSlot> inventory,
                      in DynamicBuffer<EquippedBag> bags)
         {
             if (movement.HarvestCooldown > 0f)
@@ -150,7 +150,7 @@ namespace RareIcon
             => (res.Wood | res.Leaves | res.Branches) != 0;
 
         static bool TryTakeResource(ref byte amount, byte resourceTag, byte unitType,
-                                    DynamicBuffer<InventorySlot> inventory,
+                                    DynamicBuffer<PackSlot> inventory,
                                     in DynamicBuffer<EquippedBag> bags)
         {
             if (amount == 0) return false;
@@ -167,7 +167,7 @@ namespace RareIcon
         }
 
         static bool TryTakeCactus(ref HexResources res, uint harvestStep, int q, int r,
-                                  byte unitType, DynamicBuffer<InventorySlot> inventory,
+                                  byte unitType, DynamicBuffer<PackSlot> inventory,
                                   in DynamicBuffer<EquippedBag> bags)
         {
             if (res.Cactus == 0 || res.CactusVariant == CactusVariantType.None) return false;

@@ -153,7 +153,7 @@ namespace RareIcon
                 }
             }
 
-            var unitInvLookup = SystemAPI.GetBufferLookup<InventorySlot>(true);
+            var unitPackLookup = SystemAPI.GetBufferLookup<PackSlot>(true);
 
             if (!_hexOccupancy.IsCreated)
                 _hexOccupancy = new NativeHashMap<int2, int>(64, Allocator.Persistent);
@@ -354,8 +354,8 @@ namespace RareIcon
                 // state. Precomputed so the offer loop does a single
                 // variant-bit test per Looter candidate instead of
                 // re-checking inventory each time.
-                bool carryingFood = unitInvLookup.HasBuffer(entity)
-                                    && BufferHasFood(unitInvLookup[entity]);
+                bool carryingFood = unitPackLookup.HasBuffer(entity)
+                                    && PackHasFood(unitPackLookup[entity]);
                 byte looterMode;
                 if (carryingFood && needyCaves.Length > 0)
                     looterMode = OfferVariant.LooterDeliver;
@@ -525,7 +525,7 @@ namespace RareIcon
             public int2   Hex;
         }
 
-        static bool BufferHasFood(DynamicBuffer<InventorySlot> buf)
+        static bool PackHasFood(DynamicBuffer<PackSlot> buf)
         {
             for (int i = 0; i < buf.Length; i++)
             {

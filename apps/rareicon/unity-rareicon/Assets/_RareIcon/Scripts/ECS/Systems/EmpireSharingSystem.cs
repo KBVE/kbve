@@ -17,7 +17,7 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var invLookup = SystemAPI.GetBufferLookup<InventorySlot>(false);
+            var invLookup = SystemAPI.GetBufferLookup<PackSlot>(false);
 
             var hexBuckets = new NativeParallelMultiHashMap<int2, Entity>(64, Allocator.TempJob);
 
@@ -46,7 +46,7 @@ namespace RareIcon
         [ReadOnly] public NativeParallelMultiHashMap<int2, Entity> HexBuckets;
 
         [NativeDisableParallelForRestriction]
-        public BufferLookup<InventorySlot> InvLookup;
+        public BufferLookup<PackSlot> InvLookup;
 
         void Execute(Entity entity, in UnitMovement movement, in Faction faction, in Hunger hunger)
         {
@@ -79,14 +79,14 @@ namespace RareIcon
             } while (HexBuckets.TryGetNextValue(out peer, ref it));
         }
 
-        static bool HasEdible(in DynamicBuffer<InventorySlot> inv)
+        static bool HasEdible(in DynamicBuffer<PackSlot> inv)
         {
             for (int i = 0; i < inv.Length; i++)
                 if (inv[i].Count > 0 && FoodItems.IsFood(inv[i].ItemId)) return true;
             return false;
         }
 
-        static void AddOne(DynamicBuffer<InventorySlot> inv, ushort itemId)
+        static void AddOne(DynamicBuffer<PackSlot> inv, ushort itemId)
         {
             for (int j = 0; j < inv.Length; j++)
             {
@@ -98,7 +98,7 @@ namespace RareIcon
                     return;
                 }
             }
-            inv.Add(new InventorySlot { ItemId = itemId, Count = 1 });
+            inv.Add(new PackSlot { ItemId = itemId, Count = 1 });
         }
     }
 }

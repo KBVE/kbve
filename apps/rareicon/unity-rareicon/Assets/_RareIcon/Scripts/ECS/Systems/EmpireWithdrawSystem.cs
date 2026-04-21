@@ -76,12 +76,12 @@ namespace RareIcon
                      in UnitMovement movement,
                      in Faction faction,
                      in Hunger hunger,
-                     ref DynamicBuffer<InventorySlot> unitInv,
+                     ref DynamicBuffer<PackSlot> unitPack,
                      in DynamicBuffer<EquippedBag> bags)
         {
             if (faction.Value != FactionType.Player) return;
             if (hunger.Max <= 0f || hunger.Value / hunger.Max < HungerTrigger) return;
-            if (HasEdible(unitInv)) return;
+            if (HasEdible(unitPack)) return;
             if (CapitalFoods.Length == 0) return;
 
             if (!HexLookup.TryGetValue(movement.CurrentHex, out var tile)) return;
@@ -90,7 +90,7 @@ namespace RareIcon
 
             ushort take = CapitalFoods[0].ItemId;
 
-            ushort added = unitInv.AddItemCapped(bags, ItemDb, take, 1);
+            ushort added = unitPack.AddItemCapped(bags, ItemDb, take, 1);
             if (added == 0) return;
 
             var req = Ecb.CreateEntity(chunkIdx);
@@ -102,7 +102,7 @@ namespace RareIcon
             });
         }
 
-        static bool HasEdible(in DynamicBuffer<InventorySlot> inv)
+        static bool HasEdible(in DynamicBuffer<PackSlot> inv)
         {
             for (int i = 0; i < inv.Length; i++)
                 if (inv[i].Count > 0 && FoodItems.IsFood(inv[i].ItemId)) return true;

@@ -38,7 +38,7 @@ namespace RareIcon
             {
                 CapitalHex = capitalHex,
                 Needy      = needy.AsDeferredJobArray(),
-                InvLookup  = SystemAPI.GetBufferLookup<InventorySlot>(true),
+                PackLookup  = SystemAPI.GetBufferLookup<PackSlot>(true),
             }.ScheduleParallel(state.Dependency);
 
             state.Dependency = needy.Dispose(jobHandle);
@@ -56,7 +56,7 @@ namespace RareIcon
     {
         public int2 CapitalHex;
         [ReadOnly] public NativeArray<NeedyBarracks> Needy;
-        [ReadOnly] public BufferLookup<InventorySlot> InvLookup;
+        [ReadOnly] public BufferLookup<PackSlot> PackLookup;
 
         void Execute(Entity entity,
                      in JobPriorities priorities,
@@ -84,9 +84,9 @@ namespace RareIcon
                 }
             }
             if (bestEntity == Entity.Null) return;
-            if (!InvLookup.HasBuffer(entity)) return;
+            if (!PackLookup.HasBuffer(entity)) return;
 
-            bool carrying = CarriesSupply(InvLookup[entity]);
+            bool carrying = CarriesSupply(PackLookup[entity]);
             intent = new JobIntent
             {
                 Kind         = JobKind.Looter,
@@ -95,7 +95,7 @@ namespace RareIcon
             };
         }
 
-        static bool CarriesSupply(in DynamicBuffer<InventorySlot> inv)
+        static bool CarriesSupply(in DynamicBuffer<PackSlot> inv)
         {
             for (int i = 0; i < inv.Length; i++)
             {

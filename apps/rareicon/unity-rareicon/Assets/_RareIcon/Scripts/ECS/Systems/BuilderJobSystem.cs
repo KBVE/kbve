@@ -23,7 +23,7 @@ namespace RareIcon
             state.Dependency = new BuilderJobRefineJob
             {
                 CapitalHex      = capitalHex,
-                InvLookup       = SystemAPI.GetBufferLookup<InventorySlot>(true),
+                PackLookup       = SystemAPI.GetBufferLookup<PackSlot>(true),
                 MaterialLookup  = SystemAPI.GetBufferLookup<ConstructionMaterial>(true),
                 SiteLookup      = SystemAPI.GetComponentLookup<ConstructionSite>(true),
             }.ScheduleParallel(state.Dependency);
@@ -35,7 +35,7 @@ namespace RareIcon
     {
         public int2 CapitalHex;
 
-        [ReadOnly] public BufferLookup<InventorySlot>        InvLookup;
+        [ReadOnly] public BufferLookup<PackSlot>        PackLookup;
         [ReadOnly] public BufferLookup<ConstructionMaterial> MaterialLookup;
         [ReadOnly] public ComponentLookup<ConstructionSite>  SiteLookup;
 
@@ -45,9 +45,9 @@ namespace RareIcon
             if (intent.TargetEntity == Entity.Null) return;
             if (!SiteLookup.HasComponent(intent.TargetEntity)) return;
             if (!MaterialLookup.HasBuffer(intent.TargetEntity)) return;
-            if (!InvLookup.HasBuffer(entity)) return;
+            if (!PackLookup.HasBuffer(entity)) return;
 
-            var inventory = InvLookup[entity];
+            var inventory = PackLookup[entity];
             var mats      = MaterialLookup[intent.TargetEntity];
             var siteHex   = SiteLookup[intent.TargetEntity].RootHex;
 
@@ -60,7 +60,7 @@ namespace RareIcon
             };
         }
 
-        static bool CarriesMatchingMaterial(in DynamicBuffer<InventorySlot> inv,
+        static bool CarriesMatchingMaterial(in DynamicBuffer<PackSlot> inv,
                                             in DynamicBuffer<ConstructionMaterial> mats)
         {
             for (int i = 0; i < inv.Length; i++)

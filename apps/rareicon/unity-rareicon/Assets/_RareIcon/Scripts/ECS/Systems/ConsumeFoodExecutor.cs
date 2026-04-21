@@ -30,7 +30,7 @@ namespace RareIcon
 
         void Execute(ref Hunger hunger,
                      in ReliefIntent intent,
-                     ref DynamicBuffer<InventorySlot> inv)
+                     ref DynamicBuffer<PackSlot> inv)
         {
             if (intent.Kind != ReliefKind.Eat) return;
             if (hunger.Max <= 0f) return;

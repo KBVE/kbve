@@ -190,17 +190,61 @@ namespace RareIcon
 
             static bool HasAllIngredients(EntityManager em, byte buildingType)
             {
-                if (!TryFindCostSourceInventory(em, buildingType, out var inv)) return false;
                 var cost = BuildingDB.GetCost(buildingType);
-                for (int i = 0; i < cost.Length; i++)
+                if (BuildingDB.GetCostSource(buildingType) == BuildingDB.CostSource.KingInventory)
+                {
+                    var q = em.CreateEntityQuery(ComponentType.ReadOnly<KingTag>());
+                    if (q.CalculateEntityCount() == 0) { q.Dispose(); return false; }
+                    var arr = q.ToEntityArray(Unity.Collections.Allocator.Temp);
+                    Entity king = arr[0];
+                    arr.Dispose();
+                    q.Dispose();
+                    if (!em.HasBuffer<PackSlot>(king)) return false;
+                    var pack = em.GetBuffer<PackSlot>(king);
+                    for (int i = 0; i < cost.Length; i++)
+                    {
+                        int total = 0;
+                        for (int j = 0; j < pack.Length; j++)
+                        {
+                            if (!MatchesCostItem(pack[j].ItemId, cost[i].ItemId)) continue;
+                            total += pack[j].Count;
+                        }
+                        if (total < cost[i].Amount) return false;
+                    }
+                    return true;
+                }
+
+                Entity capital = Entity.Null;
+                {
+                    var q = em.CreateEntityQuery(ComponentType.ReadOnly<Building>());
+                    if (q.CalculateEntityCount() == 0) { q.Dispose(); return false; }
+                    var arr = q.ToEntityArray(Unity.Collections.Allocator.Temp);
+                    try
+                    {
+                        for (int i = 0; i < arr.Length; i++)
+                        {
+                            if (em.GetComponentData<Building>(arr[i]).Type == RareIcon.BuildingType.Capital)
+                            {
+                                capital = arr[i];
+                                break;
+                            }
+                        }
+                    }
+                    finally { arr.Dispose(); }
+                    q.Dispose();
+                }
+                if (capital == Entity.Null) return false;
+                if (!em.HasBuffer<InventorySlot>(capital)) return false;
+                var inv = em.GetBuffer<InventorySlot>(capital);
+                for (int k = 0; k < cost.Length; k++)
                 {
                     int total = 0;
                     for (int j = 0; j < inv.Length; j++)
                     {
-                        if (!MatchesCostItem(inv[j].ItemId, cost[i].ItemId)) continue;
+                        if (!MatchesCostItem(inv[j].ItemId, cost[k].ItemId)) continue;
                         total += inv[j].Count;
                     }
-                    if (total < cost[i].Amount) return false;
+                    if (total < cost[k].Amount) return false;
                 }
                 return true;
             }
@@ -216,43 +260,6 @@ namespace RareIcon
                 return slotId == costId;
             }
 
-            static bool TryFindCostSourceInventory(EntityManager em, byte buildingType,
-                                                   out DynamicBuffer<InventorySlot> inv)
-            {
-                inv = default;
-                Entity source = Entity.Null;
-                if (BuildingDB.GetCostSource(buildingType) == BuildingDB.CostSource.KingInventory)
-                {
-                    var q = em.CreateEntityQuery(ComponentType.ReadOnly<KingTag>());
-                    if (q.CalculateEntityCount() == 0) return false;
-                    var arr = q.ToEntityArray(Unity.Collections.Allocator.Temp);
-                    source = arr[0];
-                    arr.Dispose();
-                }
-                else
-                {
-                    var q = em.CreateEntityQuery(ComponentType.ReadOnly<Building>());
-                    if (q.CalculateEntityCount() == 0) return false;
-                    var arr = q.ToEntityArray(Unity.Collections.Allocator.Temp);
-                    try
-                    {
-                        for (int i = 0; i < arr.Length; i++)
-                        {
-                            if (em.GetComponentData<Building>(arr[i]).Type == RareIcon.BuildingType.Capital)
-                            {
-                                source = arr[i];
-                                break;
-                            }
-                        }
-                    }
-                    finally { arr.Dispose(); }
-                    if (source == Entity.Null) return false;
-                }
-
-                if (!em.HasBuffer<InventorySlot>(source)) return false;
-                inv = em.GetBuffer<InventorySlot>(source);
-                return true;
-            }
         }
     }
 }

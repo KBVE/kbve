@@ -109,13 +109,13 @@ namespace RareIcon
             var capitalStorage = EntityManager.GetBuffer<InventorySlot>(capital);
             if (!AnyFoodInBuffer(capitalStorage)) return;
 
-            foreach (var (jobIntent, reliefIntent, faction, movement, inv, bags) in
+            foreach (var (jobIntent, reliefIntent, faction, movement, pack, bags) in
                      SystemAPI.Query<
                          RefRO<JobIntent>,
                          RefRO<ReliefIntent>,
                          RefRO<Faction>,
                          RefRO<UnitMovement>,
-                         DynamicBuffer<InventorySlot>,
+                         DynamicBuffer<PackSlot>,
                          DynamicBuffer<EquippedBag>>())
             {
                 if (faction.ValueRO.Value != FactionType.Player) continue;
@@ -133,11 +133,11 @@ namespace RareIcon
                 if (jobIntent.ValueRO.Kind != JobKind.Looter) continue;
                 if (jobIntent.ValueRO.TargetEntity != capital) continue;
 
-                int alreadyCarrying = CountFood(inv);
+                int alreadyCarrying = CountFood(pack);
                 if (alreadyCarrying >= GoblinCaveHaulConfig.PerTripAmount) continue;
 
                 ushort take = (ushort)(GoblinCaveHaulConfig.PerTripAmount - alreadyCarrying);
-                TransferFoodToUnit(capitalStorage, inv, bags, take);
+                TransferFoodToUnit(capitalStorage, pack, bags, take);
             }
         }
 
@@ -166,7 +166,7 @@ namespace RareIcon
             return false;
         }
 
-        static int CountFood(DynamicBuffer<InventorySlot> buf)
+        static int CountFood(DynamicBuffer<PackSlot> buf)
         {
             int total = 0;
             for (int i = 0; i < buf.Length; i++)
@@ -178,7 +178,7 @@ namespace RareIcon
         }
 
         static void TransferFoodToUnit(DynamicBuffer<InventorySlot> src,
-                                       DynamicBuffer<InventorySlot> dst,
+                                       DynamicBuffer<PackSlot> dst,
                                        in DynamicBuffer<EquippedBag> bags,
                                        ushort amount)
         {
@@ -214,15 +214,15 @@ namespace RareIcon
             var prodLookup        = SystemAPI.GetComponentLookup<GoblinCaveProduction>(true);
             var invLookup         = SystemAPI.GetBufferLookup<InventorySlot>(false);
 
-            foreach (var (movement, faction, inv) in
+            foreach (var (movement, faction, pack) in
                      SystemAPI.Query<
                          RefRO<UnitMovement>,
                          RefRO<Faction>,
-                         DynamicBuffer<InventorySlot>>())
+                         DynamicBuffer<PackSlot>>())
             {
                 if (faction.ValueRO.Value != FactionType.Player) continue;
-                if (inv.Length == 0) continue;
-                if (!AnyFoodInBuffer(inv)) continue;
+                if (pack.Length == 0) continue;
+                if (!AnyFoodInPack(pack)) continue;
 
                 int2 hex = movement.ValueRO.CurrentHex;
                 if (!HexHoverSystem.TryGetHexEntity(hex, out Entity tile)) continue;
@@ -238,14 +238,14 @@ namespace RareIcon
                 ushort cap      = prodLookup[building].StorageCap == 0
                                   ? (ushort)200
                                   : prodLookup[building].StorageCap;
-                int headroom    = cap - CountFood(caveStorage);
+                int headroom    = cap - CountFoodInv(caveStorage);
                 if (headroom <= 0) continue;
 
-                TransferFood(inv, caveStorage, (ushort)math.min(headroom, ushort.MaxValue));
+                TransferFood(pack, caveStorage, (ushort)math.min(headroom, ushort.MaxValue));
             }
         }
 
-        static bool AnyFoodInBuffer(DynamicBuffer<InventorySlot> buf)
+        static bool AnyFoodInPack(DynamicBuffer<PackSlot> buf)
         {
             for (int i = 0; i < buf.Length; i++)
             {
@@ -255,7 +255,7 @@ namespace RareIcon
             return false;
         }
 
-        static int CountFood(DynamicBuffer<InventorySlot> buf)
+        static int CountFoodInv(DynamicBuffer<InventorySlot> buf)
         {
             int total = 0;
             for (int i = 0; i < buf.Length; i++)
@@ -266,7 +266,7 @@ namespace RareIcon
             return total;
         }
 
-        static void TransferFood(DynamicBuffer<InventorySlot> src, DynamicBuffer<InventorySlot> dst, ushort amount)
+        static void TransferFood(DynamicBuffer<PackSlot> src, DynamicBuffer<InventorySlot> dst, ushort amount)
         {
             int remaining = amount;
             for (int i = 0; i < src.Length && remaining > 0; i++)

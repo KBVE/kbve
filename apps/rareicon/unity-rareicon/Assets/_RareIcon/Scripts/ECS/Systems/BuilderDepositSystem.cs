@@ -25,6 +25,7 @@ namespace RareIcon
                 Capital           = capital,
                 HexLookup         = hexLookupSingleton.Lookup,
                 HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
+                PackLookup        = SystemAPI.GetBufferLookup<PackSlot>(false),
                 InvLookup         = SystemAPI.GetBufferLookup<InventorySlot>(false),
                 MatLookup         = SystemAPI.GetBufferLookup<ConstructionMaterial>(false),
                 SiteLookup        = SystemAPI.GetComponentLookup<ConstructionSite>(true),
@@ -44,6 +45,7 @@ namespace RareIcon
         [ReadOnly] public ComponentLookup<HexOccupant>      HexOccupantLookup;
         [ReadOnly] public ComponentLookup<ConstructionSite> SiteLookup;
 
+        [NativeDisableParallelForRestriction] public BufferLookup<PackSlot>             PackLookup;
         [NativeDisableParallelForRestriction] public BufferLookup<InventorySlot>        InvLookup;
         [NativeDisableParallelForRestriction] public BufferLookup<ConstructionMaterial> MatLookup;
         [NativeDisableParallelForRestriction] public ComponentLookup<SkillXP>           SkillXpLookup;
@@ -52,19 +54,19 @@ namespace RareIcon
         {
             if (intent.Kind != JobKind.Builder) return;
             if (intent.TargetEntity == Entity.Null) return;
-            if (!InvLookup.HasBuffer(entity)) return;
+            if (!PackLookup.HasBuffer(entity)) return;
 
             Entity targetSite = intent.TargetEntity;
             if (!MatLookup.HasBuffer(targetSite)) return;
             if (!SiteLookup.HasComponent(targetSite)) return;
 
-            int2 unitHex = movement.CurrentHex;
-            var unitInv  = InvLookup[entity];
-            var siteMats = MatLookup[targetSite];
+            int2 unitHex  = movement.CurrentHex;
+            var unitPack  = PackLookup[entity];
+            var siteMats  = MatLookup[targetSite];
 
             if (IsOnHex(unitHex, SiteLookup[targetSite].RootHex))
             {
-                if (TryDeliver(unitInv, siteMats) && SkillXpLookup.HasComponent(entity))
+                if (TryDeliver(unitPack, siteMats) && SkillXpLookup.HasComponent(entity))
                 {
                     var xp = SkillXpLookup[entity];
                     int next = xp.Get(SkillKind.Construction) + XPPerDelivery;
@@ -74,10 +76,10 @@ namespace RareIcon
                 return;
             }
 
-            if (IsOnCapital(unitHex) && !CarriesMatchingMaterial(unitInv, siteMats))
+            if (IsOnCapital(unitHex) && !CarriesMatchingMaterial(unitPack, siteMats))
             {
                 var capInv = InvLookup[Capital];
-                TryPickup(capInv, unitInv, siteMats);
+                TryPickup(capInv, unitPack, siteMats);
             }
         }
 
@@ -90,33 +92,33 @@ namespace RareIcon
             return HexOccupantLookup[tile].Building == Capital;
         }
 
-        static bool CarriesMatchingMaterial(DynamicBuffer<InventorySlot> inv, DynamicBuffer<ConstructionMaterial> mats)
+        static bool CarriesMatchingMaterial(DynamicBuffer<PackSlot> pack, DynamicBuffer<ConstructionMaterial> mats)
         {
-            for (int i = 0; i < inv.Length; i++)
+            for (int i = 0; i < pack.Length; i++)
             {
-                if (inv[i].Count == 0) continue;
+                if (pack[i].Count == 0) continue;
                 for (int j = 0; j < mats.Length; j++)
                 {
-                    if (mats[j].ItemId == inv[i].ItemId && mats[j].Delivered < mats[j].Needed)
+                    if (mats[j].ItemId == pack[i].ItemId && mats[j].Delivered < mats[j].Needed)
                         return true;
                 }
             }
             return false;
         }
 
-        static bool TryDeliver(DynamicBuffer<InventorySlot> inv, DynamicBuffer<ConstructionMaterial> mats)
+        static bool TryDeliver(DynamicBuffer<PackSlot> pack, DynamicBuffer<ConstructionMaterial> mats)
         {
-            for (int i = 0; i < inv.Length; i++)
+            for (int i = 0; i < pack.Length; i++)
             {
-                if (inv[i].Count == 0) continue;
+                if (pack[i].Count == 0) continue;
                 for (int j = 0; j < mats.Length; j++)
                 {
-                    if (mats[j].ItemId != inv[i].ItemId) continue;
+                    if (mats[j].ItemId != pack[i].ItemId) continue;
                     if (mats[j].Delivered >= mats[j].Needed) continue;
 
-                    var slot = inv[i];
+                    var slot = pack[i];
                     slot.Count -= 1;
-                    inv[i] = slot;
+                    pack[i] = slot;
 
                     var mat = mats[j];
                     mat.Delivered += 1;
@@ -128,7 +130,7 @@ namespace RareIcon
         }
 
         static bool TryPickup(DynamicBuffer<InventorySlot> capInv,
-                              DynamicBuffer<InventorySlot> unitInv,
+                              DynamicBuffer<PackSlot> unitPack,
                               DynamicBuffer<ConstructionMaterial> mats)
         {
             bool anyPicked = false;
@@ -138,7 +140,7 @@ namespace RareIcon
 
                 ushort needId = mats[j].ItemId;
                 int    want   = mats[j].Needed - mats[j].Delivered
-                              - CountInUnit(unitInv, needId);
+                              - CountInUnit(unitPack, needId);
                 if (want <= 0) continue;
 
                 for (int i = 0; i < capInv.Length && want > 0; i++)
@@ -150,7 +152,7 @@ namespace RareIcon
                     capSlot.Count = (ushort)(capSlot.Count - take);
                     capInv[i] = capSlot;
 
-                    MergeOrAdd(unitInv, needId, (ushort)take);
+                    MergeOrAdd(unitPack, needId, (ushort)take);
                     want     -= take;
                     anyPicked = true;
                 }
@@ -158,27 +160,27 @@ namespace RareIcon
             return anyPicked;
         }
 
-        static int CountInUnit(in DynamicBuffer<InventorySlot> inv, ushort itemId)
+        static int CountInUnit(in DynamicBuffer<PackSlot> pack, ushort itemId)
         {
             int total = 0;
-            for (int i = 0; i < inv.Length; i++)
-                if (inv[i].ItemId == itemId) total += inv[i].Count;
+            for (int i = 0; i < pack.Length; i++)
+                if (pack[i].ItemId == itemId) total += pack[i].Count;
             return total;
         }
 
-        static void MergeOrAdd(DynamicBuffer<InventorySlot> inv, ushort itemId, ushort amount)
+        static void MergeOrAdd(DynamicBuffer<PackSlot> pack, ushort itemId, ushort amount)
         {
-            for (int i = 0; i < inv.Length; i++)
+            for (int i = 0; i < pack.Length; i++)
             {
-                if (inv[i].ItemId == itemId)
+                if (pack[i].ItemId == itemId)
                 {
-                    var slot = inv[i];
+                    var slot = pack[i];
                     slot.Count = (ushort)math.min(slot.Count + amount, ushort.MaxValue);
-                    inv[i] = slot;
+                    pack[i] = slot;
                     return;
                 }
             }
-            inv.Add(new InventorySlot { ItemId = itemId, Count = amount });
+            pack.Add(new PackSlot { ItemId = itemId, Count = amount });
         }
     }
 }

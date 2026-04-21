@@ -21,7 +21,7 @@ namespace RareIcon
     [BurstCompile]
     partial struct AutoEquipJob : IJobEntity
     {
-        void Execute(DynamicBuffer<InventorySlot> inv, DynamicBuffer<EquippedBag> bags)
+        void Execute(DynamicBuffer<PackSlot> inv, DynamicBuffer<EquippedBag> bags)
         {
             if (bags.Length >= InventoryUtil.MaxEquippedBags) return;
 
