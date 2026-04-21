@@ -57,8 +57,7 @@ namespace RareIcon
             db.AnyThreatInFriendlyTerritory = anyInside;
         }
 
-        [BurstCompile]
-        static bool InsideAnyEmitter(int2 hex, in Unity.Collections.NativeList<TerritoryEmitter> emitters)
+        static bool InsideAnyEmitter(int2 hex, Unity.Collections.NativeList<TerritoryEmitter> emitters)
         {
             for (int i = 0; i < emitters.Length; i++)
             {
