@@ -40,7 +40,10 @@
 		"./components/CanvasOverlay.astro": "./components/CanvasOverlay.astro",
 		"./components/Redirect.astro": "./components/Redirect.astro",
 		"./components/tooltip/social/SocialTooltip.astro": "./components/tooltip/social/SocialTooltip.astro",
-		"./components/tooltip/social/sttService": "./components/tooltip/social/sttService.js"
+		"./components/tooltip/social/sttService": "./components/tooltip/social/sttService.js",
+		"./components/hero/scroll/ScrollZoomHero.astro": "./components/hero/scroll/ScrollZoomHero.astro",
+		"./components/hero/observer/ObserverCollections.astro": "./components/hero/observer/ObserverCollections.astro",
+		"./components/hero/observer/ObserverSelection.astro": "./components/hero/observer/ObserverSelection.astro"
 	},
 	"files": [
 		"astro.es.js",

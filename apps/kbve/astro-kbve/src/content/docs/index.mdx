@@ -27,27 +27,44 @@ import DeferredKBVEComicSocials from '@/components/kbve/DeferredKBVEComicSocials
 import DeferredProjectGallery from '@/components/kbve/DeferredProjectGallery.astro';
 import DeferredFeature from '@/components/kbve/DeferredFeature.astro';
 import Adsense from '@/components/astropad/adsense/Adsense.astro';
+import ScrollZoomHero from '@kbve/astro/components/hero/scroll/ScrollZoomHero.astro';
+import ObserverCollections from '@kbve/astro/components/hero/observer/ObserverCollections.astro';
+import ObserverSelection from '@kbve/astro/components/hero/observer/ObserverSelection.astro';
 
-<DeferredAstroGithubHero
-    title="Top Contributors"
-    subtitle="Thanks to everyone helping build the platform!"
-    commitsLabel="commits"
-    viewAllLabel="View all contributors"
-    issuesLabel="Issues"
-    projectLabel="Project Board"
-    errorMessage="Unable to load contributors. Please try again later."
-    rank1Label="1st Place"
-    rank2Label="2nd Place"
-    rank3Label="3rd Place"
-    newTabLabel="(opens in new tab)"
+<ScrollZoomHero
+    foreground="https://assets-global.website-files.com/63ec206c5542613e2e5aa784/643312a6bc4ac122fc4e3afa_main%20home.webp"
+    background="https://images.unsplash.com/photo-1589848315097-ba7b903cc1cc?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    alt="KBVE hero"
 />
 
-<DeferredSVGLogo />
-
-<DeferredKBVEComicSocials />
-
-<DeferredFeature />
-
-<DeferredProjectGallery />
+<ObserverCollections>
+    <ObserverSelection heading="Welcome" image="https://assets.codepen.io/16327/site-landscape-1.jpg">
+        <DeferredSVGLogo />
+    </ObserverSelection>
+    <ObserverSelection heading="Community" image="https://assets.codepen.io/16327/site-landscape-2.jpg">
+        <DeferredKBVEComicSocials />
+    </ObserverSelection>
+    <ObserverSelection heading="Top Contributors" image="https://assets.codepen.io/16327/site-landscape-3.jpg">
+        <DeferredAstroGithubHero
+            title="Top Contributors"
+            subtitle="Thanks to everyone helping build the platform!"
+            commitsLabel="commits"
+            viewAllLabel="View all contributors"
+            issuesLabel="Issues"
+            projectLabel="Project Board"
+            errorMessage="Unable to load contributors. Please try again later."
+            rank1Label="1st Place"
+            rank2Label="2nd Place"
+            rank3Label="3rd Place"
+            newTabLabel="(opens in new tab)"
+        />
+    </ObserverSelection>
+    <ObserverSelection heading="Features" image="https://assets.codepen.io/16327/site-landscape-4.jpg">
+        <DeferredFeature />
+    </ObserverSelection>
+    <ObserverSelection heading="Projects" image="https://assets.codepen.io/16327/site-landscape-5.jpg">
+        <DeferredProjectGallery />
+    </ObserverSelection>
+</ObserverCollections>
 
 <Adsense />

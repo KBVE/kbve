@@ -352,8 +352,7 @@ textarea:focus-visible {
 	}
 
 	/* Site-graph slot: reserves SSR space so React's client:only mount
-	   doesn't shift layout. Spinner hides automatically once React
-	   renders its .sg-container child. */
+	   doesn't shift layout. Spinner cross-fades with the graph container. */
 	.sg-slot {
 		position: relative;
 		min-height: 360px;
@@ -366,10 +365,19 @@ textarea:focus-visible {
 		align-items: center;
 		justify-content: center;
 		pointer-events: none;
+		opacity: 1;
+		transition: opacity 650ms ease;
 	}
 
+	/* Fade spinner out when React mounts the graph container */
 	.sg-slot:has(.sg-container) .sg-slot-loading {
-		display: none;
+		opacity: 0;
+	}
+
+	/* Graph container fades in while the spinner fades out — the overlap
+	   is the cross-fade; delay lets the spinner start to dissolve first */
+	.sg-container {
+		animation: sg-fade-in 900ms cubic-bezier(0.16, 1, 0.3, 1) 150ms both;
 	}
 
 	.sg-spinner {
@@ -384,6 +392,17 @@ textarea:focus-visible {
 	@keyframes sg-spin {
 		to {
 			transform: rotate(360deg);
+		}
+	}
+
+	@keyframes sg-fade-in {
+		from {
+			opacity: 0;
+			transform: translateY(8px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
 		}
 	}
 
@@ -437,6 +456,12 @@ textarea:focus-visible {
 			position: relative;
 		}
 
+		/* Default state = COLLAPSED (peek strip).
+		   This is intentional so cross-doc view-transitions that capture
+		   a snapshot before the inline `data-right-sidebar-collapsed`
+		   setter runs don't show the expanded sidebar flashing in then
+		   sliding out. Explicit `data-right-sidebar-collapsed='false'`
+		   reopens it below. */
 		.right-sidebar {
 			position: fixed;
 			top: 0;
@@ -445,12 +470,12 @@ textarea:focus-visible {
 			padding-top: var(--sl-nav-height, 3.5rem);
 			width: var(--sl-sidebar-width, 18.75rem);
 			background: var(--sl-color-bg-sidebar, var(--sl-color-bg));
-			border-inline-start: 1px solid var(--sl-color-hairline);
-			box-shadow: -8px 0 24px rgba(0, 0, 0, 0.15);
+			border-inline-start: 1px solid transparent;
+			box-shadow: none;
 			z-index: 20;
 			overflow-y: auto;
 			overflow-x: hidden;
-			transform: translateX(0%);
+			transform: translateX(calc(100% - 2.5rem));
 			transition:
 				transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
 				box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
@@ -462,55 +487,57 @@ textarea:focus-visible {
 			transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 		}
 
-		/* ═══ Right sidebar COLLAPSED — peek strip for toggle ═══ */
-		:root[data-right-sidebar-collapsed='true'] .right-sidebar {
-			transform: translateX(calc(100% - 2.5rem));
-			box-shadow: none;
-			border-inline-start-color: transparent;
-		}
-
-		/* Content fades out */
-		:root[data-right-sidebar-collapsed='true']
-			.right-sidebar
-			.sl-right-sidebar-toggle-wrap
-			~ * {
-			animation: sl-right-content-fade-out 0.2s cubic-bezier(0.4, 0, 1, 1)
-				forwards;
+		/* Default content state: hidden (pointer-events off, faded out).
+		   No animation on initial paint — just static hidden state. */
+		.right-sidebar .sl-right-sidebar-toggle-wrap ~ *,
+		.right-sidebar-panel {
+			opacity: 0;
+			transform: translateX(6px);
+			filter: blur(3px);
 			pointer-events: none;
 		}
 
-		:root[data-right-sidebar-collapsed='true'] .right-sidebar-panel {
-			animation: sl-right-content-fade-out 0.2s cubic-bezier(0.4, 0, 1, 1)
-				forwards;
-			pointer-events: none;
-		}
-
-		/* Toggle sits in the visible peek strip — same vertical padding, only horizontal differs */
-		:root[data-right-sidebar-collapsed='true']
-			.sl-right-sidebar-toggle-wrap {
+		/* Toggle default position (peek strip) */
+		.sl-right-sidebar-toggle-wrap {
 			justify-content: flex-start;
 			padding: 1.5rem 0.25rem 0.5rem;
 		}
 
-		/* Chevron points LEFT when collapsed (← click to open) */
-		:root[data-right-sidebar-collapsed='true']
-			.sl-right-sidebar-toggle-wrap
-			.sl-sidebar-collapse-icon {
+		/* Chevron points LEFT by default (← click to open) */
+		.sl-right-sidebar-toggle-wrap .sl-sidebar-collapse-icon {
 			transform: rotate(180deg);
 		}
 
-		/* ═══ Right sidebar EXPANDED (open) ═══ */
+		/* ═══ Right sidebar EXPANDED — explicit data-right-sidebar-collapsed='false' ═══ */
+		:root[data-right-sidebar-collapsed='false'] .right-sidebar {
+			transform: translateX(0);
+			border-inline-start-color: var(--sl-color-hairline);
+			box-shadow: -8px 0 24px rgba(0, 0, 0, 0.15);
+		}
 
-		/* Chevron points RIGHT when open (→ click to close/push away) */
-		/* (default orientation, no transform needed) */
-
-		/* Content slides in from right with blur */
+		/* Content fades in when explicitly expanded */
 		:root[data-right-sidebar-collapsed='false']
 			.right-sidebar
 			.sl-right-sidebar-toggle-wrap
-			~ * {
+			~ *,
+		:root[data-right-sidebar-collapsed='false'] .right-sidebar-panel {
 			animation: sl-right-content-fade-in 0.35s
 				cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+			pointer-events: auto;
+		}
+
+		/* Toggle repositions when expanded (wider padding, flex-end) */
+		:root[data-right-sidebar-collapsed='false']
+			.sl-right-sidebar-toggle-wrap {
+			justify-content: flex-start;
+			padding: 1.5rem 0.5rem 0.5rem;
+		}
+
+		/* Chevron flips back to pointing right when expanded */
+		:root[data-right-sidebar-collapsed='false']
+			.sl-right-sidebar-toggle-wrap
+			.sl-sidebar-collapse-icon {
+			transform: rotate(0deg);
 		}
 	}
 }

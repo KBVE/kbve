@@ -74,6 +74,7 @@ export default defineConfig({
 			],
 			components: {
 				SiteTitle: './src/components/navigation/SiteTitle.astro',
+				PageTitle: './src/components/navigation/PageTitle.astro',
 				PageSidebar: './src/components/pagesidebar/PageSidebar.astro',
 				Footer: './src/components/footer/AstroFooter.astro',
 				ThemeProvider: './src/components/theme/ThemeProvider.astro',

@@ -99,6 +99,7 @@ namespace RareIcon
         // alternatives — relevant when the queue drains and refills.
         const int PriorityWeight  = 10000;
         const int HysteresisBonus = 50;
+        const int DeficitCap      = 2;
 
         // Dispatcher cadence. Full offer-enumeration + per-unit scoring
         // run every N ticks; queue reconciliation (promote Pending,
@@ -496,7 +497,7 @@ namespace RareIcon
                         int aN = activePerKind[offer.Kind];
                         int deficit = oN - aN;
                         if (deficit > 0)
-                            score += (long)deficit * PriorityWeight;
+                            score += (long)math.min(deficit, DeficitCap) * (PriorityWeight / 4);
                         float pressure = (float)(oN + 1) / (float)(aN + 1);
                         score += (long)(math.log(1f + pressure) * 30f);
                     }
