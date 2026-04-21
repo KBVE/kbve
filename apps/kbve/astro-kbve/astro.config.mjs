@@ -76,7 +76,6 @@ export default defineConfig({
 				SiteTitle: './src/components/navigation/SiteTitle.astro',
 				PageSidebar: './src/components/pagesidebar/PageSidebar.astro',
 				Footer: './src/components/footer/AstroFooter.astro',
-				Sidebar: './src/components/sidebar/Sidebar.astro',
 				ThemeProvider: './src/components/theme/ThemeProvider.astro',
 			},
 			// TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6

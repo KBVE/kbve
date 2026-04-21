@@ -1,25 +1,15 @@
 ---
-/**
- * Custom ThemeProvider that extends Starlight's default.
- * Adds sidebar collapsed state to <html> before first paint to prevent FOUC.
- */
 import DefaultThemeProvider from '@astrojs/starlight/components/ThemeProvider.astro';
 ---
 
 <DefaultThemeProvider />
 
-{/* Sidebar state — inlined to prevent flash of uncollapsed sidebar */}
+{/* Right sidebar state — inlined to prevent flash of expanded panel */}
 <script is:inline>
 	(function () {
 		try {
 			var d = document.documentElement;
 			var l = localStorage;
-			d.setAttribute(
-				'data-sidebar-collapsed',
-				l.getItem('sl-sidebar-collapsed') !== 'false'
-					? 'true'
-					: 'false',
-			);
 			d.setAttribute(
 				'data-right-sidebar-collapsed',
 				l.getItem('sl-right-sidebar-collapsed') !== 'false'
@@ -28,4 +18,8 @@ import DefaultThemeProvider from '@astrojs/starlight/components/ThemeProvider.as
 			);
 		} catch (e) {}
 	})();
+</script>
+
+<script>
+	import './auth-sync';
 </script>
