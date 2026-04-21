@@ -60,6 +60,26 @@ namespace RareIcon
                                                         new((ushort)ItemId.StoneBlock, 2) };
         static readonly Ingredient[] CostNone     = System.Array.Empty<Ingredient>();
 
+        // -- Upgrade chain costs --
+        // Market (tier 0) → Trade House (tier 1) → Merchants Guild (tier 2).
+        static readonly Ingredient[] UpgradeMarketToTradeHouse    = { new((ushort)ItemId.GoldBar, 5) };
+        static readonly Ingredient[] UpgradeTradeHouseToGuild     = { new((ushort)ItemId.GoldBar, 50) };
+
+        /// <summary>Returns the material cost to advance `type` from `fromTier` to `fromTier + 1`. Empty array if no further tier exists.</summary>
+        public static Ingredient[] GetUpgradeCost(byte buildingType, byte fromTier)
+        {
+            if (buildingType == BuildingType.Market)
+            {
+                if (fromTier == 0) return UpgradeMarketToTradeHouse;
+                if (fromTier == 1) return UpgradeTradeHouseToGuild;
+            }
+            return CostNone;
+        }
+
+        /// <summary>Returns true if `type` at `fromTier` has a next tier.</summary>
+        public static bool HasUpgrade(byte buildingType, byte fromTier)
+            => GetUpgradeCost(buildingType, fromTier).Length > 0;
+
         public static Ingredient[] GetCost(byte buildingType) => buildingType switch
         {
             BuildingType.Capital    => CostCapital,
@@ -122,6 +142,17 @@ namespace RareIcon
             BuildingType.Outpost    => "building.outpost",
             _ => "building.unknown",
         };
+
+        /// <summary>Tier-aware locale key. Market tier 1 = Trade House, tier 2 = Merchants Guild. Falls back to the base GetLocaleKey for tier 0 or non-tiered types.</summary>
+        public static string GetTieredLocaleKey(byte buildingType, byte tier)
+        {
+            if (buildingType == BuildingType.Market)
+            {
+                if (tier == 1) return "building.trade_house";
+                if (tier == 2) return "building.merchants_guild";
+            }
+            return GetLocaleKey(buildingType);
+        }
 
         /// <summary>Maps a BuildTarget to its corresponding BuildingType. Returns 0 (None) if unknown.</summary>
         public static byte BuildTargetToType(byte buildTarget) => buildTarget switch

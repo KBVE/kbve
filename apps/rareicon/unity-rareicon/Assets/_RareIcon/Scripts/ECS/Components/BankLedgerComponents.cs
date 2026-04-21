@@ -47,7 +47,7 @@ namespace RareIcon
         public ushort Count;
     }
 
-    /// <summary>Barracks forward arsenal — BanditCoin + Meal/food staged for recruitment, Arrow output from BarracksCrafting, material buffers for future weapon-craft recipes.</summary>
+    /// <summary>Barracks forward arsenal — Coin + Meal/food staged for recruitment, Arrow output from BarracksCrafting, material buffers for future weapon-craft recipes.</summary>
     [InternalBufferCapacity(8)]
     [StructLayout(LayoutKind.Sequential)]
     public struct BarracksLedger : IBankLedger

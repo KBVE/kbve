@@ -78,6 +78,7 @@ namespace RareIcon
                     break;
                 case BuildingType.Market:
                     Ecb.AddComponent<MarketTag>(chunkIdx, entity);
+                    Ecb.AddComponent(chunkIdx, entity, new BuildingTier { Value = 0 });
                     break;
                 case BuildingType.Outpost:
                     Ecb.AddComponent<OutpostTag>(chunkIdx, entity);

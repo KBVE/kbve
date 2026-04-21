@@ -68,7 +68,7 @@ namespace RareIcon
                         (ushort)(1 + (int)(r1 * 1.99f)));
                     break;
                 case UnitType.Bandit:
-                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.BanditCoin,
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.Coin,
                         (ushort)(1 + (int)(r0 * 2.99f)));
                     if (r1 < 0.35f) Append(Ecb, chunkIdx, hex, (ushort)ItemId.Hood, 1);
                     break;

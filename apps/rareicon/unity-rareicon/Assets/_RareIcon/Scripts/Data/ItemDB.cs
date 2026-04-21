@@ -181,11 +181,15 @@ namespace RareIcon
             Add("item.bag",            new ItemDef((ushort)ItemId.Bag,           ItemCategory.Equipment, 2, 60));
             Add("item.pack",           new ItemDef((ushort)ItemId.Pack,          ItemCategory.Equipment, 2, 150));
 
+            Add("item.coin",           new ItemDef((ushort)ItemId.Coin,          ItemCategory.Material, 50, 1,
+                compressesTo: (ushort)ItemId.GoldBar, compressRatio: 100));
+
             Add("item.timber",         new ItemDef((ushort)ItemId.Timber,        ItemCategory.Material,   1, 300));
             Add("item.stone_block",    new ItemDef((ushort)ItemId.StoneBlock,    ItemCategory.Material,   1, 200));
             Add("item.quiver",         new ItemDef((ushort)ItemId.Quiver,        ItemCategory.Material,   1, 100));
             Add("item.meal",           new ItemDef((ushort)ItemId.Meal,          ItemCategory.Consumable, 1, 500,
                 restoreHealth: 100f, restoreEnergy: 100f, restoreMana: 100f));
+            Add("item.gold_bar",       new ItemDef((ushort)ItemId.GoldBar,       ItemCategory.Material,   1, 150));
 
             Add("item.bones",          new ItemDef((ushort)ItemId.Bones,         ItemCategory.Material, 30, 2));
             Add("item.unknown_key",    new ItemDef((ushort)ItemId.UnknownKey,    ItemCategory.Quest,    10, 0));

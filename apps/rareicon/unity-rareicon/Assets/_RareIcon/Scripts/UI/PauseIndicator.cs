@@ -3,6 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 using VContainer;
 using VContainer.Unity;
@@ -93,7 +94,9 @@ namespace RareIcon
 
         void Tick()
         {
-            if (Input.GetKeyDown(KeyCode.F9))
+            var keyboard = Keyboard.current;
+            if (keyboard == null) return;
+            if (keyboard.f9Key.wasPressedThisFrame)
             {
                 if (_pause.IsPaused && _pause.TopReason == PauseReason.Manual)
                     _pause.Resume(PauseReason.Manual);

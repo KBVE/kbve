@@ -86,8 +86,20 @@ namespace RareIcon
     /// <summary>Marker tag for Inn buildings — food + sleep service provider.</summary>
     public struct InnTag : IComponentData { }
 
-    /// <summary>Marker tag for Market buildings — goods trading + future Merchants Guild hub.</summary>
+    /// <summary>Marker tag for Market buildings — goods trading + future Merchants Guild hub. Tier progression: 0 Market → 1 Trade House → 2 Merchants Guild.</summary>
     public struct MarketTag : IComponentData { }
+
+    /// <summary>Progression level within a building's upgrade chain. 0 = base tier (Market, Farm). Higher tiers unlock via BuildingUpgradeRequest + cost deduction. Locale key + visuals may branch on this.</summary>
+    public struct BuildingTier : IComponentData
+    {
+        public byte Value;
+    }
+
+    /// <summary>Player-issued request to advance Target to the next tier. BuildingUpgradeSystem validates cost against the Capital, deducts, bumps BuildingTier.Value. Self-destroys after processing.</summary>
+    public struct BuildingUpgradeRequest : IComponentData
+    {
+        public Entity Target;
+    }
 
     /// <summary>Lifecycle state of a MarketOrder.</summary>
     public static class MarketOrderState
@@ -169,7 +181,7 @@ namespace RareIcon
     /// <summary>Marker tag for Barracks buildings — recruitment system query key.</summary>
     public struct BarracksTag : IComponentData { }
 
-    /// <summary>Per-barracks recruitment cadence. Once per N turns, consumes CoinCost BanditCoin + FoodCost food (any ItemId flagged by FoodItems.IsFood) from the building's InventorySlot storage and spawns one Soldier on an adjacent hex. Storage capacity lives on the separate StorageCapacity component.</summary>
+    /// <summary>Per-barracks recruitment cadence. Once per N turns, consumes CoinCost Coin + FoodCost food (any ItemId flagged by FoodItems.IsFood) from the building's InventorySlot storage and spawns one Soldier on an adjacent hex. Storage capacity lives on the separate StorageCapacity component.</summary>
     public struct BarracksProduction : IComponentData
     {
         public uint   LastProducedTurn;

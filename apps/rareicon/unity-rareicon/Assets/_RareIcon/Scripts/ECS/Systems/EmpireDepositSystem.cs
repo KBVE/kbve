@@ -6,7 +6,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Drains a Player-faction unit's pack into Capital via Deposit reservations when standing on a Capital-claimed hex. BanditCoin is withheld whenever any Barracks is below its StorageCapacity — the carrier keeps coins for a Capital→Barracks supply run.</summary>
+    /// <summary>Drains a Player-faction unit's pack into Capital via Deposit reservations when standing on a Capital-claimed hex. Coin is withheld whenever any Barracks is below its StorageCapacity — the carrier keeps coins for a Capital→Barracks supply run.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct EmpireDepositSystem : ISystem
     {
@@ -123,7 +123,7 @@ namespace RareIcon
                 ushort itemId = pack[i].ItemId;
                 ushort count  = pack[i].Count;
                 if (itemId == 0 || count == 0) continue;
-                if (anyBarracksUnderstocked && itemId == (ushort)ItemId.BanditCoin) continue;
+                if (anyBarracksUnderstocked && itemId == (ushort)ItemId.Coin) continue;
 
                 Reservations.Add(ReservationOps.Key(Capital, itemId), ReservationOps.Deposit(entity, count, Tick));
 

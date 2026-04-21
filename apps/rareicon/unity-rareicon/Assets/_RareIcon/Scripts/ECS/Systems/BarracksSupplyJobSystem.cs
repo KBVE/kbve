@@ -100,7 +100,7 @@ namespace RareIcon
             for (int i = 0; i < inv.Length; i++)
             {
                 if (inv[i].Count == 0) continue;
-                if (inv[i].ItemId == (ushort)ItemId.BanditCoin) return true;
+                if (inv[i].ItemId == (ushort)ItemId.Coin) return true;
                 if (FoodItems.IsFood(inv[i].ItemId)) return true;
             }
             return false;
