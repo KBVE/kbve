@@ -18,7 +18,9 @@ namespace RareIcon
 
         public void OnUpdate(ref SystemState state)
         {
-            var db = SystemAPI.GetSingleton<LogisticsDBSingleton>();
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+
+            var dep = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
 
             state.Dependency = new ReservationResolveJob
             {
@@ -26,7 +28,9 @@ namespace RareIcon
                 CurrentAmounts = db.CurrentAmounts,
                 PendingDeltas  = db.PendingDeltas.AsParallelWriter(),
                 DeliveryWriter = db.Deliveries.AsWriter(),
-            }.Schedule(state.Dependency);
+            }.Schedule(dep);
+
+            db.PipelineHandle = state.Dependency;
         }
     }
 

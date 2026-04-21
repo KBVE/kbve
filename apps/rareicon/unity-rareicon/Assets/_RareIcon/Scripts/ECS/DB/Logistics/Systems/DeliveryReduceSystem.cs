@@ -17,13 +17,17 @@ namespace RareIcon
 
         public void OnUpdate(ref SystemState state)
         {
-            var db = SystemAPI.GetSingleton<LogisticsDBSingleton>();
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+
+            var dep = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
 
             state.Dependency = new DeliveryReduceJob
             {
                 DeliveryReader = db.Deliveries.AsReader(),
                 PendingDeltas  = db.PendingDeltas.AsParallelWriter(),
-            }.Schedule(state.Dependency);
+            }.Schedule(dep);
+
+            db.PipelineHandle = state.Dependency;
         }
     }
 

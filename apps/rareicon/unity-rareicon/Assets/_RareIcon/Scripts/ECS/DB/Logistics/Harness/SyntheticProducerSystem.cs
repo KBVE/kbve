@@ -37,11 +37,10 @@ namespace RareIcon
 
         public void OnUpdate(ref SystemState state)
         {
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+
             if (!_seeded)
             {
-                state.CompleteDependency();
-                var db = SystemAPI.GetSingleton<LogisticsDBSingleton>();
-
                 _banks.Clear();
                 for (int i = 0; i < BankCount; i++)
                 {
@@ -55,18 +54,19 @@ namespace RareIcon
 
             _tick++;
 
-            var reservations = SystemAPI.GetSingleton<LogisticsDBSingleton>().Reservations;
+            var dep = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
 
             state.Dependency = new SyntheticReservationJob
             {
                 Banks        = _banks.AsDeferredJobArray(),
-                Reservations = reservations.AsParallelWriter(),
+                Reservations = db.Reservations.AsParallelWriter(),
                 Tick         = _tick,
                 Seed         = _rng,
                 PerTick      = ReservationsPerTick,
                 Items        = ItemCount,
-            }.Schedule(state.Dependency);
+            }.Schedule(dep);
 
+            db.PipelineHandle = state.Dependency;
             _rng = Scramble(_rng);
         }
 

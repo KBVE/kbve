@@ -18,13 +18,17 @@ namespace RareIcon
 
         public void OnUpdate(ref SystemState state)
         {
-            var db = SystemAPI.GetSingleton<LogisticsDBSingleton>();
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+
+            var dep = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
 
             state.Dependency = new LedgerCommitJob
             {
                 PendingDeltas  = db.PendingDeltas,
                 CurrentAmounts = db.CurrentAmounts,
-            }.Schedule(state.Dependency);
+            }.Schedule(dep);
+
+            db.PipelineHandle = state.Dependency;
         }
     }
 

@@ -1,5 +1,6 @@
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 
 namespace RareIcon
 {
@@ -20,6 +21,7 @@ namespace RareIcon
                     Reservations   = new NativeParallelMultiHashMap<LedgerKey, ReservationRecord>(1024, Allocator.Persistent),
                     PendingDeltas  = new NativeParallelMultiHashMap<LedgerKey, int>(1024, Allocator.Persistent),
                     Deliveries     = default,
+                    PipelineHandle = default,
                 };
                 _singleton = EntityManager.CreateEntity(typeof(LogisticsDBSingleton));
                 EntityManager.SetName(_singleton, "LogisticsDB");
@@ -27,16 +29,15 @@ namespace RareIcon
                 _initialized = true;
             }
 
-            CompleteDependency();
+            ref var live = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
 
-            var live = EntityManager.GetComponentData<LogisticsDBSingleton>(_singleton);
+            live.PipelineHandle.Complete();
 
             if (live.Deliveries.IsCreated) live.Deliveries.Dispose();
             live.Reservations.Clear();
             live.PendingDeltas.Clear();
-            live.Deliveries = new NativeStream(1, Allocator.TempJob);
-
-            EntityManager.SetComponentData(_singleton, live);
+            live.Deliveries     = new NativeStream(1, Allocator.TempJob);
+            live.PipelineHandle = default;
         }
 
         protected override void OnDestroy()
