@@ -65,7 +65,7 @@ namespace RareIcon
     /// </summary>
     public struct ControlledUnitTag : IComponentData { }
 
-    /// <summary>Unit is posted to a specific hex (typically a Capital footprint tile) — excluded from wander, zero JobPriorities on spawn, RangedAttack still auto-fires at enemies in range. Hex stored for future "return to post" behaviour if they're ever knocked off-tile.</summary>
+    /// <summary>Unit is posted to a specific hex (typically a Capital footprint tile) — excluded from wander, zero ProfessionPriorities on spawn, RangedAttack still auto-fires at enemies in range. Hex stored for future "return to post" behaviour if they're ever knocked off-tile.</summary>
     public struct GarrisonPost : IComponentData
     {
         public int2 Hex;

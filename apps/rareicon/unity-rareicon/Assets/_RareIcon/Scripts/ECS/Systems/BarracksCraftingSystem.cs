@@ -22,10 +22,10 @@ namespace RareIcon
 
             var craftsmen = new NativeList<CraftsmanStation>(8, Allocator.TempJob);
             foreach (var (intent, movement) in
-                     SystemAPI.Query<RefRO<JobIntent>, RefRO<UnitMovement>>().WithAll<JobPriorities>())
+                     SystemAPI.Query<RefRO<ProfessionIntent>, RefRO<UnitMovement>>().WithAll<ProfessionPriorities>())
             {
                 var ji = intent.ValueRO;
-                if (ji.Kind != JobKind.Craftsman) continue;
+                if (ji.Kind != ProfessionKind.Craftsman) continue;
                 if (ji.TargetEntity == Entity.Null) continue;
                 if (!movement.ValueRO.TargetHex.Equals(movement.ValueRO.CurrentHex)) continue;
                 if (movement.ValueRO.DwellTimer > 0f) continue;

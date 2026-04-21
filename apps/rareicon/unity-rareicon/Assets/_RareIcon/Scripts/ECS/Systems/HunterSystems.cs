@@ -15,7 +15,7 @@ namespace RareIcon
 
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
-    [UpdateAfter(typeof(JobSystem))]
+    [UpdateAfter(typeof(ProfessionDispatchSystem))]
     public partial struct WildlifeHuntBehaviorSystem : ISystem
     {
         [BurstCompile] public void OnCreate(ref SystemState state) { }

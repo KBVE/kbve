@@ -26,7 +26,7 @@ namespace RareIcon
     }
 
     // Wander is wildlife / beast only. Player units (anything with
-    // JobPriorities) stay put when idle — Jobs / Relief / ReturnToBase
+    // ProfessionPriorities) stay put when idle — Jobs / Relief / ReturnToBase
     // / Shelter cover every legitimate "do something" path, and an
     // aimless goblin drifting across the map reads as broken, not
     // bored. ControlledUnitTag + GarrisonPost filters stay for the
@@ -34,7 +34,7 @@ namespace RareIcon
     [BurstCompile]
     [WithNone(typeof(ControlledUnitTag))]
     [WithNone(typeof(GarrisonPost))]
-    [WithNone(typeof(JobPriorities))]
+    [WithNone(typeof(ProfessionPriorities))]
     public partial struct WanderJob : IJobEntity
     {
         void Execute(ref MovementGoal goal, ref UnitMovement m)

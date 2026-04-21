@@ -6,10 +6,11 @@ using UnityEngine;
 
 namespace RareIcon
 {
-    /// <summary>Picks the highest-priority job with nearby work for each Player unit; writes JobIntent. Skips units currently under a Relief intent.</summary>
+    /// <summary>Picks the highest-priority profession with nearby work for each Player unit; writes ProfessionIntent. If no scored offer wins, assigns ProfessionKind.Default and rolls a Wander MovementGoal so units never sit idle. Appends a ProfessionChangedMessage to ProfessionsDBSingleton.CommittedEvents on any kind/target change — drained by ProfessionMessagePipeBridgeSystem.</summary>
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(ReliefSystem))]
-    public partial class JobSystem : SystemBase
+    [UpdateAfter(typeof(ProfessionsDomainSystem))]
+    public partial class ProfessionDispatchSystem : SystemBase
     {
         const int SearchRadius   = 12;
         const int HexClusterCap  = 4;
@@ -18,7 +19,7 @@ namespace RareIcon
         // higher priority always beats lower (preserves the old prio
         // cascade). Distance is the second sort key. HysteresisBonus is
         // a small nudge so a unit re-scoring to an offer identical to
-        // its current JobIntent target wins against marginally-closer
+        // its current ProfessionIntent target wins against marginally-closer
         // alternatives — relevant when the queue drains and refills.
         const int PriorityWeight  = 10000;
         const int HysteresisBonus = 50;
@@ -160,9 +161,9 @@ namespace RareIcon
             else
                 _hexOccupancy.Clear();
             foreach (var jobRO in
-                     SystemAPI.Query<RefRO<JobIntent>>().WithAll<JobPriorities>())
+                     SystemAPI.Query<RefRO<ProfessionIntent>>().WithAll<ProfessionPriorities>())
             {
-                if (jobRO.ValueRO.Kind == JobKind.None) continue;
+                if (jobRO.ValueRO.Kind == ProfessionKind.None) continue;
                 var th = jobRO.ValueRO.TargetHex;
                 _hexOccupancy[th] = _hexOccupancy.TryGetValue(th, out var c0) ? c0 + 1 : 1;
             }
@@ -178,7 +179,7 @@ namespace RareIcon
             var offers = new NativeList<TaskOffer>(doFullDispatch ? 256 : 0, Allocator.Temp);
             var offersPerKind = new NativeArray<int>(12, Allocator.Temp);
             var activePerKind = new NativeArray<int>(12, Allocator.Temp);
-            foreach (var jobRO in SystemAPI.Query<RefRO<JobIntent>>().WithAll<JobPriorities>())
+            foreach (var jobRO in SystemAPI.Query<RefRO<ProfessionIntent>>().WithAll<ProfessionPriorities>())
             {
                 byte ak = jobRO.ValueRO.Kind;
                 if (ak < activePerKind.Length) activePerKind[ak]++;
@@ -193,20 +194,20 @@ namespace RareIcon
                     var hex = new int2(coordRO.ValueRO.Q, coordRO.ValueRO.R);
 
                     if ((res.Wood | res.Leaves | res.Branches) != 0)
-                        offers.Add(new TaskOffer { Kind = JobKind.Lumberjack, Variant = OfferVariant.Default, Hex = hex });
+                        offers.Add(new TaskOffer { Kind = ProfessionKind.Lumberjack, Variant = OfferVariant.Default, Hex = hex });
                     if (res.Stone != 0)
-                        offers.Add(new TaskOffer { Kind = JobKind.Miner, Variant = OfferVariant.Default, Hex = hex });
+                        offers.Add(new TaskOffer { Kind = ProfessionKind.Miner, Variant = OfferVariant.Default, Hex = hex });
                     if ((res.Berries | res.Mushrooms | res.Herbs | res.Cactus) != 0)
-                        offers.Add(new TaskOffer { Kind = JobKind.Looter, Variant = OfferVariant.LooterForage, Hex = hex });
+                        offers.Add(new TaskOffer { Kind = ProfessionKind.Looter, Variant = OfferVariant.LooterForage, Hex = hex });
                 }
 
                 if (hasFarm)
-                    offers.Add(new TaskOffer { Kind = JobKind.Farmer, Variant = OfferVariant.Default, Hex = farmHex, Target = nearestFarm });
+                    offers.Add(new TaskOffer { Kind = ProfessionKind.Farmer, Variant = OfferVariant.Default, Hex = farmHex, Target = nearestFarm });
 
                 for (int si = 0; si < sites.Length; si++)
                 {
                     var site = EntityManager.GetComponentData<ConstructionSite>(sites[si]);
-                    offers.Add(new TaskOffer { Kind = JobKind.Builder, Variant = OfferVariant.BuilderSite, Hex = site.RootHex, Target = sites[si] });
+                    offers.Add(new TaskOffer { Kind = ProfessionKind.Builder, Variant = OfferVariant.BuilderSite, Hex = site.RootHex, Target = sites[si] });
                 }
 
                 for (int di = 0; di < damagedCandidates.Length; di++)
@@ -215,18 +216,18 @@ namespace RareIcon
                     if (bd.OwnerFaction != FactionType.Player) continue;
                     var hp = EntityManager.GetComponentData<BuildingHealth>(damagedCandidates[di]);
                     if (hp.Value >= hp.Max) continue;
-                    offers.Add(new TaskOffer { Kind = JobKind.Builder, Variant = OfferVariant.BuilderDamaged, Hex = bd.RootHex, Target = damagedCandidates[di] });
+                    offers.Add(new TaskOffer { Kind = ProfessionKind.Builder, Variant = OfferVariant.BuilderDamaged, Hex = bd.RootHex, Target = damagedCandidates[di] });
                 }
 
                 if (hasCapital)
-                    offers.Add(new TaskOffer { Kind = JobKind.Chef, Variant = OfferVariant.Default, Hex = capitalHex, Target = capital });
+                    offers.Add(new TaskOffer { Kind = ProfessionKind.Chef, Variant = OfferVariant.Default, Hex = capitalHex, Target = capital });
 
                 foreach (var (barrackBuilding, barrackEntity) in
                          SystemAPI.Query<RefRO<Building>>().WithAll<BarracksTag>().WithEntityAccess())
                 {
                     offers.Add(new TaskOffer
                     {
-                        Kind    = JobKind.Craftsman,
+                        Kind    = ProfessionKind.Craftsman,
                         Variant = OfferVariant.Default,
                         Hex     = barrackBuilding.ValueRO.RootHex,
                         Target  = barrackEntity,
@@ -238,7 +239,7 @@ namespace RareIcon
                 {
                     offers.Add(new TaskOffer
                     {
-                        Kind    = JobKind.Blacksmith,
+                        Kind    = ProfessionKind.Blacksmith,
                         Variant = OfferVariant.Default,
                         Hex     = furnaceBuilding.ValueRO.RootHex,
                         Target  = furnaceEntity,
@@ -246,16 +247,16 @@ namespace RareIcon
                 }
 
                 for (int ci = 0; ci < needyCaves.Length; ci++)
-                    offers.Add(new TaskOffer { Kind = JobKind.Looter, Variant = OfferVariant.LooterDeliver, Hex = needyCaves[ci].Hex, Target = needyCaves[ci].Entity });
+                    offers.Add(new TaskOffer { Kind = ProfessionKind.Looter, Variant = OfferVariant.LooterDeliver, Hex = needyCaves[ci].Hex, Target = needyCaves[ci].Entity });
 
                 if (hasCapital && capitalHasFood && needyCaves.Length > 0)
-                    offers.Add(new TaskOffer { Kind = JobKind.Looter, Variant = OfferVariant.LooterFetch, Hex = capitalHex, Target = capital });
+                    offers.Add(new TaskOffer { Kind = ProfessionKind.Looter, Variant = OfferVariant.LooterFetch, Hex = capitalHex, Target = capital });
 
                 for (int ai = 0; ai < groundArrows.Length; ai++)
                 {
                     var t  = EntityManager.GetComponentData<LocalTransform>(groundArrows[ai]);
                     var ah = HexMeshUtil.WorldToHex(t.Position.x, t.Position.y, 0.25f);
-                    offers.Add(new TaskOffer { Kind = JobKind.Looter, Variant = OfferVariant.LooterArrow, Hex = ah, Target = groundArrows[ai] });
+                    offers.Add(new TaskOffer { Kind = ProfessionKind.Looter, Variant = OfferVariant.LooterArrow, Hex = ah, Target = groundArrows[ai] });
                 }
 
                 for (int oi = 0; oi < offers.Length; oi++)
@@ -267,13 +268,18 @@ namespace RareIcon
 
             uint nowTick = (uint)SystemAPI.Time.ElapsedTime;
 
-            foreach (var (priorities, reliefIntent, jobIntentRef, movement, transform, tasksRef, entity) in
+            var events = default(NativeList<ProfessionChangedMessage>);
+            if (SystemAPI.HasSingleton<ProfessionsDBSingleton>())
+                events = SystemAPI.GetSingletonRW<ProfessionsDBSingleton>().ValueRW.CommittedEvents;
+
+            foreach (var (priorities, reliefIntent, jobIntentRef, movement, transform, goalRef, tasksRef, entity) in
                      SystemAPI.Query<
-                         RefRO<JobPriorities>,
+                         RefRO<ProfessionPriorities>,
                          RefRO<ReliefIntent>,
-                         RefRW<JobIntent>,
+                         RefRW<ProfessionIntent>,
                          RefRO<UnitMovement>,
                          RefRO<LocalTransform>,
+                         RefRW<MovementGoal>,
                          DynamicBuffer<TaskMemory>>().WithEntityAccess())
             {
                 // DynamicBuffer iteration variables come back as `ref readonly`
@@ -285,8 +291,13 @@ namespace RareIcon
                 if (reliefIntent.ValueRO.Kind != ReliefKind.None)
                 {
                     if (tasks.Length > 0) tasks.Clear();
-                    if (jobIntentRef.ValueRO.Kind != JobKind.None)
+                    var prev = jobIntentRef.ValueRO;
+                    if (prev.Kind != ProfessionKind.None)
+                    {
                         jobIntentRef.ValueRW = default;
+                        if (events.IsCreated)
+                            events.Add(new ProfessionChangedMessage(entity, prev.Kind, ProfessionKind.None, default, Entity.Null));
+                    }
                     continue;
                 }
 
@@ -294,11 +305,17 @@ namespace RareIcon
                 // possessed goblin) skip job assignment — the player is
                 // steering them, the AI shouldn't assign work in
                 // parallel. Releasing control returns the unit to the
-                // job dispatcher next tick.
+                // dispatcher next tick.
                 if (EntityManager.HasComponent<ControlledUnitTag>(entity))
                 {
                     if (tasks.Length > 0) tasks.Clear();
-                    jobIntentRef.ValueRW = default;
+                    var prev = jobIntentRef.ValueRO;
+                    if (prev.Kind != ProfessionKind.None)
+                    {
+                        jobIntentRef.ValueRW = default;
+                        if (events.IsCreated)
+                            events.Add(new ProfessionChangedMessage(entity, prev.Kind, ProfessionKind.None, default, Entity.Null));
+                    }
                     continue;
                 }
 
@@ -320,7 +337,7 @@ namespace RareIcon
                     {
                         head.State = TaskState.Active;
                         tasks[0]   = head;
-                        jobIntentRef.ValueRW = new JobIntent
+                        jobIntentRef.ValueRW = new ProfessionIntent
                         {
                             Kind         = head.Kind,
                             TargetHex    = head.TargetHex,
@@ -330,7 +347,7 @@ namespace RareIcon
                     }
                     if (head.State == TaskState.Active)
                     {
-                        // Unit is committed — don't re-score. JobIntent is
+                        // Unit is committed — don't re-score. ProfessionIntent is
                         // already in sync (BuilderJobSystem may refine
                         // TargetHex between dispatcher runs, which is fine).
                         continue;
@@ -345,7 +362,7 @@ namespace RareIcon
                 var currentHex = movement.ValueRO.CurrentHex;
                 var currentTarget = jobIntentRef.ValueRO.TargetEntity;
 
-                byte  bestKind   = JobKind.None;
+                byte  bestKind   = ProfessionKind.None;
                 int2  bestHex    = currentHex;
                 Entity bestEntity = Entity.Null;
                 long  bestScore  = long.MinValue;
@@ -370,7 +387,7 @@ namespace RareIcon
                     byte prio = p.Get(offer.Kind);
                     if (prio == 0) continue;
 
-                    if (offer.Kind == JobKind.Looter)
+                    if (offer.Kind == ProfessionKind.Looter)
                     {
                         if (looterMode == OfferVariant.LooterDeliver)
                         {
@@ -435,7 +452,7 @@ namespace RareIcon
                         if (gScore > bestScore)
                         {
                             bestScore  = gScore;
-                            bestKind   = JobKind.Guard;
+                            bestKind   = ProfessionKind.Guard;
                             bestHex    = hostileHex;
                             bestEntity = hostileEntity;
                         }
@@ -462,26 +479,58 @@ namespace RareIcon
                         if (gScore > bestScore)
                         {
                             bestScore  = gScore;
-                            bestKind   = JobKind.Guard;
+                            bestKind   = ProfessionKind.Guard;
                             bestHex    = patrolHex;
                             bestEntity = Entity.Null;
                         }
                     }
                 }
 
-                var oldTarget = jobIntentRef.ValueRO.TargetHex;
+                var prevIntent = jobIntentRef.ValueRO;
+                var oldTarget  = prevIntent.TargetHex;
                 if (_hexOccupancy.TryGetValue(oldTarget, out var oldCount) && oldCount > 0)
                     _hexOccupancy[oldTarget] = oldCount - 1;
+
+                if (bestKind == ProfessionKind.None)
+                {
+                    uint rng = (uint)entity.Index * 0x9E3779B1u ^ nowTick * 0x85EBCA77u;
+                    rng ^= rng >> 13; rng *= 0xC2B2AE3Du; rng ^= rng >> 16;
+                    int dir = (int)(rng % 6u);
+                    rng ^= rng >> 7; rng *= 0x27D4EB2Fu;
+                    int dist = (int)(3u + (rng % 3u));
+                    bestHex    = movement.ValueRO.CurrentHex + HexMeshUtil.HexNeighbor(dir) * dist;
+                    bestEntity = Entity.Null;
+                    bestKind   = ProfessionKind.Default;
+
+                    if (goalRef.ValueRO.Priority <= GoalPriority.Wander)
+                    {
+                        goalRef.ValueRW = new MovementGoal
+                        {
+                            Kind      = GoalKind.Wander,
+                            Priority  = GoalPriority.Wander,
+                            TargetHex = bestHex,
+                        };
+                    }
+                }
+
                 _hexOccupancy[bestHex] = _hexOccupancy.TryGetValue(bestHex, out var newCount) ? newCount + 1 : 1;
 
-                jobIntentRef.ValueRW = new JobIntent
+                jobIntentRef.ValueRW = new ProfessionIntent
                 {
                     Kind         = bestKind,
                     TargetHex    = bestHex,
                     TargetEntity = bestEntity,
                 };
 
-                if (bestKind == JobKind.None)
+                if (events.IsCreated
+                    && (prevIntent.Kind != bestKind
+                        || !prevIntent.TargetHex.Equals(bestHex)
+                        || prevIntent.TargetEntity != bestEntity))
+                {
+                    events.Add(new ProfessionChangedMessage(entity, prevIntent.Kind, bestKind, bestHex, bestEntity));
+                }
+
+                if (bestKind == ProfessionKind.None || bestKind == ProfessionKind.Default)
                 {
                     if (tasks.Length > 0) tasks.Clear();
                 }
@@ -550,18 +599,18 @@ namespace RareIcon
         {
             switch (kind)
             {
-                case JobKind.Lumberjack:
-                case JobKind.Miner:
+                case ProfessionKind.Lumberjack:
+                case ProfessionKind.Miner:
                     return SearchRadius;
-                case JobKind.Farmer:
+                case ProfessionKind.Farmer:
                     return SearchRadius * 2;
-                case JobKind.Builder:
+                case ProfessionKind.Builder:
                     return variant == OfferVariant.BuilderDamaged ? SearchRadius * 2 : int.MaxValue;
-                case JobKind.Chef:
-                case JobKind.Craftsman:
-                case JobKind.Blacksmith:
+                case ProfessionKind.Chef:
+                case ProfessionKind.Craftsman:
+                case ProfessionKind.Blacksmith:
                     return int.MaxValue;
-                case JobKind.Looter:
+                case ProfessionKind.Looter:
                     if (variant == OfferVariant.LooterArrow)  return SearchRadius * 2;
                     if (variant == OfferVariant.LooterForage) return SearchRadius;
                     return int.MaxValue;
@@ -572,9 +621,9 @@ namespace RareIcon
 
         static bool IsHarvestVariant(byte kind, byte variant)
         {
-            return kind == JobKind.Lumberjack
-                || kind == JobKind.Miner
-                || (kind == JobKind.Looter && variant == OfferVariant.LooterForage);
+            return kind == ProfessionKind.Lumberjack
+                || kind == ProfessionKind.Miner
+                || (kind == ProfessionKind.Looter && variant == OfferVariant.LooterForage);
         }
 
         bool TryFindHostile(NativeParallelMultiHashMap<int, HashedTarget> hash,
@@ -682,7 +731,7 @@ namespace RareIcon
 
             foreach (var (jobIntent, reliefIntent, state, goal, movement, tasksRef, entity) in
                      SystemAPI.Query<
-                         RefRO<JobIntent>,
+                         RefRO<ProfessionIntent>,
                          RefRO<ReliefIntent>,
                          RefRO<ActivityState>,
                          RefRO<MovementGoal>,
@@ -694,7 +743,7 @@ namespace RareIcon
                 if (EntityManager.HasComponent<ControlledUnitTag>(entity)) controlled++;
 
                 byte k = jobIntent.ValueRO.Kind;
-                if (k == JobKind.None) kindNone++;
+                if (k == ProfessionKind.None) kindNone++;
                 else if (k < jobKindCounts.Length) jobKindCounts[k]++;
 
                 byte lk = state.ValueRO.LastKind;
@@ -729,7 +778,7 @@ namespace RareIcon
                 }
 
                 bool committed = tasks.Length > 0 && tasks[0].State == TaskState.Active;
-                bool atTarget  = k != JobKind.None && math.all(jobIntent.ValueRO.TargetHex == m.CurrentHex);
+                bool atTarget  = k != ProfessionKind.None && math.all(jobIntent.ValueRO.TargetHex == m.CurrentHex);
                 if (atTarget)
                 {
                     if (m.HarvestCooldown <= 0f) atTargetHarvestReady++;
@@ -739,11 +788,11 @@ namespace RareIcon
             }
 
             Debug.Log(
-                $"[JobSystem diag] units={totalUnits} relief={reliefBlocked} controlled={controlled}\n" +
-                $"  jobIntent:  None={kindNone} Lumberjack={jobKindCounts[JobKind.Lumberjack]} Miner={jobKindCounts[JobKind.Miner]} " +
-                $"Guard={jobKindCounts[JobKind.Guard]} Looter={jobKindCounts[JobKind.Looter]} Farmer={jobKindCounts[JobKind.Farmer]} " +
-                $"Builder={jobKindCounts[JobKind.Builder]} Chef={jobKindCounts[JobKind.Chef]} Hunter={jobKindCounts[JobKind.Hunter]} " +
-                $"Blacksmith={jobKindCounts[JobKind.Blacksmith]} Craftsman={jobKindCounts[JobKind.Craftsman]}\n" +
+                $"[ProfessionDispatch diag] units={totalUnits} relief={reliefBlocked} controlled={controlled}\n" +
+                $"  jobIntent:  None={kindNone} Lumberjack={jobKindCounts[ProfessionKind.Lumberjack]} Miner={jobKindCounts[ProfessionKind.Miner]} " +
+                $"Guard={jobKindCounts[ProfessionKind.Guard]} Looter={jobKindCounts[ProfessionKind.Looter]} Farmer={jobKindCounts[ProfessionKind.Farmer]} " +
+                $"Builder={jobKindCounts[ProfessionKind.Builder]} Chef={jobKindCounts[ProfessionKind.Chef]} Hunter={jobKindCounts[ProfessionKind.Hunter]} " +
+                $"Blacksmith={jobKindCounts[ProfessionKind.Blacksmith]} Craftsman={jobKindCounts[ProfessionKind.Craftsman]}\n" +
                 $"  activity:   None={lastKindCounts[0]} Idle={lastKindCounts[1]} Wandering={lastKindCounts[2]} MovingToOrder={lastKindCounts[3]} " +
                 $"Sleeping={lastKindCounts[4]} Eating={lastKindCounts[5]} Healing={lastKindCounts[6]} ReturningToBase={lastKindCounts[7]} " +
                 $"SeekingAid={lastKindCounts[8]} Foraging={lastKindCounts[9]} Lumberjacking={lastKindCounts[10]} Mining={lastKindCounts[11]} " +

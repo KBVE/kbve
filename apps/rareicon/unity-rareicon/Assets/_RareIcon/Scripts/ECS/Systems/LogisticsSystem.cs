@@ -24,7 +24,7 @@ namespace RareIcon
         public int Furnaces;
         public int Barracks;
 
-        // Bitmask indexed by JobKind byte value (Lumberjack=2, Miner=3, ...).
+        // Bitmask indexed by ProfessionKind byte value (Lumberjack=2, Miner=3, ...).
         // LogisticsWarningSystem walks each bit and toasts the matching locale
         // key on main thread; set-then-cleared each turn.
         public uint RolesAutoFilled;
@@ -45,7 +45,7 @@ namespace RareIcon
             state.RequireForUpdate<WorldClock>();
 
             _unitQuery = new EntityQueryBuilder(Allocator.Temp)
-                .WithAll<JobPriorities, Faction, Unit>()
+                .WithAll<ProfessionPriorities, Faction, Unit>()
                 .Build(ref state);
 
             _buildingQuery = new EntityQueryBuilder(Allocator.Temp)
@@ -90,7 +90,7 @@ namespace RareIcon
                 SiteCount        = siteCount,
                 FactionLookup    = SystemAPI.GetComponentLookup<Faction>(true),
                 BuildingLookup   = SystemAPI.GetComponentLookup<Building>(true),
-                PrioritiesLookup = SystemAPI.GetComponentLookup<JobPriorities>(false),
+                PrioritiesLookup = SystemAPI.GetComponentLookup<ProfessionPriorities>(false),
                 ReportEntity     = reportEntity,
                 ReportLookup     = SystemAPI.GetComponentLookup<LogisticsReport>(false),
                 Turn             = turn,
@@ -106,7 +106,7 @@ namespace RareIcon
     {
         // Promote at the same specialty priority BuildingStaffingSystem uses,
         // so a logistics quota goblin and a building-staffed goblin look the
-        // same to JobSystem and to the IsPureLooter check (both gate on
+        // same to ProfessionDispatchSystem and to the IsPureLooter check (both gate on
         // specialty roles being zero).
         const byte SpecialtyPriority = 5;
 
@@ -126,7 +126,7 @@ namespace RareIcon
         [ReadOnly] public ComponentLookup<Faction>  FactionLookup;
         [ReadOnly] public ComponentLookup<Building> BuildingLookup;
 
-        public ComponentLookup<JobPriorities>   PrioritiesLookup;
+        public ComponentLookup<ProfessionPriorities>   PrioritiesLookup;
         public ComponentLookup<LogisticsReport> ReportLookup;
         public Entity ReportEntity;
         public uint   Turn;
@@ -180,18 +180,18 @@ namespace RareIcon
 
             // Tribe-wide raw-material quotas — Lumberjack and Miner first
             // because the whole craft chain stalls without them.
-            FillQuota(JobKind.Lumberjack, ref lumberjacks, LumberjackQuota, pureLooters, ref autoFilled, ref unfillable);
-            FillQuota(JobKind.Miner,      ref miners,      MinerQuota,      pureLooters, ref autoFilled, ref unfillable);
-            FillQuota(JobKind.Hunter,     ref hunters,     HunterQuota,     pureLooters, ref autoFilled, ref unfillable);
-            FillQuota(JobKind.Looter,     ref looters,     LooterQuota,     pureLooters, ref autoFilled, ref unfillable);
+            FillQuota(ProfessionKind.Lumberjack, ref lumberjacks, LumberjackQuota, pureLooters, ref autoFilled, ref unfillable);
+            FillQuota(ProfessionKind.Miner,      ref miners,      MinerQuota,      pureLooters, ref autoFilled, ref unfillable);
+            FillQuota(ProfessionKind.Hunter,     ref hunters,     HunterQuota,     pureLooters, ref autoFilled, ref unfillable);
+            FillQuota(ProfessionKind.Looter,     ref looters,     LooterQuota,     pureLooters, ref autoFilled, ref unfillable);
 
             // Building-conditional minima: only stamp Farmer/Chef/Blacksmith/
             // Guard if the matching building actually exists. Each is gated at
             // 1 — players can keep promoting via the Citizens UI past that.
-            if (farms    > 0) FillQuota(JobKind.Farmer,     ref farmers,     1, pureLooters, ref autoFilled, ref unfillable);
-            if (furnaces > 0) FillQuota(JobKind.Chef,       ref chefs,       1, pureLooters, ref autoFilled, ref unfillable);
-            if (furnaces > 0) FillQuota(JobKind.Blacksmith, ref blacksmiths, 1, pureLooters, ref autoFilled, ref unfillable);
-            if (barracks > 0) FillQuota(JobKind.Guard,      ref guards,      1, pureLooters, ref autoFilled, ref unfillable);
+            if (farms    > 0) FillQuota(ProfessionKind.Farmer,     ref farmers,     1, pureLooters, ref autoFilled, ref unfillable);
+            if (furnaces > 0) FillQuota(ProfessionKind.Chef,       ref chefs,       1, pureLooters, ref autoFilled, ref unfillable);
+            if (furnaces > 0) FillQuota(ProfessionKind.Blacksmith, ref blacksmiths, 1, pureLooters, ref autoFilled, ref unfillable);
+            if (barracks > 0) FillQuota(ProfessionKind.Guard,      ref guards,      1, pureLooters, ref autoFilled, ref unfillable);
 
             // Builder keeps pace with open ConstructionSites — one builder per
             // site, capped to "match siteCount". BuildingStaffingSystem stamps
@@ -199,7 +199,7 @@ namespace RareIcon
             // at least one once construction's in flight.
             if (SiteCount > builders)
             {
-                FillQuota(JobKind.Builder, ref builders, SiteCount, pureLooters, ref autoFilled, ref unfillable);
+                FillQuota(ProfessionKind.Builder, ref builders, SiteCount, pureLooters, ref autoFilled, ref unfillable);
             }
 
             ReportLookup[ReportEntity] = new LogisticsReport
@@ -256,7 +256,7 @@ namespace RareIcon
         // BuildingStaffingSystem stamps and earlier LogisticsSystem stamps
         // bump roles to SpecialtyPriority (5), so this check naturally avoids
         // poaching anyone who's already been assigned somewhere.
-        bool IsPureLooter(in JobPriorities p)
+        bool IsPureLooter(in ProfessionPriorities p)
         {
             if (p.Looter == 0) return false;
             return p.Lumberjack < SpecialtyPriority

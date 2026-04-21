@@ -33,6 +33,7 @@ namespace RareIcon
             builder.RegisterMessageBroker<SelectionMoveMessage>(options);
 
             builder.RegisterMessageBroker<InventoryChangedMessage>(options);
+            builder.RegisterMessageBroker<ProfessionChangedMessage>(options);
 
             builder.RegisterBuildCallback(container =>
             {

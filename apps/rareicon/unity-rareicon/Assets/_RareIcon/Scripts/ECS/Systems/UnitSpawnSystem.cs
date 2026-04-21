@@ -48,7 +48,7 @@ namespace RareIcon
             SpawnKingAt(EntityManager, new int2(0, 0));
 
             // Four garrison archers posted on the Capital's N/E/S/W footprint
-            // hexes. Crossbow loadout, zero JobPriorities, never wander —
+            // hexes. Crossbow loadout, zero ProfessionPriorities, never wander —
             // RangedAttackSystem auto-fires at any Hostile in 3 wu range
             // while they hold the perimeter.
             SpawnGarrisonGoblinAt(EntityManager, new int2( 1,  0), 0xA110C8u);
@@ -185,11 +185,11 @@ namespace RareIcon
             return entity;
         }
 
-        /// <summary>Spawn a garrison archer (Crossbow goblin) posted at the given hex. Zero JobPriorities + GarrisonPost → never wanders, never harvests; RangedAttackSystem still auto-fires at hostiles in range.</summary>
+        /// <summary>Spawn a garrison archer (Crossbow goblin) posted at the given hex. Zero ProfessionPriorities + GarrisonPost → never wanders, never harvests; RangedAttackSystem still auto-fires at hostiles in range.</summary>
         public static Entity SpawnGarrisonGoblinAt(EntityManager em, int2 hex, uint rngSeed)
         {
             // Spawn a Player goblin, then overwrite Weapon → Crossbow,
-            // attach GarrisonPost, and zero the JobPriorities so the
+            // attach GarrisonPost, and zero the ProfessionPriorities so the
             // jobs / relief / wander pipelines leave it on-tile.
             var entity = SpawnGoblinAt(em, hex, rngSeed, default, FactionType.Player);
             if (entity == Entity.Null) return Entity.Null;
@@ -202,7 +202,7 @@ namespace RareIcon
             AttachRangedAttackIfArmed(em, entity, WeaponType.Crossbow);
 
             em.AddComponentData(entity, new GarrisonPost { Hex = hex });
-            em.SetComponentData(entity, new JobPriorities());
+            em.SetComponentData(entity, new ProfessionPriorities());
 
             var pack = em.GetBuffer<PackSlot>(entity);
             pack.Add(new PackSlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Arrow, Count = ArcherRefillConfig.QuiverMax });
@@ -589,7 +589,7 @@ namespace RareIcon
 
             // No PassiveAnimalTag — wolves don't flee, they engage.
             // No inventory — wolves don't loot or carry, they drop on death.
-            // No JobPriorities / Needs — Beast faction is excluded from those systems.
+            // No ProfessionPriorities / Needs — Beast faction is excluded from those systems.
 
             RenderMeshUtility.AddComponents(
                 entity, em, _renderDesc, _renderArray,
@@ -634,11 +634,11 @@ namespace RareIcon
             var entity = SpawnGoblinAt(em, hex, rngSeed, default, FactionType.Player, UnitType.Knight);
             if (entity == Entity.Null) return Entity.Null;
 
-            JobPriorities priorities = heroRole switch
+            ProfessionPriorities priorities = heroRole switch
             {
-                HeroRole.MasterBlacksmith => JobDefaults.HeroMasterBlacksmith(),
-                HeroRole.MasterCraftsman  => JobDefaults.HeroMasterCraftsman(),
-                _                         => JobDefaults.Get(UnitType.Knight),
+                HeroRole.MasterBlacksmith => ProfessionDefaults.HeroMasterBlacksmith(),
+                HeroRole.MasterCraftsman  => ProfessionDefaults.HeroMasterCraftsman(),
+                _                         => ProfessionDefaults.Get(UnitType.Knight),
             };
             em.SetComponentData(entity, priorities);
             em.AddComponentData(entity, new HeroTag { Role = heroRole });
@@ -659,20 +659,20 @@ namespace RareIcon
         static void AttachJobsIfPlayer(EntityManager em, Entity entity, byte faction, byte unitType, uint archetypeSeed = 0u)
         {
             if (faction != FactionType.Player) return;
-            JobPriorities priorities;
+            ProfessionPriorities priorities;
             if (unitType == UnitType.Goblin && archetypeSeed != 0u
-                && !JobPreferencesStore.HasOverride(unitType))
+                && !ProfessionPreferencesStore.HasOverride(unitType))
             {
-                priorities = JobDefaults.GoblinArchetype(archetypeSeed);
+                priorities = ProfessionDefaults.GoblinArchetype(archetypeSeed);
             }
             else
             {
-                priorities = JobPreferencesStore.GetOrDefault(unitType);
+                priorities = ProfessionPreferencesStore.GetOrDefault(unitType);
             }
             em.AddComponentData(entity, priorities);
-            em.AddComponentData(entity, new JobIntent
+            em.AddComponentData(entity, new ProfessionIntent
             {
-                Kind         = JobKind.None,
+                Kind         = ProfessionKind.None,
                 TargetHex    = default,
                 TargetEntity = Entity.Null,
             });
@@ -687,7 +687,7 @@ namespace RareIcon
 
             // Sticky per-entity record of the last activity the writer
             // emitted for this unit. Initialised to None so the very
-            // first classification (whatever ReliefSystem / JobSystem
+            // first classification (whatever ReliefSystem / ProfessionDispatchSystem
             // pick on tick 1) registers as a delta and surfaces to UI.
             em.AddComponentData(entity, new ActivityState { LastKind = ActivityKind.None });
         }

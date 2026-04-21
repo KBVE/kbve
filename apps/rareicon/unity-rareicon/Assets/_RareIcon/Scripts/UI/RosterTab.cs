@@ -19,14 +19,14 @@ namespace RareIcon
 
         static readonly (byte Kind, string Label)[] Jobs = new (byte, string)[]
         {
-            (JobKind.Looter,     "Looter"),
-            (JobKind.Lumberjack, "Lumberjack"),
-            (JobKind.Miner,      "Miner"),
-            (JobKind.Guard,      "Guard"),
-            (JobKind.Farmer,     "Farmer"),
-            (JobKind.Builder,    "Builder"),
-            (JobKind.Chef,       "Chef"),
-            (JobKind.Blacksmith, "Blacksmith"),
+            (ProfessionKind.Looter,     "Looter"),
+            (ProfessionKind.Lumberjack, "Lumberjack"),
+            (ProfessionKind.Miner,      "Miner"),
+            (ProfessionKind.Guard,      "Guard"),
+            (ProfessionKind.Farmer,     "Farmer"),
+            (ProfessionKind.Builder,    "Builder"),
+            (ProfessionKind.Chef,       "Chef"),
+            (ProfessionKind.Blacksmith, "Blacksmith"),
         };
 
         readonly LocaleService _locale;
@@ -319,8 +319,8 @@ namespace RareIcon
             var world = World.DefaultGameObjectInjectionWorld;
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
-            if (!em.Exists(_selected) || !em.HasComponent<JobPriorities>(_selected)) return;
-            var jp = em.GetComponentData<JobPriorities>(_selected);
+            if (!em.Exists(_selected) || !em.HasComponent<ProfessionPriorities>(_selected)) return;
+            var jp = em.GetComponentData<ProfessionPriorities>(_selected);
             jp.Set(jobKind, priority);
             em.SetComponentData(_selected, jp);
         }
@@ -341,9 +341,9 @@ namespace RareIcon
             UpdateBar(em, entity, _detailHu, has: em.HasComponent<Hunger>(entity),
                 value: em.HasComponent<Hunger>(entity)  ? em.GetComponentData<Hunger>(entity).Value  : 0f,
                 max:   em.HasComponent<Hunger>(entity)  ? em.GetComponentData<Hunger>(entity).Max    : 0f);
-            if (em.HasComponent<JobPriorities>(entity))
+            if (em.HasComponent<ProfessionPriorities>(entity))
             {
-                var jp = em.GetComponentData<JobPriorities>(entity);
+                var jp = em.GetComponentData<ProfessionPriorities>(entity);
                 for (int i = 0; i < Jobs.Length; i++)
                     _jobSteppers[i].SetValue(jp.Get(Jobs[i].Kind));
                 _jobsSection.style.display = DisplayStyle.Flex;

@@ -66,9 +66,9 @@ namespace RareIcon
 
         public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
-        void Execute(Entity entity, in JobIntent intent, in UnitMovement movement)
+        void Execute(Entity entity, in ProfessionIntent intent, in UnitMovement movement)
         {
-            if (intent.Kind != JobKind.Builder) return;
+            if (intent.Kind != ProfessionKind.Builder) return;
             if (intent.TargetEntity == Entity.Null) return;
             if (!PackLookup.HasBuffer(entity)) return;
 

@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Skill IDs parallel to JobKind so UI + progression can cross-reference by index; values are canonical for Rust FFI.</summary>
+    /// <summary>Skill IDs parallel to ProfessionKind so UI + progression can cross-reference by index; values are canonical for Rust FFI.</summary>
     // TODO(rust-ffi): mirror as #[repr(u8)] SkillKind enum.
     public static class SkillKind
     {

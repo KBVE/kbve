@@ -8,7 +8,7 @@ using Unity.Transforms;
 namespace RareIcon
 {
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
-    [UpdateAfter(typeof(JobSystem))]
+    [UpdateAfter(typeof(ProfessionDispatchSystem))]
     [UpdateAfter(typeof(TaskInvalidationSystem))]
     [UpdateAfter(typeof(BuilderJobSystem))]
     public partial struct UnitBehaviorSystem : ISystem
@@ -89,8 +89,8 @@ namespace RareIcon
 
         void Execute(in Faction faction,
                      in ReliefIntent relief,
-                     in JobIntent intent,
-                     in JobPriorities priorities,
+                     in ProfessionIntent intent,
+                     in ProfessionPriorities priorities,
                      in UnitMovement movement,
                      in LocalTransform transform,
                      in UnitBagStatus bagStatus,
@@ -117,7 +117,7 @@ namespace RareIcon
                 return;
             }
 
-            bool committedBuilder = intent.Kind == JobKind.Builder
+            bool committedBuilder = intent.Kind == ProfessionKind.Builder
                 && intent.TargetEntity != Entity.Null;
             if (committedBuilder)
             {
@@ -132,7 +132,7 @@ namespace RareIcon
                 return;
             }
 
-            if (intent.Kind != JobKind.None)
+            if (intent.Kind != ProfessionKind.None)
             {
                 Write(ref goal, GoalKind.MoveToHex, GoalPriority.Harvest, intent.TargetHex);
                 return;

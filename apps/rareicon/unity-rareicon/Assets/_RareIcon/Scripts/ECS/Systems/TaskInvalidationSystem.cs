@@ -8,7 +8,7 @@ namespace RareIcon
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(ReliefSystem))]
-    [UpdateBefore(typeof(JobSystem))]
+    [UpdateBefore(typeof(ProfessionDispatchSystem))]
     public partial struct TaskInvalidationSystem : ISystem
     {
         [BurstCompile] public void OnCreate(ref SystemState state) { }
@@ -69,26 +69,26 @@ namespace RareIcon
         {
             switch (entry.Kind)
             {
-                case JobKind.None: return false;
-                case JobKind.Lumberjack: return HexHas(entry.TargetHex, HarvestRole.Lumberjack);
-                case JobKind.Miner:      return HexHas(entry.TargetHex, HarvestRole.Miner);
-                case JobKind.Farmer:
+                case ProfessionKind.None: return false;
+                case ProfessionKind.Lumberjack: return HexHas(entry.TargetHex, HarvestRole.Lumberjack);
+                case ProfessionKind.Miner:      return HexHas(entry.TargetHex, HarvestRole.Miner);
+                case ProfessionKind.Farmer:
                     if (entry.TargetEntity == Entity.Null) return false;
                     return FarmLookup.HasComponent(entry.TargetEntity);
-                case JobKind.Chef:
+                case ProfessionKind.Chef:
                     if (entry.TargetEntity == Entity.Null) return false;
                     return CapitalLookup.HasComponent(entry.TargetEntity);
-                case JobKind.Craftsman:
+                case ProfessionKind.Craftsman:
                     if (entry.TargetEntity == Entity.Null) return false;
                     return BarracksLookup.HasComponent(entry.TargetEntity);
-                case JobKind.Blacksmith:
+                case ProfessionKind.Blacksmith:
                     if (entry.TargetEntity == Entity.Null) return false;
                     return FurnaceLookup.HasComponent(entry.TargetEntity);
-                case JobKind.Guard:
+                case ProfessionKind.Guard:
                     if (entry.TargetEntity == Entity.Null) return true;
                     return BuildingLookup.HasComponent(entry.TargetEntity)
                         || GroundArrowLookup.HasComponent(entry.TargetEntity);
-                case JobKind.Builder:
+                case ProfessionKind.Builder:
                     if (entry.TargetEntity == Entity.Null) return false;
                     if (ConstructionLookup.HasComponent(entry.TargetEntity)) return true;
                     if (BuildingLookup.HasComponent(entry.TargetEntity)
@@ -99,7 +99,7 @@ namespace RareIcon
                         return b.OwnerFaction == FactionType.Player && hp.Value < hp.Max;
                     }
                     return false;
-                case JobKind.Looter:
+                case ProfessionKind.Looter:
                     return LooterValid(in entry);
                 default:
                     return entry.TargetEntity != Entity.Null || !entry.TargetHex.Equals(int2.zero);

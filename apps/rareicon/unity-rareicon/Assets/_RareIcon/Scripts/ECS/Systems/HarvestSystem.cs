@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Opportunistic harvesting on arrival — respects JobPriorities + DietPreferencesSingleton (Burst-safe mirror of DietPreferencesStore), awards SkillXP. Burst ISystem; shared hex component writes are serialized so single-worker Schedule is correct here.</summary>
+    /// <summary>Opportunistic harvesting on arrival — respects ProfessionPriorities + DietPreferencesSingleton (Burst-safe mirror of DietPreferencesStore), awards SkillXP. Burst ISystem; shared hex component writes are serialized so single-worker Schedule is correct here.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct HarvestSystem : ISystem
@@ -58,7 +58,7 @@ namespace RareIcon
 
         void Execute(Entity entity,
                      ref UnitMovement movement,
-                     in JobPriorities priorities,
+                     in ProfessionPriorities priorities,
                      in Unit unit,
                      DynamicBuffer<PackSlot> inventory,
                      in DynamicBuffer<EquippedBag> bags)

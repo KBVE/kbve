@@ -141,7 +141,7 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var priorityLookup = SystemAPI.GetComponentLookup<JobPriorities>(true);
+            var priorityLookup = SystemAPI.GetComponentLookup<ProfessionPriorities>(true);
 
             var tamerHexes  = new NativeList<int2>(16, Allocator.TempJob);
             var tamerOwners = new NativeList<Entity>(16, Allocator.TempJob);

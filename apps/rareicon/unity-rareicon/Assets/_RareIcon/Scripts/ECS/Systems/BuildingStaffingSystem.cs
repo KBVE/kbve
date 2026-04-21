@@ -26,7 +26,7 @@ namespace RareIcon
         {
             _candidateQuery = new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<Unit>()
-                .WithAllRW<JobPriorities>()
+                .WithAllRW<ProfessionPriorities>()
                 .Build(ref state);
 
             _buildingQuery = new EntityQueryBuilder(Allocator.Temp)
@@ -71,7 +71,7 @@ namespace RareIcon
             {
                 Requests          = requests,
                 Candidates        = candidates,
-                PrioritiesLookup  = SystemAPI.GetComponentLookup<JobPriorities>(false),
+                PrioritiesLookup  = SystemAPI.GetComponentLookup<ProfessionPriorities>(false),
                 SpecialtyPriority = SpecialtyPriority,
                 Ecb               = ecb,
             }.Schedule(state.Dependency);
@@ -82,11 +82,11 @@ namespace RareIcon
 
         static byte RoleForBuilding(byte buildingType) => buildingType switch
         {
-            BuildingType.Capital  => JobKind.Builder,
-            BuildingType.Farm     => JobKind.Farmer,
-            BuildingType.Barracks => JobKind.Guard,
-            BuildingType.Furnace  => JobKind.Blacksmith,
-            _                     => JobKind.None,
+            BuildingType.Capital  => ProfessionKind.Builder,
+            BuildingType.Farm     => ProfessionKind.Farmer,
+            BuildingType.Barracks => ProfessionKind.Guard,
+            BuildingType.Furnace  => ProfessionKind.Blacksmith,
+            _                     => ProfessionKind.None,
         };
     }
 
@@ -96,7 +96,7 @@ namespace RareIcon
         [ReadOnly] public NativeList<StaffingRequest> Requests;
         [ReadOnly] public NativeArray<Entity>         Candidates;
 
-        public ComponentLookup<JobPriorities> PrioritiesLookup;
+        public ComponentLookup<ProfessionPriorities> PrioritiesLookup;
         public EntityCommandBuffer            Ecb;
         public byte                           SpecialtyPriority;
 
@@ -105,7 +105,7 @@ namespace RareIcon
             for (int i = 0; i < Requests.Length; i++)
             {
                 var req = Requests[i];
-                if (req.Role == JobKind.None)
+                if (req.Role == ProfessionKind.None)
                 {
                     Ecb.RemoveComponent<NeedsStaffing>(req.Building);
                     continue;

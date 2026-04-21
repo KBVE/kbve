@@ -8,7 +8,7 @@ namespace RareIcon
     /// <summary>Writes TenderMultiplier.Value = 1 when any Farmer-intent unit stands on the farm's 7-hex footprint; otherwise 0. ProductionSystem reads TenderMultiplier when starting a recipe cycle to halve the duration. Main-thread hex-snapshot + parallel per-farm multiplier writes.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
-    [UpdateAfter(typeof(JobSystem))]
+    [UpdateAfter(typeof(ProfessionDispatchSystem))]
     public partial struct FarmTenderScanSystem : ISystem
     {
         [BurstCompile] public void OnCreate(ref SystemState state) { }
@@ -19,9 +19,9 @@ namespace RareIcon
         {
             var tendedHexes = new NativeHashSet<int2>(16, Allocator.TempJob);
             foreach (var (intent, movement) in
-                     SystemAPI.Query<RefRO<JobIntent>, RefRO<UnitMovement>>())
+                     SystemAPI.Query<RefRO<ProfessionIntent>, RefRO<UnitMovement>>())
             {
-                if (intent.ValueRO.Kind != JobKind.Farmer) continue;
+                if (intent.ValueRO.Kind != ProfessionKind.Farmer) continue;
                 tendedHexes.Add(movement.ValueRO.CurrentHex);
             }
 

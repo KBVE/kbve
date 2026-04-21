@@ -60,9 +60,9 @@ namespace RareIcon
         public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
         public uint Tick;
 
-        void Execute(Entity entity, in JobIntent intent, in UnitMovement movement)
+        void Execute(Entity entity, in ProfessionIntent intent, in UnitMovement movement)
         {
-            if (intent.Kind != JobKind.Chef) return;
+            if (intent.Kind != ProfessionKind.Chef) return;
             if (!IsOnCapital(movement.CurrentHex)) return;
             if (!CapitalLookup.HasBuffer(Capital)) return;
 

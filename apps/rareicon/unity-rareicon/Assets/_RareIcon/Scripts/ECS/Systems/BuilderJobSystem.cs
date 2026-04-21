@@ -5,10 +5,10 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Two-phase target routing for Builder-intent units: go to Capital when empty (pickup), go to the target site when carrying matching materials (delivery). JobSystem picks the site; this refines the TargetHex. Burst ISystem off the main thread — single-worker Schedule matches the other supply-job refiners.</summary>
+    /// <summary>Two-phase target routing for Builder-intent units: go to Capital when empty (pickup), go to the target site when carrying matching materials (delivery). ProfessionDispatchSystem picks the site; this refines the TargetHex. Burst ISystem off the main thread — single-worker Schedule matches the other supply-job refiners.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
-    [UpdateAfter(typeof(JobSystem))]
+    [UpdateAfter(typeof(ProfessionDispatchSystem))]
     [UpdateBefore(typeof(JobMovementExecutor))]
     public partial struct BuilderJobSystem : ISystem
     {
@@ -39,9 +39,9 @@ namespace RareIcon
         [ReadOnly] public BufferLookup<ConstructionMaterial> MaterialLookup;
         [ReadOnly] public ComponentLookup<ConstructionSite>  SiteLookup;
 
-        void Execute(Entity entity, ref JobIntent intent)
+        void Execute(Entity entity, ref ProfessionIntent intent)
         {
-            if (intent.Kind != JobKind.Builder) return;
+            if (intent.Kind != ProfessionKind.Builder) return;
             if (intent.TargetEntity == Entity.Null) return;
             if (!SiteLookup.HasComponent(intent.TargetEntity)) return;
             if (!MaterialLookup.HasBuffer(intent.TargetEntity)) return;
@@ -52,9 +52,9 @@ namespace RareIcon
             var siteHex   = SiteLookup[intent.TargetEntity].RootHex;
 
             bool carrying = CarriesMatchingMaterial(inventory, mats);
-            intent = new JobIntent
+            intent = new ProfessionIntent
             {
-                Kind         = JobKind.Builder,
+                Kind         = ProfessionKind.Builder,
                 TargetHex    = carrying ? siteHex : CapitalHex,
                 TargetEntity = intent.TargetEntity,
             };

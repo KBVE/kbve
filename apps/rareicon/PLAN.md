@@ -4,14 +4,15 @@
 
 ## Status snapshot
 
-| §     | Topic                                                  | State                                                                    |
-| ----- | ------------------------------------------------------ | ------------------------------------------------------------------------ |
-| §12   | InventorySlot type split (PackSlot + per-bank ledgers) | Shipped                                                                  |
-| §13   | Single-writer ledger via NativeQueue drain             | Shipped                                                                  |
-| §13.5 | Per-producer NativeQueue conversion                    | **Abandoned** — superseded by §15 (working tree preserved as checkpoint) |
-| §14   | MessagePipe boundary / per-domain pipes                | Plan drafted — see [MESSAGING.md](MESSAGING.md); executes after §15-E    |
-| §15   | ECS/DB subsystem + Logistics domain                    | **Active** — plan below                                                  |
-| §16+  | Subsequent domains (Combat, Skills, etc.)              | Future — reuse `ECS/DB/<Domain>/` pattern                                |
+| §     | Topic                                                  | State                                                                             |
+| ----- | ------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| §12   | InventorySlot type split (PackSlot + per-bank ledgers) | Shipped                                                                           |
+| §13   | Single-writer ledger via NativeQueue drain             | Shipped                                                                           |
+| §13.5 | Per-producer NativeQueue conversion                    | **Abandoned** — superseded by §15 (working tree preserved as checkpoint)          |
+| §14   | MessagePipe boundary / per-domain pipes                | Plan drafted — see [MESSAGING.md](MESSAGING.md); executes after §15-E             |
+| §15   | ECS/DB subsystem + Logistics domain                    | **Shipped** — Chunks A/B/C complete; CurrentAmounts authoritative, MessagePipe UI |
+| §16   | Professions domain (dispatch + events)                 | **Active** — rename + DB + event bridge landed; Burst conversion deferred         |
+| §17+  | Subsequent domains (Combat, Skills, etc.)              | Future — reuse `ECS/DB/<Domain>/` pattern                                         |
 
 ## §15 — ECS/DB subsystem + Logistics domain
 
@@ -116,9 +117,29 @@ Assets/_RareIcon/Scripts/ECS/DB/
 - No `#region`.
 - Rationale lives in this doc and commit messages.
 
+## §16 — Professions domain
+
+### Motivation
+
+The dispatcher previously named `JobSystem` collided with Unity's `IJob` / `Unity.Jobs.*` namespace every time someone read the file. It also left idle citizens (`jobIntent: None=5`, `activity: Idle=5` in diagnostics) whenever no scored offer won — the unit sat doing nothing instead of wandering. Finally, the dispatcher's `JobIntent` writes weren't observable; UI panels polled to see who was doing what.
+
+### Scope landed this session
+
+- **Rename** (mechanical, 30 files): `JobKind` → `ProfessionKind`, `JobIntent` → `ProfessionIntent`, `JobPriorities` → `ProfessionPriorities`, `JobDefaults` → `ProfessionDefaults`, `JobPreferencesStore` → `ProfessionPreferencesStore`, `JobSystem` → `ProfessionDispatchSystem`.
+- **Folder move** to `ECS/DB/Professions/` (Components / Systems / Messages) matching the Logistics domain shape.
+- **New `ProfessionKind.Default = 1`**. Dispatcher falls back to Default and writes a `GoalKind.Wander` MovementGoal when no scored offer wins — idle citizens now wander deterministically per-entity + per-tick.
+- **`ProfessionsDBSingleton`** with `NativeList<ProfessionChangedMessage> CommittedEvents`. Populated by the dispatcher inline on any kind / target change; cleared per frame by `ProfessionsDomainSystem` (OrderFirst in `BehaviorSystemGroup`).
+- **`ProfessionMessagePipeBridgeSystem`** drains the list and publishes via `IPublisher<ProfessionChangedMessage>` (lazy `GlobalMessagePipe` resolve, same pattern as Logistics).
+- **VContainer**: `ProfessionChangedMessage` broker registered in `RootLifetimeScope`.
+
+### Deferred to follow-up
+
+- **Burst IJobParallelFor dispatcher rewrite.** The 400-line scoring loop in `ProfessionDispatchSystem` is still `SystemBase` main-thread. Converting to `IJobParallelFor` over units requires: lifting the offer-enumeration pass into a singleton-cached `NativeList<TaskOffer>`, replacing all `EntityManager.GetComponentData` lookups with `ComponentLookup<T>` passed in, and resolving the `TaskMemory` DynamicBuffer access through `BufferLookup<TaskMemory>` with `[NativeDisableParallelForRestriction]`. The Guard hostile-lookup branch (`TryFindHostile` against `SpatialHashSingleton`) is already Burst-ready. Land as `§16-Burst` in a focused session after a real scaling need appears.
+- **UI subscriber conversion.** `RosterTab` still polls — partially because it also displays unit-spawn / death / stat state, not just professions. When those domains get their own events (`UnitLifecycleMessage`, etc.) the whole panel can migrate.
+
 ## §14 — MessagePipe boundary (planned)
 
-Detailed plan in [MESSAGING.md](MESSAGING.md). Four-layer model (NativeQueue → Burst applier → SystemBase bridge → MessagePipe subscribers). Per-domain typed pipes, DisposableBag discipline. Executes after §15-E once the committer's event stream is stable.
+Detailed plan in [MESSAGING.md](MESSAGING.md). Four-layer model (NativeQueue → Burst applier → SystemBase bridge → MessagePipe subscribers). Per-domain typed pipes, DisposableBag discipline. Shipped for Logistics (§15-C); Professions (§16) follows the same pattern.
 
 ## §12 / §13 — shipped
 

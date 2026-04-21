@@ -115,7 +115,7 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Player-faction Looter on the Capital hex with a Looter→Capital cave-haul JobIntent submits a Pickup reservation against Capital for PerTripAmount food. PackApplySystem applies the granted items to the unit's pack.</summary>
+    /// <summary>Player-faction Looter on the Capital hex with a Looter→Capital cave-haul ProfessionIntent submits a Pickup reservation against Capital for PerTripAmount food. PackApplySystem applies the granted items to the unit's pack.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireDepositSystem))]
     public partial struct CapitalFoodPickupSystem : ISystem
@@ -156,7 +156,7 @@ namespace RareIcon
     }
 
     [BurstCompile]
-    [WithAll(typeof(JobPriorities))]
+    [WithAll(typeof(ProfessionPriorities))]
     public partial struct CapitalFoodPickupJob : IJobEntity
     {
         public Entity Capital;
@@ -169,7 +169,7 @@ namespace RareIcon
         public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
         void Execute(Entity entity,
-                     in JobIntent jobIntent,
+                     in ProfessionIntent jobIntent,
                      in ReliefIntent reliefIntent,
                      in Faction faction,
                      in UnitMovement movement,
@@ -178,7 +178,7 @@ namespace RareIcon
             if (faction.Value != FactionType.Player) return;
             if (!movement.CurrentHex.Equals(CapitalHex)) return;
             if (reliefIntent.Kind != ReliefKind.None) return;
-            if (jobIntent.Kind != JobKind.Looter) return;
+            if (jobIntent.Kind != ProfessionKind.Looter) return;
             if (jobIntent.TargetEntity != Capital) return;
             if (!CapitalLookup.HasBuffer(Capital)) return;
 

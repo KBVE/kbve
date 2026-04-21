@@ -1,30 +1,30 @@
 namespace RareIcon
 {
-    public static class JobDefaults
+    public static class ProfessionDefaults
     {
-        public static JobPriorities Get(byte unitType) => unitType switch
+        public static ProfessionPriorities Get(byte unitType) => unitType switch
         {
             UnitType.Goblin  => GoblinGeneralist(),
-            UnitType.Soldier => new JobPriorities { Guard = 4, Hunter = 2, Builder = 3, Looter = 2, Craftsman = 1 },
-            UnitType.Knight  => new JobPriorities { Guard = 5, Hunter = 3, Builder = 4, Looter = 2, Craftsman = 1, Blacksmith = 2 },
-            UnitType.Mage    => new JobPriorities { Guard = 2, Chef = 3, Hunter = 1, Builder = 2, Looter = 1, Craftsman = 2 },
-            UnitType.King    => new JobPriorities { Guard = 3 },
-            _                => new JobPriorities { Looter = 2 },
+            UnitType.Soldier => new ProfessionPriorities { Guard = 4, Hunter = 2, Builder = 3, Looter = 2, Craftsman = 1 },
+            UnitType.Knight  => new ProfessionPriorities { Guard = 5, Hunter = 3, Builder = 4, Looter = 2, Craftsman = 1, Blacksmith = 2 },
+            UnitType.Mage    => new ProfessionPriorities { Guard = 2, Chef = 3, Hunter = 1, Builder = 2, Looter = 1, Craftsman = 2 },
+            UnitType.King    => new ProfessionPriorities { Guard = 3 },
+            _                => new ProfessionPriorities { Looter = 2 },
         };
 
-        public static JobPriorities HeroMasterBlacksmith() => new JobPriorities
+        public static ProfessionPriorities HeroMasterBlacksmith() => new ProfessionPriorities
         {
             Blacksmith = 5, Craftsman = 3, Builder = 4, Miner = 3, Guard = 3,
             Lumberjack = 2, Looter = 2, Hunter = 2, Farmer = 1, Chef = 1,
         };
 
-        public static JobPriorities HeroMasterCraftsman() => new JobPriorities
+        public static ProfessionPriorities HeroMasterCraftsman() => new ProfessionPriorities
         {
             Craftsman = 5, Blacksmith = 3, Builder = 4, Lumberjack = 3, Guard = 3,
             Miner = 2, Looter = 2, Hunter = 2, Farmer = 1, Chef = 2,
         };
 
-        public static JobPriorities GoblinArchetype(uint seed)
+        public static ProfessionPriorities GoblinArchetype(uint seed)
         {
             uint h = seed;
             h ^= h >> 13; h *= 0x85EBCA77u; h ^= h >> 16;
@@ -36,7 +36,7 @@ namespace RareIcon
             return GoblinGeneralist();
         }
 
-        static JobPriorities GoblinGeneralist() => new JobPriorities
+        static ProfessionPriorities GoblinGeneralist() => new ProfessionPriorities
         {
             Looter     = 2,
             Lumberjack = 2,
@@ -50,25 +50,25 @@ namespace RareIcon
             Guard      = 2,
         };
 
-        static JobPriorities GoblinLumberjack() => new JobPriorities
+        static ProfessionPriorities GoblinLumberjack() => new ProfessionPriorities
         {
             Lumberjack = 5, Looter = 2, Builder = 3, Miner = 1, Hunter = 2,
             Farmer = 1, Chef = 2, Blacksmith = 1, Craftsman = 2, Guard = 1,
         };
 
-        static JobPriorities GoblinMiner() => new JobPriorities
+        static ProfessionPriorities GoblinMiner() => new ProfessionPriorities
         {
             Miner = 5, Looter = 2, Builder = 3, Lumberjack = 1, Hunter = 2,
             Farmer = 1, Chef = 2, Blacksmith = 2, Craftsman = 1, Guard = 1,
         };
 
-        static JobPriorities GoblinBuilder() => new JobPriorities
+        static ProfessionPriorities GoblinBuilder() => new ProfessionPriorities
         {
             Builder = 5, Lumberjack = 3, Miner = 3, Looter = 2, Hunter = 2,
             Farmer = 1, Chef = 2, Blacksmith = 2, Craftsman = 3, Guard = 1,
         };
 
-        static JobPriorities GoblinLooter() => new JobPriorities
+        static ProfessionPriorities GoblinLooter() => new ProfessionPriorities
         {
             Looter = 5, Lumberjack = 1, Miner = 1, Hunter = 2, Builder = 2,
             Farmer = 1, Chef = 2, Blacksmith = 1, Craftsman = 2, Guard = 1,

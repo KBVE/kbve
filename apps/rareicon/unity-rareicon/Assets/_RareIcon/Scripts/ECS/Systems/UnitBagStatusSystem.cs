@@ -43,7 +43,7 @@ namespace RareIcon
     }
 
     [BurstCompile]
-    [WithAll(typeof(JobPriorities))]
+    [WithAll(typeof(ProfessionPriorities))]
     public partial struct UpdateBagStatusJob : IJobEntity
     {
         [ReadOnly] public BufferLookup<PackSlot>    PackLookup;

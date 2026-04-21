@@ -27,7 +27,7 @@ namespace RareIcon
         public const byte Building         = 15;  // construction OR repair (Builder role)
         public const byte Cooking          = 16;
         public const byte Guarding         = 17;  // guard patrolling friendly territory or chasing intruder
-        public const byte TravelingToWork  = 18;  // has a JobIntent but still en-route to the target hex
+        public const byte TravelingToWork  = 18;  // has a ProfessionIntent but still en-route to the target hex
         public const byte Crafting         = 19;
         public const byte Smithing         = 20;
     }

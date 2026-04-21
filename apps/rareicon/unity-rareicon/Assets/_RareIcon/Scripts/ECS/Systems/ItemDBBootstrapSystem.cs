@@ -3,7 +3,7 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>One-shot managed bootstrap that builds a Burst-safe Mirror of the managed ItemDB table. Copies every ItemDef into a NativeHashMap&lt;ushort, ItemDefRuntime&gt; (strings omitted — not Burst-safe) and stamps it into an ItemDBSingleton. Consumers (JobSystem.capitalHasFood, ConsumeFoodExecutor, future arrow / potion logic) read via SystemAPI.GetSingleton&lt;ItemDBSingleton&gt;() and call IsEdible / EnergyValue / HealthValue directly from inside Burst jobs. Disposes the map in OnDestroy so the persistent allocation never leaks across world reloads.</summary>
+    /// <summary>One-shot managed bootstrap that builds a Burst-safe Mirror of the managed ItemDB table. Copies every ItemDef into a NativeHashMap&lt;ushort, ItemDefRuntime&gt; (strings omitted — not Burst-safe) and stamps it into an ItemDBSingleton. Consumers (ProfessionDispatchSystem.capitalHasFood, ConsumeFoodExecutor, future arrow / potion logic) read via SystemAPI.GetSingleton&lt;ItemDBSingleton&gt;() and call IsEdible / EnergyValue / HealthValue directly from inside Burst jobs. Disposes the map in OnDestroy so the persistent allocation never leaks across world reloads.</summary>
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class ItemDBBootstrapSystem : SystemBase
     {

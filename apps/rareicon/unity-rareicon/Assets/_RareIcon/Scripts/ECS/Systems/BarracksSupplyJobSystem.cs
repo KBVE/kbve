@@ -7,7 +7,7 @@ namespace RareIcon
 {
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
-    [UpdateAfter(typeof(JobSystem))]
+    [UpdateAfter(typeof(ProfessionDispatchSystem))]
     public partial struct BarracksSupplyJobSystem : ISystem
     {
         [BurstCompile] public void OnCreate(ref SystemState state) { }
@@ -59,14 +59,14 @@ namespace RareIcon
         [ReadOnly] public BufferLookup<PackSlot> PackLookup;
 
         void Execute(Entity entity,
-                     in JobPriorities priorities,
+                     in ProfessionPriorities priorities,
                      in UnitMovement movement,
-                     ref JobIntent intent)
+                     ref ProfessionIntent intent)
         {
             if (priorities.Looter == 0 && priorities.Farmer == 0) return;
 
             byte currentKind = intent.Kind;
-            if (currentKind != JobKind.None && currentKind != JobKind.Looter) return;
+            if (currentKind != ProfessionKind.None && currentKind != ProfessionKind.Looter) return;
 
             var here = movement.CurrentHex;
             Entity bestEntity = Entity.Null;
@@ -87,9 +87,9 @@ namespace RareIcon
             if (!PackLookup.HasBuffer(entity)) return;
 
             bool carrying = CarriesSupply(PackLookup[entity]);
-            intent = new JobIntent
+            intent = new ProfessionIntent
             {
-                Kind         = JobKind.Looter,
+                Kind         = ProfessionKind.Looter,
                 TargetHex    = carrying ? bestHex : CapitalHex,
                 TargetEntity = bestEntity,
             };

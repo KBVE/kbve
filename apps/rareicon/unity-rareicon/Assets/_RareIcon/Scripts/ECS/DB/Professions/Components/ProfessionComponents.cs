@@ -3,10 +3,11 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Stable byte IDs for jobs; mirrors a repr(u8) Rust enum for future FFI. Looter is the default hauler role; Guard engages hostiles in range and patrols friendly territory otherwise.</summary>
-    public static class JobKind
+    /// <summary>Stable byte IDs for professions; mirrors a repr(u8) Rust enum for future FFI. Default is the fallback idle-wander profession assigned when the dispatcher finds no scored offer — units still move/look busy instead of standing still. Looter is the default hauler role; Guard engages hostiles in range and patrols friendly territory otherwise.</summary>
+    public static class ProfessionKind
     {
         public const byte None       = 0;
+        public const byte Default    = 1;
         public const byte Lumberjack = 2;
         public const byte Miner      = 3;
         public const byte Guard      = 4;
@@ -20,7 +21,7 @@ namespace RareIcon
     }
 
     /// <summary>Per-unit job priorities (0 = disabled, 1..5 = weighted preference). Fixed-layout struct so it's Burst-readable without a buffer walk.</summary>
-    public struct JobPriorities : IComponentData
+    public struct ProfessionPriorities : IComponentData
     {
         public byte Lumberjack;
         public byte Miner;
@@ -35,16 +36,16 @@ namespace RareIcon
 
         public byte Get(byte jobKind) => jobKind switch
         {
-            JobKind.Lumberjack => Lumberjack,
-            JobKind.Miner      => Miner,
-            JobKind.Guard      => Guard,
-            JobKind.Looter     => Looter,
-            JobKind.Farmer     => Farmer,
-            JobKind.Builder    => Builder,
-            JobKind.Chef       => Chef,
-            JobKind.Hunter     => Hunter,
-            JobKind.Blacksmith => Blacksmith,
-            JobKind.Craftsman  => Craftsman,
+            ProfessionKind.Lumberjack => Lumberjack,
+            ProfessionKind.Miner      => Miner,
+            ProfessionKind.Guard      => Guard,
+            ProfessionKind.Looter     => Looter,
+            ProfessionKind.Farmer     => Farmer,
+            ProfessionKind.Builder    => Builder,
+            ProfessionKind.Chef       => Chef,
+            ProfessionKind.Hunter     => Hunter,
+            ProfessionKind.Blacksmith => Blacksmith,
+            ProfessionKind.Craftsman  => Craftsman,
             _                  => (byte)0,
         };
 
@@ -52,22 +53,22 @@ namespace RareIcon
         {
             switch (jobKind)
             {
-                case JobKind.Lumberjack: Lumberjack = priority; break;
-                case JobKind.Miner:      Miner      = priority; break;
-                case JobKind.Guard:      Guard      = priority; break;
-                case JobKind.Looter:     Looter     = priority; break;
-                case JobKind.Farmer:     Farmer     = priority; break;
-                case JobKind.Builder:    Builder    = priority; break;
-                case JobKind.Chef:       Chef       = priority; break;
-                case JobKind.Hunter:     Hunter     = priority; break;
-                case JobKind.Blacksmith: Blacksmith = priority; break;
-                case JobKind.Craftsman:  Craftsman  = priority; break;
+                case ProfessionKind.Lumberjack: Lumberjack = priority; break;
+                case ProfessionKind.Miner:      Miner      = priority; break;
+                case ProfessionKind.Guard:      Guard      = priority; break;
+                case ProfessionKind.Looter:     Looter     = priority; break;
+                case ProfessionKind.Farmer:     Farmer     = priority; break;
+                case ProfessionKind.Builder:    Builder    = priority; break;
+                case ProfessionKind.Chef:       Chef       = priority; break;
+                case ProfessionKind.Hunter:     Hunter     = priority; break;
+                case ProfessionKind.Blacksmith: Blacksmith = priority; break;
+                case ProfessionKind.Craftsman:  Craftsman  = priority; break;
             }
         }
     }
 
-    /// <summary>Current chosen job + target; rewritten each tick by JobSystem when Relief isn't active.</summary>
-    public struct JobIntent : IComponentData
+    /// <summary>Current chosen job + target; rewritten each tick by ProfessionDispatchSystem when Relief isn't active.</summary>
+    public struct ProfessionIntent : IComponentData
     {
         public byte  Kind;
         public int2  TargetHex;

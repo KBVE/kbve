@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Per-tick activity classifier for Player units. Walks the (ReliefIntent → JobIntent → MovementGoal) chain, derives an ActivityKind, and pushes a delta-only snapshot straight into ActivityFeedService. Main-thread SystemBase — player-unit counts (16-200) make the managed path free, and it sidesteps the UnsafeRingQueue cross-copy hazard the previous ring-queue design hit.</summary>
+    /// <summary>Per-tick activity classifier for Player units. Walks the (ReliefIntent → ProfessionIntent → MovementGoal) chain, derives an ActivityKind, and pushes a delta-only snapshot straight into ActivityFeedService. Main-thread SystemBase — player-unit counts (16-200) make the managed path free, and it sidesteps the UnsafeRingQueue cross-copy hazard the previous ring-queue design hit.</summary>
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(JobMovementExecutor))]
     [UpdateAfter(typeof(WanderBehaviorSystem))]
@@ -18,11 +18,11 @@ namespace RareIcon
             foreach (var (stateRW, jobIntent, reliefIntent, goal, movement, entity) in
                      SystemAPI.Query<
                          RefRW<ActivityState>,
-                         RefRO<JobIntent>,
+                         RefRO<ProfessionIntent>,
                          RefRO<ReliefIntent>,
                          RefRO<MovementGoal>,
                          RefRO<UnitMovement>>()
-                              .WithAll<JobPriorities>()
+                              .WithAll<ProfessionPriorities>()
                               .WithEntityAccess())
             {
                 byte kind = Classify(
@@ -48,7 +48,7 @@ namespace RareIcon
             }
         }
 
-        static byte Classify(in ReliefIntent relief, in JobIntent job, in MovementGoal goal, int2 currentHex)
+        static byte Classify(in ReliefIntent relief, in ProfessionIntent job, in MovementGoal goal, int2 currentHex)
         {
             switch (relief.Kind)
             {
@@ -59,21 +59,21 @@ namespace RareIcon
                 case ReliefKind.SeekAid:         return ActivityKind.SeekingAid;
             }
 
-            if (job.Kind != JobKind.None && !math.all(job.TargetHex == currentHex))
+            if (job.Kind != ProfessionKind.None && !math.all(job.TargetHex == currentHex))
                 return ActivityKind.TravelingToWork;
 
             switch (job.Kind)
             {
-                case JobKind.Lumberjack: return ActivityKind.Lumberjacking;
-                case JobKind.Miner:      return ActivityKind.Mining;
-                case JobKind.Guard:      return ActivityKind.Guarding;
-                case JobKind.Looter:     return ActivityKind.Looting;
-                case JobKind.Farmer:     return ActivityKind.Farming;
-                case JobKind.Builder:    return ActivityKind.Building;
-                case JobKind.Chef:       return ActivityKind.Cooking;
-                case JobKind.Hunter:     return ActivityKind.Hunting;
-                case JobKind.Blacksmith: return ActivityKind.Smithing;
-                case JobKind.Craftsman:  return ActivityKind.Crafting;
+                case ProfessionKind.Lumberjack: return ActivityKind.Lumberjacking;
+                case ProfessionKind.Miner:      return ActivityKind.Mining;
+                case ProfessionKind.Guard:      return ActivityKind.Guarding;
+                case ProfessionKind.Looter:     return ActivityKind.Looting;
+                case ProfessionKind.Farmer:     return ActivityKind.Farming;
+                case ProfessionKind.Builder:    return ActivityKind.Building;
+                case ProfessionKind.Chef:       return ActivityKind.Cooking;
+                case ProfessionKind.Hunter:     return ActivityKind.Hunting;
+                case ProfessionKind.Blacksmith: return ActivityKind.Smithing;
+                case ProfessionKind.Craftsman:  return ActivityKind.Crafting;
             }
 
             switch (goal.Kind)

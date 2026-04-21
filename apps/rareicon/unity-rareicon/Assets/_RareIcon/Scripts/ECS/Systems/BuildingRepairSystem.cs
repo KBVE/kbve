@@ -50,9 +50,9 @@ namespace RareIcon
         [NativeDisableParallelForRestriction] public ComponentLookup<BuildingHealth> HealthLookup;
         [NativeDisableParallelForRestriction] public ComponentLookup<SkillXP>        SkillXpLookup;
 
-        void Execute(Entity entity, in JobIntent intent, in UnitMovement movement)
+        void Execute(Entity entity, in ProfessionIntent intent, in UnitMovement movement)
         {
-            if (intent.Kind != JobKind.Builder) return;
+            if (intent.Kind != ProfessionKind.Builder) return;
 
             if (!HexLookup.TryGetValue(movement.CurrentHex, out var tile)) return;
             if (!HexOccupantLookup.HasComponent(tile)) return;

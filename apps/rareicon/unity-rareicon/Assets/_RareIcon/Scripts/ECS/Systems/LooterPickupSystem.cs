@@ -50,12 +50,12 @@ namespace RareIcon
         public EntityCommandBuffer          Ecb;
 
         void Execute(Entity entity,
-                     in JobIntent intent,
+                     in ProfessionIntent intent,
                      in LocalTransform transform,
                      DynamicBuffer<PackSlot> inventory,
                      in DynamicBuffer<EquippedBag> bags)
         {
-            if (intent.Kind != JobKind.Looter) return;
+            if (intent.Kind != ProfessionKind.Looter) return;
 
             Entity arrow = intent.TargetEntity;
             if (arrow == Entity.Null) return;

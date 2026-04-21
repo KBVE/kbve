@@ -5,27 +5,27 @@ using UnityEngine.UIElements;
 
 namespace RareIcon
 {
-    /// <summary>Citizens "Jobs" tab — per-UnitType priority editor (0-5 per job, multiple jobs per unit). Writes JobPreferencesStore + mutates all live units of that type on Apply.</summary>
+    /// <summary>Citizens "Jobs" tab — per-UnitType priority editor (0-5 per job, multiple jobs per unit). Writes ProfessionPreferencesStore + mutates all live units of that type on Apply.</summary>
     public class JobsTab : ICitizensTab
     {
         static readonly byte[] UnitTypes = { UnitType.Goblin, UnitType.Soldier, UnitType.Knight, UnitType.Mage, UnitType.King };
         static readonly (byte Kind, string Label)[] Jobs = new (byte, string)[]
         {
-            (JobKind.Looter,     "Looter"),
-            (JobKind.Lumberjack, "Lumberjack"),
-            (JobKind.Miner,      "Miner"),
-            (JobKind.Guard,      "Guard"),
-            (JobKind.Farmer,     "Farmer"),
-            (JobKind.Builder,    "Builder"),
-            (JobKind.Chef,       "Chef"),
-            (JobKind.Blacksmith, "Blacksmith"),
+            (ProfessionKind.Looter,     "Looter"),
+            (ProfessionKind.Lumberjack, "Lumberjack"),
+            (ProfessionKind.Miner,      "Miner"),
+            (ProfessionKind.Guard,      "Guard"),
+            (ProfessionKind.Farmer,     "Farmer"),
+            (ProfessionKind.Builder,    "Builder"),
+            (ProfessionKind.Chef,       "Chef"),
+            (ProfessionKind.Blacksmith, "Blacksmith"),
         };
 
         public string Title => "Jobs";
 
         DropdownField _unitTypeDropdown;
         UIControls.StepperHandle[] _rows;
-        JobPriorities _working;
+        ProfessionPriorities _working;
         byte _selectedUnitType = UnitType.Goblin;
 
         public VisualElement Build()
@@ -87,14 +87,14 @@ namespace RareIcon
 
         void LoadFromSelected()
         {
-            _working = JobPreferencesStore.GetOrDefault(_selectedUnitType);
+            _working = ProfessionPreferencesStore.GetOrDefault(_selectedUnitType);
             for (int i = 0; i < Jobs.Length; i++)
                 _rows[i].SetValue(_working.Get(Jobs[i].Kind));
         }
 
         void ApplyToLiveUnits()
         {
-            JobPreferencesStore.Set(_selectedUnitType, _working);
+            ProfessionPreferencesStore.Set(_selectedUnitType, _working);
 
             var world = World.DefaultGameObjectInjectionWorld;
             if (world == null || !world.IsCreated) return;
@@ -102,7 +102,7 @@ namespace RareIcon
 
             using var query = em.CreateEntityQuery(
                 ComponentType.ReadOnly<Unit>(),
-                ComponentType.ReadWrite<JobPriorities>());
+                ComponentType.ReadWrite<ProfessionPriorities>());
             using var entities = query.ToEntityArray(Allocator.Temp);
             int applied = 0;
             for (int i = 0; i < entities.Length; i++)
@@ -122,8 +122,8 @@ namespace RareIcon
 
         void ResetToDefaults()
         {
-            _working = JobDefaults.Get(_selectedUnitType);
-            JobPreferencesStore.Clear(_selectedUnitType);
+            _working = ProfessionDefaults.Get(_selectedUnitType);
+            ProfessionPreferencesStore.Clear(_selectedUnitType);
             for (int i = 0; i < Jobs.Length; i++)
                 _rows[i].SetValue(_working.Get(Jobs[i].Kind));
         }

@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Lifecycle of a queued task entry. Head is Active once promoted to JobIntent; Invalidated/Completed entries get popped next dispatcher pass.</summary>
+    /// <summary>Lifecycle of a queued task entry. Head is Active once promoted to ProfessionIntent; Invalidated/Completed entries get popped next dispatcher pass.</summary>
     public static class TaskState
     {
         public const byte Pending     = 0;
@@ -12,7 +12,7 @@ namespace RareIcon
         public const byte Invalidated = 3;
     }
 
-    /// <summary>Per-unit task queue. Head (index 0) mirrors JobIntent while Active. Dispatcher refills on drain; execution systems mark Completed; TaskInvalidationSystem marks Invalidated when the target dies.</summary>
+    /// <summary>Per-unit task queue. Head (index 0) mirrors ProfessionIntent while Active. Dispatcher refills on drain; execution systems mark Completed; TaskInvalidationSystem marks Invalidated when the target dies.</summary>
     [InternalBufferCapacity(3)]
     public struct TaskMemory : IBufferElementData
     {
