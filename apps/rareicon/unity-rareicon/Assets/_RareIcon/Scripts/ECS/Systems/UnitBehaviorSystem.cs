@@ -46,6 +46,10 @@ namespace RareIcon
             foreach (var building in SystemAPI.Query<RefRO<Building>>().WithAll<ProvidesSleep>())
                 AppendFootprint(sleepHexes, building.ValueRO.RootHex, building.ValueRO.Type);
 
+            var healHexes = new NativeList<int2>(8, Allocator.TempJob);
+            foreach (var building in SystemAPI.Query<RefRO<Building>>().WithAll<ProvidesHealing>())
+                AppendFootprint(healHexes, building.ValueRO.RootHex, building.ValueRO.Type);
+
             SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial);
 
             var wildlife = new NativeList<int2>(64, Allocator.TempJob);
@@ -81,6 +85,7 @@ namespace RareIcon
                 CapitalFootprint  = capitalFootprint,
                 FoodProviderHexes = foodHexes.AsArray(),
                 SleepProviderHexes= sleepHexes.AsArray(),
+                HealProviderHexes = healHexes.AsArray(),
                 Wildlife          = wildlife.AsArray(),
                 FriendlyEmitters  = emitters.AsArray(),
                 ForageHexes       = forageHexes.AsArray(),
@@ -88,10 +93,12 @@ namespace RareIcon
             }.ScheduleParallel(state.Dependency);
 
             state.Dependency = JobHandle.CombineDependencies(
-                JobHandle.CombineDependencies(wildlife.Dispose(jobHandle), emitters.Dispose(jobHandle)),
                 JobHandle.CombineDependencies(
-                    JobHandle.CombineDependencies(forageHexes.Dispose(jobHandle), capitalFootprint.Dispose(jobHandle)),
-                    JobHandle.CombineDependencies(foodHexes.Dispose(jobHandle), sleepHexes.Dispose(jobHandle))));
+                    JobHandle.CombineDependencies(wildlife.Dispose(jobHandle), emitters.Dispose(jobHandle)),
+                    JobHandle.CombineDependencies(forageHexes.Dispose(jobHandle), capitalFootprint.Dispose(jobHandle))),
+                JobHandle.CombineDependencies(
+                    JobHandle.CombineDependencies(foodHexes.Dispose(jobHandle), sleepHexes.Dispose(jobHandle)),
+                    healHexes.Dispose(jobHandle)));
         }
 
         static void AppendFootprint(NativeList<int2> list, int2 root, byte buildingType)
@@ -118,6 +125,7 @@ namespace RareIcon
         [ReadOnly] public NativeArray<int2>              CapitalFootprint;
         [ReadOnly] public NativeArray<int2>              FoodProviderHexes;
         [ReadOnly] public NativeArray<int2>              SleepProviderHexes;
+        [ReadOnly] public NativeArray<int2>              HealProviderHexes;
         [ReadOnly] public NativeArray<int2>              Wildlife;
         [ReadOnly] public NativeArray<TerritoryEmitter>  FriendlyEmitters;
         [ReadOnly] public NativeArray<int2>              ForageHexes;
@@ -162,7 +170,9 @@ namespace RareIcon
             }
             if (relief.Kind == ReliefKind.Heal)
             {
-                if (HasCapital)
+                if (HealProviderHexes.Length > 0)
+                    Write(ref goal, GoalKind.ReturnToBase, GoalPriority.Return, PickClosestSpread(movement.CurrentHex, HealProviderHexes, spread));
+                else if (HasCapital)
                     Write(ref goal, GoalKind.ReturnToBase, GoalPriority.Return, PickClosestSpread(movement.CurrentHex, CapitalFootprint, spread));
                 return;
             }

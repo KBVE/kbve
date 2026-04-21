@@ -73,6 +73,9 @@ namespace RareIcon
                 const ushort NeedleCost     = 1;
                 const ushort ArrowsProduced = 5;
 
+                const ushort HerbCost        = 3;
+                const ushort MedKitsProduced = 1;
+
                 for (int i = 0; i < Craftsmen.Length; i++)
                 {
                     var barracks = Craftsmen[i].Barracks;
@@ -80,12 +83,20 @@ namespace RareIcon
                     if (!BarracksLookup.HasBuffer(barracks)) continue;
 
                     var inv = BarracksLookup[barracks].Reinterpret<BankLedgerBase>();
-                    if (BankLedgerOps.CountOf(inv, (ushort)ItemId.WoodLog) < WoodLogCost) continue;
-                    if (BankLedgerOps.CountOf(inv, (ushort)ItemId.CactiNeedle) < NeedleCost) continue;
 
-                    Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.WoodLog),     ReservationOps.Consume(barracks, WoodLogCost, Tick));
-                    Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.CactiNeedle), ReservationOps.Consume(barracks, NeedleCost,  Tick));
-                    Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.Arrow),       ReservationOps.Produce(barracks, ArrowsProduced, Tick));
+                    if (BankLedgerOps.CountOf(inv, (ushort)ItemId.WoodLog) >= WoodLogCost &&
+                        BankLedgerOps.CountOf(inv, (ushort)ItemId.CactiNeedle) >= NeedleCost)
+                    {
+                        Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.WoodLog),     ReservationOps.Consume(barracks, WoodLogCost, Tick));
+                        Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.CactiNeedle), ReservationOps.Consume(barracks, NeedleCost,  Tick));
+                        Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.Arrow),       ReservationOps.Produce(barracks, ArrowsProduced, Tick));
+                    }
+
+                    if (BankLedgerOps.CountOf(inv, (ushort)ItemId.Herb) >= HerbCost)
+                    {
+                        Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.Herb),   ReservationOps.Consume(barracks, HerbCost,        Tick));
+                        Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.MedKit), ReservationOps.Produce(barracks, MedKitsProduced, Tick));
+                    }
                 }
             }
         }

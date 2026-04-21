@@ -97,6 +97,12 @@ namespace RareIcon
         public byte Capacity;
     }
 
+    /// <summary>Service tag: unit on this building's footprint with Heal relief can consume MedKits from its ledger (BarracksHealExecutor). Attached to Barracks; future Infirmary / Temple would inherit.</summary>
+    public struct ProvidesHealing : IComponentData
+    {
+        public byte Priority;
+    }
+
     /// <summary>Optional per-building total-count ceiling. Absent = unlimited (current Capital behaviour). Haulers + producers read this to gate deposits.</summary>
     public struct StorageCapacity : IComponentData
     {
