@@ -10,7 +10,7 @@ namespace RareIcon
         public const ushort QuiverMax = 20;
     }
 
-    /// <summary>Player-faction RangedAttack units standing on a Capital- or Barracks-owned hex pull Arrows from that building's ledger into their PackSlot, up to QuiverMax. Burst ISystem + Schedule — shared Capital/Barracks buffers serialize internally.</summary>
+    /// <summary>Player-faction RangedAttack units on a Capital- or Barracks-owned hex pull Arrows from that bank's ledger into their PackSlot (up to QuiverMax). RO on both ledger types; enqueues a -Arrow BankTransfer against the source bank and mutates the unit's PackSlot directly (per-entity safe).</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireDepositSystem))]
@@ -23,14 +23,16 @@ namespace RareIcon
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
+            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
 
             state.Dependency = new ArcherRefillJob
             {
                 HexLookup         = hexLookup.Lookup,
                 HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
                 BuildingLookup    = SystemAPI.GetComponentLookup<Building>(true),
-                CapitalLookup     = SystemAPI.GetBufferLookup<CapitalLedger>(false),
-                BarracksLookup    = SystemAPI.GetBufferLookup<BarracksLedger>(false),
+                CapitalLookup     = SystemAPI.GetBufferLookup<CapitalLedger>(true),
+                BarracksLookup    = SystemAPI.GetBufferLookup<BarracksLedger>(true),
+                Queue             = qSingleton.Queue.AsParallelWriter(),
             }.Schedule(state.Dependency);
         }
     }
@@ -38,12 +40,13 @@ namespace RareIcon
     [BurstCompile]
     public partial struct ArcherRefillJob : IJobEntity
     {
-        [ReadOnly] public NativeHashMap<Unity.Mathematics.int2, Entity> HexLookup;
+        [ReadOnly] public NativeHashMap<int2, Entity> HexLookup;
         [ReadOnly] public ComponentLookup<HexOccupant> HexOccupantLookup;
         [ReadOnly] public ComponentLookup<Building>    BuildingLookup;
+        [ReadOnly] public BufferLookup<CapitalLedger>  CapitalLookup;
+        [ReadOnly] public BufferLookup<BarracksLedger> BarracksLookup;
 
-        [NativeDisableParallelForRestriction] public BufferLookup<CapitalLedger>  CapitalLookup;
-        [NativeDisableParallelForRestriction] public BufferLookup<BarracksLedger> BarracksLookup;
+        public NativeQueue<BankTransfer>.ParallelWriter Queue;
 
         void Execute(in RangedAttack attack, in Faction faction, in UnitMovement movement, ref DynamicBuffer<PackSlot> pack)
         {
@@ -75,7 +78,7 @@ namespace RareIcon
             int transfer = math.min(room, available);
             if (transfer <= 0) return;
 
-            BankLedgerOps.RemoveItem(ref storage, (ushort)ItemId.Arrow, (ushort)transfer);
+            Queue.Enqueue(new BankTransfer { Target = building, ItemId = (ushort)ItemId.Arrow, Delta = -transfer });
             AddArrowsPack(ref pack, (ushort)transfer);
         }
 

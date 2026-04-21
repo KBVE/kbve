@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Two-phase transport for Looter / Farmer haulers targeting a Barracks: on the Capital hex with an empty-of-supply pack, pick up 1 BanditCoin or 1 food item from CapitalLedger; on the Barracks root hex, deposit matching carried items into the Barracks' BarracksLedger buffer, respecting StorageCapacity. Burst ISystem — single-worker Schedule keeps shared Capital + Barracks writes safe.</summary>
+    /// <summary>Two-phase transport for Looter / Farmer haulers targeting a Barracks. Reads CapitalLedger + BarracksLedger RO; enqueues -Capital / +Barracks BankTransfers via the applier queue. Pack (unit-side) writes happen directly — per-entity, safe.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireSharingSystem))]
@@ -19,6 +19,7 @@ namespace RareIcon
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
+            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
 
             state.Dependency = new BarracksSupplyDepositJob
             {
@@ -30,8 +31,9 @@ namespace RareIcon
                 CapLookup      = SystemAPI.GetComponentLookup<StorageCapacity>(true),
                 BuildingLookup = SystemAPI.GetComponentLookup<Building>(true),
                 PackLookup     = SystemAPI.GetBufferLookup<PackSlot>(false),
-                CapitalLookup  = SystemAPI.GetBufferLookup<CapitalLedger>(false),
-                BarracksLookup = SystemAPI.GetBufferLookup<BarracksLedger>(false),
+                CapitalLookup  = SystemAPI.GetBufferLookup<CapitalLedger>(true),
+                BarracksLookup = SystemAPI.GetBufferLookup<BarracksLedger>(true),
+                Queue          = qSingleton.Queue.AsParallelWriter(),
             }.Schedule(state.Dependency);
         }
     }
@@ -47,10 +49,12 @@ namespace RareIcon
         [ReadOnly] public ComponentLookup<BarracksProduction> ProdLookup;
         [ReadOnly] public ComponentLookup<StorageCapacity>    CapLookup;
         [ReadOnly] public ComponentLookup<Building>           BuildingLookup;
+        [ReadOnly] public BufferLookup<CapitalLedger>         CapitalLookup;
+        [ReadOnly] public BufferLookup<BarracksLedger>        BarracksLookup;
 
-        [NativeDisableParallelForRestriction] public BufferLookup<PackSlot>       PackLookup;
-        [NativeDisableParallelForRestriction] public BufferLookup<CapitalLedger>  CapitalLookup;
-        [NativeDisableParallelForRestriction] public BufferLookup<BarracksLedger> BarracksLookup;
+        [NativeDisableParallelForRestriction] public BufferLookup<PackSlot> PackLookup;
+
+        public NativeQueue<BankTransfer>.ParallelWriter Queue;
 
         void Execute(Entity entity, in JobIntent intent, in UnitMovement movement)
         {
@@ -73,7 +77,7 @@ namespace RareIcon
 
             if (here.Equals(rootHex))
             {
-                DepositSupply(ref unitPack, ref storage, cap);
+                DepositSupply(ref unitPack, storage, cap, target, ref Queue);
                 return;
             }
 
@@ -87,8 +91,8 @@ namespace RareIcon
             int foodShortfall = math.max(0, prod.FoodCost - FoodItems.Count(storage));
 
             var capitalInv = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
-            if (coinShortfall > 0) TryPickupOne(ref capitalInv, ref unitPack, (ushort)ItemId.BanditCoin);
-            else if (foodShortfall > 0) TryPickupFood(ref capitalInv, ref unitPack);
+            if (coinShortfall > 0) TryPickupOne(capitalInv, ref unitPack, (ushort)ItemId.BanditCoin, Capital, ref Queue);
+            else if (foodShortfall > 0) TryPickupFood(capitalInv, ref unitPack, Capital, ref Queue);
         }
 
         bool IsOnCapital(int2 here)
@@ -98,33 +102,38 @@ namespace RareIcon
             return OccupantLookup[tile].Building == Capital;
         }
 
-        static void TryPickupOne(ref DynamicBuffer<BankLedgerBase> capInv,
+        static void TryPickupOne(in DynamicBuffer<BankLedgerBase> capInv,
                                  ref DynamicBuffer<PackSlot> unitPack,
-                                 ushort itemId)
+                                 ushort itemId,
+                                 Entity capital,
+                                 ref NativeQueue<BankTransfer>.ParallelWriter q)
         {
-            if (BankLedgerOps.RemoveItem(ref capInv, itemId, 1) == 0) return;
+            if (BankLedgerOps.CountOf(capInv, itemId) == 0) return;
+            q.Enqueue(new BankTransfer { Target = capital, ItemId = itemId, Delta = -1 });
             MergeOrAddPack(ref unitPack, itemId, 1);
         }
 
-        static void TryPickupFood(ref DynamicBuffer<BankLedgerBase> capInv,
-                                  ref DynamicBuffer<PackSlot> unitPack)
+        static void TryPickupFood(in DynamicBuffer<BankLedgerBase> capInv,
+                                  ref DynamicBuffer<PackSlot> unitPack,
+                                  Entity capital,
+                                  ref NativeQueue<BankTransfer>.ParallelWriter q)
         {
             for (int i = 0; i < capInv.Length; i++)
             {
                 if (capInv[i].Count == 0) continue;
                 if (!FoodItems.IsFood(capInv[i].ItemId)) continue;
                 ushort id = capInv[i].ItemId;
-                var slot = capInv[i];
-                slot.Count -= 1;
-                capInv[i] = slot;
+                q.Enqueue(new BankTransfer { Target = capital, ItemId = id, Delta = -1 });
                 MergeOrAddPack(ref unitPack, id, 1);
                 return;
             }
         }
 
         static void DepositSupply(ref DynamicBuffer<PackSlot> unitPack,
-                                  ref DynamicBuffer<BankLedgerBase> storage,
-                                  ushort capacity)
+                                  in DynamicBuffer<BankLedgerBase> storage,
+                                  ushort capacity,
+                                  Entity target,
+                                  ref NativeQueue<BankTransfer>.ParallelWriter q)
         {
             int remaining = capacity - BankLedgerOps.TotalCount(storage);
             if (remaining <= 0) return;
@@ -140,7 +149,7 @@ namespace RareIcon
                 uslot.Count = (ushort)(uslot.Count - take);
                 unitPack[i] = uslot;
                 remaining -= take;
-                BankLedgerOps.AddItem(ref storage, id, (ushort)take, default);
+                q.Enqueue(new BankTransfer { Target = target, ItemId = id, Delta = take });
             }
         }
 

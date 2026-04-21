@@ -121,14 +121,21 @@ namespace RareIcon
                 Result     = anyHeadroom,
             }.Schedule(state.Dependency);
 
+            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton))
+            {
+                state.Dependency = anyHeadroom.Dispose(headroomHandle);
+                return;
+            }
+
             var pickupHandle = new CapitalFoodPickupJob
             {
                 Capital       = capital,
                 CapitalHex    = capitalHex,
-                CapitalLookup = SystemAPI.GetBufferLookup<CapitalLedger>(false),
+                CapitalLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true),
                 ItemDb        = itemDb,
                 AnyHeadroom   = anyHeadroom,
-            }.Schedule(headroomHandle);
+                Queue         = qSingleton.Queue.AsParallelWriter(),
+            }.ScheduleParallel(headroomHandle);
 
             state.Dependency = anyHeadroom.Dispose(pickupHandle);
         }
@@ -158,11 +165,11 @@ namespace RareIcon
         public Entity Capital;
         public int2   CapitalHex;
 
-        [NativeDisableParallelForRestriction]
-        public BufferLookup<CapitalLedger> CapitalLookup;
-
+        [ReadOnly] public BufferLookup<CapitalLedger> CapitalLookup;
         [ReadOnly] public ItemDBSingleton     ItemDb;
         [ReadOnly] public NativeReference<bool> AnyHeadroom;
+
+        public NativeQueue<BankTransfer>.ParallelWriter Queue;
 
         void Execute(Entity entity,
                      in JobIntent jobIntent,
@@ -185,7 +192,7 @@ namespace RareIcon
 
             ushort take = (ushort)(GoblinCaveHaulConfig.PerTripAmount - alreadyCarrying);
             var capStorage = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
-            TransferFoodToUnit(ref capStorage, ref pack, bags, take, ItemDb);
+            TransferFoodToUnit(capStorage, ref pack, bags, take, ItemDb, Capital, ref Queue);
         }
 
         static int CountFoodPack(in DynamicBuffer<PackSlot> buf, in ItemDBSingleton db)
@@ -200,11 +207,13 @@ namespace RareIcon
             return total;
         }
 
-        static void TransferFoodToUnit(ref DynamicBuffer<BankLedgerBase> src,
+        static void TransferFoodToUnit(in DynamicBuffer<BankLedgerBase> src,
                                        ref DynamicBuffer<PackSlot> dst,
                                        in DynamicBuffer<EquippedBag> bags,
                                        ushort amount,
-                                       in ItemDBSingleton db)
+                                       in ItemDBSingleton db,
+                                       Entity capital,
+                                       ref NativeQueue<BankTransfer>.ParallelWriter q)
         {
             int remaining = amount;
             for (int i = 0; i < src.Length && remaining > 0; i++)
@@ -217,8 +226,7 @@ namespace RareIcon
                 ushort added = dst.AddItemCapped(bags, db, srcSlot.ItemId, (ushort)want);
                 if (added == 0) continue;
 
-                srcSlot.Count = (ushort)(srcSlot.Count - added);
-                src[i] = srcSlot;
+                q.Enqueue(new BankTransfer { Target = capital, ItemId = srcSlot.ItemId, Delta = -added });
                 remaining -= added;
             }
         }
@@ -238,6 +246,7 @@ namespace RareIcon
         {
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
             if (!SystemAPI.TryGetSingleton<ItemDBSingleton>(out var itemDb)) return;
+            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
 
             state.Dependency = new CaveFoodDeliveryJob
             {
@@ -245,9 +254,10 @@ namespace RareIcon
                 HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
                 BuildingLookup    = SystemAPI.GetComponentLookup<Building>(true),
                 ProdLookup        = SystemAPI.GetComponentLookup<GoblinCaveProduction>(true),
-                CaveLookup        = SystemAPI.GetBufferLookup<GoblinCaveLedger>(false),
+                CaveLookup        = SystemAPI.GetBufferLookup<GoblinCaveLedger>(true),
                 ItemDb            = itemDb,
-            }.Schedule(state.Dependency);
+                Queue             = qSingleton.Queue.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
         }
     }
 
@@ -258,11 +268,11 @@ namespace RareIcon
         [ReadOnly] public ComponentLookup<HexOccupant>       HexOccupantLookup;
         [ReadOnly] public ComponentLookup<Building>          BuildingLookup;
         [ReadOnly] public ComponentLookup<GoblinCaveProduction> ProdLookup;
-
-        [NativeDisableParallelForRestriction]
-        public BufferLookup<GoblinCaveLedger> CaveLookup;
+        [ReadOnly] public BufferLookup<GoblinCaveLedger>     CaveLookup;
 
         [ReadOnly] public ItemDBSingleton ItemDb;
+
+        public NativeQueue<BankTransfer>.ParallelWriter Queue;
 
         void Execute(in UnitMovement movement, in Faction faction, ref DynamicBuffer<PackSlot> pack)
         {
@@ -292,7 +302,7 @@ namespace RareIcon
             int headroom = cap - CountFoodBank(caveStorage, ItemDb);
             if (headroom <= 0) return;
 
-            TransferFood(ref pack, ref caveStorage, (ushort)math.min(headroom, ushort.MaxValue), ItemDb);
+            TransferFood(ref pack, (ushort)math.min(headroom, ushort.MaxValue), ItemDb, building, ref Queue);
         }
 
         static int CountFoodBank(in DynamicBuffer<BankLedgerBase> buf, in ItemDBSingleton db)
@@ -308,9 +318,10 @@ namespace RareIcon
         }
 
         static void TransferFood(ref DynamicBuffer<PackSlot> src,
-                                 ref DynamicBuffer<BankLedgerBase> dst,
                                  ushort amount,
-                                 in ItemDBSingleton db)
+                                 in ItemDBSingleton db,
+                                 Entity cave,
+                                 ref NativeQueue<BankTransfer>.ParallelWriter q)
         {
             int remaining = amount;
             for (int i = 0; i < src.Length && remaining > 0; i++)
@@ -322,7 +333,7 @@ namespace RareIcon
                 int take = srcSlot.Count < remaining ? srcSlot.Count : remaining;
                 srcSlot.Count = (ushort)(srcSlot.Count - take);
                 src[i] = srcSlot;
-                BankLedgerOps.AddItem(ref dst, srcSlot.ItemId, (ushort)take, default);
+                q.Enqueue(new BankTransfer { Target = cave, ItemId = srcSlot.ItemId, Delta = take });
                 remaining -= take;
             }
         }

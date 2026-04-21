@@ -5,12 +5,21 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Runs every Capital ProductionRecipe tick (Arrow craft, Compost). Reads + writes CapitalLedger; no cross-bank pull (PullsFromCapital on Capital is moot since self == Capital). Single-worker Schedule — all recipes hit the one Capital buffer and merging same-ItemId slots serializes.</summary>
+    /// <summary>Capital ProductionRecipe ticks (Arrow craft, Compost). Reads CapitalLedger RO to check inputs; enqueues ±BankTransfers so the applier is the sole RW writer. ScheduleParallel — the only per-entity write is ProductionRecipe.CycleEndsAt on the Capital itself, and there's exactly one Capital.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct CapitalProductionSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            var q = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<CapitalTag, CapitalLedger, ProductionRecipe>()
+                .Build(ref state);
+            state.RequireForUpdate(q);
+            state.RequireForUpdate<BankTransferQueue>();
+        }
+
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
@@ -21,8 +30,9 @@ namespace RareIcon
 
             state.Dependency = new CapitalProductionJob
             {
-                Now = now,
-            }.Schedule(state.Dependency);
+                Now   = now,
+                Queue = SystemAPI.GetSingleton<BankTransferQueue>().Queue.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
         }
     }
 
@@ -31,8 +41,9 @@ namespace RareIcon
     public partial struct CapitalProductionJob : IJobEntity
     {
         public float Now;
+        public NativeQueue<BankTransfer>.ParallelWriter Queue;
 
-        void Execute(ref DynamicBuffer<CapitalLedger> typedStorage, ref DynamicBuffer<ProductionRecipe> recipes)
+        void Execute(Entity entity, in DynamicBuffer<CapitalLedger> typedStorage, ref DynamicBuffer<ProductionRecipe> recipes)
         {
             var storage = typedStorage.Reinterpret<BankLedgerBase>();
             for (int i = 0; i < recipes.Length; i++)
@@ -41,13 +52,13 @@ namespace RareIcon
                 if (r.CycleEndsAt > 0f)
                 {
                     if (Now < r.CycleEndsAt) continue;
-                    EmitOutputs(ref storage, r);
+                    EmitOutputs(ref Queue, entity, r);
                     r.CycleEndsAt = 0f;
                     recipes[i] = r;
                     continue;
                 }
                 if (!HasInputs(storage, r)) continue;
-                ConsumeInputs(ref storage, r);
+                EnqueueConsume(ref Queue, entity, r);
                 r.CycleEndsAt = Now + math.max(0.1f, r.CycleDuration);
                 recipes[i] = r;
             }
@@ -61,27 +72,36 @@ namespace RareIcon
             return true;
         }
 
-        static void ConsumeInputs(ref DynamicBuffer<BankLedgerBase> inv, in ProductionRecipe r)
+        static void EnqueueConsume(ref NativeQueue<BankTransfer>.ParallelWriter q, Entity target, in ProductionRecipe r)
         {
-            if (r.Input1Amount > 0) BankLedgerOps.RemoveItem(ref inv, r.Input1Id, r.Input1Amount);
-            if (r.Input2Amount > 0) BankLedgerOps.RemoveItem(ref inv, r.Input2Id, r.Input2Amount);
-            if (r.Input3Amount > 0) BankLedgerOps.RemoveItem(ref inv, r.Input3Id, r.Input3Amount);
+            if (r.Input1Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input1Id, Delta = -r.Input1Amount });
+            if (r.Input2Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input2Id, Delta = -r.Input2Amount });
+            if (r.Input3Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input3Id, Delta = -r.Input3Amount });
         }
 
-        static void EmitOutputs(ref DynamicBuffer<BankLedgerBase> inv, in ProductionRecipe r)
+        static void EmitOutputs(ref NativeQueue<BankTransfer>.ParallelWriter q, Entity target, in ProductionRecipe r)
         {
-            if (r.Output1Amount > 0) BankLedgerOps.AddItem(ref inv, r.Output1Id, r.Output1Amount, default);
-            if (r.Output2Amount > 0) BankLedgerOps.AddItem(ref inv, r.Output2Id, r.Output2Amount, default);
-            if (r.Output3Amount > 0) BankLedgerOps.AddItem(ref inv, r.Output3Id, r.Output3Amount, default);
+            if (r.Output1Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output1Id, Delta =  r.Output1Amount });
+            if (r.Output2Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output2Id, Delta =  r.Output2Amount });
+            if (r.Output3Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output3Id, Delta =  r.Output3Amount });
         }
     }
 
-    /// <summary>Runs Farm ProductionRecipe ticks. Inputs pull from CapitalLedger when PullsFromCapital is set (Compost from Capital → Carrot output into Farm). Outputs land in the Farm's own FarmLedger; BuildingSurplusTransfer drains above-floor amounts back to Capital later in the frame.</summary>
+    /// <summary>Farm ProductionRecipe ticks. Inputs pull from CapitalLedger (RO) when PullsFromCapital=1 (Compost→Carrot); outputs land in this farm's FarmLedger. Every mutation goes through the BankTransferQueue.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct FarmProductionSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            var q = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<FarmTag, FarmLedger, ProductionRecipe>()
+                .Build(ref state);
+            state.RequireForUpdate(q);
+            state.RequireForUpdate<BankTransferQueue>();
+        }
+
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
@@ -95,9 +115,10 @@ namespace RareIcon
             {
                 Now           = now,
                 Capital       = capital,
-                CapitalLookup = SystemAPI.GetBufferLookup<CapitalLedger>(false),
+                CapitalLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true),
                 TenderLookup  = SystemAPI.GetComponentLookup<TenderMultiplier>(true),
-            }.Schedule(state.Dependency);
+                Queue         = SystemAPI.GetSingleton<BankTransferQueue>().Queue.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
         }
     }
 
@@ -108,12 +129,12 @@ namespace RareIcon
         public float  Now;
         public Entity Capital;
 
-        [NativeDisableParallelForRestriction]
-        public BufferLookup<CapitalLedger> CapitalLookup;
-
+        [ReadOnly] public BufferLookup<CapitalLedger>       CapitalLookup;
         [ReadOnly] public ComponentLookup<TenderMultiplier> TenderLookup;
 
-        void Execute(Entity entity, ref DynamicBuffer<FarmLedger> typedStorage, ref DynamicBuffer<ProductionRecipe> recipes)
+        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+
+        void Execute(Entity entity, in DynamicBuffer<FarmLedger> typedStorage, ref DynamicBuffer<ProductionRecipe> recipes)
         {
             var selfStorage = typedStorage.Reinterpret<BankLedgerBase>();
             float tender = TenderLookup.HasComponent(entity) ? TenderLookup[entity].Value : 0f;
@@ -124,26 +145,28 @@ namespace RareIcon
                 if (r.CycleEndsAt > 0f)
                 {
                     if (Now < r.CycleEndsAt) continue;
-                    if (r.Output1Amount > 0) BankLedgerOps.AddItem(ref selfStorage, r.Output1Id, r.Output1Amount, default);
-                    if (r.Output2Amount > 0) BankLedgerOps.AddItem(ref selfStorage, r.Output2Id, r.Output2Amount, default);
-                    if (r.Output3Amount > 0) BankLedgerOps.AddItem(ref selfStorage, r.Output3Id, r.Output3Amount, default);
+                    EmitOutputs(ref Queue, entity, r);
                     r.CycleEndsAt = 0f;
                     recipes[i] = r;
                     continue;
                 }
 
+                Entity inputTarget;
+                DynamicBuffer<BankLedgerBase> inputStore;
                 if (r.PullsFromCapital != 0)
                 {
                     if (Capital == Entity.Null || !CapitalLookup.HasBuffer(Capital)) continue;
-                    var cap = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
-                    if (!HasInputs(cap, r)) continue;
-                    ConsumeInputs(ref cap, r);
+                    inputTarget = Capital;
+                    inputStore  = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
                 }
                 else
                 {
-                    if (!HasInputs(selfStorage, r)) continue;
-                    ConsumeInputs(ref selfStorage, r);
+                    inputTarget = entity;
+                    inputStore  = selfStorage;
                 }
+
+                if (!HasInputs(inputStore, r)) continue;
+                EnqueueConsume(ref Queue, inputTarget, r);
 
                 float duration = r.CycleDuration * (1f - 0.5f * math.saturate(tender));
                 r.CycleEndsAt = Now + math.max(0.1f, duration);
@@ -159,20 +182,36 @@ namespace RareIcon
             return true;
         }
 
-        static void ConsumeInputs(ref DynamicBuffer<BankLedgerBase> inv, in ProductionRecipe r)
+        static void EnqueueConsume(ref NativeQueue<BankTransfer>.ParallelWriter q, Entity target, in ProductionRecipe r)
         {
-            if (r.Input1Amount > 0) BankLedgerOps.RemoveItem(ref inv, r.Input1Id, r.Input1Amount);
-            if (r.Input2Amount > 0) BankLedgerOps.RemoveItem(ref inv, r.Input2Id, r.Input2Amount);
-            if (r.Input3Amount > 0) BankLedgerOps.RemoveItem(ref inv, r.Input3Id, r.Input3Amount);
+            if (r.Input1Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input1Id, Delta = -r.Input1Amount });
+            if (r.Input2Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input2Id, Delta = -r.Input2Amount });
+            if (r.Input3Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input3Id, Delta = -r.Input3Amount });
+        }
+
+        static void EmitOutputs(ref NativeQueue<BankTransfer>.ParallelWriter q, Entity target, in ProductionRecipe r)
+        {
+            if (r.Output1Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output1Id, Delta =  r.Output1Amount });
+            if (r.Output2Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output2Id, Delta =  r.Output2Amount });
+            if (r.Output3Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output3Id, Delta =  r.Output3Amount });
         }
     }
 
-    /// <summary>Runs Barracks ProductionRecipe ticks. Inputs pull from CapitalLedger (arrow craft recipe), outputs land in BarracksLedger.</summary>
+    /// <summary>Barracks ProductionRecipe ticks (arrow craft). Inputs from Capital (RO), outputs to this Barracks' BarracksLedger. All mutations through BankTransferQueue.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct BarracksProductionRecipeSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            var q = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<BarracksTag, BarracksLedger, ProductionRecipe>()
+                .Build(ref state);
+            state.RequireForUpdate(q);
+            state.RequireForUpdate<BankTransferQueue>();
+        }
+
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
@@ -186,8 +225,9 @@ namespace RareIcon
             {
                 Now           = now,
                 Capital       = capital,
-                CapitalLookup = SystemAPI.GetBufferLookup<CapitalLedger>(false),
-            }.Schedule(state.Dependency);
+                CapitalLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true),
+                Queue         = SystemAPI.GetSingleton<BankTransferQueue>().Queue.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
         }
     }
 
@@ -198,10 +238,11 @@ namespace RareIcon
         public float  Now;
         public Entity Capital;
 
-        [NativeDisableParallelForRestriction]
-        public BufferLookup<CapitalLedger> CapitalLookup;
+        [ReadOnly] public BufferLookup<CapitalLedger> CapitalLookup;
 
-        void Execute(ref DynamicBuffer<BarracksLedger> typedStorage, ref DynamicBuffer<ProductionRecipe> recipes)
+        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+
+        void Execute(Entity entity, in DynamicBuffer<BarracksLedger> typedStorage, ref DynamicBuffer<ProductionRecipe> recipes)
         {
             var selfStorage = typedStorage.Reinterpret<BankLedgerBase>();
             for (int i = 0; i < recipes.Length; i++)
@@ -210,27 +251,28 @@ namespace RareIcon
                 if (r.CycleEndsAt > 0f)
                 {
                     if (Now < r.CycleEndsAt) continue;
-                    if (r.Output1Amount > 0) BankLedgerOps.AddItem(ref selfStorage, r.Output1Id, r.Output1Amount, default);
-                    if (r.Output2Amount > 0) BankLedgerOps.AddItem(ref selfStorage, r.Output2Id, r.Output2Amount, default);
-                    if (r.Output3Amount > 0) BankLedgerOps.AddItem(ref selfStorage, r.Output3Id, r.Output3Amount, default);
+                    EmitOutputs(ref Queue, entity, r);
                     r.CycleEndsAt = 0f;
                     recipes[i] = r;
                     continue;
                 }
 
+                Entity inputTarget;
+                DynamicBuffer<BankLedgerBase> inputStore;
                 if (r.PullsFromCapital != 0)
                 {
                     if (Capital == Entity.Null || !CapitalLookup.HasBuffer(Capital)) continue;
-                    var cap = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
-                    if (!HasInputs(cap, r)) continue;
-                    ConsumeInputs(ref cap, r);
+                    inputTarget = Capital;
+                    inputStore  = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
                 }
                 else
                 {
-                    if (!HasInputs(selfStorage, r)) continue;
-                    ConsumeInputs(ref selfStorage, r);
+                    inputTarget = entity;
+                    inputStore  = selfStorage;
                 }
 
+                if (!HasInputs(inputStore, r)) continue;
+                EnqueueConsume(ref Queue, inputTarget, r);
                 r.CycleEndsAt = Now + math.max(0.1f, r.CycleDuration);
                 recipes[i] = r;
             }
@@ -244,11 +286,18 @@ namespace RareIcon
             return true;
         }
 
-        static void ConsumeInputs(ref DynamicBuffer<BankLedgerBase> inv, in ProductionRecipe r)
+        static void EnqueueConsume(ref NativeQueue<BankTransfer>.ParallelWriter q, Entity target, in ProductionRecipe r)
         {
-            if (r.Input1Amount > 0) BankLedgerOps.RemoveItem(ref inv, r.Input1Id, r.Input1Amount);
-            if (r.Input2Amount > 0) BankLedgerOps.RemoveItem(ref inv, r.Input2Id, r.Input2Amount);
-            if (r.Input3Amount > 0) BankLedgerOps.RemoveItem(ref inv, r.Input3Id, r.Input3Amount);
+            if (r.Input1Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input1Id, Delta = -r.Input1Amount });
+            if (r.Input2Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input2Id, Delta = -r.Input2Amount });
+            if (r.Input3Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input3Id, Delta = -r.Input3Amount });
+        }
+
+        static void EmitOutputs(ref NativeQueue<BankTransfer>.ParallelWriter q, Entity target, in ProductionRecipe r)
+        {
+            if (r.Output1Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output1Id, Delta =  r.Output1Amount });
+            if (r.Output2Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output2Id, Delta =  r.Output2Amount });
+            if (r.Output3Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output3Id, Delta =  r.Output3Amount });
         }
     }
 }

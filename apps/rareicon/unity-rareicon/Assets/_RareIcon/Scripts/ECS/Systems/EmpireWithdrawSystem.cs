@@ -24,9 +24,7 @@ namespace RareIcon
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
             if (!SystemAPI.HasBuffer<CapitalLedger>(capital)) return;
             if (!SystemAPI.TryGetSingleton<ItemDBSingleton>(out var itemDb)) return;
-
-            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                               .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
+            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
 
             var snapshot = new NativeList<FoodSlotSnapshot>(8, Allocator.TempJob);
 
@@ -44,7 +42,7 @@ namespace RareIcon
                 OccupantLookup  = SystemAPI.GetComponentLookup<HexOccupant>(true),
                 CapitalFoods    = snapshot.AsDeferredJobArray(),
                 ItemDb          = itemDb,
-                Ecb             = ecb,
+                Queue           = qSingleton.Queue.AsParallelWriter(),
             }.ScheduleParallel(snapshotHandle);
 
             state.Dependency = snapshot.Dispose(state.Dependency);
@@ -89,10 +87,9 @@ namespace RareIcon
         [ReadOnly] public NativeArray<FoodSlotSnapshot> CapitalFoods;
         [ReadOnly] public ItemDBSingleton ItemDb;
 
-        public EntityCommandBuffer.ParallelWriter Ecb;
+        public NativeQueue<BankTransfer>.ParallelWriter Queue;
 
-        void Execute([ChunkIndexInQuery] int chunkIdx,
-                     in UnitMovement movement,
+        void Execute(in UnitMovement movement,
                      in Faction faction,
                      in Hunger hunger,
                      ref DynamicBuffer<PackSlot> unitPack,
@@ -112,13 +109,7 @@ namespace RareIcon
             ushort added = unitPack.AddItemCapped(bags, ItemDb, take, 1);
             if (added == 0) return;
 
-            var req = Ecb.CreateEntity(chunkIdx);
-            Ecb.AddComponent(chunkIdx, req, new PendingItemTransfer
-            {
-                Target = Capital,
-                ItemId = take,
-                Delta  = (sbyte)-added,
-            });
+            Queue.Enqueue(new BankTransfer { Target = Capital, ItemId = take, Delta = -added });
         }
 
         static bool HasEdible(in DynamicBuffer<PackSlot> inv)

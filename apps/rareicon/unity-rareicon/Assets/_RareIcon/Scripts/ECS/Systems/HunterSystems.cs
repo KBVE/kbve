@@ -155,12 +155,15 @@ namespace RareIcon
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
             uint currentTurn = SystemAPI.GetSingleton<WorldClock>().TurnIndex;
 
+            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
+
             state.Dependency = new FarmLivestockProductionJob
             {
                 CurrentTurn = currentTurn,
                 UnitLookup  = SystemAPI.GetComponentLookup<Unit>(true),
-                FarmLookup  = SystemAPI.GetBufferLookup<FarmLedger>(false),
-            }.Schedule(state.Dependency);
+                FarmLookup  = SystemAPI.GetBufferLookup<FarmLedger>(true),
+                Queue       = qSingleton.Queue.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
         }
     }
 
@@ -169,10 +172,10 @@ namespace RareIcon
     {
         public uint CurrentTurn;
 
-        [ReadOnly] public ComponentLookup<Unit> UnitLookup;
+        [ReadOnly] public ComponentLookup<Unit>    UnitLookup;
+        [ReadOnly] public BufferLookup<FarmLedger> FarmLookup;
 
-        [NativeDisableParallelForRestriction]
-        public BufferLookup<FarmLedger> FarmLookup;
+        public NativeQueue<BankTransfer>.ParallelWriter Queue;
 
         void Execute(Entity entity,
                      in ShelteredInside shelter,
@@ -187,8 +190,10 @@ namespace RareIcon
             if (!FarmLookup.HasBuffer(host)) return;
             var storage = FarmLookup[host].Reinterpret<BankLedgerBase>();
 
-            if (BankLedgerOps.RemoveItem(ref storage, (ushort)ItemId.Carrot, 1) == 0) return;
-            BankLedgerOps.AddItem(ref storage, outputId, 1, default);
+            if (BankLedgerOps.CountOf(storage, (ushort)ItemId.Carrot) < 1) return;
+
+            Queue.Enqueue(new BankTransfer { Target = host, ItemId = (ushort)ItemId.Carrot, Delta = -1 });
+            Queue.Enqueue(new BankTransfer { Target = host, ItemId = outputId,              Delta =  1 });
             prod.LastProducedTurn += cadence;
         }
 

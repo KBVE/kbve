@@ -1,20 +1,20 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Single-threaded applier for PendingItemTransfer entities. Parallel producers (EmpireDepositSystem, EmpireWithdrawSystem, BuildingSurplusTransferSystem, future producers) emit transfers via ECB.ParallelWriter; this system drains them at the end of EconomySystemGroup and folds each into the Target's bank ledger. Dispatches on whichever ledger type the Target entity carries (CapitalLedger, FurnaceLedger, FarmLedger, BarracksLedger, GoblinCaveLedger) — per-bank typed buffers mean Unity's job-safety system schedules this applier's read/write lanes independently for each bank. Each ledger's buffer is Reinterpret'd to BankLedgerBase so one Apply helper handles them all.</summary>
+    /// <summary>Sole RW writer of every bank ledger (Capital/Furnace/Farm/Barracks/GoblinCave). Drains BankTransferQueue.Queue in one sequential IJob per frame and applies each transaction to its Target's ledger. Producers enqueue from ScheduleParallel worker threads via NativeQueue&lt;BankTransfer&gt;.ParallelWriter; this system owns the RW BufferLookup for every ledger type, so cross-producer safety races on ledger access are structurally impossible. Runs last in EconomySystemGroup after every producer has committed its writes.</summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(EconomySystemGroup))]
-    [UpdateAfter(typeof(BuildingSurplusTransferSystem))]
+    [UpdateInGroup(typeof(EconomySystemGroup), OrderLast = true)]
     public partial struct InventoryTransferApplierSystem : ISystem
     {
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<PendingItemTransfer>();
+            state.RequireForUpdate<BankTransferQueue>();
         }
 
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
@@ -22,48 +22,62 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                               .CreateCommandBuffer(state.WorldUnmanaged);
+            var queue = SystemAPI.GetSingleton<BankTransferQueue>().Queue;
+            if (queue.Count == 0) return;
 
-            var capitalLookup   = SystemAPI.GetBufferLookup<CapitalLedger>(false);
-            var furnaceLookup   = SystemAPI.GetBufferLookup<FurnaceLedger>(false);
-            var farmLookup      = SystemAPI.GetBufferLookup<FarmLedger>(false);
-            var barracksLookup  = SystemAPI.GetBufferLookup<BarracksLedger>(false);
-            var goblinCaveLookup= SystemAPI.GetBufferLookup<GoblinCaveLedger>(false);
-
-            foreach (var (transferRO, entity) in
-                     SystemAPI.Query<RefRO<PendingItemTransfer>>().WithEntityAccess())
+            state.Dependency = new ApplyBankTransfersJob
             {
-                var t = transferRO.ValueRO;
-                if (t.Delta != 0)
+                Queue            = queue,
+                CapitalLookup    = SystemAPI.GetBufferLookup<CapitalLedger>(false),
+                FurnaceLookup    = SystemAPI.GetBufferLookup<FurnaceLedger>(false),
+                FarmLookup       = SystemAPI.GetBufferLookup<FarmLedger>(false),
+                BarracksLookup   = SystemAPI.GetBufferLookup<BarracksLedger>(false),
+                GoblinCaveLookup = SystemAPI.GetBufferLookup<GoblinCaveLedger>(false),
+            }.Schedule(state.Dependency);
+        }
+    }
+
+    [BurstCompile]
+    public struct ApplyBankTransfersJob : IJob
+    {
+        public NativeQueue<BankTransfer>    Queue;
+        public BufferLookup<CapitalLedger>    CapitalLookup;
+        public BufferLookup<FurnaceLedger>    FurnaceLookup;
+        public BufferLookup<FarmLedger>       FarmLookup;
+        public BufferLookup<BarracksLedger>   BarracksLookup;
+        public BufferLookup<GoblinCaveLedger> GoblinCaveLookup;
+
+        public void Execute()
+        {
+            while (Queue.TryDequeue(out var t))
+            {
+                if (t.Delta == 0) continue;
+
+                if (CapitalLookup.HasBuffer(t.Target))
                 {
-                    if (capitalLookup.HasBuffer(t.Target))
-                    {
-                        var view = capitalLookup[t.Target].Reinterpret<BankLedgerBase>();
-                        Apply(view, t.ItemId, t.Delta);
-                    }
-                    else if (furnaceLookup.HasBuffer(t.Target))
-                    {
-                        var view = furnaceLookup[t.Target].Reinterpret<BankLedgerBase>();
-                        Apply(view, t.ItemId, t.Delta);
-                    }
-                    else if (farmLookup.HasBuffer(t.Target))
-                    {
-                        var view = farmLookup[t.Target].Reinterpret<BankLedgerBase>();
-                        Apply(view, t.ItemId, t.Delta);
-                    }
-                    else if (barracksLookup.HasBuffer(t.Target))
-                    {
-                        var view = barracksLookup[t.Target].Reinterpret<BankLedgerBase>();
-                        Apply(view, t.ItemId, t.Delta);
-                    }
-                    else if (goblinCaveLookup.HasBuffer(t.Target))
-                    {
-                        var view = goblinCaveLookup[t.Target].Reinterpret<BankLedgerBase>();
-                        Apply(view, t.ItemId, t.Delta);
-                    }
+                    var view = CapitalLookup[t.Target].Reinterpret<BankLedgerBase>();
+                    Apply(view, t.ItemId, t.Delta);
                 }
-                ecb.DestroyEntity(entity);
+                else if (FurnaceLookup.HasBuffer(t.Target))
+                {
+                    var view = FurnaceLookup[t.Target].Reinterpret<BankLedgerBase>();
+                    Apply(view, t.ItemId, t.Delta);
+                }
+                else if (FarmLookup.HasBuffer(t.Target))
+                {
+                    var view = FarmLookup[t.Target].Reinterpret<BankLedgerBase>();
+                    Apply(view, t.ItemId, t.Delta);
+                }
+                else if (BarracksLookup.HasBuffer(t.Target))
+                {
+                    var view = BarracksLookup[t.Target].Reinterpret<BankLedgerBase>();
+                    Apply(view, t.ItemId, t.Delta);
+                }
+                else if (GoblinCaveLookup.HasBuffer(t.Target))
+                {
+                    var view = GoblinCaveLookup[t.Target].Reinterpret<BankLedgerBase>();
+                    Apply(view, t.ItemId, t.Delta);
+                }
             }
         }
 

@@ -29,9 +29,7 @@ namespace RareIcon
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             if (!SystemAPI.HasBuffer<CapitalLedger>(capital)) return;
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
-
-            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                               .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
+            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
 
             var barracks = _barracksQuery.ToEntityListAsync(Allocator.TempJob,
                                                             state.Dependency,
@@ -53,7 +51,7 @@ namespace RareIcon
                 Understocked   = anyUnderstocked,
                 HexLookup      = hexLookup.Lookup,
                 OccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
-                Ecb            = ecb,
+                Queue          = qSingleton.Queue.AsParallelWriter(),
             }.ScheduleParallel(checkHandle);
 
             state.Dependency = barracks.Dispose(state.Dependency);
@@ -94,10 +92,9 @@ namespace RareIcon
         [ReadOnly] public NativeHashMap<int2, Entity>  HexLookup;
         [ReadOnly] public ComponentLookup<HexOccupant> OccupantLookup;
 
-        public EntityCommandBuffer.ParallelWriter Ecb;
+        public NativeQueue<BankTransfer>.ParallelWriter Queue;
 
-        void Execute([ChunkIndexInQuery] int chunkIdx,
-                     in UnitMovement movement,
+        void Execute(in UnitMovement movement,
                      in Faction faction,
                      ref DynamicBuffer<PackSlot> pack)
         {
@@ -122,13 +119,7 @@ namespace RareIcon
                 if (itemId == 0 || count == 0) continue;
                 if (anyBarracksUnderstocked && itemId == (ushort)ItemId.BanditCoin) continue;
 
-                var t = Ecb.CreateEntity(chunkIdx);
-                Ecb.AddComponent(chunkIdx, t, new PendingItemTransfer
-                {
-                    Target = Capital,
-                    ItemId = itemId,
-                    Delta  = count,
-                });
+                Queue.Enqueue(new BankTransfer { Target = Capital, ItemId = itemId, Delta = count });
 
                 var src = pack[i];
                 src.Count = 0;

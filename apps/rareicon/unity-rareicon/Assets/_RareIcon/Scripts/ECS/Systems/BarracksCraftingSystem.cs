@@ -37,11 +37,18 @@ namespace RareIcon
                 return;
             }
 
+            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton))
+            {
+                craftsmen.Dispose();
+                return;
+            }
+
             state.Dependency = new BarracksArrowCraftJob
             {
                 Craftsmen      = craftsmen.AsDeferredJobArray(),
-                BarracksLookup = SystemAPI.GetBufferLookup<BarracksLedger>(false),
+                BarracksLookup = SystemAPI.GetBufferLookup<BarracksLedger>(true),
                 BarracksLkup   = SystemAPI.GetComponentLookup<BarracksTag>(true),
+                Queue          = qSingleton.Queue.AsParallelWriter(),
             }.Schedule(state.Dependency);
 
             state.Dependency = craftsmen.Dispose(state.Dependency);
@@ -54,7 +61,8 @@ namespace RareIcon
         {
             [ReadOnly] public NativeArray<CraftsmanStation>     Craftsmen;
             [ReadOnly] public ComponentLookup<BarracksTag>      BarracksLkup;
-            public BufferLookup<BarracksLedger>                 BarracksLookup;
+            [ReadOnly] public BufferLookup<BarracksLedger>      BarracksLookup;
+            public NativeQueue<BankTransfer>.ParallelWriter     Queue;
 
             public void Execute()
             {
@@ -72,9 +80,9 @@ namespace RareIcon
                     if (BankLedgerOps.CountOf(inv, (ushort)ItemId.WoodLog) < WoodLogCost) continue;
                     if (BankLedgerOps.CountOf(inv, (ushort)ItemId.CactiNeedle) < NeedleCost) continue;
 
-                    BankLedgerOps.RemoveItem(ref inv, (ushort)ItemId.WoodLog,    WoodLogCost);
-                    BankLedgerOps.RemoveItem(ref inv, (ushort)ItemId.CactiNeedle, NeedleCost);
-                    BankLedgerOps.AddItem(ref inv,    (ushort)ItemId.Arrow,       ArrowsProduced, default);
+                    Queue.Enqueue(new BankTransfer { Target = barracks, ItemId = (ushort)ItemId.WoodLog,     Delta = -WoodLogCost });
+                    Queue.Enqueue(new BankTransfer { Target = barracks, ItemId = (ushort)ItemId.CactiNeedle, Delta = -NeedleCost });
+                    Queue.Enqueue(new BankTransfer { Target = barracks, ItemId = (ushort)ItemId.Arrow,       Delta =  ArrowsProduced });
                 }
             }
         }

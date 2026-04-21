@@ -20,16 +20,19 @@ namespace RareIcon
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookupSingleton)) return;
 
+            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
+
             state.Dependency = new BuilderDepositJob
             {
                 Capital           = capital,
                 HexLookup         = hexLookupSingleton.Lookup,
                 HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
                 PackLookup        = SystemAPI.GetBufferLookup<PackSlot>(false),
-                CapitalLookup     = SystemAPI.GetBufferLookup<CapitalLedger>(false),
+                CapitalLookup     = SystemAPI.GetBufferLookup<CapitalLedger>(true),
                 MatLookup         = SystemAPI.GetBufferLookup<ConstructionMaterial>(false),
                 SiteLookup        = SystemAPI.GetComponentLookup<ConstructionSite>(true),
                 SkillXpLookup     = SystemAPI.GetComponentLookup<SkillXP>(false),
+                Queue             = qSingleton.Queue.AsParallelWriter(),
             }.Schedule(state.Dependency);
         }
     }
@@ -44,11 +47,13 @@ namespace RareIcon
         [ReadOnly] public NativeHashMap<int2, Entity>       HexLookup;
         [ReadOnly] public ComponentLookup<HexOccupant>      HexOccupantLookup;
         [ReadOnly] public ComponentLookup<ConstructionSite> SiteLookup;
+        [ReadOnly] public BufferLookup<CapitalLedger>       CapitalLookup;
 
         [NativeDisableParallelForRestriction] public BufferLookup<PackSlot>             PackLookup;
-        [NativeDisableParallelForRestriction] public BufferLookup<CapitalLedger>        CapitalLookup;
         [NativeDisableParallelForRestriction] public BufferLookup<ConstructionMaterial> MatLookup;
         [NativeDisableParallelForRestriction] public ComponentLookup<SkillXP>           SkillXpLookup;
+
+        public NativeQueue<BankTransfer>.ParallelWriter Queue;
 
         void Execute(Entity entity, in JobIntent intent, in UnitMovement movement)
         {
@@ -80,7 +85,7 @@ namespace RareIcon
             {
                 if (!CapitalLookup.HasBuffer(Capital)) return;
                 var capInv = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
-                TryPickup(ref capInv, unitPack, siteMats);
+                TryPickup(capInv, unitPack, siteMats, Capital, ref Queue);
             }
         }
 
@@ -130,9 +135,11 @@ namespace RareIcon
             return false;
         }
 
-        static bool TryPickup(ref DynamicBuffer<BankLedgerBase> capInv,
+        static bool TryPickup(in DynamicBuffer<BankLedgerBase> capInv,
                               DynamicBuffer<PackSlot> unitPack,
-                              DynamicBuffer<ConstructionMaterial> mats)
+                              DynamicBuffer<ConstructionMaterial> mats,
+                              Entity capital,
+                              ref NativeQueue<BankTransfer>.ParallelWriter queue)
         {
             bool anyPicked = false;
             for (int j = 0; j < mats.Length; j++)
@@ -144,19 +151,13 @@ namespace RareIcon
                               - CountInUnit(unitPack, needId);
                 if (want <= 0) continue;
 
-                for (int i = 0; i < capInv.Length && want > 0; i++)
-                {
-                    if (capInv[i].ItemId != needId || capInv[i].Count == 0) continue;
+                int available = BankLedgerOps.CountOf(capInv, needId);
+                if (available <= 0) continue;
 
-                    var capSlot = capInv[i];
-                    int take = capSlot.Count < want ? capSlot.Count : want;
-                    capSlot.Count = (ushort)(capSlot.Count - take);
-                    capInv[i] = capSlot;
-
-                    MergeOrAdd(unitPack, needId, (ushort)take);
-                    want     -= take;
-                    anyPicked = true;
-                }
+                int take = math.min(available, want);
+                queue.Enqueue(new BankTransfer { Target = capital, ItemId = needId, Delta = -take });
+                MergeOrAdd(unitPack, needId, (ushort)take);
+                anyPicked = true;
             }
             return anyPicked;
         }

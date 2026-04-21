@@ -6,7 +6,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Drains each building's above-floor SurplusExport items into the Capital treasury per tick. Post-per-bank-split, each source bank type (Farm/Furnace/Barracks) runs its own ScheduleParallel job — since their ledger types are distinct, Unity schedules all three in parallel on worker threads. Source buffers are written directly (per-entity, exclusive); the Capital add queues through PendingItemTransfer for InventoryTransferApplierSystem.</summary>
+    /// <summary>Drains each source building's above-floor SurplusExport items into Capital. Reads source bank ledger RO; enqueues -source and +Capital BankTransfers per above-floor item. Three parallel jobs (Farm/Furnace/Barracks) — distinct ledger types so Unity parallelizes them freely.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct BuildingSurplusTransferSystem : ISystem
@@ -18,13 +18,12 @@ namespace RareIcon
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
+            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
+            var queue = qSingleton.Queue.AsParallelWriter();
 
-            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                               .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
-
-            var farmH = new FarmSurplusJob        { Capital = capital, Ecb = ecb }.ScheduleParallel(state.Dependency);
-            var furnH = new FurnaceSurplusJob     { Capital = capital, Ecb = ecb }.ScheduleParallel(state.Dependency);
-            var barrH = new BarracksSurplusJob    { Capital = capital, Ecb = ecb }.ScheduleParallel(state.Dependency);
+            var farmH = new FarmSurplusJob     { Capital = capital, Queue = queue }.ScheduleParallel(state.Dependency);
+            var furnH = new FurnaceSurplusJob  { Capital = capital, Queue = queue }.ScheduleParallel(state.Dependency);
+            var barrH = new BarracksSurplusJob { Capital = capital, Queue = queue }.ScheduleParallel(state.Dependency);
 
             state.Dependency = JobHandle.CombineDependencies(
                 JobHandle.CombineDependencies(farmH, furnH), barrH);
@@ -36,16 +35,13 @@ namespace RareIcon
     public partial struct FarmSurplusJob : IJobEntity
     {
         public Entity Capital;
-        public EntityCommandBuffer.ParallelWriter Ecb;
+        public NativeQueue<BankTransfer>.ParallelWriter Queue;
 
-        void Execute(Entity entity,
-                     [ChunkIndexInQuery] int chunkIdx,
-                     ref DynamicBuffer<FarmLedger> typedStorage,
-                     in DynamicBuffer<SurplusExport> exports)
+        void Execute(Entity entity, in DynamicBuffer<FarmLedger> typedStorage, in DynamicBuffer<SurplusExport> exports)
         {
             if (entity == Capital) return;
             var storage = typedStorage.Reinterpret<BankLedgerBase>();
-            SurplusTransferShared.Run(ref storage, exports, Capital, chunkIdx, Ecb);
+            SurplusTransferShared.Run(storage, exports, Capital, entity, ref Queue);
         }
     }
 
@@ -54,16 +50,13 @@ namespace RareIcon
     public partial struct FurnaceSurplusJob : IJobEntity
     {
         public Entity Capital;
-        public EntityCommandBuffer.ParallelWriter Ecb;
+        public NativeQueue<BankTransfer>.ParallelWriter Queue;
 
-        void Execute(Entity entity,
-                     [ChunkIndexInQuery] int chunkIdx,
-                     ref DynamicBuffer<FurnaceLedger> typedStorage,
-                     in DynamicBuffer<SurplusExport> exports)
+        void Execute(Entity entity, in DynamicBuffer<FurnaceLedger> typedStorage, in DynamicBuffer<SurplusExport> exports)
         {
             if (entity == Capital) return;
             var storage = typedStorage.Reinterpret<BankLedgerBase>();
-            SurplusTransferShared.Run(ref storage, exports, Capital, chunkIdx, Ecb);
+            SurplusTransferShared.Run(storage, exports, Capital, entity, ref Queue);
         }
     }
 
@@ -72,26 +65,23 @@ namespace RareIcon
     public partial struct BarracksSurplusJob : IJobEntity
     {
         public Entity Capital;
-        public EntityCommandBuffer.ParallelWriter Ecb;
+        public NativeQueue<BankTransfer>.ParallelWriter Queue;
 
-        void Execute(Entity entity,
-                     [ChunkIndexInQuery] int chunkIdx,
-                     ref DynamicBuffer<BarracksLedger> typedStorage,
-                     in DynamicBuffer<SurplusExport> exports)
+        void Execute(Entity entity, in DynamicBuffer<BarracksLedger> typedStorage, in DynamicBuffer<SurplusExport> exports)
         {
             if (entity == Capital) return;
             var storage = typedStorage.Reinterpret<BankLedgerBase>();
-            SurplusTransferShared.Run(ref storage, exports, Capital, chunkIdx, Ecb);
+            SurplusTransferShared.Run(storage, exports, Capital, entity, ref Queue);
         }
     }
 
     internal static class SurplusTransferShared
     {
-        public static void Run(ref DynamicBuffer<BankLedgerBase> storage,
+        public static void Run(in DynamicBuffer<BankLedgerBase> storage,
                                in DynamicBuffer<SurplusExport> exports,
                                Entity capital,
-                               int chunkIdx,
-                               EntityCommandBuffer.ParallelWriter ecb)
+                               Entity source,
+                               ref NativeQueue<BankTransfer>.ParallelWriter queue)
         {
             for (int e = 0; e < exports.Length; e++)
             {
@@ -102,24 +92,8 @@ namespace RareIcon
                 if (have <= floor) continue;
 
                 int move = have - floor;
-                int remaining = move;
-                for (int i = 0; i < storage.Length && remaining > 0; i++)
-                {
-                    if (storage[i].ItemId != itemId) continue;
-                    var slot = storage[i];
-                    int take = math.min(slot.Count, remaining);
-                    slot.Count = (ushort)(slot.Count - take);
-                    storage[i] = slot;
-                    remaining -= take;
-                }
-
-                var req = ecb.CreateEntity(chunkIdx);
-                ecb.AddComponent(chunkIdx, req, new PendingItemTransfer
-                {
-                    Target = capital,
-                    ItemId = itemId,
-                    Delta  = move,
-                });
+                queue.Enqueue(new BankTransfer { Target = source,  ItemId = itemId, Delta = -move });
+                queue.Enqueue(new BankTransfer { Target = capital, ItemId = itemId, Delta =  move });
             }
         }
     }
