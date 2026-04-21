@@ -6,20 +6,16 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Hungry Player unit on a Capital-claimed hex pulls one edible from storage into its inventory. Parallel Burst job — unit pack grows directly (per-entity write), Capital subtract queues through a BankTransfer for InventoryTransferApplierSystem. Snapshot build is itself a Burst IJob so the Capital CapitalLedger read participates in the job dep graph and can't race any other CapitalLedger writer.</summary>
+    /// <summary>Hungry Player unit on a Capital-claimed hex submits a Pickup reservation for one edible item from Capital. PackApplySystem credits the pack once resolver grants.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireDepositSystem))]
     public partial struct EmpireWithdrawSystem : ISystem
     {
         const float HungerTrigger = 0.50f;
 
-        NativeQueue<BankTransfer> _queue;
-
         public void OnCreate(ref SystemState state)
         {
-            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
-                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
-            _queue = bus.AllocateProducerQueue();
+            state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -31,26 +27,32 @@ namespace RareIcon
             if (!SystemAPI.HasBuffer<CapitalLedger>(capital)) return;
             if (!SystemAPI.TryGetSingleton<ItemDBSingleton>(out var itemDb)) return;
 
+            uint tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
             var snapshot = new NativeList<FoodSlotSnapshot>(8, Allocator.TempJob);
 
             var snapshotHandle = new CapitalFoodSnapshotJob
             {
-                Capital  = capital,
+                Capital   = capital,
                 InvLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true),
-                Snapshot = snapshot,
+                Snapshot  = snapshot,
             }.Schedule(state.Dependency);
+
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep = JobHandle.CombineDependencies(snapshotHandle, db.PipelineHandle);
 
             var handle = new EmpireWithdrawJob
             {
-                Capital         = capital,
-                HexLookup       = hexLookup.Lookup,
-                OccupantLookup  = SystemAPI.GetComponentLookup<HexOccupant>(true),
-                CapitalFoods    = snapshot.AsDeferredJobArray(),
-                ItemDb          = itemDb,
-                Queue           = _queue.AsParallelWriter(),
-            }.ScheduleParallel(snapshotHandle);
+                Capital        = capital,
+                Tick           = tick,
+                HexLookup      = hexLookup.Lookup,
+                OccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
+                CapitalFoods   = snapshot.AsDeferredJobArray(),
+                ItemDb         = itemDb,
+                Reservations   = db.Reservations.AsParallelWriter(),
+            }.ScheduleParallel(dep);
 
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
+            db.PipelineHandle = handle;
             state.Dependency = snapshot.Dispose(handle);
         }
     }
@@ -60,7 +62,7 @@ namespace RareIcon
         public ushort ItemId;
     }
 
-    /// <summary>Burst IJob that reads Capital.CapitalLedger via BufferLookup (tracked by the scheduler) and emits one FoodSlotSnapshot per non-zero food slot into a deferred NativeList. Replaces the main-thread snapshot loop that was racing BuildingSurplusTransferSystem's writer.</summary>
+    /// <summary>Burst IJob that reads Capital.CapitalLedger and emits one FoodSlotSnapshot per non-zero food slot.</summary>
     [BurstCompile]
     public struct CapitalFoodSnapshotJob : IJob
     {
@@ -87,19 +89,20 @@ namespace RareIcon
         const float HungerTrigger = 0.50f;
 
         public Entity Capital;
+        public uint   Tick;
 
         [ReadOnly] public NativeHashMap<int2, Entity>  HexLookup;
         [ReadOnly] public ComponentLookup<HexOccupant> OccupantLookup;
         [ReadOnly] public NativeArray<FoodSlotSnapshot> CapitalFoods;
         [ReadOnly] public ItemDBSingleton ItemDb;
 
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
-        void Execute(in UnitMovement movement,
+        void Execute(Entity entity,
+                     in UnitMovement movement,
                      in Faction faction,
                      in Hunger hunger,
-                     ref DynamicBuffer<PackSlot> unitPack,
-                     in DynamicBuffer<EquippedBag> bags)
+                     in DynamicBuffer<PackSlot> unitPack)
         {
             if (faction.Value != FactionType.Player) return;
             if (hunger.Max <= 0f || hunger.Value / hunger.Max < HungerTrigger) return;
@@ -112,10 +115,7 @@ namespace RareIcon
 
             ushort take = CapitalFoods[0].ItemId;
 
-            ushort added = unitPack.AddItemCapped(bags, ItemDb, take, 1);
-            if (added == 0) return;
-
-            Queue.Enqueue(new BankTransfer { Target = Capital, ItemId = take, Delta = -added });
+            Reservations.Add(ReservationOps.Key(Capital, take), ReservationOps.Pickup(entity, 1, Tick));
         }
 
         static bool HasEdible(in DynamicBuffer<PackSlot> inv)

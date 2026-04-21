@@ -1,22 +1,19 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Two-phase transport for Looter / Farmer haulers targeting a Barracks. Reads CapitalLedger + BarracksLedger RO; enqueues -Capital / +Barracks BankTransfers via the applier queue. Pack (unit-side) writes happen directly — per-entity, safe.</summary>
+    /// <summary>Two-phase transport for Looter / Farmer haulers targeting a Barracks. On Barracks root hex: pre-debit pack + Deposit reservations. On Capital hex: Pickup reservations for one coin or one food to cover shortfall.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireSharingSystem))]
     public partial struct BarracksSupplyDepositSystem : ISystem
     {
-        NativeQueue<BankTransfer> _queue;
-
         public void OnCreate(ref SystemState state)
         {
-            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
-                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
-            _queue = bus.AllocateProducerQueue();
+            state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -26,9 +23,15 @@ namespace RareIcon
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
 
+            uint tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep    = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
+
             var handle = new BarracksSupplyDepositJob
             {
                 Capital        = capital,
+                Tick           = tick,
                 HexLookup      = hexLookup.Lookup,
                 OccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
                 BarracksTag    = SystemAPI.GetComponentLookup<BarracksTag>(true),
@@ -38,11 +41,11 @@ namespace RareIcon
                 PackLookup     = SystemAPI.GetBufferLookup<PackSlot>(false),
                 CapitalLookup  = SystemAPI.GetBufferLookup<CapitalLedger>(true),
                 BarracksLookup = SystemAPI.GetBufferLookup<BarracksLedger>(true),
-                Queue          = _queue.AsParallelWriter(),
-            }.Schedule(state.Dependency);
+                Reservations   = db.Reservations.AsParallelWriter(),
+            }.Schedule(dep);
 
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
-            state.Dependency = handle;
+            db.PipelineHandle = handle;
+            state.Dependency  = handle;
         }
     }
 
@@ -50,6 +53,7 @@ namespace RareIcon
     public partial struct BarracksSupplyDepositJob : IJobEntity
     {
         public Entity Capital;
+        public uint   Tick;
 
         [ReadOnly] public NativeHashMap<int2, Entity>         HexLookup;
         [ReadOnly] public ComponentLookup<HexOccupant>        OccupantLookup;
@@ -62,7 +66,7 @@ namespace RareIcon
 
         [NativeDisableParallelForRestriction] public BufferLookup<PackSlot> PackLookup;
 
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
         void Execute(Entity entity, in JobIntent intent, in UnitMovement movement)
         {
@@ -85,7 +89,7 @@ namespace RareIcon
 
             if (here.Equals(rootHex))
             {
-                DepositSupply(ref unitPack, storage, cap, target, ref Queue);
+                DepositSupply(ref unitPack, storage, cap, target, entity, Tick, ref Reservations);
                 return;
             }
 
@@ -99,8 +103,8 @@ namespace RareIcon
             int foodShortfall = math.max(0, prod.FoodCost - FoodItems.Count(storage));
 
             var capitalInv = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
-            if (coinShortfall > 0) TryPickupOne(capitalInv, ref unitPack, (ushort)ItemId.BanditCoin, Capital, ref Queue);
-            else if (foodShortfall > 0) TryPickupFood(capitalInv, ref unitPack, Capital, ref Queue);
+            if (coinShortfall > 0)      TryReserveOne(capitalInv, (ushort)ItemId.BanditCoin, Capital, entity, Tick, ref Reservations);
+            else if (foodShortfall > 0) TryReserveFood(capitalInv, Capital, entity, Tick, ref Reservations);
         }
 
         bool IsOnCapital(int2 here)
@@ -110,29 +114,28 @@ namespace RareIcon
             return OccupantLookup[tile].Building == Capital;
         }
 
-        static void TryPickupOne(in DynamicBuffer<BankLedgerBase> capInv,
-                                 ref DynamicBuffer<PackSlot> unitPack,
-                                 ushort itemId,
-                                 Entity capital,
-                                 ref NativeQueue<BankTransfer>.ParallelWriter q)
+        static void TryReserveOne(in DynamicBuffer<BankLedgerBase> capInv,
+                                  ushort itemId,
+                                  Entity capital,
+                                  Entity requester,
+                                  uint tick,
+                                  ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter reservations)
         {
             if (BankLedgerOps.CountOf(capInv, itemId) == 0) return;
-            q.Enqueue(new BankTransfer { Target = capital, ItemId = itemId, Delta = -1 });
-            MergeOrAddPack(ref unitPack, itemId, 1);
+            reservations.Add(ReservationOps.Key(capital, itemId), ReservationOps.Pickup(requester, 1, tick));
         }
 
-        static void TryPickupFood(in DynamicBuffer<BankLedgerBase> capInv,
-                                  ref DynamicBuffer<PackSlot> unitPack,
-                                  Entity capital,
-                                  ref NativeQueue<BankTransfer>.ParallelWriter q)
+        static void TryReserveFood(in DynamicBuffer<BankLedgerBase> capInv,
+                                   Entity capital,
+                                   Entity requester,
+                                   uint tick,
+                                   ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter reservations)
         {
             for (int i = 0; i < capInv.Length; i++)
             {
                 if (capInv[i].Count == 0) continue;
                 if (!FoodItems.IsFood(capInv[i].ItemId)) continue;
-                ushort id = capInv[i].ItemId;
-                q.Enqueue(new BankTransfer { Target = capital, ItemId = id, Delta = -1 });
-                MergeOrAddPack(ref unitPack, id, 1);
+                reservations.Add(ReservationOps.Key(capital, capInv[i].ItemId), ReservationOps.Pickup(requester, 1, tick));
                 return;
             }
         }
@@ -141,7 +144,9 @@ namespace RareIcon
                                   in DynamicBuffer<BankLedgerBase> storage,
                                   ushort capacity,
                                   Entity target,
-                                  ref NativeQueue<BankTransfer>.ParallelWriter q)
+                                  Entity requester,
+                                  uint tick,
+                                  ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter reservations)
         {
             int remaining = capacity - BankLedgerOps.TotalCount(storage);
             if (remaining <= 0) return;
@@ -157,23 +162,8 @@ namespace RareIcon
                 uslot.Count = (ushort)(uslot.Count - take);
                 unitPack[i] = uslot;
                 remaining -= take;
-                q.Enqueue(new BankTransfer { Target = target, ItemId = id, Delta = take });
+                reservations.Add(ReservationOps.Key(target, id), ReservationOps.Deposit(requester, take, tick));
             }
-        }
-
-        static void MergeOrAddPack(ref DynamicBuffer<PackSlot> pack, ushort itemId, ushort amount)
-        {
-            for (int i = 0; i < pack.Length; i++)
-            {
-                if (pack[i].ItemId == itemId)
-                {
-                    var slot = pack[i];
-                    slot.Count = (ushort)math.min(slot.Count + amount, ushort.MaxValue);
-                    pack[i] = slot;
-                    return;
-                }
-            }
-            pack.Add(new PackSlot { ItemId = itemId, Count = amount });
         }
     }
 }

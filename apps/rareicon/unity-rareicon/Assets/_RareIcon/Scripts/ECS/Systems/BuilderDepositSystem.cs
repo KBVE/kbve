@@ -1,22 +1,19 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Builder two-phase transport: on Capital hex, pick up one needed material; on site hex, deliver one matching item and award Construction XP. Shared Capital + site buffers → single-worker Schedule.</summary>
+    /// <summary>Builder two-phase transport: on site hex, deliver one matching item to the ConstructionMaterial buffer (direct unit-pack/site-buffer mutation, not DB). On Capital hex when missing materials, submit Pickup reservations against Capital; PackApplySystem credits the pack.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireSharingSystem))]
     public partial struct BuilderDepositSystem : ISystem
     {
-        NativeQueue<BankTransfer> _queue;
-
         public void OnCreate(ref SystemState state)
         {
-            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
-                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
-            _queue = bus.AllocateProducerQueue();
+            state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -26,9 +23,15 @@ namespace RareIcon
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookupSingleton)) return;
 
+            uint tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep    = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
+
             var handle = new BuilderDepositJob
             {
                 Capital           = capital,
+                Tick              = tick,
                 HexLookup         = hexLookupSingleton.Lookup,
                 HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
                 PackLookup        = SystemAPI.GetBufferLookup<PackSlot>(false),
@@ -36,11 +39,11 @@ namespace RareIcon
                 MatLookup         = SystemAPI.GetBufferLookup<ConstructionMaterial>(false),
                 SiteLookup        = SystemAPI.GetComponentLookup<ConstructionSite>(true),
                 SkillXpLookup     = SystemAPI.GetComponentLookup<SkillXP>(false),
-                Queue             = _queue.AsParallelWriter(),
-            }.Schedule(state.Dependency);
+                Reservations      = db.Reservations.AsParallelWriter(),
+            }.Schedule(dep);
 
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
-            state.Dependency = handle;
+            db.PipelineHandle = handle;
+            state.Dependency  = handle;
         }
     }
 
@@ -50,6 +53,7 @@ namespace RareIcon
         const ushort XPPerDelivery = 18;
 
         public Entity Capital;
+        public uint   Tick;
 
         [ReadOnly] public NativeHashMap<int2, Entity>       HexLookup;
         [ReadOnly] public ComponentLookup<HexOccupant>      HexOccupantLookup;
@@ -60,7 +64,7 @@ namespace RareIcon
         [NativeDisableParallelForRestriction] public BufferLookup<ConstructionMaterial> MatLookup;
         [NativeDisableParallelForRestriction] public ComponentLookup<SkillXP>           SkillXpLookup;
 
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
         void Execute(Entity entity, in JobIntent intent, in UnitMovement movement)
         {
@@ -92,7 +96,7 @@ namespace RareIcon
             {
                 if (!CapitalLookup.HasBuffer(Capital)) return;
                 var capInv = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
-                TryPickup(capInv, unitPack, siteMats, Capital, ref Queue);
+                TryReservePickup(capInv, unitPack, siteMats, Capital, entity, Tick, ref Reservations);
             }
         }
 
@@ -142,31 +146,28 @@ namespace RareIcon
             return false;
         }
 
-        static bool TryPickup(in DynamicBuffer<BankLedgerBase> capInv,
-                              DynamicBuffer<PackSlot> unitPack,
-                              DynamicBuffer<ConstructionMaterial> mats,
-                              Entity capital,
-                              ref NativeQueue<BankTransfer>.ParallelWriter queue)
+        static void TryReservePickup(in DynamicBuffer<BankLedgerBase> capInv,
+                                     in DynamicBuffer<PackSlot> unitPack,
+                                     in DynamicBuffer<ConstructionMaterial> mats,
+                                     Entity capital,
+                                     Entity requester,
+                                     uint tick,
+                                     ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter reservations)
         {
-            bool anyPicked = false;
             for (int j = 0; j < mats.Length; j++)
             {
                 if (mats[j].Delivered >= mats[j].Needed) continue;
 
                 ushort needId = mats[j].ItemId;
-                int    want   = mats[j].Needed - mats[j].Delivered
-                              - CountInUnit(unitPack, needId);
+                int    want   = mats[j].Needed - mats[j].Delivered - CountInUnit(unitPack, needId);
                 if (want <= 0) continue;
 
                 int available = BankLedgerOps.CountOf(capInv, needId);
                 if (available <= 0) continue;
 
                 int take = math.min(available, want);
-                queue.Enqueue(new BankTransfer { Target = capital, ItemId = needId, Delta = -take });
-                MergeOrAdd(unitPack, needId, (ushort)take);
-                anyPicked = true;
+                reservations.Add(ReservationOps.Key(capital, needId), ReservationOps.Pickup(requester, take, tick));
             }
-            return anyPicked;
         }
 
         static int CountInUnit(in DynamicBuffer<PackSlot> pack, ushort itemId)
@@ -175,21 +176,6 @@ namespace RareIcon
             for (int i = 0; i < pack.Length; i++)
                 if (pack[i].ItemId == itemId) total += pack[i].Count;
             return total;
-        }
-
-        static void MergeOrAdd(DynamicBuffer<PackSlot> pack, ushort itemId, ushort amount)
-        {
-            for (int i = 0; i < pack.Length; i++)
-            {
-                if (pack[i].ItemId == itemId)
-                {
-                    var slot = pack[i];
-                    slot.Count = (ushort)math.min(slot.Count + amount, ushort.MaxValue);
-                    pack[i] = slot;
-                    return;
-                }
-            }
-            pack.Add(new PackSlot { ItemId = itemId, Count = amount });
         }
     }
 }

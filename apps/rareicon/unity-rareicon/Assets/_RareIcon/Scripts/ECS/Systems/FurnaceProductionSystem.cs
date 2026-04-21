@@ -1,20 +1,17 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 
 namespace RareIcon
 {
-    /// <summary>Per-furnace active cycle. Owns a dedicated NativeQueue&lt;BankTransfer&gt; so producer ParallelWriter has zero cross-system contention even at 10k+ furnace scale.</summary>
+    /// <summary>Per-furnace active cycle. Inputs consumed from Capital, outputs produced into Capital via Consume/Produce reservations on the same key.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct FurnaceProductionSystem : ISystem
     {
-        NativeQueue<BankTransfer> _queue;
-
         public void OnCreate(ref SystemState state)
         {
-            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
-                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
-            _queue = bus.AllocateProducerQueue();
+            state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -25,18 +22,23 @@ namespace RareIcon
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             if (!SystemAPI.HasBuffer<CapitalLedger>(capital)) return;
 
-            float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
+            float now  = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
+            uint  tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep    = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
 
             var handle = new FurnaceTickJob
             {
                 Capital       = capital,
                 CapitalLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true),
-                Queue         = _queue.AsParallelWriter(),
+                Reservations  = db.Reservations.AsParallelWriter(),
                 Now           = now,
-            }.ScheduleParallel(state.Dependency);
+                Tick          = tick,
+            }.ScheduleParallel(dep);
 
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
-            state.Dependency = handle;
+            db.PipelineHandle = handle;
+            state.Dependency  = handle;
         }
     }
 
@@ -45,8 +47,9 @@ namespace RareIcon
     {
         public Entity Capital;
         [ReadOnly] public BufferLookup<CapitalLedger> CapitalLookup;
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
         public float Now;
+        public uint  Tick;
 
         public void Execute(in FurnaceTag tag, ref FurnaceProduction prod)
         {
@@ -54,9 +57,13 @@ namespace RareIcon
             {
                 if (Now < prod.CycleEndsAt) return;
 
-                if (prod.Output1Amount > 0) Queue.Enqueue(new BankTransfer { Target = Capital, ItemId = prod.Output1Id, Delta =  prod.Output1Amount });
-                if (prod.Output2Amount > 0) Queue.Enqueue(new BankTransfer { Target = Capital, ItemId = prod.Output2Id, Delta =  prod.Output2Amount });
-                if (prod.Output3Amount > 0) Queue.Enqueue(new BankTransfer { Target = Capital, ItemId = prod.Output3Id, Delta =  prod.Output3Amount });
+                if (prod.Output1Amount > 0)
+                    Reservations.Add(ReservationOps.Key(Capital, prod.Output1Id), ReservationOps.Produce(Capital, prod.Output1Amount, Tick));
+                if (prod.Output2Amount > 0)
+                    Reservations.Add(ReservationOps.Key(Capital, prod.Output2Id), ReservationOps.Produce(Capital, prod.Output2Amount, Tick));
+                if (prod.Output3Amount > 0)
+                    Reservations.Add(ReservationOps.Key(Capital, prod.Output3Id), ReservationOps.Produce(Capital, prod.Output3Amount, Tick));
+
                 prod.CycleEndsAt = 0f;
                 return;
             }
@@ -65,8 +72,10 @@ namespace RareIcon
             if (prod.Input1Amount > 0 && BankLedgerOps.CountOf(storage, prod.Input1Id) < prod.Input1Amount) return;
             if (prod.Input2Amount > 0 && BankLedgerOps.CountOf(storage, prod.Input2Id) < prod.Input2Amount) return;
 
-            if (prod.Input1Amount > 0) Queue.Enqueue(new BankTransfer { Target = Capital, ItemId = prod.Input1Id, Delta = -prod.Input1Amount });
-            if (prod.Input2Amount > 0) Queue.Enqueue(new BankTransfer { Target = Capital, ItemId = prod.Input2Id, Delta = -prod.Input2Amount });
+            if (prod.Input1Amount > 0)
+                Reservations.Add(ReservationOps.Key(Capital, prod.Input1Id), ReservationOps.Consume(Capital, prod.Input1Amount, Tick));
+            if (prod.Input2Amount > 0)
+                Reservations.Add(ReservationOps.Key(Capital, prod.Input2Id), ReservationOps.Consume(Capital, prod.Input2Amount, Tick));
 
             prod.CycleEndsAt = Now + prod.CycleDuration;
         }

@@ -1,22 +1,19 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Chef units on the Capital convert one raw wildlife drop → cooked per tick, awarding Culinary XP. Reads Capital inventory RO, enqueues -raw + +cooked BankTransfers. Applier is the sole RW writer. ScheduleParallel — each chef emits its own transfers.</summary>
+    /// <summary>Chef units on the Capital convert one raw wildlife drop → cooked per tick, awarding Culinary XP. Reads Capital ledger RO, submits Consume/Produce reservation pair on the Capital key.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(BuilderDepositSystem))]
     public partial struct CookingSystem : ISystem
     {
-        NativeQueue<BankTransfer> _queue;
-
         public void OnCreate(ref SystemState state)
         {
-            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
-                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
-            _queue = bus.AllocateProducerQueue();
+            state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -27,6 +24,11 @@ namespace RareIcon
             if (!SystemAPI.HasBuffer<CapitalLedger>(capital)) return;
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookupSingleton)) return;
 
+            uint tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep    = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
+
             var handle = new CookingJob
             {
                 Capital           = capital,
@@ -34,11 +36,12 @@ namespace RareIcon
                 HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
                 CapitalLookup     = SystemAPI.GetBufferLookup<CapitalLedger>(true),
                 SkillXpLookup     = SystemAPI.GetComponentLookup<SkillXP>(false),
-                Queue             = _queue.AsParallelWriter(),
-            }.ScheduleParallel(state.Dependency);
+                Reservations      = db.Reservations.AsParallelWriter(),
+                Tick              = tick,
+            }.ScheduleParallel(dep);
 
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
-            state.Dependency = handle;
+            db.PipelineHandle = handle;
+            state.Dependency  = handle;
         }
     }
 
@@ -54,7 +57,8 @@ namespace RareIcon
         [ReadOnly] public BufferLookup<CapitalLedger>   CapitalLookup;
 
         [NativeDisableParallelForRestriction] public ComponentLookup<SkillXP> SkillXpLookup;
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
+        public uint Tick;
 
         void Execute(Entity entity, in JobIntent intent, in UnitMovement movement)
         {
@@ -63,7 +67,7 @@ namespace RareIcon
             if (!CapitalLookup.HasBuffer(Capital)) return;
 
             var inv = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
-            if (!TryQueueCook(ref Queue, Capital, inv)) return;
+            if (!TryQueueCook(ref Reservations, Capital, inv, Tick)) return;
 
             if (SkillXpLookup.HasComponent(entity))
             {
@@ -81,20 +85,20 @@ namespace RareIcon
             return HexOccupantLookup[tile].Building == Capital;
         }
 
-        static bool TryQueueCook(ref NativeQueue<BankTransfer>.ParallelWriter q, Entity capital, in DynamicBuffer<BankLedgerBase> inv)
+        static bool TryQueueCook(ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter res, Entity capital, in DynamicBuffer<BankLedgerBase> inv, uint tick)
         {
-            return TryConvert(ref q, capital, inv, (ushort)ItemId.RawChicken, (ushort)ItemId.CookedChicken)
-                || TryConvert(ref q, capital, inv, (ushort)ItemId.RawMutton,  (ushort)ItemId.CookedMutton)
-                || TryConvert(ref q, capital, inv, (ushort)ItemId.RawBeef,    (ushort)ItemId.CookedBeef)
-                || TryConvert(ref q, capital, inv, (ushort)ItemId.Egg,        (ushort)ItemId.CookedEgg)
-                || TryConvert(ref q, capital, inv, (ushort)ItemId.Milk,       (ushort)ItemId.Cheese);
+            return TryConvert(ref res, capital, inv, (ushort)ItemId.RawChicken, (ushort)ItemId.CookedChicken, tick)
+                || TryConvert(ref res, capital, inv, (ushort)ItemId.RawMutton,  (ushort)ItemId.CookedMutton,  tick)
+                || TryConvert(ref res, capital, inv, (ushort)ItemId.RawBeef,    (ushort)ItemId.CookedBeef,    tick)
+                || TryConvert(ref res, capital, inv, (ushort)ItemId.Egg,        (ushort)ItemId.CookedEgg,     tick)
+                || TryConvert(ref res, capital, inv, (ushort)ItemId.Milk,       (ushort)ItemId.Cheese,        tick);
         }
 
-        static bool TryConvert(ref NativeQueue<BankTransfer>.ParallelWriter q, Entity capital, in DynamicBuffer<BankLedgerBase> inv, ushort rawId, ushort cookedId)
+        static bool TryConvert(ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter res, Entity capital, in DynamicBuffer<BankLedgerBase> inv, ushort rawId, ushort cookedId, uint tick)
         {
             if (BankLedgerOps.CountOf(inv, rawId) == 0) return false;
-            q.Enqueue(new BankTransfer { Target = capital, ItemId = rawId,    Delta = -1 });
-            q.Enqueue(new BankTransfer { Target = capital, ItemId = cookedId, Delta =  1 });
+            res.Add(ReservationOps.Key(capital, rawId),    ReservationOps.Consume(capital, 1, tick));
+            res.Add(ReservationOps.Key(capital, cookedId), ReservationOps.Produce(capital, 1, tick));
             return true;
         }
     }

@@ -6,21 +6,18 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Drains a Player-faction unit's pack into Capital storage when standing on a Capital-claimed hex. BanditCoin is withheld whenever any Barracks is below its StorageCapacity — the carrier keeps coins for a Capital→Barracks supply run. The "any barracks understocked?" check runs as a Burst IJob reading BufferLookup<InventorySlot>, so the dep graph serializes it against BuildingSurplusTransferSystem without [UpdateAfter] or main-thread barriers.</summary>
+    /// <summary>Drains a Player-faction unit's pack into Capital via Deposit reservations when standing on a Capital-claimed hex. BanditCoin is withheld whenever any Barracks is below its StorageCapacity — the carrier keeps coins for a Capital→Barracks supply run.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct EmpireDepositSystem : ISystem
     {
         EntityQuery _barracksQuery;
-        NativeQueue<BankTransfer> _queue;
 
         public void OnCreate(ref SystemState state)
         {
             _barracksQuery = new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<BarracksTag, StorageCapacity, BarracksLedger>()
                 .Build(ref state);
-            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
-                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
-            _queue = bus.AllocateProducerQueue();
+            state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -31,6 +28,8 @@ namespace RareIcon
             if (!SystemAPI.HasBuffer<CapitalLedger>(capital)) return;
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
 
+            uint tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
             var barracks = _barracksQuery.ToEntityListAsync(Allocator.TempJob,
                                                             state.Dependency,
                                                             out var barracksHandle);
@@ -39,35 +38,39 @@ namespace RareIcon
 
             var checkHandle = new AnyBarracksUnderstockedJob
             {
-                Barracks     = barracks.AsDeferredJobArray(),
-                InvLookup    = SystemAPI.GetBufferLookup<BarracksLedger>(true),
-                CapLookup    = SystemAPI.GetComponentLookup<StorageCapacity>(true),
-                Result       = anyUnderstocked,
+                Barracks  = barracks.AsDeferredJobArray(),
+                InvLookup = SystemAPI.GetBufferLookup<BarracksLedger>(true),
+                CapLookup = SystemAPI.GetComponentLookup<StorageCapacity>(true),
+                Result    = anyUnderstocked,
             }.Schedule(barracksHandle);
+
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep = JobHandle.CombineDependencies(checkHandle, db.PipelineHandle);
 
             var handle = new EmpireDepositJob
             {
                 Capital        = capital,
+                Tick           = tick,
                 Understocked   = anyUnderstocked,
                 HexLookup      = hexLookup.Lookup,
                 OccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
-                Queue          = _queue.AsParallelWriter(),
-            }.ScheduleParallel(checkHandle);
+                Reservations   = db.Reservations.AsParallelWriter(),
+            }.ScheduleParallel(dep);
 
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
+            db.PipelineHandle = handle;
             state.Dependency = barracks.Dispose(handle);
             state.Dependency = anyUnderstocked.Dispose(state.Dependency);
         }
     }
 
-    /// <summary>Burst IJob: walks the barracks entity list, reads each barracks' InventorySlot via BufferLookup (job-graph-tracked), and sets Result = true if any total Count < StorageCapacity.Total. Replaces the main-thread SystemAPI.Query loop that was racing BuildingSurplusTransferSystem.</summary>
+    /// <summary>Burst IJob: walks the barracks entity list and sets Result = true if any total Count < StorageCapacity.Total.</summary>
     [BurstCompile]
     public struct AnyBarracksUnderstockedJob : IJob
     {
-        [ReadOnly] public NativeArray<Entity>            Barracks;
-        [ReadOnly] public BufferLookup<BarracksLedger>   InvLookup;
+        [ReadOnly] public NativeArray<Entity>              Barracks;
+        [ReadOnly] public BufferLookup<BarracksLedger>     InvLookup;
         [ReadOnly] public ComponentLookup<StorageCapacity> CapLookup;
-        public NativeReference<bool>                     Result;
+        public NativeReference<bool>                       Result;
 
         public void Execute()
         {
@@ -88,14 +91,16 @@ namespace RareIcon
     public partial struct EmpireDepositJob : IJobEntity
     {
         public Entity Capital;
+        public uint   Tick;
         [ReadOnly] public NativeReference<bool>        Understocked;
 
         [ReadOnly] public NativeHashMap<int2, Entity>  HexLookup;
         [ReadOnly] public ComponentLookup<HexOccupant> OccupantLookup;
 
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
-        void Execute(in UnitMovement movement,
+        void Execute(Entity entity,
+                     in UnitMovement movement,
                      in Faction faction,
                      ref DynamicBuffer<PackSlot> pack)
         {
@@ -120,7 +125,7 @@ namespace RareIcon
                 if (itemId == 0 || count == 0) continue;
                 if (anyBarracksUnderstocked && itemId == (ushort)ItemId.BanditCoin) continue;
 
-                Queue.Enqueue(new BankTransfer { Target = Capital, ItemId = itemId, Delta = count });
+                Reservations.Add(ReservationOps.Key(Capital, itemId), ReservationOps.Deposit(entity, count, Tick));
 
                 var src = pack[i];
                 src.Count = 0;

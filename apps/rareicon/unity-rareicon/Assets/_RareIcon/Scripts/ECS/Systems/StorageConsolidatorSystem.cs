@@ -7,39 +7,37 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>100:1 raw→bulk rollup per-bank. Reads each per-bank ledger RO; enqueues negative-delta BankTransfers for the raws being consumed and positive-delta BankTransfers for the bulk created. Runs five parallel jobs, one per ledger type, all RO on their source so the applier stays the only writer.</summary>
+    /// <summary>100:1 raw→bulk rollup per-bank. Reads each per-bank ledger RO; submits Consume reservations for the raws being rolled up and Produce reservations for the bulk output, keyed on the same bank entity. Five jobs (one per ledger type) chained sequentially through the shared Reservations ParallelWriter.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup), OrderLast = true)]
-    [UpdateBefore(typeof(InventoryTransferApplierSystem))]
     public partial struct StorageConsolidatorSystem : ISystem
     {
-        NativeQueue<BankTransfer> _queue;
-
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<ItemDBSingleton>();
-            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
-                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
-            _queue = bus.AllocateProducerQueue();
+            state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
 
         public void OnUpdate(ref SystemState state)
         {
-            var db    = SystemAPI.GetSingleton<ItemDBSingleton>();
-            var queue = _queue.AsParallelWriter();
+            var itemDb = SystemAPI.GetSingleton<ItemDBSingleton>();
             long nowMs = (long)(SystemAPI.Time.ElapsedTime * 1000.0);
             uint  seed = (uint)math.max(1, nowMs & 0xFFFFFFFF);
+            uint  tick = (uint)nowMs;
 
-            var dep = state.Dependency;
-            dep = new ConsolidateCapitalJob    { Db = db, NowMs = nowMs, Seed = seed, Queue = queue }.ScheduleParallel(dep);
-            dep = new ConsolidateFurnaceJob    { Db = db, NowMs = nowMs, Seed = seed, Queue = queue }.ScheduleParallel(dep);
-            dep = new ConsolidateFarmJob       { Db = db, NowMs = nowMs, Seed = seed, Queue = queue }.ScheduleParallel(dep);
-            dep = new ConsolidateBarracksJob   { Db = db, NowMs = nowMs, Seed = seed, Queue = queue }.ScheduleParallel(dep);
-            dep = new ConsolidateGoblinCaveJob { Db = db, NowMs = nowMs, Seed = seed, Queue = queue }.ScheduleParallel(dep);
+            ref var db   = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var reservations = db.Reservations.AsParallelWriter();
 
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(dep);
-            state.Dependency = dep;
+            var dep = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
+            dep = new ConsolidateCapitalJob    { Db = itemDb, NowMs = nowMs, Seed = seed, Tick = tick, Reservations = reservations }.ScheduleParallel(dep);
+            dep = new ConsolidateFurnaceJob    { Db = itemDb, NowMs = nowMs, Seed = seed, Tick = tick, Reservations = reservations }.ScheduleParallel(dep);
+            dep = new ConsolidateFarmJob       { Db = itemDb, NowMs = nowMs, Seed = seed, Tick = tick, Reservations = reservations }.ScheduleParallel(dep);
+            dep = new ConsolidateBarracksJob   { Db = itemDb, NowMs = nowMs, Seed = seed, Tick = tick, Reservations = reservations }.ScheduleParallel(dep);
+            dep = new ConsolidateGoblinCaveJob { Db = itemDb, NowMs = nowMs, Seed = seed, Tick = tick, Reservations = reservations }.ScheduleParallel(dep);
+
+            db.PipelineHandle = dep;
+            state.Dependency  = dep;
         }
     }
 
@@ -47,59 +45,63 @@ namespace RareIcon
     public partial struct ConsolidateCapitalJob : IJobEntity
     {
         [ReadOnly] public ItemDBSingleton Db;
-        public long NowMs; public uint Seed;
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public long NowMs; public uint Seed; public uint Tick;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
         void Execute([EntityIndexInQuery] int eiq, Entity entity, in DynamicBuffer<CapitalLedger> typedBuf)
-            => ConsolidatorCore.Run(typedBuf.Reinterpret<BankLedgerBase>(), entity, eiq, Seed, NowMs, in Db, ref Queue);
+            => ConsolidatorCore.Run(typedBuf.Reinterpret<BankLedgerBase>(), entity, eiq, Seed, NowMs, Tick, in Db, ref Reservations);
     }
 
     [BurstCompile]
     public partial struct ConsolidateFurnaceJob : IJobEntity
     {
         [ReadOnly] public ItemDBSingleton Db;
-        public long NowMs; public uint Seed;
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public long NowMs; public uint Seed; public uint Tick;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
         void Execute([EntityIndexInQuery] int eiq, Entity entity, in DynamicBuffer<FurnaceLedger> typedBuf)
-            => ConsolidatorCore.Run(typedBuf.Reinterpret<BankLedgerBase>(), entity, eiq, Seed, NowMs, in Db, ref Queue);
+            => ConsolidatorCore.Run(typedBuf.Reinterpret<BankLedgerBase>(), entity, eiq, Seed, NowMs, Tick, in Db, ref Reservations);
     }
 
     [BurstCompile]
     public partial struct ConsolidateFarmJob : IJobEntity
     {
         [ReadOnly] public ItemDBSingleton Db;
-        public long NowMs; public uint Seed;
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public long NowMs; public uint Seed; public uint Tick;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
         void Execute([EntityIndexInQuery] int eiq, Entity entity, in DynamicBuffer<FarmLedger> typedBuf)
-            => ConsolidatorCore.Run(typedBuf.Reinterpret<BankLedgerBase>(), entity, eiq, Seed, NowMs, in Db, ref Queue);
+            => ConsolidatorCore.Run(typedBuf.Reinterpret<BankLedgerBase>(), entity, eiq, Seed, NowMs, Tick, in Db, ref Reservations);
     }
 
     [BurstCompile]
     public partial struct ConsolidateBarracksJob : IJobEntity
     {
         [ReadOnly] public ItemDBSingleton Db;
-        public long NowMs; public uint Seed;
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public long NowMs; public uint Seed; public uint Tick;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
         void Execute([EntityIndexInQuery] int eiq, Entity entity, in DynamicBuffer<BarracksLedger> typedBuf)
-            => ConsolidatorCore.Run(typedBuf.Reinterpret<BankLedgerBase>(), entity, eiq, Seed, NowMs, in Db, ref Queue);
+            => ConsolidatorCore.Run(typedBuf.Reinterpret<BankLedgerBase>(), entity, eiq, Seed, NowMs, Tick, in Db, ref Reservations);
     }
 
     [BurstCompile]
     public partial struct ConsolidateGoblinCaveJob : IJobEntity
     {
         [ReadOnly] public ItemDBSingleton Db;
-        public long NowMs; public uint Seed;
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public long NowMs; public uint Seed; public uint Tick;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
         void Execute([EntityIndexInQuery] int eiq, Entity entity, in DynamicBuffer<GoblinCaveLedger> typedBuf)
-            => ConsolidatorCore.Run(typedBuf.Reinterpret<BankLedgerBase>(), entity, eiq, Seed, NowMs, in Db, ref Queue);
+            => ConsolidatorCore.Run(typedBuf.Reinterpret<BankLedgerBase>(), entity, eiq, Seed, NowMs, Tick, in Db, ref Reservations);
     }
 
     internal static class ConsolidatorCore
     {
-        public static void Run(in DynamicBuffer<BankLedgerBase> inv, Entity target, int eiq, uint seed, long nowMs, in ItemDBSingleton db, ref NativeQueue<BankTransfer>.ParallelWriter queue)
+        public static void Run(in DynamicBuffer<BankLedgerBase> inv,
+                               Entity target,
+                               int eiq,
+                               uint seed,
+                               long nowMs,
+                               uint tick,
+                               in ItemDBSingleton db,
+                               ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter res)
         {
-            // Pass 1 — single-source rollup. For each raw slot that holds
-            // >= CompressRatio, enqueue -drain on the raw + +batches on
-            // the bulk item (target same entity).
             for (int i = 0; i < inv.Length; i++)
             {
                 var slot = inv[i];
@@ -111,13 +113,10 @@ namespace RareIcon
 
                 int batches = slot.Count / def.CompressRatio;
                 int drain   = batches * def.CompressRatio;
-                queue.Enqueue(new BankTransfer { Target = target, ItemId = slot.ItemId,       Delta = -drain });
-                queue.Enqueue(new BankTransfer { Target = target, ItemId = def.CompressesTo,  Delta =  batches });
+                res.Add(ReservationOps.Key(target, slot.ItemId),      ReservationOps.Consume(target, drain,   tick));
+                res.Add(ReservationOps.Key(target, def.CompressesTo), ReservationOps.Produce(target, batches, tick));
             }
 
-            // Pass 2 — food pool. Sum every PoolGroup.Food slot, convert
-            // floor(total / ratio) into Meal, emit negative deltas across
-            // the pool members proportionally.
             int foodTotal = 0; ushort foodTarget = 0; ushort foodRatio = 100;
             for (int i = 0; i < inv.Length; i++)
             {
@@ -143,10 +142,10 @@ namespace RareIcon
                     if (!db.TryGet(inv[i].ItemId, out var d)) continue;
                     if (d.PoolGroup != PoolGroup.Food) continue;
                     int take = inv[i].Count < remaining ? inv[i].Count : remaining;
-                    queue.Enqueue(new BankTransfer { Target = target, ItemId = inv[i].ItemId, Delta = -take });
+                    res.Add(ReservationOps.Key(target, inv[i].ItemId), ReservationOps.Consume(target, take, tick));
                     remaining -= take;
                 }
-                queue.Enqueue(new BankTransfer { Target = target, ItemId = foodTarget, Delta = meals });
+                res.Add(ReservationOps.Key(target, foodTarget), ReservationOps.Produce(target, meals, tick));
             }
         }
     }

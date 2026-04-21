@@ -1,25 +1,22 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Ticks Capital ProductionRecipes; enqueues consume/emit BankTransfers to an owned producer queue.</summary>
+    /// <summary>Ticks Capital ProductionRecipes; submits Consume/Produce reservations on the Capital key.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct CapitalProductionSystem : ISystem
     {
-        NativeQueue<BankTransfer> _queue;
-
         public void OnCreate(ref SystemState state)
         {
             var q = new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<CapitalTag, CapitalLedger, ProductionRecipe>()
                 .Build(ref state);
             state.RequireForUpdate(q);
-            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
-                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
-            _queue = bus.AllocateProducerQueue();
+            state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -27,16 +24,21 @@ namespace RareIcon
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
-            float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
+            float now  = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
+            uint  tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep    = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
 
             var handle = new CapitalProductionJob
             {
-                Now   = now,
-                Queue = _queue.AsParallelWriter(),
-            }.ScheduleParallel(state.Dependency);
+                Now          = now,
+                Tick         = tick,
+                Reservations = db.Reservations.AsParallelWriter(),
+            }.ScheduleParallel(dep);
 
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
-            state.Dependency = handle;
+            db.PipelineHandle = handle;
+            state.Dependency  = handle;
         }
     }
 
@@ -45,7 +47,8 @@ namespace RareIcon
     public partial struct CapitalProductionJob : IJobEntity
     {
         public float Now;
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public uint  Tick;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
         void Execute(Entity entity, in DynamicBuffer<CapitalLedger> typedStorage, ref DynamicBuffer<ProductionRecipe> recipes)
         {
@@ -56,13 +59,13 @@ namespace RareIcon
                 if (r.CycleEndsAt > 0f)
                 {
                     if (Now < r.CycleEndsAt) continue;
-                    EmitOutputs(ref Queue, entity, r);
+                    EmitOutputs(ref Reservations, entity, r, Tick);
                     r.CycleEndsAt = 0f;
                     recipes[i] = r;
                     continue;
                 }
                 if (!HasInputs(storage, r)) continue;
-                EnqueueConsume(ref Queue, entity, r);
+                EnqueueConsume(ref Reservations, entity, r, Tick);
                 r.CycleEndsAt = Now + math.max(0.1f, r.CycleDuration);
                 recipes[i] = r;
             }
@@ -76,36 +79,32 @@ namespace RareIcon
             return true;
         }
 
-        static void EnqueueConsume(ref NativeQueue<BankTransfer>.ParallelWriter q, Entity target, in ProductionRecipe r)
+        static void EnqueueConsume(ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter res, Entity target, in ProductionRecipe r, uint tick)
         {
-            if (r.Input1Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input1Id, Delta = -r.Input1Amount });
-            if (r.Input2Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input2Id, Delta = -r.Input2Amount });
-            if (r.Input3Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input3Id, Delta = -r.Input3Amount });
+            if (r.Input1Amount > 0) res.Add(ReservationOps.Key(target, r.Input1Id), ReservationOps.Consume(target, r.Input1Amount, tick));
+            if (r.Input2Amount > 0) res.Add(ReservationOps.Key(target, r.Input2Id), ReservationOps.Consume(target, r.Input2Amount, tick));
+            if (r.Input3Amount > 0) res.Add(ReservationOps.Key(target, r.Input3Id), ReservationOps.Consume(target, r.Input3Amount, tick));
         }
 
-        static void EmitOutputs(ref NativeQueue<BankTransfer>.ParallelWriter q, Entity target, in ProductionRecipe r)
+        static void EmitOutputs(ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter res, Entity target, in ProductionRecipe r, uint tick)
         {
-            if (r.Output1Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output1Id, Delta =  r.Output1Amount });
-            if (r.Output2Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output2Id, Delta =  r.Output2Amount });
-            if (r.Output3Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output3Id, Delta =  r.Output3Amount });
+            if (r.Output1Amount > 0) res.Add(ReservationOps.Key(target, r.Output1Id), ReservationOps.Produce(target, r.Output1Amount, tick));
+            if (r.Output2Amount > 0) res.Add(ReservationOps.Key(target, r.Output2Id), ReservationOps.Produce(target, r.Output2Amount, tick));
+            if (r.Output3Amount > 0) res.Add(ReservationOps.Key(target, r.Output3Id), ReservationOps.Produce(target, r.Output3Amount, tick));
         }
     }
 
-    /// <summary>Farm ProductionRecipes; inputs pull from Capital (RO), outputs land in FarmLedger via owned producer queue.</summary>
+    /// <summary>Farm ProductionRecipes; inputs may pull from Capital (Consume against Capital key) or self (Consume against farm key). Outputs are Produce against own FarmLedger.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct FarmProductionSystem : ISystem
     {
-        NativeQueue<BankTransfer> _queue;
-
         public void OnCreate(ref SystemState state)
         {
             var q = new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<FarmTag, FarmLedger, ProductionRecipe>()
                 .Build(ref state);
             state.RequireForUpdate(q);
-            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
-                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
-            _queue = bus.AllocateProducerQueue();
+            state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -113,20 +112,25 @@ namespace RareIcon
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
-            float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
+            float now  = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
+            uint  tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
             Entity capital = SystemAPI.TryGetSingletonEntity<CapitalTag>(out var c) ? c : Entity.Null;
+
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep    = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
 
             var handle = new FarmProductionJob
             {
                 Now           = now,
+                Tick          = tick,
                 Capital       = capital,
                 CapitalLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true),
                 TenderLookup  = SystemAPI.GetComponentLookup<TenderMultiplier>(true),
-                Queue         = _queue.AsParallelWriter(),
-            }.ScheduleParallel(state.Dependency);
+                Reservations  = db.Reservations.AsParallelWriter(),
+            }.ScheduleParallel(dep);
 
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
-            state.Dependency = handle;
+            db.PipelineHandle = handle;
+            state.Dependency  = handle;
         }
     }
 
@@ -135,12 +139,13 @@ namespace RareIcon
     public partial struct FarmProductionJob : IJobEntity
     {
         public float  Now;
+        public uint   Tick;
         public Entity Capital;
 
         [ReadOnly] public BufferLookup<CapitalLedger>       CapitalLookup;
         [ReadOnly] public ComponentLookup<TenderMultiplier> TenderLookup;
 
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
         void Execute(Entity entity, in DynamicBuffer<FarmLedger> typedStorage, ref DynamicBuffer<ProductionRecipe> recipes)
         {
@@ -153,7 +158,7 @@ namespace RareIcon
                 if (r.CycleEndsAt > 0f)
                 {
                     if (Now < r.CycleEndsAt) continue;
-                    EmitOutputs(ref Queue, entity, r);
+                    EmitOutputs(ref Reservations, entity, r, Tick);
                     r.CycleEndsAt = 0f;
                     recipes[i] = r;
                     continue;
@@ -174,7 +179,7 @@ namespace RareIcon
                 }
 
                 if (!HasInputs(inputStore, r)) continue;
-                EnqueueConsume(ref Queue, inputTarget, r);
+                EnqueueConsume(ref Reservations, inputTarget, r, Tick);
 
                 float duration = r.CycleDuration * (1f - 0.5f * math.saturate(tender));
                 r.CycleEndsAt = Now + math.max(0.1f, duration);
@@ -190,36 +195,32 @@ namespace RareIcon
             return true;
         }
 
-        static void EnqueueConsume(ref NativeQueue<BankTransfer>.ParallelWriter q, Entity target, in ProductionRecipe r)
+        static void EnqueueConsume(ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter res, Entity target, in ProductionRecipe r, uint tick)
         {
-            if (r.Input1Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input1Id, Delta = -r.Input1Amount });
-            if (r.Input2Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input2Id, Delta = -r.Input2Amount });
-            if (r.Input3Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input3Id, Delta = -r.Input3Amount });
+            if (r.Input1Amount > 0) res.Add(ReservationOps.Key(target, r.Input1Id), ReservationOps.Consume(target, r.Input1Amount, tick));
+            if (r.Input2Amount > 0) res.Add(ReservationOps.Key(target, r.Input2Id), ReservationOps.Consume(target, r.Input2Amount, tick));
+            if (r.Input3Amount > 0) res.Add(ReservationOps.Key(target, r.Input3Id), ReservationOps.Consume(target, r.Input3Amount, tick));
         }
 
-        static void EmitOutputs(ref NativeQueue<BankTransfer>.ParallelWriter q, Entity target, in ProductionRecipe r)
+        static void EmitOutputs(ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter res, Entity target, in ProductionRecipe r, uint tick)
         {
-            if (r.Output1Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output1Id, Delta =  r.Output1Amount });
-            if (r.Output2Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output2Id, Delta =  r.Output2Amount });
-            if (r.Output3Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output3Id, Delta =  r.Output3Amount });
+            if (r.Output1Amount > 0) res.Add(ReservationOps.Key(target, r.Output1Id), ReservationOps.Produce(target, r.Output1Amount, tick));
+            if (r.Output2Amount > 0) res.Add(ReservationOps.Key(target, r.Output2Id), ReservationOps.Produce(target, r.Output2Amount, tick));
+            if (r.Output3Amount > 0) res.Add(ReservationOps.Key(target, r.Output3Id), ReservationOps.Produce(target, r.Output3Amount, tick));
         }
     }
 
-    /// <summary>Barracks ProductionRecipes (arrow craft); inputs from Capital (RO), outputs to BarracksLedger via owned producer queue.</summary>
+    /// <summary>Barracks ProductionRecipes (arrow craft); inputs from Capital or self, outputs to own BarracksLedger.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct BarracksProductionRecipeSystem : ISystem
     {
-        NativeQueue<BankTransfer> _queue;
-
         public void OnCreate(ref SystemState state)
         {
             var q = new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<BarracksTag, BarracksLedger, ProductionRecipe>()
                 .Build(ref state);
             state.RequireForUpdate(q);
-            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
-                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
-            _queue = bus.AllocateProducerQueue();
+            state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -227,19 +228,24 @@ namespace RareIcon
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
-            float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
+            float now  = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
+            uint  tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
             Entity capital = SystemAPI.TryGetSingletonEntity<CapitalTag>(out var c) ? c : Entity.Null;
+
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep    = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
 
             var handle = new BarracksProductionRecipeJob
             {
                 Now           = now,
+                Tick          = tick,
                 Capital       = capital,
                 CapitalLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true),
-                Queue         = _queue.AsParallelWriter(),
-            }.ScheduleParallel(state.Dependency);
+                Reservations  = db.Reservations.AsParallelWriter(),
+            }.ScheduleParallel(dep);
 
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
-            state.Dependency = handle;
+            db.PipelineHandle = handle;
+            state.Dependency  = handle;
         }
     }
 
@@ -248,11 +254,12 @@ namespace RareIcon
     public partial struct BarracksProductionRecipeJob : IJobEntity
     {
         public float  Now;
+        public uint   Tick;
         public Entity Capital;
 
         [ReadOnly] public BufferLookup<CapitalLedger> CapitalLookup;
 
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
         void Execute(Entity entity, in DynamicBuffer<BarracksLedger> typedStorage, ref DynamicBuffer<ProductionRecipe> recipes)
         {
@@ -263,7 +270,7 @@ namespace RareIcon
                 if (r.CycleEndsAt > 0f)
                 {
                     if (Now < r.CycleEndsAt) continue;
-                    EmitOutputs(ref Queue, entity, r);
+                    EmitOutputs(ref Reservations, entity, r, Tick);
                     r.CycleEndsAt = 0f;
                     recipes[i] = r;
                     continue;
@@ -284,7 +291,7 @@ namespace RareIcon
                 }
 
                 if (!HasInputs(inputStore, r)) continue;
-                EnqueueConsume(ref Queue, inputTarget, r);
+                EnqueueConsume(ref Reservations, inputTarget, r, Tick);
                 r.CycleEndsAt = Now + math.max(0.1f, r.CycleDuration);
                 recipes[i] = r;
             }
@@ -298,18 +305,18 @@ namespace RareIcon
             return true;
         }
 
-        static void EnqueueConsume(ref NativeQueue<BankTransfer>.ParallelWriter q, Entity target, in ProductionRecipe r)
+        static void EnqueueConsume(ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter res, Entity target, in ProductionRecipe r, uint tick)
         {
-            if (r.Input1Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input1Id, Delta = -r.Input1Amount });
-            if (r.Input2Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input2Id, Delta = -r.Input2Amount });
-            if (r.Input3Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Input3Id, Delta = -r.Input3Amount });
+            if (r.Input1Amount > 0) res.Add(ReservationOps.Key(target, r.Input1Id), ReservationOps.Consume(target, r.Input1Amount, tick));
+            if (r.Input2Amount > 0) res.Add(ReservationOps.Key(target, r.Input2Id), ReservationOps.Consume(target, r.Input2Amount, tick));
+            if (r.Input3Amount > 0) res.Add(ReservationOps.Key(target, r.Input3Id), ReservationOps.Consume(target, r.Input3Amount, tick));
         }
 
-        static void EmitOutputs(ref NativeQueue<BankTransfer>.ParallelWriter q, Entity target, in ProductionRecipe r)
+        static void EmitOutputs(ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter res, Entity target, in ProductionRecipe r, uint tick)
         {
-            if (r.Output1Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output1Id, Delta =  r.Output1Amount });
-            if (r.Output2Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output2Id, Delta =  r.Output2Amount });
-            if (r.Output3Amount > 0) q.Enqueue(new BankTransfer { Target = target, ItemId = r.Output3Id, Delta =  r.Output3Amount });
+            if (r.Output1Amount > 0) res.Add(ReservationOps.Key(target, r.Output1Id), ReservationOps.Produce(target, r.Output1Amount, tick));
+            if (r.Output2Amount > 0) res.Add(ReservationOps.Key(target, r.Output2Id), ReservationOps.Produce(target, r.Output2Amount, tick));
+            if (r.Output3Amount > 0) res.Add(ReservationOps.Key(target, r.Output3Id), ReservationOps.Produce(target, r.Output3Amount, tick));
         }
     }
 }

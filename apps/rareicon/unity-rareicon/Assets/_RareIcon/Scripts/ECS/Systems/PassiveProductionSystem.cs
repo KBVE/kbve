@@ -1,20 +1,17 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 
 namespace RareIcon
 {
-    /// <summary>Ticks PassiveProduction entities — free per-cycle output to Capital. Owns a dedicated producer queue.</summary>
+    /// <summary>Ticks PassiveProduction entities — free per-cycle Produce reservation against Capital.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup), OrderFirst = true)]
     public partial struct PassiveProductionSystem : ISystem
     {
-        NativeQueue<BankTransfer> _queue;
-
         public void OnCreate(ref SystemState state)
         {
-            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
-                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
-            _queue = bus.AllocateProducerQueue();
+            state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -24,17 +21,22 @@ namespace RareIcon
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
 
-            float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
+            float now  = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
+            uint  tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep    = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
 
             var handle = new PassiveTickJob
             {
-                Capital = capital,
-                Queue   = _queue.AsParallelWriter(),
-                Now     = now,
-            }.ScheduleParallel(state.Dependency);
+                Capital      = capital,
+                Reservations = db.Reservations.AsParallelWriter(),
+                Now          = now,
+                Tick         = tick,
+            }.ScheduleParallel(dep);
 
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
-            state.Dependency = handle;
+            db.PipelineHandle = handle;
+            state.Dependency  = handle;
         }
     }
 
@@ -42,8 +44,9 @@ namespace RareIcon
     public partial struct PassiveTickJob : IJobEntity
     {
         public Entity Capital;
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
-        public float Now;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
+        public float  Now;
+        public uint   Tick;
 
         public void Execute(ref PassiveProduction prod)
         {
@@ -54,7 +57,10 @@ namespace RareIcon
             }
             if (Now < prod.CycleEndsAt) return;
 
-            Queue.Enqueue(new BankTransfer { Target = Capital, ItemId = prod.OutputId, Delta = prod.OutputAmount });
+            Reservations.Add(
+                ReservationOps.Key(Capital, prod.OutputId),
+                ReservationOps.Produce(Capital, prod.OutputAmount, Tick));
+
             prod.CycleEndsAt = prod.CycleEndsAt + prod.CycleDuration;
         }
     }

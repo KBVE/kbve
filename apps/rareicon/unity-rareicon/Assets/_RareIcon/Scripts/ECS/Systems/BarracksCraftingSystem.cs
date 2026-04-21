@@ -2,7 +2,6 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using Unity.Mathematics;
 
 namespace RareIcon
 {
@@ -10,13 +9,9 @@ namespace RareIcon
     [UpdateAfter(typeof(BarracksProductionSystem))]
     public partial struct BarracksCraftingSystem : ISystem
     {
-        NativeQueue<BankTransfer> _queue;
-
         public void OnCreate(ref SystemState state)
         {
-            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
-                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
-            _queue = bus.AllocateProducerQueue();
+            state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -43,16 +38,22 @@ namespace RareIcon
                 return;
             }
 
+            uint tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep    = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
+
             var handle = new BarracksArrowCraftJob
             {
                 Craftsmen      = craftsmen.AsDeferredJobArray(),
                 BarracksLookup = SystemAPI.GetBufferLookup<BarracksLedger>(true),
                 BarracksLkup   = SystemAPI.GetComponentLookup<BarracksTag>(true),
-                Queue          = _queue.AsParallelWriter(),
-            }.Schedule(state.Dependency);
+                Reservations   = db.Reservations.AsParallelWriter(),
+                Tick           = tick,
+            }.Schedule(dep);
 
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
-            state.Dependency = craftsmen.Dispose(handle);
+            db.PipelineHandle = handle;
+            state.Dependency  = craftsmen.Dispose(handle);
         }
 
         struct CraftsmanStation { public Entity Barracks; }
@@ -60,10 +61,11 @@ namespace RareIcon
         [BurstCompile]
         partial struct BarracksArrowCraftJob : IJob
         {
-            [ReadOnly] public NativeArray<CraftsmanStation>     Craftsmen;
-            [ReadOnly] public ComponentLookup<BarracksTag>      BarracksLkup;
-            [ReadOnly] public BufferLookup<BarracksLedger>      BarracksLookup;
-            public NativeQueue<BankTransfer>.ParallelWriter     Queue;
+            [ReadOnly] public NativeArray<CraftsmanStation> Craftsmen;
+            [ReadOnly] public ComponentLookup<BarracksTag>  BarracksLkup;
+            [ReadOnly] public BufferLookup<BarracksLedger>  BarracksLookup;
+            public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
+            public uint Tick;
 
             public void Execute()
             {
@@ -81,9 +83,9 @@ namespace RareIcon
                     if (BankLedgerOps.CountOf(inv, (ushort)ItemId.WoodLog) < WoodLogCost) continue;
                     if (BankLedgerOps.CountOf(inv, (ushort)ItemId.CactiNeedle) < NeedleCost) continue;
 
-                    Queue.Enqueue(new BankTransfer { Target = barracks, ItemId = (ushort)ItemId.WoodLog,     Delta = -WoodLogCost });
-                    Queue.Enqueue(new BankTransfer { Target = barracks, ItemId = (ushort)ItemId.CactiNeedle, Delta = -NeedleCost });
-                    Queue.Enqueue(new BankTransfer { Target = barracks, ItemId = (ushort)ItemId.Arrow,       Delta =  ArrowsProduced });
+                    Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.WoodLog),     ReservationOps.Consume(barracks, WoodLogCost, Tick));
+                    Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.CactiNeedle), ReservationOps.Consume(barracks, NeedleCost,  Tick));
+                    Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.Arrow),       ReservationOps.Produce(barracks, ArrowsProduced, Tick));
                 }
             }
         }

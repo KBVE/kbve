@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Rendering;
 
@@ -140,18 +141,14 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Per-animal turn-cadence production: Chicken+Cow every 2 turns (Egg / Milk), Sheep every 10 (Wool). Each cycle consumes 1 Carrot from the host farm's InventorySlot and emits 1 output; out of carrots → LastProducedTurn stays put so the animal catches up when feed returns. Burst ISystem + single-worker Schedule — multiple animals on the same farm serialize on the shared farm buffer, no racing.</summary>
+    /// <summary>Per-animal turn-cadence production: Chicken+Cow every 2 turns (Egg / Milk), Sheep every 10 (Wool). Each cycle submits Consume(Carrot) + Produce(output) reservations against the host farm.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(FarmDepositSystem))]
     public partial struct FarmLivestockProductionSystem : ISystem
     {
-        NativeQueue<BankTransfer> _queue;
-
         public void OnCreate(ref SystemState state)
         {
-            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
-                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
-            _queue = bus.AllocateProducerQueue();
+            state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -160,17 +157,22 @@ namespace RareIcon
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
             uint currentTurn = SystemAPI.GetSingleton<WorldClock>().TurnIndex;
+            uint tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep    = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
 
             var handle = new FarmLivestockProductionJob
             {
-                CurrentTurn = currentTurn,
-                UnitLookup  = SystemAPI.GetComponentLookup<Unit>(true),
-                FarmLookup  = SystemAPI.GetBufferLookup<FarmLedger>(true),
-                Queue       = _queue.AsParallelWriter(),
-            }.ScheduleParallel(state.Dependency);
+                CurrentTurn  = currentTurn,
+                Tick         = tick,
+                UnitLookup   = SystemAPI.GetComponentLookup<Unit>(true),
+                FarmLookup   = SystemAPI.GetBufferLookup<FarmLedger>(true),
+                Reservations = db.Reservations.AsParallelWriter(),
+            }.ScheduleParallel(dep);
 
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
-            state.Dependency = handle;
+            db.PipelineHandle = handle;
+            state.Dependency  = handle;
         }
     }
 
@@ -178,11 +180,12 @@ namespace RareIcon
     public partial struct FarmLivestockProductionJob : IJobEntity
     {
         public uint CurrentTurn;
+        public uint Tick;
 
         [ReadOnly] public ComponentLookup<Unit>    UnitLookup;
         [ReadOnly] public BufferLookup<FarmLedger> FarmLookup;
 
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
         void Execute(Entity entity,
                      in ShelteredInside shelter,
@@ -199,8 +202,8 @@ namespace RareIcon
 
             if (BankLedgerOps.CountOf(storage, (ushort)ItemId.Carrot) < 1) return;
 
-            Queue.Enqueue(new BankTransfer { Target = host, ItemId = (ushort)ItemId.Carrot, Delta = -1 });
-            Queue.Enqueue(new BankTransfer { Target = host, ItemId = outputId,              Delta =  1 });
+            Reservations.Add(ReservationOps.Key(host, (ushort)ItemId.Carrot), ReservationOps.Consume(host, 1, Tick));
+            Reservations.Add(ReservationOps.Key(host, outputId),              ReservationOps.Produce(host, 1, Tick));
             prod.LastProducedTurn += cadence;
         }
 

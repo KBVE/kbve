@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
@@ -10,18 +11,14 @@ namespace RareIcon
         public const ushort QuiverMax = 20;
     }
 
-    /// <summary>Player-faction RangedAttack units on a Capital- or Barracks-owned hex pull Arrows from that bank's ledger into their PackSlot (up to QuiverMax). RO on both ledger types; enqueues a -Arrow BankTransfer against the source bank and mutates the unit's PackSlot directly (per-entity safe).</summary>
+    /// <summary>Player-faction RangedAttack units on a Capital- or Barracks-owned hex submit a Refill reservation against that bank's ledger up to QuiverMax; PackApplySystem credits the pack once resolver grants.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireDepositSystem))]
     public partial struct ArcherRefillSystem : ISystem
     {
-        NativeQueue<BankTransfer> _queue;
-
         public void OnCreate(ref SystemState state)
         {
-            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
-                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
-            _queue = bus.AllocateProducerQueue();
+            state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -30,6 +27,11 @@ namespace RareIcon
         {
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
 
+            uint tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep    = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
+
             var handle = new ArcherRefillJob
             {
                 HexLookup         = hexLookup.Lookup,
@@ -37,11 +39,12 @@ namespace RareIcon
                 BuildingLookup    = SystemAPI.GetComponentLookup<Building>(true),
                 CapitalLookup     = SystemAPI.GetBufferLookup<CapitalLedger>(true),
                 BarracksLookup    = SystemAPI.GetBufferLookup<BarracksLedger>(true),
-                Queue             = _queue.AsParallelWriter(),
-            }.Schedule(state.Dependency);
+                Reservations      = db.Reservations.AsParallelWriter(),
+                Tick              = tick,
+            }.Schedule(dep);
 
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
-            state.Dependency = handle;
+            db.PipelineHandle = handle;
+            state.Dependency  = handle;
         }
     }
 
@@ -54,9 +57,10 @@ namespace RareIcon
         [ReadOnly] public BufferLookup<CapitalLedger>  CapitalLookup;
         [ReadOnly] public BufferLookup<BarracksLedger> BarracksLookup;
 
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
+        public uint Tick;
 
-        void Execute(in RangedAttack attack, in Faction faction, in UnitMovement movement, ref DynamicBuffer<PackSlot> pack)
+        void Execute(Entity entity, in RangedAttack attack, in Faction faction, in UnitMovement movement, in DynamicBuffer<PackSlot> pack)
         {
             if (faction.Value != FactionType.Player) return;
             byte pt = attack.ProjectileType;
@@ -86,8 +90,7 @@ namespace RareIcon
             int transfer = math.min(room, available);
             if (transfer <= 0) return;
 
-            Queue.Enqueue(new BankTransfer { Target = building, ItemId = (ushort)ItemId.Arrow, Delta = -transfer });
-            AddArrowsPack(ref pack, (ushort)transfer);
+            Reservations.Add(ReservationOps.Key(building, (ushort)ItemId.Arrow), ReservationOps.Refill(entity, transfer, Tick));
         }
 
         static int CountOfPack(in DynamicBuffer<PackSlot> buf, ushort itemId)
@@ -96,19 +99,6 @@ namespace RareIcon
             for (int i = 0; i < buf.Length; i++)
                 if (buf[i].ItemId == itemId) total += buf[i].Count;
             return total;
-        }
-
-        static void AddArrowsPack(ref DynamicBuffer<PackSlot> buf, ushort amount)
-        {
-            for (int i = 0; i < buf.Length; i++)
-            {
-                if (buf[i].ItemId != (ushort)ItemId.Arrow) continue;
-                var slot = buf[i];
-                slot.Count = (ushort)math.min(slot.Count + amount, ushort.MaxValue);
-                buf[i] = slot;
-                return;
-            }
-            buf.Add(new PackSlot { ItemId = (ushort)ItemId.Arrow, Count = amount });
         }
     }
 }

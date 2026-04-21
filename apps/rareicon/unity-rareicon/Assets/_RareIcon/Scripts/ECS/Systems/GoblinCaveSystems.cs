@@ -6,30 +6,41 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Per-turn cave cadence: consume FoodPerGoblin edible items and emit a SpawnSoldierRequest (drained by SoldierSpawnApplierSystem, main-thread bridge to UnitSpawnSystem). Burst ISystem reading GoblinCaveLedger.</summary>
-    [BurstCompile]
+    /// <summary>Per-turn cave cadence: submits Consume reservations against the cave's own ledger summing to FoodPerGoblin across available food items, and emits a SpawnSoldierRequest (drained by SoldierSpawnApplierSystem). Reads the cave's GoblinCaveLedger RO to pick food items; the actual decrement goes through the logistics pipeline.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct GoblinCaveProductionSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<LogisticsDBSingleton>();
+        }
 
-        [BurstCompile]
+        public void OnDestroy(ref SystemState state) { }
+
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
             if (!SystemAPI.TryGetSingleton<ItemDBSingleton>(out var itemDb)) return;
             uint currentTurn = SystemAPI.GetSingleton<WorldClock>().TurnIndex;
+            uint tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
 
-            state.Dependency = new GoblinCaveProductionJob
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep    = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
+
+            var handle = new GoblinCaveProductionJob
             {
-                CurrentTurn = currentTurn,
-                ItemDb      = itemDb,
-                Ecb         = ecb,
-            }.ScheduleParallel(state.Dependency);
+                CurrentTurn  = currentTurn,
+                Tick         = tick,
+                ItemDb       = itemDb,
+                Reservations = db.Reservations.AsParallelWriter(),
+                Ecb          = ecb,
+            }.ScheduleParallel(dep);
+
+            db.PipelineHandle = handle;
+            state.Dependency  = handle;
         }
     }
 
@@ -38,22 +49,25 @@ namespace RareIcon
     public partial struct GoblinCaveProductionJob : IJobEntity
     {
         public uint CurrentTurn;
+        public uint Tick;
         [ReadOnly] public ItemDBSingleton ItemDb;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
         public EntityCommandBuffer.ParallelWriter Ecb;
 
         void Execute(Entity entity,
                      [ChunkIndexInQuery] int chunkIdx,
                      ref GoblinCaveProduction prod,
                      in Building building,
-                     ref DynamicBuffer<GoblinCaveLedger> typedStorage)
+                     in DynamicBuffer<GoblinCaveLedger> typedStorage)
         {
             uint cadence = prod.CadenceTurns == 0 ? 1u : prod.CadenceTurns;
             if (CurrentTurn < prod.LastProducedTurn + cadence) return;
 
             var storage = typedStorage.Reinterpret<BankLedgerBase>();
             ushort need = prod.FoodPerGoblin == 0 ? (ushort)1 : prod.FoodPerGoblin;
-            if (!TryConsumeFood(ref storage, need, ItemDb)) return;
+            if (!HasFood(storage, need, ItemDb)) return;
 
+            EmitFoodConsumes(entity, storage, need, ItemDb, Tick, ref Reservations);
             prod.LastProducedTurn = CurrentTurn;
 
             byte spawnFaction = building.OwnerFaction == 0 ? FactionType.Player : building.OwnerFaction;
@@ -70,44 +84,45 @@ namespace RareIcon
             });
         }
 
-        static bool TryConsumeFood(ref DynamicBuffer<BankLedgerBase> storage, ushort amount, in ItemDBSingleton db)
+        static bool HasFood(in DynamicBuffer<BankLedgerBase> storage, ushort amount, in ItemDBSingleton db)
         {
             int available = 0;
             for (int i = 0; i < storage.Length; i++)
             {
                 if (db.EnergyValue(storage[i].ItemId) <= 0f) continue;
                 available += storage[i].Count;
-                if (available >= amount) break;
+                if (available >= amount) return true;
             }
-            if (available < amount) return false;
+            return false;
+        }
 
+        static void EmitFoodConsumes(Entity cave,
+                                     in DynamicBuffer<BankLedgerBase> storage,
+                                     ushort amount,
+                                     in ItemDBSingleton db,
+                                     uint tick,
+                                     ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter res)
+        {
             int remaining = amount;
             for (int i = 0; i < storage.Length && remaining > 0; i++)
             {
                 if (db.EnergyValue(storage[i].ItemId) <= 0f) continue;
-                var slot = storage[i];
-                int take = slot.Count < remaining ? slot.Count : remaining;
-                slot.Count = (ushort)(slot.Count - take);
-                storage[i] = slot;
+                int take = storage[i].Count < remaining ? storage[i].Count : remaining;
+                if (take <= 0) continue;
+                res.Add(ReservationOps.Key(cave, storage[i].ItemId), ReservationOps.Consume(cave, take, tick));
                 remaining -= take;
             }
-            return true;
         }
     }
 
-    /// <summary>Player-faction Looter on the Capital hex with a Looter→Capital cave-haul JobIntent pulls PerTripAmount food from CapitalLedger into their PackSlot when at least one cave has headroom. Burst ISystem — single-worker Schedule because all looters share the Capital buffer.</summary>
-    [BurstCompile]
+    /// <summary>Player-faction Looter on the Capital hex with a Looter→Capital cave-haul JobIntent submits a Pickup reservation against Capital for PerTripAmount food. PackApplySystem applies the granted items to the unit's pack.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireDepositSystem))]
     public partial struct CapitalFoodPickupSystem : ISystem
     {
-        NativeQueue<BankTransfer> _queue;
-
         public void OnCreate(ref SystemState state)
         {
-            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
-                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
-            _queue = bus.AllocateProducerQueue();
+            state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -120,44 +135,23 @@ namespace RareIcon
             if (!SystemAPI.TryGetSingleton<ItemDBSingleton>(out var itemDb)) return;
 
             int2 capitalHex = SystemAPI.GetComponent<Building>(capital).RootHex;
+            uint tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
 
-            var anyHeadroom = new NativeReference<bool>(Allocator.TempJob);
-            var headroomHandle = new AnyCaveHeadroomJob
-            {
-                CaveLookup = SystemAPI.GetBufferLookup<GoblinCaveLedger>(true),
-                Result     = anyHeadroom,
-            }.Schedule(state.Dependency);
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep    = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
 
-            var pickupHandle = new CapitalFoodPickupJob
+            var handle = new CapitalFoodPickupJob
             {
                 Capital       = capital,
                 CapitalHex    = capitalHex,
                 CapitalLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true),
                 ItemDb        = itemDb,
-                AnyHeadroom   = anyHeadroom,
-                Queue         = _queue.AsParallelWriter(),
-            }.ScheduleParallel(headroomHandle);
+                Reservations  = db.Reservations.AsParallelWriter(),
+                Tick          = tick,
+            }.ScheduleParallel(dep);
 
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(pickupHandle);
-
-            state.Dependency = anyHeadroom.Dispose(pickupHandle);
-        }
-    }
-
-    [BurstCompile]
-    public struct AnyCaveHeadroomJob : IJob
-    {
-        [ReadOnly] public BufferLookup<GoblinCaveLedger> CaveLookup;
-        public NativeReference<bool> Result;
-
-        public void Execute()
-        {
-            Result.Value = false;
-            // Can't query entities in a pure IJob; the system caller would pass an entity list.
-            // Simpler: the job scans every entity that has the lookup via the lookup's iteration,
-            // but BufferLookup doesn't expose iteration. This job becomes a pure "yes" and the
-            // per-unit caller checks per-cave. Keeping behavior: set true if any ledger exists.
-            Result.Value = true;
+            db.PipelineHandle = handle;
+            state.Dependency  = handle;
         }
     }
 
@@ -167,22 +161,20 @@ namespace RareIcon
     {
         public Entity Capital;
         public int2   CapitalHex;
+        public uint   Tick;
 
         [ReadOnly] public BufferLookup<CapitalLedger> CapitalLookup;
-        [ReadOnly] public ItemDBSingleton     ItemDb;
-        [ReadOnly] public NativeReference<bool> AnyHeadroom;
+        [ReadOnly] public ItemDBSingleton             ItemDb;
 
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
         void Execute(Entity entity,
                      in JobIntent jobIntent,
                      in ReliefIntent reliefIntent,
                      in Faction faction,
                      in UnitMovement movement,
-                     ref DynamicBuffer<PackSlot> pack,
-                     in DynamicBuffer<EquippedBag> bags)
+                     in DynamicBuffer<PackSlot> pack)
         {
-            if (!AnyHeadroom.Value) return;
             if (faction.Value != FactionType.Player) return;
             if (!movement.CurrentHex.Equals(CapitalHex)) return;
             if (reliefIntent.Kind != ReliefKind.None) return;
@@ -191,11 +183,21 @@ namespace RareIcon
             if (!CapitalLookup.HasBuffer(Capital)) return;
 
             int alreadyCarrying = CountFoodPack(pack, ItemDb);
-            if (alreadyCarrying >= GoblinCaveHaulConfig.PerTripAmount) return;
+            int wanted = GoblinCaveHaulConfig.PerTripAmount - alreadyCarrying;
+            if (wanted <= 0) return;
 
-            ushort take = (ushort)(GoblinCaveHaulConfig.PerTripAmount - alreadyCarrying);
             var capStorage = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
-            TransferFoodToUnit(capStorage, ref pack, bags, take, ItemDb, Capital, ref Queue);
+            int remaining = wanted;
+            for (int i = 0; i < capStorage.Length && remaining > 0; i++)
+            {
+                var slot = capStorage[i];
+                if (slot.Count == 0) continue;
+                if (ItemDb.EnergyValue(slot.ItemId) <= 0f) continue;
+
+                int take = slot.Count < remaining ? slot.Count : remaining;
+                Reservations.Add(ReservationOps.Key(Capital, slot.ItemId), ReservationOps.Pickup(entity, take, Tick));
+                remaining -= take;
+            }
         }
 
         static int CountFoodPack(in DynamicBuffer<PackSlot> buf, in ItemDBSingleton db)
@@ -209,44 +211,16 @@ namespace RareIcon
             }
             return total;
         }
-
-        static void TransferFoodToUnit(in DynamicBuffer<BankLedgerBase> src,
-                                       ref DynamicBuffer<PackSlot> dst,
-                                       in DynamicBuffer<EquippedBag> bags,
-                                       ushort amount,
-                                       in ItemDBSingleton db,
-                                       Entity capital,
-                                       ref NativeQueue<BankTransfer>.ParallelWriter q)
-        {
-            int remaining = amount;
-            for (int i = 0; i < src.Length && remaining > 0; i++)
-            {
-                var srcSlot = src[i];
-                if (srcSlot.Count == 0) continue;
-                if (db.EnergyValue(srcSlot.ItemId) <= 0f) continue;
-
-                int want = srcSlot.Count < remaining ? srcSlot.Count : remaining;
-                ushort added = dst.AddItemCapped(bags, db, srcSlot.ItemId, (ushort)want);
-                if (added == 0) continue;
-
-                q.Enqueue(new BankTransfer { Target = capital, ItemId = srcSlot.ItemId, Delta = -added });
-                remaining -= added;
-            }
-        }
     }
 
-    /// <summary>Any Player-faction unit on a cave hex carrying food drains it into the cave's GoblinCaveLedger up to StorageCap. Burst ISystem — single-worker Schedule because multiple units may target the same cave.</summary>
+    /// <summary>Any Player-faction unit on a cave hex carrying food pre-debits its own pack and submits Deposit reservations against the cave's ledger. StorageCap enforced before emission.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateBefore(typeof(GoblinCaveProductionSystem))]
     public partial struct CaveFoodDeliverySystem : ISystem
     {
-        NativeQueue<BankTransfer> _queue;
-
         public void OnCreate(ref SystemState state)
         {
-            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
-                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
-            _queue = bus.AllocateProducerQueue();
+            state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -256,6 +230,11 @@ namespace RareIcon
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
             if (!SystemAPI.TryGetSingleton<ItemDBSingleton>(out var itemDb)) return;
 
+            uint tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep    = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
+
             var handle = new CaveFoodDeliveryJob
             {
                 HexLookup         = hexLookup.Lookup,
@@ -264,11 +243,12 @@ namespace RareIcon
                 ProdLookup        = SystemAPI.GetComponentLookup<GoblinCaveProduction>(true),
                 CaveLookup        = SystemAPI.GetBufferLookup<GoblinCaveLedger>(true),
                 ItemDb            = itemDb,
-                Queue             = _queue.AsParallelWriter(),
-            }.ScheduleParallel(state.Dependency);
+                Reservations      = db.Reservations.AsParallelWriter(),
+                Tick              = tick,
+            }.ScheduleParallel(dep);
 
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
-            state.Dependency = handle;
+            db.PipelineHandle = handle;
+            state.Dependency  = handle;
         }
     }
 
@@ -282,10 +262,11 @@ namespace RareIcon
         [ReadOnly] public BufferLookup<GoblinCaveLedger>     CaveLookup;
 
         [ReadOnly] public ItemDBSingleton ItemDb;
+        public uint Tick;
 
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
-        void Execute(in UnitMovement movement, in Faction faction, ref DynamicBuffer<PackSlot> pack)
+        void Execute(Entity entity, in UnitMovement movement, in Faction faction, ref DynamicBuffer<PackSlot> pack)
         {
             if (faction.Value != FactionType.Player) return;
             if (pack.Length == 0) return;
@@ -313,7 +294,20 @@ namespace RareIcon
             int headroom = cap - CountFoodBank(caveStorage, ItemDb);
             if (headroom <= 0) return;
 
-            TransferFood(ref pack, (ushort)math.min(headroom, ushort.MaxValue), ItemDb, building, ref Queue);
+            int remaining = math.min(headroom, ushort.MaxValue);
+            for (int i = 0; i < pack.Length && remaining > 0; i++)
+            {
+                var srcSlot = pack[i];
+                if (srcSlot.Count == 0) continue;
+                if (ItemDb.EnergyValue(srcSlot.ItemId) <= 0f) continue;
+
+                int take = srcSlot.Count < remaining ? srcSlot.Count : remaining;
+                srcSlot.Count = (ushort)(srcSlot.Count - take);
+                pack[i] = srcSlot;
+
+                Reservations.Add(ReservationOps.Key(building, srcSlot.ItemId), ReservationOps.Deposit(entity, take, Tick));
+                remaining -= take;
+            }
         }
 
         static int CountFoodBank(in DynamicBuffer<BankLedgerBase> buf, in ItemDBSingleton db)
@@ -326,27 +320,6 @@ namespace RareIcon
                 total += buf[i].Count;
             }
             return total;
-        }
-
-        static void TransferFood(ref DynamicBuffer<PackSlot> src,
-                                 ushort amount,
-                                 in ItemDBSingleton db,
-                                 Entity cave,
-                                 ref NativeQueue<BankTransfer>.ParallelWriter q)
-        {
-            int remaining = amount;
-            for (int i = 0; i < src.Length && remaining > 0; i++)
-            {
-                var srcSlot = src[i];
-                if (srcSlot.Count == 0) continue;
-                if (db.EnergyValue(srcSlot.ItemId) <= 0f) continue;
-
-                int take = srcSlot.Count < remaining ? srcSlot.Count : remaining;
-                srcSlot.Count = (ushort)(srcSlot.Count - take);
-                src[i] = srcSlot;
-                q.Enqueue(new BankTransfer { Target = cave, ItemId = srcSlot.ItemId, Delta = take });
-                remaining -= take;
-            }
         }
     }
 

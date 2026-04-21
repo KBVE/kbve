@@ -6,17 +6,13 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Drains each source building's above-floor SurplusExport items into Capital. Reads source bank ledger RO; enqueues -source and +Capital BankTransfers per above-floor item. Three parallel jobs (Farm/Furnace/Barracks) — distinct ledger types so Unity parallelizes them freely.</summary>
+    /// <summary>Drains each source building's above-floor SurplusExport items into Capital via Surplus reservations keyed on the source bank. Three serialized jobs (Farm/Furnace/Barracks) sharing the same Reservations writer.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct BuildingSurplusTransferSystem : ISystem
     {
-        NativeQueue<BankTransfer> _queue;
-
         public void OnCreate(ref SystemState state)
         {
-            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
-                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
-            _queue = bus.AllocateProducerQueue();
+            state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -25,15 +21,18 @@ namespace RareIcon
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
 
-            var queue = _queue.AsParallelWriter();
+            uint tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
 
-            var dep = state.Dependency;
-            dep = new FarmSurplusJob     { Capital = capital, Queue = queue }.ScheduleParallel(dep);
-            dep = new FurnaceSurplusJob  { Capital = capital, Queue = queue }.ScheduleParallel(dep);
-            dep = new BarracksSurplusJob { Capital = capital, Queue = queue }.ScheduleParallel(dep);
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var reservations = db.Reservations.AsParallelWriter();
 
-            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(dep);
-            state.Dependency = dep;
+            var dep = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
+            dep = new FarmSurplusJob     { Capital = capital, Tick = tick, Reservations = reservations }.ScheduleParallel(dep);
+            dep = new FurnaceSurplusJob  { Capital = capital, Tick = tick, Reservations = reservations }.ScheduleParallel(dep);
+            dep = new BarracksSurplusJob { Capital = capital, Tick = tick, Reservations = reservations }.ScheduleParallel(dep);
+
+            db.PipelineHandle = dep;
+            state.Dependency  = dep;
         }
     }
 
@@ -42,13 +41,13 @@ namespace RareIcon
     public partial struct FarmSurplusJob : IJobEntity
     {
         public Entity Capital;
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public uint   Tick;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
         void Execute(Entity entity, in DynamicBuffer<FarmLedger> typedStorage, in DynamicBuffer<SurplusExport> exports)
         {
             if (entity == Capital) return;
-            var storage = typedStorage.Reinterpret<BankLedgerBase>();
-            SurplusTransferShared.Run(storage, exports, Capital, entity, ref Queue);
+            SurplusTransferShared.Run(typedStorage.Reinterpret<BankLedgerBase>(), exports, Capital, entity, Tick, ref Reservations);
         }
     }
 
@@ -57,13 +56,13 @@ namespace RareIcon
     public partial struct FurnaceSurplusJob : IJobEntity
     {
         public Entity Capital;
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public uint   Tick;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
         void Execute(Entity entity, in DynamicBuffer<FurnaceLedger> typedStorage, in DynamicBuffer<SurplusExport> exports)
         {
             if (entity == Capital) return;
-            var storage = typedStorage.Reinterpret<BankLedgerBase>();
-            SurplusTransferShared.Run(storage, exports, Capital, entity, ref Queue);
+            SurplusTransferShared.Run(typedStorage.Reinterpret<BankLedgerBase>(), exports, Capital, entity, Tick, ref Reservations);
         }
     }
 
@@ -72,13 +71,13 @@ namespace RareIcon
     public partial struct BarracksSurplusJob : IJobEntity
     {
         public Entity Capital;
-        public NativeQueue<BankTransfer>.ParallelWriter Queue;
+        public uint   Tick;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
         void Execute(Entity entity, in DynamicBuffer<BarracksLedger> typedStorage, in DynamicBuffer<SurplusExport> exports)
         {
             if (entity == Capital) return;
-            var storage = typedStorage.Reinterpret<BankLedgerBase>();
-            SurplusTransferShared.Run(storage, exports, Capital, entity, ref Queue);
+            SurplusTransferShared.Run(typedStorage.Reinterpret<BankLedgerBase>(), exports, Capital, entity, Tick, ref Reservations);
         }
     }
 
@@ -88,7 +87,8 @@ namespace RareIcon
                                in DynamicBuffer<SurplusExport> exports,
                                Entity capital,
                                Entity source,
-                               ref NativeQueue<BankTransfer>.ParallelWriter queue)
+                               uint tick,
+                               ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter reservations)
         {
             for (int e = 0; e < exports.Length; e++)
             {
@@ -99,8 +99,7 @@ namespace RareIcon
                 if (have <= floor) continue;
 
                 int move = have - floor;
-                queue.Enqueue(new BankTransfer { Target = source,  ItemId = itemId, Delta = -move });
-                queue.Enqueue(new BankTransfer { Target = capital, ItemId = itemId, Delta =  move });
+                reservations.Add(ReservationOps.Key(source, itemId), ReservationOps.Surplus(source, capital, move, tick));
             }
         }
     }
