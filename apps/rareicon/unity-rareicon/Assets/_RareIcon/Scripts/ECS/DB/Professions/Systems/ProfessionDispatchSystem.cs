@@ -30,6 +30,7 @@ namespace RareIcon
         {
             RequireForUpdate<ProfessionOffersSingleton>();
             RequireForUpdate<CombatDBSingleton>();
+            RequireForUpdate<ItemDBSingleton>();
         }
 
         protected override void OnDestroy()
@@ -47,6 +48,7 @@ namespace RareIcon
         {
             var offersDB = SystemAPI.GetSingleton<ProfessionOffersSingleton>();
             var combatDB = SystemAPI.GetSingleton<CombatDBSingleton>();
+            var itemDB   = SystemAPI.GetSingleton<ItemDBSingleton>();
 
             bool doFullDispatch = offersDB.BuildVersion != _lastSeenBuildVersion;
             if (doFullDispatch)
@@ -248,7 +250,7 @@ namespace RareIcon
                 // variant-bit test per Looter candidate instead of
                 // re-checking inventory each time.
                 bool carryingFood = unitPackLookup.HasBuffer(entity)
-                                    && PackHasFood(unitPackLookup[entity]);
+                                    && PackHasFood(itemDB, unitPackLookup[entity]);
                 byte looterMode;
                 if (carryingFood && needyCaves.Length > 0)
                     looterMode = OfferVariant.LooterDeliver;
@@ -460,12 +462,12 @@ namespace RareIcon
             justAssignedPerKind.Dispose();
         }
 
-        static bool PackHasFood(DynamicBuffer<PackSlot> buf)
+        static bool PackHasFood(in ItemDBSingleton itemDB, DynamicBuffer<PackSlot> buf)
         {
             for (int i = 0; i < buf.Length; i++)
             {
                 if (buf[i].Count == 0) continue;
-                if (ItemDB.EnergyValue(buf[i].ItemId) > 0f) return true;
+                if (itemDB.EnergyValue(buf[i].ItemId) > 0f) return true;
             }
             return false;
         }

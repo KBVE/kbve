@@ -15,6 +15,11 @@ namespace RareIcon
         bool   _initialized;
         float  _lastBuildTime = -BuildIntervalSeconds;
 
+        protected override void OnCreate()
+        {
+            RequireForUpdate<ItemDBSingleton>();
+        }
+
         protected override void OnUpdate()
         {
             if (!_initialized) Bootstrap();
@@ -55,6 +60,7 @@ namespace RareIcon
         void Rebuild()
         {
             ref var db = ref SystemAPI.GetSingletonRW<ProfessionOffersSingleton>().ValueRW;
+            var itemDB = SystemAPI.GetSingleton<ItemDBSingleton>();
 
             db.Offers.Clear();
             db.NeedyCaves.Clear();
@@ -83,7 +89,7 @@ namespace RareIcon
             {
                 if (!caveInvLookup.HasBuffer(e)) continue;
                 ushort cap = prodRO.ValueRO.StorageCap == 0 ? (ushort)200 : prodRO.ValueRO.StorageCap;
-                int food  = CountFood(caveInvLookup[e].Reinterpret<BankLedgerBase>());
+                int food  = CountFood(itemDB, caveInvLookup[e].Reinterpret<BankLedgerBase>());
                 if (food >= cap) continue;
                 db.NeedyCaves.Add(new NeedyCave { Entity = e, Hex = buildingRO.ValueRO.RootHex });
             }
@@ -95,7 +101,7 @@ namespace RareIcon
                 for (int i = 0; i < capInv.Length; i++)
                 {
                     if (capInv[i].Count == 0) continue;
-                    if (ItemDB.EnergyValue(capInv[i].ItemId) > 0f) { db.CapitalHasFood = true; break; }
+                    if (itemDB.EnergyValue(capInv[i].ItemId) > 0f) { db.CapitalHasFood = true; break; }
                 }
             }
 
@@ -176,12 +182,12 @@ namespace RareIcon
             db.BuildVersion++;
         }
 
-        static int CountFood(DynamicBuffer<BankLedgerBase> buf)
+        static int CountFood(in ItemDBSingleton itemDB, DynamicBuffer<BankLedgerBase> buf)
         {
             int total = 0;
             for (int i = 0; i < buf.Length; i++)
             {
-                if (ItemDB.EnergyValue(buf[i].ItemId) <= 0f) continue;
+                if (itemDB.EnergyValue(buf[i].ItemId) <= 0f) continue;
                 total += buf[i].Count;
             }
             return total;
