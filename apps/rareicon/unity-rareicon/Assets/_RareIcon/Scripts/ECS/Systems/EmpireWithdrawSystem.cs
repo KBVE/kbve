@@ -1,11 +1,12 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Hungry Player unit on a Capital-claimed hex pulls one edible from storage into its inventory. Parallel Burst job — unit inventory grows directly (per-entity write), Capital subtract queues through a PendingItemTransfer for InventoryTransferApplierSystem. Because the subtract is deferred, two parallel withdraws on the last food item will both succeed locally and the applier clamps the total; practical effect is a one-tick over-serve at near-starvation, which is cheaper than dragging in the full reservation/claim path.</summary>
+    /// <summary>Hungry Player unit on a Capital-claimed hex pulls one edible from storage into its inventory. Parallel Burst job — unit inventory grows directly (per-entity write), Capital subtract queues through a PendingItemTransfer for InventoryTransferApplierSystem. Snapshot build is itself a Burst IJob so the Capital InventorySlot read participates in the job dep graph and can't race SurplusTransferJob or any other InventorySlot writer.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireDepositSystem))]
@@ -22,22 +23,19 @@ namespace RareIcon
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
             if (!SystemAPI.HasBuffer<InventorySlot>(capital)) return;
-
-            var capitalInv = SystemAPI.GetBuffer<InventorySlot>(capital);
-            var snapshot = new NativeList<FoodSlotSnapshot>(capitalInv.Length, Allocator.TempJob);
-            for (int i = 0; i < capitalInv.Length; i++)
-            {
-                if (capitalInv[i].Count == 0) continue;
-                if (!FoodItems.IsFood(capitalInv[i].ItemId)) continue;
-                snapshot.Add(new FoodSlotSnapshot { ItemId = capitalInv[i].ItemId });
-            }
+            if (!SystemAPI.TryGetSingleton<ItemDBSingleton>(out var itemDb)) return;
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
 
-            ItemDBSingleton itemDb = default;
-            if (SystemAPI.HasSingleton<ItemDBSingleton>())
-                itemDb = SystemAPI.GetSingleton<ItemDBSingleton>();
+            var snapshot = new NativeList<FoodSlotSnapshot>(8, Allocator.TempJob);
+
+            var snapshotHandle = new CapitalFoodSnapshotJob
+            {
+                Capital  = capital,
+                InvLookup = SystemAPI.GetBufferLookup<InventorySlot>(true),
+                Snapshot = snapshot,
+            }.Schedule(state.Dependency);
 
             state.Dependency = new EmpireWithdrawJob
             {
@@ -47,7 +45,7 @@ namespace RareIcon
                 CapitalFoods    = snapshot.AsDeferredJobArray(),
                 ItemDb          = itemDb,
                 Ecb             = ecb,
-            }.ScheduleParallel(state.Dependency);
+            }.ScheduleParallel(snapshotHandle);
 
             state.Dependency = snapshot.Dispose(state.Dependency);
         }
@@ -56,6 +54,27 @@ namespace RareIcon
     public struct FoodSlotSnapshot
     {
         public ushort ItemId;
+    }
+
+    /// <summary>Burst IJob that reads Capital.InventorySlot via BufferLookup (tracked by the scheduler) and emits one FoodSlotSnapshot per non-zero food slot into a deferred NativeList. Replaces the main-thread snapshot loop that was racing BuildingSurplusTransferSystem's writer.</summary>
+    [BurstCompile]
+    public struct CapitalFoodSnapshotJob : IJob
+    {
+        public Entity Capital;
+        [ReadOnly] public BufferLookup<InventorySlot> InvLookup;
+        public NativeList<FoodSlotSnapshot> Snapshot;
+
+        public void Execute()
+        {
+            if (!InvLookup.HasBuffer(Capital)) return;
+            var inv = InvLookup[Capital];
+            for (int i = 0; i < inv.Length; i++)
+            {
+                if (inv[i].Count == 0) continue;
+                if (!FoodItems.IsFood(inv[i].ItemId)) continue;
+                Snapshot.Add(new FoodSlotSnapshot { ItemId = inv[i].ItemId });
+            }
+        }
     }
 
     [BurstCompile]
