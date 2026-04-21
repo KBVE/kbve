@@ -43,6 +43,12 @@ namespace RareIcon
     /// <summary>Marker tag for the Capital — craft / governance systems query key.</summary>
     public struct CapitalTag : IComponentData { }
 
+    /// <summary>Player-issued request to tear down Target. DemolishBuildingSystem refunds 50% of delivered materials to the Capital, releases any sheltered units, then destroys the entity. Request entity is self-destroyed after processing.</summary>
+    public struct DemolishRequest : IComponentData
+    {
+        public Entity Target;
+    }
+
     /// <summary>Per-building territory claim; any building may emit. Empire territory = union of all same-faction emitters. Radius is the axial hex range from Center.</summary>
     // TODO(rust-ffi): persist alongside Building so territory survives chunk unload.
     public struct TerritoryEmitter : IComponentData

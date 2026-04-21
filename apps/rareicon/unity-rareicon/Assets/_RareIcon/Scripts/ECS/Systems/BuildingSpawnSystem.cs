@@ -152,23 +152,6 @@ namespace RareIcon
                         ConsumePack(sourcePack, cost[i].ItemId, cost[i].Amount);
                 }
             }
-            else
-            {
-                var sourceCap = em.GetBuffer<CapitalLedger>(sourceEntity).Reinterpret<BankLedgerBase>();
-                for (int i = 0; i < cost.Length; i++)
-                {
-                    if (!BankLedgerOps.HasBuildCost(sourceCap, cost[i].ItemId, cost[i].Amount))
-                    {
-                        reason = $"missing {cost[i].Amount}× item {cost[i].ItemId}";
-                        return false;
-                    }
-                }
-                if (BuildingDB.SpawnsFullyBuilt(req.BuildingType))
-                {
-                    for (int i = 0; i < cost.Length; i++)
-                        BankLedgerOps.RemoveItem(ref sourceCap, cost[i].ItemId, (ushort)math.min(cost[i].Amount, (int)ushort.MaxValue));
-                }
-            }
 
             float3 pos = HexMeshUtil.HexToWorld(req.CenterHex.x, req.CenterHex.y, HexSize);
             pos.z = BuildingZ;

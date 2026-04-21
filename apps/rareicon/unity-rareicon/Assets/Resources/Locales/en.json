@@ -173,6 +173,7 @@
 	"ui.possess": "Possess",
 	"ui.controlling": "Controlling",
 	"inspector.release_king": "Send King Out",
+	"inspector.demolish": "Demolish (50% refund)",
 	"hud.god_view": "God View",
 	"hud.release": "Release",
 	"hex.coord": "Hex",

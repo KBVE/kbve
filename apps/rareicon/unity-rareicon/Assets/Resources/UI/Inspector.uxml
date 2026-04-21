@@ -20,6 +20,7 @@
         </ui:ScrollView>
 
         <ui:Button name="inspector-release" class="btn btn--sm is-hidden" text="Release King" />
+        <ui:Button name="inspector-demolish" class="btn btn--sm" text="Demolish" />
 
     </ui:VisualElement>
 </ui:UXML>

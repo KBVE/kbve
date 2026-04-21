@@ -27,7 +27,7 @@ namespace RareIcon
 
         VisualElement _root, _panel;
         Label _titleLabel, _ownerLabel, _healthLabel, _productionLabel, _storageLabel;
-        Button _releaseBtn;
+        Button _releaseBtn, _demolishBtn;
         Entity _target;
 
         [Inject]
@@ -64,10 +64,16 @@ namespace RareIcon
             _productionLabel = _root.Q<Label>("inspector-production");
             _storageLabel    = _root.Q<Label>("inspector-storage");
             _releaseBtn      = _root.Q<Button>("inspector-release");
+            _demolishBtn     = _root.Q<Button>("inspector-demolish");
 
             _titleLabel.text = _locale.Get("inspector.title");
             _releaseBtn.text = _locale.Get("inspector.release_king");
             _releaseBtn.clicked += RequestRelease;
+            if (_demolishBtn != null)
+            {
+                _demolishBtn.text = _locale.Get("inspector.demolish");
+                _demolishBtn.clicked += RequestDemolish;
+            }
             _root.Q<Button>("inspector-close").clicked += Close;
 
             // Stop the panel's clicks from falling through to the map below.
@@ -111,6 +117,19 @@ namespace RareIcon
             var em = world.EntityManager;
             var req = em.CreateEntity();
             em.AddComponentData(req, new ReleaseShelterRequest { Host = _target });
+        }
+
+        void RequestDemolish()
+        {
+            if (_target == Entity.Null) return;
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.HasComponent<Building>(_target)) return;
+            if (em.GetComponentData<Building>(_target).Type == BuildingType.Capital) return;
+            var req = em.CreateEntity();
+            em.AddComponentData(req, new DemolishRequest { Target = _target });
+            Close();
         }
 
         void Refresh()
