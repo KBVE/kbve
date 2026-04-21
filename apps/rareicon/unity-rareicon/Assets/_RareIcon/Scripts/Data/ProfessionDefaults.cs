@@ -5,11 +5,28 @@ namespace RareIcon
         public static ProfessionPriorities Get(byte unitType) => unitType switch
         {
             UnitType.Goblin  => GoblinGeneralist(),
-            UnitType.Soldier => new ProfessionPriorities { Guard = 4, Hunter = 2, Builder = 3, Looter = 2, Craftsman = 1 },
-            UnitType.Knight  => new ProfessionPriorities { Guard = 5, Hunter = 3, Builder = 4, Looter = 2, Craftsman = 1, Blacksmith = 2 },
-            UnitType.Mage    => new ProfessionPriorities { Guard = 2, Chef = 3, Hunter = 1, Builder = 2, Looter = 1, Craftsman = 2 },
+            UnitType.Soldier => new ProfessionPriorities
+            {
+                Guard = 4, Hunter = 2, Builder = 3, Looter = 2, Craftsman = 1,
+                Lumberjack = 1, Miner = 1, Farmer = 1, Chef = 1, Blacksmith = 1,
+            },
+            UnitType.Knight  => new ProfessionPriorities
+            {
+                Guard = 5, Hunter = 3, Builder = 4, Looter = 2, Craftsman = 1, Blacksmith = 2,
+                Lumberjack = 1, Miner = 1, Farmer = 1, Chef = 1,
+            },
+            UnitType.Mage    => new ProfessionPriorities
+            {
+                Guard = 2, Chef = 3, Hunter = 1, Builder = 2, Looter = 1, Craftsman = 2,
+                Lumberjack = 1, Miner = 1, Farmer = 1, Blacksmith = 1,
+            },
             UnitType.King    => new ProfessionPriorities { Guard = 3 },
-            _                => new ProfessionPriorities { Looter = 2 },
+            _                => new ProfessionPriorities
+            {
+                Looter = 2, Builder = 2,
+                Lumberjack = 1, Miner = 1, Guard = 1, Farmer = 1, Hunter = 1,
+                Chef = 1, Blacksmith = 1, Craftsman = 1,
+            },
         };
 
         public static ProfessionPriorities HeroMasterBlacksmith() => new ProfessionPriorities
