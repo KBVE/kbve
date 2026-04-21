@@ -101,8 +101,7 @@ namespace RareIcon
                 restoreEnergy: 7f, harvestRole: HarvestRole.Forager,
                 compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
             Add("item.herb",           new ItemDef((ushort)ItemId.Herb,          ItemCategory.Material, 30, 5,
-                restoreEnergy: 12f, harvestRole: HarvestRole.Forager,
-                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
+                harvestRole: HarvestRole.Forager));
 
             Add("item.raw_cacti",      new ItemDef((ushort)ItemId.RawCacti,      ItemCategory.Material, 20, 2,
                 harvestRole: HarvestRole.Forager));
