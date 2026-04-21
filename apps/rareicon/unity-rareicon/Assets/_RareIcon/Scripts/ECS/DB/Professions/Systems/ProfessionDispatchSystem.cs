@@ -447,7 +447,7 @@ namespace RareIcon
                                           out var preemptHex, out var preemptHostile, out _))
                     {
                         tasks.Clear();
-                        var prevIntent = jobIntentRef.ValueRO;
+                        var preemptedIntent = jobIntentRef.ValueRO;
                         jobIntentRef.ValueRW = new ProfessionIntent
                         {
                             Kind         = ProfessionKind.Guard,
@@ -462,8 +462,8 @@ namespace RareIcon
                             State        = TaskState.Active,
                             IssuedTick   = nowTick,
                         });
-                        if (events.IsCreated && prevIntent.Kind != ProfessionKind.Guard)
-                            events.Add(new ProfessionChangedMessage(entity, prevIntent.Kind, ProfessionKind.Guard, preemptHex, preemptHostile));
+                        if (events.IsCreated && preemptedIntent.Kind != ProfessionKind.Guard)
+                            events.Add(new ProfessionChangedMessage(entity, preemptedIntent.Kind, ProfessionKind.Guard, preemptHex, preemptHostile));
                         continue;
                     }
                     if (head.State == TaskState.Active)
