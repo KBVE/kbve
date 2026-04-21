@@ -68,6 +68,20 @@ Cysharp's `Ulid` is a readonly 16-byte struct (48-bit unix-ms timestamp + 80 bit
 - On cross-buffer transfer (deposit / pickup), if the destination has no existing stack of that `ItemId`, the incoming stack's Uid carries over. If it does, the destination's older Uid wins — merge by count into the older stack.
 - Rule of thumb: **the older Uid always wins**, so stack birthtime stays meaningful in audit views.
 
+**Harvest / pickup example — same-item chops merge into one slot (not per-event stacks):**
+
+A goblin chopping the same tree three times ends with **one** `PackSlot`, not three. The first chop stamps the Uid; subsequent same-item chops add to the count.
+
+```
+Chop 1 (t=0)  → { Ulid_A, Log, 10 }
+Chop 2 (t=3)  → { Ulid_A, Log, 18 }   // Ulid_B dies, +8 into Ulid_A
+Chop 3 (t=6)  → { Ulid_A, Log, 25 }   // Ulid_C dies, +7 into Ulid_A
+```
+
+- Rationale: 1 slot vs N matters for buffer-iteration cost (bag-status, builder-carry-check, UI), stack semantics match every RTS/colony sim (DF, Rimworld, Factorio all merge on pickup), and `Ulid_A` still encodes "stack born at t=0" for save/load + FFI.
+- **Overflow exception:** if `ItemDB[Log].StackMax = 64` and a chop would exceed it, the overflow spills into a new slot with its own fresh Uid — that second slot is a genuinely separate stack, not just a pickup-event record.
+- **Anti-pattern:** per-chop stacks (HARVEST A: `{Ulid_A, Log, 10}, {Ulid_B, Log, 8}, {Ulid_C, Log, 7}`) is **explicitly rejected**. The Uid is per-stack identity, not per-pickup-event audit trail. Per-event audit, if ever wanted, goes in a separate `HarvestEvent` log component.
+
 **Consolidation Uids** (Section 3):
 
 - When 100 raw items roll up into 1 bulk item, the resulting bulk stack gets a **fresh Uid** stamped with the consolidation moment. No lineage table — contributing raw stack's Uid dies with it. Simple, re-addable later if audit needs it.
@@ -135,6 +149,61 @@ Bulk units never de-compress back into raw. Consumers pay the bulk cost:
 - Builders deliver **Timber** (not Log) — `BuilderDepositSystem.TryPickup` walks `ConstructionMaterial` bill, pulls from Capital's `Timber` slot.
 - Barracks recruitment eats **Meal** (not Berry × 20) — `BarracksProductionSystem.FoodCost` counts from `Meal`.
 - Archers refill from **Quiver** (not Arrow × 100) — `ArcherRefillSystem` pulls a Quiver and the archer's pack receives 100 Arrows materialized on equip (this is the only exception — re-materialize at equip-time, not at storage).
+
+### Bulk item carry + consumption profile
+
+Bulk items are heavy. `StackMax = 1` means **one per `PackSlot`** — an 8-slot backpack carries at most 8 Timber per trip, so builders genuinely shuttle back and forth instead of trivially soloing a project.
+
+| Item         | `StackMax` | Notes                                                                         |
+| ------------ | ---------- | ----------------------------------------------------------------------------- |
+| `Timber`     | 1          | One per pack slot. Building material.                                         |
+| `StoneBlock` | 1          | One per pack slot. Building material.                                         |
+| `Quiver`     | 1          | One per pack slot. Re-materializes into 100 Arrows at equip-time (see above). |
+| `Meal`       | 1          | One per pack slot. Premium consumable — see "Meal exception" below.           |
+
+Raw items keep their existing higher stack caps (Log = 64, Berry = 32, etc.) — they're expected to consolidate away before the pack fills.
+
+**Numeric scaling:** build costs in the migration checklist below are 1:1 raw→bulk swaps. That already scales cost 100× in raw equivalents and is the intended direction. Fine to bump individual buildings (Castle, Keep, late-game) further once the tier chain lands — noted as a tuning pass, not a blocker.
+
+**Tier-2 carry energy drain.** Bulk items are heavy, and that has to show in the stamina/energy economy, not just the slot count. Each bulk item in a `PackSlot` adds to the unit's per-tick movement energy cost:
+
+| Item         | Energy/tick while walking (loaded) |
+| ------------ | ---------------------------------- |
+| `Timber`     | +0.5                               |
+| `StoneBlock` | +0.7 (heaviest)                    |
+| `Quiver`     | +0.3                               |
+| `Meal`       | +0.2                               |
+
+Numbers are placeholders — tune against current `UnitMovement.EnergyCost` baseline. Design intent: a builder carrying 8 Timber drains energy ~5× faster than one carrying only a pickaxe, so they need to eat / rest mid-shuttle on long routes. Raw items stay free-to-carry (already gated by volume via StackMax), only bulk (tier-2) items pay the drain. Applier: `UnitMovementEnergyApplier` reads `PackSlot` buffer once per N ticks, sums bulk entries × their per-item drain, writes into the existing energy decrement path.
+
+### Meal — the stat-restoration exception
+
+`Meal` is the only consumable that touches every stat. Design intent:
+
+- **1 Meal on consume → 100% restore across HP, Hunger, Mana/Stamina, Thirst, Morale.**
+- **Fatigue (FT) is the exception to the exception** — Meal does _not_ fully restore FT. Instead, it **multiplies the FT recovery rate** for the next N ticks (exact duration TBD in combat tuning, probably ~60s game time). You still have to rest off fatigue, Meal just makes resting fast.
+- Cost to produce: 100 raw food units (any food-pool source) → 1 Meal via `StorageConsolidatorSystem`.
+
+**Raw food rebalance (paired change):** halve every raw food item's current hunger value. Today `Berry.Hunger = 10` (or whatever) → `Berry.Hunger = 5`. This prevents "graze 100 berries for a free 100% all-stat heal" — grazing now refunds half the hunger, so the Meal path is strictly the economic route for serious restoration. Regenerates the gap between "peasant foraging" and "cooked empire supply".
+
+Consumers that already existed (soldiers eating berries, goblins eating mushrooms while wandering) keep working — they just recover half as much hunger per raw, incentivizing deposit → consolidate → Meal as the main flow.
+
+**Sated debuff — 60s anti-spam cooldown:** on Meal consume, the unit gains a `Sated` status component with a 60-second (game time) duration. While `Sated`:
+
+- Subsequent `Meal` consumes still fire the hunger refill (you can top-off) but the **HP / Mana / Stamina / Thirst / Morale heal bonus is suppressed to 0%**.
+- The FT recovery-rate multiplier does **not** re-apply while Sated (single buff window per Meal).
+- `Sated` decays linearly — once it expires, the next Meal is full-strength again.
+
+Without `Sated`, a unit with 8 Meals in its pack would be immortal: heal-tank through any combat by chain-eating. With `Sated`, burst-healing is capped at one Meal per minute per unit, so stockpiles matter strategically (whole-army restoration between fights) not as a panic button during a fight. Component shape:
+
+```csharp
+public struct Sated : IComponentData
+{
+    public float SecondsRemaining;  // set to 60f on Meal consume
+}
+```
+
+Applier: `MealConsumeSystem` checks for `Sated` before writing heals; if present, only applies hunger; always refreshes `SecondsRemaining = 60f`. A tiny `SatedDecaySystem` in `EconomySystemGroup` decrements `SecondsRemaining` per tick and removes the component at zero. No new buffer types needed.
 
 ### In-pack identity — not individual entities
 
@@ -400,6 +469,88 @@ Until this refactor lands:
 - `InventorySyncBarrierSystem` (`ECS/Systems/InventorySyncBarrierSystem.cs`) — runs first in `BehaviorSystemGroup`, force-completes `InventorySlot` + `EquippedBag` writers via `state.EntityManager.CompleteDependencyBeforeRW<T>()` once per frame.
 - Not a world barrier — scoped to those two types. Cost is the main-thread wait for the ~5-10 in-flight Economy writes, typically sub-millisecond.
 - Delete it in step 5.
+
+## 11. Final stage — restore Burst + parallelism (the acceptance bar)
+
+The whole point of this refactor is to **get back the Burst compilation and parallel scheduling we gave up during the inventory-race firefight.** Before this plan is considered "done", the following must all be true. This is the exit criterion for Step 9, and nothing else merges to dev until it holds.
+
+### 11.1 What we lost (and why)
+
+During the race debugging, we took on technical debt to keep the game playable:
+
+- **`InventorySyncBarrierSystem`** — main-thread `CompleteDependencyBeforeRW<InventorySlot>` + `CompleteDependencyBeforeRW<EquippedBag>` once per frame. Sub-millisecond today, but it's a serialization point that scales linearly with writer count and can't live in a final build.
+- **Scattered `CompleteDependencyBeforeRW` / `CompleteDependencyBeforeRO` calls** inside individual systems as last-resort fixes — each one is a main-thread sync point masquerading as a local fix.
+- **Demoted schedulers** — a handful of systems fell back from `IJobEntity.ScheduleParallel(state.Dependency)` to `.Schedule(state.Dependency)` (single-worker) or even main-thread `OnUpdate` bodies, because the parallel version kept tripping the safety system across the shared `InventorySlot` type.
+- **Systems that never got `[BurstCompile]`** — e.g. `BarracksCraftingSystem` is currently `SystemBase`/managed because the buffer access pattern was simpler to debug off Burst. Same for any `IJob` we wrote as a stopgap instead of `IJobEntity`.
+- **Cross-group `UpdateAfter` chains** that force ordering across `EconomySystemGroup` ↔ `BehaviorSystemGroup` just to serialize `InventorySlot` access — ordering constraints that exist only because of the type conflict, not because of actual data dependency.
+
+After the type split, none of the above should be necessary. The two access domains are physically distinct at the type-system level; the job scheduler sees them as independent and parallelizes freely.
+
+### 11.2 Acceptance checklist
+
+The refactor is "done" when **every one of these is true**. Treat this as a CI check we manually run before merging.
+
+**Deletions (nothing survives that existed only to mask the race):**
+
+- [ ] `InventorySyncBarrierSystem.cs` is deleted. Its `.meta` is deleted. No Git references remain.
+- [ ] Zero occurrences of `CompleteDependencyBeforeRW<InventorySlot>` or `CompleteDependencyBeforeRO<InventorySlot>` in the codebase (`rg` check).
+- [ ] Zero occurrences of `CompleteDependencyBeforeRW<PackSlot>` / `CompleteDependencyBeforeRO<PackSlot>` either — if we need one, the split didn't work.
+- [ ] Zero `EntityManager.CompleteAllTrackedJobs()` calls added during this debugging campaign (greppable).
+
+**Burst compilation (every unit/building system Burst-compiles):**
+
+- [ ] Every system in §5 "Unit-only systems" list carries `[BurstCompile]` on both the `ISystem` struct and its scheduled `IJobEntity` / `IJob` struct.
+- [ ] Every system in §5 "Building-only systems" list same.
+- [ ] `BarracksCraftingSystem` specifically — promoted from `SystemBase` managed path to `[BurstCompile] ISystem` with a Burst job. (Currently demoted, tracked as known debt.)
+- [ ] No system in the unit/building lists uses `partial class : SystemBase`; all are `partial struct : ISystem`.
+- [ ] `UlidFactory` helpers used inside jobs are themselves Burst-compatible (no managed `Ulid.NewUlid()` calls from within a scheduled job body — that path uses the `ref Unity.Mathematics.Random` overload).
+
+**Parallel scheduling (work actually runs on worker threads):**
+
+- [ ] Every `IJobEntity` that touches `PackSlot` reads or `InventorySlot` reads uses `.ScheduleParallel(state.Dependency)`, not `.Schedule(...)` or `.Run(...)`.
+- [ ] Exception list — these may stay single-worker with justification written inline: `JobSystem` (task dispatcher, single arbiter by design), `StorageConsolidatorSystem` (sequential per-building is cheap enough). Any other single-worker schedule needs a comment explaining why it's not parallel.
+- [ ] Cross-buffer bridge systems (Unit ↔ Building in §4) Burst-compile and schedule parallel. They may need `[NativeDisableParallelForRestriction]` on the `BufferLookup` — that's acceptable because the bridge logic guarantees no entity is touched twice per frame.
+
+**Dependency graph (clean, no masked-race ordering):**
+
+- [ ] No `[UpdateAfter]` / `[UpdateBefore]` attribute references a system across the `EconomySystemGroup` ↔ `BehaviorSystemGroup` boundary purely for inventory-race reasons. Cross-group ordering that remains must be justified in a one-line comment on the attribute. Within-group `UpdateAfter` is fine — it's part of normal dataflow.
+- [ ] Structural changes (new Furnace coming online, GoblinCave build completing) do not trip safety-system exceptions on the first tick — verified by spawning a building at t>0 via in-game debug hotkey and confirming no console errors.
+
+**Runtime evidence (prove it in a play session):**
+
+- [ ] 5-minute live play with debug logs enabled — zero `InvalidOperationException: writes to BufferLookup<InventorySlot>` or `...PackSlot` warnings.
+- [ ] Unity Profiler (Timeline view) shows `PackSlot`-touching jobs and `InventorySlot`-touching jobs scheduled in overlapping time windows, not serialized back-to-back.
+- [ ] Main-thread time in `BehaviorSystemGroup` + `EconomySystemGroup` drops measurably vs. pre-refactor baseline. Goal: recover ≥80% of the main-thread cost the barrier currently imposes.
+- [ ] Worker-thread utilization during peak tick (≥50 active units, full building economy) visibly higher in Profiler.
+
+### 11.3 Verification commands
+
+Before declaring the refactor complete, run these from `apps/rareicon/unity-rareicon/`:
+
+```bash
+# Nothing should match any of these after the split:
+rg 'InventorySyncBarrierSystem'                      Assets/_RareIcon/Scripts
+rg 'CompleteDependencyBeforeRW<InventorySlot>'       Assets/_RareIcon/Scripts
+rg 'CompleteDependencyBeforeRO<InventorySlot>'       Assets/_RareIcon/Scripts
+rg 'CompleteDependencyBeforeRW<PackSlot>'            Assets/_RareIcon/Scripts
+rg 'CompleteDependencyBeforeRO<PackSlot>'            Assets/_RareIcon/Scripts
+rg 'CompleteAllTrackedJobs'                          Assets/_RareIcon/Scripts
+
+# Every unit/building system should match:
+rg '\[BurstCompile\]'                                Assets/_RareIcon/Scripts/ECS/Systems | wc -l
+
+# Should show ScheduleParallel, not Schedule:
+rg '\.Schedule\(state\.Dependency\)'                 Assets/_RareIcon/Scripts/ECS/Systems
+```
+
+### 11.4 If the bar isn't met
+
+If at Step 9 any of these checks fail, the refactor is **not done** — don't merge, don't declare victory. Two likely failure modes and their responses:
+
+1. **A safety exception survives the split.** Root cause is almost certainly a bridge system (§4) holding an RW `BufferLookup` across a parallel schedule without `[NativeDisableParallelForRestriction]`. Fix the specific system; don't re-introduce a barrier.
+2. **A system resists Burst compilation** (managed dict access, exception throwing, etc.). Refactor the system, not the target — Burst is the acceptance bar, not a nice-to-have. Temporary `[BurstCompile(DisableCompilation = true)]` is acceptable only as a commit-sized exception with a TODO pointing to a Linear-style tracker item.
+
+The goal the user stated plainly at the end of the 2026-04-20 session: _"make sure we get back our burst compiling and the parallelism that we lost when trying work out the older inventory data."_ That line is the acceptance test for this entire document.
 
 ---
 
