@@ -1,3 +1,4 @@
+using System;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -137,7 +138,7 @@ namespace RareIcon
 
         static Ulid UlidFromTick(uint tick, int idx)
         {
-            System.Span<byte> bytes = stackalloc byte[16];
+            Span<byte> bytes = stackalloc byte[16];
             long t = tick;
             bytes[0] = (byte)(t >> 40);
             bytes[1] = (byte)(t >> 32);

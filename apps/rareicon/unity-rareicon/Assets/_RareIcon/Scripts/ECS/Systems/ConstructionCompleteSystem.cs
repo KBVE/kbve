@@ -76,6 +76,9 @@ namespace RareIcon
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesFood  { Priority = 1 });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesSleep { Capacity = 5 });
                     break;
+                case BuildingType.Market:
+                    Ecb.AddComponent<MarketTag>(chunkIdx, entity);
+                    break;
                 case BuildingType.Outpost:
                     Ecb.AddComponent<OutpostTag>(chunkIdx, entity);
                     Ecb.AddComponent(chunkIdx, entity, new TerritoryEmitter

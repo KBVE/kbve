@@ -1,3 +1,4 @@
+using System;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
@@ -84,6 +85,39 @@ namespace RareIcon
 
     /// <summary>Marker tag for Inn buildings — food + sleep service provider.</summary>
     public struct InnTag : IComponentData { }
+
+    /// <summary>Marker tag for Market buildings — goods trading + future Merchants Guild hub.</summary>
+    public struct MarketTag : IComponentData { }
+
+    /// <summary>Lifecycle state of a MarketOrder.</summary>
+    public static class MarketOrderState
+    {
+        public const byte Open      = 0;
+        public const byte Filled    = 1;
+        public const byte Cancelled = 2;
+        public const byte Expired   = 3;
+    }
+
+    /// <summary>Direction of a MarketOrder — buy (empire requests goods) or sell (empire offers goods).</summary>
+    public static class MarketOrderKind
+    {
+        public const byte Buy  = 0;
+        public const byte Sell = 1;
+    }
+
+    /// <summary>Structured order entry on a Market. Covers buy-requests ("we want N Timber at P coin/unit") and sell-offers ("we have N Arrow at P coin/unit"). Future fulfillment systems will drive State transitions; for now the buffer holds the data shape so UI + AI can grow on top as the Merchants Guild flow lands.</summary>
+    [InternalBufferCapacity(4)]
+    public struct MarketOrder : IBufferElementData
+    {
+        public Ulid   Uid;
+        public byte   Kind;
+        public byte   State;
+        public ushort ItemId;
+        public ushort Quantity;
+        public ushort UnitPrice;
+        public uint   PostedTick;
+        public uint   ExpiresTick;
+    }
 
     /// <summary>Service tag: unit on this building's footprint with Eat relief can draw food from its ledger. Attached to Capital, Farm, Inn. Priority breaks ties when multiple providers are equidistant (higher wins).</summary>
     public struct ProvidesFood : IComponentData
