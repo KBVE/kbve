@@ -22,12 +22,9 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var queue = SystemAPI.GetSingleton<BankTransferQueue>().Queue;
-            if (queue.Count == 0) return;
-
             state.Dependency = new ApplyBankTransfersJob
             {
-                Queue            = queue,
+                Queue            = SystemAPI.GetSingleton<BankTransferQueue>().Queue,
                 CapitalLookup    = SystemAPI.GetBufferLookup<CapitalLedger>(false),
                 FurnaceLookup    = SystemAPI.GetBufferLookup<FurnaceLedger>(false),
                 FarmLookup       = SystemAPI.GetBufferLookup<FarmLedger>(false),
