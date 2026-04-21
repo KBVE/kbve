@@ -104,6 +104,48 @@ Shader "RareIcon/HexUnit"
         _ZombieTattersShade ("Zombie Rags Shade",   Color) = (0.22, 0.20, 0.24, 1)
         _ZombieBlood        ("Zombie Blood",        Color) = (0.32, 0.10, 0.16, 1)
         _ZombieEye          ("Zombie Eye",          Color) = (0.95, 0.92, 0.30, 1)
+
+        _ArcherHood       ("Archer Hood",       Color) = (0.22, 0.30, 0.20, 1)
+        _ArcherHoodShade  ("Archer Hood Shade", Color) = (0.12, 0.18, 0.11, 1)
+        _ArcherVest       ("Archer Vest",       Color) = (0.42, 0.32, 0.20, 1)
+        _ArcherVestShade  ("Archer Vest Shade", Color) = (0.26, 0.20, 0.12, 1)
+        _ArcherPants      ("Archer Pants",      Color) = (0.32, 0.25, 0.16, 1)
+        _ArcherSkin       ("Archer Skin",       Color) = (0.92, 0.76, 0.60, 1)
+        _ArcherQuiver     ("Archer Quiver",     Color) = (0.30, 0.20, 0.12, 1)
+        _ArcherFletching  ("Archer Fletching",  Color) = (0.85, 0.70, 0.25, 1)
+
+        _RogueCloak       ("Rogue Cloak",       Color) = (0.18, 0.14, 0.22, 1)
+        _RogueCloakShade  ("Rogue Cloak Shade", Color) = (0.09, 0.07, 0.12, 1)
+        _RoguePants       ("Rogue Pants",       Color) = (0.14, 0.12, 0.18, 1)
+        _RogueSkin        ("Rogue Skin",        Color) = (0.85, 0.70, 0.58, 1)
+        _RogueScarf       ("Rogue Scarf",       Color) = (0.12, 0.10, 0.14, 1)
+        _RogueEye         ("Rogue Eye",         Color) = (0.82, 0.20, 0.32, 1)
+        _RogueDagger      ("Rogue Dagger",      Color) = (0.72, 0.74, 0.80, 1)
+
+        _ClericRobe       ("Cleric Robe",       Color) = (0.92, 0.90, 0.84, 1)
+        _ClericRobeShade  ("Cleric Robe Shade", Color) = (0.62, 0.60, 0.54, 1)
+        _ClericTrim       ("Cleric Trim",       Color) = (0.88, 0.74, 0.24, 1)
+        _ClericSymbol     ("Cleric Symbol",     Color) = (0.95, 0.82, 0.30, 1)
+        _ClericSkin       ("Cleric Skin",       Color) = (0.92, 0.76, 0.60, 1)
+        _ClericHair       ("Cleric Hair",       Color) = (0.62, 0.45, 0.22, 1)
+        _ClericEye        ("Cleric Eye",        Color) = (0.35, 0.55, 0.90, 1)
+
+        _MerchantCap       ("Merchant Cap",        Color) = (0.55, 0.22, 0.20, 1)
+        _MerchantVest      ("Merchant Vest",       Color) = (0.40, 0.24, 0.16, 1)
+        _MerchantVestShade ("Merchant Vest Shade", Color) = (0.24, 0.14, 0.10, 1)
+        _MerchantShirt     ("Merchant Shirt",      Color) = (0.92, 0.88, 0.72, 1)
+        _MerchantPants     ("Merchant Pants",      Color) = (0.32, 0.22, 0.14, 1)
+        _MerchantSkin      ("Merchant Skin",       Color) = (0.92, 0.76, 0.60, 1)
+        _MerchantPouch     ("Merchant Pouch",      Color) = (0.78, 0.60, 0.22, 1)
+
+        _GoblinGeneralSkin       ("Goblin General Skin",       Color) = (0.36, 0.58, 0.22, 1)
+        _GoblinGeneralSkinShade  ("Goblin General Skin Shade", Color) = (0.22, 0.38, 0.14, 1)
+        _GoblinGeneralArmor      ("Goblin General Armor",      Color) = (0.30, 0.30, 0.34, 1)
+        _GoblinGeneralArmorShade ("Goblin General Armor Shade",Color) = (0.16, 0.16, 0.20, 1)
+        _GoblinGeneralCrown      ("Goblin General Crown",      Color) = (0.85, 0.70, 0.20, 1)
+        _GoblinGeneralCloak      ("Goblin General Cloak",      Color) = (0.52, 0.12, 0.12, 1)
+        _GoblinGeneralEye        ("Goblin General Eye",        Color) = (0.98, 0.85, 0.20, 1)
+        _GoblinGeneralWarpaint   ("Goblin General Warpaint",   Color) = (0.82, 0.15, 0.18, 1)
     }
 
     SubShader
@@ -214,6 +256,43 @@ Shader "RareIcon/HexUnit"
                 float4 _ZombieTattersShade;
                 float4 _ZombieBlood;
                 float4 _ZombieEye;
+                float4 _ArcherHood;
+                float4 _ArcherHoodShade;
+                float4 _ArcherVest;
+                float4 _ArcherVestShade;
+                float4 _ArcherPants;
+                float4 _ArcherSkin;
+                float4 _ArcherQuiver;
+                float4 _ArcherFletching;
+                float4 _RogueCloak;
+                float4 _RogueCloakShade;
+                float4 _RoguePants;
+                float4 _RogueSkin;
+                float4 _RogueScarf;
+                float4 _RogueEye;
+                float4 _RogueDagger;
+                float4 _ClericRobe;
+                float4 _ClericRobeShade;
+                float4 _ClericTrim;
+                float4 _ClericSymbol;
+                float4 _ClericSkin;
+                float4 _ClericHair;
+                float4 _ClericEye;
+                float4 _MerchantCap;
+                float4 _MerchantVest;
+                float4 _MerchantVestShade;
+                float4 _MerchantShirt;
+                float4 _MerchantPants;
+                float4 _MerchantSkin;
+                float4 _MerchantPouch;
+                float4 _GoblinGeneralSkin;
+                float4 _GoblinGeneralSkinShade;
+                float4 _GoblinGeneralArmor;
+                float4 _GoblinGeneralArmorShade;
+                float4 _GoblinGeneralCrown;
+                float4 _GoblinGeneralCloak;
+                float4 _GoblinGeneralEye;
+                float4 _GoblinGeneralWarpaint;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -245,8 +324,13 @@ Shader "RareIcon/HexUnit"
             #define UNIT_SHEEP      11
             #define UNIT_COW        12
             #define UNIT_WOLF       13
+            #define UNIT_ARCHER      6
+            #define UNIT_ROGUE       7
+            #define UNIT_CLERIC      8
+            #define UNIT_MERCHANT    9
             #define UNIT_BANDIT     14
             #define UNIT_ZOMBIE     15
+            #define UNIT_GOBLIN_GENERAL 16
 
             #define WEAPON_CLUB      1
             #define WEAPON_CROSSBOW  2
@@ -269,6 +353,11 @@ Shader "RareIcon/HexUnit"
             #include "Includes/HexWolf.hlsl"
             #include "Includes/HexBandit.hlsl"
             #include "Includes/HexZombie.hlsl"
+            #include "Includes/HexArcher.hlsl"
+            #include "Includes/HexRogue.hlsl"
+            #include "Includes/HexCleric.hlsl"
+            #include "Includes/HexMerchant.hlsl"
+            #include "Includes/HexGoblinGeneral.hlsl"
             // Weapon + equipment includes — composited on top of the
             // creature at each unit's respective anchor.
             #include "Includes/HexClub.hlsl"
@@ -345,6 +434,26 @@ Shader "RareIcon/HexUnit"
                 {
                     DrawZombie(color, alpha, px, grid, seed, facing);
                 }
+                else if (unitType == UNIT_ARCHER)
+                {
+                    DrawArcher(color, alpha, px, grid, seed, facing);
+                }
+                else if (unitType == UNIT_ROGUE)
+                {
+                    DrawRogue(color, alpha, px, grid, seed, facing);
+                }
+                else if (unitType == UNIT_CLERIC)
+                {
+                    DrawCleric(color, alpha, px, grid, seed, facing);
+                }
+                else if (unitType == UNIT_MERCHANT)
+                {
+                    DrawMerchant(color, alpha, px, grid, seed, facing);
+                }
+                else if (unitType == UNIT_GOBLIN_GENERAL)
+                {
+                    DrawGoblinGeneral(color, alpha, px, grid, seed, facing);
+                }
 
                 // -- 2. Weapon (composited on top of the creature) -------------
                 // The weapon code stays facing-agnostic: when facing=West we
@@ -373,6 +482,16 @@ Shader "RareIcon/HexUnit"
                         anchor = BanditWeaponAnchor(grid, weaponFacing);
                     else if (unitType == UNIT_ZOMBIE)
                         anchor = ZombieWeaponAnchor(grid, weaponFacing);
+                    else if (unitType == UNIT_ARCHER)
+                        anchor = ArcherWeaponAnchor(grid, weaponFacing);
+                    else if (unitType == UNIT_ROGUE)
+                        anchor = RogueWeaponAnchor(grid, weaponFacing);
+                    else if (unitType == UNIT_CLERIC)
+                        anchor = ClericWeaponAnchor(grid, weaponFacing);
+                    else if (unitType == UNIT_MERCHANT)
+                        anchor = MerchantWeaponAnchor(grid, weaponFacing);
+                    else if (unitType == UNIT_GOBLIN_GENERAL)
+                        anchor = GoblinGeneralWeaponAnchor(grid, weaponFacing);
                     else
                         anchor = float2(grid * 0.5, grid * 0.45); // generic fallback
 
