@@ -97,16 +97,12 @@ namespace RareIcon
         // a small nudge so a unit re-scoring to an offer identical to
         // its current ProfessionIntent target wins against marginally-closer
         // alternatives — relevant when the queue drains and refills.
-        const int PriorityWeight  = 10000;
-        const int HysteresisBonus = 50;
-        const int DeficitCap      = 2;
+        const int   PriorityWeight           = 10000;
+        const int   HysteresisBonus          = 50;
+        const int   DeficitCap               = 2;
+        const float DispatchIntervalSeconds  = 5f;
 
-        // Dispatcher cadence. Full offer-enumeration + per-unit scoring
-        // run every N ticks; queue reconciliation (promote Pending,
-        // pop Invalidated) still runs every tick so committed units
-        // transition cleanly. Lower = more responsive, higher = cheaper.
-        const int DispatchIntervalTicks = 10;
-        uint _tickCount;
+        float _lastDispatchTime = -DispatchIntervalSeconds;
 
         NativeHashMap<int2, int> _hexOccupancy;
 
@@ -143,8 +139,9 @@ namespace RareIcon
             // so units transition cleanly from Pending → Active and pop
             // Invalidated heads immediately. Modulo-zero on the first
             // tick so cold-start units get jobs right away.
-            bool doFullDispatch = (_tickCount % DispatchIntervalTicks) == 0;
-            _tickCount++;
+            float now = (float)SystemAPI.Time.ElapsedTime;
+            bool doFullDispatch = (now - _lastDispatchTime) >= DispatchIntervalSeconds;
+            if (doFullDispatch) _lastDispatchTime = now;
 
             SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial);
 
@@ -254,9 +251,10 @@ namespace RareIcon
             // ticks — the per-unit loop short-circuits for queue-empty
             // units in those frames.
             var offers = new NativeList<TaskOffer>(doFullDispatch ? 256 : 0, Allocator.Temp);
-            var offersPerKind   = new NativeArray<int>(13, Allocator.Temp);
-            var activePerKind   = new NativeArray<int>(13, Allocator.Temp);
-            var reservedPerKind = new NativeArray<int>(13, Allocator.Temp);
+            var offersPerKind       = new NativeArray<int>(13, Allocator.Temp);
+            var activePerKind       = new NativeArray<int>(13, Allocator.Temp);
+            var reservedPerKind     = new NativeArray<int>(13, Allocator.Temp);
+            var justAssignedPerKind = new NativeArray<int>(13, Allocator.Temp);
             foreach (var jobRO in SystemAPI.Query<RefRO<ProfessionIntent>>().WithAll<ProfessionPriorities>())
             {
                 byte ak = jobRO.ValueRO.Kind;
@@ -464,6 +462,7 @@ namespace RareIcon
                         });
                         if (events.IsCreated && preemptedIntent.Kind != ProfessionKind.Guard)
                             events.Add(new ProfessionChangedMessage(entity, preemptedIntent.Kind, ProfessionKind.Guard, preemptHex, preemptHostile));
+                        if (ProfessionKind.Guard < justAssignedPerKind.Length) justAssignedPerKind[ProfessionKind.Guard]++;
                         continue;
                     }
                     if (head.State == TaskState.Active)
@@ -538,7 +537,7 @@ namespace RareIcon
                     if (offer.Kind < offersPerKind.Length)
                     {
                         int oN = offersPerKind[offer.Kind];
-                        int aN = activePerKind[offer.Kind];
+                        int aN = activePerKind[offer.Kind] + justAssignedPerKind[offer.Kind];
                         int rN = reservedPerKind[offer.Kind];
                         int deficit = oN - aN;
                         if (deficit > 0)
@@ -572,7 +571,7 @@ namespace RareIcon
                             out hostileHex, out hostileEntity, out hostileDist);
                     }
 
-                    int guardReservationShortfall = math.max(0, reservedPerKind[ProfessionKind.Guard] - activePerKind[ProfessionKind.Guard]);
+                    int guardReservationShortfall = math.max(0, reservedPerKind[ProfessionKind.Guard] - (activePerKind[ProfessionKind.Guard] + justAssignedPerKind[ProfessionKind.Guard]));
 
                     if (foundHostile)
                     {
@@ -656,6 +655,8 @@ namespace RareIcon
                     TargetEntity = bestEntity,
                 };
 
+                if (bestKind < justAssignedPerKind.Length) justAssignedPerKind[bestKind]++;
+
                 if (events.IsCreated
                     && (prevIntent.Kind != bestKind
                         || !prevIntent.TargetHex.Equals(bestHex)
@@ -699,6 +700,7 @@ namespace RareIcon
             offersPerKind.Dispose();
             activePerKind.Dispose();
             reservedPerKind.Dispose();
+            justAssignedPerKind.Dispose();
             friendlyEmitters.Dispose();
             needyCaves.Dispose();
         }
