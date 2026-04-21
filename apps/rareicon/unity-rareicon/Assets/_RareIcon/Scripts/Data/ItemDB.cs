@@ -22,7 +22,7 @@ namespace RareIcon
         Miner      = 3,
     }
 
-    /// <summary>Static per-item data; Restore* fields double as filters (RestoreEnergy > 0 = edible, etc.).</summary>
+    /// <summary>Static per-item data; Restore* fields double as filters (RestoreEnergy > 0 = edible, etc.). CompressesTo / CompressRatio / PoolGroup drive StorageConsolidatorSystem's raw→bulk rollup at 100:1.</summary>
     public readonly struct ItemDef
     {
         public readonly ushort Id;
@@ -38,13 +38,20 @@ namespace RareIcon
         public readonly HarvestRole HarvestRole;
         public readonly byte HarvestWeight;
 
+        public readonly ushort CompressesTo;   // 0 = doesn't compress (already bulk / unique)
+        public readonly ushort CompressRatio;  // e.g. 100
+        public readonly ushort PoolGroup;      // shared pool id (food → Meal), 0 = standalone
+
         public ItemDef(ushort id, string nameKey, ItemCategory category,
                        byte stackMax, ushort baseValue,
                        float restoreHealth = 0f,
                        float restoreEnergy = 0f,
                        float restoreMana   = 0f,
                        HarvestRole harvestRole = HarvestRole.None,
-                       byte harvestWeight = 100)
+                       byte harvestWeight = 100,
+                       ushort compressesTo = 0,
+                       ushort compressRatio = 0,
+                       ushort poolGroup = 0)
         {
             Id            = id;
             NameKey       = nameKey;
@@ -56,7 +63,17 @@ namespace RareIcon
             RestoreMana   = restoreMana;
             HarvestRole   = harvestRole;
             HarvestWeight = harvestWeight;
+            CompressesTo  = compressesTo;
+            CompressRatio = compressRatio;
+            PoolGroup     = poolGroup;
         }
+    }
+
+    /// <summary>Pool group IDs for the food → Meal consolidator. All edibles share PoolGroup.Food so a mix of Berry + Mushroom + CookedBeef all contribute to the same Meal bucket.</summary>
+    public static class PoolGroup
+    {
+        public const ushort None = 0;
+        public const ushort Food = 1;
     }
 
     /// <summary>Source of truth for item properties; extend as new consumables / materials come online.</summary>
@@ -73,16 +90,19 @@ namespace RareIcon
 
             Add(new ItemDef((ushort)ItemId.Berry,
                 "item.berry",    ItemCategory.Material, 30, 2,
-                restoreEnergy: 20f,
-                harvestRole: HarvestRole.Forager));
+                restoreEnergy: 10f,
+                harvestRole: HarvestRole.Forager,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
             Add(new ItemDef((ushort)ItemId.Mushroom,
                 "item.mushroom", ItemCategory.Material, 30, 3,
-                restoreEnergy: 15f,
-                harvestRole: HarvestRole.Forager));
+                restoreEnergy: 7f,
+                harvestRole: HarvestRole.Forager,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
             Add(new ItemDef((ushort)ItemId.Herb,
                 "item.herb",     ItemCategory.Material, 30, 5,
-                restoreEnergy: 25f,
-                harvestRole: HarvestRole.Forager));
+                restoreEnergy: 12f,
+                harvestRole: HarvestRole.Forager,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
 
             Add(new ItemDef((ushort)ItemId.RawCacti,
                 "item.raw_cacti",    ItemCategory.Material, 20, 2,
@@ -92,19 +112,22 @@ namespace RareIcon
                 harvestRole: HarvestRole.Forager));
             Add(new ItemDef((ushort)ItemId.PricklyPear,
                 "item.prickly_pear", ItemCategory.Material, 24, 8,
-                restoreEnergy: 30f,
-                harvestRole: HarvestRole.Forager));
+                restoreEnergy: 15f,
+                harvestRole: HarvestRole.Forager,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
             Add(new ItemDef((ushort)ItemId.Dragonfruit,
                 "item.dragonfruit",  ItemCategory.Material, 24, 20,
-                restoreEnergy: 45f,
-                harvestRole: HarvestRole.Forager));
+                restoreEnergy: 22f,
+                harvestRole: HarvestRole.Forager,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
             Add(new ItemDef((ushort)ItemId.CactiSeeds,
                 "item.cacti_seeds",  ItemCategory.Material, 50, 4,
                 harvestRole: HarvestRole.Forager));
 
             Add(new ItemDef((ushort)ItemId.WoodLog,
                 "item.wood_log",  ItemCategory.Material, 12, 3,
-                harvestRole: HarvestRole.Lumberjack));
+                harvestRole: HarvestRole.Lumberjack,
+                compressesTo: (ushort)ItemId.Timber, compressRatio: 100));
             Add(new ItemDef((ushort)ItemId.Branches,
                 "item.branches",  ItemCategory.Material, 30, 1,
                 harvestRole: HarvestRole.Lumberjack));
@@ -114,7 +137,8 @@ namespace RareIcon
 
             Add(new ItemDef((ushort)ItemId.Stone,
                 "item.stone",     ItemCategory.Material, 6, 2,
-                harvestRole: HarvestRole.Miner));
+                harvestRole: HarvestRole.Miner,
+                compressesTo: (ushort)ItemId.StoneBlock, compressRatio: 100));
 
             // Station / crafted outputs + environmental biome markers — NONE
             // of these are hand-harvestable. Sand tiles exist as furnace
@@ -131,52 +155,64 @@ namespace RareIcon
                 "item.compost",      ItemCategory.Material, 30, 2));
             Add(new ItemDef((ushort)ItemId.Carrot,
                 "item.carrot",       ItemCategory.Material, 30, 4,
-                restoreEnergy: 18f));
+                restoreEnergy: 9f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
 
             Add(new ItemDef((ushort)ItemId.Arrow,
-                "item.arrow",        ItemCategory.Material, 50, 1));
+                "item.arrow",        ItemCategory.Material, 50, 1,
+                compressesTo: (ushort)ItemId.Quiver, compressRatio: 100));
 
             // Wildlife drops. Picked up off the ground (ItemPickupSystem)
             // rather than hand-harvested, so HarvestRole stays None.
             Add(new ItemDef((ushort)ItemId.RawChicken,
                 "item.raw_chicken", ItemCategory.Material, 20, 6,
-                restoreEnergy: 18f));
+                restoreEnergy: 9f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
             Add(new ItemDef((ushort)ItemId.Feather,
                 "item.feather",     ItemCategory.Material, 30, 1));
             Add(new ItemDef((ushort)ItemId.RawMutton,
                 "item.raw_mutton",  ItemCategory.Material, 20, 12,
-                restoreEnergy: 35f));
+                restoreEnergy: 17f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
             Add(new ItemDef((ushort)ItemId.Wool,
                 "item.wool",        ItemCategory.Material, 30, 4));
             Add(new ItemDef((ushort)ItemId.RawBeef,
                 "item.raw_beef",    ItemCategory.Material, 20, 18,
-                restoreEnergy: 50f));
+                restoreEnergy: 25f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
             Add(new ItemDef((ushort)ItemId.Leather,
                 "item.leather",     ItemCategory.Material, 30, 8));
 
             Add(new ItemDef((ushort)ItemId.CookedChicken,
                 "item.cooked_chicken", ItemCategory.Consumable, 24, 12,
-                restoreEnergy: 40f));
+                restoreEnergy: 20f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
             Add(new ItemDef((ushort)ItemId.CookedMutton,
                 "item.cooked_mutton",  ItemCategory.Consumable, 24, 24,
-                restoreEnergy: 70f));
+                restoreEnergy: 35f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
             Add(new ItemDef((ushort)ItemId.CookedBeef,
                 "item.cooked_beef",    ItemCategory.Consumable, 24, 36,
-                restoreEnergy: 100f));
+                restoreEnergy: 50f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
 
             Add(new ItemDef((ushort)ItemId.Egg,
                 "item.egg",  ItemCategory.Material, 50, 3,
-                restoreEnergy: 12f));
+                restoreEnergy: 6f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
             Add(new ItemDef((ushort)ItemId.Milk,
                 "item.milk", ItemCategory.Material, 50, 5,
-                restoreEnergy: 20f));
+                restoreEnergy: 10f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
 
             Add(new ItemDef((ushort)ItemId.CookedEgg,
                 "item.cooked_egg", ItemCategory.Consumable, 24, 8,
-                restoreEnergy: 28f));
+                restoreEnergy: 14f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
             Add(new ItemDef((ushort)ItemId.Cheese,
                 "item.cheese",     ItemCategory.Consumable, 24, 15,
-                restoreEnergy: 45f));
+                restoreEnergy: 22f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
 
             Add(new ItemDef((ushort)ItemId.Pouch,
                 "item.pouch",   ItemCategory.Equipment, 2, 20));
@@ -184,6 +220,22 @@ namespace RareIcon
                 "item.bag",     ItemCategory.Equipment, 2, 60));
             Add(new ItemDef((ushort)ItemId.Pack,
                 "item.pack",    ItemCategory.Equipment, 2, 150));
+
+            // Tier-2 bulk items — StackMax=1 so each fills a whole PackSlot.
+            // Produced by StorageConsolidatorSystem at 100:1 from raws. Meal
+            // carries 100% restore across all stats (HP/Mana/Energy) via
+            // MealConsumeSystem, gated by Sated for 60s.
+            Add(new ItemDef((ushort)ItemId.Timber,
+                "item.timber",      ItemCategory.Material, 1, 300));
+            Add(new ItemDef((ushort)ItemId.StoneBlock,
+                "item.stone_block", ItemCategory.Material, 1, 200));
+            Add(new ItemDef((ushort)ItemId.Quiver,
+                "item.quiver",      ItemCategory.Material, 1, 100));
+            Add(new ItemDef((ushort)ItemId.Meal,
+                "item.meal",        ItemCategory.Consumable, 1, 500,
+                restoreHealth: 100f,
+                restoreEnergy: 100f,
+                restoreMana:   100f));
 
             Add(new ItemDef((ushort)ItemId.Bones,
                 "item.bones",          ItemCategory.Material, 30, 2));
@@ -254,6 +306,9 @@ namespace RareIcon
                     RestoreMana   = d.RestoreMana,
                     HarvestRole   = (byte)d.HarvestRole,
                     HarvestWeight = d.HarvestWeight,
+                    CompressesTo  = d.CompressesTo,
+                    CompressRatio = d.CompressRatio,
+                    PoolGroup     = d.PoolGroup,
                 });
             }
         }

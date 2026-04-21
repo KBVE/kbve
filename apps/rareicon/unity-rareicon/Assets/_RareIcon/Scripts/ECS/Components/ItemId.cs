@@ -61,6 +61,14 @@ namespace RareIcon
         Bag           = 240,
         Pack          = 241,
 
+        // Tier-2 bulk items — storage consolidates raw items into these at
+        // 100:1 via StorageConsolidatorSystem. StackMax=1 so each takes its
+        // own PackSlot (heavy to carry, builders shuttle repeatedly).
+        Timber        = 242,   // 100 WoodLog
+        StoneBlock    = 243,   // 100 Stone
+        Quiver        = 244,   // 100 Arrow
+        Meal          = 245,   // 100 of any food-pool item
+
         // Quest / key items
         QuestScroll       = 300,
         BossKey           = 301,

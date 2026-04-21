@@ -26,4 +26,10 @@ namespace RareIcon
     {
         public float SpeedMul;
     }
+
+    /// <summary>Post-Meal anti-spam cooldown. While present, subsequent Meal consumes still refill Hunger but the HP/Mana/Energy heal bonus is suppressed. Set SecondsRemaining to 60 on Meal consume; SatedDecaySystem decrements per tick and removes the component at zero.</summary>
+    public struct Sated : IComponentData
+    {
+        public float SecondsRemaining;
+    }
 }

@@ -23,6 +23,7 @@ namespace RareIcon
             ItemId.CookedMutton  => true,
             ItemId.CookedBeef    => true,
             ItemId.CookedEgg     => true,
+            ItemId.Meal          => true,
             _                    => false,
         };
 

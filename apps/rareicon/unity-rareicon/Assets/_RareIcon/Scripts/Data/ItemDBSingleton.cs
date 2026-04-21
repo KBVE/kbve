@@ -15,6 +15,9 @@ namespace RareIcon
         public float  RestoreMana;
         public byte   HarvestRole;
         public byte   HarvestWeight;
+        public ushort CompressesTo;
+        public ushort CompressRatio;
+        public ushort PoolGroup;
     }
 
     /// <summary>Burst-safe mirror of ItemDB. ItemDBBootstrapSystem populates Lookup once at startup from the managed ItemDB table; consumers read via SystemAPI.GetSingleton&lt;ItemDBSingleton&gt;() and call the helper methods inside any Burst job.</summary>
