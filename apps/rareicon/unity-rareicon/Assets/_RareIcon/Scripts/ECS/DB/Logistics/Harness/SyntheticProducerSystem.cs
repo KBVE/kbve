@@ -1,51 +1,51 @@
+#if UNITY_EDITOR
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 
 namespace RareIcon
 {
-    /// <summary>Harness-only producer that seeds a handful of synthetic bank entities with starting balances, then submits random pull-style reservations between them every tick. Starts disabled; toggle via ComponentSystemBase.Enabled from the debug overlay.</summary>
+    /// <summary>Editor-only harness. Seeds a handful of synthetic bank entities on first tick, then submits pull-style reservations between them every frame via a Burst job. Never compiles in player builds.</summary>
     [UpdateInGroup(typeof(LogisticsSystemGroup))]
     [UpdateAfter(typeof(LogisticsDomainSystem))]
     [UpdateBefore(typeof(ReservationResolveSystem))]
-    public partial class SyntheticProducerSystem : SystemBase
+    public partial struct SyntheticProducerSystem : ISystem
     {
-        public const int    BankCount           = 4;
-        public const ushort ItemCount           = 3;
-        public const int    StartingAmount      = 1000;
-        public const int    ReservationsPerTick = 6;
-        public const uint   RngSeed             = 0x5EEDu;
+        const int    BankCount           = 4;
+        const ushort ItemCount           = 3;
+        const int    StartingAmount      = 1000;
+        const int    ReservationsPerTick = 6;
+        const uint   RngSeed             = 0x5EEDu;
 
         NativeList<Entity> _banks;
         bool               _seeded;
         uint               _tick;
         uint               _rng;
 
-        protected override void OnCreate()
+        public void OnCreate(ref SystemState state)
         {
-            RequireForUpdate<LogisticsDBSingleton>();
-            _banks  = new NativeList<Entity>(BankCount, Allocator.Persistent);
-            _rng    = RngSeed;
-            Enabled = false;
+            state.RequireForUpdate<LogisticsDBSingleton>();
+            _banks = new NativeList<Entity>(BankCount, Allocator.Persistent);
+            _rng   = RngSeed;
         }
 
-        protected override void OnDestroy()
+        public void OnDestroy(ref SystemState state)
         {
             if (_banks.IsCreated) _banks.Dispose();
         }
 
-        protected override void OnUpdate()
+        public void OnUpdate(ref SystemState state)
         {
-            CompleteDependency();
-
-            var db = SystemAPI.GetSingleton<LogisticsDBSingleton>();
-
             if (!_seeded)
             {
+                state.CompleteDependency();
+                var db = SystemAPI.GetSingleton<LogisticsDBSingleton>();
+
                 _banks.Clear();
                 for (int i = 0; i < BankCount; i++)
                 {
-                    var e = EntityManager.CreateEntity();
-                    EntityManager.SetName(e, $"SyntheticBank_{i}");
+                    var e = state.EntityManager.CreateEntity();
                     _banks.Add(e);
                     for (ushort item = 1; item <= ItemCount; item++)
                         db.CurrentAmounts[new LedgerKey { Bank = e, ItemId = item }] = StartingAmount;
@@ -55,35 +55,71 @@ namespace RareIcon
 
             _tick++;
 
-            for (int n = 0; n < ReservationsPerTick; n++)
+            var reservations = SystemAPI.GetSingleton<LogisticsDBSingleton>().Reservations;
+
+            state.Dependency = new SyntheticReservationJob
             {
-                uint r = NextRng();
-                int srcIdx = (int)(r % (uint)_banks.Length);
-                int dstIdx = (int)((r / 7u) % (uint)_banks.Length);
-                if (srcIdx == dstIdx) dstIdx = (dstIdx + 1) % _banks.Length;
+                Banks        = _banks.AsDeferredJobArray(),
+                Reservations = reservations.AsParallelWriter(),
+                Tick         = _tick,
+                Seed         = _rng,
+                PerTick      = ReservationsPerTick,
+                Items        = ItemCount,
+            }.Schedule(state.Dependency);
 
-                ushort itemId = (ushort)(1 + (r % ItemCount));
-                int amount = 5 + (int)((r >> 3) % 20);
+            _rng = Scramble(_rng);
+        }
 
-                var key = new LedgerKey { Bank = _banks[srcIdx], ItemId = itemId };
-                db.Reservations.Add(key, new ReservationRecord
+        static uint Scramble(uint r)
+        {
+            r ^= r << 13;
+            r ^= r >> 17;
+            r ^= r << 5;
+            return r;
+        }
+    }
+
+    [BurstCompile]
+    public struct SyntheticReservationJob : IJob
+    {
+        [ReadOnly] public NativeArray<Entity> Banks;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
+
+        public uint   Tick;
+        public uint   Seed;
+        public int    PerTick;
+        public ushort Items;
+
+        public void Execute()
+        {
+            if (Banks.Length < 2) return;
+
+            uint r = Seed;
+            for (int n = 0; n < PerTick; n++)
+            {
+                r ^= r << 13;
+                r ^= r >> 17;
+                r ^= r << 5;
+
+                int srcIdx = (int)(r % (uint)Banks.Length);
+                int dstIdx = (int)((r / 7u) % (uint)Banks.Length);
+                if (srcIdx == dstIdx) dstIdx = (dstIdx + 1) % Banks.Length;
+
+                ushort itemId = (ushort)(1 + (r % Items));
+                int    amount = 5 + (int)((r >> 3) % 20);
+
+                var key = new LedgerKey { Bank = Banks[srcIdx], ItemId = itemId };
+                Reservations.Add(key, new ReservationRecord
                 {
-                    Requester = _banks[dstIdx],
-                    Dest      = _banks[dstIdx],
+                    Requester = Banks[dstIdx],
+                    Dest      = Banks[dstIdx],
                     Amount    = amount,
                     Priority  = 128,
                     Intent    = (byte)ReservationIntent.Surplus,
-                    Tick      = _tick,
+                    Tick      = Tick,
                 });
             }
         }
-
-        uint NextRng()
-        {
-            _rng ^= _rng << 13;
-            _rng ^= _rng >> 17;
-            _rng ^= _rng << 5;
-            return _rng;
-        }
     }
 }
+#endif

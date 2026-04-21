@@ -77,8 +77,7 @@ Assets/_RareIcon/Scripts/ECS/DB/
       LedgerCommitSystem.cs
       LedgerMirrorSystem.cs
     Harness/
-      SyntheticProducerSystem.cs
-      LogisticsDebugOverlay.cs
+      SyntheticProducerSystem.cs  (editor-only, Burst, no GUI)
 ```
 
 `ECS/DB/` stays thin. Future domains (`ECS/DB/Combat/`, `ECS/DB/Skills/`) drop in alongside Logistics. Shared primitives only if a second domain actually needs them.
