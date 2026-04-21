@@ -1,6 +1,6 @@
 # Rareicon Inventory Refactor Plan
 
-> **Status:** Planning. Band-aid `InventorySyncBarrierSystem` currently keeps the game playable; this doc is the execution plan for the proper fix.
+> **Status:** Implemented on dev through Step 9. Unit-side PackSlot + Ulid schema + StorageConsolidator + Sated / Meal wired; barrier deleted; §11.3 static checks all pass. Runtime-only acceptance items (5-min play session, Profiler timeline, structural-change regression) remain open and land as part of Step 10 playtest before merging to main. Build-cost / ProductionRecipe raw→bulk migration deferred as a follow-up — consolidator emits Timber/StoneBlock/Quiver/Meal into storage but existing recipes still pay raw costs so gameplay doesn't break mid-migration.
 
 ## 1. Problem statement
 
@@ -492,10 +492,10 @@ The refactor is "done" when **every one of these is true**. Treat this as a CI c
 
 **Deletions (nothing survives that existed only to mask the race):**
 
-- [ ] `InventorySyncBarrierSystem.cs` is deleted. Its `.meta` is deleted. No Git references remain.
-- [ ] Zero occurrences of `CompleteDependencyBeforeRW<InventorySlot>` or `CompleteDependencyBeforeRO<InventorySlot>` in the codebase (`rg` check).
-- [ ] Zero occurrences of `CompleteDependencyBeforeRW<PackSlot>` / `CompleteDependencyBeforeRO<PackSlot>` either — if we need one, the split didn't work.
-- [ ] Zero `EntityManager.CompleteAllTrackedJobs()` calls added during this debugging campaign (greppable).
+- [x] `InventorySyncBarrierSystem.cs` is deleted. Its `.meta` is deleted. No Git references remain.
+- [x] Zero occurrences of `CompleteDependencyBeforeRW<InventorySlot>` or `CompleteDependencyBeforeRO<InventorySlot>` in the codebase (`rg` check).
+- [x] Zero occurrences of `CompleteDependencyBeforeRW<PackSlot>` / `CompleteDependencyBeforeRO<PackSlot>` either — if we need one, the split didn't work.
+- [x] Zero `EntityManager.CompleteAllTrackedJobs()` calls added during this debugging campaign (greppable).
 
 **Burst compilation (every unit/building system Burst-compiles):**
 
