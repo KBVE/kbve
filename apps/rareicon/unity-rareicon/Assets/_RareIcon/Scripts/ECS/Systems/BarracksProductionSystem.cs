@@ -48,7 +48,7 @@ namespace RareIcon
             if (BankLedgerOps.CountOf(storage, (ushort)ItemId.BanditCoin) < prod.CoinCost) return;
             if (FoodItems.Count(storage) < prod.FoodCost) return;
 
-            BankLedgerOps.RemoveItem(ref storage, (ushort)ItemId.BanditCoin, (ushort)math.min(prod.CoinCost, ushort.MaxValue));
+            BankLedgerOps.RemoveItem(ref storage, (ushort)ItemId.BanditCoin, (ushort)math.min(prod.CoinCost, (int)ushort.MaxValue));
             ConsumeFood(ref storage, prod.FoodCost);
 
             int2 rootHex = building.RootHex;

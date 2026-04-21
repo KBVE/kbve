@@ -166,7 +166,7 @@ namespace RareIcon
                 if (BuildingDB.SpawnsFullyBuilt(req.BuildingType))
                 {
                     for (int i = 0; i < cost.Length; i++)
-                        BankLedgerOps.RemoveItem(ref sourceCap, cost[i].ItemId, (ushort)math.min(cost[i].Amount, ushort.MaxValue));
+                        BankLedgerOps.RemoveItem(ref sourceCap, cost[i].ItemId, (ushort)math.min(cost[i].Amount, (int)ushort.MaxValue));
                 }
             }
 
