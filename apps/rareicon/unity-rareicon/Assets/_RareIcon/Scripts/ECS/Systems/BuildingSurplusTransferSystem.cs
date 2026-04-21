@@ -1,11 +1,12 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Drains each building's SurplusExport items into the Capital's InventorySlot each tick, respecting the per-item Floor. Parallel — source building's InventorySlot is written directly (per-entity, exclusive), Capital adds queue through PendingItemTransfer so every building can drain in parallel without contending on the Capital buffer. Buildings that want to retain output locally (Barracks arrows until the Floor, Capital itself) omit or tune the SurplusExport buffer.</summary>
+    /// <summary>Drains each building's above-floor SurplusExport items into the Capital treasury per tick. Post-per-bank-split, each source bank type (Farm/Furnace/Barracks) runs its own ScheduleParallel job — since their ledger types are distinct, Unity schedules all three in parallel on worker threads. Source buffers are written directly (per-entity, exclusive); the Capital add queues through PendingItemTransfer for InventoryTransferApplierSystem.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct BuildingSurplusTransferSystem : ISystem
@@ -21,35 +22,83 @@ namespace RareIcon
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
 
-            state.Dependency = new SurplusTransferJob
-            {
-                Capital = capital,
-                Ecb     = ecb,
-            }.ScheduleParallel(state.Dependency);
+            var farmH = new FarmSurplusJob        { Capital = capital, Ecb = ecb }.ScheduleParallel(state.Dependency);
+            var furnH = new FurnaceSurplusJob     { Capital = capital, Ecb = ecb }.ScheduleParallel(state.Dependency);
+            var barrH = new BarracksSurplusJob    { Capital = capital, Ecb = ecb }.ScheduleParallel(state.Dependency);
+
+            state.Dependency = JobHandle.CombineDependencies(
+                JobHandle.CombineDependencies(farmH, furnH), barrH);
         }
     }
 
     [BurstCompile]
-    public partial struct SurplusTransferJob : IJobEntity
+    [WithAll(typeof(FarmTag))]
+    public partial struct FarmSurplusJob : IJobEntity
     {
         public Entity Capital;
         public EntityCommandBuffer.ParallelWriter Ecb;
 
         void Execute(Entity entity,
                      [ChunkIndexInQuery] int chunkIdx,
-                     ref DynamicBuffer<InventorySlot> storage,
+                     ref DynamicBuffer<FarmLedger> typedStorage,
                      in DynamicBuffer<SurplusExport> exports)
         {
             if (entity == Capital) return;
+            var storage = typedStorage.Reinterpret<BankLedgerBase>();
+            SurplusTransferShared.Run(ref storage, exports, Capital, chunkIdx, Ecb);
+        }
+    }
 
+    [BurstCompile]
+    [WithAll(typeof(FurnaceTag))]
+    public partial struct FurnaceSurplusJob : IJobEntity
+    {
+        public Entity Capital;
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity entity,
+                     [ChunkIndexInQuery] int chunkIdx,
+                     ref DynamicBuffer<FurnaceLedger> typedStorage,
+                     in DynamicBuffer<SurplusExport> exports)
+        {
+            if (entity == Capital) return;
+            var storage = typedStorage.Reinterpret<BankLedgerBase>();
+            SurplusTransferShared.Run(ref storage, exports, Capital, chunkIdx, Ecb);
+        }
+    }
+
+    [BurstCompile]
+    [WithAll(typeof(BarracksTag))]
+    public partial struct BarracksSurplusJob : IJobEntity
+    {
+        public Entity Capital;
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity entity,
+                     [ChunkIndexInQuery] int chunkIdx,
+                     ref DynamicBuffer<BarracksLedger> typedStorage,
+                     in DynamicBuffer<SurplusExport> exports)
+        {
+            if (entity == Capital) return;
+            var storage = typedStorage.Reinterpret<BankLedgerBase>();
+            SurplusTransferShared.Run(ref storage, exports, Capital, chunkIdx, Ecb);
+        }
+    }
+
+    internal static class SurplusTransferShared
+    {
+        public static void Run(ref DynamicBuffer<BankLedgerBase> storage,
+                               in DynamicBuffer<SurplusExport> exports,
+                               Entity capital,
+                               int chunkIdx,
+                               EntityCommandBuffer.ParallelWriter ecb)
+        {
             for (int e = 0; e < exports.Length; e++)
             {
                 ushort itemId = exports[e].ItemId;
                 ushort floor  = exports[e].Floor;
 
-                int have = 0;
-                for (int i = 0; i < storage.Length; i++)
-                    if (storage[i].ItemId == itemId) have += storage[i].Count;
+                int have = BankLedgerOps.CountOf(storage, itemId);
                 if (have <= floor) continue;
 
                 int move = have - floor;
@@ -64,10 +113,10 @@ namespace RareIcon
                     remaining -= take;
                 }
 
-                var req = Ecb.CreateEntity(chunkIdx);
-                Ecb.AddComponent(chunkIdx, req, new PendingItemTransfer
+                var req = ecb.CreateEntity(chunkIdx);
+                ecb.AddComponent(chunkIdx, req, new PendingItemTransfer
                 {
-                    Target = Capital,
+                    Target = capital,
                     ItemId = itemId,
                     Delta  = move,
                 });

@@ -16,9 +16,9 @@ namespace RareIcon
         {
             bool hasArrows = false;
             if (SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)
-                && SystemAPI.HasBuffer<InventorySlot>(capital))
+                && SystemAPI.HasBuffer<CapitalLedger>(capital))
             {
-                var inv = SystemAPI.GetBuffer<InventorySlot>(capital);
+                var inv = SystemAPI.GetBuffer<CapitalLedger>(capital);
                 for (int i = 0; i < inv.Length; i++)
                 {
                     if (inv[i].ItemId == (ushort)ItemId.Arrow && inv[i].Count > 0)

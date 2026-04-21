@@ -41,13 +41,14 @@ namespace RareIcon
                      [ChunkIndexInQuery] int chunkIdx,
                      ref BarracksProduction prod,
                      in Building building,
-                     ref DynamicBuffer<InventorySlot> storage)
+                     ref DynamicBuffer<BarracksLedger> typedStorage)
         {
             if (CurrentTurn < prod.LastProducedTurn + prod.CadenceTurns) return;
-            if (CountItem(storage, (ushort)ItemId.BanditCoin) < prod.CoinCost) return;
+            var storage = typedStorage.Reinterpret<BankLedgerBase>();
+            if (BankLedgerOps.CountOf(storage, (ushort)ItemId.BanditCoin) < prod.CoinCost) return;
             if (FoodItems.Count(storage) < prod.FoodCost) return;
 
-            Consume(ref storage, (ushort)ItemId.BanditCoin, prod.CoinCost);
+            BankLedgerOps.RemoveItem(ref storage, (ushort)ItemId.BanditCoin, (ushort)math.min(prod.CoinCost, ushort.MaxValue));
             ConsumeFood(ref storage, prod.FoodCost);
 
             int2 rootHex = building.RootHex;
@@ -69,28 +70,7 @@ namespace RareIcon
             prod.LastProducedTurn = CurrentTurn;
         }
 
-        static int CountItem(in DynamicBuffer<InventorySlot> inv, ushort itemId)
-        {
-            int total = 0;
-            for (int i = 0; i < inv.Length; i++)
-                if (inv[i].ItemId == itemId) total += inv[i].Count;
-            return total;
-        }
-
-        static void Consume(ref DynamicBuffer<InventorySlot> inv, ushort itemId, int amount)
-        {
-            for (int i = 0; i < inv.Length && amount > 0; i++)
-            {
-                if (inv[i].ItemId != itemId) continue;
-                var slot = inv[i];
-                int take = math.min(slot.Count, amount);
-                slot.Count = (ushort)(slot.Count - take);
-                amount -= take;
-                inv[i] = slot;
-            }
-        }
-
-        static void ConsumeFood(ref DynamicBuffer<InventorySlot> inv, int amount)
+        static void ConsumeFood(ref DynamicBuffer<BankLedgerBase> inv, int amount)
         {
             for (int i = 0; i < inv.Length && amount > 0; i++)
             {

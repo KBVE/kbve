@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Two-phase transport for Looter / Farmer haulers targeting a Barracks: on the Capital hex with an empty-of-supply inventory, pick up 1 BanditCoin or 1 food item; on the Barracks root hex, deposit matching carried items into the Barracks' InventorySlot buffer, respecting StorageCapacity. Burst ISystem — single-worker Schedule keeps shared Capital writes safe before we split into parallel jobs.</summary>
+    /// <summary>Two-phase transport for Looter / Farmer haulers targeting a Barracks: on the Capital hex with an empty-of-supply pack, pick up 1 BanditCoin or 1 food item from CapitalLedger; on the Barracks root hex, deposit matching carried items into the Barracks' BarracksLedger buffer, respecting StorageCapacity. Burst ISystem — single-worker Schedule keeps shared Capital + Barracks writes safe.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireSharingSystem))]
@@ -30,7 +30,8 @@ namespace RareIcon
                 CapLookup      = SystemAPI.GetComponentLookup<StorageCapacity>(true),
                 BuildingLookup = SystemAPI.GetComponentLookup<Building>(true),
                 PackLookup     = SystemAPI.GetBufferLookup<PackSlot>(false),
-                InvLookup      = SystemAPI.GetBufferLookup<InventorySlot>(false),
+                CapitalLookup  = SystemAPI.GetBufferLookup<CapitalLedger>(false),
+                BarracksLookup = SystemAPI.GetBufferLookup<BarracksLedger>(false),
             }.Schedule(state.Dependency);
         }
     }
@@ -40,18 +41,16 @@ namespace RareIcon
     {
         public Entity Capital;
 
-        [ReadOnly] public NativeHashMap<int2, Entity>       HexLookup;
-        [ReadOnly] public ComponentLookup<HexOccupant>      OccupantLookup;
-        [ReadOnly] public ComponentLookup<BarracksTag>      BarracksTag;
+        [ReadOnly] public NativeHashMap<int2, Entity>         HexLookup;
+        [ReadOnly] public ComponentLookup<HexOccupant>        OccupantLookup;
+        [ReadOnly] public ComponentLookup<BarracksTag>        BarracksTag;
         [ReadOnly] public ComponentLookup<BarracksProduction> ProdLookup;
-        [ReadOnly] public ComponentLookup<StorageCapacity>  CapLookup;
-        [ReadOnly] public ComponentLookup<Building>         BuildingLookup;
+        [ReadOnly] public ComponentLookup<StorageCapacity>    CapLookup;
+        [ReadOnly] public ComponentLookup<Building>           BuildingLookup;
 
-        [NativeDisableParallelForRestriction]
-        public BufferLookup<PackSlot> PackLookup;
-
-        [NativeDisableParallelForRestriction]
-        public BufferLookup<InventorySlot> InvLookup;
+        [NativeDisableParallelForRestriction] public BufferLookup<PackSlot>       PackLookup;
+        [NativeDisableParallelForRestriction] public BufferLookup<CapitalLedger>  CapitalLookup;
+        [NativeDisableParallelForRestriction] public BufferLookup<BarracksLedger> BarracksLookup;
 
         void Execute(Entity entity, in JobIntent intent, in UnitMovement movement)
         {
@@ -63,32 +62,33 @@ namespace RareIcon
             if (!ProdLookup.HasComponent(target)) return;
             if (!BuildingLookup.HasComponent(target)) return;
             if (!PackLookup.HasBuffer(entity)) return;
+            if (!BarracksLookup.HasBuffer(target)) return;
 
             var unitPack = PackLookup[entity];
             var rootHex  = BuildingLookup[target].RootHex;
             var prod     = ProdLookup[target];
             ushort cap   = CapLookup[target].Total;
             var here     = movement.CurrentHex;
+            var storage  = BarracksLookup[target].Reinterpret<BankLedgerBase>();
 
             if (here.Equals(rootHex))
             {
-                var storage = InvLookup[target];
-                DepositSupply(unitPack, storage, cap);
+                DepositSupply(ref unitPack, ref storage, cap);
                 return;
             }
 
             if (!IsOnCapital(here)) return;
+            if (!CapitalLookup.HasBuffer(Capital)) return;
 
-            var barracksStorage = InvLookup[target];
-            int total = StorageTotal(barracksStorage);
+            int total = BankLedgerOps.TotalCount(storage);
             if (total >= cap) return;
 
-            int coinShortfall = math.max(0, prod.CoinCost - StorageCount(barracksStorage, (ushort)ItemId.BanditCoin));
-            int foodShortfall = math.max(0, prod.FoodCost - FoodItems.Count(barracksStorage));
+            int coinShortfall = math.max(0, prod.CoinCost - BankLedgerOps.CountOf(storage, (ushort)ItemId.BanditCoin));
+            int foodShortfall = math.max(0, prod.FoodCost - FoodItems.Count(storage));
 
-            var capitalInv = InvLookup[Capital];
-            if (coinShortfall > 0) TryPickupOne(capitalInv, unitPack, (ushort)ItemId.BanditCoin);
-            else if (foodShortfall > 0) TryPickupFood(capitalInv, unitPack);
+            var capitalInv = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
+            if (coinShortfall > 0) TryPickupOne(ref capitalInv, ref unitPack, (ushort)ItemId.BanditCoin);
+            else if (foodShortfall > 0) TryPickupFood(ref capitalInv, ref unitPack);
         }
 
         bool IsOnCapital(int2 here)
@@ -98,38 +98,16 @@ namespace RareIcon
             return OccupantLookup[tile].Building == Capital;
         }
 
-        static int StorageTotal(DynamicBuffer<InventorySlot> inv)
-        {
-            int t = 0;
-            for (int i = 0; i < inv.Length; i++) t += inv[i].Count;
-            return t;
-        }
-
-        static int StorageCount(DynamicBuffer<InventorySlot> inv, ushort itemId)
-        {
-            int t = 0;
-            for (int i = 0; i < inv.Length; i++)
-                if (inv[i].ItemId == itemId) t += inv[i].Count;
-            return t;
-        }
-
-        static void TryPickupOne(DynamicBuffer<InventorySlot> capInv,
-                                 DynamicBuffer<PackSlot> unitPack,
+        static void TryPickupOne(ref DynamicBuffer<BankLedgerBase> capInv,
+                                 ref DynamicBuffer<PackSlot> unitPack,
                                  ushort itemId)
         {
-            for (int i = 0; i < capInv.Length; i++)
-            {
-                if (capInv[i].ItemId != itemId || capInv[i].Count == 0) continue;
-                var slot = capInv[i];
-                slot.Count -= 1;
-                capInv[i] = slot;
-                MergeOrAddPack(unitPack, itemId, 1);
-                return;
-            }
+            if (BankLedgerOps.RemoveItem(ref capInv, itemId, 1) == 0) return;
+            MergeOrAddPack(ref unitPack, itemId, 1);
         }
 
-        static void TryPickupFood(DynamicBuffer<InventorySlot> capInv,
-                                  DynamicBuffer<PackSlot> unitPack)
+        static void TryPickupFood(ref DynamicBuffer<BankLedgerBase> capInv,
+                                  ref DynamicBuffer<PackSlot> unitPack)
         {
             for (int i = 0; i < capInv.Length; i++)
             {
@@ -139,16 +117,16 @@ namespace RareIcon
                 var slot = capInv[i];
                 slot.Count -= 1;
                 capInv[i] = slot;
-                MergeOrAddPack(unitPack, id, 1);
+                MergeOrAddPack(ref unitPack, id, 1);
                 return;
             }
         }
 
-        static void DepositSupply(DynamicBuffer<PackSlot> unitPack,
-                                  DynamicBuffer<InventorySlot> storage,
+        static void DepositSupply(ref DynamicBuffer<PackSlot> unitPack,
+                                  ref DynamicBuffer<BankLedgerBase> storage,
                                   ushort capacity)
         {
-            int remaining = capacity - StorageTotal(storage);
+            int remaining = capacity - BankLedgerOps.TotalCount(storage);
             if (remaining <= 0) return;
 
             for (int i = 0; i < unitPack.Length && remaining > 0; i++)
@@ -162,26 +140,11 @@ namespace RareIcon
                 uslot.Count = (ushort)(uslot.Count - take);
                 unitPack[i] = uslot;
                 remaining -= take;
-                MergeOrAddInv(storage, id, (ushort)take);
+                BankLedgerOps.AddItem(ref storage, id, (ushort)take, default);
             }
         }
 
-        static void MergeOrAddInv(DynamicBuffer<InventorySlot> inv, ushort itemId, ushort amount)
-        {
-            for (int i = 0; i < inv.Length; i++)
-            {
-                if (inv[i].ItemId == itemId)
-                {
-                    var slot = inv[i];
-                    slot.Count = (ushort)math.min(slot.Count + amount, ushort.MaxValue);
-                    inv[i] = slot;
-                    return;
-                }
-            }
-            inv.Add(new InventorySlot { ItemId = itemId, Count = amount });
-        }
-
-        static void MergeOrAddPack(DynamicBuffer<PackSlot> pack, ushort itemId, ushort amount)
+        static void MergeOrAddPack(ref DynamicBuffer<PackSlot> pack, ushort itemId, ushort amount)
         {
             for (int i = 0; i < pack.Length; i++)
             {

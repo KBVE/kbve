@@ -100,13 +100,13 @@ namespace RareIcon
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
 
-            if (!em.HasBuffer<InventorySlot>(capital))
+            if (!em.HasBuffer<CapitalLedger>(capital))
             {
                 _bodyLabel.text = _locale.Get("treasury.no_capital");
                 return;
             }
 
-            var slots = em.GetBuffer<InventorySlot>(capital);
+            var slots = em.GetBuffer<CapitalLedger>(capital);
             if (slots.Length == 0)
             {
                 _bodyLabel.text = _locale.Get("treasury.empty");

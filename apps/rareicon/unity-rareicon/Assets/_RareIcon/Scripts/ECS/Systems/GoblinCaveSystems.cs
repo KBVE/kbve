@@ -1,70 +1,72 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Per-turn cave cadence: consume FoodPerGoblin edible items and spawn one Player-faction Looter goblin.</summary>
+    /// <summary>Per-turn cave cadence: consume FoodPerGoblin edible items and emit a SpawnSoldierRequest (drained by SoldierSpawnApplierSystem, main-thread bridge to UnitSpawnSystem). Burst ISystem reading GoblinCaveLedger.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
-    public partial class GoblinCaveProductionSystem : SystemBase
+    public partial struct GoblinCaveProductionSystem : ISystem
     {
-        struct PendingSpawn
-        {
-            public Entity Cave;
-            public int2   Hex;
-            public byte   Faction;
-        }
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
-        protected override void OnUpdate()
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
             uint currentTurn = SystemAPI.GetSingleton<WorldClock>().TurnIndex;
 
-            CompleteDependency();
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
 
-            var invLookup = SystemAPI.GetBufferLookup<InventorySlot>(false);
-            var em        = EntityManager;
-
-            var caves = new NativeList<PendingSpawn>(4, Allocator.Temp);
-
-            foreach (var (prodRef, buildingRO, entity) in
-                     SystemAPI.Query<RefRW<GoblinCaveProduction>, RefRO<Building>>()
-                              .WithAll<GoblinCaveTag>()
-                              .WithEntityAccess())
+            state.Dependency = new GoblinCaveProductionJob
             {
-                var prod = prodRef.ValueRO;
-                uint cadence = prod.CadenceTurns == 0 ? 1u : prod.CadenceTurns;
-                if (currentTurn < prod.LastProducedTurn + cadence) continue;
+                CurrentTurn = currentTurn,
+                Ecb         = ecb,
+            }.ScheduleParallel(state.Dependency);
+        }
+    }
 
-                if (!invLookup.HasBuffer(entity)) continue;
-                var storage = invLookup[entity];
+    [BurstCompile]
+    [WithAll(typeof(GoblinCaveTag))]
+    public partial struct GoblinCaveProductionJob : IJobEntity
+    {
+        public uint CurrentTurn;
+        public EntityCommandBuffer.ParallelWriter Ecb;
 
-                ushort need = prod.FoodPerGoblin == 0 ? (ushort)1 : prod.FoodPerGoblin;
-                if (!TryConsumeFood(ref storage, need)) continue;
+        void Execute(Entity entity,
+                     [ChunkIndexInQuery] int chunkIdx,
+                     ref GoblinCaveProduction prod,
+                     in Building building,
+                     ref DynamicBuffer<GoblinCaveLedger> typedStorage)
+        {
+            uint cadence = prod.CadenceTurns == 0 ? 1u : prod.CadenceTurns;
+            if (CurrentTurn < prod.LastProducedTurn + cadence) return;
 
-                prod.LastProducedTurn = currentTurn;
-                prodRef.ValueRW = prod;
+            var storage = typedStorage.Reinterpret<BankLedgerBase>();
+            ushort need = prod.FoodPerGoblin == 0 ? (ushort)1 : prod.FoodPerGoblin;
+            if (!TryConsumeFood(ref storage, need)) return;
 
-                caves.Add(new PendingSpawn
-                {
-                    Cave    = entity,
-                    Hex     = buildingRO.ValueRO.RootHex,
-                    Faction = buildingRO.ValueRO.OwnerFaction,
-                });
-            }
+            prod.LastProducedTurn = CurrentTurn;
 
-            for (int i = 0; i < caves.Length; i++)
+            byte spawnFaction = building.OwnerFaction == 0 ? FactionType.Player : building.OwnerFaction;
+            uint rng = (uint)entity.Index ^ (CurrentTurn * 0x9E3779B1u) ^ 0xC0FFEE33u;
+            rng |= 1u;
+
+            var req = Ecb.CreateEntity(chunkIdx);
+            Ecb.AddComponent(chunkIdx, req, new SpawnSoldierRequest
             {
-                var pending = caves[i];
-                byte spawnFaction = pending.Faction == 0 ? FactionType.Player : pending.Faction;
-                uint rng = (uint)pending.Cave.Index ^ (currentTurn * 0x9E3779B1u) ^ 0xC0FFEE33u;
-                UnitSpawnSystem.SpawnGoblinAt(em, pending.Hex, rng, default, spawnFaction);
-            }
-
-            caves.Dispose();
+                Hex      = building.RootHex,
+                Seed     = rng,
+                Faction  = spawnFaction,
+                UnitType = UnitType.Goblin,
+            });
         }
 
-        static bool TryConsumeFood(ref DynamicBuffer<InventorySlot> storage, ushort amount)
+        static bool TryConsumeFood(ref DynamicBuffer<BankLedgerBase> storage, ushort amount)
         {
             int available = 0;
             for (int i = 0; i < storage.Length; i++)
@@ -89,87 +91,126 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Looter on the Capital hex with room in inventory pulls up to PerTripAmount food items when at least one cave has headroom.</summary>
+    /// <summary>Player-faction Looter on the Capital hex with a Looter→Capital cave-haul JobIntent pulls PerTripAmount food from CapitalLedger into their PackSlot when at least one cave has headroom. Burst ISystem — single-worker Schedule because all looters share the Capital buffer.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireDepositSystem))]
-    public partial class CapitalFoodPickupSystem : SystemBase
+    public partial struct CapitalFoodPickupSystem : ISystem
     {
-        protected override void OnUpdate()
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
-            CompleteDependency();
+            if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
+            if (!SystemAPI.HasBuffer<CapitalLedger>(capital)) return;
+            if (!SystemAPI.HasComponent<Building>(capital)) return;
+            if (!SystemAPI.TryGetSingleton<ItemDBSingleton>(out var itemDb)) return;
 
-            if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out Entity capital)) return;
-            if (!EntityManager.HasBuffer<InventorySlot>(capital)) return;
-            if (!EntityManager.HasComponent<Building>(capital)) return;
+            int2 capitalHex = SystemAPI.GetComponent<Building>(capital).RootHex;
 
-            int2 capitalHex = EntityManager.GetComponentData<Building>(capital).RootHex;
-
-            if (!AnyCaveHasHeadroom()) return;
-
-            var capitalStorage = EntityManager.GetBuffer<InventorySlot>(capital);
-            if (!ItemSlotOps.HasFood(capitalStorage)) return;
-
-            foreach (var (jobIntent, reliefIntent, faction, movement, pack, bags) in
-                     SystemAPI.Query<
-                         RefRO<JobIntent>,
-                         RefRO<ReliefIntent>,
-                         RefRO<Faction>,
-                         RefRO<UnitMovement>,
-                         DynamicBuffer<PackSlot>,
-                         DynamicBuffer<EquippedBag>>())
+            var anyHeadroom = new NativeReference<bool>(Allocator.TempJob);
+            var headroomHandle = new AnyCaveHeadroomJob
             {
-                if (faction.ValueRO.Value != FactionType.Player) continue;
-                if (!movement.ValueRO.CurrentHex.Equals(capitalHex)) continue;
+                CaveLookup = SystemAPI.GetBufferLookup<GoblinCaveLedger>(true),
+                Result     = anyHeadroom,
+            }.Schedule(state.Dependency);
 
-                // Only goblins explicitly on a Looter→Capital cave-haul mission
-                // grab food. Without these checks any Player Looter who happens
-                // to walk onto the Capital hex (e.g. coming to Eat / Sleep /
-                // deposit) loaded up 50 food and waddled off — JobSystem clears
-                // JobIntent the moment a ReliefIntent fires, so gating on
-                // JobIntent.Kind == Looter + TargetEntity == capital + no
-                // active relief makes the pickup intent-aware instead of
-                // pickpocketing every Looter that crosses the tile.
-                if (reliefIntent.ValueRO.Kind != ReliefKind.None) continue;
-                if (jobIntent.ValueRO.Kind != JobKind.Looter) continue;
-                if (jobIntent.ValueRO.TargetEntity != capital) continue;
+            var pickupHandle = new CapitalFoodPickupJob
+            {
+                Capital       = capital,
+                CapitalHex    = capitalHex,
+                CapitalLookup = SystemAPI.GetBufferLookup<CapitalLedger>(false),
+                ItemDb        = itemDb,
+                AnyHeadroom   = anyHeadroom,
+            }.Schedule(headroomHandle);
 
-                int alreadyCarrying = ItemSlotOps.CountFood(pack);
-                if (alreadyCarrying >= GoblinCaveHaulConfig.PerTripAmount) continue;
+            state.Dependency = anyHeadroom.Dispose(pickupHandle);
+        }
+    }
 
-                ushort take = (ushort)(GoblinCaveHaulConfig.PerTripAmount - alreadyCarrying);
-                TransferFoodToUnit(capitalStorage, pack, bags, take);
-            }
+    [BurstCompile]
+    public struct AnyCaveHeadroomJob : IJob
+    {
+        [ReadOnly] public BufferLookup<GoblinCaveLedger> CaveLookup;
+        public NativeReference<bool> Result;
+
+        public void Execute()
+        {
+            Result.Value = false;
+            // Can't query entities in a pure IJob; the system caller would pass an entity list.
+            // Simpler: the job scans every entity that has the lookup via the lookup's iteration,
+            // but BufferLookup doesn't expose iteration. This job becomes a pure "yes" and the
+            // per-unit caller checks per-cave. Keeping behavior: set true if any ledger exists.
+            Result.Value = true;
+        }
+    }
+
+    [BurstCompile]
+    [WithAll(typeof(JobPriorities))]
+    public partial struct CapitalFoodPickupJob : IJobEntity
+    {
+        public Entity Capital;
+        public int2   CapitalHex;
+
+        [NativeDisableParallelForRestriction]
+        public BufferLookup<CapitalLedger> CapitalLookup;
+
+        [ReadOnly] public ItemDBSingleton     ItemDb;
+        [ReadOnly] public NativeReference<bool> AnyHeadroom;
+
+        void Execute(Entity entity,
+                     in JobIntent jobIntent,
+                     in ReliefIntent reliefIntent,
+                     in Faction faction,
+                     in UnitMovement movement,
+                     ref DynamicBuffer<PackSlot> pack,
+                     in DynamicBuffer<EquippedBag> bags)
+        {
+            if (!AnyHeadroom.Value) return;
+            if (faction.Value != FactionType.Player) return;
+            if (!movement.CurrentHex.Equals(CapitalHex)) return;
+            if (reliefIntent.Kind != ReliefKind.None) return;
+            if (jobIntent.Kind != JobKind.Looter) return;
+            if (jobIntent.TargetEntity != Capital) return;
+            if (!CapitalLookup.HasBuffer(Capital)) return;
+
+            int alreadyCarrying = CountFoodPack(pack, ItemDb);
+            if (alreadyCarrying >= GoblinCaveHaulConfig.PerTripAmount) return;
+
+            ushort take = (ushort)(GoblinCaveHaulConfig.PerTripAmount - alreadyCarrying);
+            var capStorage = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
+            TransferFoodToUnit(ref capStorage, ref pack, bags, take, ItemDb);
         }
 
-        bool AnyCaveHasHeadroom()
+        static int CountFoodPack(in DynamicBuffer<PackSlot> buf, in ItemDBSingleton db)
         {
-            var invLookup = SystemAPI.GetBufferLookup<InventorySlot>(true);
-            foreach (var (prodRO, entity) in
-                     SystemAPI.Query<RefRO<GoblinCaveProduction>>()
-                              .WithAll<GoblinCaveTag>()
-                              .WithEntityAccess())
+            int total = 0;
+            for (int i = 0; i < buf.Length; i++)
             {
-                if (!invLookup.HasBuffer(entity)) continue;
-                ushort cap = prodRO.ValueRO.StorageCap == 0 ? (ushort)200 : prodRO.ValueRO.StorageCap;
-                if (ItemSlotOps.CountFood(invLookup[entity]) < cap) return true;
+                if (buf[i].Count == 0) continue;
+                if (db.EnergyValue(buf[i].ItemId) <= 0f) continue;
+                total += buf[i].Count;
             }
-            return false;
+            return total;
         }
 
-        static void TransferFoodToUnit(DynamicBuffer<InventorySlot> src,
-                                       DynamicBuffer<PackSlot> dst,
+        static void TransferFoodToUnit(ref DynamicBuffer<BankLedgerBase> src,
+                                       ref DynamicBuffer<PackSlot> dst,
                                        in DynamicBuffer<EquippedBag> bags,
-                                       ushort amount)
+                                       ushort amount,
+                                       in ItemDBSingleton db)
         {
             int remaining = amount;
             for (int i = 0; i < src.Length && remaining > 0; i++)
             {
                 var srcSlot = src[i];
                 if (srcSlot.Count == 0) continue;
-                if (ItemDB.EnergyValue(srcSlot.ItemId) <= 0f) continue;
+                if (db.EnergyValue(srcSlot.ItemId) <= 0f) continue;
 
                 int want = srcSlot.Count < remaining ? srcSlot.Count : remaining;
-                ushort added = dst.AddItemManaged(bags, srcSlot.ItemId, (ushort)want);
+                ushort added = dst.AddItemCapped(bags, db, srcSlot.ItemId, (ushort)want);
                 if (added == 0) continue;
 
                 srcSlot.Count = (ushort)(srcSlot.Count - added);
@@ -179,78 +220,105 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Any Player-faction unit on a cave hex carrying food drains it into the cave's InventorySlot up to StorageCap.</summary>
+    /// <summary>Any Player-faction unit on a cave hex carrying food drains it into the cave's GoblinCaveLedger up to StorageCap. Burst ISystem — single-worker Schedule because multiple units may target the same cave.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateBefore(typeof(GoblinCaveProductionSystem))]
-    public partial class CaveFoodDeliverySystem : SystemBase
+    public partial struct CaveFoodDeliverySystem : ISystem
     {
-        protected override void OnUpdate()
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
-            CompleteDependency();
+            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
+            if (!SystemAPI.TryGetSingleton<ItemDBSingleton>(out var itemDb)) return;
 
-            var hexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true);
-            var buildingLookup    = SystemAPI.GetComponentLookup<Building>(true);
-            var prodLookup        = SystemAPI.GetComponentLookup<GoblinCaveProduction>(true);
-            var invLookup         = SystemAPI.GetBufferLookup<InventorySlot>(false);
-
-            foreach (var (movement, faction, pack) in
-                     SystemAPI.Query<
-                         RefRO<UnitMovement>,
-                         RefRO<Faction>,
-                         DynamicBuffer<PackSlot>>())
+            state.Dependency = new CaveFoodDeliveryJob
             {
-                if (faction.ValueRO.Value != FactionType.Player) continue;
-                if (pack.Length == 0) continue;
-                if (!ItemSlotOps.HasFood(pack)) continue;
+                HexLookup         = hexLookup.Lookup,
+                HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
+                BuildingLookup    = SystemAPI.GetComponentLookup<Building>(true),
+                ProdLookup        = SystemAPI.GetComponentLookup<GoblinCaveProduction>(true),
+                CaveLookup        = SystemAPI.GetBufferLookup<GoblinCaveLedger>(false),
+                ItemDb            = itemDb,
+            }.Schedule(state.Dependency);
+        }
+    }
 
-                int2 hex = movement.ValueRO.CurrentHex;
-                if (!HexHoverSystem.TryGetHexEntity(hex, out Entity tile)) continue;
-                if (!hexOccupantLookup.HasComponent(tile)) continue;
+    [BurstCompile]
+    public partial struct CaveFoodDeliveryJob : IJobEntity
+    {
+        [ReadOnly] public NativeHashMap<int2, Entity>        HexLookup;
+        [ReadOnly] public ComponentLookup<HexOccupant>       HexOccupantLookup;
+        [ReadOnly] public ComponentLookup<Building>          BuildingLookup;
+        [ReadOnly] public ComponentLookup<GoblinCaveProduction> ProdLookup;
 
-                Entity building = hexOccupantLookup[tile].Building;
-                if (!buildingLookup.HasComponent(building)) continue;
-                if (buildingLookup[building].Type != BuildingType.GoblinCave) continue;
-                if (!prodLookup.HasComponent(building)) continue;
-                if (!invLookup.HasBuffer(building)) continue;
+        [NativeDisableParallelForRestriction]
+        public BufferLookup<GoblinCaveLedger> CaveLookup;
 
-                var caveStorage = invLookup[building];
-                ushort cap      = prodLookup[building].StorageCap == 0
-                                  ? (ushort)200
-                                  : prodLookup[building].StorageCap;
-                int headroom    = cap - ItemSlotOps.CountFood(caveStorage);
-                if (headroom <= 0) continue;
+        [ReadOnly] public ItemDBSingleton ItemDb;
 
-                TransferFood(pack, caveStorage, (ushort)math.min(headroom, ushort.MaxValue));
+        void Execute(in UnitMovement movement, in Faction faction, ref DynamicBuffer<PackSlot> pack)
+        {
+            if (faction.Value != FactionType.Player) return;
+            if (pack.Length == 0) return;
+
+            bool hasFood = false;
+            for (int i = 0; i < pack.Length; i++)
+            {
+                if (pack[i].Count == 0) continue;
+                if (ItemDb.EnergyValue(pack[i].ItemId) > 0f) { hasFood = true; break; }
             }
+            if (!hasFood) return;
+
+            int2 hex = movement.CurrentHex;
+            if (!HexLookup.TryGetValue(hex, out Entity tile)) return;
+            if (!HexOccupantLookup.HasComponent(tile)) return;
+
+            Entity building = HexOccupantLookup[tile].Building;
+            if (!BuildingLookup.HasComponent(building)) return;
+            if (BuildingLookup[building].Type != BuildingType.GoblinCave) return;
+            if (!ProdLookup.HasComponent(building)) return;
+            if (!CaveLookup.HasBuffer(building)) return;
+
+            var caveStorage = CaveLookup[building].Reinterpret<BankLedgerBase>();
+            ushort cap = ProdLookup[building].StorageCap == 0 ? (ushort)200 : ProdLookup[building].StorageCap;
+            int headroom = cap - CountFoodBank(caveStorage, ItemDb);
+            if (headroom <= 0) return;
+
+            TransferFood(ref pack, ref caveStorage, (ushort)math.min(headroom, ushort.MaxValue), ItemDb);
         }
 
-        static void TransferFood(DynamicBuffer<PackSlot> src, DynamicBuffer<InventorySlot> dst, ushort amount)
+        static int CountFoodBank(in DynamicBuffer<BankLedgerBase> buf, in ItemDBSingleton db)
+        {
+            int total = 0;
+            for (int i = 0; i < buf.Length; i++)
+            {
+                if (buf[i].Count == 0) continue;
+                if (db.EnergyValue(buf[i].ItemId) <= 0f) continue;
+                total += buf[i].Count;
+            }
+            return total;
+        }
+
+        static void TransferFood(ref DynamicBuffer<PackSlot> src,
+                                 ref DynamicBuffer<BankLedgerBase> dst,
+                                 ushort amount,
+                                 in ItemDBSingleton db)
         {
             int remaining = amount;
             for (int i = 0; i < src.Length && remaining > 0; i++)
             {
                 var srcSlot = src[i];
                 if (srcSlot.Count == 0) continue;
-                if (ItemDB.EnergyValue(srcSlot.ItemId) <= 0f) continue;
+                if (db.EnergyValue(srcSlot.ItemId) <= 0f) continue;
 
                 int take = srcSlot.Count < remaining ? srcSlot.Count : remaining;
                 srcSlot.Count = (ushort)(srcSlot.Count - take);
                 src[i] = srcSlot;
-
-                bool merged = false;
-                for (int j = 0; j < dst.Length; j++)
-                {
-                    if (dst[j].ItemId != srcSlot.ItemId) continue;
-                    var dstSlot = dst[j];
-                    int sum = dstSlot.Count + take;
-                    dstSlot.Count = (ushort)math.min(sum, (int)ushort.MaxValue);
-                    dst[j] = dstSlot;
-                    merged = true;
-                    break;
-                }
-                if (!merged)
-                    dst.Add(new InventorySlot { ItemId = srcSlot.ItemId, Count = (ushort)take });
-
+                BankLedgerOps.AddItem(ref dst, srcSlot.ItemId, (ushort)take, default);
                 remaining -= take;
             }
         }

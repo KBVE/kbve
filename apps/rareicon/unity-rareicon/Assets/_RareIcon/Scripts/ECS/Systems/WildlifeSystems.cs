@@ -115,7 +115,7 @@ namespace RareIcon
         [NativeDisableParallelForRestriction]
         public BufferLookup<ItemDrop> DropLookup;
 
-        void Execute(in UnitMovement movement, in Faction faction, ref DynamicBuffer<InventorySlot> inventory)
+        void Execute(in UnitMovement movement, in Faction faction, ref DynamicBuffer<PackSlot> pack)
         {
             if (faction.Value != FactionType.Player) return;
             if (!HexLookup.TryGetValue(movement.CurrentHex, out var hex)) return;
@@ -125,7 +125,7 @@ namespace RareIcon
             if (drops.Length == 0) return;
 
             for (int i = 0; i < drops.Length; i++)
-                inventory.AddItem(drops[i].ItemId, drops[i].Count);
+                pack.AddItem(drops[i].ItemId, drops[i].Count);
             drops.Clear();
         }
     }

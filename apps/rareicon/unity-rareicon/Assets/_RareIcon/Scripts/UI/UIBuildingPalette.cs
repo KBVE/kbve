@@ -226,10 +226,10 @@ namespace RareIcon
                     q.Dispose();
                 }
                 if (capital == Entity.Null) return false;
-                if (!em.HasBuffer<InventorySlot>(capital)) return false;
-                var inv = em.GetBuffer<InventorySlot>(capital);
+                if (!em.HasBuffer<CapitalLedger>(capital)) return false;
+                var inv = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
                 for (int i = 0; i < cost.Length; i++)
-                    if (!ItemSlotOps.HasBuildCost(inv, cost[i].ItemId, cost[i].Amount)) return false;
+                    if (!BankLedgerOps.HasBuildCost(inv, cost[i].ItemId, cost[i].Amount)) return false;
                 return true;
             }
 

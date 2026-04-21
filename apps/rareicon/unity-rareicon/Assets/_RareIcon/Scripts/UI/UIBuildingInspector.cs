@@ -291,10 +291,20 @@ namespace RareIcon
 
         void RefreshStorage(EntityManager em)
         {
-            if (!em.HasBuffer<InventorySlot>(_target))
+            // Read whichever per-bank ledger this building entity carries.
+            // Five types to check; all share BankLedgerBase layout so we
+            // reinterpret once and iterate the common shape.
+            DynamicBuffer<BankLedgerBase> slots = default;
+            bool hasSlots = false;
+            if (em.HasBuffer<CapitalLedger>(_target))      { slots = em.GetBuffer<CapitalLedger>(_target).Reinterpret<BankLedgerBase>(); hasSlots = true; }
+            else if (em.HasBuffer<FurnaceLedger>(_target)) { slots = em.GetBuffer<FurnaceLedger>(_target).Reinterpret<BankLedgerBase>(); hasSlots = true; }
+            else if (em.HasBuffer<FarmLedger>(_target))    { slots = em.GetBuffer<FarmLedger>(_target).Reinterpret<BankLedgerBase>();    hasSlots = true; }
+            else if (em.HasBuffer<BarracksLedger>(_target)){ slots = em.GetBuffer<BarracksLedger>(_target).Reinterpret<BankLedgerBase>();hasSlots = true; }
+            else if (em.HasBuffer<GoblinCaveLedger>(_target)){ slots = em.GetBuffer<GoblinCaveLedger>(_target).Reinterpret<BankLedgerBase>(); hasSlots = true; }
+
+            if (!hasSlots)
             { SetHidden(_storageLabel, true); _storageLabel.text = string.Empty; return; }
 
-            var slots = em.GetBuffer<InventorySlot>(_target);
             var sb = ZString.CreateStringBuilder();
             try
             {

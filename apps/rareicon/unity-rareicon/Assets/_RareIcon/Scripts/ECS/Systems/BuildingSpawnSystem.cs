@@ -154,10 +154,10 @@ namespace RareIcon
             }
             else
             {
-                var sourceInv = em.GetBuffer<InventorySlot>(sourceEntity);
+                var sourceCap = em.GetBuffer<CapitalLedger>(sourceEntity).Reinterpret<BankLedgerBase>();
                 for (int i = 0; i < cost.Length; i++)
                 {
-                    if (!ItemSlotOps.HasBuildCost(sourceInv, cost[i].ItemId, cost[i].Amount))
+                    if (!BankLedgerOps.HasBuildCost(sourceCap, cost[i].ItemId, cost[i].Amount))
                     {
                         reason = $"missing {cost[i].Amount}× item {cost[i].ItemId}";
                         return false;
@@ -166,7 +166,7 @@ namespace RareIcon
                 if (BuildingDB.SpawnsFullyBuilt(req.BuildingType))
                 {
                     for (int i = 0; i < cost.Length; i++)
-                        Consume(sourceInv, cost[i].ItemId, cost[i].Amount);
+                        BankLedgerOps.RemoveItem(ref sourceCap, cost[i].ItemId, (ushort)math.min(cost[i].Amount, ushort.MaxValue));
                 }
             }
 
@@ -243,18 +243,18 @@ namespace RareIcon
                 // cooked food so goblins don't starve before Foragers/Farms
                 // kick in. Tuned so the first night is survivable without
                 // player micromanagement.
-                var treasury = ecb.SetBuffer<InventorySlot>(building);
-                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Arrow,        Count = 1000 });
-                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.WoodLog,      Count = 300 });
-                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Stone,        Count = 200 });
-                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CactiNeedle,  Count = 150 });
-                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Berry,        Count = 400 });
-                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Mushroom,     Count = 200 });
-                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CookedBeef,   Count = 80 });
-                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CookedChicken,Count = 40 });
-                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Egg,          Count = 60 });
-                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Milk,         Count = 40 });
-                treasury.Add(new InventorySlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.BanditCoin,   Count = 120 });
+                var treasury = ecb.AddBuffer<CapitalLedger>(building);
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Arrow,        Count = 1000 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.WoodLog,      Count = 300 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Stone,        Count = 200 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CactiNeedle,  Count = 150 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Berry,        Count = 400 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Mushroom,     Count = 200 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CookedBeef,   Count = 80 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CookedChicken,Count = 40 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Egg,          Count = 60 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Milk,         Count = 40 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.BanditCoin,   Count = 120 });
             }
             else
             {
@@ -323,9 +323,9 @@ namespace RareIcon
                 reason = "no Capital — build one first";
                 return false;
             }
-            if (!em.HasBuffer<InventorySlot>(source))
+            if (!em.HasBuffer<CapitalLedger>(source))
             {
-                reason = "Capital has no InventorySlot buffer";
+                reason = "Capital has no CapitalLedger buffer";
                 return false;
             }
             return true;
@@ -336,20 +336,6 @@ namespace RareIcon
         // function assumes the inventory holds enough. For the AnyFood
         // sentinel the walk pulls from any edible slot in buffer order;
         // which food gets spent first is arbitrary but stable.
-        static void Consume(DynamicBuffer<InventorySlot> inv, ushort itemId, ushort amount)
-        {
-            int remaining = amount;
-            for (int i = 0; i < inv.Length && remaining > 0; i++)
-            {
-                if (!MatchesCostItem(inv[i].ItemId, itemId)) continue;
-                var slot = inv[i];
-                int take = slot.Count < remaining ? slot.Count : remaining;
-                slot.Count = (ushort)(slot.Count - take);
-                inv[i] = slot;
-                remaining -= take;
-            }
-        }
-
         static void ConsumePack(DynamicBuffer<PackSlot> pack, ushort itemId, ushort amount)
         {
             int remaining = amount;
@@ -422,10 +408,10 @@ namespace RareIcon
             em.AddComponentData(_buildingPrefab, LocalTransform.Identity);
             em.AddComponentData(_buildingPrefab, new Building());
             em.AddComponentData(_buildingPrefab, new BuildingVisual());
-            // Inventory buffer on every building prefab — Capital uses it
-            // as central storage, future per-building input/output buffers
-            // (Farm output queue, Furnace fuel hopper) reuse the slot too.
-            em.AddBuffer<InventorySlot>(_buildingPrefab);
+            // Per-bank ledger is attached per concrete building type at spawn
+            // (CapitalLedger inline here for BuildingType.Capital; Farm/
+            // Barracks/Furnace/GoblinCave get their ledger from the
+            // *InitSystem or ConstructionCompleteSystem).
             em.AddComponentData(_buildingPrefab, new BuildingActiveVisual());
             em.AddComponentData(_buildingPrefab, new ConstructionProgressVisual { Value = 1f });
             em.AddComponent<Prefab>(_buildingPrefab);

@@ -27,7 +27,7 @@ namespace RareIcon
             _                    => false,
         };
 
-        /// <summary>Sum Count across every slot whose ItemId is flagged by IsFood. Generic over IItemSlot so InventorySlot + PackSlot share the implementation — Burst monomorphizes per concrete T.</summary>
+        /// <summary>Sum Count across every slot whose ItemId is flagged by IsFood. Generic over IItemSlot so PackSlot (units) shares the implementation — Burst monomorphizes per concrete T.</summary>
         public static int Count<T>(in DynamicBuffer<T> buf)
             where T : unmanaged, IBufferElementData, IItemSlot
         {
@@ -37,6 +37,15 @@ namespace RareIcon
                 var s = buf[i];
                 if (IsFood(s.GetItemId())) total += s.GetCount();
             }
+            return total;
+        }
+
+        /// <summary>Bank-ledger overload that works on the reinterpreted BankLedgerBase view — used by building-side systems after Reinterpret&lt;BankLedgerBase&gt;() at the boundary. Kept Burst-safe (pure field access, IsFood switch).</summary>
+        public static int Count(in DynamicBuffer<BankLedgerBase> buf)
+        {
+            int total = 0;
+            for (int i = 0; i < buf.Length; i++)
+                if (IsFood(buf[i].ItemId)) total += buf[i].Count;
             return total;
         }
     }

@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Read-only generic helpers over any DynamicBuffer&lt;T&gt; whose element implements IItemSlot (InventorySlot, PackSlot, future ContainerSlot). Burst-compatible via the "struct T with interface constraint" monomorphization path documented in the Burst 1.8 C# type support page — every concrete T generates its own specialization, interface method calls resolve statically, no virtual dispatch. Kept to reads only in this pass; mutating helpers (merge/deposit/pickup) stay duplicated until we confirm Burst is happy with the read path.</summary>
+    /// <summary>Read-only generic helpers over any DynamicBuffer&lt;T&gt; whose element implements IItemSlot (currently PackSlot only post-§12 — the per-bank ledger types deliberately do NOT implement IItemSlot, they share shape via BankLedgerBase.Reinterpret instead). Burst-compatible via the "struct T with interface constraint" monomorphization path; every concrete T generates its own specialization.</summary>
     public static class ItemSlotOps
     {
         /// <summary>Sum of Count across all slots that match itemId.</summary>

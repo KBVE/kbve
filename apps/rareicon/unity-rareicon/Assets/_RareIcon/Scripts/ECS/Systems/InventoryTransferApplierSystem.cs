@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Single-threaded applier for PendingItemTransfer entities. Parallel producers (EmpireDepositSystem, BuildingSurplusTransferSystem, future: ProductionSystem output leg) emit transfers via ECB.ParallelWriter; this system drains them at the end of EconomySystemGroup and folds each into the Target's InventorySlot (merging same-ItemId slots to keep the buffer compact). Runs last in the group so every parallel emitter has already committed its ECB.</summary>
+    /// <summary>Single-threaded applier for PendingItemTransfer entities. Parallel producers (EmpireDepositSystem, EmpireWithdrawSystem, BuildingSurplusTransferSystem, future producers) emit transfers via ECB.ParallelWriter; this system drains them at the end of EconomySystemGroup and folds each into the Target's bank ledger. Dispatches on whichever ledger type the Target entity carries (CapitalLedger, FurnaceLedger, FarmLedger, BarracksLedger, GoblinCaveLedger) — per-bank typed buffers mean Unity's job-safety system schedules this applier's read/write lanes independently for each bank. Each ledger's buffer is Reinterpret'd to BankLedgerBase so one Apply helper handles them all.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(BuildingSurplusTransferSystem))]
@@ -24,45 +24,78 @@ namespace RareIcon
         {
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);
-            var invLookup = SystemAPI.GetBufferLookup<InventorySlot>(false);
+
+            var capitalLookup   = SystemAPI.GetBufferLookup<CapitalLedger>(false);
+            var furnaceLookup   = SystemAPI.GetBufferLookup<FurnaceLedger>(false);
+            var farmLookup      = SystemAPI.GetBufferLookup<FarmLedger>(false);
+            var barracksLookup  = SystemAPI.GetBufferLookup<BarracksLedger>(false);
+            var goblinCaveLookup= SystemAPI.GetBufferLookup<GoblinCaveLedger>(false);
 
             foreach (var (transferRO, entity) in
                      SystemAPI.Query<RefRO<PendingItemTransfer>>().WithEntityAccess())
             {
                 var t = transferRO.ValueRO;
-                if (invLookup.HasBuffer(t.Target) && t.Delta != 0)
+                if (t.Delta != 0)
                 {
-                    var inv = invLookup[t.Target];
-                    Apply(inv, t.ItemId, t.Delta);
+                    if (capitalLookup.HasBuffer(t.Target))
+                    {
+                        var view = capitalLookup[t.Target].Reinterpret<BankLedgerBase>();
+                        Apply(view, t.ItemId, t.Delta);
+                    }
+                    else if (furnaceLookup.HasBuffer(t.Target))
+                    {
+                        var view = furnaceLookup[t.Target].Reinterpret<BankLedgerBase>();
+                        Apply(view, t.ItemId, t.Delta);
+                    }
+                    else if (farmLookup.HasBuffer(t.Target))
+                    {
+                        var view = farmLookup[t.Target].Reinterpret<BankLedgerBase>();
+                        Apply(view, t.ItemId, t.Delta);
+                    }
+                    else if (barracksLookup.HasBuffer(t.Target))
+                    {
+                        var view = barracksLookup[t.Target].Reinterpret<BankLedgerBase>();
+                        Apply(view, t.ItemId, t.Delta);
+                    }
+                    else if (goblinCaveLookup.HasBuffer(t.Target))
+                    {
+                        var view = goblinCaveLookup[t.Target].Reinterpret<BankLedgerBase>();
+                        Apply(view, t.ItemId, t.Delta);
+                    }
                 }
                 ecb.DestroyEntity(entity);
             }
         }
 
-        static void Apply(DynamicBuffer<InventorySlot> inv, ushort itemId, int delta)
+        static void Apply(DynamicBuffer<BankLedgerBase> buf, ushort itemId, int delta)
         {
             if (delta > 0)
             {
-                for (int i = 0; i < inv.Length; i++)
+                for (int i = 0; i < buf.Length; i++)
                 {
-                    if (inv[i].ItemId != itemId) continue;
-                    var slot = inv[i];
+                    if (buf[i].ItemId != itemId) continue;
+                    var slot = buf[i];
                     slot.Count = (ushort)math.min(slot.Count + delta, ushort.MaxValue);
-                    inv[i] = slot;
+                    buf[i] = slot;
                     return;
                 }
-                inv.Add(new InventorySlot { ItemId = itemId, Count = (ushort)math.min(delta, ushort.MaxValue) });
+                buf.Add(new BankLedgerBase
+                {
+                    Uid    = default,
+                    ItemId = itemId,
+                    Count  = (ushort)math.min(delta, ushort.MaxValue),
+                });
                 return;
             }
 
             int remaining = -delta;
-            for (int i = 0; i < inv.Length && remaining > 0; i++)
+            for (int i = 0; i < buf.Length && remaining > 0; i++)
             {
-                if (inv[i].ItemId != itemId) continue;
-                var slot = inv[i];
+                if (buf[i].ItemId != itemId) continue;
+                var slot = buf[i];
                 int take = math.min(slot.Count, remaining);
                 slot.Count = (ushort)(slot.Count - take);
-                inv[i] = slot;
+                buf[i] = slot;
                 remaining -= take;
             }
         }

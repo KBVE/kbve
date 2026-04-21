@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Chef-intent units on the Capital convert one raw wildlife drop → its cooked equivalent per tick, awarding Culinary XP. Writes to the shared Capital inventory, so scheduled single-threaded off the main thread.</summary>
+    /// <summary>Chef-intent units on the Capital convert one raw wildlife drop → cooked equivalent per tick, awarding Culinary XP. Reads/writes CapitalLedger (Reinterpret to BankLedgerBase for the shared mutation helpers); single-worker Schedule because all Chefs share the one Capital buffer.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(BuilderDepositSystem))]
@@ -25,7 +25,7 @@ namespace RareIcon
                 Capital           = capital,
                 HexLookup         = hexLookupSingleton.Lookup,
                 HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
-                InvLookup         = SystemAPI.GetBufferLookup<InventorySlot>(false),
+                CapitalLookup     = SystemAPI.GetBufferLookup<CapitalLedger>(false),
                 SkillXpLookup     = SystemAPI.GetComponentLookup<SkillXP>(false),
             }.Schedule(state.Dependency);
         }
@@ -41,17 +41,17 @@ namespace RareIcon
         [ReadOnly] public NativeHashMap<int2, Entity>   HexLookup;
         [ReadOnly] public ComponentLookup<HexOccupant>  HexOccupantLookup;
 
-        [NativeDisableParallelForRestriction] public BufferLookup<InventorySlot>    InvLookup;
-        [NativeDisableParallelForRestriction] public ComponentLookup<SkillXP>       SkillXpLookup;
+        [NativeDisableParallelForRestriction] public BufferLookup<CapitalLedger> CapitalLookup;
+        [NativeDisableParallelForRestriction] public ComponentLookup<SkillXP>    SkillXpLookup;
 
         void Execute(Entity entity, in JobIntent intent, in UnitMovement movement)
         {
             if (intent.Kind != JobKind.Chef) return;
             if (!IsOnCapital(movement.CurrentHex)) return;
-            if (!InvLookup.HasBuffer(Capital)) return;
+            if (!CapitalLookup.HasBuffer(Capital)) return;
 
-            var capInv = InvLookup[Capital];
-            if (!TryCookOne(capInv)) return;
+            var capInv = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
+            if (!TryCookOne(ref capInv)) return;
 
             if (SkillXpLookup.HasComponent(entity))
             {
@@ -69,39 +69,20 @@ namespace RareIcon
             return HexOccupantLookup[tile].Building == Capital;
         }
 
-        static bool TryCookOne(DynamicBuffer<InventorySlot> inv)
+        static bool TryCookOne(ref DynamicBuffer<BankLedgerBase> inv)
         {
-            return TryConvert(inv, (ushort)ItemId.RawChicken, (ushort)ItemId.CookedChicken)
-                || TryConvert(inv, (ushort)ItemId.RawMutton,  (ushort)ItemId.CookedMutton)
-                || TryConvert(inv, (ushort)ItemId.RawBeef,    (ushort)ItemId.CookedBeef)
-                || TryConvert(inv, (ushort)ItemId.Egg,        (ushort)ItemId.CookedEgg)
-                || TryConvert(inv, (ushort)ItemId.Milk,       (ushort)ItemId.Cheese);
+            return TryConvert(ref inv, (ushort)ItemId.RawChicken, (ushort)ItemId.CookedChicken)
+                || TryConvert(ref inv, (ushort)ItemId.RawMutton,  (ushort)ItemId.CookedMutton)
+                || TryConvert(ref inv, (ushort)ItemId.RawBeef,    (ushort)ItemId.CookedBeef)
+                || TryConvert(ref inv, (ushort)ItemId.Egg,        (ushort)ItemId.CookedEgg)
+                || TryConvert(ref inv, (ushort)ItemId.Milk,       (ushort)ItemId.Cheese);
         }
 
-        static bool TryConvert(DynamicBuffer<InventorySlot> inv, ushort rawId, ushort cookedId)
+        static bool TryConvert(ref DynamicBuffer<BankLedgerBase> inv, ushort rawId, ushort cookedId)
         {
-            for (int i = 0; i < inv.Length; i++)
-            {
-                if (inv[i].ItemId != rawId || inv[i].Count == 0) continue;
-
-                var slot = inv[i];
-                slot.Count -= 1;
-                inv[i] = slot;
-
-                for (int j = 0; j < inv.Length; j++)
-                {
-                    if (inv[j].ItemId == cookedId)
-                    {
-                        var c = inv[j];
-                        c.Count = (ushort)math.min(c.Count + 1, ushort.MaxValue);
-                        inv[j] = c;
-                        return true;
-                    }
-                }
-                inv.Add(new InventorySlot { ItemId = cookedId, Count = 1 });
-                return true;
-            }
-            return false;
+            if (BankLedgerOps.RemoveItem(ref inv, rawId, 1) == 0) return false;
+            BankLedgerOps.AddItem(ref inv, cookedId, 1, default);
+            return true;
         }
     }
 }

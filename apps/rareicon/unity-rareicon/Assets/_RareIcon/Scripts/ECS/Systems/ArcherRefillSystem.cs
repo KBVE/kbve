@@ -1,3 +1,5 @@
+using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
@@ -8,56 +10,76 @@ namespace RareIcon
         public const ushort QuiverMax = 20;
     }
 
-    /// <summary>Player-faction RangedAttack units standing on a Capital- or Barracks-owned hex pull Arrows from that building's storage up to ArcherRefillConfig.QuiverMax.</summary>
+    /// <summary>Player-faction RangedAttack units standing on a Capital- or Barracks-owned hex pull Arrows from that building's ledger into their PackSlot, up to QuiverMax. Burst ISystem + Schedule — shared Capital/Barracks buffers serialize internally.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireDepositSystem))]
-    public partial class ArcherRefillSystem : SystemBase
+    public partial struct ArcherRefillSystem : ISystem
     {
-        protected override void OnUpdate()
+        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
-            CompleteDependency();
+            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
 
-            var hexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true);
-            var buildingLookup    = SystemAPI.GetComponentLookup<Building>(true);
-            var invLookup         = SystemAPI.GetBufferLookup<InventorySlot>(false);
-
-            foreach (var (attack, faction, movement, pack) in
-                     SystemAPI.Query<
-                         RefRO<RangedAttack>,
-                         RefRO<Faction>,
-                         RefRO<UnitMovement>,
-                         DynamicBuffer<PackSlot>>())
+            state.Dependency = new ArcherRefillJob
             {
-                if (faction.ValueRO.Value != FactionType.Player) continue;
-                byte pt = attack.ValueRO.ProjectileType;
-                if (pt != ProjectileType.Arrow && pt != ProjectileType.Bolt) continue;
+                HexLookup         = hexLookup.Lookup,
+                HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
+                BuildingLookup    = SystemAPI.GetComponentLookup<Building>(true),
+                CapitalLookup     = SystemAPI.GetBufferLookup<CapitalLedger>(false),
+                BarracksLookup    = SystemAPI.GetBufferLookup<BarracksLedger>(false),
+            }.Schedule(state.Dependency);
+        }
+    }
 
-                int carrying = CountOfPack(pack, (ushort)ItemId.Arrow);
-                if (carrying >= ArcherRefillConfig.QuiverMax) continue;
+    [BurstCompile]
+    public partial struct ArcherRefillJob : IJobEntity
+    {
+        [ReadOnly] public NativeHashMap<Unity.Mathematics.int2, Entity> HexLookup;
+        [ReadOnly] public ComponentLookup<HexOccupant> HexOccupantLookup;
+        [ReadOnly] public ComponentLookup<Building>    BuildingLookup;
 
-                if (!HexHoverSystem.TryGetHexEntity(movement.ValueRO.CurrentHex, out Entity tile)) continue;
-                if (!hexOccupantLookup.HasComponent(tile)) continue;
+        [NativeDisableParallelForRestriction] public BufferLookup<CapitalLedger>  CapitalLookup;
+        [NativeDisableParallelForRestriction] public BufferLookup<BarracksLedger> BarracksLookup;
 
-                Entity building = hexOccupantLookup[tile].Building;
-                if (!buildingLookup.HasComponent(building)) continue;
-                byte btype = buildingLookup[building].Type;
-                if (btype != BuildingType.Capital && btype != BuildingType.Barracks) continue;
-                if (!invLookup.HasBuffer(building)) continue;
+        void Execute(in RangedAttack attack, in Faction faction, in UnitMovement movement, ref DynamicBuffer<PackSlot> pack)
+        {
+            if (faction.Value != FactionType.Player) return;
+            byte pt = attack.ProjectileType;
+            if (pt != ProjectileType.Arrow && pt != ProjectileType.Bolt) return;
 
-                var storage = invLookup[building];
-                int available = CountOfInv(storage, (ushort)ItemId.Arrow);
-                if (available <= 0) continue;
+            int carrying = CountOfPack(pack, (ushort)ItemId.Arrow);
+            if (carrying >= ArcherRefillConfig.QuiverMax) return;
 
-                int room = ArcherRefillConfig.QuiverMax - carrying;
-                int transfer = math.min(room, available);
-                if (transfer <= 0) continue;
+            if (!HexLookup.TryGetValue(movement.CurrentHex, out Entity tile)) return;
+            if (!HexOccupantLookup.HasComponent(tile)) return;
 
-                ConsumeInv(storage, (ushort)ItemId.Arrow, (ushort)transfer);
-                AddArrowsPack(pack, (ushort)transfer);
-            }
+            Entity building = HexOccupantLookup[tile].Building;
+            if (!BuildingLookup.HasComponent(building)) return;
+            byte btype = BuildingLookup[building].Type;
+
+            DynamicBuffer<BankLedgerBase> storage;
+            if (btype == BuildingType.Capital && CapitalLookup.HasBuffer(building))
+                storage = CapitalLookup[building].Reinterpret<BankLedgerBase>();
+            else if (btype == BuildingType.Barracks && BarracksLookup.HasBuffer(building))
+                storage = BarracksLookup[building].Reinterpret<BankLedgerBase>();
+            else return;
+
+            int available = BankLedgerOps.CountOf(storage, (ushort)ItemId.Arrow);
+            if (available <= 0) return;
+
+            int room = ArcherRefillConfig.QuiverMax - carrying;
+            int transfer = math.min(room, available);
+            if (transfer <= 0) return;
+
+            BankLedgerOps.RemoveItem(ref storage, (ushort)ItemId.Arrow, (ushort)transfer);
+            AddArrowsPack(ref pack, (ushort)transfer);
         }
 
-        static int CountOfInv(DynamicBuffer<InventorySlot> buf, ushort itemId)
+        static int CountOfPack(in DynamicBuffer<PackSlot> buf, ushort itemId)
         {
             int total = 0;
             for (int i = 0; i < buf.Length; i++)
@@ -65,29 +87,7 @@ namespace RareIcon
             return total;
         }
 
-        static int CountOfPack(DynamicBuffer<PackSlot> buf, ushort itemId)
-        {
-            int total = 0;
-            for (int i = 0; i < buf.Length; i++)
-                if (buf[i].ItemId == itemId) total += buf[i].Count;
-            return total;
-        }
-
-        static void ConsumeInv(DynamicBuffer<InventorySlot> buf, ushort itemId, ushort amount)
-        {
-            int remaining = amount;
-            for (int i = 0; i < buf.Length && remaining > 0; i++)
-            {
-                if (buf[i].ItemId != itemId) continue;
-                var slot = buf[i];
-                int take = slot.Count < remaining ? slot.Count : remaining;
-                slot.Count = (ushort)(slot.Count - take);
-                buf[i] = slot;
-                remaining -= take;
-            }
-        }
-
-        static void AddArrowsPack(DynamicBuffer<PackSlot> buf, ushort amount)
+        static void AddArrowsPack(ref DynamicBuffer<PackSlot> buf, ushort amount)
         {
             for (int i = 0; i < buf.Length; i++)
             {

@@ -6,6 +6,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
+    /// <summary>Per-tick status aggregators: unit bag fullness, cave food count, capital has-food flag, barracks understocked flag. Each reads its respective typed ledger (post-§12 per-bank split) so the four jobs run in parallel — PackSlot/GoblinCaveLedger/CapitalLedger/BarracksLedger are physically distinct dep-graph nodes.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup), OrderLast = true)]
     public partial struct UnitBagStatusSystem : ISystem
     {
@@ -14,29 +15,25 @@ namespace RareIcon
 
         public void OnUpdate(ref SystemState state)
         {
-            var packLookup = SystemAPI.GetBufferLookup<PackSlot>(true);
-            var invLookup  = SystemAPI.GetBufferLookup<InventorySlot>(true);
-            var bagLookup  = SystemAPI.GetBufferLookup<EquippedBag>(true);
-
             var unitHandle = new UpdateBagStatusJob
             {
-                PackLookup = packLookup,
-                BagLookup  = bagLookup,
+                PackLookup = SystemAPI.GetBufferLookup<PackSlot>(true),
+                BagLookup  = SystemAPI.GetBufferLookup<EquippedBag>(true),
             }.ScheduleParallel(state.Dependency);
 
             var caveHandle = new UpdateCaveFoodStatusJob
             {
-                InvLookup = invLookup,
+                InvLookup = SystemAPI.GetBufferLookup<GoblinCaveLedger>(true),
             }.ScheduleParallel(state.Dependency);
 
             var capitalHandle = new UpdateCapitalStatusJob
             {
-                InvLookup = invLookup,
+                InvLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true),
             }.ScheduleParallel(state.Dependency);
 
             var barracksHandle = new UpdateBarracksStatusJob
             {
-                InvLookup = invLookup,
+                InvLookup = SystemAPI.GetBufferLookup<BarracksLedger>(true),
             }.ScheduleParallel(state.Dependency);
 
             state.Dependency = JobHandle.CombineDependencies(
@@ -79,7 +76,7 @@ namespace RareIcon
     [WithAll(typeof(GoblinCaveTag))]
     public partial struct UpdateCaveFoodStatusJob : IJobEntity
     {
-        [ReadOnly] public BufferLookup<InventorySlot> InvLookup;
+        [ReadOnly] public BufferLookup<GoblinCaveLedger> InvLookup;
 
         void Execute(Entity entity, in GoblinCaveProduction prod, ref CaveFoodStatus status)
         {
@@ -88,9 +85,7 @@ namespace RareIcon
             {
                 var inv = InvLookup[entity];
                 for (int i = 0; i < inv.Length; i++)
-                {
                     if (FoodItems.IsFood(inv[i].ItemId)) food += inv[i].Count;
-                }
             }
 
             ushort cap = prod.StorageCap == 0 ? (ushort)200 : prod.StorageCap;
@@ -103,7 +98,7 @@ namespace RareIcon
     [WithAll(typeof(CapitalTag))]
     public partial struct UpdateCapitalStatusJob : IJobEntity
     {
-        [ReadOnly] public BufferLookup<InventorySlot> InvLookup;
+        [ReadOnly] public BufferLookup<CapitalLedger> InvLookup;
 
         void Execute(Entity entity, ref CapitalStatus status)
         {
@@ -125,7 +120,7 @@ namespace RareIcon
     [WithAll(typeof(BarracksTag))]
     public partial struct UpdateBarracksStatusJob : IJobEntity
     {
-        [ReadOnly] public BufferLookup<InventorySlot> InvLookup;
+        [ReadOnly] public BufferLookup<BarracksLedger> InvLookup;
 
         void Execute(Entity entity, in StorageCapacity cap, ref BarracksSupplyStatus status)
         {

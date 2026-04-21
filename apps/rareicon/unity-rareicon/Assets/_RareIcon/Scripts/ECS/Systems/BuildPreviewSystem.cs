@@ -184,10 +184,10 @@ namespace RareIcon
                 if (q.CalculateEntityCount() == 0) { q.Dispose(); return false; }
                 Entity capital = q.GetSingletonEntity();
                 q.Dispose();
-                if (!em.HasBuffer<InventorySlot>(capital)) return false;
-                var inv = em.GetBuffer<InventorySlot>(capital);
+                if (!em.HasBuffer<CapitalLedger>(capital)) return false;
+                var inv = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
                 for (int i = 0; i < cost.Length; i++)
-                    if (!ItemSlotOps.HasBuildCost(inv, cost[i].ItemId, cost[i].Amount)) return false;
+                    if (!BankLedgerOps.HasBuildCost(inv, cost[i].ItemId, cost[i].Amount)) return false;
                 return true;
             }
         }

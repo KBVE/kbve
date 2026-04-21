@@ -39,9 +39,9 @@ namespace RareIcon
 
             state.Dependency = new BarracksArrowCraftJob
             {
-                Craftsmen    = craftsmen.AsDeferredJobArray(),
-                InvLookup    = SystemAPI.GetBufferLookup<InventorySlot>(false),
-                BarracksLkup = SystemAPI.GetComponentLookup<BarracksTag>(true),
+                Craftsmen      = craftsmen.AsDeferredJobArray(),
+                BarracksLookup = SystemAPI.GetBufferLookup<BarracksLedger>(false),
+                BarracksLkup   = SystemAPI.GetComponentLookup<BarracksTag>(true),
             }.Schedule(state.Dependency);
 
             state.Dependency = craftsmen.Dispose(state.Dependency);
@@ -52,9 +52,9 @@ namespace RareIcon
         [BurstCompile]
         partial struct BarracksArrowCraftJob : IJob
         {
-            [ReadOnly] public NativeArray<CraftsmanStation> Craftsmen;
-            [ReadOnly] public ComponentLookup<BarracksTag>  BarracksLkup;
-            public BufferLookup<InventorySlot>              InvLookup;
+            [ReadOnly] public NativeArray<CraftsmanStation>     Craftsmen;
+            [ReadOnly] public ComponentLookup<BarracksTag>      BarracksLkup;
+            public BufferLookup<BarracksLedger>                 BarracksLookup;
 
             public void Execute()
             {
@@ -66,53 +66,16 @@ namespace RareIcon
                 {
                     var barracks = Craftsmen[i].Barracks;
                     if (!BarracksLkup.HasComponent(barracks)) continue;
-                    if (!InvLookup.HasBuffer(barracks)) continue;
+                    if (!BarracksLookup.HasBuffer(barracks)) continue;
 
-                    var inv = InvLookup[barracks];
-                    if (CountItem(inv, (ushort)ItemId.WoodLog) < WoodLogCost) continue;
-                    if (CountItem(inv, (ushort)ItemId.CactiNeedle) < NeedleCost) continue;
+                    var inv = BarracksLookup[barracks].Reinterpret<BankLedgerBase>();
+                    if (BankLedgerOps.CountOf(inv, (ushort)ItemId.WoodLog) < WoodLogCost) continue;
+                    if (BankLedgerOps.CountOf(inv, (ushort)ItemId.CactiNeedle) < NeedleCost) continue;
 
-                    Consume(ref inv, (ushort)ItemId.WoodLog, WoodLogCost);
-                    Consume(ref inv, (ushort)ItemId.CactiNeedle, NeedleCost);
-                    AddTo(ref inv, (ushort)ItemId.Arrow, ArrowsProduced);
+                    BankLedgerOps.RemoveItem(ref inv, (ushort)ItemId.WoodLog,    WoodLogCost);
+                    BankLedgerOps.RemoveItem(ref inv, (ushort)ItemId.CactiNeedle, NeedleCost);
+                    BankLedgerOps.AddItem(ref inv,    (ushort)ItemId.Arrow,       ArrowsProduced, default);
                 }
-            }
-
-            static int CountItem(in DynamicBuffer<InventorySlot> buf, ushort itemId)
-            {
-                int total = 0;
-                for (int i = 0; i < buf.Length; i++)
-                    if (buf[i].ItemId == itemId) total += buf[i].Count;
-                return total;
-            }
-
-            static void Consume(ref DynamicBuffer<InventorySlot> buf, ushort itemId, int amount)
-            {
-                int remaining = amount;
-                for (int i = 0; i < buf.Length && remaining > 0; i++)
-                {
-                    if (buf[i].ItemId != itemId) continue;
-                    if (buf[i].Count == 0) continue;
-                    int take = buf[i].Count < remaining ? buf[i].Count : remaining;
-                    var s = buf[i];
-                    s.Count = (ushort)(s.Count - take);
-                    buf[i] = s;
-                    remaining -= take;
-                }
-            }
-
-            static void AddTo(ref DynamicBuffer<InventorySlot> buf, ushort itemId, ushort amount)
-            {
-                for (int i = 0; i < buf.Length; i++)
-                {
-                    if (buf[i].ItemId != itemId) continue;
-                    var s = buf[i];
-                    int next = s.Count + amount;
-                    s.Count = (ushort)(next > ushort.MaxValue ? ushort.MaxValue : next);
-                    buf[i] = s;
-                    return;
-                }
-                buf.Add(new InventorySlot { ItemId = itemId, Count = amount });
             }
         }
     }

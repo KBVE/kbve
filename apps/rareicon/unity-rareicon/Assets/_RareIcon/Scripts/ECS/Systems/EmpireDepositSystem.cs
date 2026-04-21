@@ -17,7 +17,7 @@ namespace RareIcon
         public void OnCreate(ref SystemState state)
         {
             _barracksQuery = new EntityQueryBuilder(Allocator.Temp)
-                .WithAll<BarracksTag, StorageCapacity, InventorySlot>()
+                .WithAll<BarracksTag, StorageCapacity, BarracksLedger>()
                 .Build(ref state);
         }
 
@@ -27,7 +27,7 @@ namespace RareIcon
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
-            if (!SystemAPI.HasBuffer<InventorySlot>(capital)) return;
+            if (!SystemAPI.HasBuffer<CapitalLedger>(capital)) return;
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
@@ -42,7 +42,7 @@ namespace RareIcon
             var checkHandle = new AnyBarracksUnderstockedJob
             {
                 Barracks     = barracks.AsDeferredJobArray(),
-                InvLookup    = SystemAPI.GetBufferLookup<InventorySlot>(true),
+                InvLookup    = SystemAPI.GetBufferLookup<BarracksLedger>(true),
                 CapLookup    = SystemAPI.GetComponentLookup<StorageCapacity>(true),
                 Result       = anyUnderstocked,
             }.Schedule(barracksHandle);
@@ -66,7 +66,7 @@ namespace RareIcon
     public struct AnyBarracksUnderstockedJob : IJob
     {
         [ReadOnly] public NativeArray<Entity>            Barracks;
-        [ReadOnly] public BufferLookup<InventorySlot>    InvLookup;
+        [ReadOnly] public BufferLookup<BarracksLedger>   InvLookup;
         [ReadOnly] public ComponentLookup<StorageCapacity> CapLookup;
         public NativeReference<bool>                     Result;
 

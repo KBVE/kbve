@@ -159,7 +159,7 @@ namespace RareIcon
             {
                 CurrentTurn = currentTurn,
                 UnitLookup  = SystemAPI.GetComponentLookup<Unit>(true),
-                InvLookup   = SystemAPI.GetBufferLookup<InventorySlot>(false),
+                FarmLookup  = SystemAPI.GetBufferLookup<FarmLedger>(false),
             }.Schedule(state.Dependency);
         }
     }
@@ -172,7 +172,7 @@ namespace RareIcon
         [ReadOnly] public ComponentLookup<Unit> UnitLookup;
 
         [NativeDisableParallelForRestriction]
-        public BufferLookup<InventorySlot> InvLookup;
+        public BufferLookup<FarmLedger> FarmLookup;
 
         void Execute(Entity entity,
                      in ShelteredInside shelter,
@@ -184,11 +184,11 @@ namespace RareIcon
             if (CurrentTurn < prod.LastProducedTurn + cadence) return;
 
             var host = shelter.Host;
-            if (!InvLookup.HasBuffer(host)) return;
-            var storage = InvLookup[host];
+            if (!FarmLookup.HasBuffer(host)) return;
+            var storage = FarmLookup[host].Reinterpret<BankLedgerBase>();
 
-            if (!TryConsume(ref storage, (ushort)ItemId.Carrot, 1)) return;
-            AddStorage(ref storage, outputId, 1);
+            if (BankLedgerOps.RemoveItem(ref storage, (ushort)ItemId.Carrot, 1) == 0) return;
+            BankLedgerOps.AddItem(ref storage, outputId, 1, default);
             prod.LastProducedTurn += cadence;
         }
 
@@ -201,35 +201,6 @@ namespace RareIcon
                 case UnitType.Sheep:   outputId = (ushort)ItemId.Wool; cadence = 10; return true;
                 default:               outputId = 0;                   cadence = 0;  return false;
             }
-        }
-
-        static bool TryConsume(ref DynamicBuffer<InventorySlot> storage, ushort itemId, ushort amount)
-        {
-            for (int i = 0; i < storage.Length; i++)
-            {
-                if (storage[i].ItemId != itemId) continue;
-                if (storage[i].Count < amount) return false;
-                var slot = storage[i];
-                slot.Count = (ushort)(slot.Count - amount);
-                storage[i] = slot;
-                return true;
-            }
-            return false;
-        }
-
-        static void AddStorage(ref DynamicBuffer<InventorySlot> storage, ushort itemId, ushort amount)
-        {
-            for (int i = 0; i < storage.Length; i++)
-            {
-                if (storage[i].ItemId == itemId)
-                {
-                    var slot = storage[i];
-                    slot.Count = (ushort)math.min(slot.Count + amount, ushort.MaxValue);
-                    storage[i] = slot;
-                    return;
-                }
-            }
-            storage.Add(new InventorySlot { ItemId = itemId, Count = amount });
         }
     }
 

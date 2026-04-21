@@ -126,7 +126,7 @@ namespace RareIcon
             // independent of the cave's live storage buffer.
             var needyCaves = new NativeList<NeedyCave>(4, Allocator.Temp);
             {
-                var caveInvLookup = SystemAPI.GetBufferLookup<InventorySlot>(true);
+                var caveInvLookup = SystemAPI.GetBufferLookup<GoblinCaveLedger>(true);
                 foreach (var (prodRO, buildingRO, e) in
                          SystemAPI.Query<RefRO<GoblinCaveProduction>, RefRO<Building>>()
                                   .WithAll<GoblinCaveTag>()
@@ -134,7 +134,7 @@ namespace RareIcon
                 {
                     if (!caveInvLookup.HasBuffer(e)) continue;
                     ushort cap = prodRO.ValueRO.StorageCap == 0 ? (ushort)200 : prodRO.ValueRO.StorageCap;
-                    int food  = CountFood(caveInvLookup[e]);
+                    int food  = CountFood(caveInvLookup[e].Reinterpret<BankLedgerBase>());
                     if (food >= cap) continue;
                     needyCaves.Add(new NeedyCave { Entity = e, Hex = buildingRO.ValueRO.RootHex });
                 }
@@ -143,9 +143,9 @@ namespace RareIcon
             // Does Capital actually have food to ship? If not, sending a
             // Looter there is busywork — let them go forage instead.
             bool capitalHasFood = false;
-            if (hasCapital && EntityManager.HasBuffer<InventorySlot>(capital))
+            if (hasCapital && EntityManager.HasBuffer<CapitalLedger>(capital))
             {
-                var capInv = EntityManager.GetBuffer<InventorySlot>(capital);
+                var capInv = EntityManager.GetBuffer<CapitalLedger>(capital);
                 for (int i = 0; i < capInv.Length; i++)
                 {
                     if (capInv[i].Count == 0) continue;
@@ -535,7 +535,7 @@ namespace RareIcon
             return false;
         }
 
-        static int CountFood(DynamicBuffer<InventorySlot> buf)
+        static int CountFood(DynamicBuffer<BankLedgerBase> buf)
         {
             int total = 0;
             for (int i = 0; i < buf.Length; i++)

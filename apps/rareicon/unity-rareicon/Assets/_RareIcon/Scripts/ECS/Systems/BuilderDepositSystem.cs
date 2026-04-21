@@ -26,7 +26,7 @@ namespace RareIcon
                 HexLookup         = hexLookupSingleton.Lookup,
                 HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
                 PackLookup        = SystemAPI.GetBufferLookup<PackSlot>(false),
-                InvLookup         = SystemAPI.GetBufferLookup<InventorySlot>(false),
+                CapitalLookup     = SystemAPI.GetBufferLookup<CapitalLedger>(false),
                 MatLookup         = SystemAPI.GetBufferLookup<ConstructionMaterial>(false),
                 SiteLookup        = SystemAPI.GetComponentLookup<ConstructionSite>(true),
                 SkillXpLookup     = SystemAPI.GetComponentLookup<SkillXP>(false),
@@ -46,7 +46,7 @@ namespace RareIcon
         [ReadOnly] public ComponentLookup<ConstructionSite> SiteLookup;
 
         [NativeDisableParallelForRestriction] public BufferLookup<PackSlot>             PackLookup;
-        [NativeDisableParallelForRestriction] public BufferLookup<InventorySlot>        InvLookup;
+        [NativeDisableParallelForRestriction] public BufferLookup<CapitalLedger>        CapitalLookup;
         [NativeDisableParallelForRestriction] public BufferLookup<ConstructionMaterial> MatLookup;
         [NativeDisableParallelForRestriction] public ComponentLookup<SkillXP>           SkillXpLookup;
 
@@ -78,8 +78,9 @@ namespace RareIcon
 
             if (IsOnCapital(unitHex) && !CarriesMatchingMaterial(unitPack, siteMats))
             {
-                var capInv = InvLookup[Capital];
-                TryPickup(capInv, unitPack, siteMats);
+                if (!CapitalLookup.HasBuffer(Capital)) return;
+                var capInv = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
+                TryPickup(ref capInv, unitPack, siteMats);
             }
         }
 
@@ -129,7 +130,7 @@ namespace RareIcon
             return false;
         }
 
-        static bool TryPickup(DynamicBuffer<InventorySlot> capInv,
+        static bool TryPickup(ref DynamicBuffer<BankLedgerBase> capInv,
                               DynamicBuffer<PackSlot> unitPack,
                               DynamicBuffer<ConstructionMaterial> mats)
         {

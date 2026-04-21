@@ -1,47 +1,56 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Attaches an InventorySlot buffer + BarracksProduction + StorageCapacity to any Barracks that's missing them. One-shot per entity — query filters on BarracksTag WithNone BarracksProduction.</summary>
+    /// <summary>Attaches a BarracksLedger buffer + BarracksProduction + StorageCapacity + arrow-craft ProductionRecipe + SurplusExport to any Barracks that's missing them. ISystem + Burst; ECB-driven structural changes so OnUpdate never touches the main thread.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
-    public partial class BarracksInitSystem : SystemBase
+    public partial struct BarracksInitSystem : ISystem
     {
-        protected override void OnUpdate()
+        EntityQuery _needsInit;
+
+        [BurstCompile]
+        public void OnCreate(ref SystemState state)
         {
-            var em = EntityManager;
+            _needsInit = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<BarracksTag>()
+                .WithNone<BarracksProduction>()
+                .Build(ref state);
+            state.RequireForUpdate(_needsInit);
+        }
 
-            using var query = em.CreateEntityQuery(
-                new EntityQueryDesc
-                {
-                    All  = new[] { ComponentType.ReadOnly<BarracksTag>() },
-                    None = new[] { ComponentType.ReadOnly<BarracksProduction>() },
-                });
-            using var entities = query.ToEntityArray(Allocator.Temp);
-            if (entities.Length == 0) return;
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            var ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
+
+            var entities = _needsInit.ToEntityArray(Allocator.Temp);
             for (int i = 0; i < entities.Length; i++)
             {
                 var e = entities[i];
-                if (!em.HasBuffer<InventorySlot>(e))
-                    em.AddBuffer<InventorySlot>(e);
-                em.AddComponentData(e, new BarracksProduction
+                ecb.AddBuffer<BarracksLedger>(e);
+                ecb.AddComponent(e, new BarracksProduction
                 {
                     LastProducedTurn = 0,
                     CadenceTurns     = 1,
                     CoinCost         = 20,
                     FoodCost         = 20,
                 });
-                em.AddComponentData(e, new StorageCapacity { Total = 200 });
+                ecb.AddComponent(e, new StorageCapacity { Total = 200 });
 
                 // Arrow craft, same recipe as the Capital. Inputs pulled
                 // from the Capital treasury (Barracks stocks coin + food,
                 // not raw materials). Outputs land in the Barracks' own
-                // InventorySlot as a forward arsenal; anything above a
+                // BarracksLedger as a forward arsenal; anything above a
                 // floor of 20 drains back to the Capital via
                 // BuildingSurplusTransferSystem so the shooter pool never
                 // ends up stranded at the Barracks.
-                var recipes = em.AddBuffer<ProductionRecipe>(e);
+                var recipes = ecb.AddBuffer<ProductionRecipe>(e);
                 recipes.Add(new ProductionRecipe
                 {
                     Input1Id         = (ushort)ItemId.WoodLog,     Input1Amount  = 1,
@@ -53,9 +62,10 @@ namespace RareIcon
                     PullsFromCapital = 1,
                 });
 
-                var exports = em.AddBuffer<SurplusExport>(e);
+                var exports = ecb.AddBuffer<SurplusExport>(e);
                 exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Arrow, Floor = 20 });
             }
+            entities.Dispose();
         }
     }
 }

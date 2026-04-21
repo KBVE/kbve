@@ -6,7 +6,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Hungry Player unit on a Capital-claimed hex pulls one edible from storage into its inventory. Parallel Burst job — unit inventory grows directly (per-entity write), Capital subtract queues through a PendingItemTransfer for InventoryTransferApplierSystem. Snapshot build is itself a Burst IJob so the Capital InventorySlot read participates in the job dep graph and can't race SurplusTransferJob or any other InventorySlot writer.</summary>
+    /// <summary>Hungry Player unit on a Capital-claimed hex pulls one edible from storage into its inventory. Parallel Burst job — unit inventory grows directly (per-entity write), Capital subtract queues through a PendingItemTransfer for InventoryTransferApplierSystem. Snapshot build is itself a Burst IJob so the Capital CapitalLedger read participates in the job dep graph and can't race SurplusTransferJob or any other CapitalLedger writer.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireDepositSystem))]
@@ -22,7 +22,7 @@ namespace RareIcon
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
-            if (!SystemAPI.HasBuffer<InventorySlot>(capital)) return;
+            if (!SystemAPI.HasBuffer<CapitalLedger>(capital)) return;
             if (!SystemAPI.TryGetSingleton<ItemDBSingleton>(out var itemDb)) return;
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
@@ -33,7 +33,7 @@ namespace RareIcon
             var snapshotHandle = new CapitalFoodSnapshotJob
             {
                 Capital  = capital,
-                InvLookup = SystemAPI.GetBufferLookup<InventorySlot>(true),
+                InvLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true),
                 Snapshot = snapshot,
             }.Schedule(state.Dependency);
 
@@ -56,12 +56,12 @@ namespace RareIcon
         public ushort ItemId;
     }
 
-    /// <summary>Burst IJob that reads Capital.InventorySlot via BufferLookup (tracked by the scheduler) and emits one FoodSlotSnapshot per non-zero food slot into a deferred NativeList. Replaces the main-thread snapshot loop that was racing BuildingSurplusTransferSystem's writer.</summary>
+    /// <summary>Burst IJob that reads Capital.CapitalLedger via BufferLookup (tracked by the scheduler) and emits one FoodSlotSnapshot per non-zero food slot into a deferred NativeList. Replaces the main-thread snapshot loop that was racing BuildingSurplusTransferSystem's writer.</summary>
     [BurstCompile]
     public struct CapitalFoodSnapshotJob : IJob
     {
         public Entity Capital;
-        [ReadOnly] public BufferLookup<InventorySlot> InvLookup;
+        [ReadOnly] public BufferLookup<CapitalLedger> InvLookup;
         public NativeList<FoodSlotSnapshot> Snapshot;
 
         public void Execute()
