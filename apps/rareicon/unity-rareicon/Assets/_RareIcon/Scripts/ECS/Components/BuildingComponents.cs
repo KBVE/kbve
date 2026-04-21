@@ -201,6 +201,32 @@ namespace RareIcon
     /// <summary>Marker tag for Outpost buildings.</summary>
     public struct OutpostTag : IComponentData { }
 
+    /// <summary>Marker tag for Dock buildings — placed on river tiles; passive fishing + Timber→FishingBoat crafting query key.</summary>
+    public struct DockTag : IComponentData { }
+
+    /// <summary>Per-dock boat-build cadence. Once per CadenceTurns, consumes TimberCost Timber from the dock's ledger and emits a <see cref="SpawnFishingBoatRequest"/> on an adjacent river hex.</summary>
+    public struct DockProduction : IComponentData
+    {
+        public uint   LastProducedTurn;
+        public byte   CadenceTurns;
+        public ushort TimberCost;
+    }
+
+    /// <summary>Transient request emitted by the Burst-compiled DockProductionSystem once a boat-build cycle clears cost; FishingBoatSpawnApplierSystem drains these on the main thread and calls <see cref="UnitSpawnSystem"/>.SpawnFishingBoatAt.</summary>
+    public struct SpawnFishingBoatRequest : IComponentData
+    {
+        public int2 Hex;
+        public uint Seed;
+        public byte Faction;
+    }
+
+    /// <summary>Transient request emitted by <c>WhaleSpawnerSystem</c>; <c>WhaleSpawnApplierSystem</c> drains these on the main thread and calls <see cref="UnitSpawnSystem"/>.SpawnWhaleAt on the target water hex.</summary>
+    public struct SpawnWhaleRequest : IComponentData
+    {
+        public int2 Hex;
+        public uint Seed;
+    }
+
     /// <summary>Per-outpost cooldown-gated arrow volley. Every CooldownSeconds the outpost fires ArrowsPerVolley projectiles in a cone of half-angle SpreadHalfAngleRad around the closest CombatDB threat within Range. Burns ArrowCost from the sibling OutpostArrowPool per firing.</summary>
     public struct OutpostVolley : IComponentData
     {

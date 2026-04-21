@@ -43,6 +43,12 @@ namespace RareIcon
     /// <summary>Tag marking wild animals so combat / harvest / AI systems skip them.</summary>
     public struct PassiveAnimalTag : IComponentData { }
 
+    /// <summary>Marker tag for craftsman-built Fishing Boats — water-locked; hunts <see cref="WhaleTag"/> units for Oil + Meat.</summary>
+    public struct FishingBoatTag : IComponentData { }
+
+    /// <summary>Marker tag for Whales — FishingBoats' prey. Drops Oil + 400 Meat via EnemyLootDropSystem on death.</summary>
+    public struct WhaleTag : IComponentData { }
+
     /// <summary>Tag added once an animal has been tamed by a player entity.</summary>
     public struct TamedTag : IComponentData { }
 
