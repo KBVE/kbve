@@ -16,12 +16,17 @@ namespace RareIcon
         public const byte Soldier = 3;
         public const byte Mage    = 4;
         public const byte King    = 5;  // Player-controlled — visually a Soldier + Crown for v1.
+        public const byte Archer   = 6;  // Humanoid ranger — hooded, forest leather, back quiver.
+        public const byte Rogue    = 7;  // Humanoid dual-dagger — dark cloak + face scarf.
+        public const byte Cleric   = 8;  // Humanoid healer — pale robe, gold trim, holy symbol.
+        public const byte Merchant = 9;  // Humanoid civilian trader — flat cap, coin pouch.
         public const byte Chicken = 10;
         public const byte Sheep   = 11;
         public const byte Cow     = 12;
         public const byte Wolf    = 13;  // Beast faction, forest pack hunter.
         public const byte Bandit  = 14;  // Hostile faction, raid waves alongside goblins.
         public const byte Zombie  = 15;
+        public const byte GoblinGeneral = 16; // Warlord goblin — chestplate, spiked crown, warpaint.
         // Skeleton, etc. land here as we add them.
     }
 
