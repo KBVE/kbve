@@ -166,6 +166,17 @@ namespace RareIcon
             return false;
         }
 
+        static int CountFood(DynamicBuffer<InventorySlot> buf)
+        {
+            int total = 0;
+            for (int i = 0; i < buf.Length; i++)
+            {
+                if (ItemDB.EnergyValue(buf[i].ItemId) <= 0f) continue;
+                total += buf[i].Count;
+            }
+            return total;
+        }
+
         static int CountFood(DynamicBuffer<PackSlot> buf)
         {
             int total = 0;
