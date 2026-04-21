@@ -254,12 +254,28 @@ namespace RareIcon
             // ticks — the per-unit loop short-circuits for queue-empty
             // units in those frames.
             var offers = new NativeList<TaskOffer>(doFullDispatch ? 256 : 0, Allocator.Temp);
-            var offersPerKind = new NativeArray<int>(12, Allocator.Temp);
-            var activePerKind = new NativeArray<int>(12, Allocator.Temp);
+            var offersPerKind   = new NativeArray<int>(13, Allocator.Temp);
+            var activePerKind   = new NativeArray<int>(13, Allocator.Temp);
+            var reservedPerKind = new NativeArray<int>(13, Allocator.Temp);
             foreach (var jobRO in SystemAPI.Query<RefRO<ProfessionIntent>>().WithAll<ProfessionPriorities>())
             {
                 byte ak = jobRO.ValueRO.Kind;
                 if (ak < activePerKind.Length) activePerKind[ak]++;
+            }
+            foreach (var reservedRO in SystemAPI.Query<RefRO<ReservedRoles>>())
+            {
+                var r = reservedRO.ValueRO;
+                reservedPerKind[ProfessionKind.Lumberjack] += r.Lumberjack;
+                reservedPerKind[ProfessionKind.Miner]      += r.Miner;
+                reservedPerKind[ProfessionKind.Guard]      += r.Guard;
+                reservedPerKind[ProfessionKind.Looter]     += r.Looter;
+                reservedPerKind[ProfessionKind.Farmer]     += r.Farmer;
+                reservedPerKind[ProfessionKind.Builder]    += r.Builder;
+                reservedPerKind[ProfessionKind.Chef]       += r.Chef;
+                reservedPerKind[ProfessionKind.Hunter]     += r.Hunter;
+                reservedPerKind[ProfessionKind.Blacksmith] += r.Blacksmith;
+                reservedPerKind[ProfessionKind.Craftsman]  += r.Craftsman;
+                reservedPerKind[ProfessionKind.Medic]      += r.Medic;
             }
 
             if (doFullDispatch)
@@ -523,9 +539,13 @@ namespace RareIcon
                     {
                         int oN = offersPerKind[offer.Kind];
                         int aN = activePerKind[offer.Kind];
+                        int rN = reservedPerKind[offer.Kind];
                         int deficit = oN - aN;
                         if (deficit > 0)
                             score += (long)math.min(deficit, DeficitCap) * (PriorityWeight / 4);
+                        int reservationShortfall = rN - aN;
+                        if (reservationShortfall > 0)
+                            score += (long)reservationShortfall * PriorityWeight;
                         float pressure = (float)(oN + 1) / (float)(aN + 1);
                         score += (long)(math.log(1f + pressure) * 30f);
                     }
@@ -552,11 +572,15 @@ namespace RareIcon
                             out hostileHex, out hostileEntity, out hostileDist);
                     }
 
+                    int guardReservationShortfall = math.max(0, reservedPerKind[ProfessionKind.Guard] - activePerKind[ProfessionKind.Guard]);
+
                     if (foundHostile)
                     {
                         long gScore = (long)p.Guard * PriorityWeight - (long)hostileDist;
                         if (hostileEntity != Entity.Null && hostileEntity == currentTarget)
                             gScore += HysteresisBonus;
+                        if (guardReservationShortfall > 0)
+                            gScore += (long)guardReservationShortfall * PriorityWeight;
                         if (gScore > bestScore)
                         {
                             bestScore  = gScore;
@@ -584,6 +608,8 @@ namespace RareIcon
                         int patrolDist = HexDistance(currentHex, patrolHex);
 
                         long gScore = (long)p.Guard * PriorityWeight - (long)patrolDist;
+                        if (guardReservationShortfall > 0)
+                            gScore += (long)guardReservationShortfall * PriorityWeight;
                         if (gScore > bestScore)
                         {
                             bestScore  = gScore;
@@ -672,6 +698,7 @@ namespace RareIcon
             offers.Dispose();
             offersPerKind.Dispose();
             activePerKind.Dispose();
+            reservedPerKind.Dispose();
             friendlyEmitters.Dispose();
             needyCaves.Dispose();
         }

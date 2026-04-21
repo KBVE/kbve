@@ -243,6 +243,13 @@ namespace RareIcon
                 // cooked food so goblins don't starve before Foragers/Farms
                 // kick in. Tuned so the first night is survivable without
                 // player micromanagement.
+                ecb.AddComponent(building, new ReservedRoles
+                {
+                    Guard   = 2,
+                    Builder = 1,
+                    Medic   = 1,
+                });
+
                 var treasury = ecb.AddBuffer<CapitalLedger>(building);
                 treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Arrow,        Count = 2500 });
                 treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.WoodLog,      Count = 400 });
