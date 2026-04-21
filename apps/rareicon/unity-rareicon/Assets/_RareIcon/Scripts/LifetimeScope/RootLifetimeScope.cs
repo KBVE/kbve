@@ -35,6 +35,12 @@ namespace RareIcon
             builder.RegisterMessageBroker<InventoryChangedMessage>(options);
             builder.RegisterMessageBroker<ProfessionChangedMessage>(options);
 
+            builder.RegisterMessageBroker<DialogueStartMessage>(options);
+            builder.RegisterMessageBroker<DialogueAdvanceMessage>(options);
+            builder.RegisterMessageBroker<DialogueChoiceMessage>(options);
+            builder.RegisterMessageBroker<DialogueEndedMessage>(options);
+            builder.RegisterMessageBroker<SpeechBubbleMessage>(options);
+
             builder.RegisterBuildCallback(container =>
             {
                 GlobalMessagePipe.SetProvider(container.AsServiceProvider());
@@ -97,6 +103,13 @@ namespace RareIcon
 
             // -- Pause indicator (top-right overlay + F9 debug toggle) --
             builder.RegisterEntryPoint<PauseIndicator>().AsSelf();
+
+            // -- Dialogue: VN renderer is DI-resolvable so the controller
+            //    can drive it directly; bubble + controller are pure
+            //    entry points that self-manage via the message bus. --
+            builder.RegisterEntryPoint<DialogueVN>().AsSelf();
+            builder.RegisterEntryPoint<DialogueBubble>();
+            builder.RegisterEntryPoint<DialogueController>();
 
             // -- Building palette panel (per-type cost + affordability) --
             builder.RegisterEntryPoint<UIBuildingPalette>().AsSelf();
