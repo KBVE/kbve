@@ -1,10 +1,13 @@
 ---
+import { parseYouTubeId, buildYouTubeBgEmbed } from './_video';
+
 interface Props {
 	duration?: number;
 	threshold?: number;
 	foreground?: string;
 	background?: string;
 	backgroundColor?: string;
+	video?: string;
 	alt?: string;
 	heroEnd?: string;
 	heroScale?: number;
@@ -20,6 +23,7 @@ const {
 	foreground,
 	background,
 	backgroundColor,
+	video,
 	alt = '',
 	heroEnd = '+=150%',
 	heroScale = 2,
@@ -29,11 +33,14 @@ const {
 	heroPerspective = '500px',
 } = Astro.props;
 
+const heroVideoId = video ? parseYouTubeId(video) : null;
+const heroEmbedSrc = heroVideoId ? buildYouTubeBgEmbed(heroVideoId) : null;
+
 const heroBgStyle = [
-	background ? `background-image: url(${background});` : '',
+	background && !heroEmbedSrc ? `background-image: url(${background});` : '',
 	backgroundColor
 		? `background-color: ${backgroundColor};`
-		: !background
+		: !background && !heroEmbedSrc
 			? 'background-color: var(--sl-color-bg, #121312);'
 			: '',
 ]
@@ -61,8 +68,18 @@ const heroBgStyle = [
 					<section
 						class="obs__hero-bg"
 						aria-hidden="true"
-						style={heroBgStyle}
-					/>
+						style={heroBgStyle}>
+						{heroEmbedSrc && (
+							<iframe
+								class="obs__hero-video"
+								src={heroEmbedSrc}
+								title="Hero background video"
+								loading="lazy"
+								allow="autoplay; encrypted-media; picture-in-picture"
+								aria-hidden="true"
+							/>
+						)}
+					</section>
 				</div>
 				<div class="obs__hero-image">
 					<img src={foreground} alt={alt} />
@@ -79,6 +96,7 @@ const heroBgStyle = [
 	import { gsap } from 'gsap';
 	import { Observer } from 'gsap/Observer';
 	import { ScrollTrigger } from 'gsap/ScrollTrigger';
+	import { ytPlay, ytPause } from './_video';
 
 	gsap.registerPlugin(Observer, ScrollTrigger);
 
@@ -131,12 +149,9 @@ const heroBgStyle = [
 				images.forEach((bg) => {
 					const raw = bg.dataset.obsImage;
 					if (!raw) return;
-					const overlay = bg.dataset.obsOverlay || '';
 					const resolved = upgradeUnsplashUrl(raw);
 					if (resolved !== raw) {
-						bg.style.backgroundImage = overlay
-							? `${overlay}, url(${resolved})`
-							: `url(${resolved})`;
+						bg.style.backgroundImage = `url(${resolved})`;
 					}
 					const preload = new Image();
 					preload.decoding = 'async';
@@ -174,6 +189,34 @@ const heroBgStyle = [
 				let currentIndex = -1;
 				let animating = false;
 				const wrap = gsap.utils.wrap(0, sections.length);
+
+				const heroEl =
+					root.querySelector<HTMLElement>('[data-obs-hero]');
+				const heroVideo =
+					root.querySelector<HTMLIFrameElement>('.obs__hero-video');
+				const sectionVideos: (HTMLIFrameElement | null)[] =
+					sections.map((s) =>
+						s.querySelector<HTMLIFrameElement>('.obs__bg-video'),
+					);
+				const hasAnyVideo = !!heroVideo || sectionVideos.some((v) => v);
+				let heroActive = !!heroEl;
+
+				const getActiveVideo = (): HTMLIFrameElement | null => {
+					if (heroActive && heroVideo) return heroVideo;
+					if (!heroActive && currentIndex >= 0)
+						return sectionVideos[currentIndex] ?? null;
+					return null;
+				};
+
+				const syncVideos = () => {
+					if (!hasAnyVideo) return;
+					const active = getActiveVideo();
+					if (heroVideo && heroVideo !== active) ytPause(heroVideo);
+					sectionVideos.forEach((v) => {
+						if (v && v !== active) ytPause(v);
+					});
+					if (active && !document.hidden) ytPlay(active);
+				};
 
 				const gotoSection = (rawIndex: number, direction: number) => {
 					const index = wrap(rawIndex);
@@ -234,9 +277,42 @@ const heroBgStyle = [
 						);
 
 					currentIndex = index;
+					syncVideos();
 				};
 
 				gotoSection(0, 1);
+
+				if (hasAnyVideo) {
+					const watchdog = window.setInterval(() => {
+						if (document.hidden) return;
+						const active = getActiveVideo();
+						if (active) ytPlay(active);
+					}, 5000);
+
+					const onVisibility = () => {
+						if (document.hidden) {
+							if (heroVideo) ytPause(heroVideo);
+							sectionVideos.forEach((v) => v && ytPause(v));
+						} else {
+							syncVideos();
+						}
+					};
+					document.addEventListener('visibilitychange', onVisibility);
+
+					const cleanup = () => {
+						clearInterval(watchdog);
+						document.removeEventListener(
+							'visibilitychange',
+							onVisibility,
+						);
+					};
+					document.addEventListener('astro:before-swap', cleanup, {
+						once: true,
+					});
+					window.addEventListener('pagehide', cleanup, {
+						once: true,
+					});
+				}
 
 				const observer = Observer.create({
 					target: window,
@@ -281,8 +357,16 @@ const heroBgStyle = [
 								pinSpacing: true,
 								scrub: true,
 								invalidateOnRefresh: true,
-								onLeave: () => observer.enable(),
-								onEnterBack: () => observer.disable(),
+								onLeave: () => {
+									observer.enable();
+									heroActive = false;
+									syncVideos();
+								},
+								onEnterBack: () => {
+									observer.disable();
+									heroActive = true;
+									syncVideos();
+								},
 							},
 						})
 							.to(heroImg, {
@@ -351,13 +435,29 @@ const heroBgStyle = [
 	}
 
 	.obs__hero-bg {
+		position: relative;
 		width: 100%;
 		height: 100vh;
 		background-position: center center;
 		background-repeat: no-repeat;
 		background-size: cover;
+		overflow: hidden;
 		will-change: transform;
 		transform: translateZ(0);
+	}
+
+	.obs__hero-video {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 120%;
+		height: 120%;
+		min-width: 120vw;
+		min-height: 120vh;
+		transform: translate(-50%, -50%);
+		border: 0;
+		pointer-events: none;
+		z-index: 0;
 	}
 
 	.obs__hero-image {
