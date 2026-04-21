@@ -34,6 +34,9 @@ namespace RareIcon
         public readonly float RestoreEnergy;
         public readonly float RestoreMana;
 
+        public readonly float RegenPerSecond;
+        public readonly float RegenDuration;
+
         public readonly HarvestRole HarvestRole;
         public readonly byte HarvestWeight;
 
@@ -46,24 +49,28 @@ namespace RareIcon
                        float restoreHealth = 0f,
                        float restoreEnergy = 0f,
                        float restoreMana   = 0f,
+                       float regenPerSecond = 0f,
+                       float regenDuration  = 0f,
                        HarvestRole harvestRole = HarvestRole.None,
                        byte harvestWeight = 100,
                        ushort compressesTo = 0,
                        ushort compressRatio = 0,
                        ushort poolGroup = 0)
         {
-            Id            = id;
-            Category      = category;
-            StackMax      = stackMax;
-            BaseValue     = baseValue;
-            RestoreHealth = restoreHealth;
-            RestoreEnergy = restoreEnergy;
-            RestoreMana   = restoreMana;
-            HarvestRole   = harvestRole;
-            HarvestWeight = harvestWeight;
-            CompressesTo  = compressesTo;
-            CompressRatio = compressRatio;
-            PoolGroup     = poolGroup;
+            Id             = id;
+            Category       = category;
+            StackMax       = stackMax;
+            BaseValue      = baseValue;
+            RestoreHealth  = restoreHealth;
+            RestoreEnergy  = restoreEnergy;
+            RestoreMana    = restoreMana;
+            RegenPerSecond = regenPerSecond;
+            RegenDuration  = regenDuration;
+            HarvestRole    = harvestRole;
+            HarvestWeight  = harvestWeight;
+            CompressesTo   = compressesTo;
+            CompressRatio  = compressRatio;
+            PoolGroup      = poolGroup;
         }
     }
 
@@ -185,6 +192,9 @@ namespace RareIcon
             Add("item.unknown_key",    new ItemDef((ushort)ItemId.UnknownKey,    ItemCategory.Quest,    10, 0));
             Add("item.unknown_scroll", new ItemDef((ushort)ItemId.UnknownScroll, ItemCategory.Magic,    10, 0));
             Add("item.unknown_tome",   new ItemDef((ushort)ItemId.UnknownTome,   ItemCategory.Magic,     5, 0));
+
+            Add("item.medkit",         new ItemDef((ushort)ItemId.MedKit,        ItemCategory.Consumable, 10, 80,
+                restoreHealth: 25f, regenPerSecond: 2f, regenDuration: 15f));
         }
 
         static void Add(string nameKey, ItemDef def)
@@ -248,18 +258,20 @@ namespace RareIcon
                 var d = kv.Value;
                 lookup.TryAdd(d.Id, new ItemDefRuntime
                 {
-                    Id            = d.Id,
-                    Category      = (byte)d.Category,
-                    StackMax      = d.StackMax,
-                    BaseValue     = d.BaseValue,
-                    RestoreHealth = d.RestoreHealth,
-                    RestoreEnergy = d.RestoreEnergy,
-                    RestoreMana   = d.RestoreMana,
-                    HarvestRole   = (byte)d.HarvestRole,
-                    HarvestWeight = d.HarvestWeight,
-                    CompressesTo  = d.CompressesTo,
-                    CompressRatio = d.CompressRatio,
-                    PoolGroup     = d.PoolGroup,
+                    Id             = d.Id,
+                    Category       = (byte)d.Category,
+                    StackMax       = d.StackMax,
+                    BaseValue      = d.BaseValue,
+                    RestoreHealth  = d.RestoreHealth,
+                    RestoreEnergy  = d.RestoreEnergy,
+                    RestoreMana    = d.RestoreMana,
+                    RegenPerSecond = d.RegenPerSecond,
+                    RegenDuration  = d.RegenDuration,
+                    HarvestRole    = (byte)d.HarvestRole,
+                    HarvestWeight  = d.HarvestWeight,
+                    CompressesTo   = d.CompressesTo,
+                    CompressRatio  = d.CompressRatio,
+                    PoolGroup      = d.PoolGroup,
                 });
             }
         }

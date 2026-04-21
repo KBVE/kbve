@@ -13,6 +13,8 @@ namespace RareIcon
         public float  RestoreHealth;
         public float  RestoreEnergy;
         public float  RestoreMana;
+        public float  RegenPerSecond;
+        public float  RegenDuration;
         public byte   HarvestRole;
         public byte   HarvestWeight;
         public ushort CompressesTo;
@@ -36,6 +38,12 @@ namespace RareIcon
 
         public float ManaValue(ushort itemId)
             => Lookup.TryGetValue(itemId, out var def) ? def.RestoreMana : 0f;
+
+        public float RegenPerSecond(ushort itemId)
+            => Lookup.TryGetValue(itemId, out var def) ? def.RegenPerSecond : 0f;
+
+        public float RegenDuration(ushort itemId)
+            => Lookup.TryGetValue(itemId, out var def) ? def.RegenDuration : 0f;
 
         public bool TryGet(ushort itemId, out ItemDefRuntime def)
             => Lookup.TryGetValue(itemId, out def);

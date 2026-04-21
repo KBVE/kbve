@@ -78,5 +78,9 @@ namespace RareIcon
         UnknownKey        = 304,
         UnknownScroll     = 305,
         UnknownTome       = 306,
+
+        // Healing — Barracks crafts these from Herbs; consumption restores
+        // instant HP and applies a RegenBuff over RegenDuration seconds.
+        MedKit            = 307,
     }
 }
