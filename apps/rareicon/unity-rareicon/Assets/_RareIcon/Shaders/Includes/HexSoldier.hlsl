@@ -42,14 +42,21 @@ void DrawSoldierSide(inout float3 color, inout float alpha, float2 px,
         color = (px.y >= hc.y) ? _SoldierSkin.rgb : _SoldierSkinShade.rgb;
         alpha = 1.0;
     }
-    // Hair — row across the top of the scalp + one forward sweep pixel.
-    float hair    = rectMask(px, hc + float2(-1, 1), float2(3, 1));
-    float hairFwd = rectMask(px, hc + float2( 1, 0), float2(1, 1));
-    if (hair > 0.5 || hairFwd > 0.5)
+    // Hair — band across the scalp + a sideburn pixel on the BACK of the
+    // head so the silhouette reads hair-trails-behind-forehead instead of
+    // a symmetric cap. The prior "hairFwd" pixel lived under the eye and
+    // got overdrawn, leaving the profile facing-ambiguous.
+    float hair     = rectMask(px, hc + float2(-1, 1), float2(3, 1));
+    float hairBack = rectMask(px, hc + float2(-2, 0), float2(1, 1));
+    if (hair > 0.5 || hairBack > 0.5)
     {
         color = _SoldierHair.rgb;
         alpha = 1.0;
     }
+    // Nose — single skin pixel jutting forward past the head circle so
+    // East/West facing reads at a glance.
+    float nose = rectMask(px, hc + float2(2, 0), float2(1, 1));
+    if (nose > 0.5) { color = _SoldierSkinShade.rgb; alpha = 1.0; }
     // Single forward eye.
     float eye = step(length(px - (hc + float2(0.6, 0))), 0.45);
     if (eye > 0.5 && head > 0.5) { color = _SoldierEye.rgb; alpha = 1.0; }

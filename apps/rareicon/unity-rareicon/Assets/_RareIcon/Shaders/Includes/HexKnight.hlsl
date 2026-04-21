@@ -50,10 +50,13 @@ void DrawKnightSide(inout float3 color, inout float alpha, float2 px,
         alpha = 1.0;
     }
 
-    // Plume — 2-pixel feather leaning back over the helm.
-    float plumeA = rectMask(px, hc + float2(-1, 2), float2(1, 1));
-    float plumeB = rectMask(px, hc + float2(-1, 3), float2(1, 1));
-    if (plumeA > 0.5 || plumeB > 0.5)
+    // Horsehair crest streaming backward off the helm — 3 horizontal
+    // pixels above the crown. Vertical back-stacks read as a chicken comb
+    // at 16-grid; horizontal reads as "crest".
+    float plumeA = rectMask(px, hc + float2(-2, 2), float2(1, 1));
+    float plumeB = rectMask(px, hc + float2(-1, 2), float2(1, 1));
+    float plumeC = rectMask(px, hc + float2( 0, 2), float2(1, 1));
+    if (plumeA > 0.5 || plumeB > 0.5 || plumeC > 0.5)
     {
         color = _KnightPlume.rgb;
         alpha = 1.0;
@@ -111,10 +114,11 @@ void DrawKnightBack(inout float3 color, inout float alpha, float2 px,
         alpha = 1.0;
     }
 
-    // Plume — straight up from the crown.
-    float plumeA = rectMask(px, hc + float2(0, 2), float2(1, 1));
-    float plumeB = rectMask(px, hc + float2(0, 3), float2(1, 1));
-    if (plumeA > 0.5 || plumeB > 0.5)
+    // Horsehair crest from behind — 3 horizontal pixels above the crown.
+    float plumeA = rectMask(px, hc + float2(-1, 2), float2(1, 1));
+    float plumeB = rectMask(px, hc + float2( 0, 2), float2(1, 1));
+    float plumeC = rectMask(px, hc + float2( 1, 2), float2(1, 1));
+    if (plumeA > 0.5 || plumeB > 0.5 || plumeC > 0.5)
     {
         color = _KnightPlume.rgb;
         alpha = 1.0;
@@ -177,10 +181,12 @@ void DrawKnightFront(inout float3 color, inout float alpha, float2 px,
         alpha = 1.0;
     }
 
-    // Plume — straight up.
-    float plumeA = rectMask(px, hc + float2(0, 2), float2(1, 1));
-    float plumeB = rectMask(px, hc + float2(0, 3), float2(1, 1));
-    if (plumeA > 0.5 || plumeB > 0.5)
+    // Horsehair crest from the front — 3 horizontal pixels, matches the
+    // side/back silhouette so facing changes don't pop a new shape.
+    float plumeA = rectMask(px, hc + float2(-1, 2), float2(1, 1));
+    float plumeB = rectMask(px, hc + float2( 0, 2), float2(1, 1));
+    float plumeC = rectMask(px, hc + float2( 1, 2), float2(1, 1));
+    if (plumeA > 0.5 || plumeB > 0.5 || plumeC > 0.5)
     {
         color = _KnightPlume.rgb;
         alpha = 1.0;
