@@ -46,37 +46,151 @@ html[data-auth-tone='staff'] li[data-auth-visibility='anon'] {
 	display: none;
 }
 
-/* ── KBVE Luxury Palette: red + gold + near-black ── */
+/* ── KBVE Luxury Palette: red + gold + near-black ──
+   Brand tokens are the source of truth. Starlight vars below
+   reference them so the shell (nav, sidebar, page bg) picks up
+   the palette automatically. */
 :root {
+	/* Brand tokens */
 	--color-red: #ad0013;
+	--color-red-dark: #7a000d;
 	--color-gold: #a67d43;
-	--color-bg: #121312;
 	--color-gold-light: #c9a56a;
 	--color-gold-dark: #7a5a2e;
-	--color-red-dark: #7a000d;
+	--color-bg: #121312;
+	--color-bg-raised: #1a1a1a;
+	--color-bg-sunken: #0b0c0b;
+	--color-parchment: #f5ecd8;
 
-	/* Light-theme Starlight mapping (gold accent, red for links) */
-	--sl-color-accent-low: #f5ecd8;
-	--sl-color-accent: #a67d43;
-	--sl-color-accent-high: #7a5a2e;
-	--sl-color-text-accent: #ad0013;
-	--sl-color-link: #ad0013;
-	--sl-color-link-hover: #7a000d;
-	--sl-color-bg-accent: #f5ecd8;
+	/* Dark-first defaults — paint the page in brand near-black even before
+	   data-theme resolves, so cross-doc view transitions don't flash a
+	   lighter surface. Light theme overrides below via :not selector. */
+	--sl-color-bg: var(--color-bg);
+	--sl-color-bg-nav: var(--color-bg-raised);
+	--sl-color-bg-sidebar: var(--color-bg-raised);
+	--sl-color-bg-inline-code: var(--color-bg-raised);
+
+	/* Light-theme Starlight mapping (applies only when data-theme is light) */
+	--sl-color-accent-low: var(--color-parchment);
+	--sl-color-accent: var(--color-gold);
+	--sl-color-accent-high: var(--color-gold-dark);
+	--sl-color-text-accent: var(--color-red);
+	--sl-color-link: var(--color-red);
+	--sl-color-link-hover: var(--color-red-dark);
+	--sl-color-bg-accent: var(--color-parchment);
 	--sl-color-code-bg: #1a1413;
-	--sl-color-border: #a67d43;
+	--sl-color-border: var(--color-gold);
+}
+
+/* Light theme: override only when data-theme is explicitly 'light'.
+   Unset/missing data-theme falls through to the dark defaults above. */
+:root[data-theme='light'] {
+	--sl-color-bg: #fefefe;
+	--sl-color-bg-nav: #fefefe;
+	--sl-color-bg-sidebar: #faf8f2;
+	--sl-color-bg-inline-code: #f5ecd8;
 }
 :root[data-theme='dark'] {
-	/* Dark-theme Starlight mapping (gold primary, red emphasis) */
+	/* Dark-theme accent overrides (bg vars already set in base :root) */
 	--sl-color-accent-low: #3a2615;
-	--sl-color-accent: #a67d43;
-	--sl-color-accent-high: #c9a56a;
-	--sl-color-text-accent: #c9a56a;
-	--sl-color-link: #c9a56a;
-	--sl-color-link-hover: #ad0013;
-	--sl-color-bg-accent: #7a000d;
-	--sl-color-code-bg: #1a1413;
-	--sl-color-border: #7a5a2e;
+	--sl-color-accent: var(--color-gold);
+	--sl-color-accent-high: var(--color-gold-light);
+	--sl-color-text-accent: var(--color-gold-light);
+	--sl-color-link: var(--color-gold-light);
+	--sl-color-link-hover: var(--color-red);
+	--sl-color-bg-accent: var(--color-red-dark);
+	--sl-color-code-bg: var(--color-bg-sunken);
+	--sl-color-border: var(--color-gold-dark);
+}
+
+/* ── Typography: Playfair Display for display, Lora for body ── */
+:root {
+	--sl-font:
+		'Playfair Display', 'Cormorant Garamond', 'Palatino Linotype', Georgia,
+		serif;
+	--kbve-font-body: 'Lora', Georgia, 'Times New Roman', serif;
+}
+
+/* Paint the root element so view-transitions and initial renders
+   never reveal the browser default (white) behind the Starlight shell. */
+html {
+	background-color: var(--sl-color-bg);
+}
+
+:root[data-theme='dark'] {
+	color-scheme: dark;
+}
+
+body {
+	font-family: var(--kbve-font-body);
+}
+
+/* Match the view-transition pseudo-elements to the shell bg so the
+   cross-fade between old/new page snapshots stays on-brand. */
+::view-transition-old(root),
+::view-transition-new(root) {
+	background-color: var(--sl-color-bg);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: var(--sl-font);
+}
+
+/* ── Scrollbar: dark gold on near-black ── */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: #121312;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #7a5a2e;
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #a67d43;
+}
+
+/* Firefox */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: #7a5a2e #121312;
+}
+
+/* ── Focus styles: gold ring for keyboard navigation ── */
+:focus-visible {
+	outline: 2px solid #a67d43;
+	outline-offset: 2px;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+	outline: 2px solid #a67d43;
+	outline-offset: 2px;
+}
+
+/* ── Reduced motion: respect vestibular preferences ── */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
 }
 
 @layer utilities {
@@ -227,6 +341,49 @@ html[data-auth-tone='staff'] li[data-auth-visibility='anon'] {
 			border: none;
 			cursor: pointer;
 			box-shadow: 0 0 4px rgba(166, 125, 67, 0.45);
+		}
+	}
+
+	/* Backlinks panel (right sidebar) — keep it off the canvas edge */
+	.sg-backlinks {
+		padding: 0.75rem 1rem 1rem;
+		margin-top: 0.75rem;
+		border-top: 1px solid var(--sl-color-hairline);
+	}
+
+	/* Site-graph slot: reserves SSR space so React's client:only mount
+	   doesn't shift layout. Spinner hides automatically once React
+	   renders its .sg-container child. */
+	.sg-slot {
+		position: relative;
+		min-height: 360px;
+	}
+
+	.sg-slot-loading {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		pointer-events: none;
+	}
+
+	.sg-slot:has(.sg-container) .sg-slot-loading {
+		display: none;
+	}
+
+	.sg-spinner {
+		width: 32px;
+		height: 32px;
+		border: 3px solid var(--sl-color-gray-5, #252220);
+		border-top-color: var(--sl-color-accent);
+		border-radius: 50%;
+		animation: sg-spin 1s linear infinite;
+	}
+
+	@keyframes sg-spin {
+		to {
+			transform: rotate(360deg);
 		}
 	}
 

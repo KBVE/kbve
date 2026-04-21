@@ -38,13 +38,16 @@
 		"./components/AskamaStat.astro": "./components/AskamaStat.astro",
 		"./components/ToastContainer.astro": "./components/ToastContainer.astro",
 		"./components/CanvasOverlay.astro": "./components/CanvasOverlay.astro",
-		"./components/Redirect.astro": "./components/Redirect.astro"
+		"./components/Redirect.astro": "./components/Redirect.astro",
+		"./components/tooltip/social/SocialTooltip.astro": "./components/tooltip/social/SocialTooltip.astro",
+		"./components/tooltip/social/sttService": "./components/tooltip/social/sttService.js"
 	},
 	"files": [
 		"astro.es.js",
 		"index.d.ts",
 		"**/*.d.ts",
-		"components/*.astro",
+		"components/**/*.astro",
+		"components/**/*.js",
 		"*.md"
 	],
 	"peerDependencies": {

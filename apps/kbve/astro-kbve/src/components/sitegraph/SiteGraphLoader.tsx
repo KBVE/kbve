@@ -52,6 +52,18 @@ export default function SiteGraphLoader({ currentSlug }: SiteGraphLoaderProps) {
 	// Once loaded, keep mounted but hidden (avoids refetching sitemap)
 	if (!hasLoaded) return null;
 
+	const fallback = (
+		<div
+			style={{
+				minHeight: '320px',
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+			}}>
+			<div className="sg-spinner" aria-hidden="true" />
+		</div>
+	);
+
 	return (
 		<div
 			className="sg-container"
@@ -59,7 +71,7 @@ export default function SiteGraphLoader({ currentSlug }: SiteGraphLoaderProps) {
 				display: visible ? 'block' : 'none',
 				padding: '8px 0',
 			}}>
-			<Suspense fallback={null}>
+			<Suspense fallback={fallback}>
 				<div style={{ marginBottom: '12px' }}>
 					<h3
 						style={{
