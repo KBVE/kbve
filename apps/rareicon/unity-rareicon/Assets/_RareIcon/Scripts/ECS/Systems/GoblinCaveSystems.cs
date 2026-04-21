@@ -18,6 +18,7 @@ namespace RareIcon
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
+            if (!SystemAPI.TryGetSingleton<ItemDBSingleton>(out var itemDb)) return;
             uint currentTurn = SystemAPI.GetSingleton<WorldClock>().TurnIndex;
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
@@ -26,6 +27,7 @@ namespace RareIcon
             state.Dependency = new GoblinCaveProductionJob
             {
                 CurrentTurn = currentTurn,
+                ItemDb      = itemDb,
                 Ecb         = ecb,
             }.ScheduleParallel(state.Dependency);
         }
@@ -36,6 +38,7 @@ namespace RareIcon
     public partial struct GoblinCaveProductionJob : IJobEntity
     {
         public uint CurrentTurn;
+        [ReadOnly] public ItemDBSingleton ItemDb;
         public EntityCommandBuffer.ParallelWriter Ecb;
 
         void Execute(Entity entity,
@@ -49,7 +52,7 @@ namespace RareIcon
 
             var storage = typedStorage.Reinterpret<BankLedgerBase>();
             ushort need = prod.FoodPerGoblin == 0 ? (ushort)1 : prod.FoodPerGoblin;
-            if (!TryConsumeFood(ref storage, need)) return;
+            if (!TryConsumeFood(ref storage, need, ItemDb)) return;
 
             prod.LastProducedTurn = CurrentTurn;
 
@@ -67,12 +70,12 @@ namespace RareIcon
             });
         }
 
-        static bool TryConsumeFood(ref DynamicBuffer<BankLedgerBase> storage, ushort amount)
+        static bool TryConsumeFood(ref DynamicBuffer<BankLedgerBase> storage, ushort amount, in ItemDBSingleton db)
         {
             int available = 0;
             for (int i = 0; i < storage.Length; i++)
             {
-                if (ItemDB.EnergyValue(storage[i].ItemId) <= 0f) continue;
+                if (db.EnergyValue(storage[i].ItemId) <= 0f) continue;
                 available += storage[i].Count;
                 if (available >= amount) break;
             }
@@ -81,7 +84,7 @@ namespace RareIcon
             int remaining = amount;
             for (int i = 0; i < storage.Length && remaining > 0; i++)
             {
-                if (ItemDB.EnergyValue(storage[i].ItemId) <= 0f) continue;
+                if (db.EnergyValue(storage[i].ItemId) <= 0f) continue;
                 var slot = storage[i];
                 int take = slot.Count < remaining ? slot.Count : remaining;
                 slot.Count = (ushort)(slot.Count - take);

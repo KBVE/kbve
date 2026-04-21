@@ -39,5 +39,11 @@ namespace RareIcon
 
         public bool TryGet(ushort itemId, out ItemDefRuntime def)
             => Lookup.TryGetValue(itemId, out def);
+
+        public byte GetHarvestRole(ushort itemId)
+            => Lookup.TryGetValue(itemId, out var def) ? def.HarvestRole : (byte)0;
+
+        public byte GetHarvestWeight(ushort itemId)
+            => Lookup.TryGetValue(itemId, out var def) ? def.HarvestWeight : (byte)100;
     }
 }

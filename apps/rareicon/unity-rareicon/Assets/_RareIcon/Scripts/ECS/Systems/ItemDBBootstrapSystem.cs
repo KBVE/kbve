@@ -7,28 +7,44 @@ namespace RareIcon
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class ItemDBBootstrapSystem : SystemBase
     {
-        Entity _singletonEntity;
+        Entity _itemDbEntity;
+        Entity _dietEntity;
         bool   _initialized;
 
         protected override void OnUpdate()
         {
             if (_initialized) return;
 
-            var lookup = new NativeHashMap<ushort, ItemDefRuntime>(128, Allocator.Persistent);
-            ItemDB.PopulateRuntimeLookup(lookup);
+            var itemLookup = new NativeHashMap<ushort, ItemDefRuntime>(128, Allocator.Persistent);
+            ItemDB.PopulateRuntimeLookup(itemLookup);
+            _itemDbEntity = EntityManager.CreateEntity(typeof(ItemDBSingleton));
+            EntityManager.SetComponentData(_itemDbEntity, new ItemDBSingleton { Lookup = itemLookup });
 
-            _singletonEntity = EntityManager.CreateEntity(typeof(ItemDBSingleton));
-            EntityManager.SetComponentData(_singletonEntity, new ItemDBSingleton { Lookup = lookup });
+            // Diet preferences start empty — player UI hasn't had a chance to
+            // set overrides yet. DietPreferencesStore.Set pushes into this
+            // native map on edit so Burst HarvestJob reads stay live.
+            var dietLookup = new NativeHashMap<uint, byte>(64, Allocator.Persistent);
+            _dietEntity = EntityManager.CreateEntity(typeof(DietPreferencesSingleton));
+            EntityManager.SetComponentData(_dietEntity, new DietPreferencesSingleton { Overrides = dietLookup });
+            DietPreferencesStore.BindNativeMirror(dietLookup);
+
             _initialized = true;
         }
 
         protected override void OnDestroy()
         {
             if (!_initialized) return;
-            if (!EntityManager.Exists(_singletonEntity)) return;
-
-            var s = EntityManager.GetComponentData<ItemDBSingleton>(_singletonEntity);
-            if (s.Lookup.IsCreated) s.Lookup.Dispose();
+            if (EntityManager.Exists(_itemDbEntity))
+            {
+                var s = EntityManager.GetComponentData<ItemDBSingleton>(_itemDbEntity);
+                if (s.Lookup.IsCreated) s.Lookup.Dispose();
+            }
+            if (EntityManager.Exists(_dietEntity))
+            {
+                var d = EntityManager.GetComponentData<DietPreferencesSingleton>(_dietEntity);
+                if (d.Overrides.IsCreated) d.Overrides.Dispose();
+            }
+            DietPreferencesStore.BindNativeMirror(default);
         }
     }
 }
