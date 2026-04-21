@@ -58,6 +58,7 @@ namespace RareIcon
                                                         new((ushort)ItemId.StoneBlock, 1) };
         static readonly Ingredient[] CostOutpost    = { new((ushort)ItemId.Timber,     2),
                                                         new((ushort)ItemId.StoneBlock, 2) };
+        static readonly Ingredient[] CostDock       = { new((ushort)ItemId.Timber,     2) };
         static readonly Ingredient[] CostNone     = System.Array.Empty<Ingredient>();
 
         public static Ingredient[] GetCost(byte buildingType) => buildingType switch
@@ -70,6 +71,7 @@ namespace RareIcon
             BuildingType.Inn        => CostInn,
             BuildingType.Market     => CostMarket,
             BuildingType.Outpost    => CostOutpost,
+            BuildingType.Dock       => CostDock,
             _ => CostNone,
         };
 
@@ -98,10 +100,12 @@ namespace RareIcon
             : SingleHex;
 
         // -- Biome rules --
-        /// <summary>Returns true if `biome` can host `buildingType`. Ocean / River refuse all builds.</summary>
+        /// <summary>Returns true if `biome` can host `buildingType`. Ocean refuses every build; river refuses every build except the Dock (which is river-only).</summary>
         public static bool IsBuildable(byte buildingType, byte biome)
         {
             if (biome == BiomeGenerator.BIOME_OCEAN) return false;
+            if (buildingType == BuildingType.Dock)
+                return biome == BiomeGenerator.BIOME_RIVER;
             if (biome == BiomeGenerator.BIOME_RIVER) return false;
             // Per-type future rules slot here:
             //   Furnace might forbid Snow (no fuel),
@@ -120,6 +124,7 @@ namespace RareIcon
             BuildingType.Inn        => "building.inn",
             BuildingType.Market     => "building.market",
             BuildingType.Outpost    => "building.outpost",
+            BuildingType.Dock       => "building.dock",
             _ => "building.unknown",
         };
 
@@ -134,6 +139,7 @@ namespace RareIcon
             BuildTarget.Inn        => BuildingType.Inn,
             BuildTarget.Market     => BuildingType.Market,
             BuildTarget.Outpost    => BuildingType.Outpost,
+            BuildTarget.Dock       => BuildingType.Dock,
             _ => BuildingType.None,
         };
 
@@ -148,6 +154,7 @@ namespace RareIcon
             BuildingType.Inn        => BuildTarget.Inn,
             BuildingType.Market     => BuildTarget.Market,
             BuildingType.Outpost    => BuildTarget.Outpost,
+            BuildingType.Dock       => BuildTarget.Dock,
             _ => BuildTarget.None,
         };
 
@@ -162,6 +169,7 @@ namespace RareIcon
             BuildingType.Inn        => 280,
             BuildingType.Market     => 140,
             BuildingType.Outpost    => 220,
+            BuildingType.Dock       => 180,
             _                       => 100,
         };
 
@@ -182,6 +190,7 @@ namespace RareIcon
             BuildingType.GoblinCave,
             BuildingType.Inn,
             BuildingType.Market,
+            BuildingType.Dock,
         };
     }
 }

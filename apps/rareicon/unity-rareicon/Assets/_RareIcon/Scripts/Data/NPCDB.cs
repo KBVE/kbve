@@ -275,6 +275,37 @@ namespace RareIcon
                 defaultWeapon: WeaponType.None,
                 dialogueTreeId: DialogueTreeId.FirstContactZombie));
 
+            // Craftsman-built fishing vessel. Slow, water-locked, repairs
+            // with wood. Ranged attack via harpoon/arrow slot (wired by
+            // the spawn helper, not a defaultWeapon since the hull isn't
+            // a humanoid).
+            Add(new NPCDef(
+                unitType:      UnitType.FishingBoat,
+                nameKey:       "creature.fishing_boat",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     80f,  maxEnergy: 0f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.42f,
+                healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      8, agility: 6, intellect: 4, will: 6,
+                defaultWeapon: WeaponType.None));
+
+            // Oceanic leviathan — FishingBoats' prey. Huge HP pool so a
+            // lone boat can't solo it quickly; drops Oil + bulk Meat via
+            // EnemyLootDropSystem.
+            Add(new NPCDef(
+                unitType:      UnitType.Whale,
+                nameKey:       "creature.whale",
+                category:      NPCCategory.Beast,
+                maxHealth:     320f, maxEnergy: 0f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.22f,
+                healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      18, agility: 2, intellect: 6, will: 14,
+                defaultWeapon: WeaponType.None));
+
             // Future creatures land here — Skeleton, GoblinShaman, etc.
         }
 

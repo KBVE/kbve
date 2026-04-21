@@ -21,6 +21,7 @@ namespace RareIcon
         public const byte Inn        = 6;
         public const byte Market     = 7;
         public const byte Outpost    = 8;
+        public const byte Dock       = 9;   // River-only; passive fishing + Timber→FishingBoat crafting.
         // Tower, Wall, Mine, etc. land here as we add their .hlsl files.
     }
 
@@ -39,6 +40,7 @@ namespace RareIcon
         public const byte Inn        = 6;
         public const byte Market     = 7;
         public const byte Outpost    = 8;
+        public const byte Dock       = 9;
     }
 
     /// <summary>Marker tag for the Capital — craft / governance systems query key.</summary>

@@ -171,6 +171,8 @@ namespace RareIcon
                 UnitType.Wolf    => "creature.wolf",
                 UnitType.Bandit  => "creature.bandit",
                 UnitType.Zombie  => "creature.zombie",
+                UnitType.FishingBoat => "creature.fishing_boat",
+                UnitType.Whale   => "creature.whale",
                 _ => "creature.none",
             };
             return Get(key);

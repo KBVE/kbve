@@ -27,6 +27,8 @@ namespace RareIcon
         public const byte Bandit  = 14;  // Hostile faction, raid waves alongside goblins.
         public const byte Zombie  = 15;
         public const byte GoblinGeneral = 16; // Warlord goblin — chestplate, spiked crown, warpaint.
+        public const byte FishingBoat   = 17; // Water-locked craftsman-built vessel; hunts Whales for Oil + Meat.
+        public const byte Whale         = 18; // Oceanic / river leviathan — FishingBoats' prey.
         // Skeleton, etc. land here as we add them.
     }
 

@@ -132,6 +132,7 @@ namespace RareIcon
             Add("item.raw_glass",      new ItemDef((ushort)ItemId.RawGlass,      ItemCategory.Material, 24, 8));
             Add("item.coal",           new ItemDef((ushort)ItemId.Coal,          ItemCategory.Material, 20, 4));
             Add("item.ash",            new ItemDef((ushort)ItemId.Ash,           ItemCategory.Material, 20, 1));
+            Add("item.oil",            new ItemDef((ushort)ItemId.Oil,           ItemCategory.Material, 20, 12));
             Add("item.compost",        new ItemDef((ushort)ItemId.Compost,       ItemCategory.Material, 30, 2));
             Add("item.carrot",         new ItemDef((ushort)ItemId.Carrot,        ItemCategory.Material, 30, 4,
                 restoreEnergy: 9f,
