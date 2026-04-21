@@ -170,6 +170,7 @@ namespace RareIcon
                 UnitType.Cow     => "creature.cow",
                 UnitType.Wolf    => "creature.wolf",
                 UnitType.Bandit  => "creature.bandit",
+                UnitType.Zombie  => "creature.zombie",
                 _ => "creature.none",
             };
             return Get(key);

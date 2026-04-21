@@ -37,6 +37,9 @@ namespace RareIcon
 
         public readonly byte DefaultWeapon;
 
+        /// <summary>Dialogue tree fired on first-contact for this unit type; 0 = silent (no auto-intro). FirstContactSystem scans hostile/beast spawns once per second and publishes <see cref="DialogueStartMessage"/> with this id the first time the type appears.</summary>
+        public readonly ushort DialogueTreeId;
+
         public NPCDef(byte unitType, string nameKey, NPCCategory category,
                       float maxHealth, float maxEnergy, float maxMana,
                       float maxHunger, float maxFatigue,
@@ -44,27 +47,29 @@ namespace RareIcon
                       float healthRegen, float energyRegen, float manaRegen,
                       float hungerPerSec, float fatiguePerSec,
                       byte strength, byte agility, byte intellect, byte will,
-                      byte defaultWeapon)
+                      byte defaultWeapon,
+                      ushort dialogueTreeId = 0)
         {
-            UnitType      = unitType;
-            NameKey       = nameKey;
-            Category      = category;
-            MaxHealth     = maxHealth;
-            MaxEnergy     = maxEnergy;
-            MaxMana       = maxMana;
-            MaxHunger     = maxHunger;
-            MaxFatigue    = maxFatigue;
-            MoveSpeed     = moveSpeed;
-            HealthRegen   = healthRegen;
-            EnergyRegen   = energyRegen;
-            ManaRegen     = manaRegen;
-            HungerPerSec  = hungerPerSec;
-            FatiguePerSec = fatiguePerSec;
-            Strength      = strength;
-            Agility       = agility;
-            Intellect     = intellect;
-            Will          = will;
-            DefaultWeapon = defaultWeapon;
+            UnitType       = unitType;
+            NameKey        = nameKey;
+            Category       = category;
+            MaxHealth      = maxHealth;
+            MaxEnergy      = maxEnergy;
+            MaxMana        = maxMana;
+            MaxHunger      = maxHunger;
+            MaxFatigue     = maxFatigue;
+            MoveSpeed      = moveSpeed;
+            HealthRegen    = healthRegen;
+            EnergyRegen    = energyRegen;
+            ManaRegen      = manaRegen;
+            HungerPerSec   = hungerPerSec;
+            FatiguePerSec  = fatiguePerSec;
+            Strength       = strength;
+            Agility        = agility;
+            Intellect      = intellect;
+            Will           = will;
+            DefaultWeapon  = defaultWeapon;
+            DialogueTreeId = dialogueTreeId;
         }
     }
 
@@ -254,7 +259,8 @@ namespace RareIcon
                 healthRegen:   0f,   energyRegen: 5.0f, manaRegen: 0f,
                 hungerPerSec:  0f,   fatiguePerSec: 0f,
                 strength:      11, agility: 11, intellect: 7, will: 8,
-                defaultWeapon: WeaponType.Club));
+                defaultWeapon: WeaponType.Club,
+                dialogueTreeId: DialogueTreeId.FirstContactBandit));
 
             Add(new NPCDef(
                 unitType:      UnitType.Zombie,
@@ -266,7 +272,8 @@ namespace RareIcon
                 healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
                 hungerPerSec:  0f,   fatiguePerSec: 0f,
                 strength:      10, agility: 4, intellect: 1, will: 3,
-                defaultWeapon: WeaponType.None));
+                defaultWeapon: WeaponType.None,
+                dialogueTreeId: DialogueTreeId.FirstContactZombie));
 
             // Future creatures land here — Skeleton, GoblinShaman, etc.
         }

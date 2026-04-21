@@ -5,10 +5,12 @@ namespace RareIcon
     /// <summary>Tree ID constants. Keep in sync with <see cref="DialogueDB"/> entries.</summary>
     public static class DialogueTreeId
     {
-        public const ushort None        = 0;
-        public const ushort HelloWorld  = 1;
-        public const ushort WelcomeKing = 2;
-        public const ushort BanditTaunt = 10;
+        public const ushort None                = 0;
+        public const ushort HelloWorld          = 1;
+        public const ushort WelcomeKing         = 2;
+        public const ushort BanditTaunt         = 10;
+        public const ushort FirstContactBandit  = 11;
+        public const ushort FirstContactZombie  = 12;
     }
 
     /// <summary>One branch from a node. <see cref="NextNodeId"/> of 0 ends the tree.</summary>
@@ -146,6 +148,56 @@ namespace RareIcon
                         Mode           = DialogueMode.Bubble,
                         Emoji          = BubbleEmoji.Sword,
                         BubbleDuration = 2.5f,
+                        NextNodeId     = 0,
+                    },
+                },
+            });
+
+            Add(new DialogueTree
+            {
+                Id = DialogueTreeId.FirstContactBandit,
+                EntryNodeId = 1,
+                Nodes = new[]
+                {
+                    new DialogueNode
+                    {
+                        Id             = 1,
+                        Mode           = DialogueMode.VN,
+                        SpeakerNameKey = "creature.bandit",
+                        TextKey        = "dialogue.first_contact.bandit.line0",
+                        NextNodeId     = 2,
+                    },
+                    new DialogueNode
+                    {
+                        Id             = 2,
+                        Mode           = DialogueMode.VN,
+                        SpeakerNameKey = "creature.bandit",
+                        TextKey        = "dialogue.first_contact.bandit.line1",
+                        NextNodeId     = 0,
+                    },
+                },
+            });
+
+            Add(new DialogueTree
+            {
+                Id = DialogueTreeId.FirstContactZombie,
+                EntryNodeId = 1,
+                Nodes = new[]
+                {
+                    new DialogueNode
+                    {
+                        Id             = 1,
+                        Mode           = DialogueMode.VN,
+                        SpeakerNameKey = "creature.zombie",
+                        TextKey        = "dialogue.first_contact.zombie.line0",
+                        NextNodeId     = 2,
+                    },
+                    new DialogueNode
+                    {
+                        Id             = 2,
+                        Mode           = DialogueMode.VN,
+                        SpeakerNameKey = "creature.zombie",
+                        TextKey        = "dialogue.first_contact.zombie.line1",
                         NextNodeId     = 0,
                     },
                 },
