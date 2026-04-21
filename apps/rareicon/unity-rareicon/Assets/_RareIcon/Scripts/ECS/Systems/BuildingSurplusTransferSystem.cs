@@ -7,26 +7,35 @@ using Unity.Mathematics;
 namespace RareIcon
 {
     /// <summary>Drains each source building's above-floor SurplusExport items into Capital. Reads source bank ledger RO; enqueues -source and +Capital BankTransfers per above-floor item. Three parallel jobs (Farm/Furnace/Barracks) — distinct ledger types so Unity parallelizes them freely.</summary>
-    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct BuildingSurplusTransferSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        NativeQueue<BankTransfer> _queue;
 
-        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
+            _queue = bus.AllocateProducerQueue();
+        }
+
+        public void OnDestroy(ref SystemState state) { }
+
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
-            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
-            var queue = qSingleton.Queue.AsParallelWriter();
+
+            var queue = _queue.AsParallelWriter();
 
             var farmH = new FarmSurplusJob     { Capital = capital, Queue = queue }.ScheduleParallel(state.Dependency);
             var furnH = new FurnaceSurplusJob  { Capital = capital, Queue = queue }.ScheduleParallel(state.Dependency);
             var barrH = new BarracksSurplusJob { Capital = capital, Queue = queue }.ScheduleParallel(state.Dependency);
 
-            state.Dependency = JobHandle.CombineDependencies(
+            var combined = JobHandle.CombineDependencies(
                 JobHandle.CombineDependencies(farmH, furnH), barrH);
+
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(combined);
+            state.Dependency = combined;
         }
     }
 

@@ -7,29 +7,29 @@ using Unity.Mathematics;
 namespace RareIcon
 {
     /// <summary>Drains a Player-faction unit's pack into Capital storage when standing on a Capital-claimed hex. BanditCoin is withheld whenever any Barracks is below its StorageCapacity — the carrier keeps coins for a Capital→Barracks supply run. The "any barracks understocked?" check runs as a Burst IJob reading BufferLookup<InventorySlot>, so the dep graph serializes it against BuildingSurplusTransferSystem without [UpdateAfter] or main-thread barriers.</summary>
-    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct EmpireDepositSystem : ISystem
     {
         EntityQuery _barracksQuery;
+        NativeQueue<BankTransfer> _queue;
 
-        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             _barracksQuery = new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<BarracksTag, StorageCapacity, BarracksLedger>()
                 .Build(ref state);
+            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
+            _queue = bus.AllocateProducerQueue();
         }
 
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        public void OnDestroy(ref SystemState state) { }
 
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             if (!SystemAPI.HasBuffer<CapitalLedger>(capital)) return;
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
-            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
 
             var barracks = _barracksQuery.ToEntityListAsync(Allocator.TempJob,
                                                             state.Dependency,
@@ -45,16 +45,17 @@ namespace RareIcon
                 Result       = anyUnderstocked,
             }.Schedule(barracksHandle);
 
-            state.Dependency = new EmpireDepositJob
+            var handle = new EmpireDepositJob
             {
                 Capital        = capital,
                 Understocked   = anyUnderstocked,
                 HexLookup      = hexLookup.Lookup,
                 OccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
-                Queue          = qSingleton.Queue.AsParallelWriter(),
+                Queue          = _queue.AsParallelWriter(),
             }.ScheduleParallel(checkHandle);
 
-            state.Dependency = barracks.Dispose(state.Dependency);
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
+            state.Dependency = barracks.Dispose(handle);
             state.Dependency = anyUnderstocked.Dispose(state.Dependency);
         }
     }

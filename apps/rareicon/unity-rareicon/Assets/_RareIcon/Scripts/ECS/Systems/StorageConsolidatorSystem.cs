@@ -8,25 +8,26 @@ using Unity.Mathematics;
 namespace RareIcon
 {
     /// <summary>100:1 raw→bulk rollup per-bank. Reads each per-bank ledger RO; enqueues negative-delta BankTransfers for the raws being consumed and positive-delta BankTransfers for the bulk created. Runs five parallel jobs, one per ledger type, all RO on their source so the applier stays the only writer.</summary>
-    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup), OrderLast = true)]
     [UpdateBefore(typeof(InventoryTransferApplierSystem))]
     public partial struct StorageConsolidatorSystem : ISystem
     {
-        [BurstCompile]
+        NativeQueue<BankTransfer> _queue;
+
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<BankTransferQueue>();
             state.RequireForUpdate<ItemDBSingleton>();
+            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
+            _queue = bus.AllocateProducerQueue();
         }
 
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        public void OnDestroy(ref SystemState state) { }
 
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var db    = SystemAPI.GetSingleton<ItemDBSingleton>();
-            var queue = SystemAPI.GetSingleton<BankTransferQueue>().Queue.AsParallelWriter();
+            var queue = _queue.AsParallelWriter();
             long nowMs = (long)(SystemAPI.Time.ElapsedTime * 1000.0);
             uint  seed = (uint)math.max(1, nowMs & 0xFFFFFFFF);
 
@@ -36,9 +37,12 @@ namespace RareIcon
             var barrH = new ConsolidateBarracksJob   { Db = db, NowMs = nowMs, Seed = seed, Queue = queue }.ScheduleParallel(state.Dependency);
             var caveH = new ConsolidateGoblinCaveJob { Db = db, NowMs = nowMs, Seed = seed, Queue = queue }.ScheduleParallel(state.Dependency);
 
-            state.Dependency = JobHandle.CombineDependencies(
+            var combined = JobHandle.CombineDependencies(
                 JobHandle.CombineDependencies(capH, furnH, farmH),
                 JobHandle.CombineDependencies(barrH, caveH));
+
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(combined);
+            state.Dependency = combined;
         }
     }
 

@@ -11,29 +11,37 @@ namespace RareIcon
     }
 
     /// <summary>Player-faction RangedAttack units on a Capital- or Barracks-owned hex pull Arrows from that bank's ledger into their PackSlot (up to QuiverMax). RO on both ledger types; enqueues a -Arrow BankTransfer against the source bank and mutates the unit's PackSlot directly (per-entity safe).</summary>
-    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireDepositSystem))]
     public partial struct ArcherRefillSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        NativeQueue<BankTransfer> _queue;
 
-        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
+            _queue = bus.AllocateProducerQueue();
+        }
+
+        public void OnDestroy(ref SystemState state) { }
+
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
-            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
 
-            state.Dependency = new ArcherRefillJob
+            var handle = new ArcherRefillJob
             {
                 HexLookup         = hexLookup.Lookup,
                 HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
                 BuildingLookup    = SystemAPI.GetComponentLookup<Building>(true),
                 CapitalLookup     = SystemAPI.GetBufferLookup<CapitalLedger>(true),
                 BarracksLookup    = SystemAPI.GetBufferLookup<BarracksLedger>(true),
-                Queue             = qSingleton.Queue.AsParallelWriter(),
+                Queue             = _queue.AsParallelWriter(),
             }.Schedule(state.Dependency);
+
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
+            state.Dependency = handle;
         }
     }
 

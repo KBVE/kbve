@@ -6,22 +6,27 @@ using Unity.Mathematics;
 namespace RareIcon
 {
     /// <summary>Two-phase transport for Looter / Farmer haulers targeting a Barracks. Reads CapitalLedger + BarracksLedger RO; enqueues -Capital / +Barracks BankTransfers via the applier queue. Pack (unit-side) writes happen directly — per-entity, safe.</summary>
-    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireSharingSystem))]
     public partial struct BarracksSupplyDepositSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        NativeQueue<BankTransfer> _queue;
 
-        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
+            _queue = bus.AllocateProducerQueue();
+        }
+
+        public void OnDestroy(ref SystemState state) { }
+
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
-            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
 
-            state.Dependency = new BarracksSupplyDepositJob
+            var handle = new BarracksSupplyDepositJob
             {
                 Capital        = capital,
                 HexLookup      = hexLookup.Lookup,
@@ -33,8 +38,11 @@ namespace RareIcon
                 PackLookup     = SystemAPI.GetBufferLookup<PackSlot>(false),
                 CapitalLookup  = SystemAPI.GetBufferLookup<CapitalLedger>(true),
                 BarracksLookup = SystemAPI.GetBufferLookup<BarracksLedger>(true),
-                Queue          = qSingleton.Queue.AsParallelWriter(),
+                Queue          = _queue.AsParallelWriter(),
             }.Schedule(state.Dependency);
+
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
+            state.Dependency = handle;
         }
     }
 

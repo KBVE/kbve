@@ -10,11 +10,7 @@ using UnityEngine.Rendering;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Reads MouseState singleton, moves a single hover overlay entity
-    /// to the hovered hex position. No per-entity component changes.
-    /// One overlay entity, one position update per frame.
-    /// </summary>
+    /// <summary>Moves the hover overlay entity to the hovered hex and publishes <see cref="HexHoverMessage"/> / <see cref="HexClickedMessage"/> on mouse activity.</summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial class HexHoverSystem : SystemBase
     {

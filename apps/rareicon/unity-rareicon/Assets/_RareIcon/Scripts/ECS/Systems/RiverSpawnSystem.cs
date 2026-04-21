@@ -8,16 +8,7 @@ using UnityEngine.Rendering;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Consumes RiverDefinitions emitted by RiverRouter and spawns one decal
-    /// entity per river: polyline mesh + HexRiver material + RiverMetadata
-    /// component for gameplay queries.
-    ///
-    /// Static handoff (RiverRouter → here) is set by TitleEntryPoint after
-    /// VContainer builds; same pattern as HexChunkSystem.SetGenerator. When
-    /// chunk-aware streaming lands, this system can subscribe to a chunk
-    /// load event instead of running once.
-    /// </summary>
+    /// <summary>Spawns one decal entity per <see cref="RiverDefinition"/> emitted by <c>RiverRouter</c> — polyline mesh + HexRiver material + <see cref="RiverMetadata"/>.</summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial class RiverSpawnSystem : SystemBase
     {

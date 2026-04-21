@@ -9,7 +9,6 @@ namespace RareIcon
     {
         Entity _itemDbEntity;
         Entity _dietEntity;
-        Entity _queueEntity;
         bool   _initialized;
 
         protected override void OnUpdate()
@@ -26,13 +25,6 @@ namespace RareIcon
             EntityManager.SetComponentData(_dietEntity, new DietPreferencesSingleton { Overrides = dietLookup });
             DietPreferencesStore.BindNativeMirror(dietLookup);
 
-            // BankTransfer MPSC queue — every producer enqueues positive/
-            // negative deltas, InventoryTransferApplierSystem is the sole
-            // consumer + only RW writer of every bank ledger.
-            var queue = new NativeQueue<BankTransfer>(Allocator.Persistent);
-            _queueEntity = EntityManager.CreateEntity(typeof(BankTransferQueue));
-            EntityManager.SetComponentData(_queueEntity, new BankTransferQueue { Queue = queue });
-
             _initialized = true;
         }
 
@@ -48,11 +40,6 @@ namespace RareIcon
             {
                 var d = EntityManager.GetComponentData<DietPreferencesSingleton>(_dietEntity);
                 if (d.Overrides.IsCreated) d.Overrides.Dispose();
-            }
-            if (EntityManager.Exists(_queueEntity))
-            {
-                var q = EntityManager.GetComponentData<BankTransferQueue>(_queueEntity);
-                if (q.Queue.IsCreated) q.Queue.Dispose();
             }
             DietPreferencesStore.BindNativeMirror(default);
         }

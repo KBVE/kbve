@@ -8,12 +8,11 @@ using UnityEngine.Rendering;
 
 namespace RareIcon
 {
-    /// <summary>One-shot managed bootstrap that builds the runtime projectile prefab (Shader.Find + new Mesh + new Material live here, all managed) and stashes it in a ProjectilePrefabSingleton so the Burst-compiled spawn ISystem can consume it without touching managed APIs. One prefab serves every ProjectileType.* — HexProjectile.shader dispatches by per-instance ProjectileVisual.</summary>
+    /// <summary>One-shot bootstrap that builds the shared projectile prefab and publishes it as <see cref="ProjectilePrefabSingleton"/> for the Burst spawn consumer.</summary>
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class ProjectileBootstrapSystem : SystemBase
     {
-        // Quad footprint matches UnitSpawnSystem.UnitSize so projectile
-        // pixels render at the same scale as creature pixels.
+        // Matches UnitSpawnSystem.UnitSize so projectile pixels render at creature scale.
         const float ProjectileSize = 0.5f;
 
         bool _initialized;
@@ -50,15 +49,12 @@ namespace RareIcon
                 prefab, em, renderDesc, renderArray,
                 MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
 
-            // Singleton write — spawn ISystem polls TryGetSingleton each tick.
             var singletonEntity = em.CreateEntity(typeof(ProjectilePrefabSingleton));
             em.SetComponentData(singletonEntity, new ProjectilePrefabSingleton { Value = prefab });
 
             _initialized = true;
         }
 
-        // Flat XY quad centred at origin — UV maps [0,1] across the quad
-        // so HexProjectile.shader can quantise it to its pixel grid.
         static Mesh CreateQuadMesh(float size)
         {
             float half = size * 0.5f;
@@ -83,13 +79,12 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Pure-ECS Burst spawn consumer — instantiates the bootstrap-built prefab for each SpawnProjectileRequest and destroys the request. Touches no managed APIs; bails until the bootstrap singleton lands. Runs before ProjectileSystem so a projectile spawned this frame still ticks once, matching the "fire-and-step" expectation of callers.</summary>
+    /// <summary>Instantiates the projectile prefab for each <see cref="SpawnProjectileRequest"/> and destroys the request. Runs before <see cref="ProjectileSystem"/> so the new projectile ticks once this frame.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(MovementSystemGroup))]
     [UpdateBefore(typeof(ProjectileSystem))]
     public partial struct ProjectileSpawnSystem : ISystem
     {
-        // Z keeps projectiles above tiles + units but below modal UI.
         const float ProjectileZ = -0.8f;
 
         [BurstCompile] public void OnCreate(ref SystemState state) { }

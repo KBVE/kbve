@@ -5,34 +5,38 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Capital ProductionRecipe ticks (Arrow craft, Compost). Reads CapitalLedger RO to check inputs; enqueues ±BankTransfers so the applier is the sole RW writer. ScheduleParallel — the only per-entity write is ProductionRecipe.CycleEndsAt on the Capital itself, and there's exactly one Capital.</summary>
-    [BurstCompile]
+    /// <summary>Ticks Capital ProductionRecipes; enqueues consume/emit BankTransfers to an owned producer queue.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct CapitalProductionSystem : ISystem
     {
-        [BurstCompile]
+        NativeQueue<BankTransfer> _queue;
+
         public void OnCreate(ref SystemState state)
         {
             var q = new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<CapitalTag, CapitalLedger, ProductionRecipe>()
                 .Build(ref state);
             state.RequireForUpdate(q);
-            state.RequireForUpdate<BankTransferQueue>();
+            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
+            _queue = bus.AllocateProducerQueue();
         }
 
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        public void OnDestroy(ref SystemState state) { }
 
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
             float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
 
-            state.Dependency = new CapitalProductionJob
+            var handle = new CapitalProductionJob
             {
                 Now   = now,
-                Queue = SystemAPI.GetSingleton<BankTransferQueue>().Queue.AsParallelWriter(),
+                Queue = _queue.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
+
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
+            state.Dependency = handle;
         }
     }
 
@@ -87,38 +91,42 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Farm ProductionRecipe ticks. Inputs pull from CapitalLedger (RO) when PullsFromCapital=1 (Compost→Carrot); outputs land in this farm's FarmLedger. Every mutation goes through the BankTransferQueue.</summary>
-    [BurstCompile]
+    /// <summary>Farm ProductionRecipes; inputs pull from Capital (RO), outputs land in FarmLedger via owned producer queue.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct FarmProductionSystem : ISystem
     {
-        [BurstCompile]
+        NativeQueue<BankTransfer> _queue;
+
         public void OnCreate(ref SystemState state)
         {
             var q = new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<FarmTag, FarmLedger, ProductionRecipe>()
                 .Build(ref state);
             state.RequireForUpdate(q);
-            state.RequireForUpdate<BankTransferQueue>();
+            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
+            _queue = bus.AllocateProducerQueue();
         }
 
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        public void OnDestroy(ref SystemState state) { }
 
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
             float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
             Entity capital = SystemAPI.TryGetSingletonEntity<CapitalTag>(out var c) ? c : Entity.Null;
 
-            state.Dependency = new FarmProductionJob
+            var handle = new FarmProductionJob
             {
                 Now           = now,
                 Capital       = capital,
                 CapitalLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true),
                 TenderLookup  = SystemAPI.GetComponentLookup<TenderMultiplier>(true),
-                Queue         = SystemAPI.GetSingleton<BankTransferQueue>().Queue.AsParallelWriter(),
+                Queue         = _queue.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
+
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
+            state.Dependency = handle;
         }
     }
 
@@ -197,37 +205,41 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Barracks ProductionRecipe ticks (arrow craft). Inputs from Capital (RO), outputs to this Barracks' BarracksLedger. All mutations through BankTransferQueue.</summary>
-    [BurstCompile]
+    /// <summary>Barracks ProductionRecipes (arrow craft); inputs from Capital (RO), outputs to BarracksLedger via owned producer queue.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct BarracksProductionRecipeSystem : ISystem
     {
-        [BurstCompile]
+        NativeQueue<BankTransfer> _queue;
+
         public void OnCreate(ref SystemState state)
         {
             var q = new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<BarracksTag, BarracksLedger, ProductionRecipe>()
                 .Build(ref state);
             state.RequireForUpdate(q);
-            state.RequireForUpdate<BankTransferQueue>();
+            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
+            _queue = bus.AllocateProducerQueue();
         }
 
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        public void OnDestroy(ref SystemState state) { }
 
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
             float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
             Entity capital = SystemAPI.TryGetSingletonEntity<CapitalTag>(out var c) ? c : Entity.Null;
 
-            state.Dependency = new BarracksProductionRecipeJob
+            var handle = new BarracksProductionRecipeJob
             {
                 Now           = now,
                 Capital       = capital,
                 CapitalLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true),
-                Queue         = SystemAPI.GetSingleton<BankTransferQueue>().Queue.AsParallelWriter(),
+                Queue         = _queue.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
+
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
+            state.Dependency = handle;
         }
     }
 

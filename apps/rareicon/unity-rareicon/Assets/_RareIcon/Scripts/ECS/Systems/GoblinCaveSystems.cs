@@ -101,10 +101,17 @@ namespace RareIcon
     [UpdateAfter(typeof(EmpireDepositSystem))]
     public partial struct CapitalFoodPickupSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        NativeQueue<BankTransfer> _queue;
 
-        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
+            _queue = bus.AllocateProducerQueue();
+        }
+
+        public void OnDestroy(ref SystemState state) { }
+
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
@@ -121,12 +128,6 @@ namespace RareIcon
                 Result     = anyHeadroom,
             }.Schedule(state.Dependency);
 
-            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton))
-            {
-                state.Dependency = anyHeadroom.Dispose(headroomHandle);
-                return;
-            }
-
             var pickupHandle = new CapitalFoodPickupJob
             {
                 Capital       = capital,
@@ -134,8 +135,10 @@ namespace RareIcon
                 CapitalLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true),
                 ItemDb        = itemDb,
                 AnyHeadroom   = anyHeadroom,
-                Queue         = qSingleton.Queue.AsParallelWriter(),
+                Queue         = _queue.AsParallelWriter(),
             }.ScheduleParallel(headroomHandle);
+
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(pickupHandle);
 
             state.Dependency = anyHeadroom.Dispose(pickupHandle);
         }
@@ -233,22 +236,27 @@ namespace RareIcon
     }
 
     /// <summary>Any Player-faction unit on a cave hex carrying food drains it into the cave's GoblinCaveLedger up to StorageCap. Burst ISystem — single-worker Schedule because multiple units may target the same cave.</summary>
-    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateBefore(typeof(GoblinCaveProductionSystem))]
     public partial struct CaveFoodDeliverySystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        NativeQueue<BankTransfer> _queue;
 
-        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
+            _queue = bus.AllocateProducerQueue();
+        }
+
+        public void OnDestroy(ref SystemState state) { }
+
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
             if (!SystemAPI.TryGetSingleton<ItemDBSingleton>(out var itemDb)) return;
-            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
 
-            state.Dependency = new CaveFoodDeliveryJob
+            var handle = new CaveFoodDeliveryJob
             {
                 HexLookup         = hexLookup.Lookup,
                 HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
@@ -256,8 +264,11 @@ namespace RareIcon
                 ProdLookup        = SystemAPI.GetComponentLookup<GoblinCaveProduction>(true),
                 CaveLookup        = SystemAPI.GetBufferLookup<GoblinCaveLedger>(true),
                 ItemDb            = itemDb,
-                Queue             = qSingleton.Queue.AsParallelWriter(),
+                Queue             = _queue.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
+
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
+            state.Dependency = handle;
         }
     }
 

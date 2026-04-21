@@ -6,23 +6,27 @@ using Unity.Mathematics;
 namespace RareIcon
 {
     /// <summary>Builder two-phase transport: on Capital hex, pick up one needed material; on site hex, deliver one matching item and award Construction XP. Shared Capital + site buffers → single-worker Schedule.</summary>
-    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireSharingSystem))]
     public partial struct BuilderDepositSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        NativeQueue<BankTransfer> _queue;
 
-        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
+            _queue = bus.AllocateProducerQueue();
+        }
+
+        public void OnDestroy(ref SystemState state) { }
+
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookupSingleton)) return;
 
-            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
-
-            state.Dependency = new BuilderDepositJob
+            var handle = new BuilderDepositJob
             {
                 Capital           = capital,
                 HexLookup         = hexLookupSingleton.Lookup,
@@ -32,8 +36,11 @@ namespace RareIcon
                 MatLookup         = SystemAPI.GetBufferLookup<ConstructionMaterial>(false),
                 SiteLookup        = SystemAPI.GetComponentLookup<ConstructionSite>(true),
                 SkillXpLookup     = SystemAPI.GetComponentLookup<SkillXP>(false),
-                Queue             = qSingleton.Queue.AsParallelWriter(),
+                Queue             = _queue.AsParallelWriter(),
             }.Schedule(state.Dependency);
+
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
+            state.Dependency = handle;
         }
     }
 

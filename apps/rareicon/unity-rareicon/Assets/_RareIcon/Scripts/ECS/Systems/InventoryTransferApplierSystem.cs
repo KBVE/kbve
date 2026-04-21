@@ -6,38 +6,53 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Sole RW writer of every bank ledger (Capital/Furnace/Farm/Barracks/GoblinCave). Drains BankTransferQueue.Queue in one sequential IJob per frame and applies each transaction to its Target's ledger. Producers enqueue from ScheduleParallel worker threads via NativeQueue&lt;BankTransfer&gt;.ParallelWriter; this system owns the RW BufferLookup for every ledger type, so cross-producer safety races on ledger access are structurally impossible. Runs last in EconomySystemGroup after every producer has committed its writes.</summary>
-    [BurstCompile]
+    /// <summary>Sole RW writer of every bank ledger. Chains one drain job per producer queue so producers run fully in parallel; drain jobs serialize against each other through the ledger BufferLookup RW handles. Reads the combined producer JobHandle from BankTransferQueueSystem and gates the first drain on it.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup), OrderLast = true)]
-    public partial struct InventoryTransferApplierSystem : ISystem
+    public partial class InventoryTransferApplierSystem : SystemBase
     {
-        [BurstCompile]
-        public void OnCreate(ref SystemState state)
+        BankTransferQueueSystem _bus;
+
+        protected override void OnCreate()
         {
-            state.RequireForUpdate<BankTransferQueue>();
+            _bus = World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                ?? World.CreateSystemManaged<BankTransferQueueSystem>();
         }
 
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
-
-        [BurstCompile]
-        public void OnUpdate(ref SystemState state)
+        protected override void OnUpdate()
         {
-            state.Dependency = new ApplyBankTransfersJob
+            var queues = _bus.Queues;
+            if (queues.Count == 0) return;
+
+            var capitalLookup    = SystemAPI.GetBufferLookup<CapitalLedger>(false);
+            var furnaceLookup    = SystemAPI.GetBufferLookup<FurnaceLedger>(false);
+            var farmLookup       = SystemAPI.GetBufferLookup<FarmLedger>(false);
+            var barracksLookup   = SystemAPI.GetBufferLookup<BarracksLedger>(false);
+            var goblinCaveLookup = SystemAPI.GetBufferLookup<GoblinCaveLedger>(false);
+
+            var dep = JobHandle.CombineDependencies(Dependency, _bus.GetProducerHandle());
+
+            for (int i = 0; i < queues.Count; i++)
             {
-                Queue            = SystemAPI.GetSingleton<BankTransferQueue>().Queue,
-                CapitalLookup    = SystemAPI.GetBufferLookup<CapitalLedger>(false),
-                FurnaceLookup    = SystemAPI.GetBufferLookup<FurnaceLedger>(false),
-                FarmLookup       = SystemAPI.GetBufferLookup<FarmLedger>(false),
-                BarracksLookup   = SystemAPI.GetBufferLookup<BarracksLedger>(false),
-                GoblinCaveLookup = SystemAPI.GetBufferLookup<GoblinCaveLedger>(false),
-            }.Schedule(state.Dependency);
+                dep = new ApplyBankTransfersJob
+                {
+                    Queue            = queues[i],
+                    CapitalLookup    = capitalLookup,
+                    FurnaceLookup    = furnaceLookup,
+                    FarmLookup       = farmLookup,
+                    BarracksLookup   = barracksLookup,
+                    GoblinCaveLookup = goblinCaveLookup,
+                }.Schedule(dep);
+            }
+
+            Dependency = dep;
+            _bus.ResetProducerHandle();
         }
     }
 
     [BurstCompile]
     public struct ApplyBankTransfersJob : IJob
     {
-        public NativeQueue<BankTransfer>    Queue;
+        public NativeQueue<BankTransfer>      Queue;
         public BufferLookup<CapitalLedger>    CapitalLookup;
         public BufferLookup<FurnaceLedger>    FurnaceLookup;
         public BufferLookup<FarmLedger>       FarmLookup;

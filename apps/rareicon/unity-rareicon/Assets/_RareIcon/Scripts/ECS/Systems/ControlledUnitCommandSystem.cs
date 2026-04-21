@@ -7,18 +7,7 @@ using UnityEngine;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Writes a MoveToHex <see cref="MovementGoal"/> on whichever entity
-    /// carries <see cref="ControlledUnitTag"/> — the player's currently
-    /// driven unit — in response to a <see cref="ControlledUnitMoveMessage"/>
-    /// from the click router. Defaults to the King; click-to-possess
-    /// migrates the tag onto whichever unit the player wants to drive.
-    ///
-    /// Listens to the semantic move message (not the raw click) so the
-    /// router in <see cref="AppStateController"/> stays the single
-    /// source of truth for "what does this click MEAN" — possession and
-    /// inspect clicks never spuriously dispatch a move order here.
-    /// </summary>
+    /// <summary>Writes a MoveToHex <see cref="MovementGoal"/> on the <see cref="ControlledUnitTag"/> entity in response to <see cref="ControlledUnitMoveMessage"/>.</summary>
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     public partial class ControlledUnitCommandSystem : SystemBase
     {
@@ -30,9 +19,6 @@ namespace RareIcon
             _controlledQuery = GetEntityQuery(
                 ComponentType.ReadWrite<MovementGoal>(),
                 ComponentType.ReadOnly<ControlledUnitTag>());
-
-            // Defer subscription — DOTS systems boot before
-            // RootLifetimeScope.Awake sets the GlobalMessagePipe provider.
         }
 
         protected override void OnUpdate()

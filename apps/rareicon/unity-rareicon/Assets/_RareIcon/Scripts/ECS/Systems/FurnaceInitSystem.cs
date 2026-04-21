@@ -5,21 +5,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Resolves the underlying hex biome for newly-spawned Furnace entities
-    /// and attaches the right recipe components.
-    ///
-    /// Recipe matrix (input cost is uniform 5 Wood; some biomes also
-    /// require sand or yield bonus outputs):
-    ///   Sand   : 5 Wood + 1 Sand → 2 Coal + 1 Ash + 1 Raw Glass (7s)
-    ///   Grass  : 5 Wood          → 2 Coal + 2 Ash               (10s)
-    ///   Default: 5 Wood          → 2 Coal + 1 Ash               (10s)
-    ///   Forest : default recipe + PassiveProduction (+2 Coal / 30s)
-    ///
-    /// ISystem + Burst; structural changes queue through ECB so the
-    /// update stays off the main thread. Biome resolution reads
-    /// ComponentLookup&lt;BiomeType&gt; + HexLookupSingleton — both job-safe.
-    /// </summary>
+    /// <summary>Resolves a new Furnace's underlying hex biome and attaches the matching recipe (+ Forest's PassiveProduction bonus).</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial struct FurnaceInitSystem : ISystem

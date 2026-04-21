@@ -6,15 +6,21 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(BarracksProductionSystem))]
     public partial struct BarracksCraftingSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        NativeQueue<BankTransfer> _queue;
 
-        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
+            _queue = bus.AllocateProducerQueue();
+        }
+
+        public void OnDestroy(ref SystemState state) { }
+
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookupSingleton)) return;
@@ -37,21 +43,16 @@ namespace RareIcon
                 return;
             }
 
-            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton))
-            {
-                craftsmen.Dispose();
-                return;
-            }
-
-            state.Dependency = new BarracksArrowCraftJob
+            var handle = new BarracksArrowCraftJob
             {
                 Craftsmen      = craftsmen.AsDeferredJobArray(),
                 BarracksLookup = SystemAPI.GetBufferLookup<BarracksLedger>(true),
                 BarracksLkup   = SystemAPI.GetComponentLookup<BarracksTag>(true),
-                Queue          = qSingleton.Queue.AsParallelWriter(),
+                Queue          = _queue.AsParallelWriter(),
             }.Schedule(state.Dependency);
 
-            state.Dependency = craftsmen.Dispose(state.Dependency);
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
+            state.Dependency = craftsmen.Dispose(handle);
         }
 
         struct CraftsmanStation { public Entity Barracks; }

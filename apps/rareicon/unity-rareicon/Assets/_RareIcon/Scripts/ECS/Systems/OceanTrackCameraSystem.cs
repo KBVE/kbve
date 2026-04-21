@@ -6,9 +6,7 @@ using UnityEngine;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Updates ocean entity — follows camera, scales to viewport, updates shader.
-    /// </summary>
+    /// <summary>Tracks the camera for the ocean entity — follows position, scales to viewport, updates shader uniforms.</summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial class OceanTrackCameraSystem : SystemBase
     {
@@ -31,7 +29,6 @@ namespace RareIcon
                          .WithAll<OceanTag>()
                          .WithEntityAccess())
             {
-                // Scale to fill viewport
                 float height = orthoSize * 2f * 1.5f;
                 float width = height * cam.aspect;
                 float scale = math.max(width, height);
@@ -39,7 +36,6 @@ namespace RareIcon
                 transform.ValueRW.Position = new float3(camPos.x, camPos.y, 10f);
                 transform.ValueRW.Scale = scale;
 
-                // Cache material
                 if (_oceanMat == null && !_triedCache)
                 {
                     _triedCache = true;
@@ -54,17 +50,14 @@ namespace RareIcon
 
             if (_oceanMat != null)
             {
-                // World-space wave density — waves stay the same world size at any zoom
-                // Entity fills the viewport, so UVScale = entityScale / waveWorldSize
+                // Wave cells are world-space anchored so they don't swim on zoom: UVScale maps the
+                // viewport-filling quad to 0.8wu cells, WorldOffset cancels camera motion.
                 float height = orthoSize * 2f * 1.5f;
                 float width = height * cam.aspect;
                 float entityScale = math.max(width, height);
-                float waveWorldSize = 0.8f; // each wave cell ~0.8 world units (~3 hex tiles)
+                float waveWorldSize = 0.8f;
                 float uvScale = entityScale / waveWorldSize;
                 _oceanMat.SetFloat(UVScaleId, uvScale);
-                // Offset UVs so waves stay anchored to world space
-                // The quad moves with the camera, so we subtract camera movement
-                // Divide by entityScale to convert world units to 0-1 UV space
                 _oceanMat.SetVector(WorldOffsetId, new Vector4(
                     camPos.x / entityScale,
                     camPos.y / entityScale,
@@ -72,7 +65,6 @@ namespace RareIcon
             }
             else
             {
-                // Retry cache next frame
                 _triedCache = false;
             }
         }

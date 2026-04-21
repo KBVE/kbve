@@ -4,29 +4,37 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Ticks PassiveProduction entities — free per-cycle output emitted to Capital. No inputs, no RW on any ledger; enqueues a +OutputAmount BankTransfer when the cycle clock fires.</summary>
-    [BurstCompile]
+    /// <summary>Ticks PassiveProduction entities — free per-cycle output to Capital. Owns a dedicated producer queue.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup), OrderFirst = true)]
     public partial struct PassiveProductionSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        NativeQueue<BankTransfer> _queue;
 
-        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
+            _queue = bus.AllocateProducerQueue();
+        }
+
+        public void OnDestroy(ref SystemState state) { }
+
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
-            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
 
             float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
 
-            state.Dependency = new PassiveTickJob
+            var handle = new PassiveTickJob
             {
                 Capital = capital,
-                Queue   = qSingleton.Queue.AsParallelWriter(),
+                Queue   = _queue.AsParallelWriter(),
                 Now     = now,
             }.ScheduleParallel(state.Dependency);
+
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
+            state.Dependency = handle;
         }
     }
 

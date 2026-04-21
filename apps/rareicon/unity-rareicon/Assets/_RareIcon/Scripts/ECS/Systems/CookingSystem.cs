@@ -6,31 +6,39 @@ using Unity.Mathematics;
 namespace RareIcon
 {
     /// <summary>Chef units on the Capital convert one raw wildlife drop → cooked per tick, awarding Culinary XP. Reads Capital inventory RO, enqueues -raw + +cooked BankTransfers. Applier is the sole RW writer. ScheduleParallel — each chef emits its own transfers.</summary>
-    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(BuilderDepositSystem))]
     public partial struct CookingSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        NativeQueue<BankTransfer> _queue;
 
-        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
+            _queue = bus.AllocateProducerQueue();
+        }
+
+        public void OnDestroy(ref SystemState state) { }
+
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             if (!SystemAPI.HasBuffer<CapitalLedger>(capital)) return;
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookupSingleton)) return;
-            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
 
-            state.Dependency = new CookingJob
+            var handle = new CookingJob
             {
                 Capital           = capital,
                 HexLookup         = hexLookupSingleton.Lookup,
                 HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
                 CapitalLookup     = SystemAPI.GetBufferLookup<CapitalLedger>(true),
                 SkillXpLookup     = SystemAPI.GetComponentLookup<SkillXP>(false),
-                Queue             = qSingleton.Queue.AsParallelWriter(),
+                Queue             = _queue.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
+
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
+            state.Dependency = handle;
         }
     }
 

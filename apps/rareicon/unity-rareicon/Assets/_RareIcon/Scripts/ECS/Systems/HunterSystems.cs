@@ -141,29 +141,36 @@ namespace RareIcon
     }
 
     /// <summary>Per-animal turn-cadence production: Chicken+Cow every 2 turns (Egg / Milk), Sheep every 10 (Wool). Each cycle consumes 1 Carrot from the host farm's InventorySlot and emits 1 output; out of carrots → LastProducedTurn stays put so the animal catches up when feed returns. Burst ISystem + single-worker Schedule — multiple animals on the same farm serialize on the shared farm buffer, no racing.</summary>
-    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(FarmDepositSystem))]
     public partial struct FarmLivestockProductionSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        NativeQueue<BankTransfer> _queue;
 
-        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
+            _queue = bus.AllocateProducerQueue();
+        }
+
+        public void OnDestroy(ref SystemState state) { }
+
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
             uint currentTurn = SystemAPI.GetSingleton<WorldClock>().TurnIndex;
 
-            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
-
-            state.Dependency = new FarmLivestockProductionJob
+            var handle = new FarmLivestockProductionJob
             {
                 CurrentTurn = currentTurn,
                 UnitLookup  = SystemAPI.GetComponentLookup<Unit>(true),
                 FarmLookup  = SystemAPI.GetBufferLookup<FarmLedger>(true),
-                Queue       = qSingleton.Queue.AsParallelWriter(),
+                Queue       = _queue.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
+
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
+            state.Dependency = handle;
         }
     }
 

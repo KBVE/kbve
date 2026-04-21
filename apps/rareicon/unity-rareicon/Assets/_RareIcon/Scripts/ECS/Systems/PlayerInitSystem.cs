@@ -2,15 +2,7 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Creates the local-player entity on startup with the baseline
-    /// ability budget. Currently that's "one city-build token"; more
-    /// charges (walls, farms, unit drops) bolt onto PlayerAbilities as
-    /// features land.
-    ///
-    /// Runs in InitializationSystemGroup so the entity exists before
-    /// BuildingSpawnSystem looks for it in SimulationSystemGroup.
-    /// </summary>
+    /// <summary>Creates the local-player entity on startup with baseline PlayerAbilities.</summary>
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class PlayerInitSystem : SystemBase
     {

@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Turn-cadence recruitment: once per BarracksProduction.CadenceTurns, consume CoinCost BanditCoin + FoodCost food (any FoodItems.IsFood item) from the building's InventorySlot storage and emit a SpawnSoldierRequest. Burst ISystem + ScheduleParallel over barracks entities — each barracks only touches its own inventory buffer, so the per-entity DynamicBuffer writes are race-free. Spawn fanout stays on the main thread in SoldierSpawnApplierSystem since UnitSpawnSystem.SpawnGoblinAt still needs managed prefab access.</summary>
+    /// <summary>Turn-cadence barracks recruitment: spends BanditCoin + food, emits a SpawnSoldierRequest.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct BarracksProductionSystem : ISystem
@@ -84,7 +84,7 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Main-thread drain for SpawnSoldierRequest intents emitted by BarracksProductionSystem. Kept on SystemBase because UnitSpawnSystem.SpawnGoblinAt reaches into managed prefab/mesh/material caches.</summary>
+    /// <summary>Drains SpawnSoldierRequest intents into UnitSpawnSystem.SpawnGoblinAt; main-thread for managed asset access.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(BarracksProductionSystem))]
     public partial class SoldierSpawnApplierSystem : SystemBase

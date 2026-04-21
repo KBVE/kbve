@@ -4,31 +4,39 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Per-furnace active cycle. Reads CapitalLedger RO to check inputs; enqueues -input and +output BankTransfers for the applier to fold in. No direct RW on CapitalLedger → no cross-producer race.</summary>
-    [BurstCompile]
+    /// <summary>Per-furnace active cycle. Owns a dedicated NativeQueue&lt;BankTransfer&gt; so producer ParallelWriter has zero cross-system contention even at 10k+ furnace scale.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct FurnaceProductionSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        NativeQueue<BankTransfer> _queue;
 
-        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            var bus = state.World.GetExistingSystemManaged<BankTransferQueueSystem>()
+                      ?? state.World.CreateSystemManaged<BankTransferQueueSystem>();
+            _queue = bus.AllocateProducerQueue();
+        }
+
+        public void OnDestroy(ref SystemState state) { }
+
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
-            if (!SystemAPI.TryGetSingleton<BankTransferQueue>(out var qSingleton)) return;
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             if (!SystemAPI.HasBuffer<CapitalLedger>(capital)) return;
 
             float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
 
-            state.Dependency = new FurnaceTickJob
+            var handle = new FurnaceTickJob
             {
                 Capital       = capital,
                 CapitalLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true),
-                Queue         = qSingleton.Queue.AsParallelWriter(),
+                Queue         = _queue.AsParallelWriter(),
                 Now           = now,
             }.ScheduleParallel(state.Dependency);
+
+            state.World.GetExistingSystemManaged<BankTransferQueueSystem>().AddJobHandleForProducer(handle);
+            state.Dependency = handle;
         }
     }
 

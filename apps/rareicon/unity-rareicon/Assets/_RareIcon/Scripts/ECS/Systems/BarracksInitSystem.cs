@@ -4,7 +4,7 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Attaches a BarracksLedger buffer + BarracksProduction + StorageCapacity + arrow-craft ProductionRecipe + SurplusExport to any Barracks that's missing them. ISystem + Burst; ECB-driven structural changes so OnUpdate never touches the main thread.</summary>
+    /// <summary>Attaches BarracksLedger + BarracksProduction + StorageCapacity + arrow-craft recipe + SurplusExport to any Barracks missing them.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial struct BarracksInitSystem : ISystem
@@ -43,13 +43,8 @@ namespace RareIcon
                 });
                 ecb.AddComponent(e, new StorageCapacity { Total = 200 });
 
-                // Arrow craft, same recipe as the Capital. Inputs pulled
-                // from the Capital treasury (Barracks stocks coin + food,
-                // not raw materials). Outputs land in the Barracks' own
-                // BarracksLedger as a forward arsenal; anything above a
-                // floor of 20 drains back to the Capital via
-                // BuildingSurplusTransferSystem so the shooter pool never
-                // ends up stranded at the Barracks.
+                // Arrow recipe: inputs pulled from Capital, outputs held as a forward arsenal in
+                // BarracksLedger; SurplusExport floor 20 drains the overflow back to Capital.
                 var recipes = ecb.AddBuffer<ProductionRecipe>(e);
                 recipes.Add(new ProductionRecipe
                 {
