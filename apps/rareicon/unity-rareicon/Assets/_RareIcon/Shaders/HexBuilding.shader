@@ -101,6 +101,33 @@ Shader "RareIcon/HexBuilding"
         _DockNet         ("Dock Net",         Color) = (0.65, 0.60, 0.46, 1)
         _DockLantern     ("Dock Lantern",     Color) = (0.98, 0.82, 0.35, 1)
         _DockSmoke       ("Dock Smoke",       Color) = (0.72, 0.72, 0.76, 0.85)
+
+        // Lumbercamp palette — warm log cabin with a pitched roof, chopping
+        // stump + axe, and a stacked log pile. Active: chimney smoke, lit window.
+        _LumberLog       ("Lumber Log",       Color) = (0.55, 0.36, 0.20, 1)
+        _LumberLogShade  ("Lumber Log Shade", Color) = (0.32, 0.20, 0.11, 1)
+        _LumberRoof      ("Lumber Roof",      Color) = (0.34, 0.40, 0.22, 1)
+        _LumberAxe       ("Lumber Axe",       Color) = (0.80, 0.80, 0.82, 1)
+        _LumberSmoke     ("Lumber Smoke",     Color) = (0.72, 0.72, 0.76, 0.85)
+
+        // Mining Pit palette — stone rim around a dark pit mouth, timber
+        // A-frame with rope + bucket. Active: ore glitter pulses, dust rises.
+        _MinePitStone      ("Mine Pit Stone",       Color) = (0.54, 0.50, 0.46, 1)
+        _MinePitStoneShade ("Mine Pit Stone Shade", Color) = (0.30, 0.28, 0.24, 1)
+        _MinePitMouth      ("Mine Pit Mouth",       Color) = (0.06, 0.05, 0.05, 1)
+        _MinePitTimber     ("Mine Pit Timber",      Color) = (0.34, 0.22, 0.14, 1)
+        _MinePitOre        ("Mine Pit Ore",         Color) = (0.98, 0.78, 0.30, 1)
+        _MinePitDust       ("Mine Pit Dust",        Color) = (0.70, 0.64, 0.56, 0.80)
+
+        // Bandit Camp palette — makeshift canvas tents around a campfire,
+        // red pirate-style banner on a stake, rough palisade timbers.
+        _BanditCampCanvas       ("BanditCamp Canvas",        Color) = (0.70, 0.60, 0.42, 1)
+        _BanditCampCanvasShade  ("BanditCamp Canvas Shade",  Color) = (0.42, 0.34, 0.22, 1)
+        _BanditCampPalisade     ("BanditCamp Palisade",      Color) = (0.32, 0.20, 0.12, 1)
+        _BanditCampMouth        ("BanditCamp Mouth",         Color) = (0.06, 0.04, 0.04, 1)
+        _BanditCampFlame        ("BanditCamp Flame",         Color) = (1.00, 0.55, 0.18, 1)
+        _BanditCampBanner       ("BanditCamp Banner",        Color) = (0.72, 0.14, 0.14, 1)
+        _BanditCampShade        ("BanditCamp Ground Shade",  Color) = (0.22, 0.18, 0.14, 1)
     }
 
     SubShader
@@ -200,6 +227,24 @@ Shader "RareIcon/HexBuilding"
                 float4 _DockNet;
                 float4 _DockLantern;
                 float4 _DockSmoke;
+                float4 _LumberLog;
+                float4 _LumberLogShade;
+                float4 _LumberRoof;
+                float4 _LumberAxe;
+                float4 _LumberSmoke;
+                float4 _MinePitStone;
+                float4 _MinePitStoneShade;
+                float4 _MinePitMouth;
+                float4 _MinePitTimber;
+                float4 _MinePitOre;
+                float4 _MinePitDust;
+                float4 _BanditCampCanvas;
+                float4 _BanditCampCanvasShade;
+                float4 _BanditCampPalisade;
+                float4 _BanditCampMouth;
+                float4 _BanditCampFlame;
+                float4 _BanditCampBanner;
+                float4 _BanditCampShade;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -223,7 +268,10 @@ Shader "RareIcon/HexBuilding"
             #define BUILDING_INN         6
             #define BUILDING_MARKET      7
             #define BUILDING_OUTPOST     8
-            #define BUILDING_DOCK        9
+            #define BUILDING_LUMBERCAMP  9
+            #define BUILDING_MINING_PIT  10
+            #define BUILDING_DOCK        11
+            #define BUILDING_BANDIT_CAMP 12
 
             #include "Includes/HexShared.hlsl"
             #include "Includes/HexBuildingShared.hlsl"
@@ -236,7 +284,10 @@ Shader "RareIcon/HexBuilding"
             #include "Includes/HexInn.hlsl"
             #include "Includes/HexMarket.hlsl"
             #include "Includes/HexOutpost.hlsl"
+            #include "Includes/HexLumbercamp.hlsl"
+            #include "Includes/HexMiningPit.hlsl"
             #include "Includes/HexDock.hlsl"
+            #include "Includes/HexBanditCamp.hlsl"
 
             Varyings vert(Attributes input)
             {
@@ -292,9 +343,21 @@ Shader "RareIcon/HexBuilding"
                 {
                     DrawOutpost(color, alpha, px, grid);
                 }
+                else if (buildingType == BUILDING_LUMBERCAMP)
+                {
+                    DrawLumbercamp(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_MINING_PIT)
+                {
+                    DrawMiningPit(color, alpha, px, grid);
+                }
                 else if (buildingType == BUILDING_DOCK)
                 {
                     DrawDock(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_BANDIT_CAMP)
+                {
+                    DrawBanditCamp(color, alpha, px, grid);
                 }
 
                 float progress = saturate(_ConstructionProgress);

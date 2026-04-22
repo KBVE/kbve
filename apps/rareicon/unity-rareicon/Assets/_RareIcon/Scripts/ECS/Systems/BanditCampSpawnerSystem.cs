@@ -1,3 +1,4 @@
+using MessagePipe;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -5,20 +6,26 @@ using UnityEngine;
 
 namespace RareIcon
 {
-    /// <summary>Ensures exactly one BanditCamp exists in the world at any given time. Places the first camp at a random hex on a ring outside the Capital's territory after an initial delay; when an active camp dies (BuildingHealth → 0 → destroyed by BuildingDeathSystem), this system waits RespawnDelay then places the next one. SystemBase because building-entity instantiation uses the shared render prefab (managed resource).</summary>
+    /// <summary>Maintains the active BanditCamp population over time. First camp lands ~30s after game start at a random hex on a ring outside the Capital. Cap starts at 1 and grows to a max of MaxCamps with 1 additional slot unlocked per CampGrowthIntervalSeconds of elapsed game time. Whenever the alive count falls below the current cap, the spawner places a new camp at a fresh ring position after RespawnDelay. SystemBase because building-entity instantiation + toast publish both need main-thread managed access.</summary>
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     public partial class BanditCampSpawnerSystem : SystemBase
     {
-        const float HexSize          = 0.25f;
-        const float BuildingZ        = -0.6f;
-        const float FirstCampDelay   = 30f;
-        const float RespawnDelay     = 90f;
-        const int   PlacementRing    = 22;
-        const int   PlacementJitter  = 6;
-        const ushort CampMaxHp       = 300;
+        const float HexSize                     = 0.25f;
+        const float BuildingZ                   = -0.6f;
+        const float FirstCampDelay              = 30f;
+        const float RespawnDelay                = 90f;
+        const int   PlacementRing               = 22;
+        const int   PlacementJitter             = 6;
+        const ushort CampMaxHp                  = 300;
+        const int   MaxCamps                    = 3;
+        const float CampGrowthIntervalSeconds   = 100f;
+        const int   DefenderCount               = 8;
+        const int   DefenderJitter              = 2;
 
         float _spawnCheckTimer;
         uint  _rng = 0xCA11_CAFEu;
+        int   _lastKnownCampCount;
+        IPublisher<ToastMessage> _toastPub;
 
         protected override void OnCreate()
         {
@@ -28,11 +35,20 @@ namespace RareIcon
         protected override void OnUpdate()
         {
             _spawnCheckTimer -= SystemAPI.Time.DeltaTime;
+
+            int active = 0;
+            foreach (var _ in SystemAPI.Query<RefRO<BanditCampTag>>()) active++;
+
+            if (_lastKnownCampCount > 0 && active < _lastKnownCampCount)
+            {
+                PublishToast($"Bandit camp destroyed ({active}/{CurrentCap()} active)", ToastKind.Success);
+            }
+            _lastKnownCampCount = active;
+
             if (_spawnCheckTimer > 0f) return;
 
-            int activeCamps = 0;
-            foreach (var _ in SystemAPI.Query<RefRO<BanditCampTag>>()) activeCamps++;
-            if (activeCamps > 0)
+            int cap = CurrentCap();
+            if (active >= cap)
             {
                 _spawnCheckTimer = 5f;
                 return;
@@ -50,7 +66,7 @@ namespace RareIcon
             }
 
             int2 capitalHex = SystemAPI.GetComponent<Building>(capital).RootHex;
-            var prefab = SystemAPI.GetSingleton<BuildingPrefabSingleton>().Prefab;
+            var prefab      = SystemAPI.GetSingleton<BuildingPrefabSingleton>().Prefab;
 
             _rng = XorShift(_rng);
             float angle = (_rng & 0xFFFFu) / 65535f * math.PI * 2f;
@@ -73,7 +89,7 @@ namespace RareIcon
                 RootHex      = campHex,
                 OwnerFaction = FactionType.Hostile,
             });
-            em.SetComponentData(camp, new BuildingVisual { Value = BuildingType.GoblinCave });
+            em.SetComponentData(camp, new BuildingVisual { Value = BuildingType.BanditCamp });
             em.AddComponentData(camp, new BuildingHealth { Value = CampMaxHp, Max = CampMaxHp });
             em.AddComponent<BanditCampTag>(camp);
 
@@ -86,7 +102,40 @@ namespace RareIcon
             });
             em.AddComponentData(camp, new Faction { Value = FactionType.Hostile });
 
+            for (int i = 0; i < DefenderCount; i++)
+            {
+                _rng = XorShift(_rng);
+                int dx = (int)(_rng % (uint)(DefenderJitter * 2 + 1)) - DefenderJitter;
+                _rng = XorShift(_rng);
+                int dy = (int)(_rng % (uint)(DefenderJitter * 2 + 1)) - DefenderJitter;
+                int2 defHex = new int2(campHex.x + dx, campHex.y + dy);
+                _rng = XorShift(_rng);
+                var defender = UnitSpawnSystem.SpawnBanditAt(em, defHex, _rng | 1u);
+                if (defender != Entity.Null)
+                    em.AddComponentData(defender, new GarrisonPost { Hex = defHex });
+            }
+
+            _lastKnownCampCount = active + 1;
+            PublishToast($"Bandit camp spotted ({_lastKnownCampCount}/{cap} active)", ToastKind.Warning);
+
             _spawnCheckTimer = RespawnDelay;
+        }
+
+        int CurrentCap()
+        {
+            float elapsed = (float)SystemAPI.Time.ElapsedTime;
+            int growth = (int)math.floor(elapsed / CampGrowthIntervalSeconds);
+            return math.min(1 + growth, MaxCamps);
+        }
+
+        void PublishToast(string text, ToastKind kind)
+        {
+            if (_toastPub == null)
+            {
+                try { _toastPub = GlobalMessagePipe.GetPublisher<ToastMessage>(); }
+                catch { return; }
+            }
+            _toastPub?.Publish(new ToastMessage(text, kind));
         }
 
         static uint XorShift(uint s)
