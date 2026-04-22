@@ -11,16 +11,14 @@ emoji: '🍄'
 stackable: true
 max_stack: 30
 buy_price: 3
-rareicon:
-  name_key: 'item.mushroom'
-  category: 'material'
-  stack_max: 30
-  base_value: 3
+pool_group: 'food'
+food:
   restore_energy: 7
-  harvest_role: 'forager'
-  compresses_to: 'meal'
-  compress_ratio: 100
-  pool_group: 'food'
+skilling:
+  skill: 'foraging'
+compress:
+  target_ref: 'meal'
+  ratio: 100
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';

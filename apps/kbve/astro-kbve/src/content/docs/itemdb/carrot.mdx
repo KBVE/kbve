@@ -11,15 +11,12 @@ emoji: '🥕'
 stackable: true
 max_stack: 30
 buy_price: 4
-rareicon:
-  name_key: 'item.carrot'
-  category: 'material'
-  stack_max: 30
-  base_value: 4
+pool_group: 'food'
+food:
   restore_energy: 9
-  compresses_to: 'meal'
-  compress_ratio: 100
-  pool_group: 'food'
+compress:
+  target_ref: 'meal'
+  ratio: 100
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';

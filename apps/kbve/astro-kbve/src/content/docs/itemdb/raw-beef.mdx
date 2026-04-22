@@ -10,15 +10,12 @@ rarity: 'common'
 stackable: true
 max_stack: 20
 buy_price: 18
-rareicon:
-  name_key: 'item.raw_beef'
-  category: 'material'
-  stack_max: 20
-  base_value: 18
+pool_group: 'food'
+food:
   restore_energy: 25
-  compresses_to: 'meal'
-  compress_ratio: 100
-  pool_group: 'food'
+compress:
+  target_ref: 'meal'
+  ratio: 100
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';

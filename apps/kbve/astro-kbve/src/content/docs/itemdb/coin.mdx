@@ -11,13 +11,9 @@ emoji: '🪙'
 stackable: true
 max_stack: 50
 buy_price: 1
-rareicon:
-  name_key: 'item.coin'
-  category: 'material'
-  stack_max: 50
-  base_value: 1
-  compresses_to: 'gold-bar'
-  compress_ratio: 100
+compress:
+  target_ref: 'gold-bar'
+  ratio: 100
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';

@@ -93,6 +93,9 @@ enum UseEffectType {
   USE_EFFECT_BUFF_PARTY              = 12;
   USE_EFFECT_SUMMON                  = 13;
   USE_EFFECT_TRANSFORM               = 14;
+  USE_EFFECT_LEARN_RECIPE            = 15;   // Blueprints — teaches a CraftingRecipe
+  USE_EFFECT_LEARN_SPELL             = 16;   // Tomes — adds a spell to the spellbook
+  USE_EFFECT_UNLOCK_LORE             = 17;   // Lore pickups — reveals a codex entry
 }
 
 // Gear special passive
@@ -181,6 +184,25 @@ message EquipmentInfo {
   optional float special_value = 4;     // Magnitude for the special (e.g. 0.15 = 15% lifesteal)
   optional int32 durability = 5;
   optional int32 max_durability = 6;
+  optional int32 enchantment_slots = 7; // Number of enchantments that can be applied
+  repeated string enchantment_types = 8; // Accepted enchantment slugs (e.g. "gem", "rune", "sigil")
+  optional bool cursed = 9;             // Cannot be unequipped without a remedy
+  optional float movement_penalty = 10; // 0.0-1.0 speed reduction when worn (armor weight)
+}
+
+// Enchantment payload — describes what an enchantment grants when attached to
+// a parent piece of equipment. Items carrying EnchantmentInfo (gems, runes,
+// sigils, crafted enchantments) are eligible to occupy EquipmentInfo's slots.
+message EnchantmentInfo {
+  string slug = 1;                      // Namespace matching EquipmentInfo.enchantment_types
+  optional ItemBonuses bonuses = 2;     // Stat bonuses added to the parent while attached
+  repeated UseEffect on_use = 3;        // Effects triggered when the parent item is used
+  repeated UseEffect while_equipped = 4; // Continuous effects while the parent is equipped
+  optional int32 tier = 5;              // 1-N quality tier (matches rarity escalation)
+  optional bool removable = 6;          // Can be extracted intact (false = destroys on removal)
+  optional int32 level_requirement = 7;
+  repeated ItemAffinity affinities = 8; // Elemental boosts granted while attached
+  repeated ItemAffinity resistances = 9; // Elemental resistances granted while attached
 }
 
 // A single use effect definition
@@ -254,6 +276,13 @@ message FoodInfo {
   optional int32 burn_level = 5;        // Level at which burning stops
   optional int32 duration = 6;          // Buff duration in seconds/turns
   repeated UseEffect buff_effects = 7;  // Stat buffs granted on consumption
+  optional int32 restore_energy = 8;    // Energy / hunger satiation restored on consumption
+  optional int32 restore_mana = 9;      // Mana restored on consumption
+  optional float regen_per_second = 10; // Post-consumption over-time regen rate (HP/sec)
+  optional float regen_duration = 11;   // Seconds the regen buff lasts after consumption
+  optional bool perishable = 12;        // Item decays over time if true
+  optional int32 shelf_life_seconds = 13; // Time from creation/harvest until spoil
+  optional string spoils_into_ref = 14; // Item produced on spoilage (e.g. "rotten-meat")
 }
 
 // Skilling properties — for items that interact with skill systems
@@ -265,6 +294,156 @@ message SkillingInfo {
   optional float gather_time = 5;       // Base time to gather/harvest in seconds
   optional int32 respawn_time = 6;      // Seconds before resource node respawns
   optional string resource_node = 7;    // World object ref (e.g. "oak_tree", "copper_vein")
+  optional int32 harvest_weight = 8;    // 0-100 preference weight when the harvester has multiple eligible targets
+}
+
+// Compression / consolidation — many small stacks fuse into one bulk item.
+// Used by storage consolidators, granaries, smelters that batch raw stock into
+// construction-grade output.
+message CompressInfo {
+  string target_ref = 1;                // Output item ref (e.g. "timber" for wood-log compression)
+  int32 ratio = 2;                      // Input units per single output unit
+  optional string facility = 3;         // Required facility ref for the consolidation (optional)
+}
+
+// Stack / inventory handling hints that go beyond raw max_stack.
+message StackingInfo {
+  optional int32 pack_max = 1;          // Per-unit carried stack cap (distinct from storage max_stack)
+  optional bool no_pack = 2;            // Cannot be carried by a unit (storage-only, e.g. gold bars)
+  optional string pool_group = 3;       // Logical group (e.g. "food") — any item with the same pool_group substitutes
+}
+
+// Weapon properties — for items with ITEM_TYPE_WEAPON or ITEM_TYPE_COMBAT flag.
+// Covers both melee and ranged; 0 range = melee. Ammo linkage is bow→arrow
+// via ammo_ref (primary) and compatible_ammo (alternates).
+message WeaponInfo {
+  optional float range = 1;             // Reach in tiles/meters (0 or 1 = melee)
+  optional float attack_speed = 2;      // Attacks per second; lower = slower
+  optional string projectile_ref = 3;   // Visual/entity projectile ref for ranged
+  optional string ammo_ref = 4;         // Primary consumed ammo item ref (e.g. "arrow")
+  repeated string compatible_ammo = 5;  // Alternate ammo accepted
+  optional Element damage_element = 6;
+  optional int32 min_damage = 7;
+  optional int32 max_damage = 8;
+  optional float crit_chance = 9;
+  optional float crit_damage = 10;
+  optional int32 windup_ticks = 11;     // Ticks before the swing lands
+  optional int32 recovery_ticks = 12;   // Post-swing lockout
+  optional int32 aoe_radius = 13;       // Area of effect radius in tiles (0 = single-target)
+  optional bool two_handed = 14;        // Occupies both hands even if slot = main_hand
+  optional int32 charges = 15;          // Limited-use charges (wands, one-shots); 0 = unlimited
+}
+
+// Fuel / combustible — for items that burn in furnaces, cookfires, campfires.
+message FuelInfo {
+  int32 burn_seconds = 1;               // Base burn duration per unit
+  optional int32 heat_output = 2;       // Relative heat rating (cookfire needs 1, smelter 3, etc.)
+  optional string residue_ref = 3;      // Item left over after burn (e.g. "ash")
+  optional float residue_chance = 4;    // 0.0-1.0 probability of producing residue per unit
+  optional bool renewable = 5;          // Regrows/crafts indefinitely (wood vs coal)
+}
+
+// Container capacity — for pouches, bags, quivers, and deployed chests.
+message ContainerInfo {
+  optional int32 added_slots = 1;       // Extra pack slots granted when equipped
+  optional float volume_multiplier = 2; // Multiplier applied to base pack capacity (default 1.0)
+  optional float weight_reduction = 3;  // 0.0-1.0 fraction by which contained items weigh less
+  repeated string category_filter = 4;  // Tag filter — only matching items can be stored (empty = any)
+  optional int32 storage_slots = 5;     // For deployed chests: standalone storage capacity
+  optional bool shared_inventory = 6;   // Deployed chests: contents visible to all allied units
+  optional bool locked_by_default = 7;  // Requires key or owner to access
+}
+
+// Planting / farming — for seeds or saplings.
+message PlantingInfo {
+  string grows_into_ref = 1;            // Item produced when the plant matures
+  int32 grow_seconds = 2;               // Growth time in seconds
+  optional int32 yield_amount = 3;      // Output quantity per mature plant (default 1)
+  optional string required_tile = 4;    // Tile type slug (e.g. "farmland", "desert-sand")
+  optional int32 required_light = 5;    // 0-255 light level minimum
+  optional float water_per_hour = 6;    // Water units consumed per hour (0 = rain-fed)
+  optional bool multi_harvest = 7;      // If true, plant regrows rather than being destroyed
+  optional int32 regrow_seconds = 8;    // Regrowth interval for multi-harvest plants
+  optional string season = 9;           // Allowed season slug (e.g. "spring", "year-round")
+  optional float frost_tolerance = 10;  // 0.0-1.0 survival in cold
+}
+
+// Projectile flight / impact — for arrows, bolts, thrown items, magic bolts.
+message ProjectileInfo {
+  optional float speed = 1;             // Travel speed in tiles/sec
+  optional float gravity = 2;           // 0 = flat trajectory; higher = arcing
+  optional int32 pierce_count = 3;      // Targets pierced before the projectile dies
+  optional string impact_effect_ref = 4; // VFX slug on hit
+  optional string trail_ref = 5;        // VFX slug during flight
+  optional bool homing = 6;             // Tracks target in flight
+  optional int32 splash_radius = 7;     // AoE on impact (0 = single-target)
+  optional float splash_falloff = 8;    // 0.0-1.0 damage falloff at the edge
+}
+
+// Spell properties — for scrolls, tomes, wands, staves that cast or teach a spell.
+message SpellInfo {
+  string spell_ref = 1;                 // Spell slug (e.g. "fireball", "ice-shard")
+  optional int32 mana_cost = 2;         // Mana consumed per cast
+  optional float cast_seconds = 3;      // Channel / cast time before the spell fires
+  optional float cooldown_seconds = 4;  // Post-cast lockout
+  optional string scaling_stat = 5;     // Stat that scales damage (e.g. "intelligence")
+  optional float scaling_multiplier = 6; // How much the stat contributes
+  optional int32 base_damage = 7;
+  optional Element element = 8;
+  optional float range = 9;             // Max casting distance
+  optional int32 aoe_radius = 10;
+  optional bool teaches_permanent = 11; // True for tomes that add the spell to the caster's book
+  optional bool consumed_on_cast = 12;  // True for one-shot scrolls
+  optional int32 charges = 13;          // Remaining casts (0 = unlimited)
+  repeated UseEffect side_effects = 14; // Additional effects applied on cast
+}
+
+// Book properties — for readable items (lore books, journals, recipe books).
+message BookInfo {
+  optional string body_text = 1;        // Full readable text
+  optional string body_text_ref = 2;    // Reference to external MDX / markdown asset
+  optional int32 reading_seconds = 3;   // Approximate time to read through
+  optional string teaches_recipe_ref = 4; // Granted CraftingRecipe on first read
+  optional string teaches_spell_ref = 5; // Granted SpellInfo on first read
+  optional string unlocks_lore_ref = 6; // Codex entry slug to reveal
+  optional bool consumed_on_read = 7;   // True when the book crumbles / is used up
+  optional string language = 8;         // Language slug for locale gating
+  repeated string chapters = 9;         // Ordered chapter/page slugs for paginated reading
+}
+
+// Key properties — for items that unlock specific world entities.
+message KeyInfo {
+  string unlocks_ref = 1;               // World entity / structure slug this key opens
+  optional string unlock_category = 2;  // "door", "chest", "gate", "cell"
+  optional bool consumed_on_use = 3;    // True if the key is destroyed on unlock
+  optional string grant_item_ref = 4;   // Optional item granted when unlock succeeds
+  optional int32 uses = 5;              // Number of unlocks before the key breaks (0 = unlimited)
+  optional string faction_lock = 6;     // Faction slug required to use the key
+}
+
+// Vehicle / mount properties — for boats, carts, horses, mechanical conveyances.
+message VehicleInfo {
+  optional float max_speed = 1;         // Peak movement speed
+  optional float acceleration = 2;
+  optional float turn_rate = 3;
+  optional int32 passenger_capacity = 4; // How many units can ride (driver + passengers)
+  optional string fuel_ref = 5;         // Consumed fuel item ref (empty = self-propelled)
+  optional float fuel_per_distance = 6; // Fuel units per tile / meter
+  optional string terrain_type = 7;     // "water", "land", "air", "amphibious"
+  optional int32 cargo_slots = 8;       // Independent cargo-hold slots
+  optional float cargo_weight_capacity = 9;
+  optional float damage_reduction = 10; // 0.0-1.0 hit absorption for riders
+  optional bool requires_leash = 11;    // Mount must be tamed / leashed before use
+}
+
+// Trap / hazard — for placed items that trigger on contact.
+message TrapInfo {
+  optional string trigger = 1;          // "step", "proximity", "timer"
+  optional int32 arming_seconds = 2;    // Time before the trap becomes active after placement
+  optional int32 proximity_radius = 3;  // Activation radius for proximity traps
+  optional int32 max_triggers = 4;      // Uses before the trap is spent (0 = unlimited)
+  optional bool reusable = 5;           // Can be picked back up after triggering
+  repeated UseEffect on_trigger = 6;    // Effects applied to anything caught
 }
 
 // Item set definition — bonuses for wearing multiple pieces
@@ -383,6 +562,58 @@ message Item {
   // Durability (for non-equipment items like tools)
   optional int32 durability = 46;
   optional int32 max_durability = 47;
+
+  // Consolidation / compression — many → one
+  optional CompressInfo compress = 48;
+
+  // Stacking & carry-capacity hints (beyond raw max_stack)
+  optional StackingInfo stacking = 49;
+
+  // Logical pool this item belongs to (e.g. "food" — any member satisfies a
+  // food-pool consumption). Shortcut for the common case where no other
+  // StackingInfo fields are set.
+  optional string pool_group = 50;
+
+  // Weapon specifics — range, projectile, ammo linkage
+  optional WeaponInfo weapon = 51;
+
+  // Fuel / combustible behavior
+  optional FuelInfo fuel = 52;
+
+  // Container / storage expansion when equipped or deployed
+  optional ContainerInfo container = 53;
+
+  // Planting / farming data (seeds, saplings)
+  optional PlantingInfo planting = 54;
+
+  // Projectile flight properties (arrows, bolts, thrown items)
+  optional ProjectileInfo projectile = 55;
+
+  // Trap / hazard behavior
+  optional TrapInfo trap = 56;
+
+  // Enchantment payload — present when the item itself is an enchantment
+  // (gem, rune, sigil) that can be attached to an EquipmentInfo slot.
+  optional EnchantmentInfo enchantment = 57;
+
+  // Physical volume (parallel to weight) for volume-aware containers
+  optional float volume = 58;
+
+  // Spell data — scrolls, tomes, wands, staves
+  optional SpellInfo spell = 59;
+
+  // Book data — readable lore, journals, recipe books
+  optional BookInfo book = 60;
+
+  // Key data — entity-unlocking items
+  optional KeyInfo key = 61;
+
+  // Vehicle / mount data — boats, carts, horses, conveyances
+  optional VehicleInfo vehicle = 62;
+
+  // Light emission — torches, lanterns, glowing items
+  optional float light_radius = 63;     // Tiles/meters of light cast (0 = no light)
+  optional string light_color = 64;     // Hex color ("#ffcc88") or named slug ("warm", "cold")
 
   // Extensions — game-specific key-value pairs
   repeated ItemExtension extensions = 38;

@@ -11,16 +11,14 @@ emoji: '🫐'
 stackable: true
 max_stack: 30
 buy_price: 2
-rareicon:
-  name_key: 'item.berry'
-  category: 'material'
-  stack_max: 30
-  base_value: 2
+pool_group: 'food'
+food:
   restore_energy: 10
-  harvest_role: 'forager'
-  compresses_to: 'meal'
-  compress_ratio: 100
-  pool_group: 'food'
+skilling:
+  skill: 'foraging'
+compress:
+  target_ref: 'meal'
+  ratio: 100
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';

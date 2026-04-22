@@ -13,15 +13,12 @@ max_stack: 24
 buy_price: 12
 consumable: true
 action: 'consume'
-rareicon:
-  name_key: 'item.cooked_chicken'
-  category: 'consumable'
-  stack_max: 24
-  base_value: 12
+pool_group: 'food'
+food:
   restore_energy: 20
-  compresses_to: 'meal'
-  compress_ratio: 100
-  pool_group: 'food'
+compress:
+  target_ref: 'meal'
+  ratio: 100
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';

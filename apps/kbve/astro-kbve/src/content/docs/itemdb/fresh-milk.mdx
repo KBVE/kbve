@@ -36,15 +36,14 @@ scripts:
             calciumInfusion: 3
             calmEffect: true
             duration: 90
-rareicon:
-  name_key: 'item.milk'
-  category: 'material'
-  stack_max: 50
-  base_value: 5
+pool_group: 'food'
+food:
   restore_energy: 10
-  compresses_to: 'meal'
-  compress_ratio: 100
-  pool_group: 'food'
+compress:
+  target_ref: 'meal'
+  ratio: 100
+stacking:
+  pack_max: 50
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
