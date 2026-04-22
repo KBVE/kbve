@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-04-21T08:48:54Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-04-22T08:47:04Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
@@ -29,7 +29,7 @@ Last generated: **2026-04-21T08:48:54Z** — updated daily by `ci-dashboard`.
   <Card title="28 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="48 Medium" icon="information">
+  <Card title="49 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="5 Low" icon="approve-check-circle">
@@ -41,7 +41,7 @@ Last generated: **2026-04-21T08:48:54Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **74** advisories
+    **75** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **36** advisories
@@ -64,7 +64,7 @@ pie showData
     title Findings by Severity
     "Critical" : 1
     "High" : 28
-    "Medium" : 48
+    "Medium" : 49
     "Low" : 5
 ```
 
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 74
+    "npm" : 75
     "Cargo" : 36
 ```
 
@@ -82,12 +82,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 1 | 28 | 40 | 5 | 74 |
+| **npm** | 1 | 28 | 41 | 5 | 75 |
 | **Cargo** | 0 | 0 | 8 | 0 | 36 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 28 | 48 | 5 | 110 |
+| **Total** | 1 | 28 | 49 | 5 | 111 |
 
   </TabItem>
   <TabItem label="npm">
@@ -163,6 +163,7 @@ pie showData
 | Medium | `dompurify` | DOMPurify's ADD_TAGS function form bypasses FORBID_TAGS d... | [Details](https://github.com/advisories/GHSA-39q2-94rc-95cp) |
 | Medium | `axios` | Axios has a NO_PROXY Hostname Normalization Bypass that L... | [Details](https://github.com/advisories/GHSA-3p68-rc4w-qgx5) |
 | Medium | `axios` | Axios has Unrestricted Cloud Metadata Exfiltration via He... | [Details](https://github.com/advisories/GHSA-fvcv-3m26-pcqx) |
+| Medium | `astro` | Astro: XSS in define:vars via incomplete &lt;/script&gt; tag sa... | [Details](https://github.com/advisories/GHSA-j687-52p2-xcff) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |

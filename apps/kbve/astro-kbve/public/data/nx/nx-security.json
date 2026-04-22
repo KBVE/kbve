@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-04-21T08:48:54Z",
+  "generated_at": "2026-04-22T08:47:04Z",
   "summary": {
     "critical": 1,
     "high": 28,
-    "medium": 48,
+    "medium": 49,
     "low": 5,
     "info": 28
   },
   "ecosystems": {
     "npm": {
-      "total": 74,
+      "total": 75,
       "severities": {
         "critical": 1,
         "high": 28,
-        "medium": 40,
+        "medium": 41,
         "low": 5,
         "info": 0
       },
@@ -535,6 +535,13 @@
           "severity": "medium",
           "package": "axios",
           "url": "https://github.com/advisories/GHSA-fvcv-3m26-pcqx"
+        },
+        {
+          "id": "1116896",
+          "title": "Astro: XSS in define:vars via incomplete </script> tag sanitization",
+          "severity": "medium",
+          "package": "astro",
+          "url": "https://github.com/advisories/GHSA-j687-52p2-xcff"
         }
       ]
     },
