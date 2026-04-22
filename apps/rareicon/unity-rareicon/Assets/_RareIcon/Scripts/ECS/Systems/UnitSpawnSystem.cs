@@ -25,8 +25,8 @@ namespace RareIcon
     {
         const float HexSize = 0.25f;
         const float UnitSize = 0.5f;
-        const int   GoblinCount  = 25;
-        const int   SpawnRadius  = 8;
+        const int   GoblinCount  = 100;
+        const int   SpawnRadius  = 12;
 
         static Mesh                  _mesh;
         static Material              _material;

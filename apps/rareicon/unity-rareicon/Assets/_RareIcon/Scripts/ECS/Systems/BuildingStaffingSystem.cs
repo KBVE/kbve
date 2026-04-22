@@ -82,12 +82,14 @@ namespace RareIcon
 
         static byte RoleForBuilding(byte buildingType) => buildingType switch
         {
-            BuildingType.Capital  => ProfessionKind.Builder,
-            BuildingType.Farm     => ProfessionKind.Farmer,
-            BuildingType.Barracks => ProfessionKind.Guard,
-            BuildingType.Furnace  => ProfessionKind.Blacksmith,
-            BuildingType.Dock     => ProfessionKind.Craftsman,
-            _                     => ProfessionKind.None,
+            BuildingType.Capital    => ProfessionKind.Builder,
+            BuildingType.Farm       => ProfessionKind.Farmer,
+            BuildingType.Barracks   => ProfessionKind.Guard,
+            BuildingType.Furnace    => ProfessionKind.Blacksmith,
+            BuildingType.Lumbercamp => ProfessionKind.Lumberjack,
+            BuildingType.MiningPit  => ProfessionKind.Miner,
+            BuildingType.Dock       => ProfessionKind.Craftsman,
+            _                       => ProfessionKind.None,
         };
     }
 

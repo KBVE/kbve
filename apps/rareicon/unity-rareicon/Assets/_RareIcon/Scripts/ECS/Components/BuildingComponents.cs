@@ -21,8 +21,10 @@ namespace RareIcon
         public const byte Inn        = 6;
         public const byte Market     = 7;
         public const byte Outpost    = 8;
-        public const byte Dock       = 9;   // River-only; passive fishing + Timber→FishingBoat crafting.
-        // Tower, Wall, Mine, etc. land here as we add their .hlsl files.
+        public const byte Lumbercamp = 9;
+        public const byte MiningPit  = 10;
+        public const byte Dock       = 11;  // River-only; passive fishing + Timber→FishingBoat crafting.
+        // Tower, Wall, etc. land here as we add their .hlsl files.
     }
 
     /// <summary>
@@ -40,7 +42,9 @@ namespace RareIcon
         public const byte Inn        = 6;
         public const byte Market     = 7;
         public const byte Outpost    = 8;
-        public const byte Dock       = 9;
+        public const byte Lumbercamp = 9;
+        public const byte MiningPit  = 10;
+        public const byte Dock       = 11;
     }
 
     /// <summary>Marker tag for the Capital — craft / governance systems query key.</summary>
@@ -88,8 +92,20 @@ namespace RareIcon
     /// <summary>Marker tag for Inn buildings — food + sleep service provider.</summary>
     public struct InnTag : IComponentData { }
 
-    /// <summary>Marker tag for Market buildings — goods trading + future Merchants Guild hub.</summary>
+    /// <summary>Marker tag for Market buildings — goods trading + future Merchants Guild hub. Tier progression: 0 Market → 1 Trade House → 2 Merchants Guild.</summary>
     public struct MarketTag : IComponentData { }
+
+    /// <summary>Progression level within a building's upgrade chain. 0 = base tier (Market, Farm). Higher tiers unlock via BuildingUpgradeRequest + cost deduction. Locale key + visuals may branch on this.</summary>
+    public struct BuildingTier : IComponentData
+    {
+        public byte Value;
+    }
+
+    /// <summary>Player-issued request to advance Target to the next tier. BuildingUpgradeSystem validates cost against the Capital, deducts, bumps BuildingTier.Value. Self-destroys after processing.</summary>
+    public struct BuildingUpgradeRequest : IComponentData
+    {
+        public Entity Target;
+    }
 
     /// <summary>Lifecycle state of a MarketOrder.</summary>
     public static class MarketOrderState
@@ -171,7 +187,7 @@ namespace RareIcon
     /// <summary>Marker tag for Barracks buildings — recruitment system query key.</summary>
     public struct BarracksTag : IComponentData { }
 
-    /// <summary>Per-barracks recruitment cadence. Once per N turns, consumes CoinCost BanditCoin + FoodCost food (any ItemId flagged by FoodItems.IsFood) from the building's InventorySlot storage and spawns one Soldier on an adjacent hex. Storage capacity lives on the separate StorageCapacity component.</summary>
+    /// <summary>Per-barracks recruitment cadence. Once per N turns, consumes CoinCost Coin + FoodCost food (any ItemId flagged by FoodItems.IsFood) from the building's InventorySlot storage and spawns one Soldier on an adjacent hex. Storage capacity lives on the separate StorageCapacity component.</summary>
     public struct BarracksProduction : IComponentData
     {
         public uint   LastProducedTurn;
@@ -200,6 +216,12 @@ namespace RareIcon
 
     /// <summary>Marker tag for Outpost buildings.</summary>
     public struct OutpostTag : IComponentData { }
+
+    /// <summary>Marker tag for Lumbercamp buildings — placed on Forest hexes. LumbercampProductionSystem ticks only while a Lumberjack is on the footprint or sheltered inside.</summary>
+    public struct LumbercampTag : IComponentData { }
+
+    /// <summary>Marker tag for Mining Pit buildings — placed on Sand hexes. MiningPitProductionSystem ticks only while a Miner is on the footprint or sheltered inside.</summary>
+    public struct MiningPitTag : IComponentData { }
 
     /// <summary>Marker tag for Dock buildings — placed on river tiles; passive fishing + Timber→FishingBoat crafting query key.</summary>
     public struct DockTag : IComponentData { }

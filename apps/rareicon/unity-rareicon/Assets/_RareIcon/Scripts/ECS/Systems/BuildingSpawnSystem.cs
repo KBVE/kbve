@@ -250,7 +250,7 @@ namespace RareIcon
                 treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Egg,          Count = 400 });
                 treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Milk,         Count = 300 });
                 treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Meal,         Count = 60 });
-                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.BanditCoin,   Count = 120 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Coin,   Count = 120 });
             }
             else
             {
@@ -366,6 +366,8 @@ namespace RareIcon
             BuildingType.Inn        => "Inn",
             BuildingType.Market     => "Market",
             BuildingType.Outpost    => "Outpost",
+            BuildingType.Lumbercamp => "Lumbercamp",
+            BuildingType.MiningPit  => "Mining Pit",
             _ => "Unknown",
         };
 

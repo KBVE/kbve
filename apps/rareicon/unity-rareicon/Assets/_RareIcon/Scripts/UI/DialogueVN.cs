@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using MessagePipe;
 using Unity.Entities;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 using VContainer;
 using VContainer.Unity;
@@ -250,7 +251,10 @@ namespace RareIcon
         {
             if (!_visible) return;
 
-            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return))
+            var keyboard = Keyboard.current;
+            if (keyboard == null) return;
+
+            if (keyboard.spaceKey.wasPressedThisFrame || keyboard.enterKey.wasPressedThisFrame)
             {
                 if (!_typewriterDone) { FastForward(); return; }
                 if (_activeChoiceCount == 0)
@@ -262,12 +266,29 @@ namespace RareIcon
             {
                 for (int i = 0; i < _activeChoiceCount; i++)
                 {
-                    if (Input.GetKeyDown(KeyCode.Alpha1 + i))
+                    if (DigitKeyPressed(keyboard, i + 1))
                     {
                         _choicePub.Publish(new DialogueChoiceMessage(i));
                         return;
                     }
                 }
+            }
+        }
+
+        static bool DigitKeyPressed(Keyboard kb, int digit)
+        {
+            switch (digit)
+            {
+                case 1: return kb.digit1Key.wasPressedThisFrame;
+                case 2: return kb.digit2Key.wasPressedThisFrame;
+                case 3: return kb.digit3Key.wasPressedThisFrame;
+                case 4: return kb.digit4Key.wasPressedThisFrame;
+                case 5: return kb.digit5Key.wasPressedThisFrame;
+                case 6: return kb.digit6Key.wasPressedThisFrame;
+                case 7: return kb.digit7Key.wasPressedThisFrame;
+                case 8: return kb.digit8Key.wasPressedThisFrame;
+                case 9: return kb.digit9Key.wasPressedThisFrame;
+                default: return false;
             }
         }
 

@@ -39,6 +39,7 @@ namespace RareIcon
                 ProvidesSleepLookup = SystemAPI.GetComponentLookup<ProvidesSleep>(true),
                 SleeperCounts       = sleeperCounts,
                 SleepingLookup      = SystemAPI.GetComponentLookup<SleepingTag>(true),
+                HealthLookup        = SystemAPI.GetComponentLookup<Health>(false),
                 Ecb                 = ecb.AsParallelWriter(),
             }.ScheduleParallel(countHandle);
 
@@ -72,6 +73,7 @@ namespace RareIcon
         const float SleepDrainPerSec      = 20f;
         const float GoblinSleepMultiplier = 1.75f;
         const float WakeThresholdPct      = 0.15f;
+        const float SleepHealPerSec       = 2f;
 
         public float Dt;
 
@@ -80,6 +82,9 @@ namespace RareIcon
         [ReadOnly] public ComponentLookup<ProvidesSleep>  ProvidesSleepLookup;
         [ReadOnly] public NativeParallelHashMap<Entity, int> SleeperCounts;
         [ReadOnly] public ComponentLookup<SleepingTag>    SleepingLookup;
+
+        [NativeDisableParallelForRestriction]
+        public ComponentLookup<Health> HealthLookup;
 
         public EntityCommandBuffer.ParallelWriter Ecb;
 
@@ -111,6 +116,16 @@ namespace RareIcon
                     ? SleepDrainPerSec * GoblinSleepMultiplier
                     : SleepDrainPerSec;
                 fatigue.Value = math.max(0f, fatigue.Value - drainRate * Dt);
+
+                if (HealthLookup.HasComponent(entity))
+                {
+                    var h = HealthLookup[entity];
+                    if (h.Value < h.Max)
+                    {
+                        h.Value = math.min(h.Max, h.Value + SleepHealPerSec * Dt);
+                        HealthLookup[entity] = h;
+                    }
+                }
 
                 if (fatigue.Value <= fatigue.Max * WakeThresholdPct && alreadySleeping)
                     Ecb.RemoveComponent<SleepingTag>(chunkIdx, entity);

@@ -49,7 +49,7 @@ namespace RareIcon
         CookedBeef    = 229,
         WolfPelt      = 230,
         WolfFang      = 231,
-        BanditCoin    = 232,
+        Coin          = 232,
         Egg           = 233,
         Milk          = 234,
         CookedEgg     = 235,
@@ -68,8 +68,8 @@ namespace RareIcon
         StoneBlock    = 243,   // 100 Stone
         Quiver        = 244,   // 100 Arrow
         Meal          = 245,   // 100 of any food-pool item
-
-        Oil           = 246,   // rendered whale oil — fuel + lantern stock
+        GoldBar       = 246,   // 100 Coin
+        Oil           = 247,   // rendered whale oil — fuel + lantern stock
 
         // Quest / key items
         QuestScroll       = 300,

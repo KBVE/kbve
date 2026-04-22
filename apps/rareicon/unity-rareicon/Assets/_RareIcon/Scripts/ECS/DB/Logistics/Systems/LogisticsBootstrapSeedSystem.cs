@@ -13,16 +13,20 @@ namespace RareIcon
         EntityQuery _farmQ;
         EntityQuery _barracksQ;
         EntityQuery _goblinCaveQ;
+        EntityQuery _lumbercampQ;
+        EntityQuery _miningPitQ;
 
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<LogisticsDBSingleton>();
 
-            _capitalQ    = new EntityQueryBuilder(Allocator.Temp).WithAll<CapitalLedger>().WithNone<BankSeededTag>().Build(ref state);
-            _furnaceQ    = new EntityQueryBuilder(Allocator.Temp).WithAll<FurnaceLedger>().WithNone<BankSeededTag>().Build(ref state);
-            _farmQ       = new EntityQueryBuilder(Allocator.Temp).WithAll<FarmLedger>().WithNone<BankSeededTag>().Build(ref state);
-            _barracksQ   = new EntityQueryBuilder(Allocator.Temp).WithAll<BarracksLedger>().WithNone<BankSeededTag>().Build(ref state);
-            _goblinCaveQ = new EntityQueryBuilder(Allocator.Temp).WithAll<GoblinCaveLedger>().WithNone<BankSeededTag>().Build(ref state);
+            _capitalQ     = new EntityQueryBuilder(Allocator.Temp).WithAll<CapitalLedger>().WithNone<BankSeededTag>().Build(ref state);
+            _furnaceQ     = new EntityQueryBuilder(Allocator.Temp).WithAll<FurnaceLedger>().WithNone<BankSeededTag>().Build(ref state);
+            _farmQ        = new EntityQueryBuilder(Allocator.Temp).WithAll<FarmLedger>().WithNone<BankSeededTag>().Build(ref state);
+            _barracksQ    = new EntityQueryBuilder(Allocator.Temp).WithAll<BarracksLedger>().WithNone<BankSeededTag>().Build(ref state);
+            _goblinCaveQ  = new EntityQueryBuilder(Allocator.Temp).WithAll<GoblinCaveLedger>().WithNone<BankSeededTag>().Build(ref state);
+            _lumbercampQ  = new EntityQueryBuilder(Allocator.Temp).WithAll<LumbercampLedger>().WithNone<BankSeededTag>().Build(ref state);
+            _miningPitQ   = new EntityQueryBuilder(Allocator.Temp).WithAll<MiningPitLedger>().WithNone<BankSeededTag>().Build(ref state);
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -34,7 +38,9 @@ namespace RareIcon
                 !_furnaceQ.IsEmpty ||
                 !_farmQ.IsEmpty ||
                 !_barracksQ.IsEmpty ||
-                !_goblinCaveQ.IsEmpty;
+                !_goblinCaveQ.IsEmpty ||
+                !_lumbercampQ.IsEmpty ||
+                !_miningPitQ.IsEmpty;
 
             if (!any) return;
 
@@ -48,6 +54,8 @@ namespace RareIcon
             SeedFarm(ref state, ref db);
             SeedBarracks(ref state, ref db);
             SeedGoblinCave(ref state, ref db);
+            SeedLumbercamp(ref state, ref db);
+            SeedMiningPit(ref state, ref db);
         }
 
         void SeedCapital(ref SystemState state, ref LogisticsDBSingleton db)
@@ -109,6 +117,32 @@ namespace RareIcon
             {
                 var e = entities[i];
                 var buf = state.EntityManager.GetBuffer<GoblinCaveLedger>(e).Reinterpret<BankLedgerBase>();
+                SeedOne(ref db, e, buf);
+                state.EntityManager.AddComponent<BankSeededTag>(e);
+            }
+            entities.Dispose();
+        }
+
+        void SeedLumbercamp(ref SystemState state, ref LogisticsDBSingleton db)
+        {
+            var entities = _lumbercampQ.ToEntityArray(Allocator.Temp);
+            for (int i = 0; i < entities.Length; i++)
+            {
+                var e = entities[i];
+                var buf = state.EntityManager.GetBuffer<LumbercampLedger>(e).Reinterpret<BankLedgerBase>();
+                SeedOne(ref db, e, buf);
+                state.EntityManager.AddComponent<BankSeededTag>(e);
+            }
+            entities.Dispose();
+        }
+
+        void SeedMiningPit(ref SystemState state, ref LogisticsDBSingleton db)
+        {
+            var entities = _miningPitQ.ToEntityArray(Allocator.Temp);
+            for (int i = 0; i < entities.Length; i++)
+            {
+                var e = entities[i];
+                var buf = state.EntityManager.GetBuffer<MiningPitLedger>(e).Reinterpret<BankLedgerBase>();
                 SeedOne(ref db, e, buf);
                 state.EntityManager.AddComponent<BankSeededTag>(e);
             }

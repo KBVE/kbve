@@ -99,11 +99,11 @@ namespace RareIcon
             int total = BankLedgerOps.TotalCount(storage);
             if (total >= cap) return;
 
-            int coinShortfall = math.max(0, prod.CoinCost - BankLedgerOps.CountOf(storage, (ushort)ItemId.BanditCoin));
+            int coinShortfall = math.max(0, prod.CoinCost - BankLedgerOps.CountOf(storage, (ushort)ItemId.Coin));
             int foodShortfall = math.max(0, prod.FoodCost - FoodItems.Count(storage));
 
             var capitalInv = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
-            if (coinShortfall > 0)      TryReserveOne(capitalInv, (ushort)ItemId.BanditCoin, Capital, entity, Tick, ref Reservations);
+            if (coinShortfall > 0)      TryReserveOne(capitalInv, (ushort)ItemId.Coin, Capital, entity, Tick, ref Reservations);
             else if (foodShortfall > 0) TryReserveFood(capitalInv, Capital, entity, Tick, ref Reservations);
         }
 
@@ -155,7 +155,7 @@ namespace RareIcon
             {
                 if (unitPack[i].Count == 0) continue;
                 ushort id = unitPack[i].ItemId;
-                if (id != (ushort)ItemId.BanditCoin && !FoodItems.IsFood(id)) continue;
+                if (id != (ushort)ItemId.Coin && !FoodItems.IsFood(id)) continue;
 
                 int take = math.min(unitPack[i].Count, remaining);
                 var uslot = unitPack[i];

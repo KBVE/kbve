@@ -6,7 +6,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Phase 6: mirrors committed CurrentAmounts back into per-entity DynamicBuffer&lt;*Ledger&gt; views (Capital/Furnace/Farm/Barracks/GoblinCave). Walks the keys in PendingDeltas (the subset that changed this frame) and pushes each value to the matching ledger buffer. Sole writer of every bank buffer now that the DB is authoritative.</summary>
+    /// <summary>Phase 6: mirrors committed CurrentAmounts back into per-entity DynamicBuffer&lt;*Ledger&gt; views (Capital/Furnace/Farm/Barracks/GoblinCave/Lumbercamp/MiningPit). Walks the keys in PendingDeltas (the subset that changed this frame) and pushes each value to the matching ledger buffer. Sole writer of every bank buffer now that the DB is authoritative.</summary>
     [UpdateInGroup(typeof(LogisticsEndGroup))]
     [UpdateAfter(typeof(PackApplySystem))]
     public partial struct LedgerMirrorSystem : ISystem
@@ -31,6 +31,8 @@ namespace RareIcon
                 FarmLookup       = SystemAPI.GetBufferLookup<FarmLedger>(false),
                 BarracksLookup   = SystemAPI.GetBufferLookup<BarracksLedger>(false),
                 GoblinCaveLookup = SystemAPI.GetBufferLookup<GoblinCaveLedger>(false),
+                LumbercampLookup = SystemAPI.GetBufferLookup<LumbercampLedger>(false),
+                MiningPitLookup  = SystemAPI.GetBufferLookup<MiningPitLedger>(false),
             }.Schedule(dep);
 
             db.PipelineHandle = state.Dependency;
@@ -48,6 +50,8 @@ namespace RareIcon
         public BufferLookup<FarmLedger>       FarmLookup;
         public BufferLookup<BarracksLedger>   BarracksLookup;
         public BufferLookup<GoblinCaveLedger> GoblinCaveLookup;
+        public BufferLookup<LumbercampLedger> LumbercampLookup;
+        public BufferLookup<MiningPitLedger>  MiningPitLookup;
 
         public void Execute()
         {
@@ -83,6 +87,16 @@ namespace RareIcon
                 else if (GoblinCaveLookup.HasBuffer(key.Bank))
                 {
                     var view = GoblinCaveLookup[key.Bank].Reinterpret<BankLedgerBase>();
+                    SetSlotCount(view, key.ItemId, amount);
+                }
+                else if (LumbercampLookup.HasBuffer(key.Bank))
+                {
+                    var view = LumbercampLookup[key.Bank].Reinterpret<BankLedgerBase>();
+                    SetSlotCount(view, key.ItemId, amount);
+                }
+                else if (MiningPitLookup.HasBuffer(key.Bank))
+                {
+                    var view = MiningPitLookup[key.Bank].Reinterpret<BankLedgerBase>();
                     SetSlotCount(view, key.ItemId, amount);
                 }
             }

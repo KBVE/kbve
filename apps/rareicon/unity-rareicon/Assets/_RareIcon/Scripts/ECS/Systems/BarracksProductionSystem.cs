@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Turn-cadence barracks recruitment: spends BanditCoin + food, emits a SpawnSoldierRequest.</summary>
+    /// <summary>Turn-cadence barracks recruitment: spends Coin + food, emits a SpawnSoldierRequest.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct BarracksProductionSystem : ISystem
@@ -45,10 +45,10 @@ namespace RareIcon
         {
             if (CurrentTurn < prod.LastProducedTurn + prod.CadenceTurns) return;
             var storage = typedStorage.Reinterpret<BankLedgerBase>();
-            if (BankLedgerOps.CountOf(storage, (ushort)ItemId.BanditCoin) < prod.CoinCost) return;
+            if (BankLedgerOps.CountOf(storage, (ushort)ItemId.Coin) < prod.CoinCost) return;
             if (FoodItems.Count(storage) < prod.FoodCost) return;
 
-            BankLedgerOps.RemoveItem(ref storage, (ushort)ItemId.BanditCoin, (ushort)math.min(prod.CoinCost, (int)ushort.MaxValue));
+            BankLedgerOps.RemoveItem(ref storage, (ushort)ItemId.Coin, (ushort)math.min(prod.CoinCost, (int)ushort.MaxValue));
             ConsumeFood(ref storage, prod.FoodCost);
 
             int2 rootHex = building.RootHex;
