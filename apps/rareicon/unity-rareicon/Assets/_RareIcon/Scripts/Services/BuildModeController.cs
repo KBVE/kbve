@@ -1,51 +1,215 @@
+using System;
+using System.Threading;
 using R3;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Authoritative build-mode state. Owned by the UI container (VContainer
-    /// singleton); the WorldHUD "Build" button, keyboard input source, and
-    /// ECS-side preview/spawn systems all read and write through this one
-    /// service instead of threading the state through multiple singletons.
-    ///
-    /// Uses an R3 ReactiveProperty so UI callbacks (button visual toggle,
-    /// menu state sync) and systems that read the current target stay in
-    /// lockstep.
-    /// </summary>
-    public sealed class BuildModeController
+    [Flags]
+    public enum BuildBlockFlags
     {
-        readonly ReactiveProperty<byte> _target = new(BuildTarget.None);
+        None          = 0,
+        ServerBlocked = 1 << 0,
+        Cooldown      = 1 << 1,
+        NoResources   = 1 << 2,
+        InvalidBiome  = 1 << 3,
+        Stunned       = 1 << 4,
+        MenuLocked    = 1 << 5,
+    }
 
-        /// <summary>Current BuildTarget.* — None when build mode is off.</summary>
-        public ReadOnlyReactiveProperty<byte> Target => _target;
+    public readonly struct BuildModeSnapshot
+    {
+        public readonly byte Target;
+        public readonly BuildBlockFlags BlockFlags;
 
-        public bool IsActive => _target.Value != BuildTarget.None;
-
-        public void Enter(byte target)
+        public BuildModeSnapshot(byte target, BuildBlockFlags blockFlags)
         {
-            if (target == BuildTarget.None) return;
-            _target.Value = target;
+            Target = target;
+            BlockFlags = blockFlags;
+        }
+
+        public bool HasTarget => Target != BuildTarget.None;
+        public bool IsBlocked => BlockFlags != BuildBlockFlags.None;
+        public bool IsActive => HasTarget && !IsBlocked;
+    }
+
+    public sealed class BuildModeController : IDisposable
+    {
+        readonly SynchronizedReactiveProperty<byte> _targetReactive = new(BuildTarget.None);
+        readonly SynchronizedReactiveProperty<int> _blockFlagsReactive = new((int)BuildBlockFlags.None);
+
+        int _disposed;
+        int _blockFlags;
+        int _target;
+
+        public ReadOnlyReactiveProperty<byte> Target => _targetReactive;
+        public ReadOnlyReactiveProperty<int> BlockFlags => _blockFlagsReactive;
+
+        public byte CurrentTarget => (byte)Volatile.Read(ref _target);
+        public BuildBlockFlags CurrentBlockFlags => (BuildBlockFlags)Volatile.Read(ref _blockFlags);
+
+        public bool HasTarget => CurrentTarget != BuildTarget.None;
+        public bool IsBlocked => CurrentBlockFlags != BuildBlockFlags.None;
+        public bool IsActive => HasTarget && !IsBlocked;
+
+        public BuildModeSnapshot Snapshot()
+        {
+            var target = (byte)Volatile.Read(ref _target);
+            var flags = (BuildBlockFlags)Volatile.Read(ref _blockFlags);
+            return new BuildModeSnapshot(target, flags);
+        }
+
+        public bool TryGetActiveTarget(out byte target)
+        {
+            var snap = Snapshot();
+            target = snap.Target;
+            return snap.IsActive;
+        }
+
+        public bool TryEnter(byte target)
+        {
+            if (Volatile.Read(ref _disposed) != 0) return false;
+            if (target == BuildTarget.None) return false;
+
+            while (true)
+            {
+                if (Volatile.Read(ref _blockFlags) != 0)
+                    return false;
+
+                var current = Volatile.Read(ref _target);
+                if (current == target)
+                    return true;
+
+                if (Interlocked.CompareExchange(ref _target, target, current) != current)
+                    continue;
+
+                if (Volatile.Read(ref _blockFlags) != 0)
+                {
+                    Interlocked.CompareExchange(ref _target, BuildTarget.None, target);
+                    _targetReactive.Value = (byte)Volatile.Read(ref _target);
+                    return false;
+                }
+
+                _targetReactive.Value = target;
+                return true;
+            }
         }
 
         public void Exit()
         {
-            _target.Value = BuildTarget.None;
+            if (Volatile.Read(ref _disposed) != 0) return;
+
+            var old = Interlocked.Exchange(ref _target, BuildTarget.None);
+            if (old == BuildTarget.None) return;
+
+            _targetReactive.Value = BuildTarget.None;
         }
 
         public void Toggle(byte target)
         {
-            if (_target.Value == target) _target.Value = BuildTarget.None;
-            else                         _target.Value = target;
+            if (Volatile.Read(ref _disposed) != 0) return;
+            if (target == BuildTarget.None)
+            {
+                Exit();
+                return;
+            }
+
+            while (true)
+            {
+                if (Volatile.Read(ref _blockFlags) != 0)
+                    return;
+
+                var current = Volatile.Read(ref _target);
+                var next = current == target ? BuildTarget.None : target;
+
+                if (Interlocked.CompareExchange(ref _target, next, current) != current)
+                    continue;
+
+                if (next != BuildTarget.None && Volatile.Read(ref _blockFlags) != 0)
+                {
+                    Interlocked.CompareExchange(ref _target, BuildTarget.None, next);
+                    _targetReactive.Value = (byte)Volatile.Read(ref _target);
+                    return;
+                }
+
+                _targetReactive.Value = (byte)next;
+                return;
+            }
+        }
+
+        public void AddBlock(BuildBlockFlags flags, bool clearTarget = true)
+        {
+            if (Volatile.Read(ref _disposed) != 0) return;
+            if (flags == BuildBlockFlags.None) return;
+
+            while (true)
+            {
+                var current = Volatile.Read(ref _blockFlags);
+                var next = current | (int)flags;
+
+                if (Interlocked.CompareExchange(ref _blockFlags, next, current) == current)
+                {
+                    if (next != current)
+                        _blockFlagsReactive.Value = next;
+                    break;
+                }
+            }
+
+            if (clearTarget)
+                Exit();
+        }
+
+        public void RemoveBlock(BuildBlockFlags flags)
+        {
+            if (Volatile.Read(ref _disposed) != 0) return;
+            if (flags == BuildBlockFlags.None) return;
+
+            while (true)
+            {
+                var current = Volatile.Read(ref _blockFlags);
+                var next = current & ~(int)flags;
+
+                if (Interlocked.CompareExchange(ref _blockFlags, next, current) == current)
+                {
+                    if (next != current)
+                        _blockFlagsReactive.Value = next;
+                    return;
+                }
+            }
+        }
+
+        public bool HasBlock(BuildBlockFlags flags)
+        {
+            return (CurrentBlockFlags & flags) != 0;
+        }
+
+        public void Reset()
+        {
+            if (Volatile.Read(ref _disposed) != 0) return;
+
+            Interlocked.Exchange(ref _target, BuildTarget.None);
+            Interlocked.Exchange(ref _blockFlags, (int)BuildBlockFlags.None);
+
+            _targetReactive.Value = BuildTarget.None;
+            _blockFlagsReactive.Value = (int)BuildBlockFlags.None;
+        }
+
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+
+            _targetReactive.Dispose();
+            _blockFlagsReactive.Dispose();
         }
     }
 
-    /// <summary>
-    /// Static handoff between the managed BuildModeController (VContainer)
-    /// and the ECS sync system. Set once at container build time, matching
-    /// the MouseStateBridge pattern.
-    /// </summary>
     public static class BuildModeBridge
     {
-        public static BuildModeController Source;
+        static BuildModeController _source;
+
+        public static BuildModeController Source
+        {
+            get => Volatile.Read(ref _source);
+            set => Volatile.Write(ref _source, value);
+        }
     }
 }
