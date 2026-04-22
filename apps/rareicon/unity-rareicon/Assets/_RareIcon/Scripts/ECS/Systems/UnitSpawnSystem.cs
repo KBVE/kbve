@@ -138,8 +138,9 @@ namespace RareIcon
             AttachRangedAttackIfArmed(em, entity, def.DefaultWeapon);
             AttachMeleeAttackIfArmed(em, entity, def.DefaultWeapon, faction);
             AttachSpellsIfMagical(em, entity, def.UnitType, faction);
-            AttachNeedsIfPlayer(em, entity, faction, def);
+            AttachNeedsIfPlayer(em, entity, faction, def, rngSeed);
             AttachJobsIfPlayer(em, entity, faction, def.UnitType, rngSeed);
+            AttachTraitsIfApplicable(em, entity, def.UnitType, faction, rngSeed);
 
             // Player goblins get individual names — drives the "Controlling: X"
             // indicator + RosterTab + future tooltips. Hostile / Beast goblins
@@ -846,14 +847,23 @@ namespace RareIcon
             em.AddComponentData(entity, new ActivityState { LastKind = ActivityKind.None });
         }
 
-        static void AttachNeedsIfPlayer(EntityManager em, Entity entity, byte faction, NPCDef def)
+        static void AttachNeedsIfPlayer(EntityManager em, Entity entity, byte faction, NPCDef def, uint rngSeed = 0u)
         {
             if (faction != FactionType.Player) return;
+
+            uint h1 = rngSeed ^ 0x9E3779B1u;
+            h1 ^= h1 >> 13; h1 *= 0x85EBCA77u; h1 ^= h1 >> 16;
+            uint h2 = rngSeed ^ 0xC2B2AE3Du;
+            h2 ^= h2 >> 13; h2 *= 0x27D4EB2Fu; h2 ^= h2 >> 16;
+
+            float hungerPct  = (h1 & 0xFFFFu) / 65535f * 0.45f;
+            float fatiguePct = (h2 & 0xFFFFu) / 65535f * 0.45f;
+
             if (def.MaxHunger > 0f)
             {
                 em.AddComponentData(entity, new Hunger
                 {
-                    Value     = 0f,
+                    Value     = def.MaxHunger * hungerPct,
                     Max       = def.MaxHunger,
                     PerSecond = def.HungerPerSec,
                 });
@@ -862,7 +872,7 @@ namespace RareIcon
             {
                 em.AddComponentData(entity, new Fatigue
                 {
-                    Value     = 0f,
+                    Value     = def.MaxFatigue * fatiguePct,
                     Max       = def.MaxFatigue,
                     PerSecond = def.FatiguePerSec,
                 });
@@ -960,6 +970,96 @@ namespace RareIcon
                 TimeSinceShot = 0f,
                 TargetMode    = mode,
             });
+        }
+
+        static void AttachTraitsIfApplicable(EntityManager em, Entity entity, byte unitType, byte faction, uint rngSeed)
+        {
+            if (faction != FactionType.Player) return;
+            if (unitType == UnitType.King) return;
+
+            var traits = TraitDB.Roll(rngSeed);
+            if (traits.T0 == TraitKind.None) return;
+
+            em.AddComponentData(entity, traits);
+            var mod = TraitDB.Accumulate(traits);
+
+            if (em.HasComponent<Health>(entity) && mod.HealthBonus != 0f)
+            {
+                var h = em.GetComponentData<Health>(entity);
+                h.Max   += mod.HealthBonus;
+                h.Value  = math.min(h.Value + mod.HealthBonus, h.Max);
+                em.SetComponentData(entity, h);
+            }
+            if (em.HasComponent<Energy>(entity) && mod.EnergyBonus != 0f)
+            {
+                var e = em.GetComponentData<Energy>(entity);
+                e.Max   += mod.EnergyBonus;
+                e.Value  = math.min(e.Value + mod.EnergyBonus, e.Max);
+                em.SetComponentData(entity, e);
+            }
+            if (em.HasComponent<Mana>(entity) && mod.ManaBonus != 0f)
+            {
+                var m = em.GetComponentData<Mana>(entity);
+                m.Max   += mod.ManaBonus;
+                m.Value  = math.min(m.Value + mod.ManaBonus, m.Max);
+                em.SetComponentData(entity, m);
+            }
+            if (em.HasComponent<Hunger>(entity) && (mod.HungerMaxBonus != 0f || mod.HungerPerSecMul != 0f))
+            {
+                var hu = em.GetComponentData<Hunger>(entity);
+                hu.Max       = math.max(10f, hu.Max + mod.HungerMaxBonus);
+                hu.PerSecond = math.max(0f, hu.PerSecond * (1f + mod.HungerPerSecMul));
+                hu.Value     = math.min(hu.Value, hu.Max);
+                em.SetComponentData(entity, hu);
+            }
+            if (em.HasComponent<Fatigue>(entity) && (mod.FatigueMaxBonus != 0f || mod.FatiguePerSecMul != 0f))
+            {
+                var ft = em.GetComponentData<Fatigue>(entity);
+                ft.Max       = math.max(10f, ft.Max + mod.FatigueMaxBonus);
+                ft.PerSecond = math.max(0f, ft.PerSecond * (1f + mod.FatiguePerSecMul));
+                ft.Value     = math.min(ft.Value, ft.Max);
+                em.SetComponentData(entity, ft);
+            }
+            if (em.HasComponent<HealthRegen>(entity) && mod.HealthRegenBonus != 0f)
+            {
+                var r = em.GetComponentData<HealthRegen>(entity);
+                r.PerSecond += mod.HealthRegenBonus;
+                em.SetComponentData(entity, r);
+            }
+            else if (mod.HealthRegenBonus != 0f)
+            {
+                em.AddComponentData(entity, new HealthRegen { PerSecond = mod.HealthRegenBonus });
+            }
+            if (em.HasComponent<EnergyRegen>(entity) && mod.EnergyRegenBonus != 0f)
+            {
+                var r = em.GetComponentData<EnergyRegen>(entity);
+                r.PerSecond += mod.EnergyRegenBonus;
+                em.SetComponentData(entity, r);
+            }
+            if (em.HasComponent<ManaRegen>(entity) && mod.ManaRegenBonus != 0f)
+            {
+                var r = em.GetComponentData<ManaRegen>(entity);
+                r.PerSecond += mod.ManaRegenBonus;
+                em.SetComponentData(entity, r);
+            }
+            if (em.HasComponent<UnitMovement>(entity) && mod.MoveSpeedBonus != 0f)
+            {
+                var m = em.GetComponentData<UnitMovement>(entity);
+                m.MoveSpeed += mod.MoveSpeedBonus;
+                em.SetComponentData(entity, m);
+            }
+            if (em.HasComponent<RangedAttack>(entity) && mod.RangedDamageBonus != 0f)
+            {
+                var r = em.GetComponentData<RangedAttack>(entity);
+                r.Damage += mod.RangedDamageBonus;
+                em.SetComponentData(entity, r);
+            }
+            if (em.HasComponent<MeleeAttack>(entity) && mod.MeleeDamageBonus != 0f)
+            {
+                var m = em.GetComponentData<MeleeAttack>(entity);
+                m.Damage += mod.MeleeDamageBonus;
+                em.SetComponentData(entity, m);
+            }
         }
 
         static Mesh CreateQuadMesh(float size)

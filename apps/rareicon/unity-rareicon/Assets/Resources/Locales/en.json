@@ -207,5 +207,16 @@
 	"hex.empty": "Open Sea",
 	"hex.enter": "Enter",
 	"common.confirm": "Confirm",
-	"common.cancel": "Cancel"
+	"common.cancel": "Cancel",
+	"trait.none": "—",
+	"trait.tough": "Tough",
+	"trait.swift": "Swift",
+	"trait.ascetic": "Ascetic",
+	"trait.restful": "Restful",
+	"trait.energetic": "Energetic",
+	"trait.scholar": "Scholar",
+	"trait.keen": "Keen Eye",
+	"trait.strong": "Strong",
+	"trait.stalwart": "Stalwart",
+	"trait.industrious": "Industrious"
 }

@@ -180,5 +180,16 @@
 	"hex.empty": "外洋",
 	"hex.enter": "入る",
 	"common.confirm": "確認",
-	"common.cancel": "キャンセル"
+	"common.cancel": "キャンセル",
+	"trait.none": "—",
+	"trait.tough": "頑健",
+	"trait.swift": "俊足",
+	"trait.ascetic": "禁欲",
+	"trait.restful": "安眠",
+	"trait.energetic": "精力",
+	"trait.scholar": "学者",
+	"trait.keen": "鋭眼",
+	"trait.strong": "剛力",
+	"trait.stalwart": "不屈",
+	"trait.industrious": "勤勉"
 }
