@@ -16,7 +16,7 @@ namespace RareIcon
         MenuLocked    = 1 << 5,
     }
 
-    public readonly struct BuildModeSnapshot
+    public readonly struct BuildModeSnapshot : IEquatable<BuildModeSnapshot>
     {
         public readonly byte Target;
         public readonly BuildBlockFlags BlockFlags;
@@ -30,12 +30,34 @@ namespace RareIcon
         public bool HasTarget => Target != BuildTarget.None;
         public bool IsBlocked => BlockFlags != BuildBlockFlags.None;
         public bool IsActive => HasTarget && !IsBlocked;
+
+
+        public readonly bool Equals(BuildModeSnapshot other)
+        {
+        return Target == other.Target && BlockFlags == other.BlockFlags;
+        }
+        
+        public override bool Equals(object obj)
+        {
+            return obj is BuildModeSnapshot other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Target, (int)BlockFlags);
+        }
+
+        public static bool operator ==(BuildModeSnapshot left, BuildModeSnapshot right) => left.Equals(right);
+        public static bool operator !=(BuildModeSnapshot left, BuildModeSnapshot right) => !left.Equals(right);
+    
     }
 
     public sealed class BuildModeController : IDisposable
     {
         readonly SynchronizedReactiveProperty<byte> _targetReactive = new(BuildTarget.None);
         readonly SynchronizedReactiveProperty<int> _blockFlagsReactive = new((int)BuildBlockFlags.None);
+        readonly SynchronizedReactiveProperty<BuildModeSnapshot> _snapshotReactive =
+            new(new BuildModeSnapshot(BuildTarget.None, BuildBlockFlags.None));
 
         int _disposed;
         int _blockFlags;
@@ -43,6 +65,8 @@ namespace RareIcon
 
         public ReadOnlyReactiveProperty<byte> Target => _targetReactive;
         public ReadOnlyReactiveProperty<int> BlockFlags => _blockFlagsReactive;
+        public ReadOnlyReactiveProperty<BuildModeSnapshot> State => _snapshotReactive;
+
 
         public byte CurrentTarget => (byte)Volatile.Read(ref _target);
         public BuildBlockFlags CurrentBlockFlags => (BuildBlockFlags)Volatile.Read(ref _blockFlags);
@@ -89,7 +113,7 @@ namespace RareIcon
                     return false;
                 }
 
-                _targetReactive.Value = target;
+                PublishCurrentState();
                 return true;
             }
         }
@@ -101,7 +125,7 @@ namespace RareIcon
             var old = Interlocked.Exchange(ref _target, BuildTarget.None);
             if (old == BuildTarget.None) return;
 
-            _targetReactive.Value = BuildTarget.None;
+            PublishCurrentState();
         }
 
         public void Toggle(byte target)
@@ -127,11 +151,11 @@ namespace RareIcon
                 if (next != BuildTarget.None && Volatile.Read(ref _blockFlags) != 0)
                 {
                     Interlocked.CompareExchange(ref _target, BuildTarget.None, next);
-                    _targetReactive.Value = (byte)Volatile.Read(ref _target);
+                    PublishCurrentState();
                     return;
                 }
 
-                _targetReactive.Value = (byte)next;
+                PublishCurrentState();
                 return;
             }
         }
@@ -141,6 +165,9 @@ namespace RareIcon
             if (Volatile.Read(ref _disposed) != 0) return;
             if (flags == BuildBlockFlags.None) return;
 
+            var changed = false;
+
+
             while (true)
             {
                 var current = Volatile.Read(ref _blockFlags);
@@ -148,14 +175,17 @@ namespace RareIcon
 
                 if (Interlocked.CompareExchange(ref _blockFlags, next, current) == current)
                 {
-                    if (next != current)
-                        _blockFlagsReactive.Value = next;
+                    changed = next != current;
                     break;
                 }
             }
 
             if (clearTarget)
-                Exit();
+                Interlocked.Exchange(ref _target, BuildTarget.None);
+
+            if (changed || clearTarget)
+                PublishCurrentState();
+
         }
 
         public void RemoveBlock(BuildBlockFlags flags)
@@ -171,10 +201,34 @@ namespace RareIcon
                 if (Interlocked.CompareExchange(ref _blockFlags, next, current) == current)
                 {
                     if (next != current)
-                        _blockFlagsReactive.Value = next;
+                        PublishCurrentState();
                     return;
                 }
             }
+        }
+
+        public void SetBlocked(BuildBlockFlags flags, bool clearTarget = true)
+        {
+            if (Volatile.Read(ref _disposed) != 0) return;
+
+            var next = (int)flags;
+            var old = Interlocked.Exchange(ref _blockFlags, next);
+
+            if (clearTarget && next != 0)
+                Interlocked.Exchange(ref _target, BuildTarget.None);
+
+            if (old != next || (clearTarget && next != 0))
+                PublishCurrentState();
+        }
+
+        public void ClearBlocks()
+        {
+            if (Volatile.Read(ref _disposed) != 0) return;
+
+            var old = Interlocked.Exchange(ref _blockFlags, (int)BuildBlockFlags.None);
+            if (old == (int)BuildBlockFlags.None) return;
+
+            PublishCurrentState();
         }
 
         public bool HasBlock(BuildBlockFlags flags)
@@ -188,15 +242,26 @@ namespace RareIcon
 
             Interlocked.Exchange(ref _target, BuildTarget.None);
             Interlocked.Exchange(ref _blockFlags, (int)BuildBlockFlags.None);
+            PublishCurrentState();
+        }
 
-            _targetReactive.Value = BuildTarget.None;
-            _blockFlagsReactive.Value = (int)BuildBlockFlags.None;
+        void PublishCurrentState()
+        {
+            var target = (byte)Volatile.Read(ref _target);
+            var flagsInt = Volatile.Read(ref _blockFlags);
+            var flags = (BuildBlockFlags)flagsInt;
+            var snapshot = new BuildModeSnapshot(target, flags);
+
+            _targetReactive.Value = target;
+            _blockFlagsReactive.Value = flagsInt;
+            _snapshotReactive.Value = snapshot;
         }
 
         public void Dispose()
         {
             if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
 
+            _snapshotReactive.Dispose();
             _targetReactive.Dispose();
             _blockFlagsReactive.Dispose();
         }
@@ -211,5 +276,23 @@ namespace RareIcon
             get => Volatile.Read(ref _source);
             set => Volatile.Write(ref _source, value);
         }
+
+        public static bool TryGet(out BuildModeController source)
+        {
+            source = Volatile.Read(ref _source);
+            return source != null;
+        }
+
+        public static void Clear(BuildModeController expected = null)
+        {
+            if (expected == null)
+            {
+                Volatile.Write(ref _source, null);
+                return;
+            }
+
+            Interlocked.CompareExchange(ref _source, null, expected);
+        }
+
     }
 }

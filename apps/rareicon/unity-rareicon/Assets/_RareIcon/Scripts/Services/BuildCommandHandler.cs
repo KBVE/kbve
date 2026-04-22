@@ -23,7 +23,6 @@ namespace RareIcon
         CancellationTokenSource _linkedCts;
 
         int _disposed;
-        int _requestIssuedThisActivation;
 
         [Inject]
         public BuildCommandHandler(
@@ -53,16 +52,11 @@ namespace RareIcon
             if (_disposed != 0) return;
             if (_linkedCts == null || _linkedCts.IsCancellationRequested) return;
 
-            if (!_buildMode.IsActive)
-            {
-                _requestIssuedThisActivation = 0;
-                return;
-            }
-
-            if (_requestIssuedThisActivation != 0) return;
+            if (!_buildMode.IsActive) return;
             if (!CanAcceptBuildClick(msg)) return;
 
-            byte target = _buildMode.Target.CurrentValue;
+            //byte target = _buildMode.Target.CurrentValue;
+            byte target = _buildMode.CurrentTarget;
             byte buildingType = BuildingDB.BuildTargetToType(target);
             if (buildingType == BuildingType.None) return;
 
@@ -78,7 +72,6 @@ namespace RareIcon
                 OwnerFaction = FactionType.Player,
             });
 
-            _requestIssuedThisActivation = 1;
             _buildMode.Exit();
         }
 
