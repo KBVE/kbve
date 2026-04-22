@@ -1,0 +1,52 @@
+---
+id: "01KPTS5CHACVAEV4RM5ZJR0854"
+ref: "farm"
+drafted: false
+name: "Farm"
+title: "Farm"
+description: "A tilled plot with a timber-framed barn — the empire's cornerstone for food. Requires a Farmer on the footprint to turn compost into carrots."
+type: "building"
+sub_kind: "farm"
+interactable: true
+destructible: true
+blocks_movement: true
+blocks_placement: true
+max_health: 200
+footprint_width: 1
+footprint_height: 1
+construction_time_secs: 15
+build_costs:
+  - resource_type: "timber"
+    amount: 1
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Farm
+
+A timber-framed barn anchors a tilled plot that stretches behind it, rows of crops in every stage of growth depending on the season. Compost bins line the south wall, the chicken coop rattles when the wind picks up, and the farmhand watches the sky like it owes them rent. This is where food begins.
+
+<MapDBPanel data={frontmatter} />
+
+## Game Role
+
+- **Production** — Compost → Carrot cycle (8s). A `ProductionRecipe` buffer drives the loop; output ships into the Capital's bank via `SurplusExport`.
+- **Tender required** — needs a Farmer standing on the footprint (or sheltered inside) to advance the cycle. No Farmer, no carrots.
+- **Livestock** — carries a `FarmLivestock` buffer for chickens, sheep, and cows. Eggs, milk, wool, and meat exports all flow through the same surplus pipe.
+- **Service** — provides Food (priority 2) so hungry units path here when the Capital can't cover them.
+- **Footprint** — single hex. Must be placed inside Player territory.
+- **Durability** — 200 HP. Repaired by Builders pulling Timber from the Capital.
+
+## Lore
+
+Every empire begins with a trench and a spade. The first Farms in a kingdom's history are rarely more than a scratched furrow and a barn raised in an afternoon, but everything else — the walls, the foundries, the armies — draws its calories from them. A kingdom can measure its age in the thickness of its farm's foundation beams.
