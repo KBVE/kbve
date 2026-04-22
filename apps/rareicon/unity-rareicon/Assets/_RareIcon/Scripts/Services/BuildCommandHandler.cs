@@ -4,39 +4,44 @@ using Cysharp.Threading.Tasks;
 using MessagePipe;
 using Unity.Entities;
 using Unity.Mathematics;
+using VContainer;
 using VContainer.Unity;
 
 namespace RareIcon
 {
     /// <summary>
-    /// Turns hex clicks into ECS build requests while build mode is
-    /// active. Listens to HexClickedMessage on the MessagePipe — when
-    /// BuildModeController says we're placing something, it writes a
-    /// BuildCityRequest entity into the default world and exits build
-    /// mode. BuildingSpawnSystem takes it from there (validates the
-    /// 7-hex claim, decrements the player's token, spawns the capital).
-    ///
-    /// Lives on the managed side because MessagePipe + VContainer are
-    /// both managed; the one place it touches the ECS world is via a
-    /// single CreateEntity + AddComponentData, which is cheap.
+    /// Converts build-mode hex clicks into ECS build requests. Only accepts clicks when build mode is active, world input is allowed, and the clicked hex is valid for placement intent.
     /// </summary>
     public sealed class BuildCommandHandler : IAsyncStartable, IDisposable
     {
         readonly ISubscriber<HexClickedMessage> _clickSub;
         readonly BuildModeController _buildMode;
+        readonly AppStateController _appState;
 
         IDisposable _subscription;
+        CancellationTokenSource _disposeCts;
+        CancellationTokenSource _linkedCts;
 
+        int _disposed;
+        int _requestIssuedThisActivation;
+
+        [Inject]
         public BuildCommandHandler(
             ISubscriber<HexClickedMessage> clickSub,
-            BuildModeController buildMode)
+            BuildModeController buildMode,
+            AppStateController appState)
         {
             _clickSub = clickSub;
             _buildMode = buildMode;
+            _appState = appState;
         }
 
         public UniTask StartAsync(CancellationToken cancellation)
         {
+            _disposeCts = new CancellationTokenSource();
+            _linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+                cancellation,
+                _disposeCts.Token);
             var bag = DisposableBag.CreateBuilder();
             _clickSub.Subscribe(OnHexClicked).AddTo(bag);
             _subscription = bag.Build();
@@ -45,35 +50,68 @@ namespace RareIcon
 
         void OnHexClicked(HexClickedMessage msg)
         {
-            if (!_buildMode.IsActive) return;
+            if (_disposed != 0) return;
+            if (_linkedCts == null || _linkedCts.IsCancellationRequested) return;
 
-            // Translate the BuildModeController's reactive target into
-            // the BuildingType we'll stamp on the request. Kept symmetric
-            // (BuildTarget.X == BuildingType.X) so future buildings just
-            // add a constant in BuildingComponents and slot in here.
+            if (!_buildMode.IsActive)
+            {
+                _requestIssuedThisActivation = 0;
+                return;
+            }
+
+            if (_requestIssuedThisActivation != 0) return;
+            if (!CanAcceptBuildClick(msg)) return;
+
             byte target = _buildMode.Target.CurrentValue;
             byte buildingType = BuildingDB.BuildTargetToType(target);
             if (buildingType == BuildingType.None) return;
 
             var world = World.DefaultGameObjectInjectionWorld;
-            if (world == null) return;
+            if (world == null || !world.IsCreated) return;
 
             var em = world.EntityManager;
             var req = em.CreateEntity();
             em.AddComponentData(req, new BuildRequest
             {
-                CenterHex    = new int2(msg.Q, msg.R),
+                CenterHex = new int2(msg.Q, msg.R),
                 BuildingType = buildingType,
                 OwnerFaction = FactionType.Player,
             });
 
-            // Exit build mode now — whether the spawn succeeds or fails
-            // the click is consumed. If the request fails (biome bad,
-            // cost not met) BuildingSpawnSystem won't deduct anything and
-            // the user can re-toggle build mode to try again.
+            _requestIssuedThisActivation = 1;
             _buildMode.Exit();
         }
 
-        public void Dispose() => _subscription?.Dispose();
+        bool CanAcceptBuildClick(in HexClickedMessage msg)
+        {
+            if (!msg.IsLand) return false;
+
+            var state = _appState.Current.CurrentValue;
+            if (state != AppInterfaceState.World && state != AppInterfaceState.InTile)
+                return false;
+
+            var overlays = _appState.Overlays.CurrentValue;
+            const AppOverlayFlags blocked =
+                AppOverlayFlags.LockedInput |
+                AppOverlayFlags.Modal |
+                AppOverlayFlags.PauseMenu |
+                AppOverlayFlags.Dialogue;
+
+            return (overlays & blocked) == 0;
+        }
+
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+
+            _disposeCts?.Cancel();
+            _subscription?.Dispose();
+            _linkedCts?.Dispose();
+            _disposeCts?.Dispose();
+
+            _subscription = null;
+            _linkedCts = null;
+            _disposeCts = null;
+        }    
     }
 }
