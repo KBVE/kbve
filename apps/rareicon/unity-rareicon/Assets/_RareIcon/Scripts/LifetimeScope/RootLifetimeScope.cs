@@ -41,6 +41,10 @@ namespace RareIcon
             builder.RegisterMessageBroker<DialogueEndedMessage>(options);
             builder.RegisterMessageBroker<SpeechBubbleMessage>(options);
 
+            builder.RegisterMessageBroker<QuestStartedMessage>(options);
+            builder.RegisterMessageBroker<QuestCompletedMessage>(options);
+            builder.RegisterMessageBroker<QuestFailedMessage>(options);
+
             builder.RegisterBuildCallback(container =>
             {
                 GlobalMessagePipe.SetProvider(container.AsServiceProvider());

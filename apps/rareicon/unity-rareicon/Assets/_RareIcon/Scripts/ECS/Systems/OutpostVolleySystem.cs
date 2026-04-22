@@ -27,6 +27,9 @@ namespace RareIcon
             if (dt <= 0f) return;
 
             var combatDB = SystemAPI.GetSingleton<CombatDBSingleton>();
+            // CombatThreatScanSystem schedules parallel work that populates
+            // Threats — make sure it's done before main-thread reads.
+            combatDB.PipelineHandle.Complete();
             var threats  = combatDB.Threats;
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()

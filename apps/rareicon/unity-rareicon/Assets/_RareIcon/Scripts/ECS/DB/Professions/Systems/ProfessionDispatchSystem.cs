@@ -55,6 +55,11 @@ namespace RareIcon
             var combatDB = SystemAPI.GetSingleton<CombatDBSingleton>();
             var itemDB   = SystemAPI.GetSingleton<ItemDBSingleton>();
 
+            // CombatThreatScanSystem now schedules a parallel job that
+            // populates combatDB.Threats + FriendlyEmitters — the reads
+            // below are on the main thread, so we sync the pipeline here.
+            combatDB.PipelineHandle.Complete();
+
             bool doFullDispatch = offersDB.BuildVersion != _lastSeenBuildVersion;
             if (doFullDispatch)
             {

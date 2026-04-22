@@ -1,20 +1,27 @@
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>One-pass-per-frame threat scan. Snapshots Player-owned territory emitters, walks every Hostile-faction entity with a LocalTransform, and records a ThreatRecord for each into CombatDBSingleton.Threats. Marks AnyThreatInFriendlyTerritory when any threat's hex lands inside a friendly emitter — consumers can skip the list entirely when the flag is false. Replaces the per-unit 13×13 spatial-hash scan ProfessionDispatchSystem previously ran for every unit with Guard priority.</summary>
+    /// <summary>Parallel threat scan + edge-detection event emission — runs off the main thread. ThreatScanJob IJobEntity fans across Faction+LocalTransform chunks in Burst, filters hostiles in-job, writes ThreatRecords / ThreatDetectedRecords / this-frame Entity set via ParallelWriters. A serial ThreatClearedAndUpdateJob IJob then diffs PreviousFrameThreats vs thisFrame to emit ThreatClearedRecords, copies thisFrame into PreviousFrameThreats for next tick. All containers pre-sized before schedule so AddNoResize is lockless. PipelineHandle chained; ProfessionDispatchSystem calls state.CompleteDependency() before reading Threats.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(CombatDomainSystem))]
     [UpdateBefore(typeof(ProfessionDispatchSystem))]
     public partial struct CombatThreatScanSystem : ISystem
     {
+        EntityQuery _scanQuery;
+
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<CombatDBSingleton>();
+            _scanQuery = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<Faction, LocalTransform>()
+                .Build(ref state);
         }
 
         [BurstCompile]
@@ -22,6 +29,8 @@ namespace RareIcon
         {
             ref var db = ref SystemAPI.GetSingletonRW<CombatDBSingleton>().ValueRW;
 
+            // Territory emitters are a tiny query (a handful of buildings
+            // at most). Gather serially on main — jobifying saves nothing.
             foreach (var emRO in SystemAPI.Query<RefRO<TerritoryEmitter>>())
             {
                 var em = emRO.ValueRO;
@@ -30,41 +39,137 @@ namespace RareIcon
                 db.FriendlyEmitters.Add(em);
             }
 
-            var emitters = db.FriendlyEmitters;
-            bool anyInside = false;
+            // Upper bound = full archetype population (hostiles share
+            // Faction+LocalTransform with friendlies / neutrals; the job
+            // filters by Faction.Value). Pre-sizing to this bound lets
+            // ParallelWriter.AddNoResize run lockless with no growth risk.
+            int bound = _scanQuery.CalculateEntityCountWithoutFiltering();
 
-            foreach (var (factionRO, tfRO, entity) in
-                     SystemAPI.Query<RefRO<Faction>, RefRO<LocalTransform>>().WithEntityAccess())
+            EnsureListCapacity(ref db.Threats,                   bound);
+            EnsureListCapacity(ref db.ThreatDetectedWriteBuffer, bound);
+            EnsureListCapacity(ref db.ThreatClearedWriteBuffer,  db.PreviousFrameThreats.Count());
+
+            // ThisFrame is built in parallel by the scan job and drained
+            // by the serial cleared-and-update job the same tick. TempJob
+            // is disposed at end of pipeline.
+            var thisFrame = new NativeParallelHashSet<Entity>(math.max(bound, 16), Allocator.TempJob);
+
+            var combined = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
+
+            var scanJob = new ThreatScanJob
             {
-                byte f = factionRO.ValueRO.Value;
-                if (f != FactionType.Hostile) continue;
+                UnitLookup           = SystemAPI.GetComponentLookup<Unit>(true),
+                Emitters             = db.FriendlyEmitters.AsArray(),
+                PreviousFrameThreats = db.PreviousFrameThreats,
+                ThreatsWriter        = db.Threats.AsParallelWriter(),
+                DetectedWriter       = db.ThreatDetectedWriteBuffer.AsParallelWriter(),
+                ThisFrameWriter      = thisFrame.AsParallelWriter(),
+            };
+            var scanHandle = scanJob.ScheduleParallel(_scanQuery, combined);
 
-                var pos = new float2(tfRO.ValueRO.Position.x, tfRO.ValueRO.Position.y);
-                var hex = HexMeshUtil.WorldToHex(pos.x, pos.y, 0.25f);
-                bool inside = InsideAnyEmitter(hex, emitters);
-                if (inside) anyInside = true;
+            var clearedJob = new ThreatClearedAndUpdateJob
+            {
+                UnitLookup           = SystemAPI.GetComponentLookup<Unit>(true),
+                PreviousFrameThreats = db.PreviousFrameThreats,
+                ThisFrame            = thisFrame,
+                ThreatClearedWriter  = db.ThreatClearedWriteBuffer,
+            };
+            var clearedHandle = clearedJob.Schedule(scanHandle);
 
-                db.Threats.Add(new ThreatRecord
+            var disposeHandle = thisFrame.Dispose(clearedHandle);
+
+            state.Dependency  = disposeHandle;
+            db.PipelineHandle = disposeHandle;
+        }
+
+        static void EnsureListCapacity<T>(ref NativeList<T> list, int needed) where T : unmanaged
+        {
+            if (list.Capacity < needed) list.Capacity = needed;
+        }
+    }
+
+    /// <summary>Parallel hostile entity scan. Iterates the Faction+LocalTransform archetype in chunks; filters Hostile faction in-job. Writes snapshot + edge-triggered ThreatDetected records and populates the this-frame Entity set for downstream cleared-detection.</summary>
+    [BurstCompile]
+    public partial struct ThreatScanJob : IJobEntity
+    {
+        [ReadOnly] public ComponentLookup<Unit>            UnitLookup;
+        [ReadOnly] public NativeArray<TerritoryEmitter>    Emitters;
+        [ReadOnly] public NativeParallelHashSet<Entity>    PreviousFrameThreats;
+
+        public NativeList<ThreatRecord>.ParallelWriter          ThreatsWriter;
+        public NativeList<ThreatDetectedRecord>.ParallelWriter  DetectedWriter;
+        public NativeParallelHashSet<Entity>.ParallelWriter     ThisFrameWriter;
+
+        void Execute(Entity entity, in Faction faction, in LocalTransform tf)
+        {
+            byte f = faction.Value;
+            if (f != FactionType.Hostile) return;
+
+            var pos = new float2(tf.Position.x, tf.Position.y);
+            var hex = HexMeshUtil.WorldToHex(pos.x, pos.y, 0.25f);
+
+            bool inside = false;
+            for (int i = 0; i < Emitters.Length; i++)
+            {
+                var e = Emitters[i];
+                if (HexMeshUtil.HexDistance(hex, e.Center) <= e.Radius) { inside = true; break; }
+            }
+
+            byte unitType = 0;
+            if (UnitLookup.HasComponent(entity)) unitType = UnitLookup[entity].Type;
+
+            ThreatsWriter.AddNoResize(new ThreatRecord
+            {
+                Entity                  = entity,
+                Position                = pos,
+                Hex                     = hex,
+                Faction                 = f,
+                UnitType                = unitType,
+                InsideFriendlyTerritory = inside,
+            });
+
+            ThisFrameWriter.Add(entity);
+
+            if (!PreviousFrameThreats.Contains(entity))
+            {
+                DetectedWriter.AddNoResize(new ThreatDetectedRecord
                 {
-                    Entity                   = entity,
-                    Position                 = pos,
-                    Hex                      = hex,
-                    Faction                  = f,
-                    InsideFriendlyTerritory  = inside,
+                    Entity                  = entity,
+                    UnitType                = unitType,
+                    Hex                     = hex,
+                    InsideFriendlyTerritory = inside,
+                });
+            }
+        }
+    }
+
+    /// <summary>Serial cleared-detection + previous-set update. Runs after the parallel scan job. Emits ThreatClearedRecord for every entity in PreviousFrameThreats not in ThisFrame, then rewrites PreviousFrameThreats to mirror ThisFrame for next tick.</summary>
+    [BurstCompile]
+    public struct ThreatClearedAndUpdateJob : IJob
+    {
+        [ReadOnly] public ComponentLookup<Unit>         UnitLookup;
+        [ReadOnly] public NativeParallelHashSet<Entity> ThisFrame;
+        public NativeParallelHashSet<Entity>            PreviousFrameThreats;
+        public NativeList<ThreatClearedRecord>          ThreatClearedWriter;
+
+        public void Execute()
+        {
+            foreach (var prev in PreviousFrameThreats)
+            {
+                if (ThisFrame.Contains(prev)) continue;
+                byte unitType = 0;
+                if (UnitLookup.HasComponent(prev)) unitType = UnitLookup[prev].Type;
+                ThreatClearedWriter.Add(new ThreatClearedRecord
+                {
+                    Entity   = prev,
+                    UnitType = unitType,
+                    LastHex  = default,
                 });
             }
 
-            db.AnyThreatInFriendlyTerritory = anyInside;
-        }
-
-        static bool InsideAnyEmitter(int2 hex, Unity.Collections.NativeList<TerritoryEmitter> emitters)
-        {
-            for (int i = 0; i < emitters.Length; i++)
-            {
-                var e = emitters[i];
-                if (HexMeshUtil.HexDistance(hex, e.Center) <= e.Radius) return true;
-            }
-            return false;
+            PreviousFrameThreats.Clear();
+            foreach (var e in ThisFrame) PreviousFrameThreats.Add(e);
         }
     }
+
 }
