@@ -102,10 +102,16 @@ namespace RareIcon
 
         static float2 SlotOffset(int rank)
         {
-            int slot = rank % 7;
+            int slot = rank % 19;
             if (slot == 0) return float2.zero;
-            float a = (slot - 1) * (math.PI / 3f);
-            return new float2(math.cos(a), math.sin(a)) * 0.18f;
+            if (slot <= 6)
+            {
+                float a = (slot - 1) * (math.PI / 3f);
+                return new float2(math.cos(a), math.sin(a)) * 0.08f;
+            }
+            int outerIdx = slot - 7;
+            float ao = outerIdx * (math.PI / 6f);
+            return new float2(math.cos(ao), math.sin(ao)) * 0.16f;
         }
     }
 }

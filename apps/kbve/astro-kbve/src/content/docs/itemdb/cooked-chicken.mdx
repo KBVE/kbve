@@ -1,0 +1,28 @@
+---
+title: 'Cooked Chicken'
+description: 'Chicken roasted to a safe, edible golden brown.'
+ref: 'cooked-chicken'
+key: 524
+id: '01KPTSDW06FBW33WZW4G3K7EJ6'
+name: 'Cooked Chicken'
+type_flags: 8
+rarity: 'common'
+emoji: '🍗'
+stackable: true
+max_stack: 24
+buy_price: 12
+consumable: true
+action: 'consume'
+pool_group: 'food'
+food:
+  restore_energy: 20
+compress:
+  target_ref: 'meal'
+  ratio: 100
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

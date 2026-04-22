@@ -1,3 +1,4 @@
+using System;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
@@ -20,7 +21,11 @@ namespace RareIcon
         public const byte Inn        = 6;
         public const byte Market     = 7;
         public const byte Outpost    = 8;
-        // Tower, Wall, Mine, etc. land here as we add their .hlsl files.
+        public const byte Lumbercamp = 9;
+        public const byte MiningPit  = 10;
+        public const byte Dock       = 11;  // River-only; passive fishing + Timber→FishingBoat crafting.
+        public const byte BanditCamp = 12;  // Hostile-owned raid source; spawns periodic bandit parties.
+        // Tower, Wall, etc. land here as we add their .hlsl files.
     }
 
     /// <summary>
@@ -38,10 +43,36 @@ namespace RareIcon
         public const byte Inn        = 6;
         public const byte Market     = 7;
         public const byte Outpost    = 8;
+        public const byte Lumbercamp = 9;
+        public const byte MiningPit  = 10;
+        public const byte Dock       = 11;
     }
 
     /// <summary>Marker tag for the Capital — craft / governance systems query key.</summary>
     public struct CapitalTag : IComponentData { }
+
+    /// <summary>Marker tag for a Hostile-owned BanditCamp — raid source. BanditCampRaidSystem emits bandit parties from its RootHex on a cadence; destroying the building (BuildingHealth→0) ends the raids. One or more may exist simultaneously in a future pass; today the spawner caps at one active camp.</summary>
+    public struct BanditCampTag : IComponentData { }
+
+    /// <summary>Per-camp raid state. NextRaidTick gates dispatch; RaidCadenceTicks + RaidPartySize tune pressure. All fields blittable so BanditCampRaidSystem stays ISystem + Burst.</summary>
+    public struct BanditCampState : IComponentData
+    {
+        public uint NextRaidTick;
+        public uint RaidCadenceTicks;
+        public byte RaidPartySize;
+    }
+
+    /// <summary>Singleton — holds the shared building prefab Entity BuildingSpawnSystem created at startup. Any system that needs to instantiate a building (BanditCampSpawnerSystem, future Hostile builders) reads Prefab from this singleton instead of duplicating the mesh/material setup.</summary>
+    public struct BuildingPrefabSingleton : IComponentData
+    {
+        public Entity Prefab;
+    }
+
+    /// <summary>Player-issued request to tear down Target. DemolishBuildingSystem refunds 50% of delivered materials to the Capital, releases any sheltered units, then destroys the entity. Request entity is self-destroyed after processing.</summary>
+    public struct DemolishRequest : IComponentData
+    {
+        public Entity Target;
+    }
 
     /// <summary>Per-building territory claim; any building may emit. Empire territory = union of all same-faction emitters. Radius is the axial hex range from Center.</summary>
     // TODO(rust-ffi): persist alongside Building so territory survives chunk unload.
@@ -76,6 +107,72 @@ namespace RareIcon
     /// <summary>Marker tag for Farm buildings — production system query key.</summary>
     public struct FarmTag : IComponentData { }
 
+    /// <summary>Marker tag for Inn buildings — food + sleep service provider.</summary>
+    public struct InnTag : IComponentData { }
+
+    /// <summary>Marker tag for Market buildings — goods trading + future Merchants Guild hub. Tier progression: 0 Market → 1 Trade House → 2 Merchants Guild.</summary>
+    public struct MarketTag : IComponentData { }
+
+    /// <summary>Progression level within a building's upgrade chain. 0 = base tier (Market, Farm). Higher tiers unlock via BuildingUpgradeRequest + cost deduction. Locale key + visuals may branch on this.</summary>
+    public struct BuildingTier : IComponentData
+    {
+        public byte Value;
+    }
+
+    /// <summary>Player-issued request to advance Target to the next tier. BuildingUpgradeSystem validates cost against the Capital, deducts, bumps BuildingTier.Value. Self-destroys after processing.</summary>
+    public struct BuildingUpgradeRequest : IComponentData
+    {
+        public Entity Target;
+    }
+
+    /// <summary>Lifecycle state of a MarketOrder.</summary>
+    public static class MarketOrderState
+    {
+        public const byte Open      = 0;
+        public const byte Filled    = 1;
+        public const byte Cancelled = 2;
+        public const byte Expired   = 3;
+    }
+
+    /// <summary>Direction of a MarketOrder — buy (empire requests goods) or sell (empire offers goods).</summary>
+    public static class MarketOrderKind
+    {
+        public const byte Buy  = 0;
+        public const byte Sell = 1;
+    }
+
+    /// <summary>Structured order entry on a Market. Covers buy-requests ("we want N Timber at P coin/unit") and sell-offers ("we have N Arrow at P coin/unit"). Future fulfillment systems will drive State transitions; for now the buffer holds the data shape so UI + AI can grow on top as the Merchants Guild flow lands.</summary>
+    [InternalBufferCapacity(4)]
+    public struct MarketOrder : IBufferElementData
+    {
+        public Ulid   Uid;
+        public byte   Kind;
+        public byte   State;
+        public ushort ItemId;
+        public ushort Quantity;
+        public ushort UnitPrice;
+        public uint   PostedTick;
+        public uint   ExpiresTick;
+    }
+
+    /// <summary>Service tag: unit on this building's footprint with Eat relief can draw food from its ledger. Attached to Capital, Farm, Inn. Priority breaks ties when multiple providers are equidistant (higher wins).</summary>
+    public struct ProvidesFood : IComponentData
+    {
+        public byte Priority;
+    }
+
+    /// <summary>Service tag: unit on this building's footprint with Sleep relief can rest here. Capacity caps concurrent sleepers (Capital ~255, Inn 5).</summary>
+    public struct ProvidesSleep : IComponentData
+    {
+        public byte Capacity;
+    }
+
+    /// <summary>Service tag: unit on this building's footprint with Heal relief can consume MedKits from its ledger (BarracksHealExecutor). Attached to Barracks; future Infirmary / Temple would inherit.</summary>
+    public struct ProvidesHealing : IComponentData
+    {
+        public byte Priority;
+    }
+
     /// <summary>Optional per-building total-count ceiling. Absent = unlimited (current Capital behaviour). Haulers + producers read this to gate deposits.</summary>
     public struct StorageCapacity : IComponentData
     {
@@ -108,7 +205,7 @@ namespace RareIcon
     /// <summary>Marker tag for Barracks buildings — recruitment system query key.</summary>
     public struct BarracksTag : IComponentData { }
 
-    /// <summary>Per-barracks recruitment cadence. Once per N turns, consumes CoinCost BanditCoin + FoodCost food (any ItemId flagged by FoodItems.IsFood) from the building's InventorySlot storage and spawns one Soldier on an adjacent hex. Storage capacity lives on the separate StorageCapacity component.</summary>
+    /// <summary>Per-barracks recruitment cadence. Once per N turns, consumes CoinCost Coin + FoodCost food (any ItemId flagged by FoodItems.IsFood) from the building's InventorySlot storage and spawns one Soldier on an adjacent hex. Storage capacity lives on the separate StorageCapacity component.</summary>
     public struct BarracksProduction : IComponentData
     {
         public uint   LastProducedTurn;
@@ -137,6 +234,58 @@ namespace RareIcon
 
     /// <summary>Marker tag for Outpost buildings.</summary>
     public struct OutpostTag : IComponentData { }
+
+    /// <summary>Marker tag for Lumbercamp buildings — placed on Forest hexes. LumbercampProductionSystem ticks only while a Lumberjack is on the footprint or sheltered inside.</summary>
+    public struct LumbercampTag : IComponentData { }
+
+    /// <summary>Marker tag for Mining Pit buildings — placed on Sand hexes. MiningPitProductionSystem ticks only while a Miner is on the footprint or sheltered inside.</summary>
+    public struct MiningPitTag : IComponentData { }
+
+    /// <summary>Marker tag for Dock buildings — placed on river tiles; passive fishing + Timber→FishingBoat crafting query key.</summary>
+    public struct DockTag : IComponentData { }
+
+    /// <summary>Per-dock boat-build cadence. Once per CadenceTurns, consumes TimberCost Timber from the dock's ledger and emits a <see cref="SpawnFishingBoatRequest"/> on an adjacent river hex.</summary>
+    public struct DockProduction : IComponentData
+    {
+        public uint   LastProducedTurn;
+        public byte   CadenceTurns;
+        public ushort TimberCost;
+    }
+
+    /// <summary>Transient request emitted by the Burst-compiled DockProductionSystem once a boat-build cycle clears cost; FishingBoatSpawnApplierSystem drains these on the main thread and calls <see cref="UnitSpawnSystem"/>.SpawnFishingBoatAt.</summary>
+    public struct SpawnFishingBoatRequest : IComponentData
+    {
+        public int2 Hex;
+        public uint Seed;
+        public byte Faction;
+    }
+
+    /// <summary>Transient request emitted by <c>WhaleSpawnerSystem</c>; <c>WhaleSpawnApplierSystem</c> drains these on the main thread and calls <see cref="UnitSpawnSystem"/>.SpawnWhaleAt on the target water hex.</summary>
+    public struct SpawnWhaleRequest : IComponentData
+    {
+        public int2 Hex;
+        public uint Seed;
+    }
+
+    /// <summary>Per-outpost cooldown-gated arrow volley. Every CooldownSeconds the outpost fires ArrowsPerVolley projectiles in a cone of half-angle SpreadHalfAngleRad around the closest CombatDB threat within Range. Burns ArrowCost from the sibling OutpostArrowPool per firing.</summary>
+    public struct OutpostVolley : IComponentData
+    {
+        public float CooldownSeconds;
+        public float TimeSinceVolley;
+        public float Range;
+        public byte  ArrowsPerVolley;
+        public byte  ArrowCost;
+        public float SpreadHalfAngleRad;
+        public float ProjectileSpeed;
+        public float ProjectileLifetime;
+        public float DamagePerArrow;
+    }
+
+    /// <summary>Ammunition reserve for OutpostVolleySystem. Initialised at construction; future refill system (haul arrows from Barracks / Capital) lands in Phase 2b.</summary>
+    public struct OutpostArrowPool : IComponentData
+    {
+        public ushort Stock;
+    }
 
     /// <summary>Tag indicating a TerritoryEmitter is reachable from its faction's Capital via BFS over same-faction emitters within OutpostAnchorRadius.</summary>
     public struct EmpireConnected : IComponentData { }

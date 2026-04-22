@@ -120,6 +120,7 @@ namespace RareIcon
                 (ushort)ItemId.RawGlass    => "item.raw_glass",
                 (ushort)ItemId.Coal        => "item.coal",
                 (ushort)ItemId.Ash         => "item.ash",
+                (ushort)ItemId.Oil         => "item.oil",
                 (ushort)ItemId.Arrow       => "item.arrow",
                 (ushort)ItemId.CapitalLandGrant => "item.capital_land_grant",
                 (ushort)ItemId.RawChicken  => "item.raw_chicken",
@@ -133,7 +134,8 @@ namespace RareIcon
                 (ushort)ItemId.CookedBeef    => "item.cooked_beef",
                 (ushort)ItemId.WolfPelt    => "item.wolf_pelt",
                 (ushort)ItemId.WolfFang    => "item.wolf_fang",
-                (ushort)ItemId.BanditCoin  => "item.bandit_coin",
+                (ushort)ItemId.Coin        => "item.coin",
+                (ushort)ItemId.GoldBar     => "item.gold_bar",
                 (ushort)ItemId.Egg         => "item.egg",
                 (ushort)ItemId.Milk        => "item.milk",
                 (ushort)ItemId.CookedEgg   => "item.cooked_egg",
@@ -170,6 +172,9 @@ namespace RareIcon
                 UnitType.Cow     => "creature.cow",
                 UnitType.Wolf    => "creature.wolf",
                 UnitType.Bandit  => "creature.bandit",
+                UnitType.Zombie  => "creature.zombie",
+                UnitType.FishingBoat => "creature.fishing_boat",
+                UnitType.Whale   => "creature.whale",
                 _ => "creature.none",
             };
             return Get(key);

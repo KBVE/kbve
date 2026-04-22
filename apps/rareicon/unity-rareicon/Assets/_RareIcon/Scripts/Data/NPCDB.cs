@@ -37,6 +37,9 @@ namespace RareIcon
 
         public readonly byte DefaultWeapon;
 
+        /// <summary>Dialogue tree fired on first-contact for this unit type; 0 = silent (no auto-intro). FirstContactSystem scans hostile/beast spawns once per second and publishes <see cref="DialogueStartMessage"/> with this id the first time the type appears.</summary>
+        public readonly ushort DialogueTreeId;
+
         public NPCDef(byte unitType, string nameKey, NPCCategory category,
                       float maxHealth, float maxEnergy, float maxMana,
                       float maxHunger, float maxFatigue,
@@ -44,27 +47,29 @@ namespace RareIcon
                       float healthRegen, float energyRegen, float manaRegen,
                       float hungerPerSec, float fatiguePerSec,
                       byte strength, byte agility, byte intellect, byte will,
-                      byte defaultWeapon)
+                      byte defaultWeapon,
+                      ushort dialogueTreeId = 0)
         {
-            UnitType      = unitType;
-            NameKey       = nameKey;
-            Category      = category;
-            MaxHealth     = maxHealth;
-            MaxEnergy     = maxEnergy;
-            MaxMana       = maxMana;
-            MaxHunger     = maxHunger;
-            MaxFatigue    = maxFatigue;
-            MoveSpeed     = moveSpeed;
-            HealthRegen   = healthRegen;
-            EnergyRegen   = energyRegen;
-            ManaRegen     = manaRegen;
-            HungerPerSec  = hungerPerSec;
-            FatiguePerSec = fatiguePerSec;
-            Strength      = strength;
-            Agility       = agility;
-            Intellect     = intellect;
-            Will          = will;
-            DefaultWeapon = defaultWeapon;
+            UnitType       = unitType;
+            NameKey        = nameKey;
+            Category       = category;
+            MaxHealth      = maxHealth;
+            MaxEnergy      = maxEnergy;
+            MaxMana        = maxMana;
+            MaxHunger      = maxHunger;
+            MaxFatigue     = maxFatigue;
+            MoveSpeed      = moveSpeed;
+            HealthRegen    = healthRegen;
+            EnergyRegen    = energyRegen;
+            ManaRegen      = manaRegen;
+            HungerPerSec   = hungerPerSec;
+            FatiguePerSec  = fatiguePerSec;
+            Strength       = strength;
+            Agility        = agility;
+            Intellect      = intellect;
+            Will           = will;
+            DefaultWeapon  = defaultWeapon;
+            DialogueTreeId = dialogueTreeId;
         }
     }
 
@@ -87,13 +92,13 @@ namespace RareIcon
                 category:      NPCCategory.Humanoid,
                 maxHealth:     30f,
                 maxEnergy:     100f,
-                maxMana:       0f,
+                maxMana:       30f,
                 maxHunger:     100f,
                 maxFatigue:    100f,
                 moveSpeed:     0.7f,
                 healthRegen:   0f,
                 energyRegen:   5.0f,
-                manaRegen:     0f,
+                manaRegen:     0.5f,
                 hungerPerSec:  0.30f,
                 fatiguePerSec: 0.20f,
                 strength:      8,
@@ -107,9 +112,9 @@ namespace RareIcon
                 nameKey:       "creature.knight",
                 category:      NPCCategory.Humanoid,
                 maxHealth:     120f,
-                maxEnergy:     120f,
+                maxEnergy:     180f,
                 maxMana:       0f,
-                maxHunger:     140f,
+                maxHunger:     200f,
                 maxFatigue:    120f,
                 moveSpeed:     0.55f,
                 healthRegen:   0f,
@@ -128,9 +133,9 @@ namespace RareIcon
                 nameKey:       "creature.soldier",
                 category:      NPCCategory.Humanoid,
                 maxHealth:     70f,
-                maxEnergy:     140f,
+                maxEnergy:     200f,
                 maxMana:       0f,
-                maxHunger:     120f,
+                maxHunger:     180f,
                 maxFatigue:    110f,
                 moveSpeed:     0.8f,
                 healthRegen:   0f,
@@ -149,9 +154,9 @@ namespace RareIcon
                 nameKey:       "creature.mage",
                 category:      NPCCategory.Humanoid,
                 maxHealth:     45f,
-                maxEnergy:     80f,
+                maxEnergy:     140f,
                 maxMana:       150f,
-                maxHunger:     90f,
+                maxHunger:     150f,
                 maxFatigue:    100f,
                 moveSpeed:     0.65f,
                 healthRegen:   0f,
@@ -170,9 +175,9 @@ namespace RareIcon
                 nameKey:       "creature.king",
                 category:      NPCCategory.Humanoid,
                 maxHealth:     200f,
-                maxEnergy:     150f,
+                maxEnergy:     220f,
                 maxMana:       100f,
-                maxHunger:     150f,
+                maxHunger:     220f,
                 maxFatigue:    120f,
                 moveSpeed:     0.7f,
                 healthRegen:   0f,
@@ -254,7 +259,8 @@ namespace RareIcon
                 healthRegen:   0f,   energyRegen: 5.0f, manaRegen: 0f,
                 hungerPerSec:  0f,   fatiguePerSec: 0f,
                 strength:      11, agility: 11, intellect: 7, will: 8,
-                defaultWeapon: WeaponType.Club));
+                defaultWeapon: WeaponType.Club,
+                dialogueTreeId: DialogueTreeId.FirstContactBandit));
 
             Add(new NPCDef(
                 unitType:      UnitType.Zombie,
@@ -266,6 +272,38 @@ namespace RareIcon
                 healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
                 hungerPerSec:  0f,   fatiguePerSec: 0f,
                 strength:      10, agility: 4, intellect: 1, will: 3,
+                defaultWeapon: WeaponType.None,
+                dialogueTreeId: DialogueTreeId.FirstContactZombie));
+
+            // Craftsman-built fishing vessel. Slow, water-locked, repairs
+            // with wood. Ranged attack via harpoon/arrow slot (wired by
+            // the spawn helper, not a defaultWeapon since the hull isn't
+            // a humanoid).
+            Add(new NPCDef(
+                unitType:      UnitType.FishingBoat,
+                nameKey:       "creature.fishing_boat",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     80f,  maxEnergy: 0f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.42f,
+                healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      8, agility: 6, intellect: 4, will: 6,
+                defaultWeapon: WeaponType.None));
+
+            // Oceanic leviathan — FishingBoats' prey. Huge HP pool so a
+            // lone boat can't solo it quickly; drops Oil + bulk Meat via
+            // EnemyLootDropSystem.
+            Add(new NPCDef(
+                unitType:      UnitType.Whale,
+                nameKey:       "creature.whale",
+                category:      NPCCategory.Beast,
+                maxHealth:     320f, maxEnergy: 0f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.22f,
+                healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      18, agility: 2, intellect: 6, will: 14,
                 defaultWeapon: WeaponType.None));
 
             // Future creatures land here — Skeleton, GoblinShaman, etc.

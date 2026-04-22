@@ -81,29 +81,53 @@ namespace RareIcon
         public Entity TargetEntity;
     }
 
-    /// <summary>Per-frame professions domain state. CommittedEvents is populated by ProfessionDispatchSystem every time a unit's ProfessionIntent changes and drained by ProfessionMessagePipeBridgeSystem. PipelineHandle reserved for future Burst split.</summary>
+    /// <summary>Double-buffered profession event pipeline. ECS systems append to WriteBuffer; ProfessionsDomainSystem swaps buffers each frame so ProfessionMessagePipeBridgeSystem drains ReadBuffer with zero contention on the write path. PipelineHandle reserved for future Burst split.</summary>
     public struct ProfessionsDBSingleton : IComponentData
     {
-        public NativeList<ProfessionChangedMessage> CommittedEvents;
+        public NativeList<ProfessionChangedMessage> WriteBuffer;
+        public NativeList<ProfessionChangedMessage> ReadBuffer;
         public JobHandle                            PipelineHandle;
     }
 
-    /// <summary>Published by ProfessionMessagePipeBridgeSystem every frame a unit's ProfessionIntent changes. Subscribers get post-change state so they never need to requery the component.</summary>
-    public readonly struct ProfessionChangedMessage
+    /// <summary>Reason a ProfessionChangedMessage was emitted. Subscribers can filter (e.g. UI flashes only on Preempted) or tag activity feed entries without inspecting intent deltas.</summary>
+    public enum ProfessionChangeReason : byte
     {
-        public readonly Entity Unit;
-        public readonly byte   PreviousKind;
-        public readonly byte   NewKind;
-        public readonly int2   NewTargetHex;
-        public readonly Entity NewTargetEntity;
+        Assigned,
+        Cleared,
+        Retargeted,
+        Preempted,
+        ReliefOverride,
+        ManualOverride,
+        Fallback,
+    }
 
-        public ProfessionChangedMessage(Entity unit, byte previousKind, byte newKind, int2 newTargetHex, Entity newTargetEntity)
+    /// <summary>Published by ProfessionMessagePipeBridgeSystem every frame a unit's ProfessionIntent changes. Subscribers get post-change state so they never need to requery the component. Mutable by design so the bridge's coalescer can fold multiple per-frame writes into one final message per entity.</summary>
+    public struct ProfessionChangedMessage
+    {
+        public Entity                 Entity;
+        public byte                   OldKind;
+        public byte                   NewKind;
+        public int2                   TargetHex;
+        public Entity                 TargetEntity;
+        public uint                   Frame;
+        public ProfessionChangeReason Reason;
+
+        public ProfessionChangedMessage(
+            Entity entity,
+            byte oldKind,
+            byte newKind,
+            int2 targetHex,
+            Entity targetEntity,
+            uint frame,
+            ProfessionChangeReason reason)
         {
-            Unit            = unit;
-            PreviousKind    = previousKind;
-            NewKind         = newKind;
-            NewTargetHex    = newTargetHex;
-            NewTargetEntity = newTargetEntity;
+            Entity       = entity;
+            OldKind      = oldKind;
+            NewKind      = newKind;
+            TargetHex    = targetHex;
+            TargetEntity = targetEntity;
+            Frame        = frame;
+            Reason       = reason;
         }
     }
 }

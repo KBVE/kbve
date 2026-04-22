@@ -1,363 +1,123 @@
-using MessagePipe;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace RareIcon
 {
-    /// <summary>Owns the ProfessionsDBSingleton lifecycle: bootstraps the CommittedEvents list on first tick, clears it per frame, disposes on teardown. ISystem — pure native-container orchestration.</summary>
-    [UpdateInGroup(typeof(BehaviorSystemGroup), OrderFirst = true)]
-    public partial struct ProfessionsDomainSystem : ISystem
+    /// <summary>Picks the highest-priority profession with nearby work for each Player unit; writes ProfessionIntent. If no scored offer wins, assigns ProfessionKind.Default and rolls a Wander MovementGoal so units never sit idle. Reads the dispatch context + TaskOffer pool from ProfessionOffersSingleton (rebuilt on cadence by ProfessionOfferBuildSystem). Emits ProfessionChangedMessage via ProfessionEventSink on any kind/target change — coalesced + published by ProfessionMessagePipeBridgeSystem. ISystem + [BurstCompile] — every managed dependency routes through ComponentLookup / BufferLookup / Burst-safe singletons.</summary>
+    [BurstCompile]
+    [UpdateInGroup(typeof(BehaviorSystemGroup))]
+    [UpdateAfter(typeof(ReliefSystem))]
+    [UpdateAfter(typeof(ProfessionsDomainSystem))]
+    [UpdateAfter(typeof(ProfessionOfferBuildSystem))]
+    [UpdateAfter(typeof(CombatThreatScanSystem))]
+    public partial struct ProfessionDispatchSystem : ISystem
     {
-        Entity _singleton;
-        bool   _initialized;
+        const int  SearchRadius          = 12;
+        const int  HexClusterCap         = 4;
+        const byte GuardPreemptThreshold = 3;
+        const byte GuardPatrolThreshold  = 4;
 
-        public void OnCreate(ref SystemState state) { }
+        const int PriorityWeight  = 10000;
+        const int HysteresisBonus = 50;
+        const int DeficitCap      = 2;
 
-        public void OnUpdate(ref SystemState state)
+        uint _lastSeenBuildVersion;
+
+        NativeHashMap<int2, int> _hexOccupancy;
+
+        public void OnCreate(ref SystemState state)
         {
-            if (!_initialized)
-            {
-                var db = new ProfessionsDBSingleton
-                {
-                    CommittedEvents = new NativeList<ProfessionChangedMessage>(64, Allocator.Persistent),
-                    PipelineHandle  = default,
-                };
-                _singleton = state.EntityManager.CreateEntity(typeof(ProfessionsDBSingleton));
-                state.EntityManager.SetName(_singleton, "ProfessionsDB");
-                state.EntityManager.SetComponentData(_singleton, db);
-                _initialized = true;
-            }
+            state.RequireForUpdate<ProfessionOffersSingleton>();
+            state.RequireForUpdate<CombatDBSingleton>();
+            state.RequireForUpdate<ItemDBSingleton>();
 
-            ref var live = ref SystemAPI.GetSingletonRW<ProfessionsDBSingleton>().ValueRW;
-            live.PipelineHandle.Complete();
-            live.CommittedEvents.Clear();
-            live.PipelineHandle = default;
+            _hexOccupancy = new NativeHashMap<int2, int>(64, Allocator.Persistent);
         }
 
         public void OnDestroy(ref SystemState state)
         {
-            if (!_initialized) return;
-            if (!state.EntityManager.Exists(_singleton)) return;
-            var db = state.EntityManager.GetComponentData<ProfessionsDBSingleton>(_singleton);
-            if (db.CommittedEvents.IsCreated) db.CommittedEvents.Dispose();
-        }
-    }
-
-    /// <summary>Drains ProfessionsDBSingleton.CommittedEvents each frame and publishes via IPublisher&lt;ProfessionChangedMessage&gt;. Runs after ProfessionDispatchSystem so all per-frame intent changes are captured before the list resets.</summary>
-    [UpdateInGroup(typeof(BehaviorSystemGroup))]
-    [UpdateAfter(typeof(ProfessionDispatchSystem))]
-    public partial class ProfessionMessagePipeBridgeSystem : SystemBase
-    {
-        IPublisher<ProfessionChangedMessage> _publisher;
-
-        protected override void OnCreate()
-        {
-            RequireForUpdate<ProfessionsDBSingleton>();
-        }
-
-        protected override void OnUpdate()
-        {
-            ref var db = ref SystemAPI.GetSingletonRW<ProfessionsDBSingleton>().ValueRW;
-
-            db.PipelineHandle.Complete();
-
-            var list = db.CommittedEvents;
-            if (!list.IsCreated || list.Length == 0) return;
-
-            if (_publisher == null)
-            {
-                try { _publisher = GlobalMessagePipe.GetPublisher<ProfessionChangedMessage>(); }
-                catch { return; }
-            }
-
-            for (int i = 0; i < list.Length; i++)
-                _publisher.Publish(list[i]);
-
-            list.Clear();
-        }
-    }
-}
-
-namespace RareIcon
-{
-    /// <summary>Picks the highest-priority profession with nearby work for each Player unit; writes ProfessionIntent. If no scored offer wins, assigns ProfessionKind.Default and rolls a Wander MovementGoal so units never sit idle. Appends a ProfessionChangedMessage to ProfessionsDBSingleton.CommittedEvents on any kind/target change — drained by ProfessionMessagePipeBridgeSystem.</summary>
-    [UpdateInGroup(typeof(BehaviorSystemGroup))]
-    [UpdateAfter(typeof(ReliefSystem))]
-    [UpdateAfter(typeof(ProfessionsDomainSystem))]
-    public partial class ProfessionDispatchSystem : SystemBase
-    {
-        const int SearchRadius   = 12;
-        const int HexClusterCap  = 4;
-
-        // Unified score coefficients. PriorityWeight >> max-distance so
-        // higher priority always beats lower (preserves the old prio
-        // cascade). Distance is the second sort key. HysteresisBonus is
-        // a small nudge so a unit re-scoring to an offer identical to
-        // its current ProfessionIntent target wins against marginally-closer
-        // alternatives — relevant when the queue drains and refills.
-        const int   PriorityWeight           = 10000;
-        const int   HysteresisBonus          = 50;
-        const int   DeficitCap               = 2;
-        const float DispatchIntervalSeconds  = 5f;
-
-        float _lastDispatchTime = -DispatchIntervalSeconds;
-
-        NativeHashMap<int2, int> _hexOccupancy;
-
-        const double DiagIntervalSeconds = 30.0;
-        double _nextDiagTime = 3.0;
-
-        protected override void OnDestroy()
-        {
             if (_hexOccupancy.IsCreated) _hexOccupancy.Dispose();
-            base.OnDestroy();
         }
 
-        protected override void OnUpdate()
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
-            RunDispatch();
-
-            if (SystemAPI.Time.ElapsedTime >= _nextDiagTime)
-            {
-                _nextDiagTime = SystemAPI.Time.ElapsedTime + DiagIntervalSeconds;
-                LogDispatchDiagnostic();
-            }
+            RunDispatch(ref state);
         }
 
-        void RunDispatch()
+        [BurstCompile]
+        void RunDispatch(ref SystemState state)
         {
-            // We do main-thread reads on InventorySlot (cave + Capital food
-            // counts) below. Background jobs like FurnaceTickJob schedule
-            float now = (float)SystemAPI.Time.ElapsedTime;
-            bool doFullDispatch = (now - _lastDispatchTime) >= DispatchIntervalSeconds;
+            var offersDB = SystemAPI.GetSingleton<ProfessionOffersSingleton>();
+            var combatDB = SystemAPI.GetSingleton<CombatDBSingleton>();
+            var itemDB   = SystemAPI.GetSingleton<ItemDBSingleton>();
+
+            // CombatThreatScanSystem now schedules a parallel job that
+            // populates combatDB.Threats + FriendlyEmitters — the reads
+            // below are on the main thread, so we sync the pipeline here.
+            combatDB.PipelineHandle.Complete();
+
+            bool doFullDispatch = offersDB.BuildVersion != _lastSeenBuildVersion;
             if (doFullDispatch)
             {
-                _lastDispatchTime = now;
-                CompleteDependency();
+                _lastSeenBuildVersion = offersDB.BuildVersion;
+                state.CompleteDependency();
             }
 
-            SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial);
+            bool hasCapital     = offersDB.HasCapital;
+            bool capitalHasFood = offersDB.CapitalHasFood;
 
-            bool anyHostile = false;
-            foreach (var f in SystemAPI.Query<RefRO<Faction>>())
-            {
-                byte fv = f.ValueRO.Value;
-                if (fv == FactionType.Hostile || fv == FactionType.Beast) { anyHostile = true; break; }
-            }
+            var offers        = offersDB.Offers;
+            var offersPerKind = offersDB.OffersPerKind;
+            var needyCaves    = offersDB.NeedyCaves;
 
-            bool hasCapital = SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital);
-            int2 capitalHex = default;
-            if (hasCapital) capitalHex = SystemAPI.GetComponent<Building>(capital).RootHex;
+            var threats          = combatDB.Threats;
+            var friendlyEmitters = combatDB.FriendlyEmitters;
+            bool anyHostile      = threats.Length > 0;
 
-            Entity nearestFarm = Entity.Null;
-            int2   farmHex     = default;
-            bool   hasFarm     = false;
-            foreach (var (b, e) in SystemAPI.Query<RefRO<Building>>().WithEntityAccess().WithAll<FarmTag>())
-            {
-                nearestFarm = e;
-                farmHex     = b.ValueRO.RootHex;
-                hasFarm     = true;
-                break;
-            }
+            var controlledLookup = SystemAPI.GetComponentLookup<ControlledUnitTag>(true);
 
-            using var siteQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<ConstructionSite>());
-            using var sites = siteQuery.ToEntityArray(Allocator.Temp);
-
-            // Damaged Player buildings are repair candidates for the same
-            // Builder priority — collected once per tick so per-unit
-            // scoring below doesn't requery. Filter excludes
-            // ConstructionSite entities so we don't double-count
-            // incomplete builds (they're already in `sites`).
-            using var damagedQuery = EntityManager.CreateEntityQuery(
-                new EntityQueryDesc
-                {
-                    All  = new[] { ComponentType.ReadOnly<Building>(), ComponentType.ReadOnly<BuildingHealth>() },
-                    None = new[] { ComponentType.ReadOnly<ConstructionSite>() },
-                });
-            using var damagedCandidates = damagedQuery.ToEntityArray(Allocator.Temp);
-
-            // Ground arrows the Looter job can reclaim. Read the transforms
-            // up front so the per-unit scoring loop doesn't re-query each
-            // entity's LocalTransform.
-            using var groundArrowQuery = EntityManager.CreateEntityQuery(
-                ComponentType.ReadOnly<GroundArrow>(),
-                ComponentType.ReadOnly<LocalTransform>());
-            using var groundArrows = groundArrowQuery.ToEntityArray(Allocator.Temp);
-
-            // Snapshot friendly territory emitters so Archers can prioritise
-            // hostiles that stepped across the border. Single Capital in MVP
-            // → array length == 1 → the per-unit check stays O(1).
-            var friendlyEmitters = new NativeList<TerritoryEmitter>(4, Allocator.Temp);
-            foreach (var e in SystemAPI.Query<RefRO<TerritoryEmitter>>())
-            {
-                if (e.ValueRO.Radius == 0) continue;
-                if (e.ValueRO.OwnerFaction != FactionType.Player) continue;
-                friendlyEmitters.Add(e.ValueRO);
-            }
-
-            // Caves that need food — Looters haul Capital → cave. Collected
-            // once per tick so the per-unit scoring loop stays linear.
-            // Storing (entity, hex, headroom) keeps the inner scoring
-            // independent of the cave's live storage buffer.
-            var needyCaves = new NativeList<NeedyCave>(4, Allocator.Temp);
-            {
-                var caveInvLookup = SystemAPI.GetBufferLookup<GoblinCaveLedger>(true);
-                foreach (var (prodRO, buildingRO, e) in
-                         SystemAPI.Query<RefRO<GoblinCaveProduction>, RefRO<Building>>()
-                                  .WithAll<GoblinCaveTag>()
-                                  .WithEntityAccess())
-                {
-                    if (!caveInvLookup.HasBuffer(e)) continue;
-                    ushort cap = prodRO.ValueRO.StorageCap == 0 ? (ushort)200 : prodRO.ValueRO.StorageCap;
-                    int food  = CountFood(caveInvLookup[e].Reinterpret<BankLedgerBase>());
-                    if (food >= cap) continue;
-                    needyCaves.Add(new NeedyCave { Entity = e, Hex = buildingRO.ValueRO.RootHex });
-                }
-            }
-
-            // Does Capital actually have food to ship? If not, sending a
-            // Looter there is busywork — let them go forage instead.
-            bool capitalHasFood = false;
-            if (hasCapital && EntityManager.HasBuffer<CapitalLedger>(capital))
-            {
-                var capInv = EntityManager.GetBuffer<CapitalLedger>(capital);
-                for (int i = 0; i < capInv.Length; i++)
-                {
-                    if (capInv[i].Count == 0) continue;
-                    if (ItemDB.EnergyValue(capInv[i].ItemId) > 0f) { capitalHasFood = true; break; }
-                }
-            }
-
-            var unitPackLookup = SystemAPI.GetBufferLookup<PackSlot>(true);
-
-            if (!_hexOccupancy.IsCreated)
-                _hexOccupancy = new NativeHashMap<int2, int>(64, Allocator.Persistent);
-            else
-                _hexOccupancy.Clear();
-            foreach (var jobRO in
-                     SystemAPI.Query<RefRO<ProfessionIntent>>().WithAll<ProfessionPriorities>())
-            {
-                if (jobRO.ValueRO.Kind == ProfessionKind.None) continue;
-                var th = jobRO.ValueRO.TargetHex;
-                _hexOccupancy[th] = _hexOccupancy.TryGetValue(th, out var c0) ? c0 + 1 : 1;
-            }
-
-            // ─── Offer enumeration ───
-            // Single world-level pass builds the pool of candidate jobs.
-            // Per-unit scoring walks this flat list instead of re-querying
-            // the world per unit. Guard stays inline below because hostile
-            // lookup is spatial from the unit's position, and patrol
-            // fallback is a per-unit RNG roll. Skipped on non-dispatch
-            // ticks — the per-unit loop short-circuits for queue-empty
-            // units in those frames.
-            var offers = new NativeList<TaskOffer>(doFullDispatch ? 256 : 0, Allocator.Temp);
-            var offersPerKind       = new NativeArray<int>(13, Allocator.Temp);
-            var activePerKind       = new NativeArray<int>(13, Allocator.Temp);
-            var reservedPerKind     = new NativeArray<int>(13, Allocator.Temp);
             var justAssignedPerKind = new NativeArray<int>(13, Allocator.Temp);
-            foreach (var jobRO in SystemAPI.Query<RefRO<ProfessionIntent>>().WithAll<ProfessionPriorities>())
-            {
-                byte ak = jobRO.ValueRO.Kind;
-                if (ak < activePerKind.Length) activePerKind[ak]++;
-            }
-            foreach (var reservedRO in SystemAPI.Query<RefRO<ReservedRoles>>())
-            {
-                var r = reservedRO.ValueRO;
-                reservedPerKind[ProfessionKind.Lumberjack] += r.Lumberjack;
-                reservedPerKind[ProfessionKind.Miner]      += r.Miner;
-                reservedPerKind[ProfessionKind.Guard]      += r.Guard;
-                reservedPerKind[ProfessionKind.Looter]     += r.Looter;
-                reservedPerKind[ProfessionKind.Farmer]     += r.Farmer;
-                reservedPerKind[ProfessionKind.Builder]    += r.Builder;
-                reservedPerKind[ProfessionKind.Chef]       += r.Chef;
-                reservedPerKind[ProfessionKind.Hunter]     += r.Hunter;
-                reservedPerKind[ProfessionKind.Blacksmith] += r.Blacksmith;
-                reservedPerKind[ProfessionKind.Craftsman]  += r.Craftsman;
-                reservedPerKind[ProfessionKind.Medic]      += r.Medic;
-            }
+
+            BufferLookup<PackSlot> unitPackLookup = default;
+            NativeArray<int> activePerKind   = default;
+            NativeArray<int> reservedPerKind = default;
 
             if (doFullDispatch)
             {
-                foreach (var (resRO, coordRO) in
-                         SystemAPI.Query<RefRO<HexResources>, RefRO<HexCoord>>())
-                {
-                    var res = resRO.ValueRO;
-                    var hex = new int2(coordRO.ValueRO.Q, coordRO.ValueRO.R);
+                unitPackLookup = SystemAPI.GetBufferLookup<PackSlot>(true);
 
-                    if ((res.Wood | res.Leaves | res.Branches) != 0)
-                        offers.Add(new TaskOffer { Kind = ProfessionKind.Lumberjack, Variant = OfferVariant.Default, Hex = hex });
-                    if (res.Stone != 0)
-                        offers.Add(new TaskOffer { Kind = ProfessionKind.Miner, Variant = OfferVariant.Default, Hex = hex });
-                    if ((res.Berries | res.Mushrooms | res.Herbs | res.Cactus) != 0)
-                        offers.Add(new TaskOffer { Kind = ProfessionKind.Looter, Variant = OfferVariant.LooterForage, Hex = hex });
+                _hexOccupancy.Clear();
+
+                activePerKind   = new NativeArray<int>(13, Allocator.Temp);
+                reservedPerKind = new NativeArray<int>(13, Allocator.Temp);
+
+                foreach (var jobRO in
+                         SystemAPI.Query<RefRO<ProfessionIntent>>().WithAll<ProfessionPriorities>())
+                {
+                    byte ak = jobRO.ValueRO.Kind;
+                    if (jobRO.ValueRO.Kind != ProfessionKind.None)
+                        _hexOccupancy[jobRO.ValueRO.TargetHex] = _hexOccupancy.TryGetValue(jobRO.ValueRO.TargetHex, out var c0) ? c0 + 1 : 1;
+                    if (ak < activePerKind.Length) activePerKind[ak]++;
                 }
 
-                if (hasFarm)
-                    offers.Add(new TaskOffer { Kind = ProfessionKind.Farmer, Variant = OfferVariant.Default, Hex = farmHex, Target = nearestFarm });
-
-                for (int si = 0; si < sites.Length; si++)
+                foreach (var reservedRO in SystemAPI.Query<RefRO<ReservedRoles>>())
                 {
-                    var site = EntityManager.GetComponentData<ConstructionSite>(sites[si]);
-                    offers.Add(new TaskOffer { Kind = ProfessionKind.Builder, Variant = OfferVariant.BuilderSite, Hex = site.RootHex, Target = sites[si] });
-                }
-
-                for (int di = 0; di < damagedCandidates.Length; di++)
-                {
-                    var bd = EntityManager.GetComponentData<Building>(damagedCandidates[di]);
-                    if (bd.OwnerFaction != FactionType.Player) continue;
-                    var hp = EntityManager.GetComponentData<BuildingHealth>(damagedCandidates[di]);
-                    if (hp.Value >= hp.Max) continue;
-                    offers.Add(new TaskOffer { Kind = ProfessionKind.Builder, Variant = OfferVariant.BuilderDamaged, Hex = bd.RootHex, Target = damagedCandidates[di] });
-                }
-
-                if (hasCapital)
-                    offers.Add(new TaskOffer { Kind = ProfessionKind.Chef, Variant = OfferVariant.Default, Hex = capitalHex, Target = capital });
-
-                foreach (var (barrackBuilding, barrackEntity) in
-                         SystemAPI.Query<RefRO<Building>>().WithAll<BarracksTag>().WithEntityAccess())
-                {
-                    offers.Add(new TaskOffer
-                    {
-                        Kind    = ProfessionKind.Craftsman,
-                        Variant = OfferVariant.Default,
-                        Hex     = barrackBuilding.ValueRO.RootHex,
-                        Target  = barrackEntity,
-                    });
-                }
-
-                foreach (var (furnaceBuilding, furnaceEntity) in
-                         SystemAPI.Query<RefRO<Building>>().WithAll<FurnaceTag>().WithEntityAccess())
-                {
-                    offers.Add(new TaskOffer
-                    {
-                        Kind    = ProfessionKind.Blacksmith,
-                        Variant = OfferVariant.Default,
-                        Hex     = furnaceBuilding.ValueRO.RootHex,
-                        Target  = furnaceEntity,
-                    });
-                }
-
-                for (int ci = 0; ci < needyCaves.Length; ci++)
-                    offers.Add(new TaskOffer { Kind = ProfessionKind.Looter, Variant = OfferVariant.LooterDeliver, Hex = needyCaves[ci].Hex, Target = needyCaves[ci].Entity });
-
-                if (hasCapital && capitalHasFood && needyCaves.Length > 0)
-                    offers.Add(new TaskOffer { Kind = ProfessionKind.Looter, Variant = OfferVariant.LooterFetch, Hex = capitalHex, Target = capital });
-
-                for (int ai = 0; ai < groundArrows.Length; ai++)
-                {
-                    var t  = EntityManager.GetComponentData<LocalTransform>(groundArrows[ai]);
-                    var ah = HexMeshUtil.WorldToHex(t.Position.x, t.Position.y, 0.25f);
-                    offers.Add(new TaskOffer { Kind = ProfessionKind.Looter, Variant = OfferVariant.LooterArrow, Hex = ah, Target = groundArrows[ai] });
-                }
-
-                for (int oi = 0; oi < offers.Length; oi++)
-                {
-                    byte ok = offers[oi].Kind;
-                    if (ok < offersPerKind.Length) offersPerKind[ok]++;
+                    var r = reservedRO.ValueRO;
+                    reservedPerKind[ProfessionKind.Lumberjack] += r.Lumberjack;
+                    reservedPerKind[ProfessionKind.Miner]      += r.Miner;
+                    reservedPerKind[ProfessionKind.Guard]      += r.Guard;
+                    reservedPerKind[ProfessionKind.Looter]     += r.Looter;
+                    reservedPerKind[ProfessionKind.Farmer]     += r.Farmer;
+                    reservedPerKind[ProfessionKind.Builder]    += r.Builder;
+                    reservedPerKind[ProfessionKind.Chef]       += r.Chef;
+                    reservedPerKind[ProfessionKind.Hunter]     += r.Hunter;
+                    reservedPerKind[ProfessionKind.Blacksmith] += r.Blacksmith;
+                    reservedPerKind[ProfessionKind.Craftsman]  += r.Craftsman;
+                    reservedPerKind[ProfessionKind.Medic]      += r.Medic;
                 }
             }
 
@@ -365,7 +125,7 @@ namespace RareIcon
 
             var events = default(NativeList<ProfessionChangedMessage>);
             if (SystemAPI.HasSingleton<ProfessionsDBSingleton>())
-                events = SystemAPI.GetSingletonRW<ProfessionsDBSingleton>().ValueRW.CommittedEvents;
+                events = SystemAPI.GetSingletonRW<ProfessionsDBSingleton>().ValueRW.WriteBuffer;
 
             foreach (var (priorities, reliefIntent, jobIntentRef, movement, transform, goalRef, tasksRef, entity) in
                      SystemAPI.Query<
@@ -377,21 +137,25 @@ namespace RareIcon
                          RefRW<MovementGoal>,
                          DynamicBuffer<TaskMemory>>().WithEntityAccess())
             {
-                // DynamicBuffer iteration variables come back as `ref readonly`
-                // from the source-generated query (CS1654 on mutation). Copy
-                // the handle to a mutable local — it still points to the same
-                // underlying storage.
                 var tasks = tasksRef;
 
                 if (reliefIntent.ValueRO.Kind != ReliefKind.None)
                 {
-                    if (tasks.Length > 0) tasks.Clear();
+                    if (tasks.Length > 0)
+                    {
+                        var head = tasks[0];
+                        if (head.State == TaskState.Active)
+                        {
+                            head.State = TaskState.Pending;
+                            tasks[0]   = head;
+                        }
+                    }
                     var prev = jobIntentRef.ValueRO;
                     if (prev.Kind != ProfessionKind.None)
                     {
                         jobIntentRef.ValueRW = default;
                         if (events.IsCreated)
-                            events.Add(new ProfessionChangedMessage(entity, prev.Kind, ProfessionKind.None, default, Entity.Null));
+                            ProfessionEventSink.Add(ref events, entity, prev.Kind, ProfessionKind.None, default, Entity.Null, nowTick, ProfessionChangeReason.ReliefOverride);
                     }
                     continue;
                 }
@@ -401,7 +165,7 @@ namespace RareIcon
                 // steering them, the AI shouldn't assign work in
                 // parallel. Releasing control returns the unit to the
                 // dispatcher next tick.
-                if (EntityManager.HasComponent<ControlledUnitTag>(entity))
+                if (controlledLookup.HasComponent(entity))
                 {
                     if (tasks.Length > 0) tasks.Clear();
                     var prev = jobIntentRef.ValueRO;
@@ -409,7 +173,7 @@ namespace RareIcon
                     {
                         jobIntentRef.ValueRW = default;
                         if (events.IsCreated)
-                            events.Add(new ProfessionChangedMessage(entity, prev.Kind, ProfessionKind.None, default, Entity.Null));
+                            ProfessionEventSink.Add(ref events, entity, prev.Kind, ProfessionKind.None, default, Entity.Null, nowTick, ProfessionChangeReason.ManualOverride);
                     }
                     continue;
                 }
@@ -443,11 +207,9 @@ namespace RareIcon
                     if (anyHostile
                         && head.State == TaskState.Active
                         && head.Kind != ProfessionKind.Guard
-                        && priorities.ValueRO.Guard > 0
-                        && spatial.Hash.IsCreated
-                        && TryFindHostile(spatial.Hash, transform.ValueRO.Position,
-                                          friendlyEmitters.AsArray(),
-                                          out var preemptHex, out var preemptHostile, out _))
+                        && priorities.ValueRO.Guard >= GuardPreemptThreshold
+                        && TryFindClosestThreat(threats, transform.ValueRO.Position,
+                                                out var preemptHex, out var preemptHostile, out _))
                     {
                         tasks.Clear();
                         var preemptedIntent = jobIntentRef.ValueRO;
@@ -466,7 +228,7 @@ namespace RareIcon
                             IssuedTick   = nowTick,
                         });
                         if (events.IsCreated && preemptedIntent.Kind != ProfessionKind.Guard)
-                            events.Add(new ProfessionChangedMessage(entity, preemptedIntent.Kind, ProfessionKind.Guard, preemptHex, preemptHostile));
+                            ProfessionEventSink.Add(ref events, entity, preemptedIntent.Kind, ProfessionKind.Guard, preemptHex, preemptHostile, nowTick, ProfessionChangeReason.Preempted);
                         if (ProfessionKind.Guard < justAssignedPerKind.Length) justAssignedPerKind[ProfessionKind.Guard]++;
                         continue;
                     }
@@ -497,14 +259,14 @@ namespace RareIcon
                 // variant-bit test per Looter candidate instead of
                 // re-checking inventory each time.
                 bool carryingFood = unitPackLookup.HasBuffer(entity)
-                                    && PackHasFood(unitPackLookup[entity]);
+                                    && PackHasFood(itemDB, unitPackLookup[entity]);
                 byte looterMode;
                 if (carryingFood && needyCaves.Length > 0)
                     looterMode = OfferVariant.LooterDeliver;
                 else if (!carryingFood && needyCaves.Length > 0 && capitalHasFood && hasCapital)
                     looterMode = OfferVariant.LooterFetch;
                 else
-                    looterMode = 0xFF;  // arrows + forage fallback
+                    looterMode = 0xFF;  // forage fallback
 
                 for (int oi = 0; oi < offers.Length; oi++)
                 {
@@ -524,8 +286,7 @@ namespace RareIcon
                         }
                         else
                         {
-                            if (offer.Variant != OfferVariant.LooterArrow
-                                && offer.Variant != OfferVariant.LooterForage) continue;
+                            if (offer.Variant != OfferVariant.LooterForage) continue;
                         }
                     }
 
@@ -549,7 +310,7 @@ namespace RareIcon
                             score += (long)math.min(deficit, DeficitCap) * (PriorityWeight / 4);
                         int reservationShortfall = rN - aN;
                         if (reservationShortfall > 0)
-                            score += (long)reservationShortfall * PriorityWeight;
+                            score += (long)math.min(reservationShortfall, DeficitCap) * PriorityWeight;
                         float pressure = (float)(oN + 1) / (float)(aN + 1);
                         score += (long)(math.log(1f + pressure) * 30f);
                     }
@@ -569,10 +330,10 @@ namespace RareIcon
                     Entity hostileEntity = Entity.Null;
                     int    hostileDist   = int.MaxValue;
                     bool   foundHostile  = false;
-                    if (spatial.Hash.IsCreated)
+                    if (anyHostile && p.Guard >= GuardPreemptThreshold)
                     {
-                        foundHostile = TryFindHostile(
-                            spatial.Hash, transform.ValueRO.Position, friendlyEmitters.AsArray(),
+                        foundHostile = TryFindClosestThreat(
+                            threats, transform.ValueRO.Position,
                             out hostileHex, out hostileEntity, out hostileDist);
                     }
 
@@ -584,7 +345,7 @@ namespace RareIcon
                         if (hostileEntity != Entity.Null && hostileEntity == currentTarget)
                             gScore += HysteresisBonus;
                         if (guardReservationShortfall > 0)
-                            gScore += (long)guardReservationShortfall * PriorityWeight;
+                            gScore += (long)math.min(guardReservationShortfall, DeficitCap) * PriorityWeight;
                         if (gScore > bestScore)
                         {
                             bestScore  = gScore;
@@ -593,7 +354,7 @@ namespace RareIcon
                             bestEntity = hostileEntity;
                         }
                     }
-                    else if (friendlyEmitters.Length > 0)
+                    else if (friendlyEmitters.Length > 0 && p.Guard >= GuardPatrolThreshold)
                     {
                         // Patrol fallback — pick a random hex inside the
                         // Capital's territory disc. Seed mixes entity index
@@ -613,7 +374,7 @@ namespace RareIcon
 
                         long gScore = (long)p.Guard * PriorityWeight - (long)patrolDist;
                         if (guardReservationShortfall > 0)
-                            gScore += (long)guardReservationShortfall * PriorityWeight;
+                            gScore += (long)math.min(guardReservationShortfall, DeficitCap) * PriorityWeight;
                         if (gScore > bestScore)
                         {
                             bestScore  = gScore;
@@ -667,7 +428,11 @@ namespace RareIcon
                         || !prevIntent.TargetHex.Equals(bestHex)
                         || prevIntent.TargetEntity != bestEntity))
                 {
-                    events.Add(new ProfessionChangedMessage(entity, prevIntent.Kind, bestKind, bestHex, bestEntity));
+                    ProfessionChangeReason reason;
+                    if (bestKind == ProfessionKind.Default)       reason = ProfessionChangeReason.Fallback;
+                    else if (prevIntent.Kind == bestKind)         reason = ProfessionChangeReason.Retargeted;
+                    else                                          reason = ProfessionChangeReason.Assigned;
+                    ProfessionEventSink.Add(ref events, entity, prevIntent.Kind, bestKind, bestHex, bestEntity, nowTick, reason);
                 }
 
                 if (bestKind == ProfessionKind.None || bestKind == ProfessionKind.Default)
@@ -701,40 +466,19 @@ namespace RareIcon
                 }
             }
 
-            offers.Dispose();
-            offersPerKind.Dispose();
-            activePerKind.Dispose();
-            reservedPerKind.Dispose();
+            if (activePerKind.IsCreated)   activePerKind.Dispose();
+            if (reservedPerKind.IsCreated) reservedPerKind.Dispose();
             justAssignedPerKind.Dispose();
-            friendlyEmitters.Dispose();
-            needyCaves.Dispose();
         }
 
-        struct NeedyCave
-        {
-            public Entity Entity;
-            public int2   Hex;
-        }
-
-        static bool PackHasFood(DynamicBuffer<PackSlot> buf)
+        static bool PackHasFood(in ItemDBSingleton itemDB, DynamicBuffer<PackSlot> buf)
         {
             for (int i = 0; i < buf.Length; i++)
             {
                 if (buf[i].Count == 0) continue;
-                if (ItemDB.EnergyValue(buf[i].ItemId) > 0f) return true;
+                if (itemDB.EnergyValue(buf[i].ItemId) > 0f) return true;
             }
             return false;
-        }
-
-        static int CountFood(DynamicBuffer<BankLedgerBase> buf)
-        {
-            int total = 0;
-            for (int i = 0; i < buf.Length; i++)
-            {
-                if (ItemDB.EnergyValue(buf[i].ItemId) <= 0f) continue;
-                total += buf[i].Count;
-            }
-            return total;
         }
 
         static int OfferDistanceCap(byte kind, byte variant)
@@ -753,7 +497,6 @@ namespace RareIcon
                 case ProfessionKind.Blacksmith:
                     return int.MaxValue;
                 case ProfessionKind.Looter:
-                    if (variant == OfferVariant.LooterArrow)  return SearchRadius * 2;
                     if (variant == OfferVariant.LooterForage) return SearchRadius;
                     return int.MaxValue;
                 default:
@@ -768,88 +511,53 @@ namespace RareIcon
                 || (kind == ProfessionKind.Looter && variant == OfferVariant.LooterForage);
         }
 
-        bool TryFindHostile(NativeParallelMultiHashMap<int, HashedTarget> hash,
-                            float3 originWorld,
-                            NativeArray<TerritoryEmitter> friendlyEmitters,
-                            out int2 outHex, out Entity outEntity, out int outDist)
+        static bool TryFindClosestThreat(
+            NativeList<ThreatRecord> threats,
+            float3 originWorld,
+            out int2 outHex, out Entity outEntity, out int outDist)
         {
-            const int ScanRadius = 6;
-            // Track nearest overall AND nearest inside friendly territory.
-            // If any intruder is in-territory the Archer targets them first,
-            // so the defender snaps to threats-at-home instead of whatever
-            // happens to be closest in world coords.
-            float3 bestPos = default, inBestPos = default;
+            const float ScanRadiusSq = 6f * 6f;
+
             Entity bestEntity = Entity.Null, inBestEntity = Entity.Null;
-            float  bestSq = float.MaxValue, inBestSq = float.MaxValue;
+            int2   bestHex    = default,     inBestHex    = default;
+            float  bestSq     = float.MaxValue, inBestSq   = float.MaxValue;
 
-            int cx = (int)math.floor(originWorld.x / SpatialHashSystem.CellSize);
-            int cy = (int)math.floor(originWorld.y / SpatialHashSystem.CellSize);
+            var origin = new float2(originWorld.x, originWorld.y);
 
-            for (int dx = -ScanRadius; dx <= ScanRadius; dx++)
+            for (int i = 0; i < threats.Length; i++)
             {
-                for (int dy = -ScanRadius; dy <= ScanRadius; dy++)
+                var t = threats[i];
+                float d2 = math.distancesq(origin, t.Position);
+                if (d2 > ScanRadiusSq) continue;
+
+                if (d2 < bestSq)
                 {
-                    int key = SpatialHashSystem.CellKey(cx + dx, cy + dy);
-                    if (!hash.TryGetFirstValue(key, out var target, out var it)) continue;
-
-                    do
-                    {
-                        if (target.Faction != FactionType.Hostile && target.Faction != FactionType.Beast) continue;
-                        float d2 = math.distancesq(
-                            new float2(originWorld.x, originWorld.y),
-                            target.Position);
-                        if (d2 < bestSq)
-                        {
-                            bestSq = d2;
-                            bestPos = new float3(target.Position.x, target.Position.y, 0f);
-                            bestEntity = target.Entity;
-                        }
-
-                        if (friendlyEmitters.Length > 0 && d2 < inBestSq)
-                        {
-                            int2 hex = HexMeshUtil.WorldToHex(target.Position.x, target.Position.y, 0.25f);
-                            if (InsideAnyEmitter(hex, friendlyEmitters))
-                            {
-                                inBestSq = d2;
-                                inBestPos = new float3(target.Position.x, target.Position.y, 0f);
-                                inBestEntity = target.Entity;
-                            }
-                        }
-                    } while (hash.TryGetNextValue(out target, ref it));
+                    bestSq = d2; bestHex = t.Hex; bestEntity = t.Entity;
+                }
+                if (t.InsideFriendlyTerritory && d2 < inBestSq)
+                {
+                    inBestSq = d2; inBestHex = t.Hex; inBestEntity = t.Entity;
                 }
             }
 
-            // Prefer the intruder inside our border if we found one.
             if (inBestEntity != Entity.Null)
             {
-                outHex = HexMeshUtil.WorldToHex(inBestPos.x, inBestPos.y, 0.25f);
+                outHex    = inBestHex;
                 outEntity = inBestEntity;
-                outDist = (int)math.round(math.sqrt(inBestSq));
+                outDist   = (int)math.round(math.sqrt(inBestSq));
                 return true;
             }
 
             if (bestEntity == Entity.Null)
             {
-                outHex = default;
-                outEntity = Entity.Null;
-                outDist = int.MaxValue;
+                outHex = default; outEntity = Entity.Null; outDist = int.MaxValue;
                 return false;
             }
 
-            outHex = HexMeshUtil.WorldToHex(bestPos.x, bestPos.y, 0.25f);
+            outHex    = bestHex;
             outEntity = bestEntity;
-            outDist = (int)math.round(math.sqrt(bestSq));
+            outDist   = (int)math.round(math.sqrt(bestSq));
             return true;
-        }
-
-        static bool InsideAnyEmitter(int2 hex, NativeArray<TerritoryEmitter> emitters)
-        {
-            for (int i = 0; i < emitters.Length; i++)
-            {
-                var e = emitters[i];
-                if (AxialDistance(hex.x - e.Center.x, hex.y - e.Center.y) <= e.Radius) return true;
-            }
-            return false;
         }
 
         static int AxialDistance(int dq, int dr)
@@ -859,96 +567,5 @@ namespace RareIcon
         }
 
         static int HexDistance(int2 a, int2 b) => AxialDistance(b.x - a.x, b.y - a.y);
-
-        void LogDispatchDiagnostic()
-        {
-            int totalUnits = 0, reliefBlocked = 0, controlled = 0, kindNone = 0;
-            var jobKindCounts  = new int[14];
-            var lastKindCounts = new int[24];
-            var goalKindCounts = new int[8];
-            var goalPrioBuckets = new int[6];
-            int movementIdle = 0, movementStepping = 0, movementDwelling = 0;
-            int queueEmpty = 0, queueActive = 0, queuePending = 0, queueInvalid = 0, queueCompleted = 0;
-            int atTargetHarvestReady = 0, atTargetBlocked = 0, committedButIdle = 0;
-
-            foreach (var (jobIntent, reliefIntent, state, goal, movement, tasksRef, entity) in
-                     SystemAPI.Query<
-                         RefRO<ProfessionIntent>,
-                         RefRO<ReliefIntent>,
-                         RefRO<ActivityState>,
-                         RefRO<MovementGoal>,
-                         RefRO<UnitMovement>,
-                         DynamicBuffer<TaskMemory>>().WithEntityAccess())
-            {
-                totalUnits++;
-                if (reliefIntent.ValueRO.Kind != ReliefKind.None) reliefBlocked++;
-                if (EntityManager.HasComponent<ControlledUnitTag>(entity)) controlled++;
-
-                byte k = jobIntent.ValueRO.Kind;
-                if (k == ProfessionKind.None) kindNone++;
-                else if (k < jobKindCounts.Length) jobKindCounts[k]++;
-
-                byte lk = state.ValueRO.LastKind;
-                if (lk < lastKindCounts.Length) lastKindCounts[lk]++;
-
-                byte gk = goal.ValueRO.Kind;
-                if (gk < goalKindCounts.Length) goalKindCounts[gk]++;
-
-                byte gp = goal.ValueRO.Priority;
-                if (gp == 0) goalPrioBuckets[0]++;
-                else if (gp <= 10) goalPrioBuckets[1]++;
-                else if (gp <= 30) goalPrioBuckets[2]++;
-                else if (gp <= 40) goalPrioBuckets[3]++;
-                else if (gp <= 50) goalPrioBuckets[4]++;
-                else               goalPrioBuckets[5]++;
-
-                var m = movement.ValueRO;
-                bool isIdle = !(m.DwellTimer > 0f) && m.TargetHex.Equals(m.CurrentHex);
-                if (m.DwellTimer > 0f) movementDwelling++;
-                else if (isIdle) movementIdle++;
-                else movementStepping++;
-
-                var tasks = tasksRef;
-                if (tasks.Length == 0) queueEmpty++;
-                else
-                {
-                    byte st = tasks[0].State;
-                    if (st == TaskState.Active)      queueActive++;
-                    else if (st == TaskState.Pending) queuePending++;
-                    else if (st == TaskState.Invalidated) queueInvalid++;
-                    else if (st == TaskState.Completed)   queueCompleted++;
-                }
-
-                bool committed = tasks.Length > 0 && tasks[0].State == TaskState.Active;
-                bool atTarget  = k != ProfessionKind.None && math.all(jobIntent.ValueRO.TargetHex == m.CurrentHex);
-                if (atTarget)
-                {
-                    if (m.HarvestCooldown <= 0f) atTargetHarvestReady++;
-                    else atTargetBlocked++;
-                }
-                if (committed && isIdle && !atTarget) committedButIdle++;
-            }
-
-            Debug.Log(
-                $"[ProfessionDispatch diag] units={totalUnits} relief={reliefBlocked} controlled={controlled}\n" +
-                $"  jobIntent:  None={kindNone} Lumberjack={jobKindCounts[ProfessionKind.Lumberjack]} Miner={jobKindCounts[ProfessionKind.Miner]} " +
-                $"Guard={jobKindCounts[ProfessionKind.Guard]} Looter={jobKindCounts[ProfessionKind.Looter]} Farmer={jobKindCounts[ProfessionKind.Farmer]} " +
-                $"Builder={jobKindCounts[ProfessionKind.Builder]} Chef={jobKindCounts[ProfessionKind.Chef]} Hunter={jobKindCounts[ProfessionKind.Hunter]} " +
-                $"Blacksmith={jobKindCounts[ProfessionKind.Blacksmith]} Craftsman={jobKindCounts[ProfessionKind.Craftsman]}\n" +
-                $"  activity:   None={lastKindCounts[0]} Idle={lastKindCounts[1]} Wandering={lastKindCounts[2]} MovingToOrder={lastKindCounts[3]} " +
-                $"Sleeping={lastKindCounts[4]} Eating={lastKindCounts[5]} Healing={lastKindCounts[6]} ReturningToBase={lastKindCounts[7]} " +
-                $"SeekingAid={lastKindCounts[8]} Foraging={lastKindCounts[9]} Lumberjacking={lastKindCounts[10]} Mining={lastKindCounts[11]} " +
-                $"Hunting={lastKindCounts[12]} Looting={lastKindCounts[13]} Farming={lastKindCounts[14]} Building={lastKindCounts[15]} " +
-                $"Cooking={lastKindCounts[16]} Guarding={lastKindCounts[17]} Traveling={lastKindCounts[18]} " +
-                $"Crafting={lastKindCounts[19]} Smithing={lastKindCounts[20]}\n" +
-                $"  goalKind:   None={goalKindCounts[GoalKind.None]} MoveToHex={goalKindCounts[GoalKind.MoveToHex]} " +
-                $"ReturnToBase={goalKindCounts[GoalKind.ReturnToBase]} Wander={goalKindCounts[GoalKind.Wander]} " +
-                $"Hunt={goalKindCounts[GoalKind.Hunt]} Flee={goalKindCounts[GoalKind.Flee]} Follow={goalKindCounts[GoalKind.Follow]}\n" +
-                $"  goalPrio:   None={goalPrioBuckets[0]} Wander<=10={goalPrioBuckets[1]} Harvest<=30={goalPrioBuckets[2]} " +
-                $"Hunt<=40={goalPrioBuckets[3]} Return<=50={goalPrioBuckets[4]} Order+={goalPrioBuckets[5]}\n" +
-                $"  movement:   idle={movementIdle} stepping={movementStepping} dwelling={movementDwelling}\n" +
-                $"  queue:      empty={queueEmpty} active={queueActive} pending={queuePending} invalidated={queueInvalid} completed={queueCompleted}\n" +
-                $"  harvest:    atTarget_ready={atTargetHarvestReady} atTarget_cooling={atTargetBlocked} committed_but_idle={committedButIdle}");
-        }
     }
 }

@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/itemdb.binpb
  * Config: ../itemdb-zod-config.json
- * Generated: 2026-03-30T00:08:40.751Z
+ * Generated: 2026-04-22T16:07:00.045Z
  */
 
 import { z } from 'zod';
@@ -100,6 +100,9 @@ export const UseEffectTypes = [
 	'buff_party',
 	'summon',
 	'transform',
+	'learn_recipe',
+	'learn_spell',
+	'unlock_lore',
 ] as const;
 
 export type UseEffectTypeValue = (typeof UseEffectTypes)[number];
@@ -208,6 +211,10 @@ export const EquipmentInfoSchema = z.object({
 	special_value: z.number().optional(),
 	durability: z.number().nullable().optional(),
 	max_durability: z.number().nullable().optional(),
+	enchantment_slots: z.number().optional(),
+	enchantment_types: z.array(z.string()).optional(),
+	cursed: z.boolean().optional(),
+	movement_penalty: z.number().optional(),
 });
 
 export type EquipmentInfo = z.infer<typeof EquipmentInfoSchema>;
@@ -222,6 +229,13 @@ export const FoodInfoSchema = z
 		burn_level: z.number().nullable().optional(),
 		duration: z.number().nullable().optional(),
 		buff_effects: z.array(UseEffectSchema).nullable().optional(),
+		restore_energy: z.number().nullable().optional(),
+		restore_mana: z.number().nullable().optional(),
+		regen_per_second: z.number().nullable().optional(),
+		regen_duration: z.number().nullable().optional(),
+		perishable: z.boolean().nullable().optional(),
+		shelf_life_seconds: z.number().nullable().optional(),
+		spoils_into_ref: z.string().nullable().optional(),
 	})
 	.passthrough();
 
@@ -237,6 +251,7 @@ export const SkillingInfoSchema = z
 		gather_time: z.number().nullable().optional(),
 		respawn_time: z.number().nullable().optional(),
 		resource_node: z.string().nullable().optional(),
+		harvest_weight: z.number().nullable().optional(),
 	})
 	.passthrough();
 
@@ -311,6 +326,190 @@ export const ItemSourceSchema = z.object({
 
 export type ItemSource = z.infer<typeof ItemSourceSchema>;
 
+// CompressInfo
+export const CompressInfoSchema = z.object({
+	target_ref: z.string(),
+	ratio: z.number(),
+	facility: z.string().optional(),
+});
+
+export type CompressInfo = z.infer<typeof CompressInfoSchema>;
+
+// StackingInfo
+export const StackingInfoSchema = z.object({
+	pack_max: z.number().optional(),
+	no_pack: z.boolean().optional(),
+	pool_group: z.string().optional(),
+});
+
+export type StackingInfo = z.infer<typeof StackingInfoSchema>;
+
+// WeaponInfo
+export const WeaponInfoSchema = z.object({
+	range: z.number().optional(),
+	attack_speed: z.number().optional(),
+	projectile_ref: z.string().optional(),
+	ammo_ref: z.string().optional(),
+	compatible_ammo: z.array(z.string()).optional(),
+	damage_element: ElementSchema.optional(),
+	min_damage: z.number().optional(),
+	max_damage: z.number().optional(),
+	crit_chance: z.number().optional(),
+	crit_damage: z.number().optional(),
+	windup_ticks: z.number().optional(),
+	recovery_ticks: z.number().optional(),
+	aoe_radius: z.number().optional(),
+	two_handed: z.boolean().optional(),
+	charges: z.number().optional(),
+});
+
+export type WeaponInfo = z.infer<typeof WeaponInfoSchema>;
+
+// FuelInfo
+export const FuelInfoSchema = z.object({
+	burn_seconds: z.number(),
+	heat_output: z.number().optional(),
+	residue_ref: z.string().optional(),
+	residue_chance: z.number().optional(),
+	renewable: z.boolean().optional(),
+});
+
+export type FuelInfo = z.infer<typeof FuelInfoSchema>;
+
+// ContainerInfo
+export const ContainerInfoSchema = z.object({
+	added_slots: z.number().optional(),
+	volume_multiplier: z.number().optional(),
+	weight_reduction: z.number().optional(),
+	category_filter: z.array(z.string()).optional(),
+	storage_slots: z.number().optional(),
+	shared_inventory: z.boolean().optional(),
+	locked_by_default: z.boolean().optional(),
+});
+
+export type ContainerInfo = z.infer<typeof ContainerInfoSchema>;
+
+// PlantingInfo
+export const PlantingInfoSchema = z.object({
+	grows_into_ref: z.string(),
+	grow_seconds: z.number(),
+	yield_amount: z.number().optional(),
+	required_tile: z.string().optional(),
+	required_light: z.number().optional(),
+	water_per_hour: z.number().optional(),
+	multi_harvest: z.boolean().optional(),
+	regrow_seconds: z.number().optional(),
+	season: z.string().optional(),
+	frost_tolerance: z.number().optional(),
+});
+
+export type PlantingInfo = z.infer<typeof PlantingInfoSchema>;
+
+// ProjectileInfo
+export const ProjectileInfoSchema = z.object({
+	speed: z.number().optional(),
+	gravity: z.number().optional(),
+	pierce_count: z.number().optional(),
+	impact_effect_ref: z.string().optional(),
+	trail_ref: z.string().optional(),
+	homing: z.boolean().optional(),
+	splash_radius: z.number().optional(),
+	splash_falloff: z.number().optional(),
+});
+
+export type ProjectileInfo = z.infer<typeof ProjectileInfoSchema>;
+
+// TrapInfo
+export const TrapInfoSchema = z.object({
+	trigger: z.string().optional(),
+	arming_seconds: z.number().optional(),
+	proximity_radius: z.number().optional(),
+	max_triggers: z.number().optional(),
+	reusable: z.boolean().optional(),
+	on_trigger: z.array(UseEffectSchema).optional(),
+});
+
+export type TrapInfo = z.infer<typeof TrapInfoSchema>;
+
+// EnchantmentInfo
+export const EnchantmentInfoSchema = z.object({
+	slug: z.string(),
+	bonuses: ItemBonusesSchema.optional(),
+	on_use: z.array(UseEffectSchema).optional(),
+	while_equipped: z.array(UseEffectSchema).optional(),
+	tier: z.number().optional(),
+	removable: z.boolean().optional(),
+	level_requirement: z.number().optional(),
+	affinities: z.array(ItemAffinitySchema).optional(),
+	resistances: z.array(ItemAffinitySchema).optional(),
+});
+
+export type EnchantmentInfo = z.infer<typeof EnchantmentInfoSchema>;
+
+// SpellInfo
+export const SpellInfoSchema = z.object({
+	spell_ref: z.string(),
+	mana_cost: z.number().optional(),
+	cast_seconds: z.number().optional(),
+	cooldown_seconds: z.number().optional(),
+	scaling_stat: z.string().optional(),
+	scaling_multiplier: z.number().optional(),
+	base_damage: z.number().optional(),
+	element: ElementSchema.optional(),
+	range: z.number().optional(),
+	aoe_radius: z.number().optional(),
+	teaches_permanent: z.boolean().optional(),
+	consumed_on_cast: z.boolean().optional(),
+	charges: z.number().optional(),
+	side_effects: z.array(UseEffectSchema).optional(),
+});
+
+export type SpellInfo = z.infer<typeof SpellInfoSchema>;
+
+// BookInfo
+export const BookInfoSchema = z.object({
+	body_text: z.string().optional(),
+	body_text_ref: z.string().optional(),
+	reading_seconds: z.number().optional(),
+	teaches_recipe_ref: z.string().optional(),
+	teaches_spell_ref: z.string().optional(),
+	unlocks_lore_ref: z.string().optional(),
+	consumed_on_read: z.boolean().optional(),
+	language: z.string().optional(),
+	chapters: z.array(z.string()).optional(),
+});
+
+export type BookInfo = z.infer<typeof BookInfoSchema>;
+
+// KeyInfo
+export const KeyInfoSchema = z.object({
+	unlocks_ref: z.string(),
+	unlock_category: z.string().optional(),
+	consumed_on_use: z.boolean().optional(),
+	grant_item_ref: z.string().optional(),
+	uses: z.number().optional(),
+	faction_lock: z.string().optional(),
+});
+
+export type KeyInfo = z.infer<typeof KeyInfoSchema>;
+
+// VehicleInfo
+export const VehicleInfoSchema = z.object({
+	max_speed: z.number().optional(),
+	acceleration: z.number().optional(),
+	turn_rate: z.number().optional(),
+	passenger_capacity: z.number().optional(),
+	fuel_ref: z.string().optional(),
+	fuel_per_distance: z.number().optional(),
+	terrain_type: z.string().optional(),
+	cargo_slots: z.number().optional(),
+	cargo_weight_capacity: z.number().optional(),
+	damage_reduction: z.number().optional(),
+	requires_leash: z.boolean().optional(),
+});
+
+export type VehicleInfo = z.infer<typeof VehicleInfoSchema>;
+
 // ItemExtension
 export const ItemExtensionSchema = z.object({
 	key: z.string(),
@@ -373,6 +572,23 @@ export const ItemSchema = z.object({
 	set_ref: z.string().optional(),
 	durability: z.number().optional(),
 	max_durability: z.number().optional(),
+	compress: CompressInfoSchema.optional(),
+	stacking: StackingInfoSchema.optional(),
+	pool_group: z.string().optional(),
+	weapon: WeaponInfoSchema.optional(),
+	fuel: FuelInfoSchema.optional(),
+	container: ContainerInfoSchema.optional(),
+	planting: PlantingInfoSchema.optional(),
+	projectile: ProjectileInfoSchema.optional(),
+	trap: TrapInfoSchema.optional(),
+	enchantment: EnchantmentInfoSchema.optional(),
+	volume: z.number().optional(),
+	spell: SpellInfoSchema.optional(),
+	book: BookInfoSchema.optional(),
+	key: KeyInfoSchema.optional(),
+	vehicle: VehicleInfoSchema.optional(),
+	light_radius: z.number().optional(),
+	light_color: z.string().optional(),
 	extensions: z.array(ItemExtensionSchema).optional(),
 	credits: z.string().optional(),
 	drafted: z.boolean().optional(),

@@ -19,8 +19,8 @@ namespace RareIcon
         // trigger zone and the goblin walks away half-rested / half-fed. 15%
         // residual means they actually finish the nap / meal / recovery instead
         // of yo-yo-ing right back into Relief next tick.
-        public const float HungerExit  = 0.15f;
-        public const float FatigueExit = 0.15f;
+        public const float HungerExit  = 0.40f;
+        public const float FatigueExit = 0.40f;
         public const float HealthLossExit = 0.15f;
 
         [BurstCompile] public void OnCreate(ref SystemState state) { }
@@ -33,11 +33,14 @@ namespace RareIcon
             var fatigueLookup = SystemAPI.GetComponentLookup<Fatigue>(isReadOnly: true);
             var healthLookup  = SystemAPI.GetComponentLookup<Health>(isReadOnly: true);
 
+            uint nowTick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
             new ScoreReliefJob
             {
                 HungerLookup  = hungerLookup,
                 FatigueLookup = fatigueLookup,
                 HealthLookup  = healthLookup,
+                NowTick       = nowTick,
             }.ScheduleParallel();
         }
     }
@@ -48,6 +51,8 @@ namespace RareIcon
         [Unity.Collections.ReadOnly] public ComponentLookup<Hunger>  HungerLookup;
         [Unity.Collections.ReadOnly] public ComponentLookup<Fatigue> FatigueLookup;
         [Unity.Collections.ReadOnly] public ComponentLookup<Health>  HealthLookup;
+
+        public uint NowTick;
 
         void Execute(Entity entity, in Faction faction, ref ReliefIntent intent)
         {
@@ -108,6 +113,17 @@ namespace RareIcon
                 bestKind    = ReliefKind.Heal;
                 bestUrgency = healthLoss;
             }
+
+            if (hungerPct >= 1.0f)
+            {
+                bestKind    = ReliefKind.Eat;
+                bestUrgency = 2.0f;
+            }
+
+            if (bestKind != ReliefKind.None && prev == ReliefKind.None)
+                intent.StartTick = NowTick;
+            else if (bestKind == ReliefKind.None)
+                intent.StartTick = 0u;
 
             intent.Kind    = bestKind;
             intent.Urgency = bestUrgency;

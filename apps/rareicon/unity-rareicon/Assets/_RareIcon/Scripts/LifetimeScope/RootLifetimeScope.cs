@@ -35,6 +35,16 @@ namespace RareIcon
             builder.RegisterMessageBroker<InventoryChangedMessage>(options);
             builder.RegisterMessageBroker<ProfessionChangedMessage>(options);
 
+            builder.RegisterMessageBroker<DialogueStartMessage>(options);
+            builder.RegisterMessageBroker<DialogueAdvanceMessage>(options);
+            builder.RegisterMessageBroker<DialogueChoiceMessage>(options);
+            builder.RegisterMessageBroker<DialogueEndedMessage>(options);
+            builder.RegisterMessageBroker<SpeechBubbleMessage>(options);
+
+            builder.RegisterMessageBroker<QuestStartedMessage>(options);
+            builder.RegisterMessageBroker<QuestCompletedMessage>(options);
+            builder.RegisterMessageBroker<QuestFailedMessage>(options);
+
             builder.RegisterBuildCallback(container =>
             {
                 GlobalMessagePipe.SetProvider(container.AsServiceProvider());
@@ -42,6 +52,7 @@ namespace RareIcon
                 MouseStateBridge.Source    = container.Resolve<IMouseStateSource>();
                 BuildModeBridge.Source     = container.Resolve<BuildModeController>();
                 ActivityFeedBridge.Source  = container.Resolve<ActivityFeedService>();
+                PauseBridge.Source         = container.Resolve<PauseService>();
             });
 
             // -- Services --
@@ -57,6 +68,7 @@ namespace RareIcon
             builder.RegisterEntryPoint<SelectionMoveHandler>();
             builder.RegisterEntryPoint<SelectionInput>();
             builder.Register<LocaleService>(Lifetime.Singleton);
+            builder.Register<PauseService>(Lifetime.Singleton).AsSelf();
             builder.Register<ActivityFeedService>(Lifetime.Singleton).AsSelf();
             builder.Register<InventoryService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             // Factory so VContainer doesn't try to resolve the int defaults.
@@ -92,6 +104,16 @@ namespace RareIcon
 
             // -- Toast notification service (pool + queue, bottom-center) --
             builder.RegisterEntryPoint<ToastService>().AsSelf();
+
+            // -- Pause indicator (top-right overlay + F9 debug toggle) --
+            builder.RegisterEntryPoint<PauseIndicator>().AsSelf();
+
+            // -- Dialogue: VN renderer is DI-resolvable so the controller
+            //    can drive it directly; bubble + controller are pure
+            //    entry points that self-manage via the message bus. --
+            builder.RegisterEntryPoint<DialogueVN>().AsSelf();
+            builder.RegisterEntryPoint<DialogueBubble>();
+            builder.RegisterEntryPoint<DialogueController>();
 
             // -- Building palette panel (per-type cost + affordability) --
             builder.RegisterEntryPoint<UIBuildingPalette>().AsSelf();

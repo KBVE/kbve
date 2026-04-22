@@ -39,6 +39,7 @@ namespace RareIcon
                 MatLookup         = SystemAPI.GetBufferLookup<ConstructionMaterial>(false),
                 SiteLookup        = SystemAPI.GetComponentLookup<ConstructionSite>(true),
                 SkillXpLookup     = SystemAPI.GetComponentLookup<SkillXP>(false),
+                TaskLookup        = SystemAPI.GetBufferLookup<TaskMemory>(false),
                 Reservations      = db.Reservations.AsParallelWriter(),
             }.Schedule(dep);
 
@@ -63,6 +64,7 @@ namespace RareIcon
         [NativeDisableParallelForRestriction] public BufferLookup<PackSlot>             PackLookup;
         [NativeDisableParallelForRestriction] public BufferLookup<ConstructionMaterial> MatLookup;
         [NativeDisableParallelForRestriction] public ComponentLookup<SkillXP>           SkillXpLookup;
+        [NativeDisableParallelForRestriction] public BufferLookup<TaskMemory>           TaskLookup;
 
         public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
@@ -82,12 +84,17 @@ namespace RareIcon
 
             if (IsOnHex(unitHex, SiteLookup[targetSite].RootHex))
             {
-                if (TryDeliver(unitPack, siteMats) && SkillXpLookup.HasComponent(entity))
+                if (TryDeliver(unitPack, siteMats))
                 {
-                    var xp = SkillXpLookup[entity];
-                    int next = xp.Get(SkillKind.Construction) + XPPerDelivery;
-                    xp.Set(SkillKind.Construction, (ushort)(next > ushort.MaxValue ? ushort.MaxValue : next));
-                    SkillXpLookup[entity] = xp;
+                    if (SkillXpLookup.HasComponent(entity))
+                    {
+                        var xp = SkillXpLookup[entity];
+                        int next = xp.Get(SkillKind.Construction) + XPPerDelivery;
+                        xp.Set(SkillKind.Construction, (ushort)(next > ushort.MaxValue ? ushort.MaxValue : next));
+                        SkillXpLookup[entity] = xp;
+                    }
+                    if (AllMaterialsDelivered(siteMats) && TaskLookup.HasBuffer(entity))
+                        TaskMemoryOps.MarkHead(TaskLookup[entity], TaskState.Completed);
                 }
                 return;
             }
@@ -107,6 +114,13 @@ namespace RareIcon
             if (!HexLookup.TryGetValue(unitHex, out var tile)) return false;
             if (!HexOccupantLookup.HasComponent(tile)) return false;
             return HexOccupantLookup[tile].Building == Capital;
+        }
+
+        static bool AllMaterialsDelivered(DynamicBuffer<ConstructionMaterial> mats)
+        {
+            for (int j = 0; j < mats.Length; j++)
+                if (mats[j].Delivered < mats[j].Needed) return false;
+            return true;
         }
 
         static bool CarriesMatchingMaterial(DynamicBuffer<PackSlot> pack, DynamicBuffer<ConstructionMaterial> mats)

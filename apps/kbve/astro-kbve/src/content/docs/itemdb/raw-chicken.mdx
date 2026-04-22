@@ -1,0 +1,25 @@
+---
+title: 'Raw Chicken'
+description: 'Plucked raw chicken meat — cook before eating.'
+ref: 'raw-chicken'
+key: 518
+id: '01KPTSDW05751DV6FHW7P5BBHX'
+name: 'Raw Chicken'
+type_flags: 72
+rarity: 'common'
+stackable: true
+max_stack: 20
+buy_price: 6
+pool_group: 'food'
+food:
+  restore_energy: 9
+compress:
+  target_ref: 'meal'
+  ratio: 100
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

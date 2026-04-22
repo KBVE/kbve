@@ -19,6 +19,42 @@ namespace RareIcon
         {
             ProcessReleases(ref state);
             AutoShelterKing(ref state);
+            AutoReleaseRelief(ref state);
+            AutoShelterRelief(ref state);
+        }
+
+        void AutoShelterRelief(ref SystemState state)
+        {
+            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
+
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
+
+            state.Dependency = new AutoShelterReliefJob
+            {
+                HexLookup            = hexLookup.Lookup,
+                OccupantLookup       = SystemAPI.GetComponentLookup<HexOccupant>(true),
+                ProvidesFoodLookup   = SystemAPI.GetComponentLookup<ProvidesFood>(true),
+                ProvidesSleepLookup  = SystemAPI.GetComponentLookup<ProvidesSleep>(true),
+                ProvidesHealingLookup= SystemAPI.GetComponentLookup<ProvidesHealing>(true),
+                CooldownLookup       = SystemAPI.GetComponentLookup<ShelterCooldown>(true),
+                Ecb                  = ecb.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
+        }
+
+        void AutoReleaseRelief(ref SystemState state)
+        {
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
+
+            uint nowTick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
+            state.Dependency = new AutoReleaseReliefJob
+            {
+                NowTick    = nowTick,
+                PackLookup = SystemAPI.GetBufferLookup<PackSlot>(true),
+                Ecb        = ecb.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
         }
 
         void ProcessReleases(ref SystemState state)
@@ -105,6 +141,110 @@ namespace RareIcon
         void Execute(Entity entity, [ChunkIndexInQuery] int chunkIdx)
         {
             Ecb.DestroyEntity(chunkIdx, entity);
+        }
+    }
+
+    [BurstCompile]
+    [WithAll(typeof(ReliefIntent), typeof(Faction))]
+    [WithNone(typeof(ShelteredInside), typeof(ControlledUnitTag), typeof(KingTag), typeof(GarrisonPost))]
+    public partial struct AutoShelterReliefJob : IJobEntity
+    {
+        [ReadOnly] public NativeHashMap<int2, Entity>       HexLookup;
+        [ReadOnly] public ComponentLookup<HexOccupant>      OccupantLookup;
+        [ReadOnly] public ComponentLookup<ProvidesFood>     ProvidesFoodLookup;
+        [ReadOnly] public ComponentLookup<ProvidesSleep>    ProvidesSleepLookup;
+        [ReadOnly] public ComponentLookup<ProvidesHealing>  ProvidesHealingLookup;
+        [ReadOnly] public ComponentLookup<ShelterCooldown>  CooldownLookup;
+
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity entity,
+                     [ChunkIndexInQuery] int chunkIdx,
+                     in Faction faction,
+                     in ReliefIntent relief,
+                     in UnitMovement movement)
+        {
+            if (faction.Value != FactionType.Player) return;
+            if (relief.Kind == ReliefKind.None) return;
+            if (!movement.CurrentHex.Equals(movement.TargetHex)) return;
+
+            if (CooldownLookup.HasComponent(entity))
+            {
+                var cd = CooldownLookup[entity];
+                if (cd.WanderStepAtRelease == movement.WanderStep) return;
+            }
+
+            if (!HexLookup.TryGetValue(movement.CurrentHex, out var tile)) return;
+            if (!OccupantLookup.HasComponent(tile)) return;
+            var building = OccupantLookup[tile].Building;
+            if (building == Entity.Null) return;
+
+            bool matches;
+            switch (relief.Kind)
+            {
+                case ReliefKind.Eat:              matches = ProvidesFoodLookup.HasComponent(building); break;
+                case ReliefKind.Sleep:            matches = ProvidesSleepLookup.HasComponent(building); break;
+                case ReliefKind.Heal:             matches = ProvidesHealingLookup.HasComponent(building)
+                                                          || ProvidesSleepLookup.HasComponent(building); break;
+                case ReliefKind.ReturnToCapital:  matches = ProvidesFoodLookup.HasComponent(building)
+                                                          || ProvidesSleepLookup.HasComponent(building); break;
+                case ReliefKind.SeekAid:          matches = ProvidesHealingLookup.HasComponent(building); break;
+                default: matches = false; break;
+            }
+            if (!matches) return;
+
+            Ecb.AddComponent(chunkIdx, entity, new ShelteredInside { Host = building });
+            Ecb.AddComponent<DisableRendering>(chunkIdx, entity);
+        }
+    }
+
+    [BurstCompile]
+    [WithAll(typeof(ShelteredInside), typeof(ReliefIntent))]
+    [WithNone(typeof(KingTag), typeof(ControlledUnitTag))]
+    public partial struct AutoReleaseReliefJob : IJobEntity
+    {
+        const uint ShelterStuckTimeoutTicks = 30000u;
+
+        public uint NowTick;
+        [ReadOnly] public BufferLookup<PackSlot> PackLookup;
+
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity entity,
+                     [ChunkIndexInQuery] int chunkIdx,
+                     in ReliefIntent relief,
+                     in UnitMovement movement)
+        {
+            bool releaseNatural = relief.Kind == ReliefKind.None;
+            bool releaseStuck   = !releaseNatural
+                               && relief.StartTick != 0u
+                               && (NowTick - relief.StartTick) > ShelterStuckTimeoutTicks
+                               && PackLookup.HasBuffer(entity)
+                               && !HasFood(PackLookup[entity]);
+
+            if (!releaseNatural && !releaseStuck) return;
+
+            Ecb.RemoveComponent<ShelteredInside>(chunkIdx, entity);
+            Ecb.RemoveComponent<DisableRendering>(chunkIdx, entity);
+            Ecb.AddComponent(chunkIdx, entity, new ShelterCooldown
+            {
+                WanderStepAtRelease = movement.WanderStep,
+            });
+
+            if (releaseStuck)
+            {
+                Ecb.SetComponent(chunkIdx, entity, default(ReliefIntent));
+            }
+        }
+
+        static bool HasFood(DynamicBuffer<PackSlot> pack)
+        {
+            for (int i = 0; i < pack.Length; i++)
+            {
+                if (pack[i].Count == 0) continue;
+                if (FoodItems.IsFood(pack[i].ItemId)) return true;
+            }
+            return false;
         }
     }
 

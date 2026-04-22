@@ -27,7 +27,7 @@ namespace RareIcon
 
         VisualElement _root, _panel;
         Label _titleLabel, _ownerLabel, _healthLabel, _productionLabel, _storageLabel;
-        Button _releaseBtn;
+        Button _releaseBtn, _demolishBtn, _upgradeBtn;
         Entity _target;
 
         [Inject]
@@ -64,10 +64,22 @@ namespace RareIcon
             _productionLabel = _root.Q<Label>("inspector-production");
             _storageLabel    = _root.Q<Label>("inspector-storage");
             _releaseBtn      = _root.Q<Button>("inspector-release");
+            _demolishBtn     = _root.Q<Button>("inspector-demolish");
+            _upgradeBtn      = _root.Q<Button>("inspector-upgrade");
 
             _titleLabel.text = _locale.Get("inspector.title");
             _releaseBtn.text = _locale.Get("inspector.release_king");
             _releaseBtn.clicked += RequestRelease;
+            if (_demolishBtn != null)
+            {
+                _demolishBtn.text = _locale.Get("inspector.demolish");
+                _demolishBtn.clicked += RequestDemolish;
+            }
+            if (_upgradeBtn != null)
+            {
+                _upgradeBtn.text = _locale.Get("inspector.upgrade");
+                _upgradeBtn.clicked += RequestUpgrade;
+            }
             _root.Q<Button>("inspector-close").clicked += Close;
 
             // Stop the panel's clicks from falling through to the map below.
@@ -113,6 +125,34 @@ namespace RareIcon
             em.AddComponentData(req, new ReleaseShelterRequest { Host = _target });
         }
 
+        void RequestDemolish()
+        {
+            if (_target == Entity.Null) return;
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.HasComponent<Building>(_target)) return;
+            if (em.GetComponentData<Building>(_target).Type == BuildingType.Capital) return;
+            var req = em.CreateEntity();
+            em.AddComponentData(req, new DemolishRequest { Target = _target });
+            Close();
+        }
+
+        void RequestUpgrade()
+        {
+            if (_target == Entity.Null) return;
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.HasComponent<Building>(_target)) return;
+            if (!em.HasComponent<BuildingTier>(_target)) return;
+            byte type = em.GetComponentData<Building>(_target).Type;
+            byte tier = em.GetComponentData<BuildingTier>(_target).Value;
+            if (!BuildingDB.HasUpgrade(type, tier)) return;
+            var req = em.CreateEntity();
+            em.AddComponentData(req, new BuildingUpgradeRequest { Target = _target });
+        }
+
         void Refresh()
         {
             if (_titleLabel == null) return;
@@ -129,7 +169,12 @@ namespace RareIcon
             }
 
             var b = em.GetComponentData<Building>(_target);
-            _titleLabel.text = _locale.Get(BuildingDB.GetLocaleKey(b.Type));
+            byte tier = em.HasComponent<BuildingTier>(_target)
+                ? em.GetComponentData<BuildingTier>(_target).Value
+                : (byte)0;
+            _titleLabel.text = _locale.Get(BuildingDB.GetTieredLocaleKey(b.Type, tier));
+            if (_upgradeBtn != null)
+                SetHidden(_upgradeBtn, !BuildingDB.HasUpgrade(b.Type, tier));
 
             var ownerSb = ZString.CreateStringBuilder();
             try

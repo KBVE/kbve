@@ -44,16 +44,16 @@ namespace RareIcon
             {
                 case BuildingType.Farm:
                     Ecb.AddComponent<FarmTag>(chunkIdx, entity);
-                    // FarmInitSystem adds FarmLedger in the next init tick.
                     break;
                 case BuildingType.Barracks:
                     Ecb.AddComponent<BarracksTag>(chunkIdx, entity);
                     Ecb.AddComponent(chunkIdx, entity, new BarracksSupplyStatus { IsNeedy = 1 });
-                    // BarracksInitSystem adds BarracksLedger in the next init tick.
+                    Ecb.AddComponent(chunkIdx, entity, new ProvidesHealing { Priority = 2 });
+                    Ecb.AddComponent(chunkIdx, entity, new ProvidesSleep   { Capacity = 5 });
+                    Ecb.AddComponent(chunkIdx, entity, new ProvidesFood    { Priority = 1 });
                     break;
                 case BuildingType.Furnace:
                     Ecb.AddComponent<FurnaceTag>(chunkIdx, entity);
-                    // FurnaceInitSystem adds FurnaceLedger in the next init tick.
                     break;
                 case BuildingType.GoblinCave:
                     Ecb.AddComponent<GoblinCaveTag>(chunkIdx, entity);
@@ -71,6 +71,41 @@ namespace RareIcon
                     });
                     Ecb.AddBuffer<GoblinCaveLedger>(chunkIdx, entity);
                     break;
+                case BuildingType.Inn:
+                    Ecb.AddComponent<InnTag>(chunkIdx, entity);
+                    Ecb.AddComponent(chunkIdx, entity, new ProvidesFood  { Priority = 1 });
+                    Ecb.AddComponent(chunkIdx, entity, new ProvidesSleep { Capacity = 5 });
+                    break;
+                case BuildingType.Market:
+                    Ecb.AddComponent<MarketTag>(chunkIdx, entity);
+                    Ecb.AddComponent(chunkIdx, entity, new BuildingTier { Value = 0 });
+                    break;
+                case BuildingType.Dock:
+                    Ecb.AddComponent<DockTag>(chunkIdx, entity);
+                    // Boat-build cadence: every 2 turns drain 1 Timber
+                    // from Capital, emit a FishingBoat on an adjacent hex.
+                    Ecb.AddComponent(chunkIdx, entity, new DockProduction
+                    {
+                        LastProducedTurn = 0,
+                        CadenceTurns     = 2,
+                        TimberCost       = 1,
+                    });
+                    // Passive fishing — outputs 2 Meat every 20s into the
+                    // Capital via the existing passive-production pipeline.
+                    Ecb.AddComponent(chunkIdx, entity, new PassiveProduction
+                    {
+                        OutputId      = (ushort)ItemId.Meat,
+                        OutputAmount  = 2,
+                        CycleEndsAt   = 0f,
+                        CycleDuration = 20f,
+                    });
+                    Ecb.AddComponent(chunkIdx, entity, new ProvidesFood { Priority = 1 });
+                    // Manning bonus — DockTenderScanSystem writes 1 while
+                    // a Craftsman-intent unit stands on the dock hex,
+                    // DockProductionSystem halves the cadence while the
+                    // multiplier is 1.
+                    Ecb.AddComponent(chunkIdx, entity, new TenderMultiplier { Value = 0f });
+                    break;
                 case BuildingType.Outpost:
                     Ecb.AddComponent<OutpostTag>(chunkIdx, entity);
                     Ecb.AddComponent(chunkIdx, entity, new TerritoryEmitter
@@ -79,6 +114,50 @@ namespace RareIcon
                         Radius       = 5,
                         OwnerFaction = building.OwnerFaction,
                     });
+                    Ecb.AddComponent(chunkIdx, entity, new OutpostVolley
+                    {
+                        CooldownSeconds    = 30f,
+                        TimeSinceVolley    = 30f,
+                        Range              = 15f,
+                        ArrowsPerVolley    = 20,
+                        ArrowCost          = 5,
+                        SpreadHalfAngleRad = 0.52f,
+                        ProjectileSpeed    = 14f,
+                        ProjectileLifetime = 3f,
+                        DamagePerArrow     = 8f,
+                    });
+                    Ecb.AddComponent(chunkIdx, entity, new OutpostArrowPool { Stock = 100 });
+                    Ecb.AddComponent(chunkIdx, entity, new ProvidesFood    { Priority = 1 });
+                    Ecb.AddComponent(chunkIdx, entity, new ProvidesSleep   { Capacity = 10 });
+                    Ecb.AddComponent(chunkIdx, entity, new ProvidesHealing { Priority = 1 });
+                    break;
+                case BuildingType.Lumbercamp:
+                    Ecb.AddComponent<LumbercampTag>(chunkIdx, entity);
+                    Ecb.AddBuffer<LumbercampLedger>(chunkIdx, entity);
+                    Ecb.AddComponent(chunkIdx, entity, new TenderMultiplier { Value = 0f });
+                    var lumberRecipes = Ecb.AddBuffer<ProductionRecipe>(chunkIdx, entity);
+                    lumberRecipes.Add(new ProductionRecipe
+                    {
+                        Output1Id = (ushort)ItemId.WoodLog, Output1Amount = 1,
+                        CycleDuration = 3f,
+                        CycleEndsAt   = 0f,
+                    });
+                    var lumberExports = Ecb.AddBuffer<SurplusExport>(chunkIdx, entity);
+                    lumberExports.Add(new SurplusExport { ItemId = (ushort)ItemId.WoodLog, Floor = 0 });
+                    break;
+                case BuildingType.MiningPit:
+                    Ecb.AddComponent<MiningPitTag>(chunkIdx, entity);
+                    Ecb.AddBuffer<MiningPitLedger>(chunkIdx, entity);
+                    Ecb.AddComponent(chunkIdx, entity, new TenderMultiplier { Value = 0f });
+                    var pitRecipes = Ecb.AddBuffer<ProductionRecipe>(chunkIdx, entity);
+                    pitRecipes.Add(new ProductionRecipe
+                    {
+                        Output1Id = (ushort)ItemId.Stone, Output1Amount = 1,
+                        CycleDuration = 3f,
+                        CycleEndsAt   = 0f,
+                    });
+                    var pitExports = Ecb.AddBuffer<SurplusExport>(chunkIdx, entity);
+                    pitExports.Add(new SurplusExport { ItemId = (ushort)ItemId.Stone, Floor = 0 });
                     break;
             }
 

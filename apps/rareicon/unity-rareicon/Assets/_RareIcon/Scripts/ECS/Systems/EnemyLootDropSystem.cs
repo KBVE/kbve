@@ -68,7 +68,7 @@ namespace RareIcon
                         (ushort)(1 + (int)(r1 * 1.99f)));
                     break;
                 case UnitType.Bandit:
-                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.BanditCoin,
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.Coin,
                         (ushort)(1 + (int)(r0 * 2.99f)));
                     if (r1 < 0.35f) Append(Ecb, chunkIdx, hex, (ushort)ItemId.Hood, 1);
                     break;
@@ -82,6 +82,12 @@ namespace RareIcon
                     if      (r1 < 0.10f) Append(Ecb, chunkIdx, hex, (ushort)ItemId.UnknownTome,   1);
                     else if (r1 < 0.30f) Append(Ecb, chunkIdx, hex, (ushort)ItemId.UnknownScroll, 1);
                     else if (r1 < 0.65f) Append(Ecb, chunkIdx, hex, (ushort)ItemId.UnknownKey,    1);
+                    break;
+                case UnitType.Whale:
+                    // One rendered oil + 400 meat; inventory haulers shuttle
+                    // the stack back to Capital over multiple trips.
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.Oil,  1);
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.Meat, 400);
                     break;
             }
         }

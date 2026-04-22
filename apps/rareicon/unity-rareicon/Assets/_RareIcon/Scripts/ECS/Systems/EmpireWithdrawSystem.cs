@@ -6,80 +6,43 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Hungry Player unit on a Capital-claimed hex submits a Pickup reservation for one edible item from Capital. PackApplySystem credits the pack once resolver grants.</summary>
+    /// <summary>Hungry Player unit on any ProvidesFood-tagged building footprint submits a Pickup reservation for one edible item from that building's ledger. Works for Capital/Farm/Inn via per-type BufferLookup branching. PackApplySystem credits the pack once resolver grants.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(EmpireDepositSystem))]
     public partial struct EmpireWithdrawSystem : ISystem
     {
-        const float HungerTrigger = 0.50f;
-
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<LogisticsDBSingleton>();
         }
 
-        public void OnDestroy(ref SystemState state) { }
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
         public void OnUpdate(ref SystemState state)
         {
-            if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
-            if (!SystemAPI.HasBuffer<CapitalLedger>(capital)) return;
-            if (!SystemAPI.TryGetSingleton<ItemDBSingleton>(out var itemDb)) return;
 
             uint tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
 
-            var snapshot = new NativeList<FoodSlotSnapshot>(8, Allocator.TempJob);
-
-            var snapshotHandle = new CapitalFoodSnapshotJob
-            {
-                Capital   = capital,
-                InvLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true),
-                Snapshot  = snapshot,
-            }.Schedule(state.Dependency);
-
             ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
-            var dep = JobHandle.CombineDependencies(snapshotHandle, db.PipelineHandle);
+            var dep    = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
 
             var handle = new EmpireWithdrawJob
             {
-                Capital        = capital,
-                Tick           = tick,
-                HexLookup      = hexLookup.Lookup,
-                OccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
-                CapitalFoods   = snapshot.AsDeferredJobArray(),
-                ItemDb         = itemDb,
-                Reservations   = db.Reservations.AsParallelWriter(),
+                Tick                = tick,
+                HexLookup           = hexLookup.Lookup,
+                OccupantLookup      = SystemAPI.GetComponentLookup<HexOccupant>(true),
+                BuildingLookup      = SystemAPI.GetComponentLookup<Building>(true),
+                ProvidesFoodLookup  = SystemAPI.GetComponentLookup<ProvidesFood>(true),
+                CapitalLedgerLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true),
+                FarmLedgerLookup    = SystemAPI.GetBufferLookup<FarmLedger>(true),
+                InnLedgerLookup     = SystemAPI.GetBufferLookup<InnLedger>(true),
+                Reservations        = db.Reservations.AsParallelWriter(),
             }.ScheduleParallel(dep);
 
             db.PipelineHandle = handle;
-            state.Dependency = snapshot.Dispose(handle);
-        }
-    }
-
-    public struct FoodSlotSnapshot
-    {
-        public ushort ItemId;
-    }
-
-    /// <summary>Burst IJob that reads Capital.CapitalLedger and emits one FoodSlotSnapshot per non-zero food slot.</summary>
-    [BurstCompile]
-    public struct CapitalFoodSnapshotJob : IJob
-    {
-        public Entity Capital;
-        [ReadOnly] public BufferLookup<CapitalLedger> InvLookup;
-        public NativeList<FoodSlotSnapshot> Snapshot;
-
-        public void Execute()
-        {
-            if (!InvLookup.HasBuffer(Capital)) return;
-            var inv = InvLookup[Capital];
-            for (int i = 0; i < inv.Length; i++)
-            {
-                if (inv[i].Count == 0) continue;
-                if (!FoodItems.IsFood(inv[i].ItemId)) continue;
-                Snapshot.Add(new FoodSlotSnapshot { ItemId = inv[i].ItemId });
-            }
+            state.Dependency  = handle;
         }
     }
 
@@ -88,13 +51,15 @@ namespace RareIcon
     {
         const float HungerTrigger = 0.50f;
 
-        public Entity Capital;
-        public uint   Tick;
+        public uint Tick;
 
-        [ReadOnly] public NativeHashMap<int2, Entity>  HexLookup;
-        [ReadOnly] public ComponentLookup<HexOccupant> OccupantLookup;
-        [ReadOnly] public NativeArray<FoodSlotSnapshot> CapitalFoods;
-        [ReadOnly] public ItemDBSingleton ItemDb;
+        [ReadOnly] public NativeHashMap<int2, Entity>       HexLookup;
+        [ReadOnly] public ComponentLookup<HexOccupant>      OccupantLookup;
+        [ReadOnly] public ComponentLookup<Building>         BuildingLookup;
+        [ReadOnly] public ComponentLookup<ProvidesFood>     ProvidesFoodLookup;
+        [ReadOnly] public BufferLookup<CapitalLedger>       CapitalLedgerLookup;
+        [ReadOnly] public BufferLookup<FarmLedger>          FarmLedgerLookup;
+        [ReadOnly] public BufferLookup<InnLedger>           InnLedgerLookup;
 
         public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
@@ -107,15 +72,50 @@ namespace RareIcon
             if (faction.Value != FactionType.Player) return;
             if (hunger.Max <= 0f || hunger.Value / hunger.Max < HungerTrigger) return;
             if (HasEdible(unitPack)) return;
-            if (CapitalFoods.Length == 0) return;
 
             if (!HexLookup.TryGetValue(movement.CurrentHex, out var tile)) return;
             if (!OccupantLookup.HasComponent(tile)) return;
-            if (OccupantLookup[tile].Building != Capital) return;
 
-            ushort take = CapitalFoods[0].ItemId;
+            Entity building = OccupantLookup[tile].Building;
+            if (!ProvidesFoodLookup.HasComponent(building)) return;
+            if (!BuildingLookup.HasComponent(building)) return;
 
-            Reservations.Add(ReservationOps.Key(Capital, take), ReservationOps.Pickup(entity, 1, Tick));
+            byte type = BuildingLookup[building].Type;
+            if (!TryFirstFood(type, building, out ushort takeId)) return;
+
+            Reservations.Add(ReservationOps.Key(building, takeId), ReservationOps.Pickup(entity, 1, Tick));
+        }
+
+        bool TryFirstFood(byte type, Entity building, out ushort itemId)
+        {
+            itemId = 0;
+            switch (type)
+            {
+                case BuildingType.Capital:
+                    if (!CapitalLedgerLookup.HasBuffer(building)) return false;
+                    return FirstFoodIn(CapitalLedgerLookup[building].Reinterpret<BankLedgerBase>(), out itemId);
+                case BuildingType.Farm:
+                    if (!FarmLedgerLookup.HasBuffer(building)) return false;
+                    return FirstFoodIn(FarmLedgerLookup[building].Reinterpret<BankLedgerBase>(), out itemId);
+                case BuildingType.Inn:
+                    if (!InnLedgerLookup.HasBuffer(building)) return false;
+                    return FirstFoodIn(InnLedgerLookup[building].Reinterpret<BankLedgerBase>(), out itemId);
+                default:
+                    return false;
+            }
+        }
+
+        static bool FirstFoodIn(DynamicBuffer<BankLedgerBase> buf, out ushort itemId)
+        {
+            for (int i = 0; i < buf.Length; i++)
+            {
+                if (buf[i].Count == 0) continue;
+                if (!FoodItems.IsFood(buf[i].ItemId)) continue;
+                itemId = buf[i].ItemId;
+                return true;
+            }
+            itemId = 0;
+            return false;
         }
 
         static bool HasEdible(in DynamicBuffer<PackSlot> inv)

@@ -47,7 +47,7 @@ namespace RareIcon
         public ushort Count;
     }
 
-    /// <summary>Barracks forward arsenal — BanditCoin + Meal/food staged for recruitment, Arrow output from BarracksCrafting, material buffers for future weapon-craft recipes.</summary>
+    /// <summary>Barracks forward arsenal — Coin + Meal/food staged for recruitment, Arrow output from BarracksCrafting, material buffers for future weapon-craft recipes.</summary>
     [InternalBufferCapacity(8)]
     [StructLayout(LayoutKind.Sequential)]
     public struct BarracksLedger : IBankLedger
@@ -61,6 +61,56 @@ namespace RareIcon
     [InternalBufferCapacity(8)]
     [StructLayout(LayoutKind.Sequential)]
     public struct GoblinCaveLedger : IBankLedger
+    {
+        public Ulid   Uid;
+        public ushort ItemId;
+        public ushort Count;
+    }
+
+    /// <summary>Inn larder. Cooked food + meals staged for guests (sleepers + diners). Filled by Looter haulers from the Capital surplus; drained by EmpireWithdrawSystem when a hungry unit walks in.</summary>
+    [InternalBufferCapacity(8)]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct InnLedger : IBankLedger
+    {
+        public Ulid   Uid;
+        public ushort ItemId;
+        public ushort Count;
+    }
+
+    /// <summary>Market shop-floor stock. Goods staged for sale (Sell orders) and goods bought-in awaiting pickup (Buy orders). Separate from CapitalLedger so the market's inventory doesn't commingle with the empire's main stockpile until the haul leg runs.</summary>
+    [InternalBufferCapacity(8)]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct MarketLedger : IBankLedger
+    {
+        public Ulid   Uid;
+        public ushort ItemId;
+        public ushort Count;
+    }
+
+    /// <summary>Outpost stash. Garrisoned Guards draw food + MedKit from here; Looter haulers refill from the Capital surplus. Keeps forward bases self-sufficient so defenders don't have to walk back to the Capital mid-siege.</summary>
+    [InternalBufferCapacity(8)]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct OutpostLedger : IBankLedger
+    {
+        public Ulid   Uid;
+        public ushort ItemId;
+        public ushort Count;
+    }
+
+    /// <summary>Lumbercamp output stock (WoodLog + Branches + Leaves). Produced by LumbercampProductionSystem when a Lumberjack tends the camp; BuildingSurplusTransferSystem drains to Capital.</summary>
+    [InternalBufferCapacity(4)]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct LumbercampLedger : IBankLedger
+    {
+        public Ulid   Uid;
+        public ushort ItemId;
+        public ushort Count;
+    }
+
+    /// <summary>Mining Pit output stock (Stone, eventually ores). Produced by MiningPitProductionSystem when a Miner tends the pit; BuildingSurplusTransferSystem drains to Capital.</summary>
+    [InternalBufferCapacity(4)]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct MiningPitLedger : IBankLedger
     {
         public Ulid   Uid;
         public ushort ItemId;

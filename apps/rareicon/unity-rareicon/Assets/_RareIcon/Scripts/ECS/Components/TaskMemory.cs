@@ -23,6 +23,21 @@ namespace RareIcon
         public uint   IssuedTick;
     }
 
+    /// <summary>Burst-safe helpers for mutating a unit's TaskMemory head. Used by executor systems (Harvest, Builder, Looter, Barracks supply) to flip the head's State to Completed/Invalidated on their work-done boundary.</summary>
+    public static class TaskMemoryOps
+    {
+        public static void MarkHead(DynamicBuffer<TaskMemory> tasks, byte newState)
+        {
+            if (tasks.Length == 0) return;
+            var head = tasks[0];
+            if (head.State == TaskState.Active || head.State == TaskState.Pending)
+            {
+                head.State = newState;
+                tasks[0]   = head;
+            }
+        }
+    }
+
     /// <summary>Sub-kind for a TaskOffer — differentiates Looter haul variants (deliver / fetch / arrow / forage) and Builder work types (site / damaged-repair) that share a Kind but need distinct gating at scoring time.</summary>
     public static class OfferVariant
     {

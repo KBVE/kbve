@@ -31,6 +31,7 @@ namespace RareIcon
         readonly CameraService _camera;
         readonly ActivityFeedService _activity;
         readonly ISubscriber<HexHoverMessage> _hoverSub;
+        readonly IPublisher<PossessUnitMessage> _possessPub;
 
         readonly CompositeDisposable _disposables = new();
 
@@ -67,7 +68,8 @@ namespace RareIcon
             BuildModeController buildMode,
             CameraService camera,
             ActivityFeedService activity,
-            ISubscriber<HexHoverMessage> hoverSub)
+            ISubscriber<HexHoverMessage> hoverSub,
+            IPublisher<PossessUnitMessage> possessPub)
         {
             _locale = locale;
             _panelManager = panelManager;
@@ -82,6 +84,7 @@ namespace RareIcon
             _camera = camera;
             _activity = activity;
             _hoverSub = hoverSub;
+            _possessPub = possessPub;
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
@@ -547,8 +550,10 @@ namespace RareIcon
                 ComponentType.ReadOnly<LocalTransform>());
             if (query.CalculateEntityCount() == 0) return;
             using var arr = query.ToEntityArray(Allocator.Temp);
-            var t = em.GetComponentData<LocalTransform>(arr[0]);
+            var king = arr[0];
+            var t = em.GetComponentData<LocalTransform>(king);
             _camera.JumpTo(new float2(t.Position.x, t.Position.y));
+            _possessPub?.Publish(new PossessUnitMessage(king));
         }
 
         public void Dispose()

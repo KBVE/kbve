@@ -1,0 +1,27 @@
+---
+title: 'Dragonfruit'
+description: 'An exotic sweet fruit with scaly skin.'
+ref: 'dragonfruit'
+key: 506
+id: '01KPTSDW04P1KQ7FC0RYTFV4PC'
+name: 'Dragonfruit'
+type_flags: 72
+rarity: 'uncommon'
+stackable: true
+max_stack: 24
+buy_price: 20
+pool_group: 'food'
+food:
+  restore_energy: 22
+skilling:
+  skill: 'foraging'
+compress:
+  target_ref: 'meal'
+  ratio: 100
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

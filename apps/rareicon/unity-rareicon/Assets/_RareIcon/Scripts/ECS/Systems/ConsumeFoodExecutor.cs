@@ -38,6 +38,7 @@ namespace RareIcon
     public partial struct ConsumeFoodJob : IJobEntity
     {
         const float SatedDurationSec = 60f;
+        const int   MaxConsumePerTick = 10;
 
         [ReadOnly] public ItemDBSingleton Db;
 
@@ -103,21 +104,32 @@ namespace RareIcon
                 return;
             }
 
-            // Ordinary edible fallback — pop one, reduce Hunger by its
-            // energy value. Raw food values are halved vs pre-bulk
-            // balance so Meal remains the economically-preferred path.
-            for (int i = 0; i < inv.Length; i++)
+            // Ordinary edible burst — pop up to MaxConsumePerTick items
+            // until hunger is below the exit threshold OR inventory has no
+            // more edible. Replaces the single-pop-per-tick loop so a
+            // freshly-arrived hungry unit clears relief in one frame
+            // instead of N frames, eliminating the starvation-mid-meal race.
+            float exitAbs = hunger.Max * ReliefSystem.HungerExit;
+            int eaten = 0;
+            while (eaten < MaxConsumePerTick && hunger.Value > exitAbs)
             {
-                var slot = inv[i];
-                if (slot.Count == 0) continue;
-                float gain = Db.EnergyValue(slot.ItemId);
-                if (gain <= 0f) continue;
+                bool ate = false;
+                for (int i = 0; i < inv.Length; i++)
+                {
+                    var slot = inv[i];
+                    if (slot.Count == 0) continue;
+                    float gain = Db.EnergyValue(slot.ItemId);
+                    if (gain <= 0f) continue;
 
-                slot.Count -= 1;
-                inv[i] = slot;
+                    slot.Count -= 1;
+                    inv[i] = slot;
 
-                hunger.Value = math.max(0f, hunger.Value - gain);
-                return;
+                    hunger.Value = math.max(0f, hunger.Value - gain);
+                    eaten++;
+                    ate = true;
+                    break;
+                }
+                if (!ate) return;
             }
         }
     }

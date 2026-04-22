@@ -41,6 +41,7 @@ namespace RareIcon
                 PackLookup     = SystemAPI.GetBufferLookup<PackSlot>(false),
                 CapitalLookup  = SystemAPI.GetBufferLookup<CapitalLedger>(true),
                 BarracksLookup = SystemAPI.GetBufferLookup<BarracksLedger>(true),
+                TaskLookup     = SystemAPI.GetBufferLookup<TaskMemory>(false),
                 Reservations   = db.Reservations.AsParallelWriter(),
             }.Schedule(dep);
 
@@ -64,7 +65,8 @@ namespace RareIcon
         [ReadOnly] public BufferLookup<CapitalLedger>         CapitalLookup;
         [ReadOnly] public BufferLookup<BarracksLedger>        BarracksLookup;
 
-        [NativeDisableParallelForRestriction] public BufferLookup<PackSlot> PackLookup;
+        [NativeDisableParallelForRestriction] public BufferLookup<PackSlot>   PackLookup;
+        [NativeDisableParallelForRestriction] public BufferLookup<TaskMemory> TaskLookup;
 
         public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
@@ -89,7 +91,9 @@ namespace RareIcon
 
             if (here.Equals(rootHex))
             {
-                DepositSupply(ref unitPack, storage, cap, target, entity, Tick, ref Reservations);
+                bool deposited = DepositSupply(ref unitPack, storage, cap, target, entity, Tick, ref Reservations);
+                if (deposited && TaskLookup.HasBuffer(entity))
+                    TaskMemoryOps.MarkHead(TaskLookup[entity], TaskState.Completed);
                 return;
             }
 
@@ -99,12 +103,12 @@ namespace RareIcon
             int total = BankLedgerOps.TotalCount(storage);
             if (total >= cap) return;
 
-            int coinShortfall = math.max(0, prod.CoinCost - BankLedgerOps.CountOf(storage, (ushort)ItemId.BanditCoin));
+            int coinShortfall = math.max(0, prod.CoinCost - BankLedgerOps.CountOf(storage, (ushort)ItemId.Coin));
             int foodShortfall = math.max(0, prod.FoodCost - FoodItems.Count(storage));
 
             var capitalInv = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
-            if (coinShortfall > 0)      TryReserveOne(capitalInv, (ushort)ItemId.BanditCoin, Capital, entity, Tick, ref Reservations);
-            else if (foodShortfall > 0) TryReserveFood(capitalInv, Capital, entity, Tick, ref Reservations);
+            if (coinShortfall > 0)      TryReserveBatch(capitalInv, (ushort)ItemId.Coin, coinShortfall, Capital, entity, Tick, ref Reservations);
+            else if (foodShortfall > 0) TryReserveFoodBatch(capitalInv, foodShortfall, Capital, entity, Tick, ref Reservations);
         }
 
         bool IsOnCapital(int2 here)
@@ -114,33 +118,41 @@ namespace RareIcon
             return OccupantLookup[tile].Building == Capital;
         }
 
-        static void TryReserveOne(in DynamicBuffer<BankLedgerBase> capInv,
-                                  ushort itemId,
-                                  Entity capital,
-                                  Entity requester,
-                                  uint tick,
-                                  ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter reservations)
+        const int BatchCap = 10;
+
+        static void TryReserveBatch(in DynamicBuffer<BankLedgerBase> capInv,
+                                    ushort itemId,
+                                    int want,
+                                    Entity capital,
+                                    Entity requester,
+                                    uint tick,
+                                    ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter reservations)
         {
-            if (BankLedgerOps.CountOf(capInv, itemId) == 0) return;
-            reservations.Add(ReservationOps.Key(capital, itemId), ReservationOps.Pickup(requester, 1, tick));
+            int available = BankLedgerOps.CountOf(capInv, itemId);
+            if (available <= 0 || want <= 0) return;
+            int take = math.min(math.min(available, want), BatchCap);
+            reservations.Add(ReservationOps.Key(capital, itemId), ReservationOps.Pickup(requester, take, tick));
         }
 
-        static void TryReserveFood(in DynamicBuffer<BankLedgerBase> capInv,
-                                   Entity capital,
-                                   Entity requester,
-                                   uint tick,
-                                   ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter reservations)
+        static void TryReserveFoodBatch(in DynamicBuffer<BankLedgerBase> capInv,
+                                        int want,
+                                        Entity capital,
+                                        Entity requester,
+                                        uint tick,
+                                        ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter reservations)
         {
-            for (int i = 0; i < capInv.Length; i++)
+            int remaining = math.min(want, BatchCap);
+            for (int i = 0; i < capInv.Length && remaining > 0; i++)
             {
                 if (capInv[i].Count == 0) continue;
                 if (!FoodItems.IsFood(capInv[i].ItemId)) continue;
-                reservations.Add(ReservationOps.Key(capital, capInv[i].ItemId), ReservationOps.Pickup(requester, 1, tick));
-                return;
+                int take = math.min((int)capInv[i].Count, remaining);
+                reservations.Add(ReservationOps.Key(capital, capInv[i].ItemId), ReservationOps.Pickup(requester, take, tick));
+                remaining -= take;
             }
         }
 
-        static void DepositSupply(ref DynamicBuffer<PackSlot> unitPack,
+        static bool DepositSupply(ref DynamicBuffer<PackSlot> unitPack,
                                   in DynamicBuffer<BankLedgerBase> storage,
                                   ushort capacity,
                                   Entity target,
@@ -149,13 +161,14 @@ namespace RareIcon
                                   ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter reservations)
         {
             int remaining = capacity - BankLedgerOps.TotalCount(storage);
-            if (remaining <= 0) return;
+            if (remaining <= 0) return false;
 
+            bool anyDeposited = false;
             for (int i = 0; i < unitPack.Length && remaining > 0; i++)
             {
                 if (unitPack[i].Count == 0) continue;
                 ushort id = unitPack[i].ItemId;
-                if (id != (ushort)ItemId.BanditCoin && !FoodItems.IsFood(id)) continue;
+                if (id != (ushort)ItemId.Coin && !FoodItems.IsFood(id)) continue;
 
                 int take = math.min(unitPack[i].Count, remaining);
                 var uslot = unitPack[i];
@@ -163,7 +176,9 @@ namespace RareIcon
                 unitPack[i] = uslot;
                 remaining -= take;
                 reservations.Add(ReservationOps.Key(target, id), ReservationOps.Deposit(requester, take, tick));
+                anyDeposited = true;
             }
+            return anyDeposited;
         }
     }
 }

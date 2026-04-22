@@ -26,6 +26,30 @@ namespace RareIcon
             int2 capitalHex = default;
             if (hasCapital) capitalHex = SystemAPI.GetComponent<Building>(capital).RootHex;
 
+            var capitalFootprint = new NativeArray<int2>(7, Allocator.TempJob);
+            if (hasCapital)
+            {
+                capitalFootprint[0] = capitalHex;
+                capitalFootprint[1] = capitalHex + new int2( 1,  0);
+                capitalFootprint[2] = capitalHex + new int2( 1, -1);
+                capitalFootprint[3] = capitalHex + new int2( 0, -1);
+                capitalFootprint[4] = capitalHex + new int2(-1,  0);
+                capitalFootprint[5] = capitalHex + new int2(-1,  1);
+                capitalFootprint[6] = capitalHex + new int2( 0,  1);
+            }
+
+            var foodHexes = new NativeList<int2>(16, Allocator.TempJob);
+            foreach (var building in SystemAPI.Query<RefRO<Building>>().WithAll<ProvidesFood>())
+                AppendFootprint(foodHexes, building.ValueRO.RootHex, building.ValueRO.Type);
+
+            var sleepHexes = new NativeList<int2>(16, Allocator.TempJob);
+            foreach (var building in SystemAPI.Query<RefRO<Building>>().WithAll<ProvidesSleep>())
+                AppendFootprint(sleepHexes, building.ValueRO.RootHex, building.ValueRO.Type);
+
+            var healHexes = new NativeList<int2>(8, Allocator.TempJob);
+            foreach (var building in SystemAPI.Query<RefRO<Building>>().WithAll<ProvidesHealing>())
+                AppendFootprint(healHexes, building.ValueRO.RootHex, building.ValueRO.Type);
+
             SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial);
 
             var wildlife = new NativeList<int2>(64, Allocator.TempJob);
@@ -57,17 +81,38 @@ namespace RareIcon
 
             var jobHandle = new UnitBehaviorJob
             {
-                HasCapital       = hasCapital,
-                CapitalHex       = capitalHex,
-                Wildlife         = wildlife.AsArray(),
-                FriendlyEmitters = emitters.AsArray(),
-                ForageHexes      = forageHexes.AsArray(),
-                SpatialHash      = spatial.Hash,
+                HasCapital        = hasCapital,
+                CapitalFootprint  = capitalFootprint,
+                FoodProviderHexes = foodHexes.AsArray(),
+                SleepProviderHexes= sleepHexes.AsArray(),
+                HealProviderHexes = healHexes.AsArray(),
+                Wildlife          = wildlife.AsArray(),
+                FriendlyEmitters  = emitters.AsArray(),
+                ForageHexes       = forageHexes.AsArray(),
+                SpatialHash       = spatial.Hash,
             }.ScheduleParallel(state.Dependency);
 
             state.Dependency = JobHandle.CombineDependencies(
-                JobHandle.CombineDependencies(wildlife.Dispose(jobHandle), emitters.Dispose(jobHandle)),
-                forageHexes.Dispose(jobHandle));
+                JobHandle.CombineDependencies(
+                    JobHandle.CombineDependencies(wildlife.Dispose(jobHandle), emitters.Dispose(jobHandle)),
+                    JobHandle.CombineDependencies(forageHexes.Dispose(jobHandle), capitalFootprint.Dispose(jobHandle))),
+                JobHandle.CombineDependencies(
+                    JobHandle.CombineDependencies(foodHexes.Dispose(jobHandle), sleepHexes.Dispose(jobHandle)),
+                    healHexes.Dispose(jobHandle)));
+        }
+
+        static void AppendFootprint(NativeList<int2> list, int2 root, byte buildingType)
+        {
+            list.Add(root);
+            if (buildingType == BuildingType.Capital)
+            {
+                list.Add(root + new int2( 1,  0));
+                list.Add(root + new int2( 1, -1));
+                list.Add(root + new int2( 0, -1));
+                list.Add(root + new int2(-1,  0));
+                list.Add(root + new int2(-1,  1));
+                list.Add(root + new int2( 0,  1));
+            }
         }
     }
 
@@ -77,7 +122,10 @@ namespace RareIcon
     public partial struct UnitBehaviorJob : IJobEntity
     {
         public bool HasCapital;
-        public int2 CapitalHex;
+        [ReadOnly] public NativeArray<int2>              CapitalFootprint;
+        [ReadOnly] public NativeArray<int2>              FoodProviderHexes;
+        [ReadOnly] public NativeArray<int2>              SleepProviderHexes;
+        [ReadOnly] public NativeArray<int2>              HealProviderHexes;
         [ReadOnly] public NativeArray<int2>              Wildlife;
         [ReadOnly] public NativeArray<TerritoryEmitter>  FriendlyEmitters;
         [ReadOnly] public NativeArray<int2>              ForageHexes;
@@ -87,7 +135,8 @@ namespace RareIcon
         const int GuardRadius  = 6;
         const int ForageRadius = 20;
 
-        void Execute(in Faction faction,
+        void Execute(Entity entity,
+                     in Faction faction,
                      in ReliefIntent relief,
                      in ProfessionIntent intent,
                      in ProfessionPriorities priorities,
@@ -101,12 +150,30 @@ namespace RareIcon
             if (goal.Priority >= GoalPriority.Order) return;
             if (goal.Priority >= GoalPriority.Flee)  return;
 
-            if (relief.Kind == ReliefKind.Sleep
-                || relief.Kind == ReliefKind.Eat
-                || relief.Kind == ReliefKind.Heal)
+            uint spread = (uint)entity.Index * 0x9E3779B1u;
+
+            if (relief.Kind == ReliefKind.Eat)
             {
-                if (HasCapital)
-                    Write(ref goal, GoalKind.ReturnToBase, GoalPriority.Return, CapitalHex);
+                if (FoodProviderHexes.Length > 0)
+                    Write(ref goal, GoalKind.ReturnToBase, GoalPriority.Return, PickClosestSpread(movement.CurrentHex, FoodProviderHexes, spread));
+                else if (HasCapital)
+                    Write(ref goal, GoalKind.ReturnToBase, GoalPriority.Return, PickClosestSpread(movement.CurrentHex, CapitalFootprint, spread));
+                return;
+            }
+            if (relief.Kind == ReliefKind.Sleep)
+            {
+                if (SleepProviderHexes.Length > 0)
+                    Write(ref goal, GoalKind.ReturnToBase, GoalPriority.Return, PickClosestSpread(movement.CurrentHex, SleepProviderHexes, spread));
+                else if (HasCapital)
+                    Write(ref goal, GoalKind.ReturnToBase, GoalPriority.Return, PickClosestSpread(movement.CurrentHex, CapitalFootprint, spread));
+                return;
+            }
+            if (relief.Kind == ReliefKind.Heal)
+            {
+                if (HealProviderHexes.Length > 0)
+                    Write(ref goal, GoalKind.ReturnToBase, GoalPriority.Return, PickClosestSpread(movement.CurrentHex, HealProviderHexes, spread));
+                else if (HasCapital)
+                    Write(ref goal, GoalKind.ReturnToBase, GoalPriority.Return, PickClosestSpread(movement.CurrentHex, CapitalFootprint, spread));
                 return;
             }
 
@@ -128,7 +195,7 @@ namespace RareIcon
             if (bagStatus.IsFull)
             {
                 if (HasCapital)
-                    Write(ref goal, GoalKind.ReturnToBase, GoalPriority.Return, CapitalHex);
+                    Write(ref goal, GoalKind.ReturnToBase, GoalPriority.Return, PickClosestSpread(movement.CurrentHex, CapitalFootprint, spread));
                 return;
             }
 
@@ -181,6 +248,19 @@ namespace RareIcon
         static void Write(ref MovementGoal goal, byte kind, byte priority, int2 target)
         {
             goal = new MovementGoal { Kind = kind, Priority = priority, TargetHex = target };
+        }
+
+        static int2 PickClosestSpread(int2 from, NativeArray<int2> hexes, uint spread)
+        {
+            int2 best = hexes[0];
+            int  bestScore = HexDist(from, best) * 4 + (int)(spread % 4u);
+            for (int i = 1; i < hexes.Length; i++)
+            {
+                int d = HexDist(from, hexes[i]);
+                int score = d * 4 + (int)((spread + (uint)i * 0x9E3779B1u) % 4u);
+                if (score < bestScore) { bestScore = score; best = hexes[i]; }
+            }
+            return best;
         }
 
         bool TryFindWildlife(int2 origin, out int2 hex)

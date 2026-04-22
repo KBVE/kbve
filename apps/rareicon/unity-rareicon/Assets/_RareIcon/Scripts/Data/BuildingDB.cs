@@ -44,22 +44,45 @@ namespace RareIcon
         // Capital is intentionally just the Land Grant — the scroll is
         // imbued with the materials, narratively. All other buildings
         // draw real materials from the empire's central stockpile.
-        static readonly Ingredient[] CostCapital  = { new(   (ushort)ItemId.CapitalLandGrant, 1) };
-        static readonly Ingredient[] CostFarm     = { new(   (ushort)ItemId.WoodLog,          5) };
-        static readonly Ingredient[] CostBarracks = { new(   (ushort)ItemId.WoodLog,          8),
-                                                      new(   (ushort)ItemId.Stone,            3) };
-        static readonly Ingredient[] CostFurnace  = { new(   (ushort)ItemId.WoodLog,          6),
-                                                      new(   (ushort)ItemId.Stone,            4) };
-        static readonly Ingredient[] CostGoblinCave = { new((ushort)ItemId.Berry,      20),
-                                                        new((ushort)ItemId.Stone,      30),
-                                                        new((ushort)ItemId.WoodLog,    30) };
-        static readonly Ingredient[] CostInn       = { new((ushort)ItemId.WoodLog,     25),
-                                                       new((ushort)ItemId.Stone,       15) };
-        static readonly Ingredient[] CostMarket    = { new((ushort)ItemId.WoodLog,     15),
-                                                       new((ushort)ItemId.Stone,        5) };
-        static readonly Ingredient[] CostOutpost   = { new((ushort)ItemId.WoodLog,     20),
-                                                       new((ushort)ItemId.Stone,       12) };
+        static readonly Ingredient[] CostCapital    = { new((ushort)ItemId.CapitalLandGrant, 1) };
+        static readonly Ingredient[] CostFarm       = { new((ushort)ItemId.Timber,     1) };
+        static readonly Ingredient[] CostBarracks   = { new((ushort)ItemId.Timber,     3),
+                                                        new((ushort)ItemId.StoneBlock, 3) };
+        static readonly Ingredient[] CostFurnace    = { new((ushort)ItemId.Timber,     2),
+                                                        new((ushort)ItemId.StoneBlock, 4) };
+        static readonly Ingredient[] CostGoblinCave = { new((ushort)ItemId.Timber,     1),
+                                                        new((ushort)ItemId.StoneBlock, 5) };
+        static readonly Ingredient[] CostInn        = { new((ushort)ItemId.Timber,     3),
+                                                        new((ushort)ItemId.StoneBlock, 2) };
+        static readonly Ingredient[] CostMarket     = { new((ushort)ItemId.Timber,     2),
+                                                        new((ushort)ItemId.StoneBlock, 1) };
+        static readonly Ingredient[] CostOutpost    = { new((ushort)ItemId.Timber,     2),
+                                                        new((ushort)ItemId.StoneBlock, 2) };
+        static readonly Ingredient[] CostLumbercamp = { new((ushort)ItemId.Timber,     2),
+                                                        new((ushort)ItemId.StoneBlock, 1) };
+        static readonly Ingredient[] CostMiningPit  = { new((ushort)ItemId.Timber,     3) };
+        static readonly Ingredient[] CostDock       = { new((ushort)ItemId.Timber,     2) };
         static readonly Ingredient[] CostNone     = System.Array.Empty<Ingredient>();
+
+        // -- Upgrade chain costs --
+        // Market (tier 0) → Trade House (tier 1) → Merchants Guild (tier 2).
+        static readonly Ingredient[] UpgradeMarketToTradeHouse    = { new((ushort)ItemId.GoldBar, 5) };
+        static readonly Ingredient[] UpgradeTradeHouseToGuild     = { new((ushort)ItemId.GoldBar, 50) };
+
+        /// <summary>Returns the material cost to advance `type` from `fromTier` to `fromTier + 1`. Empty array if no further tier exists.</summary>
+        public static Ingredient[] GetUpgradeCost(byte buildingType, byte fromTier)
+        {
+            if (buildingType == BuildingType.Market)
+            {
+                if (fromTier == 0) return UpgradeMarketToTradeHouse;
+                if (fromTier == 1) return UpgradeTradeHouseToGuild;
+            }
+            return CostNone;
+        }
+
+        /// <summary>Returns true if `type` at `fromTier` has a next tier.</summary>
+        public static bool HasUpgrade(byte buildingType, byte fromTier)
+            => GetUpgradeCost(buildingType, fromTier).Length > 0;
 
         public static Ingredient[] GetCost(byte buildingType) => buildingType switch
         {
@@ -71,6 +94,9 @@ namespace RareIcon
             BuildingType.Inn        => CostInn,
             BuildingType.Market     => CostMarket,
             BuildingType.Outpost    => CostOutpost,
+            BuildingType.Lumbercamp => CostLumbercamp,
+            BuildingType.MiningPit  => CostMiningPit,
+            BuildingType.Dock       => CostDock,
             _ => CostNone,
         };
 
@@ -99,11 +125,15 @@ namespace RareIcon
             : SingleHex;
 
         // -- Biome rules --
-        /// <summary>Returns true if `biome` can host `buildingType`. Ocean / River refuse all builds.</summary>
+        /// <summary>Returns true if `biome` can host `buildingType`. Ocean refuses every build; river refuses every build except the Dock (river-only); Lumbercamp must be on Forest; Mining Pit must be on Sand.</summary>
         public static bool IsBuildable(byte buildingType, byte biome)
         {
             if (biome == BiomeGenerator.BIOME_OCEAN) return false;
+            if (buildingType == BuildingType.Dock)
+                return biome == BiomeGenerator.BIOME_RIVER;
             if (biome == BiomeGenerator.BIOME_RIVER) return false;
+            if (buildingType == BuildingType.Lumbercamp) return biome == BiomeGenerator.BIOME_FOREST;
+            if (buildingType == BuildingType.MiningPit)  return biome == BiomeGenerator.BIOME_SAND;
             // Per-type future rules slot here:
             //   Furnace might forbid Snow (no fuel),
             //   Wall might allow only Stone / Dirt for foundation, etc.
@@ -121,8 +151,22 @@ namespace RareIcon
             BuildingType.Inn        => "building.inn",
             BuildingType.Market     => "building.market",
             BuildingType.Outpost    => "building.outpost",
+            BuildingType.Lumbercamp => "building.lumbercamp",
+            BuildingType.MiningPit  => "building.mining_pit",
+            BuildingType.Dock       => "building.dock",
             _ => "building.unknown",
         };
+
+        /// <summary>Tier-aware locale key. Market tier 1 = Trade House, tier 2 = Merchants Guild. Falls back to the base GetLocaleKey for tier 0 or non-tiered types.</summary>
+        public static string GetTieredLocaleKey(byte buildingType, byte tier)
+        {
+            if (buildingType == BuildingType.Market)
+            {
+                if (tier == 1) return "building.trade_house";
+                if (tier == 2) return "building.merchants_guild";
+            }
+            return GetLocaleKey(buildingType);
+        }
 
         /// <summary>Maps a BuildTarget to its corresponding BuildingType. Returns 0 (None) if unknown.</summary>
         public static byte BuildTargetToType(byte buildTarget) => buildTarget switch
@@ -135,6 +179,9 @@ namespace RareIcon
             BuildTarget.Inn        => BuildingType.Inn,
             BuildTarget.Market     => BuildingType.Market,
             BuildTarget.Outpost    => BuildingType.Outpost,
+            BuildTarget.Lumbercamp => BuildingType.Lumbercamp,
+            BuildTarget.MiningPit  => BuildingType.MiningPit,
+            BuildTarget.Dock       => BuildingType.Dock,
             _ => BuildingType.None,
         };
 
@@ -149,6 +196,9 @@ namespace RareIcon
             BuildingType.Inn        => BuildTarget.Inn,
             BuildingType.Market     => BuildTarget.Market,
             BuildingType.Outpost    => BuildTarget.Outpost,
+            BuildingType.Lumbercamp => BuildTarget.Lumbercamp,
+            BuildingType.MiningPit  => BuildTarget.MiningPit,
+            BuildingType.Dock       => BuildTarget.Dock,
             _ => BuildTarget.None,
         };
 
@@ -163,6 +213,9 @@ namespace RareIcon
             BuildingType.Inn        => 280,
             BuildingType.Market     => 140,
             BuildingType.Outpost    => 220,
+            BuildingType.Lumbercamp => 200,
+            BuildingType.MiningPit  => 220,
+            BuildingType.Dock       => 180,
             _                       => 100,
         };
 
@@ -178,11 +231,14 @@ namespace RareIcon
             BuildingType.Capital,
             BuildingType.Outpost,
             BuildingType.Farm,
+            BuildingType.Lumbercamp,
+            BuildingType.MiningPit,
             BuildingType.Barracks,
             BuildingType.Furnace,
             BuildingType.GoblinCave,
             BuildingType.Inn,
             BuildingType.Market,
+            BuildingType.Dock,
         };
     }
 }

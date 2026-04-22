@@ -34,6 +34,9 @@ namespace RareIcon
         public readonly float RestoreEnergy;
         public readonly float RestoreMana;
 
+        public readonly float RegenPerSecond;
+        public readonly float RegenDuration;
+
         public readonly HarvestRole HarvestRole;
         public readonly byte HarvestWeight;
 
@@ -46,24 +49,28 @@ namespace RareIcon
                        float restoreHealth = 0f,
                        float restoreEnergy = 0f,
                        float restoreMana   = 0f,
+                       float regenPerSecond = 0f,
+                       float regenDuration  = 0f,
                        HarvestRole harvestRole = HarvestRole.None,
                        byte harvestWeight = 100,
                        ushort compressesTo = 0,
                        ushort compressRatio = 0,
                        ushort poolGroup = 0)
         {
-            Id            = id;
-            Category      = category;
-            StackMax      = stackMax;
-            BaseValue     = baseValue;
-            RestoreHealth = restoreHealth;
-            RestoreEnergy = restoreEnergy;
-            RestoreMana   = restoreMana;
-            HarvestRole   = harvestRole;
-            HarvestWeight = harvestWeight;
-            CompressesTo  = compressesTo;
-            CompressRatio = compressRatio;
-            PoolGroup     = poolGroup;
+            Id             = id;
+            Category       = category;
+            StackMax       = stackMax;
+            BaseValue      = baseValue;
+            RestoreHealth  = restoreHealth;
+            RestoreEnergy  = restoreEnergy;
+            RestoreMana    = restoreMana;
+            RegenPerSecond = regenPerSecond;
+            RegenDuration  = regenDuration;
+            HarvestRole    = harvestRole;
+            HarvestWeight  = harvestWeight;
+            CompressesTo   = compressesTo;
+            CompressRatio  = compressRatio;
+            PoolGroup      = poolGroup;
         }
     }
 
@@ -94,8 +101,7 @@ namespace RareIcon
                 restoreEnergy: 7f, harvestRole: HarvestRole.Forager,
                 compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
             Add("item.herb",           new ItemDef((ushort)ItemId.Herb,          ItemCategory.Material, 30, 5,
-                restoreEnergy: 12f, harvestRole: HarvestRole.Forager,
-                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
+                harvestRole: HarvestRole.Forager));
 
             Add("item.raw_cacti",      new ItemDef((ushort)ItemId.RawCacti,      ItemCategory.Material, 20, 2,
                 harvestRole: HarvestRole.Forager));
@@ -126,6 +132,7 @@ namespace RareIcon
             Add("item.raw_glass",      new ItemDef((ushort)ItemId.RawGlass,      ItemCategory.Material, 24, 8));
             Add("item.coal",           new ItemDef((ushort)ItemId.Coal,          ItemCategory.Material, 20, 4));
             Add("item.ash",            new ItemDef((ushort)ItemId.Ash,           ItemCategory.Material, 20, 1));
+            Add("item.oil",            new ItemDef((ushort)ItemId.Oil,           ItemCategory.Material, 20, 12));
             Add("item.compost",        new ItemDef((ushort)ItemId.Compost,       ItemCategory.Material, 30, 2));
             Add("item.carrot",         new ItemDef((ushort)ItemId.Carrot,        ItemCategory.Material, 30, 4,
                 restoreEnergy: 9f,
@@ -175,16 +182,23 @@ namespace RareIcon
             Add("item.bag",            new ItemDef((ushort)ItemId.Bag,           ItemCategory.Equipment, 2, 60));
             Add("item.pack",           new ItemDef((ushort)ItemId.Pack,          ItemCategory.Equipment, 2, 150));
 
+            Add("item.coin",           new ItemDef((ushort)ItemId.Coin,          ItemCategory.Material, 50, 1,
+                compressesTo: (ushort)ItemId.GoldBar, compressRatio: 100));
+
             Add("item.timber",         new ItemDef((ushort)ItemId.Timber,        ItemCategory.Material,   1, 300));
             Add("item.stone_block",    new ItemDef((ushort)ItemId.StoneBlock,    ItemCategory.Material,   1, 200));
             Add("item.quiver",         new ItemDef((ushort)ItemId.Quiver,        ItemCategory.Material,   1, 100));
             Add("item.meal",           new ItemDef((ushort)ItemId.Meal,          ItemCategory.Consumable, 1, 500,
                 restoreHealth: 100f, restoreEnergy: 100f, restoreMana: 100f));
+            Add("item.gold_bar",       new ItemDef((ushort)ItemId.GoldBar,       ItemCategory.Material,   1, 150));
 
             Add("item.bones",          new ItemDef((ushort)ItemId.Bones,         ItemCategory.Material, 30, 2));
             Add("item.unknown_key",    new ItemDef((ushort)ItemId.UnknownKey,    ItemCategory.Quest,    10, 0));
             Add("item.unknown_scroll", new ItemDef((ushort)ItemId.UnknownScroll, ItemCategory.Magic,    10, 0));
             Add("item.unknown_tome",   new ItemDef((ushort)ItemId.UnknownTome,   ItemCategory.Magic,     5, 0));
+
+            Add("item.medkit",         new ItemDef((ushort)ItemId.MedKit,        ItemCategory.Consumable, 10, 80,
+                restoreHealth: 25f, regenPerSecond: 2f, regenDuration: 15f));
         }
 
         static void Add(string nameKey, ItemDef def)
@@ -248,18 +262,20 @@ namespace RareIcon
                 var d = kv.Value;
                 lookup.TryAdd(d.Id, new ItemDefRuntime
                 {
-                    Id            = d.Id,
-                    Category      = (byte)d.Category,
-                    StackMax      = d.StackMax,
-                    BaseValue     = d.BaseValue,
-                    RestoreHealth = d.RestoreHealth,
-                    RestoreEnergy = d.RestoreEnergy,
-                    RestoreMana   = d.RestoreMana,
-                    HarvestRole   = (byte)d.HarvestRole,
-                    HarvestWeight = d.HarvestWeight,
-                    CompressesTo  = d.CompressesTo,
-                    CompressRatio = d.CompressRatio,
-                    PoolGroup     = d.PoolGroup,
+                    Id             = d.Id,
+                    Category       = (byte)d.Category,
+                    StackMax       = d.StackMax,
+                    BaseValue      = d.BaseValue,
+                    RestoreHealth  = d.RestoreHealth,
+                    RestoreEnergy  = d.RestoreEnergy,
+                    RestoreMana    = d.RestoreMana,
+                    RegenPerSecond = d.RegenPerSecond,
+                    RegenDuration  = d.RegenDuration,
+                    HarvestRole    = (byte)d.HarvestRole,
+                    HarvestWeight  = d.HarvestWeight,
+                    CompressesTo   = d.CompressesTo,
+                    CompressRatio  = d.CompressRatio,
+                    PoolGroup      = d.PoolGroup,
                 });
             }
         }

@@ -1,0 +1,26 @@
+---
+title: 'Egg'
+description: 'A fresh egg gathered from a chicken coop.'
+ref: 'egg'
+key: 527
+id: '01KPTSDW060QAV532JXYHG2JTC'
+name: 'Egg'
+type_flags: 72
+rarity: 'common'
+emoji: '🥚'
+stackable: true
+max_stack: 50
+buy_price: 3
+pool_group: 'food'
+food:
+  restore_energy: 6
+compress:
+  target_ref: 'meal'
+  ratio: 100
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

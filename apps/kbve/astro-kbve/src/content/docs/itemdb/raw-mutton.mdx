@@ -1,0 +1,25 @@
+---
+title: 'Raw Mutton'
+description: 'Fresh mutton from a butchered sheep.'
+ref: 'raw-mutton'
+key: 520
+id: '01KPTSDW056MAY4EB3J1J7QKZN'
+name: 'Raw Mutton'
+type_flags: 72
+rarity: 'common'
+stackable: true
+max_stack: 20
+buy_price: 12
+pool_group: 'food'
+food:
+  restore_energy: 17
+compress:
+  target_ref: 'meal'
+  ratio: 100
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

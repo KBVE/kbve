@@ -28,17 +28,23 @@ namespace RareIcon
         const int   MaxPreviewSlots = 7;   // matches Capital flower footprint
 
         // Matches HexBuildPreview.shader Properties defaults.
-        static readonly float4 ValidFill     = new(0.30f, 0.90f, 0.40f, 0.35f);
-        static readonly float4 ValidBorder   = new(0.30f, 0.90f, 0.40f, 0.85f);
-        static readonly float4 InvalidFill   = new(0.92f, 0.22f, 0.22f, 0.40f);
-        static readonly float4 InvalidBorder = new(0.92f, 0.22f, 0.22f, 0.90f);
+        static readonly float4 ValidFill       = new(0.30f, 0.90f, 0.40f, 0.35f);
+        static readonly float4 ValidBorder     = new(0.30f, 0.90f, 0.40f, 0.85f);
+        static readonly float4 BlueprintFill   = new(0.30f, 0.55f, 0.95f, 0.35f);
+        static readonly float4 BlueprintBorder = new(0.30f, 0.55f, 0.95f, 0.85f);
+        static readonly float4 InvalidFill     = new(0.92f, 0.22f, 0.22f, 0.40f);
+        static readonly float4 InvalidBorder   = new(0.92f, 0.22f, 0.22f, 0.90f);
 
         Entity[] _previews;    // pool of MaxPreviewSlots overlays
         bool _initialized;
         int2 _lastAnchor;
         byte _lastTarget;
         bool _wasActive;
-        bool _lastValid;
+        byte _lastState;
+
+        const byte StateInvalid   = 0;
+        const byte StateBlueprint = 1;
+        const byte StateValid     = 2;
 
         protected override void OnCreate()
         {
@@ -86,7 +92,7 @@ namespace RareIcon
 
             var em = EntityManager;
             var footprint = BuildingDB.GetFootprint(buildMode.Target);
-            bool valid = IsPlacementValid(em, mouse.HexCoord, buildMode.Target, footprint);
+            byte state = EvaluatePlacement(em, mouse.HexCoord, buildMode.Target, footprint);
 
             // Position the active preview slots, hide the rest.
             for (int i = 0; i < footprint.Length && i < MaxPreviewSlots; i++)
@@ -102,38 +108,41 @@ namespace RareIcon
                     new float3(HiddenZ, HiddenZ, HiddenZ)));
             }
 
-            if (justEntered || targetChanged || valid != _lastValid)
+            if (justEntered || targetChanged || state != _lastState)
             {
-                var fill   = valid ? ValidFill   : InvalidFill;
-                var border = valid ? ValidBorder : InvalidBorder;
+                float4 fill, border;
+                switch (state)
+                {
+                    case StateValid:     fill = ValidFill;     border = ValidBorder;     break;
+                    case StateBlueprint: fill = BlueprintFill; border = BlueprintBorder; break;
+                    default:             fill = InvalidFill;   border = InvalidBorder;   break;
+                }
                 for (int i = 0; i < footprint.Length && i < MaxPreviewSlots; i++)
                 {
                     em.SetComponentData(_previews[i], new HexBuildPreviewFill   { Value = fill });
                     em.SetComponentData(_previews[i], new HexBuildPreviewBorder { Value = border });
                 }
-                _lastValid = valid;
+                _lastState = state;
             }
         }
 
-        // Mirrors BuildingSpawnSystem's checks so the preview never lies
-        // about whether a click will succeed. Rejects on:
-        //   • any footprint hex off-map / unloaded
-        //   • any footprint hex already occupied
-        //   • any footprint hex on a disallowed biome (Ocean/River)
-        //   • cost source doesn't have the required ingredients
-        static bool IsPlacementValid(EntityManager em, int2 centerHex,
-                                     byte buildingType, int2[] footprint)
+        // Mirrors BuildingSpawnSystem's checks. Red = impossible (bad
+        // biome / occupied / off-map / outside territory); Blue = placeable
+        // now but resources aren't there yet (blueprint — spawns as a
+        // ConstructionSite waiting for Builders); Green = placeable +
+        // resources on hand.
+        static byte EvaluatePlacement(EntityManager em, int2 centerHex,
+                                      byte buildingType, int2[] footprint)
         {
-            // Footprint check — same logic as BuildingSpawnSystem.
             for (int i = 0; i < footprint.Length; i++)
             {
                 var hex = centerHex + footprint[i];
-                if (!HexHoverSystem.TryGetHexEntity(hex, out var tile)) return false;
-                if (em.HasComponent<HexOccupant>(tile)) return false;
+                if (!HexHoverSystem.TryGetHexEntity(hex, out var tile)) return StateInvalid;
+                if (em.HasComponent<HexOccupant>(tile)) return StateInvalid;
                 if (em.HasComponent<BiomeType>(tile))
                 {
                     byte biome = em.GetComponentData<BiomeType>(tile).Value;
-                    if (!BuildingDB.IsBuildable(buildingType, biome)) return false;
+                    if (!BuildingDB.IsBuildable(buildingType, biome)) return StateInvalid;
                 }
             }
 
@@ -142,24 +151,25 @@ namespace RareIcon
                 if (!HasFriendlyEmitterWithin(em, centerHex,
                                               BuildingDB.OutpostAnchorRadius,
                                               FactionType.Player))
-                    return false;
+                    return StateInvalid;
             }
             else if (BuildingDB.RequiresInTerritory(buildingType))
             {
                 for (int i = 0; i < footprint.Length; i++)
                 {
                     var hex = centerHex + footprint[i];
-                    if (!HexHoverSystem.TryGetHexEntity(hex, out var tile)) return false;
+                    if (!HexHoverSystem.TryGetHexEntity(hex, out var tile)) return StateInvalid;
                     if (!em.HasComponent<TerritoryVisual>(tile)
                         || em.GetComponentData<TerritoryVisual>(tile).Value <= 0f)
-                        return false;
+                        return StateInvalid;
                 }
             }
 
-            // Cost check — find source inventory + verify each ingredient.
-            // Failures here paint red same as a bad biome would, so the
-            // player gets one consistent "you can't place here" signal.
-            return CostSourceHasIngredients(em, buildingType);
+            bool hasResources = CostSourceHasIngredients(em, buildingType);
+            if (hasResources) return StateValid;
+            if (BuildingDB.GetCostSource(buildingType) == BuildingDB.CostSource.KingInventory)
+                return StateInvalid;
+            return StateBlueprint;
         }
 
         static bool CostSourceHasIngredients(EntityManager em, byte buildingType)

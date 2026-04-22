@@ -3,13 +3,11 @@ import { parseYouTubeId, buildYouTubeBgEmbed } from './_video';
 
 interface Props {
 	duration?: number;
-	threshold?: number;
 	foreground?: string;
 	background?: string;
 	backgroundColor?: string;
 	video?: string;
 	alt?: string;
-	heroEnd?: string;
 	heroScale?: number;
 	heroDepth?: number;
 	heroTranslateY?: number;
@@ -19,13 +17,11 @@ interface Props {
 
 const {
 	duration = 1.25,
-	threshold = 0.85,
 	foreground,
 	background,
 	backgroundColor,
 	video,
 	alt = '',
-	heroEnd = '+=150%',
 	heroScale = 2,
 	heroDepth = 350,
 	heroTranslateY = 0,
@@ -48,17 +44,12 @@ const heroBgStyle = [
 	.join(' ');
 ---
 
-<div
-	class="obs not-content"
-	data-obs-root
-	data-obs-duration={String(duration)}
-	data-obs-threshold={String(threshold)}>
+<div class="obs not-content" data-obs-root data-obs-duration={String(duration)}>
 	{
 		foreground && (
 			<div
 				class="obs__hero"
 				data-obs-hero
-				data-obs-hero-end={heroEnd}
 				data-obs-hero-scale={String(heroScale)}
 				data-obs-hero-depth={String(heroDepth)}
 				data-obs-hero-translate-y={String(heroTranslateY)}
@@ -83,6 +74,10 @@ const heroBgStyle = [
 				</div>
 				<div class="obs__hero-image">
 					<img src={foreground} alt={alt} />
+				</div>
+				<div class="obs__hero-hint" aria-hidden="true">
+					<span class="obs__hero-hint-label">Scroll</span>
+					<div class="obs__hero-hint-line" />
 				</div>
 			</div>
 		)
@@ -133,10 +128,9 @@ const heroBgStyle = [
 <script>
 	import { gsap } from 'gsap';
 	import { Observer } from 'gsap/Observer';
-	import { ScrollTrigger } from 'gsap/ScrollTrigger';
 	import { ytPlay, ytPause } from './_video';
 
-	gsap.registerPlugin(Observer, ScrollTrigger);
+	gsap.registerPlugin(Observer);
 
 	const upgradeUnsplashUrl = (url: string): string => {
 		if (!url.includes('images.unsplash.com')) return url;
@@ -163,7 +157,6 @@ const heroBgStyle = [
 				root.dataset.obsInit = 'true';
 
 				const duration = Number(root.dataset.obsDuration) || 1.25;
-				const threshold = Number(root.dataset.obsThreshold) || 0.85;
 
 				const sections = Array.from(
 					root.querySelectorAll<HTMLElement>('.obs__section'),
@@ -267,6 +260,10 @@ const heroBgStyle = [
 					btn.addEventListener('click', () => {
 						if (animating) return;
 						const dir = btn.dataset.obsNav === 'up' ? -1 : 1;
+						if (heroActive) {
+							if (dir === 1) transitionFromHero();
+							return;
+						}
 						gotoSection(currentIndex + dir, dir);
 					});
 				});
@@ -333,7 +330,150 @@ const heroBgStyle = [
 					syncVideos();
 				};
 
-				gotoSection(0, 1);
+				const transitionFromHero = () => {
+					if (!heroEl || !heroActive) return;
+					animating = true;
+
+					const heroImgEl = heroEl.querySelector<HTMLImageElement>(
+						'.obs__hero-image img',
+					);
+					const heroBgEl =
+						heroEl.querySelector<HTMLElement>('.obs__hero-bg');
+					const heroHintEl =
+						heroEl.querySelector<HTMLElement>('.obs__hero-hint');
+					const hScale = Number(heroEl.dataset.obsHeroScale) || 2;
+					const hDepth = Number(heroEl.dataset.obsHeroDepth) || 350;
+					const hBgScale =
+						Number(heroEl.dataset.obsHeroBgScale) || 1.1;
+					const index = 0;
+
+					gsap.set(sections[index], { autoAlpha: 1, zIndex: 1 });
+					sections[index].setAttribute('data-obs-active', 'true');
+
+					const tl = gsap.timeline({
+						defaults: {
+							duration,
+							ease: 'power1.inOut',
+							force3D: true,
+						},
+						onComplete: () => {
+							animating = false;
+							heroActive = false;
+							setPagerActive(true);
+							if (heroEl) heroEl.style.visibility = 'hidden';
+							syncVideos();
+						},
+					});
+
+					if (heroImgEl) {
+						tl.to(
+							heroImgEl,
+							{
+								scale: hScale,
+								z: hDepth,
+								autoAlpha: 0,
+								ease: 'power1.in',
+							},
+							0,
+						);
+					}
+					if (heroBgEl) {
+						tl.to(
+							heroBgEl,
+							{
+								scale: hBgScale,
+								autoAlpha: 0,
+								ease: 'power1.in',
+							},
+							0,
+						);
+					}
+					if (heroHintEl) {
+						tl.to(
+							heroHintEl,
+							{
+								autoAlpha: 0,
+								duration: duration * 0.4,
+								ease: 'power1.in',
+							},
+							0,
+						);
+					}
+
+					tl.fromTo(
+						[outerWrappers[index], innerWrappers[index]],
+						{ yPercent: (i: number) => (i ? -100 : 100) },
+						{ yPercent: 0 },
+						0,
+					)
+						.fromTo(
+							images[index],
+							{ yPercent: 15 },
+							{ yPercent: 0 },
+							0,
+						)
+						.fromTo(
+							headingChars[index],
+							{ autoAlpha: 0, yPercent: 150 },
+							{
+								autoAlpha: 1,
+								yPercent: 0,
+								duration: duration * 0.75,
+								ease: 'power2',
+								stagger: { each: 0.02, from: 'random' },
+							},
+							0.2,
+						);
+
+					currentIndex = index;
+				};
+
+				if (heroEl) {
+					syncVideos();
+
+					const heroBgParallaxEl =
+						heroEl.querySelector<HTMLElement>('.obs__hero-bg');
+					if (heroBgParallaxEl) {
+						gsap.set(heroBgParallaxEl, { scale: 1.05 });
+						const bgPX = gsap.quickTo(heroBgParallaxEl, 'x', {
+							duration: 0.8,
+							ease: 'power2.out',
+						});
+						const bgPY = gsap.quickTo(heroBgParallaxEl, 'y', {
+							duration: 0.8,
+							ease: 'power2.out',
+						});
+
+						const onParallaxMove = (e: MouseEvent) => {
+							if (!heroActive) return;
+							const mx =
+								(e.clientX / window.innerWidth - 0.5) * 2;
+							const my =
+								(e.clientY / window.innerHeight - 0.5) * 2;
+							bgPX(mx * 12);
+							bgPY(my * 8);
+						};
+						window.addEventListener('mousemove', onParallaxMove, {
+							passive: true,
+						});
+
+						const cleanupParallax = () =>
+							window.removeEventListener(
+								'mousemove',
+								onParallaxMove,
+							);
+						document.addEventListener(
+							'astro:before-swap',
+							cleanupParallax,
+							{ once: true },
+						);
+						window.addEventListener('pagehide', cleanupParallax, {
+							once: true,
+						});
+					}
+				} else {
+					gotoSection(0, 1);
+				}
 
 				if (hasAnyVideo) {
 					const watchdog = window.setInterval(() => {
@@ -367,97 +507,26 @@ const heroBgStyle = [
 					});
 				}
 
-				const observer = Observer.create({
+				Observer.create({
 					target: window,
 					type: 'wheel,touch,pointer',
 					wheelSpeed: -1,
-					onDown: () =>
-						!animating && gotoSection(currentIndex - 1, -1),
-					onUp: () => !animating && gotoSection(currentIndex + 1, 1),
+					onDown: () => {
+						if (animating) return;
+						if (heroActive) return;
+						gotoSection(currentIndex - 1, -1);
+					},
+					onUp: () => {
+						if (animating) return;
+						if (heroActive) {
+							transitionFromHero();
+						} else {
+							gotoSection(currentIndex + 1, 1);
+						}
+					},
 					tolerance: 10,
 					preventDefault: true,
 				});
-
-				observer.disable();
-
-				const hero = root.querySelector<HTMLElement>('[data-obs-hero]');
-				if (hero) {
-					const heroImg = hero.querySelector<HTMLElement>(
-						'.obs__hero-image img',
-					);
-					const heroBg =
-						hero.querySelector<HTMLElement>('.obs__hero-bg');
-					const end = hero.dataset.obsHeroEnd || '+=150%';
-					const hScale = Number(hero.dataset.obsHeroScale) || 2;
-					const hDepth = Number(hero.dataset.obsHeroDepth) || 350;
-					const hTransY = Number(hero.dataset.obsHeroTranslateY) || 0;
-					const hBgScale = Number(hero.dataset.obsHeroBgScale) || 1.1;
-
-					if (heroImg && heroBg) {
-						const getNavHeight = () => {
-							const nav = document.querySelector<HTMLElement>(
-								'header.header, header[data-header], .header',
-							);
-							return nav?.offsetHeight ?? 56;
-						};
-
-						gsap.timeline({
-							scrollTrigger: {
-								trigger: hero,
-								start: () => `top top+=${getNavHeight()}`,
-								end,
-								pin: true,
-								pinSpacing: true,
-								scrub: true,
-								invalidateOnRefresh: true,
-								onLeave: () => {
-									observer.enable();
-									heroActive = false;
-									setPagerActive(true);
-									syncVideos();
-								},
-								onEnterBack: () => {
-									observer.disable();
-									heroActive = true;
-									setPagerActive(false);
-									syncVideos();
-								},
-							},
-						})
-							.to(heroImg, {
-								scale: hScale,
-								z: hDepth,
-								y: hTransY,
-								transformOrigin: 'center center',
-								ease: 'power1.inOut',
-							})
-							.to(
-								heroBg,
-								{
-									scale: hBgScale,
-									transformOrigin: 'center center',
-									ease: 'power1.inOut',
-								},
-								'<',
-							);
-					}
-				} else {
-					const io = new IntersectionObserver(
-						(entries) => {
-							entries.forEach((entry) => {
-								if (entry.isIntersecting) {
-									observer.enable();
-									setPagerActive(true);
-								} else {
-									observer.disable();
-									setPagerActive(false);
-								}
-							});
-						},
-						{ threshold },
-					);
-					io.observe(root);
-				}
 			});
 	};
 
@@ -469,19 +538,21 @@ const heroBgStyle = [
 	.obs {
 		position: relative;
 		width: 100%;
-	}
-
-	.obs__pager {
-		position: relative;
-		width: 100%;
 		height: 100vh;
 		overflow: hidden;
 	}
 
-	.obs__hero {
-		position: relative;
-		width: 100%;
+	.obs__pager {
+		position: absolute;
+		inset: 0;
+		overflow: hidden;
 		z-index: 1;
+	}
+
+	.obs__hero {
+		position: absolute;
+		inset: 0;
+		z-index: 3;
 	}
 
 	.obs__hero-content {
@@ -535,6 +606,51 @@ const heroBgStyle = [
 		object-fit: cover;
 		object-position: center center;
 		will-change: transform;
+	}
+
+	.obs__hero-hint {
+		position: absolute;
+		bottom: 3rem;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 4;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		pointer-events: none;
+		animation: obs-hint-bounce 3s ease-in-out infinite;
+		will-change: transform, opacity;
+	}
+
+	.obs__hero-hint-label {
+		font-size: 0.65rem;
+		letter-spacing: 0.3em;
+		text-transform: uppercase;
+		color: #fff;
+		text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+		margin-bottom: 0.5rem;
+	}
+
+	.obs__hero-hint-line {
+		width: 1px;
+		height: 2.5rem;
+		background: linear-gradient(
+			to bottom,
+			rgba(255, 255, 255, 0.8),
+			transparent
+		);
+	}
+
+	@keyframes obs-hint-bounce {
+		0%,
+		100% {
+			opacity: 1;
+			transform: translateX(-50%) translateY(0);
+		}
+		50% {
+			opacity: 0.5;
+			transform: translateX(-50%) translateY(10px);
+		}
 	}
 
 	.obs__nav {

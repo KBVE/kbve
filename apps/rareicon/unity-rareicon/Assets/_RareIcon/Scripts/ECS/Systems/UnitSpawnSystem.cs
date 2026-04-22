@@ -25,8 +25,8 @@ namespace RareIcon
     {
         const float HexSize = 0.25f;
         const float UnitSize = 0.5f;
-        const int   GoblinCount  = 15;
-        const int   SpawnRadius  = 8;
+        const int   GoblinCount  = 100;
+        const int   SpawnRadius  = 12;
 
         static Mesh                  _mesh;
         static Material              _material;
@@ -47,14 +47,10 @@ namespace RareIcon
 
             SpawnKingAt(EntityManager, new int2(0, 0));
 
-            // Four garrison archers posted on the Capital's N/E/S/W footprint
-            // hexes. Crossbow loadout, zero ProfessionPriorities, never wander —
-            // RangedAttackSystem auto-fires at any Hostile in 3 wu range
-            // while they hold the perimeter.
-            SpawnGarrisonGoblinAt(EntityManager, new int2( 1,  0), 0xA110C8u);
-            SpawnGarrisonGoblinAt(EntityManager, new int2(-1,  0), 0xB22199u);
-            SpawnGarrisonGoblinAt(EntityManager, new int2( 0,  1), 0xC332AAu);
-            SpawnGarrisonGoblinAt(EntityManager, new int2( 0, -1), 0xD443BBu);
+            SpawnGuardGoblinAt(EntityManager, new int2( 1,  0), 0xA110C8u);
+            SpawnGuardGoblinAt(EntityManager, new int2(-1,  0), 0xB22199u);
+            SpawnGuardGoblinAt(EntityManager, new int2( 0,  1), 0xC332AAu);
+            SpawnGuardGoblinAt(EntityManager, new int2( 0, -1), 0xD443BBu);
 
             SpawnHeroAt(EntityManager, new int2( 2,  0), 0x1001A1u, HeroRole.MasterBlacksmith);
             SpawnHeroAt(EntityManager, new int2(-2,  0), 0x1002B2u, HeroRole.MasterCraftsman);
@@ -62,6 +58,12 @@ namespace RareIcon
             SpawnGoblinAt(EntityManager, new int2( 0, -2), 0x1004D4u, default, FactionType.Player, UnitType.Soldier);
             SpawnGoblinAt(EntityManager, new int2( 2, -2), 0x1005E5u, default, FactionType.Player, UnitType.Soldier);
             SpawnGoblinAt(EntityManager, new int2(-2,  2), 0x1006F6u, default, FactionType.Player, UnitType.Mage);
+
+            SpawnArcherSoldierAt(EntityManager, new int2( 3,  0), 0x2001A1u);
+            SpawnArcherSoldierAt(EntityManager, new int2(-3,  0), 0x2002B2u);
+            SpawnArcherSoldierAt(EntityManager, new int2( 0,  3), 0x2003C3u);
+            SpawnArcherSoldierAt(EntityManager, new int2( 0, -3), 0x2004D4u);
+            SpawnArcherSoldierAt(EntityManager, new int2( 3, -3), 0x2005E5u);
 
             for (int i = 0; i < GoblinCount; i++)
             {
@@ -92,10 +94,15 @@ namespace RareIcon
             worldPos.z = -0.7f;
 
             em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
+            // Knight ships an integral round shield in the off-hand slot;
+            // every other humanoid leaves the slot empty so HexShield.hlsl
+            // composites nothing.
+            byte shieldSlot = unitType == UnitType.Knight ? ShieldType.Round : ShieldType.None;
             em.AddComponentData(entity, new Unit
             {
                 Type   = def.UnitType,
                 Weapon = def.DefaultWeapon,
+                Shield = shieldSlot,
             });
 
             if (def.MaxHealth > 0)
@@ -121,6 +128,7 @@ namespace RareIcon
 
             em.AddComponentData(entity, new UnitVisual        { Value = (float)def.UnitType });
             em.AddComponentData(entity, new UnitWeaponVisual  { Value = (float)def.DefaultWeapon });
+            em.AddComponentData(entity, new UnitShieldVisual  { Value = (float)shieldSlot });
             em.AddComponentData(entity, new UnitFacingVisual  { Value = (float)UnitFacing.East });
             em.AddComponentData(entity, new UnitMovingVisual  { Value = 1f });
 
@@ -129,8 +137,10 @@ namespace RareIcon
 
             AttachRangedAttackIfArmed(em, entity, def.DefaultWeapon);
             AttachMeleeAttackIfArmed(em, entity, def.DefaultWeapon, faction);
-            AttachNeedsIfPlayer(em, entity, faction, def);
+            AttachSpellsIfMagical(em, entity, def.UnitType, faction);
+            AttachNeedsIfPlayer(em, entity, faction, def, rngSeed);
             AttachJobsIfPlayer(em, entity, faction, def.UnitType, rngSeed);
+            AttachTraitsIfApplicable(em, entity, def.UnitType, faction, rngSeed);
 
             // Player goblins get individual names — drives the "Controlling: X"
             // indicator + RosterTab + future tooltips. Hostile / Beast goblins
@@ -185,12 +195,9 @@ namespace RareIcon
             return entity;
         }
 
-        /// <summary>Spawn a garrison archer (Crossbow goblin) posted at the given hex. Zero ProfessionPriorities + GarrisonPost → never wanders, never harvests; RangedAttackSystem still auto-fires at hostiles in range.</summary>
-        public static Entity SpawnGarrisonGoblinAt(EntityManager em, int2 hex, uint rngSeed)
+        /// <summary>Spawn a Player goblin armed with a crossbow and Guard=5 priority over its archetype preferences.</summary>
+        public static Entity SpawnGuardGoblinAt(EntityManager em, int2 hex, uint rngSeed)
         {
-            // Spawn a Player goblin, then overwrite Weapon → Crossbow,
-            // attach GarrisonPost, and zero the ProfessionPriorities so the
-            // jobs / relief / wander pipelines leave it on-tile.
             var entity = SpawnGoblinAt(em, hex, rngSeed, default, FactionType.Player);
             if (entity == Entity.Null) return Entity.Null;
 
@@ -199,10 +206,31 @@ namespace RareIcon
                 Type   = UnitType.Goblin,
                 Weapon = WeaponType.Crossbow,
             });
+            em.SetComponentData(entity, new UnitWeaponVisual { Value = (float)WeaponType.Crossbow });
             AttachRangedAttackIfArmed(em, entity, WeaponType.Crossbow);
 
-            em.AddComponentData(entity, new GarrisonPost { Hex = hex });
-            em.SetComponentData(entity, new ProfessionPriorities());
+            var priorities = em.GetComponentData<ProfessionPriorities>(entity);
+            priorities.Guard = 5;
+            em.SetComponentData(entity, priorities);
+
+            var pack = em.GetBuffer<PackSlot>(entity);
+            pack.Add(new PackSlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Arrow, Count = ArcherRefillConfig.QuiverMax });
+            return entity;
+        }
+
+        /// <summary>Spawn a Player Soldier armed with a crossbow — human archer.</summary>
+        public static Entity SpawnArcherSoldierAt(EntityManager em, int2 hex, uint rngSeed)
+        {
+            var entity = SpawnGoblinAt(em, hex, rngSeed, default, FactionType.Player, UnitType.Soldier);
+            if (entity == Entity.Null) return Entity.Null;
+
+            em.SetComponentData(entity, new Unit
+            {
+                Type   = UnitType.Soldier,
+                Weapon = WeaponType.Crossbow,
+            });
+            em.SetComponentData(entity, new UnitWeaponVisual { Value = (float)WeaponType.Crossbow });
+            AttachRangedAttackIfArmed(em, entity, WeaponType.Crossbow);
 
             var pack = em.GetBuffer<PackSlot>(entity);
             pack.Add(new PackSlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Arrow, Count = ArcherRefillConfig.QuiverMax });
@@ -594,6 +622,137 @@ namespace RareIcon
             return entity;
         }
 
+        /// <summary>Spawn a craftsman-built Fishing Boat at the given hex. Player faction; carries a harpoon MeleeAttack that preferentially targets Whales + Beasts. Water-locking is deferred — v1 boats walk on land too and rely on the Dock spawning them on water-adjacent tiles.</summary>
+        public static Entity SpawnFishingBoatAt(EntityManager em, int2 hex, uint rngSeed,
+                                                byte faction = FactionType.Player)
+        {
+            if (!EnsureRenderAssets()) return Entity.Null;
+
+            var def = NPCDB.Get(UnitType.FishingBoat);
+            var entity = em.CreateEntity();
+
+            float3 worldPos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
+            worldPos.z = -0.7f;
+
+            em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
+            em.AddComponentData(entity, new Unit { Type = def.UnitType, Weapon = WeaponType.None });
+
+            float maxHp = def.MaxHealth;
+            em.AddComponentData(entity, new Health { Value = maxHp, Max = maxHp });
+
+            em.AddComponentData(entity, new UnitVisual       { Value = (float)def.UnitType });
+            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)WeaponType.None });
+            em.AddComponentData(entity, new UnitShieldVisual { Value = (float)ShieldType.None });
+            em.AddComponentData(entity, new UnitFacingVisual { Value = (float)UnitFacing.East });
+            em.AddComponentData(entity, new UnitMovingVisual { Value = 1f });
+
+            em.AddComponentData(entity, new Faction    { Value = faction });
+            em.AddComponentData(entity, new Collidable { Radius = 0.22f });
+            em.AddComponent<FishingBoatTag>(entity);
+            em.AddComponent<WaterLockedTag>(entity);
+
+            // Harpoon — short-range melee that preferentially lines up on
+            // whales via MeleeTargetMode.PreferUnits. Whales are the
+            // intended prey; other beast targets (wolves in crossfire)
+            // also count.
+            em.AddComponentData(entity, new MeleeAttack
+            {
+                Range         = 0.6f,
+                Damage        = 8.0f,
+                Cooldown      = 1.5f,
+                TimeSinceShot = 0f,
+                TargetMode    = MeleeTargetMode.PreferUnits,
+            });
+
+            em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
+            em.AddBuffer<StatusEffect>(entity);
+
+            float speedJit = 0.9f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.2f;
+            em.AddComponentData(entity, new UnitMovement
+            {
+                CurrentHex      = hex,
+                TargetHex       = hex,
+                MoveSpeed       = def.MoveSpeed * speedJit,
+                Facing          = UnitFacing.East,
+                RandomState     = rngSeed | 1u,
+                WanderStep      = 0u,
+                DwellTimer      = (rngSeed % 200u) / 200f,
+                LastDir         = 255,
+                LastHarvestStep = uint.MaxValue,
+            });
+
+            em.AddComponentData(entity, new MovementGoal
+            {
+                Kind      = GoalKind.None,
+                Priority  = GoalPriority.None,
+                TargetHex = hex,
+            });
+
+            RenderMeshUtility.AddComponents(
+                entity, em, _renderDesc, _renderArray,
+                MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+            return entity;
+        }
+
+        /// <summary>Spawn a Whale at the given water hex. Beast faction, passive — no attack components so it just wanders slowly until a FishingBoat harpoons it dead. Death drops Oil + 400 Meat via EnemyLootDropSystem.</summary>
+        public static Entity SpawnWhaleAt(EntityManager em, int2 hex, uint rngSeed)
+        {
+            if (!EnsureRenderAssets()) return Entity.Null;
+
+            var def = NPCDB.Get(UnitType.Whale);
+            var entity = em.CreateEntity();
+
+            float3 worldPos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
+            worldPos.z = -0.7f;
+
+            em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
+            em.AddComponentData(entity, new Unit { Type = def.UnitType, Weapon = WeaponType.None });
+
+            float maxHp = def.MaxHealth;
+            em.AddComponentData(entity, new Health { Value = maxHp, Max = maxHp });
+
+            em.AddComponentData(entity, new UnitVisual       { Value = (float)def.UnitType });
+            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)WeaponType.None });
+            em.AddComponentData(entity, new UnitFacingVisual { Value = (float)UnitFacing.East });
+            em.AddComponentData(entity, new UnitMovingVisual { Value = 1f });
+
+            em.AddComponentData(entity, new Faction    { Value = FactionType.Beast });
+            em.AddComponentData(entity, new Collidable { Radius = 0.30f });
+            em.AddComponent<WhaleTag>(entity);
+            em.AddComponent<WaterLockedTag>(entity);
+
+            em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
+            em.AddBuffer<StatusEffect>(entity);
+
+            float speedJit = 0.9f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.2f;
+            em.AddComponentData(entity, new UnitMovement
+            {
+                CurrentHex      = hex,
+                TargetHex       = hex,
+                MoveSpeed       = def.MoveSpeed * speedJit,
+                Facing          = UnitFacing.East,
+                RandomState     = rngSeed | 1u,
+                WanderStep      = 0u,
+                DwellTimer      = (rngSeed % 200u) / 200f,
+                LastDir         = 255,
+                LastHarvestStep = uint.MaxValue,
+            });
+
+            em.AddComponentData(entity, new MovementGoal
+            {
+                Kind      = GoalKind.None,
+                Priority  = GoalPriority.None,
+                TargetHex = hex,
+            });
+
+            RenderMeshUtility.AddComponents(
+                entity, em, _renderDesc, _renderArray,
+                MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+            return entity;
+        }
+
         // Lazily creates the shared render assets the first time anything
         static bool EnsureRenderAssets()
         {
@@ -688,14 +847,23 @@ namespace RareIcon
             em.AddComponentData(entity, new ActivityState { LastKind = ActivityKind.None });
         }
 
-        static void AttachNeedsIfPlayer(EntityManager em, Entity entity, byte faction, NPCDef def)
+        static void AttachNeedsIfPlayer(EntityManager em, Entity entity, byte faction, NPCDef def, uint rngSeed = 0u)
         {
             if (faction != FactionType.Player) return;
+
+            uint h1 = rngSeed ^ 0x9E3779B1u;
+            h1 ^= h1 >> 13; h1 *= 0x85EBCA77u; h1 ^= h1 >> 16;
+            uint h2 = rngSeed ^ 0xC2B2AE3Du;
+            h2 ^= h2 >> 13; h2 *= 0x27D4EB2Fu; h2 ^= h2 >> 16;
+
+            float hungerPct  = (h1 & 0xFFFFu) / 65535f * 0.45f;
+            float fatiguePct = (h2 & 0xFFFFu) / 65535f * 0.45f;
+
             if (def.MaxHunger > 0f)
             {
                 em.AddComponentData(entity, new Hunger
                 {
-                    Value     = 0f,
+                    Value     = def.MaxHunger * hungerPct,
                     Max       = def.MaxHunger,
                     PerSecond = def.HungerPerSec,
                 });
@@ -704,7 +872,7 @@ namespace RareIcon
             {
                 em.AddComponentData(entity, new Fatigue
                 {
-                    Value     = 0f,
+                    Value     = def.MaxFatigue * fatiguePct,
                     Max       = def.MaxFatigue,
                     PerSecond = def.FatiguePerSec,
                 });
@@ -716,6 +884,52 @@ namespace RareIcon
             });
         }
 
+        static void AttachSpellsIfMagical(EntityManager em, Entity entity, byte unitType, byte faction)
+        {
+            if (faction != FactionType.Player) return;
+
+            if (unitType == UnitType.Mage)
+            {
+                em.AddComponentData(entity, new SpellCast
+                {
+                    Range              = 5.0f,
+                    Damage             = 12f,
+                    Cooldown           = 2.5f,
+                    TimeSinceCast      = 0f,
+                    ManaCost           = 15f,
+                    ProjectileType     = ProjectileType.Fireball,
+                    ProjectileMod      = ArrowMod.Fire,
+                    ProjectileSpeed    = 7f,
+                    ProjectileLifetime = 1.5f,
+                });
+                em.AddComponentData(entity, new HealingAura
+                {
+                    Range         = 4f,
+                    Amount        = 15f,
+                    Period        = 2f,
+                    TimeSinceHeal = 0f,
+                    ManaCost      = 20f,
+                });
+                return;
+            }
+
+            if (unitType == UnitType.Goblin)
+            {
+                em.AddComponentData(entity, new SpellCast
+                {
+                    Range              = 3.5f,
+                    Damage             = 4f,
+                    Cooldown           = 8f,
+                    TimeSinceCast      = 0f,
+                    ManaCost           = 20f,
+                    ProjectileType     = ProjectileType.IceShard,
+                    ProjectileMod      = ArrowMod.Ice,
+                    ProjectileSpeed    = 5f,
+                    ProjectileLifetime = 1.2f,
+                });
+            }
+        }
+
         static void AttachRangedAttackIfArmed(EntityManager em, Entity entity, byte weapon)
         {
             if (weapon == WeaponType.Crossbow)
@@ -723,7 +937,7 @@ namespace RareIcon
                 em.AddComponentData(entity, new RangedAttack
                 {
                     Range              = 3.0f,
-                    Damage             = 8.0f,
+                    Damage             = 9.0f,
                     Cooldown           = 1.5f,
                     TimeSinceShot      = 0f,
                     ProjectileType     = ProjectileType.Bolt,
@@ -756,6 +970,244 @@ namespace RareIcon
                 TimeSinceShot = 0f,
                 TargetMode    = mode,
             });
+        }
+
+        static void AttachTraitsIfApplicable(EntityManager em, Entity entity, byte unitType, byte faction, uint rngSeed)
+        {
+            if (faction != FactionType.Player) return;
+            if (unitType == UnitType.King) return;
+
+            var traits = TraitDB.Roll(rngSeed);
+            if (traits.T0 == TraitKind.None) return;
+
+            em.AddComponentData(entity, traits);
+            var mod = TraitDB.Accumulate(traits);
+
+            if (em.HasComponent<Health>(entity) && mod.HealthBonus != 0f)
+            {
+                var h = em.GetComponentData<Health>(entity);
+                h.Max   += mod.HealthBonus;
+                h.Value  = math.min(h.Value + mod.HealthBonus, h.Max);
+                em.SetComponentData(entity, h);
+            }
+            if (em.HasComponent<Energy>(entity) && mod.EnergyBonus != 0f)
+            {
+                var e = em.GetComponentData<Energy>(entity);
+                e.Max   += mod.EnergyBonus;
+                e.Value  = math.min(e.Value + mod.EnergyBonus, e.Max);
+                em.SetComponentData(entity, e);
+            }
+            if (em.HasComponent<Mana>(entity) && mod.ManaBonus != 0f)
+            {
+                var m = em.GetComponentData<Mana>(entity);
+                m.Max   += mod.ManaBonus;
+                m.Value  = math.min(m.Value + mod.ManaBonus, m.Max);
+                em.SetComponentData(entity, m);
+            }
+            if (em.HasComponent<Hunger>(entity) && (mod.HungerMaxBonus != 0f || mod.HungerPerSecMul != 0f))
+            {
+                var hu = em.GetComponentData<Hunger>(entity);
+                hu.Max       = math.max(10f, hu.Max + mod.HungerMaxBonus);
+                hu.PerSecond = math.max(0f, hu.PerSecond * (1f + mod.HungerPerSecMul));
+                hu.Value     = math.min(hu.Value, hu.Max);
+                em.SetComponentData(entity, hu);
+            }
+            if (em.HasComponent<Fatigue>(entity) && (mod.FatigueMaxBonus != 0f || mod.FatiguePerSecMul != 0f))
+            {
+                var ft = em.GetComponentData<Fatigue>(entity);
+                ft.Max       = math.max(10f, ft.Max + mod.FatigueMaxBonus);
+                ft.PerSecond = math.max(0f, ft.PerSecond * (1f + mod.FatiguePerSecMul));
+                ft.Value     = math.min(ft.Value, ft.Max);
+                em.SetComponentData(entity, ft);
+            }
+            if (em.HasComponent<HealthRegen>(entity) && mod.HealthRegenBonus != 0f)
+            {
+                var r = em.GetComponentData<HealthRegen>(entity);
+                r.PerSecond += mod.HealthRegenBonus;
+                em.SetComponentData(entity, r);
+            }
+            else if (mod.HealthRegenBonus != 0f)
+            {
+                em.AddComponentData(entity, new HealthRegen { PerSecond = mod.HealthRegenBonus });
+            }
+            if (em.HasComponent<EnergyRegen>(entity) && mod.EnergyRegenBonus != 0f)
+            {
+                var r = em.GetComponentData<EnergyRegen>(entity);
+                r.PerSecond += mod.EnergyRegenBonus;
+                em.SetComponentData(entity, r);
+            }
+            if (em.HasComponent<ManaRegen>(entity) && mod.ManaRegenBonus != 0f)
+            {
+                var r = em.GetComponentData<ManaRegen>(entity);
+                r.PerSecond += mod.ManaRegenBonus;
+                em.SetComponentData(entity, r);
+            }
+            if (em.HasComponent<UnitMovement>(entity) && mod.MoveSpeedBonus != 0f)
+            {
+                var m = em.GetComponentData<UnitMovement>(entity);
+                m.MoveSpeed += mod.MoveSpeedBonus;
+                em.SetComponentData(entity, m);
+            }
+            if (em.HasComponent<RangedAttack>(entity) && mod.RangedDamageBonus != 0f)
+            {
+                var r = em.GetComponentData<RangedAttack>(entity);
+                r.Damage += mod.RangedDamageBonus;
+                em.SetComponentData(entity, r);
+            }
+            if (em.HasComponent<MeleeAttack>(entity) && mod.MeleeDamageBonus != 0f)
+            {
+                var m = em.GetComponentData<MeleeAttack>(entity);
+                m.Damage += mod.MeleeDamageBonus;
+                em.SetComponentData(entity, m);
+            }
+
+            ApplyTraitProfessionBias(em, entity, traits);
+            PublishTraitToast(traits, unitType);
+        }
+
+        static void PublishTraitToast(UnitTraits traits, byte unitType)
+        {
+            if (unitType == UnitType.Goblin) return;
+            if (traits.T0 == TraitKind.None) return;
+            if (!IsNoteworthy(traits)) return;
+
+            MessagePipe.IPublisher<ToastMessage> pub = null;
+            try { pub = MessagePipe.GlobalMessagePipe.GetPublisher<ToastMessage>(); }
+            catch { return; }
+            if (pub == null) return;
+
+            var sb = Cysharp.Text.ZString.CreateStringBuilder();
+            try
+            {
+                sb.Append("Hero born: ");
+                bool first = true;
+                AppendTraitName(ref sb, traits.T0, ref first);
+                AppendTraitName(ref sb, traits.T1, ref first);
+                AppendTraitName(ref sb, traits.T2, ref first);
+                var kind = HasFlaw(traits) ? ToastKind.Warning : ToastKind.Success;
+                pub.Publish(new ToastMessage(sb.ToString(), kind));
+            }
+            finally { sb.Dispose(); }
+        }
+
+        static bool IsNoteworthy(UnitTraits t)
+        {
+            return SlotCount(t) >= 2 || HasHighlight(t);
+        }
+
+        static int SlotCount(UnitTraits t)
+        {
+            int n = 0;
+            if (t.T0 != TraitKind.None) n++;
+            if (t.T1 != TraitKind.None) n++;
+            if (t.T2 != TraitKind.None) n++;
+            return n;
+        }
+
+        static bool HasHighlight(UnitTraits t)
+            => IsHighlight(t.T0) || IsHighlight(t.T1) || IsHighlight(t.T2);
+
+        static bool IsHighlight(byte kind)
+            => kind == TraitKind.Stalwart || kind == TraitKind.Scholar
+            || kind == TraitKind.Keen     || kind == TraitKind.Strong
+            || kind == TraitKind.Tough    || kind == TraitKind.Energetic;
+
+        static bool HasFlaw(UnitTraits t)
+            => TraitDB.IsFlaw(t.T0) || TraitDB.IsFlaw(t.T1) || TraitDB.IsFlaw(t.T2);
+
+        static void AppendTraitName(ref Cysharp.Text.Utf16ValueStringBuilder sb, byte kind, ref bool first)
+        {
+            if (kind == TraitKind.None) return;
+            if (!first) sb.Append(", ");
+            sb.Append(TraitDisplayName(kind));
+            first = false;
+        }
+
+        static string TraitDisplayName(byte kind) => kind switch
+        {
+            TraitKind.Tough       => "Tough",
+            TraitKind.Swift       => "Swift",
+            TraitKind.Ascetic     => "Ascetic",
+            TraitKind.Restful     => "Restful",
+            TraitKind.Energetic   => "Energetic",
+            TraitKind.Scholar     => "Scholar",
+            TraitKind.Keen        => "Keen Eye",
+            TraitKind.Strong      => "Strong",
+            TraitKind.Stalwart    => "Stalwart",
+            TraitKind.Industrious => "Industrious",
+            TraitKind.Frail       => "Frail",
+            TraitKind.Sluggish    => "Sluggish",
+            TraitKind.Glutton     => "Glutton",
+            TraitKind.Insomniac   => "Insomniac",
+            TraitKind.Timid       => "Timid",
+            TraitKind.Sickly      => "Sickly",
+            _                     => "",
+        };
+
+        static void ApplyTraitProfessionBias(EntityManager em, Entity entity, UnitTraits traits)
+        {
+            if (!em.HasComponent<ProfessionPriorities>(entity)) return;
+            var p = em.GetComponentData<ProfessionPriorities>(entity);
+            BumpPrioritiesFromTrait(ref p, traits.T0);
+            BumpPrioritiesFromTrait(ref p, traits.T1);
+            BumpPrioritiesFromTrait(ref p, traits.T2);
+            em.SetComponentData(entity, p);
+        }
+
+        static void BumpPrioritiesFromTrait(ref ProfessionPriorities p, byte kind)
+        {
+            switch (kind)
+            {
+                case TraitKind.Tough:
+                case TraitKind.Stalwart:
+                case TraitKind.Strong:
+                    p.Guard   = ClampBump(p.Guard,   +1);
+                    p.Builder = ClampBump(p.Builder, +1);
+                    break;
+                case TraitKind.Keen:
+                    p.Hunter = ClampBump(p.Hunter, +1);
+                    p.Looter = ClampBump(p.Looter, +1);
+                    break;
+                case TraitKind.Scholar:
+                    p.Craftsman = ClampBump(p.Craftsman, +1);
+                    p.Medic     = ClampBump(p.Medic,     +1);
+                    break;
+                case TraitKind.Industrious:
+                case TraitKind.Energetic:
+                    p.Lumberjack = ClampBump(p.Lumberjack, +1);
+                    p.Miner      = ClampBump(p.Miner,      +1);
+                    break;
+                case TraitKind.Swift:
+                    p.Looter = ClampBump(p.Looter, +1);
+                    break;
+                case TraitKind.Glutton:
+                    p.Chef = ClampBump(p.Chef, +1);
+                    break;
+                case TraitKind.Ascetic:
+                    p.Hunter = ClampBump(p.Hunter, +1);
+                    break;
+                case TraitKind.Insomniac:
+                    p.Guard = ClampBump(p.Guard, +1);
+                    break;
+                case TraitKind.Sluggish:
+                    p.Builder = ClampBump(p.Builder, +1);
+                    break;
+                case TraitKind.Frail:
+                case TraitKind.Sickly:
+                    p.Guard = ClampBump(p.Guard, -1);
+                    break;
+                case TraitKind.Timid:
+                    p.Guard = ClampBump(p.Guard, -2);
+                    break;
+            }
+        }
+
+        static byte ClampBump(byte current, int delta)
+        {
+            int next = current + delta;
+            if (next < 0) next = 0;
+            if (next > 5) next = 5;
+            return (byte)next;
         }
 
         static Mesh CreateQuadMesh(float size)
