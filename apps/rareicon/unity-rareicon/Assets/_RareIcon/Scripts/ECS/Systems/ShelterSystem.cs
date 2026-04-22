@@ -52,9 +52,8 @@ namespace RareIcon
             state.Dependency = new AutoReleaseReliefJob
             {
                 NowTick    = nowTick,
-                ReliefLookup = SystemAPI.GetComponentLookup<ReliefIntent>(false),
                 PackLookup = SystemAPI.GetBufferLookup<PackSlot>(true),
-                Ecb = ecb.AsParallelWriter(),
+                Ecb        = ecb.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
         }
 
@@ -209,9 +208,6 @@ namespace RareIcon
         public uint NowTick;
         [ReadOnly] public BufferLookup<PackSlot> PackLookup;
 
-        [NativeDisableParallelForRestriction]
-        public ComponentLookup<ReliefIntent> ReliefLookup;
-
         public EntityCommandBuffer.ParallelWriter Ecb;
 
         void Execute(Entity entity,
@@ -237,7 +233,7 @@ namespace RareIcon
 
             if (releaseStuck)
             {
-                ReliefLookup[entity] = default;
+                Ecb.SetComponent(chunkIdx, entity, default(ReliefIntent));
             }
         }
 

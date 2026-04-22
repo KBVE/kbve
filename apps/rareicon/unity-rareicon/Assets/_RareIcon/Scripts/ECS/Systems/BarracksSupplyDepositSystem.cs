@@ -107,8 +107,8 @@ namespace RareIcon
             int foodShortfall = math.max(0, prod.FoodCost - FoodItems.Count(storage));
 
             var capitalInv = CapitalLookup[Capital].Reinterpret<BankLedgerBase>();
-            if (coinShortfall > 0)      TryReserveOne(capitalInv, (ushort)ItemId.Coin, Capital, entity, Tick, ref Reservations);
-            else if (foodShortfall > 0) TryReserveFood(capitalInv, Capital, entity, Tick, ref Reservations);
+            if (coinShortfall > 0)      TryReserveBatch(capitalInv, (ushort)ItemId.Coin, coinShortfall, Capital, entity, Tick, ref Reservations);
+            else if (foodShortfall > 0) TryReserveFoodBatch(capitalInv, foodShortfall, Capital, entity, Tick, ref Reservations);
         }
 
         bool IsOnCapital(int2 here)
@@ -118,29 +118,37 @@ namespace RareIcon
             return OccupantLookup[tile].Building == Capital;
         }
 
-        static void TryReserveOne(in DynamicBuffer<BankLedgerBase> capInv,
-                                  ushort itemId,
-                                  Entity capital,
-                                  Entity requester,
-                                  uint tick,
-                                  ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter reservations)
+        const int BatchCap = 10;
+
+        static void TryReserveBatch(in DynamicBuffer<BankLedgerBase> capInv,
+                                    ushort itemId,
+                                    int want,
+                                    Entity capital,
+                                    Entity requester,
+                                    uint tick,
+                                    ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter reservations)
         {
-            if (BankLedgerOps.CountOf(capInv, itemId) == 0) return;
-            reservations.Add(ReservationOps.Key(capital, itemId), ReservationOps.Pickup(requester, 1, tick));
+            int available = BankLedgerOps.CountOf(capInv, itemId);
+            if (available <= 0 || want <= 0) return;
+            int take = math.min(math.min(available, want), BatchCap);
+            reservations.Add(ReservationOps.Key(capital, itemId), ReservationOps.Pickup(requester, take, tick));
         }
 
-        static void TryReserveFood(in DynamicBuffer<BankLedgerBase> capInv,
-                                   Entity capital,
-                                   Entity requester,
-                                   uint tick,
-                                   ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter reservations)
+        static void TryReserveFoodBatch(in DynamicBuffer<BankLedgerBase> capInv,
+                                        int want,
+                                        Entity capital,
+                                        Entity requester,
+                                        uint tick,
+                                        ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter reservations)
         {
-            for (int i = 0; i < capInv.Length; i++)
+            int remaining = math.min(want, BatchCap);
+            for (int i = 0; i < capInv.Length && remaining > 0; i++)
             {
                 if (capInv[i].Count == 0) continue;
                 if (!FoodItems.IsFood(capInv[i].ItemId)) continue;
-                reservations.Add(ReservationOps.Key(capital, capInv[i].ItemId), ReservationOps.Pickup(requester, 1, tick));
-                return;
+                int take = math.min((int)capInv[i].Count, remaining);
+                reservations.Add(ReservationOps.Key(capital, capInv[i].ItemId), ReservationOps.Pickup(requester, take, tick));
+                remaining -= take;
             }
         }
 

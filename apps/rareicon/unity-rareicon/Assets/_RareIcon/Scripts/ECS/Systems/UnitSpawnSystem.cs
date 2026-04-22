@@ -1062,11 +1062,12 @@ namespace RareIcon
             }
 
             ApplyTraitProfessionBias(em, entity, traits);
-            PublishTraitToast(traits);
+            PublishTraitToast(traits, unitType);
         }
 
-        static void PublishTraitToast(UnitTraits traits)
+        static void PublishTraitToast(UnitTraits traits, byte unitType)
         {
+            if (unitType == UnitType.Goblin) return;
             if (traits.T0 == TraitKind.None) return;
             if (!IsNoteworthy(traits)) return;
 

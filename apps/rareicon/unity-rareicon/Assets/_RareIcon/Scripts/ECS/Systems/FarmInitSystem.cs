@@ -33,7 +33,8 @@ namespace RareIcon
             for (int i = 0; i < entities.Length; i++)
             {
                 var e = entities[i];
-                ecb.AddBuffer<FarmLedger>(e);
+                var ledger = ecb.AddBuffer<FarmLedger>(e);
+                ledger.Add(new FarmLedger { Uid = default, ItemId = (ushort)ItemId.Compost, Count = 30 });
 
                 var recipes = ecb.AddBuffer<ProductionRecipe>(e);
                 recipes.Add(new ProductionRecipe
@@ -42,7 +43,7 @@ namespace RareIcon
                     Output1Id        = (ushort)ItemId.Carrot,  Output1Amount = 1,
                     CycleDuration    = 8f,
                     CycleEndsAt      = 0f,
-                    PullsFromCapital = 1,
+                    PullsFromCapital = 0,
                 });
 
                 var exports = ecb.AddBuffer<SurplusExport>(e);
