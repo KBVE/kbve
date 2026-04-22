@@ -33,16 +33,17 @@ float _CowSpotMask(float2 px, float2 c, float seed)
 }
 
 // Bovine-local gait (3Hz) so the cow lumbers instead of goblin-trotting.
-// Idle bob uses a slow 1Hz breath.
+// Moving cows do NOT bob — a quadruped's torso rides level while the
+// legs alternate; bobbing the body shimmers the hide patches and the
+// top/bot shade band on every step transition. Idle cows keep a slow
+// 1Hz breath so a stationary cow still reads alive.
 float _CowStep(float seed)
 {
     return _UnitMoving * step(0.0, sin(_Time.y * 3.0 + seed * 6.28318));
 }
 float _CowBob(float seed)
 {
-    float walk = _UnitMoving * step(0.0, sin(_Time.y * 3.0 + seed * 6.28318 + 1.57));
-    float idle = (1.0 - _UnitMoving) * step(0.0, sin(_Time.y * 1.0 + seed * 6.28318));
-    return walk + idle;
+    return (1.0 - _UnitMoving) * step(0.0, sin(_Time.y * 1.0 + seed * 6.28318));
 }
 
 void DrawCowSide(inout float3 color, inout float alpha, float2 px,
