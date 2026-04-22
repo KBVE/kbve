@@ -105,6 +105,34 @@ namespace RareIcon
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesSleep   { Capacity = 10 });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesHealing { Priority = 1 });
                     break;
+                case BuildingType.Lumbercamp:
+                    Ecb.AddComponent<LumbercampTag>(chunkIdx, entity);
+                    Ecb.AddBuffer<LumbercampLedger>(chunkIdx, entity);
+                    Ecb.AddComponent(chunkIdx, entity, new TenderMultiplier { Value = 0f });
+                    var lumberRecipes = Ecb.AddBuffer<ProductionRecipe>(chunkIdx, entity);
+                    lumberRecipes.Add(new ProductionRecipe
+                    {
+                        Output1Id = (ushort)ItemId.WoodLog, Output1Amount = 1,
+                        CycleDuration = 3f,
+                        CycleEndsAt   = 0f,
+                    });
+                    var lumberExports = Ecb.AddBuffer<SurplusExport>(chunkIdx, entity);
+                    lumberExports.Add(new SurplusExport { ItemId = (ushort)ItemId.WoodLog, Floor = 0 });
+                    break;
+                case BuildingType.MiningPit:
+                    Ecb.AddComponent<MiningPitTag>(chunkIdx, entity);
+                    Ecb.AddBuffer<MiningPitLedger>(chunkIdx, entity);
+                    Ecb.AddComponent(chunkIdx, entity, new TenderMultiplier { Value = 0f });
+                    var pitRecipes = Ecb.AddBuffer<ProductionRecipe>(chunkIdx, entity);
+                    pitRecipes.Add(new ProductionRecipe
+                    {
+                        Output1Id = (ushort)ItemId.Stone, Output1Amount = 1,
+                        CycleDuration = 3f,
+                        CycleEndsAt   = 0f,
+                    });
+                    var pitExports = Ecb.AddBuffer<SurplusExport>(chunkIdx, entity);
+                    pitExports.Add(new SurplusExport { ItemId = (ushort)ItemId.Stone, Floor = 0 });
+                    break;
             }
 
             Ecb.AddComponent<NeedsStaffing>(chunkIdx, entity);

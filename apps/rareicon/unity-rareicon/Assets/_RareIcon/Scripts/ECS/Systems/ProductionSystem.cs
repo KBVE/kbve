@@ -319,4 +319,162 @@ namespace RareIcon
             if (r.Output3Amount > 0) res.Add(ReservationOps.Key(target, r.Output3Id), ReservationOps.Produce(target, r.Output3Amount, tick));
         }
     }
+
+    /// <summary>Lumbercamp ProductionRecipes. Hard-gated on a worker: TenderMultiplier &gt; 0 (a Lumberjack on the footprint or ShelteredInside the camp) is required to start a cycle. No inputs — the Forest hex underneath is the resource well. Outputs Produce against own LumbercampLedger.</summary>
+    [UpdateInGroup(typeof(EconomySystemGroup))]
+    public partial struct LumbercampProductionSystem : ISystem
+    {
+        public void OnCreate(ref SystemState state)
+        {
+            var q = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<LumbercampTag, LumbercampLedger, ProductionRecipe>()
+                .Build(ref state);
+            state.RequireForUpdate(q);
+            state.RequireForUpdate<LogisticsDBSingleton>();
+        }
+
+        public void OnDestroy(ref SystemState state) { }
+
+        public void OnUpdate(ref SystemState state)
+        {
+            if (!SystemAPI.HasSingleton<WorldClock>()) return;
+            float now  = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
+            uint  tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep    = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
+
+            var handle = new LumbercampProductionJob
+            {
+                Now          = now,
+                Tick         = tick,
+                TenderLookup = SystemAPI.GetComponentLookup<TenderMultiplier>(true),
+                Reservations = db.Reservations.AsParallelWriter(),
+            }.ScheduleParallel(dep);
+
+            db.PipelineHandle = handle;
+            state.Dependency  = handle;
+        }
+    }
+
+    /// <summary>Mining Pit ProductionRecipes. Same shape as Lumbercamp but for Stone (and future ores) from the Sand hex underneath. Tender-gated on a Miner — Phase B shelter path included.</summary>
+    [UpdateInGroup(typeof(EconomySystemGroup))]
+    public partial struct MiningPitProductionSystem : ISystem
+    {
+        public void OnCreate(ref SystemState state)
+        {
+            var q = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<MiningPitTag, MiningPitLedger, ProductionRecipe>()
+                .Build(ref state);
+            state.RequireForUpdate(q);
+            state.RequireForUpdate<LogisticsDBSingleton>();
+        }
+
+        public void OnDestroy(ref SystemState state) { }
+
+        public void OnUpdate(ref SystemState state)
+        {
+            if (!SystemAPI.HasSingleton<WorldClock>()) return;
+            float now  = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
+            uint  tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
+            ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
+            var dep    = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
+
+            var handle = new MiningPitProductionJob
+            {
+                Now          = now,
+                Tick         = tick,
+                TenderLookup = SystemAPI.GetComponentLookup<TenderMultiplier>(true),
+                Reservations = db.Reservations.AsParallelWriter(),
+            }.ScheduleParallel(dep);
+
+            db.PipelineHandle = handle;
+            state.Dependency  = handle;
+        }
+    }
+
+    [BurstCompile]
+    [WithAll(typeof(LumbercampTag))]
+    public partial struct LumbercampProductionJob : IJobEntity
+    {
+        public float Now;
+        public uint  Tick;
+
+        [ReadOnly] public ComponentLookup<TenderMultiplier> TenderLookup;
+
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
+
+        void Execute(Entity entity, ref DynamicBuffer<ProductionRecipe> recipes)
+        {
+            float tender = TenderLookup.HasComponent(entity) ? TenderLookup[entity].Value : 0f;
+
+            for (int i = 0; i < recipes.Length; i++)
+            {
+                var r = recipes[i];
+                if (r.CycleEndsAt > 0f)
+                {
+                    if (Now < r.CycleEndsAt) continue;
+                    EmitOutputs(ref Reservations, entity, r, Tick);
+                    r.CycleEndsAt = 0f;
+                    recipes[i] = r;
+                    continue;
+                }
+
+                if (tender <= 0f) continue;
+
+                r.CycleEndsAt = Now + math.max(0.1f, r.CycleDuration);
+                recipes[i] = r;
+            }
+        }
+
+        static void EmitOutputs(ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter res, Entity target, in ProductionRecipe r, uint tick)
+        {
+            if (r.Output1Amount > 0) res.Add(ReservationOps.Key(target, r.Output1Id), ReservationOps.Produce(target, r.Output1Amount, tick));
+            if (r.Output2Amount > 0) res.Add(ReservationOps.Key(target, r.Output2Id), ReservationOps.Produce(target, r.Output2Amount, tick));
+            if (r.Output3Amount > 0) res.Add(ReservationOps.Key(target, r.Output3Id), ReservationOps.Produce(target, r.Output3Amount, tick));
+        }
+    }
+
+    [BurstCompile]
+    [WithAll(typeof(MiningPitTag))]
+    public partial struct MiningPitProductionJob : IJobEntity
+    {
+        public float Now;
+        public uint  Tick;
+
+        [ReadOnly] public ComponentLookup<TenderMultiplier> TenderLookup;
+
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
+
+        void Execute(Entity entity, ref DynamicBuffer<ProductionRecipe> recipes)
+        {
+            float tender = TenderLookup.HasComponent(entity) ? TenderLookup[entity].Value : 0f;
+
+            for (int i = 0; i < recipes.Length; i++)
+            {
+                var r = recipes[i];
+                if (r.CycleEndsAt > 0f)
+                {
+                    if (Now < r.CycleEndsAt) continue;
+                    EmitOutputs(ref Reservations, entity, r, Tick);
+                    r.CycleEndsAt = 0f;
+                    recipes[i] = r;
+                    continue;
+                }
+
+                if (tender <= 0f) continue;
+
+                r.CycleEndsAt = Now + math.max(0.1f, r.CycleDuration);
+                recipes[i] = r;
+            }
+        }
+
+        static void EmitOutputs(ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter res, Entity target, in ProductionRecipe r, uint tick)
+        {
+            if (r.Output1Amount > 0) res.Add(ReservationOps.Key(target, r.Output1Id), ReservationOps.Produce(target, r.Output1Amount, tick));
+            if (r.Output2Amount > 0) res.Add(ReservationOps.Key(target, r.Output2Id), ReservationOps.Produce(target, r.Output2Amount, tick));
+            if (r.Output3Amount > 0) res.Add(ReservationOps.Key(target, r.Output3Id), ReservationOps.Produce(target, r.Output3Amount, tick));
+        }
+    }
 }

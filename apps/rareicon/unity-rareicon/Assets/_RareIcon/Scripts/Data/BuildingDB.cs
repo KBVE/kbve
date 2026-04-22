@@ -58,6 +58,9 @@ namespace RareIcon
                                                         new((ushort)ItemId.StoneBlock, 1) };
         static readonly Ingredient[] CostOutpost    = { new((ushort)ItemId.Timber,     2),
                                                         new((ushort)ItemId.StoneBlock, 2) };
+        static readonly Ingredient[] CostLumbercamp = { new((ushort)ItemId.Timber,     2),
+                                                        new((ushort)ItemId.StoneBlock, 1) };
+        static readonly Ingredient[] CostMiningPit  = { new((ushort)ItemId.Timber,     3) };
         static readonly Ingredient[] CostNone     = System.Array.Empty<Ingredient>();
 
         // -- Upgrade chain costs --
@@ -90,6 +93,8 @@ namespace RareIcon
             BuildingType.Inn        => CostInn,
             BuildingType.Market     => CostMarket,
             BuildingType.Outpost    => CostOutpost,
+            BuildingType.Lumbercamp => CostLumbercamp,
+            BuildingType.MiningPit  => CostMiningPit,
             _ => CostNone,
         };
 
@@ -118,11 +123,13 @@ namespace RareIcon
             : SingleHex;
 
         // -- Biome rules --
-        /// <summary>Returns true if `biome` can host `buildingType`. Ocean / River refuse all builds.</summary>
+        /// <summary>Returns true if `biome` can host `buildingType`. Ocean / River refuse all builds; Lumbercamp must be on Forest; Mining Pit must be on Sand.</summary>
         public static bool IsBuildable(byte buildingType, byte biome)
         {
             if (biome == BiomeGenerator.BIOME_OCEAN) return false;
             if (biome == BiomeGenerator.BIOME_RIVER) return false;
+            if (buildingType == BuildingType.Lumbercamp) return biome == BiomeGenerator.BIOME_FOREST;
+            if (buildingType == BuildingType.MiningPit)  return biome == BiomeGenerator.BIOME_SAND;
             // Per-type future rules slot here:
             //   Furnace might forbid Snow (no fuel),
             //   Wall might allow only Stone / Dirt for foundation, etc.
@@ -140,6 +147,8 @@ namespace RareIcon
             BuildingType.Inn        => "building.inn",
             BuildingType.Market     => "building.market",
             BuildingType.Outpost    => "building.outpost",
+            BuildingType.Lumbercamp => "building.lumbercamp",
+            BuildingType.MiningPit  => "building.mining_pit",
             _ => "building.unknown",
         };
 
@@ -165,6 +174,8 @@ namespace RareIcon
             BuildTarget.Inn        => BuildingType.Inn,
             BuildTarget.Market     => BuildingType.Market,
             BuildTarget.Outpost    => BuildingType.Outpost,
+            BuildTarget.Lumbercamp => BuildingType.Lumbercamp,
+            BuildTarget.MiningPit  => BuildingType.MiningPit,
             _ => BuildingType.None,
         };
 
@@ -179,6 +190,8 @@ namespace RareIcon
             BuildingType.Inn        => BuildTarget.Inn,
             BuildingType.Market     => BuildTarget.Market,
             BuildingType.Outpost    => BuildTarget.Outpost,
+            BuildingType.Lumbercamp => BuildTarget.Lumbercamp,
+            BuildingType.MiningPit  => BuildTarget.MiningPit,
             _ => BuildTarget.None,
         };
 
@@ -193,6 +206,8 @@ namespace RareIcon
             BuildingType.Inn        => 280,
             BuildingType.Market     => 140,
             BuildingType.Outpost    => 220,
+            BuildingType.Lumbercamp => 200,
+            BuildingType.MiningPit  => 220,
             _                       => 100,
         };
 
@@ -208,6 +223,8 @@ namespace RareIcon
             BuildingType.Capital,
             BuildingType.Outpost,
             BuildingType.Farm,
+            BuildingType.Lumbercamp,
+            BuildingType.MiningPit,
             BuildingType.Barracks,
             BuildingType.Furnace,
             BuildingType.GoblinCave,

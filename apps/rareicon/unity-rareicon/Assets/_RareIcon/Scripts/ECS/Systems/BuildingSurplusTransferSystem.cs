@@ -6,7 +6,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Drains each source building's above-floor SurplusExport items into Capital via Surplus reservations keyed on the source bank. Three serialized jobs (Farm/Furnace/Barracks) sharing the same Reservations writer.</summary>
+    /// <summary>Drains each source building's above-floor SurplusExport items into Capital via Surplus reservations keyed on the source bank. Five serialized jobs (Farm/Furnace/Barracks/Lumbercamp/MiningPit) sharing the same Reservations writer.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct BuildingSurplusTransferSystem : ISystem
     {
@@ -27,9 +27,11 @@ namespace RareIcon
             var reservations = db.Reservations.AsParallelWriter();
 
             var dep = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
-            dep = new FarmSurplusJob     { Capital = capital, Tick = tick, Reservations = reservations }.ScheduleParallel(dep);
-            dep = new FurnaceSurplusJob  { Capital = capital, Tick = tick, Reservations = reservations }.ScheduleParallel(dep);
-            dep = new BarracksSurplusJob { Capital = capital, Tick = tick, Reservations = reservations }.ScheduleParallel(dep);
+            dep = new FarmSurplusJob       { Capital = capital, Tick = tick, Reservations = reservations }.ScheduleParallel(dep);
+            dep = new FurnaceSurplusJob    { Capital = capital, Tick = tick, Reservations = reservations }.ScheduleParallel(dep);
+            dep = new BarracksSurplusJob   { Capital = capital, Tick = tick, Reservations = reservations }.ScheduleParallel(dep);
+            dep = new LumbercampSurplusJob { Capital = capital, Tick = tick, Reservations = reservations }.ScheduleParallel(dep);
+            dep = new MiningPitSurplusJob  { Capital = capital, Tick = tick, Reservations = reservations }.ScheduleParallel(dep);
 
             db.PipelineHandle = dep;
             state.Dependency  = dep;
@@ -75,6 +77,36 @@ namespace RareIcon
         public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
         void Execute(Entity entity, in DynamicBuffer<BarracksLedger> typedStorage, in DynamicBuffer<SurplusExport> exports)
+        {
+            if (entity == Capital) return;
+            SurplusTransferShared.Run(typedStorage.Reinterpret<BankLedgerBase>(), exports, Capital, entity, Tick, ref Reservations);
+        }
+    }
+
+    [BurstCompile]
+    [WithAll(typeof(LumbercampTag))]
+    public partial struct LumbercampSurplusJob : IJobEntity
+    {
+        public Entity Capital;
+        public uint   Tick;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
+
+        void Execute(Entity entity, in DynamicBuffer<LumbercampLedger> typedStorage, in DynamicBuffer<SurplusExport> exports)
+        {
+            if (entity == Capital) return;
+            SurplusTransferShared.Run(typedStorage.Reinterpret<BankLedgerBase>(), exports, Capital, entity, Tick, ref Reservations);
+        }
+    }
+
+    [BurstCompile]
+    [WithAll(typeof(MiningPitTag))]
+    public partial struct MiningPitSurplusJob : IJobEntity
+    {
+        public Entity Capital;
+        public uint   Tick;
+        public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
+
+        void Execute(Entity entity, in DynamicBuffer<MiningPitLedger> typedStorage, in DynamicBuffer<SurplusExport> exports)
         {
             if (entity == Capital) return;
             SurplusTransferShared.Run(typedStorage.Reinterpret<BankLedgerBase>(), exports, Capital, entity, Tick, ref Reservations);
