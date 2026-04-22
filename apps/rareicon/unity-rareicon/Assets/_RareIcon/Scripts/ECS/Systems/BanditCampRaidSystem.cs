@@ -1,9 +1,10 @@
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Per-camp raid dispatch. When NowTick passes BanditCampState.NextRaidTick, spawns RaidPartySize bandits at jittered positions near the camp's RootHex and re-arms for the next cadence. Main-thread SystemBase because UnitSpawnSystem.SpawnBanditAt touches managed render assets; raid cadence is low-frequency so the main-thread cost is negligible.</summary>
+    /// <summary>Per-camp raid dispatch. When NowTick passes BanditCampState.NextRaidTick, spawns RaidPartySize bandits at jittered positions near the camp's RootHex and re-arms for the next cadence. Main-thread SystemBase because UnitSpawnSystem.SpawnBanditAt touches managed render assets; spawns are queued during the query iteration and executed after it closes so the structural changes don't invalidate the live iterator.</summary>
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(BanditCampSpawnerSystem))]
     public partial class BanditCampRaidSystem : SystemBase
@@ -19,11 +20,11 @@ namespace RareIcon
         {
             uint nowTick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
 
-            var em = EntityManager;
-            foreach (var (stateRef, building, campEntity) in
+            var pending = new NativeList<int2>(16, Allocator.Temp);
+
+            foreach (var (stateRef, building) in
                      SystemAPI.Query<RefRW<BanditCampState>, RefRO<Building>>()
-                              .WithAll<BanditCampTag>()
-                              .WithEntityAccess())
+                              .WithAll<BanditCampTag>())
             {
                 ref var state = ref stateRef.ValueRW;
                 if (nowTick < state.NextRaidTick) continue;
@@ -36,14 +37,19 @@ namespace RareIcon
                     int dx = (int)(_rng % 5u) - 2;
                     _rng = XorShift(_rng);
                     int dy = (int)(_rng % 5u) - 2;
-
-                    int2 spawnHex = new int2(campHex.x + dx, campHex.y + dy);
-                    _rng = XorShift(_rng);
-                    UnitSpawnSystem.SpawnBanditAt(em, spawnHex, _rng | 1u);
+                    pending.Add(new int2(campHex.x + dx, campHex.y + dy));
                 }
 
                 state.NextRaidTick = nowTick + state.RaidCadenceTicks;
             }
+
+            var em = EntityManager;
+            for (int i = 0; i < pending.Length; i++)
+            {
+                _rng = XorShift(_rng);
+                UnitSpawnSystem.SpawnBanditAt(em, pending[i], _rng | 1u);
+            }
+            pending.Dispose();
         }
 
         static uint XorShift(uint s)
