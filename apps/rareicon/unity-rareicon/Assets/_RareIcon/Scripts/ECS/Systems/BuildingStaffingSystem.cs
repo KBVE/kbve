@@ -88,6 +88,7 @@ namespace RareIcon
             BuildingType.Furnace    => ProfessionKind.Blacksmith,
             BuildingType.Lumbercamp => ProfessionKind.Lumberjack,
             BuildingType.MiningPit  => ProfessionKind.Miner,
+            BuildingType.Dock       => ProfessionKind.Craftsman,
             _                       => ProfessionKind.None,
         };
     }

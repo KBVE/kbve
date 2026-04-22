@@ -69,6 +69,7 @@ namespace RareIcon
         Quiver        = 244,   // 100 Arrow
         Meal          = 245,   // 100 of any food-pool item
         GoldBar       = 246,   // 100 Coin
+        Oil           = 247,   // rendered whale oil — fuel + lantern stock
 
         // Quest / key items
         QuestScroll       = 300,

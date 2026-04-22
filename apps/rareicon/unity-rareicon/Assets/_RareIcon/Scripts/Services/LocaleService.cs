@@ -120,6 +120,7 @@ namespace RareIcon
                 (ushort)ItemId.RawGlass    => "item.raw_glass",
                 (ushort)ItemId.Coal        => "item.coal",
                 (ushort)ItemId.Ash         => "item.ash",
+                (ushort)ItemId.Oil         => "item.oil",
                 (ushort)ItemId.Arrow       => "item.arrow",
                 (ushort)ItemId.CapitalLandGrant => "item.capital_land_grant",
                 (ushort)ItemId.RawChicken  => "item.raw_chicken",
@@ -172,6 +173,8 @@ namespace RareIcon
                 UnitType.Wolf    => "creature.wolf",
                 UnitType.Bandit  => "creature.bandit",
                 UnitType.Zombie  => "creature.zombie",
+                UnitType.FishingBoat => "creature.fishing_boat",
+                UnitType.Whale   => "creature.whale",
                 _ => "creature.none",
             };
             return Get(key);

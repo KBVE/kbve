@@ -83,6 +83,12 @@ namespace RareIcon
                     else if (r1 < 0.30f) Append(Ecb, chunkIdx, hex, (ushort)ItemId.UnknownScroll, 1);
                     else if (r1 < 0.65f) Append(Ecb, chunkIdx, hex, (ushort)ItemId.UnknownKey,    1);
                     break;
+                case UnitType.Whale:
+                    // One rendered oil + 400 meat; inventory haulers shuttle
+                    // the stack back to Capital over multiple trips.
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.Oil,  1);
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.Meat, 400);
+                    break;
             }
         }
 

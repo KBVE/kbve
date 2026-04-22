@@ -621,6 +621,137 @@ namespace RareIcon
             return entity;
         }
 
+        /// <summary>Spawn a craftsman-built Fishing Boat at the given hex. Player faction; carries a harpoon MeleeAttack that preferentially targets Whales + Beasts. Water-locking is deferred — v1 boats walk on land too and rely on the Dock spawning them on water-adjacent tiles.</summary>
+        public static Entity SpawnFishingBoatAt(EntityManager em, int2 hex, uint rngSeed,
+                                                byte faction = FactionType.Player)
+        {
+            if (!EnsureRenderAssets()) return Entity.Null;
+
+            var def = NPCDB.Get(UnitType.FishingBoat);
+            var entity = em.CreateEntity();
+
+            float3 worldPos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
+            worldPos.z = -0.7f;
+
+            em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
+            em.AddComponentData(entity, new Unit { Type = def.UnitType, Weapon = WeaponType.None });
+
+            float maxHp = def.MaxHealth;
+            em.AddComponentData(entity, new Health { Value = maxHp, Max = maxHp });
+
+            em.AddComponentData(entity, new UnitVisual       { Value = (float)def.UnitType });
+            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)WeaponType.None });
+            em.AddComponentData(entity, new UnitShieldVisual { Value = (float)ShieldType.None });
+            em.AddComponentData(entity, new UnitFacingVisual { Value = (float)UnitFacing.East });
+            em.AddComponentData(entity, new UnitMovingVisual { Value = 1f });
+
+            em.AddComponentData(entity, new Faction    { Value = faction });
+            em.AddComponentData(entity, new Collidable { Radius = 0.22f });
+            em.AddComponent<FishingBoatTag>(entity);
+            em.AddComponent<WaterLockedTag>(entity);
+
+            // Harpoon — short-range melee that preferentially lines up on
+            // whales via MeleeTargetMode.PreferUnits. Whales are the
+            // intended prey; other beast targets (wolves in crossfire)
+            // also count.
+            em.AddComponentData(entity, new MeleeAttack
+            {
+                Range         = 0.6f,
+                Damage        = 8.0f,
+                Cooldown      = 1.5f,
+                TimeSinceShot = 0f,
+                TargetMode    = MeleeTargetMode.PreferUnits,
+            });
+
+            em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
+            em.AddBuffer<StatusEffect>(entity);
+
+            float speedJit = 0.9f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.2f;
+            em.AddComponentData(entity, new UnitMovement
+            {
+                CurrentHex      = hex,
+                TargetHex       = hex,
+                MoveSpeed       = def.MoveSpeed * speedJit,
+                Facing          = UnitFacing.East,
+                RandomState     = rngSeed | 1u,
+                WanderStep      = 0u,
+                DwellTimer      = (rngSeed % 200u) / 200f,
+                LastDir         = 255,
+                LastHarvestStep = uint.MaxValue,
+            });
+
+            em.AddComponentData(entity, new MovementGoal
+            {
+                Kind      = GoalKind.None,
+                Priority  = GoalPriority.None,
+                TargetHex = hex,
+            });
+
+            RenderMeshUtility.AddComponents(
+                entity, em, _renderDesc, _renderArray,
+                MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+            return entity;
+        }
+
+        /// <summary>Spawn a Whale at the given water hex. Beast faction, passive — no attack components so it just wanders slowly until a FishingBoat harpoons it dead. Death drops Oil + 400 Meat via EnemyLootDropSystem.</summary>
+        public static Entity SpawnWhaleAt(EntityManager em, int2 hex, uint rngSeed)
+        {
+            if (!EnsureRenderAssets()) return Entity.Null;
+
+            var def = NPCDB.Get(UnitType.Whale);
+            var entity = em.CreateEntity();
+
+            float3 worldPos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
+            worldPos.z = -0.7f;
+
+            em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
+            em.AddComponentData(entity, new Unit { Type = def.UnitType, Weapon = WeaponType.None });
+
+            float maxHp = def.MaxHealth;
+            em.AddComponentData(entity, new Health { Value = maxHp, Max = maxHp });
+
+            em.AddComponentData(entity, new UnitVisual       { Value = (float)def.UnitType });
+            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)WeaponType.None });
+            em.AddComponentData(entity, new UnitFacingVisual { Value = (float)UnitFacing.East });
+            em.AddComponentData(entity, new UnitMovingVisual { Value = 1f });
+
+            em.AddComponentData(entity, new Faction    { Value = FactionType.Beast });
+            em.AddComponentData(entity, new Collidable { Radius = 0.30f });
+            em.AddComponent<WhaleTag>(entity);
+            em.AddComponent<WaterLockedTag>(entity);
+
+            em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
+            em.AddBuffer<StatusEffect>(entity);
+
+            float speedJit = 0.9f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.2f;
+            em.AddComponentData(entity, new UnitMovement
+            {
+                CurrentHex      = hex,
+                TargetHex       = hex,
+                MoveSpeed       = def.MoveSpeed * speedJit,
+                Facing          = UnitFacing.East,
+                RandomState     = rngSeed | 1u,
+                WanderStep      = 0u,
+                DwellTimer      = (rngSeed % 200u) / 200f,
+                LastDir         = 255,
+                LastHarvestStep = uint.MaxValue,
+            });
+
+            em.AddComponentData(entity, new MovementGoal
+            {
+                Kind      = GoalKind.None,
+                Priority  = GoalPriority.None,
+                TargetHex = hex,
+            });
+
+            RenderMeshUtility.AddComponents(
+                entity, em, _renderDesc, _renderArray,
+                MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+            return entity;
+        }
+
         // Lazily creates the shared render assets the first time anything
         static bool EnsureRenderAssets()
         {

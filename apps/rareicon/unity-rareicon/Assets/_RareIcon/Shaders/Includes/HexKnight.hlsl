@@ -105,14 +105,24 @@ void DrawKnightBack(inout float3 color, inout float alpha, float2 px,
         alpha = 1.0;
     }
 
-    // Helm — back of head, uniformly shaded.
+    // Helm from behind — two-tone shade matches Side/Front so the shape
+    // reads as plate instead of a bald scalp, plus a brow-rim band at
+    // the helmet base and a centre seam down the back where the two
+    // plate halves meet. Without these cues the back view lost the
+    // helmet entirely.
     float2 hc = c + float2(0, 2);
     float head = circleMask(px, hc, 1.8);
     if (head > 0.5)
     {
-        color = _KnightArmorShade.rgb;
+        color = (px.y >= hc.y) ? _KnightArmor.rgb : _KnightArmorShade.rgb;
         alpha = 1.0;
     }
+    // Brow / nuchal rim — darker row at the helmet base.
+    float brow = rectMask(px, hc + float2(-2, -1), float2(5, 1));
+    if (brow > 0.5 && head > 0.5) color = _KnightArmorShade.rgb * 0.65;
+    // Centre seam — thin darker column straight down the back.
+    float seam = rectMask(px, hc + float2(0, 0), float2(1, 2));
+    if (seam > 0.5 && head > 0.5) color = _KnightArmorShade.rgb * 0.75;
 
     // Horsehair crest from behind — 3 horizontal pixels above the crown.
     float plumeA = rectMask(px, hc + float2(-1, 2), float2(1, 1));

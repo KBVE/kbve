@@ -146,6 +146,20 @@ Shader "RareIcon/HexUnit"
         _GoblinGeneralCloak      ("Goblin General Cloak",      Color) = (0.52, 0.12, 0.12, 1)
         _GoblinGeneralEye        ("Goblin General Eye",        Color) = (0.98, 0.85, 0.20, 1)
         _GoblinGeneralWarpaint   ("Goblin General Warpaint",   Color) = (0.82, 0.15, 0.18, 1)
+
+        _BoatHull        ("Boat Hull",        Color) = (0.42, 0.28, 0.18, 1)
+        _BoatHullShade   ("Boat Hull Shade",  Color) = (0.24, 0.16, 0.10, 1)
+        _BoatDeck        ("Boat Deck",        Color) = (0.62, 0.48, 0.30, 1)
+        _BoatMast        ("Boat Mast",        Color) = (0.30, 0.22, 0.14, 1)
+        _BoatSail        ("Boat Sail",        Color) = (0.95, 0.92, 0.82, 1)
+        _BoatSailShade   ("Boat Sail Shade",  Color) = (0.70, 0.65, 0.55, 1)
+        _BoatCrew        ("Boat Crew",        Color) = (0.92, 0.76, 0.60, 1)
+
+        _WhaleBack       ("Whale Back",       Color) = (0.18, 0.24, 0.38, 1)
+        _WhaleBelly      ("Whale Belly",      Color) = (0.55, 0.62, 0.70, 1)
+        _WhaleFluke      ("Whale Fluke",      Color) = (0.12, 0.16, 0.26, 1)
+        _WhaleEye        ("Whale Eye",        Color) = (0.06, 0.06, 0.08, 1)
+        _WhaleSpout      ("Whale Spout",      Color) = (0.90, 0.94, 0.98, 0.80)
     }
 
     SubShader
@@ -293,6 +307,18 @@ Shader "RareIcon/HexUnit"
                 float4 _GoblinGeneralCloak;
                 float4 _GoblinGeneralEye;
                 float4 _GoblinGeneralWarpaint;
+                float4 _BoatHull;
+                float4 _BoatHullShade;
+                float4 _BoatDeck;
+                float4 _BoatMast;
+                float4 _BoatSail;
+                float4 _BoatSailShade;
+                float4 _BoatCrew;
+                float4 _WhaleBack;
+                float4 _WhaleBelly;
+                float4 _WhaleFluke;
+                float4 _WhaleEye;
+                float4 _WhaleSpout;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -331,6 +357,8 @@ Shader "RareIcon/HexUnit"
             #define UNIT_BANDIT     14
             #define UNIT_ZOMBIE     15
             #define UNIT_GOBLIN_GENERAL 16
+            #define UNIT_FISHING_BOAT   17
+            #define UNIT_WHALE          18
 
             #define WEAPON_CLUB      1
             #define WEAPON_CROSSBOW  2
@@ -358,6 +386,8 @@ Shader "RareIcon/HexUnit"
             #include "Includes/HexCleric.hlsl"
             #include "Includes/HexMerchant.hlsl"
             #include "Includes/HexGoblinGeneral.hlsl"
+            #include "Includes/HexFishingBoat.hlsl"
+            #include "Includes/HexWhale.hlsl"
             // Weapon + equipment includes — composited on top of the
             // creature at each unit's respective anchor.
             #include "Includes/HexClub.hlsl"
@@ -454,6 +484,14 @@ Shader "RareIcon/HexUnit"
                 {
                     DrawGoblinGeneral(color, alpha, px, grid, seed, facing);
                 }
+                else if (unitType == UNIT_FISHING_BOAT)
+                {
+                    DrawFishingBoat(color, alpha, px, grid, seed, facing);
+                }
+                else if (unitType == UNIT_WHALE)
+                {
+                    DrawWhale(color, alpha, px, grid, seed, facing);
+                }
 
                 // -- 2. Weapon (composited on top of the creature) -------------
                 // The weapon code stays facing-agnostic: when facing=West we
@@ -492,6 +530,8 @@ Shader "RareIcon/HexUnit"
                         anchor = MerchantWeaponAnchor(grid, weaponFacing);
                     else if (unitType == UNIT_GOBLIN_GENERAL)
                         anchor = GoblinGeneralWeaponAnchor(grid, weaponFacing);
+                    else if (unitType == UNIT_FISHING_BOAT)
+                        anchor = FishingBoatWeaponAnchor(grid, weaponFacing);
                     else
                         anchor = float2(grid * 0.5, grid * 0.45); // generic fallback
 

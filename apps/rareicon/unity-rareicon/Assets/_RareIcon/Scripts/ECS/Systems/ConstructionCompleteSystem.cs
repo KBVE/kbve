@@ -80,6 +80,32 @@ namespace RareIcon
                     Ecb.AddComponent<MarketTag>(chunkIdx, entity);
                     Ecb.AddComponent(chunkIdx, entity, new BuildingTier { Value = 0 });
                     break;
+                case BuildingType.Dock:
+                    Ecb.AddComponent<DockTag>(chunkIdx, entity);
+                    // Boat-build cadence: every 2 turns drain 1 Timber
+                    // from Capital, emit a FishingBoat on an adjacent hex.
+                    Ecb.AddComponent(chunkIdx, entity, new DockProduction
+                    {
+                        LastProducedTurn = 0,
+                        CadenceTurns     = 2,
+                        TimberCost       = 1,
+                    });
+                    // Passive fishing — outputs 2 Meat every 20s into the
+                    // Capital via the existing passive-production pipeline.
+                    Ecb.AddComponent(chunkIdx, entity, new PassiveProduction
+                    {
+                        OutputId      = (ushort)ItemId.Meat,
+                        OutputAmount  = 2,
+                        CycleEndsAt   = 0f,
+                        CycleDuration = 20f,
+                    });
+                    Ecb.AddComponent(chunkIdx, entity, new ProvidesFood { Priority = 1 });
+                    // Manning bonus — DockTenderScanSystem writes 1 while
+                    // a Craftsman-intent unit stands on the dock hex,
+                    // DockProductionSystem halves the cadence while the
+                    // multiplier is 1.
+                    Ecb.AddComponent(chunkIdx, entity, new TenderMultiplier { Value = 0f });
+                    break;
                 case BuildingType.Outpost:
                     Ecb.AddComponent<OutpostTag>(chunkIdx, entity);
                     Ecb.AddComponent(chunkIdx, entity, new TerritoryEmitter

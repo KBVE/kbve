@@ -27,6 +27,8 @@ namespace RareIcon
         public const byte Bandit  = 14;  // Hostile faction, raid waves alongside goblins.
         public const byte Zombie  = 15;
         public const byte GoblinGeneral = 16; // Warlord goblin — chestplate, spiked crown, warpaint.
+        public const byte FishingBoat   = 17; // Water-locked craftsman-built vessel; hunts Whales for Oil + Meat.
+        public const byte Whale         = 18; // Oceanic / river leviathan — FishingBoats' prey.
         // Skeleton, etc. land here as we add them.
     }
 
@@ -40,6 +42,15 @@ namespace RareIcon
 
     /// <summary>Tag marking wild animals so combat / harvest / AI systems skip them.</summary>
     public struct PassiveAnimalTag : IComponentData { }
+
+    /// <summary>Marker tag for craftsman-built Fishing Boats — water-locked; hunts <see cref="WhaleTag"/> units for Oil + Meat.</summary>
+    public struct FishingBoatTag : IComponentData { }
+
+    /// <summary>Marker tag for Whales — FishingBoats' prey. Drops Oil + 400 Meat via EnemyLootDropSystem on death.</summary>
+    public struct WhaleTag : IComponentData { }
+
+    /// <summary>Unit only accepts river/ocean destinations when wandering. WaterWanderJob validates the rolled target's BiomeType against this tag before committing the goal. Attach to Fishing Boats + Whales.</summary>
+    public struct WaterLockedTag : IComponentData { }
 
     /// <summary>Tag added once an animal has been tamed by a player entity.</summary>
     public struct TamedTag : IComponentData { }
