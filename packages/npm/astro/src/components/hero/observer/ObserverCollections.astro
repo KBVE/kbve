@@ -75,6 +75,10 @@ const heroBgStyle = [
 				<div class="obs__hero-image">
 					<img src={foreground} alt={alt} />
 				</div>
+				<div class="obs__hero-hint" aria-hidden="true">
+					<span class="obs__hero-hint-label">Scroll</span>
+					<div class="obs__hero-hint-line" />
+				</div>
 			</div>
 		)
 	}
@@ -335,6 +339,8 @@ const heroBgStyle = [
 					);
 					const heroBgEl =
 						heroEl.querySelector<HTMLElement>('.obs__hero-bg');
+					const heroHintEl =
+						heroEl.querySelector<HTMLElement>('.obs__hero-hint');
 					const hScale = Number(heroEl.dataset.obsHeroScale) || 2;
 					const hDepth = Number(heroEl.dataset.obsHeroDepth) || 350;
 					const hBgScale =
@@ -382,6 +388,17 @@ const heroBgStyle = [
 							0,
 						);
 					}
+					if (heroHintEl) {
+						tl.to(
+							heroHintEl,
+							{
+								autoAlpha: 0,
+								duration: duration * 0.4,
+								ease: 'power1.in',
+							},
+							0,
+						);
+					}
 
 					tl.fromTo(
 						[outerWrappers[index], innerWrappers[index]],
@@ -413,6 +430,47 @@ const heroBgStyle = [
 
 				if (heroEl) {
 					syncVideos();
+
+					const heroBgParallaxEl =
+						heroEl.querySelector<HTMLElement>('.obs__hero-bg');
+					if (heroBgParallaxEl) {
+						gsap.set(heroBgParallaxEl, { scale: 1.05 });
+						const bgPX = gsap.quickTo(heroBgParallaxEl, 'x', {
+							duration: 0.8,
+							ease: 'power2.out',
+						});
+						const bgPY = gsap.quickTo(heroBgParallaxEl, 'y', {
+							duration: 0.8,
+							ease: 'power2.out',
+						});
+
+						const onParallaxMove = (e: MouseEvent) => {
+							if (!heroActive) return;
+							const mx =
+								(e.clientX / window.innerWidth - 0.5) * 2;
+							const my =
+								(e.clientY / window.innerHeight - 0.5) * 2;
+							bgPX(mx * 12);
+							bgPY(my * 8);
+						};
+						window.addEventListener('mousemove', onParallaxMove, {
+							passive: true,
+						});
+
+						const cleanupParallax = () =>
+							window.removeEventListener(
+								'mousemove',
+								onParallaxMove,
+							);
+						document.addEventListener(
+							'astro:before-swap',
+							cleanupParallax,
+							{ once: true },
+						);
+						window.addEventListener('pagehide', cleanupParallax, {
+							once: true,
+						});
+					}
 				} else {
 					gotoSection(0, 1);
 				}
@@ -548,6 +606,51 @@ const heroBgStyle = [
 		object-fit: cover;
 		object-position: center center;
 		will-change: transform;
+	}
+
+	.obs__hero-hint {
+		position: absolute;
+		bottom: 3rem;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 4;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		pointer-events: none;
+		animation: obs-hint-bounce 3s ease-in-out infinite;
+		will-change: transform, opacity;
+	}
+
+	.obs__hero-hint-label {
+		font-size: 0.65rem;
+		letter-spacing: 0.3em;
+		text-transform: uppercase;
+		color: #fff;
+		text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+		margin-bottom: 0.5rem;
+	}
+
+	.obs__hero-hint-line {
+		width: 1px;
+		height: 2.5rem;
+		background: linear-gradient(
+			to bottom,
+			rgba(255, 255, 255, 0.8),
+			transparent
+		);
+	}
+
+	@keyframes obs-hint-bounce {
+		0%,
+		100% {
+			opacity: 1;
+			transform: translateX(-50%) translateY(0);
+		}
+		50% {
+			opacity: 0.5;
+			transform: translateX(-50%) translateY(10px);
+		}
 	}
 
 	.obs__nav {
