@@ -244,6 +244,21 @@ namespace RareIcon
             RemoveOverlay(AppOverlayFlags.PauseMenu | AppOverlayFlags.Modal | AppOverlayFlags.LockedInput);
         }
 
+        public bool CanAcceptWorldInput()
+        {
+            var state = _state.CurrentValue;
+            if (state != AppInterfaceState.World && state != AppInterfaceState.InTile)
+                return false;
+
+            const AppOverlayFlags blocked =
+                AppOverlayFlags.LockedInput |
+                AppOverlayFlags.Modal |
+                AppOverlayFlags.Dialogue |
+                AppOverlayFlags.PauseMenu;
+
+            return (_overlays.CurrentValue & blocked) == 0;
+        }
+
         /// <summary>
         /// Clears all transient UI overlays (inventory, dialogue, map, modal, etc.) while preserving persistent overlays such as network/disconnect state.
         /// </summary>
