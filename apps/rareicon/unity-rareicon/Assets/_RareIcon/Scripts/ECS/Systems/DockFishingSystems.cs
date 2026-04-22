@@ -29,7 +29,15 @@ namespace RareIcon
                          .WithAll<DockTag>().WithEntityAccess())
             {
                 var prod = prodRef.ValueRO;
-                if (turn < prod.LastProducedTurn + prod.CadenceTurns) continue;
+                // Manning bonus — a Craftsman on the dock hex halves the
+                // build cadence (rounded up so 1-turn cadence stays 1).
+                float tender = em.HasComponent<TenderMultiplier>(entity)
+                    ? em.GetComponentData<TenderMultiplier>(entity).Value
+                    : 0f;
+                uint effectiveCadence = tender > 0.5f
+                    ? (uint)math.max(1, (prod.CadenceTurns + 1) / 2)
+                    : prod.CadenceTurns;
+                if (turn < prod.LastProducedTurn + effectiveCadence) continue;
 
                 if (BankLedgerOps.CountOf(capitalBuf, (ushort)ItemId.Timber) < prod.TimberCost)
                     continue;

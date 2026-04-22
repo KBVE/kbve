@@ -648,6 +648,7 @@ namespace RareIcon
             em.AddComponentData(entity, new Faction    { Value = faction });
             em.AddComponentData(entity, new Collidable { Radius = 0.22f });
             em.AddComponent<FishingBoatTag>(entity);
+            em.AddComponent<WaterLockedTag>(entity);
 
             // Harpoon — short-range melee that preferentially lines up on
             // whales via MeleeTargetMode.PreferUnits. Whales are the
@@ -718,6 +719,7 @@ namespace RareIcon
             em.AddComponentData(entity, new Faction    { Value = FactionType.Beast });
             em.AddComponentData(entity, new Collidable { Radius = 0.30f });
             em.AddComponent<WhaleTag>(entity);
+            em.AddComponent<WaterLockedTag>(entity);
 
             em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
             em.AddBuffer<StatusEffect>(entity);

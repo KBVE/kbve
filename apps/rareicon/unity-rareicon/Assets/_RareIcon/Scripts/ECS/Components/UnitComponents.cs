@@ -49,6 +49,9 @@ namespace RareIcon
     /// <summary>Marker tag for Whales — FishingBoats' prey. Drops Oil + 400 Meat via EnemyLootDropSystem on death.</summary>
     public struct WhaleTag : IComponentData { }
 
+    /// <summary>Unit only accepts river/ocean destinations when wandering. WaterWanderJob validates the rolled target's BiomeType against this tag before committing the goal. Attach to Fishing Boats + Whales.</summary>
+    public struct WaterLockedTag : IComponentData { }
+
     /// <summary>Tag added once an animal has been tamed by a player entity.</summary>
     public struct TamedTag : IComponentData { }
 

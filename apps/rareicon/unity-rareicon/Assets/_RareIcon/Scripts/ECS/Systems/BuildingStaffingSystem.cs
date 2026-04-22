@@ -86,6 +86,7 @@ namespace RareIcon
             BuildingType.Farm     => ProfessionKind.Farmer,
             BuildingType.Barracks => ProfessionKind.Guard,
             BuildingType.Furnace  => ProfessionKind.Blacksmith,
+            BuildingType.Dock     => ProfessionKind.Craftsman,
             _                     => ProfessionKind.None,
         };
     }

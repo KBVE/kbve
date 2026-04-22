@@ -99,6 +99,11 @@ namespace RareIcon
                         CycleDuration = 20f,
                     });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesFood { Priority = 1 });
+                    // Manning bonus — DockTenderScanSystem writes 1 while
+                    // a Craftsman-intent unit stands on the dock hex,
+                    // DockProductionSystem halves the cadence while the
+                    // multiplier is 1.
+                    Ecb.AddComponent(chunkIdx, entity, new TenderMultiplier { Value = 0f });
                     break;
                 case BuildingType.Outpost:
                     Ecb.AddComponent<OutpostTag>(chunkIdx, entity);

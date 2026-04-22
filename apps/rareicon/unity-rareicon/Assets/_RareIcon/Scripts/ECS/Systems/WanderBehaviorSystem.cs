@@ -22,6 +22,15 @@ namespace RareIcon
         public void OnUpdate(ref SystemState state)
         {
             new WanderJob().ScheduleParallel();
+
+            if (SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup))
+            {
+                state.Dependency = new WaterWanderJob
+                {
+                    HexLookup   = hexLookup.Lookup,
+                    BiomeLookup = SystemAPI.GetComponentLookup<BiomeType>(true),
+                }.ScheduleParallel(state.Dependency);
+            }
         }
     }
 
@@ -35,26 +44,20 @@ namespace RareIcon
     [WithNone(typeof(ControlledUnitTag))]
     [WithNone(typeof(GarrisonPost))]
     [WithNone(typeof(ProfessionPriorities))]
+    [WithNone(typeof(WaterLockedTag))]
     public partial struct WanderJob : IJobEntity
     {
         void Execute(ref MovementGoal goal, ref UnitMovement m)
         {
-            // Let higher-priority behaviors own the unit. Same-priority
-            // Wander re-rolls (below) are still permitted.
             if (goal.Priority > GoalPriority.Wander) return;
 
-            // Only (re)pick when idle — no goal, or the previous wander
-            // target has been reached. Mid-wander traversals belong to
-            // pathfinding + locomotion.
             bool noGoal     = goal.Kind == GoalKind.None;
             bool wanderDone = goal.Kind == GoalKind.Wander && m.CurrentHex.Equals(goal.TargetHex);
             if (!noGoal && !wanderDone) return;
 
-            // xor-shift salted with CurrentHex so two identical
-            // RandomStates on the same tile still diverge.
-            uint rng  = Rng(m.RandomState ^ HashHex(m.CurrentHex));
+            uint rng  = WanderRng.Rng(m.RandomState ^ WanderRng.HashHex(m.CurrentHex));
             int  dir  = (int)(rng % 6u);
-            rng       = Rng(rng);
+            rng       = WanderRng.Rng(rng);
             int  dist = (int)(3u + (rng % 3u));
 
             int2 newTarget = m.CurrentHex + HexMeshUtil.HexNeighbor(dir) * dist;
@@ -67,8 +70,72 @@ namespace RareIcon
                 TargetHex = newTarget,
             };
         }
+    }
 
-        static uint Rng(uint x)
+    // Water-locked wander — Fishing Boats + Whales only accept river /
+    // ocean destinations. Reroll up to a handful of times per tick; if
+    // every candidate is dry the unit stays put and re-rolls next
+    // tick. Cheap for water-heavy maps; harmless even on land-heavy
+    // ones because the reject loop caps at MaxTries.
+    [BurstCompile]
+    [WithAll(typeof(WaterLockedTag))]
+    [WithNone(typeof(ControlledUnitTag))]
+    [WithNone(typeof(GarrisonPost))]
+    public partial struct WaterWanderJob : IJobEntity
+    {
+        const int MaxTries = 4;
+
+        [ReadOnly] public Unity.Collections.NativeHashMap<int2, Entity> HexLookup;
+        [ReadOnly] public ComponentLookup<BiomeType> BiomeLookup;
+
+        void Execute(ref MovementGoal goal, ref UnitMovement m)
+        {
+            if (goal.Priority > GoalPriority.Wander) return;
+
+            bool noGoal     = goal.Kind == GoalKind.None;
+            bool wanderDone = goal.Kind == GoalKind.Wander && m.CurrentHex.Equals(goal.TargetHex);
+            if (!noGoal && !wanderDone) return;
+
+            uint rng = WanderRng.Rng(m.RandomState ^ WanderRng.HashHex(m.CurrentHex));
+
+            for (int tri = 0; tri < MaxTries; tri++)
+            {
+                int  dir  = (int)(rng % 6u);
+                rng       = WanderRng.Rng(rng);
+                int  dist = (int)(2u + (rng % 3u));
+                rng       = WanderRng.Rng(rng);
+                int2 candidate = m.CurrentHex + HexMeshUtil.HexNeighbor(dir) * dist;
+
+                if (IsWater(candidate))
+                {
+                    m.RandomState = rng;
+                    goal = new MovementGoal
+                    {
+                        Kind      = GoalKind.Wander,
+                        Priority  = GoalPriority.Wander,
+                        TargetHex = candidate,
+                    };
+                    return;
+                }
+            }
+
+            // All candidates were dry — advance rng so the next tick
+            // rolls fresh.
+            m.RandomState = rng;
+        }
+
+        bool IsWater(int2 hex)
+        {
+            if (!HexLookup.TryGetValue(hex, out var tile)) return false;
+            if (!BiomeLookup.HasComponent(tile)) return false;
+            byte b = BiomeLookup[tile].Value;
+            return b == BiomeGenerator.BIOME_RIVER || b == BiomeGenerator.BIOME_OCEAN;
+        }
+    }
+
+    internal static class WanderRng
+    {
+        public static uint Rng(uint x)
         {
             x ^= x >> 13;
             x *= 0x85EBCA6Bu;
@@ -78,7 +145,7 @@ namespace RareIcon
             return x;
         }
 
-        static uint HashHex(int2 hex)
+        public static uint HashHex(int2 hex)
         {
             uint h = (uint)hex.x * 0x9E3779B1u;
             h ^= (uint)hex.y * 0x85EBCA77u;
