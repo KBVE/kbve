@@ -46,9 +46,14 @@ namespace RareIcon
             }
             if (alive >= MaxHostiles) return;
 
+            bool campActive = false;
+            foreach (var _ in SystemAPI.Query<RefRO<BanditCampTag>>()) { campActive = true; break; }
+
             int spawn = math.min(SpawnBatchSize, MaxHostiles - alive);
-            float banditShare = math.lerp(BanditShareStart, BanditShareCap,
-                math.saturate((float)_waveIndex / BanditRampWaves));
+            float banditShare = campActive
+                ? 0f
+                : math.lerp(BanditShareStart, BanditShareCap,
+                    math.saturate((float)_waveIndex / BanditRampWaves));
             _waveIndex++;
 
             for (int i = 0; i < spawn; i++)

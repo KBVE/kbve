@@ -422,6 +422,12 @@ namespace RareIcon
                 _buildingPrefab, em, renderDesc, renderArray,
                 MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
 
+            using var existing = em.CreateEntityQuery(ComponentType.ReadWrite<BuildingPrefabSingleton>());
+            Entity singleton = existing.CalculateEntityCount() > 0
+                ? existing.GetSingletonEntity()
+                : em.CreateEntity(typeof(BuildingPrefabSingleton));
+            em.SetComponentData(singleton, new BuildingPrefabSingleton { Prefab = _buildingPrefab });
+
             _initialized = true;
         }
 

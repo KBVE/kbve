@@ -24,6 +24,7 @@ namespace RareIcon
         public const byte Lumbercamp = 9;
         public const byte MiningPit  = 10;
         public const byte Dock       = 11;  // River-only; passive fishing + Timber→FishingBoat crafting.
+        public const byte BanditCamp = 12;  // Hostile-owned raid source; spawns periodic bandit parties.
         // Tower, Wall, etc. land here as we add their .hlsl files.
     }
 
@@ -49,6 +50,23 @@ namespace RareIcon
 
     /// <summary>Marker tag for the Capital — craft / governance systems query key.</summary>
     public struct CapitalTag : IComponentData { }
+
+    /// <summary>Marker tag for a Hostile-owned BanditCamp — raid source. BanditCampRaidSystem emits bandit parties from its RootHex on a cadence; destroying the building (BuildingHealth→0) ends the raids. One or more may exist simultaneously in a future pass; today the spawner caps at one active camp.</summary>
+    public struct BanditCampTag : IComponentData { }
+
+    /// <summary>Per-camp raid state. NextRaidTick gates dispatch; RaidCadenceTicks + RaidPartySize tune pressure. All fields blittable so BanditCampRaidSystem stays ISystem + Burst.</summary>
+    public struct BanditCampState : IComponentData
+    {
+        public uint NextRaidTick;
+        public uint RaidCadenceTicks;
+        public byte RaidPartySize;
+    }
+
+    /// <summary>Singleton — holds the shared building prefab Entity BuildingSpawnSystem created at startup. Any system that needs to instantiate a building (BanditCampSpawnerSystem, future Hostile builders) reads Prefab from this singleton instead of duplicating the mesh/material setup.</summary>
+    public struct BuildingPrefabSingleton : IComponentData
+    {
+        public Entity Prefab;
+    }
 
     /// <summary>Player-issued request to tear down Target. DemolishBuildingSystem refunds 50% of delivered materials to the Capital, releases any sheltered units, then destroys the entity. Request entity is self-destroyed after processing.</summary>
     public struct DemolishRequest : IComponentData
