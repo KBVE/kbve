@@ -113,6 +113,8 @@
 	"building.trade_house": "商館",
 	"building.merchants_guild": "商人ギルド",
 	"building.outpost": "前哨基地",
+	"building.lumbercamp": "伐採場",
+	"building.mining_pit": "採掘場",
 	"building.unknown": "建物",
 	"item.any_food": "何でも食料",
 	"item.pouch": "小袋",

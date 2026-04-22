@@ -137,6 +137,8 @@
 	"building.trade_house": "Trade House",
 	"building.merchants_guild": "Merchants Guild",
 	"building.outpost": "Outpost",
+	"building.lumbercamp": "Lumbercamp",
+	"building.mining_pit": "Mining Pit",
 	"building.unknown": "Building",
 	"item.any_food": "Any Food",
 	"item.pouch": "Pouch",

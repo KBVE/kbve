@@ -21,7 +21,9 @@ namespace RareIcon
         public const byte Inn        = 6;
         public const byte Market     = 7;
         public const byte Outpost    = 8;
-        // Tower, Wall, Mine, etc. land here as we add their .hlsl files.
+        public const byte Lumbercamp = 9;
+        public const byte MiningPit  = 10;
+        // Tower, Wall, etc. land here as we add their .hlsl files.
     }
 
     /// <summary>
@@ -39,6 +41,8 @@ namespace RareIcon
         public const byte Inn        = 6;
         public const byte Market     = 7;
         public const byte Outpost    = 8;
+        public const byte Lumbercamp = 9;
+        public const byte MiningPit  = 10;
     }
 
     /// <summary>Marker tag for the Capital — craft / governance systems query key.</summary>
@@ -210,6 +214,12 @@ namespace RareIcon
 
     /// <summary>Marker tag for Outpost buildings.</summary>
     public struct OutpostTag : IComponentData { }
+
+    /// <summary>Marker tag for Lumbercamp buildings — placed on Forest hexes. LumbercampProductionSystem ticks only while a Lumberjack is on the footprint or sheltered inside.</summary>
+    public struct LumbercampTag : IComponentData { }
+
+    /// <summary>Marker tag for Mining Pit buildings — placed on Sand hexes. MiningPitProductionSystem ticks only while a Miner is on the footprint or sheltered inside.</summary>
+    public struct MiningPitTag : IComponentData { }
 
     /// <summary>Per-outpost cooldown-gated arrow volley. Every CooldownSeconds the outpost fires ArrowsPerVolley projectiles in a cone of half-angle SpreadHalfAngleRad around the closest CombatDB threat within Range. Burns ArrowCost from the sibling OutpostArrowPool per firing.</summary>
     public struct OutpostVolley : IComponentData

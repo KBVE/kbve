@@ -97,6 +97,26 @@ namespace RareIcon
         public ushort Count;
     }
 
+    /// <summary>Lumbercamp output stock (WoodLog + Branches + Leaves). Produced by LumbercampProductionSystem when a Lumberjack tends the camp; BuildingSurplusTransferSystem drains to Capital.</summary>
+    [InternalBufferCapacity(4)]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct LumbercampLedger : IBankLedger
+    {
+        public Ulid   Uid;
+        public ushort ItemId;
+        public ushort Count;
+    }
+
+    /// <summary>Mining Pit output stock (Stone, eventually ores). Produced by MiningPitProductionSystem when a Miner tends the pit; BuildingSurplusTransferSystem drains to Capital.</summary>
+    [InternalBufferCapacity(4)]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct MiningPitLedger : IBankLedger
+    {
+        public Ulid   Uid;
+        public ushort ItemId;
+        public ushort Count;
+    }
+
     /// <summary>Shared algorithm helpers over any per-bank ledger. Callers Reinterpret their concrete DynamicBuffer&lt;CapitalLedger&gt;/&lt;FurnaceLedger&gt;/etc. into DynamicBuffer&lt;BankLedgerBase&gt; at the call boundary, then pass the view here. One implementation, no generics, no interface method calls — Burst compiles these as plain struct-field loops. Writes through the reinterpreted view alias the original buffer's memory so mutations stick.</summary>
     public static class BankLedgerOps
     {

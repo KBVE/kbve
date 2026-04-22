@@ -366,6 +366,8 @@ namespace RareIcon
             BuildingType.Inn        => "Inn",
             BuildingType.Market     => "Market",
             BuildingType.Outpost    => "Outpost",
+            BuildingType.Lumbercamp => "Lumbercamp",
+            BuildingType.MiningPit  => "Mining Pit",
             _ => "Unknown",
         };
 
