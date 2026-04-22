@@ -1,0 +1,29 @@
+---
+title: 'Carrot'
+description: 'A freshly-pulled carrot — farm produce.'
+ref: 'carrot'
+key: 516
+id: '01KPTSDW05ZP05TV92F9F5F7R5'
+name: 'Carrot'
+type_flags: 72
+rarity: 'common'
+emoji: '🥕'
+stackable: true
+max_stack: 30
+buy_price: 4
+rareicon:
+  name_key: 'item.carrot'
+  category: 'material'
+  stack_max: 30
+  base_value: 4
+  restore_energy: 9
+  compresses_to: 'meal'
+  compress_ratio: 100
+  pool_group: 'food'
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

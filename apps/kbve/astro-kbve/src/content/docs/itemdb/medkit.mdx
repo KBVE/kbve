@@ -1,0 +1,29 @@
+---
+title: 'MedKit'
+description: 'A field medical kit — heals on use and provides regen.'
+ref: 'medkit'
+key: 542
+id: '01KPTSDW07DFVC7FKABJ2VX3Y8'
+name: 'MedKit'
+type_flags: 32
+rarity: 'common'
+stackable: true
+max_stack: 10
+buy_price: 80
+consumable: true
+action: 'consume'
+rareicon:
+  name_key: 'item.medkit'
+  category: 'consumable'
+  stack_max: 10
+  base_value: 80
+  restore_health: 25
+  regen_per_second: 2
+  regen_duration: 15
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

@@ -1,0 +1,30 @@
+---
+title: 'Cooked Egg'
+description: 'A boiled egg — quick protein.'
+ref: 'cooked-egg'
+key: 528
+id: '01KPTSDW06HW10Z3RFW1K6XSW0'
+name: 'Cooked Egg'
+type_flags: 8
+rarity: 'common'
+stackable: true
+max_stack: 24
+buy_price: 8
+consumable: true
+action: 'consume'
+rareicon:
+  name_key: 'item.cooked_egg'
+  category: 'consumable'
+  stack_max: 24
+  base_value: 8
+  restore_energy: 14
+  compresses_to: 'meal'
+  compress_ratio: 100
+  pool_group: 'food'
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

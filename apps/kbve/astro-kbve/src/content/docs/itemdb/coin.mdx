@@ -1,0 +1,27 @@
+---
+title: 'Coin'
+description: 'A copper coin — the base unit of currency.'
+ref: 'coin'
+key: 533
+id: '01KPTSDW07M5HSJ2E0W1K6KYKF'
+name: 'Coin'
+type_flags: 262208
+rarity: 'common'
+emoji: '🪙'
+stackable: true
+max_stack: 50
+buy_price: 1
+rareicon:
+  name_key: 'item.coin'
+  category: 'material'
+  stack_max: 50
+  base_value: 1
+  compresses_to: 'gold-bar'
+  compress_ratio: 100
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

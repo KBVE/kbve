@@ -1,0 +1,30 @@
+---
+title: 'Cooked Mutton'
+description: 'A hearty cut of roasted mutton.'
+ref: 'cooked-mutton'
+key: 525
+id: '01KPTSDW06FXJVV2E59FQ3BAP1'
+name: 'Cooked Mutton'
+type_flags: 8
+rarity: 'common'
+stackable: true
+max_stack: 24
+buy_price: 24
+consumable: true
+action: 'consume'
+rareicon:
+  name_key: 'item.cooked_mutton'
+  category: 'consumable'
+  stack_max: 24
+  base_value: 24
+  restore_energy: 35
+  compresses_to: 'meal'
+  compress_ratio: 100
+  pool_group: 'food'
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

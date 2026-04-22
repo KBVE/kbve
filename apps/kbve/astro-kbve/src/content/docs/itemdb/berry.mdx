@@ -1,0 +1,30 @@
+---
+title: 'Berry'
+description: 'A handful of wild berries foraged from bushes.'
+ref: 'berry'
+key: 500
+id: '01KPTSDW02MJBNHGJN2QDM05X5'
+name: 'Berry'
+type_flags: 72
+rarity: 'common'
+emoji: '🫐'
+stackable: true
+max_stack: 30
+buy_price: 2
+rareicon:
+  name_key: 'item.berry'
+  category: 'material'
+  stack_max: 30
+  base_value: 2
+  restore_energy: 10
+  harvest_role: 'forager'
+  compresses_to: 'meal'
+  compress_ratio: 100
+  pool_group: 'food'
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

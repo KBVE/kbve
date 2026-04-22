@@ -1,0 +1,30 @@
+---
+title: 'Mushroom'
+description: 'A plain edible mushroom pulled from the forest floor.'
+ref: 'mushroom'
+key: 501
+id: '01KPTSDW036BJPP1KXZKQ4GA90'
+name: 'Mushroom'
+type_flags: 72
+rarity: 'common'
+emoji: '🍄'
+stackable: true
+max_stack: 30
+buy_price: 3
+rareicon:
+  name_key: 'item.mushroom'
+  category: 'material'
+  stack_max: 30
+  base_value: 3
+  restore_energy: 7
+  harvest_role: 'forager'
+  compresses_to: 'meal'
+  compress_ratio: 100
+  pool_group: 'food'
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

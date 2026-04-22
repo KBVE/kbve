@@ -1,0 +1,31 @@
+---
+title: 'Cooked Beef'
+description: 'A thick seared steak — the most filling field meal.'
+ref: 'cooked-beef'
+key: 526
+id: '01KPTSDW06VFDEQZXX9YD0QDET'
+name: 'Cooked Beef'
+type_flags: 8
+rarity: 'uncommon'
+emoji: '🥩'
+stackable: true
+max_stack: 24
+buy_price: 36
+consumable: true
+action: 'consume'
+rareicon:
+  name_key: 'item.cooked_beef'
+  category: 'consumable'
+  stack_max: 24
+  base_value: 36
+  restore_energy: 50
+  compresses_to: 'meal'
+  compress_ratio: 100
+  pool_group: 'food'
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

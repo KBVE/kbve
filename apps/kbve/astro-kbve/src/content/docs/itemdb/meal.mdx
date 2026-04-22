@@ -1,0 +1,30 @@
+---
+title: 'Meal'
+description: 'A prepared meal that restores health, energy, and mana.'
+ref: 'meal'
+key: 537
+id: '01KPTSDW07364SY50ZZ1Y6QZT3'
+name: 'Meal'
+type_flags: 8
+rarity: 'uncommon'
+emoji: '🍱'
+stackable: false
+max_stack: 1
+buy_price: 500
+consumable: true
+action: 'consume'
+rareicon:
+  name_key: 'item.meal'
+  category: 'consumable'
+  stack_max: 1
+  base_value: 500
+  restore_energy: 100
+  restore_health: 100
+  restore_mana: 100
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

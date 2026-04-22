@@ -1,0 +1,31 @@
+---
+title: 'Cheese'
+description: 'A wedge of aged cheese.'
+ref: 'cheese'
+key: 529
+id: '01KPTSDW065HD5K0FP6QWA0GX0'
+name: 'Cheese'
+type_flags: 8
+rarity: 'common'
+emoji: '🧀'
+stackable: true
+max_stack: 24
+buy_price: 15
+consumable: true
+action: 'consume'
+rareicon:
+  name_key: 'item.cheese'
+  category: 'consumable'
+  stack_max: 24
+  base_value: 15
+  restore_energy: 22
+  compresses_to: 'meal'
+  compress_ratio: 100
+  pool_group: 'food'
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

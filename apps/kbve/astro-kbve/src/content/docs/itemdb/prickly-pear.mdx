@@ -1,0 +1,29 @@
+---
+title: 'Prickly Pear'
+description: 'Sweet fruit picked from a desert cactus.'
+ref: 'prickly-pear'
+key: 505
+id: '01KPTSDW04C5M7YQTPAE99GHR3'
+name: 'Prickly Pear'
+type_flags: 72
+rarity: 'common'
+stackable: true
+max_stack: 24
+buy_price: 8
+rareicon:
+  name_key: 'item.prickly_pear'
+  category: 'material'
+  stack_max: 24
+  base_value: 8
+  restore_energy: 15
+  harvest_role: 'forager'
+  compresses_to: 'meal'
+  compress_ratio: 100
+  pool_group: 'food'
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

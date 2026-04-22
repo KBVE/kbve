@@ -1,0 +1,28 @@
+---
+title: 'Raw Beef'
+description: 'A slab of fresh beef from a butchered cow.'
+ref: 'raw-beef'
+key: 522
+id: '01KPTSDW056ZG78N01E5NACTZ0'
+name: 'Raw Beef'
+type_flags: 72
+rarity: 'common'
+stackable: true
+max_stack: 20
+buy_price: 18
+rareicon:
+  name_key: 'item.raw_beef'
+  category: 'material'
+  stack_max: 20
+  base_value: 18
+  restore_energy: 25
+  compresses_to: 'meal'
+  compress_ratio: 100
+  pool_group: 'food'
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />
