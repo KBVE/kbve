@@ -41,6 +41,7 @@ namespace RareIcon
                 PackLookup     = SystemAPI.GetBufferLookup<PackSlot>(false),
                 CapitalLookup  = SystemAPI.GetBufferLookup<CapitalLedger>(true),
                 BarracksLookup = SystemAPI.GetBufferLookup<BarracksLedger>(true),
+                TaskLookup     = SystemAPI.GetBufferLookup<TaskMemory>(false),
                 Reservations   = db.Reservations.AsParallelWriter(),
             }.Schedule(dep);
 
@@ -64,7 +65,8 @@ namespace RareIcon
         [ReadOnly] public BufferLookup<CapitalLedger>         CapitalLookup;
         [ReadOnly] public BufferLookup<BarracksLedger>        BarracksLookup;
 
-        [NativeDisableParallelForRestriction] public BufferLookup<PackSlot> PackLookup;
+        [NativeDisableParallelForRestriction] public BufferLookup<PackSlot>   PackLookup;
+        [NativeDisableParallelForRestriction] public BufferLookup<TaskMemory> TaskLookup;
 
         public NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter Reservations;
 
@@ -89,7 +91,9 @@ namespace RareIcon
 
             if (here.Equals(rootHex))
             {
-                DepositSupply(ref unitPack, storage, cap, target, entity, Tick, ref Reservations);
+                bool deposited = DepositSupply(ref unitPack, storage, cap, target, entity, Tick, ref Reservations);
+                if (deposited && TaskLookup.HasBuffer(entity))
+                    TaskMemoryOps.MarkHead(TaskLookup[entity], TaskState.Completed);
                 return;
             }
 
@@ -140,7 +144,7 @@ namespace RareIcon
             }
         }
 
-        static void DepositSupply(ref DynamicBuffer<PackSlot> unitPack,
+        static bool DepositSupply(ref DynamicBuffer<PackSlot> unitPack,
                                   in DynamicBuffer<BankLedgerBase> storage,
                                   ushort capacity,
                                   Entity target,
@@ -149,8 +153,9 @@ namespace RareIcon
                                   ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter reservations)
         {
             int remaining = capacity - BankLedgerOps.TotalCount(storage);
-            if (remaining <= 0) return;
+            if (remaining <= 0) return false;
 
+            bool anyDeposited = false;
             for (int i = 0; i < unitPack.Length && remaining > 0; i++)
             {
                 if (unitPack[i].Count == 0) continue;
@@ -163,7 +168,9 @@ namespace RareIcon
                 unitPack[i] = uslot;
                 remaining -= take;
                 reservations.Add(ReservationOps.Key(target, id), ReservationOps.Deposit(requester, take, tick));
+                anyDeposited = true;
             }
+            return anyDeposited;
         }
     }
 }

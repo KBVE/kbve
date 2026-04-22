@@ -19,6 +19,8 @@ namespace RareIcon
         {
             if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookupSingleton)) return;
 
+            uint nowTick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
             state.Dependency = new InvalidateTasksJob
             {
                 HexLookup           = hexLookupSingleton.Lookup,
@@ -34,6 +36,7 @@ namespace RareIcon
                 GroundArrowLookup   = SystemAPI.GetComponentLookup<GroundArrow>(true),
                 CaveFoodLookup      = SystemAPI.GetComponentLookup<CaveFoodStatus>(true),
                 CapitalStatusLookup = SystemAPI.GetComponentLookup<CapitalStatus>(true),
+                NowTick             = nowTick,
             }.ScheduleParallel(state.Dependency);
         }
     }
@@ -41,6 +44,8 @@ namespace RareIcon
     [BurstCompile]
     public partial struct InvalidateTasksJob : IJobEntity
     {
+        const uint TenderTimeoutTicks = 20000u;
+
         [ReadOnly] public NativeHashMap<int2, Entity>        HexLookup;
         [ReadOnly] public ComponentLookup<HexResources>      HexResLookup;
         [ReadOnly] public ComponentLookup<ConstructionSite>  ConstructionLookup;
@@ -54,6 +59,8 @@ namespace RareIcon
         [ReadOnly] public ComponentLookup<GroundArrow>       GroundArrowLookup;
         [ReadOnly] public ComponentLookup<CaveFoodStatus>    CaveFoodLookup;
         [ReadOnly] public ComponentLookup<CapitalStatus>     CapitalStatusLookup;
+
+        public uint NowTick;
 
         void Execute(DynamicBuffer<TaskMemory> tasks)
         {
@@ -77,15 +84,22 @@ namespace RareIcon
                     return FarmLookup.HasComponent(entry.TargetEntity);
                 case ProfessionKind.Chef:
                     if (entry.TargetEntity == Entity.Null) return false;
+                    if (NowTick - entry.IssuedTick > TenderTimeoutTicks) return false;
                     return CapitalLookup.HasComponent(entry.TargetEntity);
                 case ProfessionKind.Craftsman:
                     if (entry.TargetEntity == Entity.Null) return false;
+                    if (NowTick - entry.IssuedTick > TenderTimeoutTicks) return false;
                     return BarracksLookup.HasComponent(entry.TargetEntity);
                 case ProfessionKind.Blacksmith:
                     if (entry.TargetEntity == Entity.Null) return false;
+                    if (NowTick - entry.IssuedTick > TenderTimeoutTicks) return false;
                     return FurnaceLookup.HasComponent(entry.TargetEntity);
                 case ProfessionKind.Guard:
-                    if (entry.TargetEntity == Entity.Null) return true;
+                    if (entry.TargetEntity == Entity.Null)
+                    {
+                        if (NowTick - entry.IssuedTick > TenderTimeoutTicks) return false;
+                        return true;
+                    }
                     return BuildingLookup.HasComponent(entry.TargetEntity)
                         || GroundArrowLookup.HasComponent(entry.TargetEntity);
                 case ProfessionKind.Builder:

@@ -47,8 +47,13 @@ namespace RareIcon
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);
 
+            uint nowTick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
+
             state.Dependency = new AutoReleaseReliefJob
             {
+                NowTick    = nowTick,
+                ReliefLookup = SystemAPI.GetComponentLookup<ReliefIntent>(false),
+                PackLookup = SystemAPI.GetBufferLookup<PackSlot>(true),
                 Ecb = ecb.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
         }
@@ -199,6 +204,14 @@ namespace RareIcon
     [WithNone(typeof(KingTag), typeof(ControlledUnitTag))]
     public partial struct AutoReleaseReliefJob : IJobEntity
     {
+        const uint ShelterStuckTimeoutTicks = 30000u;
+
+        public uint NowTick;
+        [ReadOnly] public BufferLookup<PackSlot> PackLookup;
+
+        [NativeDisableParallelForRestriction]
+        public ComponentLookup<ReliefIntent> ReliefLookup;
+
         public EntityCommandBuffer.ParallelWriter Ecb;
 
         void Execute(Entity entity,
@@ -206,7 +219,14 @@ namespace RareIcon
                      in ReliefIntent relief,
                      in UnitMovement movement)
         {
-            if (relief.Kind != ReliefKind.None) return;
+            bool releaseNatural = relief.Kind == ReliefKind.None;
+            bool releaseStuck   = !releaseNatural
+                               && relief.StartTick != 0u
+                               && (NowTick - relief.StartTick) > ShelterStuckTimeoutTicks
+                               && PackLookup.HasBuffer(entity)
+                               && !HasFood(PackLookup[entity]);
+
+            if (!releaseNatural && !releaseStuck) return;
 
             Ecb.RemoveComponent<ShelteredInside>(chunkIdx, entity);
             Ecb.RemoveComponent<DisableRendering>(chunkIdx, entity);
@@ -214,6 +234,21 @@ namespace RareIcon
             {
                 WanderStepAtRelease = movement.WanderStep,
             });
+
+            if (releaseStuck)
+            {
+                ReliefLookup[entity] = default;
+            }
+        }
+
+        static bool HasFood(DynamicBuffer<PackSlot> pack)
+        {
+            for (int i = 0; i < pack.Length; i++)
+            {
+                if (pack[i].Count == 0) continue;
+                if (FoodItems.IsFood(pack[i].ItemId)) return true;
+            }
+            return false;
         }
     }
 

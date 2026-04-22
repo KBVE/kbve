@@ -53,7 +53,8 @@ namespace RareIcon
                      in ProfessionIntent intent,
                      in LocalTransform transform,
                      DynamicBuffer<PackSlot> inventory,
-                     in DynamicBuffer<EquippedBag> bags)
+                     in DynamicBuffer<EquippedBag> bags,
+                     DynamicBuffer<TaskMemory> tasks)
         {
             if (intent.Kind != ProfessionKind.Looter) return;
 
@@ -85,6 +86,8 @@ namespace RareIcon
                 xp.Set(SkillKind.Scavenging, (ushort)(next > ushort.MaxValue ? ushort.MaxValue : next));
                 SkillXpLookup[entity] = xp;
             }
+
+            TaskMemoryOps.MarkHead(tasks, TaskState.Completed);
         }
     }
 }

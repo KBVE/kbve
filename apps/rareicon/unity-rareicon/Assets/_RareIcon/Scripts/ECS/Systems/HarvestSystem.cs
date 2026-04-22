@@ -61,7 +61,8 @@ namespace RareIcon
                      in ProfessionPriorities priorities,
                      in Unit unit,
                      DynamicBuffer<PackSlot> inventory,
-                     in DynamicBuffer<EquippedBag> bags)
+                     in DynamicBuffer<EquippedBag> bags,
+                     DynamicBuffer<TaskMemory> tasks)
         {
             if (movement.HarvestCooldown > 0f)
             {
@@ -123,7 +124,15 @@ namespace RareIcon
                     break;
             }
 
-            if (!harvested) return;
+            if (!harvested)
+            {
+                movement.HarvestCooldown = HarvestIntervalSec;
+                if (bestRole != (byte)HarvestRole.None)
+                    TaskMemoryOps.MarkHead(tasks, TaskState.Completed);
+                else
+                    TaskMemoryOps.MarkHead(tasks, TaskState.Invalidated);
+                return;
+            }
 
             movement.HarvestCooldown = HarvestIntervalSec;
 
@@ -145,6 +154,13 @@ namespace RareIcon
                 xp.Set(xpKind, (ushort)(next > ushort.MaxValue ? ushort.MaxValue : next));
                 SkillXpLookup[entity] = xp;
             }
+
+            bool roleDepleted =
+                (bestRole == (byte)HarvestRole.Lumberjack && !HasLumberWork(in res))
+             || (bestRole == (byte)HarvestRole.Forager    && !HasForagerWork(in res))
+             || (bestRole == (byte)HarvestRole.Miner      && res.Stone == 0);
+            if (roleDepleted)
+                TaskMemoryOps.MarkHead(tasks, TaskState.Completed);
         }
 
         static bool HasForagerWork(in HexResources res)
