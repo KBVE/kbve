@@ -191,5 +191,13 @@
 	"trait.keen": "鋭眼",
 	"trait.strong": "剛力",
 	"trait.stalwart": "不屈",
-	"trait.industrious": "勤勉"
+	"trait.industrious": "勤勉",
+	"trait.frail": "虚弱",
+	"trait.sluggish": "鈍足",
+	"trait.glutton": "大食い",
+	"trait.insomniac": "不眠",
+	"trait.timid": "臆病",
+	"trait.sickly": "病弱",
+	"roster.traits": "特性",
+	"toast.trait_born": "{0}は{1}として生まれた"
 }

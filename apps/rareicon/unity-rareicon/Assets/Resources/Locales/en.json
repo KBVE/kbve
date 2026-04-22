@@ -218,5 +218,13 @@
 	"trait.keen": "Keen Eye",
 	"trait.strong": "Strong",
 	"trait.stalwart": "Stalwart",
-	"trait.industrious": "Industrious"
+	"trait.industrious": "Industrious",
+	"trait.frail": "Frail",
+	"trait.sluggish": "Sluggish",
+	"trait.glutton": "Glutton",
+	"trait.insomniac": "Insomniac",
+	"trait.timid": "Timid",
+	"trait.sickly": "Sickly",
+	"roster.traits": "Traits",
+	"toast.trait_born": "{0} is born {1}"
 }

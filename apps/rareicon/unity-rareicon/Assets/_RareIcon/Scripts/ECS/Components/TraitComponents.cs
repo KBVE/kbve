@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Stable byte IDs for unit traits. Rolled at spawn for non-King Player units; additive/multiplicative bonuses applied to Max stats + combat damage. Keep positive-only per design — negatives / flaws land as a separate Flaw axis later.</summary>
+    /// <summary>Stable byte IDs for unit traits. Rolled at spawn for non-King Player units. Positive range 1-10 (stat / combat boosts), negative range 20-29 (flaws — stat penalties / extra need drain). TraitDB.IsFlaw(kind) differentiates them for UI / balance.</summary>
     public static class TraitKind
     {
         public const byte None        = 0;
@@ -16,7 +16,13 @@ namespace RareIcon
         public const byte Strong      = 8;
         public const byte Stalwart    = 9;
         public const byte Industrious = 10;
-        public const byte Count       = 11;
+
+        public const byte Frail       = 20;
+        public const byte Sluggish    = 21;
+        public const byte Glutton     = 22;
+        public const byte Insomniac   = 23;
+        public const byte Timid       = 24;
+        public const byte Sickly      = 25;
     }
 
     /// <summary>Per-unit traits (up to 3). 0 = empty slot. Attached to non-King Player units at spawn.</summary>

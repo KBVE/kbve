@@ -1,8 +1,23 @@
 namespace RareIcon
 {
-    /// <summary>Canonical trait metadata: per-trait stat/combat modifier bundles + locale keys. Accumulate sums up to three traits into a single TraitMod for post-spawn application.</summary>
+    /// <summary>Canonical trait metadata: per-trait stat/combat modifier bundles + locale keys + pool/roll logic. Accumulate sums up to three traits into a single TraitMod for post-spawn application. Positive traits (1-10) are boosts; Flaws (20-29) are penalties — IsFlaw(kind) differentiates for UI tint and profession-bias gating.</summary>
     public static class TraitDB
     {
+        static readonly byte[] PositivePool =
+        {
+            TraitKind.Tough, TraitKind.Swift, TraitKind.Ascetic, TraitKind.Restful,
+            TraitKind.Energetic, TraitKind.Scholar, TraitKind.Keen, TraitKind.Strong,
+            TraitKind.Stalwart, TraitKind.Industrious,
+        };
+
+        static readonly byte[] FlawPool =
+        {
+            TraitKind.Frail, TraitKind.Sluggish, TraitKind.Glutton,
+            TraitKind.Insomniac, TraitKind.Timid, TraitKind.Sickly,
+        };
+
+        public static bool IsFlaw(byte kind) => kind >= 20 && kind < 30;
+
         public static TraitMod Get(byte kind) => kind switch
         {
             TraitKind.Tough       => new TraitMod { HealthBonus = 15f, EnergyBonus = 5f },
@@ -15,6 +30,14 @@ namespace RareIcon
             TraitKind.Strong      => new TraitMod { MeleeDamageBonus = 1.0f },
             TraitKind.Stalwart    => new TraitMod { HealthBonus = 20f, HealthRegenBonus = 0.5f },
             TraitKind.Industrious => new TraitMod { EnergyRegenBonus = 0.5f, FatiguePerSecMul = -0.10f },
+
+            TraitKind.Frail       => new TraitMod { HealthBonus = -10f },
+            TraitKind.Sluggish    => new TraitMod { MoveSpeedBonus = -0.10f },
+            TraitKind.Glutton     => new TraitMod { HungerPerSecMul = 0.30f },
+            TraitKind.Insomniac   => new TraitMod { FatiguePerSecMul = 0.30f },
+            TraitKind.Timid       => new TraitMod { RangedDamageBonus = -1.0f, MeleeDamageBonus = -0.5f },
+            TraitKind.Sickly      => new TraitMod { HealthRegenBonus = -0.25f, HealthBonus = -5f },
+
             _                     => default,
         };
 
@@ -57,10 +80,16 @@ namespace RareIcon
             TraitKind.Strong      => "trait.strong",
             TraitKind.Stalwart    => "trait.stalwart",
             TraitKind.Industrious => "trait.industrious",
+            TraitKind.Frail       => "trait.frail",
+            TraitKind.Sluggish    => "trait.sluggish",
+            TraitKind.Glutton     => "trait.glutton",
+            TraitKind.Insomniac   => "trait.insomniac",
+            TraitKind.Timid       => "trait.timid",
+            TraitKind.Sickly      => "trait.sickly",
             _                     => "trait.none",
         };
 
-        /// <summary>Deterministic trait roll from an rngSeed. Picks up to 3 distinct traits; output slots that are 0 mean "no trait". ~60% chance of 1 trait, ~30% of 2, ~10% of 3.</summary>
+        /// <summary>Deterministic trait roll from an rngSeed. Picks up to 3 distinct traits (~60/30/10% for 1/2/3 count). Each slot has ~20% chance of pulling from the flaw pool instead of the positive pool — flaws are balancing weight, not the default outcome.</summary>
         public static UnitTraits Roll(uint rngSeed)
         {
             uint h = rngSeed * 0x9E3779B1u;
@@ -76,7 +105,9 @@ namespace RareIcon
             for (int i = 0; i < traitCount; i++)
             {
                 h ^= h >> 13; h *= 0xC2B2AE3Du; h ^= h >> 16;
-                byte roll = (byte)(1u + (h % (uint)(TraitKind.Count - 1)));
+                bool flaw = ((h >> 24) & 0xFFu) < 51u;
+                var pool = flaw ? FlawPool : PositivePool;
+                byte roll = pool[h % (uint)pool.Length];
                 if (roll == a || roll == b) continue;
                 if      (a == 0) a = roll;
                 else if (b == 0) b = roll;

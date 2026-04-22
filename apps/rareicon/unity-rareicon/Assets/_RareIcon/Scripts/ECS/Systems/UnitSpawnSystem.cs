@@ -1060,6 +1060,153 @@ namespace RareIcon
                 m.Damage += mod.MeleeDamageBonus;
                 em.SetComponentData(entity, m);
             }
+
+            ApplyTraitProfessionBias(em, entity, traits);
+            PublishTraitToast(traits);
+        }
+
+        static void PublishTraitToast(UnitTraits traits)
+        {
+            if (traits.T0 == TraitKind.None) return;
+            if (!IsNoteworthy(traits)) return;
+
+            MessagePipe.IPublisher<ToastMessage> pub = null;
+            try { pub = MessagePipe.GlobalMessagePipe.GetPublisher<ToastMessage>(); }
+            catch { return; }
+            if (pub == null) return;
+
+            var sb = Cysharp.Text.ZString.CreateStringBuilder();
+            try
+            {
+                sb.Append("Hero born: ");
+                bool first = true;
+                AppendTraitName(ref sb, traits.T0, ref first);
+                AppendTraitName(ref sb, traits.T1, ref first);
+                AppendTraitName(ref sb, traits.T2, ref first);
+                var kind = HasFlaw(traits) ? ToastKind.Warning : ToastKind.Success;
+                pub.Publish(new ToastMessage(sb.ToString(), kind));
+            }
+            finally { sb.Dispose(); }
+        }
+
+        static bool IsNoteworthy(UnitTraits t)
+        {
+            return SlotCount(t) >= 2 || HasHighlight(t);
+        }
+
+        static int SlotCount(UnitTraits t)
+        {
+            int n = 0;
+            if (t.T0 != TraitKind.None) n++;
+            if (t.T1 != TraitKind.None) n++;
+            if (t.T2 != TraitKind.None) n++;
+            return n;
+        }
+
+        static bool HasHighlight(UnitTraits t)
+            => IsHighlight(t.T0) || IsHighlight(t.T1) || IsHighlight(t.T2);
+
+        static bool IsHighlight(byte kind)
+            => kind == TraitKind.Stalwart || kind == TraitKind.Scholar
+            || kind == TraitKind.Keen     || kind == TraitKind.Strong
+            || kind == TraitKind.Tough    || kind == TraitKind.Energetic;
+
+        static bool HasFlaw(UnitTraits t)
+            => TraitDB.IsFlaw(t.T0) || TraitDB.IsFlaw(t.T1) || TraitDB.IsFlaw(t.T2);
+
+        static void AppendTraitName(ref Cysharp.Text.Utf16ValueStringBuilder sb, byte kind, ref bool first)
+        {
+            if (kind == TraitKind.None) return;
+            if (!first) sb.Append(", ");
+            sb.Append(TraitDisplayName(kind));
+            first = false;
+        }
+
+        static string TraitDisplayName(byte kind) => kind switch
+        {
+            TraitKind.Tough       => "Tough",
+            TraitKind.Swift       => "Swift",
+            TraitKind.Ascetic     => "Ascetic",
+            TraitKind.Restful     => "Restful",
+            TraitKind.Energetic   => "Energetic",
+            TraitKind.Scholar     => "Scholar",
+            TraitKind.Keen        => "Keen Eye",
+            TraitKind.Strong      => "Strong",
+            TraitKind.Stalwart    => "Stalwart",
+            TraitKind.Industrious => "Industrious",
+            TraitKind.Frail       => "Frail",
+            TraitKind.Sluggish    => "Sluggish",
+            TraitKind.Glutton     => "Glutton",
+            TraitKind.Insomniac   => "Insomniac",
+            TraitKind.Timid       => "Timid",
+            TraitKind.Sickly      => "Sickly",
+            _                     => "",
+        };
+
+        static void ApplyTraitProfessionBias(EntityManager em, Entity entity, UnitTraits traits)
+        {
+            if (!em.HasComponent<ProfessionPriorities>(entity)) return;
+            var p = em.GetComponentData<ProfessionPriorities>(entity);
+            BumpPrioritiesFromTrait(ref p, traits.T0);
+            BumpPrioritiesFromTrait(ref p, traits.T1);
+            BumpPrioritiesFromTrait(ref p, traits.T2);
+            em.SetComponentData(entity, p);
+        }
+
+        static void BumpPrioritiesFromTrait(ref ProfessionPriorities p, byte kind)
+        {
+            switch (kind)
+            {
+                case TraitKind.Tough:
+                case TraitKind.Stalwart:
+                case TraitKind.Strong:
+                    p.Guard   = ClampBump(p.Guard,   +1);
+                    p.Builder = ClampBump(p.Builder, +1);
+                    break;
+                case TraitKind.Keen:
+                    p.Hunter = ClampBump(p.Hunter, +1);
+                    p.Looter = ClampBump(p.Looter, +1);
+                    break;
+                case TraitKind.Scholar:
+                    p.Craftsman = ClampBump(p.Craftsman, +1);
+                    p.Medic     = ClampBump(p.Medic,     +1);
+                    break;
+                case TraitKind.Industrious:
+                case TraitKind.Energetic:
+                    p.Lumberjack = ClampBump(p.Lumberjack, +1);
+                    p.Miner      = ClampBump(p.Miner,      +1);
+                    break;
+                case TraitKind.Swift:
+                    p.Looter = ClampBump(p.Looter, +1);
+                    break;
+                case TraitKind.Glutton:
+                    p.Chef = ClampBump(p.Chef, +1);
+                    break;
+                case TraitKind.Ascetic:
+                    p.Hunter = ClampBump(p.Hunter, +1);
+                    break;
+                case TraitKind.Insomniac:
+                    p.Guard = ClampBump(p.Guard, +1);
+                    break;
+                case TraitKind.Sluggish:
+                    p.Builder = ClampBump(p.Builder, +1);
+                    break;
+                case TraitKind.Frail:
+                case TraitKind.Sickly:
+                    p.Guard = ClampBump(p.Guard, -1);
+                    break;
+                case TraitKind.Timid:
+                    p.Guard = ClampBump(p.Guard, -2);
+                    break;
+            }
+        }
+
+        static byte ClampBump(byte current, int delta)
+        {
+            int next = current + delta;
+            if (next < 0) next = 0;
+            if (next > 5) next = 5;
+            return (byte)next;
         }
 
         static Mesh CreateQuadMesh(float size)

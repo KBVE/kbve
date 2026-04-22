@@ -45,6 +45,7 @@ namespace RareIcon
         ScrollView _detail;
         Label _detailTitle;
         Label _detailActivity;
+        Label _detailTraits;
         VisualElement _detailStats;
         VisualElement _jobsSection;
         UIControls.StepperHandle[] _jobSteppers;
@@ -105,6 +106,10 @@ namespace RareIcon
             _detailActivity = new Label(string.Empty);
             _detailActivity.AddToClassList("roster-detail__activity");
             _detail.Add(_detailActivity);
+
+            _detailTraits = new Label(string.Empty);
+            _detailTraits.AddToClassList("roster-detail__traits");
+            _detail.Add(_detailTraits);
 
             _detailStats = new VisualElement();
             _detailStats.AddToClassList("roster-detail__stats");
@@ -310,6 +315,8 @@ namespace RareIcon
             _activitySub = null;
             _detailTitle.text = "Select a citizen";
             _detailActivity.text = string.Empty;
+            _detailTraits.text = string.Empty;
+            _detailTraits.AddToClassList("is-hidden");
             _detailHp.Clear(); _detailEn.Clear(); _detailHu.Clear(); _detailFt.Clear();
             _jobsSection.style.display = DisplayStyle.None;
             _jumpBtn.SetEnabled(false);
@@ -360,6 +367,41 @@ namespace RareIcon
             var snapshot = _activity.CurrentFor(entity);
             string activityLabel = _locale.GetActivityName(snapshot.Kind);
             _detailActivity.text = activityLabel.Length > 0 ? activityLabel : _locale.Get("activity.idle");
+
+            RefreshTraits(em, entity);
+        }
+
+        void RefreshTraits(EntityManager em, Entity entity)
+        {
+            if (!em.HasComponent<UnitTraits>(entity))
+            {
+                _detailTraits.text = string.Empty;
+                _detailTraits.AddToClassList("is-hidden");
+                return;
+            }
+            var t = em.GetComponentData<UnitTraits>(entity);
+            var sb = Cysharp.Text.ZString.CreateStringBuilder();
+            try
+            {
+                sb.Append(_locale.Get("roster.traits"));
+                sb.Append(": ");
+                bool first = true;
+                AppendTrait(ref sb, t.T0, ref first);
+                AppendTrait(ref sb, t.T1, ref first);
+                AppendTrait(ref sb, t.T2, ref first);
+                if (first) { _detailTraits.text = string.Empty; _detailTraits.AddToClassList("is-hidden"); return; }
+                _detailTraits.text = sb.ToString();
+                _detailTraits.RemoveFromClassList("is-hidden");
+            }
+            finally { sb.Dispose(); }
+        }
+
+        void AppendTrait(ref Cysharp.Text.Utf16ValueStringBuilder sb, byte kind, ref bool first)
+        {
+            if (kind == TraitKind.None) return;
+            if (!first) sb.Append(", ");
+            sb.Append(_locale.Get(TraitDB.GetLocaleKey(kind)));
+            first = false;
         }
 
         static void UpdateBar(EntityManager em, Entity e, StatBar bar, bool has, float value, float max)
