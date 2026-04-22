@@ -5,6 +5,7 @@ using MessagePipe;
 using R3;
 using Unity.Entities;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 using VContainer;
 using VContainer.Unity;
@@ -81,7 +82,9 @@ namespace RareIcon
 
         void TickDebugInput()
         {
-            if (!Input.GetKeyDown(KeyCode.F10)) return;
+            var keyboard = Keyboard.current;
+            if (keyboard == null) return;
+            if (!keyboard.f10Key.wasPressedThisFrame) return;
             if (_isActive) return;
             _startPub.Publish(new DialogueStartMessage(DialogueTreeId.HelloWorld));
         }

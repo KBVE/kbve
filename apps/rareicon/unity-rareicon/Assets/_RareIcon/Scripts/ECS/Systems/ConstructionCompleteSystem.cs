@@ -101,6 +101,9 @@ namespace RareIcon
                         DamagePerArrow     = 8f,
                     });
                     Ecb.AddComponent(chunkIdx, entity, new OutpostArrowPool { Stock = 100 });
+                    Ecb.AddComponent(chunkIdx, entity, new ProvidesFood    { Priority = 1 });
+                    Ecb.AddComponent(chunkIdx, entity, new ProvidesSleep   { Capacity = 10 });
+                    Ecb.AddComponent(chunkIdx, entity, new ProvidesHealing { Priority = 1 });
                     break;
             }
 
