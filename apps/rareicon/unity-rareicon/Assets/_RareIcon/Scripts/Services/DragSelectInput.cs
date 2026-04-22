@@ -14,9 +14,10 @@ namespace RareIcon
         readonly IPublisher<SelectionDragMessage> _dragPub;
         readonly AppStateController _appState;
 
-        const float MinDragDistanceSq = 0.01f;
+        readonly CompositeDisposable _disposables = new();
 
-        IDisposable _subscription;
+
+        const float MinDragDistanceSq = 0.01f;
 
         [Inject]
         public DragSelectInput(
@@ -31,12 +32,9 @@ namespace RareIcon
 
         public void Start()
         {
-            var bag = DisposableBag.CreateBuilder();
             _mouse.Current
                 .Subscribe(OnSnapshot)
-                .AddTo(bag);
-
-            _subscription = bag.Build();
+                .AddTo(_disposables);
         }
 
         void OnSnapshot(MouseSnapshot snap)
@@ -69,9 +67,8 @@ namespace RareIcon
         }
 
         public void Dispose()
-        {
-            _subscription?.Dispose();
-            _subscription = null;
+        { 
+            _disposables.Dispose();
         }
     }
 }

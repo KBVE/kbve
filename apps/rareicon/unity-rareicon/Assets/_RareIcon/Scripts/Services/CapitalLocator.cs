@@ -68,7 +68,7 @@ namespace RareIcon
 
         static void EnsureQuery(World world)
         {
-            if (_boundWorld == world && _query.IsValid)
+            if (_boundWorld == world)
                 return;
 
             _boundWorld = world;
