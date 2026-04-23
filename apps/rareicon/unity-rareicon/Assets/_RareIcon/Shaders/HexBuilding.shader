@@ -128,6 +128,33 @@ Shader "RareIcon/HexBuilding"
         _BanditCampFlame        ("BanditCamp Flame",         Color) = (1.00, 0.55, 0.18, 1)
         _BanditCampBanner       ("BanditCamp Banner",        Color) = (0.72, 0.14, 0.14, 1)
         _BanditCampShade        ("BanditCamp Ground Shade",  Color) = (0.22, 0.18, 0.14, 1)
+
+        // Trade House — Market tier 1. Reuses _Market* for continuity;
+        // adds a dedicated tiled roof + bright accent for the upgraded flag.
+        _TradeHouseRoof   ("TradeHouse Roof",   Color) = (0.48, 0.28, 0.22, 1)
+        _TradeHouseAccent ("TradeHouse Accent", Color) = (0.92, 0.78, 0.28, 1)
+
+        // Merchants Guild — Market tier 2. Stone guildhall palette.
+        _GuildStone   ("Guild Stone",   Color) = (0.68, 0.64, 0.58, 1)
+        _GuildRoof    ("Guild Roof",    Color) = (0.36, 0.26, 0.20, 1)
+        _GuildWindow  ("Guild Window",  Color) = (1.00, 0.82, 0.38, 1)
+        _GuildBanner  ("Guild Banner",  Color) = (0.32, 0.18, 0.58, 1)
+
+        // Village — Farm tier 1. Cottages + well tones.
+        _VillageCottage ("Village Cottage", Color) = (0.72, 0.58, 0.42, 1)
+        _VillageWell    ("Village Well",    Color) = (0.48, 0.44, 0.40, 1)
+
+        // Castle — Barracks tier 2. Darker, imposing stone.
+        _CastleStone ("Castle Stone", Color) = (0.48, 0.46, 0.44, 1)
+        _CastleRoof  ("Castle Roof",  Color) = (0.22, 0.18, 0.16, 1)
+
+        // Tower — standalone spire.
+        _TowerStone      ("Tower Stone",       Color) = (0.58, 0.54, 0.48, 1)
+        _TowerStoneShade ("Tower Stone Shade", Color) = (0.34, 0.32, 0.28, 1)
+
+        // Wall — standalone barrier segment.
+        _WallStone      ("Wall Stone",       Color) = (0.60, 0.56, 0.50, 1)
+        _WallStoneShade ("Wall Stone Shade", Color) = (0.34, 0.32, 0.28, 1)
     }
 
     SubShader
@@ -245,6 +272,20 @@ Shader "RareIcon/HexBuilding"
                 float4 _BanditCampFlame;
                 float4 _BanditCampBanner;
                 float4 _BanditCampShade;
+                float4 _TradeHouseRoof;
+                float4 _TradeHouseAccent;
+                float4 _GuildStone;
+                float4 _GuildRoof;
+                float4 _GuildWindow;
+                float4 _GuildBanner;
+                float4 _VillageCottage;
+                float4 _VillageWell;
+                float4 _CastleStone;
+                float4 _CastleRoof;
+                float4 _TowerStone;
+                float4 _TowerStoneShade;
+                float4 _WallStone;
+                float4 _WallStoneShade;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -270,11 +311,19 @@ Shader "RareIcon/HexBuilding"
             #define BUILDING_OUTPOST     8
             #define BUILDING_LUMBERCAMP  9
             #define BUILDING_MINING_PIT  10
-            #define BUILDING_DOCK        11
-            #define BUILDING_BANDIT_CAMP 12
+            #define BUILDING_DOCK            11
+            #define BUILDING_BANDIT_CAMP     12
+            #define BUILDING_TRADE_HOUSE     13
+            #define BUILDING_MERCHANTS_GUILD 14
+            #define BUILDING_VILLAGE         15
+            #define BUILDING_KEEP            16
+            #define BUILDING_CASTLE          17
+            #define BUILDING_TOWER           18
+            #define BUILDING_WALL            19
 
             #include "Includes/HexShared.hlsl"
             #include "Includes/HexBuildingShared.hlsl"
+            #include "Includes/HexStructurePrimitives.hlsl"
             #include "Includes/WorldAmbient.hlsl"
             #include "Includes/HexCapital.hlsl"
             #include "Includes/HexFarm.hlsl"
@@ -288,6 +337,13 @@ Shader "RareIcon/HexBuilding"
             #include "Includes/HexMiningPit.hlsl"
             #include "Includes/HexDock.hlsl"
             #include "Includes/HexBanditCamp.hlsl"
+            #include "Includes/HexTradeHouse.hlsl"
+            #include "Includes/HexMerchantsGuild.hlsl"
+            #include "Includes/HexVillage.hlsl"
+            #include "Includes/HexKeep.hlsl"
+            #include "Includes/HexCastle.hlsl"
+            #include "Includes/HexTower.hlsl"
+            #include "Includes/HexWall.hlsl"
 
             Varyings vert(Attributes input)
             {
@@ -358,6 +414,34 @@ Shader "RareIcon/HexBuilding"
                 else if (buildingType == BUILDING_BANDIT_CAMP)
                 {
                     DrawBanditCamp(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_TRADE_HOUSE)
+                {
+                    DrawTradeHouse(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_MERCHANTS_GUILD)
+                {
+                    DrawMerchantsGuild(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_VILLAGE)
+                {
+                    DrawVillage(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_KEEP)
+                {
+                    DrawKeep(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_CASTLE)
+                {
+                    DrawCastle(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_TOWER)
+                {
+                    DrawTower(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_WALL)
+                {
+                    DrawWall(color, alpha, px, grid);
                 }
 
                 float progress = saturate(_ConstructionProgress);
