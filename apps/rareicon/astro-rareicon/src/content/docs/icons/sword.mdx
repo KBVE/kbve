@@ -59,6 +59,12 @@ icons:
       stroke_cap: round
       stroke_join: round
     recommended_sizes: [16, 24, 32, 48]
+    tags:
+      - thin-stroke
+      - web-ui
+      - game-hud
+    themes:
+      - neutral
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/><path d="M19 21l2-2"/></svg>
   - ref: filled
@@ -76,6 +82,13 @@ icons:
       uses_current_color: true
       monochrome: true
     recommended_sizes: [16, 24, 32, 48]
+    tags:
+      - solid
+      - game-hud
+      - rareicon-sanctuary
+    themes:
+      - medieval
+      - noir
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21.12 2.88a1.5 1.5 0 0 0-2.12 0L10 11.88l2.12 2.12L21.12 5a1.5 1.5 0 0 0 0-2.12ZM8 14l2 2-5 5H3v-2l5-5Z"/></svg>
 pagefindFilters:
@@ -85,4 +98,16 @@ featured: true
 order: 10
 ---
 
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
 Sword — melee blade weapon. Outline and filled variants, CC0, recolor via `currentColor`.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

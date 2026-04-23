@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/icons.binpb
  * Config: ../icons-zod-config.json
- * Generated: 2026-04-23T22:15:54.706Z
+ * Generated: 2026-04-23T22:29:20.160Z
  */
 
 import { z } from 'zod';
@@ -179,6 +179,8 @@ export const IconSchema = z.object({
 	version: z.string().optional(),
 	drafted: z.boolean().optional(),
 	extensions: z.array(IconExtensionSchema).optional(),
+	tags: z.array(z.string()).optional(),
+	themes: z.array(z.string()).optional(),
 });
 
 export type Icon = z.infer<typeof IconSchema>;

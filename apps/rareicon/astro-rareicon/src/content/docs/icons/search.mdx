@@ -81,4 +81,16 @@ featured: true
 order: 2
 ---
 
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
 Search — magnifying-glass glyph. Outline and bold variants.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

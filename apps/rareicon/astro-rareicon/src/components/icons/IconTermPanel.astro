@@ -1,0 +1,134 @@
+---
+import type { Icon } from '@/data/schema';
+import IconVariantCard from './IconVariantCard.astro';
+
+interface Props {
+	termRef: string;
+	name?: string;
+	description?: string;
+	primary_category?: string;
+	categories?: string[];
+	tags?: string[];
+	icons: Icon[];
+	swatchSize?: number;
+}
+
+const {
+	termRef,
+	name,
+	description,
+	primary_category,
+	categories = [],
+	tags = [],
+	icons,
+	swatchSize = 48,
+} = Astro.props;
+---
+
+<section
+	class="ri-icon-term"
+	data-icon-term={termRef}
+	data-pagefind-filter={primary_category
+		? `category:${primary_category}`
+		: undefined}>
+	{
+		(name || description) && (
+			<header class="ri-icon-term__header">
+				{name && <h2 class="ri-icon-term__name">{name}</h2>}
+				{description && (
+					<p class="ri-icon-term__description">{description}</p>
+				)}
+			</header>
+		)
+	}
+
+	{
+		(primary_category || categories.length > 0 || tags.length > 0) && (
+			<ul class="ri-icon-term__meta" aria-label="Term metadata">
+				{primary_category && (
+					<li class="ri-icon-term__chip ri-icon-term__chip--primary">
+						{primary_category}
+					</li>
+				)}
+				{categories
+					.filter((c) => c !== primary_category)
+					.map((c) => (
+						<li class="ri-icon-term__chip">{c}</li>
+					))}
+				{tags.map((t) => (
+					<li class="ri-icon-term__chip ri-icon-term__chip--tag">
+						#{t}
+					</li>
+				))}
+			</ul>
+		)
+	}
+
+	<div class="ri-icon-term__grid" data-pagefind-body>
+		{
+			icons.map((variant) => (
+				<IconVariantCard
+					variant={variant}
+					termRef={termRef}
+					size={swatchSize}
+				/>
+			))
+		}
+	</div>
+</section>
+
+<style is:global>
+	.ri-icon-term {
+		margin: 1.5rem 0 2rem;
+	}
+
+	.ri-icon-term__header {
+		margin-bottom: 1rem;
+	}
+
+	.ri-icon-term__name {
+		font-family: var(--sl-font);
+		font-size: 1.5rem;
+		margin: 0;
+		color: var(--ri-text-primary);
+	}
+
+	.ri-icon-term__description {
+		margin: 0.35rem 0 0;
+		color: var(--ri-text-secondary);
+	}
+
+	.ri-icon-term__meta {
+		list-style: none;
+		padding: 0;
+		margin: 0 0 1rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+	}
+
+	.ri-icon-term__chip {
+		font-size: 0.75rem;
+		padding: 0.2rem 0.6rem;
+		border-radius: 999px;
+		background: var(--ri-bg-panel);
+		border: 1px solid var(--ri-border);
+		color: var(--ri-text-secondary);
+	}
+
+	.ri-icon-term__chip--primary {
+		background: var(--ri-ocean-deep);
+		color: var(--ri-accent);
+		border-color: var(--ri-accent);
+	}
+
+	.ri-icon-term__chip--tag {
+		color: var(--ri-text-disabled);
+	}
+
+	.ri-icon-term__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		gap: 1rem;
+	}
+</style>

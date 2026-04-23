@@ -191,6 +191,16 @@ message Icon {
 
   // Extensions — variant-level key-value pairs
   repeated IconExtension extensions = 25;
+
+  // Variant-scoped tags — supplement the parent IconTerm.tags with faceting
+  // specific to this rendering (e.g. "thin-stroke", "flat", "web-ui", "game-hud",
+  // "rareicon-sanctuary"). Used for client-side filter chips and Pagefind facets.
+  repeated string tags = 26;
+
+  // Variant-scoped themes — palette / mood hint, orthogonal to style
+  // (e.g. "ocean", "cyberpunk", "medieval", "noir"). Encourages consistent
+  // theming across terms when a collection follows a visual identity.
+  repeated string themes = 27;
 }
 
 // =============================================================================

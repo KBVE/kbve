@@ -93,4 +93,16 @@ featured: true
 order: 20
 ---
 
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
 Shield — defensive equipment. Outline, filled, and duotone (ocean-tinted) variants.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

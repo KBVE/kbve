@@ -101,4 +101,16 @@ featured: true
 order: 5
 ---
 
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
 Arrow right — navigation indicator. Outline, bold, and chevron variants for different button weights.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>
