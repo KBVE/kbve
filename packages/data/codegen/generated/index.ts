@@ -11,6 +11,7 @@ export * from './discordsh-schema.js';
 export * from './forum-schema.js';
 export * from './github-schema.js';
 export * from './groq-schema.js';
+export * from './icons-schema.js';
 export * from './itemdb-schema.js';
 export * from './jedi-schema.js';
 export * from './kbveproto-schema.js';

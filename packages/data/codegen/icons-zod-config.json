@@ -1,0 +1,78 @@
+{
+	"enums": {
+		"icon.IconStyle": {
+			"mode": "const_array",
+			"stripPrefix": "ICON_STYLE_",
+			"caseTransform": "lowercase"
+		},
+		"icon.IconFormat": {
+			"mode": "const_array",
+			"stripPrefix": "ICON_FORMAT_",
+			"caseTransform": "lowercase"
+		},
+		"icon.IconLicense": {
+			"mode": "const_array",
+			"stripPrefix": "ICON_LICENSE_",
+			"caseTransform": "lowercase"
+		},
+		"icon.IconOffering": {
+			"mode": "const_array",
+			"stripPrefix": "ICON_OFFERING_",
+			"caseTransform": "lowercase"
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "IconStyles",
+			"sourceEnum": "icon.IconStyle",
+			"typeName": "IconStyleValue",
+			"zodSchemaName": "IconStyleSchema"
+		},
+		{
+			"name": "IconFormats",
+			"sourceEnum": "icon.IconFormat",
+			"typeName": "IconFormatValue",
+			"zodSchemaName": "IconFormatSchema"
+		},
+		{
+			"name": "IconLicenses",
+			"sourceEnum": "icon.IconLicense",
+			"typeName": "IconLicenseValue",
+			"zodSchemaName": "IconLicenseSchema"
+		},
+		{
+			"name": "IconOfferings",
+			"sourceEnum": "icon.IconOffering",
+			"typeName": "IconOfferingValue",
+			"zodSchemaName": "IconOfferingSchema"
+		}
+	],
+
+	"passthrough": [
+		"icon.IconRender",
+		"icon.IconSearch",
+		"icon.IconLicenseInfo",
+		"icon.IconOfferingInfo"
+	],
+
+	"nullable": [
+		"icon.IconRender.*",
+		"icon.IconSearch.*",
+		"icon.IconLicenseInfo.*",
+		"icon.IconOfferingInfo.*",
+		"icon.IconViewBox.min_x",
+		"icon.IconViewBox.min_y"
+	],
+
+	"refinements": {
+		"icon.IconViewBox.width": ".min(1)",
+		"icon.IconViewBox.height": ".min(1)",
+		"icon.IconRender.stroke_width": ".min(0)",
+		"icon.IconRender.color_count": ".min(0)",
+		"icon.IconSearch.search_weight": ".min(0).max(2)",
+		"icon.IconOfferingInfo.price_cents": ".min(0)",
+		"icon.IconOfferingInfo.download_count": ".min(0)",
+		"icon.IconCollection.icon_count": ".min(0)"
+	}
+}
