@@ -1,0 +1,60 @@
+---
+id: "01KPY32HFZAKD3RK395HSN24NR"
+ref: "trade-house"
+drafted: false
+name: "Trade House"
+title: "Trade House"
+description: "Two-bay wooden hall with tiled roof and a counter of goods — Market tier 1. Upgrade from Market with 5 Gold Bars."
+type: "building"
+sub_kind: "trade_house"
+interactable: true
+destructible: true
+blocks_movement: true
+blocks_placement: true
+max_health: 220
+footprint_width: 1
+footprint_height: 1
+footprint_shape: "rectangular"
+construction_time_secs: 0
+spawns_fully_built: false
+requires_in_territory: true
+cost_source: "faction_treasury"
+build_costs: []
+services:
+  - { kind: "merchant", priority: 2, capacity: 0 }
+upgrade_chain:
+  tiers:
+    - next_def_ref: "merchants-guild"
+      costs:
+        - { item_ref: "gold-bar", amount: 50 }
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Trade House
+
+The Market outgrew its awning. Where there were two wooden posts and a canvas stretched between, there are now beams, a counter, two trading windows, and a roof that doesn't care about weather. The goods stack higher, the prices quiet down, and for the first time the tender keeps a ledger.
+
+<MapDBPanel data={frontmatter} />
+
+## Game Role
+
+- **Upgrade from Market (tier 1)** — reached via `BuildingUpgradeRequest` on a Market with `BuildingTier.Value == 0`. Costs 5 Gold Bar.
+- **Visual remap only at this tier** — shader swaps the Market silhouette for the two-bay hall; behavior parity with Market until Merchants Guild lands more commerce logic.
+- **Chain continuation** — Trade House → Merchants Guild (50 Gold Bar). Locked behind gold accumulation.
+- **Footprint** — single hex.
+- **Durability** — 220 HP, sturdier than the base Market.
+
+## Lore
+
+A Trade House is the moment a Market realises it is a business. Ledgers appear. Prices stabilise. The stallholder learns to say no. And somewhere in a back room, someone who has never sold anything with their own hands begins to write rules for everyone who does.

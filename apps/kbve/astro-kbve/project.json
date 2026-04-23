@@ -102,18 +102,40 @@
 				"cwd": "{workspaceRoot}"
 			}
 		},
-		"sync:rareicon-mapdb": {
+		"sync:mapdb": {
 			"executor": "nx:run-commands",
 			"inputs": [
 				"{projectRoot}/src/content/docs/mapdb/*.mdx",
-				"{workspaceRoot}/packages/data/codegen/gen-rareicon-mapdb.mjs"
+				"{workspaceRoot}/packages/data/codegen/gen-mapdb-data.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/mapdb.binpb"
 			],
 			"outputs": [
-				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/Data/MapdbRefs.cs",
-				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.json"
+				"{workspaceRoot}/packages/data/codegen/generated/mapdb-data.json",
+				"{workspaceRoot}/packages/data/codegen/generated/mapdb-data.binpb",
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.json",
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.binpb"
 			],
 			"options": {
-				"command": "node packages/data/codegen/gen-rareicon-mapdb.mjs",
+				"command": "node packages/data/codegen/gen-mapdb-data.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:itemdb": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/src/content/docs/itemdb/*.mdx",
+				"{workspaceRoot}/packages/data/codegen/gen-itemdb-data.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/itemdb.binpb"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/data/codegen/generated/itemdb-data.json",
+				"{workspaceRoot}/packages/data/codegen/generated/itemdb-data.binpb",
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.json",
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.binpb"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-itemdb-data.mjs",
 				"cwd": "{workspaceRoot}"
 			},
 			"cache": true

@@ -1,0 +1,56 @@
+---
+id: "01KPY32HFZ3BHND77RG6YSWVPP"
+ref: "wall"
+drafted: false
+name: "Wall"
+title: "Wall"
+description: "Stone rampart with crenellated top, central gate arch, and arrow slits — standalone barrier segment linking Towers or flanking a Keep."
+type: "building"
+sub_kind: "wall"
+interactable: true
+destructible: true
+blocks_movement: true
+blocks_placement: true
+max_health: 260
+footprint_width: 1
+footprint_height: 1
+footprint_shape: "rectangular"
+construction_time_secs: 15
+spawns_fully_built: false
+requires_in_territory: true
+cost_source: "faction_treasury"
+build_costs:
+  - resource_type: "stone-block"
+    amount: 5
+services: []
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Wall
+
+A single-hex stone rampart. Crenellated along the top, arrow slits flanking a central arched gate, and dark bastion stubs at each end so the segment terminates cleanly when it meets a Tower or a Keep. Low enough that units still read above it in the silhouette; tall enough that the threat is obvious.
+
+<MapDBPanel data={frontmatter} />
+
+## Game Role
+
+- **Standalone build** — no upgrade chain, place directly inside Player territory for 5 Stone Block.
+- **Barrier + gate** — tagged with `WallTag` for the future pathing-block pipeline; shader shows the gate arch for lore continuity even before the traversal logic lands.
+- **Chainable** — designed to bridge Towers into a perimeter.
+- **Footprint** — single hex.
+- **Durability** — 260 HP.
+
+## Lore
+
+The first Wall in a kingdom is never the one that stops an army. It is a declaration. Whoever commissioned it decided, for the first time, that there was a difference between *inside* and *outside* worth marking in stone. Every Wall that follows argues the same line a little louder.

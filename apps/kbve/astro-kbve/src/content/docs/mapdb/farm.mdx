@@ -43,6 +43,12 @@ surplus:
   - { item_ref: "milk",   floor: 0 }
   - { item_ref: "wool",   floor: 0 }
   - { item_ref: "meat",   floor: 0 }
+upgrade_chain:
+  tiers:
+    - next_def_ref: "village"
+      costs:
+        - { item_ref: "timber",      amount: 10 }
+        - { item_ref: "stone-block", amount:  4 }
 pixels_per_unit: 64
 pivot: "Center"
 pivot_x: 0.5
