@@ -1,0 +1,116 @@
+---
+import ReactProfileCard from './ReactProfileCard';
+---
+
+<div class="ck-profile">
+	<ReactProfileCard client:load />
+</div>
+
+<style is:global>
+	.ck-profile {
+		max-width: 600px;
+		margin: 2rem auto;
+		padding: 2rem;
+		min-height: 200px;
+		border: 1px solid var(--sl-color-hairline-light);
+		border-radius: 4px;
+		background: var(--sl-color-gray-6);
+	}
+
+	.ck-profile-guest {
+		text-align: center;
+		padding: 3rem 1rem;
+		color: var(--sl-color-gray-2);
+	}
+
+	.ck-profile-guest p {
+		margin-bottom: 1.5rem;
+		font-size: 1.1rem;
+	}
+
+	.ck-profile-signin-btn {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.625rem 1.5rem;
+		border: 1px solid var(--ck-firelight-dim);
+		border-radius: 4px;
+		font-family: var(--sl-font);
+		font-size: 0.875rem;
+		font-weight: 600;
+		letter-spacing: 0.05em;
+		color: var(--ck-stone);
+		background: var(--ck-parchment);
+		text-decoration: none;
+		transition: all 0.2s;
+	}
+
+	.ck-profile-signin-btn:hover {
+		background: var(--ck-firelight-bright);
+		color: var(--ck-stone);
+	}
+
+	.ck-profile__header {
+		display: flex;
+		align-items: center;
+		gap: 1.5rem;
+		margin-bottom: 2rem;
+	}
+
+	.ck-profile__avatar {
+		width: 80px;
+		height: 80px;
+		border-radius: 50%;
+		border: 2px solid var(--ck-firelight-dim);
+	}
+
+	.ck-profile__info {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.ck-profile__name {
+		font-family: var(--sl-font);
+		color: var(--ck-parchment);
+		font-size: 1.5rem;
+		margin: 0;
+	}
+
+	.ck-profile__provider {
+		font-size: 0.8rem;
+		color: var(--ck-firelight);
+		text-transform: capitalize;
+		letter-spacing: 0.1em;
+	}
+
+	.ck-profile__email {
+		font-size: 0.875rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.ck-profile__actions {
+		padding-top: 1.5rem;
+		border-top: 1px solid var(--sl-color-hairline);
+	}
+
+	.ck-profile-signout-btn {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.5rem 1.25rem;
+		border: 1px solid var(--ck-firelight-dim);
+		border-radius: 4px;
+		font-family: var(--sl-font);
+		font-size: 0.8rem;
+		letter-spacing: 0.05em;
+		color: var(--ck-firelight);
+		background: transparent;
+		text-decoration: none;
+		transition: all 0.2s;
+	}
+
+	.ck-profile-signout-btn:hover {
+		background: rgba(212, 164, 76, 0.15);
+		border-color: var(--ck-firelight);
+		color: var(--ck-firelight-bright);
+	}
+</style>

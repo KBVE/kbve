@@ -28,15 +28,18 @@
 			}
 		},
 		"build": {
-			"dependsOn": ["proto"],
 			"executor": "nx:run-commands",
+			"outputs": ["{workspaceRoot}/dist/apps/astro-rareicon"],
 			"options": {
 				"cwd": "apps/rareicon/astro-rareicon",
 				"commands": [
+					"rm -rf .astro",
+					"nx exec -- astro sync",
 					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro build"
 				],
 				"parallel": false
-			}
+			},
+			"cache": true
 		},
 		"preview": {
 			"dependsOn": [

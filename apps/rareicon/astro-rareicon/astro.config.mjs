@@ -41,13 +41,33 @@ export default defineConfig({
 				},
 			],
 			components: {
-				SiteTitle: './src/components/navigation/SiteTitle.astro',
-				PageTitle: './src/components/navigation/PageTitle.astro',
-				PageSidebar: './src/components/pagesidebar/PageSidebar.astro',
-				Footer: './src/components/footer/AstroFooter.astro',
-				ThemeProvider: './src/components/theme/ThemeProvider.astro',
+				PageTitle: './src/components/starlight/PageTitle.astro',
+				Footer: './src/components/starlight/Footer.astro',
+				Sidebar: './src/components/starlight/Sidebar.astro',
+				Header: './src/components/starlight/Header.astro',
 			},
 			head: [
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:type',
+						content: 'website',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:site_name',
+						content: 'RareIcon',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						name: 'twitter:card',
+						content: 'summary_large_image',
+					},
+				},
 				{
 					tag: 'link',
 					attrs: {
@@ -71,18 +91,18 @@ export default defineConfig({
 					},
 				},
 			],
-			// TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6
-			// plugins: [starlightSiteGraph({ ... })],
 			sidebar: [
 				{
-					label: 'Recipe',
-					collapsed: true,
-					autogenerate: { directory: 'recipe' },
+					label: 'Getting Started',
+					autogenerate: { directory: 'guides' },
 				},
 				{
-					label: 'Legal',
-					collapsed: true,
-					autogenerate: { directory: 'legal' },
+					label: 'Game',
+					autogenerate: { directory: 'game' },
+				},
+				{
+					label: 'Account',
+					autogenerate: { directory: 'auth' },
 				},
 			],
 		}),

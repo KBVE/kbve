@@ -1,0 +1,241 @@
+@import 'tailwindcss';
+
+/* ── ChuckRPG theme: Medieval Fantasy ──
+   Inspired by weathered parchment, dark iron, deep forest,
+   warm firelight, and ancient stone. LotR meets WoW. */
+:root {
+	/* Core palette */
+	--ck-firelight: #d4a44c;
+	--ck-firelight-dim: #b8893d;
+	--ck-firelight-bright: #e8c06a;
+	--ck-parchment: #e8dcc8;
+	--ck-iron: #2a2a2e;
+	--ck-stone: #1a1a1f;
+	--ck-leather: #3d2e1e;
+	--ck-forest: #1b3a2a;
+	--ck-blood: #8b2020;
+
+	/* Starlight overrides */
+	--sl-color-white: #e8dcc8;
+	--sl-color-gray-1: #c4b89e;
+	--sl-color-gray-2: #9e9480;
+	--sl-color-gray-3: #6b6356;
+	--sl-color-gray-4: #3d3630;
+	--sl-color-gray-5: #252220;
+	--sl-color-gray-6: #1a1816;
+	--sl-color-black: #0f0e0c;
+
+	--sl-color-accent-low: #3d2800;
+	--sl-color-accent: #d4a44c;
+	--sl-color-accent-high: #e8c06a;
+
+	/* Semantic colors — medieval palette */
+	--sl-color-blue-low: #2a2218;
+	--sl-color-blue: var(--ck-firelight-dim);
+	--sl-color-blue-high: var(--ck-firelight-bright);
+	--sl-color-green-low: #1a2a1e;
+	--sl-color-green: #4a7a5a;
+	--sl-color-green-high: #7aaa8a;
+	--sl-color-orange-low: #2e1e0e;
+	--sl-color-orange: #c8854a;
+	--sl-color-orange-high: #e8a86a;
+	--sl-color-red-low: #2e1414;
+	--sl-color-red: var(--ck-blood);
+	--sl-color-red-high: #c44040;
+	--sl-color-purple-low: #221a2a;
+	--sl-color-purple: #7a5a8a;
+	--sl-color-purple-high: #aa8aba;
+
+	--sl-color-bg: var(--ck-stone);
+	--sl-color-bg-nav: rgba(26, 26, 31, 0.92);
+	--sl-color-bg-sidebar: #151518;
+	--sl-color-bg-inline-code: #1f1e1c;
+	--sl-color-text-invert: var(--ck-stone);
+	--sl-color-bg-accent: var(--ck-firelight);
+
+	--sl-color-hairline-light: #2e2a26;
+	--sl-color-hairline: #242120;
+	--sl-color-hairline-shade: var(--ck-stone);
+
+	--sl-color-text: var(--sl-color-gray-2);
+	--sl-color-text-accent: var(--ck-firelight);
+	--sl-color-backdrop-overlay: rgba(0, 0, 0, 0.8);
+
+	--sl-font: 'Cinzel', 'Palatino Linotype', 'Book Antiqua', serif;
+}
+
+/* Body font for readability — keep serif for headings only */
+body {
+	font-family: 'Lora', 'Georgia', serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: var(--sl-font);
+}
+
+/* ── Splash page: full-bleed layout ── */
+[data-page-type='splash'] main {
+	padding: 0 !important;
+}
+
+[data-page-type='splash'] .content-panel {
+	padding: 0 !important;
+}
+
+[data-page-type='splash'] .sl-container {
+	max-width: none !important;
+	padding: 0 !important;
+}
+
+[data-page-type='splash'] .main-pane {
+	padding: 0 !important;
+}
+
+[data-page-type='splash'] article {
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+/* ── Links: firelight hover ── */
+a:not(.ck-btn) {
+	transition: color 0.2s ease;
+}
+
+a:not(.ck-btn):hover {
+	color: var(--ck-firelight-bright);
+}
+
+/* ── Scrollbar: dark iron ── */
+::-webkit-scrollbar {
+	width: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: var(--ck-stone);
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--ck-leather);
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--ck-firelight-dim);
+}
+
+/* ── Focus styles: firelight ring for keyboard navigation ── */
+:focus-visible {
+	outline: 2px solid var(--ck-firelight);
+	outline-offset: 2px;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+	outline: 2px solid var(--ck-firelight);
+	outline-offset: 2px;
+}
+
+/* ── Reduced motion: respect vestibular preferences ── */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+/* ── Code blocks: parchment-on-dark ── */
+pre {
+	border: 1px solid var(--sl-color-hairline-light);
+	border-radius: 4px;
+}
+
+/* ── Sidebar active item: dark text on firelight bg ── */
+nav[aria-label='Main'] a[aria-current='page'] {
+	color: var(--ck-stone) !important;
+	border-left-color: var(--ck-firelight) !important;
+}
+
+/* ── Auth-gated sidebar: hide items until auth state resolves ── */
+a[data-auth-visibility] {
+	display: none;
+}
+
+html[data-auth-tone='auth'] a[data-auth-visibility='auth'] {
+	display: block;
+}
+
+html[data-auth-tone='anon'] a[data-auth-visibility='anon'] {
+	display: block;
+}
+
+/* ── Skeleton pulse animation ── */
+@keyframes ck-skeleton-pulse {
+	0%,
+	100% {
+		opacity: 0.4;
+	}
+	50% {
+		opacity: 0.7;
+	}
+}
+
+.ck-skel {
+	background: var(--sl-color-gray-5);
+	border-radius: 4px;
+	animation: ck-skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.ck-skel--circle {
+	border-radius: 50%;
+}
+
+/* ── Shared auth status / spinner ── */
+.ck-auth-status {
+	text-align: center;
+	padding: 3rem 1rem;
+	min-height: 250px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.ck-spinner {
+	width: 50px;
+	height: 50px;
+	margin: 0 auto 20px;
+	border: 4px solid var(--sl-color-accent-low);
+	border-top-color: var(--ck-firelight);
+	border-radius: 50%;
+	animation: ck-spin 1s linear infinite;
+}
+
+@keyframes ck-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.ck-status-message {
+	font-family: var(--sl-font);
+	font-size: 1.125rem;
+	color: var(--ck-parchment);
+	margin-bottom: 0.5rem;
+}
+
+.ck-status-sub {
+	font-size: 0.875rem;
+	color: var(--sl-color-gray-3);
+}

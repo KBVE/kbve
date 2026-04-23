@@ -1,0 +1,35 @@
+---
+title: Sign In
+description: Sign in to your ChuckRPG account to save progress, forge alliances, and compete on leaderboards.
+head:
+  - tag: meta
+    attrs:
+      name: robots
+      content: noindex, nofollow
+sidebar:
+  label: Sign In
+  order: 1
+  attrs:
+    data-auth-visibility: anon
+---
+
+import AstroLogin from '../../../components/auth/AstroLogin.astro';
+
+<AstroLogin />
+
+## Why Sign In?
+
+### Save Your Progress
+Your game progress, settings, and preferences sync across all your devices.
+
+### Community
+Connect with the ChuckRPG community through Discord and GitHub.
+
+### Cross-Device
+Start on your desktop and continue on your laptop or mobile.
+
+## Supported Providers
+
+**GitHub** and **Discord** are currently supported for authentication.
+
+We only request basic profile information (username, email, avatar) from OAuth providers.
