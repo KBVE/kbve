@@ -36,9 +36,7 @@ fn write_proto_stubs(out_dir: &str) {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let out_dir = std::env::var("OUT_DIR").unwrap();
 
-    // Proto file locations
-    // Docker/CI: /proto/kbve/
-    // Monorepo local dev: ../../../packages/data/proto/kbve/
+    // Proto file locations docker/CI: /proto/kbve/ and Monorepo local dev: ../../../packages/data/proto/kbve/
     let docker_proto_dir = Path::new("/proto/kbve");
     let local_proto_dir = Path::new("../../../packages/data/proto/kbve");
 

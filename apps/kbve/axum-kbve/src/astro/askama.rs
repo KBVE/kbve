@@ -82,7 +82,6 @@ pub struct ProfileTemplate {
     pub bio: Option<String>,
     pub status: Option<String>,
     pub primary_avatar_url: Option<String>,
-    // Discord fields
     pub discord_username: Option<String>,
     pub discord_avatar: Option<String>,
     pub discord_is_guild_member: Option<bool>,
@@ -96,14 +95,11 @@ pub struct ProfileTemplate {
     pub discord_is_boosting: Option<bool>,
     pub discord_role_count: usize,
     pub discord_role_names: Vec<String>,
-    // GitHub fields
     pub github_username: Option<String>,
     pub github_avatar: Option<String>,
-    // Twitch fields
     pub twitch_username: Option<String>,
     pub twitch_avatar: Option<String>,
     pub twitch_is_live: Option<bool>,
-    // RentEarth fields
     pub rentearth_characters: Vec<RentEarthCharacterDisplay>,
     pub rentearth_total_playtime_hours: Option<i64>,
     #[allow(dead_code)]

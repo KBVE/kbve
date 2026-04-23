@@ -1,5 +1,3 @@
-// Authentication module - JWT validation for Supabase
-
 pub mod jwt_cache;
 
 pub use jwt_cache::{JwtCacheError, get_jwt_cache, init_jwt_cache};
@@ -7,33 +5,125 @@ pub use jwt_cache::{JwtCacheError, get_jwt_cache, init_jwt_cache};
 use jsonwebtoken::{Algorithm, DecodingKey, TokenData, Validation, decode};
 use serde::{Deserialize, Serialize};
 
-/// JWT Claims from Supabase
-#[allow(dead_code)]
+// TODO: Thiserror for Auth Error
+
+/*
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum AuthError {
+    #[error("Missing authentication token")]
+    MissingToken,
+
+    #[error("Invalid token: {0}")]
+    InvalidToken(String),
+
+    #[error("Token has expired")]
+    TokenExpired,
+
+    #[error("JWT secret not configured")]
+    MissingSecret,
+}
+*/
+
+// TODO: Inline time
+/*
+
+#[inline]
+fn now_epoch() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64)
+        .unwrap_or(0)
+}
+
+pub fn is_token_expired(claims: &Claims, grace_seconds: i64) -> bool {
+    claims.exp.saturating_add(grace_seconds) < now_epoch()
+}
+
+*/
+
+// TODO: Adjust Claims
+
+/*
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claims {
-    /// Subject (user ID as UUID)
     pub sub: String,
-    /// Issued at (Unix timestamp)
     pub iat: i64,
-    /// Expiration time (Unix timestamp)
     pub exp: i64,
-    /// Issuer
+
     #[serde(default)]
     pub iss: String,
-    /// Role (e.g., "authenticated", "anon")
-    #[serde(default)]
+
+    #[serde(default = "default_role")]
     pub role: String,
-    /// User email
+
+    #[serde(default)]
     pub email: Option<String>,
-    /// User phone
+
+    #[serde(default)]
     pub phone: Option<String>,
-    /// App metadata
+
+    #[serde(default)]
     pub app_metadata: Option<serde_json::Value>,
-    /// User metadata
+
+    #[serde(default)]
     pub user_metadata: Option<serde_json::Value>,
 }
 
-/// Authenticated user information
+fn default_role() -> String {
+    "authenticated".to_string()
+}
+
+impl From<&Claims> for AuthUser {
+    fn from(claims: &Claims) -> Self {
+        Self {
+            id: claims.sub.clone(),
+            email: claims.email.clone(),
+            role: claims.role.clone(),
+        }
+    }
+}
+
+impl From<Claims> for AuthUser {
+    fn from(claims: Claims) -> Self {
+        Self {
+            id: claims.sub,
+            email: claims.email,
+            role: claims.role,
+        }
+    }
+}
+
+impl Claims {
+    #[inline]
+    pub fn is_expired(&self) -> bool {
+        self.exp < now_epoch()
+    }
+
+    #[inline]
+    pub fn is_expired_with_grace(&self, grace_seconds: i64) -> bool {
+        self.exp.saturating_add(grace_seconds) < now_epoch()
+    }
+}
+*/
+
+#[allow(dead_code)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Claims {
+    pub sub: String,
+    pub iat: i64,
+    pub exp: i64,
+    #[serde(default)]
+    pub iss: String,
+    #[serde(default)]
+    pub role: String,
+    pub email: Option<String>,
+    pub phone: Option<String>,
+    pub app_metadata: Option<serde_json::Value>,
+    pub user_metadata: Option<serde_json::Value>,
+}
+
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct AuthUser {
@@ -52,7 +142,6 @@ impl From<Claims> for AuthUser {
     }
 }
 
-/// Authentication errors
 #[allow(dead_code)]
 #[derive(Debug)]
 pub enum AuthError {
@@ -75,16 +164,12 @@ impl std::fmt::Display for AuthError {
 
 impl std::error::Error for AuthError {}
 
-/// Validate a JWT token using the Supabase JWT secret
 #[allow(dead_code)]
 pub fn validate_token(token: &str, jwt_secret: &str) -> Result<TokenData<Claims>, AuthError> {
     let key = DecodingKey::from_secret(jwt_secret.as_bytes());
 
     let mut validation = Validation::new(Algorithm::HS256);
     validation.validate_exp = true;
-    // Supabase self-hosted instances may use varying issuer strings
-    // (e.g. project URL, "supabase", or custom). Accept any issuer and
-    // rely on the shared JWT secret for authenticity instead.
     validation.set_issuer::<String>(&[]);
 
     decode::<Claims>(token, &key, &validation).map_err(|e| match e.kind() {
@@ -93,14 +178,12 @@ pub fn validate_token(token: &str, jwt_secret: &str) -> Result<TokenData<Claims>
     })
 }
 
-/// Extract bearer token from Authorization header
 pub fn extract_bearer_token(auth_header: &str) -> Option<&str> {
     auth_header
         .strip_prefix("Bearer ")
         .or_else(|| auth_header.strip_prefix("bearer "))
 }
 
-/// Check if a token is expired (with optional grace period in seconds)
 #[allow(dead_code)]
 pub fn is_token_expired(claims: &Claims, grace_seconds: i64) -> bool {
     let now = chrono::Utc::now().timestamp();
