@@ -1,0 +1,37 @@
+---
+import Adsense from './Adsense.astro';
+
+interface Props {
+	label?: string;
+	class?: string;
+}
+
+// No min-height by default: responsive AdSense units (data-ad-format="auto")
+// size themselves per-viewport, so any floor would leave empty space when a
+// shorter mobile unit is served. Mobile-first Tailwind = auto on xs/sm.
+// Add breakpoint floors via the `class` prop only for fixed-size ad slots,
+// e.g. class="md:min-h-[250px] lg:min-h-[280px]".
+const { label = 'Advertisement', class: className = '' } = Astro.props;
+---
+
+<aside
+	class:list={[
+		'not-content mx-auto my-6 block w-full max-w-full overflow-hidden rounded-lg border border-[var(--sl-color-gray-5)] bg-[var(--sl-color-bg-sidebar)] p-3 box-border [contain:layout_paint] sm:my-4 sm:p-2',
+		className,
+	]}
+	role="complementary"
+	aria-label={label}>
+	<span
+		class="mb-2 block text-center text-[0.7rem] font-medium uppercase tracking-wider text-[var(--sl-color-gray-3)] opacity-80">
+		{label}
+	</span>
+	{
+		/* Parent-only containment: `overflow-hidden` + `max-w-full` keeps AdSense
+	    sized to available width without touching the <ins> element's own styles.
+	    Overriding the <ins> with !important would break fixed-size ad units and
+	    risks TOS scrutiny. */
+	}
+	<div class="relative w-full max-w-full overflow-hidden">
+		<Adsense />
+	</div>
+</aside>
