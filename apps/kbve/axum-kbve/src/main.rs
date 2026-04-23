@@ -47,8 +47,9 @@ async fn main() -> anyhow::Result<()> {
         warn!("ProfileService not available - profile routes will return 503");
     }
 
-    let _cache = db::init_profile_cache();
-    info!("Profile cache actor started");
+    let profile_cache = db::init_profile_cache();
+    tokio::spawn(profile_cache.run_cleanup_task());
+    info!("Profile cache initialized");
 
     if db::init_discord_client().await {
         info!("Discord client initialized - profile enrichment enabled");

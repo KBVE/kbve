@@ -1,21 +1,27 @@
-// Profile cache actor - handles caching with TTL and Discord enrichment
+// Profile cache - DashMap-backed with background cleanup.
 //
-// Uses tokio mpsc channels for actor-style message passing.
-// All cache operations go through the actor to avoid lock contention.
+// - Reads/writes hit the map directly (no actor channel).
+// - `get_or_load` deduplicates concurrent misses for the same key via a
+//   per-key tokio mutex stored in `inflight` — 20 simultaneous requests for
+//   the same username collapse to a single enrichment pipeline.
+// - A single background task sweeps expired entries and caps size.
 
 use dashmap::DashMap;
+use std::future::Future;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
-use tokio::sync::{mpsc, oneshot};
+use tokio::sync::Mutex;
 
 use super::profile::UserProfile;
 
-/// Cache configuration
-const CACHE_TTL: Duration = Duration::from_secs(300); // 5 minutes
+const CACHE_TTL: Duration = Duration::from_secs(300);
 const CACHE_MAX_SIZE: usize = 10_000;
-const CHANNEL_BUFFER: usize = 256;
+const CLEANUP_INTERVAL: Duration = Duration::from_secs(60);
+const EVICTION_BATCH: usize = CACHE_MAX_SIZE / 10;
 
-/// Cached profile entry with timestamp
+type ProfileKey = String;
+
 struct CacheEntry {
     profile: Arc<UserProfile>,
     inserted_at: Instant,
@@ -23,48 +29,39 @@ struct CacheEntry {
 }
 
 impl CacheEntry {
-    fn new(profile: UserProfile) -> Self {
+    fn from_arc(profile: Arc<UserProfile>) -> Self {
         let now = Instant::now();
         Self {
-            profile: Arc::new(profile),
+            profile,
             inserted_at: now,
             last_accessed: now,
         }
     }
 
+    #[inline]
     fn is_expired(&self) -> bool {
         self.inserted_at.elapsed() > CACHE_TTL
     }
 
+    #[inline]
     fn touch(&mut self) {
         self.last_accessed = Instant::now();
     }
 }
 
-/// Commands sent to the cache actor
-pub enum CacheCommand {
-    /// Get a profile by username
-    Get {
-        username: String,
-        reply: oneshot::Sender<Option<Arc<UserProfile>>>,
-    },
-    /// Store a profile in the cache
-    Set {
-        username: String,
-        profile: Box<UserProfile>,
-    },
-    /// Invalidate a specific profile
-    #[allow(dead_code)]
-    Invalidate { username: String },
-    /// Clear all cached profiles
-    #[allow(dead_code)]
-    Clear,
-    /// Get cache statistics
-    #[allow(dead_code)]
-    Stats { reply: oneshot::Sender<CacheStats> },
+#[inline]
+fn normalize_username(username: &str) -> ProfileKey {
+    username.trim().to_ascii_lowercase()
 }
 
-/// Cache statistics
+#[derive(Default)]
+struct CacheCounters {
+    hits: AtomicU64,
+    misses: AtomicU64,
+    evictions: AtomicU64,
+}
+
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct CacheStats {
     pub size: usize,
@@ -73,177 +70,259 @@ pub struct CacheStats {
     pub evictions: u64,
 }
 
-/// Handle to communicate with the cache actor
 #[derive(Clone)]
 pub struct ProfileCache {
-    tx: mpsc::Sender<CacheCommand>,
+    entries: Arc<DashMap<ProfileKey, CacheEntry>>,
+    inflight: Arc<DashMap<ProfileKey, Arc<Mutex<()>>>>,
+    counters: Arc<CacheCounters>,
+}
+
+/// RAII cleanup for an `inflight` entry. Removal is conditional on `Arc::ptr_eq`
+/// so a late drop cannot clobber a *new* entry inserted by a later caller for
+/// the same key.
+struct InflightGuard {
+    key: ProfileKey,
+    mutex: Arc<Mutex<()>>,
+    inflight: Arc<DashMap<ProfileKey, Arc<Mutex<()>>>>,
+}
+
+impl Drop for InflightGuard {
+    fn drop(&mut self) {
+        let expected = &self.mutex;
+        self.inflight
+            .remove_if(&self.key, |_, v| Arc::ptr_eq(v, expected));
+    }
 }
 
 impl ProfileCache {
-    /// Get a profile from cache
-    pub async fn get(&self, username: &str) -> Option<Arc<UserProfile>> {
-        let (reply_tx, reply_rx) = oneshot::channel();
-        let cmd = CacheCommand::Get {
-            username: username.to_lowercase(),
-            reply: reply_tx,
-        };
-
-        if self.tx.send(cmd).await.is_err() {
-            tracing::error!("Cache actor channel closed");
-            return None;
-        }
-
-        reply_rx.await.unwrap_or(None)
-    }
-
-    /// Store a profile in cache
-    pub async fn set(&self, username: &str, profile: UserProfile) {
-        let cmd = CacheCommand::Set {
-            username: username.to_lowercase(),
-            profile: Box::new(profile),
-        };
-
-        if let Err(e) = self.tx.send(cmd).await {
-            tracing::error!("Failed to send to cache actor: {}", e);
+    pub fn new() -> Self {
+        Self {
+            entries: Arc::new(DashMap::with_capacity(1024)),
+            inflight: Arc::new(DashMap::with_capacity(256)),
+            counters: Arc::new(CacheCounters::default()),
         }
     }
 
-    /// Invalidate a cached profile
     #[allow(dead_code)]
-    pub async fn invalidate(&self, username: &str) {
-        let cmd = CacheCommand::Invalidate {
-            username: username.to_lowercase(),
-        };
-
-        let _ = self.tx.send(cmd).await;
+    pub fn get(&self, username: &str) -> Option<Arc<UserProfile>> {
+        let key = normalize_username(username);
+        self.get_by_key(&key)
     }
 
-    /// Clear entire cache
-    #[allow(dead_code)]
-    pub async fn clear(&self) {
-        let _ = self.tx.send(CacheCommand::Clear).await;
-    }
+    pub fn get_by_key(&self, key: &str) -> Option<Arc<UserProfile>> {
+        if let Some(mut entry) = self.entries.get_mut(key) {
+            if entry.is_expired() {
+                drop(entry);
+                if self.entries.remove(key).is_some() {
+                    self.counters.evictions.fetch_add(1, Ordering::Relaxed);
+                }
+                self.counters.misses.fetch_add(1, Ordering::Relaxed);
+                return None;
+            }
 
-    /// Get cache statistics
-    #[allow(dead_code)]
-    pub async fn stats(&self) -> Option<CacheStats> {
-        let (reply_tx, reply_rx) = oneshot::channel();
-        let cmd = CacheCommand::Stats { reply: reply_tx };
-
-        if self.tx.send(cmd).await.is_err() {
-            return None;
+            entry.touch();
+            self.counters.hits.fetch_add(1, Ordering::Relaxed);
+            return Some(Arc::clone(&entry.profile));
         }
 
-        reply_rx.await.ok()
+        self.counters.misses.fetch_add(1, Ordering::Relaxed);
+        None
     }
-}
 
-/// Spawn the cache actor and return a handle
-pub fn spawn_cache_actor() -> ProfileCache {
-    let (tx, rx) = mpsc::channel(CHANNEL_BUFFER);
+    #[allow(dead_code)]
+    pub fn set(&self, username: &str, profile: UserProfile) {
+        let key = normalize_username(username);
+        self.set_by_key(key, profile);
+    }
 
-    tokio::spawn(cache_actor_loop(rx));
+    #[allow(dead_code)]
+    pub fn set_by_key(&self, key: ProfileKey, profile: UserProfile) {
+        self.insert_arc(key, Arc::new(profile));
+    }
 
-    ProfileCache { tx }
-}
+    fn insert_arc(&self, key: ProfileKey, profile: Arc<UserProfile>) {
+        if self.entries.len() >= CACHE_MAX_SIZE {
+            self.evict_lru(EVICTION_BATCH);
+        }
+        self.entries.insert(key, CacheEntry::from_arc(profile));
+    }
 
-/// The cache actor event loop
-async fn cache_actor_loop(mut rx: mpsc::Receiver<CacheCommand>) {
-    let cache: DashMap<String, CacheEntry> = DashMap::with_capacity(1000);
-    let mut stats = CacheStats {
-        size: 0,
-        hits: 0,
-        misses: 0,
-        evictions: 0,
-    };
+    /// Fast path on hit; on miss, acquires a per-key lock so concurrent
+    /// callers for the same key share a single `loader` invocation.
+    pub async fn get_or_load<F, Fut>(&self, username: &str, loader: F) -> Option<Arc<UserProfile>>
+    where
+        F: FnOnce(ProfileKey) -> Fut,
+        Fut: Future<Output = Option<UserProfile>>,
+    {
+        let key = normalize_username(username);
 
-    tracing::info!("Profile cache actor started");
+        if let Some(profile) = self.get_by_key(&key) {
+            return Some(profile);
+        }
 
-    while let Some(cmd) = rx.recv().await {
-        match cmd {
-            CacheCommand::Get { username, reply } => {
-                let result = cache.get_mut(&username).and_then(|mut entry| {
-                    if entry.is_expired() {
-                        drop(entry);
-                        cache.remove(&username);
-                        stats.evictions += 1;
-                        stats.size = cache.len();
-                        None
-                    } else {
-                        entry.touch();
-                        Some(Arc::clone(&entry.profile))
-                    }
-                });
+        let lock = self
+            .inflight
+            .entry(key.clone())
+            .or_insert_with(|| Arc::new(Mutex::new(())))
+            .clone();
 
-                if result.is_some() {
-                    stats.hits += 1;
+        // Guard is declared *before* awaiting the lock so a cancellation at
+        // the lock-wait still clears the inflight entry. Drop order is LIFO,
+        // so `_lock_guard` releases the mutex first (waking waiters to observe
+        // a populated cache), then `_inflight_guard` clears the coordination.
+        let _inflight_guard = InflightGuard {
+            key: key.clone(),
+            mutex: Arc::clone(&lock),
+            inflight: Arc::clone(&self.inflight),
+        };
+        let _lock_guard = lock.lock().await;
+
+        // Another caller may have populated the cache while we waited.
+        if let Some(profile) = self.get_by_key(&key) {
+            return Some(profile);
+        }
+
+        // We are the loader. Populate cache *before* returning so late-arriving
+        // fast-path readers see the hit even before the guard clears inflight.
+        match loader(key.clone()).await {
+            Some(profile) => {
+                let arc = Arc::new(profile);
+                self.insert_arc(key, Arc::clone(&arc));
+                Some(arc)
+            }
+            None => None,
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn invalidate(&self, username: &str) {
+        let key = normalize_username(username);
+        self.invalidate_by_key(&key);
+    }
+
+    #[allow(dead_code)]
+    pub fn invalidate_by_key(&self, key: &str) {
+        self.entries.remove(key);
+    }
+
+    #[allow(dead_code)]
+    pub fn clear(&self) {
+        self.entries.clear();
+    }
+
+    #[allow(dead_code)]
+    pub fn size(&self) -> usize {
+        self.entries.len()
+    }
+
+    #[allow(dead_code)]
+    pub fn stats(&self) -> CacheStats {
+        CacheStats {
+            size: self.entries.len(),
+            hits: self.counters.hits.load(Ordering::Relaxed),
+            misses: self.counters.misses.load(Ordering::Relaxed),
+            evictions: self.counters.evictions.load(Ordering::Relaxed),
+        }
+    }
+
+    pub async fn run_cleanup_task(self) {
+        tracing::info!("Starting profile cache cleanup task");
+        let mut interval = tokio::time::interval(CLEANUP_INTERVAL);
+        interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+
+        loop {
+            interval.tick().await;
+            self.cleanup_expired();
+
+            let len = self.entries.len();
+            if len > CACHE_MAX_SIZE {
+                self.evict_lru(len - CACHE_MAX_SIZE);
+            }
+
+            tracing::debug!(
+                cache_size = self.entries.len(),
+                inflight_size = self.inflight.len(),
+                "profile cache cleanup tick"
+            );
+        }
+    }
+
+    fn cleanup_expired(&self) {
+        let expired: Vec<ProfileKey> = self
+            .entries
+            .iter()
+            .filter_map(|entry| {
+                if entry.value().is_expired() {
+                    Some(entry.key().clone())
                 } else {
-                    stats.misses += 1;
+                    None
                 }
+            })
+            .collect();
 
-                let _ = reply.send(result);
+        let mut removed: u64 = 0;
+        for key in expired {
+            if self.entries.remove(&key).is_some() {
+                removed += 1;
             }
+        }
 
-            CacheCommand::Set { username, profile } => {
-                // Evict oldest entries if at capacity
-                if cache.len() >= CACHE_MAX_SIZE {
-                    evict_lru(&cache, &mut stats);
-                }
-
-                cache.insert(username, CacheEntry::new(*profile));
-                stats.size = cache.len();
-            }
-
-            CacheCommand::Invalidate { username } => {
-                if cache.remove(&username).is_some() {
-                    stats.size = cache.len();
-                }
-            }
-
-            CacheCommand::Clear => {
-                cache.clear();
-                stats.size = 0;
-                tracing::info!("Profile cache cleared");
-            }
-
-            CacheCommand::Stats { reply } => {
-                let _ = reply.send(stats.clone());
-            }
+        if removed > 0 {
+            self.counters
+                .evictions
+                .fetch_add(removed, Ordering::Relaxed);
+            tracing::debug!(removed, "cleaned expired profile cache entries");
         }
     }
 
-    tracing::warn!("Profile cache actor shutting down");
-}
+    fn evict_lru(&self, count: usize) {
+        if count == 0 || self.entries.is_empty() {
+            return;
+        }
 
-/// Evict least recently used entries when cache is full
-fn evict_lru(cache: &DashMap<String, CacheEntry>, stats: &mut CacheStats) {
-    // Find entries to evict (oldest 10%)
-    let evict_count = CACHE_MAX_SIZE / 10;
-    let mut entries: Vec<_> = cache
-        .iter()
-        .map(|e| (e.key().clone(), e.value().last_accessed))
-        .collect();
+        let mut entries: Vec<_> = self
+            .entries
+            .iter()
+            .map(|e| (e.key().clone(), e.value().last_accessed))
+            .collect();
 
-    entries.sort_by_key(|(_, accessed)| *accessed);
+        let target = count.min(entries.len());
+        if target < entries.len() {
+            // Partition around the target position — O(n) vs sort's O(n log n).
+            entries.select_nth_unstable_by_key(target - 1, |(_, accessed)| *accessed);
+            entries.truncate(target);
+        }
 
-    for (key, _) in entries.into_iter().take(evict_count) {
-        cache.remove(&key);
-        stats.evictions += 1;
+        let mut removed: u64 = 0;
+        for (key, _) in entries {
+            if self.entries.remove(&key).is_some() {
+                removed += 1;
+            }
+        }
+
+        if removed > 0 {
+            self.counters
+                .evictions
+                .fetch_add(removed, Ordering::Relaxed);
+            tracing::debug!(removed, "evicted profile cache entries");
+        }
     }
-
-    stats.size = cache.len();
-    tracing::debug!("Evicted {} entries from profile cache", evict_count);
 }
 
-// Global cache handle
+impl Default for ProfileCache {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 static PROFILE_CACHE: std::sync::OnceLock<ProfileCache> = std::sync::OnceLock::new();
 
-/// Initialize the global profile cache
+/// Initialize the global profile cache (idempotent).
 pub fn init_profile_cache() -> ProfileCache {
-    PROFILE_CACHE.get_or_init(spawn_cache_actor).clone()
+    PROFILE_CACHE.get_or_init(ProfileCache::new).clone()
 }
 
-/// Get the global profile cache handle
+/// Get the global profile cache handle if it has been initialized.
 pub fn get_profile_cache() -> Option<ProfileCache> {
     PROFILE_CACHE.get().cloned()
 }

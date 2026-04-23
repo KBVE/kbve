@@ -389,18 +389,15 @@ async fn profile_handler(Path(username): Path<String>) -> impl IntoResponse {
         }
     };
 
-    // Step 2: Try cache first
+    // Step 2: Try cache first; concurrent misses collapse to one enrichment.
     let profile = if let Some(cache) = get_profile_cache() {
-        if let Some(cached) = cache.get(&validated_username).await {
-            tracing::debug!("Cache hit for profile: {}", validated_username);
-            Some((*cached).clone())
-        } else {
-            // Cache miss - fetch from database
-            tracing::debug!("Cache miss for profile: {}", validated_username);
-            fetch_and_cache_profile(&validated_username, cache).await
-        }
+        cache
+            .get_or_load(&validated_username, |u| async move {
+                fetch_enriched_profile(&u).await
+            })
+            .await
+            .map(|arc| (*arc).clone())
     } else {
-        // No cache available - fetch directly
         fetch_profile_from_db(&validated_username).await
     };
 
@@ -440,20 +437,14 @@ async fn profile_handler(Path(username): Path<String>) -> impl IntoResponse {
 // Profile enrichment pipeline
 // ---------------------------------------------------------------------------
 
-/// Fetch profile from database and cache it
-async fn fetch_and_cache_profile(
-    username: &str,
-    cache: crate::db::ProfileCache,
-) -> Option<UserProfile> {
+/// Fetch profile from database and run the enrichment pipeline.
+/// Caching is the caller's responsibility (typically via `ProfileCache::get_or_load`).
+async fn fetch_enriched_profile(username: &str) -> Option<UserProfile> {
     let profile = fetch_profile_from_db(username).await?;
 
-    // Enrich with Discord, Twitch, and RentEarth data if available
     let enriched = enrich_with_discord(profile).await;
     let enriched = enrich_with_twitch(enriched).await;
     let enriched = enrich_with_rentearth(enriched).await;
-
-    // Store in cache
-    cache.set(username, enriched.clone()).await;
 
     Some(enriched)
 }
@@ -1226,18 +1217,15 @@ async fn profile_api_handler(Path(username): Path<String>) -> impl IntoResponse 
         }
     };
 
-    // Try to get from cache first
+    // Try cache first; concurrent misses collapse to one enrichment.
     let profile = if let Some(cache) = get_profile_cache() {
-        if let Some(cached) = cache.get(&validated_username).await {
-            tracing::debug!("Cache hit for profile API: {}", validated_username);
-            Some((*cached).clone())
-        } else {
-            // Cache miss - fetch and enrich
-            tracing::debug!("Cache miss for profile API: {}", validated_username);
-            fetch_and_cache_profile(&validated_username, cache).await
-        }
+        cache
+            .get_or_load(&validated_username, |u| async move {
+                fetch_enriched_profile(&u).await
+            })
+            .await
+            .map(|arc| (*arc).clone())
     } else {
-        // No cache available - fetch directly from database
         fetch_profile_from_db(&validated_username).await
     };
 
