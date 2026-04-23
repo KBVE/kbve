@@ -84,10 +84,10 @@ namespace RareIcon
 
                     var inv = BarracksLookup[barracks].Reinterpret<BankLedgerBase>();
 
-                    if (BankLedgerOps.CountOf(inv, (ushort)ItemId.WoodLog) >= WoodLogCost &&
+                    if (BankLedgerOps.CountOf(inv, (ushort)ItemId.Log) >= WoodLogCost &&
                         BankLedgerOps.CountOf(inv, (ushort)ItemId.CactiNeedle) >= NeedleCost)
                     {
-                        Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.WoodLog),     ReservationOps.Consume(barracks, WoodLogCost, Tick));
+                        Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.Log),     ReservationOps.Consume(barracks, WoodLogCost, Tick));
                         Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.CactiNeedle), ReservationOps.Consume(barracks, NeedleCost,  Tick));
                         Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.Arrow),       ReservationOps.Produce(barracks, ArrowsProduced, Tick));
                     }
@@ -95,7 +95,7 @@ namespace RareIcon
                     if (BankLedgerOps.CountOf(inv, (ushort)ItemId.Herb) >= HerbCost)
                     {
                         Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.Herb),   ReservationOps.Consume(barracks, HerbCost,        Tick));
-                        Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.MedKit), ReservationOps.Produce(barracks, MedKitsProduced, Tick));
+                        Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.Medkit), ReservationOps.Produce(barracks, MedKitsProduced, Tick));
                     }
                 }
             }

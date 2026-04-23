@@ -19,7 +19,7 @@ namespace RareIcon
         {
             switch (resourceTag)
             {
-                case ResourceTag.Wood:      return (ushort)ItemId.WoodLog;
+                case ResourceTag.Wood:      return (ushort)ItemId.Log;
                 case ResourceTag.Stone:     return (ushort)ItemId.Stone;
                 case ResourceTag.Berries:   return (ushort)ItemId.Berry;
                 case ResourceTag.Mushrooms: return (ushort)ItemId.Mushroom;

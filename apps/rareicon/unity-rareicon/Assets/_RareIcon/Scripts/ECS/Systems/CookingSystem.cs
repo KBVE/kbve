@@ -91,7 +91,7 @@ namespace RareIcon
                 || TryConvert(ref res, capital, inv, (ushort)ItemId.RawMutton,  (ushort)ItemId.CookedMutton,  tick)
                 || TryConvert(ref res, capital, inv, (ushort)ItemId.RawBeef,    (ushort)ItemId.CookedBeef,    tick)
                 || TryConvert(ref res, capital, inv, (ushort)ItemId.Egg,        (ushort)ItemId.CookedEgg,     tick)
-                || TryConvert(ref res, capital, inv, (ushort)ItemId.Milk,       (ushort)ItemId.Cheese,        tick);
+                || TryConvert(ref res, capital, inv, (ushort)ItemId.FreshMilk,       (ushort)ItemId.Cheese,        tick);
         }
 
         static bool TryConvert(ref NativeParallelMultiHashMap<LedgerKey, ReservationRecord>.ParallelWriter res, Entity capital, in DynamicBuffer<BankLedgerBase> inv, ushort rawId, ushort cookedId, uint tick)

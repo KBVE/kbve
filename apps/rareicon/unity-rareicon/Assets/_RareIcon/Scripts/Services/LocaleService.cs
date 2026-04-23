@@ -102,7 +102,7 @@ namespace RareIcon
         {
             var key = itemId switch
             {
-                (ushort)ItemId.WoodLog     => "item.wood_log",
+                (ushort)ItemId.Log     => "item.log",
                 (ushort)ItemId.Stone       => "item.stone",
                 (ushort)ItemId.Berry       => "item.berry",
                 (ushort)ItemId.Mushroom    => "item.mushroom",
@@ -137,7 +137,7 @@ namespace RareIcon
                 (ushort)ItemId.Coin        => "item.coin",
                 (ushort)ItemId.GoldBar     => "item.gold_bar",
                 (ushort)ItemId.Egg         => "item.egg",
-                (ushort)ItemId.Milk        => "item.milk",
+                (ushort)ItemId.FreshMilk        => "item.fresh_milk",
                 (ushort)ItemId.CookedEgg   => "item.cooked_egg",
                 (ushort)ItemId.Cheese      => "item.cheese",
                 (ushort)ItemId.Meat        => "item.meat",

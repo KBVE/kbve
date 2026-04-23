@@ -4,7 +4,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Passive ambient heal applied to Player units in Eat or Sleep relief standing on a ProvidesHealing-tagged building's footprint. Ticks BonusHealPerSecond × dt into Health.Value up to Max — independent of MedKit consumption so a unit eating or sleeping at a Barracks still benefits after its RegenBuff expires. Runs after BarracksHealExecutor so MedKit-driven instant/regen happens first; this is the supplementary trickle.</summary>
+    /// <summary>Passive ambient heal applied to Player units in Eat or Sleep relief standing on a ProvidesHealing-tagged building's footprint. Ticks BonusHealPerSecond × dt into Health.Value up to Max — independent of Medkit consumption so a unit eating or sleeping at a Barracks still benefits after its RegenBuff expires. Runs after BarracksHealExecutor so Medkit-driven instant/regen happens first; this is the supplementary trickle.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(BarracksHealExecutor))]

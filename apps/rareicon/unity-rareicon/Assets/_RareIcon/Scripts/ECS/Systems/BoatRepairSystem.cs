@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Periodic wood-to-HP conversion for Fishing Boats. Every <see cref="Interval"/> seconds, each damaged boat pulls 1 WoodLog from the Capital's CapitalLedger and restores <see cref="HealPerTick"/> HP. If the Capital has no wood, boats sit damaged — the user's spec: "requires wood for repair, not too much".</summary>
+    /// <summary>Periodic wood-to-HP conversion for Fishing Boats. Every <see cref="Interval"/> seconds, each damaged boat pulls 1 Log from the Capital's CapitalLedger and restores <see cref="HealPerTick"/> HP. If the Capital has no wood, boats sit damaged — the user's spec: "requires wood for repair, not too much".</summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial class BoatRepairSystem : SystemBase
     {
@@ -35,10 +35,10 @@ namespace RareIcon
                 var h = healthRef.ValueRO;
                 if (h.Value >= h.Max) continue;
 
-                if (BankLedgerOps.CountOf(capitalBuf, (ushort)ItemId.WoodLog) < WoodCost)
+                if (BankLedgerOps.CountOf(capitalBuf, (ushort)ItemId.Log) < WoodCost)
                     return; // No wood in treasury — all remaining boats wait.
 
-                BankLedgerOps.RemoveItem(ref capitalBuf, (ushort)ItemId.WoodLog, WoodCost);
+                BankLedgerOps.RemoveItem(ref capitalBuf, (ushort)ItemId.Log, WoodCost);
                 h.Value = Unity.Mathematics.math.min(h.Max, h.Value + HealPerTick);
                 healthRef.ValueRW = h;
             }

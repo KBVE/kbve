@@ -193,7 +193,7 @@ namespace RareIcon
                 var recipes = ecb.AddBuffer<ProductionRecipe>(building);
                 recipes.Add(new ProductionRecipe
                 {
-                    Input1Id      = (ushort)ItemId.WoodLog,     Input1Amount = 1,
+                    Input1Id      = (ushort)ItemId.Log,     Input1Amount = 1,
                     Input2Id      = (ushort)ItemId.CactiNeedle, Input2Amount = 1,
                     Input3Id      = (ushort)ItemId.Stone,       Input3Amount = 1,
                     Output1Id     = (ushort)ItemId.Arrow,       Output1Amount = 10,
@@ -240,7 +240,7 @@ namespace RareIcon
                 treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Arrow,        Count = 2500 });
                 treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Timber,       Count = 5 });
                 treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.StoneBlock,   Count = 3 });
-                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.WoodLog,      Count = 400 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Log,      Count = 400 });
                 treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Stone,        Count = 300 });
                 treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CactiNeedle,  Count = 250 });
                 treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Berry,        Count = 1200 });
@@ -248,7 +248,7 @@ namespace RareIcon
                 treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CookedBeef,   Count = 500 });
                 treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CookedChicken,Count = 500 });
                 treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Egg,          Count = 400 });
-                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Milk,         Count = 300 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.FreshMilk,         Count = 300 });
                 treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Meal,         Count = 60 });
                 treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Coin,   Count = 120 });
             }

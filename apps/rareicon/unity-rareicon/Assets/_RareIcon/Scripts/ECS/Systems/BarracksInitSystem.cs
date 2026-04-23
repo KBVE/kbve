@@ -48,7 +48,7 @@ namespace RareIcon
                 var recipes = ecb.AddBuffer<ProductionRecipe>(e);
                 recipes.Add(new ProductionRecipe
                 {
-                    Input1Id         = (ushort)ItemId.WoodLog,     Input1Amount  = 1,
+                    Input1Id         = (ushort)ItemId.Log,     Input1Amount  = 1,
                     Input2Id         = (ushort)ItemId.CactiNeedle, Input2Amount  = 1,
                     Input3Id         = (ushort)ItemId.Stone,       Input3Amount  = 1,
                     Output1Id        = (ushort)ItemId.Arrow,       Output1Amount = 10,

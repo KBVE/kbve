@@ -4,7 +4,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Executor for ReliefKind.Heal on any ProvidesHealing-tagged building. Wounded Player unit on the building's footprint with no active RegenBuff consumes one MedKit out of the building's ledger (direct CurrentAmounts decrement — LedgerMirrorSystem reflects it to the buffer next frame). Applies the item's instant RestoreHealth and grants a RegenBuff of its RegenPerSecond / RegenDuration. Runs in BehaviorSystemGroup after ReliefSystem so the latest ReliefIntent drives consumption.</summary>
+    /// <summary>Executor for ReliefKind.Heal on any ProvidesHealing-tagged building. Wounded Player unit on the building's footprint with no active RegenBuff consumes one Medkit out of the building's ledger (direct CurrentAmounts decrement — LedgerMirrorSystem reflects it to the buffer next frame). Applies the item's instant RestoreHealth and grants a RegenBuff of its RegenPerSecond / RegenDuration. Runs in BehaviorSystemGroup after ReliefSystem so the latest ReliefIntent drives consumption.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(ReliefSystem))]
@@ -37,11 +37,11 @@ namespace RareIcon
             var providesHealLookup  = SystemAPI.GetComponentLookup<ProvidesHealing>(true);
             var regenBuffLookup     = SystemAPI.GetComponentLookup<RegenBuff>(true);
 
-            float medkitInstant     = itemDB.HealthValue((ushort)ItemId.MedKit);
-            float medkitRegenPerSec = itemDB.RegenPerSecond((ushort)ItemId.MedKit);
-            float medkitRegenDur    = itemDB.RegenDuration((ushort)ItemId.MedKit);
+            float medkitInstant     = itemDB.HealthValue((ushort)ItemId.Medkit);
+            float medkitRegenPerSec = itemDB.RegenPerSecond((ushort)ItemId.Medkit);
+            float medkitRegenDur    = itemDB.RegenDuration((ushort)ItemId.Medkit);
 
-            var medkitKey = new LedgerKey { Bank = default, ItemId = (ushort)ItemId.MedKit };
+            var medkitKey = new LedgerKey { Bank = default, ItemId = (ushort)ItemId.Medkit };
 
             foreach (var (intentRO, movementRO, healthRW, factionRO, entity) in
                      SystemAPI.Query<RefRO<ReliefIntent>, RefRO<UnitMovement>, RefRW<Health>, RefRO<Faction>>()

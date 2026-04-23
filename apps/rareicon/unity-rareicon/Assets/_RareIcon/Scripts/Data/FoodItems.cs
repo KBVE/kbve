@@ -17,7 +17,7 @@ namespace RareIcon
             ItemId.RawBeef       => true,
             ItemId.Meat          => true,
             ItemId.Egg           => true,
-            ItemId.Milk          => true,
+            ItemId.FreshMilk          => true,
             ItemId.Cheese        => true,
             ItemId.CookedChicken => true,
             ItemId.CookedMutton  => true,

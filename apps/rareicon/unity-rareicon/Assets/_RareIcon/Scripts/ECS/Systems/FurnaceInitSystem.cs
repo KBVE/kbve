@@ -62,7 +62,7 @@ namespace RareIcon
 
         static void AttachRecipe(EntityCommandBuffer ecb, Entity entity, byte biome)
         {
-            ushort wood  = (ushort)ItemId.WoodLog;
+            ushort wood  = (ushort)ItemId.Log;
             ushort coal  = (ushort)ItemId.Coal;
             ushort ash   = (ushort)ItemId.Ash;
             ushort sand  = (ushort)ItemId.NaturalSand;

@@ -44,6 +44,8 @@ namespace RareIcon
             {
                 case BuildingType.Farm:
                     Ecb.AddComponent<FarmTag>(chunkIdx, entity);
+                    // Tier 0 Farm → tier 1 Village upgrade path.
+                    Ecb.AddComponent(chunkIdx, entity, new BuildingTier { Value = 0 });
                     break;
                 case BuildingType.Barracks:
                     Ecb.AddComponent<BarracksTag>(chunkIdx, entity);
@@ -51,6 +53,20 @@ namespace RareIcon
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesHealing { Priority = 2 });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesSleep   { Capacity = 5 });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesFood    { Priority = 1 });
+                    // Tier 0 Barracks → tier 1 Keep → tier 2 Castle.
+                    Ecb.AddComponent(chunkIdx, entity, new BuildingTier { Value = 0 });
+                    break;
+                case BuildingType.Tower:
+                    Ecb.AddComponent<TowerTag>(chunkIdx, entity);
+                    Ecb.AddComponent(chunkIdx, entity, new TerritoryEmitter
+                    {
+                        Center       = building.RootHex,
+                        Radius       = 3,
+                        OwnerFaction = building.OwnerFaction,
+                    });
+                    break;
+                case BuildingType.Wall:
+                    Ecb.AddComponent<WallTag>(chunkIdx, entity);
                     break;
                 case BuildingType.Furnace:
                     Ecb.AddComponent<FurnaceTag>(chunkIdx, entity);
@@ -138,12 +154,12 @@ namespace RareIcon
                     var lumberRecipes = Ecb.AddBuffer<ProductionRecipe>(chunkIdx, entity);
                     lumberRecipes.Add(new ProductionRecipe
                     {
-                        Output1Id = (ushort)ItemId.WoodLog, Output1Amount = 1,
+                        Output1Id = (ushort)ItemId.Log, Output1Amount = 1,
                         CycleDuration = 3f,
                         CycleEndsAt   = 0f,
                     });
                     var lumberExports = Ecb.AddBuffer<SurplusExport>(chunkIdx, entity);
-                    lumberExports.Add(new SurplusExport { ItemId = (ushort)ItemId.WoodLog, Floor = 0 });
+                    lumberExports.Add(new SurplusExport { ItemId = (ushort)ItemId.Log, Floor = 0 });
                     break;
                 case BuildingType.MiningPit:
                     Ecb.AddComponent<MiningPitTag>(chunkIdx, entity);

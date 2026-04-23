@@ -37,7 +37,7 @@ namespace RareIcon
         public ushort Count;
     }
 
-    /// <summary>Farm livestock feed / produce stash. Carrots for animal feed, Egg/Milk/Wool outputs before surplus drain. Kept local so FarmLivestockProductionJob doesn't race Capital writes.</summary>
+    /// <summary>Farm livestock feed / produce stash. Carrots for animal feed, Egg/FreshMilk/Wool outputs before surplus drain. Kept local so FarmLivestockProductionJob doesn't race Capital writes.</summary>
     [InternalBufferCapacity(8)]
     [StructLayout(LayoutKind.Sequential)]
     public struct FarmLedger : IBankLedger
@@ -87,7 +87,7 @@ namespace RareIcon
         public ushort Count;
     }
 
-    /// <summary>Outpost stash. Garrisoned Guards draw food + MedKit from here; Looter haulers refill from the Capital surplus. Keeps forward bases self-sufficient so defenders don't have to walk back to the Capital mid-siege.</summary>
+    /// <summary>Outpost stash. Garrisoned Guards draw food + Medkit from here; Looter haulers refill from the Capital surplus. Keeps forward bases self-sufficient so defenders don't have to walk back to the Capital mid-siege.</summary>
     [InternalBufferCapacity(8)]
     [StructLayout(LayoutKind.Sequential)]
     public struct OutpostLedger : IBankLedger
@@ -97,7 +97,7 @@ namespace RareIcon
         public ushort Count;
     }
 
-    /// <summary>Lumbercamp output stock (WoodLog + Branches + Leaves). Produced by LumbercampProductionSystem when a Lumberjack tends the camp; BuildingSurplusTransferSystem drains to Capital.</summary>
+    /// <summary>Lumbercamp output stock (Log + Branches + Leaves). Produced by LumbercampProductionSystem when a Lumberjack tends the camp; BuildingSurplusTransferSystem drains to Capital.</summary>
     [InternalBufferCapacity(4)]
     [StructLayout(LayoutKind.Sequential)]
     public struct LumbercampLedger : IBankLedger
