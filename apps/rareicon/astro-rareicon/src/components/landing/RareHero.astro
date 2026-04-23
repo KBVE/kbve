@@ -6,7 +6,7 @@ interface Props {
 }
 
 const {
-	tagline = 'Forge your legend in a world of swords, sorcery, and endless adventure.',
+	tagline = 'Bullet-hell roguelite in a collapsing digital dystopia. Hack, loot, survive.',
 	playLink = '/game/overview/',
 	guidesLink = '/guides/introduction/',
 } = Astro.props;
@@ -24,26 +24,26 @@ const {
 	</div>
 
 	<div class="ri-hero__content">
-		<div class="ri-hero__emblem" aria-hidden="true">&#9876;</div>
-		<p class="ri-hero__label">Open World MMO</p>
+		<div class="ri-hero__emblem" aria-hidden="true">&#x25C8;</div>
+		<p class="ri-hero__label">2D Sci-Fi Action-RPG · Roguelite</p>
 		<h1 class="ri-hero__title">
-			Forge Your<br />
-			<span class="ri-hero__title--accent">Legend</span>
+			Chip Back<br />
+			<span class="ri-hero__title--accent">At The System</span>
 		</h1>
 		<p class="ri-hero__tagline">{tagline}</p>
 		<div class="ri-hero__actions">
 			<a href={playLink} class="ri-btn ri-btn--primary">
 				<span class="ri-btn__fill"></span>
-				<span class="ri-btn__text">Enter the Realm</span>
+				<span class="ri-btn__text">Game Overview</span>
 			</a>
 			<a href={guidesLink} class="ri-btn ri-btn--ghost">
-				Adventurer's Guide
+				Survivor's Guide
 			</a>
 		</div>
 	</div>
 
 	<div class="ri-hero__scroll" aria-hidden="true">
-		<span class="ri-hero__scroll-label">Descend</span>
+		<span class="ri-hero__scroll-label">Jack In</span>
 		<div class="ri-hero__scroll-line"></div>
 	</div>
 </section>
@@ -81,7 +81,7 @@ const {
 		}
 	}
 
-	const VIDEO_ID = 'aT66uumZ0Zo';
+	const VIDEO_ID = '8AE3_AJ9o2A';
 	let player: YT.Player | null = null;
 	let watchdog: ReturnType<typeof setInterval> | null = null;
 

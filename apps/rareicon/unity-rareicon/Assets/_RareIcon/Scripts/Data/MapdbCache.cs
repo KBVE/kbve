@@ -1,58 +1,60 @@
 using System.Collections.Generic;
+using KBVE.Proto.Map;
 
 namespace RareIcon
 {
-    /// <summary>In-memory accessor for mdx entries loaded from <c>StreamingAssets/mapdb.json</c>. Managed static cache; populated once at bootstrap by <see cref="MapdbLoaderSystem"/> and read by downstream registry systems. Keyed by the 32-bit FNV-1a hash of the mdx `ref` (see <see cref="MapdbRefs"/>); string refs are carried only for diagnostics.</summary>
+    /// <summary>In-memory accessor for <see cref="MapRegistry"/> entries loaded from <c>StreamingAssets/mapdb.binpb</c>. Static managed cache; populated once at bootstrap by <see cref="MapdbLoaderSystem"/> and read by downstream registry systems. Holds Google.Protobuf–generated messages directly — no bespoke POCOs.</summary>
     public static class MapdbCache
     {
-        static readonly Dictionary<uint, MapdbDef> _byRefHash = new();
-        static readonly Dictionary<string, MapdbDef> _byRef = new();
-        static readonly List<MapdbDef> _buildings = new();
-        static readonly List<MapdbDef> _resourceNodes = new();
-        static readonly List<MapdbDef> _settlements = new();
-        static readonly List<MapdbDef> _npcMarkers = new();
-        static readonly List<MapdbDef> _landmarks = new();
-        static readonly List<MapdbDef> _arenas = new();
+        static readonly Dictionary<string, WorldObjectDef> _byRef = new();
+        static readonly List<WorldObjectDef> _buildings = new();
+        static readonly List<WorldObjectDef> _resourceNodes = new();
+        static readonly List<WorldObjectDef> _settlements = new();
+        static readonly List<WorldObjectDef> _npcMarkers = new();
+        static readonly List<WorldObjectDef> _landmarks = new();
+        static readonly List<WorldObjectDef> _arenas = new();
+        static readonly List<WorldObjectDef> _other = new();
 
         public static bool IsLoaded { get; private set; }
+        public static MapRegistry Registry { get; private set; }
 
-        public static IReadOnlyDictionary<uint, MapdbDef> ByRefHash => _byRefHash;
-        public static IReadOnlyDictionary<string, MapdbDef> ByRef   => _byRef;
+        public static IReadOnlyDictionary<string, WorldObjectDef> ByRef => _byRef;
 
-        public static IReadOnlyList<MapdbDef> Buildings      => _buildings;
-        public static IReadOnlyList<MapdbDef> ResourceNodes  => _resourceNodes;
-        public static IReadOnlyList<MapdbDef> Settlements    => _settlements;
-        public static IReadOnlyList<MapdbDef> NpcMarkers     => _npcMarkers;
-        public static IReadOnlyList<MapdbDef> Landmarks      => _landmarks;
-        public static IReadOnlyList<MapdbDef> Arenas         => _arenas;
+        public static IReadOnlyList<WorldObjectDef> Buildings     => _buildings;
+        public static IReadOnlyList<WorldObjectDef> ResourceNodes => _resourceNodes;
+        public static IReadOnlyList<WorldObjectDef> Settlements   => _settlements;
+        public static IReadOnlyList<WorldObjectDef> NpcMarkers    => _npcMarkers;
+        public static IReadOnlyList<WorldObjectDef> Landmarks     => _landmarks;
+        public static IReadOnlyList<WorldObjectDef> Arenas        => _arenas;
 
-        public static void Load(IEnumerable<MapdbDef> defs)
+        public static void Load(MapRegistry registry)
         {
             Clear();
-            foreach (var def in defs)
+            Registry = registry;
+            foreach (var def in registry.ObjectDefs)
             {
                 if (string.IsNullOrEmpty(def.Ref)) continue;
                 _byRef[def.Ref] = def;
-                _byRefHash[Fnv1a32(def.Ref)] = def;
                 switch (def.Type)
                 {
-                    case "building":      _buildings.Add(def);     break;
-                    case "resource_node": _resourceNodes.Add(def); break;
-                    case "settlement":    _settlements.Add(def);   break;
-                    case "npc_marker":    _npcMarkers.Add(def);    break;
-                    case "landmark":      _landmarks.Add(def);     break;
-                    case "arena":         _arenas.Add(def);        break;
+                    case WorldObjectType.WorldObjectBuilding:     _buildings.Add(def);     break;
+                    case WorldObjectType.WorldObjectResourceNode: _resourceNodes.Add(def); break;
+                    case WorldObjectType.WorldObjectSettlement:   _settlements.Add(def);   break;
+                    case WorldObjectType.WorldObjectNpcMarker:    _npcMarkers.Add(def);    break;
+                    case WorldObjectType.WorldObjectLandmark:     _landmarks.Add(def);     break;
+                    case WorldObjectType.WorldObjectArena:        _arenas.Add(def);        break;
+                    default:                                      _other.Add(def);         break;
                 }
             }
             IsLoaded = true;
         }
 
-        public static bool TryGetByHash(uint hash, out MapdbDef def) => _byRefHash.TryGetValue(hash, out def);
-        public static bool TryGetByRef(string refSlug, out MapdbDef def) => _byRef.TryGetValue(refSlug, out def);
+        public static bool TryGetByRef(string refSlug, out WorldObjectDef def) =>
+            _byRef.TryGetValue(refSlug, out def);
 
         public static void Clear()
         {
-            _byRefHash.Clear();
+            Registry = null;
             _byRef.Clear();
             _buildings.Clear();
             _resourceNodes.Clear();
@@ -60,21 +62,8 @@ namespace RareIcon
             _npcMarkers.Clear();
             _landmarks.Clear();
             _arenas.Clear();
+            _other.Clear();
             IsLoaded = false;
-        }
-
-        // Same FNV-1a 32-bit as gen-rareicon-mapdb.mjs. Constants live in
-        // MapdbRefs.cs; this method exists for bootstrap lookups before that
-        // codegen'd table is consulted.
-        static uint Fnv1a32(string s)
-        {
-            uint hash = 0x811c9dc5u;
-            for (int i = 0; i < s.Length; i++)
-            {
-                hash ^= s[i];
-                hash *= 0x01000193u;
-            }
-            return hash;
         }
     }
 }

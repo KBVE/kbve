@@ -77,7 +77,7 @@ namespace RareIcon
                     break;
                 case UnitType.Zombie:
                     Append(Ecb, chunkIdx, hex, (ushort)ItemId.Ash, 1);
-                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.Bones,
+                    Append(Ecb, chunkIdx, hex, (ushort)ItemId.Bone,
                         (ushort)(1 + (int)(r0 * 1.99f)));
                     if      (r1 < 0.10f) Append(Ecb, chunkIdx, hex, (ushort)ItemId.UnknownTome,   1);
                     else if (r1 < 0.30f) Append(Ecb, chunkIdx, hex, (ushort)ItemId.UnknownScroll, 1);

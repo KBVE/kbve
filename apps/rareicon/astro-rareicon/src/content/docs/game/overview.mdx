@@ -1,30 +1,42 @@
 ---
 title: Game Overview
-description: A short tour of RareIcon's core systems — jobs, production, combat, building tiers.
+description: RareIcon key features — bullet-hell roguelite combat, twin-stick shooting, base building, recruitable allies, modular items, procgen worlds.
 sidebar:
   label: Overview
   order: 1
 ---
 
-RareIcon is a hex-tile colony simulation. Your job is to build, stock, and defend a settlement.
+RareIcon blends bullet-hell roguelite chaos with strategic base building, tactical twin-stick combat, and party dynamics. Each run escalates system threats while giving you tools to chip back.
 
-## Core loop
+## Key features
 
-1. **Build** — place tiles that produce, store, shelter, or fight.
-2. **Assign** — every settler has a priority weight per job (hauling, farming, building, combat…).
-3. **Grow** — buildings upgrade through tiers (Farm → Village, Barracks → Keep → Castle).
-4. **Defend** — hostiles show up. Your Barracks / Keep / Castle chain + trained settlers handle it.
+### Bullet-hell roguelite combat
+Fast-paced, chaotic encounters where every frame counts. Survive swarms of projectiles, environmental hazards, and evolving digital threats.
 
-## Systems at a glance
+### WASD + twin-stick shooting with tactical depth
+WASD movement with mouse-aimed shooting. Responsive point-and-click precision layered with spell casting and auto-aim support tools to handle the digital chaos.
 
-- **Jobs.** A task-offer dispatcher scores open work and hands it to the best-suited settler. No rigid classes — every unit can do every role, weighted by their priority bytes.
-- **Production.** Recipe-driven. Buildings with a `ProductionRecipe` consume inputs, produce outputs, feed the next building in the chain.
-- **Combat.** Parallel event pipeline — detection, targeting, damage all run as DOTS jobs, rolled up on the main thread for UI.
-- **Logistics.** Bank ledgers hold quantities; reservations gate pickups so two carriers never race for the same stack.
+### Strategic base building
+Between missions, collect resources and schematics to upgrade your sanctuary. Automate systems, unlock new functionality, expand your influence in the data-slums.
+
+### Recruitable allies and party dynamics
+Find and recruit unique companions — rogue AIs, glitch-born anomalies, fellow outcasts — each with distinct abilities, synergy potential, and upgrade paths.
+
+### Vast inventory and modular items
+Collect, craft, and combine hundreds of modular items that impact combat, exploration, and progression. Experiment with loadouts to push your build further every run.
+
+### Procedurally generated worlds
+Ever-changing zones filled with randomized encounters, secrets, and challenges. No two runs are the same.
+
+### Cyber-dystopian storytelling
+Uncover the truth behind the DaemonCorps and your commoditized existence. Dialogue, data fragments, and ambient storytelling immerse you in the fractured future.
+
+### Distinct visual + audio identity
+Glitch-infused pixel art and a synthwave-driven soundtrack that mirrors the instability of the digital wastelands.
 
 ## Where to go deeper
 
-- [kbve.com/rareicon](https://kbve.com/rareicon/) — item database, map data, reference tables
-- [kbve.com/journal](https://kbve.com/journal/) — dev journal + patch notes
+- [kbve.com/rareicon](https://kbve.com/rareicon/) — item database, zone data, entity reference
+- [kbve.com/journal](https://kbve.com/journal/) — dev journal and patch notes
 
-The docs on this site stay focused on **how to play**. The exhaustive data reference lives on kbve.com.
+This site stays focused on **how to play**. The exhaustive reference data lives on kbve.com to keep link equity concentrated.

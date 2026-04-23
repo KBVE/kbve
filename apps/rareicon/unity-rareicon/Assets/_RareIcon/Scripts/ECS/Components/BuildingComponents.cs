@@ -23,9 +23,15 @@ namespace RareIcon
         public const byte Outpost    = 8;
         public const byte Lumbercamp = 9;
         public const byte MiningPit  = 10;
-        public const byte Dock       = 11;  // River-only; passive fishing + Timber→FishingBoat crafting.
-        public const byte BanditCamp = 12;  // Hostile-owned raid source; spawns periodic bandit parties.
-        // Tower, Wall, etc. land here as we add their .hlsl files.
+        public const byte Dock           = 11;  // River-only; passive fishing + Timber→FishingBoat crafting.
+        public const byte BanditCamp     = 12;  // Hostile-owned raid source; spawns periodic bandit parties.
+        public const byte TradeHouse     = 13;  // Market tier 1.
+        public const byte MerchantsGuild = 14;  // Market tier 2.
+        public const byte Village        = 15;  // Farm tier 1.
+        public const byte Keep           = 16;  // Barracks tier 1.
+        public const byte Castle         = 17;  // Barracks tier 2.
+        public const byte Tower          = 18;  // Standalone defensive spire.
+        public const byte Wall           = 19;  // Standalone barrier segment.
     }
 
     /// <summary>
@@ -46,6 +52,8 @@ namespace RareIcon
         public const byte Lumbercamp = 9;
         public const byte MiningPit  = 10;
         public const byte Dock       = 11;
+        public const byte Tower      = 18;
+        public const byte Wall       = 19;
     }
 
     /// <summary>Marker tag for the Capital — craft / governance systems query key.</summary>
@@ -243,6 +251,21 @@ namespace RareIcon
 
     /// <summary>Marker tag for Dock buildings — placed on river tiles; passive fishing + Timber→FishingBoat crafting query key.</summary>
     public struct DockTag : IComponentData { }
+
+    /// <summary>Marker tag for Keep buildings — Barracks tier 1 garrison hub.</summary>
+    public struct KeepTag : IComponentData { }
+
+    /// <summary>Marker tag for Castle buildings — Barracks tier 2 capital of war.</summary>
+    public struct CastleTag : IComponentData { }
+
+    /// <summary>Marker tag for Village buildings — Farm tier 1 settlement cluster.</summary>
+    public struct VillageTag : IComponentData { }
+
+    /// <summary>Marker tag for Tower buildings — standalone defensive spire; future volley + scout vision query key.</summary>
+    public struct TowerTag : IComponentData { }
+
+    /// <summary>Marker tag for Wall buildings — standalone barrier segment; future pathing block query key.</summary>
+    public struct WallTag : IComponentData { }
 
     /// <summary>Per-dock boat-build cadence. Once per CadenceTurns, consumes TimberCost Timber from the dock's ledger and emits a <see cref="SpawnFishingBoatRequest"/> on an adjacent river hex.</summary>
     public struct DockProduction : IComponentData

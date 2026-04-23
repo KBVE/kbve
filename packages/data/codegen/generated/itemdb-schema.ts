@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/itemdb.binpb
  * Config: ../itemdb-zod-config.json
- * Generated: 2026-04-22T16:07:00.045Z
+ * Generated: 2026-04-23T20:55:54.338Z
  */
 
 import { z } from 'zod';
@@ -585,7 +585,7 @@ export const ItemSchema = z.object({
 	volume: z.number().optional(),
 	spell: SpellInfoSchema.optional(),
 	book: BookInfoSchema.optional(),
-	key: KeyInfoSchema.optional(),
+	unlock: KeyInfoSchema.optional(),
 	vehicle: VehicleInfoSchema.optional(),
 	light_radius: z.number().optional(),
 	light_color: z.string().optional(),

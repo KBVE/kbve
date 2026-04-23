@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package item;
 
+option csharp_namespace = "KBVE.Proto.Item";
+
 import "kbve/common.proto";
 
 // =============================================================================
@@ -606,7 +608,7 @@ message Item {
   optional BookInfo book = 60;
 
   // Key data — entity-unlocking items
-  optional KeyInfo key = 61;
+  optional KeyInfo unlock = 61;
 
   // Vehicle / mount data — boats, carts, horses, conveyances
   optional VehicleInfo vehicle = 62;

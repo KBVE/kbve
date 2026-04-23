@@ -1,0 +1,74 @@
+---
+id: "01KPY32HFZNNCJDF0CMR1XVXDP"
+ref: "village"
+drafted: false
+name: "Village"
+title: "Village"
+description: "Farm plot flanked by two cottages and a central well — Farm tier 1. Expanded food production plus faint population presence."
+type: "building"
+sub_kind: "village"
+interactable: true
+destructible: true
+blocks_movement: true
+blocks_placement: true
+max_health: 320
+footprint_width: 1
+footprint_height: 1
+footprint_shape: "rectangular"
+construction_time_secs: 0
+spawns_fully_built: false
+requires_in_territory: true
+cost_source: "faction_treasury"
+build_costs: []
+services:
+  - { kind: "food", priority: 3, capacity: 0 }
+  - { kind: "sleep", priority: 0, capacity: 3 }
+tender:
+  profession_ref: "farmer"
+  footprint_radius: 1
+  required: true
+recipes:
+  - inputs:
+      - { item_ref: "compost", amount: 1 }
+    outputs:
+      - { item_ref: "carrot", amount: 2 }
+    cycle_secs: 7
+    pulls_from_treasury: false
+surplus:
+  - { item_ref: "carrot", floor: 12 }
+  - { item_ref: "egg",    floor: 0 }
+  - { item_ref: "milk",   floor: 0 }
+  - { item_ref: "wool",   floor: 0 }
+  - { item_ref: "meat",   floor: 0 }
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Village
+
+Where the Farm was a barn with a plot, the Village is a cluster — two cottages with warm windows, a central well, and the barn between them. Smoke drifts from the barn chimney whenever the farmer is working. Chickens wander past the well. The scale of the operation has grown enough that there are people here full-time now.
+
+<MapDBPanel data={frontmatter} />
+
+## Game Role
+
+- **Upgrade from Farm (tier 1)** — reached via `BuildingUpgradeRequest` on a Farm with `BuildingTier.Value == 0`. Costs 10 Timber + 4 Stone Block.
+- **Boosted production** — Compost → 2 Carrot every 7s (vs. Farm's 1 Carrot every 8s).
+- **Higher surplus floor** — 12 Carrot (vs. Farm's 8) stays local before haulers drain to Capital.
+- **Sleep service** — capacity 3; field hands can overnight here without walking back to Capital.
+- **Footprint** — single hex.
+- **Durability** — 320 HP, the Farm reinforced by cottage walls.
+
+## Lore
+
+A Village is what happens when the Farm wins. Enough carrots, enough eggs, enough rainy seasons survived — and a second family shows up, then a third, and the plot has become something you can put on a map. Kingdoms are built on the back of Villages that nobody remembers the names of.

@@ -4,7 +4,7 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Attaches OutpostLedger buffer on fresh OutpostTag entities. Food + MedKit flow into this ledger from Looter haulers; garrisoned Guards draw from it. Structural changes via ECB.</summary>
+    /// <summary>Attaches OutpostLedger buffer on fresh OutpostTag entities. Food + Medkit flow into this ledger from Looter haulers; garrisoned Guards draw from it. Structural changes via ECB.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial struct OutpostInitSystem : ISystem

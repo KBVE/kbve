@@ -34,10 +34,10 @@ namespace RareIcon
             Debug.Log("[TitleEntryPoint] Booting...");
             _locale.SetLocale("en");
             Debug.Log($"[TitleEntryPoint] Locale set to '{_locale.CurrentLocale}'");
-            var overflow = _inventory.Add(ItemId.HealthPotion, 3);
-            var count = _inventory.Count(ItemId.HealthPotion);
-            Debug.Log($"[TitleEntryPoint] FFI check — added 3 HealthPotion, overflow={overflow}, count={count}");
-            _inventory.Remove(ItemId.HealthPotion, 3);
+            var overflow = _inventory.Add(ItemId.Potion, 3);
+            var count = _inventory.Count(ItemId.Potion);
+            Debug.Log($"[TitleEntryPoint] FFI check — added 3 Potion, overflow={overflow}, count={count}");
+            _inventory.Remove(ItemId.Potion, 3);
             HexChunkSystem.SetGenerator(_chunkGenerator);
             var rivers = await UniTask.RunOnThreadPool(
                 () => _riverRouter.RouteRegion(new Unity.Mathematics.int2(0, 0), 200),

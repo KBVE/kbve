@@ -138,6 +138,11 @@ const protos = [
 		protoFile: 'rows/rows.proto',
 		package: 'rows',
 	},
+	{
+		name: 'icons',
+		protoFile: 'icon/icons.proto',
+		package: 'icon',
+	},
 ];
 
 // Optional filter: pass a proto name as CLI arg to regenerate only that one

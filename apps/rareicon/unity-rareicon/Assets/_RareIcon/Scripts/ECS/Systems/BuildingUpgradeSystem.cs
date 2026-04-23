@@ -54,6 +54,7 @@ namespace RareIcon
                 Capital             = capital,
                 BuildingLookup      = SystemAPI.GetComponentLookup<Building>(true),
                 TierLookup          = SystemAPI.GetComponentLookup<BuildingTier>(false),
+                VisualLookup        = SystemAPI.GetComponentLookup<BuildingVisual>(false),
                 CapitalLedgerLookup = SystemAPI.GetBufferLookup<CapitalLedger>(false),
                 CostTable           = _costTable.AsArray(),
                 Ecb                 = ecb,
@@ -73,10 +74,11 @@ namespace RareIcon
     public partial struct UpgradeJob : IJobEntity
     {
         public Entity Capital;
-        [ReadOnly] public ComponentLookup<Building>    BuildingLookup;
-        public            ComponentLookup<BuildingTier> TierLookup;
-        public            BufferLookup<CapitalLedger>   CapitalLedgerLookup;
-        [ReadOnly] public NativeArray<UpgradeCostRow>   CostTable;
+        [ReadOnly] public ComponentLookup<Building>      BuildingLookup;
+        public            ComponentLookup<BuildingTier>  TierLookup;
+        public            ComponentLookup<BuildingVisual> VisualLookup;
+        public            BufferLookup<CapitalLedger>    CapitalLedgerLookup;
+        [ReadOnly] public NativeArray<UpgradeCostRow>    CostTable;
         public EntityCommandBuffer Ecb;
 
         void Execute(Entity reqEntity, in BuildingUpgradeRequest request)
@@ -116,7 +118,36 @@ namespace RareIcon
                 BankLedgerOps.RemoveItem(ref treasury, row.ItemId, row.Amount);
             }
 
-            TierLookup[target] = new BuildingTier { Value = (byte)(tier + 1) };
+            byte newTier = (byte)(tier + 1);
+            TierLookup[target] = new BuildingTier { Value = newTier };
+
+            // Remap shader variant so the upgraded building renders as its
+            // tier-specific silhouette. Burst-safe: pure byte→byte switch
+            // mirrors BuildingDB.GetTieredVisualId.
+            byte visualId = TieredVisualId(type, newTier);
+            if (visualId != 0 && VisualLookup.HasComponent(target))
+            {
+                VisualLookup[target] = new BuildingVisual { Value = visualId };
+            }
+        }
+
+        static byte TieredVisualId(byte type, byte tier)
+        {
+            if (type == BuildingType.Market)
+            {
+                if (tier == 1) return BuildingType.TradeHouse;
+                if (tier == 2) return BuildingType.MerchantsGuild;
+            }
+            else if (type == BuildingType.Farm)
+            {
+                if (tier == 1) return BuildingType.Village;
+            }
+            else if (type == BuildingType.Barracks)
+            {
+                if (tier == 1) return BuildingType.Keep;
+                if (tier == 2) return BuildingType.Castle;
+            }
+            return 0;
         }
     }
 }

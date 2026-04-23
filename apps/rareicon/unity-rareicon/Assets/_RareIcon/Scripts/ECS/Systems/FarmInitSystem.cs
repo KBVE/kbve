@@ -49,7 +49,7 @@ namespace RareIcon
                 var exports = ecb.AddBuffer<SurplusExport>(e);
                 exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Carrot, Floor = 8 });
                 exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Egg,    Floor = 0 });
-                exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Milk,   Floor = 0 });
+                exports.Add(new SurplusExport { ItemId = (ushort)ItemId.FreshMilk,   Floor = 0 });
                 exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Wool,   Floor = 0 });
                 exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Meat,   Floor = 0 });
 

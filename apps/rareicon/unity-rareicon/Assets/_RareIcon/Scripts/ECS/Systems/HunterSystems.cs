@@ -141,7 +141,7 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Per-animal turn-cadence production: Chicken+Cow every 2 turns (Egg / Milk), Sheep every 10 (Wool). Each cycle submits Consume(Carrot) + Produce(output) reservations against the host farm.</summary>
+    /// <summary>Per-animal turn-cadence production: Chicken+Cow every 2 turns (Egg / FreshMilk), Sheep every 10 (Wool). Each cycle submits Consume(Carrot) + Produce(output) reservations against the host farm.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     [UpdateAfter(typeof(FarmDepositSystem))]
     public partial struct FarmLivestockProductionSystem : ISystem
@@ -212,7 +212,7 @@ namespace RareIcon
             switch (species)
             {
                 case UnitType.Chicken: outputId = (ushort)ItemId.Egg;  cadence = 2;  return true;
-                case UnitType.Cow:     outputId = (ushort)ItemId.Milk; cadence = 2;  return true;
+                case UnitType.Cow:     outputId = (ushort)ItemId.FreshMilk; cadence = 2;  return true;
                 case UnitType.Sheep:   outputId = (ushort)ItemId.Wool; cadence = 10; return true;
                 default:               outputId = 0;                   cadence = 0;  return false;
             }

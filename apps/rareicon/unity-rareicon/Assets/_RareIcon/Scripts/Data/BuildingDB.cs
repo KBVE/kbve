@@ -62,12 +62,24 @@ namespace RareIcon
                                                         new((ushort)ItemId.StoneBlock, 1) };
         static readonly Ingredient[] CostMiningPit  = { new((ushort)ItemId.Timber,     3) };
         static readonly Ingredient[] CostDock       = { new((ushort)ItemId.Timber,     2) };
+        static readonly Ingredient[] CostTower      = { new((ushort)ItemId.Timber,     2),
+                                                        new((ushort)ItemId.StoneBlock, 4) };
+        static readonly Ingredient[] CostWall       = { new((ushort)ItemId.StoneBlock, 5) };
         static readonly Ingredient[] CostNone     = System.Array.Empty<Ingredient>();
 
         // -- Upgrade chain costs --
         // Market (tier 0) → Trade House (tier 1) → Merchants Guild (tier 2).
-        static readonly Ingredient[] UpgradeMarketToTradeHouse    = { new((ushort)ItemId.GoldBar, 5) };
-        static readonly Ingredient[] UpgradeTradeHouseToGuild     = { new((ushort)ItemId.GoldBar, 50) };
+        // Farm   (tier 0) → Village (tier 1).
+        // Barracks (tier 0) → Keep (tier 1) → Castle (tier 2).
+        static readonly Ingredient[] UpgradeMarketToTradeHouse    = { new((ushort)ItemId.GoldBar,   5) };
+        static readonly Ingredient[] UpgradeTradeHouseToGuild     = { new((ushort)ItemId.GoldBar,  50) };
+        static readonly Ingredient[] UpgradeFarmToVillage         = { new((ushort)ItemId.Timber,   10),
+                                                                      new((ushort)ItemId.StoneBlock, 4) };
+        static readonly Ingredient[] UpgradeBarracksToKeep        = { new((ushort)ItemId.Timber,    6),
+                                                                      new((ushort)ItemId.StoneBlock, 12) };
+        static readonly Ingredient[] UpgradeKeepToCastle          = { new((ushort)ItemId.Timber,   10),
+                                                                      new((ushort)ItemId.StoneBlock, 24),
+                                                                      new((ushort)ItemId.GoldBar,   20) };
 
         /// <summary>Returns the material cost to advance `type` from `fromTier` to `fromTier + 1`. Empty array if no further tier exists.</summary>
         public static Ingredient[] GetUpgradeCost(byte buildingType, byte fromTier)
@@ -77,7 +89,36 @@ namespace RareIcon
                 if (fromTier == 0) return UpgradeMarketToTradeHouse;
                 if (fromTier == 1) return UpgradeTradeHouseToGuild;
             }
+            else if (buildingType == BuildingType.Farm)
+            {
+                if (fromTier == 0) return UpgradeFarmToVillage;
+            }
+            else if (buildingType == BuildingType.Barracks)
+            {
+                if (fromTier == 0) return UpgradeBarracksToKeep;
+                if (fromTier == 1) return UpgradeKeepToCastle;
+            }
             return CostNone;
+        }
+
+        /// <summary>Tier-aware visual id: when a building's BuildingTier advances, BuildingUpgradeSystem remaps its BuildingVisual to the tier-specific shader variant (Market→Trade House→Merchants Guild, Farm→Village, Barracks→Keep→Castle). Returns 0 if no remap applies — shader keeps the base _BuildingType.</summary>
+        public static byte GetTieredVisualId(byte buildingType, byte tier)
+        {
+            if (buildingType == BuildingType.Market)
+            {
+                if (tier == 1) return BuildingType.TradeHouse;
+                if (tier == 2) return BuildingType.MerchantsGuild;
+            }
+            else if (buildingType == BuildingType.Farm)
+            {
+                if (tier == 1) return BuildingType.Village;
+            }
+            else if (buildingType == BuildingType.Barracks)
+            {
+                if (tier == 1) return BuildingType.Keep;
+                if (tier == 2) return BuildingType.Castle;
+            }
+            return 0;
         }
 
         /// <summary>Returns true if `type` at `fromTier` has a next tier.</summary>
@@ -97,6 +138,8 @@ namespace RareIcon
             BuildingType.Lumbercamp => CostLumbercamp,
             BuildingType.MiningPit  => CostMiningPit,
             BuildingType.Dock       => CostDock,
+            BuildingType.Tower      => CostTower,
+            BuildingType.Wall       => CostWall,
             _ => CostNone,
         };
 
@@ -154,6 +197,8 @@ namespace RareIcon
             BuildingType.Lumbercamp => "building.lumbercamp",
             BuildingType.MiningPit  => "building.mining_pit",
             BuildingType.Dock       => "building.dock",
+            BuildingType.Tower      => "building.tower",
+            BuildingType.Wall       => "building.wall",
             _ => "building.unknown",
         };
 
@@ -164,6 +209,15 @@ namespace RareIcon
             {
                 if (tier == 1) return "building.trade_house";
                 if (tier == 2) return "building.merchants_guild";
+            }
+            else if (buildingType == BuildingType.Farm)
+            {
+                if (tier == 1) return "building.village";
+            }
+            else if (buildingType == BuildingType.Barracks)
+            {
+                if (tier == 1) return "building.keep";
+                if (tier == 2) return "building.castle";
             }
             return GetLocaleKey(buildingType);
         }
@@ -182,6 +236,8 @@ namespace RareIcon
             BuildTarget.Lumbercamp => BuildingType.Lumbercamp,
             BuildTarget.MiningPit  => BuildingType.MiningPit,
             BuildTarget.Dock       => BuildingType.Dock,
+            BuildTarget.Tower      => BuildingType.Tower,
+            BuildTarget.Wall       => BuildingType.Wall,
             _ => BuildingType.None,
         };
 
@@ -199,6 +255,8 @@ namespace RareIcon
             BuildingType.Lumbercamp => BuildTarget.Lumbercamp,
             BuildingType.MiningPit  => BuildTarget.MiningPit,
             BuildingType.Dock       => BuildTarget.Dock,
+            BuildingType.Tower      => BuildTarget.Tower,
+            BuildingType.Wall       => BuildTarget.Wall,
             _ => BuildTarget.None,
         };
 
@@ -216,6 +274,8 @@ namespace RareIcon
             BuildingType.Lumbercamp => 200,
             BuildingType.MiningPit  => 220,
             BuildingType.Dock       => 180,
+            BuildingType.Tower      => 320,
+            BuildingType.Wall       => 260,
             _                       => 100,
         };
 
@@ -225,7 +285,7 @@ namespace RareIcon
 
         public const int OutpostAnchorRadius = 5;
 
-        /// <summary>All buildable types in display order — used by the palette panel.</summary>
+        /// <summary>All buildable types in display order — used by the palette panel. Tier-upgrade variants (Village/Keep/Castle/TradeHouse/MerchantsGuild) are NOT listed; they're unlocked via BuildingUpgradeRequest on the base building, not placed from scratch.</summary>
         public static readonly byte[] AllBuildable =
         {
             BuildingType.Capital,
@@ -239,6 +299,8 @@ namespace RareIcon
             BuildingType.Inn,
             BuildingType.Market,
             BuildingType.Dock,
+            BuildingType.Tower,
+            BuildingType.Wall,
         };
     }
 }

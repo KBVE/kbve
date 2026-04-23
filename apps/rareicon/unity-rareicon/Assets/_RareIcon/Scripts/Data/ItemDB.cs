@@ -89,120 +89,236 @@ namespace RareIcon
         static readonly Dictionary<ushort, string>  _nameKeys = new();
         static bool _initialized;
 
+        /// <summary>Called by ItemdbLoaderSystem after ItemdbCache is filled. Walks the cache, materialises each entry resolved through the generated ItemdbRefMap into a blittable ItemDef, then appends legacy fallback for ItemId members not yet covered by mdx.</summary>
+        public static int HydrateFromCache()
+        {
+            if (_initialized) return 0;
+
+            int mapped = 0;
+            foreach (var def in ItemdbCache.All)
+            {
+                if (!ItemdbRefMap.RefToId.TryGetValue(def.Ref, out var id)) continue;
+                var materialised = Materialise(def, id);
+                _byId[(ushort)id] = materialised;
+                _nameKeys[(ushort)id] = $"item.{def.Ref.Replace('-', '_')}";
+                mapped++;
+            }
+
+            AddLegacyFallback();
+            _initialized = true;
+            return mapped;
+        }
+
+        /// <summary>Fallback when ItemdbLoaderSystem couldn't load the StreamingAssets bundle — hydrates directly from the hardcoded legacy table so existing code keeps working.</summary>
+        public static void EnsureHydrated()
+        {
+            if (_initialized) return;
+            AddLegacyFallback();
+            _initialized = true;
+        }
+
         static void EnsureInit()
         {
             if (_initialized) return;
+            AddLegacyFallback();
             _initialized = true;
-
-            Add("item.berry",          new ItemDef((ushort)ItemId.Berry,         ItemCategory.Material, 30, 2,
-                restoreEnergy: 10f, harvestRole: HarvestRole.Forager,
-                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
-            Add("item.mushroom",       new ItemDef((ushort)ItemId.Mushroom,      ItemCategory.Material, 30, 3,
-                restoreEnergy: 7f, harvestRole: HarvestRole.Forager,
-                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
-            Add("item.herb",           new ItemDef((ushort)ItemId.Herb,          ItemCategory.Material, 30, 5,
-                harvestRole: HarvestRole.Forager));
-
-            Add("item.raw_cacti",      new ItemDef((ushort)ItemId.RawCacti,      ItemCategory.Material, 20, 2,
-                harvestRole: HarvestRole.Forager));
-            Add("item.cacti_needle",   new ItemDef((ushort)ItemId.CactiNeedle,   ItemCategory.Material, 20, 3,
-                harvestRole: HarvestRole.Forager));
-            Add("item.prickly_pear",   new ItemDef((ushort)ItemId.PricklyPear,   ItemCategory.Material, 24, 8,
-                restoreEnergy: 15f, harvestRole: HarvestRole.Forager,
-                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
-            Add("item.dragonfruit",    new ItemDef((ushort)ItemId.Dragonfruit,   ItemCategory.Material, 24, 20,
-                restoreEnergy: 22f, harvestRole: HarvestRole.Forager,
-                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
-            Add("item.cacti_seeds",    new ItemDef((ushort)ItemId.CactiSeeds,    ItemCategory.Material, 50, 4,
-                harvestRole: HarvestRole.Forager));
-
-            Add("item.wood_log",       new ItemDef((ushort)ItemId.WoodLog,       ItemCategory.Material, 12, 3,
-                harvestRole: HarvestRole.Lumberjack,
-                compressesTo: (ushort)ItemId.Timber, compressRatio: 100));
-            Add("item.branches",       new ItemDef((ushort)ItemId.Branches,      ItemCategory.Material, 30, 1,
-                harvestRole: HarvestRole.Lumberjack));
-            Add("item.leaves",         new ItemDef((ushort)ItemId.Leaves,        ItemCategory.Material, 20, 1,
-                harvestRole: HarvestRole.Lumberjack));
-
-            Add("item.stone",          new ItemDef((ushort)ItemId.Stone,         ItemCategory.Material, 6, 2,
-                harvestRole: HarvestRole.Miner,
-                compressesTo: (ushort)ItemId.StoneBlock, compressRatio: 100));
-
-            Add("item.natural_sand",   new ItemDef((ushort)ItemId.NaturalSand,   ItemCategory.Material, 20, 1));
-            Add("item.raw_glass",      new ItemDef((ushort)ItemId.RawGlass,      ItemCategory.Material, 24, 8));
-            Add("item.coal",           new ItemDef((ushort)ItemId.Coal,          ItemCategory.Material, 20, 4));
-            Add("item.ash",            new ItemDef((ushort)ItemId.Ash,           ItemCategory.Material, 20, 1));
-            Add("item.oil",            new ItemDef((ushort)ItemId.Oil,           ItemCategory.Material, 20, 12));
-            Add("item.compost",        new ItemDef((ushort)ItemId.Compost,       ItemCategory.Material, 30, 2));
-            Add("item.carrot",         new ItemDef((ushort)ItemId.Carrot,        ItemCategory.Material, 30, 4,
-                restoreEnergy: 9f,
-                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
-
-            Add("item.arrow",          new ItemDef((ushort)ItemId.Arrow,         ItemCategory.Material, 50, 1,
-                compressesTo: (ushort)ItemId.Quiver, compressRatio: 100));
-
-            Add("item.raw_chicken",    new ItemDef((ushort)ItemId.RawChicken,    ItemCategory.Material, 20, 6,
-                restoreEnergy: 9f,
-                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
-            Add("item.feather",        new ItemDef((ushort)ItemId.Feather,       ItemCategory.Material, 30, 1));
-            Add("item.raw_mutton",     new ItemDef((ushort)ItemId.RawMutton,     ItemCategory.Material, 20, 12,
-                restoreEnergy: 17f,
-                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
-            Add("item.wool",           new ItemDef((ushort)ItemId.Wool,          ItemCategory.Material, 30, 4));
-            Add("item.raw_beef",       new ItemDef((ushort)ItemId.RawBeef,       ItemCategory.Material, 20, 18,
-                restoreEnergy: 25f,
-                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
-            Add("item.leather",        new ItemDef((ushort)ItemId.Leather,       ItemCategory.Material, 30, 8));
-
-            Add("item.cooked_chicken", new ItemDef((ushort)ItemId.CookedChicken, ItemCategory.Consumable, 24, 12,
-                restoreEnergy: 20f,
-                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
-            Add("item.cooked_mutton",  new ItemDef((ushort)ItemId.CookedMutton,  ItemCategory.Consumable, 24, 24,
-                restoreEnergy: 35f,
-                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
-            Add("item.cooked_beef",    new ItemDef((ushort)ItemId.CookedBeef,    ItemCategory.Consumable, 24, 36,
-                restoreEnergy: 50f,
-                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
-
-            Add("item.egg",            new ItemDef((ushort)ItemId.Egg,           ItemCategory.Material, 50, 3,
-                restoreEnergy: 6f,
-                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
-            Add("item.milk",           new ItemDef((ushort)ItemId.Milk,          ItemCategory.Material, 50, 5,
-                restoreEnergy: 10f,
-                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
-
-            Add("item.cooked_egg",     new ItemDef((ushort)ItemId.CookedEgg,     ItemCategory.Consumable, 24, 8,
-                restoreEnergy: 14f,
-                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
-            Add("item.cheese",         new ItemDef((ushort)ItemId.Cheese,        ItemCategory.Consumable, 24, 15,
-                restoreEnergy: 22f,
-                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
-
-            Add("item.pouch",          new ItemDef((ushort)ItemId.Pouch,         ItemCategory.Equipment, 2, 20));
-            Add("item.bag",            new ItemDef((ushort)ItemId.Bag,           ItemCategory.Equipment, 2, 60));
-            Add("item.pack",           new ItemDef((ushort)ItemId.Pack,          ItemCategory.Equipment, 2, 150));
-
-            Add("item.coin",           new ItemDef((ushort)ItemId.Coin,          ItemCategory.Material, 50, 1,
-                compressesTo: (ushort)ItemId.GoldBar, compressRatio: 100));
-
-            Add("item.timber",         new ItemDef((ushort)ItemId.Timber,        ItemCategory.Material,   1, 300));
-            Add("item.stone_block",    new ItemDef((ushort)ItemId.StoneBlock,    ItemCategory.Material,   1, 200));
-            Add("item.quiver",         new ItemDef((ushort)ItemId.Quiver,        ItemCategory.Material,   1, 100));
-            Add("item.meal",           new ItemDef((ushort)ItemId.Meal,          ItemCategory.Consumable, 1, 500,
-                restoreHealth: 100f, restoreEnergy: 100f, restoreMana: 100f));
-            Add("item.gold_bar",       new ItemDef((ushort)ItemId.GoldBar,       ItemCategory.Material,   1, 150));
-
-            Add("item.bones",          new ItemDef((ushort)ItemId.Bones,         ItemCategory.Material, 30, 2));
-            Add("item.unknown_key",    new ItemDef((ushort)ItemId.UnknownKey,    ItemCategory.Quest,    10, 0));
-            Add("item.unknown_scroll", new ItemDef((ushort)ItemId.UnknownScroll, ItemCategory.Magic,    10, 0));
-            Add("item.unknown_tome",   new ItemDef((ushort)ItemId.UnknownTome,   ItemCategory.Magic,     5, 0));
-
-            Add("item.medkit",         new ItemDef((ushort)ItemId.MedKit,        ItemCategory.Consumable, 10, 80,
-                restoreHealth: 25f, regenPerSecond: 2f, regenDuration: 15f));
         }
 
-        static void Add(string nameKey, ItemDef def)
+        static ItemDef Materialise(ItemdbDef src, ItemId id)
         {
+            var category = DeriveCategory(src.TypeFlags);
+            byte stackMax = ResolveStackMax(src);
+            ushort baseValue = (ushort)System.Math.Min(src.BuyPrice ?? 0, ushort.MaxValue);
+
+            float heals = src.Food?.Heals ?? 0;
+            float restoreEnergy = src.Food?.RestoreEnergy ?? 0;
+            float restoreMana = src.Food?.RestoreMana ?? 0;
+            float regenPerSec = src.Food?.RegenPerSecond ?? 0f;
+            float regenDur = src.Food?.RegenDuration ?? 0f;
+
+            HarvestRole harvestRole = HarvestRole.None;
+            byte harvestWeight = 100;
+            if (src.Skilling != null)
+            {
+                harvestRole = SkillToHarvestRole(src.Skilling.Skill);
+                if (src.Skilling.HarvestWeight.HasValue) harvestWeight = (byte)System.Math.Min(src.Skilling.HarvestWeight.Value, 255);
+            }
+
+            ushort compressesTo = 0, compressRatio = 0;
+            if (src.Compress != null && !string.IsNullOrEmpty(src.Compress.TargetRef) &&
+                ItemdbRefMap.RefToId.TryGetValue(src.Compress.TargetRef, out var ct))
+            {
+                compressesTo = (ushort)ct;
+                compressRatio = (ushort)System.Math.Min(src.Compress.Ratio, ushort.MaxValue);
+            }
+
+            ushort poolGroup = src.PoolGroup == "food" ? PoolGroup.Food : PoolGroup.None;
+
+            return new ItemDef(
+                id:             (ushort)id,
+                category:       category,
+                stackMax:       stackMax,
+                baseValue:      baseValue,
+                restoreHealth:  heals,
+                restoreEnergy:  restoreEnergy,
+                restoreMana:    restoreMana,
+                regenPerSecond: regenPerSec,
+                regenDuration:  regenDur,
+                harvestRole:    harvestRole,
+                harvestWeight:  harvestWeight,
+                compressesTo:   compressesTo,
+                compressRatio:  compressRatio,
+                poolGroup:      poolGroup);
+        }
+
+        static byte ResolveStackMax(ItemdbDef src)
+        {
+            if (src.Stacking?.PackMax.HasValue == true)
+                return (byte)System.Math.Min(src.Stacking.PackMax.Value, 255);
+            if (src.MaxStack.HasValue)
+                return (byte)System.Math.Min(src.MaxStack.Value, 255);
+            return 1;
+        }
+
+        const int FLAG_WEAPON   = 0x1;
+        const int FLAG_ARMOR    = 0x2;
+        const int FLAG_TOOL     = 0x4;
+        const int FLAG_FOOD     = 0x8;
+        const int FLAG_POTION   = 0x20;
+        const int FLAG_MATERIAL = 0x40;
+        const int FLAG_MAGIC    = 0x800;
+        const int FLAG_QUEST    = 0x1000;
+        const int FLAG_UTILITY  = 0x2000;
+
+        static ItemCategory DeriveCategory(int typeFlags)
+        {
+            if ((typeFlags & FLAG_QUEST) != 0) return ItemCategory.Quest;
+            if ((typeFlags & FLAG_MAGIC) != 0) return ItemCategory.Magic;
+            if ((typeFlags & FLAG_POTION) != 0) return ItemCategory.Consumable;
+            if ((typeFlags & FLAG_FOOD) != 0 && (typeFlags & FLAG_MATERIAL) == 0) return ItemCategory.Consumable;
+            if ((typeFlags & (FLAG_WEAPON | FLAG_ARMOR)) != 0) return ItemCategory.Equipment;
+            if ((typeFlags & FLAG_UTILITY) != 0 && (typeFlags & FLAG_TOOL) != 0) return ItemCategory.Equipment;
+            return ItemCategory.Material;
+        }
+
+        static HarvestRole SkillToHarvestRole(string skill) => skill switch
+        {
+            "foraging"    => HarvestRole.Forager,
+            "woodcutting" => HarvestRole.Lumberjack,
+            "mining"      => HarvestRole.Miner,
+            _              => HarvestRole.None,
+        };
+
+        /// <summary>Legacy hardcoded entries — filling gaps for ItemId members not yet covered in MDX (Meat, WolfPelt, WolfFang, Hood, CapitalLandGrant, ManaPotion) and serving as a full fallback when StreamingAssets are missing. AddIfMissing means MDX-loaded values take precedence.</summary>
+        static void AddLegacyFallback()
+        {
+            AddIfMissing("item.berry",          new ItemDef((ushort)ItemId.Berry,         ItemCategory.Material, 30, 2,
+                restoreEnergy: 10f, harvestRole: HarvestRole.Forager,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
+            AddIfMissing("item.mushroom",       new ItemDef((ushort)ItemId.Mushroom,      ItemCategory.Material, 30, 3,
+                restoreEnergy: 7f, harvestRole: HarvestRole.Forager,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
+            AddIfMissing("item.herb",           new ItemDef((ushort)ItemId.Herb,          ItemCategory.Material, 30, 5,
+                harvestRole: HarvestRole.Forager));
+            AddIfMissing("item.raw_cacti",      new ItemDef((ushort)ItemId.RawCacti,      ItemCategory.Material, 20, 2,
+                harvestRole: HarvestRole.Forager));
+            AddIfMissing("item.cacti_needle",   new ItemDef((ushort)ItemId.CactiNeedle,   ItemCategory.Material, 20, 3,
+                harvestRole: HarvestRole.Forager));
+            AddIfMissing("item.prickly_pear",   new ItemDef((ushort)ItemId.PricklyPear,   ItemCategory.Material, 24, 8,
+                restoreEnergy: 15f, harvestRole: HarvestRole.Forager,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
+            AddIfMissing("item.dragonfruit",    new ItemDef((ushort)ItemId.Dragonfruit,   ItemCategory.Material, 24, 20,
+                restoreEnergy: 22f, harvestRole: HarvestRole.Forager,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
+            AddIfMissing("item.cacti_seeds",    new ItemDef((ushort)ItemId.CactiSeeds,    ItemCategory.Material, 50, 4,
+                harvestRole: HarvestRole.Forager));
+            AddIfMissing("item.log",       new ItemDef((ushort)ItemId.Log,       ItemCategory.Material, 12, 3,
+                harvestRole: HarvestRole.Lumberjack,
+                compressesTo: (ushort)ItemId.Timber, compressRatio: 100));
+            AddIfMissing("item.branches",       new ItemDef((ushort)ItemId.Branches,      ItemCategory.Material, 30, 1,
+                harvestRole: HarvestRole.Lumberjack));
+            AddIfMissing("item.leaves",         new ItemDef((ushort)ItemId.Leaves,        ItemCategory.Material, 20, 1,
+                harvestRole: HarvestRole.Lumberjack));
+            AddIfMissing("item.stone",          new ItemDef((ushort)ItemId.Stone,         ItemCategory.Material, 6, 2,
+                harvestRole: HarvestRole.Miner,
+                compressesTo: (ushort)ItemId.StoneBlock, compressRatio: 100));
+            AddIfMissing("item.natural_sand",   new ItemDef((ushort)ItemId.NaturalSand,   ItemCategory.Material, 20, 1));
+            AddIfMissing("item.raw_glass",      new ItemDef((ushort)ItemId.RawGlass,      ItemCategory.Material, 24, 8));
+            AddIfMissing("item.coal",           new ItemDef((ushort)ItemId.Coal,          ItemCategory.Material, 20, 4));
+            AddIfMissing("item.ash",            new ItemDef((ushort)ItemId.Ash,           ItemCategory.Material, 20, 1));
+            AddIfMissing("item.oil",            new ItemDef((ushort)ItemId.Oil,           ItemCategory.Material, 20, 12));
+            AddIfMissing("item.compost",        new ItemDef((ushort)ItemId.Compost,       ItemCategory.Material, 30, 2));
+            AddIfMissing("item.carrot",         new ItemDef((ushort)ItemId.Carrot,        ItemCategory.Material, 30, 4,
+                restoreEnergy: 9f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
+            AddIfMissing("item.arrow",          new ItemDef((ushort)ItemId.Arrow,         ItemCategory.Material, 50, 1,
+                compressesTo: (ushort)ItemId.Quiver, compressRatio: 100));
+            AddIfMissing("item.raw_chicken",    new ItemDef((ushort)ItemId.RawChicken,    ItemCategory.Material, 20, 6,
+                restoreEnergy: 9f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
+            AddIfMissing("item.feather",        new ItemDef((ushort)ItemId.Feather,       ItemCategory.Material, 30, 1));
+            AddIfMissing("item.raw_mutton",     new ItemDef((ushort)ItemId.RawMutton,     ItemCategory.Material, 20, 12,
+                restoreEnergy: 17f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
+            AddIfMissing("item.wool",           new ItemDef((ushort)ItemId.Wool,          ItemCategory.Material, 30, 4));
+            AddIfMissing("item.raw_beef",       new ItemDef((ushort)ItemId.RawBeef,       ItemCategory.Material, 20, 18,
+                restoreEnergy: 25f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
+            AddIfMissing("item.leather",        new ItemDef((ushort)ItemId.Leather,       ItemCategory.Material, 30, 8));
+            AddIfMissing("item.cooked_chicken", new ItemDef((ushort)ItemId.CookedChicken, ItemCategory.Consumable, 24, 12,
+                restoreEnergy: 20f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
+            AddIfMissing("item.cooked_mutton",  new ItemDef((ushort)ItemId.CookedMutton,  ItemCategory.Consumable, 24, 24,
+                restoreEnergy: 35f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
+            AddIfMissing("item.cooked_beef",    new ItemDef((ushort)ItemId.CookedBeef,    ItemCategory.Consumable, 24, 36,
+                restoreEnergy: 50f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
+            AddIfMissing("item.egg",            new ItemDef((ushort)ItemId.Egg,           ItemCategory.Material, 50, 3,
+                restoreEnergy: 6f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
+            AddIfMissing("item.fresh_milk",           new ItemDef((ushort)ItemId.FreshMilk,          ItemCategory.Material, 50, 5,
+                restoreEnergy: 10f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
+            AddIfMissing("item.cooked_egg",     new ItemDef((ushort)ItemId.CookedEgg,     ItemCategory.Consumable, 24, 8,
+                restoreEnergy: 14f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
+            AddIfMissing("item.cheese",         new ItemDef((ushort)ItemId.Cheese,        ItemCategory.Consumable, 24, 15,
+                restoreEnergy: 22f,
+                compressesTo: (ushort)ItemId.Meal, compressRatio: 100, poolGroup: PoolGroup.Food));
+            AddIfMissing("item.pouch",          new ItemDef((ushort)ItemId.Pouch,         ItemCategory.Equipment, 2, 20));
+            AddIfMissing("item.bag",            new ItemDef((ushort)ItemId.Bag,           ItemCategory.Equipment, 2, 60));
+            AddIfMissing("item.pack",           new ItemDef((ushort)ItemId.Pack,          ItemCategory.Equipment, 2, 150));
+            AddIfMissing("item.coin",           new ItemDef((ushort)ItemId.Coin,          ItemCategory.Material, 50, 1,
+                compressesTo: (ushort)ItemId.GoldBar, compressRatio: 100));
+            AddIfMissing("item.timber",         new ItemDef((ushort)ItemId.Timber,        ItemCategory.Material,   1, 300));
+            AddIfMissing("item.stone_block",    new ItemDef((ushort)ItemId.StoneBlock,    ItemCategory.Material,   1, 200));
+            AddIfMissing("item.quiver",         new ItemDef((ushort)ItemId.Quiver,        ItemCategory.Material,   1, 100));
+            AddIfMissing("item.meal",           new ItemDef((ushort)ItemId.Meal,          ItemCategory.Consumable, 1, 500,
+                restoreHealth: 100f, restoreEnergy: 100f, restoreMana: 100f));
+            AddIfMissing("item.gold_bar",       new ItemDef((ushort)ItemId.GoldBar,       ItemCategory.Material,   1, 150));
+            AddIfMissing("item.bone",          new ItemDef((ushort)ItemId.Bone,         ItemCategory.Material, 30, 2));
+            AddIfMissing("item.unknown_key",    new ItemDef((ushort)ItemId.UnknownKey,    ItemCategory.Quest,    10, 0));
+            AddIfMissing("item.unknown_scroll", new ItemDef((ushort)ItemId.UnknownScroll, ItemCategory.Magic,    10, 0));
+            AddIfMissing("item.unknown_tome",   new ItemDef((ushort)ItemId.UnknownTome,   ItemCategory.Magic,     5, 0));
+            AddIfMissing("item.medkit",         new ItemDef((ushort)ItemId.Medkit,        ItemCategory.Consumable, 10, 80,
+                restoreHealth: 25f, regenPerSecond: 2f, regenDuration: 15f));
+
+            AddIfMissing("item.potion",      new ItemDef((ushort)ItemId.Potion,      ItemCategory.Consumable, 16, 25, restoreHealth: 25f));
+            AddIfMissing("item.mana_potion",        new ItemDef((ushort)ItemId.ManaPotion,        ItemCategory.Consumable, 16, 25, restoreMana:   25f));
+            AddIfMissing("item.antidote",           new ItemDef((ushort)ItemId.Antidote,          ItemCategory.Consumable, 16, 30));
+            AddIfMissing("item.iron_ore",           new ItemDef((ushort)ItemId.IronOre,           ItemCategory.Material,   20, 5, harvestRole: HarvestRole.Miner));
+            AddIfMissing("item.crystal_ore",            new ItemDef((ushort)ItemId.CrystalOre,           ItemCategory.Material,   20, 25, harvestRole: HarvestRole.Miner));
+            AddIfMissing("item.wolf_pelt",          new ItemDef((ushort)ItemId.WolfPelt,          ItemCategory.Material,   20, 6));
+            AddIfMissing("item.wolf_fang",          new ItemDef((ushort)ItemId.WolfFang,          ItemCategory.Material,   30, 3));
+            AddIfMissing("item.meat",               new ItemDef((ushort)ItemId.Meat,              ItemCategory.Material,   30, 4, restoreEnergy: 12f, poolGroup: PoolGroup.Food));
+            AddIfMissing("item.hood",               new ItemDef((ushort)ItemId.Hood,              ItemCategory.Equipment,   2, 15));
+            AddIfMissing("item.capital_land_grant", new ItemDef((ushort)ItemId.CapitalLandGrant,  ItemCategory.Quest,       1, 0));
+        }
+
+        static void AddIfMissing(string nameKey, ItemDef def)
+        {
+            if (_byId.ContainsKey(def.Id)) return;
             _byId[def.Id]     = def;
             _nameKeys[def.Id] = nameKey;
         }

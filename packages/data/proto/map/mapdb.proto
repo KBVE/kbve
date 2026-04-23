@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package map;
 
+option csharp_namespace = "KBVE.Proto.Map";
+
 import "kbve/common.proto";
 
 // =============================================================================

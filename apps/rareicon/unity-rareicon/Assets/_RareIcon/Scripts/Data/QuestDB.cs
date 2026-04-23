@@ -8,7 +8,7 @@ namespace RareIcon
     {
         public const ushort None             = 0;
         public const ushort FoundingOrder    = 1;   // Tutorial: plant the Capital.
-        public const ushort FirstHarvest     = 2;   // Stockpile 20 WoodLog.
+        public const ushort FirstHarvest     = 2;   // Stockpile 20 Log.
         public const ushort SurviveFirstWeek = 3;   // Live through 14 turns.
         public const ushort ThinBanditHerd   = 4;   // Kill 3 bandits.
     }
@@ -110,7 +110,7 @@ namespace RareIcon
                 DescriptionKey  = "quest.first_harvest.desc",
                 Objectives = new[]
                 {
-                    new QuestObjectiveDef(QuestObjectiveKind.CollectItem, (ushort)ItemId.WoodLog, 20),
+                    new QuestObjectiveDef(QuestObjectiveKind.CollectItem, (ushort)ItemId.Log, 20),
                 },
                 RewardItemId    = (ushort)ItemId.Timber,
                 RewardItemCount = 1,
@@ -140,7 +140,7 @@ namespace RareIcon
                 {
                     new QuestObjectiveDef(QuestObjectiveKind.KillUnitType, UnitType.Bandit, 3),
                 },
-                RewardItemId    = (ushort)ItemId.MedKit,
+                RewardItemId    = (ushort)ItemId.Medkit,
                 RewardItemCount = 3,
                 NextQuestId     = QuestId.None,
             });

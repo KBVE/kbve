@@ -1,0 +1,77 @@
+---
+id: "01KPY32HFZ3RA1QZH2SXYYZ5J2"
+ref: "castle"
+drafted: false
+name: "Castle"
+title: "Castle"
+description: "Wide curtain wall, twin flanking towers, multi-tier central keep with watchtower, four torches, and a grand banner — Barracks tier 2, capital of war."
+type: "building"
+sub_kind: "castle"
+interactable: true
+destructible: true
+blocks_movement: true
+blocks_placement: true
+max_health: 900
+footprint_width: 1
+footprint_height: 1
+footprint_shape: "rectangular"
+construction_time_secs: 0
+spawns_fully_built: false
+requires_in_territory: true
+cost_source: "faction_treasury"
+build_costs: []
+services:
+  - { kind: "healing", priority: 4, capacity: 0 }
+  - { kind: "sleep",   priority: 0, capacity: 20 }
+  - { kind: "food",    priority: 3, capacity: 0 }
+recipes:
+  - inputs:
+      - { item_ref: "wood-log",     amount: 1 }
+      - { item_ref: "cacti-needle", amount: 1 }
+      - { item_ref: "stone",        amount: 1 }
+    outputs:
+      - { item_ref: "arrow", amount: 20 }
+    cycle_secs: 14
+    pulls_from_treasury: false
+surplus:
+  - { item_ref: "arrow", floor: 50 }
+population_spawn:
+  spawn_entity_ref: "soldier"
+  cadence_turns: 1
+  cost_per_spawn:
+    item_ref: "coin"
+    amount: 18
+  storage_cap: 120
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Castle
+
+Wider, darker, taller. The Castle swallows the Keep's footprint and doubles down on everything — a longer curtain wall, two massive flanking towers, a multi-tier central keep capped with a watchtower, and four torches that never go out. The banner on the peak is larger than any single soldier's heraldic insignia. This is where a warlord becomes a monarch.
+
+<MapDBPanel data={frontmatter} />
+
+## Game Role
+
+- **Upgrade from Keep (tier 2)** — reached via `BuildingUpgradeRequest` on a Barracks-typed building with `BuildingTier.Value == 1`. Costs 10 Timber + 24 Stone Block + 20 Gold Bar.
+- **Terminal tier** — no further upgrade in the garrison chain.
+- **Peak recruitment** — spawns a Soldier every single turn at 18 Coin.
+- **Peak crafting** — 20 Arrow per 14s cycle.
+- **Massive sleep capacity** — 20 bunks.
+- **Footprint** — single hex.
+- **Durability** — 900 HP, the sturdiest buildable structure.
+
+## Lore
+
+Every Castle is a statement. The stone is chosen for weight as much as defence; the banner is sewn in colours that cost more than the dye-maker's house. Visiting delegations understand the statement even if no words are exchanged. Wars have been won and lost on the silhouette of a Castle alone, seen from a ridge three days' march away.

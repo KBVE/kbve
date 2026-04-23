@@ -46,6 +46,17 @@ population_spawn:
     item_ref: "coin"
     amount: 10
   storage_cap: 50
+upgrade_chain:
+  tiers:
+    - next_def_ref: "keep"
+      costs:
+        - { item_ref: "timber",      amount:  6 }
+        - { item_ref: "stone-block", amount: 12 }
+    - next_def_ref: "castle"
+      costs:
+        - { item_ref: "timber",      amount: 10 }
+        - { item_ref: "stone-block", amount: 24 }
+        - { item_ref: "gold-bar",    amount: 20 }
 pixels_per_unit: 64
 pivot: "Center"
 pivot_x: 0.5

@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package kbve.common;
 
+option csharp_namespace = "KBVE.Proto.Common";
+
 // Common types shared across all services
 
 // ULID - 26 character Crockford Base32 encoded string

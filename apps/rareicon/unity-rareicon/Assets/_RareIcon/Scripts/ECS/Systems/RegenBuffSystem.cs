@@ -4,7 +4,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Ticks active RegenBuff components: restores Health.Value by AmountPerSecond * dt each frame, clamps at Health.Max, removes the component via the end-sim ECB when TimeRemaining ≤ 0. Runs in BehaviorSystemGroup after ReliefSystem so consumption-side systems (MedKit, food-at-Barracks) have already added/refreshed the buff this frame.</summary>
+    /// <summary>Ticks active RegenBuff components: restores Health.Value by AmountPerSecond * dt each frame, clamps at Health.Max, removes the component via the end-sim ECB when TimeRemaining ≤ 0. Runs in BehaviorSystemGroup after ReliefSystem so consumption-side systems (Medkit, food-at-Barracks) have already added/refreshed the buff this frame.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(ReliefSystem))]

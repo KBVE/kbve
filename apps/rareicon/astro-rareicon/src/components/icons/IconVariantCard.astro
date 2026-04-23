@@ -1,0 +1,234 @@
+---
+import type { Icon } from '@/data/schema';
+
+interface Props {
+	variant: Icon;
+	termRef: string;
+	size?: number;
+}
+
+const { variant, termRef, size = 48 } = Astro.props;
+
+const label = variant.label ?? variant.ref;
+const sizeLabel = variant.recommended_sizes?.length
+	? variant.recommended_sizes.join(' · ')
+	: '';
+const license = variant.license?.license;
+const themes = variant.themes ?? [];
+const tags = variant.tags ?? [];
+---
+
+<figure
+	class="ri-icon-variant"
+	data-pagefind-filter={`style:${variant.style}`}
+	data-icon-term={termRef}
+	data-icon-variant={variant.ref}>
+	<div
+		class="ri-icon-variant__swatch"
+		style={`--ri-swatch-size:${size}px`}
+		set:html={variant.svg_body ?? ''}
+	/>
+
+	<figcaption class="ri-icon-variant__meta">
+		<div class="ri-icon-variant__heading">
+			<span class="ri-icon-variant__label">{label}</span>
+			<span class="ri-icon-variant__badge" data-style={variant.style}>
+				{variant.style}
+			</span>
+		</div>
+
+		{
+			sizeLabel && (
+				<div class="ri-icon-variant__sizes">sizes {sizeLabel}</div>
+			)
+		}
+
+		{
+			(themes.length > 0 || tags.length > 0) && (
+				<ul class="ri-icon-variant__tags" aria-label="Tags">
+					{themes.map((t) => (
+						<li class="ri-icon-variant__tag ri-icon-variant__tag--theme">
+							{t}
+						</li>
+					))}
+					{tags.map((t) => (
+						<li class="ri-icon-variant__tag">{t}</li>
+					))}
+				</ul>
+			)
+		}
+
+		{
+			license && (
+				<div class="ri-icon-variant__license" data-license={license}>
+					{license}
+				</div>
+			)
+		}
+
+		<button
+			type="button"
+			class="ri-icon-variant__copy"
+			data-copy-svg={variant.svg_body ?? ''}
+			aria-label={`Copy ${label} SVG`}>
+			Copy SVG
+		</button>
+	</figcaption>
+</figure>
+
+<style is:global>
+	.ri-icon-variant {
+		margin: 0;
+		padding: 1rem;
+		border: 1px solid var(--ri-border);
+		border-radius: 8px;
+		background: var(--ri-bg-panel);
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		transition:
+			border-color 0.15s,
+			box-shadow 0.15s;
+	}
+
+	.ri-icon-variant:hover {
+		border-color: var(--ri-accent);
+		box-shadow: 0 0 24px rgba(58, 174, 216, 0.15);
+	}
+
+	.ri-icon-variant__swatch {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1.25rem;
+		background: var(--ri-bg-panel-elevated);
+		border-radius: 6px;
+		color: var(--ri-text-primary);
+	}
+
+	.ri-icon-variant__swatch svg {
+		width: var(--ri-swatch-size, 48px);
+		height: var(--ri-swatch-size, 48px);
+		display: block;
+	}
+
+	.ri-icon-variant__meta {
+		display: flex;
+		flex-direction: column;
+		gap: 0.45rem;
+		font-size: 0.8125rem;
+		color: var(--ri-text-secondary);
+	}
+
+	.ri-icon-variant__heading {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+
+	.ri-icon-variant__label {
+		font-weight: 600;
+		color: var(--ri-text-primary);
+	}
+
+	.ri-icon-variant__badge {
+		font-size: 0.6875rem;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		padding: 0.125rem 0.5rem;
+		border-radius: 999px;
+		background: var(--ri-bg-app);
+		color: var(--ri-accent);
+		border: 1px solid var(--ri-border);
+	}
+
+	.ri-icon-variant__sizes {
+		font-family: monospace;
+		font-size: 0.75rem;
+		color: var(--ri-text-disabled);
+	}
+
+	.ri-icon-variant__tags {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+	}
+
+	.ri-icon-variant__tag {
+		font-size: 0.6875rem;
+		padding: 0.125rem 0.45rem;
+		border-radius: 4px;
+		background: var(--ri-bg-app);
+		border: 1px solid var(--ri-border);
+		color: var(--ri-text-secondary);
+	}
+
+	.ri-icon-variant__tag--theme {
+		border-color: var(--ri-ocean-teal);
+		color: var(--ri-accent);
+	}
+
+	.ri-icon-variant__license {
+		font-size: 0.6875rem;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--ri-text-disabled);
+	}
+
+	.ri-icon-variant__copy {
+		margin-top: auto;
+		padding: 0.4rem 0.75rem;
+		font-family: inherit;
+		font-size: 0.75rem;
+		border: 1px solid var(--ri-border);
+		border-radius: 6px;
+		background: transparent;
+		color: var(--ri-accent);
+		cursor: pointer;
+		transition:
+			background 0.15s,
+			border-color 0.15s;
+	}
+
+	.ri-icon-variant__copy:hover {
+		background: var(--ri-bg-panel-elevated);
+		border-color: var(--ri-accent);
+	}
+
+	.ri-icon-variant__copy[data-copied='true'] {
+		color: var(--ri-success);
+		border-color: var(--ri-success);
+	}
+</style>
+
+<script>
+	document.addEventListener('click', (e) => {
+		const target = e.target as HTMLElement;
+		const btn = target.closest<HTMLButtonElement>('.ri-icon-variant__copy');
+		if (!btn) return;
+		const svg = btn.getAttribute('data-copy-svg') ?? '';
+		if (!svg) return;
+
+		const originalText = btn.textContent ?? 'Copy SVG';
+		navigator.clipboard.writeText(svg).then(
+			() => {
+				btn.setAttribute('data-copied', 'true');
+				btn.textContent = 'Copied';
+				setTimeout(() => {
+					btn.removeAttribute('data-copied');
+					btn.textContent = originalText;
+				}, 1500);
+			},
+			() => {
+				btn.textContent = 'Copy failed';
+				setTimeout(() => {
+					btn.textContent = originalText;
+				}, 1500);
+			},
+		);
+	});
+</script>

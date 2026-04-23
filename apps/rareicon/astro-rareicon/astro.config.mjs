@@ -101,6 +101,11 @@ export default defineConfig({
 					autogenerate: { directory: 'game' },
 				},
 				{
+					label: 'Icons',
+					collapsed: true,
+					autogenerate: { directory: 'icons' },
+				},
+				{
 					label: 'Account',
 					autogenerate: { directory: 'auth' },
 				},

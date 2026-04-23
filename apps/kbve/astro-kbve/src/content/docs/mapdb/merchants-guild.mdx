@@ -1,0 +1,55 @@
+---
+id: "01KPY32HFZZ01KT61BP7DGVC2S"
+ref: "merchants-guild"
+drafted: false
+name: "Merchants Guild"
+title: "Merchants Guild"
+description: "Three-story stone guildhall with columned mezzanine, tiled hip roof, and a purple banner. Market tier 2, the peak of the commerce chain."
+type: "building"
+sub_kind: "merchants_guild"
+interactable: true
+destructible: true
+blocks_movement: true
+blocks_placement: true
+max_health: 340
+footprint_width: 1
+footprint_height: 1
+footprint_shape: "rectangular"
+construction_time_secs: 0
+spawns_fully_built: false
+requires_in_territory: true
+cost_source: "faction_treasury"
+build_costs: []
+services:
+  - { kind: "merchant", priority: 3, capacity: 0 }
+pixels_per_unit: 64
+pivot: "Center"
+pivot_x: 0.5
+pivot_y: 0.5
+mesh_type: "FullRect"
+extrude_edges: 1
+sorting_layer: "Foreground"
+sorting_index: 0
+static_sorting: true
+wrap_mode: "Clamp"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Merchants Guild
+
+The Trade House has been building toward this since the first ledger closed in profit. A stone guildhall rises three stories: arched doorway, lit windows, a columned mezzanine, a hip roof of red tile, and crowning it all a purple banner that is not flown by any kingdom — only by the Guild itself. The merchants have become a power in their own right.
+
+<MapDBPanel data={frontmatter} />
+
+## Game Role
+
+- **Upgrade from Trade House (tier 2)** — reached via `BuildingUpgradeRequest` on a Market-typed building with `BuildingTier.Value == 1`. Costs 50 Gold Bar.
+- **Terminal tier** — no further upgrade in the commerce chain.
+- **Visual remap** — shader swaps to the three-story stone guildhall silhouette with glowing windows at night (gated by `_BuildingActive`).
+- **Footprint** — single hex.
+- **Durability** — 340 HP.
+
+## Lore
+
+The Merchants Guild owes fealty to no crown and no banner except its own. Kingdoms rise and fall; the Guild outlives all of them, ledgers intact, contracts honoured across borders that no longer exist. The banner is purple because purple dye was once more valuable than the silk it stained — and the Guild never forgets a price.

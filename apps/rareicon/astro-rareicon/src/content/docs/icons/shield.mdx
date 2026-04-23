@@ -1,0 +1,108 @@
+---
+id: 01JSHIELD000000000000000AA
+ref: shield
+name: Shield
+title: Shield Icon
+description: Defensive equipment. Blocks, guards, parries. Fantasy armory + UI defense indicators.
+primary_category: weapon
+categories:
+  - weapon
+  - combat
+  - fantasy
+  - ui
+tags:
+  - defense
+  - block
+  - guard
+  - armor
+related_term_refs:
+  - sword
+  - helmet
+search:
+  keywords:
+    - shield
+    - defense
+    - block
+    - guard
+    - armor
+    - parry
+  aliases:
+    - buckler
+    - protect
+  primary_category: weapon
+  search_weight: 1.1
+default_license:
+  license: cc0
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 24, 32, 48]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+  - ref: filled
+    label: Filled
+    style: filled
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 24, 32, 48]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v7c0 6 8 10 8 10s8-4 8-10V5l-8-3z"/></svg>
+  - ref: duotone
+    label: Duotone
+    style: duotone
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      color_count: 2
+      monochrome: false
+    recommended_sizes: [24, 32, 48, 64]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#3AAED8" opacity=".3" d="M12 2 4 5v7c0 6 8 10 8 10s8-4 8-10V5l-8-3z"/><path fill="none" stroke="#3AAED8" stroke-width="2" stroke-linejoin="round" d="M12 2 4 5v7c0 6 8 10 8 10s8-4 8-10V5l-8-3z"/></svg>
+pagefindFilters:
+  - weapon
+  - defense
+featured: true
+order: 20
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Shield — defensive equipment. Outline, filled, and duotone (ocean-tinted) variants.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

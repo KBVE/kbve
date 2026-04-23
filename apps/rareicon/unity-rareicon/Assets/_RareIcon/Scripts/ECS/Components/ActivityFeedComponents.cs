@@ -39,7 +39,7 @@ namespace RareIcon
         public int2   TargetHex;     // 8 bytes (the Builder target, the Forager hex, etc.)
         public byte   Kind;          // ActivityKind.*
         public byte   Reserved0;     // padding — future "TargetItemId hi byte" or similar
-        public ushort TargetItemId;  // optional — e.g. "Hauling Wood" → ItemId.WoodLog
+        public ushort TargetItemId;  // optional — e.g. "Hauling Wood" → ItemId.Log
     }
 
     /// <summary>Sticky per-entity record of the last ActivityKind the writer enqueued. Lets the writer skip duplicate snapshots (delta-only) without an external NativeHashMap.</summary>
