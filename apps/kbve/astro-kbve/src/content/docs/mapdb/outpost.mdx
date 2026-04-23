@@ -14,12 +14,33 @@ blocks_placement: true
 max_health: 220
 footprint_width: 1
 footprint_height: 1
+footprint_shape: "rectangular"
 construction_time_secs: 30
+spawns_fully_built: false
+requires_in_territory: false  # Outpost anchors new territory — doesn't need existing
+cost_source: "faction_treasury"
 build_costs:
   - resource_type: "timber"
     amount: 2
-  - resource_type: "stone_block"
+  - resource_type: "stone-block"
     amount: 2
+services:
+  - { kind: "food",    priority: 1, capacity: 0 }
+  - { kind: "sleep",   priority: 0, capacity: 10 }
+  - { kind: "healing", priority: 1, capacity: 0 }
+territory:
+  radius: 5
+ranged_attack:
+  cooldown_secs: 30
+  range: 15
+  shots_per_volley: 20
+  ammo_per_volley_cost: 5
+  damage_per_shot: 8
+  spread_half_angle_rad: 0.52
+  projectile_speed: 14
+  projectile_lifetime: 3
+  projectile_ref: "arrow"
+  ammo_capacity: 100
 pixels_per_unit: 64
 pivot: "Center"
 pivot_x: 0.5

@@ -14,10 +14,33 @@ blocks_placement: true
 max_health: 180
 footprint_width: 1
 footprint_height: 1
+footprint_shape: "rectangular"
 construction_time_secs: 20
+spawns_fully_built: false
+requires_in_territory: false  # Dock anchors water territory
+cost_source: "faction_treasury"
+allowed_biomes: [17]  # BIOME_RIVER
 build_costs:
   - resource_type: "timber"
     amount: 2
+services:
+  - { kind: "food", priority: 1, capacity: 0 }
+tender:
+  profession_ref: "craftsman"
+  footprint_radius: 0
+  required: false  # Tender only accelerates boat-build cadence, doesn't gate fishing
+passive_production:
+  output_item_ref: "meat"
+  output_amount: 2
+  cycle_secs: 20
+  destination: "treasury"
+population_spawn:
+  spawn_entity_ref: "fishing-boat"
+  cadence_turns: 2
+  cost_per_spawn:
+    item_ref: "timber"
+    amount: 1
+  storage_cap: 0
 pixels_per_unit: 64
 pivot: "Center"
 pivot_x: 0.5

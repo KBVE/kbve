@@ -27,6 +27,10 @@ enum Biome {
   BIOME_FLOATING      = 14;
   BIOME_VOID          = 15;
   BIOME_COASTAL       = 16;
+  BIOME_RIVER         = 17;
+  BIOME_DIRT          = 18;
+  BIOME_SNOW          = 19;
+  BIOME_STONE         = 20;
 }
 
 // Zone type — functional classification
@@ -153,6 +157,38 @@ enum CraftingStationType {
   CRAFTING_STATION_WORKBENCH   = 1;
   CRAFTING_STATION_FURNACE     = 2;
   CRAFTING_STATION_ANVIL       = 3;
+}
+
+// How a structure's footprint occupies the grid. RECTANGULAR uses
+// footprint_width × footprint_height; HEX_FLOWER claims centre + 6 axial
+// neighbours (hex-grid games only); EXPLICIT uses footprint_cells.
+enum FootprintShape {
+  FOOTPRINT_SHAPE_UNSPECIFIED = 0;
+  FOOTPRINT_SHAPE_RECTANGULAR = 1;
+  FOOTPRINT_SHAPE_HEX_FLOWER  = 2;
+  FOOTPRINT_SHAPE_EXPLICIT    = 3;
+}
+
+// Where the placement cost is paid from.
+enum CostSource {
+  COST_SOURCE_UNSPECIFIED      = 0;
+  COST_SOURCE_FACTION_TREASURY = 1;  // Shared faction/empire stockpile
+  COST_SOURCE_OWNER_INVENTORY  = 2;  // Placing unit's personal inventory
+  COST_SOURCE_FREE             = 3;  // No cost (admin / cheats / narrative grant)
+}
+
+// Service a structure offers to nearby units. Service seekers read
+// ServiceCapability.kind and pick the highest priority provider.
+enum ServiceKind {
+  SERVICE_KIND_UNSPECIFIED = 0;
+  SERVICE_KIND_FOOD        = 1;
+  SERVICE_KIND_SLEEP       = 2;
+  SERVICE_KIND_HEALING     = 3;
+  SERVICE_KIND_TRAINING    = 4;   // Skill / XP grinding station
+  SERVICE_KIND_TELEPORT    = 5;   // Fast-travel endpoint
+  SERVICE_KIND_STORAGE     = 6;   // Shared stockpile accessor
+  SERVICE_KIND_MERCHANT    = 7;   // Buy/sell stall
+  SERVICE_KIND_BANKER      = 8;   // Personal bank access (OSRS-style)
 }
 
 // Point of interest type
@@ -469,6 +505,102 @@ message WaterConfig {
 }
 
 // =============================================================================
+// Sub-messages — Capability specs (universal gameplay primitives)
+// =============================================================================
+
+// An item cost line — item_ref cross-links to the itemdb's canonical ref.
+message IngredientSpec {
+  string item_ref = 1;   // itemdb ref slug (e.g. "timber", "stone-block")
+  int32 amount = 2;
+}
+
+// A service a structure provides to nearby units.
+message ServiceCapability {
+  ServiceKind kind = 1;
+  int32 priority = 2;    // Tie-breaker — higher priority providers win
+  int32 capacity = 3;    // Bed count (SLEEP), slot count (TRAINING), etc.
+}
+
+// A tender requirement — the structure needs a qualified worker within
+// footprint_radius hexes (or sheltered inside) to function.
+message TenderSpec {
+  string profession_ref = 1;   // Skill / profession slug (e.g. "farmer", "lumberjack")
+  int32 footprint_radius = 2;  // Grid distance from root; 0 = root cell only
+  bool required = 3;           // If true, production halts without a tender
+}
+
+// A structure that radiates territorial / faction control around itself.
+message TerritoryEmitterSpec {
+  int32 radius = 1;   // Grid distance from root cell
+}
+
+// One recipe on a production structure — inputs consumed, outputs produced
+// on a cycle. pulls_from_treasury=true draws inputs from the faction
+// treasury instead of the structure's local ledger.
+message ProductionRecipeSpec {
+  repeated IngredientSpec inputs = 1;
+  repeated IngredientSpec outputs = 2;
+  float cycle_secs = 3;
+  bool pulls_from_treasury = 4;
+}
+
+// Automatic surplus export — anything above `floor` ships to the treasury.
+message SurplusExportSpec {
+  string item_ref = 1;
+  int32 floor = 2;
+}
+
+// Timed no-input production (e.g. passive fishing).
+message PassiveProductionSpec {
+  string output_item_ref = 1;
+  int32 output_amount = 2;
+  float cycle_secs = 3;
+  string destination = 4;   // "local" or "treasury"
+}
+
+// Cooldown-gated ranged attack — universal tower/turret/outpost behaviour.
+message RangedAttackSpec {
+  float cooldown_secs = 1;
+  float range = 2;
+  int32 shots_per_volley = 3;
+  int32 ammo_per_volley_cost = 4;
+  float damage_per_shot = 5;
+  float spread_half_angle_rad = 6;
+  float projectile_speed = 7;
+  float projectile_lifetime = 8;
+  string projectile_ref = 9;   // itemdb / projectile slug
+  int32 ammo_capacity = 10;    // Local ammo pool size; restocked from stockpile
+}
+
+// Cadence-based unit spawner — Goblin Cave, Barracks, dungeon spawner,
+// MUD mob den. Consumes cost_per_spawn from a local buffer of size storage_cap.
+message PopulationSpawnSpec {
+  string spawn_entity_ref = 1;
+  int32 cadence_turns = 2;
+  optional IngredientSpec cost_per_spawn = 3;
+  int32 storage_cap = 4;
+}
+
+// Periodic hostile raid emitter — Bandit Camp, dungeon boss timer.
+message RaidSpec {
+  int32 cadence_turns = 1;
+  int32 party_size = 2;
+  string party_unit_ref = 3;
+  string target_kind = 4;   // "faction_capital" | "nearest_settlement" | "random_wild"
+}
+
+// Single step in an upgrade tier progression (Market → Trade House → Guild).
+message UpgradeSpec {
+  string next_def_ref = 1;   // ref of the upgraded WorldObjectDef
+  repeated IngredientSpec costs = 2;
+}
+
+// Full tier progression chain for a building.
+message UpgradeChainSpec {
+  repeated UpgradeSpec tiers = 1;
+}
+
+// =============================================================================
 // Sub-messages — World Objects
 // =============================================================================
 
@@ -536,6 +668,30 @@ message WorldObjectDef {
   // Metadata
   optional string credits = 40;
   optional bool drafted = 41;
+
+  // Placement constraints ────────────────────────────────────────────────
+  // Biome whitelist — entry values are Biome enum numeric values. Empty =
+  // any biome (but BIOME_OCEAN is conventionally rejected by placement).
+  repeated int32 allowed_biomes = 42;
+  optional bool spawns_fully_built = 43;       // Skip construction phase
+  optional bool requires_in_territory = 44;    // Placement restricted to faction territory
+  optional FootprintShape footprint_shape = 45;
+  repeated GridPos footprint_cells = 46;       // Used when footprint_shape = EXPLICIT
+  optional CostSource cost_source = 47;
+
+  // Universal capabilities ───────────────────────────────────────────────
+  repeated ServiceCapability services = 48;
+  optional TenderSpec tender = 49;
+  optional TerritoryEmitterSpec territory = 50;
+  repeated ProductionRecipeSpec recipes = 51;
+  repeated SurplusExportSpec surplus = 52;
+  optional PassiveProductionSpec passive_production = 53;
+
+  // Gameplay behaviours (universal) ──────────────────────────────────────
+  optional RangedAttackSpec ranged_attack = 54;
+  optional PopulationSpawnSpec population_spawn = 55;
+  optional RaidSpec raid = 56;
+  optional UpgradeChainSpec upgrade_chain = 57;
 }
 
 // Resource cost for constructing a structure
