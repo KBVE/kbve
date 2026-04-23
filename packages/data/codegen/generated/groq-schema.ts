@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/groq.binpb
  * Config: ../groq-zod-config.json
- * Generated: 2026-03-30T00:08:40.805Z
+ * Generated: 2026-04-23T20:55:54.362Z
  */
 
 import { z } from 'zod';

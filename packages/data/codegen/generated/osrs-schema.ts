@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/osrs.binpb
  * Config: ../osrs-zod-config.json
- * Generated: 2026-04-10T18:41:02.493Z
+ * Generated: 2026-04-23T20:55:54.345Z
  */
 
 import { z } from 'zod';

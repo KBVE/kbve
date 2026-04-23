@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/profile.binpb
  * Config: ../profile-zod-config.json
- * Generated: 2026-03-30T00:08:40.800Z
+ * Generated: 2026-04-23T20:55:54.360Z
  */
 
 import { z } from 'zod';
