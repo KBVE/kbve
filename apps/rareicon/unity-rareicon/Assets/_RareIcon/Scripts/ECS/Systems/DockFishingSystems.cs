@@ -4,7 +4,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Turn-cadence boat crafting at every Dock: once per CadenceTurns, drain TimberCost Timber from the Capital's CapitalLedger and emit a <see cref="SpawnFishingBoatRequest"/> on a river hex adjacent to the dock. SystemBase for main-thread buffer mutation — the reservation pipeline upgrade lands later.</summary>
+    /// <summary>Turn-cadence boat crafting at every Dock: once per CadenceTurns, drain TimberCost Timber from the Capital's CapitalLedger and emit a <see cref="SpawnFishingBoatRequest"/> on a river hex adjacent to the dock. Requests are queued in a NativeList during iteration and materialised as entities after the query closes so the structural changes don't invalidate the live iterator.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial class DockProductionSystem : SystemBase
     {
@@ -23,6 +23,8 @@ namespace RareIcon
 
             var em = EntityManager;
             var capitalBuf = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
+
+            var pending = new NativeList<SpawnFishingBoatRequest>(8, Allocator.Temp);
 
             foreach (var (prodRef, building, entity) in
                      SystemAPI.Query<RefRW<DockProduction>, RefRO<Building>>()
@@ -55,8 +57,7 @@ namespace RareIcon
                 uint rng = (uint)entity.Index * 0x9E3779B1u ^ turn * 0x85EBCA77u;
                 rng |= 1u;
 
-                var req = em.CreateEntity();
-                em.AddComponentData(req, new SpawnFishingBoatRequest
+                pending.Add(new SpawnFishingBoatRequest
                 {
                     Hex     = spawnHex,
                     Seed    = rng,
@@ -66,6 +67,13 @@ namespace RareIcon
                 prod.LastProducedTurn = turn;
                 prodRef.ValueRW = prod;
             }
+
+            for (int i = 0; i < pending.Length; i++)
+            {
+                var req = em.CreateEntity();
+                em.AddComponentData(req, pending[i]);
+            }
+            pending.Dispose();
         }
     }
 

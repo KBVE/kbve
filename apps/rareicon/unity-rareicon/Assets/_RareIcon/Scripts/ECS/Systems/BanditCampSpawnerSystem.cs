@@ -27,17 +27,19 @@ namespace RareIcon
         int   _lastKnownCampCount;
         IPublisher<ToastMessage> _toastPub;
 
+        EntityQuery _campQuery;
+
         protected override void OnCreate()
         {
             _spawnCheckTimer = FirstCampDelay;
+            _campQuery = GetEntityQuery(ComponentType.ReadOnly<BanditCampTag>());
         }
 
         protected override void OnUpdate()
         {
             _spawnCheckTimer -= SystemAPI.Time.DeltaTime;
 
-            int active = 0;
-            foreach (var _ in SystemAPI.Query<RefRO<BanditCampTag>>()) active++;
+            int active = _campQuery.CalculateEntityCount();
 
             if (_lastKnownCampCount > 0 && active < _lastKnownCampCount)
             {

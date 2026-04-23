@@ -67,7 +67,8 @@ namespace RareIcon
 
             BuildUI(uiDoc.rootVisualElement);
 
-            _appState.Current
+            _appState.Overlays
+                .DistinctUntilChanged()
                 .Subscribe(OnAppStateChanged)
                 .AddTo(_disposables);
         }
@@ -134,23 +135,26 @@ namespace RareIcon
             _backdrop.style.display = DisplayStyle.None;
         }
 
-        void OnAppStateChanged(AppInterfaceState state)
+        void OnAppStateChanged(AppOverlayFlags overlays)
         {
             if (_backdrop == null) return;
 
-            if (state == AppInterfaceState.EnterModal)
-            {
-                var msg = _appState.LastClickedHex;
-                string name = msg.IsLand ? _locale.GetBiomeName(msg.BiomeId) : _locale.Get("hex.empty");
-                _titleLabel.text = ZString.Format("{0} {1}", _locale.Get("hex.enter"), name);
-                _confirmButton.text = _locale.Get("common.confirm");
-                _cancelButton.text = _locale.Get("common.cancel");
-                _backdrop.style.display = DisplayStyle.Flex;
-            }
-            else
+            var isModalOpen = (overlays & AppOverlayFlags.Modal) != 0;
+            if (!isModalOpen)
             {
                 _backdrop.style.display = DisplayStyle.None;
+                return;
             }
+
+            var msg = _appState.LastClickedHex;
+            string name = msg.IsLand
+                ? _locale.GetBiomeName(msg.BiomeId)
+                : _locale.Get("hex.empty");
+
+            _titleLabel.text = ZString.Format("{0} {1}", _locale.Get("hex.enter"), name);
+            _confirmButton.text = _locale.Get("common.confirm");
+            _cancelButton.text = _locale.Get("common.cancel");
+            _backdrop.style.display = DisplayStyle.Flex;
         }
 
         void OnConfirm()

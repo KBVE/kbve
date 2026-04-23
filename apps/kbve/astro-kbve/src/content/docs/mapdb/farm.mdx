@@ -14,10 +14,35 @@ blocks_placement: true
 max_health: 200
 footprint_width: 1
 footprint_height: 1
+footprint_shape: "rectangular"
 construction_time_secs: 15
+spawns_fully_built: false
+requires_in_territory: true
+cost_source: "faction_treasury"
 build_costs:
   - resource_type: "timber"
     amount: 1
+services:
+  - kind: "food"
+    priority: 2
+    capacity: 0
+tender:
+  profession_ref: "farmer"
+  footprint_radius: 1
+  required: true
+recipes:
+  - inputs:
+      - { item_ref: "compost", amount: 1 }
+    outputs:
+      - { item_ref: "carrot", amount: 1 }
+    cycle_secs: 8
+    pulls_from_treasury: false
+surplus:
+  - { item_ref: "carrot", floor: 8 }
+  - { item_ref: "egg",    floor: 0 }
+  - { item_ref: "milk",   floor: 0 }
+  - { item_ref: "wool",   floor: 0 }
+  - { item_ref: "meat",   floor: 0 }
 pixels_per_unit: 64
 pivot: "Center"
 pivot_x: 0.5

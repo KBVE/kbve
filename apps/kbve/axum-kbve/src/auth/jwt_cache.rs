@@ -1,7 +1,3 @@
-// src/auth/jwt_cache.rs
-// JWT cache using DashMap for concurrent access
-// Verifies tokens against Supabase API and caches valid sessions
-
 use dashmap::DashMap;
 use std::sync::{Arc, OnceLock};
 use std::time::{Duration, Instant};
@@ -11,7 +7,254 @@ use tracing::{debug, info, warn};
 const MAX_CACHE_SIZE: usize = 10_000;
 const CLEANUP_INTERVAL: Duration = Duration::from_secs(60);
 #[allow(dead_code)]
-const TOKEN_GRACE_PERIOD: i64 = 300; // 5 minutes grace before expiry
+const TOKEN_GRACE_PERIOD: i64 = 300;
+
+// TODO: Replace raw JWTs as cache keys
+/*
+
+#[inline]
+fn token_cache_key(token: &str) -> [u8; 32] {
+    let mut hasher = Sha256::new();
+    hasher.update(token.as_bytes());
+    hasher.finalize().into()
+}
+
+Then tokens become tokens: Arc<DashMap<[u8; 32], TokenInfo>>,
+
+
+pub fn get(&self, token: &str) -> Option<TokenInfo> {
+    let key = token_cache_key(token);
+
+    if let Some(mut entry) = self.tokens.get_mut(&key) {
+        if entry.is_expired() {
+            drop(entry);
+            self.tokens.remove(&key);
+            return None;
+        }
+
+        entry.last_accessed_at = Instant::now(); // if you added this
+        return Some(entry.clone());
+    }
+
+    None
+}
+
+fn insert(&self, token: &str, info: TokenInfo) {
+    let key = token_cache_key(token);
+
+    if self.tokens.len() >= MAX_CACHE_SIZE {
+        self.evict_oldest(MAX_CACHE_SIZE / 10);
+    }
+
+    self.tokens.insert(key, info);
+}
+
+
+Actually we could even do
+
+#[inline]
+fn token_cache_key(token: &str) -> u64 {
+    use std::hash::{Hash, Hasher};
+    use ahash::AHasher;
+
+    let mut hasher = AHasher::default();
+    token.hash(&mut hasher);
+    hasher.finish()
+}
+
+Then
+
+pub fn get_by_key(&self, key: &[u8; 32]) -> Option<TokenInfo> {
+    if let Some(mut entry) = self.tokens.get_mut(key) {
+        if entry.is_expired() {
+            drop(entry);
+            self.tokens.remove(key);
+            return None;
+        }
+
+        entry.last_accessed_at = Instant::now();
+        return Some(entry.clone());
+    }
+
+    None
+}
+
+pub fn get(&self, token: &str) -> Option<TokenInfo> {
+    let key = token_cache_key(token);
+    self.get_by_key(&key)
+}
+
+*/
+
+// TODO: in-flight deduping
+/*
+
+After moving the jwt to u8;32 , we could do something like this:
+
+type TokenKey = [u8; 32];
+
+#[inline]
+fn token_cache_key(token: &str) -> TokenKey {
+    let mut hasher = Sha256::new();
+    hasher.update(token.as_bytes());
+    hasher.finalize().into()
+}
+
+#[derive(Clone)]
+pub struct JwtCache {
+    tokens: Arc<DashMap<TokenKey, TokenInfo>>,
+    inflight: Arc<DashMap<TokenKey, Arc<Mutex<()>>>>,
+    supabase_url: String,
+    supabase_anon_key: String,
+    http_client: reqwest::Clie
+
+pub async fn verify_and_cache(&self, token: &str) -> Result<TokenInfo, JwtCacheError> {
+    let key = token_cache_key(token);
+
+    if let Some(info) = self.get_by_key(&key) {
+        return Ok(info);
+    }
+
+    let lock = self
+        .inflight
+        .entry(key)
+        .or_insert_with(|| Arc::new(Mutex::new(())))
+        .clone();
+
+    let _guard = lock.lock().await;
+
+    if let Some(info) = self.get_by_key(&key) {
+        return Ok(info);
+    }
+
+    let token_info = self.verify_with_supabase(token).await?;
+    self.insert_by_key(key, token_info.clone());
+
+    self.inflight.remove(&key);
+
+    Ok(token_info)
+}
+
+pub fn get(&self, token: &str) -> Option<TokenInfo> {
+    let key = token_cache_key(token);
+    self.get_by_key(&key)
+}
+
+pub fn get_by_key(&self, key: &TokenKey) -> Option<TokenInfo> {
+    if let Some(mut entry) = self.tokens.get_mut(key) {
+        if entry.is_expired() {
+            drop(entry);
+            self.tokens.remove(key);
+            return None;
+        }
+
+        entry.last_accessed_at = std::time::Instant::now();
+        return Some(entry.clone());
+    }
+
+    None
+}
+
+fn insert(&self, token: &str, info: TokenInfo) {
+    let key = token_cache_key(token);
+    self.insert_by_key(key, info);
+}
+
+fn insert_by_key(&self, key: TokenKey, info: TokenInfo) {
+    if self.tokens.len() >= MAX_CACHE_SIZE {
+        self.evict_oldest(MAX_CACHE_SIZE / 10);
+    }
+
+    self.tokens.insert(key, info);
+}
+
+Some of these methods could be moved into the kbve crate, and hmm, maybe updated locks?
+
+let lock
+        .inflight
+        .entry(key)
+        .or_insert_with(|| Arc::new(Mutex::new(())))
+        .clone();
+let _guard = lock.lock().await;
+
+    &if papaya, then I think there might be another step we will have to do, which is pin.
+
+
+
+*/
+
+// TODO: General Epoch + time adjustments,
+/*
+
+#[inline]
+fn now_epoch() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64)
+        .unwrap_or(0)
+}
+
+
+impl TokenInfo {
+    pub fn is_expired(&self) -> bool {
+        now_epoch() >= self.expires_at
+    }
+
+    pub fn is_near_expiry(&self) -> bool {
+        (self.expires_at - now_epoch()) <= TOKEN_GRACE_PERIOD
+    }
+}
+
+*/
+
+// TODO: Staff perm migration
+/*
+
+bitflags::bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct StaffPerm: i32 {
+        const STAFF            = 0x0000_0001;
+        const MODERATOR        = 0x0000_0002;
+        const ADMIN            = 0x0000_0004;
+        const DASHBOARD_VIEW   = 0x0000_0100;
+        const DASHBOARD_MANAGE = 0x0000_0200;
+        const USER_VIEW        = 0x0000_0400;
+        const USER_MANAGE      = 0x0000_0800;
+        const CONTENT_MODERATE = 0x0000_1000;
+        const CONTENT_DELETE   = 0x0000_2000;
+        const STAFF_GRANT      = 0x0001_0000;
+        const STAFF_REVOKE     = 0x0002_0000;
+        const SYSTEM_CONFIG    = 0x0004_0000;
+        const AUDIT_VIEW       = 0x0008_0000;
+        const SUPERADMIN       = 0x4000_0000;
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TokenInfo {
+    pub user_id: String,
+    pub email: Option<String>,
+    pub role: String,
+    pub staff_permissions: StaffPerm,
+    pub expires_at: i64,
+    pub verified_at: Instant,
+    pub last_accessed_at: Instant,
+}
+
+impl TokenInfo {
+    pub fn is_staff(&self) -> bool {
+        !self.staff_permissions.is_empty()
+    }
+
+    pub fn has_permission(&self, flag: StaffPerm) -> bool {
+        self.staff_permissions.contains(StaffPerm::SUPERADMIN)
+            || self.staff_permissions.contains(flag)
+    }
+}
+
+let staff_permissions = StaffPerm::from_bits_retain(self.fetch_staff_permissions(token).await);
+
+*/
 
 /// Staff permission bitflags — mirrors kbve.staff.StaffPermission proto enum.
 #[allow(dead_code)]
@@ -144,7 +387,6 @@ impl JwtCache {
         Ok(token_info)
     }
 
-    /// Verify token by calling Supabase /auth/v1/user endpoint
     async fn verify_with_supabase(&self, token: &str) -> Result<TokenInfo, JwtCacheError> {
         let url = format!("{}/auth/v1/user", self.supabase_url);
 
@@ -184,7 +426,6 @@ impl JwtCache {
             .await
             .map_err(|e| JwtCacheError::InvalidResponse(e.to_string()))?;
 
-        // Extract user info
         let user_id = user_data["id"]
             .as_str()
             .ok_or_else(|| JwtCacheError::InvalidResponse("Missing user id".to_string()))?
@@ -196,7 +437,6 @@ impl JwtCache {
             .unwrap_or("authenticated")
             .to_string();
 
-        // Parse JWT to get expiry (without signature validation since Supabase verified it)
         let token_data = jsonwebtoken::dangerous::insecure_decode::<serde_json::Value>(token)
             .map_err(|e| JwtCacheError::InvalidToken(e.to_string()))?;
 
@@ -204,7 +444,6 @@ impl JwtCache {
             .as_i64()
             .ok_or_else(|| JwtCacheError::InvalidToken("Missing exp claim".to_string()))?;
 
-        // Check staff permissions via PostgREST RPC (public.staff_permissions)
         let staff_permissions = self.fetch_staff_permissions(token).await;
 
         info!(
@@ -226,8 +465,7 @@ impl JwtCache {
         })
     }
 
-    /// Fetch the user's staff permission bitmask via PostgREST RPC.
-    /// Returns 0 on any error (no permissions by default).
+    /// Fetch the user's staff permission bitmask via PostgREST RPC and returns 0 on any error (no permissions by default).
     async fn fetch_staff_permissions(&self, token: &str) -> i32 {
         let url = format!("{}/rest/v1/rpc/staff_permissions", self.supabase_url);
 

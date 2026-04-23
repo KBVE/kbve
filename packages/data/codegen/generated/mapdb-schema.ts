@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/mapdb.binpb
  * Config: ../mapdb-zod-config.json
- * Generated: 2026-03-30T00:08:40.759Z
+ * Generated: 2026-04-23T18:39:56.774Z
  */
 
 import { z } from 'zod';
@@ -25,6 +25,10 @@ export const Biomes = [
 	'floating',
 	'void',
 	'coastal',
+	'river',
+	'dirt',
+	'snow',
+	'stone',
 ] as const;
 
 export type BiomeValue = (typeof Biomes)[number];
@@ -250,6 +254,41 @@ export const TravelTypes = ['open', 'gated', 'one_way', 'blocked'] as const;
 export type TravelTypeValue = (typeof TravelTypes)[number];
 
 export const TravelTypeSchema = z.enum(TravelTypes);
+
+export const FootprintShapes = [
+	'rectangular',
+	'hex_flower',
+	'explicit',
+] as const;
+
+export type FootprintShapeValue = (typeof FootprintShapes)[number];
+
+export const FootprintShapeSchema = z.enum(FootprintShapes);
+
+export const CostSources = [
+	'faction_treasury',
+	'owner_inventory',
+	'free',
+] as const;
+
+export type CostSourceValue = (typeof CostSources)[number];
+
+export const CostSourceSchema = z.enum(CostSources);
+
+export const ServiceKinds = [
+	'food',
+	'sleep',
+	'healing',
+	'training',
+	'teleport',
+	'storage',
+	'merchant',
+	'banker',
+] as const;
+
+export type ServiceKindValue = (typeof ServiceKinds)[number];
+
+export const ServiceKindSchema = z.enum(ServiceKinds);
 
 // MapExtension
 export const MapExtensionSchema = z.object({
@@ -586,6 +625,118 @@ export const BuildCostSchema = z.object({
 
 export type BuildCost = z.infer<typeof BuildCostSchema>;
 
+// ServiceCapability
+export const ServiceCapabilitySchema = z.object({
+	kind: ServiceKindSchema,
+	priority: z.number(),
+	capacity: z.number(),
+});
+
+export type ServiceCapability = z.infer<typeof ServiceCapabilitySchema>;
+
+// TenderSpec
+export const TenderSpecSchema = z.object({
+	profession_ref: z.string(),
+	footprint_radius: z.number(),
+	required: z.boolean(),
+});
+
+export type TenderSpec = z.infer<typeof TenderSpecSchema>;
+
+// TerritoryEmitterSpec
+export const TerritoryEmitterSpecSchema = z.object({
+	radius: z.number(),
+});
+
+export type TerritoryEmitterSpec = z.infer<typeof TerritoryEmitterSpecSchema>;
+
+// IngredientSpec
+export const IngredientSpecSchema = z.object({
+	item_ref: z.string(),
+	amount: z.number(),
+});
+
+export type IngredientSpec = z.infer<typeof IngredientSpecSchema>;
+
+// ProductionRecipeSpec
+export const ProductionRecipeSpecSchema = z.object({
+	inputs: z.array(IngredientSpecSchema).optional(),
+	outputs: z.array(IngredientSpecSchema).optional(),
+	cycle_secs: z.number(),
+	pulls_from_treasury: z.boolean(),
+});
+
+export type ProductionRecipeSpec = z.infer<typeof ProductionRecipeSpecSchema>;
+
+// SurplusExportSpec
+export const SurplusExportSpecSchema = z.object({
+	item_ref: z.string(),
+	floor: z.number(),
+});
+
+export type SurplusExportSpec = z.infer<typeof SurplusExportSpecSchema>;
+
+// PassiveProductionSpec
+export const PassiveProductionSpecSchema = z.object({
+	output_item_ref: z.string(),
+	output_amount: z.number(),
+	cycle_secs: z.number(),
+	destination: z.string(),
+});
+
+export type PassiveProductionSpec = z.infer<typeof PassiveProductionSpecSchema>;
+
+// RangedAttackSpec
+export const RangedAttackSpecSchema = z.object({
+	cooldown_secs: z.number(),
+	range: z.number(),
+	shots_per_volley: z.number(),
+	ammo_per_volley_cost: z.number(),
+	damage_per_shot: z.number(),
+	spread_half_angle_rad: z.number(),
+	projectile_speed: z.number(),
+	projectile_lifetime: z.number(),
+	projectile_ref: z.string(),
+	ammo_capacity: z.number(),
+});
+
+export type RangedAttackSpec = z.infer<typeof RangedAttackSpecSchema>;
+
+// PopulationSpawnSpec
+export const PopulationSpawnSpecSchema = z.object({
+	spawn_entity_ref: z.string(),
+	cadence_turns: z.number(),
+	cost_per_spawn: IngredientSpecSchema.optional(),
+	storage_cap: z.number(),
+});
+
+export type PopulationSpawnSpec = z.infer<typeof PopulationSpawnSpecSchema>;
+
+// RaidSpec
+export const RaidSpecSchema = z.object({
+	cadence_turns: z.number(),
+	party_size: z.number(),
+	party_unit_ref: z.string(),
+	target_kind: z.string(),
+});
+
+export type RaidSpec = z.infer<typeof RaidSpecSchema>;
+
+// UpgradeSpec
+export const UpgradeSpecSchema = z.object({
+	next_def_ref: z.string(),
+	costs: z.array(IngredientSpecSchema).optional(),
+});
+
+export type UpgradeSpec = z.infer<typeof UpgradeSpecSchema>;
+
+// UpgradeChainSpec
+export const UpgradeChainSpecSchema = z.object({
+	tiers: z.array(UpgradeSpecSchema).optional(),
+});
+
+export type UpgradeChainSpec = z.infer<typeof UpgradeChainSpecSchema>;
+
 // WorldObjectDef
 export const WorldObjectDefSchema = z.object({
 	id: z.string(),
@@ -629,6 +780,22 @@ export const WorldObjectDefSchema = z.object({
 	extensions: z.array(MapExtensionSchema).optional(),
 	credits: z.string().optional(),
 	drafted: z.boolean().optional(),
+	allowed_biomes: z.array(z.number()).optional(),
+	spawns_fully_built: z.boolean().optional(),
+	requires_in_territory: z.boolean().optional(),
+	footprint_shape: FootprintShapeSchema.optional(),
+	footprint_cells: z.array(GridPosSchema).optional(),
+	cost_source: CostSourceSchema.optional(),
+	services: z.array(ServiceCapabilitySchema).optional(),
+	tender: TenderSpecSchema.optional(),
+	territory: TerritoryEmitterSpecSchema.optional(),
+	recipes: z.array(ProductionRecipeSpecSchema).optional(),
+	surplus: z.array(SurplusExportSpecSchema).optional(),
+	passive_production: PassiveProductionSpecSchema.optional(),
+	ranged_attack: RangedAttackSpecSchema.optional(),
+	population_spawn: PopulationSpawnSpecSchema.optional(),
+	raid: RaidSpecSchema.optional(),
+	upgrade_chain: UpgradeChainSpecSchema.optional(),
 });
 
 export type WorldObjectDef = z.infer<typeof WorldObjectDefSchema>;

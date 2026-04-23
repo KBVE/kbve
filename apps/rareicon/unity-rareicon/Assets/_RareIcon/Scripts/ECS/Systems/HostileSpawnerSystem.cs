@@ -25,9 +25,12 @@ namespace RareIcon
         float _timer;
         uint  _rng = 0xB01D_FACEu;
 
+        EntityQuery _banditCampQuery;
+
         protected override void OnCreate()
         {
             RequireForUpdate<Building>();
+            _banditCampQuery = GetEntityQuery(ComponentType.ReadOnly<BanditCampTag>());
         }
 
         protected override void OnUpdate()
@@ -46,8 +49,7 @@ namespace RareIcon
             }
             if (alive >= MaxHostiles) return;
 
-            bool campActive = false;
-            foreach (var _ in SystemAPI.Query<RefRO<BanditCampTag>>()) { campActive = true; break; }
+            bool campActive = !_banditCampQuery.IsEmpty;
 
             int spawn = math.min(SpawnBatchSize, MaxHostiles - alive);
             float banditShare = campActive

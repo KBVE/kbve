@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-04-22T08:47:04Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-04-23T08:47:51Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**29** critical/high severity findings across the monorepo.
+**33** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,10 +26,10 @@ Last generated: **2026-04-22T08:47:04Z** — updated daily by `ci-dashboard`.
   <Card title="1 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="28 High" icon="error">
+  <Card title="32 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="49 Medium" icon="information">
+  <Card title="57 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="5 Low" icon="approve-check-circle">
@@ -41,10 +41,10 @@ Last generated: **2026-04-22T08:47:04Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **75** advisories
+    **84** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
-    **36** advisories
+    **39** advisories
   </Card>
   <Card title="Python" icon="seti:python">
     **0** advisories
@@ -63,8 +63,8 @@ Last generated: **2026-04-22T08:47:04Z** — updated daily by `ci-dashboard`.
 pie showData
     title Findings by Severity
     "Critical" : 1
-    "High" : 28
-    "Medium" : 49
+    "High" : 32
+    "Medium" : 57
     "Low" : 5
 ```
 
@@ -73,8 +73,8 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 75
-    "Cargo" : 36
+    "npm" : 84
+    "Cargo" : 39
 ```
 
 <Tabs>
@@ -82,12 +82,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 1 | 28 | 41 | 5 | 75 |
-| **Cargo** | 0 | 0 | 8 | 0 | 36 |
+| **npm** | 1 | 32 | 46 | 5 | 84 |
+| **Cargo** | 0 | 0 | 11 | 0 | 39 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 28 | 49 | 5 | 111 |
+| **Total** | 1 | 32 | 57 | 5 | 123 |
 
   </TabItem>
   <TabItem label="npm">
@@ -123,6 +123,10 @@ pie showData
 | High | `vite` | Vite: `server.fs.deny` bypassed with queries | [Details](https://github.com/advisories/GHSA-v2wj-q39q-566r) |
 | High | `vite` | Vite Vulnerable to Arbitrary File Read via Vite Dev Serve... | [Details](https://github.com/advisories/GHSA-p9ff-h696-f583) |
 | High | `vite` | Vite Vulnerable to Arbitrary File Read via Vite Dev Serve... | [Details](https://github.com/advisories/GHSA-p9ff-h696-f583) |
+| High | `@xmldom/xmldom` | xmldom: Uncontrolled recursion in XML serialization leads... | [Details](https://github.com/advisories/GHSA-2v35-w6hq-6mfw) |
+| High | `@xmldom/xmldom` | xmldom has XML injection through unvalidated DocumentType... | [Details](https://github.com/advisories/GHSA-f6ww-3ggp-fr8h) |
+| High | `@xmldom/xmldom` | xmldom has XML node injection through unvalidated process... | [Details](https://github.com/advisories/GHSA-x6wf-f3px-wcqx) |
+| High | `@xmldom/xmldom` | xmldom has XML node injection through unvalidated comment... | [Details](https://github.com/advisories/GHSA-j759-j44w-7fr8) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `lodash` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
@@ -164,6 +168,11 @@ pie showData
 | Medium | `axios` | Axios has a NO_PROXY Hostname Normalization Bypass that L... | [Details](https://github.com/advisories/GHSA-3p68-rc4w-qgx5) |
 | Medium | `axios` | Axios has Unrestricted Cloud Metadata Exfiltration via He... | [Details](https://github.com/advisories/GHSA-fvcv-3m26-pcqx) |
 | Medium | `astro` | Astro: XSS in define:vars via incomplete &lt;/script&gt; tag sa... | [Details](https://github.com/advisories/GHSA-j687-52p2-xcff) |
+| Medium | `dompurify` | DOMPurify: FORBID_TAGS bypassed by function-based ADD_TAG... | [Details](https://github.com/advisories/GHSA-h7mw-gpvr-xq4m) |
+| Medium | `dompurify` | DOMPurify has a SAFE_FOR_TEMPLATES bypass in RETURN_DOM mode | [Details](https://github.com/advisories/GHSA-crv5-9vww-q3g8) |
+| Medium | `dompurify` | DOMPurify: Prototype Pollution to XSS Bypass via CUSTOM_E... | [Details](https://github.com/advisories/GHSA-v9jr-rg53-9pgp) |
+| Medium | `fast-xml-parser` | fast-xml-parser XMLBuilder: XML Comment and CDATA Injecti... | [Details](https://github.com/advisories/GHSA-gh4j-gqv2-49f6) |
+| Medium | `uuid` | uuid: Missing buffer bounds check in v3/v5/v6 when buf is... | [Details](https://github.com/advisories/GHSA-w5hq-g745-h8pq) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
@@ -178,11 +187,14 @@ pie showData
 | Medium | `rsa` | Marvin Attack: potential key recovery through timing side... | [Details](https://github.com/RustCrypto/RSA/issues/19#issuecomment-1822995643) |
 | Medium | `rustls-webpki` | Name constraints for URI names were incorrectly accepted |  |
 | Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
+| Medium | `rustls-webpki` | Reachable panic in certificate revocation list parsing |  |
 | Medium | `rustls-webpki` | CRLs not considered authoritative by Distribution Point d... |  |
 | Medium | `rustls-webpki` | Name constraints for URI names were incorrectly accepted |  |
 | Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
+| Medium | `rustls-webpki` | Reachable panic in certificate revocation list parsing |  |
 | Medium | `rustls-webpki` | Name constraints for URI names were incorrectly accepted |  |
 | Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
+| Medium | `rustls-webpki` | Reachable panic in certificate revocation list parsing |  |
 | Info | `atk` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `atk-sys` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `bincode` | Bincode is unmaintained | [Details](https://git.sr.ht/~stygianentity/bincode/tree/v3.0/item/README.md) |

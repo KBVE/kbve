@@ -1,0 +1,495 @@
+---
+interface Props {
+	tagline?: string;
+	playLink?: string;
+	guidesLink?: string;
+}
+
+const {
+	tagline = 'Forge your legend in a world of swords, sorcery, and endless adventure.',
+	playLink = '/game/overview/',
+	guidesLink = '/guides/introduction/',
+} = Astro.props;
+---
+
+<section class="ri-hero">
+	<div class="ri-hero__video" aria-hidden="true">
+		<div id="ri-yt-player"></div>
+	</div>
+	<div class="ri-hero__video-overlay"></div>
+
+	<div class="ri-hero__bg">
+		<div class="ri-hero__vignette"></div>
+		<div class="ri-hero__particles" aria-hidden="true"></div>
+	</div>
+
+	<div class="ri-hero__content">
+		<div class="ri-hero__emblem" aria-hidden="true">&#9876;</div>
+		<p class="ri-hero__label">Open World MMO</p>
+		<h1 class="ri-hero__title">
+			Forge Your<br />
+			<span class="ri-hero__title--accent">Legend</span>
+		</h1>
+		<p class="ri-hero__tagline">{tagline}</p>
+		<div class="ri-hero__actions">
+			<a href={playLink} class="ri-btn ri-btn--primary">
+				<span class="ri-btn__fill"></span>
+				<span class="ri-btn__text">Enter the Realm</span>
+			</a>
+			<a href={guidesLink} class="ri-btn ri-btn--ghost">
+				Adventurer's Guide
+			</a>
+		</div>
+	</div>
+
+	<div class="ri-hero__scroll" aria-hidden="true">
+		<span class="ri-hero__scroll-label">Descend</span>
+		<div class="ri-hero__scroll-line"></div>
+	</div>
+</section>
+
+<script>
+	declare global {
+		interface Window {
+			YT: typeof YT;
+			onYouTubeIframeAPIReady: () => void;
+		}
+		namespace YT {
+			const PlayerState: {
+				ENDED: number;
+				PLAYING: number;
+				PAUSED: number;
+				BUFFERING: number;
+				CUED: number;
+			};
+			interface PlayerEvent {
+				target: Player;
+			}
+			interface OnStateChangeEvent {
+				target: Player;
+				data: number;
+			}
+			class Player {
+				constructor(id: string, config: any);
+				playVideo(): void;
+				mute(): void;
+				seekTo(seconds: number, allowSeekAhead: boolean): void;
+				getPlayerState(): number;
+				loadVideoById(id: string): void;
+				destroy(): void;
+			}
+		}
+	}
+
+	const VIDEO_ID = 'aT66uumZ0Zo';
+	let player: YT.Player | null = null;
+	let watchdog: ReturnType<typeof setInterval> | null = null;
+
+	function initPlayer() {
+		player = new YT.Player('ri-yt-player', {
+			videoId: VIDEO_ID,
+			playerVars: {
+				autoplay: 1,
+				mute: 1,
+				loop: 1,
+				playlist: VIDEO_ID,
+				controls: 0,
+				showinfo: 0,
+				rel: 0,
+				modestbranding: 1,
+				playsinline: 1,
+				disablekb: 1,
+				fs: 0,
+				iv_load_policy: 3,
+				cc_load_policy: 0,
+			},
+			events: {
+				onReady: onPlayerReady,
+				onStateChange: onPlayerStateChange,
+				onError: onPlayerError,
+			},
+		});
+	}
+
+	function onPlayerReady(event: YT.PlayerEvent) {
+		event.target.mute();
+		event.target.playVideo();
+		startWatchdog();
+	}
+
+	function onPlayerStateChange(event: YT.OnStateChangeEvent) {
+		if (event.data === YT.PlayerState.ENDED) {
+			event.target.seekTo(0, true);
+			event.target.playVideo();
+		} else if (event.data === YT.PlayerState.PAUSED) {
+			setTimeout(() => {
+				if (
+					player &&
+					player.getPlayerState() === YT.PlayerState.PAUSED
+				) {
+					player.playVideo();
+				}
+			}, 1000);
+		}
+	}
+
+	function onPlayerError() {
+		if (player) {
+			setTimeout(() => {
+				player?.loadVideoById(VIDEO_ID);
+			}, 3000);
+		}
+	}
+
+	function startWatchdog() {
+		if (watchdog) clearInterval(watchdog);
+		watchdog = setInterval(() => {
+			if (!player) return;
+			try {
+				const state = player.getPlayerState();
+				if (
+					state === YT.PlayerState.ENDED ||
+					state === YT.PlayerState.PAUSED ||
+					state === -1 // unstarted
+				) {
+					player.seekTo(0, true);
+					player.playVideo();
+				}
+			} catch {
+				// player not ready yet
+			}
+		}, 5000);
+	}
+
+	// Load YouTube IFrame API
+	if (typeof window !== 'undefined') {
+		const existing = document.querySelector(
+			'script[src*="youtube.com/iframe_api"]',
+		);
+		if (!existing) {
+			const tag = document.createElement('script');
+			tag.src = 'https://www.youtube.com/iframe_api';
+			document.head.appendChild(tag);
+		}
+
+		(window as any).onYouTubeIframeAPIReady = initPlayer;
+
+		// If API already loaded (SPA navigation)
+		if ((window as any).YT && (window as any).YT.Player) {
+			initPlayer();
+		}
+	}
+</script>
+
+<style>
+	.ri-hero {
+		position: relative;
+		width: 100%;
+		min-height: 100vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+		background: #0f0e0c;
+	}
+
+	/* ── YouTube video background (deepest layer) ── */
+	.ri-hero__video {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		pointer-events: none;
+		overflow: hidden;
+	}
+
+	.ri-hero__video iframe,
+	.ri-hero__video #ri-yt-player {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 120vw;
+		height: 120vh;
+		min-width: 120%;
+		min-height: 120%;
+		transform: translate(-50%, -50%);
+		object-fit: cover;
+		border: none;
+		pointer-events: none;
+	}
+
+	/* Semi-transparent stone overlay on top of video */
+	.ri-hero__video-overlay {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		background: rgba(15, 14, 12, 0.45);
+	}
+
+	.ri-hero__bg {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		background:
+			radial-gradient(
+				ellipse at 30% 40%,
+				rgba(27, 58, 42, 0.2) 0%,
+				transparent 60%
+			),
+			radial-gradient(
+				ellipse at 70% 60%,
+				rgba(61, 46, 30, 0.15) 0%,
+				transparent 50%
+			),
+			radial-gradient(
+				ellipse at 50% 50%,
+				rgba(15, 14, 12, 0.3) 0%,
+				transparent 100%
+			);
+	}
+
+	.ri-hero__vignette {
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(
+			ellipse at center,
+			transparent 40%,
+			rgba(0, 0, 0, 0.7) 100%
+		);
+		z-index: 1;
+	}
+
+	/* Floating ember particles */
+	.ri-hero__particles {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		background-image:
+			radial-gradient(
+				1px 1px at 20% 30%,
+				rgba(212, 164, 76, 0.6),
+				transparent
+			),
+			radial-gradient(
+				1px 1px at 40% 70%,
+				rgba(212, 164, 76, 0.4),
+				transparent
+			),
+			radial-gradient(
+				1px 1px at 60% 20%,
+				rgba(212, 164, 76, 0.5),
+				transparent
+			),
+			radial-gradient(
+				1px 1px at 80% 50%,
+				rgba(212, 164, 76, 0.3),
+				transparent
+			),
+			radial-gradient(
+				1.5px 1.5px at 15% 60%,
+				rgba(232, 192, 106, 0.6),
+				transparent
+			),
+			radial-gradient(
+				1.5px 1.5px at 55% 85%,
+				rgba(232, 192, 106, 0.4),
+				transparent
+			),
+			radial-gradient(
+				1px 1px at 75% 15%,
+				rgba(184, 137, 61, 0.5),
+				transparent
+			),
+			radial-gradient(
+				1px 1px at 90% 75%,
+				rgba(184, 137, 61, 0.3),
+				transparent
+			);
+		animation: ember-drift 12s ease-in-out infinite alternate;
+	}
+
+	@keyframes ember-drift {
+		0% {
+			transform: translateY(0) translateX(0);
+			opacity: 0.6;
+		}
+		100% {
+			transform: translateY(-20px) translateX(10px);
+			opacity: 1;
+		}
+	}
+
+	.ri-hero__content {
+		position: relative;
+		z-index: 3;
+		text-align: center;
+		padding: 2rem;
+		max-width: 54rem;
+		margin: 0 auto;
+	}
+
+	.ri-hero__emblem {
+		font-size: 2.5rem;
+		color: var(--ri-accent);
+		opacity: 0.7;
+		margin-bottom: 1rem;
+		filter: drop-shadow(0 0 12px rgba(212, 164, 76, 0.4));
+	}
+
+	.ri-hero__label {
+		color: var(--ri-accent);
+		font-size: 0.65rem;
+		letter-spacing: 0.35em;
+		text-transform: uppercase;
+		margin: 0 0 1.5rem;
+		font-family: 'Cinzel', serif;
+	}
+
+	.ri-hero__title {
+		font-family: 'Cinzel', 'Palatino Linotype', serif;
+		font-size: clamp(3rem, 8vw, 7rem);
+		font-weight: 400;
+		color: var(--ri-text-primary);
+		margin: 0 0 1.5rem;
+		line-height: 1.05;
+		letter-spacing: 0.02em;
+		text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+	}
+
+	.ri-hero__title--accent {
+		font-style: italic;
+		color: var(--ri-accent);
+		text-shadow:
+			0 0 30px rgba(212, 164, 76, 0.3),
+			0 2px 20px rgba(0, 0, 0, 0.6);
+	}
+
+	.ri-hero__tagline {
+		font-family: 'Lora', 'Georgia', serif;
+		font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+		color: rgba(232, 220, 200, 0.5);
+		font-weight: 400;
+		font-style: italic;
+		margin: 0 0 2.5rem;
+		line-height: 1.7;
+		max-width: 28rem;
+		margin-inline: auto;
+	}
+
+	.ri-hero__actions {
+		display: flex;
+		gap: 1rem;
+		justify-content: center;
+		flex-wrap: wrap;
+	}
+
+	/* ── Buttons: iron + firelight ── */
+	.ri-btn {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.9rem 2.5rem;
+		font-family: 'Cinzel', serif;
+		font-size: 0.7rem;
+		font-weight: 600;
+		letter-spacing: 0.15em;
+		text-transform: uppercase;
+		text-decoration: none;
+		transition: all 0.3s ease;
+		overflow: hidden;
+		border-radius: 2px;
+	}
+
+	.ri-btn--primary {
+		background: var(--ri-text-primary);
+		color: var(--ri-bg-app);
+		border: 1px solid var(--ri-accent-hover);
+	}
+
+	.ri-btn--primary:hover {
+		background: var(--ri-text-primary);
+	}
+
+	.ri-btn__fill {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		width: 150%;
+		height: 150%;
+		background: var(--ri-accent);
+		transform: translate(-110%, 60%) rotate(45deg);
+		transition: transform 0.5s ease;
+	}
+
+	.ri-btn--primary:hover .ri-btn__fill {
+		transform: translate(-10%, -10%) rotate(45deg);
+	}
+
+	.ri-btn__text {
+		position: relative;
+		z-index: 1;
+		transition: color 0.3s ease;
+	}
+
+	.ri-btn--primary:hover .ri-btn__text {
+		color: var(--ri-bg-app);
+	}
+
+	.ri-btn--ghost {
+		border: 1px solid var(--ri-accent-hover);
+		color: var(--ri-accent);
+		background: transparent;
+	}
+
+	.ri-btn--ghost:hover {
+		background: rgba(212, 164, 76, 0.15);
+		border-color: var(--ri-accent);
+		color: var(--ri-accent);
+	}
+
+	/* ── Scroll indicator ── */
+	.ri-hero__scroll {
+		position: absolute;
+		bottom: 4rem;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 3;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		opacity: 1;
+		animation: fade-bounce 5s ease-in-out infinite;
+	}
+
+	.ri-hero__scroll-label {
+		font-family: 'Cinzel', serif;
+		font-size: 0.6rem;
+		letter-spacing: 0.25em;
+		text-transform: uppercase;
+		color: #fff;
+		text-shadow: 0 0 8px rgba(232, 220, 200, 0.6);
+		margin-bottom: 0.5rem;
+	}
+
+	.ri-hero__scroll-line {
+		width: 1px;
+		height: 3rem;
+		background: linear-gradient(
+			to bottom,
+			var(--ri-accent-hover),
+			transparent
+		);
+	}
+
+	@keyframes fade-bounce {
+		0%,
+		100% {
+			opacity: 1;
+			transform: translateX(-50%) translateY(0);
+		}
+		50% {
+			opacity: 0.45;
+			transform: translateX(-50%) translateY(14px);
+		}
+	}
+</style>

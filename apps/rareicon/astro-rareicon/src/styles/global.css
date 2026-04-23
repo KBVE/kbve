@@ -1,0 +1,258 @@
+@import 'tailwindcss';
+
+/* ── RareIcon theme: Dark Ocean ──
+   Charcoal base with subtle blue-green undertone.
+   Ocean colors reserved for interaction + identity. */
+:root {
+	/* Foundation (neutral charcoal w/ blue bias) */
+	--ri-bg-app: #0f1419;
+	--ri-bg-panel: #151c22;
+	--ri-bg-panel-elevated: #1b242c;
+	--ri-border: #24303a;
+
+	/* Ocean identity layer (subtle) */
+	--ri-ocean-deep: #1f3a4a;
+	--ri-ocean-steel: #2c5364;
+	--ri-ocean-teal: #3e6e7a;
+
+	/* Text */
+	--ri-text-primary: #e6eef3;
+	--ri-text-secondary: #a8b3ba;
+	--ri-text-disabled: #6b7c86;
+
+	/* Interaction */
+	--ri-accent: #3aaed8;
+	--ri-accent-hover: #2f8fa8;
+	--ri-accent-pressed: #1f6f8b;
+	--ri-focus-glow: rgba(58, 174, 216, 0.25);
+
+	/* Semantic */
+	--ri-danger: #c44545;
+	--ri-warning: #d1a954;
+	--ri-success: #5faf7a;
+	--ri-rare: #8c6bff;
+
+	/* Starlight overrides */
+	--sl-color-white: #e6eef3;
+	--sl-color-gray-1: #c8d2d8;
+	--sl-color-gray-2: #a8b3ba;
+	--sl-color-gray-3: #6b7c86;
+	--sl-color-gray-4: #24303a;
+	--sl-color-gray-5: #1b242c;
+	--sl-color-gray-6: #151c22;
+	--sl-color-black: #0b0f13;
+
+	--sl-color-accent-low: #0e2430;
+	--sl-color-accent: var(--ri-accent);
+	--sl-color-accent-high: #79c9e6;
+
+	--sl-color-blue-low: #0e2430;
+	--sl-color-blue: var(--ri-accent-hover);
+	--sl-color-blue-high: var(--ri-accent);
+	--sl-color-green-low: #122822;
+	--sl-color-green: var(--ri-success);
+	--sl-color-green-high: #86c9a0;
+	--sl-color-orange-low: #2a1f10;
+	--sl-color-orange: var(--ri-warning);
+	--sl-color-orange-high: #e6c174;
+	--sl-color-red-low: #2a1414;
+	--sl-color-red: var(--ri-danger);
+	--sl-color-red-high: #d96565;
+	--sl-color-purple-low: #1f1a2e;
+	--sl-color-purple: var(--ri-rare);
+	--sl-color-purple-high: #a791ff;
+
+	--sl-color-bg: var(--ri-bg-app);
+	--sl-color-bg-nav: rgba(15, 20, 25, 0.92);
+	--sl-color-bg-sidebar: var(--ri-bg-panel);
+	--sl-color-bg-inline-code: #182028;
+	--sl-color-text-invert: var(--ri-bg-app);
+	--sl-color-bg-accent: var(--ri-accent);
+
+	--sl-color-hairline-light: var(--ri-border);
+	--sl-color-hairline: #1e2830;
+	--sl-color-hairline-shade: var(--ri-bg-app);
+
+	--sl-color-text: var(--ri-text-secondary);
+	--sl-color-text-accent: var(--ri-accent);
+	--sl-color-backdrop-overlay: rgba(0, 0, 0, 0.8);
+
+	--sl-font: 'Playfair Display', 'Georgia', serif;
+}
+
+body {
+	font-family: 'Lora', 'Georgia', serif;
+	background: var(--ri-bg-app);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: var(--sl-font);
+}
+
+/* ── Splash page: full-bleed layout ── */
+[data-page-type='splash'] main {
+	padding: 0 !important;
+}
+
+[data-page-type='splash'] .content-panel {
+	padding: 0 !important;
+}
+
+[data-page-type='splash'] .sl-container {
+	max-width: none !important;
+	padding: 0 !important;
+}
+
+[data-page-type='splash'] .main-pane {
+	padding: 0 !important;
+}
+
+[data-page-type='splash'] article {
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+/* ── Links: ocean hover ── */
+a:not(.ri-btn) {
+	transition: color 0.2s ease;
+}
+
+a:not(.ri-btn):hover {
+	color: var(--ri-accent);
+}
+
+/* ── Scrollbar: charcoal + ocean ── */
+::-webkit-scrollbar {
+	width: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: var(--ri-bg-app);
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--ri-border);
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--ri-ocean-teal);
+}
+
+/* ── Focus styles: ocean ring ── */
+:focus-visible {
+	outline: 2px solid var(--ri-accent);
+	outline-offset: 2px;
+	box-shadow: 0 0 0 4px var(--ri-focus-glow);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+	outline: 2px solid var(--ri-accent);
+	outline-offset: 2px;
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+/* ── Code blocks ── */
+pre {
+	border: 1px solid var(--ri-border);
+	border-radius: 4px;
+}
+
+/* ── Sidebar active item ── */
+nav[aria-label='Main'] a[aria-current='page'] {
+	color: var(--ri-bg-app) !important;
+	border-left-color: var(--ri-accent) !important;
+}
+
+/* ── Auth-gated sidebar ── */
+a[data-auth-visibility] {
+	display: none;
+}
+
+html[data-auth-tone='auth'] a[data-auth-visibility='auth'] {
+	display: block;
+}
+
+html[data-auth-tone='anon'] a[data-auth-visibility='anon'] {
+	display: block;
+}
+
+/* ── Skeleton pulse ── */
+@keyframes ri-skeleton-pulse {
+	0%,
+	100% {
+		opacity: 0.4;
+	}
+	50% {
+		opacity: 0.7;
+	}
+}
+
+.ri-skel {
+	background: var(--ri-bg-panel-elevated);
+	border-radius: 4px;
+	animation: ri-skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.ri-skel--circle {
+	border-radius: 50%;
+}
+
+/* ── Auth status / spinner ── */
+.ri-auth-status {
+	text-align: center;
+	padding: 3rem 1rem;
+	min-height: 250px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.ri-spinner {
+	width: 50px;
+	height: 50px;
+	margin: 0 auto 20px;
+	border: 4px solid var(--sl-color-accent-low);
+	border-top-color: var(--ri-accent);
+	border-radius: 50%;
+	animation: ri-spin 1s linear infinite;
+}
+
+@keyframes ri-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.ri-status-message {
+	font-family: var(--sl-font);
+	font-size: 1.125rem;
+	color: var(--ri-text-primary);
+	margin-bottom: 0.5rem;
+}
+
+.ri-status-sub {
+	font-size: 0.875rem;
+	color: var(--ri-text-disabled);
+}

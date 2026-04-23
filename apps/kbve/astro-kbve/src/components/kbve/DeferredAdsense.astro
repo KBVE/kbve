@@ -1,0 +1,130 @@
+---
+/**
+ * Deferred wrapper for AdSense.
+ *
+ * Why a dedicated component instead of <DeferredSection><Adsense/></DeferredSection>:
+ * DeferredSection keeps its children inside a <template> and clones them in
+ * when the section intersects. Scripts inside a cloned <template> are inert —
+ * they never execute — so the inline `adsbygoogle.push({})` in Adsense.astro
+ * would silently no-op. This component:
+ *   1. Loads the AdSense loader script at the page level (outside the template)
+ *      so it runs normally.
+ *   2. Waits for DeferredSection to mark itself `loaded`, then manually fires
+ *      `adsbygoogle.push({})` against the freshly-inserted <ins>.
+ */
+import DeferredSection from '@/components/utility/DeferredSection.astro';
+
+interface Props {
+	/** Unique id for this ad slot (used by the post-intersection push hook). */
+	id?: string;
+	/** Disclosure label shown above the ad. */
+	label?: string;
+	/** AdSense ad-slot id. Defaults to the responsive unit. */
+	adSlot?: string;
+	/** AdSense ad-format. Defaults to `auto` (responsive). */
+	adFormat?: string;
+	/** Skeleton height before the ad loads (desktop). */
+	minHeight?: string;
+	/** Skeleton height before the ad loads (mobile). */
+	minHeightMobile?: string;
+	/** Extra classes applied to the outer <aside>. */
+	class?: string;
+}
+
+const {
+	id = `adsense-${Math.random().toString(36).slice(2, 10)}`,
+	label = 'Advertisement',
+	adSlot = '7193218754',
+	adFormat = 'auto',
+	minHeight = '280px',
+	minHeightMobile = '200px',
+	class: className = '',
+} = Astro.props;
+
+const AD_CLIENT = 'ca-pub-3698214103602019';
+---
+
+{
+	/* AdSense loader — page-level so it actually executes. Browser dedupes by URL. */
+}
+<script
+	is:inline
+	async
+	src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${AD_CLIENT}`}
+	crossorigin="anonymous"
+></script>
+
+<DeferredSection
+	id={id}
+	minHeight={minHeight}
+	minHeightMobile={minHeightMobile}
+	skeletonBg="var(--sl-color-bg-sidebar)">
+	<aside
+		class:list={[
+			'not-content mx-auto my-6 block w-full max-w-full overflow-hidden rounded-lg border border-[var(--sl-color-gray-5)] bg-[var(--sl-color-bg-sidebar)] p-3 box-border [contain:layout_paint] sm:my-4 sm:p-2',
+			className,
+		]}
+		role="complementary"
+		aria-label={label}>
+		<span
+			class="mb-2 block text-center text-[0.7rem] font-medium uppercase tracking-wider text-[var(--sl-color-gray-3)] opacity-80">
+			{label}
+		</span>
+		{
+			/* Parent-only containment; do not !important-override the <ins> element. */
+		}
+		<div class="relative w-full max-w-full overflow-hidden">
+			<ins
+				class="adsbygoogle"
+				style="display:block"
+				data-ad-client={AD_CLIENT}
+				data-ad-slot={adSlot}
+				data-ad-format={adFormat}
+				data-full-width-responsive="true">
+			</ins>
+		</div>
+	</aside>
+</DeferredSection>
+
+<script is:inline define:vars={{ sectionId: id }}>
+	(function () {
+		const fire = () => {
+			const section = document.querySelector(
+				`deferred-section[data-deferred-id="${sectionId}"]`,
+			);
+			if (!section) return;
+
+			const tryPush = () => {
+				const ins = section.querySelector('ins.adsbygoogle');
+				if (!ins || ins.hasAttribute('data-adsbygoogle-status')) return;
+				try {
+					(window.adsbygoogle = window.adsbygoogle || []).push({});
+				} catch (e) {
+					console.warn('[DeferredAdsense] push failed', e);
+				}
+			};
+
+			if (section.classList.contains('loaded')) {
+				tryPush();
+				return;
+			}
+
+			const mo = new MutationObserver(() => {
+				if (section.classList.contains('loaded')) {
+					tryPush();
+					mo.disconnect();
+				}
+			});
+			mo.observe(section, {
+				attributes: true,
+				attributeFilter: ['class'],
+			});
+		};
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', fire);
+		} else {
+			fire();
+		}
+	})();
+</script>

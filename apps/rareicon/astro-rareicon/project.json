@@ -1,0 +1,89 @@
+{
+	"name": "astro-rareicon",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/rareicon/astro-rareicon/src",
+	"tags": [],
+	"targets": {
+		"proto": {
+			"executor": "nx:run-commands",
+			"inputs": ["{workspaceRoot}/packages/data/proto/rareicon/*.proto"],
+			"outputs": ["{projectRoot}/src/generated/proto"],
+			"options": {
+				"command": "buf generate packages/data/proto --template apps/rareicon/astro-rareicon/buf.gen.yaml",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": [
+					"rm -rf .astro",
+					"nx exec -- astro sync",
+					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro dev"
+				],
+				"parallel": false
+			}
+		},
+		"build": {
+			"executor": "nx:run-commands",
+			"outputs": ["{workspaceRoot}/dist/apps/astro-rareicon"],
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": [
+					"rm -rf .astro",
+					"nx exec -- astro sync",
+					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro build"
+				],
+				"parallel": false
+			},
+			"cache": true
+		},
+		"preview": {
+			"dependsOn": [
+				{
+					"target": "build",
+					"projects": "self"
+				}
+			],
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": ["nx exec -- astro preview"],
+				"parallel": false
+			}
+		},
+		"check": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": ["nx exec -- astro check"],
+				"parallel": false
+			}
+		},
+		"sync": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": ["nx exec -- astro sync"],
+				"parallel": false
+			}
+		},
+		"proto:lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "buf lint packages/data/proto",
+				"cwd": "{workspaceRoot}"
+			}
+		},
+		"proto:clean": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "rm -rf apps/rareicon/astro-rareicon/src/generated/proto && mkdir -p apps/rareicon/astro-rareicon/src/generated/proto",
+				"cwd": "{workspaceRoot}"
+			}
+		}
+	}
+}

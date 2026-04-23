@@ -26,7 +26,7 @@ import DeferredSVGLogo from '@/components/kbve/DeferredSVGLogo.astro';
 import DeferredKBVEComicSocials from '@/components/kbve/DeferredKBVEComicSocials.astro';
 import DeferredProjectGallery from '@/components/kbve/DeferredProjectGallery.astro';
 import DeferredFeature from '@/components/kbve/DeferredFeature.astro';
-import Adsense from '@/components/astropad/adsense/Adsense.astro';
+import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
 import ObserverCollections from '@kbve/astro/components/hero/observer/ObserverCollections.astro';
 import ObserverSelection from '@kbve/astro/components/hero/observer/ObserverSelection.astro';
 
@@ -37,6 +37,7 @@ import ObserverSelection from '@kbve/astro/components/hero/observer/ObserverSele
 >
     <ObserverSelection heading="Welcome" image="https://images.unsplash.com/photo-1479669732031-affb2ce2d265?q=80">
         <DeferredSVGLogo />
+        <DeferredAdsense label="Sponsored" />
     </ObserverSelection>
     <ObserverSelection heading="Community" image="https://images.unsplash.com/photo-1512424113276-fa9f6a112384?q=80">
         <DeferredKBVEComicSocials />
@@ -58,6 +59,7 @@ import ObserverSelection from '@kbve/astro/components/hero/observer/ObserverSele
     </ObserverSelection>
     <ObserverSelection heading="Features" video="https://www.youtube.com/watch?v=aT66uumZ0Zo">
         <DeferredFeature />
+        <DeferredAdsense label="Sponsored" />
     </ObserverSelection>
     <ObserverSelection heading="Projects" image="https://images.unsplash.com/photo-1502134249126-9f3755a50d78?q=80">
         <DeferredProjectGallery />

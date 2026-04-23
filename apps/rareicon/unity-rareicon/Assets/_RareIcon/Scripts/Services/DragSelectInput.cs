@@ -2,6 +2,7 @@ using System;
 using MessagePipe;
 using R3;
 using Unity.Mathematics;
+using VContainer;
 using VContainer.Unity;
 
 namespace RareIcon
@@ -11,31 +12,63 @@ namespace RareIcon
     {
         readonly IMouseStateSource _mouse;
         readonly IPublisher<SelectionDragMessage> _dragPub;
+        readonly AppStateController _appState;
 
-        IDisposable _sub;
+        readonly CompositeDisposable _disposables = new();
 
-        public DragSelectInput(IMouseStateSource mouse,
-                               IPublisher<SelectionDragMessage> dragPub)
+
+        const float MinDragDistanceSq = 0.01f;
+
+        [Inject]
+        public DragSelectInput(
+            IMouseStateSource mouse,
+            IPublisher<SelectionDragMessage> dragPub,
+            AppStateController appState)
         {
             _mouse = mouse;
             _dragPub = dragPub;
+            _appState = appState;
         }
 
         public void Start()
         {
-            _sub = _mouse.Current.Subscribe(OnSnapshot);
+            _mouse.Current
+                .Subscribe(OnSnapshot)
+                .AddTo(_disposables);
         }
 
         void OnSnapshot(MouseSnapshot snap)
         {
-            if (!snap.DragEndedThisFrame) return;
-            if (snap.OverUI) return;
+            if (!ShouldPublishDrag(snap))
+                return;
 
             var min = math.min(snap.PressWorldPos, snap.WorldPos);
             var max = math.max(snap.PressWorldPos, snap.WorldPos);
+
             _dragPub.Publish(new SelectionDragMessage(min, max));
         }
 
-        public void Dispose() => _sub?.Dispose();
+        bool ShouldPublishDrag(in MouseSnapshot snap)
+        {
+            if (!snap.DragEndedThisFrame)
+                return false;
+
+            if (snap.OverUI)
+                return false;
+
+            if (!_appState.CanAcceptWorldInput())
+                return false;
+
+            var delta = snap.WorldPos - snap.PressWorldPos;
+            if (math.lengthsq(delta) < MinDragDistanceSq)
+                return false;
+
+            return true;
+        }
+
+        public void Dispose()
+        { 
+            _disposables.Dispose();
+        }
     }
 }

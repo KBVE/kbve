@@ -1,0 +1,113 @@
+---
+import ReactLoginButtons from './ReactLoginButtons';
+---
+
+<div class="ri-auth-container">
+	<div class="ri-auth-content">
+		<h2>Enter the Realm</h2>
+		<p class="ri-auth-desc">
+			Sign in to save your progress, forge alliances, and compete on the
+			leaderboards.
+		</p>
+
+		<ReactLoginButtons client:load />
+
+		<div class="ri-auth-info">
+			<p>
+				By signing in, you agree to our Terms of Service and Privacy
+				Policy.
+			</p>
+		</div>
+	</div>
+</div>
+
+<style is:global>
+	.ri-auth-container {
+		max-width: 500px;
+		margin: 2rem auto;
+		padding: 2rem 1rem;
+	}
+
+	.ri-auth-content {
+		text-align: center;
+	}
+
+	.ri-auth-content h2 {
+		font-family: var(--sl-font);
+		color: var(--ri-text-primary);
+		margin-bottom: 1rem;
+	}
+
+	.ri-auth-desc {
+		color: var(--sl-color-gray-2);
+		margin-bottom: 2rem;
+		line-height: 1.6;
+	}
+
+	.ri-auth-buttons {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin-bottom: 2rem;
+		min-height: 120px;
+	}
+
+	.ri-auth-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		padding: 0.875rem 1.5rem;
+		border: 1px solid var(--sl-color-hairline-light);
+		border-radius: 4px;
+		font-family: 'Lora', serif;
+		font-size: 1rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.ri-auth-btn:hover:not(:disabled) {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 16px rgba(212, 164, 76, 0.15);
+	}
+
+	.ri-auth-btn:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+
+	.ri-auth-btn--github {
+		background: #24292e;
+		color: white;
+	}
+
+	.ri-auth-btn--github:hover:not(:disabled) {
+		background: #2f363d;
+		border-color: var(--ri-accent-hover);
+	}
+
+	.ri-auth-btn--discord {
+		background: #5865f2;
+		color: white;
+	}
+
+	.ri-auth-btn--discord:hover:not(:disabled) {
+		background: #4752c4;
+		border-color: var(--ri-accent-hover);
+	}
+
+	.ri-auth-icon {
+		width: 20px;
+		height: 20px;
+	}
+
+	.ri-auth-info {
+		color: var(--sl-color-gray-3);
+		font-size: 0.875rem;
+	}
+
+	.ri-auth-info p {
+		margin: 0;
+	}
+</style>

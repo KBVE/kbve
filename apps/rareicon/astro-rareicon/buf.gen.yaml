@@ -1,0 +1,20 @@
+version: v2
+plugins:
+    # TypeScript interfaces (snake_case field names)
+    - remote: buf.build/community/stephenh-ts-proto
+      out: apps/rareicon/astro-rareicon/src/generated/proto
+      opt:
+          - esModuleInterop=true
+          - importSuffix=.js
+          - outputServices=false
+          - oneof=unions
+          - enumsAsLiterals=true
+          - stringEnums=true
+          - useOptionals=messages
+          - useExactTypes=true
+          - exportCommonSymbols=true
+          - removeEnumPrefix=true
+          - snakeToCamel=false
+    # JSON Schema generation (uncomment when codegen pipeline is automated)
+    # - remote: buf.build/bufbuild/protoschema-jsonschema
+    #   out: apps/kbve/astro-kbve/src/generated/jsonschema

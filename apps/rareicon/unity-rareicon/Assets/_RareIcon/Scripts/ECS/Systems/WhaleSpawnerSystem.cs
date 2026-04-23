@@ -15,9 +15,12 @@ namespace RareIcon
         float _timer;
         uint  _rng = 0xCAFEB0B5u;
 
+        EntityQuery _whaleQuery;
+
         protected override void OnCreate()
         {
             RequireForUpdate<HexLookupSingleton>();
+            _whaleQuery = GetEntityQuery(ComponentType.ReadOnly<WhaleTag>());
         }
 
         protected override void OnUpdate()
@@ -26,9 +29,7 @@ namespace RareIcon
             if (_timer < Interval) return;
             _timer = 0f;
 
-            int alive = 0;
-            foreach (var _ in SystemAPI.Query<RefRO<WhaleTag>>()) alive++;
-            if (alive >= MaxWhales) return;
+            if (_whaleQuery.CalculateEntityCount() >= MaxWhales) return;
 
             var em = EntityManager;
             var lookup = SystemAPI.GetSingleton<HexLookupSingleton>().Lookup;

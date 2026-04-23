@@ -1,0 +1,1138 @@
+{
+	"version": 1,
+	"generated_at": "2026-04-23T19:32:30.974Z",
+	"count": 37,
+	"entries": [
+		{
+			"id": "01JGFJK3W80FJCB5TZTJ49J3BT",
+			"ref": "adamantine-vein",
+			"drafted": false,
+			"name": "Adamantine Vein",
+			"description": "An impenetrable adamantine deposit with razor edged crystalline facets",
+			"type": "resource_node",
+			"sub_kind": "adamantine_ore",
+			"img": "/assets/mapdb/metal/adamantine/adamantine_vein.png",
+			"interactable": true,
+			"destructible": true,
+			"harvest_yield": 6,
+			"max_amount": 150,
+			"initial_amount": 150,
+			"harvest_time_ms": 8500,
+			"spawn_weight": 0.05,
+			"spawn_count": 4
+		},
+		{
+			"id": "01KPTS5CHAZTHAZEJ7FG7ZHMCJ",
+			"ref": "barracks",
+			"drafted": false,
+			"name": "Barracks",
+			"description": "A fortified hall with timber-framed upper story, tiled roof, and a heraldic insignia over the door. Recruits soldiers, crafts arrows, heals the wounded.",
+			"type": "building",
+			"sub_kind": "barracks",
+			"interactable": true,
+			"destructible": true,
+			"blocks_movement": true,
+			"blocks_placement": true,
+			"max_health": 400,
+			"footprint_width": 1,
+			"footprint_height": 1,
+			"footprint_shape": "rectangular",
+			"construction_time_secs": 40,
+			"spawns_fully_built": false,
+			"requires_in_territory": true,
+			"cost_source": "faction_treasury",
+			"build_costs": [
+				{
+					"resource_type": "timber",
+					"amount": 3
+				},
+				{
+					"resource_type": "stone-block",
+					"amount": 3
+				}
+			],
+			"services": [
+				{
+					"kind": "healing",
+					"priority": 2,
+					"capacity": 0
+				},
+				{
+					"kind": "sleep",
+					"priority": 0,
+					"capacity": 5
+				},
+				{
+					"kind": "food",
+					"priority": 1,
+					"capacity": 0
+				}
+			],
+			"recipes": [
+				{
+					"inputs": [
+						{
+							"item_ref": "wood-log",
+							"amount": 1
+						},
+						{
+							"item_ref": "cacti-needle",
+							"amount": 1
+						},
+						{
+							"item_ref": "stone",
+							"amount": 1
+						}
+					],
+					"outputs": [
+						{
+							"item_ref": "arrow",
+							"amount": 10
+						}
+					],
+					"cycle_secs": 18,
+					"pulls_from_treasury": false
+				}
+			],
+			"surplus": [
+				{
+					"item_ref": "arrow",
+					"floor": 20
+				}
+			],
+			"population_spawn": {
+				"spawn_entity_ref": "soldier",
+				"cadence_turns": 3,
+				"cost_per_spawn": {
+					"item_ref": "coin",
+					"amount": 10
+				},
+				"storage_cap": 50
+			}
+		},
+		{
+			"id": "01KPTS5CHATHAX6Z8XFNC5X88J",
+			"ref": "capital",
+			"drafted": false,
+			"name": "Capital",
+			"description": "The seat of the empire — a 7-hex flower of walls, banners, and the king's hall. Bootstraps an entire civilization from a single scroll.",
+			"type": "building",
+			"sub_kind": "capital",
+			"interactable": true,
+			"destructible": true,
+			"blocks_movement": true,
+			"blocks_placement": true,
+			"max_health": 600,
+			"footprint_width": 3,
+			"footprint_height": 3,
+			"footprint_shape": "hex_flower",
+			"construction_time_secs": 0,
+			"spawns_fully_built": true,
+			"requires_in_territory": false,
+			"cost_source": "owner_inventory",
+			"build_costs": [
+				{
+					"resource_type": "capital-land-grant",
+					"amount": 1
+				}
+			],
+			"services": [
+				{
+					"kind": "food",
+					"priority": 3,
+					"capacity": 0
+				},
+				{
+					"kind": "sleep",
+					"priority": 0,
+					"capacity": 255
+				}
+			],
+			"territory": {
+				"radius": 4
+			},
+			"recipes": [
+				{
+					"inputs": [
+						{
+							"item_ref": "wood-log",
+							"amount": 1
+						},
+						{
+							"item_ref": "cacti-needle",
+							"amount": 1
+						},
+						{
+							"item_ref": "stone",
+							"amount": 1
+						}
+					],
+					"outputs": [
+						{
+							"item_ref": "arrow",
+							"amount": 10
+						}
+					],
+					"cycle_secs": 18,
+					"pulls_from_treasury": false
+				},
+				{
+					"inputs": [
+						{
+							"item_ref": "leaves",
+							"amount": 2
+						},
+						{
+							"item_ref": "branches",
+							"amount": 1
+						}
+					],
+					"outputs": [
+						{
+							"item_ref": "compost",
+							"amount": 1
+						}
+					],
+					"cycle_secs": 2,
+					"pulls_from_treasury": false
+				}
+			]
+		},
+		{
+			"id": "01K77XRVXZCQP3Z9KG8KNX91GE",
+			"ref": "coal-vein",
+			"drafted": false,
+			"name": "Coal Vein",
+			"description": "A compressed seam of coal embedded within stratified shale",
+			"type": "resource_node",
+			"sub_kind": "coal",
+			"img": "/assets/mapdb/stone/coal/coal_vein.png",
+			"interactable": true,
+			"destructible": true,
+			"harvest_yield": 8,
+			"max_amount": 160,
+			"initial_amount": 160,
+			"harvest_time_ms": 3500,
+			"spawn_weight": 0.35,
+			"spawn_count": 18
+		},
+		{
+			"id": "01K77XRVXYKWCDZQ369V21B3CV",
+			"ref": "cobalt-vein",
+			"drafted": false,
+			"name": "Cobalt Vein",
+			"description": "A rare cobalt ore vein threaded with luminescent blue crystals",
+			"type": "resource_node",
+			"sub_kind": "cobalt_ore",
+			"img": "/assets/mapdb/metal/cobalt/cobalt_vein.png",
+			"interactable": true,
+			"destructible": true,
+			"harvest_yield": 4,
+			"max_amount": 90,
+			"initial_amount": 90,
+			"harvest_time_ms": 5500,
+			"spawn_weight": 0.12,
+			"spawn_count": 6
+		},
+		{
+			"id": "01K6VMX51PRY6G9PD8WVGY5T5W",
+			"ref": "copper-vein",
+			"drafted": false,
+			"name": "Copper Vein",
+			"description": "A rich copper ore deposit embedded in rocky terrain",
+			"type": "resource_node",
+			"sub_kind": "copper_ore",
+			"img": "/assets/mapdb/metal/copper/copper_vein.png",
+			"interactable": true,
+			"destructible": true,
+			"harvest_yield": 3,
+			"max_amount": 75,
+			"initial_amount": 75,
+			"harvest_time_ms": 4000,
+			"spawn_weight": 0.25,
+			"spawn_count": 15
+		},
+		{
+			"id": "01KPTS5CHA6912A2RTMRV442ZD",
+			"ref": "dock",
+			"drafted": false,
+			"name": "Dock",
+			"description": "Wooden pilings rising from the river, planked deck, fisherman's shack with a lantern. River-only — passive fishing plus boat construction when a Craftsman is on duty.",
+			"type": "building",
+			"sub_kind": "dock",
+			"interactable": true,
+			"destructible": true,
+			"blocks_movement": true,
+			"blocks_placement": true,
+			"max_health": 180,
+			"footprint_width": 1,
+			"footprint_height": 1,
+			"footprint_shape": "rectangular",
+			"construction_time_secs": 20,
+			"spawns_fully_built": false,
+			"requires_in_territory": false,
+			"cost_source": "faction_treasury",
+			"allowed_biomes": [17],
+			"build_costs": [
+				{
+					"resource_type": "timber",
+					"amount": 2
+				}
+			],
+			"services": [
+				{
+					"kind": "food",
+					"priority": 1,
+					"capacity": 0
+				}
+			],
+			"tender": {
+				"profession_ref": "craftsman",
+				"footprint_radius": 0,
+				"required": false
+			},
+			"passive_production": {
+				"output_item_ref": "meat",
+				"output_amount": 2,
+				"cycle_secs": 20,
+				"destination": "treasury"
+			},
+			"population_spawn": {
+				"spawn_entity_ref": "fishing-boat",
+				"cadence_turns": 2,
+				"cost_per_spawn": {
+					"item_ref": "timber",
+					"amount": 1
+				},
+				"storage_cap": 0
+			}
+		},
+		{
+			"id": "01KKR968Q45Y6XCSFTKS3XR2Q7",
+			"ref": "dusty-bazaar",
+			"drafted": false,
+			"name": "Dusty Bazaar",
+			"description": "Trinkets and vials line crooked shelves. A merchant eyes you expectantly from behind a counter made of stacked crates.",
+			"type": "npc_marker",
+			"sub_kind": "merchant",
+			"interactable": true,
+			"destructible": false,
+			"spawn_weight": 0.15,
+			"spawn_count": 1,
+			"blocks_movement": true
+		},
+		{
+			"id": "01KKR968Q3E3325YXY090Z03D1",
+			"ref": "dwarven-outpost",
+			"drafted": false,
+			"name": "Dwarven Outpost",
+			"description": "Sturdy stone buildings cluster around a central well. The smell of cooking drifts from a tavern doorway and hammer strikes ring from a smithy.",
+			"type": "settlement",
+			"sub_kind": "city",
+			"interactable": true,
+			"destructible": false,
+			"spawn_weight": 0.15,
+			"spawn_count": 1,
+			"blocks_movement": true
+		},
+		{
+			"id": "01KPTS5CHACVAEV4RM5ZJR0854",
+			"ref": "farm",
+			"drafted": false,
+			"name": "Farm",
+			"description": "A tilled plot with a timber-framed barn — the empire's cornerstone for food. Requires a Farmer on the footprint to turn compost into carrots.",
+			"type": "building",
+			"sub_kind": "farm",
+			"interactable": true,
+			"destructible": true,
+			"blocks_movement": true,
+			"blocks_placement": true,
+			"max_health": 200,
+			"footprint_width": 1,
+			"footprint_height": 1,
+			"footprint_shape": "rectangular",
+			"construction_time_secs": 15,
+			"spawns_fully_built": false,
+			"requires_in_territory": true,
+			"cost_source": "faction_treasury",
+			"build_costs": [
+				{
+					"resource_type": "timber",
+					"amount": 1
+				}
+			],
+			"services": [
+				{
+					"kind": "food",
+					"priority": 2,
+					"capacity": 0
+				}
+			],
+			"tender": {
+				"profession_ref": "farmer",
+				"footprint_radius": 1,
+				"required": true
+			},
+			"recipes": [
+				{
+					"inputs": [
+						{
+							"item_ref": "compost",
+							"amount": 1
+						}
+					],
+					"outputs": [
+						{
+							"item_ref": "carrot",
+							"amount": 1
+						}
+					],
+					"cycle_secs": 8,
+					"pulls_from_treasury": false
+				}
+			],
+			"surplus": [
+				{
+					"item_ref": "carrot",
+					"floor": 8
+				},
+				{
+					"item_ref": "egg",
+					"floor": 0
+				},
+				{
+					"item_ref": "milk",
+					"floor": 0
+				},
+				{
+					"item_ref": "wool",
+					"floor": 0
+				},
+				{
+					"item_ref": "meat",
+					"floor": 0
+				}
+			]
+		},
+		{
+			"id": "01KPTS5CHAME66QTQYAN71RQ7M",
+			"ref": "furnace",
+			"drafted": false,
+			"name": "Furnace",
+			"description": "A kiln of stacked stone with a brick chimney belching heat. Smelts ore into ingots and stone into brick whenever it's fed fuel.",
+			"type": "building",
+			"sub_kind": "furnace",
+			"crafting_station_type": "furnace",
+			"interactable": true,
+			"destructible": true,
+			"blocks_movement": true,
+			"blocks_placement": true,
+			"max_health": 300,
+			"footprint_width": 1,
+			"footprint_height": 1,
+			"footprint_shape": "rectangular",
+			"construction_time_secs": 35,
+			"spawns_fully_built": false,
+			"requires_in_territory": true,
+			"cost_source": "faction_treasury",
+			"build_costs": [
+				{
+					"resource_type": "timber",
+					"amount": 2
+				},
+				{
+					"resource_type": "stone-block",
+					"amount": 4
+				}
+			],
+			"recipes": [
+				{
+					"inputs": [
+						{
+							"item_ref": "iron-ore",
+							"amount": 1
+						},
+						{
+							"item_ref": "coal",
+							"amount": 1
+						}
+					],
+					"outputs": [
+						{
+							"item_ref": "iron-ingot",
+							"amount": 1
+						}
+					],
+					"cycle_secs": 6,
+					"pulls_from_treasury": false
+				},
+				{
+					"inputs": [
+						{
+							"item_ref": "stone",
+							"amount": 2
+						},
+						{
+							"item_ref": "coal",
+							"amount": 1
+						}
+					],
+					"outputs": [
+						{
+							"item_ref": "brick",
+							"amount": 1
+						}
+					],
+					"cycle_secs": 5,
+					"pulls_from_treasury": false
+				}
+			],
+			"surplus": [
+				{
+					"item_ref": "iron-ingot",
+					"floor": 0
+				},
+				{
+					"item_ref": "brick",
+					"floor": 0
+				}
+			]
+		},
+		{
+			"id": "01KPTS5CHAHVG40ZKW3CK7ZSD7",
+			"ref": "goblin-cave",
+			"drafted": false,
+			"name": "Goblin Cave",
+			"description": "A mossy rock mound hiding a torch-lit archway. Feed it food and it spits out more goblins.",
+			"type": "building",
+			"sub_kind": "goblin_cave",
+			"interactable": true,
+			"destructible": true,
+			"blocks_movement": true,
+			"blocks_placement": true,
+			"max_health": 350,
+			"footprint_width": 1,
+			"footprint_height": 1,
+			"footprint_shape": "rectangular",
+			"construction_time_secs": 30,
+			"spawns_fully_built": false,
+			"requires_in_territory": true,
+			"cost_source": "faction_treasury",
+			"build_costs": [
+				{
+					"resource_type": "timber",
+					"amount": 1
+				},
+				{
+					"resource_type": "stone-block",
+					"amount": 5
+				}
+			],
+			"population_spawn": {
+				"spawn_entity_ref": "looter-goblin",
+				"cadence_turns": 1,
+				"cost_per_spawn": {
+					"item_ref": "food",
+					"amount": 50
+				},
+				"storage_cap": 200
+			}
+		},
+		{
+			"id": "01K77XRVXZA6WBKCDRD8WHN44V",
+			"ref": "gold-vein",
+			"drafted": false,
+			"name": "Gold Vein",
+			"description": "A gleaming gold vein encased in dense granite and pyrite inclusions",
+			"type": "resource_node",
+			"sub_kind": "gold_ore",
+			"img": "/assets/mapdb/metal/gold/gold_vein.png",
+			"interactable": true,
+			"destructible": true,
+			"harvest_yield": 3,
+			"max_amount": 80,
+			"initial_amount": 80,
+			"harvest_time_ms": 7000,
+			"spawn_weight": 0.08,
+			"spawn_count": 4
+		},
+		{
+			"id": "01KPTS5CHARHK7H654ZECCMQ3C",
+			"ref": "inn",
+			"drafted": false,
+			"name": "Inn",
+			"description": "A half-timbered tavern with warm-glow windows and a tiled roof. Feeds travellers, houses the weary, keeps the fire going no matter the hour.",
+			"type": "building",
+			"sub_kind": "inn",
+			"interactable": true,
+			"destructible": true,
+			"blocks_movement": true,
+			"blocks_placement": true,
+			"max_health": 280,
+			"footprint_width": 1,
+			"footprint_height": 1,
+			"footprint_shape": "rectangular",
+			"construction_time_secs": 30,
+			"spawns_fully_built": false,
+			"requires_in_territory": true,
+			"cost_source": "faction_treasury",
+			"build_costs": [
+				{
+					"resource_type": "timber",
+					"amount": 3
+				},
+				{
+					"resource_type": "stone-block",
+					"amount": 2
+				}
+			],
+			"services": [
+				{
+					"kind": "food",
+					"priority": 1,
+					"capacity": 0
+				},
+				{
+					"kind": "sleep",
+					"priority": 0,
+					"capacity": 5
+				}
+			]
+		},
+		{
+			"id": "01K6VCVSRH21PSEXJKSGRC1JYG",
+			"ref": "iron-vein",
+			"drafted": false,
+			"name": "Iron Vein",
+			"description": "A dense iron ore deposit with rich metallic veins running through granite",
+			"type": "resource_node",
+			"sub_kind": "iron_ore",
+			"img": "/assets/mapdb/metal/iron/iron_vein.png",
+			"interactable": true,
+			"destructible": true,
+			"harvest_yield": 5,
+			"max_amount": 125,
+			"initial_amount": 125,
+			"harvest_time_ms": 6000,
+			"spawn_weight": 0.15,
+			"spawn_count": 8
+		},
+		{
+			"id": "01JGFJK0YG1DQWMN778BSG7F7M",
+			"ref": "jade-crystal",
+			"drafted": false,
+			"name": "Jade Crystal",
+			"description": "A verdant jade crystal pillar infused with restorative earth energies",
+			"type": "resource_node",
+			"sub_kind": "jade",
+			"img": "/assets/mapdb/stone/jade/jade_crystal.png",
+			"interactable": true,
+			"destructible": true,
+			"harvest_yield": 3,
+			"max_amount": 65,
+			"initial_amount": 65,
+			"harvest_time_ms": 4000,
+			"spawn_weight": 0.18,
+			"spawn_count": 14
+		},
+		{
+			"id": "01KPTS5CHAZKRDYDP6MR8Y2YNQ",
+			"ref": "lumbercamp",
+			"drafted": false,
+			"name": "Lumbercamp",
+			"description": "A log cabin with stacked firewood, a chopping stump, and a steel axe buried in the block. Forest-only building — converts Lumberjack labour into logs.",
+			"type": "building",
+			"sub_kind": "lumbercamp",
+			"interactable": true,
+			"destructible": true,
+			"blocks_movement": true,
+			"blocks_placement": true,
+			"max_health": 200,
+			"footprint_width": 1,
+			"footprint_height": 1,
+			"footprint_shape": "rectangular",
+			"construction_time_secs": 20,
+			"spawns_fully_built": false,
+			"requires_in_territory": true,
+			"cost_source": "faction_treasury",
+			"allowed_biomes": [2],
+			"build_costs": [
+				{
+					"resource_type": "timber",
+					"amount": 2
+				},
+				{
+					"resource_type": "stone-block",
+					"amount": 1
+				}
+			],
+			"tender": {
+				"profession_ref": "lumberjack",
+				"footprint_radius": 0,
+				"required": true
+			},
+			"recipes": [
+				{
+					"outputs": [
+						{
+							"item_ref": "wood-log",
+							"amount": 1
+						}
+					],
+					"cycle_secs": 3,
+					"pulls_from_treasury": false
+				}
+			],
+			"surplus": [
+				{
+					"item_ref": "wood-log",
+					"floor": 0
+				}
+			]
+		},
+		{
+			"id": "01KPTS5CHAPAK4KYSQKVKJYB5K",
+			"ref": "market",
+			"drafted": false,
+			"name": "Market",
+			"description": "An open wooden stall with a striped canvas awning and a trestle table of goods. First rung of a three-tier commerce chain — Market → Trade House → Merchants Guild.",
+			"type": "building",
+			"sub_kind": "market",
+			"interactable": true,
+			"destructible": true,
+			"blocks_movement": true,
+			"blocks_placement": true,
+			"max_health": 140,
+			"footprint_width": 1,
+			"footprint_height": 1,
+			"footprint_shape": "rectangular",
+			"construction_time_secs": 20,
+			"spawns_fully_built": false,
+			"requires_in_territory": true,
+			"cost_source": "faction_treasury",
+			"build_costs": [
+				{
+					"resource_type": "timber",
+					"amount": 2
+				},
+				{
+					"resource_type": "stone-block",
+					"amount": 1
+				}
+			],
+			"services": [
+				{
+					"kind": "merchant",
+					"priority": 1,
+					"capacity": 0
+				}
+			],
+			"upgrade_chain": {
+				"tiers": [
+					{
+						"next_def_ref": "trade-house",
+						"costs": [
+							{
+								"item_ref": "gold-bar",
+								"amount": 5
+							}
+						]
+					},
+					{
+						"next_def_ref": "merchants-guild",
+						"costs": [
+							{
+								"item_ref": "gold-bar",
+								"amount": 50
+							}
+						]
+					}
+				]
+			}
+		},
+		{
+			"id": "01KPTS5CHAF80QS53R33ZZQN6K",
+			"ref": "mining-pit",
+			"drafted": false,
+			"name": "Mining Pit",
+			"description": "A timber A-frame over a dark pit mouth with a rope-and-bucket rig hanging in the centre. Sand-biome only — converts Miner labour into stone.",
+			"type": "building",
+			"sub_kind": "mining_pit",
+			"interactable": true,
+			"destructible": true,
+			"blocks_movement": true,
+			"blocks_placement": true,
+			"max_health": 220,
+			"footprint_width": 1,
+			"footprint_height": 1,
+			"footprint_shape": "rectangular",
+			"construction_time_secs": 20,
+			"spawns_fully_built": false,
+			"requires_in_territory": true,
+			"cost_source": "faction_treasury",
+			"allowed_biomes": [3],
+			"build_costs": [
+				{
+					"resource_type": "timber",
+					"amount": 3
+				}
+			],
+			"tender": {
+				"profession_ref": "miner",
+				"footprint_radius": 0,
+				"required": true
+			},
+			"recipes": [
+				{
+					"outputs": [
+						{
+							"item_ref": "stone",
+							"amount": 1
+						}
+					],
+					"cycle_secs": 3,
+					"pulls_from_treasury": false
+				}
+			],
+			"surplus": [
+				{
+					"item_ref": "stone",
+					"floor": 0
+				}
+			]
+		},
+		{
+			"id": "01KKR968Q4NN0H3KDCJ4SYGC4T",
+			"ref": "mirror-chamber",
+			"drafted": false,
+			"name": "Mirror Chamber",
+			"description": "Your reflection moves on its own. It beckons you closer, mimicking actions you haven't taken yet.",
+			"type": "landmark",
+			"sub_kind": "landmark",
+			"interactable": true,
+			"destructible": false,
+			"spawn_weight": 0.15,
+			"spawn_count": 1,
+			"blocks_movement": true
+		},
+		{
+			"id": "01JGFJK2X0ESVHM04JRZ7NMDMZ",
+			"ref": "mithril-vein",
+			"drafted": false,
+			"name": "Mithril Vein",
+			"description": "A shimmering mithril seam interwoven with ethereal silver-blue threads",
+			"type": "resource_node",
+			"sub_kind": "mithril_ore",
+			"img": "/assets/mapdb/metal/mithril/mithril_vein.png",
+			"interactable": true,
+			"destructible": true,
+			"harvest_yield": 4,
+			"max_amount": 90,
+			"initial_amount": 90,
+			"harvest_time_ms": 6000,
+			"spawn_weight": 0.1,
+			"spawn_count": 7
+		},
+		{
+			"id": "01KKR968Q3PR5VCDTZWC666CZP",
+			"ref": "mushroom-bazaar",
+			"drafted": false,
+			"name": "Mushroom Bazaar",
+			"description": "Giant luminescent fungi provide light while merchants sell goods from stalls carved into massive stalks. A cozy inn glows warmly in the largest mushroom cap.",
+			"type": "settlement",
+			"sub_kind": "city",
+			"interactable": true,
+			"destructible": false,
+			"spawn_weight": 0.15,
+			"spawn_count": 1,
+			"blocks_movement": true
+		},
+		{
+			"id": "01JCKH7M9K2XQZW3P4R5S6T7V8",
+			"ref": "oak-tree",
+			"drafted": false,
+			"name": "Oak Tree",
+			"description": "A sturdy oak tree that provides wood when harvested",
+			"type": "resource_node",
+			"sub_kind": "oak",
+			"img": "/assets/mapdb/tree/oak/oak_tree.png",
+			"interactable": true,
+			"destructible": true,
+			"harvest_yield": 5,
+			"max_amount": 100,
+			"initial_amount": 100,
+			"harvest_time_ms": 2500,
+			"spawn_weight": 0.4,
+			"spawn_count": 50
+		},
+		{
+			"id": "01KPTS5CHA2Q7TXEABG26VJA9Y",
+			"ref": "outpost",
+			"drafted": false,
+			"name": "Outpost",
+			"description": "A stone watchtower with a crenellated parapet, heraldic banner, and an arrow volley pool in the cellar. Anchors empire territory outside the Capital's radius.",
+			"type": "building",
+			"sub_kind": "outpost",
+			"interactable": true,
+			"destructible": true,
+			"blocks_movement": true,
+			"blocks_placement": true,
+			"max_health": 220,
+			"footprint_width": 1,
+			"footprint_height": 1,
+			"footprint_shape": "rectangular",
+			"construction_time_secs": 30,
+			"spawns_fully_built": false,
+			"requires_in_territory": false,
+			"cost_source": "faction_treasury",
+			"build_costs": [
+				{
+					"resource_type": "timber",
+					"amount": 2
+				},
+				{
+					"resource_type": "stone-block",
+					"amount": 2
+				}
+			],
+			"services": [
+				{
+					"kind": "food",
+					"priority": 1,
+					"capacity": 0
+				},
+				{
+					"kind": "sleep",
+					"priority": 0,
+					"capacity": 10
+				},
+				{
+					"kind": "healing",
+					"priority": 1,
+					"capacity": 0
+				}
+			],
+			"territory": {
+				"radius": 5
+			},
+			"ranged_attack": {
+				"cooldown_secs": 30,
+				"range": 15,
+				"shots_per_volley": 20,
+				"ammo_per_volley_cost": 5,
+				"damage_per_shot": 8,
+				"spread_half_angle_rad": 0.52,
+				"projectile_speed": 14,
+				"projectile_lifetime": 3,
+				"projectile_ref": "arrow",
+				"ammo_capacity": 100
+			}
+		},
+		{
+			"id": "01KKR968Q4PT9FJDMFW7PZK87T",
+			"ref": "prismatic-throne",
+			"drafted": false,
+			"name": "The Prismatic Throne",
+			"description": "An enormous chamber. At its center, a throne of living glass pulses with prismatic light. Something ancient awakens as you enter.",
+			"type": "arena",
+			"sub_kind": "boss_arena",
+			"interactable": true,
+			"destructible": false,
+			"spawn_weight": 0.15,
+			"spawn_count": 1,
+			"blocks_movement": true
+		},
+		{
+			"id": "01KKR968Q35GKEGY6CWQW4SYN5",
+			"ref": "quiet-spring",
+			"drafted": false,
+			"name": "Quiet Spring",
+			"description": "Clear water bubbles up from a crack in the stone. Its warmth is soothing and its touch heals wounds with unnatural speed.",
+			"type": "resource_node",
+			"sub_kind": "water",
+			"interactable": true,
+			"destructible": false,
+			"spawn_weight": 0.15,
+			"spawn_count": 1,
+			"blocks_movement": true
+		},
+		{
+			"id": "01JCKH7M9K2XQZW3P4R5S6T7V9",
+			"ref": "redwood-tree",
+			"drafted": false,
+			"name": "Redwood Tree",
+			"description": "A massive ancient redwood tree that provides abundant wood",
+			"type": "resource_node",
+			"sub_kind": "redwood",
+			"img": "/assets/mapdb/tree/redwood/redwood_tree.png",
+			"interactable": true,
+			"destructible": true,
+			"harvest_yield": 10,
+			"max_amount": 200,
+			"initial_amount": 200,
+			"harvest_time_ms": 4000,
+			"spawn_weight": 0.2,
+			"spawn_count": 25
+		},
+		{
+			"id": "01JGFJJZ004YYK6HBZYQBRYQA9",
+			"ref": "ruby-crystal",
+			"drafted": false,
+			"name": "Ruby Crystal",
+			"description": "A luminous ruby crystal cluster radiating intense heat and magical energy",
+			"type": "resource_node",
+			"sub_kind": "ruby",
+			"img": "/assets/mapdb/stone/ruby/ruby_crystal.png",
+			"interactable": true,
+			"destructible": true,
+			"harvest_yield": 2,
+			"max_amount": 60,
+			"initial_amount": 60,
+			"harvest_time_ms": 5000,
+			"spawn_weight": 0.12,
+			"spawn_count": 10
+		},
+		{
+			"id": "01K77XRVXZD0TANBNGTY28WTBZ",
+			"ref": "salt-vein",
+			"drafted": false,
+			"name": "Salt Vein",
+			"description": "A crystalline salt vein crystallized within chalky limestone",
+			"type": "resource_node",
+			"sub_kind": "salt",
+			"img": "/assets/mapdb/stone/salt/salt_vein.png",
+			"interactable": true,
+			"destructible": true,
+			"harvest_yield": 7,
+			"max_amount": 140,
+			"initial_amount": 140,
+			"harvest_time_ms": 3000,
+			"spawn_weight": 0.28,
+			"spawn_count": 14
+		},
+		{
+			"id": "01JGFJJZZ81C92ED5YECM6QJZ4",
+			"ref": "sapphire-crystal",
+			"drafted": false,
+			"name": "Sapphire Crystal",
+			"description": "A serene sapphire crystal cluster humming with focused elemental water energy",
+			"type": "resource_node",
+			"sub_kind": "sapphire",
+			"img": "/assets/mapdb/stone/sapphire/sapphire_crystal.png",
+			"interactable": true,
+			"destructible": true,
+			"harvest_yield": 2,
+			"max_amount": 55,
+			"initial_amount": 55,
+			"harvest_time_ms": 4500,
+			"spawn_weight": 0.14,
+			"spawn_count": 12
+		},
+		{
+			"id": "01KKR968Q4VXMSYYTZAXXE7AJE",
+			"ref": "shattered-crown",
+			"drafted": false,
+			"name": "The Shattered Crown",
+			"description": "Fragments of a massive crystal orbit the room in slow arcs. Power radiates from within, ancient and terrible.",
+			"type": "arena",
+			"sub_kind": "boss_arena",
+			"interactable": true,
+			"destructible": false,
+			"spawn_weight": 0.15,
+			"spawn_count": 1,
+			"blocks_movement": true
+		},
+		{
+			"id": "01K77XRVXZRQ0M7DHJWAFA7NPD",
+			"ref": "silver-vein",
+			"drafted": false,
+			"name": "Silver Vein",
+			"description": "A shimmering silver ore vein threaded through quartz-laced rock",
+			"type": "resource_node",
+			"sub_kind": "silver_ore",
+			"img": "/assets/mapdb/metal/silver/silver_vein.png",
+			"interactable": true,
+			"destructible": true,
+			"harvest_yield": 6,
+			"max_amount": 110,
+			"initial_amount": 110,
+			"harvest_time_ms": 5000,
+			"spawn_weight": 0.18,
+			"spawn_count": 10
+		},
+		{
+			"id": "01KKR968Q1TR2VCZ17FSZPF1N7",
+			"ref": "sunken-market",
+			"drafted": false,
+			"name": "The Sunken Market",
+			"description": "An underground market carved into ancient stone, lit by rows of flickering torches. Merchants hawk wares from hollowed alcoves while an inn sign creaks overhead.",
+			"type": "settlement",
+			"sub_kind": "city",
+			"interactable": true,
+			"destructible": false,
+			"spawn_weight": 0.15,
+			"spawn_count": 1,
+			"blocks_movement": true
+		},
+		{
+			"id": "01KKR968Q4DZJBW6RMZPNMRHQH",
+			"ref": "the-still-pool",
+			"drafted": false,
+			"name": "The Still Pool",
+			"description": "A dark pool of water fills the center of the room. Its surface is perfectly still. Shapes move beneath, watching.",
+			"type": "landmark",
+			"sub_kind": "landmark",
+			"interactable": true,
+			"destructible": false,
+			"spawn_weight": 0.15,
+			"spawn_count": 1,
+			"blocks_movement": true
+		},
+		{
+			"id": "01JGFJK1XRK67CXHJ94TCJRGE5",
+			"ref": "uranium-vein",
+			"drafted": false,
+			"name": "Uranium Vein",
+			"description": "A volatile uranium deposit pulsing with unstable green luminescence",
+			"type": "resource_node",
+			"sub_kind": "uranium_ore",
+			"img": "/assets/mapdb/metal/uranium/uranium_vein.png",
+			"interactable": true,
+			"destructible": true,
+			"harvest_yield": 4,
+			"max_amount": 120,
+			"initial_amount": 120,
+			"harvest_time_ms": 7500,
+			"spawn_weight": 0.08,
+			"spawn_count": 6
+		},
+		{
+			"id": "01KKR968Q4AZ64PFQ037DPG83T",
+			"ref": "wanderers-nook",
+			"drafted": false,
+			"name": "Wanderer's Nook",
+			"description": "A cloaked figure beckons from behind a makeshift stall wedged into a dungeon alcove. The goods are questionable. The prices are worse.",
+			"type": "npc_marker",
+			"sub_kind": "merchant",
+			"interactable": true,
+			"destructible": false,
+			"spawn_weight": 0.15,
+			"spawn_count": 1,
+			"blocks_movement": true
+		},
+		{
+			"id": "01KKR968Q4RQT5ANJZHG8KG71D",
+			"ref": "whispering-hall",
+			"drafted": false,
+			"name": "Whispering Hall",
+			"description": "Voices echo from nowhere. The walls seem to breathe, whispering fragments of conversations from ages past.",
+			"type": "landmark",
+			"sub_kind": "landmark",
+			"interactable": true,
+			"destructible": false,
+			"spawn_weight": 0.15,
+			"spawn_count": 1,
+			"blocks_movement": true
+		}
+	]
+}

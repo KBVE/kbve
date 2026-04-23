@@ -30,9 +30,7 @@ namespace RareIcon
         public readonly ushort UnitInvId2, UnitInvCount2;
         public readonly ushort UnitInvId3, UnitInvCount3;
 
-        // Identity — per-unit name pool ids (0 if unset) and faction byte
-        // so the hover panel can title the unit by name and colour-code
-        // by allegiance (Player = gold, Hostile = red, Beast = amber).
+        /// <summary> Identity — per-unit name pool ids (0 if unset) and faction byte so the hover panel can title the unit by name and colour-code by allegiance (Player = gold, Hostile = red, Beast = amber). </summary>
         public readonly ushort UnitNameFirstId;
         public readonly ushort UnitNameEpithetId;
         public readonly byte UnitFaction;
@@ -117,6 +115,16 @@ namespace RareIcon
         }
     }
 
+    public readonly struct NetworkDisconnectedMessage
+    {
+        public readonly bool IsRecoverable;
+
+        public NetworkDisconnectedMessage(bool isRecoverable)
+        {
+            IsRecoverable = isRecoverable;
+        }
+    }
+
     public readonly struct PanelShowMessage
     {
         public readonly string PanelKey;
@@ -139,8 +147,7 @@ namespace RareIcon
     }
 
     /// <summary>
-    /// Player-facing notification published by gameplay systems and
-    /// consumed by ToastService which queues + displays them serially.
+    /// Player-facing notification published by gameplay systems and consumed by ToastService which queues + displays them serially.
     /// </summary>
     public readonly struct ToastMessage
     {
@@ -153,8 +160,6 @@ namespace RareIcon
         }
     }
 
-    // -- Click router output (AppStateController emits one of these
-    //    per left-click after deciding what the click MEANS) --
 
     /// <summary>"Player clicked a building hex" — Building Inspector panel target.</summary>
     public readonly struct BuildingInspectMessage

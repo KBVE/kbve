@@ -1,24 +1,19 @@
 using System;
 using UnityEngine.InputSystem;
+using VContainer;
 using VContainer.Unity;
 
 namespace RareIcon
 {
     /// <summary>
-    /// Keyboard driver for build mode: `B` toggles it (currently always
-    /// BuildTarget.Capital — hook in a palette when more building types
-    /// land), `Escape` / `Right-click` forces exit. Runs as an ITickable
-    /// VContainer service so input polling happens on the main thread
-    /// alongside MouseStateSource.
-    ///
-    /// Only acts while the app is in the World interface state, so keys
-    /// don't fire on the title screen or in menus.
+    /// Main-thread keyboard/mouse driver for build mode; handles build mode toggle and cancel input while world input is allowed. TODO: Touch
     /// </summary>
     public sealed class BuildInputSource : ITickable, IDisposable
     {
         readonly BuildModeController _buildMode;
         readonly AppStateController _appState;
 
+        [Inject]
         public BuildInputSource(
             BuildModeController buildMode,
             AppStateController appState)
@@ -27,28 +22,65 @@ namespace RareIcon
             _appState = appState;
         }
 
-        public void Tick()
+         public void Tick()
         {
-            if (_appState.Current.CurrentValue != AppInterfaceState.World) return;
+            if (!_appState.CanAcceptWorldInput())
+                return;
 
-            var kb = Keyboard.current;
-            if (kb == null) return;
+            if (Keyboard.current is not { } kb) return;
+
+            if (WasCancelPressed(kb))
+            {
+                CancelBuildMode();
+                return;
+            }
 
             if (kb.bKey.wasPressedThisFrame)
             {
-                _buildMode.Toggle(BuildTarget.Capital);
+                ToggleSelectedBuildTarget();
             }
-            else if (kb.escapeKey.wasPressedThisFrame && _buildMode.IsActive)
+        }
+
+
+        static bool WasCancelPressed(Keyboard kb)
+        {
+            if (kb.escapeKey.wasPressedThisFrame)
+                return true;
+
+            if (Mouse.current?.rightButton.wasPressedThisFrame == true)
+                return true;
+
+            var touch = Touchscreen.current;
+            if (touch == null)
+                return false;
+
+            int pressedCount = 0;
+            foreach (var finger in touch.touches)
             {
-                _buildMode.Exit();
+                if (finger.press.isPressed)
+                    pressedCount++;
             }
 
-            // Right-click also cancels — common RTS convention.
-            var mouse = Mouse.current;
-            if (mouse != null && mouse.rightButton.wasPressedThisFrame && _buildMode.IsActive)
-            {
+            return touch.primaryTouch.press.wasPressedThisFrame && pressedCount >= 2;
+        }
+
+        void CancelBuildMode()
+        {
+           if (_buildMode.IsActive)
                 _buildMode.Exit();
-            }
+        }
+
+        void ToggleSelectedBuildTarget()
+        {
+            var target = ResolveBuildTarget();
+            if (target != BuildTarget.None)
+                _buildMode.Toggle(target);
+        }
+
+        static byte ResolveBuildTarget()
+        {
+            // v1: single hotkey target. TODO: Expand later into palette / hotbar / current selection lookup.
+            return BuildTarget.Capital;
         }
 
         public void Dispose() { }

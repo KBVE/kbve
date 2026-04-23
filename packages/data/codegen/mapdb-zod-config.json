@@ -84,6 +84,21 @@
 			"mode": "const_array",
 			"stripPrefix": "TRAVEL_",
 			"caseTransform": "lowercase"
+		},
+		"map.FootprintShape": {
+			"mode": "const_array",
+			"stripPrefix": "FOOTPRINT_SHAPE_",
+			"caseTransform": "lowercase"
+		},
+		"map.CostSource": {
+			"mode": "const_array",
+			"stripPrefix": "COST_SOURCE_",
+			"caseTransform": "lowercase"
+		},
+		"map.ServiceKind": {
+			"mode": "const_array",
+			"stripPrefix": "SERVICE_KIND_",
+			"caseTransform": "lowercase"
 		}
 	},
 
@@ -189,6 +204,24 @@
 			"sourceEnum": "map.HexTravelLink.TravelType",
 			"typeName": "TravelTypeValue",
 			"zodSchemaName": "TravelTypeSchema"
+		},
+		{
+			"name": "FootprintShapes",
+			"sourceEnum": "map.FootprintShape",
+			"typeName": "FootprintShapeValue",
+			"zodSchemaName": "FootprintShapeSchema"
+		},
+		{
+			"name": "CostSources",
+			"sourceEnum": "map.CostSource",
+			"typeName": "CostSourceValue",
+			"zodSchemaName": "CostSourceSchema"
+		},
+		{
+			"name": "ServiceKinds",
+			"sourceEnum": "map.ServiceKind",
+			"typeName": "ServiceKindValue",
+			"zodSchemaName": "ServiceKindSchema"
 		}
 	],
 

@@ -20,15 +20,12 @@ mod allocator {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // Install rustls crypto provider before any TLS usage (axum-server, lightyear, etc.)
     rustls::crypto::ring::default_provider()
         .install_default()
         .expect("failed to install rustls CryptoProvider");
 
-    // Load .env before anything reads env vars
     dotenvy::dotenv().ok();
 
-    // Tracing
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
@@ -44,46 +41,40 @@ async fn main() -> anyhow::Result<()> {
 
     info!("KBVE v{}", env!("CARGO_PKG_VERSION"));
 
-    // Initialize database services
     if db::init_profile_service() {
         info!("ProfileService initialized successfully");
     } else {
         warn!("ProfileService not available - profile routes will return 503");
     }
 
-    // Initialize profile cache actor
-    let _cache = db::init_profile_cache();
-    info!("Profile cache actor started");
+    let profile_cache = db::init_profile_cache();
+    tokio::spawn(profile_cache.run_cleanup_task());
+    info!("Profile cache initialized");
 
-    // Initialize Discord client (optional - tries vault first, then ENV)
     if db::init_discord_client().await {
         info!("Discord client initialized - profile enrichment enabled");
     } else {
         info!("Discord client not configured - profile enrichment disabled");
     }
 
-    // Initialize Twitch client (optional - for live status enrichment)
     if db::init_twitch_client().await {
         info!("Twitch client initialized - live status enrichment enabled");
     } else {
         info!("Twitch client not configured - live status enrichment disabled");
     }
 
-    // Initialize RentEarth service (optional - for game character data)
     if db::init_rentearth_service() {
         info!("RentEarth service initialized - character data enrichment enabled");
     } else {
         info!("RentEarth service not configured - character data enrichment disabled");
     }
 
-    // Initialize MC service (optional - needs MC_RCON_HOST env var)
     if db::init_mc_service() {
         info!("MC service initialized - player list + texture proxy enabled");
     } else {
         info!("MC service not configured (set MC_RCON_HOST to enable)");
     }
 
-    // Initialize OSRS cache actor (loads item mapping + prices)
     let _osrs_cache = db::init_osrs_cache().await;
     info!("OSRS cache actor started");
 
@@ -99,46 +90,40 @@ async fn main() -> anyhow::Result<()> {
         warn!("JWT cache not initialized - SUPABASE_URL or SUPABASE_ANON_KEY not set");
     }
 
-    // Initialize Grafana reverse proxy (optional - for /dashboard/grafana)
     if transport::proxy::init_grafana_proxy() {
         info!("Grafana proxy initialized - /dashboard/grafana/proxy enabled");
     } else {
-        info!("Grafana proxy not configured (GRAFANA_UPSTREAM_URL not set)");
+        warn!("Grafana proxy not configured (GRAFANA_UPSTREAM_URL not set)");
     }
 
-    // Initialize ArgoCD reverse proxy (optional - for /dashboard/argo)
     if transport::proxy::init_argo_proxy() {
         info!("ArgoCD proxy initialized - /dashboard/argo/proxy enabled");
     } else {
-        info!("ArgoCD proxy not configured (ARGOCD_UPSTREAM_URL not set)");
+        warn!("ArgoCD proxy not configured (ARGOCD_UPSTREAM_URL not set)");
     }
 
-    // Initialize ClickHouse logs proxy (optional - for /dashboard/clickhouse)
     if transport::proxy::init_clickhouse_logs_proxy() {
         info!("ClickHouse logs proxy initialized - /dashboard/clickhouse/proxy enabled");
     } else {
-        info!("ClickHouse logs proxy not configured (CLICKHOUSE_LOGS_UPSTREAM_URL not set)");
+        warn!("ClickHouse logs proxy not configured (CLICKHOUSE_LOGS_UPSTREAM_URL not set)");
     }
 
-    // Initialize Forgejo reverse proxy (optional - for /dashboard/forgejo)
     if transport::proxy::init_forgejo_proxy() {
         info!("Forgejo proxy initialized - /dashboard/forgejo/proxy enabled");
     } else {
-        info!("Forgejo proxy not configured (FORGEJO_UPSTREAM_URL not set)");
+        warn!("Forgejo proxy not configured (FORGEJO_UPSTREAM_URL not set)");
     }
 
-    // Initialize Edge Functions proxy (optional - for /dashboard/edge)
     if transport::proxy::init_edge_proxy() {
         info!("Edge proxy initialized - /dashboard/edge/proxy enabled");
     } else {
-        info!("Edge proxy not configured (SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set)");
+        warn!("Edge proxy not configured (SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set)");
     }
 
-    // Initialize KubeVirt proxy (optional - for /dashboard/vm)
     if transport::proxy::init_kubevirt_proxy() {
         info!("KubeVirt proxy initialized - /dashboard/vm/proxy enabled");
     } else {
-        info!("KubeVirt proxy not configured (KUBEVIRT_API_URL not set)");
+        warn!("KubeVirt proxy not configured (KUBEVIRT_API_URL not set)");
     }
 
     // Initialize KASM workspace proxy (optional - for /dashboard/kasm)
@@ -155,8 +140,7 @@ async fn main() -> anyhow::Result<()> {
         info!("Firecracker proxy not configured (using default cluster URL)");
     }
 
-    // Initialize Firecracker-Net proxy (optional - DASHBOARD_MANAGE gated,
-    // routes to firecracker-ctl-net with Gluetun/WireGuard sidecar)
+    // Initialize Firecracker-Net proxy (optional - DASHBOARD_MANAGE gated, routes to firecracker-ctl-net with Gluetun/WireGuard sidecar)
     if transport::proxy::init_firecracker_net_proxy() {
         info!(
             "Firecracker-Net proxy initialized - /dashboard/firecracker-net/proxy enabled (DASHBOARD_MANAGE required)"
@@ -172,7 +156,6 @@ async fn main() -> anyhow::Result<()> {
         info!("Guacamole proxy not configured (using default cluster URL)");
     }
 
-    // Initialize ChuckRPG/ROWS Swagger proxy (optional - for /dashboard/chuckrpg)
     if transport::proxy::init_chuckrpg_proxy() {
         info!("ChuckRPG proxy initialized - /dashboard/chuckrpg/proxy enabled");
     } else {
