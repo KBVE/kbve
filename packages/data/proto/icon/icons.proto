@@ -1,0 +1,247 @@
+syntax = "proto3";
+
+package icon;
+
+option csharp_namespace = "KBVE.Proto.Icon";
+
+import "kbve/common.proto";
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+// Icon visual style — most icon packs ship several stroke/fill variants of the
+// same glyph. Each variant is its own Icon entry and records its style here.
+enum IconStyle {
+  ICON_STYLE_UNSPECIFIED = 0;
+  ICON_STYLE_OUTLINE     = 1;   // Line art, no fill
+  ICON_STYLE_FILLED      = 2;   // Solid fill, no stroke
+  ICON_STYLE_SOLID       = 3;   // Filled + outline (bold mono)
+  ICON_STYLE_DUOTONE     = 4;   // Two-color layered fill
+  ICON_STYLE_BOLD        = 5;   // Heavier stroke weight
+  ICON_STYLE_THIN        = 6;   // Lighter stroke weight
+  ICON_STYLE_SKETCH      = 7;   // Hand-drawn / rough
+  ICON_STYLE_GLYPH       = 8;   // Compact pictogram, no detail
+}
+
+// Source format — primary asset encoding. SVG is default and preferred for
+// search + recolor; raster formats are secondary fallbacks.
+enum IconFormat {
+  ICON_FORMAT_UNSPECIFIED = 0;
+  ICON_FORMAT_SVG         = 1;
+  ICON_FORMAT_PNG         = 2;
+  ICON_FORMAT_WEBP        = 3;
+  ICON_FORMAT_FONT        = 4;  // Icon-font codepoint (e.g. Material, FontAwesome)
+}
+
+// License families — common open-source / CC variants plus a CUSTOM escape
+// hatch for proprietary or mixed licenses described in license_text.
+enum IconLicense {
+  ICON_LICENSE_UNSPECIFIED  = 0;
+  ICON_LICENSE_CC0          = 1;   // Public domain dedication
+  ICON_LICENSE_CC_BY        = 2;   // Attribution required
+  ICON_LICENSE_CC_BY_SA     = 3;   // Attribution + share-alike
+  ICON_LICENSE_CC_BY_NC     = 4;   // Attribution + non-commercial
+  ICON_LICENSE_CC_BY_ND     = 5;   // Attribution + no-derivatives
+  ICON_LICENSE_MIT          = 6;
+  ICON_LICENSE_APACHE_2     = 7;
+  ICON_LICENSE_OFL          = 8;   // SIL Open Font License (icon fonts)
+  ICON_LICENSE_ISC          = 9;
+  ICON_LICENSE_BSD_2        = 10;
+  ICON_LICENSE_BSD_3        = 11;
+  ICON_LICENSE_UNLICENSE    = 12;
+  ICON_LICENSE_WTFPL        = 13;
+  ICON_LICENSE_PROPRIETARY  = 14;  // Internal / paid / restricted
+  ICON_LICENSE_CUSTOM       = 15;  // Bespoke terms — see license_text / license_url
+}
+
+// How the icon is offered to downstream consumers on the marketing site.
+enum IconOffering {
+  ICON_OFFERING_UNSPECIFIED = 0;
+  ICON_OFFERING_FREE        = 1;   // Free download / copy
+  ICON_OFFERING_PAID        = 2;   // Paid download
+  ICON_OFFERING_DONATION    = 3;   // Pay-what-you-want / optional
+  ICON_OFFERING_PREVIEW     = 4;   // Preview-only; buy elsewhere
+  ICON_OFFERING_INTERNAL    = 5;   // Not publicly offered (game-internal only)
+}
+
+// =============================================================================
+// Sub-messages
+// =============================================================================
+
+// Viewport defaults for the icon. Most icon packs ship at a square 24x24 or
+// 512x512 viewBox; recording this keeps rendering deterministic across
+// collections that disagree on canonical size.
+message IconViewBox {
+  int32 min_x  = 1;                     // default: 0
+  int32 min_y  = 2;                     // default: 0
+  int32 width  = 3;                     // Required
+  int32 height = 4;                     // Required
+}
+
+// Default rendering hints. Consumers override at site usage time but the
+// registry records the author's intent (mono vs. duotone, stroke-only, etc.).
+message IconRender {
+  optional string fill          = 1;    // Default fill color (hex or css keyword); empty = currentColor
+  optional string stroke        = 2;    // Default stroke color
+  optional float  stroke_width  = 3;    // Default stroke width
+  optional string stroke_cap    = 4;    // "butt" | "round" | "square"
+  optional string stroke_join   = 5;    // "miter" | "round" | "bevel"
+  optional bool   uses_current_color = 6; // true if SVG uses `currentColor` (recolorable via CSS)
+  optional bool   monochrome    = 7;    // Single-color icon (safe to recolor)
+  optional int32  color_count   = 8;    // Distinct colors in the source (1 = mono, 2 = duotone)
+  optional string background    = 9;    // Recommended bg color for readability (optional)
+}
+
+// License block for a single icon (or defaulted from its collection).
+// Fields left unset inherit from the parent IconCollection.license.
+message IconLicenseInfo {
+  IconLicense license            = 1;
+  optional string license_url    = 2;   // Canonical license URL
+  optional string license_text   = 3;   // Inline license text for CUSTOM / ambiguous cases
+  optional bool   attribution_required = 4;
+  optional string attribution_line     = 5; // Recommended credit line
+  optional string author         = 6;   // Creator name or handle
+  optional string author_url     = 7;   // Portfolio / source
+  optional string source_url     = 8;   // Original download URL
+  optional bool   commercial_use = 9;   // May be used commercially
+  optional bool   modifications_allowed = 10;
+}
+
+// Variant linkage — every icon that represents the same concept in a
+// different style points at the canonical sibling via this block. Lets a
+// consumer find "the filled version of this outline icon" without separate
+// lookups.
+message IconVariant {
+  string ref = 1;                       // Sibling icon ref
+  IconStyle style = 2;
+  optional string label = 3;            // Human-readable label ("Filled", "Bold")
+}
+
+// SEO / search hints for Pagefind and front-end filters. Keywords surface in
+// the Pagefind index; aliases collapse spellings into the canonical ref.
+message IconSearch {
+  repeated string keywords = 1;         // Search terms (e.g. "close", "x", "dismiss" for a close icon)
+  repeated string aliases  = 2;         // Alternate names / misspellings
+  optional string primary_category = 3; // Single top-level category for breadcrumb / URL slug
+  optional float  search_weight = 4;    // Ranking boost (0.0-2.0; 1.0 = default)
+  optional bool   exclude_from_search = 5;
+}
+
+// Offering block — pricing / distribution when the icon is listed on the
+// marketing site. Empty when internal-only.
+message IconOfferingInfo {
+  IconOffering offering = 1;
+  optional int32  price_cents       = 2;   // Cents of base currency; 0 = free
+  optional string currency_code     = 3;   // ISO-4217 (default "USD")
+  optional string download_url      = 4;   // Direct download (SVG / zip)
+  optional string purchase_url      = 5;   // External checkout
+  optional bool   requires_account  = 6;   // Must be signed in to download
+  optional int32  download_count    = 7;   // Analytics (optional, registry-side)
+}
+
+// Generic extension slot — arbitrary key-value pairs for site-specific or
+// game-specific data (matches itemdb ItemExtension pattern).
+message IconExtension {
+  string key = 1;                       // Namespace, e.g. "rareicon.inventory_icon"
+  oneof value {
+    string string_value = 2;
+    int64  int_value    = 3;
+    double float_value  = 4;
+    bool   bool_value   = 5;
+    bytes  bytes_value  = 6;
+  }
+}
+
+// =============================================================================
+// Core Icon Definition
+// =============================================================================
+
+message Icon {
+  // Identity
+  string id  = 1;                       // ULID
+  string ref = 2;                       // URL-safe slug, e.g. "arrow-right"
+  string name = 3;                      // Display name
+  optional string title       = 4;      // Override for UI headings
+  optional string description = 5;
+
+  // Classification
+  IconStyle style = 6;
+  repeated string categories = 7;       // Multi-category taxonomy (e.g. ["ui", "navigation"])
+  repeated string tags       = 8;       // Free-form filter tags
+  optional string collection_ref = 9;   // Parent IconCollection.ref
+
+  // Source asset
+  IconFormat format = 10;               // Primary encoding
+  optional string svg_body   = 11;      // Inline SVG markup (preferred for Pagefind + recolor)
+  optional string svg_path   = 12;      // Relative path if not inlined (e.g. "/icons/arrow-right.svg")
+  optional string raster_path = 13;     // PNG/WEBP fallback path
+  optional string font_family = 14;     // When format = FONT
+  optional string font_glyph  = 15;     // Codepoint / ligature name
+  optional bytes  raw_bytes   = 16;     // Embedded binary (use sparingly; prefer paths)
+
+  // Rendering
+  optional IconViewBox viewbox = 17;
+  optional IconRender  render  = 18;
+  repeated int32 recommended_sizes = 19; // Pixel sizes the pack was authored at (16, 24, 32...)
+
+  // Variants & relationships
+  repeated IconVariant variants = 20;   // Same concept in other styles
+  repeated string related_icon_refs = 21; // Visually or thematically related icons
+
+  // Search / SEO
+  optional IconSearch search = 22;
+
+  // Licensing
+  optional IconLicenseInfo license = 23;
+
+  // Marketing / distribution
+  optional IconOfferingInfo offering = 24;
+
+  // Accessibility
+  optional string aria_label = 25;      // Default aria-label when used decoratively
+  optional string role       = 26;      // SVG role attribute default (e.g. "img")
+
+  // Metadata
+  optional string credits    = 27;      // Free-form credit string
+  optional string created_at = 28;      // ISO-8601 timestamp of authoring
+  optional string updated_at = 29;
+  optional string version    = 30;      // Pack-specific version tag
+  optional bool   drafted    = 31;      // Hidden from production (same convention as Item.drafted)
+
+  // Extensions — site-specific / game-specific key-value pairs
+  repeated IconExtension extensions = 32;
+}
+
+// =============================================================================
+// Collection Definition
+// =============================================================================
+
+// A named pack / set of icons that share a style, viewBox, license, and
+// author. Individual icons inherit any IconLicenseInfo field left unset.
+message IconCollection {
+  string id   = 1;                      // ULID
+  string ref  = 2;                      // Slug, e.g. "ocean-kit"
+  string name = 3;
+  optional string description = 4;
+  optional string homepage    = 5;      // External homepage / source
+  optional string cover_icon_ref = 6;   // Icon ref used as collection thumbnail
+  optional IconStyle primary_style = 7; // Dominant style for the pack
+  optional IconViewBox default_viewbox = 8;
+  optional IconRender  default_render  = 9;
+  optional IconLicenseInfo license     = 10;
+  optional IconOfferingInfo offering   = 11;
+  repeated string tags = 12;
+  optional int32 icon_count = 13;       // Denormalized count (authority = registry)
+  optional string version   = 14;
+  optional bool   drafted   = 15;
+}
+
+// =============================================================================
+// Registry
+// =============================================================================
+
+message IconRegistry {
+  repeated Icon icons                   = 1;
+  repeated IconCollection collections   = 2;
+}
