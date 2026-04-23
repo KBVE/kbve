@@ -15,13 +15,13 @@ export default function ReactLoginButtons() {
 	};
 
 	return (
-		<div className="ck-auth-buttons">
+		<div className="ri-auth-buttons">
 			<button
 				onClick={() => handleLogin('github')}
 				disabled={isLoading !== null}
-				className="ck-auth-btn ck-auth-btn--github">
+				className="ri-auth-btn ri-auth-btn--github">
 				<svg
-					className="ck-auth-icon"
+					className="ri-auth-icon"
 					viewBox="0 0 16 16"
 					fill="currentColor"
 					aria-hidden="true">
@@ -35,9 +35,9 @@ export default function ReactLoginButtons() {
 			<button
 				onClick={() => handleLogin('discord')}
 				disabled={isLoading !== null}
-				className="ck-auth-btn ck-auth-btn--discord">
+				className="ri-auth-btn ri-auth-btn--discord">
 				<svg
-					className="ck-auth-icon"
+					className="ri-auth-icon"
 					viewBox="0 0 16 16"
 					fill="currentColor"
 					aria-hidden="true">

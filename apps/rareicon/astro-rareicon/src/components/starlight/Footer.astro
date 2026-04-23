@@ -7,31 +7,31 @@ const currentYear = new Date().getFullYear();
 
 <Default {...Astro.props}><slot /></Default>
 
-<div class="ck-footer not-content">
-	<div class="ck-footer__divider" aria-hidden="true">
-		<div class="ck-footer__divider-line"></div>
+<div class="ri-footer not-content">
+	<div class="ri-footer__divider" aria-hidden="true">
+		<div class="ri-footer__divider-line"></div>
 	</div>
 
-	<div class="ck-footer__main">
-		<div class="ck-footer__brand">
-			<a href="/" class="ck-footer__brand-link" data-astro-prefetch>
-				<span class="ck-footer__logo-text">ChuckRPG</span>
+	<div class="ri-footer__main">
+		<div class="ri-footer__brand">
+			<a href="/" class="ri-footer__brand-link" data-astro-prefetch>
+				<span class="ri-footer__logo-text">RareIcon</span>
 			</a>
-			<p class="ck-footer__brand-desc">
+			<p class="ri-footer__brand-desc">
 				Open world multiplayer RPG powered by Unreal Engine and OWS.
 				<br />
 				Explore vast lands, forge alliances, and conquer the unknown.
 			</p>
 		</div>
 
-		<nav class="ck-footer__col">
-			<h3 class="ck-footer__title">Adventure</h3>
+		<nav class="ri-footer__col">
+			<h3 class="ri-footer__title">Adventure</h3>
 			<a href="/guides/getting-started/">Getting Started</a>
 			<a href="/game/">Game</a>
 		</nav>
 
-		<nav class="ck-footer__col">
-			<h3 class="ck-footer__title">Kingdom</h3>
+		<nav class="ri-footer__col">
+			<h3 class="ri-footer__title">Kingdom</h3>
 			<a
 				href="https://kbve.com"
 				title="KBVE -- Open-source software, game development, and cloud infrastructure">
@@ -46,26 +46,26 @@ const currentYear = new Date().getFullYear();
 			<a href="https://discord.gg/kbve">Discord</a>
 		</nav>
 
-		<nav class="ck-footer__col">
-			<h3 class="ck-footer__title">Scrolls</h3>
+		<nav class="ri-footer__col">
+			<h3 class="ri-footer__title">Scrolls</h3>
 			<a href="https://kbve.com/legal/tos/">Terms of Use</a>
 			<a href="https://kbve.com/legal/privacy/">Privacy Policy</a>
 			<a href="https://kbve.com/legal/">Cookie Policy</a>
 		</nav>
 	</div>
 
-	<div class="ck-footer__bottom">
+	<div class="ri-footer__bottom">
 		<span>
 			&copy; {currentYear}
-			<a href="/">ChuckRPG</a> &mdash; forged by <a
+			<a href="/">RareIcon</a> &mdash; forged by <a
 				href="https://kbve.com">
 				KBVE
 			</a>
 		</span>
-		<div class="ck-footer__badges">
+		<div class="ri-footer__badges">
 			<a
 				href="https://github.com/kbve/kbve"
-				class="ck-footer__badge"
+				class="ri-footer__badge"
 				target="_blank"
 				rel="noopener noreferrer"
 				aria-label="GitHub">
@@ -82,7 +82,7 @@ const currentYear = new Date().getFullYear();
 			</a>
 			<a
 				href="https://discord.gg/kbve"
-				class="ck-footer__badge"
+				class="ri-footer__badge"
 				target="_blank"
 				rel="noopener noreferrer"
 				aria-label="Discord">
@@ -102,33 +102,33 @@ const currentYear = new Date().getFullYear();
 </div>
 
 <style>
-	.ck-footer {
+	.ri-footer {
 		margin-top: 0;
 		padding: 0 1.5rem;
 		border-top: 1px solid rgba(255, 255, 255, 0.06);
-		background: var(--ck-stone, #1a1a1f);
+		background: var(--ri-bg-app, #1a1a1f);
 	}
 
-	.ck-footer__divider {
+	.ri-footer__divider {
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		padding: 1.25rem 0 0;
 	}
 
-	.ck-footer__divider-line {
+	.ri-footer__divider-line {
 		width: 3rem;
 		height: 1px;
 		background: linear-gradient(
 			90deg,
 			transparent,
-			var(--ck-firelight),
+			var(--ri-accent),
 			transparent
 		);
 		opacity: 0.4;
 	}
 
-	.ck-footer__main {
+	.ri-footer__main {
 		display: grid;
 		grid-template-columns: 1.5fr repeat(3, 1fr);
 		gap: 2.5rem;
@@ -137,53 +137,53 @@ const currentYear = new Date().getFullYear();
 		padding: 1.5rem 0 2rem;
 	}
 
-	.ck-footer__brand-link {
+	.ri-footer__brand-link {
 		text-decoration: none;
 	}
 
-	.ck-footer__logo-text {
+	.ri-footer__logo-text {
 		font-family: var(--sl-font);
 		font-size: 1.1rem;
 		font-weight: 600;
 		letter-spacing: 0.05em;
-		color: var(--ck-parchment, #e8dcc8);
+		color: var(--ri-text-primary, #e8dcc8);
 	}
 
-	.ck-footer__brand-desc {
+	.ri-footer__brand-desc {
 		margin-top: 0.75rem;
 		font-size: 0.8125rem;
 		line-height: 1.6;
 		color: var(--sl-color-gray-2, #9e9480);
 	}
 
-	.ck-footer__col {
+	.ri-footer__col {
 		display: flex;
 		flex-direction: column;
 		gap: 0.625rem;
 	}
 
-	.ck-footer__title {
+	.ri-footer__title {
 		font-family: var(--sl-font);
 		font-size: 0.65rem;
 		font-weight: 500;
 		text-transform: uppercase;
 		letter-spacing: 0.2em;
-		color: var(--ck-firelight);
+		color: var(--ri-accent);
 		margin-bottom: 0.25rem;
 	}
 
-	.ck-footer__col a {
+	.ri-footer__col a {
 		font-size: 0.8125rem;
 		color: var(--sl-color-gray-2, #9e9480);
 		text-decoration: none;
 		transition: color 150ms ease;
 	}
 
-	.ck-footer__col a:hover {
-		color: var(--ck-firelight);
+	.ri-footer__col a:hover {
+		color: var(--ri-accent);
 	}
 
-	.ck-footer__bottom {
+	.ri-footer__bottom {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -191,32 +191,32 @@ const currentYear = new Date().getFullYear();
 		margin: 0 auto;
 		padding: 1.25rem 0;
 		border-top: 1px solid
-			color-mix(in srgb, var(--ck-firelight) 10%, transparent);
+			color-mix(in srgb, var(--ri-accent) 10%, transparent);
 	}
 
-	.ck-footer__bottom span {
+	.ri-footer__bottom span {
 		font-size: 0.8125rem;
 		color: var(--sl-color-gray-3, #6b6356);
 	}
 
-	.ck-footer__bottom a {
+	.ri-footer__bottom a {
 		color: var(--sl-color-gray-2, #9e9480);
 		text-decoration: none;
 		font-weight: 500;
 		transition: color 150ms ease;
 	}
 
-	.ck-footer__bottom a:hover {
-		color: var(--ck-firelight);
+	.ri-footer__bottom a:hover {
+		color: var(--ri-accent);
 	}
 
-	.ck-footer__badges {
+	.ri-footer__badges {
 		display: flex;
 		align-items: center;
 		gap: 1rem;
 	}
 
-	.ck-footer__badge {
+	.ri-footer__badge {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -224,37 +224,36 @@ const currentYear = new Date().getFullYear();
 		height: 2rem;
 		border-radius: 0.5rem;
 		color: var(--sl-color-gray-2, #9e9480);
-		background: color-mix(in srgb, var(--ck-firelight) 8%, transparent);
-		border: 1px solid
-			color-mix(in srgb, var(--ck-firelight) 15%, transparent);
+		background: color-mix(in srgb, var(--ri-accent) 8%, transparent);
+		border: 1px solid color-mix(in srgb, var(--ri-accent) 15%, transparent);
 		transition: all 200ms ease;
 	}
 
-	.ck-footer__badge:hover {
-		color: var(--ck-firelight);
-		border-color: color-mix(in srgb, var(--ck-firelight) 40%, transparent);
-		background: color-mix(in srgb, var(--ck-firelight) 15%, transparent);
+	.ri-footer__badge:hover {
+		color: var(--ri-accent);
+		border-color: color-mix(in srgb, var(--ri-accent) 40%, transparent);
+		background: color-mix(in srgb, var(--ri-accent) 15%, transparent);
 		transform: translateY(-2px);
 	}
 
 	@media (max-width: 768px) {
-		.ck-footer__main {
+		.ri-footer__main {
 			grid-template-columns: 1fr 1fr;
 			gap: 2rem;
 		}
 
-		.ck-footer__brand {
+		.ri-footer__brand {
 			grid-column: 1 / -1;
 		}
 	}
 
 	@media (max-width: 480px) {
-		.ck-footer__main {
+		.ri-footer__main {
 			grid-template-columns: 1fr;
 			gap: 1.5rem;
 		}
 
-		.ck-footer__bottom {
+		.ri-footer__bottom {
 			flex-direction: column;
 			gap: 1rem;
 			text-align: center;

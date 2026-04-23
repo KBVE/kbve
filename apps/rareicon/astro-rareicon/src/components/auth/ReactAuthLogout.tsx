@@ -44,10 +44,10 @@ export default function ReactAuthLogout() {
 	}, []);
 
 	return (
-		<div className="ck-auth-status">
-			{isLoading && <div className="ck-spinner"></div>}
-			<div className="ck-status-message">{message}</div>
-			<div className="ck-status-sub">{subMessage}</div>
+		<div className="ri-auth-status">
+			{isLoading && <div className="ri-spinner"></div>}
+			<div className="ri-status-message">{message}</div>
+			<div className="ri-status-sub">{subMessage}</div>
 		</div>
 	);
 }

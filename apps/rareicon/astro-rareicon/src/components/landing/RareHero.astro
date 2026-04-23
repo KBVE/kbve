@@ -12,39 +12,39 @@ const {
 } = Astro.props;
 ---
 
-<section class="ck-hero">
-	<div class="ck-hero__video" aria-hidden="true">
-		<div id="ck-yt-player"></div>
+<section class="ri-hero">
+	<div class="ri-hero__video" aria-hidden="true">
+		<div id="ri-yt-player"></div>
 	</div>
-	<div class="ck-hero__video-overlay"></div>
+	<div class="ri-hero__video-overlay"></div>
 
-	<div class="ck-hero__bg">
-		<div class="ck-hero__vignette"></div>
-		<div class="ck-hero__particles" aria-hidden="true"></div>
+	<div class="ri-hero__bg">
+		<div class="ri-hero__vignette"></div>
+		<div class="ri-hero__particles" aria-hidden="true"></div>
 	</div>
 
-	<div class="ck-hero__content">
-		<div class="ck-hero__emblem" aria-hidden="true">&#9876;</div>
-		<p class="ck-hero__label">Open World MMO</p>
-		<h1 class="ck-hero__title">
+	<div class="ri-hero__content">
+		<div class="ri-hero__emblem" aria-hidden="true">&#9876;</div>
+		<p class="ri-hero__label">Open World MMO</p>
+		<h1 class="ri-hero__title">
 			Forge Your<br />
-			<span class="ck-hero__title--accent">Legend</span>
+			<span class="ri-hero__title--accent">Legend</span>
 		</h1>
-		<p class="ck-hero__tagline">{tagline}</p>
-		<div class="ck-hero__actions">
-			<a href={playLink} class="ck-btn ck-btn--primary">
-				<span class="ck-btn__fill"></span>
-				<span class="ck-btn__text">Enter the Realm</span>
+		<p class="ri-hero__tagline">{tagline}</p>
+		<div class="ri-hero__actions">
+			<a href={playLink} class="ri-btn ri-btn--primary">
+				<span class="ri-btn__fill"></span>
+				<span class="ri-btn__text">Enter the Realm</span>
 			</a>
-			<a href={guidesLink} class="ck-btn ck-btn--ghost">
+			<a href={guidesLink} class="ri-btn ri-btn--ghost">
 				Adventurer's Guide
 			</a>
 		</div>
 	</div>
 
-	<div class="ck-hero__scroll" aria-hidden="true">
-		<span class="ck-hero__scroll-label">Descend</span>
-		<div class="ck-hero__scroll-line"></div>
+	<div class="ri-hero__scroll" aria-hidden="true">
+		<span class="ri-hero__scroll-label">Descend</span>
+		<div class="ri-hero__scroll-line"></div>
 	</div>
 </section>
 
@@ -86,7 +86,7 @@ const {
 	let watchdog: ReturnType<typeof setInterval> | null = null;
 
 	function initPlayer() {
-		player = new YT.Player('ck-yt-player', {
+		player = new YT.Player('ri-yt-player', {
 			videoId: VIDEO_ID,
 			playerVars: {
 				autoplay: 1,
@@ -182,7 +182,7 @@ const {
 </script>
 
 <style>
-	.ck-hero {
+	.ri-hero {
 		position: relative;
 		width: 100%;
 		min-height: 100vh;
@@ -194,7 +194,7 @@ const {
 	}
 
 	/* ── YouTube video background (deepest layer) ── */
-	.ck-hero__video {
+	.ri-hero__video {
 		position: absolute;
 		inset: 0;
 		z-index: 0;
@@ -202,8 +202,8 @@ const {
 		overflow: hidden;
 	}
 
-	.ck-hero__video iframe,
-	.ck-hero__video #ck-yt-player {
+	.ri-hero__video iframe,
+	.ri-hero__video #ri-yt-player {
 		position: absolute;
 		top: 50%;
 		left: 50%;
@@ -218,14 +218,14 @@ const {
 	}
 
 	/* Semi-transparent stone overlay on top of video */
-	.ck-hero__video-overlay {
+	.ri-hero__video-overlay {
 		position: absolute;
 		inset: 0;
 		z-index: 1;
 		background: rgba(15, 14, 12, 0.45);
 	}
 
-	.ck-hero__bg {
+	.ri-hero__bg {
 		position: absolute;
 		inset: 0;
 		z-index: 2;
@@ -247,7 +247,7 @@ const {
 			);
 	}
 
-	.ck-hero__vignette {
+	.ri-hero__vignette {
 		position: absolute;
 		inset: 0;
 		background: radial-gradient(
@@ -259,7 +259,7 @@ const {
 	}
 
 	/* Floating ember particles */
-	.ck-hero__particles {
+	.ri-hero__particles {
 		position: absolute;
 		inset: 0;
 		z-index: 1;
@@ -318,7 +318,7 @@ const {
 		}
 	}
 
-	.ck-hero__content {
+	.ri-hero__content {
 		position: relative;
 		z-index: 3;
 		text-align: center;
@@ -327,16 +327,16 @@ const {
 		margin: 0 auto;
 	}
 
-	.ck-hero__emblem {
+	.ri-hero__emblem {
 		font-size: 2.5rem;
-		color: var(--ck-firelight);
+		color: var(--ri-accent);
 		opacity: 0.7;
 		margin-bottom: 1rem;
 		filter: drop-shadow(0 0 12px rgba(212, 164, 76, 0.4));
 	}
 
-	.ck-hero__label {
-		color: var(--ck-firelight);
+	.ri-hero__label {
+		color: var(--ri-accent);
 		font-size: 0.65rem;
 		letter-spacing: 0.35em;
 		text-transform: uppercase;
@@ -344,26 +344,26 @@ const {
 		font-family: 'Cinzel', serif;
 	}
 
-	.ck-hero__title {
+	.ri-hero__title {
 		font-family: 'Cinzel', 'Palatino Linotype', serif;
 		font-size: clamp(3rem, 8vw, 7rem);
 		font-weight: 400;
-		color: var(--ck-parchment);
+		color: var(--ri-text-primary);
 		margin: 0 0 1.5rem;
 		line-height: 1.05;
 		letter-spacing: 0.02em;
 		text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
 	}
 
-	.ck-hero__title--accent {
+	.ri-hero__title--accent {
 		font-style: italic;
-		color: var(--ck-firelight);
+		color: var(--ri-accent);
 		text-shadow:
 			0 0 30px rgba(212, 164, 76, 0.3),
 			0 2px 20px rgba(0, 0, 0, 0.6);
 	}
 
-	.ck-hero__tagline {
+	.ri-hero__tagline {
 		font-family: 'Lora', 'Georgia', serif;
 		font-size: clamp(0.9rem, 1.8vw, 1.1rem);
 		color: rgba(232, 220, 200, 0.5);
@@ -375,7 +375,7 @@ const {
 		margin-inline: auto;
 	}
 
-	.ck-hero__actions {
+	.ri-hero__actions {
 		display: flex;
 		gap: 1rem;
 		justify-content: center;
@@ -383,7 +383,7 @@ const {
 	}
 
 	/* ── Buttons: iron + firelight ── */
-	.ck-btn {
+	.ri-btn {
 		position: relative;
 		display: inline-flex;
 		align-items: center;
@@ -400,55 +400,55 @@ const {
 		border-radius: 2px;
 	}
 
-	.ck-btn--primary {
-		background: var(--ck-parchment);
-		color: var(--ck-stone);
-		border: 1px solid var(--ck-firelight-dim);
+	.ri-btn--primary {
+		background: var(--ri-text-primary);
+		color: var(--ri-bg-app);
+		border: 1px solid var(--ri-accent-hover);
 	}
 
-	.ck-btn--primary:hover {
-		background: var(--ck-parchment);
+	.ri-btn--primary:hover {
+		background: var(--ri-text-primary);
 	}
 
-	.ck-btn__fill {
+	.ri-btn__fill {
 		position: absolute;
 		bottom: 0;
 		left: 0;
 		width: 150%;
 		height: 150%;
-		background: var(--ck-firelight);
+		background: var(--ri-accent);
 		transform: translate(-110%, 60%) rotate(45deg);
 		transition: transform 0.5s ease;
 	}
 
-	.ck-btn--primary:hover .ck-btn__fill {
+	.ri-btn--primary:hover .ri-btn__fill {
 		transform: translate(-10%, -10%) rotate(45deg);
 	}
 
-	.ck-btn__text {
+	.ri-btn__text {
 		position: relative;
 		z-index: 1;
 		transition: color 0.3s ease;
 	}
 
-	.ck-btn--primary:hover .ck-btn__text {
-		color: var(--ck-stone);
+	.ri-btn--primary:hover .ri-btn__text {
+		color: var(--ri-bg-app);
 	}
 
-	.ck-btn--ghost {
-		border: 1px solid var(--ck-firelight-dim);
-		color: var(--ck-firelight);
+	.ri-btn--ghost {
+		border: 1px solid var(--ri-accent-hover);
+		color: var(--ri-accent);
 		background: transparent;
 	}
 
-	.ck-btn--ghost:hover {
+	.ri-btn--ghost:hover {
 		background: rgba(212, 164, 76, 0.15);
-		border-color: var(--ck-firelight);
-		color: var(--ck-firelight-bright);
+		border-color: var(--ri-accent);
+		color: var(--ri-accent);
 	}
 
 	/* ── Scroll indicator ── */
-	.ck-hero__scroll {
+	.ri-hero__scroll {
 		position: absolute;
 		bottom: 4rem;
 		left: 50%;
@@ -461,7 +461,7 @@ const {
 		animation: fade-bounce 5s ease-in-out infinite;
 	}
 
-	.ck-hero__scroll-label {
+	.ri-hero__scroll-label {
 		font-family: 'Cinzel', serif;
 		font-size: 0.6rem;
 		letter-spacing: 0.25em;
@@ -471,12 +471,12 @@ const {
 		margin-bottom: 0.5rem;
 	}
 
-	.ck-hero__scroll-line {
+	.ri-hero__scroll-line {
 		width: 1px;
 		height: 3rem;
 		background: linear-gradient(
 			to bottom,
-			var(--ck-firelight-dim),
+			var(--ri-accent-hover),
 			transparent
 		);
 	}

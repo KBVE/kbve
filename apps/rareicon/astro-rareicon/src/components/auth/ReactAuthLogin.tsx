@@ -15,21 +15,21 @@ export default function ReactAuthLogin() {
 	};
 
 	return (
-		<div className="ck-auth-container">
-			<div className="ck-auth-content">
+		<div className="ri-auth-container">
+			<div className="ri-auth-content">
 				<h2>Enter the Realm</h2>
-				<p className="ck-auth-desc">
+				<p className="ri-auth-desc">
 					Sign in to save your progress, forge alliances, and compete
 					on the leaderboards.
 				</p>
 
-				<div className="ck-auth-buttons">
+				<div className="ri-auth-buttons">
 					<button
 						onClick={() => handleLogin('github')}
 						disabled={isLoading !== null}
-						className="ck-auth-btn ck-auth-btn--github">
+						className="ri-auth-btn ri-auth-btn--github">
 						<svg
-							className="ck-auth-icon"
+							className="ri-auth-icon"
 							viewBox="0 0 16 16"
 							fill="currentColor"
 							aria-hidden="true">
@@ -43,9 +43,9 @@ export default function ReactAuthLogin() {
 					<button
 						onClick={() => handleLogin('discord')}
 						disabled={isLoading !== null}
-						className="ck-auth-btn ck-auth-btn--discord">
+						className="ri-auth-btn ri-auth-btn--discord">
 						<svg
-							className="ck-auth-icon"
+							className="ri-auth-icon"
 							viewBox="0 0 16 16"
 							fill="currentColor"
 							aria-hidden="true">
@@ -57,7 +57,7 @@ export default function ReactAuthLogin() {
 					</button>
 				</div>
 
-				<div className="ck-auth-info">
+				<div className="ri-auth-info">
 					<p>
 						By signing in, you agree to our Terms of Service and
 						Privacy Policy.

@@ -49,9 +49,9 @@ export default function ReactNavAuth() {
 	// Loading state — pulsing placeholder
 	if (auth.tone === 'loading') {
 		return (
-			<div className="ck-nav-auth-inner">
+			<div className="ri-nav-auth-inner">
 				<div
-					className="ck-skel ck-skel--circle"
+					className="ri-skel ri-skel--circle"
 					style={{ width: 28, height: 28 }}
 				/>
 			</div>
@@ -61,8 +61,8 @@ export default function ReactNavAuth() {
 	// Anonymous — show Sign In link
 	if (auth.tone !== 'auth') {
 		return (
-			<div className="ck-nav-auth-inner">
-				<a href="/auth/login/" className="ck-nav-signin">
+			<div className="ri-nav-auth-inner">
+				<a href="/auth/login/" className="ri-nav-signin">
 					Sign In
 				</a>
 			</div>
@@ -73,12 +73,12 @@ export default function ReactNavAuth() {
 	const initial = (auth.name || 'A').charAt(0).toUpperCase();
 
 	return (
-		<div className="ck-nav-auth-inner">
+		<div className="ri-nav-auth-inner">
 			<button
 				ref={btnRef}
 				type="button"
 				onClick={toggleMenu}
-				className="ck-nav-avatar-btn"
+				className="ri-nav-avatar-btn"
 				aria-label="User menu"
 				aria-expanded={menuOpen}
 				aria-haspopup="true">
@@ -86,16 +86,16 @@ export default function ReactNavAuth() {
 					<img
 						src={auth.avatar}
 						alt={auth.name}
-						className="ck-nav-avatar"
+						className="ri-nav-avatar"
 					/>
 				) : (
-					<div className="ck-nav-avatar ck-nav-avatar--fallback">
+					<div className="ri-nav-avatar ri-nav-avatar--fallback">
 						{initial}
 					</div>
 				)}
-				<span className="ck-nav-username">{auth.name}</span>
+				<span className="ri-nav-username">{auth.name}</span>
 				<svg
-					className="ck-nav-chevron"
+					className="ri-nav-chevron"
 					width="12"
 					height="12"
 					viewBox="0 0 24 24"
@@ -117,7 +117,7 @@ export default function ReactNavAuth() {
 				createPortal(
 					<div
 						ref={menuRef}
-						className="ck-nav-dropdown"
+						className="ri-nav-dropdown"
 						style={{
 							position: 'fixed',
 							top: menuPos.top,
@@ -126,33 +126,33 @@ export default function ReactNavAuth() {
 						}}
 						role="menu">
 						{/* User info header */}
-						<div className="ck-nav-dropdown__header">
+						<div className="ri-nav-dropdown__header">
 							{auth.avatar ? (
 								<img
 									src={auth.avatar}
 									alt={auth.name}
-									className="ck-nav-dropdown__avatar"
+									className="ri-nav-dropdown__avatar"
 								/>
 							) : (
-								<div className="ck-nav-dropdown__avatar ck-nav-avatar--fallback">
+								<div className="ri-nav-dropdown__avatar ri-nav-avatar--fallback">
 									{initial}
 								</div>
 							)}
-							<div className="ck-nav-dropdown__info">
-								<div className="ck-nav-dropdown__name">
+							<div className="ri-nav-dropdown__info">
+								<div className="ri-nav-dropdown__name">
 									{auth.name}
 								</div>
 							</div>
 						</div>
 
-						<div className="ck-nav-dropdown__divider" />
+						<div className="ri-nav-dropdown__divider" />
 
 						{/* Menu items */}
-						<ul className="ck-nav-dropdown__menu">
+						<ul className="ri-nav-dropdown__menu">
 							<li>
 								<a
 									href="/auth/profile/"
-									className="ck-nav-dropdown__item"
+									className="ri-nav-dropdown__item"
 									onClick={() => setMenuOpen(false)}
 									role="menuitem">
 									<svg
@@ -173,14 +173,14 @@ export default function ReactNavAuth() {
 							</li>
 						</ul>
 
-						<div className="ck-nav-dropdown__divider" />
+						<div className="ri-nav-dropdown__divider" />
 
 						{/* Sign out */}
-						<ul className="ck-nav-dropdown__menu">
+						<ul className="ri-nav-dropdown__menu">
 							<li>
 								<a
 									href="/auth/logout/"
-									className="ck-nav-dropdown__item ck-nav-dropdown__item--danger"
+									className="ri-nav-dropdown__item ri-nav-dropdown__item--danger"
 									role="menuitem">
 									<svg
 										width="16"

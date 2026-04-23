@@ -16,18 +16,18 @@ export default function ReactProfileCard() {
 
 	if (loading) {
 		return (
-			<div className="ck-auth-status">
-				<div className="ck-spinner"></div>
-				<div className="ck-status-message">Loading profile...</div>
+			<div className="ri-auth-status">
+				<div className="ri-spinner"></div>
+				<div className="ri-status-message">Loading profile...</div>
 			</div>
 		);
 	}
 
 	if (!session?.user) {
 		return (
-			<div className="ck-profile-guest">
+			<div className="ri-profile-guest">
 				<p>You are not signed in.</p>
-				<a href="/auth/login/" className="ck-profile-signin-btn">
+				<a href="/auth/login/" className="ri-profile-signin-btn">
 					Sign In
 				</a>
 			</div>
@@ -45,25 +45,25 @@ export default function ReactProfileCard() {
 
 	return (
 		<>
-			<div className="ck-profile__header">
+			<div className="ri-profile__header">
 				{avatar && (
 					<img
 						src={avatar}
 						alt={name}
-						className="ck-profile__avatar"
+						className="ri-profile__avatar"
 					/>
 				)}
-				<div className="ck-profile__info">
-					<h2 className="ck-profile__name">{name}</h2>
-					<span className="ck-profile__provider">via {provider}</span>
+				<div className="ri-profile__info">
+					<h2 className="ri-profile__name">{name}</h2>
+					<span className="ri-profile__provider">via {provider}</span>
 					{user.email && (
-						<span className="ck-profile__email">{user.email}</span>
+						<span className="ri-profile__email">{user.email}</span>
 					)}
 				</div>
 			</div>
 
-			<div className="ck-profile__actions">
-				<a href="/auth/logout/" className="ck-profile-signout-btn">
+			<div className="ri-profile__actions">
+				<a href="/auth/logout/" className="ri-profile-signout-btn">
 					Sign Out
 				</a>
 			</div>
