@@ -12,7 +12,7 @@ namespace RareIcon
         static int2 _cachedRootHex;
         static bool _hasCachedCapital;
 
-  public static bool TryGetRootHex(out int2 hex)
+        public static bool TryGetRootHex(out int2 hex)
         {
             hex = default;
             if (!TryRefreshCache())
