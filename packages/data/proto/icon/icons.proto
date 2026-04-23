@@ -11,7 +11,7 @@ import "kbve/common.proto";
 // =============================================================================
 
 // Icon visual style — most icon packs ship several stroke/fill variants of the
-// same glyph. Each variant is its own Icon entry and records its style here.
+// same glyph. Each variant is its own Icon entry nested under an IconTerm.
 enum IconStyle {
   ICON_STYLE_UNSPECIFIED = 0;
   ICON_STYLE_OUTLINE     = 1;   // Line art, no fill
@@ -93,8 +93,8 @@ message IconRender {
   optional string background    = 9;    // Recommended bg color for readability (optional)
 }
 
-// License block for a single icon (or defaulted from its collection).
-// Fields left unset inherit from the parent IconCollection.license.
+// License block. Fields left unset on an Icon inherit from its IconTerm; fields
+// left unset on the IconTerm inherit from its IconCollection.
 message IconLicenseInfo {
   IconLicense license            = 1;
   optional string license_url    = 2;   // Canonical license URL
@@ -108,18 +108,8 @@ message IconLicenseInfo {
   optional bool   modifications_allowed = 10;
 }
 
-// Variant linkage — every icon that represents the same concept in a
-// different style points at the canonical sibling via this block. Lets a
-// consumer find "the filled version of this outline icon" without separate
-// lookups.
-message IconVariant {
-  string ref = 1;                       // Sibling icon ref
-  IconStyle style = 2;
-  optional string label = 3;            // Human-readable label ("Filled", "Bold")
-}
-
 // SEO / search hints for Pagefind and front-end filters. Keywords surface in
-// the Pagefind index; aliases collapse spellings into the canonical ref.
+// the Pagefind index; aliases collapse spellings into the canonical term ref.
 message IconSearch {
   repeated string keywords = 1;         // Search terms (e.g. "close", "x", "dismiss" for a close icon)
   repeated string aliases  = 2;         // Alternate names / misspellings
@@ -154,63 +144,99 @@ message IconExtension {
 }
 
 // =============================================================================
-// Core Icon Definition
+// Variant (single rendering of a concept)
 // =============================================================================
 
+// One visual rendering of an IconTerm. The parent IconTerm supplies semantic
+// metadata (name, categories, search, license defaults); an Icon records the
+// physical SVG/raster asset for a specific style, author, or collection.
 message Icon {
   // Identity
-  string id  = 1;                       // ULID
-  string ref = 2;                       // URL-safe slug, e.g. "arrow-right"
-  string name = 3;                      // Display name
-  optional string title       = 4;      // Override for UI headings
-  optional string description = 5;
+  string ref = 1;                       // Variant slug, scoped to the parent term (e.g. "outline", "filled-bold", "ocean-kit-duotone")
+  optional string label = 2;            // Human-readable variant label ("Outline", "Filled Bold")
+  optional string id    = 3;            // Optional ULID if the variant needs standalone identity
 
   // Classification
-  IconStyle style = 6;
-  repeated string categories = 7;       // Multi-category taxonomy (e.g. ["ui", "navigation"])
-  repeated string tags       = 8;       // Free-form filter tags
-  optional string collection_ref = 9;   // Parent IconCollection.ref
+  IconStyle style     = 4;
+  IconFormat format   = 5;              // Primary encoding
+  optional string collection_ref = 6;   // Source IconCollection.ref
 
   // Source asset
-  IconFormat format = 10;               // Primary encoding
-  optional string svg_body   = 11;      // Inline SVG markup (preferred for Pagefind + recolor)
-  optional string svg_path   = 12;      // Relative path if not inlined (e.g. "/icons/arrow-right.svg")
-  optional string raster_path = 13;     // PNG/WEBP fallback path
-  optional string font_family = 14;     // When format = FONT
-  optional string font_glyph  = 15;     // Codepoint / ligature name
-  optional bytes  raw_bytes   = 16;     // Embedded binary (use sparingly; prefer paths)
+  optional string svg_body    = 7;      // Inline SVG markup (preferred for Pagefind + recolor)
+  optional string svg_path    = 8;      // Relative path if not inlined (e.g. "/icons/arrow-right/outline.svg")
+  optional string raster_path = 9;      // PNG/WEBP fallback path
+  optional string font_family = 10;     // When format = FONT
+  optional string font_glyph  = 11;     // Codepoint / ligature name
+  optional bytes  raw_bytes   = 12;     // Embedded binary (use sparingly)
 
   // Rendering
-  optional IconViewBox viewbox = 17;
-  optional IconRender  render  = 18;
-  repeated int32 recommended_sizes = 19; // Pixel sizes the pack was authored at (16, 24, 32...)
+  optional IconViewBox viewbox = 13;
+  optional IconRender  render  = 14;
+  repeated int32 recommended_sizes = 15;
 
-  // Variants & relationships
-  repeated IconVariant variants = 20;   // Same concept in other styles
-  repeated string related_icon_refs = 21; // Visually or thematically related icons
-
-  // Search / SEO
-  optional IconSearch search = 22;
-
-  // Licensing
-  optional IconLicenseInfo license = 23;
-
-  // Marketing / distribution
-  optional IconOfferingInfo offering = 24;
+  // Per-variant overrides — inherit from IconTerm/IconCollection when unset
+  optional IconLicenseInfo license = 16;
+  optional IconOfferingInfo offering = 17;
 
   // Accessibility
-  optional string aria_label = 25;      // Default aria-label when used decoratively
-  optional string role       = 26;      // SVG role attribute default (e.g. "img")
+  optional string aria_label = 18;      // Default aria-label when used decoratively
+  optional string role       = 19;      // SVG role attribute default (e.g. "img")
 
   // Metadata
-  optional string credits    = 27;      // Free-form credit string
-  optional string created_at = 28;      // ISO-8601 timestamp of authoring
-  optional string updated_at = 29;
-  optional string version    = 30;      // Pack-specific version tag
-  optional bool   drafted    = 31;      // Hidden from production (same convention as Item.drafted)
+  optional string credits    = 20;      // Free-form credit string for this variant
+  optional string created_at = 21;      // ISO-8601
+  optional string updated_at = 22;
+  optional string version    = 23;
+  optional bool   drafted    = 24;
 
-  // Extensions — site-specific / game-specific key-value pairs
-  repeated IconExtension extensions = 32;
+  // Extensions — variant-level key-value pairs
+  repeated IconExtension extensions = 25;
+}
+
+// =============================================================================
+// Term (concept — one per MDX page)
+// =============================================================================
+
+// A semantic concept ("sword", "arrow-right", "close"). Holds every visual
+// rendering of the concept as a repeated Icon. This is the unit that gets one
+// MDX page + Pagefind entry.
+message IconTerm {
+  // Identity
+  string id   = 1;                      // ULID
+  string ref  = 2;                      // URL-safe term slug, e.g. "arrow-right"
+  string name = 3;                      // Display name
+  optional string title       = 4;
+  optional string description = 5;
+
+  // Taxonomy — shared across every variant of the term
+  repeated string categories = 6;       // Multi-category taxonomy (e.g. ["ui", "navigation"])
+  repeated string tags       = 7;       // Free-form filter tags
+  optional string primary_category = 8; // Single top-level category for breadcrumb / URL slug
+
+  // Search / SEO
+  optional IconSearch search = 9;
+
+  // License + offering defaults — inherited by every Icon variant unless
+  // the variant overrides its own block.
+  optional IconLicenseInfo default_license   = 10;
+  optional IconOfferingInfo default_offering = 11;
+
+  // Related terms — sibling concepts ("arrow-left" ↔ "arrow-right", "sword" ↔
+  // "dagger"). Use for "See also" lists and search ranking hints.
+  repeated string related_term_refs = 12;
+
+  // Variants — every rendering of this concept.
+  repeated Icon icons = 13;
+
+  // Metadata
+  optional string credits    = 14;
+  optional string created_at = 15;
+  optional string updated_at = 16;
+  optional string version    = 17;
+  optional bool   drafted    = 18;
+
+  // Extensions — term-level key-value pairs
+  repeated IconExtension extensions = 19;
 }
 
 // =============================================================================
@@ -218,14 +244,15 @@ message Icon {
 // =============================================================================
 
 // A named pack / set of icons that share a style, viewBox, license, and
-// author. Individual icons inherit any IconLicenseInfo field left unset.
+// author. IconTerms (and their Icon variants) cite a collection via
+// `collection_ref` and inherit any IconLicenseInfo field left unset.
 message IconCollection {
   string id   = 1;                      // ULID
   string ref  = 2;                      // Slug, e.g. "ocean-kit"
   string name = 3;
   optional string description = 4;
   optional string homepage    = 5;      // External homepage / source
-  optional string cover_icon_ref = 6;   // Icon ref used as collection thumbnail
+  optional string cover_icon_ref = 6;   // Variant ref used as collection thumbnail
   optional IconStyle primary_style = 7; // Dominant style for the pack
   optional IconViewBox default_viewbox = 8;
   optional IconRender  default_render  = 9;
@@ -233,8 +260,9 @@ message IconCollection {
   optional IconOfferingInfo offering   = 11;
   repeated string tags = 12;
   optional int32 icon_count = 13;       // Denormalized count (authority = registry)
-  optional string version   = 14;
-  optional bool   drafted   = 15;
+  optional int32 term_count = 14;       // Denormalized count
+  optional string version   = 15;
+  optional bool   drafted   = 16;
 }
 
 // =============================================================================
@@ -242,6 +270,6 @@ message IconCollection {
 // =============================================================================
 
 message IconRegistry {
-  repeated Icon icons                   = 1;
-  repeated IconCollection collections   = 2;
+  repeated IconTerm terms                = 1;
+  repeated IconCollection collections    = 2;
 }

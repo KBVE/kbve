@@ -3,7 +3,7 @@ import { docsSchema } from '@astrojs/starlight/schema';
 import { docsLoader } from '@astrojs/starlight/loaders';
 import { glob } from 'astro/loaders';
 
-import { AstroIconSchema, AstroIconCollectionSchema } from '@/data/schema';
+import { AstroIconTermSchema, AstroIconCollectionSchema } from '@/data/schema';
 
 export const collections = {
 	docs: defineCollection({
@@ -15,7 +15,7 @@ export const collections = {
 			pattern: '**/*.{md,mdx}',
 			base: './src/content/icons',
 		}),
-		schema: AstroIconSchema,
+		schema: AstroIconTermSchema,
 	}),
 	iconCollections: defineCollection({
 		loader: glob({

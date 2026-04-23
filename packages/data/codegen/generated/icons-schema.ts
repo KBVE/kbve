@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/icons.binpb
  * Config: ../icons-zod-config.json
- * Generated: 2026-04-23T21:08:45.488Z
+ * Generated: 2026-04-23T22:15:54.706Z
  */
 
 import { z } from 'zod';
@@ -63,42 +63,6 @@ export type IconOfferingValue = (typeof IconOfferings)[number];
 
 export const IconOfferingSchema = z.enum(IconOfferings);
 
-// IconViewBox
-export const IconViewBoxSchema = z.object({
-	min_x: z.number(),
-	min_y: z.number(),
-	width: z.number().min(1),
-	height: z.number().min(1),
-});
-
-export type IconViewBox = z.infer<typeof IconViewBoxSchema>;
-
-// IconRender
-export const IconRenderSchema = z
-	.object({
-		fill: z.string().nullable().optional(),
-		stroke: z.string().nullable().optional(),
-		stroke_width: z.number().min(0).nullable().optional(),
-		stroke_cap: z.string().nullable().optional(),
-		stroke_join: z.string().nullable().optional(),
-		uses_current_color: z.boolean().nullable().optional(),
-		monochrome: z.boolean().nullable().optional(),
-		color_count: z.number().min(0).nullable().optional(),
-		background: z.string().nullable().optional(),
-	})
-	.passthrough();
-
-export type IconRender = z.infer<typeof IconRenderSchema>;
-
-// IconVariant
-export const IconVariantSchema = z.object({
-	ref: z.string(),
-	style: IconStyleSchema,
-	label: z.string().optional(),
-});
-
-export type IconVariant = z.infer<typeof IconVariantSchema>;
-
 // IconSearch
 export const IconSearchSchema = z
 	.object({
@@ -145,6 +109,33 @@ export const IconOfferingInfoSchema = z
 
 export type IconOfferingInfo = z.infer<typeof IconOfferingInfoSchema>;
 
+// IconViewBox
+export const IconViewBoxSchema = z.object({
+	min_x: z.number(),
+	min_y: z.number(),
+	width: z.number().min(1),
+	height: z.number().min(1),
+});
+
+export type IconViewBox = z.infer<typeof IconViewBoxSchema>;
+
+// IconRender
+export const IconRenderSchema = z
+	.object({
+		fill: z.string().nullable().optional(),
+		stroke: z.string().nullable().optional(),
+		stroke_width: z.number().min(0).nullable().optional(),
+		stroke_cap: z.string().nullable().optional(),
+		stroke_join: z.string().nullable().optional(),
+		uses_current_color: z.boolean().nullable().optional(),
+		monochrome: z.boolean().nullable().optional(),
+		color_count: z.number().min(0).nullable().optional(),
+		background: z.string().nullable().optional(),
+	})
+	.passthrough();
+
+export type IconRender = z.infer<typeof IconRenderSchema>;
+
 // IconExtension
 export const IconExtensionSchema = z.object({
 	key: z.string(),
@@ -163,16 +154,12 @@ export type IconExtension = z.infer<typeof IconExtensionSchema>;
 
 // Icon
 export const IconSchema = z.object({
-	id: z.string(),
 	ref: z.string(),
-	name: z.string(),
-	title: z.string().optional(),
-	description: z.string().optional(),
+	label: z.string().optional(),
+	id: z.string().optional(),
 	style: IconStyleSchema,
-	categories: z.array(z.string()).optional(),
-	tags: z.array(z.string()).optional(),
-	collection_ref: z.string().optional(),
 	format: IconFormatSchema,
+	collection_ref: z.string().optional(),
 	svg_body: z.string().optional(),
 	svg_path: z.string().optional(),
 	raster_path: z.string().optional(),
@@ -182,9 +169,6 @@ export const IconSchema = z.object({
 	viewbox: IconViewBoxSchema.optional(),
 	render: IconRenderSchema.optional(),
 	recommended_sizes: z.array(z.number()).optional(),
-	variants: z.array(IconVariantSchema).optional(),
-	related_icon_refs: z.array(z.string()).optional(),
-	search: IconSearchSchema.optional(),
 	license: IconLicenseInfoSchema.optional(),
 	offering: IconOfferingInfoSchema.optional(),
 	aria_label: z.string().optional(),
@@ -198,6 +182,31 @@ export const IconSchema = z.object({
 });
 
 export type Icon = z.infer<typeof IconSchema>;
+
+// IconTerm
+export const IconTermSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	title: z.string().optional(),
+	description: z.string().optional(),
+	categories: z.array(z.string()).optional(),
+	tags: z.array(z.string()).optional(),
+	primary_category: z.string().optional(),
+	search: IconSearchSchema.optional(),
+	default_license: IconLicenseInfoSchema.optional(),
+	default_offering: IconOfferingInfoSchema.optional(),
+	related_term_refs: z.array(z.string()).optional(),
+	icons: z.array(IconSchema).optional(),
+	credits: z.string().optional(),
+	created_at: z.string().optional(),
+	updated_at: z.string().optional(),
+	version: z.string().optional(),
+	drafted: z.boolean().optional(),
+	extensions: z.array(IconExtensionSchema).optional(),
+});
+
+export type IconTerm = z.infer<typeof IconTermSchema>;
 
 // IconCollection
 export const IconCollectionSchema = z.object({
@@ -214,6 +223,7 @@ export const IconCollectionSchema = z.object({
 	offering: IconOfferingInfoSchema.optional(),
 	tags: z.array(z.string()).optional(),
 	icon_count: z.number().min(0).optional(),
+	term_count: z.number().optional(),
 	version: z.string().optional(),
 	drafted: z.boolean().optional(),
 });
@@ -222,7 +232,7 @@ export type IconCollection = z.infer<typeof IconCollectionSchema>;
 
 // IconRegistry
 export const IconRegistrySchema = z.object({
-	icons: z.array(IconSchema).optional(),
+	terms: z.array(IconTermSchema).optional(),
 	collections: z.array(IconCollectionSchema).optional(),
 });
 

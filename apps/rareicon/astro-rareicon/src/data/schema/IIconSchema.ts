@@ -1,19 +1,20 @@
 /**
- * Astro content collection schema for icon entries.
+ * Astro content collection schema for icon terms.
  *
  * Proto-derived schemas come from packages/data/codegen/generated/icons-schema.ts
- * (source of truth). Astro-specific overlay fields are layered on top for MDX
- * frontmatter that doesn't belong in the proto contract.
+ * (source of truth). Each MDX page = one IconTerm; the term holds every visual
+ * variant (Icon) of the concept, so Pagefind indexes term pages and all
+ * variants of "sword" live on one URL.
  */
-import { z } from 'astro:content';
+import { z } from 'zod';
 import {
 	IconSchema,
+	IconTermSchema,
 	IconCollectionSchema,
 	IconRegistrySchema,
 	IconViewBoxSchema,
 	IconRenderSchema,
 	IconLicenseInfoSchema,
-	IconVariantSchema,
 	IconSearchSchema,
 	IconOfferingInfoSchema,
 	IconExtensionSchema,
@@ -30,12 +31,12 @@ import {
 // Re-export generated schemas + const arrays for downstream consumers
 export {
 	IconSchema,
+	IconTermSchema,
 	IconCollectionSchema,
 	IconRegistrySchema,
 	IconViewBoxSchema,
 	IconRenderSchema,
 	IconLicenseInfoSchema,
-	IconVariantSchema,
 	IconSearchSchema,
 	IconOfferingInfoSchema,
 	IconExtensionSchema,
@@ -52,12 +53,12 @@ export {
 // Re-export inferred types
 export type {
 	Icon,
+	IconTerm,
 	IconCollection,
 	IconRegistry,
 	IconViewBox,
 	IconRender,
 	IconLicenseInfo,
-	IconVariant,
 	IconSearch,
 	IconOfferingInfo,
 	IconExtension,
@@ -68,30 +69,29 @@ export type {
 } from '../../../../../../packages/data/codegen/generated/icons-schema';
 
 // ---------------------------------------------------------------------------
-// Astro MDX frontmatter schema — the proto Icon plus site-only fields.
-// Consumers (content.config.ts, MDX generator) should use this, not raw
-// IconSchema, so that Pagefind + UI hints live with the content.
+// Astro MDX frontmatter schema — one term per MDX. Proto IconTerm + site-only
+// overlay fields.
 // ---------------------------------------------------------------------------
 
-const AstroIconOverlay = z.object({
+const AstroIconTermOverlay = z.object({
 	/** Pagefind filter tags appended at MDX generation (indexed separately). */
 	pagefindFilters: z.array(z.string()).optional(),
 
 	/** Featured flag for curated landing sections. */
 	featured: z.boolean().optional(),
 
-	/** Sort hint within a collection index page (lower = earlier). */
+	/** Sort hint within a category index page (lower = earlier). */
 	order: z.number().int().optional(),
 
-	/** Hero image path for collection cards / OG tags. */
+	/** Hero image path for category cards / OG tags. */
 	hero: z.string().optional(),
 
-	/** Free-form MDX author note (surfaces on icon detail page). */
+	/** Free-form MDX author note (surfaces on the term detail page). */
 	note: z.string().optional(),
 });
 
-export const AstroIconSchema = IconSchema.and(AstroIconOverlay);
-export type AstroIcon = z.infer<typeof AstroIconSchema>;
+export const AstroIconTermSchema = IconTermSchema.and(AstroIconTermOverlay);
+export type AstroIconTerm = z.infer<typeof AstroIconTermSchema>;
 
 export const AstroIconCollectionSchema = IconCollectionSchema.and(
 	z.object({
