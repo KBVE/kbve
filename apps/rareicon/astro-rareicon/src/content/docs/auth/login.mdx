@@ -1,6 +1,6 @@
 ---
 title: Sign In
-description: Sign in to your RareIcon account to save progress, forge alliances, and compete on leaderboards.
+description: Sign in to your RareIcon account. Cross-device sync for saves, settings, and patch notifications.
 head:
   - tag: meta
     attrs:
@@ -17,19 +17,12 @@ import AstroLogin from '../../../components/auth/AstroLogin.astro';
 
 <AstroLogin />
 
-## Why Sign In?
+## Why sign in
 
-### Save Your Progress
-Your game progress, settings, and preferences sync across all your devices.
+- **Cloud saves** — progress and settings sync across every device you play on.
+- **Patch notifications** — new demo builds and major updates surface in your account.
+- **Shared community** — one KBVE account covers RareIcon plus Discord / GitHub integrations across all KBVE properties.
 
-### Community
-Connect with the RareIcon community through Discord and GitHub.
+## Supported providers
 
-### Cross-Device
-Start on your desktop and continue on your laptop or mobile.
-
-## Supported Providers
-
-**GitHub** and **Discord** are currently supported for authentication.
-
-We only request basic profile information (username, email, avatar) from OAuth providers.
+**GitHub** and **Discord** are supported today. We only pull the basics from OAuth — username, email, avatar — nothing else.

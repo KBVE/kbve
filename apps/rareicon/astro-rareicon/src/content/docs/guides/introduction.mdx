@@ -1,6 +1,23 @@
 ---
-title: Getting Started with RareIcon
-description: Learn how to begin your adventure in RareIcon, an open world multiplayer RPG built on Unreal Engine with the OWS backend.
+title: What is RareIcon
+description: RareIcon is a Unity DOTS colony simulation. Build a settlement, assign jobs, grow it from farm to castle, and defend it from what lives in the dark.
+sidebar:
+  label: What is RareIcon
+  order: 1
 ---
 
-RareIcon is an open world multiplayer RPG built on Unreal Engine with the Open World Server (OWS) backend.
+**RareIcon** is a hex-grid colony simulation built in Unity with the DOTS / ECS stack. You start with a handful of settlers on an empty patch of world and grow it — farms, villages, barracks, keeps, castles — while handling the things that go wrong in between.
+
+## Pillars
+
+- **Colony-sim depth.** Every unit has job priorities. Every building is a bundle of capability components. Production chains, tenders, logistics, combat — all scheduled on the same tick loop.
+- **DOTS performance.** Target scale is thousands of units across thousands of tiles. Burst + parallel jobs drive the core systems; no per-entity managed overhead in the hot path.
+- **Readable state.** The UI surfaces what a settler is doing and why: which task they picked, what the dispatcher scored, how much of a resource a bank holds.
+
+## Status
+
+The Steam demo is the current target. See [Install the Steam Demo](/guides/steam-demo/) for how to get it running.
+
+## Where the data lives
+
+Item references, map data, and the deep encyclopedia stay on [kbve.com](https://kbve.com/) so the public-facing database has a single home. This site focuses on the gameplay side: how to play, what the systems do, patch notes.

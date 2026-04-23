@@ -104,6 +104,14 @@ export default defineConfig({
 					label: 'Account',
 					autogenerate: { directory: 'auth' },
 				},
+				{
+					label: 'Journal',
+					link: 'https://kbve.com/journal/',
+					attrs: {
+						target: '_blank',
+						rel: 'noopener',
+					},
+				},
 			],
 		}),
 		react(),

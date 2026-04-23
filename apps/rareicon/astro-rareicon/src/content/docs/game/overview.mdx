@@ -1,6 +1,30 @@
 ---
-title: Game Systems and Architecture
-description: Explore RareIcon game systems, combat mechanics, world design, and backend architecture powered by Unreal Engine and OWS.
+title: Game Overview
+description: A short tour of RareIcon's core systems — jobs, production, combat, building tiers.
+sidebar:
+  label: Overview
+  order: 1
 ---
 
-Game systems documentation will go here.
+RareIcon is a hex-tile colony simulation. Your job is to build, stock, and defend a settlement.
+
+## Core loop
+
+1. **Build** — place tiles that produce, store, shelter, or fight.
+2. **Assign** — every settler has a priority weight per job (hauling, farming, building, combat…).
+3. **Grow** — buildings upgrade through tiers (Farm → Village, Barracks → Keep → Castle).
+4. **Defend** — hostiles show up. Your Barracks / Keep / Castle chain + trained settlers handle it.
+
+## Systems at a glance
+
+- **Jobs.** A task-offer dispatcher scores open work and hands it to the best-suited settler. No rigid classes — every unit can do every role, weighted by their priority bytes.
+- **Production.** Recipe-driven. Buildings with a `ProductionRecipe` consume inputs, produce outputs, feed the next building in the chain.
+- **Combat.** Parallel event pipeline — detection, targeting, damage all run as DOTS jobs, rolled up on the main thread for UI.
+- **Logistics.** Bank ledgers hold quantities; reservations gate pickups so two carriers never race for the same stack.
+
+## Where to go deeper
+
+- [kbve.com/rareicon](https://kbve.com/rareicon/) — item database, map data, reference tables
+- [kbve.com/journal](https://kbve.com/journal/) — dev journal + patch notes
+
+The docs on this site stay focused on **how to play**. The exhaustive data reference lives on kbve.com.
