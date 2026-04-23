@@ -1,0 +1,189 @@
+---
+import { getCollection } from 'astro:content';
+import { collectTermSummaries, collectFacet } from '@/lib/icons/terms';
+import IconsBrowserReact from './IconsBrowser';
+
+interface Props {
+	basePath?: string;
+}
+
+const { basePath = '/icons' } = Astro.props;
+
+const docs = await getCollection('docs');
+const terms = collectTermSummaries(docs);
+const categories = collectFacet(terms, (t) => t.categories);
+const styles = collectFacet(terms, (t) => t.styles);
+const themes = collectFacet(terms, (t) => t.themes);
+---
+
+<IconsBrowserReact
+	client:load
+	terms={terms}
+	categories={categories}
+	styles={styles}
+	themes={themes}
+	basePath={basePath}
+/>
+
+<style is:global>
+	.ri-icons-browser {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin: 1.5rem 0;
+	}
+
+	.ri-icons-browser__controls {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.ri-icons-browser__search {
+		flex: 1 1 20rem;
+		padding: 0.65rem 1rem;
+		font: inherit;
+		color: var(--ri-text-primary);
+		background: var(--ri-bg-panel);
+		border: 1px solid var(--ri-border);
+		border-radius: 8px;
+		transition:
+			border-color 0.15s,
+			box-shadow 0.15s;
+	}
+
+	.ri-icons-browser__search:focus {
+		outline: none;
+		border-color: var(--ri-accent);
+		box-shadow: 0 0 0 4px rgba(58, 174, 216, 0.2);
+	}
+
+	.ri-icons-browser__count {
+		font-size: 0.8125rem;
+		color: var(--ri-text-disabled);
+		font-family: monospace;
+	}
+
+	.ri-icons-browser__chip-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	.ri-icons-browser__chip-label {
+		font-size: 0.6875rem;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--ri-text-disabled);
+		margin-right: 0.25rem;
+	}
+
+	.ri-icons-browser__chip {
+		font: inherit;
+		font-size: 0.75rem;
+		padding: 0.25rem 0.65rem;
+		border-radius: 999px;
+		background: var(--ri-bg-panel);
+		color: var(--ri-text-secondary);
+		border: 1px solid var(--ri-border);
+		cursor: pointer;
+		transition: all 0.15s;
+	}
+
+	.ri-icons-browser__chip:hover {
+		border-color: var(--ri-accent);
+		color: var(--ri-accent);
+	}
+
+	.ri-icons-browser__chip[data-active='true'] {
+		background: var(--ri-ocean-deep);
+		border-color: var(--ri-accent);
+		color: var(--ri-accent);
+	}
+
+	.ri-icons-browser__grid {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		gap: 0.75rem;
+	}
+
+	.ri-icons-browser__item {
+		margin: 0;
+	}
+
+	.ri-icons-browser__card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 0.75rem;
+		border-radius: 8px;
+		background: var(--ri-bg-panel);
+		border: 1px solid var(--ri-border);
+		text-decoration: none !important;
+		color: var(--ri-text-primary);
+		transition:
+			border-color 0.15s,
+			box-shadow 0.15s,
+			transform 0.15s;
+	}
+
+	.ri-icons-browser__card:hover {
+		border-color: var(--ri-accent);
+		box-shadow: 0 0 24px rgba(58, 174, 216, 0.15);
+		transform: translateY(-2px);
+	}
+
+	.ri-icons-browser__thumb {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+		background: var(--ri-bg-panel-elevated);
+		border-radius: 6px;
+		color: var(--ri-accent);
+		min-height: 80px;
+	}
+
+	.ri-icons-browser__thumb svg {
+		width: 48px;
+		height: 48px;
+	}
+
+	.ri-icons-browser__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	.ri-icons-browser__name {
+		font-weight: 600;
+		flex: 1 1 auto;
+	}
+
+	.ri-icons-browser__chip {
+		/* overridden selector for inline category marker inside card meta */
+	}
+
+	.ri-icons-browser__count-pill {
+		font-size: 0.6875rem;
+		padding: 0.125rem 0.45rem;
+		border-radius: 999px;
+		background: var(--ri-bg-app);
+		border: 1px solid var(--ri-border);
+		color: var(--ri-text-disabled);
+	}
+
+	.ri-icons-browser__empty {
+		padding: 2rem;
+		text-align: center;
+		color: var(--ri-text-disabled);
+		border: 1px dashed var(--ri-border);
+		border-radius: 8px;
+	}
+</style>
