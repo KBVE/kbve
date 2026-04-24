@@ -6,7 +6,7 @@ use axum::{
     extract::Request,
     http::{HeaderName, HeaderValue, header},
     middleware::Next,
-    response::{IntoResponse, Json, Response},
+    response::{Json, Response},
     routing::get,
 };
 use serde_json::{Value, json};
