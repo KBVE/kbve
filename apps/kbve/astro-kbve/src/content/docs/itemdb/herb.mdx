@@ -16,6 +16,10 @@ max_stack: 30
 buy_price: 5
 skilling:
   skill: 'foraging'
+food:
+  perishable: true
+  shelf_life_seconds: 604800
+  spoils_into_ref: 'rotten-food'
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
@@ -23,3 +27,8 @@ import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
 ## Overview
 
 <ItemDBPanel data={frontmatter} />
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).

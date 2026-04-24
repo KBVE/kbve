@@ -26,6 +26,9 @@ skilling:
 food:
   heals: 3
   doses: 1
+  perishable: true
+  shelf_life_seconds: 259200
+  spoils_into_ref: 'rotten-food'
 tags:
   - isometric
 ---
@@ -42,3 +45,8 @@ import {
 ## Overview
 
 <ItemDBPanel data={frontmatter} />
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).

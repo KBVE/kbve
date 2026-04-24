@@ -16,6 +16,9 @@ buy_price: 8
 pool_group: 'food'
 food:
   restore_energy: 15
+  perishable: true
+  shelf_life_seconds: 432000
+  spoils_into_ref: 'rotten-food'
 skilling:
   skill: 'foraging'
 compress:
@@ -28,3 +31,8 @@ import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
 ## Overview
 
 <ItemDBPanel data={frontmatter} />
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).

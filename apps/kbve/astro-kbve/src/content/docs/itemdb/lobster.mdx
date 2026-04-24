@@ -34,6 +34,10 @@ scripts:
     - guid: '83a1f3fd6c12406aa8ef9cdd54aacf99'
       vars:
             traits: 'shell-hardened'
+food:
+  perishable: true
+  shelf_life_seconds: 43200
+  spoils_into_ref: 'rotten-meat'
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
@@ -125,3 +129,8 @@ Lobsters are ancient. Older than myths. They remember things we forgot to fear.
 ## DevLog
 
 - 05/30/2025 - Lobster added as rare fish item with health and armor buffs, lore-based seafood crafting, and shell reuse potential
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Meat](/itemdb/rotten-meat/).

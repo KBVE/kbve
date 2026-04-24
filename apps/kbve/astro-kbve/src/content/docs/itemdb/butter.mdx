@@ -35,6 +35,10 @@ scripts:
             effectContext: 'cooking'
             flavorBoost: 1
             mobilityBonus: 0.5
+food:
+  perishable: true
+  shelf_life_seconds: 1209600
+  spoils_into_ref: 'rotten-food'
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
@@ -125,3 +129,8 @@ Butter is love, leverage and surprisingly flammable.
 ## DevLog
 
 - 05/31/2025 - Butter added as foundational food item with culinary and sneaky utility
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).

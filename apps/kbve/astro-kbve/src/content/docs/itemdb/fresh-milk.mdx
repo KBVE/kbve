@@ -40,6 +40,9 @@ scripts:
 pool_group: 'food'
 food:
   restore_energy: 10
+  perishable: true
+  shelf_life_seconds: 172800
+  spoils_into_ref: 'rotten-milk'
 compress:
   target_ref: 'meal'
   ratio: 100
@@ -138,3 +141,8 @@ That belief stuck. Somehow, it still works.
 ## DevLog
 
 - 05/30/2025 - Fresh Milk added as comfort drink with health, calm, and bone-related utility boosts
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Milk](/itemdb/rotten-milk/).

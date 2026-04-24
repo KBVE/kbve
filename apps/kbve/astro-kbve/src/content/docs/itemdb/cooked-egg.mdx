@@ -18,6 +18,9 @@ action: 'consume'
 pool_group: 'food'
 food:
   restore_energy: 14
+  perishable: true
+  shelf_life_seconds: 259200
+  spoils_into_ref: 'rotten-meat'
 compress:
   target_ref: 'meal'
   ratio: 100
@@ -28,3 +31,8 @@ import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
 ## Overview
 
 <ItemDBPanel data={frontmatter} />
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Meat](/itemdb/rotten-meat/).

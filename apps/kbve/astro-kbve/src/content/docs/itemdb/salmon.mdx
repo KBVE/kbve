@@ -34,6 +34,10 @@ scripts:
           health: 15
           duration: 5
           tickRate: 1
+food:
+  perishable: true
+  shelf_life_seconds: 86400
+  spoils_into_ref: 'rotten-meat'
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
@@ -124,3 +128,7 @@ You can cook raw salmon using a **campfire** or **cooking station** to increase 
     }
   ]}
 />
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Meat](/itemdb/rotten-meat/).

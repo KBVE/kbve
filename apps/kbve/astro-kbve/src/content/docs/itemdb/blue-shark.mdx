@@ -36,6 +36,10 @@ scripts:
           mana: 25
           duration: 600
           tickRate: 5
+food:
+  perishable: true
+  shelf_life_seconds: 86400
+  spoils_into_ref: 'rotten-meat'
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
@@ -86,3 +90,7 @@ Though edible as-is, the Blue Shark might be processed into advanced dishes at h
 ## DevLog
 
 -   05/25/2025 - TODO - Add a chance of mercury poison if eaten without cooking.
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Meat](/itemdb/rotten-meat/).

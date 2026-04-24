@@ -25,6 +25,10 @@ skilling:
   resource_node: 'mushroom-fly-agaric'
 tags:
   - isometric
+food:
+  perishable: true
+  shelf_life_seconds: 259200
+  spoils_into_ref: 'rotten-food'
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
@@ -39,3 +43,8 @@ import {
 ## Overview
 
 <ItemDBPanel data={frontmatter} />
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).

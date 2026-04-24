@@ -46,6 +46,10 @@ recipes:
             amount: 2
           - item_ref: 'butter'
             amount: 1
+food:
+  perishable: true
+  shelf_life_seconds: 43200
+  spoils_into_ref: 'rotten-food'
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
@@ -140,3 +144,8 @@ Some say the original recipe was taught by a seafaring AI chef who only spoke in
 ## DevLog
 
 - 05/30/2025 - Fish Taco added as consumable food with agility and reflex buff
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).

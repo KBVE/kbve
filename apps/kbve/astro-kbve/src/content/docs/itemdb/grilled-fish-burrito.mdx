@@ -37,6 +37,10 @@ scripts:
             strengthBoost: 6
             resistanceBoost: 4
             duration: 240
+food:
+  perishable: true
+  shelf_life_seconds: 43200
+  spoils_into_ref: 'rotten-food'
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
@@ -131,3 +135,7 @@ Originally served only during post-storm rebuilds.
 - 05/28/2025 - Added visual novel choices for burrito encounter
 - 05/29/2025 - Adjusted buff duration and lore to fit the KBVE universe
 - 05/30/2025 - Final tweaks to visuals and lore, ready for itemdb release
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).

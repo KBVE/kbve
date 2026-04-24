@@ -1,0 +1,37 @@
+---
+title: 'Rotten Milk'
+description: |
+    Chunks of pale yellow curd suspended in a separated liquid the color of weak tea, stopper pushed partway out of the bottle by whatever is still fermenting inside. The smell announces itself through a closed pantry door.
+lore: |
+    What [fresh milk](/itemdb/fresh-milk/) becomes when the cellar runs warmer than the dairy intended or the delivery is forgotten on a hot afternoon. Cheesemakers find the very earliest stage of it interesting. Everybody further along the timeline finds it a disposal problem, and a bottle once past the curd stage is poured into the compost heap, which the compost heap will spend a week recovering from.
+ref: 'rotten-milk'
+key: 544
+id: '01KTVTRAB100R0TTENM1KK0002'
+name: 'Rotten Milk'
+type_flags: 8
+rarity: 'common'
+emoji: '🥛'
+stackable: true
+max_stack: 30
+buy_price: 0
+sell_price: 0
+tradeable: false
+consumable: true
+cooldown: 10
+action: 'consume'
+pool_group: 'food'
+food:
+  heals: -8
+  restore_energy: -15
+  perishable: false
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />
+
+## Sources
+
+Comes from [fresh milk](/itemdb/fresh-milk/) left past its shelf life.

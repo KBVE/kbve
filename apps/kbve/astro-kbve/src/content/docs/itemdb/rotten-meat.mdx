@@ -1,0 +1,37 @@
+---
+title: 'Rotten Meat'
+description: |
+    Grey-green flesh that has given up its firmness in patches, the surface shiny in a way no fresh cut ever manages. The smell fills a tent before anyone has unwrapped the parcel, and stays in the cloth afterwards.
+lore: |
+    End-state of raw and cooked meat that missed its cook-by schedule, whether through forgetting, bad weather, or somebody's optimistic opinion about how long a pack would keep in the sun. Eating it is technically possible and universally regretted, and the field manuals that do not condemn it outright are written for situations the manuals would rather not describe. Most camps deal with it by pitching it into the fire, on the general principle that anything burned is no longer a problem.
+ref: 'rotten-meat'
+key: 545
+id: '01KTVTRAB100R0TTENME4T0003'
+name: 'Rotten Meat'
+type_flags: 8
+rarity: 'common'
+emoji: '🍖'
+stackable: true
+max_stack: 30
+buy_price: 0
+sell_price: 0
+tradeable: false
+consumable: true
+cooldown: 10
+action: 'consume'
+pool_group: 'food'
+food:
+  heals: -10
+  restore_energy: -20
+  perishable: false
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />
+
+## Sources
+
+Comes from meat left too long, including [raw beef](/itemdb/raw-beef/), [raw chicken](/itemdb/raw-chicken/), [raw mutton](/itemdb/raw-mutton/), [salmon](/itemdb/salmon/), [blue shark](/itemdb/blue-shark/), [lobster](/itemdb/lobster/), [egg](/itemdb/egg/), and the cooked variants of each.

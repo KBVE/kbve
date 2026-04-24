@@ -37,6 +37,10 @@ scripts:
             strengthBoost: 8
             moraleBoost: 5
             duration: 180
+food:
+  perishable: true
+  shelf_life_seconds: 172800
+  spoils_into_ref: 'rotten-food'
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
@@ -129,3 +133,8 @@ Smoke rings tell the truth.
 ## DevLog
 
 - 05/30/2025 - Texas BBQ Brisket added as rare food item with health, strength, and morale bonuses
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).
