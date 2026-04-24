@@ -196,52 +196,74 @@ const {
 <script>
 	import { $activeTooltip, openTooltip, closeTooltip } from '@kbve/droid';
 	import { resolveDirection, prefersReducedMotion } from './sttService';
+	import { onMount } from '../../../utils/clientRouter';
 
-	document
-		.querySelectorAll<HTMLElement>('[data-stt-root]')
-		.forEach((root) => {
-			const id = root.id;
-			const trigger =
-				root.querySelector<HTMLElement>('[data-stt-trigger]');
-			const panel = root.querySelector<HTMLElement>('[data-stt-panel]');
-			if (!trigger || !panel) return;
+	onMount(() => {
+		const teardowns: Array<() => void> = [];
 
-			const dir = root.dataset.sttDir || 'auto';
-			const reduced = prefersReducedMotion();
+		document
+			.querySelectorAll<HTMLElement>('[data-stt-root]')
+			.forEach((root) => {
+				const id = root.id;
+				const trigger =
+					root.querySelector<HTMLElement>('[data-stt-trigger]');
+				const panel =
+					root.querySelector<HTMLElement>('[data-stt-panel]');
+				if (!trigger || !panel) return;
 
-			const open = () => openTooltip(id);
-			const close = () => closeTooltip(id);
+				const dir = root.dataset.sttDir || 'auto';
+				const reduced = prefersReducedMotion();
 
-			root.addEventListener('pointerenter', open);
-			root.addEventListener('pointerleave', close);
-			trigger.addEventListener('focus', open);
-			trigger.addEventListener('blur', close);
+				const open = () => openTooltip(id);
+				const close = () => closeTooltip(id);
 
-			$activeTooltip.subscribe((activeId) => {
-				const isOpen = activeId === id;
+				root.addEventListener('pointerenter', open);
+				root.addEventListener('pointerleave', close);
+				trigger.addEventListener('focus', open);
+				trigger.addEventListener('blur', close);
 
-				if (isOpen) {
-					if (reduced) root.classList.add('stt--reduce');
-					root.classList.add('stt--open');
-					trigger.setAttribute('aria-expanded', 'true');
+				const unsub = $activeTooltip.subscribe((activeId) => {
+					const isOpen = activeId === id;
 
-					if (dir === 'auto') {
-						const resolved = resolveDirection(root, panel, 'auto');
-						root.classList.toggle(
-							'stt--dir-top',
-							resolved === 'top',
-						);
-						root.classList.toggle(
-							'stt--dir-bottom',
-							resolved === 'bottom',
-						);
+					if (isOpen) {
+						if (reduced) root.classList.add('stt--reduce');
+						root.classList.add('stt--open');
+						trigger.setAttribute('aria-expanded', 'true');
+
+						if (dir === 'auto') {
+							const resolved = resolveDirection(
+								root,
+								panel,
+								'auto',
+							);
+							root.classList.toggle(
+								'stt--dir-top',
+								resolved === 'top',
+							);
+							root.classList.toggle(
+								'stt--dir-bottom',
+								resolved === 'bottom',
+							);
+						}
+					} else {
+						root.classList.remove('stt--open');
+						trigger.setAttribute('aria-expanded', 'false');
 					}
-				} else {
-					root.classList.remove('stt--open');
-					trigger.setAttribute('aria-expanded', 'false');
-				}
+				});
+
+				teardowns.push(() => {
+					root.removeEventListener('pointerenter', open);
+					root.removeEventListener('pointerleave', close);
+					trigger.removeEventListener('focus', open);
+					trigger.removeEventListener('blur', close);
+					unsub();
+				});
 			});
-		});
+
+		return () => {
+			teardowns.forEach((fn) => fn());
+		};
+	});
 </script>
 
 <style>
