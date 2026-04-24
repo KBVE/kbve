@@ -112,3 +112,53 @@ pub struct ProfileTemplate {
 pub struct ProfileNotFoundTemplate {
     pub username: String,
 }
+
+// ===========================================================================
+// FORUM TEMPLATES
+// ===========================================================================
+// Every string field here is pre-sanitized upstream. Bodies + comments arrive
+// as HTML produced by `kbve::markdown::render` — safe to pipe into `|safe`
+// inside the templates. Plain-text fields (title, author, timestamps) are
+// escaped by askama's default filter.
+
+/// Individual forum thread page served at /forum/t/{slug_or_id}.
+#[allow(dead_code)] // fields consumed once the /forum routes wire in
+#[derive(Template)]
+#[template(path = "askama/forum/thread/index.html")]
+pub struct ForumThreadTemplate {
+    pub thread_title: String,
+    pub thread_slug_or_id: String,
+    pub thread_meta_description: String,
+    pub space_slug: String,
+    pub space_name: String,
+    pub author_username: String,
+    pub author_avatar_url: String,
+    pub created_at_human: String,
+    pub last_activity_human: String,
+    pub score: i64,
+    pub comment_count: i32,
+    /// Sanitized HTML — output of `kbve::markdown::render(..).html`.
+    pub thread_body_html: String,
+    /// Pre-rendered tag chip HTML.
+    pub tags_html: String,
+    /// Pre-rendered comment tree HTML.
+    pub comments_html: String,
+}
+
+/// Forum feed / space-index page served at /forum/ and /forum/s/{slug}.
+#[allow(dead_code)] // fields consumed once the /forum routes wire in
+#[derive(Template)]
+#[template(path = "askama/forum/feed/index.html")]
+pub struct ForumFeedTemplate {
+    pub feed_heading: String,
+    pub feed_og_title: String,
+    pub feed_meta_description: String,
+    pub feed_canonical_suffix: String,
+    pub active_sort_label: String,
+    /// Pre-rendered list of FeedItem cards.
+    pub feed_items_html: String,
+    /// Sidebar / top nav of spaces.
+    pub spaces_nav_html: String,
+    /// Cursor-based pagination controls.
+    pub pagination_html: String,
+}

@@ -1,0 +1,143 @@
+---
+// AskamaForumThreadProvider — mirrors the axum-kbve askama thread template.
+// Renders the full forum thread page served at /forum/t/{slug_or_id}.
+//
+// Askama placeholders consumed by axum-kbve's ForumThreadTemplate:
+//   {{ thread_title }}        — plain text title
+//   {{ thread_slug_or_id }}   — URL-safe identifier for canonical link
+//   {{ space_slug }}          — parent space slug for breadcrumb
+//   {{ space_name }}          — display name of parent space
+//   {{ author_username }}     — author handle
+//   {{ author_avatar_url }}   — author avatar or placeholder
+//   {{ created_at_human }}    — human-friendly timestamp
+//   {{ last_activity_human }} — "last reply X ago" label
+//   {{ score }}               — numeric score (upvotes - downvotes)
+//   {{ comment_count }}       — number of comments
+//   {{ thread_body_html }}    — sanitized HTML body (rendered upstream via kbve::markdown)
+//   {{ thread_meta_description }} — SEO summary
+//   {{ comments_html }}       — rendered comment tree (server-composed)
+//   {{ tags_html }}           — rendered tag chips
+//
+// The body + comments arrive already sanitized (kbve::markdown::render output),
+// so this file uses `set:html` on those slots. Never pass raw user input here.
+---
+
+<main class="forum-thread">
+	<nav class="forum-thread__breadcrumb" aria-label="Breadcrumb">
+		<a href="/forum/">Forum</a>
+		<span aria-hidden="true">›</span>
+		<a href={`/forum/s/{{ space_slug }}`}>{`{{ space_name }}`}</a>
+	</nav>
+
+	<header class="forum-thread__header">
+		<h1 class="forum-thread__title">{`{{ thread_title }}`}</h1>
+		<div class="forum-thread__meta">
+			<a class="forum-thread__author" href={`/@{{ author_username }}`}>
+				<img
+					src={`{{ author_avatar_url }}`}
+					alt={`{{ author_username }} avatar`}
+					width="24"
+					height="24"
+					loading="lazy"
+				/>
+				<span>@{`{{ author_username }}`}</span>
+			</a>
+			<span class="forum-thread__dot" aria-hidden="true">·</span>
+			<time class="forum-thread__time">{`{{ created_at_human }}`}</time>
+			<span class="forum-thread__dot" aria-hidden="true">·</span>
+			<span class="forum-thread__score">
+				{`{{ score }}`} pts
+			</span>
+			<span class="forum-thread__dot" aria-hidden="true">·</span>
+			<span class="forum-thread__replies">
+				{`{{ comment_count }}`} replies
+			</span>
+		</div>
+
+		<div class="forum-thread__tags" set:html={`{{ tags_html }}`} />
+	</header>
+
+	<article
+		class="forum-thread__body prose"
+		set:html={`{{ thread_body_html }}`}
+	/>
+
+	<section class="forum-thread__comments" aria-label="Comments">
+		<h2 class="forum-thread__comments-title">
+			Comments ({`{{ comment_count }}`})
+		</h2>
+		<div
+			class="forum-thread__comments-tree"
+			set:html={`{{ comments_html }}`}
+		/>
+	</section>
+</main>
+
+<style>
+	.forum-thread {
+		max-width: 800px;
+		margin: 0 auto;
+		padding: 2rem 1.5rem;
+	}
+	.forum-thread__breadcrumb {
+		font-size: 0.875rem;
+		color: var(--sl-color-gray-2);
+		margin-bottom: 1rem;
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
+	}
+	.forum-thread__title {
+		font-size: 1.75rem;
+		line-height: 1.2;
+		margin: 0 0 0.5rem;
+	}
+	.forum-thread__meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		align-items: center;
+		font-size: 0.875rem;
+		color: var(--sl-color-gray-2);
+		margin-bottom: 0.75rem;
+	}
+	.forum-thread__author {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+	.forum-thread__author img {
+		border-radius: 50%;
+	}
+	.forum-thread__tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+		margin-top: 0.75rem;
+	}
+	.forum-thread__body {
+		margin: 1.5rem 0 2rem;
+		color: var(--sl-color-text);
+		line-height: 1.65;
+	}
+	.forum-thread__body :global(pre) {
+		overflow-x: auto;
+		padding: 1rem;
+		border-radius: 6px;
+		background: var(--sl-color-bg-inline-code, #1a1a1a);
+	}
+	.forum-thread__body :global(blockquote) {
+		border-left: 3px solid var(--sl-color-gray-5);
+		padding-left: 1rem;
+		color: var(--sl-color-gray-2);
+		margin: 1rem 0;
+	}
+	.forum-thread__comments {
+		border-top: 1px solid var(--sl-color-gray-5);
+		padding-top: 1.5rem;
+	}
+	.forum-thread__comments-title {
+		font-size: 1.125rem;
+		margin-bottom: 1rem;
+	}
+</style>

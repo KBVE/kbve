@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ thread_title }} — r/{{ space_slug }} | KBVE Forum</title>
+    <meta name="description" content="{{ thread_meta_description }}">
+</head>
+<body>
+    <!--
+        Stub fallback — overwritten at docker build time by the Starlight-built
+        version copied from dist/askama/forum/thread/index.html. See
+        apps/kbve/axum-kbve/Dockerfile `COPY templates/dist/askama/` step.
+    -->
+    <main>
+        <nav>
+            <a href="/forum/">Forum</a> › <a href="/forum/s/{{ space_slug }}">{{ space_name }}</a>
+        </nav>
+        <h1>{{ thread_title }}</h1>
+        <p>
+            by <a href="/@{{ author_username }}">@{{ author_username }}</a>
+            · {{ created_at_human }}
+            · {{ score }} pts
+            · {{ comment_count }} replies
+        </p>
+        <div>{{ tags_html|safe }}</div>
+        <article>{{ thread_body_html|safe }}</article>
+        <section>
+            <h2>Comments ({{ comment_count }})</h2>
+            <div>{{ comments_html|safe }}</div>
+        </section>
+    </main>
+</body>
+</html>

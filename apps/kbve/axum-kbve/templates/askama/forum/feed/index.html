@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ feed_og_title }}</title>
+    <meta name="description" content="{{ feed_meta_description }}">
+</head>
+<body>
+    <!--
+        Stub fallback — overwritten at docker build time by the Starlight-built
+        version copied from dist/askama/forum/feed/index.html.
+    -->
+    <main>
+        <header>
+            <h1>{{ feed_heading }}</h1>
+            <div>Sort: <strong>{{ active_sort_label }}</strong></div>
+        </header>
+        <nav>{{ spaces_nav_html|safe }}</nav>
+        <section>{{ feed_items_html|safe }}</section>
+        <nav>{{ pagination_html|safe }}</nav>
+    </main>
+</body>
+</html>

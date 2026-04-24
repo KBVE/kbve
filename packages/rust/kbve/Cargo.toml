@@ -19,6 +19,8 @@ image-gen = ["dep:resvg"]
 anyhow = "1.0"
 ammonia = "4.1.2"
 argon2 = "0.5.0"
+pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
+url = "2.5"
 askama = "0.15.6"
 async-trait = "0.1.74"
 chrono = { version = "0.4.44", features = ["serde"] }

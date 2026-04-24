@@ -1,0 +1,79 @@
+---
+// AskamaForumFeedProvider — forum landing + space feed template.
+// Served by axum-kbve at /forum/ and /forum/s/{slug}.
+//
+// Askama placeholders consumed by axum-kbve's ForumFeedTemplate:
+//   {{ feed_heading }}        — "Forum" / space name / tag label
+//   {{ feed_meta_description }}
+//   {{ feed_og_title }}
+//   {{ feed_canonical_suffix }}
+//   {{ active_sort_label }}   — "Hot", "New", "Top", etc.
+//   {{ feed_items_html }}     — pre-rendered list of FeedItem cards
+//   {{ pagination_html }}     — next/prev cursor controls
+//   {{ spaces_nav_html }}     — sidebar / top nav of spaces
+//
+// feed_items_html is composed server-side from per-item askama partials so
+// each card has consistent sanitized output (title, truncated body_html,
+// author, tags, score, comment count). No raw user input reaches this slot.
+---
+
+<main class="forum-feed">
+	<header class="forum-feed__header">
+		<h1 class="forum-feed__heading">{`{{ feed_heading }}`}</h1>
+		<div class="forum-feed__sort">
+			<span aria-hidden="true">Sort:</span>
+			<strong>{`{{ active_sort_label }}`}</strong>
+		</div>
+	</header>
+
+	<nav
+		class="forum-feed__spaces"
+		aria-label="Spaces"
+		set:html={`{{ spaces_nav_html }}`}
+	/>
+
+	<section class="forum-feed__items" set:html={`{{ feed_items_html }}`} />
+
+	<nav
+		class="forum-feed__pagination"
+		aria-label="Pagination"
+		set:html={`{{ pagination_html }}`}
+	/>
+</main>
+
+<style>
+	.forum-feed {
+		max-width: 960px;
+		margin: 0 auto;
+		padding: 2rem 1.5rem;
+		display: grid;
+		gap: 1.25rem;
+	}
+	.forum-feed__header {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: 1rem;
+	}
+	.forum-feed__heading {
+		font-size: 1.75rem;
+		margin: 0;
+	}
+	.forum-feed__sort {
+		font-size: 0.875rem;
+		color: var(--sl-color-gray-2);
+	}
+	.forum-feed__spaces {
+		font-size: 0.8125rem;
+	}
+	.forum-feed__items {
+		display: grid;
+		gap: 0.75rem;
+	}
+	.forum-feed__pagination {
+		display: flex;
+		justify-content: center;
+		gap: 1rem;
+		margin-top: 1.5rem;
+	}
+</style>
