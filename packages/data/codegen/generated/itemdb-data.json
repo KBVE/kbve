@@ -1,7 +1,8 @@
 {
 	"items": [
 		{
-			"description": "An ethereal substance harvested from the exits of black holes. \nThis spinozian object shimmers with the memory of ancient stars and forgotten constants.\n",
+			"description": "A faint silver powder that weighs almost nothing and refuses to settle in still air. Light passing through it arrives a half-second late, and the grains align themselves toward whichever celestial object happens to be directly overhead, regardless of what the ceiling says.\n",
+			"lore": "Collected by the DeepCore Alchemy Arrays from the event horizons of collapsing stars, where matter gives up some of its stubbornness about which moment it belongs to. A single gram finishes a transmutation that would otherwise require a lifetime of failed attempts. Alchemists who handle it carelessly report remembering things in the wrong order for the rest of the year, and occasionally for the rest of the previous one.\n",
 			"ref": "alchemist-stardust",
 			"key": 9,
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRSD",
@@ -461,7 +462,8 @@
 			}
 		},
 		{
-			"description": "A decrepit notebook exuding fumes of outdated code and decaying circuits.\nBooting it may infect you with ancient memes and unpatched exploits.\n",
+			"description": "Salvage-grade notebook with fan noise that sounds like a dying moth. The plastic smells faintly of oxidized capacitors and old caffeine, and the boot sequence drops into a desktop where every icon leads somewhere you did not click.\n",
+			"lore": "Recovered from a landfill in the Inland Valley after the 2038 Cloud Purge. The previous owner left behind seventeen tabs of legally actionable forum history and a bookmark folder titled \"final form\". Powering it on appears to reopen the session exactly where she left it, which is concerning, because she has been missing since the second wave of AI layoffs.\n",
 			"ref": "brainrot-laptop",
 			"key": 61,
 			"id": "01JX4H5YJKEBYQT4QZ2PHTYMY5",
@@ -1116,7 +1118,8 @@
 			}
 		},
 		{
-			"description": "A magical ectoplasmic brew that heals wounds and restores energy.",
+			"description": "A neon-green beverage in a dented aluminum can that sweats even when cold, wrapped in a label that has been recalled in four jurisdictions. It tastes like citrus, copper, and something your memory insists you have tried before but cannot place.\n",
+			"lore": "Produced in 1995 by a short-lived ghost-themed marketing campaign that was cancelled after three focus-group members reported mild haunting. The remaining cans were warehoused, forgotten, and later rediscovered by a night-shift custodian who has been restocking corner stores with them quietly for almost thirty years. Every can is still somehow in date, which no one at the bottler has been able to explain to auditors.\n",
 			"ref": "ecto-cooler-drank-type-95",
 			"key": 3,
 			"id": "01J27QABD2GPFNRVK69S51HSGB",
@@ -1960,7 +1963,8 @@
 			]
 		},
 		{
-			"description": "A ziplock bag stuffed with old newspaper and sealed with tape. \nA smiley face is drawn in marker. It crinkles when hugged.\n",
+			"description": "A ziplock bag packed tight with yellowed newspaper and closed with two layers of tape. A smiling face is drawn on the outside in permanent marker, slightly off-center. It crinkles in a way that feels like it is answering you.\n",
+			"lore": "Assembled one late night in a Palo Alto kitchen as a placeholder gift, never meant to leave the apartment. It has since followed its owner through three cities and one federal subpoena, always ending up at the top of the moving box whether it was packed that way or not. The newspaper inside reports events that have not yet happened, although only in the classifieds section.\n",
 			"ref": "jareds-teddy-bear",
 			"key": 20,
 			"id": "01JWAWYPGZHJW1Q103D8M2Q29W",
@@ -2024,7 +2028,8 @@
 			]
 		},
 		{
-			"description": "A countertop relic of culinary efficiency.\nInfuses meals with crispiness, joy, and possibly low-level radiation.\n",
+			"description": "A steel countertop appliance with a cracked digital readout that only displays the word NEARLY. The interior smells like every meal it has ever cooked, layered in the order they were served, with the unmistakable top note of something no one asked for.\n",
+			"lore": "Final production run from KrispeeTech Culinary Systems, shipped in the months before the Great Banquet Collapse of 2042 rendered mass catering uninsurable. The heating element is calibrated against a reference meal that nobody at the company is willing to describe on record. Used regularly, the unit develops opinions about seasoning that are difficult to argue with and harder to override.\n",
 			"ref": "krispee-air-fryer",
 			"key": 12,
 			"id": "01JW9Y29NQCWSS8B2ET09YZ6T7",
@@ -2397,7 +2402,8 @@
 			}
 		},
 		{
-			"description": "A core circuit board etched with microscopic pathways and ancient logic gates.\n",
+			"description": "A green-lacquered board the size of a paperback, dense with solder joints that still look factory-fresh despite the date etched on the underside. Each trace catches the light like a river viewed from a plane at dusk.\n",
+			"lore": "Salvaged from a decommissioned fabrication line that was running designs nobody filed patents on, most likely because the engineers who drew them preferred not to be found. The chips respond to instructions the documentation does not cover, and they run cooler than their silicon budget allows. Sensitive to heat, not because of thermal failure, but because it makes them talkative.\n",
 			"ref": "microchip-motherboard",
 			"key": 19,
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRMM",
@@ -2521,7 +2527,8 @@
 			"buyPrice": 1
 		},
 		{
-			"description": "A thick, glistening potion infused with unknown pharmaceutical enhancers. It buzzes with dubious vitality.",
+			"description": "A thick, slow-moving liquid that coats the inside of the vial like wet paint. It hums when you bring it near metal, and the label warns against operating heavy machinery, prayer, or romance for twelve hours after consumption.\n",
+			"lore": "Formulated by NoodlesTech out of a rented lab above a laundromat, using precursor chemicals that the regulator has not yet invented categories for. The company pivoted to wellness branding in 2039 and stopped answering returns. Users report the same three dreams in rotation, always in this order: a staircase, a boardroom, and a meal they almost finished.\n",
 			"ref": "noodles-girthy-pharma-potion",
 			"key": 4,
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRJW",
@@ -2673,7 +2680,8 @@
 			]
 		},
 		{
-			"description": "A whispering idol from the subprime depths. It glows faintly with insider congressional knowledge and financial dread.",
+			"description": "A palm-sized idol carved from black-market bullion and whatever material was binding the vault walls in the subprime years. It is warmer than it should be, and the eye sockets track the nearest screen whenever a number turns red.\n",
+			"lore": "Reputedly forged under Wall Street in the fourth quarter of 2007, during the long weekend when the lights never came back up. The original custodian was a CFO who signed two resignation letters before his own, neither of them his, and he has not aged since. Holding the idol long enough grants clear forecasts of near-future markets; letting go becomes measurably harder each time.\n",
 			"ref": "pocket-prophet-of-profit",
 			"key": 6,
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRZZ",
@@ -2848,7 +2856,8 @@
 			}
 		},
 		{
-			"description": "An outdated laptop brimming with influence campaigns and forgotten scripts. The fan runs louder when lies are typed.\nWhy does it keep saying that it runs arch? Oh god, its update is several exa-holy-bytes, are those just node modules?!\n",
+			"description": "A battered laptop that runs its fan at full speed whenever you type something untrue. The spacebar is worn flat, the screen carries ghost burn-in of a talking head, and the stickers have been scraped off so thoroughly that the glue still remembers them.\n",
+			"lore": "Issued to contract operators during the Algorithmic Spring, when the line between marketing and intelligence work stopped being a line. The machine boots into a clean desktop regardless of the previous session, which is reassuring until you realize the disk has no visible storage and the network indicator never stops blinking. Whoever owned it last did not turn it in, and their name never appears twice in the same article.\n",
 			"ref": "propagandist-laptop",
 			"key": 7,
 			"id": "01JW8GK1Z1DYXTB7KB8RRKP87B",
@@ -4455,7 +4464,8 @@
 			"buyPrice": 4
 		},
 		{
-			"description": "A pocket-sized murder console with a glitched smile. Booting it unleashes unpredictable swarms—some helpful, some... not.",
+			"description": "A pocket-sized murder console with a glitched smile stamped into the faceplate. Booting it releases a swarm of drones, and you cannot reliably tell the helpful ones from the rest until one of them picks a side.\n",
+			"lore": "The Z90 line was built in the last profitable year of Ziggy Industries, when the shareholder meeting still clapped at words like \"disruptive\". BlackCell keeps a fabrication cell running in defiance of the 2031 Safety Accords, which means spare units turn up in weapons lockers that no one remembers stocking. The smile on the faceplate is not a logo. It is the last thing the firmware prints before it decides what to do.\n",
 			"ref": "z90-murderbot",
 			"key": 8,
 			"id": "01J2GHZQ9CXY89NB7NS5Q2DRMB",
