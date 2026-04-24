@@ -331,7 +331,10 @@
 			"buyPrice": 2,
 			"poolGroup": "food",
 			"food": {
-				"restoreEnergy": 10
+				"restoreEnergy": 10,
+				"perishable": true,
+				"shelfLifeSeconds": 259200,
+				"spoilsIntoRef": "rotten-food"
 			},
 			"skilling": {
 				"skill": "SKILLING_FORAGING"
@@ -397,7 +400,12 @@
 						"tickRate": "5"
 					}
 				}
-			]
+			],
+			"food": {
+				"perishable": true,
+				"shelfLifeSeconds": 86400,
+				"spoilsIntoRef": "rotten-meat"
+			}
 		},
 		{
 			"description": "A palm-sized cast-iron sphere with a short oiled fuse and a seam of poured lead running around its middle. Heavy enough to remind you what it is every time you shift your belt.\n",
@@ -475,6 +483,20 @@
 			"stacking": {
 				"packMax": 30
 			}
+		},
+		{
+			"description": "Heavy brass key the length of two fingers, ward cut in a pattern unlike any in the locksmith's standard book, bow stamped with a pictogram that reads the same from either side. Warm to the touch in a way that has stopped surprising its current bearer.\n",
+			"lore": "Falls out of pockets that did not have it a moment earlier, at the end of fights that did not seem survivable, in rooms where nobody has had time to check for ambient magic. The key fits exactly one door in its lifetime, and everybody involved tends to agree on which door without having to discuss it. Retired adventurers keep their old ones strung on a cord by the hearth, as a small defense against the assumption that the work is ever fully finished.\n",
+			"ref": "boss-key",
+			"key": 555,
+			"id": "01KTVTRAB1B0SSKEY0000000010",
+			"name": "Boss Key",
+			"typeFlags": 4096,
+			"rarity": "ITEM_RARITY_RARE",
+			"stackable": true,
+			"maxStack": 10,
+			"buyPrice": 0,
+			"tradeable": false
 		},
 		{
 			"description": "Salvage-grade notebook with fan noise that sounds like a dying moth. The plastic smells faintly of oxidized capacitors and old caffeine, and the boot sequence drops into a desktop where every icon leads somewhere you did not click.\n",
@@ -586,7 +608,12 @@
 						"mobilityBonus": "0.5"
 					}
 				}
-			]
+			],
+			"food": {
+				"perishable": true,
+				"shelfLifeSeconds": 1209600,
+				"spoilsIntoRef": "rotten-food"
+			}
 		},
 		{
 			"description": "A single glossy black needle, finger-length and stiff, tapering from a pale base to a point that catches light from surprising angles. Sharper dry than wet, and unforgiving of careless pockets.\n",
@@ -662,6 +689,20 @@
 			]
 		},
 		{
+			"description": "Folded vellum the size of a small book, sealed in red wax with the capital's three-tower pressing and tied with ribbon in the palace's registered colors. Heavier than vellum has any right to be, and warm along the fold where the seal was most recently pressed.\n",
+			"lore": "Issued by the Office of Settlements on behalf of the crown, conferring on the bearer the right to claim and improve one parcel of unallocated land within the territories currently open for settlement. The grant is countersigned by three officials the office prefers not to list publicly, because the list has become a shorthand for a factional dispute the office claims it is not involved in. Rare enough that most town halls have not seen one in two generations, and the mayor who receives one is expected, by tradition, to bow before reading it.\n",
+			"ref": "capital-land-grant",
+			"key": 556,
+			"id": "01KTVTRAB1C4P1T4LGR4NT00011",
+			"name": "Capital Land Grant",
+			"typeFlags": 4096,
+			"rarity": "ITEM_RARITY_MYTHIC",
+			"stackable": false,
+			"maxStack": 1,
+			"buyPrice": 0,
+			"tradeable": false
+		},
+		{
 			"description": "A long orange carrot with the green tops still attached, dirt clinging to the taproot in the shape of the soil it came out of. Snaps cleanly when broken, releasing a sharp sweet smell.\n",
 			"lore": "Grown in every market-garden plot worth tending, on the strength of a crop that keeps paying through the cold months and tolerates being ignored for weeks at a time. Children are set on weeding duty as soon as they can tell the plant from the grass, which takes most of them longer than anyone likes to admit. A good carrot will outlast the cook who bought it, provided the cellar stays dry and the mice lose interest.\n",
 			"ref": "carrot",
@@ -676,7 +717,10 @@
 			"buyPrice": 4,
 			"poolGroup": "food",
 			"food": {
-				"restoreEnergy": 9
+				"restoreEnergy": 9,
+				"perishable": true,
+				"shelfLifeSeconds": 1209600,
+				"spoilsIntoRef": "rotten-food"
 			},
 			"compress": {
 				"targetRef": "meal",
@@ -749,7 +793,10 @@
 			},
 			"food": {
 				"heals": 4,
-				"doses": 1
+				"doses": 1,
+				"perishable": true,
+				"shelfLifeSeconds": 259200,
+				"spoilsIntoRef": "rotten-food"
 			},
 			"tags": ["isometric"]
 		},
@@ -804,7 +851,10 @@
 			"action": "consume",
 			"poolGroup": "food",
 			"food": {
-				"restoreEnergy": 22
+				"restoreEnergy": 22,
+				"perishable": true,
+				"shelfLifeSeconds": 1814400,
+				"spoilsIntoRef": "rotten-food"
 			},
 			"compress": {
 				"targetRef": "meal",
@@ -872,7 +922,10 @@
 			"action": "consume",
 			"poolGroup": "food",
 			"food": {
-				"restoreEnergy": 50
+				"restoreEnergy": 50,
+				"perishable": true,
+				"shelfLifeSeconds": 259200,
+				"spoilsIntoRef": "rotten-meat"
 			},
 			"compress": {
 				"targetRef": "meal",
@@ -896,7 +949,10 @@
 			"action": "consume",
 			"poolGroup": "food",
 			"food": {
-				"restoreEnergy": 20
+				"restoreEnergy": 20,
+				"perishable": true,
+				"shelfLifeSeconds": 259200,
+				"spoilsIntoRef": "rotten-meat"
 			},
 			"compress": {
 				"targetRef": "meal",
@@ -919,7 +975,10 @@
 			"action": "consume",
 			"poolGroup": "food",
 			"food": {
-				"restoreEnergy": 14
+				"restoreEnergy": 14,
+				"perishable": true,
+				"shelfLifeSeconds": 259200,
+				"spoilsIntoRef": "rotten-meat"
 			},
 			"compress": {
 				"targetRef": "meal",
@@ -942,7 +1001,10 @@
 			"action": "consume",
 			"poolGroup": "food",
 			"food": {
-				"restoreEnergy": 35
+				"restoreEnergy": 35,
+				"perishable": true,
+				"shelfLifeSeconds": 259200,
+				"spoilsIntoRef": "rotten-meat"
 			},
 			"compress": {
 				"targetRef": "meal",
@@ -1148,7 +1210,10 @@
 			"buyPrice": 20,
 			"poolGroup": "food",
 			"food": {
-				"restoreEnergy": 22
+				"restoreEnergy": 22,
+				"perishable": true,
+				"shelfLifeSeconds": 345600,
+				"spoilsIntoRef": "rotten-food"
 			},
 			"skilling": {
 				"skill": "SKILLING_FORAGING"
@@ -1240,7 +1305,10 @@
 			"buyPrice": 3,
 			"poolGroup": "food",
 			"food": {
-				"restoreEnergy": 6
+				"restoreEnergy": 6,
+				"perishable": true,
+				"shelfLifeSeconds": 1209600,
+				"spoilsIntoRef": "rotten-meat"
 			},
 			"compress": {
 				"targetRef": "meal",
@@ -1419,7 +1487,12 @@
 				"respawnTime": 30,
 				"resourceNode": "mushroom-fly-agaric"
 			},
-			"tags": ["isometric"]
+			"tags": ["isometric"],
+			"food": {
+				"perishable": true,
+				"shelfLifeSeconds": 259200,
+				"spoilsIntoRef": "rotten-food"
+			}
 		},
 		{
 			"description": "Heavy glass bottle sweating faintly in the hand, cap pressed on by a household pressure-seal older than most of the household, liquid inside pale enough to be mistaken for diluted cream. Tastes first of grass, then of the bottle, then of whichever morning it was pulled.\n",
@@ -1456,7 +1529,10 @@
 			],
 			"poolGroup": "food",
 			"food": {
-				"restoreEnergy": 10
+				"restoreEnergy": 10,
+				"perishable": true,
+				"shelfLifeSeconds": 172800,
+				"spoilsIntoRef": "rotten-milk"
 			},
 			"compress": {
 				"targetRef": "meal",
@@ -1515,7 +1591,12 @@
 						}
 					]
 				}
-			]
+			],
+			"food": {
+				"perishable": true,
+				"shelfLifeSeconds": 43200,
+				"spoilsIntoRef": "rotten-food"
+			}
 		},
 		{
 			"description": "Paper bag still wearing frost around the seam, rattling faintly with a pound or so of bite-sized pastry pockets stuffed with marinara, processed cheese, and pepperoni that knows what it is. Heated correctly they arrive molten; heated incorrectly they arrive punitively molten.\n",
@@ -1768,7 +1849,12 @@
 						"duration": "240"
 					}
 				}
-			]
+			],
+			"food": {
+				"perishable": true,
+				"shelfLifeSeconds": 43200,
+				"spoilsIntoRef": "rotten-food"
+			}
 		},
 		{
 			"description": "Tied with brown twine, the bundle hangs upside down from a rafter long enough to dry without shedding color, each stem a different grey-green tone of the same family. The scent clings to hands for the rest of the afternoon.\n",
@@ -1785,6 +1871,11 @@
 			"buyPrice": 5,
 			"skilling": {
 				"skill": "SKILLING_FORAGING"
+			},
+			"food": {
+				"perishable": true,
+				"shelfLifeSeconds": 604800,
+				"spoilsIntoRef": "rotten-food"
 			}
 		},
 		{
@@ -1854,6 +1945,19 @@
 			]
 		},
 		{
+			"description": "Plain wool hood in a weather-darkened grey, cut long enough at the shoulders to pass for a scarf in poor light. The inside lining has been re-stitched at the crown at least once, by someone who cared more about function than craft.\n",
+			"lore": "Standard issue to couriers, scouts, and anybody whose work goes easier when their face is not immediately available for comment. The cloth comes off a cooperative loom three valleys over and the dye off a vat nobody in town formally acknowledges. A hood in good repair keeps the rain honest; a hood with the lining coming loose keeps secrets better, which is the version experienced travelers preferentially buy.\n",
+			"ref": "hood",
+			"key": 550,
+			"id": "01KTVTRAB1H00DGARB0N000000005",
+			"name": "Hood",
+			"typeFlags": 514,
+			"rarity": "ITEM_RARITY_COMMON",
+			"stackable": false,
+			"maxStack": 1,
+			"buyPrice": 15
+		},
+		{
 			"description": "Jet-black, almost greasy at the surface, the sauce coats whatever it touches in a single uniform pass and refuses to wash out of the first three cloths the cook reaches for. Tastes like brine at the front, iron in the middle, and something the ocean might have meant to keep at the end.\n",
 			"lore": "Blended in the back of the cooperative kitchen on the harbor road, from squid ink that arrives in sealed jars and deep-salt crystals the supplier insists are mined rather than evaporated. The emulsifiers are proprietary, meaning the two cooks who share the recipe also share a deadlock on whether to ever write it down. Served once a week, by reservation, and the regulars have learned to wear black to dinner as a matter of practical respect.\n",
 			"ref": "ink-pasta-sauce",
@@ -1884,6 +1988,19 @@
 					}
 				}
 			]
+		},
+		{
+			"description": "Full plate of overlapping iron lames held together by leather straps and a modest quantity of honest faith, the surface buffed to a dull sheen that refuses to catch daylight. Moves with the wearer once the straps have been fitted by somebody who has done it before.\n",
+			"lore": "Commissioned by the provincial garrisons under a supply contract that rotates between three workshops on a five-year cycle, so that no single master ever becomes indispensable. The plates ship unfinished and the garrison's own armorer fits them to each sergeant, on the old principle that an ill-fitting suit is worse than a well-fitted mail shirt. A suit lasts two careers if maintained, one if not, and the maintenance is the quiet difference between a garrison that wins engagements and one that merely attends them.\n",
+			"ref": "iron-armor",
+			"key": 553,
+			"id": "01KTVTRAB11R0N4RM0R00000008",
+			"name": "Iron Armor",
+			"typeFlags": 514,
+			"rarity": "ITEM_RARITY_UNCOMMON",
+			"stackable": false,
+			"maxStack": 1,
+			"buyPrice": 80
 		},
 		{
 			"description": "Solid iron head the size of a clenched fist, flanged into six ridges for the kind of impact that cares less about edges than arithmetic, mounted on an oak haft wrapped in rawhide. Settles heavily into the palm the moment you stop thinking about it.\n",
@@ -1953,6 +2070,19 @@
 			"tags": ["isometric"]
 		},
 		{
+			"description": "Round iron-banded oak shield a hand's breadth wider than the shoulder it rests against, with a central boss hammered from one piece and a leather arm-strap softened by long use. Rings softly when struck across the boss and dully when struck along the rim.\n",
+			"lore": "Built to a militia specification that the guild has tried to modernize twice and the militias have rejected twice, on the reasonable grounds that the current shield stops arrows adequately and the modernizations would require retraining every sergeant from the rim out. Apprentices earn their journeyman stamp on the day their first finished shield passes the drop test from second-floor height without splitting the boards. A shield that has been refaced twice belongs to its carrier in a way a fresh one does not.\n",
+			"ref": "iron-shield",
+			"key": 552,
+			"id": "01KTVTRAB11R0NSH1ELD00000007",
+			"name": "Iron Shield",
+			"typeFlags": 514,
+			"rarity": "ITEM_RARITY_COMMON",
+			"stackable": false,
+			"maxStack": 1,
+			"buyPrice": 30
+		},
+		{
 			"description": "Dark grey liquid with a dull metallic sheen, thick enough that it clings to the inside of the vial for a moment after you tilt it. The taste is the taste of licking a cast-iron pan, which nobody recommends as a preview.\n",
 			"lore": "Compounded in a workshop above the old armorer's guild hall, by two brothers who disagree about everything except the recipe. The potion sets a thin temper in the skin for the better part of an afternoon, and a heavy blow during that window will ring rather than land. Over-reliance leaves the drinker feeling vaguely bruised for a week afterward, which the brothers will not sell to anybody who has not admitted that out loud.\n",
 			"ref": "iron-skin-potion",
@@ -1994,6 +2124,19 @@
 					]
 				}
 			]
+		},
+		{
+			"description": "Straight double-edged blade the length of a forearm, forged from mid-grade iron with a shallow fuller running along both faces. Hilt wrapped in oiled cord, pommel weighted just enough to keep the draw honest.\n",
+			"lore": "Produced in bulk by the provincial forges under a pattern the guild has not revised in a decade, on the grounds that the pattern works and the guild is busy with more interesting commissions. Every militia recruit receives one, every other recruit loses theirs within a season, and the forge's records have stopped tracking which. A blade sharpened on a proper stone will hold its edge through a long afternoon, which is the standard the guild designed for and the standard most fights conclude within.\n",
+			"ref": "iron-sword",
+			"key": 551,
+			"id": "01KTVTRAB11R0NSW0RD000000006",
+			"name": "Iron Sword",
+			"typeFlags": 513,
+			"rarity": "ITEM_RARITY_COMMON",
+			"stackable": false,
+			"maxStack": 1,
+			"buyPrice": 40
 		},
 		{
 			"description": "Glass jar full to the shoulder with honey the color of late afternoon, thick enough that a spoon pulled straight out leaves a slow column draining back in. Smells of wildflowers for the first breath, and of something older the moment you lean closer.\n",
@@ -2309,7 +2452,12 @@
 						}
 					]
 				}
-			]
+			],
+			"food": {
+				"perishable": true,
+				"shelfLifeSeconds": 86400,
+				"spoilsIntoRef": "rotten-food"
+			}
 		},
 		{
 			"description": "Deep-blue shell shades to bronze where the joints catch the light, claws banded closed with twine the fisherman will ask for back. Still wet from the pot, still holding an opinion about the matter.\n",
@@ -2340,7 +2488,12 @@
 						"traits": "shell-hardened"
 					}
 				}
-			]
+			],
+			"food": {
+				"perishable": true,
+				"shelfLifeSeconds": 43200,
+				"spoilsIntoRef": "rotten-meat"
+			}
 		},
 		{
 			"description": "Freshly-split length of oak, sapwood pale and heartwood dark, the cut faces still bleeding a little sap where the axe landed. Heavy enough that you think twice about carrying a second.\n",
@@ -2441,6 +2594,26 @@
 			]
 		},
 		{
+			"description": "Cobalt-blue liquid in a narrow hexagonal vial, stoppered with a sliver of tin wrapped in waxed silk. Cold to the touch even when left in the sun, and the surface ripples when a spell is cast within arm's reach.\n",
+			"lore": "Distilled by the apothecaries' college on the same schedule as their red counterparts, from a base that travels in unlabeled barrels from a supplier the college refuses to name. Mages who carry one describe the drink as unnervingly flavorless, which the college considers a feature and most drinkers consider the hardest part. A vial restores enough focus to bridge the gap between a failed first casting and a successful second, which is usually the gap that matters.\n",
+			"ref": "mana-potion",
+			"key": 546,
+			"id": "01KTVTRAB1MANAPOTI0NN000001",
+			"name": "Mana Potion",
+			"typeFlags": 544,
+			"rarity": "ITEM_RARITY_COMMON",
+			"emoji": "🧪",
+			"stackable": true,
+			"maxStack": 16,
+			"buyPrice": 25,
+			"consumable": true,
+			"cooldown": 15,
+			"action": "consume",
+			"food": {
+				"restoreMana": 25
+			}
+		},
+		{
 			"description": "Covered wooden tray holds bread, roast, greens, and a small cup of whatever the cook was willing to declare finished. The cover is hot enough at the edges to remind you whose kitchen you left it in.\n",
 			"lore": "Assembled at the back of every serious commissary from whatever the pot has been working on since sundown. Companies that eat together mark the meal as sacred in a quietly practical way, because the meal is the interval during which nobody is expected to be useful. Refusing a seat at the long table is considered rude, and eating too fast is considered worse.\n",
 			"ref": "meal",
@@ -2458,7 +2631,31 @@
 			"food": {
 				"heals": 100,
 				"restoreEnergy": 100,
-				"restoreMana": 100
+				"restoreMana": 100,
+				"perishable": true,
+				"shelfLifeSeconds": 86400,
+				"spoilsIntoRef": "rotten-food"
+			}
+		},
+		{
+			"description": "Dark red cut of game meat, dense and faintly gamy through the paper it was wrapped in, edges already darkening toward brown within the first hour off the spit. Heavier in the hand than farm-raised cuts, and noticeably warmer to the touch when fresh.\n",
+			"lore": "Taken off whatever the hunters brought back that day, from deer on the north slopes to boar in the lower thickets and occasionally something the hunters will not name at the butcher's counter. Quartered and traded before sundown because nobody trusts the next morning's weather, and the village cook assigns cuts on a rotation everybody privately disputes. Eaten the same evening it arrives, because anything else is a disagreement with the cook, and the cook wins those.\n",
+			"ref": "meat",
+			"key": 549,
+			"id": "01KTVTRAB1ME4T000000000000004",
+			"name": "Meat",
+			"typeFlags": 72,
+			"rarity": "ITEM_RARITY_COMMON",
+			"emoji": "🥩",
+			"stackable": true,
+			"maxStack": 30,
+			"buyPrice": 4,
+			"poolGroup": "food",
+			"food": {
+				"restoreEnergy": 12,
+				"perishable": true,
+				"shelfLifeSeconds": 86400,
+				"spoilsIntoRef": "rotten-meat"
 			}
 		},
 		{
@@ -2554,7 +2751,10 @@
 			"buyPrice": 3,
 			"poolGroup": "food",
 			"food": {
-				"restoreEnergy": 7
+				"restoreEnergy": 7,
+				"perishable": true,
+				"shelfLifeSeconds": 259200,
+				"spoilsIntoRef": "rotten-food"
 			},
 			"skilling": {
 				"skill": "SKILLING_FORAGING"
@@ -2829,7 +3029,10 @@
 			},
 			"food": {
 				"heals": 3,
-				"doses": 1
+				"doses": 1,
+				"perishable": true,
+				"shelfLifeSeconds": 259200,
+				"spoilsIntoRef": "rotten-food"
 			},
 			"tags": ["isometric"]
 		},
@@ -2939,7 +3142,10 @@
 			"buyPrice": 8,
 			"poolGroup": "food",
 			"food": {
-				"restoreEnergy": 15
+				"restoreEnergy": 15,
+				"perishable": true,
+				"shelfLifeSeconds": 432000,
+				"spoilsIntoRef": "rotten-food"
 			},
 			"skilling": {
 				"skill": "SKILLING_FORAGING"
@@ -3080,6 +3286,20 @@
 					}
 				}
 			]
+		},
+		{
+			"description": "Rolled parchment held by a blue cord and a disc of wax stamped with the guild-house seal, the edges of the paper yellowed by however many hands it has passed through. Opens with a small resistance, as if it has decided who should be reading it today.\n",
+			"lore": "Issued from the guild-house as the formal record of a contract a member has agreed to fulfill, countersigned by the guild steward and the patron in separate inks that are known to have fought each other once before. The scroll is the contract, and a member who returns without it is understood to have failed at the paperwork stage of an engagement, which is taken as seriously as the engagement itself. Completed scrolls are filed in the back archive, where the humidity is apparently important and visitors are apparently not.\n",
+			"ref": "quest-scroll",
+			"key": 554,
+			"id": "01KTVTRAB1QUESTSCR0LL000009",
+			"name": "Quest Scroll",
+			"typeFlags": 4096,
+			"rarity": "ITEM_RARITY_UNCOMMON",
+			"stackable": true,
+			"maxStack": 10,
+			"buyPrice": 0,
+			"tradeable": false
 		},
 		{
 			"description": "Two-loop leather belt wound with a folded kit of pliers, spanner, driver, and three wrapped blades that the wearer has clearly chosen for reasons of their own. The buckle is dented on one corner from a long-ago fall that the wearer still tells the story of.\n",
@@ -3226,7 +3446,10 @@
 			"buyPrice": 18,
 			"poolGroup": "food",
 			"food": {
-				"restoreEnergy": 25
+				"restoreEnergy": 25,
+				"perishable": true,
+				"shelfLifeSeconds": 86400,
+				"spoilsIntoRef": "rotten-meat"
 			},
 			"compress": {
 				"targetRef": "meal",
@@ -3264,7 +3487,10 @@
 			"buyPrice": 6,
 			"poolGroup": "food",
 			"food": {
-				"restoreEnergy": 9
+				"restoreEnergy": 9,
+				"perishable": true,
+				"shelfLifeSeconds": 86400,
+				"spoilsIntoRef": "rotten-meat"
 			},
 			"compress": {
 				"targetRef": "meal",
@@ -3298,7 +3524,10 @@
 			"buyPrice": 12,
 			"poolGroup": "food",
 			"food": {
-				"restoreEnergy": 17
+				"restoreEnergy": 17,
+				"perishable": true,
+				"shelfLifeSeconds": 172800,
+				"spoilsIntoRef": "rotten-meat"
 			},
 			"compress": {
 				"targetRef": "meal",
@@ -3396,6 +3625,81 @@
 				"resourceNode": "flower-rose"
 			},
 			"tags": ["isometric"]
+		},
+		{
+			"description": "Grey-brown mass of something that used to be food, texture somewhere between wet paper and old clay, smell at the outer edge of smells you can name without wincing. Nobody lifts the lid twice.\n",
+			"lore": "Terminal state of most perishables that sat too long in a pack, a cellar, or the forgotten corner of a supply shed. Can still be eaten in desperation, and the desperate eater learns why that clause sits on the last page of every field manual. Most households bury it, most armies compost it, and the apothecaries who collect it for study refuse to explain what they do with it afterwards.\n",
+			"ref": "rotten-food",
+			"key": 543,
+			"id": "01KTVTRAB100R0TTENF00D0001",
+			"name": "Rotten Food",
+			"typeFlags": 8,
+			"rarity": "ITEM_RARITY_COMMON",
+			"emoji": "🤢",
+			"stackable": true,
+			"maxStack": 30,
+			"buyPrice": 0,
+			"sellPrice": 0,
+			"tradeable": false,
+			"consumable": true,
+			"cooldown": 10,
+			"action": "consume",
+			"poolGroup": "food",
+			"food": {
+				"heals": -5,
+				"restoreEnergy": -10,
+				"perishable": false
+			}
+		},
+		{
+			"description": "Grey-green flesh that has given up its firmness in patches, the surface shiny in a way no fresh cut ever manages. The smell fills a tent before anyone has unwrapped the parcel, and stays in the cloth afterwards.\n",
+			"lore": "End-state of raw and cooked meat that missed its cook-by schedule, whether through forgetting, bad weather, or somebody's optimistic opinion about how long a pack would keep in the sun. Eating it is technically possible and universally regretted, and the field manuals that do not condemn it outright are written for situations the manuals would rather not describe. Most camps deal with it by pitching it into the fire, on the general principle that anything burned is no longer a problem.\n",
+			"ref": "rotten-meat",
+			"key": 545,
+			"id": "01KTVTRAB100R0TTENME4T0003",
+			"name": "Rotten Meat",
+			"typeFlags": 8,
+			"rarity": "ITEM_RARITY_COMMON",
+			"emoji": "🍖",
+			"stackable": true,
+			"maxStack": 30,
+			"buyPrice": 0,
+			"sellPrice": 0,
+			"tradeable": false,
+			"consumable": true,
+			"cooldown": 10,
+			"action": "consume",
+			"poolGroup": "food",
+			"food": {
+				"heals": -10,
+				"restoreEnergy": -20,
+				"perishable": false
+			}
+		},
+		{
+			"description": "Chunks of pale yellow curd suspended in a separated liquid the color of weak tea, stopper pushed partway out of the bottle by whatever is still fermenting inside. The smell announces itself through a closed pantry door.\n",
+			"lore": "What [fresh milk](/itemdb/fresh-milk/) becomes when the cellar runs warmer than the dairy intended or the delivery is forgotten on a hot afternoon. Cheesemakers find the very earliest stage of it interesting. Everybody further along the timeline finds it a disposal problem, and a bottle once past the curd stage is poured into the compost heap, which the compost heap will spend a week recovering from.\n",
+			"ref": "rotten-milk",
+			"key": 544,
+			"id": "01KTVTRAB100R0TTENM1KK0002",
+			"name": "Rotten Milk",
+			"typeFlags": 8,
+			"rarity": "ITEM_RARITY_COMMON",
+			"emoji": "🥛",
+			"stackable": true,
+			"maxStack": 30,
+			"buyPrice": 0,
+			"sellPrice": 0,
+			"tradeable": false,
+			"consumable": true,
+			"cooldown": 10,
+			"action": "consume",
+			"poolGroup": "food",
+			"food": {
+				"heals": -8,
+				"restoreEnergy": -15,
+				"perishable": false
+			}
 		},
 		{
 			"description": "Cracked vulcanized rubber flexes stiffly under a boot, tread worn uneven on the inside shoulder the way tires go when the alignment was off for longer than anyone admitted. Smells of cold garage and the last summer that car actually ran.\n",
@@ -3524,7 +3828,12 @@
 						"tickRate": "1"
 					}
 				}
-			]
+			],
+			"food": {
+				"perishable": true,
+				"shelfLifeSeconds": 86400,
+				"spoilsIntoRef": "rotten-meat"
+			}
 		},
 		{
 			"description": "Long cloak in a black so deep it seems to absorb light, the weave refusing to show a clear pattern under any angle. Hems and lining run cool even on a warm evening, and the cloak does not rustle when it should.\n",
@@ -4046,7 +4355,12 @@
 						"duration": "180"
 					}
 				}
-			]
+			],
+			"food": {
+				"perishable": true,
+				"shelfLifeSeconds": 172800,
+				"spoilsIntoRef": "rotten-food"
+			}
 		},
 		{
 			"description": "Bundle of planed boards the length of an oar, banded in two places with iron strapping, end-grain stamped with the mill's mark in red ink that has half-faded under the rain. Smells of resin and the saw-shed it left.\n",
@@ -4599,6 +4913,32 @@
 				"resourceNode": "flower-wildflower"
 			},
 			"tags": ["isometric"]
+		},
+		{
+			"description": "Curved canine tooth the length of a thumb, ivory at the root and stained tea-brown at the tip from a lifetime's use. Lighter than it looks, with a hairline stress-line running along the inside curve.\n",
+			"lore": "Pulled one at a time from the jaws of grey wolves at the skinner's bench, and sold in small paper twists of six or eight. Bone-carvers use them for knife handles, amulet-makers use them for the kind of charms the temple frowns on, and duelists' lanyards run the best ones as counting tokens on a waxed cord. The fang keeps its edge better than most smiths would like to admit.\n",
+			"ref": "wolf-fang",
+			"key": 548,
+			"id": "01KTVTRAB1W0LFF4NG000000003",
+			"name": "Wolf Fang",
+			"typeFlags": 64,
+			"rarity": "ITEM_RARITY_COMMON",
+			"stackable": true,
+			"maxStack": 30,
+			"buyPrice": 3
+		},
+		{
+			"description": "Long grey-and-russet pelt with the guard hairs still oiled, stitched edges clean enough to suggest the skinner knew the animal by reputation. Heavier on one shoulder where the winter coat thickened.\n",
+			"lore": "Taken off the grey wolves that work the upland passes in winter, by hunters who do not advertise their methods and do not answer follow-up questions. Tanners along the river road bid on the better pelts in sealed envelopes, and the worst of them end up as saddle blankets for couriers who have opinions about quiet travel. A full pelt trims into one coat, two hoods, and a small bag of scraps the apothecaries will buy without asking where it came from.\n",
+			"ref": "wolf-pelt",
+			"key": 547,
+			"id": "01KTVTRAB1W0LFPELT0000000002",
+			"name": "Wolf Pelt",
+			"typeFlags": 64,
+			"rarity": "ITEM_RARITY_UNCOMMON",
+			"stackable": true,
+			"maxStack": 20,
+			"buyPrice": 6
 		},
 		{
 			"description": "Loose bundle of cream-colored wool still holding the curl of the fleece, lanolin-rich to the touch and smelling faintly of the sheep and the shear-shed. A handful carded between the fingers comes apart into a soft cloud that wants to stay in the air.\n",
