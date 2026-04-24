@@ -18,6 +18,9 @@ pub mod entity;
 pub mod sys;
 pub mod utils;
 
+//  * [WEB] — shared HTTP/web building blocks for axum-* services.
+pub mod web;
+
 pub use authentication::*;
 pub use db::*;
 pub use guild::*;

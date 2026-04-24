@@ -90,6 +90,7 @@ pub fn router() -> Router {
 
     static_router
         .merge(public_router)
+        .layer(axum::middleware::from_fn(crate::astro::corp_static_assets))
         .layer(axum::middleware::from_fn(fix_ts_mime))
         .layer(axum::middleware::from_fn(cache_headers))
         .layer(middleware)
