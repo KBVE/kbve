@@ -4,6 +4,7 @@ using Unity.Entities;
 namespace RareIcon
 {
     /// <summary>Phase 6 boundary: completes the logistics pipeline handle and hands ReadBuffer to the LogisticsEventDispatcher which publishes each entry via IPublisher&lt;InventoryChangedMessage&gt;. Dispatcher is resolved lazily from GlobalMessagePipe so this system can exist before VContainer initialisation.</summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(LogisticsEndGroup))]
     [UpdateAfter(typeof(LedgerMirrorSystem))]
     public partial class InventoryMessagePipeBridgeSystem : SystemBase

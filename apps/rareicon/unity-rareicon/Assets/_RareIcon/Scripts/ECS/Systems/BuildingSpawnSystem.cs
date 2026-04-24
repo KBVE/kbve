@@ -20,6 +20,11 @@ namespace RareIcon
     /// dispatches by per-instance BuildingVisual, so the same mesh +
     /// material renders Capital / Farm / Barracks / Furnace correctly.
     /// </summary>
+    // Client-only today: Shader.Find + Material creation + mesh prefab live
+    // in this system. When multiplayer lands, split into a server-side sim
+    // spawner (authoritative entity + state) and a client-side visual mirror
+    // that drives the render prefab off a Ghost-replicated Building.
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(MovementSystemGroup))]
     public partial class BuildingSpawnSystem : SystemBase
     {

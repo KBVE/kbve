@@ -7,6 +7,7 @@ using UnityEngine;
 namespace RareIcon
 {
     /// <summary>Tracks the camera for the ocean entity — follows position, scales to viewport, updates shader uniforms.</summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial class OceanTrackCameraSystem : SystemBase
     {

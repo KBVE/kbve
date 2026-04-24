@@ -5,6 +5,7 @@ namespace RareIcon
 {
     /// <summary>Writes ConstructionProgressVisual each frame: 1 for completed buildings, sum(delivered)/sum(needed) for active construction sites.</summary>
     [BurstCompile]
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct ConstructionProgressSystem : ISystem
     {

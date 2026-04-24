@@ -10,8 +10,9 @@ using UnityEngine.Rendering;
 
 namespace RareIcon
 {
-    /// <summary>Moves the hover overlay entity to the hovered hex and publishes <see cref="HexHoverMessage"/> / <see cref="HexClickedMessage"/> on mouse activity.</summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    /// <summary>Moves the hover overlay entity to the hovered hex and publishes <see cref="HexHoverMessage"/> / <see cref="HexClickedMessage"/> on mouse activity. Presentation-only: mouse input + overlay rendering are client concerns. Scoped to BehaviorSystemGroup so BuildPreviewSystem's UpdateAfter resolves within the same group.</summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
+    [UpdateInGroup(typeof(BehaviorSystemGroup))]
     public partial class HexHoverSystem : SystemBase
     {
         const float HexSize = 0.25f;
@@ -102,7 +103,12 @@ namespace RareIcon
 
             if (mouse.LeftReleasedThisFrame && !mouse.OverUI && !mouse.DragEndedThisFrame)
             {
-                bool clickIsLand = _hexLookup.TryGetValue(mouse.HexCoord, out Entity clickedEntity);
+                // _hexLookup is a static field populated by HexSpawnSystem in
+                // whatever world spawned the hexes; Exists guards against
+                // cross-world entity handles in case NetCode or another world
+                // runs its own spawn pass.
+                bool clickIsLand = _hexLookup.TryGetValue(mouse.HexCoord, out Entity clickedEntity)
+                                   && EntityManager.Exists(clickedEntity);
                 byte clickBiome = 0;
                 if (clickIsLand)
                     clickBiome = EntityManager.GetComponentData<BiomeType>(clickedEntity).Value;
@@ -122,7 +128,8 @@ namespace RareIcon
             EntityManager.SetComponentData(_overlayEntity, LocalTransform.FromPosition(pos));
 
             // Publish hover info
-            bool isLand = _hexLookup.TryGetValue(mouse.HexCoord, out Entity hexEntity);
+            bool isLand = _hexLookup.TryGetValue(mouse.HexCoord, out Entity hexEntity)
+                          && EntityManager.Exists(hexEntity);
             var publisher = GlobalMessagePipe.GetPublisher<HexHoverMessage>();
 
             // Sweep units once per hex change — find any unit standing on this hex

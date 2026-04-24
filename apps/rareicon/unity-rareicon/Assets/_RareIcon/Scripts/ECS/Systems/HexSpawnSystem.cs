@@ -17,6 +17,7 @@ namespace RareIcon
     ///
     /// TODO: Rust FFI + SQLite chunk cache
     /// </summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial class HexChunkSystem : SystemBase
     {

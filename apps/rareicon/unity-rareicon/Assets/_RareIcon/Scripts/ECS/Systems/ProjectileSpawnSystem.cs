@@ -9,6 +9,7 @@ using UnityEngine.Rendering;
 namespace RareIcon
 {
     /// <summary>One-shot bootstrap that builds the shared projectile prefab and publishes it as <see cref="ProjectilePrefabSingleton"/> for the Burst spawn consumer.</summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class ProjectileBootstrapSystem : SystemBase
     {
@@ -81,6 +82,7 @@ namespace RareIcon
 
     /// <summary>Instantiates the projectile prefab for each <see cref="SpawnProjectileRequest"/> and destroys the request. Runs before <see cref="ProjectileSystem"/> so the new projectile ticks once this frame.</summary>
     [BurstCompile]
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(MovementSystemGroup))]
     [UpdateBefore(typeof(ProjectileSystem))]
     public partial struct ProjectileSpawnSystem : ISystem

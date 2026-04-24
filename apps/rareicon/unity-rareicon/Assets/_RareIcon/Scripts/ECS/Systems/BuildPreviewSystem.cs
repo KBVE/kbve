@@ -18,6 +18,7 @@ namespace RareIcon
     /// Allocates 7 preview entities up-front (max footprint = Capital
     /// flower); single-hex builds simply hide the extra 6.
     /// </summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(HexHoverSystem))]
     public partial class BuildPreviewSystem : SystemBase

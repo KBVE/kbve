@@ -8,6 +8,7 @@ namespace RareIcon
     // Why not Burst: publishing crosses into managed MessagePipe. Splitting into a
     // Burst scan + managed drain is premature at this scale — revisit if the 1Hz
     // pass ever shows up in a profiler frame.
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     public partial class FirstContactSystem : SystemBase
     {

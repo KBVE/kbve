@@ -4,6 +4,7 @@ using Unity.Entities;
 namespace RareIcon
 {
     /// <summary>Publishes a debounced "Capital under attack" toast when Capital HP drops since last sample. Cooldown-gated so rapid hits don't spam.</summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(CleanupSystemGroup))]
     [UpdateBefore(typeof(BuildingDeathSystem))]
     public partial class CapitalAttackAlertSystem : SystemBase
