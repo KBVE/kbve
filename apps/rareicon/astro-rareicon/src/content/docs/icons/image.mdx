@@ -2,12 +2,12 @@
 ref: image
 name: Image
 title: Image Icon
-description: Image glyph set from the Lucide icon library (ISC), 8 variants — outline stroke, recolor via currentColor.
+description: Image glyph set from the Lucide icon library (ISC), 9 variants — outline stroke, recolor via currentColor.
 primary_category: media
 categories: [media, library]
 tags: [lucide, outline]
 search:
-  keywords: ["image", "down", "minus", "off", "play", "plus", "up", "upscale"]
+  keywords: ["image", "down", "images", "minus", "off", "play", "plus", "up", "upscale"]
   primary_category: media
 default_license:
   license: isc
@@ -50,6 +50,21 @@ icons:
     tags: [lucide]
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10l-3.1-3.1a2 2 0 0 0-2.814.014L6 21"/><path d="m14 19 3 3v-5.5"/><path d="m17 22 3-3"/><circle cx="9" cy="9" r="2"/></svg>
+  - ref: "images"
+    label: "Images"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [lucide]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 11-1.296-1.296a2.4 2.4 0 0 0-3.408 0L11 16"/><path d="M4 8a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2"/><circle cx="13" cy="7" r="1" fill="currentColor"/><rect x="8" y="2" width="14" height="14" rx="2"/></svg>
   - ref: "minus"
     label: "Minus"
     style: outline
@@ -145,7 +160,7 @@ pagefindFilters: [lucide, media]
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
 
-Image — 8 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
+Image — 9 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
 
 <IconTermPanel
 	termRef={frontmatter.ref}

@@ -2,12 +2,12 @@
 ref: file
 name: File
 title: File Icon
-description: File glyph set from the Lucide icon library (ISC), 55 variants — outline stroke, recolor via currentColor.
+description: File glyph set from the Lucide icon library (ISC), 56 variants — outline stroke, recolor via currentColor.
 primary_category: file
 categories: [file, library]
 tags: [lucide, outline]
 search:
-  keywords: ["file", "archive", "axis-3d", "badge", "box", "braces", "braces-corner", "chart-column", "chart-column-increasing", "chart-line", "chart-pie", "check", "check-corner", "clock", "code", "code-corner", "cog", "diff", "digit", "down", "exclamation-point", "headphone", "heart", "image", "input", "key", "lock", "minus", "minus-corner", "music", "output", "pen", "pen-line", "play", "plus", "plus-corner", "question-mark", "scan", "search", "search-corner", "signal", "sliders", "spreadsheet", "stack", "symlink", "terminal", "text", "type", "type-corner", "up", "user", "video-camera", "volume", "x", "x-corner"]
+  keywords: ["file", "archive", "axis-3d", "badge", "box", "braces", "braces-corner", "chart-column", "chart-column-increasing", "chart-line", "chart-pie", "check", "check-corner", "clock", "code", "code-corner", "cog", "diff", "digit", "down", "exclamation-point", "files", "headphone", "heart", "image", "input", "key", "lock", "minus", "minus-corner", "music", "output", "pen", "pen-line", "play", "plus", "plus-corner", "question-mark", "scan", "search", "search-corner", "signal", "sliders", "spreadsheet", "stack", "symlink", "terminal", "text", "type", "type-corner", "up", "user", "video-camera", "volume", "x", "x-corner"]
   primary_category: file
 default_license:
   license: isc
@@ -335,6 +335,21 @@ icons:
     tags: [lucide]
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+  - ref: "files"
+    label: "Files"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [lucide]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"/><path d="M16.706 2.706A2.4 2.4 0 0 0 15 2v5a1 1 0 0 0 1 1h5a2.4 2.4 0 0 0-.706-1.706z"/><path d="M5 7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 1.732-1"/></svg>
   - ref: "headphone"
     label: "Headphone"
     style: outline
@@ -850,7 +865,7 @@ pagefindFilters: [lucide, file]
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
 
-File — 55 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
+File — 56 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
 
 <IconTermPanel
 	termRef={frontmatter.ref}

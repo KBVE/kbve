@@ -2,12 +2,12 @@
 ref: headphone
 name: Headphone
 title: Headphone Icon
-description: Headphone glyph set from the Lucide icon library (ISC), 1 variant — outline stroke, recolor via currentColor.
+description: Headphone glyph set from the Lucide icon library (ISC), 2 variants — outline stroke, recolor via currentColor.
 primary_category: ui
 categories: [ui, library]
 tags: [lucide, outline]
 search:
-  keywords: ["headphone", "off"]
+  keywords: ["headphone", "headphones", "off"]
   primary_category: ui
 default_license:
   license: isc
@@ -20,6 +20,21 @@ default_license:
 default_offering:
   offering: free
 icons:
+  - ref: "headphones"
+    label: "Headphones"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [lucide]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>
   - ref: "off"
     label: "Off"
     style: outline
@@ -40,7 +55,7 @@ pagefindFilters: [lucide, ui]
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
 
-Headphone — outline glyph from the [Lucide icon library](https://lucide.dev/) (ISC).
+Headphone — 2 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
 
 <IconTermPanel
 	termRef={frontmatter.ref}

@@ -2,12 +2,12 @@
 ref: message
 name: Message
 title: Message Icon
-description: Message glyph set from the Lucide icon library (ISC), 29 variants — outline stroke, recolor via currentColor.
+description: Message glyph set from the Lucide icon library (ISC), 30 variants — outline stroke, recolor via currentColor.
 primary_category: comms
 categories: [comms, library]
 tags: [lucide, outline]
 search:
-  keywords: ["message", "circle", "circle-check", "circle-code", "circle-dashed", "circle-heart", "circle-more", "circle-off", "circle-plus", "circle-question-mark", "circle-reply", "circle-warning", "circle-x", "square", "square-check", "square-code", "square-dashed", "square-diff", "square-dot", "square-heart", "square-lock", "square-more", "square-off", "square-plus", "square-quote", "square-reply", "square-share", "square-text", "square-warning", "square-x"]
+  keywords: ["message", "circle", "circle-check", "circle-code", "circle-dashed", "circle-heart", "circle-more", "circle-off", "circle-plus", "circle-question-mark", "circle-reply", "circle-warning", "circle-x", "messages-square", "square", "square-check", "square-code", "square-dashed", "square-diff", "square-dot", "square-heart", "square-lock", "square-more", "square-off", "square-plus", "square-quote", "square-reply", "square-share", "square-text", "square-warning", "square-x"]
   primary_category: comms
 default_license:
   license: isc
@@ -200,6 +200,21 @@ icons:
     tags: [lucide]
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+  - ref: "messages-square"
+    label: "Messages Square"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [lucide]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 14.286V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/><path d="M20 9a2 2 0 0 1 2 2v10.286a.71.71 0 0 1-1.212.502l-2.202-2.202A2 2 0 0 0 17.172 19H10a2 2 0 0 1-2-2v-1"/></svg>
   - ref: "square"
     label: "Square"
     style: outline
@@ -460,7 +475,7 @@ pagefindFilters: [lucide, comms]
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
 
-Message — 29 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
+Message — 30 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
 
 <IconTermPanel
 	termRef={frontmatter.ref}

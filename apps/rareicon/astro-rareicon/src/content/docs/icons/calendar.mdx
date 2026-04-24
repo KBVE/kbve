@@ -2,12 +2,12 @@
 ref: calendar
 name: Calendar
 title: Calendar Icon
-description: Calendar glyph set from the Lucide icon library (ISC), 21 variants — outline stroke, recolor via currentColor.
+description: Calendar glyph set from the Lucide icon library (ISC), 22 variants — outline stroke, recolor via currentColor.
 primary_category: ui
 categories: [ui, library]
 tags: [lucide, outline]
 search:
-  keywords: ["calendar", "1", "arrow-down", "arrow-up", "check", "check-2", "clock", "cog", "days", "fold", "heart", "minus", "minus-2", "off", "plus", "plus-2", "range", "search", "sync", "x", "x-2"]
+  keywords: ["calendar", "1", "arrow-down", "arrow-up", "calendars", "check", "check-2", "clock", "cog", "days", "fold", "heart", "minus", "minus-2", "off", "plus", "plus-2", "range", "search", "sync", "x", "x-2"]
   primary_category: ui
 default_license:
   license: isc
@@ -80,6 +80,21 @@ icons:
     tags: [lucide]
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 18 4-4 4 4"/><path d="M16 2v4"/><path d="M18 22v-8"/><path d="M21 11.343V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9"/><path d="M3 10h18"/><path d="M8 2v4"/></svg>
+  - ref: "calendars"
+    label: "Calendars"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [lucide]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2"/><path d="M15.726 21.01A2 2 0 0 1 14 22H4a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2"/><path d="M18 2v2"/><path d="M2 13h2"/><path d="M8 8h14"/><rect x="8" y="3" width="14" height="14" rx="2"/></svg>
   - ref: "check"
     label: "Check"
     style: outline
@@ -340,7 +355,7 @@ pagefindFilters: [lucide, ui]
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
 
-Calendar — 21 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
+Calendar — 22 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
 
 <IconTermPanel
 	termRef={frontmatter.ref}

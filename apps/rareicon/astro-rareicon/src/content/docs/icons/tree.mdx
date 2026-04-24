@@ -2,12 +2,12 @@
 ref: tree
 name: Tree
 title: Tree Icon
-description: Tree glyph set from the Lucide icon library (ISC), 3 variants — outline stroke, recolor via currentColor.
+description: Tree glyph set from the Lucide icon library (ISC), 4 variants — outline stroke, recolor via currentColor.
 primary_category: ui
 categories: [ui, library]
 tags: [lucide, outline]
 search:
-  keywords: ["tree", "deciduous", "palm", "pine"]
+  keywords: ["tree", "deciduous", "palm", "pine", "trees"]
   primary_category: ui
 default_license:
   license: isc
@@ -65,12 +65,27 @@ icons:
     tags: [lucide]
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2A1 1 0 0 1 8 7.3L12 3l4 4.3a1 1 0 0 1-.8 1.7H15l3 3.3a1 1 0 0 1-.7 1.7H17Z"/><path d="M12 22v-3"/></svg>
+  - ref: "trees"
+    label: "Trees"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [lucide]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 10v.2A3 3 0 0 1 8.9 16H5a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z"/><path d="M7 16v6"/><path d="M13 19v3"/><path d="M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5"/></svg>
 pagefindFilters: [lucide, ui]
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
 
-Tree — 3 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
+Tree — 4 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
 
 <IconTermPanel
 	termRef={frontmatter.ref}

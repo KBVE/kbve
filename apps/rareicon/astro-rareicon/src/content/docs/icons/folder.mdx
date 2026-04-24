@@ -2,12 +2,12 @@
 ref: folder
 name: Folder
 title: Folder Icon
-description: Folder glyph set from the Lucide icon library (ISC), 30 variants — outline stroke, recolor via currentColor.
+description: Folder glyph set from the Lucide icon library (ISC), 31 variants — outline stroke, recolor via currentColor.
 primary_category: file
 categories: [file, library]
 tags: [lucide, outline]
 search:
-  keywords: ["folder", "archive", "check", "clock", "closed", "code", "cog", "dot", "down", "git", "git-2", "heart", "input", "kanban", "key", "lock", "minus", "open", "open-dot", "output", "pen", "plus", "root", "search", "search-2", "symlink", "sync", "tree", "up", "x"]
+  keywords: ["folder", "archive", "check", "clock", "closed", "code", "cog", "dot", "down", "folders", "git", "git-2", "heart", "input", "kanban", "key", "lock", "minus", "open", "open-dot", "output", "pen", "plus", "root", "search", "search-2", "symlink", "sync", "tree", "up", "x"]
   primary_category: file
 default_license:
   license: isc
@@ -155,6 +155,21 @@ icons:
     tags: [lucide]
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/><path d="M12 10v6"/><path d="m15 13-3 3-3-3"/></svg>
+  - ref: "folders"
+    label: "Folders"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [lucide]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2.5a1.5 1.5 0 0 1 1.2.6l.6.8a1.5 1.5 0 0 0 1.2.6z"/><path d="M3 8.268a2 2 0 0 0-1 1.738V19a2 2 0 0 0 2 2h11a2 2 0 0 0 1.732-1"/></svg>
   - ref: "git"
     label: "Git"
     style: outline
@@ -475,7 +490,7 @@ pagefindFilters: [lucide, file]
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
 
-Folder — 30 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
+Folder — 31 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
 
 <IconTermPanel
 	termRef={frontmatter.ref}

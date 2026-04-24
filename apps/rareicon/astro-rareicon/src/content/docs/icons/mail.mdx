@@ -2,12 +2,12 @@
 ref: mail
 name: Mail
 title: Mail Icon
-description: Mail glyph set from the Lucide icon library (ISC), 9 variants — outline stroke, recolor via currentColor.
+description: Mail glyph set from the Lucide icon library (ISC), 10 variants — outline stroke, recolor via currentColor.
 primary_category: comms
 categories: [comms, library]
 tags: [lucide, outline]
 search:
-  keywords: ["mail", "check", "minus", "open", "plus", "question-mark", "search", "warning", "x"]
+  keywords: ["mail", "check", "mails", "minus", "open", "plus", "question-mark", "search", "warning", "x"]
   primary_category: comms
 default_license:
   license: isc
@@ -50,6 +50,21 @@ icons:
     tags: [lucide]
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h8"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/><path d="m16 19 2 2 4-4"/></svg>
+  - ref: "mails"
+    label: "Mails"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [lucide]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 1-1.732"/><path d="m22 5.5-6.419 4.179a2 2 0 0 1-2.162 0L7 5.5"/><rect x="7" y="3" width="15" height="12" rx="2"/></svg>
   - ref: "minus"
     label: "Minus"
     style: outline
@@ -160,7 +175,7 @@ pagefindFilters: [lucide, comms]
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
 
-Mail — 9 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
+Mail — 10 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
 
 <IconTermPanel
 	termRef={frontmatter.ref}

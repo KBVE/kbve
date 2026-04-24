@@ -327,6 +327,33 @@ function groupByRoot(refs) {
 	return groups;
 }
 
+/**
+ * Merge plural roots (ending in "s") into their singular sibling when both
+ * exist. `ampersand` + `ampersands` → one `ampersand.mdx` with two variants
+ * (`outline` base + `ampersands` plural).
+ */
+function mergePlurals(groups) {
+	let merged = 0;
+	for (const root of Array.from(groups.keys())) {
+		if (!root.endsWith('s') || root.length <= 2) continue;
+		const singular = root.slice(0, -1);
+		if (!groups.has(singular)) continue;
+
+		const singularGroup = groups.get(singular);
+		const pluralGroup = groups.get(root);
+
+		for (const member of pluralGroup) {
+			const newSuffix =
+				member.suffix === '' ? root : `${root}-${member.suffix}`;
+			singularGroup.push({ ref: member.ref, suffix: newSuffix });
+		}
+
+		groups.delete(root);
+		merged += pluralGroup.length;
+	}
+	return merged;
+}
+
 function cleanPreviouslyGenerated() {
 	const dir = ICONS_DIR;
 	if (!fs.existsSync(dir)) return 0;
@@ -370,8 +397,11 @@ async function main() {
 		(r) => !SKIP_PREFIXES.some((p) => r.startsWith(p)),
 	);
 	const groups = groupByRoot(allRefs);
+	const pluralMerges = mergePlurals(groups);
 
-	console.log(`lucide corpus: ${allRefs.length} refs in ${groups.size} root groups`);
+	console.log(
+		`lucide corpus: ${allRefs.length} refs in ${groups.size} root groups (merged ${pluralMerges} plural entries)`,
+	);
 	console.log(`hand-crafted refs (locked): ${handCraftedRefs.size}`);
 
 	let termsAdded = 0;

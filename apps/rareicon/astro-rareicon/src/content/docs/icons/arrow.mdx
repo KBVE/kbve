@@ -2,12 +2,12 @@
 ref: arrow
 name: Arrow
 title: Arrow Icon
-description: Arrow glyph set from the Lucide icon library (ISC), 42 variants — outline stroke, recolor via currentColor.
+description: Arrow glyph set from the Lucide icon library (ISC), 43 variants — outline stroke, recolor via currentColor.
 primary_category: navigation
 categories: [navigation, library]
 tags: [lucide, outline]
 search:
-  keywords: ["arrow", "big-down", "big-down-dash", "big-left", "big-left-dash", "big-right", "big-right-dash", "big-up", "big-up-dash", "down", "down-0-1", "down-1-0", "down-a-z", "down-from-line", "down-left", "down-narrow-wide", "down-right", "down-to-dot", "down-to-line", "down-up", "down-wide-narrow", "down-z-a", "left", "left-from-line", "left-right", "left-to-line", "right", "right-from-line", "right-left", "right-to-line", "up", "up-0-1", "up-1-0", "up-a-z", "up-down", "up-from-dot", "up-from-line", "up-left", "up-narrow-wide", "up-right", "up-to-line", "up-wide-narrow", "up-z-a"]
+  keywords: ["arrow", "arrows-up-from-line", "big-down", "big-down-dash", "big-left", "big-left-dash", "big-right", "big-right-dash", "big-up", "big-up-dash", "down", "down-0-1", "down-1-0", "down-a-z", "down-from-line", "down-left", "down-narrow-wide", "down-right", "down-to-dot", "down-to-line", "down-up", "down-wide-narrow", "down-z-a", "left", "left-from-line", "left-right", "left-to-line", "right", "right-from-line", "right-left", "right-to-line", "up", "up-0-1", "up-1-0", "up-a-z", "up-down", "up-from-dot", "up-from-line", "up-left", "up-narrow-wide", "up-right", "up-to-line", "up-wide-narrow", "up-z-a"]
   primary_category: navigation
 default_license:
   license: isc
@@ -20,6 +20,21 @@ default_license:
 default_offering:
   offering: free
 icons:
+  - ref: "arrows-up-from-line"
+    label: "Arrows Up From Line"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [lucide]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 3-3 3 3"/><path d="M7 17V3"/><path d="m14 6 3-3 3 3"/><path d="M17 17V3"/><path d="M4 21h16"/></svg>
   - ref: "big-down"
     label: "Big Down"
     style: outline
@@ -655,7 +670,7 @@ pagefindFilters: [lucide, navigation]
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
 
-Arrow — 42 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
+Arrow — 43 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
 
 <IconTermPanel
 	termRef={frontmatter.ref}
