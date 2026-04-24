@@ -546,3 +546,73 @@ textarea:focus-visible {
    client:only React components to render distorted on first load
    before sidebar state JS hydrated. Can be re-added behind a user
    preference toggle in the future. */
+
+/* ── ScrollRing view transitions ── */
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation-duration: 480ms;
+	animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+	mix-blend-mode: normal;
+}
+
+html[data-nav-dir='forward']::view-transition-old(root) {
+	animation-name: ring-out-up;
+}
+html[data-nav-dir='forward']::view-transition-new(root) {
+	animation-name: ring-in-up;
+}
+html[data-nav-dir='back']::view-transition-old(root) {
+	animation-name: ring-out-down;
+}
+html[data-nav-dir='back']::view-transition-new(root) {
+	animation-name: ring-in-down;
+}
+
+@keyframes ring-out-up {
+	from {
+		transform: translateY(0);
+		opacity: 1;
+	}
+	to {
+		transform: translateY(-8%);
+		opacity: 0;
+	}
+}
+@keyframes ring-in-up {
+	from {
+		transform: translateY(100%);
+		opacity: 0.35;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+@keyframes ring-out-down {
+	from {
+		transform: translateY(0);
+		opacity: 1;
+	}
+	to {
+		transform: translateY(8%);
+		opacity: 0;
+	}
+}
+@keyframes ring-in-down {
+	from {
+		transform: translateY(-100%);
+		opacity: 0.35;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	::view-transition-old(root),
+	::view-transition-new(root) {
+		animation-duration: 1ms !important;
+		animation-name: none !important;
+	}
+}

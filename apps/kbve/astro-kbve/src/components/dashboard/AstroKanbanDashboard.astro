@@ -622,6 +622,7 @@ const sectionNames = [
 <script>
 	import gsap from 'gsap';
 	import { Observer } from 'gsap/Observer';
+	import { onSwap } from '@kbve/astro/utils/clientRouter';
 
 	gsap.registerPlugin(Observer);
 
@@ -726,17 +727,19 @@ const sectionNames = [
 		}
 
 		// Handle hashchange (browser back/forward or manual URL entry)
-		window.addEventListener('hashchange', () => {
+		const onHashChange = () => {
 			const hash = location.hash.replace('#', '').toLowerCase();
 			const idx = slugToIndex.get(hash);
 			if (idx != null && !animating && idx !== currentIndex) {
 				gotoSection(idx, idx > currentIndex ? 1 : -1);
 			}
-		});
+		};
+		window.addEventListener('hashchange', onHashChange);
 
 		// Dot click navigation
+		const dotHandlers: Array<[HTMLElement, () => void]> = [];
 		dots.forEach((dot) => {
-			dot.addEventListener('click', () => {
+			const handler = () => {
 				const idx = parseInt(
 					dot.getAttribute('data-section-idx') ?? '0',
 					10,
@@ -744,11 +747,13 @@ const sectionNames = [
 				if (!animating && idx !== currentIndex) {
 					gotoSection(idx, idx > currentIndex ? 1 : -1);
 				}
-			});
+			};
+			dot.addEventListener('click', handler);
+			dotHandlers.push([dot, handler]);
 		});
 
 		// GSAP Observer for wheel/touch/pointer
-		Observer.create({
+		const observer = Observer.create({
 			type: 'wheel,touch,pointer',
 			wheelSpeed: -1,
 			onDown: () => !animating && gotoSection(currentIndex - 1, -1),
@@ -759,6 +764,8 @@ const sectionNames = [
 		});
 
 		// Hide page scrollbar — GSAP Observer handles all scroll
+		const prevHtmlOverflow = document.documentElement.style.overflow;
+		const prevBodyOverflow = document.body.style.overflow;
 		document.documentElement.style.overflow = 'hidden';
 		document.body.style.overflow = 'hidden';
 
@@ -766,6 +773,14 @@ const sectionNames = [
 		const initHash = location.hash.replace('#', '').toLowerCase();
 		const initIdx = slugToIndex.get(initHash) ?? 0;
 		gotoSection(initIdx, 1);
+
+		onSwap(() => {
+			window.removeEventListener('hashchange', onHashChange);
+			dotHandlers.forEach(([d, h]) => d.removeEventListener('click', h));
+			observer.kill();
+			document.documentElement.style.overflow = prevHtmlOverflow;
+			document.body.style.overflow = prevBodyOverflow;
+		});
 	}
 
 	// Init on load + Astro page transitions

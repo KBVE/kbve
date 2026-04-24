@@ -1,0 +1,28 @@
+---
+title: Features
+description: KBVE platform features — community, gaming, automation, and more.
+template: splash
+editUrl: false
+lastUpdated: false
+next: false
+sidebar:
+    label: Features
+    order: 4
+---
+
+import DeferredFeature from '@/components/kbve/DeferredFeature.astro';
+import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
+import ObserverCollections from '@kbve/astro/components/hero/observer/ObserverCollections.astro';
+import ObserverSelection from '@kbve/astro/components/hero/observer/ObserverSelection.astro';
+
+<ObserverCollections
+    background="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80"
+    alt="KBVE features"
+    prev="/service/"
+    next="/github/"
+>
+    <ObserverSelection heading="Features" video="https://www.youtube.com/watch?v=aT66uumZ0Zo">
+        <DeferredFeature />
+        <DeferredAdsense label="Sponsored" />
+    </ObserverSelection>
+</ObserverCollections>

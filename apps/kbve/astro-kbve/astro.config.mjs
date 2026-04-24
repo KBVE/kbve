@@ -78,6 +78,7 @@ export default defineConfig({
 				PageSidebar: './src/components/pagesidebar/PageSidebar.astro',
 				Footer: './src/components/footer/AstroFooter.astro',
 				ThemeProvider: './src/components/theme/ThemeProvider.astro',
+				Head: './src/components/navigation/Head.astro',
 			},
 			head: [
 				{
