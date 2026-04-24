@@ -1,0 +1,102 @@
+---
+id: 01JBUG0000000000000000AA
+ref: bug
+name: Bug
+title: Bug Icon
+description: Debug marker, glitch indicator, issue tracker. RareIcon DaemonCorps anomaly signal.
+primary_category: sci-fi
+categories:
+  - ui
+  - sci-fi
+  - game
+tags:
+  - debug
+  - glitch
+  - issue
+  - report
+related_term_refs:
+  - terminal
+  - skull
+search:
+  keywords:
+    - bug
+    - debug
+    - glitch
+    - issue
+    - error
+    - anomaly
+    - report
+  aliases:
+    - debug
+    - glitch
+    - insect
+  primary_category: sci-fi
+  search_weight: 1.2
+default_license:
+  license: cc0
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags:
+      - web-ui
+      - issue-tracker
+    themes:
+      - cyberpunk
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="6" width="8" height="12" rx="4"/><path d="M12 2v4"/><path d="m4 9 4 1"/><path d="m4 18 4-1"/><path d="m20 9-4 1"/><path d="m20 18-4-1"/><path d="M4 13h4"/><path d="M16 13h4"/></svg>
+  - ref: glitch
+    label: Glitch
+    style: duotone
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      color_count: 2
+      monochrome: false
+    recommended_sizes: [24, 32, 48]
+    tags:
+      - daemoncorps
+      - anomaly
+    themes:
+      - cyberpunk
+      - noir
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect x="8" y="6" width="8" height="12" rx="4" fill="#C44545" opacity=".3"/><path d="M8 6h8v12H8z M12 2v4 M4 9l4 1 M4 18l4-1 M20 9l-4 1 M20 18l-4-1 M4 13h4 M16 13h4" stroke="#C44545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" transform="translate(1 0)"/><path d="M8 6h8v12H8z" stroke="#3AAED8" stroke-width="2" stroke-linejoin="round" fill="none" transform="translate(-1 0)"/></svg>
+pagefindFilters:
+  - ui
+  - sci-fi
+order: 17
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Bug — debug / glitch / anomaly marker. Clean outline and RGB-shifted glitch duotone variants.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

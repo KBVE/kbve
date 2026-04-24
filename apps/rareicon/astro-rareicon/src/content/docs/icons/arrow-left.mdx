@@ -1,0 +1,115 @@
+---
+id: 01JARROWLEFT00000000000AA
+ref: arrow-left
+name: Arrow Left
+title: Arrow Left Icon
+description: Navigation arrow pointing left. Previous, back, return.
+primary_category: navigation
+categories:
+  - ui
+  - navigation
+  - arrow
+tags:
+  - prev
+  - back
+  - chevron
+  - nav
+related_term_refs:
+  - arrow-right
+  - arrow-up
+  - arrow-down
+search:
+  keywords:
+    - arrow
+    - left
+    - back
+    - previous
+    - return
+    - chevron
+  aliases:
+    - chevron-left
+    - caret-left
+    - back
+  primary_category: navigation
+  search_weight: 1.3
+default_license:
+  license: mit
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [12, 16, 20, 24]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+  - ref: bold
+    label: Bold
+    style: bold
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 3
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+  - ref: chevron
+    label: Chevron
+    style: glyph
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [12, 16, 20, 24]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+pagefindFilters:
+  - ui
+  - navigation
+featured: true
+order: 6
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Arrow left — navigation indicator for previous/back. Outline, bold, and chevron variants.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

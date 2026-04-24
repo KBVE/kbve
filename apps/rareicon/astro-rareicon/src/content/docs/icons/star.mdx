@@ -1,0 +1,103 @@
+---
+id: 01JSTAR000000000000000AA
+ref: star
+name: Star
+title: Star Icon
+description: Favorite, rating, bookmark. Five-point glyph for game UI + user feedback.
+primary_category: ui
+categories:
+  - ui
+  - game
+  - social
+tags:
+  - favorite
+  - rating
+  - bookmark
+  - hero
+related_term_refs:
+  - heart
+search:
+  keywords:
+    - star
+    - favorite
+    - rating
+    - bookmark
+    - hero
+    - achievement
+  aliases:
+    - favorite
+    - rating
+  primary_category: ui
+  search_weight: 1.2
+default_license:
+  license: cc0
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 15.09 8.26 22 9.27l-5 4.87L18.18 22 12 18.77 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+  - ref: filled
+    label: Filled
+    style: filled
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 15.09 8.26 22 9.27l-5 4.87L18.18 22 12 18.77 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+  - ref: sparkle
+    label: Sparkle
+    style: duotone
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      color_count: 2
+      monochrome: false
+    recommended_sizes: [24, 32, 48]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#D1A954" opacity=".3" d="M12 2 15.09 8.26 22 9.27l-5 4.87L18.18 22 12 18.77 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/><path fill="none" stroke="#D1A954" stroke-width="2" stroke-linejoin="round" d="M12 2 15.09 8.26 22 9.27l-5 4.87L18.18 22 12 18.77 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+pagefindFilters:
+  - ui
+  - game
+order: 13
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Star — favorite, rating, bookmark, achievement glyph. Outline, filled, and amber-sparkle variants.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

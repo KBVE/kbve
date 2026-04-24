@@ -1,0 +1,93 @@
+---
+id: 01JARROWDOWN000000000000AA
+ref: arrow-down
+name: Arrow Down
+title: Arrow Down Icon
+description: Navigation arrow pointing down. Download, collapse, decrease.
+primary_category: navigation
+categories:
+  - ui
+  - navigation
+  - arrow
+tags:
+  - down
+  - scroll
+  - download
+  - decrease
+related_term_refs:
+  - arrow-up
+  - arrow-left
+  - arrow-right
+search:
+  keywords:
+    - arrow
+    - down
+    - download
+    - collapse
+    - decrease
+    - scroll
+  aliases:
+    - chevron-down
+    - caret-down
+  primary_category: navigation
+  search_weight: 1.2
+default_license:
+  license: mit
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [12, 16, 20, 24]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+  - ref: chevron
+    label: Chevron
+    style: glyph
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [12, 16, 20, 24]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+pagefindFilters:
+  - ui
+  - navigation
+order: 8
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Arrow down — download, collapse, decrease indicator.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

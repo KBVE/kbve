@@ -1,0 +1,123 @@
+---
+id: 01JBOLT000000000000000AA
+ref: bolt
+name: Bolt
+title: Bolt Icon
+description: Lightning bolt. Power, energy, charge, electric damage.
+primary_category: game
+categories:
+  - game
+  - combat
+  - sci-fi
+tags:
+  - lightning
+  - power
+  - energy
+  - electric
+related_term_refs:
+  - heart
+  - bug
+search:
+  keywords:
+    - bolt
+    - lightning
+    - power
+    - energy
+    - charge
+    - electric
+    - zap
+  aliases:
+    - lightning
+    - zap
+    - thunder
+  primary_category: game
+  search_weight: 1.2
+default_license:
+  license: cc0
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags:
+      - thin-stroke
+      - game-hud
+    themes:
+      - cyberpunk
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+  - ref: filled
+    label: Filled
+    style: filled
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags:
+      - solid
+      - game-hud
+    themes:
+      - cyberpunk
+      - ocean
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+  - ref: duotone
+    label: Duotone
+    style: duotone
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      color_count: 2
+      monochrome: false
+    recommended_sizes: [24, 32, 48]
+    tags:
+      - web-ui
+      - marketing
+    themes:
+      - cyberpunk
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#3AAED8" opacity=".3" d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/><path fill="none" stroke="#3AAED8" stroke-width="2" stroke-linejoin="round" d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+pagefindFilters:
+  - game
+  - combat
+featured: true
+order: 14
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Bolt — lightning / power / energy / electric damage glyph. Outline, filled, and ocean-duotone variants.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

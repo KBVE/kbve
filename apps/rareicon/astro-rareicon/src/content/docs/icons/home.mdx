@@ -1,0 +1,119 @@
+---
+id: 01JHOME000000000000000AA
+ref: home
+name: Home
+title: Home Icon
+description: House glyph. Dashboard, sanctuary, return-to-main.
+primary_category: ui
+categories:
+  - ui
+  - navigation
+tags:
+  - house
+  - dashboard
+  - sanctuary
+  - main
+related_term_refs:
+  - menu
+  - settings
+search:
+  keywords:
+    - home
+    - house
+    - dashboard
+    - main
+    - sanctuary
+    - base
+  aliases:
+    - house
+    - main
+    - dashboard
+  primary_category: ui
+  search_weight: 1.3
+default_license:
+  license: cc0
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags:
+      - web-ui
+      - nav
+    themes:
+      - neutral
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+  - ref: filled
+    label: Filled
+    style: filled
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags:
+      - solid
+      - nav
+    themes:
+      - neutral
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 3 9v13h6v-8h6v8h6V9z"/></svg>
+  - ref: sanctuary
+    label: Sanctuary
+    style: duotone
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      color_count: 2
+      monochrome: false
+    recommended_sizes: [24, 32, 48]
+    tags:
+      - rareicon-sanctuary
+      - game-hud
+    themes:
+      - ocean
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#3AAED8" opacity=".3" d="M12 2 3 9v13h6v-8h6v8h6V9z"/><path fill="none" stroke="#3AAED8" stroke-width="2" stroke-linejoin="round" d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10"/></svg>
+pagefindFilters:
+  - ui
+  - navigation
+order: 10
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Home — house / dashboard / sanctuary / return-to-main. Outline, filled, and ocean-duotone sanctuary variant.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

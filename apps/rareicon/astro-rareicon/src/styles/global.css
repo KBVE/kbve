@@ -256,3 +256,45 @@ html[data-auth-tone='anon'] a[data-auth-visibility='anon'] {
 	font-size: 0.875rem;
 	color: var(--ri-text-disabled);
 }
+
+/* ── Steam landing ── */
+.ri-steam-widget {
+	display: flex;
+	justify-content: center;
+	margin: 1.5rem 0 2rem;
+}
+
+.ri-steam-widget iframe {
+	max-width: 100%;
+	border-radius: 8px;
+}
+
+.ri-steam-cta {
+	display: flex;
+	justify-content: center;
+	margin: 1.5rem 0 2.5rem;
+}
+
+.ri-steam-cta__link {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.85rem 1.75rem;
+	font-family: var(--sl-font);
+	font-size: 0.85rem;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	text-decoration: none !important;
+	color: var(--ri-bg-app);
+	background: var(--ri-accent);
+	border-radius: 4px;
+	transition:
+		background 0.2s,
+		box-shadow 0.2s;
+}
+
+.ri-steam-cta__link:hover {
+	background: var(--ri-accent-hover);
+	color: var(--ri-bg-app) !important;
+	box-shadow: 0 0 32px rgba(58, 174, 216, 0.4);
+}
