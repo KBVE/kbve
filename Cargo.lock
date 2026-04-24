@@ -1383,7 +1383,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.116"
+version = "1.0.117"
 dependencies = [
  "anyhow",
  "askama",
@@ -1462,6 +1462,21 @@ dependencies = [
  "socket2 0.6.3",
  "thiserror 2.0.18",
  "tikv-jemallocator",
+ "tokio",
+ "tower 0.5.3",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "axum-rareicon"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum 0.8.9",
+ "serde",
+ "serde_json",
  "tokio",
  "tower 0.5.3",
  "tower-http",
