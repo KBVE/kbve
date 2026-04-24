@@ -71,6 +71,14 @@
 				"parallel": false
 			}
 		},
+		"gen:icons": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": ["node scripts/gen-lucide-icons.mjs"],
+				"parallel": false
+			}
+		},
 		"proto:lint": {
 			"executor": "nx:run-commands",
 			"options": {
