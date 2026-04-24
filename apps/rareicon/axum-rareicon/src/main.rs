@@ -1,54 +1,43 @@
-use axum::{Router, response::Json, routing::get};
-use serde_json::{Value, json};
-use std::net::SocketAddr;
-use std::path::PathBuf;
-use tower_http::{
-    compression::CompressionLayer, cors::CorsLayer, services::ServeDir, trace::TraceLayer,
-};
-use tracing_subscriber::EnvFilter;
+mod astro;
+mod transport;
 
-async fn health() -> Json<Value> {
-    Json(json!({
-        "status": "ok",
-        "service": "axum-rareicon",
-        "version": env!("CARGO_PKG_VERSION")
-    }))
+use tracing::info;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+#[cfg(feature = "jemalloc")]
+mod allocator {
+    #[cfg(not(target_env = "msvc"))]
+    use tikv_jemallocator::Jemalloc;
+    #[cfg(not(target_env = "msvc"))]
+    #[global_allocator]
+    static GLOBAL: Jemalloc = Jemalloc;
 }
 
 #[tokio::main]
-async fn main() {
-    tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env())
+async fn main() -> anyhow::Result<()> {
+    // Load .env before anything reads env vars.
+    dotenvy::dotenv().ok();
+
+    // Tracing.
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+                format!("{}=info,tower_http=debug", env!("CARGO_CRATE_NAME")).into()
+            }),
+        )
+        .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let static_dir = std::env::var("STATIC_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from("templates/dist"));
+    info!("RareIcon v{}", env!("CARGO_PKG_VERSION"));
 
-    tracing::info!("serving static files from {}", static_dir.display());
+    let http = tokio::spawn(transport::https::serve());
 
-    let static_svc = ServeDir::new(&static_dir)
-        .precompressed_br()
-        .precompressed_gzip()
-        .append_index_html_on_directories(true);
+    tokio::select! {
+        _ = http => {},
+        _ = tokio::signal::ctrl_c() => {
+            info!("shutdown signal received");
+        }
+    }
 
-    let app = Router::new()
-        .route("/health", get(health))
-        .route("/api/health", get(health))
-        .layer(CompressionLayer::new())
-        .layer(CorsLayer::permissive())
-        .layer(TraceLayer::new_for_http())
-        .fallback_service(static_svc);
-
-    let host = std::env::var("HTTP_HOST").unwrap_or_else(|_| "0.0.0.0".to_string());
-    let port: u16 = std::env::var("HTTP_PORT")
-        .unwrap_or_else(|_| "4323".to_string())
-        .parse()
-        .expect("HTTP_PORT must be a valid port");
-
-    let addr: SocketAddr = format!("{host}:{port}").parse().unwrap();
-    tracing::info!("axum-rareicon listening on {addr}");
-
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    Ok(())
 }

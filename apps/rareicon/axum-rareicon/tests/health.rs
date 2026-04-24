@@ -1,7 +1,8 @@
 //! Integration tests for axum-rareicon.
 //!
-//! These spin up the app's router in-process (no network bind) and exercise
-//! it through `tower::ServiceExt::oneshot` — fast, deterministic, no Docker.
+//! Build a minimal router with just the health endpoints (no static serving,
+//! which requires the astro dist dir at runtime) and exercise it through
+//! `tower::ServiceExt::oneshot`.
 
 use axum::{
     Router,

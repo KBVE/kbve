@@ -1474,10 +1474,17 @@ name = "axum-rareicon"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "askama",
  "axum 0.8.9",
+ "dotenvy",
  "http-body-util",
+ "num_cpus",
  "serde",
  "serde_json",
+ "serial_test",
+ "socket2 0.6.3",
+ "thiserror 2.0.18",
+ "tikv-jemallocator",
  "tokio",
  "tower 0.5.3",
  "tower-http",

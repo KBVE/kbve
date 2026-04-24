@@ -160,6 +160,8 @@ COPY --from=builder --chown=10001:10001 /app/target/release/axum-rareicon /app/a
 
 COPY --from=builder --chown=10001:10001 /app/apps/rareicon/axum-rareicon/templates/dist /app/templates/dist
 
+COPY --from=builder --chown=10001:10001 /app/apps/rareicon/axum-rareicon/templates/askama /app/templates/askama
+
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4323
 ENV RUST_LOG=info
