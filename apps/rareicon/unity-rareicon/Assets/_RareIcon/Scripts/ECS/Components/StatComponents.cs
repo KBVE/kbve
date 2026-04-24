@@ -2,11 +2,12 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>HP pool. Value ≤ 0 → DeadTag gets added by StatsRegenSystem / DamageSystem.</summary>
+    /// <summary>HP pool. Value ≤ 0 → DeadTag gets added by StatsRegenSystem / DamageSystem. Ghost-replicated so clients render health bars / death transitions from authoritative server state.</summary>
+    [Unity.NetCode.GhostComponent]
     public struct Health : IComponentData
     {
-        public float Value;
-        public float Max;
+        [Unity.NetCode.GhostField(Quantization = 100)] public float Value;
+        [Unity.NetCode.GhostField(Quantization = 100)] public float Max;
     }
 
     /// <summary>Stamina pool — actions (walking, combat, harvest) drain it; passive regen is modulated by Hunger and Fatigue.</summary>

@@ -44,6 +44,13 @@
 			"dependencies": {},
 			"hash": "9b5989b98f668c7ef409b3c5a1d5192612703eb5"
 		},
+		"com.rlabrecque.steamworks.net": {
+			"version": "https://github.com/rlabrecque/Steamworks.NET.git?path=/com.rlabrecque.steamworks.net",
+			"depth": 0,
+			"source": "git",
+			"dependencies": {},
+			"hash": "e4718c741df6161e3865f949adb7a9f89a1024b4"
+		},
 		"com.unity.2d.animation": {
 			"version": "13.0.4",
 			"depth": 0,

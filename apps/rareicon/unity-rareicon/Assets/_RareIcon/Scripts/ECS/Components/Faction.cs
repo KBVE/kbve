@@ -23,8 +23,9 @@ namespace RareIcon
     /// invisible to the collision pass — useful for purely-visual or
     /// environmental entities that shouldn't block arrows.
     /// </summary>
+    [Unity.NetCode.GhostComponent]
     public struct Faction : IComponentData
     {
-        public byte Value;
+        [Unity.NetCode.GhostField] public byte Value;
     }
 }
