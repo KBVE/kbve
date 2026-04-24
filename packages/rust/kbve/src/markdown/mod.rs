@@ -85,9 +85,7 @@ pub fn render(raw: &str, ctx: &RenderCtx<'_>) -> Rendered {
                 Some(event)
             }
             Event::End(TagEnd::CodeBlock) => {
-                if in_code > 0 {
-                    in_code -= 1;
-                }
+                in_code = in_code.saturating_sub(1);
                 Some(event)
             }
             Event::Code(ref _s) => Some(event),
