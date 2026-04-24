@@ -741,6 +741,67 @@
           "implicitDependencies": []
         }
       },
+      "astro-rareicon-e2e": {
+        "name": "astro-rareicon-e2e",
+        "type": "e2e",
+        "data": {
+          "root": "apps/rareicon/astro-rareicon-e2e",
+          "name": "astro-rareicon-e2e",
+          "projectType": "application",
+          "tags": [
+            "npm:private"
+          ],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "astro-rareicon-e2e",
+              "packageVersion": "0.0.0",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "targets": {
+            "e2e": {
+              "executor": "@nx/playwright:playwright",
+              "cache": false,
+              "options": {
+                "config": "apps/rareicon/astro-rareicon-e2e/playwright.config.ts"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            },
+            "e2e:preview": {
+              "executor": "@nx/playwright:playwright",
+              "cache": false,
+              "dependsOn": [
+                "astro-rareicon:build"
+              ],
+              "options": {
+                "config": "apps/rareicon/astro-rareicon-e2e/playwright.preview.config.ts"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e:docker": {
+              "executor": "@nx/playwright:playwright",
+              "cache": false,
+              "options": {
+                "config": "apps/rareicon/astro-rareicon-e2e/playwright.docker.config.ts"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/rareicon/astro-rareicon-e2e/e2e",
+          "implicitDependencies": [
+            "astro-rareicon"
+          ]
+        }
+      },
       "bevy_kbve_net": {
         "name": "bevy_kbve_net",
         "type": "lib",
@@ -1092,6 +1153,127 @@
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "implicitDependencies": [
             "axum-chuckrpg"
+          ]
+        }
+      },
+      "axum-rareicon-e2e": {
+        "name": "axum-rareicon-e2e",
+        "type": "e2e",
+        "data": {
+          "root": "apps/rareicon/axum-rareicon-e2e",
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "axum-rareicon-e2e",
+              "packageVersion": "0.0.0",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "targets": {
+            "test": {
+              "executor": "nx:noop",
+              "cache": false,
+              "options": {},
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "options": {
+                "cwd": "apps/rareicon/axum-rareicon-e2e",
+                "command": "tsc --noEmit -p tsconfig.json"
+              },
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects axum-rareicon-e2e --includeDependentProjects -- pnpm exec nx build-deps axum-rareicon-e2e"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                {
+                  "target": "container",
+                  "projects": [
+                    "axum-rareicon"
+                  ],
+                  "params": "forward"
+                }
+              ],
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker rm -f axum-rareicon-e2e 2>/dev/null || true",
+                  "docker run -d --name axum-rareicon-e2e -p 4325:4323 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4323 -e RUST_LOG=info kbve/rareicon:latest",
+                  "npx vitest run; EC=$?; docker rm -f axum-rareicon-e2e 2>/dev/null || true; exit $EC"
+                ],
+                "parallel": false,
+                "cwd": "apps/rareicon/axum-rareicon-e2e"
+              },
+              "configurations": {
+                "ci": {}
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            }
+          },
+          "projectType": "application",
+          "name": "axum-rareicon-e2e",
+          "tags": [
+            "npm:private"
+          ],
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "implicitDependencies": [
+            "axum-rareicon"
           ]
         }
       },
@@ -2554,6 +2736,136 @@
           "implicitDependencies": []
         }
       },
+      "astro-rareicon": {
+        "name": "astro-rareicon",
+        "type": "app",
+        "data": {
+          "root": "apps/rareicon/astro-rareicon",
+          "name": "astro-rareicon",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/rareicon/astro-rareicon/src",
+          "tags": [],
+          "targets": {
+            "proto": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{workspaceRoot}/packages/data/proto/rareicon/*.proto"
+              ],
+              "outputs": [
+                "{projectRoot}/src/generated/proto"
+              ],
+              "options": {
+                "command": "buf generate packages/data/proto --template apps/rareicon/astro-rareicon/buf.gen.yaml",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
+            "dev": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rareicon/astro-rareicon",
+                "commands": [
+                  "rm -rf .astro",
+                  "nx exec -- astro sync",
+                  "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro dev"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build": {
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{workspaceRoot}/dist/apps/astro-rareicon"
+              ],
+              "options": {
+                "cwd": "apps/rareicon/astro-rareicon",
+                "commands": [
+                  "rm -rf .astro",
+                  "nx exec -- astro sync",
+                  "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro build"
+                ],
+                "parallel": false
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ]
+            },
+            "preview": {
+              "dependsOn": [
+                {
+                  "target": "build",
+                  "projects": "self"
+                }
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rareicon/astro-rareicon",
+                "commands": [
+                  "nx exec -- astro preview"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "check": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rareicon/astro-rareicon",
+                "commands": [
+                  "nx exec -- astro check"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rareicon/astro-rareicon",
+                "commands": [
+                  "nx exec -- astro sync"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "proto:lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "buf lint packages/data/proto",
+                "cwd": ""
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "proto:clean": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "rm -rf apps/rareicon/astro-rareicon/src/generated/proto && mkdir -p apps/rareicon/astro-rareicon/src/generated/proto",
+                "cwd": ""
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "discordsh-bot": {
         "name": "discordsh-bot",
         "type": "app",
@@ -2918,6 +3230,85 @@
                   ]
                 }
               },
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
+      "axum-rareicon": {
+        "name": "axum-rareicon",
+        "type": "app",
+        "data": {
+          "root": "apps/rareicon/axum-rareicon",
+          "name": "axum-rareicon",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/rareicon/axum-rareicon/src",
+          "tags": [],
+          "targets": {
+            "build": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo build --release -p axum-rareicon"
+                ],
+                "cwd": ""
+              },
+              "configurations": {},
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo test -p axum-rareicon"
+                ],
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            },
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo clippy -p axum-rareicon --all-targets -- -D warnings"
+                ],
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ]
+            },
+            "container": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "docker buildx build --platform linux/amd64 -f apps/rareicon/axum-rareicon/Dockerfile -t kbve/rareicon:latest --load ."
+                ],
+                "cwd": ""
+              },
+              "configurations": {},
               "parallelism": true
             }
           },
@@ -5980,6 +6371,48 @@
                 "command": "node -e \"const fs=require('fs');const src='dist/apps/astro-kbve/api/ci-registry.json';const dst='.github/ci-dispatch-manifest.json';if(!fs.existsSync(src)){console.error('Build output not found — run astro-kbve:build first');process.exit(1);}const data=JSON.parse(fs.readFileSync(src,'utf8'));const{index,...manifest}=data;fs.writeFileSync(dst,JSON.stringify(manifest,null,2)+'\\n');console.log('Wrote',dst,'—',manifest.summary.total,'tracked items');\"",
                 "cwd": ""
               },
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync:mapdb": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{projectRoot}/src/content/docs/mapdb/*.mdx",
+                "{workspaceRoot}/packages/data/codegen/gen-mapdb-data.mjs",
+                "{workspaceRoot}/packages/data/codegen/descriptors/mapdb.binpb"
+              ],
+              "outputs": [
+                "{workspaceRoot}/packages/data/codegen/generated/mapdb-data.json",
+                "{workspaceRoot}/packages/data/codegen/generated/mapdb-data.binpb",
+                "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.json",
+                "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.binpb"
+              ],
+              "options": {
+                "command": "node packages/data/codegen/gen-mapdb-data.mjs",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync:itemdb": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{projectRoot}/src/content/docs/itemdb/*.mdx",
+                "{workspaceRoot}/packages/data/codegen/gen-itemdb-data.mjs",
+                "{workspaceRoot}/packages/data/codegen/descriptors/itemdb.binpb"
+              ],
+              "outputs": [
+                "{workspaceRoot}/packages/data/codegen/generated/itemdb-data.json",
+                "{workspaceRoot}/packages/data/codegen/generated/itemdb-data.binpb",
+                "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.json",
+                "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.binpb"
+              ],
+              "options": {
+                "command": "node packages/data/codegen/gen-itemdb-data.mjs",
+                "cwd": ""
+              },
+              "cache": true,
               "configurations": {},
               "parallelism": true
             }
@@ -11021,6 +11454,13 @@
       "axum-cryptothrone": [],
       "chisel-ubuntu-axum": [],
       "bevy_inventory": [],
+      "astro-rareicon-e2e": [
+        {
+          "source": "astro-rareicon-e2e",
+          "target": "astro-rareicon",
+          "type": "implicit"
+        }
+      ],
       "bevy_kbve_net": [],
       "discordsh-bot-e2e": [
         {
@@ -11033,6 +11473,13 @@
         {
           "source": "axum-chuckrpg-e2e",
           "target": "axum-chuckrpg",
+          "type": "implicit"
+        }
+      ],
+      "axum-rareicon-e2e": [
+        {
+          "source": "axum-rareicon-e2e",
+          "target": "axum-rareicon",
           "type": "implicit"
         }
       ],
@@ -11081,6 +11528,18 @@
           "type": "static"
         }
       ],
+      "astro-rareicon": [
+        {
+          "source": "astro-rareicon",
+          "target": "astro",
+          "type": "static"
+        },
+        {
+          "source": "astro-rareicon",
+          "target": "droid",
+          "type": "static"
+        }
+      ],
       "discordsh-bot": [],
       "discordsh-e2e": [
         {
@@ -11096,6 +11555,7 @@
       ],
       "axum-chuckrpg": [],
       "axum-herbmail": [],
+      "axum-rareicon": [],
       "bevy_cam": [],
       "bevy_npc": [],
       "firecracker-ctl-e2e": [
