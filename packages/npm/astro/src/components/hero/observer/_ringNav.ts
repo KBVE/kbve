@@ -1,6 +1,7 @@
 export type NavDir = 'forward' | 'back';
 
 let navLock = false;
+const prefetched = new Set<string>();
 
 export const ringNavigate = async (
 	href: string,
@@ -18,10 +19,26 @@ export const ringNavigate = async (
 	} catch {
 		window.location.href = href;
 	} finally {
+		// Long lock to absorb post-nav wheel inertia and double-fire from
+		// momentum scroll. Released by the new page's first idle tick.
 		window.setTimeout(() => {
 			navLock = false;
-		}, 600);
+		}, 1500);
 	}
 };
 
 export const isRingNavLocked = (): boolean => navLock;
+
+/**
+ * Pre-warm chain neighbors so the next ring nav swaps instantly.
+ * Idempotent — same href is only fetched once per session.
+ */
+export const ringPrefetch = (href: string | null | undefined): void => {
+	if (!href || prefetched.has(href)) return;
+	prefetched.add(href);
+	const link = document.createElement('link');
+	link.rel = 'prefetch';
+	link.href = href;
+	link.as = 'document';
+	document.head.appendChild(link);
+};

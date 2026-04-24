@@ -70,7 +70,7 @@ const {
 </div>
 
 <script>
-	import { ringNavigate, isRingNavLocked } from './_ringNav';
+	import { ringNavigate, isRingNavLocked, ringPrefetch } from './_ringNav';
 
 	const init = () => {
 		document
@@ -82,6 +82,19 @@ const {
 				const prev = root.dataset.ringPrev || '';
 				const next = root.dataset.ringNext || '';
 				const threshold = Number(root.dataset.ringThreshold) || 220;
+
+				// Pre-warm chain neighbors when browser idle.
+				const prewarm = () => {
+					ringPrefetch(prev);
+					ringPrefetch(next);
+				};
+				if ('requestIdleCallback' in window) {
+					(window as any).requestIdleCallback(prewarm, {
+						timeout: 2000,
+					});
+				} else {
+					setTimeout(prewarm, 1500);
+				}
 
 				const fillNext = root.querySelector<HTMLElement>(
 					'[data-ring-fill="next"]',

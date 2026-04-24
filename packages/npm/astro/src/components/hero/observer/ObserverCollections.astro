@@ -138,7 +138,7 @@ const heroBgStyle = [
 	import { gsap } from 'gsap';
 	import { Observer } from 'gsap/Observer';
 	import { ytPlay, ytPause } from './_video';
-	import { ringNavigate, isRingNavLocked } from './_ringNav';
+	import { ringNavigate, isRingNavLocked, ringPrefetch } from './_ringNav';
 
 	gsap.registerPlugin(Observer);
 
@@ -169,6 +169,18 @@ const heroBgStyle = [
 				const duration = Number(root.dataset.obsDuration) || 1.25;
 				const chainPrev = root.dataset.obsPrev || '';
 				const chainNext = root.dataset.obsNext || '';
+
+				const prewarm = () => {
+					ringPrefetch(chainPrev);
+					ringPrefetch(chainNext);
+				};
+				if ('requestIdleCallback' in window) {
+					(window as any).requestIdleCallback(prewarm, {
+						timeout: 2000,
+					});
+				} else {
+					setTimeout(prewarm, 1500);
+				}
 
 				const sections = Array.from(
 					root.querySelectorAll<HTMLElement>('.obs__section'),
