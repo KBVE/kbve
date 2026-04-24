@@ -11,16 +11,16 @@ sidebar:
 ---
 
 import DeferredProjectGallery from '@/components/kbve/DeferredProjectGallery.astro';
-import ObserverCollections from '@kbve/astro/components/hero/observer/ObserverCollections.astro';
-import ObserverSelection from '@kbve/astro/components/hero/observer/ObserverSelection.astro';
+import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
 
-<ObserverCollections
-    background="https://images.unsplash.com/photo-1502134249126-9f3755a50d78?q=80"
-    alt="KBVE projects"
-    prev="/github/"
-    next="/"
->
-    <ObserverSelection heading="Projects" image="https://images.unsplash.com/photo-1502134249126-9f3755a50d78?q=80">
-        <DeferredProjectGallery />
-    </ObserverSelection>
-</ObserverCollections>
+<div class="ring-page">
+
+# Projects
+
+Games, tools, libraries, and studios under the KBVE umbrella.
+
+<DeferredProjectGallery />
+
+</div>
+
+<ScrollRing prev="/github/" next="/" prevLabel="GitHub" nextLabel="Home" />

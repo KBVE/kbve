@@ -11,28 +11,28 @@ sidebar:
 ---
 
 import DeferredAstroGithubHero from '@/components/github/GithubHero/DeferredAstroGithubHero.astro';
-import ObserverCollections from '@kbve/astro/components/hero/observer/ObserverCollections.astro';
-import ObserverSelection from '@kbve/astro/components/hero/observer/ObserverSelection.astro';
+import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
 
-<ObserverCollections
-    background="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80"
-    alt="KBVE GitHub ecosystem"
-    prev="/feature/"
-    next="/projects/"
->
-    <ObserverSelection heading="Top Contributors" image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80">
-        <DeferredAstroGithubHero
-            title="Top Contributors"
-            subtitle="Thanks to everyone helping build the platform!"
-            commitsLabel="commits"
-            viewAllLabel="View all contributors"
-            issuesLabel="Issues"
-            projectLabel="Project Board"
-            errorMessage="Unable to load contributors. Please try again later."
-            rank1Label="1st Place"
-            rank2Label="2nd Place"
-            rank3Label="3rd Place"
-            newTabLabel="(opens in new tab)"
-        />
-    </ObserverSelection>
-</ObserverCollections>
+<div class="ring-page">
+
+# GitHub
+
+Community contributors, open-source projects, and live org activity.
+
+<DeferredAstroGithubHero
+    title="Top Contributors"
+    subtitle="Thanks to everyone helping build the platform!"
+    commitsLabel="commits"
+    viewAllLabel="View all contributors"
+    issuesLabel="Issues"
+    projectLabel="Project Board"
+    errorMessage="Unable to load contributors. Please try again later."
+    rank1Label="1st Place"
+    rank2Label="2nd Place"
+    rank3Label="3rd Place"
+    newTabLabel="(opens in new tab)"
+/>
+
+</div>
+
+<ScrollRing prev="/feature/" next="/projects/" prevLabel="Features" nextLabel="Projects" />

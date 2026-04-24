@@ -17,7 +17,10 @@ export default defineConfig({
 	image: {
 		domains: ['images.unsplash.com'],
 	},
-	prefetch: true,
+	prefetch: {
+		prefetchAll: false,
+		defaultStrategy: 'tap',
+	},
 	markdown: {
 		rehypePlugins: [rehypeLinkAttrs],
 	},

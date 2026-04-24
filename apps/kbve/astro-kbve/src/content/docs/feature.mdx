@@ -12,17 +12,18 @@ sidebar:
 
 import DeferredFeature from '@/components/kbve/DeferredFeature.astro';
 import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
-import ObserverCollections from '@kbve/astro/components/hero/observer/ObserverCollections.astro';
-import ObserverSelection from '@kbve/astro/components/hero/observer/ObserverSelection.astro';
+import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
 
-<ObserverCollections
-    background="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80"
-    alt="KBVE features"
-    prev="/service/"
-    next="/github/"
->
-    <ObserverSelection heading="Features" video="https://www.youtube.com/watch?v=aT66uumZ0Zo">
-        <DeferredFeature />
-        <DeferredAdsense label="Sponsored" />
-    </ObserverSelection>
-</ObserverCollections>
+<div class="ring-page">
+
+# Features
+
+What KBVE actually ships:
+
+<DeferredFeature />
+
+<DeferredAdsense label="Sponsored" />
+
+</div>
+
+<ScrollRing prev="/service/" next="/github/" prevLabel="Services" nextLabel="GitHub" />

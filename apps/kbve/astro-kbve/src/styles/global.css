@@ -616,3 +616,10 @@ html[data-nav-dir='back']::view-transition-new(root) {
 		animation-name: none !important;
 	}
 }
+
+/* Generic ring-page wrapper for ScrollRing-driven routes */
+.ring-page {
+	max-width: 72rem;
+	margin: 0 auto;
+	padding: 4rem 1.5rem 8rem;
+}
