@@ -6,10 +6,10 @@ use axum::{
     extract::Request,
     http::{HeaderName, HeaderValue, header},
     middleware::Next,
-    response::{Json, Response},
+    response::{IntoResponse, Json, Response},
     routing::get,
 };
-use serde_json::{Value, json};
+use serde_json::json;
 use tokio::net::TcpListener;
 use tower_http::set_header::SetResponseHeaderLayer;
 use tracing::info;
@@ -95,7 +95,7 @@ pub fn router() -> Router {
         .layer(middleware)
 }
 
-async fn health() -> Json<Value> {
+async fn health() -> impl IntoResponse {
     Json(json!({
         "status": "ok",
         "service": "axum-rareicon",
