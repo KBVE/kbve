@@ -1,0 +1,53 @@
+---
+ref: fan
+name: Fan
+title: Fan Icon
+description: Fan glyph set from the Lucide icon library (ISC), 1 variant — outline stroke, recolor via currentColor.
+primary_category: ui
+categories: [ui, library]
+tags: [lucide, outline]
+search:
+  keywords: ["fan"]
+  primary_category: ui
+default_license:
+  license: isc
+  attribution_required: true
+  attribution_line: "Lucide (https://lucide.dev/) — ISC License"
+  author: Lucide contributors
+  source_url: "https://lucide.dev/icons/fan"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "outline"
+    label: "Outline"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [lucide]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.827 16.379a6.082 6.082 0 0 1-8.618-7.002l5.412 1.45a6.082 6.082 0 0 1 7.002-8.618l-1.45 5.412a6.082 6.082 0 0 1 8.618 7.002l-5.412-1.45a6.082 6.082 0 0 1-7.002 8.618l1.45-5.412Z"/><path d="M12 12v.01"/></svg>
+pagefindFilters: [lucide, ui]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Fan — outline glyph from the [Lucide icon library](https://lucide.dev/) (ISC).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

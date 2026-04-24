@@ -1,0 +1,53 @@
+---
+ref: toilet
+name: Toilet
+title: Toilet Icon
+description: Toilet glyph set from the Lucide icon library (ISC), 1 variant — outline stroke, recolor via currentColor.
+primary_category: ui
+categories: [ui, library]
+tags: [lucide, outline]
+search:
+  keywords: ["toilet"]
+  primary_category: ui
+default_license:
+  license: isc
+  attribution_required: true
+  attribution_line: "Lucide (https://lucide.dev/) — ISC License"
+  author: Lucide contributors
+  source_url: "https://lucide.dev/icons/toilet"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "outline"
+    label: "Outline"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [lucide]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 12h13a1 1 0 0 1 1 1 5 5 0 0 1-5 5h-.598a.5.5 0 0 0-.424.765l1.544 2.47a.5.5 0 0 1-.424.765H5.402a.5.5 0 0 1-.424-.765L7 18"/><path d="M8 18a5 5 0 0 1-5-5V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8"/></svg>
+pagefindFilters: [lucide, ui]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Toilet — outline glyph from the [Lucide icon library](https://lucide.dev/) (ISC).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

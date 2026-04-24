@@ -1,0 +1,53 @@
+---
+ref: drumstick
+name: Drumstick
+title: Drumstick Icon
+description: Drumstick glyph set from the Lucide icon library (ISC), 1 variant — outline stroke, recolor via currentColor.
+primary_category: ui
+categories: [ui, library]
+tags: [lucide, outline]
+search:
+  keywords: ["drumstick"]
+  primary_category: ui
+default_license:
+  license: isc
+  attribution_required: true
+  attribution_line: "Lucide (https://lucide.dev/) — ISC License"
+  author: Lucide contributors
+  source_url: "https://lucide.dev/icons/drumstick"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "outline"
+    label: "Outline"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [lucide]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.4 15.63a7.875 6 135 1 1 6.23-6.23 4.5 3.43 135 0 0-6.23 6.23"/><path d="m8.29 12.71-2.6 2.6a2.5 2.5 0 1 0-1.65 4.65A2.5 2.5 0 1 0 8.7 18.3l2.59-2.59"/></svg>
+pagefindFilters: [lucide, ui]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Drumstick — outline glyph from the [Lucide icon library](https://lucide.dev/) (ISC).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

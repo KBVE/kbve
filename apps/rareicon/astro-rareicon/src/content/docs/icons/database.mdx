@@ -2,12 +2,12 @@
 ref: database
 name: Database
 title: Database Icon
-description: Database glyph from the Lucide icon library (ISC), outline style, recolor via currentColor.
+description: Database glyph set from the Lucide icon library (ISC), 4 variants — outline stroke, recolor via currentColor.
 primary_category: tech
 categories: [tech, library]
 tags: [lucide, outline]
 search:
-  keywords: ["database"]
+  keywords: ["database", "backup", "search", "zap"]
   primary_category: tech
 default_license:
   license: isc
@@ -20,8 +20,8 @@ default_license:
 default_offering:
   offering: free
 icons:
-  - ref: outline
-    label: Outline
+  - ref: "outline"
+    label: "Outline"
     style: outline
     format: svg
     viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
@@ -35,12 +35,57 @@ icons:
     tags: [lucide]
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
+  - ref: "backup"
+    label: "Backup"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [lucide]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 12a9 3 0 0 0 5 2.69"/><path d="M21 9.3V5"/><path d="M3 5v14a9 3 0 0 0 6.47 2.88"/><path d="M12 12v4h4"/><path d="M13 20a5 5 0 0 0 9-3 4.5 4.5 0 0 0-4.5-4.5c-1.33 0-2.54.54-3.41 1.41L12 16"/></svg>
+  - ref: "search"
+    label: "Search"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [lucide]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.693V5"/><path d="m22 22-1.875-1.875"/><path d="M3 12a9 3 0 0 0 8.697 2.998"/><path d="M3 5v14a9 3 0 0 0 9.28 2.999"/><circle cx="18" cy="18" r="3"/><ellipse cx="12" cy="5" rx="9" ry="3"/></svg>
+  - ref: "zap"
+    label: "Zap"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [lucide]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 15 21.84"/><path d="M21 5V8"/><path d="M21 12L18 17H22L19 22"/><path d="M3 12A9 3 0 0 0 14.59 14.87"/></svg>
 pagefindFilters: [lucide, tech]
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
 
-Database — outline glyph from the [Lucide icon library](https://lucide.dev/) (ISC).
+Database — 4 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
 
 <IconTermPanel
 	termRef={frontmatter.ref}

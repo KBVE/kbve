@@ -2,12 +2,12 @@
 ref: building
 name: Building
 title: Building Icon
-description: Building glyph from the Lucide icon library (ISC), outline style, recolor via currentColor.
+description: Building glyph set from the Lucide icon library (ISC), 2 variants — outline stroke, recolor via currentColor.
 primary_category: ui
 categories: [ui, library]
 tags: [lucide, outline]
 search:
-  keywords: ["building"]
+  keywords: ["building", "2"]
   primary_category: ui
 default_license:
   license: isc
@@ -20,8 +20,8 @@ default_license:
 default_offering:
   offering: free
 icons:
-  - ref: outline
-    label: Outline
+  - ref: "outline"
+    label: "Outline"
     style: outline
     format: svg
     viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
@@ -35,12 +35,27 @@ icons:
     tags: [lucide]
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M12 6h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/><path d="M8 6h.01"/><path d="M9 22v-3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/><rect x="4" y="2" width="16" height="20" rx="2"/></svg>
+  - ref: "2"
+    label: "2"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [lucide]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12h4"/><path d="M10 8h4"/><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/></svg>
 pagefindFilters: [lucide, ui]
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
 
-Building — outline glyph from the [Lucide icon library](https://lucide.dev/) (ISC).
+Building — 2 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
 
 <IconTermPanel
 	termRef={frontmatter.ref}

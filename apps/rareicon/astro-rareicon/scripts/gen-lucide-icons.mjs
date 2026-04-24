@@ -2,31 +2,33 @@
 /**
  * Generate IconTerm MDX files from the `lucide` npm package (ISC license).
  *
- * Iterates every icon in node_modules/lucide/dist/esm/icons/*.js, converts
- * each IconNode tuple array into an inline SVG using `currentColor`, and
- * writes one MDX file per icon into src/content/docs/icons/.
+ * Icons are grouped by root prefix — e.g. `bookmark`, `bookmark-plus`,
+ * `bookmark-check`, `bookmark-x` collapse into one `bookmark.mdx` with each
+ * suffix becoming a variant in the `icons:` array. Standalone icons (root
+ * group size 1) emit as their own term.
  *
- * Skips files that already exist (hand-crafted terms win over library dump).
+ * Hand-crafted terms (existing MDX in src/content/docs/icons/) win:
+ * - If `<root>.mdx` already exists as hand-crafted, the entire lucide group
+ *   is skipped so user-curated content stays intact.
+ * - Previously-generated lucide MDX (detected via `tags: [lucide` in the
+ *   frontmatter) is deleted before regen.
  *
  * Usage:
  *   node apps/rareicon/astro-rareicon/scripts/gen-lucide-icons.mjs
  *   node apps/rareicon/astro-rareicon/scripts/gen-lucide-icons.mjs --limit 400
  *   node apps/rareicon/astro-rareicon/scripts/gen-lucide-icons.mjs --dry-run
+ *   node apps/rareicon/astro-rareicon/scripts/gen-lucide-icons.mjs --no-clean
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execSync } from 'node:child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const WORKSPACE_ROOT = path.resolve(__dirname, '../../../..');
-const ICONS_DIR = path.resolve(
-	__dirname,
-	'../src/content/docs/icons',
-);
+const ICONS_DIR = path.resolve(__dirname, '../src/content/docs/icons');
 const LUCIDE_ICONS_DIR = path.resolve(
 	WORKSPACE_ROOT,
 	'node_modules/lucide/dist/esm/icons',
@@ -34,13 +36,14 @@ const LUCIDE_ICONS_DIR = path.resolve(
 
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
+const noClean = args.includes('--no-clean');
 const limitIdx = args.indexOf('--limit');
 const limit = limitIdx >= 0 ? Number(args[limitIdx + 1]) : Infinity;
 
-// Skip prefixes that bloat the catalog with near-duplicates. Keep the flag
-// here so we can tune curation without touching the body logic.
+// Skip prefixes that bloat the catalog with low-value entries.
 const SKIP_PREFIXES = [
 	'align-', // 24+ layout-alignment variants
+	'a-', // single-char font-type icons
 ];
 
 // Keyword → category buckets. First match wins; order matters.
@@ -48,21 +51,21 @@ const CATEGORY_RULES = [
 	{
 		cat: 'navigation',
 		test: (r) =>
-			r.startsWith('arrow-') ||
-			r.startsWith('chevron-') ||
-			r.startsWith('corner-') ||
-			r.startsWith('move-') ||
+			r.startsWith('arrow') ||
+			r.startsWith('chevron') ||
+			r.startsWith('corner') ||
+			r.startsWith('move') ||
 			r.startsWith('redo') ||
 			r.startsWith('undo'),
 	},
 	{
 		cat: 'file',
 		test: (r) =>
-			r.startsWith('file-') ||
-			r === 'file' ||
+			r.startsWith('file') ||
 			r.startsWith('folder') ||
 			r.startsWith('clipboard') ||
-			r.startsWith('archive'),
+			r.startsWith('archive') ||
+			r.startsWith('book'),
 	},
 	{
 		cat: 'media',
@@ -81,8 +84,7 @@ const CATEGORY_RULES = [
 		cat: 'social',
 		test: (r) =>
 			r.startsWith('user') ||
-			r === 'users' ||
-			r === 'heart' ||
+			r.startsWith('heart') ||
 			r === 'smile' ||
 			r === 'frown' ||
 			r === 'laugh' ||
@@ -185,8 +187,8 @@ function categoryFor(ref) {
 	return 'ui';
 }
 
-function titleCase(ref) {
-	return ref
+function titleCase(str) {
+	return str
 		.split('-')
 		.map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
 		.join(' ');
@@ -209,41 +211,16 @@ function iconNodeToSvg(node) {
 	);
 }
 
-function mdxFor(ref, node) {
-	const name = titleCase(ref);
-	const cat = categoryFor(ref);
+/**
+ * Build an IconTerm variant block YAML for a single lucide entry.
+ *
+ * @param variantRef slug unique within the parent term (e.g. "outline",
+ *   "plus", "off", "ring"). Must be URL-safe.
+ */
+function variantYaml(variantRef, label, node) {
 	const svg = iconNodeToSvg(node);
-	const keywords = Array.from(
-		new Set([ref, ...ref.split('-').filter((w) => w.length > 1)]),
-	)
-		.map((k) => JSON.stringify(k))
-		.join(', ');
-	const categoriesYaml = `[${cat}, library]`;
-
-	return `---
-ref: ${ref}
-name: ${name}
-title: ${name} Icon
-description: ${name} glyph from the Lucide icon library (ISC), outline style, recolor via currentColor.
-primary_category: ${cat}
-categories: ${categoriesYaml}
-tags: [lucide, outline]
-search:
-  keywords: [${keywords}]
-  primary_category: ${cat}
-default_license:
-  license: isc
-  attribution_required: true
-  attribution_line: "Lucide (https://lucide.dev/) — ISC License"
-  author: Lucide contributors
-  source_url: "https://lucide.dev/icons/${ref}"
-  commercial_use: true
-  modifications_allowed: true
-default_offering:
-  offering: free
-icons:
-  - ref: outline
-    label: Outline
+	return `  - ref: ${JSON.stringify(variantRef)}
+    label: ${JSON.stringify(label)}
     style: outline
     format: svg
     viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
@@ -257,12 +234,65 @@ icons:
     tags: [lucide]
     svg_body: |
       ${svg}
-pagefindFilters: [lucide, ${cat}]
+`;
+}
+
+/**
+ * Emit MDX for a term composed of one or more lucide variants.
+ *
+ * @param root canonical term slug (e.g. "bookmark")
+ * @param entries array of { suffix, node } where suffix is the slug suffix
+ *   after the root ("plus", "check", or empty string for the base variant).
+ */
+function mdxForGroup(root, entries) {
+	const name = titleCase(root);
+	const cat = categoryFor(root);
+	const variants = entries
+		.map(({ suffix, node }) => {
+			const variantRef = suffix === '' ? 'outline' : suffix;
+			const label = suffix === '' ? 'Outline' : titleCase(suffix);
+			return variantYaml(variantRef, label, node);
+		})
+		.join('');
+	const keywords = Array.from(
+		new Set([
+			root,
+			...root.split('-').filter((w) => w.length > 1),
+			...entries.map((e) => e.suffix).filter(Boolean),
+		]),
+	)
+		.map((k) => JSON.stringify(k))
+		.join(', ');
+	const categoriesYaml = `[${cat}, library]`;
+
+	return `---
+ref: ${root}
+name: ${name}
+title: ${name} Icon
+description: ${name} glyph set from the Lucide icon library (ISC), ${entries.length} variant${entries.length === 1 ? '' : 's'} — outline stroke, recolor via currentColor.
+primary_category: ${cat}
+categories: ${categoriesYaml}
+tags: [lucide, outline]
+search:
+  keywords: [${keywords}]
+  primary_category: ${cat}
+default_license:
+  license: isc
+  attribution_required: true
+  attribution_line: "Lucide (https://lucide.dev/) — ISC License"
+  author: Lucide contributors
+  source_url: "https://lucide.dev/icons/${root}"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+${variants}pagefindFilters: [lucide, ${cat}]
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
 
-${name} — outline glyph from the [Lucide icon library](https://lucide.dev/) (ISC).
+${name} — ${entries.length === 1 ? 'outline glyph' : `${entries.length} variants`} from the [Lucide icon library](https://lucide.dev/) (ISC).
 
 <IconTermPanel
 	termRef={frontmatter.ref}
@@ -276,6 +306,45 @@ ${name} — outline glyph from the [Lucide icon library](https://lucide.dev/) (I
 `;
 }
 
+function loadLucideRefs() {
+	return fs
+		.readdirSync(LUCIDE_ICONS_DIR)
+		.filter((f) => f.endsWith('.js') && !f.endsWith('.map.js'))
+		.filter((f) => !f.endsWith('.js.map'))
+		.map((f) => f.replace(/\.js$/, ''))
+		.sort();
+}
+
+function groupByRoot(refs) {
+	const groups = new Map();
+	for (const ref of refs) {
+		const dashIdx = ref.indexOf('-');
+		const root = dashIdx === -1 ? ref : ref.slice(0, dashIdx);
+		const suffix = dashIdx === -1 ? '' : ref.slice(dashIdx + 1);
+		if (!groups.has(root)) groups.set(root, []);
+		groups.get(root).push({ ref, suffix });
+	}
+	return groups;
+}
+
+function cleanPreviouslyGenerated() {
+	const dir = ICONS_DIR;
+	if (!fs.existsSync(dir)) return 0;
+	let removed = 0;
+	for (const f of fs.readdirSync(dir)) {
+		if (!f.endsWith('.mdx') || f === 'index.mdx') continue;
+		const p = path.join(dir, f);
+		const head = fs.readFileSync(p, 'utf8').slice(0, 600);
+		// Generator-authored files carry `tags: [lucide` at the top-level tags
+		// field; hand-crafted files do not.
+		if (/^tags: \[lucide/m.test(head)) {
+			if (!dryRun) fs.unlinkSync(p);
+			removed++;
+		}
+	}
+	return removed;
+}
+
 async function main() {
 	if (!fs.existsSync(LUCIDE_ICONS_DIR)) {
 		console.error(`lucide icons dir not found: ${LUCIDE_ICONS_DIR}`);
@@ -285,55 +354,66 @@ async function main() {
 		fs.mkdirSync(ICONS_DIR, { recursive: true });
 	}
 
-	const existingRefs = new Set(
+	if (!noClean) {
+		const removed = cleanPreviouslyGenerated();
+		console.log(`cleaned ${removed} previously-generated MDX files`);
+	}
+
+	const handCraftedRefs = new Set(
 		fs
 			.readdirSync(ICONS_DIR)
 			.filter((f) => f.endsWith('.mdx') && f !== 'index.mdx')
 			.map((f) => f.replace(/\.mdx$/, '')),
 	);
 
-	const iconFiles = fs
-		.readdirSync(LUCIDE_ICONS_DIR)
-		.filter((f) => f.endsWith('.js') && !f.endsWith('.map.js'))
-		.filter((f) => !f.endsWith('.js.map'))
-		.map((f) => f.replace(/\.js$/, ''))
-		.sort();
+	const allRefs = loadLucideRefs().filter(
+		(r) => !SKIP_PREFIXES.some((p) => r.startsWith(p)),
+	);
+	const groups = groupByRoot(allRefs);
 
-	console.log(`lucide corpus: ${iconFiles.length} icons`);
-	console.log(`existing terms: ${existingRefs.size}`);
+	console.log(`lucide corpus: ${allRefs.length} refs in ${groups.size} root groups`);
+	console.log(`hand-crafted refs (locked): ${handCraftedRefs.size}`);
 
-	let added = 0;
-	let skipped = 0;
-	let skippedPrefix = 0;
+	let termsAdded = 0;
+	let variantsAdded = 0;
+	let skippedHandCrafted = 0;
+	const groupEntries = Array.from(groups.entries()).sort(([a], [b]) =>
+		a.localeCompare(b),
+	);
 
-	for (const ref of iconFiles) {
-		if (added >= limit) break;
-		if (SKIP_PREFIXES.some((p) => ref.startsWith(p))) {
-			skippedPrefix++;
-			continue;
-		}
-		if (existingRefs.has(ref)) {
-			skipped++;
+	for (const [root, members] of groupEntries) {
+		if (termsAdded >= limit) break;
+		if (handCraftedRefs.has(root)) {
+			skippedHandCrafted++;
 			continue;
 		}
 
-		const iconPath = path.join(LUCIDE_ICONS_DIR, `${ref}.js`);
-		const mod = await import(iconPath);
-		const node = mod.default;
-		if (!Array.isArray(node)) {
-			console.warn(`skip ${ref}: unexpected export shape`);
-			continue;
-		}
+		// Sort: base (no suffix) first, then alphabetical.
+		members.sort((a, b) => {
+			if (a.suffix === '' && b.suffix !== '') return -1;
+			if (a.suffix !== '' && b.suffix === '') return 1;
+			return a.suffix.localeCompare(b.suffix);
+		});
 
-		const mdx = mdxFor(ref, node);
+		const entries = [];
+		for (const { ref, suffix } of members) {
+			const mod = await import(path.join(LUCIDE_ICONS_DIR, `${ref}.js`));
+			const node = mod.default;
+			if (!Array.isArray(node)) continue;
+			entries.push({ suffix, node });
+		}
+		if (entries.length === 0) continue;
+
+		const mdx = mdxForGroup(root, entries);
 		if (!dryRun) {
-			fs.writeFileSync(path.join(ICONS_DIR, `${ref}.mdx`), mdx);
+			fs.writeFileSync(path.join(ICONS_DIR, `${root}.mdx`), mdx);
 		}
-		added++;
+		termsAdded++;
+		variantsAdded += entries.length;
 	}
 
 	console.log(
-		`added ${added}, skipped existing ${skipped}, skipped-by-prefix ${skippedPrefix}${dryRun ? ' (dry-run)' : ''}`,
+		`wrote ${termsAdded} terms (${variantsAdded} variants total), skipped ${skippedHandCrafted} hand-crafted root groups${dryRun ? ' (dry-run)' : ''}`,
 	);
 }
 
