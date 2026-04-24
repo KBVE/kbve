@@ -210,42 +210,48 @@ const inlineStyle = createInlineStyle(width, height, aspect);
 </div>
 
 <script>
-	// Handle fullscreen changes
-	document.addEventListener('fullscreenchange', () => {
-		const embed = document.querySelector('[data-twitch-embed]');
-		if (embed) {
-			if (document.fullscreenElement) {
-				embed.setAttribute('data-fullscreen', '');
-			} else {
-				embed.removeAttribute('data-fullscreen');
-			}
-		}
-	});
+	import { onMount } from '@kbve/astro/utils/clientRouter';
 
-	// Accessibility: Announce stream status changes
-	const observer = new MutationObserver((mutations) => {
-		mutations.forEach((mutation) => {
-			if (
-				mutation.type === 'attributes' &&
-				mutation.attributeName === 'data-loaded'
-			) {
-				const target = mutation.target as HTMLElement;
-				const channel = target.getAttribute('data-twitch-embed');
-				if (target.hasAttribute('data-loaded')) {
-					const announcement = document.createElement('div');
-					announcement.className = 'sr-only';
-					announcement.setAttribute('role', 'status');
-					announcement.setAttribute('aria-live', 'polite');
-					announcement.textContent = `Twitch stream for ${channel} has loaded`;
-					target.appendChild(announcement);
-					setTimeout(() => announcement.remove(), 1000);
+	onMount(() => {
+		const onFullscreen = () => {
+			const embed = document.querySelector('[data-twitch-embed]');
+			if (embed) {
+				if (document.fullscreenElement) {
+					embed.setAttribute('data-fullscreen', '');
+				} else {
+					embed.removeAttribute('data-fullscreen');
 				}
 			}
-		});
-	});
+		};
+		document.addEventListener('fullscreenchange', onFullscreen);
 
-	// Observe all Twitch embeds
-	document.querySelectorAll('[data-twitch-embed]').forEach((embed) => {
-		observer.observe(embed, { attributes: true });
+		const observer = new MutationObserver((mutations) => {
+			mutations.forEach((mutation) => {
+				if (
+					mutation.type === 'attributes' &&
+					mutation.attributeName === 'data-loaded'
+				) {
+					const target = mutation.target as HTMLElement;
+					const channel = target.getAttribute('data-twitch-embed');
+					if (target.hasAttribute('data-loaded')) {
+						const announcement = document.createElement('div');
+						announcement.className = 'sr-only';
+						announcement.setAttribute('role', 'status');
+						announcement.setAttribute('aria-live', 'polite');
+						announcement.textContent = `Twitch stream for ${channel} has loaded`;
+						target.appendChild(announcement);
+						setTimeout(() => announcement.remove(), 1000);
+					}
+				}
+			});
+		});
+		document.querySelectorAll('[data-twitch-embed]').forEach((embed) => {
+			observer.observe(embed, { attributes: true });
+		});
+
+		return () => {
+			document.removeEventListener('fullscreenchange', onFullscreen);
+			observer.disconnect();
+		};
 	});
 </script>

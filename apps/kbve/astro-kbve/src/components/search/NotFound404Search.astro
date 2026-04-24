@@ -74,13 +74,16 @@ const { maxQueryLength = 100, class: className = '' } = Astro.props;
 </style>
 
 <script>
-	(function () {
-		'use strict';
+	import { onMount } from '@kbve/astro/utils/clientRouter';
 
+	onMount(() => {
 		const container = document.getElementById('not-found-search-container');
+		if (!container) return;
 		const maxLength = container?.dataset.maxLength
 			? parseInt(container.dataset.maxLength, 10)
 			: 100;
+		let waitObserver: MutationObserver | null = null;
+		let waitTimer = 0;
 
 		/**
 		 * Sanitize a string to prevent XSS attacks
@@ -168,21 +171,23 @@ const { maxQueryLength = 100, class: className = '' } = Astro.props;
 					return;
 				}
 
-				const observer = new MutationObserver((_mutations, obs) => {
+				waitObserver = new MutationObserver((_mutations, obs) => {
 					const el = document.querySelector(selector);
 					if (el) {
 						obs.disconnect();
+						waitObserver = null;
 						resolve(el);
 					}
 				});
 
-				observer.observe(document.body, {
+				waitObserver.observe(document.body, {
 					childList: true,
 					subtree: true,
 				});
 
-				setTimeout(() => {
-					observer.disconnect();
+				waitTimer = window.setTimeout(() => {
+					waitObserver?.disconnect();
+					waitObserver = null;
 					reject(new Error('Element not found: ' + selector));
 				}, timeout);
 			});
@@ -246,11 +251,11 @@ const { maxQueryLength = 100, class: className = '' } = Astro.props;
 			}
 		}
 
-		// Run when DOM is ready
-		if (document.readyState === 'loading') {
-			document.addEventListener('DOMContentLoaded', initNotFoundSearch);
-		} else {
-			initNotFoundSearch();
-		}
-	})();
+		initNotFoundSearch();
+
+		return () => {
+			waitObserver?.disconnect();
+			window.clearTimeout(waitTimer);
+		};
+	});
 </script>

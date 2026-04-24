@@ -280,21 +280,33 @@ function formatDate(date: string | Date | undefined): string {
 </style>
 
 <script>
-	document.querySelectorAll('.status-toggle').forEach((btn) => {
-		btn.addEventListener('click', () => {
-			const isCompleted = btn.getAttribute('data-completed') === 'true';
-			const newState = !isCompleted;
-			btn.setAttribute('data-completed', newState.toString());
+	import { onMount } from '@kbve/astro/utils/clientRouter';
 
-			const checkmark = btn.querySelector('.checkmark');
-			if (checkmark) {
-				checkmark.textContent = newState ? '✓' : '';
-			}
+	onMount(() => {
+		const handlers: Array<[Element, EventListener]> = [];
+		document.querySelectorAll('.status-toggle').forEach((btn) => {
+			const handler: EventListener = () => {
+				const isCompleted =
+					btn.getAttribute('data-completed') === 'true';
+				const newState = !isCompleted;
+				btn.setAttribute('data-completed', newState.toString());
 
-			const row = btn.closest('.task-row');
-			if (row) {
-				row.classList.toggle('completed', newState);
-			}
+				const checkmark = btn.querySelector('.checkmark');
+				if (checkmark) {
+					checkmark.textContent = newState ? '✓' : '';
+				}
+
+				const row = btn.closest('.task-row');
+				if (row) {
+					row.classList.toggle('completed', newState);
+				}
+			};
+			btn.addEventListener('click', handler);
+			handlers.push([btn, handler]);
 		});
+
+		return () => {
+			handlers.forEach(([el, h]) => el.removeEventListener('click', h));
+		};
 	});
 </script>
