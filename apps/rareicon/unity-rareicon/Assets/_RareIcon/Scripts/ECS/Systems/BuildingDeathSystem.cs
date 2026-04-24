@@ -21,11 +21,28 @@ namespace RareIcon
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);
 
+            bool hasEvents = false;
+            var events = default(NativeList<BuildingEvent>.ParallelWriter);
+            if (SystemAPI.HasSingleton<BuildingsDBSingleton>())
+            {
+                var db = SystemAPI.GetSingleton<BuildingsDBSingleton>();
+                if (db.Events.IsCreated)
+                {
+                    int query = SystemAPI.QueryBuilder().WithAll<BuildingHealth, Building>().Build().CalculateEntityCount();
+                    int needed = db.Events.Length + query;
+                    if (db.Events.Capacity < needed) db.Events.Capacity = needed;
+                    events = db.Events.AsParallelWriter();
+                    hasEvents = true;
+                }
+            }
+
             state.Dependency = new BuildingDeathJob
             {
                 HexLookup         = hexLookupSingleton.Lookup,
                 HexOccupantLookup = SystemAPI.GetComponentLookup<HexOccupant>(true),
                 Ecb               = ecb.AsParallelWriter(),
+                Events            = events,
+                HasEvents         = hasEvents,
             }.ScheduleParallel(state.Dependency);
         }
     }
@@ -37,6 +54,8 @@ namespace RareIcon
         [ReadOnly] public ComponentLookup<HexOccupant>  HexOccupantLookup;
 
         public EntityCommandBuffer.ParallelWriter Ecb;
+        public NativeList<BuildingEvent>.ParallelWriter Events;
+        public bool HasEvents;
 
         void Execute(Entity entity,
                      [ChunkIndexInQuery] int chunkIdx,
@@ -46,6 +65,18 @@ namespace RareIcon
             if (hp.Value > 0) return;
 
             Ecb.DestroyEntity(chunkIdx, entity);
+
+            if (HasEvents)
+            {
+                Events.AddNoResize(new BuildingEvent
+                {
+                    Kind         = BuildingEventKind.Destroyed,
+                    Entity       = entity,
+                    Type         = building.Type,
+                    RootHex      = building.RootHex,
+                    OwnerFaction = building.OwnerFaction,
+                });
+            }
 
             // Capital footprint is the 7-hex flower; every other building
             // claims just its root hex. Hardcoded here because BuildingDB

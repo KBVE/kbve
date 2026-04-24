@@ -91,6 +91,28 @@ namespace RareIcon.Native
             }
         }
 
+        // -- Building ghost persistence (Phase 4 hook — Rust FFI side TBD) --
+
+        /// <summary>
+        /// Intended FFI surface for persisting <see cref="BuildingsDBSingleton"/>.Unloaded across process restart. The Rust side needs three new endpoints to complete the path:
+        ///   uniti_world_save_building(world, FfiUnloadedBuilding)
+        ///   uniti_world_building_count_in_chunk(world, cx, cy) -> uint
+        ///   uniti_world_take_buildings_in_chunk(world, cx, cy, out_buf, cap) -> uint
+        /// The C# mirror ships when the Rust bindings regenerate. Until then <c>BuildingsDBSingleton.Unloaded</c> is in-memory only, scoped to the running session.
+        /// </summary>
+        public bool TrySaveUnloadedBuilding( /* FfiUnloadedBuilding */ )
+        {
+            // TODO(rust-ffi): wire through uniti_world_save_building.
+            return false;
+        }
+
+        /// <summary>Mirror of <see cref="TakeUnitsInChunk"/> for the building ghost store. Returns 0 until Rust side lands; C# callers can branch on the return to decide between FFI-backed hydrate (preferred, survives restart) and in-memory hydrate (current default path via BuildingsDBSingleton.Unloaded).</summary>
+        public uint TakeUnloadedBuildingsInChunk(int cx, int cy /*, FfiUnloadedBuilding[] buffer */)
+        {
+            // TODO(rust-ffi): wire through uniti_world_take_buildings_in_chunk.
+            return 0u;
+        }
+
         // -- Lifecycle --
 
         public void Dispose()

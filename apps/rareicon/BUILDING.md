@@ -1,6 +1,8 @@
 # Buildings architecture — Rareicon DOTS
 
-Design reference for the building subsystem. Scope: everything under `apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/` that touches the `Building` component. This doc is the spec; the `ECS/Buildings/` code is the implementation.
+Design reference for the building subsystem. Scope: everything under `apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/` that touches the `Building` component. This doc is the spec; the `ECS/DB/Buildings/` code is the implementation.
+
+**Target location** is `ECS/DB/Buildings/` alongside the other authoritative domains (`DB/Hex`, `DB/Combat`, `DB/Logistics`, `DB/Professions`, `DB/Quests`). This matches the convention already in place for every other major subsystem. See §10 for the DB event pipeline and §11 for offloaded-chunk ghost simulation.
 
 The current codebase assembles buildings through a three-stage runtime flow — shared-prefab clone, big `switch (building.Type)` in `ConstructionCompleteSystem`, then per-type `*InitSystem` for second-stage setup. Around that, 3 tender-scan systems, 5 per-type production jobs, and the legacy `FurnaceProduction` component each carry the same pattern copied N times. ~60% of the architecture is already well-composed (shared `Building`/`BuildingHealth`/`BuildingVisual`, `BankLedgerBase` reinterpret polymorphism, `ProductionRecipe` dynamic buffer, capability service components `ProvidesFood`/`ProvidesSleep`/`ProvidesHealing`). This doc captures the target state after we finish the job.
 
@@ -336,4 +338,134 @@ Tracked in the plan at `/Users/alappatel/.claude/plans/identify-any-main-thread-
 - **Phase 0** — this doc.
 - **Phase 1** — `TenderedBy` component + `BuildingPrefabRegistrySystem` with 11 bake methods. Registry not yet wired to spawn; existing flow unchanged.
 - **Phase 2** — wire registry into `BuildingSpawnSystem`, slim `ConstructionCompleteSystem` to ~20 LOC, introduce `TenderScanSystem` + `UnifiedProductionSystem`, migrate Furnace to `ProductionRecipe`, delete 6 `*InitSystem` files, audit `[WithNone(typeof(ConstructionSite))]` sites.
-- **Phase 3** — folder reorg under `ECS/Buildings/{Components, Core, Types/<Name>}/`.
+- **Phase 3** — folder reorg under `ECS/DB/Buildings/{Components, Messages, Systems}/` matching the existing DB/\* domain convention.
+- **Phase 4** — offloaded-chunk ghost simulation (§11). Unloaded-registry + worker-thread advance + reload hydrate.
+
+---
+
+## 10. DB event pipeline
+
+`ECS/DB/Buildings/` mirrors the `DB/Hex`, `DB/Combat`, `DB/Logistics`, `DB/Professions`, `DB/Quests` convention. Same single-buffer-safe event flow as HexDB:
+
+```
+Per-type system applies lifecycle change (main thread, inside existing Burst job)
+    ↓
+BuildingsDB.EnqueueXxx(...)  → BuildingsDBSingleton.Events (NativeList)
+    ↓
+Init OrderFirst: BuildingsDomainSystem
+    ↓  (owns singleton; future: drains Pending requests like HexDomainSystem)
+Sim / Economy / Cleanup phases — Burst readers query BuildingsDBSingleton.Lookup / counters if needed
+    ↓
+Presentation: BuildingsBridgeSystem drains Events → GlobalMessagePipe.Publish<T>
+    ↓
+UI / audio / Steam achievement subscribers receive main-thread messages
+```
+
+Producer→consumer never overlap phases → single-buffer Events is safe.
+
+### Layout
+
+```
+ECS/DB/Buildings/
+├── Components/
+│   └── BuildingsDBSingleton.cs      # Events + (future) UnloadedBuildings registry
+├── Messages/
+│   └── BuildingsMessages.cs         # BuildingSpawnedMessage, BuildingDestroyedMessage, BuildingTierChangedMessage, BuildingConstructionCompleteMessage, BuildingDamagedMessage, BuildingRepairedMessage, BuildingDemolishedMessage
+├── Systems/
+│   ├── BuildingsDomainSystem.cs     # Owns singleton; Init OrderFirst
+│   ├── BuildingsBridgeSystem.cs     # Presentation; drains Events → MessagePipe (client-only)
+│   └── BuildingsGhostSimSystem.cs   # Phase 4: worker-thread advance of unloaded buildings
+└── BuildingsDB.cs                   # Static producer API
+```
+
+### Event types (v0)
+
+| Event                                 | Emitted by                      | When                                            |
+| ------------------------------------- | ------------------------------- | ----------------------------------------------- |
+| `BuildingSpawnedMessage`              | BuildingSpawnSystem             | After entity created + all components attached  |
+| `BuildingConstructionCompleteMessage` | ConstructionCompleteSystem      | All materials delivered, NeedsStaffing added    |
+| `BuildingTierChangedMessage`          | BuildingUpgradeSystem           | Tier bumped (Market→Trade House etc.)           |
+| `BuildingDamagedMessage`              | Projectile collision / attacker | BuildingHealth.Value decreased                  |
+| `BuildingRepairedMessage`             | BuildingRepairSystem            | BuildingHealth.Value increased                  |
+| `BuildingDestroyedMessage`            | BuildingDeathSystem             | About to destroy (HP ≤ 0)                       |
+| `BuildingDemolishedMessage`           | DemolishBuildingSystem          | Player-initiated teardown (distinct from death) |
+
+---
+
+## 11a. Cross-process persistence + unit ghost sim (FFI-dependent)
+
+Two planned extensions wait on Rust FFI schema work:
+
+**BuildingsDBSingleton.Unloaded persistence.** In-memory only today — buildings survive chunk unload-then-reload during a session, but not across process restart. Scaffolded in `NativeWorld.TrySaveUnloadedBuilding` / `NativeWorld.TakeUnloadedBuildingsInChunk` (stubbed). Requires these Rust endpoints:
+
+```
+uniti_world_save_building(world, FfiUnloadedBuilding)
+uniti_world_building_count_in_chunk(world, cx, cy) -> uint
+uniti_world_take_buildings_in_chunk(world, cx, cy, out_buf, cap) -> uint
+```
+
+`FfiUnloadedBuilding` shape mirrors `UnloadedBuildingRecord` — same field set, blittable, versioned. Once the bindings regenerate, `HexChunkSystem.SnapshotBuildingsInChunk` / `HydrateUnloadedBuildings` gain FFI fast-paths and the in-memory NativeList becomes a write-through cache.
+
+**UnitsGhostSimSystem.** Ticks Hunger / Fatigue / Energy on units stored via the existing `FfiGhostUnit` while their chunks are offline. Disabled today (`Enabled = false` in OnCreate). Unblocks when `FfiGhostUnit` extends with Hunger/Fatigue/Energy + their Max + PerSecond fields. See `ECS/DB/Units/Systems/UnitsGhostSimSystem.cs` for the implementation sketch.
+
+Both extensions live in the DB/\* domains (`DB/Buildings/`, `DB/Units/`) alongside the in-memory loop — when the FFI path lands it's a drop-in replacement for the storage layer, not a rewrite of the simulation logic.
+
+---
+
+## 11. Offloaded-chunk ghost simulation
+
+### Goal
+
+A building in an unloaded chunk (outside `HexChunkSystem` load radius) keeps accumulating state — production cycles, repair timers, recruitment cadence, arrow-pool refills — **without** loading its ECS entity. When the player returns and the chunk reloads, the building respawns with all accrued deltas pre-applied.
+
+### Threading rules
+
+- **Snapshot path** — `HexChunkSystem.DespawnChunk` iterates `Building` entities in the chunk (main thread, single writer) and appends serialized records to `BuildingsDBSingleton.Unloaded`. No contention.
+- **Ghost simulator** — `BuildingsGhostSimSystem`, Burst `ISystem` running at low cadence (1 Hz). Schedules an `IJob` that reads+writes `Unloaded` on a worker thread. Pure data transform, DOTS-tracked safety handle.
+- **Reload hydrate** — `HexChunkSystem.SpawnChunk` → for each `UnloadedBuildingRecord` inside the loaded bounds, spawn the building via `BuildingSpawnSystem` (main thread, managed Instantiate) and apply accrued HP / production state.
+- **Persistence** — `BuildingsDBSingleton.Unloaded` serialises via the Rust FFI `WorldStoreSystem` path so offline state survives process restart.
+
+All three paths serialise through the `BuildingsDBSingleton.Unloaded` safety handle. No manual sync points.
+
+### Record shape (v0 sketch)
+
+```csharp
+public struct UnloadedBuildingRecord
+{
+    public byte   Type;                  // BuildingType
+    public int2   RootHex;
+    public byte   OwnerFaction;
+    public ushort Health;
+    public ushort HealthMax;
+    public byte   Tier;
+    public uint   LastTickTurn;          // WorldClock turn at unload
+    public float  AccruedProduction;     // cycles completed since unload
+    public float  AccruedInput;          // inputs consumed (reload deducts from Capital)
+    public byte   Flags;                 // IsBandit | HasRecipe | Destroyed | …
+}
+```
+
+Versioned via `UnloadedBuildingVersion` const — bump on schema change to invalidate stale persisted records.
+
+### What does NOT ghost-simulate while offloaded
+
+- Combat (no live units in unloaded chunks)
+- Pathing / AI (no live units period)
+- Visual state (no renderers)
+- Per-hex queries (no live hex entities)
+- Surplus transfer to Capital (optional — could be done, but simpler to flush on reload)
+
+Unloaded buildings are purely economic actors while offline.
+
+### Hydrate ordering
+
+1. `HexChunkSystem.SpawnChunk` creates hex entities → HexDB.EnqueueAdd → `HexDBSingleton.Lookup` populated next `Init`.
+2. `HexChunkSystem.SpawnChunk` enumerates matching `UnloadedBuildingRecord`s → calls `BuildingSpawnSystem.SpawnFromRecord(record)` which clones the registry prefab + applies record deltas + removes from `Unloaded`.
+3. `BuildingsDomainSystem` publishes `BuildingSpawnedMessage` on next Presentation tick.
+
+### Multiplayer
+
+- `BuildingsDBSingleton.Unloaded` is **server-only** (`WorldSystemFilter(ServerSimulation)`). Clients never see the offline accumulator; they hydrate replicated entities when chunks stream in via NetCode.
+- Ghost-replicated live buildings (via `[GhostComponent]` on `Building`, `BuildingHealth`, `BuildingTier`, `BuildingVisual`) let clients render the same state the server has on load.
+
+---

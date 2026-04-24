@@ -35,6 +35,15 @@ namespace RareIcon
 
             builder.RegisterMessageBroker<InventoryChangedMessage>(options);
             builder.RegisterMessageBroker<ProfessionChangedMessage>(options);
+            builder.RegisterMessageBroker<HexChangedMessage>(options);
+
+            builder.RegisterMessageBroker<BuildingSpawnedMessage>(options);
+            builder.RegisterMessageBroker<BuildingConstructionCompleteMessage>(options);
+            builder.RegisterMessageBroker<BuildingTierChangedMessage>(options);
+            builder.RegisterMessageBroker<BuildingDamagedMessage>(options);
+            builder.RegisterMessageBroker<BuildingRepairedMessage>(options);
+            builder.RegisterMessageBroker<BuildingDestroyedMessage>(options);
+            builder.RegisterMessageBroker<BuildingDemolishedMessage>(options);
 
             builder.RegisterMessageBroker<DialogueStartMessage>(options);
             builder.RegisterMessageBroker<DialogueAdvanceMessage>(options);

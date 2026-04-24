@@ -171,6 +171,20 @@ namespace RareIcon
             { "unknown-scroll", ItemId.UnknownScroll },
             { "unknown-tome", ItemId.UnknownTome },
             { "medkit", ItemId.Medkit },
+            { "rotten-food", ItemId.RottenFood },
+            { "rotten-milk", ItemId.RottenMilk },
+            { "rotten-meat", ItemId.RottenMeat },
+            { "mana-potion", ItemId.ManaPotion },
+            { "wolf-pelt", ItemId.WolfPelt },
+            { "wolf-fang", ItemId.WolfFang },
+            { "meat", ItemId.Meat },
+            { "hood", ItemId.Hood },
+            { "iron-sword", ItemId.IronSword },
+            { "iron-shield", ItemId.IronShield },
+            { "iron-armor", ItemId.IronArmor },
+            { "quest-scroll", ItemId.QuestScroll },
+            { "boss-key", ItemId.BossKey },
+            { "capital-land-grant", ItemId.CapitalLandGrant },
         };
     }
 }

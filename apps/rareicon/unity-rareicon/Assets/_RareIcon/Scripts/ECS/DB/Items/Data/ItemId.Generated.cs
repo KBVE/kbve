@@ -167,16 +167,19 @@ namespace RareIcon
         UnknownScroll = 540,  // unknown-scroll
         UnknownTome = 541,  // unknown-tome
         Medkit = 542,  // medkit
-        ManaPotion = 60001,  // legacy
-        WolfPelt = 60002,  // legacy
-        WolfFang = 60003,  // legacy
-        Meat = 60004,  // legacy
-        Hood = 60005,  // legacy
-        IronSword = 60006,  // legacy
-        IronShield = 60007,  // legacy
-        IronArmor = 60008,  // legacy
-        QuestScroll = 60009,  // legacy
-        BossKey = 60010,  // legacy
-        CapitalLandGrant = 60011,  // legacy
+        RottenFood = 543,  // rotten-food
+        RottenMilk = 544,  // rotten-milk
+        RottenMeat = 545,  // rotten-meat
+        ManaPotion = 546,  // mana-potion
+        WolfPelt = 547,  // wolf-pelt
+        WolfFang = 548,  // wolf-fang
+        Meat = 549,  // meat
+        Hood = 550,  // hood
+        IronSword = 551,  // iron-sword
+        IronShield = 552,  // iron-shield
+        IronArmor = 553,  // iron-armor
+        QuestScroll = 554,  // quest-scroll
+        BossKey = 555,  // boss-key
+        CapitalLandGrant = 556,  // capital-land-grant
     }
 }

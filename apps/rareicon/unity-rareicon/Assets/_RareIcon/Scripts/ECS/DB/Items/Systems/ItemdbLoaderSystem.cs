@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RareIcon
 {
-    /// <summary>One-shot bootstrap that reads <c>StreamingAssets/itemdb.json</c> (codegen'd from the shared mdx pool by <c>astro-kbve:sync:rareicon-itemdb</c>), populates <see cref="ItemdbCache"/>, then materialises the Burst-safe slice into <see cref="ItemDB"/>. Runs in <see cref="InitializationSystemGroup"/> with <c>OrderFirst = true</c> so the table is warm before any consumer. Managed SystemBase — JSON deserialisation + file I/O aren't Burst-safe.</summary>
+    /// <summary>One-shot bootstrap that reads <c>StreamingAssets/itemdb.json</c> (codegen'd from the shared mdx pool by <c>astro-kbve:sync:itemdb</c>), populates <see cref="ItemdbCache"/>, then materialises the Burst-safe slice into <see cref="ItemDB"/>. Runs in <see cref="InitializationSystemGroup"/> with <c>OrderFirst = true</c> so the table is warm before any consumer. Managed SystemBase — JSON deserialisation + file I/O aren't Burst-safe.</summary>
     [UpdateInGroup(typeof(InitializationSystemGroup), OrderFirst = true)]
     public partial class ItemdbLoaderSystem : SystemBase
     {
@@ -23,8 +23,7 @@ namespace RareIcon
             string path = Path.Combine(Application.streamingAssetsPath, "itemdb.json");
             if (!File.Exists(path))
             {
-                Debug.LogWarning($"[ItemdbLoader] itemdb.json missing at {path} — falling back to legacy hardcoded table. Run `npx nx run astro-kbve:sync:rareicon-itemdb` to regenerate.");
-                ItemDB.EnsureHydrated();
+                Debug.LogError($"[ItemdbLoader] itemdb.json missing at {path}. Run `npx nx run astro-kbve:sync:itemdb` to regenerate. ItemDB will remain empty until the bundle is present.");
                 return;
             }
 
@@ -33,7 +32,6 @@ namespace RareIcon
             catch (IOException e)
             {
                 Debug.LogError($"[ItemdbLoader] failed to read itemdb.json: {e.Message}");
-                ItemDB.EnsureHydrated();
                 return;
             }
 
@@ -42,14 +40,12 @@ namespace RareIcon
             catch (JsonException e)
             {
                 Debug.LogError($"[ItemdbLoader] failed to parse itemdb.json: {e.Message}");
-                ItemDB.EnsureHydrated();
                 return;
             }
 
             if (bundle?.Entries == null || bundle.Entries.Count == 0)
             {
                 Debug.LogError("[ItemdbLoader] itemdb.json had no entries");
-                ItemDB.EnsureHydrated();
                 return;
             }
 
