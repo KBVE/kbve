@@ -3,15 +3,28 @@ syntax = "proto3";
 package kbve.forum;
 
 // =============================================================================
-// KBVE Forums — Core schema for the tag-first, space-driven discussion platform.
+// KBVE Forums — tag-first, space-driven social platform.
+//
+// Blends classic forum (spaces, threads, bump-sort, signatures, ranks) with
+// reddit-style voting + crossposts and twitter-style short-form status posts
+// and follow/bookmark/notification graphs.
 //
 // /spaces define ownership and moderation (source of truth).
-// #tags define cross-cutting metadata (descriptive, non-authoritative).
+// #tags define cross-cutting metadata (descriptive, admin-curated taxonomy).
 // @users define identity and interaction (Supabase auth).
 //
 // Threads are the top-level content unit. Comments are replies within threads.
-// Thread types enable specialized behavior (marketplace, auctions, polls)
-// without schema changes — the type field selects rendering and validation.
+// Thread types enable specialized behavior (marketplace, auctions, polls,
+// short-form status posts) without schema changes — the type field selects
+// rendering + validation and maps to exactly one `type_data` oneof branch.
+//
+// Identity / provider linking lives in `kbve.profile.UserProfile`.
+// Forum-side denormalized state (karma, post_count, signature, flair, rank,
+// badges) lives in `ForumUserProfile` here, referencing the same user_id.
+//
+// Timestamps are ISO-8601 strings for wire consistency with the rest of the
+// KBVE proto set. Counters that can go viral (view_count, vote totals) are
+// int64; per-entity counts (comment_count, follower_count) stay int32.
 //
 // This proto generates:
 //   - Zod schemas for frontend validation (@kbve/devops)
@@ -34,6 +47,8 @@ enum ThreadStatus {
   THREAD_STATUS_SOLD = 5;       // Marketplace: listing completed
   THREAD_STATUS_EXPIRED = 6;    // Auction/LFG: past deadline
   THREAD_STATUS_PENDING = 7;    // Awaiting moderator review before visible
+  THREAD_STATUS_DRAFT = 8;      // Author-only, not yet published
+  THREAD_STATUS_SCHEDULED = 9;  // Publish at scheduled_at
 }
 
 // Lifecycle status of a comment.
@@ -44,10 +59,12 @@ enum CommentStatus {
   COMMENT_STATUS_ACTIVE = 1;
   COMMENT_STATUS_REMOVED = 2;   // Hidden by moderator
   COMMENT_STATUS_FLAGGED = 3;   // Reported, pending review
+  COMMENT_STATUS_DRAFT = 4;     // Author-only, not yet published
 }
 
 // Thread type — determines rendering, validation rules, and behavior.
-// New types can be added without schema migration.
+// New types can be added without schema migration; each maps to exactly one
+// branch of the ForumThread.type_data oneof.
 enum ThreadType {
   THREAD_TYPE_UNSPECIFIED = 0;
   THREAD_TYPE_DISCUSSION = 1;   // Standard forum thread (title + body + replies)
@@ -61,6 +78,8 @@ enum ThreadType {
   THREAD_TYPE_SHOWCASE = 9;     // Show off work (gallery, media-heavy)
   THREAD_TYPE_BUG_REPORT = 10;  // Structured bug report (steps, expected, actual)
   THREAD_TYPE_ASSET = 11;       // Shared resource (tool, template, script, asset pack)
+  THREAD_TYPE_STATUS = 12;      // Short-form twitter-style post (body only, no title)
+  THREAD_TYPE_MEGATHREAD = 13;  // Long-running container (e.g. weekly news)
 }
 
 // Lifecycle status of a space.
@@ -69,6 +88,7 @@ enum SpaceStatus {
   SPACE_STATUS_ACTIVE = 1;
   SPACE_STATUS_ARCHIVED = 2;
   SPACE_STATUS_PRIVATE = 3;     // Invite-only
+  SPACE_STATUS_SUSPENDED = 4;   // Admin lockdown (distinct from ARCHIVED)
 }
 
 // Lifecycle status of a tag.
@@ -77,6 +97,125 @@ enum TagStatus {
   TAG_STATUS_ACTIVE = 1;
   TAG_STATUS_DEPRECATED = 2;    // Soft-removed, still searchable
   TAG_STATUS_MERGED = 3;        // Replaced by alias_of
+}
+
+// Up / down / cleared. CLEARED exists because an explicit "vote retraction"
+// row is easier to audit than a delete.
+enum VoteDirection {
+  VOTE_DIRECTION_UNSPECIFIED = 0;
+  VOTE_DIRECTION_UP = 1;
+  VOTE_DIRECTION_DOWN = 2;
+  VOTE_DIRECTION_CLEARED = 3;
+}
+
+// Built-in reaction kinds. `Reaction.custom_kind` may carry arbitrary
+// per-space reaction slugs when `kind = REACTION_KIND_CUSTOM`.
+enum ReactionKind {
+  REACTION_KIND_UNSPECIFIED = 0;
+  REACTION_KIND_THUMBS_UP = 1;
+  REACTION_KIND_THUMBS_DOWN = 2;
+  REACTION_KIND_HEART = 3;
+  REACTION_KIND_FIRE = 4;
+  REACTION_KIND_LAUGH = 5;
+  REACTION_KIND_SURPRISED = 6;
+  REACTION_KIND_SAD = 7;
+  REACTION_KIND_ANGRY = 8;
+  REACTION_KIND_CLAP = 9;
+  REACTION_KIND_EYES = 10;
+  REACTION_KIND_ROCKET = 11;
+  REACTION_KIND_BRAIN = 12;
+  REACTION_KIND_SKULL = 13;
+  REACTION_KIND_CUSTOM = 99;    // See Reaction.custom_kind
+}
+
+// Reason a report was filed. Used by moderation queue ordering + auto-rules.
+enum ReportReason {
+  REPORT_REASON_UNSPECIFIED = 0;
+  REPORT_REASON_SPAM = 1;
+  REPORT_REASON_HARASSMENT = 2;
+  REPORT_REASON_NSFW = 3;
+  REPORT_REASON_VIOLENCE = 4;
+  REPORT_REASON_COPYRIGHT = 5;
+  REPORT_REASON_OFF_TOPIC = 6;
+  REPORT_REASON_SCAM = 7;
+  REPORT_REASON_MISINFO = 8;
+  REPORT_REASON_SELF_HARM = 9;
+  REPORT_REASON_OTHER = 99;
+}
+
+// Kind of moderation action taken. The action log is append-only.
+enum ModerationActionKind {
+  MODERATION_ACTION_KIND_UNSPECIFIED = 0;
+  MODERATION_ACTION_KIND_THREAD_LOCK = 1;
+  MODERATION_ACTION_KIND_THREAD_UNLOCK = 2;
+  MODERATION_ACTION_KIND_THREAD_REMOVE = 3;
+  MODERATION_ACTION_KIND_THREAD_RESTORE = 4;
+  MODERATION_ACTION_KIND_THREAD_PIN = 5;
+  MODERATION_ACTION_KIND_THREAD_UNPIN = 6;
+  MODERATION_ACTION_KIND_THREAD_MOVE = 7;
+  MODERATION_ACTION_KIND_COMMENT_REMOVE = 8;
+  MODERATION_ACTION_KIND_COMMENT_RESTORE = 9;
+  MODERATION_ACTION_KIND_USER_MUTE = 10;
+  MODERATION_ACTION_KIND_USER_BAN = 11;
+  MODERATION_ACTION_KIND_USER_UNBAN = 12;
+  MODERATION_ACTION_KIND_REPORT_RESOLVE = 13;
+  MODERATION_ACTION_KIND_REPORT_DISMISS = 14;
+  MODERATION_ACTION_KIND_TAG_MERGE = 15;
+  MODERATION_ACTION_KIND_TAG_DEPRECATE = 16;
+}
+
+// Notification delivery target classification.
+enum NotificationKind {
+  NOTIFICATION_KIND_UNSPECIFIED = 0;
+  NOTIFICATION_KIND_MENTION = 1;          // @username in a thread or comment body
+  NOTIFICATION_KIND_REPLY = 2;            // Someone replied to your comment
+  NOTIFICATION_KIND_THREAD_REPLY = 3;     // Someone replied on a thread you authored
+  NOTIFICATION_KIND_FOLLOW = 4;           // A user followed you
+  NOTIFICATION_KIND_THREAD_UPDATE = 5;    // Thread you subscribe to got activity
+  NOTIFICATION_KIND_VOTE_MILESTONE = 6;   // Your post hit a vote threshold (10/100/…)
+  NOTIFICATION_KIND_MOD_ACTION = 7;       // A moderator acted on your content
+  NOTIFICATION_KIND_AWARD = 8;            // Someone awarded / badged you
+  NOTIFICATION_KIND_AUCTION_OUTBID = 9;
+  NOTIFICATION_KIND_AUCTION_WON = 10;
+  NOTIFICATION_KIND_ACCEPTED_ANSWER = 11; // Your answer was marked accepted
+  NOTIFICATION_KIND_LFG_FILLED = 12;      // Party you joined filled up
+}
+
+// Follow target kind. A user can follow other users, spaces, or tags.
+enum FollowTargetKind {
+  FOLLOW_TARGET_KIND_UNSPECIFIED = 0;
+  FOLLOW_TARGET_KIND_USER = 1;
+  FOLLOW_TARGET_KIND_SPACE = 2;
+  FOLLOW_TARGET_KIND_TAG = 3;
+}
+
+// Attachment parent kind — generic polymorphic relationship.
+enum AttachmentParentKind {
+  ATTACHMENT_PARENT_KIND_UNSPECIFIED = 0;
+  ATTACHMENT_PARENT_KIND_THREAD = 1;
+  ATTACHMENT_PARENT_KIND_COMMENT = 2;
+  ATTACHMENT_PARENT_KIND_SPACE = 3;   // Banner / icon overrides
+  ATTACHMENT_PARENT_KIND_USER = 4;    // Profile gallery
+}
+
+// Attachment format classification (display hinting).
+enum AttachmentKind {
+  ATTACHMENT_KIND_UNSPECIFIED = 0;
+  ATTACHMENT_KIND_IMAGE = 1;
+  ATTACHMENT_KIND_VIDEO = 2;
+  ATTACHMENT_KIND_AUDIO = 3;
+  ATTACHMENT_KIND_FILE = 4;
+  ATTACHMENT_KIND_LINK = 5;  // External link preview (OG card)
+  ATTACHMENT_KIND_CODE = 6;  // Source-code snippet (mime + language hint)
+}
+
+// LFG party fill state. Finer-grained than ThreadStatus::EXPIRED.
+enum LfgStatus {
+  LFG_STATUS_UNSPECIFIED = 0;
+  LFG_STATUS_OPEN = 1;
+  LFG_STATUS_FULL = 2;
+  LFG_STATUS_STARTED = 3;
+  LFG_STATUS_CANCELLED = 4;
 }
 
 // ---------------------------------------------------------------------------
@@ -96,10 +235,18 @@ message ForumSpace {
   optional string banner_url = 8;         // Space banner image
   SpaceStatus status = 9;
   int32 follower_count = 10;              // Denormalized count
-  int32 thread_count = 11;               // Denormalized count
+  int32 thread_count = 11;                // Denormalized count
   repeated ThreadType allowed_types = 12; // Which thread types this space permits
   string created_at = 13;                 // ISO 8601 timestamp
   string updated_at = 14;                 // ISO 8601 timestamp
+  int32 sort_order = 15;                  // Custom order among siblings (lower = earlier)
+  bool nsfw = 16;                         // Space contains NSFW content
+  // Per-space flair options as JSON (array of {id, label, color}). Stored as
+  // a string here so it can be freeform without forcing a separate proto
+  // message; edge layer validates the JSON shape.
+  optional string flair_config_json = 17;
+  repeated string moderator_ids = 18;     // Supabase user UUIDs with mod powers in this space
+  int64 active_user_count = 19;           // Denormalized (7-day active)
 }
 
 // Descriptive metadata for cross-cutting discovery.
@@ -122,7 +269,7 @@ message ForumSpace {
 //
 // Integer IDs: compact B-tree indexes, fast junction joins.
 message ForumTag {
-  int32 id = 1;                            // Auto-increment integer (canonical reference)
+  int32 id = 1;                           // Auto-increment integer (canonical reference)
   string slug = 2;                        // URL-safe identifier (e.g. "networking")
   string name = 3;                        // Display name
   optional string description = 4;
@@ -132,6 +279,9 @@ message ForumTag {
   int32 usage_count = 8;                  // Denormalized count (on canonical tag only)
   string created_by = 9;                  // Admin user UUID who created this tag
   string created_at = 10;
+  repeated int32 parent_tag_ids = 11;     // Hierarchy (gamedev → unity, unreal)
+  optional string color = 12;             // Hex chip color for display (e.g. "#3AAED8")
+  optional string icon_ref = 13;          // Reference into the icon library (e.g. "sword")
 }
 
 // ---------------------------------------------------------------------------
@@ -141,9 +291,10 @@ message ForumTag {
 // "unset is valid" logic. The proto → Zod pipeline generates a validator
 // per branch, and the edge layer enforces thread_type ↔ oneof match.
 
-// Metadata for standard threads (DISCUSSION, GUIDE, SHOWCASE, BUG_REPORT).
-// Currently empty — exists so every thread type has an explicit oneof branch.
-// Can be extended later (e.g. guide: table_of_contents, bug: steps_to_reproduce).
+// Metadata for standard threads (DISCUSSION, GUIDE, SHOWCASE, BUG_REPORT,
+// MEGATHREAD). Currently empty — exists so every thread type has an
+// explicit oneof branch. Can be extended later (e.g. guide:
+// table_of_contents, bug: steps_to_reproduce).
 message DiscussionData {}
 
 // Metadata for QUESTION threads (Q&A).
@@ -163,35 +314,77 @@ message MarketplaceData {
   string currency = 4;                    // "gold", "silver", "usd", etc.
   optional string condition = 5;          // "new", "used", etc.
   optional string buyer_id = 6;           // Supabase user UUID of buyer (set on sale)
+  repeated string image_attachment_ids = 7; // Listing images (Attachment entities)
+  optional string shipping_region = 8;    // ISO country / region string
+  bool offers_accepted = 9;               // Seller accepts price negotiation
+  bool trade_accepted = 10;               // Seller accepts item-for-item trade
+  optional string payment_ref = 11;       // Stripe session / Steam offer / platform-specific ID
+  optional string expires_at = 12;        // Listing expiration (null = open-ended)
 }
 
 // Metadata for AUCTION threads.
+// current_bid and current_bidder_id are denormalized from AuctionBid history.
 message AuctionData {
   string item_name = 1;
   optional string item_description = 2;
   int64 start_price = 3;                  // Starting bid
-  int64 current_bid = 4;                  // Highest bid so far
-  optional string current_bidder_id = 5;  // Supabase user UUID
+  int64 current_bid = 4;                  // Highest bid so far (denormalized)
+  optional string current_bidder_id = 5;  // Supabase user UUID (denormalized)
   string currency = 6;
   string end_time = 7;                    // ISO 8601 deadline
-  int32 bid_count = 8;
+  int32 bid_count = 8;                    // Denormalized count
+  int64 min_increment = 9;                // Minimum raise above current_bid
+  optional int64 reserve_price = 10;      // Hidden reserve; not met = no sale
+  bool anti_snipe_enabled = 11;           // Extend end_time on late-minute bids
+  int32 anti_snipe_extend_seconds = 12;   // How much to extend by
+  repeated string image_attachment_ids = 13;
+}
+
+// One bid on an AUCTION thread. Append-only — the full bid history lives
+// here; AuctionData.current_bid is the denormalized head.
+message ForumAuctionBid {
+  string id = 1;                          // UUID / ULID
+  string thread_id = 2;                   // Auction thread UUID
+  string bidder_id = 3;                   // Supabase user UUID
+  int64 amount = 4;                       // Bid amount in smallest currency unit
+  string currency = 5;
+  string created_at = 6;
+  bool retracted = 7;                     // Moderator / self-retracted
 }
 
 // Metadata for POLL threads.
+// If `anonymous = false`, a separate ForumPollVote entity records voter_id.
+// If `anonymous = true`, only the parallel `votes[]` array is kept.
 message PollData {
   repeated string options = 1;            // Poll option labels
-  repeated int32 votes = 2;              // Vote count per option (parallel array)
-  bool multiple_choice = 3;              // Allow multiple selections
+  repeated int32 votes = 2;               // Vote count per option (parallel array)
+  bool multiple_choice = 3;               // Allow multiple selections
   optional string end_time = 4;           // Optional deadline
+  bool anonymous = 5;                     // If true, voter identity is not stored
+  int32 max_choices = 6;                  // Cap on multi-select (0 = unlimited)
+}
+
+// One vote on a POLL thread. Only persisted when PollData.anonymous = false.
+message ForumPollVote {
+  string id = 1;                          // UUID / ULID
+  string thread_id = 2;
+  string voter_id = 3;                    // Supabase user UUID
+  repeated int32 option_indices = 4;      // Which options the user picked
+  string created_at = 5;
 }
 
 // Metadata for LFG (Looking for Group) threads.
 message LfgData {
   string game = 1;                        // Game name or slug
-  int32 slots_total = 2;                 // Total party size
-  int32 slots_filled = 3;                // Current members
+  int32 slots_total = 2;                  // Total party size
+  int32 slots_filled = 3;                 // Current members
   optional string requirements = 4;       // Level, gear, etc.
   optional string scheduled_time = 5;     // ISO 8601
+  repeated string platforms = 6;          // "pc", "ps5", "xbox", "switch", "mobile"
+  bool voice_required = 7;                // Voice chat expected
+  optional string leader_id = 8;          // Current party leader (null = author)
+  LfgStatus lfg_status = 9;
+  repeated string member_user_ids = 10;   // Confirmed party members
 }
 
 // Metadata for ASSET threads (tools, templates, scripts, asset packs).
@@ -205,6 +398,16 @@ message AssetData {
   optional string version = 6;            // Semver or freeform version string
   optional string engine = 7;             // Target engine/platform (UE5, Unity, Godot, etc.)
   repeated string file_types = 8;         // File extensions (.fbx, .png, .bp, etc.)
+  optional int64 file_size_bytes = 9;     // Total payload size
+  int32 download_count = 10;              // Denormalized
+  optional string repo_url = 11;          // Git repo if separate from source_url
+}
+
+// Metadata for STATUS threads (twitter-style short posts).
+// Body only (no title required). UI renders as a status card, not a thread
+// preview. Can still be commented on and quoted.
+message StatusData {
+  optional string content_warning = 1;    // Short label shown over blurred post
 }
 
 // ---------------------------------------------------------------------------
@@ -218,7 +421,7 @@ message AssetData {
 // DB stores the active branch as JSONB in a `metadata` column.
 message ForumThread {
   string id = 1;                          // UUID (ULID recommended)
-  string title = 2;                       // Thread title (1-300 chars)
+  string title = 2;                       // Thread title (1-300 chars); empty allowed for STATUS
   string body = 3;                        // Markdown body
   string author_id = 4;                   // Supabase user UUID
   string space_id = 5;                    // Primary space UUID (source of truth)
@@ -231,7 +434,7 @@ message ForumThread {
   // Type-specific structured data. Every thread_type maps to exactly one branch.
   // Validation: edge layer checks thread_type ↔ oneof branch match at write time.
   oneof type_data {
-    DiscussionData discussion_data = 9;       // DISCUSSION, GUIDE, SHOWCASE, BUG_REPORT
+    DiscussionData discussion_data = 9;       // DISCUSSION, GUIDE, SHOWCASE, BUG_REPORT, MEGATHREAD
     QuestionData question_data = 10;          // QUESTION
     AnnouncementData announcement_data = 11;  // ANNOUNCEMENT
     MarketplaceData marketplace_data = 12;    // MARKETPLACE
@@ -239,16 +442,42 @@ message ForumThread {
     PollData poll_data = 14;                  // POLL
     LfgData lfg_data = 15;                    // LFG
     AssetData asset_data = 24;                // ASSET
+    StatusData status_data = 25;              // STATUS
   }
 
-  int32 comment_count = 16;              // Denormalized count
-  int32 view_count = 17;                 // Denormalized count
-  optional string slug = 18;             // URL-safe thread identifier
-  bool pinned = 19;                      // Pinned to top of space
+  int32 comment_count = 16;               // Denormalized count
+  int64 view_count = 17;                  // Denormalized count (int64 for virality)
+  optional string slug = 18;              // URL-safe thread identifier
+  bool pinned = 19;                       // Pinned to top of space
   optional string accepted_comment_id = 20; // For QUESTION type: accepted answer
   string created_at = 21;
   string updated_at = 22;
   optional string edited_at = 23;         // Set on edit, null if never edited
+
+  // Feed / sort signals.
+  int64 score = 26;                       // Net vote score (upvotes - downvotes)
+  int64 upvote_count = 27;
+  int64 downvote_count = 28;
+  string last_activity_at = 29;           // Updated on comment create / vote / edit (bump sort)
+
+  // Moderation / rating.
+  bool nsfw = 30;
+  bool locked = 31;                       // Derived from status but denormalized for fast filtering
+  optional string locale = 32;            // BCP-47 (e.g. "en", "en-US", "ja")
+
+  // Cross-posting / quoting.
+  optional string cross_posted_from_thread_id = 33;  // Source thread (reddit crosspost)
+  optional string quoted_thread_id = 34;             // Quote-share source (twitter-style)
+
+  // Draft / scheduling.
+  optional string scheduled_at = 35;      // Future publish time (status = SCHEDULED)
+
+  // Edit history.
+  int32 revision_count = 36;              // Number of edits applied
+
+  // Attachments are stored in the Attachment entity with parent_id = this thread.
+  // Denormalized count for fast rendering:
+  int32 attachment_count = 37;
 }
 
 // A reply within a thread. Threaded via parent_comment_id.
@@ -263,6 +492,94 @@ message ForumComment {
   bool is_accepted = 8;                   // For QUESTION threads: accepted answer
   string created_at = 9;
   optional string edited_at = 10;
+
+  // Feed / sort signals.
+  int64 score = 11;
+  int64 upvote_count = 12;
+  int64 downvote_count = 13;
+
+  // Optional classic-forum quote reply: references another comment in the
+  // same thread to render "in response to" context above the body.
+  optional string quoted_comment_id = 14;
+
+  // Edit history counter.
+  int32 revision_count = 15;
+
+  // Attachments (images, files) attached to this comment.
+  int32 attachment_count = 16;
+}
+
+// ---------------------------------------------------------------------------
+// Forum-side user state
+// ---------------------------------------------------------------------------
+
+// Forum-specific denormalized state. Identity (username, display_name,
+// avatar, linked providers, privacy) lives in `kbve.profile.UserProfile` —
+// do NOT duplicate those fields here. This message is the forum-side stats
+// table keyed by the same Supabase user UUID.
+message ForumUserProfile {
+  string user_id = 1;                     // Supabase user UUID (matches kbve.profile.UserProfile.user_id)
+  int64 karma = 2;                        // Net karma (sum of thread + comment scores received)
+  int64 post_count = 3;                   // Threads authored (not including drafts)
+  int64 comment_count = 4;                // Comments authored
+  int64 upvotes_given = 5;
+  int64 downvotes_given = 6;
+  int64 upvotes_received = 7;
+  int64 downvotes_received = 8;
+
+  optional string signature = 9;          // Markdown classic-forum signature (limited length)
+  optional int32 flair_id = 10;           // Selected flair (from space's flair_config_json)
+  optional string flair_text = 11;        // Override text displayed alongside username
+  optional int32 rank_id = 12;            // Forum rank (bronze / silver / etc.)
+  repeated int32 badge_ids = 13;          // Awarded badges
+
+  string joined_forum_at = 14;            // First time user opted into forum (can differ from auth.users.created_at)
+  optional string last_active_at = 15;    // Updated on any forum action
+  int32 trust_level = 16;                 // Discourse-style posting-privilege tier (0-5)
+
+  bool mute_all_notifications = 17;       // Global notification kill-switch
+  bool show_nsfw = 18;                    // Opt-in to NSFW content rendering
+  bool is_banned = 19;                    // Global forum ban flag
+  optional string ban_reason = 20;
+  optional string ban_expires_at = 21;    // null = permanent
+
+  // Per-space mod privileges are stored in ForumSpace.moderator_ids — no need
+  // to duplicate here.
+}
+
+// ---------------------------------------------------------------------------
+// Votes + reactions
+// ---------------------------------------------------------------------------
+
+// One vote on a thread. Unique (thread_id, voter_id). Updating changes
+// `direction`; clearing writes VOTE_CLEARED (auditable retraction).
+message ThreadVote {
+  string thread_id = 1;
+  string voter_id = 2;                    // Supabase user UUID
+  VoteDirection direction = 3;
+  string created_at = 4;
+  string updated_at = 5;
+}
+
+// One vote on a comment. Same shape as ThreadVote.
+message CommentVote {
+  string comment_id = 1;
+  string voter_id = 2;
+  VoteDirection direction = 3;
+  string created_at = 4;
+  string updated_at = 5;
+}
+
+// One reaction on a thread or comment. Use `kind = REACTION_KIND_CUSTOM`
+// with `custom_kind` for space-specific reaction slugs.
+message Reaction {
+  string id = 1;                          // UUID / ULID
+  AttachmentParentKind parent_kind = 2;   // THREAD or COMMENT (reuse attachment enum)
+  string parent_id = 3;                   // Thread or comment UUID
+  string user_id = 4;
+  ReactionKind kind = 5;
+  optional string custom_kind = 6;        // Present only when kind = CUSTOM
+  string created_at = 7;
 }
 
 // ---------------------------------------------------------------------------
@@ -285,6 +602,111 @@ message ThreadTag {
   int32 tag_id = 2;                       // Tag integer ID (may be aliased)
 }
 
+// Generic follow edge. Users follow users, spaces, or tags (feed curation).
+message UserFollow {
+  string follower_id = 1;                 // Supabase user UUID
+  FollowTargetKind target_kind = 2;
+  string target_id = 3;                   // UUID (user/space) or stringified int (tag)
+  string created_at = 4;
+  bool notifications_enabled = 5;         // Surface activity as notifications
+}
+
+// User-saved thread (twitter bookmarks / reddit saved posts).
+message Bookmark {
+  string id = 1;
+  string user_id = 2;
+  string thread_id = 3;
+  optional string folder = 4;             // User-defined bucket name
+  optional string note = 5;               // Private note
+  string created_at = 6;
+}
+
+// Subscribe to a thread to receive NOTIFICATION_KIND_THREAD_UPDATE events.
+// Author implicit subscription is on by default; others opt in.
+message ThreadSubscription {
+  string thread_id = 1;
+  string user_id = 2;
+  bool email_enabled = 3;                 // Mirror notification to email
+  bool push_enabled = 4;                  // Mirror notification to push
+  string created_at = 5;
+}
+
+// ---------------------------------------------------------------------------
+// Moderation
+// ---------------------------------------------------------------------------
+
+// A user report against a thread or comment. Reporter is always a signed-in
+// user. Resolution lives in ModerationAction.
+message Report {
+  string id = 1;                          // UUID / ULID
+  string reporter_id = 2;                 // Supabase user UUID
+  AttachmentParentKind target_kind = 3;   // THREAD or COMMENT (reuse enum)
+  string target_id = 4;
+  ReportReason reason = 5;
+  optional string reason_detail = 6;      // Free-form text
+  optional string resolved_by = 7;        // Moderator user UUID
+  optional string resolved_at = 8;
+  optional string resolution_note = 9;    // Moderator note
+  string created_at = 10;
+}
+
+// Append-only audit log of moderator actions.
+message ModerationAction {
+  string id = 1;                          // UUID / ULID
+  string moderator_id = 2;                // Supabase user UUID
+  ModerationActionKind kind = 3;
+  AttachmentParentKind target_kind = 4;
+  string target_id = 5;
+  optional string reason = 6;
+  optional string metadata_json = 7;      // Action-specific extra data (e.g. new space_id for MOVE)
+  string created_at = 8;
+}
+
+// ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+// A single notification for a user. Delivered via push/email/in-app.
+message Notification {
+  string id = 1;                          // UUID / ULID
+  string recipient_id = 2;                // Supabase user UUID
+  NotificationKind kind = 3;
+  optional string actor_id = 4;           // Who caused it (null for system)
+  optional AttachmentParentKind target_kind = 5;  // THREAD / COMMENT / USER / SPACE
+  optional string target_id = 6;
+  optional string body = 7;               // Short display snippet
+  optional string read_at = 8;            // null = unread
+  string created_at = 9;
+}
+
+// ---------------------------------------------------------------------------
+// Attachments / media
+// ---------------------------------------------------------------------------
+
+// Generic attachment on any parent entity (thread/comment/space/user).
+// The `kind` field hints display behavior; `mime_type` is the source of truth
+// for rendering. For LINK kind, `url` is required; for IMAGE/VIDEO/AUDIO/FILE
+// the asset lives in Supabase storage and `url` is the public URL.
+message Attachment {
+  string id = 1;                          // UUID / ULID
+  AttachmentParentKind parent_kind = 2;
+  string parent_id = 3;
+  AttachmentKind kind = 4;
+  string url = 5;
+  optional string mime_type = 6;
+  optional int64 size_bytes = 7;
+  optional int32 width = 8;               // For IMAGE/VIDEO
+  optional int32 height = 9;
+  optional int32 duration_seconds = 10;   // For VIDEO/AUDIO
+  optional string alt_text = 11;          // Accessibility description
+  optional string title = 12;             // Display title (link previews)
+  optional string preview_image_url = 13; // OG image / video thumbnail
+  optional string language = 14;          // For CODE kind (e.g. "rust", "typescript")
+  string uploader_id = 15;                // Supabase user UUID
+  string created_at = 16;
+  int32 sort_order = 17;                  // Display order within parent
+}
+
 // ---------------------------------------------------------------------------
 // Aggregates (for API responses)
 // ---------------------------------------------------------------------------
@@ -297,6 +719,13 @@ message FeedItem {
   repeated ForumTag tags = 3;             // Resolved via ThreadTag join
   string author_name = 4;                 // Denormalized for display
   optional string author_avatar_url = 5;
+  optional int32 author_flair_id = 6;     // Author's flair within this space
+  optional int32 author_rank_id = 7;
+  optional VoteDirection viewer_vote = 8; // Current viewer's vote (null if none)
+  bool viewer_bookmarked = 9;             // Current viewer has bookmarked
+  bool viewer_subscribed = 10;            // Current viewer is subscribed to thread updates
+  repeated Attachment attachments = 11;   // First-N attachments for preview
+  int32 reaction_total = 12;              // Sum of all reactions (all kinds)
 }
 
 // Space page — space with recent threads and metadata.
@@ -306,5 +735,40 @@ message SpacePage {
   repeated ForumTag popular_tags = 3;
   repeated ForumSpace child_spaces = 4;
   optional ForumSpace parent_space = 5;
+  bool viewer_follows = 6;                // Current viewer follows this space
+  bool viewer_is_moderator = 7;
 }
 
+// Thread page — full thread with author profile, attachments, and first
+// page of comments. Votes are resolved for the current viewer.
+message ThreadPage {
+  ForumThread thread = 1;
+  ForumSpace space = 2;
+  repeated ForumTag tags = 3;
+  ForumUserProfile author_forum_profile = 4;
+  repeated Attachment attachments = 5;
+  repeated ForumComment comments = 6;     // First page
+  int32 comment_page_size = 7;
+  optional string next_comment_cursor = 8;
+  optional VoteDirection viewer_vote = 9;
+  bool viewer_bookmarked = 10;
+  bool viewer_subscribed = 11;
+  // Per-thread-type extras surfaced for convenience:
+  repeated ForumAuctionBid recent_bids = 12;  // Populated only for AUCTION
+}
+
+// User profile page — combines identity (from kbve.profile.UserProfile) and
+// forum state (from ForumUserProfile). Identity fields are denormalized here
+// for display; authoritative source is the profile proto.
+message UserPage {
+  string user_id = 1;
+  // Denormalized identity fields (mirror kbve.profile.UserProfile):
+  string username = 2;
+  optional string display_name = 3;
+  optional string bio = 4;
+  optional string avatar_url = 5;
+  ForumUserProfile forum_profile = 6;
+  repeated FeedItem recent_threads = 7;
+  repeated ForumComment recent_comments = 8;
+  bool viewer_follows = 9;
+}
