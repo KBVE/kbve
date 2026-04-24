@@ -1,14 +1,30 @@
 ---
 title: RareIcon
 description: |
-    RareIcon 2D Action RPG / RogueLite
+    RareIcon — 2D sci-fi Action-RPG bullet-hell roguelite.
 sidebar:
     label: RareIcon
     order: 5
 unsplash: 1522071820081-009f0129c71c
 img: https://images.unsplash.com/photo-1522071820081-009f0129c71c?fit=crop&w=1400&h=700&q=75
 tags:
-    - gaming
+    - game
+    - api
+key: rareicon
+pipeline: docker
+app_name: axum-rareicon
+version: "0.1.0"
+source_path: apps/rareicon/axum-rareicon
+version_toml: apps/rareicon/axum-rareicon/version.toml
+version_target: apps/rareicon/axum-rareicon/Cargo.toml
+runner: ubuntu-latest
+image: kbve/rareicon
+deployment_yaml: apps/kube/rareicon/manifest/deployment.yaml
+e2e_name: axum-rareicon-e2e
+has_test: true
+author: h0lybyte
+license: KBVE
+status: beta
 ---
 
 

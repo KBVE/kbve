@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.114",
+			"version": "1.0.117",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -82,7 +82,7 @@
 		{
 			"key": "discordsh_bot",
 			"app_name": "discordsh-bot",
-			"version": "0.1.9",
+			"version": "0.1.10",
 			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
 			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
@@ -234,6 +234,20 @@
 			"image": "kbve/memes",
 			"e2e_name": "memes",
 			"deployment_yaml": "apps/kube/memes/manifest/memes-deployment.yaml",
+			"has_test": true
+		},
+		{
+			"key": "rareicon",
+			"app_name": "axum-rareicon",
+			"version": "0.1.0",
+			"version_toml": "apps/rareicon/axum-rareicon/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rareicon.mdx",
+			"version_target": "apps/rareicon/axum-rareicon/Cargo.toml",
+			"source_path": "apps/rareicon/axum-rareicon",
+			"runner": "ubuntu-latest",
+			"image": "kbve/rareicon",
+			"e2e_name": "axum-rareicon-e2e",
+			"deployment_yaml": "apps/kube/rareicon/manifest/deployment.yaml",
 			"has_test": true
 		},
 		{
@@ -513,12 +527,12 @@
 		}
 	],
 	"summary": {
-		"docker": 19,
+		"docker": 20,
 		"npm": 4,
 		"crates": 18,
 		"python": 2,
 		"unreal": 6,
 		"ue5_server": 2,
-		"total": 51
+		"total": 52
 	}
 }

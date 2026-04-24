@@ -12,6 +12,24 @@
 				"cwd": "{workspaceRoot}"
 			}
 		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo test -p axum-rareicon"],
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo clippy -p axum-rareicon --all-targets -- -D warnings"
+				],
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"container": {
 			"executor": "nx:run-commands",
 			"options": {
