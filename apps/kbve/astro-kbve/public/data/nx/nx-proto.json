@@ -1,14 +1,45 @@
 {
-  "generated_at": "2026-04-23T08:44:37.292Z",
+  "generated_at": "2026-04-24T08:49:00.187Z",
   "summary": {
-    "total_protos": 26,
-    "registered": 22,
+    "total_protos": 27,
+    "registered": 23,
     "orphaned": 3,
     "utility_only": 1,
-    "total_messages": 520,
-    "total_enums": 86
+    "total_messages": 542,
+    "total_enums": 93
   },
   "protos": [
+    {
+      "proto": "packages/data/proto/icon/icons.proto",
+      "package": "icon",
+      "messages": [
+        "IconViewBox",
+        "IconRender",
+        "IconLicenseInfo",
+        "IconSearch",
+        "IconOfferingInfo",
+        "IconExtension",
+        "Icon",
+        "IconTerm",
+        "IconCollection",
+        "IconRegistry"
+      ],
+      "enums": [
+        "IconStyle",
+        "IconFormat",
+        "IconLicense",
+        "IconOffering"
+      ],
+      "message_count": 10,
+      "enum_count": 4,
+      "codegen": {
+        "registered": true,
+        "name": "icons",
+        "zod_config": "packages/data/codegen/icons-zod-config.json",
+        "zod_output": "packages/data/codegen/generated/icons-schema.ts",
+        "binpb": "packages/data/codegen/descriptors/icons.binpb"
+      }
+    },
     {
       "proto": "packages/data/proto/item/itemdb.proto",
       "package": "item",
@@ -691,6 +722,18 @@
         "TerrainConfig",
         "TerrainBandDef",
         "WaterConfig",
+        "IngredientSpec",
+        "ServiceCapability",
+        "TenderSpec",
+        "TerritoryEmitterSpec",
+        "ProductionRecipeSpec",
+        "SurplusExportSpec",
+        "PassiveProductionSpec",
+        "RangedAttackSpec",
+        "PopulationSpawnSpec",
+        "RaidSpec",
+        "UpgradeSpec",
+        "UpgradeChainSpec",
         "WorldObjectDef",
         "BuildCost",
         "WorldObjectPlacement",
@@ -715,6 +758,9 @@
         "ResourceType",
         "ContainerType",
         "CraftingStationType",
+        "FootprintShape",
+        "CostSource",
+        "ServiceKind",
         "PoiType",
         "TerrainBand",
         "SpawnCategory",
@@ -723,8 +769,8 @@
         "StreamingHint",
         "ReplicationHint"
       ],
-      "message_count": 28,
-      "enum_count": 16,
+      "message_count": 40,
+      "enum_count": 19,
       "codegen": {
         "registered": true,
         "name": "mapdb",
@@ -1051,7 +1097,7 @@
     "packages/data/proto/kbve/kbve.proto",
     "packages/data/proto/kbve/kbveproto.proto"
   ],
-  "checked_at": "2026-04-23T08:44:37Z",
+  "checked_at": "2026-04-24T08:49:00Z",
   "drift_detected": false,
   "drift_files": []
 }

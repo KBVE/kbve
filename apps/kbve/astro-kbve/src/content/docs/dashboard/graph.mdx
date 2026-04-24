@@ -13,21 +13,21 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## NX Dependency Graph
 
 :::note[Auto-generated]
-Last generated: **2026-04-23T08:47:46Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-04-24T08:51:57Z** — updated daily by `ci-dashboard`.
 :::
 
 <CardGrid>
-  <Card title="36 Apps" icon="rocket">
-    @kbve/source, angelscript, astro-chuckrpg, astro-cryptothrone, astro-discordsh, astro-herbmail + 30 more
+  <Card title="38 Apps" icon="rocket">
+    @kbve/source, angelscript, astro-chuckrpg, astro-cryptothrone, astro-discordsh, astro-herbmail + 32 more
   </Card>
-  <Card title="19 E2es" icon="approve-check-circle">
-    aria2-proxy-e2e, astro-cryptothrone-e2e, astro-e2e, astro-kbve-e2e, axum-chuckrpg-e2e, axum-kbve-e2e + 13 more
+  <Card title="21 E2es" icon="approve-check-circle">
+    aria2-proxy-e2e, astro-cryptothrone-e2e, astro-e2e, astro-kbve-e2e, astro-rareicon-e2e, axum-chuckrpg-e2e + 15 more
   </Card>
   <Card title="28 Libs" icon="puzzle">
     aria2-proxy, astro, bevy_battle, bevy_cam, bevy_inventory, bevy_items + 22 more
   </Card>
-  <Card title="42 Dependencies" icon="random">
-    Across 83 projects in the monorepo.
+  <Card title="46 Dependencies" icon="random">
+    Across 87 projects in the monorepo.
   </Card>
 </CardGrid>
 
@@ -35,10 +35,10 @@ Last generated: **2026-04-23T08:47:46Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="droid" icon="puzzle">
-    **12** projects depend on this lib. Located at `packages/npm/droid`.
+    **13** projects depend on this lib. Located at `packages/npm/droid`.
   </Card>
   <Card title="astro" icon="puzzle">
-    **9** projects depend on this lib. Located at `packages/npm/astro`.
+    **10** projects depend on this lib. Located at `packages/npm/astro`.
   </Card>
   <Card title="devops" icon="puzzle">
     **4** projects depend on this lib. Located at `packages/npm/devops`.
@@ -56,8 +56,8 @@ Last generated: **2026-04-23T08:47:46Z** — updated daily by `ci-dashboard`.
 ```mermaid
 pie showData
     title Projects by Type
-    "Apps" : 36
-    "E2es" : 19
+    "Apps" : 38
+    "E2es" : 21
     "Libs" : 28
 ```
 
@@ -66,8 +66,8 @@ pie showData
 ```mermaid
 pie showData
     title Dependents per Hub
-    "droid" : 12
-    "astro" : 9
+    "droid" : 13
+    "astro" : 10
     "devops" : 4
     "laser" : 4
     "axum-kbve" : 2
@@ -102,8 +102,12 @@ graph LR
     astro_kbve_e2e["astro-kbve-e2e"] --> axum_kbve["axum-kbve"]
     astro_memes["astro-memes"] --> astro["astro"]
     astro_memes["astro-memes"] --> droid["droid"]
+    astro_rareicon["astro-rareicon"] --> astro["astro"]
+    astro_rareicon["astro-rareicon"] --> droid["droid"]
+    astro_rareicon_e2e["astro-rareicon-e2e"] --> astro_rareicon["astro-rareicon"]
     axum_chuckrpg_e2e["axum-chuckrpg-e2e"] --> axum_chuckrpg["axum-chuckrpg"]
     axum_kbve_e2e["axum-kbve-e2e"] --> axum_kbve["axum-kbve"]
+    axum_rareicon_e2e["axum-rareicon-e2e"] --> axum_rareicon["axum-rareicon"]
     devops_e2e["devops-e2e"] --> devops["devops"]
     discordsh_bot_e2e["discordsh-bot-e2e"] --> discordsh_bot["discordsh-bot"]
     discordsh_e2e["discordsh-e2e"] --> astro_discordsh["astro-discordsh"]
@@ -123,9 +127,9 @@ graph LR
     memes_e2e["memes-e2e"] --> axum_memes["axum-memes"]
     ows["ows"] --> rows["rows"]
     rows_e2e["rows-e2e"] --> rows["rows"]
-    class _kbve_source,angelscript,astro_chuckrpg,astro_cryptothrone,astro_discordsh,astro_herbmail,astro_irc,astro_kbve,astro_memes,axum_chuckrpg,axum_cryptothrone,axum_discordsh,axum_herbmail,axum_kbve,axum_memes,cryptothrone,desktop_kbve,discordsh,discordsh_bot,edge,firecracker_ctl,herbmail,iot_edge_worker,irc,irc_gateway,isometric,kbve_kubectl,kilobase,mc,mc_lobby,mc_velocity,memes,notification_bot,ows,pydesk,rows app
+    class _kbve_source,angelscript,astro_chuckrpg,astro_cryptothrone,astro_discordsh,astro_herbmail,astro_irc,astro_kbve,astro_memes,astro_rareicon,axum_chuckrpg,axum_cryptothrone,axum_discordsh,axum_herbmail,axum_kbve,axum_memes,axum_rareicon,cryptothrone,desktop_kbve,discordsh,discordsh_bot,edge,firecracker_ctl,herbmail,iot_edge_worker,irc,irc_gateway,isometric,kbve_kubectl,kilobase,mc,mc_lobby,mc_velocity,memes,notification_bot,ows,pydesk,rows app
     class aria2_proxy,astro,bevy_battle,bevy_cam,bevy_inventory,bevy_items,bevy_kbve_net,bevy_mapdb,bevy_npc,bevy_player,bevy_quests,bevy_skills,bevy_statemachine,bevy_tasker,chisel_ubuntu_axum,data_proto,devops,droid,erust,holy,jedi,kbve,khashvault,laser,python_fudster,python_kbve,q,uniti lib
-    class aria2_proxy_e2e,astro_cryptothrone_e2e,astro_e2e,astro_kbve_e2e,axum_chuckrpg_e2e,axum_kbve_e2e,devops_e2e,discordsh_bot_e2e,discordsh_e2e,droid_e2e,edge_e2e,firecracker_ctl_e2e,herbmail_e2e,irc_e2e,khashvault_e2e,kubectl_e2e,laser_e2e,memes_e2e,rows_e2e e2e
+    class aria2_proxy_e2e,astro_cryptothrone_e2e,astro_e2e,astro_kbve_e2e,astro_rareicon_e2e,axum_chuckrpg_e2e,axum_kbve_e2e,axum_rareicon_e2e,devops_e2e,discordsh_bot_e2e,discordsh_e2e,droid_e2e,edge_e2e,firecracker_ctl_e2e,herbmail_e2e,irc_e2e,khashvault_e2e,kubectl_e2e,laser_e2e,memes_e2e,rows_e2e e2e
 ```
 
 :::tip[Legend]
@@ -141,7 +145,7 @@ graph LR
 | **angelscript** | app | `apps/angelscript` | 0 | 0 |
 | **aria2-proxy** | lib | `apps/vm/aria2-proxy` | 0 | 1 |
 | **aria2-proxy-e2e** | e2e | `apps/vm/aria2-proxy-e2e` | 1 | 0 |
-| **astro** | lib | `packages/npm/astro` | 2 | 9 |
+| **astro** | lib | `packages/npm/astro` | 2 | 10 |
 | **astro-chuckrpg** | app | `apps/chuckrpg/astro-chuckrpg` | 2 | 0 |
 | **astro-cryptothrone** | app | `apps/cryptothrone/astro-cryptothrone` | 1 | 1 |
 | **astro-cryptothrone-e2e** | e2e | `apps/cryptothrone/astro-cryptothrone-e2e` | 1 | 0 |
@@ -152,6 +156,8 @@ graph LR
 | **astro-kbve** | app | `apps/kbve/astro-kbve` | 3 | 0 |
 | **astro-kbve-e2e** | e2e | `apps/kbve/astro-kbve-e2e` | 1 | 0 |
 | **astro-memes** | app | `apps/memes/astro-memes` | 2 | 1 |
+| **astro-rareicon** | app | `apps/rareicon/astro-rareicon` | 2 | 1 |
+| **astro-rareicon-e2e** | e2e | `apps/rareicon/astro-rareicon-e2e` | 1 | 0 |
 | **axum-chuckrpg** | app | `apps/chuckrpg/axum-chuckrpg` | 0 | 1 |
 | **axum-chuckrpg-e2e** | e2e | `apps/chuckrpg/axum-chuckrpg-e2e` | 1 | 0 |
 | **axum-cryptothrone** | app | `apps/cryptothrone/axum-cryptothrone` | 0 | 0 |
@@ -160,6 +166,8 @@ graph LR
 | **axum-kbve** | app | `apps/kbve/axum-kbve` | 0 | 2 |
 | **axum-kbve-e2e** | e2e | `apps/kbve/axum-kbve-e2e` | 1 | 0 |
 | **axum-memes** | app | `apps/memes/axum-memes` | 0 | 1 |
+| **axum-rareicon** | app | `apps/rareicon/axum-rareicon` | 0 | 1 |
+| **axum-rareicon-e2e** | e2e | `apps/rareicon/axum-rareicon-e2e` | 1 | 0 |
 | **bevy_battle** | lib | `packages/rust/bevy/bevy_battle` | 0 | 0 |
 | **bevy_cam** | lib | `packages/rust/bevy/bevy_cam` | 0 | 0 |
 | **bevy_inventory** | lib | `packages/rust/bevy/bevy_inventory` | 0 | 0 |
@@ -182,7 +190,7 @@ graph LR
 | **discordsh-bot** | app | `apps/discordsh/discordsh-bot` | 0 | 1 |
 | **discordsh-bot-e2e** | e2e | `apps/discordsh/discordsh-bot-e2e` | 1 | 0 |
 | **discordsh-e2e** | e2e | `apps/discordsh/discordsh-e2e` | 2 | 0 |
-| **droid** | lib | `packages/npm/droid` | 0 | 12 |
+| **droid** | lib | `packages/npm/droid` | 0 | 13 |
 | **droid-e2e** | e2e | `packages/npm/droid-e2e` | 2 | 0 |
 | **edge** | app | `apps/kbve/edge` | 0 | 1 |
 | **edge-e2e** | e2e | `apps/kbve/edge-e2e` | 1 | 0 |
@@ -307,6 +315,16 @@ graph LR
 </details>
 
 <details>
+<summary><strong>astro-rareicon</strong> (2 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| astro | static |
+| droid | static |
+
+</details>
+
+<details>
 <summary><strong>ows</strong> (1 dep)</summary>
 
 | Target | Type |
@@ -356,6 +374,15 @@ graph LR
 </details>
 
 <details>
+<summary><strong>astro-rareicon-e2e</strong> (1 dep)</summary>
+
+| Target | Type |
+|--------|------|
+| astro-rareicon | implicit |
+
+</details>
+
+<details>
 <summary><strong>axum-chuckrpg-e2e</strong> (1 dep)</summary>
 
 | Target | Type |
@@ -370,6 +397,15 @@ graph LR
 | Target | Type |
 |--------|------|
 | axum-kbve | implicit |
+
+</details>
+
+<details>
+<summary><strong>axum-rareicon-e2e</strong> (1 dep)</summary>
+
+| Target | Type |
+|--------|------|
+| axum-rareicon | implicit |
 
 </details>
 
