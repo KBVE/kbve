@@ -10,6 +10,7 @@ export const ringNavigate = async (
 	navLock = true;
 	try {
 		document.documentElement.dataset.navDir = dir;
+		// @ts-expect-error — astro virtual module resolved at runtime by the consumer app
 		const transitions = await import('astro:transitions/client');
 		await transitions.navigate(href, {
 			history: 'auto',

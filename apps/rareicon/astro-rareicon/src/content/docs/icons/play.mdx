@@ -1,0 +1,47 @@
+---
+id: 01JPLAY000000000000000AA
+ref: play
+name: Play
+title: Play Icon
+description: Media play glyph — start, resume, launch.
+primary_category: media
+categories: [ui, media, action]
+tags: [play, start, resume, media]
+related_term_refs: [pause]
+search:
+  keywords: [play, start, resume, run, launch, go, triangle]
+  aliases: [start, resume]
+  primary_category: media
+  search_weight: 1.3
+default_license:
+  license: cc0
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render: { uses_current_color: true, monochrome: true, stroke_width: 2, stroke_cap: round, stroke_join: round }
+    recommended_sizes: [16, 20, 24, 32]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+  - ref: filled
+    label: Filled
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render: { uses_current_color: true, monochrome: true }
+    recommended_sizes: [16, 20, 24, 32]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+pagefindFilters: [ui, media]
+order: 20
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Play — media start glyph. Outline and filled variants.
+
+<IconTermPanel termRef={frontmatter.ref} name={frontmatter.name} description={frontmatter.description} primary_category={frontmatter.primary_category} categories={frontmatter.categories} tags={frontmatter.tags} icons={frontmatter.icons} />
