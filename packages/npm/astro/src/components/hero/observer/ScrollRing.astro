@@ -70,7 +70,7 @@ const {
 </div>
 
 <script>
-	import { ringNavigate, isRingNavLocked, ringPrefetch } from './_ringNav';
+	import { ringNavigate, isRingNavLocked } from './_ringNav';
 
 	const init = () => {
 		document
@@ -83,18 +83,19 @@ const {
 				const next = root.dataset.ringNext || '';
 				const threshold = Number(root.dataset.ringThreshold) || 220;
 
-				// Pre-warm chain neighbors when browser idle.
-				const prewarm = () => {
-					ringPrefetch(prev);
-					ringPrefetch(next);
-				};
-				if ('requestIdleCallback' in window) {
-					(window as any).requestIdleCallback(prewarm, {
-						timeout: 2000,
+				// If user arrived via "back" nav, restore them to the bottom of
+				// this page so the scroll feels continuous. Then clear the
+				// marker so it doesn't fire again on a hard refresh.
+				const navDir = document.documentElement.dataset.navDir;
+				if (navDir === 'back') {
+					requestAnimationFrame(() => {
+						window.scrollTo({
+							top: document.documentElement.scrollHeight,
+							behavior: 'instant' as ScrollBehavior,
+						});
 					});
-				} else {
-					setTimeout(prewarm, 1500);
 				}
+				delete document.documentElement.dataset.navDir;
 
 				const fillNext = root.querySelector<HTMLElement>(
 					'[data-ring-fill="next"]',

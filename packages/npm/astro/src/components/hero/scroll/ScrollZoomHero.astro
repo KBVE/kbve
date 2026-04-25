@@ -58,6 +58,7 @@ const heroStyle = [
 <script>
 	import { gsap } from 'gsap';
 	import { ScrollTrigger } from 'gsap/ScrollTrigger';
+	import { onSwap } from '../../../utils/clientRouter';
 
 	gsap.registerPlugin(ScrollTrigger);
 
@@ -85,7 +86,7 @@ const heroStyle = [
 					return nav?.offsetHeight ?? 56;
 				};
 
-				gsap.timeline({
+				const tl = gsap.timeline({
 					scrollTrigger: {
 						trigger: root,
 						start: () => `top top+=${getNavHeight()}`,
@@ -95,23 +96,28 @@ const heroStyle = [
 						scrub: true,
 						invalidateOnRefresh: true,
 					},
-				})
-					.to(img, {
-						scale,
-						z: depth,
-						y: translateY,
+				});
+				tl.to(img, {
+					scale,
+					z: depth,
+					y: translateY,
+					transformOrigin: 'center center',
+					ease: 'power1.inOut',
+				}).to(
+					hero,
+					{
+						scale: bgScale,
 						transformOrigin: 'center center',
 						ease: 'power1.inOut',
-					})
-					.to(
-						hero,
-						{
-							scale: bgScale,
-							transformOrigin: 'center center',
-							ease: 'power1.inOut',
-						},
-						'<',
-					);
+					},
+					'<',
+				);
+
+				onSwap(() => {
+					tl.scrollTrigger?.kill();
+					tl.kill();
+					delete root.dataset.szhInit;
+				});
 			});
 	};
 

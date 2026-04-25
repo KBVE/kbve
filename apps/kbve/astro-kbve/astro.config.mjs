@@ -82,6 +82,7 @@ export default defineConfig({
 				Footer: './src/components/footer/AstroFooter.astro',
 				ThemeProvider: './src/components/theme/ThemeProvider.astro',
 				Head: './src/components/navigation/Head.astro',
+				Header: './src/components/navigation/Header.astro',
 			},
 			head: [
 				{
