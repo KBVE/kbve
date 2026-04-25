@@ -44,7 +44,7 @@ spec:
                       annotations:
                           # Bump this value to force a pod rollout when config/secrets change.
                           # ArgoCD detects the annotation change → new ReplicaSet → pod restart.
-                          kbve.com/config-revision: '2026-03-31-forgejo-role'
+                          kbve.com/config-revision: '2026-04-24-lfs-jwt-sealed'
 
                   gitea:
                       admin:
@@ -57,6 +57,13 @@ spec:
                               SSH_PORT: 2222
                               SSH_LISTEN_PORT: 2222
                               LFS_START_SERVER: true
+                              # LFS_JWT_SECRET is injected at runtime via the
+                              # additionalConfigFromEnvs block below — sealed
+                              # in apps/kube/forgejo/manifest/sealed-lfs-jwt.yaml.
+                              # Leaving blank here means Helm won't render a
+                              # value into the auto-generated Secret; the env
+                              # var override (FORGEJO__SERVER__LFS_JWT_SECRET)
+                              # is what Forgejo actually reads at startup.
                               LFS_JWT_SECRET: ''
                           database:
                               DB_TYPE: postgres
@@ -86,6 +93,11 @@ spec:
                               ENABLED: true
                               DEFAULT_INTERVAL: 10m
                       additionalConfigFromEnvs:
+                          - name: FORGEJO__SERVER__LFS_JWT_SECRET
+                            valueFrom:
+                                secretKeyRef:
+                                    name: forgejo-lfs-jwt
+                                    key: secret
                           - name: FORGEJO__DATABASE__PASSWD
                             valueFrom:
                                 secretKeyRef:
