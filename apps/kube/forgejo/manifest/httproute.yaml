@@ -9,6 +9,13 @@ spec:
           namespace: kbve
     hostnames:
         - forgejo.kbve.com
+        # git.kbve.com is a clean public alias — bypasses any CF zone-side
+        # config that's broken specifically for forgejo.kbve.com. Both
+        # hostnames hit the same Cilium gateway + the same forgejo-http
+        # backend; keep both during the cutover so existing tooling pinned
+        # at forgejo.kbve.com keeps working while new pushes can target
+        # git.kbve.com directly.
+        - git.kbve.com
     rules:
         # Forgejo REST API (token auth, CI, deploy keys)
         - matches:
