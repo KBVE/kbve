@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
     - httproute.yaml
+    - git-ingress.yaml
     - sealed-admin.yaml
     - sealed-lfs-jwt.yaml
     - rbac.yaml

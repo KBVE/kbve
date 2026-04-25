@@ -1,0 +1,39 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: git-kbve-ingress
+    namespace: forgejo
+    annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-http
+        # LFS blobs are large; disable nginx body cap and stretch
+        # upstream timeouts so multi-hundred-MB pushes don't get
+        # cut off mid-stream.
+        nginx.ingress.kubernetes.io/proxy-body-size: '0'
+        nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+        nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+        nginx.ingress.kubernetes.io/proxy-request-buffering: 'off'
+        nginx.ingress.kubernetes.io/proxy-http-version: '1.1'
+spec:
+    ingressClassName: nginx
+    rules:
+        # git.kbve.com is the canonical clone/push hostname. Routes
+        # through ingress-nginx on .74 (talos.kbve.com) because
+        # Cloudflare's path to the Cilium gateway VIP on .71 is
+        # unreliable (522 origin timeouts on forgejo.kbve.com),
+        # while .74 reaches the cluster cleanly via talos CNAME +
+        # CF proxy. Backend is the same forgejo-http svc that the
+        # Cilium HTTPRoute also targets.
+        - host: git.kbve.com
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: forgejo-http
+                            port:
+                                number: 3000
+    tls:
+        - hosts:
+              - git.kbve.com
+          secretName: git-kbve-tls
