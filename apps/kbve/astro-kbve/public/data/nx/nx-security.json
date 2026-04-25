@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-04-24T08:52:05Z",
+  "generated_at": "2026-04-25T08:30:06Z",
   "summary": {
     "critical": 1,
     "high": 32,
-    "medium": 57,
+    "medium": 59,
     "low": 5,
-    "info": 28
+    "info": 29
   },
   "ecosystems": {
     "npm": {
-      "total": 84,
+      "total": 85,
       "severities": {
         "critical": 1,
         "high": 32,
-        "medium": 46,
+        "medium": 47,
         "low": 5,
         "info": 0
       },
@@ -150,13 +150,6 @@
           "severity": "high",
           "package": "svgo",
           "url": "https://github.com/advisories/GHSA-xpqw-6gx7-v673"
-        },
-        {
-          "id": "1114168",
-          "title": "Immutable is vulnerable to Prototype Pollution",
-          "severity": "high",
-          "package": "immutable",
-          "url": "https://github.com/advisories/GHSA-wf6x-7x77-mvgw"
         },
         {
           "id": "1114200",
@@ -460,13 +453,6 @@
           "url": "https://github.com/advisories/GHSA-cj63-jhhr-wcxv"
         },
         {
-          "id": "1115997",
-          "title": "xmldom: XML injection via unsafe CDATA serialization allows attacker-controlled markup insertion",
-          "severity": "high",
-          "package": "@xmldom/xmldom",
-          "url": "https://github.com/advisories/GHSA-wh4c-j3r5-mjhp"
-        },
-        {
           "id": "1116102",
           "title": "defu: Prototype pollution via `__proto__` key in defaults argument",
           "severity": "high",
@@ -605,17 +591,38 @@
           "severity": "medium",
           "package": "uuid",
           "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq"
+        },
+        {
+          "id": "1117015",
+          "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
+          "severity": "medium",
+          "package": "postcss",
+          "url": "https://github.com/advisories/GHSA-qx2v-qp2m-jg93"
+        },
+        {
+          "id": "1117068",
+          "title": "Immutable is vulnerable to Prototype Pollution",
+          "severity": "high",
+          "package": "immutable",
+          "url": "https://github.com/advisories/GHSA-wf6x-7x77-mvgw"
+        },
+        {
+          "id": "1117097",
+          "title": "xmldom: XML injection via unsafe CDATA serialization allows attacker-controlled markup insertion",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-wh4c-j3r5-mjhp"
         }
       ]
     },
     "cargo": {
-      "total": 39,
+      "total": 40,
       "severities": {
         "critical": 0,
         "high": 0,
         "medium": 11,
         "low": 0,
-        "info": 28
+        "info": 29
       },
       "advisories": [
         {
@@ -623,7 +630,7 @@
           "title": "Marvin Attack: potential key recovery through timing sidechannels",
           "severity": "medium",
           "package": "rsa",
-          "url": "https://github.com/RustCrypto/RSA/issues/19#issuecomment-1822995643"
+          "url": "https://github.com/RustCrypto/RSA/issues/626"
         },
         {
           "id": "RUSTSEC-2026-0098",
@@ -857,6 +864,13 @@
           "url": "https://github.com/rustsec/advisory-db/issues/2414"
         },
         {
+          "id": "RUSTSEC-2026-0111",
+          "title": "Possible UTF-8 corruption in Diesels SQLite backend",
+          "severity": "info",
+          "package": "diesel",
+          "url": "https://github.com/diesel-rs/diesel/pull/5042"
+        },
+        {
           "id": "RUSTSEC-2024-0429",
           "title": "Unsoundness in `Iterator` and `DoubleEndedIterator` impls for `glib::VariantStrIter`",
           "severity": "info",
@@ -894,15 +908,23 @@
       ]
     },
     "python": {
-      "total": 0,
+      "total": 1,
       "severities": {
         "critical": 0,
         "high": 0,
-        "medium": 0,
+        "medium": 1,
         "low": 0,
         "info": 0
       },
-      "advisories": []
+      "advisories": [
+        {
+          "id": "CVE-2026-3219",
+          "title": "pip handles concatenated tar and ZIP files as ZIP files regardless of filename or whether a file is both a tar and ZIP file. This behavior could result in confusing installation behavior, such as installing \"incorrect\" files according to the filename of the archive. New behavior only proceeds with installation if the file identifies uniquely as a ZIP or tar archive, not as both.",
+          "severity": "medium",
+          "package": "pip",
+          "url": "https://osv.dev/vulnerability/CVE-2026-3219"
+        }
+      ]
     },
     "codeql": {
       "total": 0,

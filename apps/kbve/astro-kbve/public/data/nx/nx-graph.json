@@ -2844,6 +2844,18 @@
               "configurations": {},
               "parallelism": true
             },
+            "gen:icons": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rareicon/astro-rareicon",
+                "commands": [
+                  "node scripts/gen-lucide-icons.mjs"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "proto:lint": {
               "executor": "nx:run-commands",
               "options": {

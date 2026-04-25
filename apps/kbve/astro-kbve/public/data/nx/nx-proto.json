@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-04-24T08:49:00.187Z",
+  "generated_at": "2026-04-25T08:26:57.952Z",
   "summary": {
     "total_protos": 27,
     "registered": 23,
     "orphaned": 3,
     "utility_only": 1,
-    "total_messages": 542,
-    "total_enums": 93
+    "total_messages": 558,
+    "total_enums": 102
   },
   "protos": [
     {
@@ -411,24 +411,49 @@
         "AnnouncementData",
         "MarketplaceData",
         "AuctionData",
+        "ForumAuctionBid",
         "PollData",
+        "ForumPollVote",
         "LfgData",
         "AssetData",
+        "StatusData",
         "ForumThread",
         "ForumComment",
+        "ForumUserProfile",
+        "ThreadVote",
+        "CommentVote",
+        "Reaction",
         "ThreadTag",
+        "UserFollow",
+        "Bookmark",
+        "ThreadSubscription",
+        "Report",
+        "ModerationAction",
+        "Notification",
+        "Attachment",
         "FeedItem",
-        "SpacePage"
+        "SpacePage",
+        "ThreadPage",
+        "UserPage"
       ],
       "enums": [
         "ThreadStatus",
         "CommentStatus",
         "ThreadType",
         "SpaceStatus",
-        "TagStatus"
+        "TagStatus",
+        "VoteDirection",
+        "ReactionKind",
+        "ReportReason",
+        "ModerationActionKind",
+        "NotificationKind",
+        "FollowTargetKind",
+        "AttachmentParentKind",
+        "AttachmentKind",
+        "LfgStatus"
       ],
-      "message_count": 15,
-      "enum_count": 5,
+      "message_count": 31,
+      "enum_count": 14,
       "codegen": {
         "registered": true,
         "name": "forum",
@@ -1097,7 +1122,7 @@
     "packages/data/proto/kbve/kbve.proto",
     "packages/data/proto/kbve/kbveproto.proto"
   ],
-  "checked_at": "2026-04-24T08:49:00Z",
+  "checked_at": "2026-04-25T08:26:58Z",
   "drift_detected": false,
   "drift_files": []
 }

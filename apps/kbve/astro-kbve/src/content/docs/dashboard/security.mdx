@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-04-24T08:52:05Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-04-25T08:30:06Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
@@ -29,7 +29,7 @@ Last generated: **2026-04-24T08:52:05Z** — updated daily by `ci-dashboard`.
   <Card title="32 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="57 Medium" icon="information">
+  <Card title="59 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="5 Low" icon="approve-check-circle">
@@ -41,13 +41,13 @@ Last generated: **2026-04-24T08:52:05Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **84** advisories
+    **85** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
-    **39** advisories
+    **40** advisories
   </Card>
   <Card title="Python" icon="seti:python">
-    **0** advisories
+    **1** advisories
   </Card>
   <Card title="CodeQL" icon="magnifier">
     **0** alerts
@@ -64,7 +64,7 @@ pie showData
     title Findings by Severity
     "Critical" : 1
     "High" : 32
-    "Medium" : 57
+    "Medium" : 59
     "Low" : 5
 ```
 
@@ -73,8 +73,9 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 84
-    "Cargo" : 39
+    "npm" : 85
+    "Cargo" : 40
+    "Python" : 1
 ```
 
 <Tabs>
@@ -82,12 +83,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 1 | 32 | 46 | 5 | 84 |
-| **Cargo** | 0 | 0 | 11 | 0 | 39 |
-| **Python** | 0 | 0 | 0 | 0 | 0 |
+| **npm** | 1 | 32 | 47 | 5 | 85 |
+| **Cargo** | 0 | 0 | 11 | 0 | 40 |
+| **Python** | 0 | 0 | 1 | 0 | 1 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 32 | 57 | 5 | 123 |
+| **Total** | 1 | 32 | 59 | 5 | 126 |
 
   </TabItem>
   <TabItem label="npm">
@@ -101,7 +102,6 @@ pie showData
 | High | `serialize-javascript` | Serialize JavaScript is Vulnerable to RCE via RegExp.flag... | [Details](https://github.com/advisories/GHSA-5c6j-r48x-rmvq) |
 | High | `svgo` | SVGO DoS through entity expansion in DOCTYPE (Billion Lau... | [Details](https://github.com/advisories/GHSA-xpqw-6gx7-v673) |
 | High | `svgo` | SVGO DoS through entity expansion in DOCTYPE (Billion Lau... | [Details](https://github.com/advisories/GHSA-xpqw-6gx7-v673) |
-| High | `immutable` | Immutable is vulnerable to Prototype Pollution | [Details](https://github.com/advisories/GHSA-wf6x-7x77-mvgw) |
 | High | `tar` | tar has Hardlink Path Traversal via Drive-Relative Linkpath | [Details](https://github.com/advisories/GHSA-qffp-2rhf-9h96) |
 | High | `tar` | node-tar Symlink Path Traversal via Drive-Relative Linkpath | [Details](https://github.com/advisories/GHSA-9ppj-qmqm-q256) |
 | High | `flatted` | flatted vulnerable to unbounded recursion DoS in parse() ... | [Details](https://github.com/advisories/GHSA-25h7-pfq9-p65f) |
@@ -118,7 +118,6 @@ pie showData
 | High | `handlebars` | Handlebars.js has Denial of Service via Malformed Decorat... | [Details](https://github.com/advisories/GHSA-9cx6-37pm-9jff) |
 | High | `lodash-es` | lodash vulnerable to Code Injection via `_.template` impo... | [Details](https://github.com/advisories/GHSA-r5fr-rjxr-66jc) |
 | High | `lodash` | lodash vulnerable to Code Injection via `_.template` impo... | [Details](https://github.com/advisories/GHSA-r5fr-rjxr-66jc) |
-| High | `@xmldom/xmldom` | xmldom: XML injection via unsafe CDATA serialization allo... | [Details](https://github.com/advisories/GHSA-wh4c-j3r5-mjhp) |
 | High | `defu` | defu: Prototype pollution via `__proto__` key in defaults... | [Details](https://github.com/advisories/GHSA-737v-mqg7-c878) |
 | High | `vite` | Vite: `server.fs.deny` bypassed with queries | [Details](https://github.com/advisories/GHSA-v2wj-q39q-566r) |
 | High | `vite` | Vite Vulnerable to Arbitrary File Read via Vite Dev Serve... | [Details](https://github.com/advisories/GHSA-p9ff-h696-f583) |
@@ -127,6 +126,8 @@ pie showData
 | High | `@xmldom/xmldom` | xmldom has XML injection through unvalidated DocumentType... | [Details](https://github.com/advisories/GHSA-f6ww-3ggp-fr8h) |
 | High | `@xmldom/xmldom` | xmldom has XML node injection through unvalidated process... | [Details](https://github.com/advisories/GHSA-x6wf-f3px-wcqx) |
 | High | `@xmldom/xmldom` | xmldom has XML node injection through unvalidated comment... | [Details](https://github.com/advisories/GHSA-j759-j44w-7fr8) |
+| High | `immutable` | Immutable is vulnerable to Prototype Pollution | [Details](https://github.com/advisories/GHSA-wf6x-7x77-mvgw) |
+| High | `@xmldom/xmldom` | xmldom: XML injection via unsafe CDATA serialization allo... | [Details](https://github.com/advisories/GHSA-wh4c-j3r5-mjhp) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `lodash` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
@@ -173,6 +174,7 @@ pie showData
 | Medium | `dompurify` | DOMPurify: Prototype Pollution to XSS Bypass via CUSTOM_E... | [Details](https://github.com/advisories/GHSA-v9jr-rg53-9pgp) |
 | Medium | `fast-xml-parser` | fast-xml-parser XMLBuilder: XML Comment and CDATA Injecti... | [Details](https://github.com/advisories/GHSA-gh4j-gqv2-49f6) |
 | Medium | `uuid` | uuid: Missing buffer bounds check in v3/v5/v6 when buf is... | [Details](https://github.com/advisories/GHSA-w5hq-g745-h8pq) |
+| Medium | `postcss` | PostCSS has XSS via Unescaped &lt;/style&gt; in its CSS Stringi... | [Details](https://github.com/advisories/GHSA-qx2v-qp2m-jg93) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
@@ -184,7 +186,7 @@ pie showData
 
 | Severity | Package | Advisory | Link |
 |----------|---------|----------|------|
-| Medium | `rsa` | Marvin Attack: potential key recovery through timing side... | [Details](https://github.com/RustCrypto/RSA/issues/19#issuecomment-1822995643) |
+| Medium | `rsa` | Marvin Attack: potential key recovery through timing side... | [Details](https://github.com/RustCrypto/RSA/issues/626) |
 | Medium | `rustls-webpki` | Name constraints for URI names were incorrectly accepted |  |
 | Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
 | Medium | `rustls-webpki` | Reachable panic in certificate revocation list parsing |  |
@@ -218,6 +220,7 @@ pie showData
 | Info | `unic-common` | `unic-common` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `unic-ucd-ident` | `unic-ucd-ident` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `unic-ucd-version` | `unic-ucd-version` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
+| Info | `diesel` | Possible UTF-8 corruption in Diesels SQLite backend | [Details](https://github.com/diesel-rs/diesel/pull/5042) |
 | Info | `glib` | Unsoundness in `Iterator` and `DoubleEndedIterator` impls... | [Details](https://github.com/gtk-rs/gtk-rs-core/pull/1343) |
 | Info | `rand` | Rand is unsound with a custom logger using `rand::rng()` | [Details](https://github.com/rust-random/rand/pull/1763) |
 | Info | `rand` | Rand is unsound with a custom logger using `rand::rng()` | [Details](https://github.com/rust-random/rand/pull/1763) |
@@ -227,9 +230,9 @@ pie showData
   </TabItem>
   <TabItem label="Python">
 
-:::tip[All Clear]
-No python advisories found.
-:::
+| Severity | Package | Advisory | Link |
+|----------|---------|----------|------|
+| Medium | `pip` | pip handles concatenated tar and ZIP files as ZIP files r... | [Details](https://osv.dev/vulnerability/CVE-2026-3219) |
 
   </TabItem>
   <TabItem label="CodeQL">
