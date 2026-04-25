@@ -3,17 +3,17 @@ using Newtonsoft.Json;
 
 namespace RareIcon
 {
-    /// <summary>Deserialisation shape for <c>StreamingAssets/itemdb.json</c>. Mirrors the proto <c>Item</c> message (packages/data/proto/item/itemdb.proto) — field names match the raw mdx frontmatter (snake_case). Managed POCOs — not Burst-compatible. Consumed by <see cref="ItemdbLoaderSystem"/> at bootstrap into <see cref="ItemdbCache"/>; <see cref="ItemDB"/> materialises the blittable runtime slice from the cache.</summary>
-    public sealed class ItemdbBundle
+    /// <summary>Deserialisation shape for <c>StreamingAssets/itemdb.json</c>. Mirrors the proto <c>Item</c> message (packages/data/proto/item/itemdb.proto) — field names match the raw mdx frontmatter (snake_case). Managed POCOs — not Burst-compatible. Consumed by <see cref="ItemDBLoaderSystem"/> at bootstrap into <see cref="ItemDBCache"/>; <see cref="ItemDB"/> materialises the blittable runtime slice from the cache.</summary>
+    public sealed class ItemDBBundle
     {
         [JsonProperty("version")]      public int Version;
         [JsonProperty("generated_at")] public string GeneratedAt;
         [JsonProperty("count")]        public int Count;
-        [JsonProperty("entries")]      public List<ItemdbDef> Entries = new();
+        [JsonProperty("entries")]      public List<ItemDBDef> Entries = new();
     }
 
     /// <summary>One mdx entry — a single Item archetype. Only fields Rareicon consumes are declared; Newtonsoft ignores the rest.</summary>
-    public sealed class ItemdbDef
+    public sealed class ItemDBDef
     {
         [JsonProperty("id")]                public string Id;
         [JsonProperty("ref")]               public string Ref;

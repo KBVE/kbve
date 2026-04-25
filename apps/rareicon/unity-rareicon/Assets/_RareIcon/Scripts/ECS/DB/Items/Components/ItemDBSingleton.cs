@@ -20,6 +20,9 @@ namespace RareIcon
         public ushort CompressesTo;
         public ushort CompressRatio;
         public ushort PoolGroup;
+        public byte   Perishable;        // 1 if the item spoils, 0 otherwise (bool padded to byte for blittable layout)
+        public uint   ShelfLifeSeconds;  // 0 when Perishable == 0
+        public ushort SpoilsIntoId;      // ItemId of the target; 0 when non-perishable, auto-fallback to rotten-food at Materialise time
     }
 
     /// <summary>Burst-safe mirror of ItemDB. ItemDBBootstrapSystem populates Lookup once at startup from the managed ItemDB table; consumers read via SystemAPI.GetSingleton&lt;ItemDBSingleton&gt;() and call the helper methods inside any Burst job.</summary>
@@ -53,5 +56,14 @@ namespace RareIcon
 
         public byte GetHarvestWeight(ushort itemId)
             => Lookup.TryGetValue(itemId, out var def) ? def.HarvestWeight : (byte)100;
+
+        public bool IsPerishable(ushort itemId)
+            => Lookup.TryGetValue(itemId, out var def) && def.Perishable != 0;
+
+        public uint GetShelfLifeSeconds(ushort itemId)
+            => Lookup.TryGetValue(itemId, out var def) ? def.ShelfLifeSeconds : 0u;
+
+        public ushort GetSpoilsIntoId(ushort itemId)
+            => Lookup.TryGetValue(itemId, out var def) ? def.SpoilsIntoId : (ushort)0;
     }
 }

@@ -6,8 +6,8 @@ using System.Collections.Generic;
 
 namespace RareIcon
 {
-    /// <summary>Generated mdx ref → <see cref="ItemId"/> lookup. <see cref="ItemDB"/> walks <see cref="ItemdbCache"/> and resolves each entry through this map to materialise its blittable <see cref="ItemDef"/>.</summary>
-    public static class ItemdbRefMap
+    /// <summary>Generated mdx ref → <see cref="ItemId"/> lookup. <see cref="ItemDB"/> walks <see cref="ItemDBCache"/> and resolves each entry through this map to materialise its blittable <see cref="ItemDef"/>.</summary>
+    public static class ItemDBRefMap
     {
         public static readonly IReadOnlyDictionary<string, ItemId> RefToId = new Dictionary<string, ItemId>
         {

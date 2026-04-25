@@ -44,6 +44,10 @@ namespace RareIcon
         public readonly ushort CompressRatio;
         public readonly ushort PoolGroup;
 
+        public readonly bool   Perishable;
+        public readonly uint   ShelfLifeSeconds;
+        public readonly ushort SpoilsIntoId;
+
         public ItemDef(ushort id, ItemCategory category,
                        byte stackMax, ushort baseValue,
                        float restoreHealth = 0f,
@@ -55,22 +59,28 @@ namespace RareIcon
                        byte harvestWeight = 100,
                        ushort compressesTo = 0,
                        ushort compressRatio = 0,
-                       ushort poolGroup = 0)
+                       ushort poolGroup = 0,
+                       bool perishable = false,
+                       uint shelfLifeSeconds = 0,
+                       ushort spoilsIntoId = 0)
         {
-            Id             = id;
-            Category       = category;
-            StackMax       = stackMax;
-            BaseValue      = baseValue;
-            RestoreHealth  = restoreHealth;
-            RestoreEnergy  = restoreEnergy;
-            RestoreMana    = restoreMana;
-            RegenPerSecond = regenPerSecond;
-            RegenDuration  = regenDuration;
-            HarvestRole    = harvestRole;
-            HarvestWeight  = harvestWeight;
-            CompressesTo   = compressesTo;
-            CompressRatio  = compressRatio;
-            PoolGroup      = poolGroup;
+            Id               = id;
+            Category         = category;
+            StackMax         = stackMax;
+            BaseValue        = baseValue;
+            RestoreHealth    = restoreHealth;
+            RestoreEnergy    = restoreEnergy;
+            RestoreMana      = restoreMana;
+            RegenPerSecond   = regenPerSecond;
+            RegenDuration    = regenDuration;
+            HarvestRole      = harvestRole;
+            HarvestWeight    = harvestWeight;
+            CompressesTo     = compressesTo;
+            CompressRatio    = compressRatio;
+            PoolGroup        = poolGroup;
+            Perishable       = perishable;
+            ShelfLifeSeconds = shelfLifeSeconds;
+            SpoilsIntoId     = spoilsIntoId;
         }
     }
 
@@ -89,35 +99,35 @@ namespace RareIcon
         static readonly Dictionary<ushort, string>  _nameKeys = new();
         static bool _initialized;
 
-        /// <summary>Resolve an mdx ref through ItemdbRefMap, falling back through the spoilage chain (specific rotten variant, then rotten-food) when the ref is missing. Returns false if no mapping exists anywhere.</summary>
+        /// <summary>Resolve an mdx ref through ItemDBRefMap, falling back through the spoilage chain (specific rotten variant, then rotten-food) when the ref is missing. Returns false if no mapping exists anywhere.</summary>
         public static bool TryResolveRef(string refSlug, out ItemId id)
         {
-            if (!string.IsNullOrEmpty(refSlug) && ItemdbRefMap.RefToId.TryGetValue(refSlug, out id))
+            if (!string.IsNullOrEmpty(refSlug) && ItemDBRefMap.RefToId.TryGetValue(refSlug, out id))
                 return true;
             id = ItemId.RottenFood;
-            return ItemdbRefMap.RefToId.ContainsKey("rotten-food");
+            return ItemDBRefMap.RefToId.ContainsKey("rotten-food");
         }
 
         /// <summary>Resolve a perishable item's spoilage target. Honors explicit `spoils_into_ref`; if absent or invalid, falls back to rotten-food. Returns false only if rotten-food itself is missing (catastrophic data failure).</summary>
         public static bool TryGetSpoilageTarget(string spoilsIntoRef, out ItemId target)
         {
-            if (!string.IsNullOrEmpty(spoilsIntoRef) && ItemdbRefMap.RefToId.TryGetValue(spoilsIntoRef, out target))
+            if (!string.IsNullOrEmpty(spoilsIntoRef) && ItemDBRefMap.RefToId.TryGetValue(spoilsIntoRef, out target))
                 return true;
-            if (ItemdbRefMap.RefToId.TryGetValue("rotten-food", out target))
+            if (ItemDBRefMap.RefToId.TryGetValue("rotten-food", out target))
                 return true;
             target = default;
             return false;
         }
 
-        /// <summary>Called by ItemdbLoaderSystem after ItemdbCache is filled. Walks the cache, materialises each entry resolved through the generated ItemdbRefMap into a blittable ItemDef. mdx is the sole source of truth, no hardcoded fallback.</summary>
+        /// <summary>Called by ItemDBLoaderSystem after ItemDBCache is filled. Walks the cache, materialises each entry resolved through the generated ItemDBRefMap into a blittable ItemDef. mdx is the sole source of truth, no hardcoded fallback.</summary>
         public static int HydrateFromCache()
         {
             if (_initialized) return 0;
 
             int mapped = 0;
-            foreach (var def in ItemdbCache.All)
+            foreach (var def in ItemDBCache.All)
             {
-                if (!ItemdbRefMap.RefToId.TryGetValue(def.Ref, out var id)) continue;
+                if (!ItemDBRefMap.RefToId.TryGetValue(def.Ref, out var id)) continue;
                 var materialised = Materialise(def, id);
                 _byId[(ushort)id] = materialised;
                 _nameKeys[(ushort)id] = $"item.{def.Ref.Replace('-', '_')}";
@@ -130,7 +140,7 @@ namespace RareIcon
 
         public static bool IsHydrated => _initialized;
 
-        static ItemDef Materialise(ItemdbDef src, ItemId id)
+        static ItemDef Materialise(ItemDBDef src, ItemId id)
         {
             var category = DeriveCategory(src.TypeFlags);
             byte stackMax = ResolveStackMax(src);
@@ -152,7 +162,7 @@ namespace RareIcon
 
             ushort compressesTo = 0, compressRatio = 0;
             if (src.Compress != null && !string.IsNullOrEmpty(src.Compress.TargetRef) &&
-                ItemdbRefMap.RefToId.TryGetValue(src.Compress.TargetRef, out var ct))
+                ItemDBRefMap.RefToId.TryGetValue(src.Compress.TargetRef, out var ct))
             {
                 compressesTo = (ushort)ct;
                 compressRatio = (ushort)System.Math.Min(src.Compress.Ratio, ushort.MaxValue);
@@ -160,24 +170,39 @@ namespace RareIcon
 
             ushort poolGroup = src.PoolGroup == "food" ? PoolGroup.Food : PoolGroup.None;
 
+            bool perishable = src.Food?.Perishable == true;
+            uint shelfLifeSeconds = (uint)System.Math.Max(0, src.Food?.ShelfLifeSeconds ?? 0);
+            ushort spoilsIntoId = 0;
+            if (perishable)
+            {
+                if (!string.IsNullOrEmpty(src.Food.SpoilsIntoRef) &&
+                    ItemDBRefMap.RefToId.TryGetValue(src.Food.SpoilsIntoRef, out var spoiled))
+                    spoilsIntoId = (ushort)spoiled;
+                else if (ItemDBRefMap.RefToId.TryGetValue("rotten-food", out var fallback))
+                    spoilsIntoId = (ushort)fallback;
+            }
+
             return new ItemDef(
-                id:             (ushort)id,
-                category:       category,
-                stackMax:       stackMax,
-                baseValue:      baseValue,
-                restoreHealth:  heals,
-                restoreEnergy:  restoreEnergy,
-                restoreMana:    restoreMana,
-                regenPerSecond: regenPerSec,
-                regenDuration:  regenDur,
-                harvestRole:    harvestRole,
-                harvestWeight:  harvestWeight,
-                compressesTo:   compressesTo,
-                compressRatio:  compressRatio,
-                poolGroup:      poolGroup);
+                id:               (ushort)id,
+                category:         category,
+                stackMax:         stackMax,
+                baseValue:        baseValue,
+                restoreHealth:    heals,
+                restoreEnergy:    restoreEnergy,
+                restoreMana:      restoreMana,
+                regenPerSecond:   regenPerSec,
+                regenDuration:    regenDur,
+                harvestRole:      harvestRole,
+                harvestWeight:    harvestWeight,
+                compressesTo:     compressesTo,
+                compressRatio:    compressRatio,
+                poolGroup:        poolGroup,
+                perishable:       perishable,
+                shelfLifeSeconds: shelfLifeSeconds,
+                spoilsIntoId:     spoilsIntoId);
         }
 
-        static byte ResolveStackMax(ItemdbDef src)
+        static byte ResolveStackMax(ItemDBDef src)
         {
             if (src.Stacking?.PackMax.HasValue == true)
                 return (byte)System.Math.Min(src.Stacking.PackMax.Value, 255);
@@ -265,20 +290,23 @@ namespace RareIcon
                 var d = kv.Value;
                 lookup.TryAdd(d.Id, new ItemDefRuntime
                 {
-                    Id             = d.Id,
-                    Category       = (byte)d.Category,
-                    StackMax       = d.StackMax,
-                    BaseValue      = d.BaseValue,
-                    RestoreHealth  = d.RestoreHealth,
-                    RestoreEnergy  = d.RestoreEnergy,
-                    RestoreMana    = d.RestoreMana,
-                    RegenPerSecond = d.RegenPerSecond,
-                    RegenDuration  = d.RegenDuration,
-                    HarvestRole    = (byte)d.HarvestRole,
-                    HarvestWeight  = d.HarvestWeight,
-                    CompressesTo   = d.CompressesTo,
-                    CompressRatio  = d.CompressRatio,
-                    PoolGroup      = d.PoolGroup,
+                    Id               = d.Id,
+                    Category         = (byte)d.Category,
+                    StackMax         = d.StackMax,
+                    BaseValue        = d.BaseValue,
+                    RestoreHealth    = d.RestoreHealth,
+                    RestoreEnergy    = d.RestoreEnergy,
+                    RestoreMana      = d.RestoreMana,
+                    RegenPerSecond   = d.RegenPerSecond,
+                    RegenDuration    = d.RegenDuration,
+                    HarvestRole      = (byte)d.HarvestRole,
+                    HarvestWeight    = d.HarvestWeight,
+                    CompressesTo     = d.CompressesTo,
+                    CompressRatio    = d.CompressRatio,
+                    PoolGroup        = d.PoolGroup,
+                    Perishable       = d.Perishable ? (byte)1 : (byte)0,
+                    ShelfLifeSeconds = d.ShelfLifeSeconds,
+                    SpoilsIntoId     = d.SpoilsIntoId,
                 });
             }
         }
