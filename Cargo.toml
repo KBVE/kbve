@@ -15,6 +15,7 @@ members = [
 	'apps/discordsh/discordsh-bot',
 	'apps/kbve/axum-kbve',
 	'apps/chuckrpg/axum-chuckrpg',
+	'apps/rareicon/axum-rareicon',
 	'apps/cryptothrone/axum-cryptothrone',
 	'apps/ows/rows',
 	'apps/kbve/isometric/src-tauri',

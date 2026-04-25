@@ -115,11 +115,11 @@ export const IconTermOverlaySchema = z.object({
 	version: z.string().optional(),
 	drafted: z.boolean().optional(),
 
-	// Astro overlay fields — all optional
+	// Astro overlay fields — all optional. `hero` intentionally omitted here
+	// since Starlight's docsSchema owns `hero` for splash pages (object shape).
 	pagefindFilters: z.array(z.string()).optional(),
 	featured: z.boolean().optional(),
 	order: z.number().int().optional(),
-	hero: z.string().optional(),
 	note: z.string().optional(),
 });
 

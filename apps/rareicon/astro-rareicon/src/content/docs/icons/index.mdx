@@ -1,0 +1,21 @@
+---
+title: Icon Library
+description: Browse every RareIcon SVG term. Filter by category, style, or theme.
+sidebar:
+  label: Library
+  order: 0
+---
+
+import IconsBrowser from '@/components/icons/IconsBrowser.astro';
+
+Every term is one page. Each term holds a set of variants (outline, filled, bold, duotone, glyph). Search the field below, or filter by category, style, or theme. Click a card to see every variant and copy its SVG.
+
+<IconsBrowser />
+
+## How the catalog is organized
+
+- **Term** — one concept per page (`sword`, `close`, `arrow-right`).
+- **Variant** — one rendering of a term (outline, filled, ocean-duotone).
+- **Tags & themes** — per-variant facets layered on top of the term-level category so you can filter a specific rendering, not just the concept.
+
+All icons use `currentColor` unless the variant explicitly overrides — drop them into any page and they pick up the surrounding text color.

@@ -1,0 +1,52 @@
+---
+id: 01JCOIN000000000000000AA
+ref: coin
+name: Coin
+title: Coin Icon
+description: Currency, credit, pay-data. RareIcon's debt-world motif.
+primary_category: game
+categories: [game, ui, sci-fi]
+tags: [currency, credit, money, gold, pay-data]
+related_term_refs: [star, bolt]
+search:
+  keywords: [coin, currency, credit, money, gold, pay-data, token, cash]
+  aliases: [credit, money, currency]
+  primary_category: game
+  search_weight: 1.3
+default_license:
+  license: cc0
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render: { uses_current_color: true, monochrome: true, stroke_width: 2, stroke_cap: round, stroke_join: round }
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [game-hud, inventory]
+    themes: [medieval]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9.354a4 4 0 1 0 0 5.292"/></svg>
+  - ref: pay-data
+    label: Pay-data
+    style: duotone
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render: { color_count: 2, monochrome: false }
+    recommended_sizes: [24, 32, 48]
+    tags: [cyberpunk, daemoncorps]
+    themes: [cyberpunk]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#3AAED8" opacity=".3"/><circle cx="12" cy="12" r="10" fill="none" stroke="#3AAED8" stroke-width="2"/><path d="M12 6v12 M9 9h4a2 2 0 1 1 0 4H9v4 M9 9v4" stroke="#3AAED8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+pagefindFilters: [game]
+featured: true
+order: 31
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Coin — currency / credit / pay-data glyph. Classic outline + cyberpunk pay-data duotone.
+
+<IconTermPanel termRef={frontmatter.ref} name={frontmatter.name} description={frontmatter.description} primary_category={frontmatter.primary_category} categories={frontmatter.categories} tags={frontmatter.tags} icons={frontmatter.icons} />

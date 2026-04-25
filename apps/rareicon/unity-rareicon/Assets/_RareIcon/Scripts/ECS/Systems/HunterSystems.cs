@@ -80,7 +80,7 @@ namespace RareIcon
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.HasSingleton<WorldClock>()) return;
-            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
+            if (!SystemAPI.TryGetSingleton<HexDBSingleton>(out var hexLookup)) return;
             uint currentTurn = SystemAPI.GetSingleton<WorldClock>().TurnIndex;
 
             var livestockPerFarm = new NativeHashMap<Entity, int>(32, Allocator.TempJob);

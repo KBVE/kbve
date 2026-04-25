@@ -93,6 +93,10 @@ export default defineConfig({
 			],
 			sidebar: [
 				{
+					label: 'Steam',
+					link: '/steam/',
+				},
+				{
 					label: 'Getting Started',
 					autogenerate: { directory: 'guides' },
 				},

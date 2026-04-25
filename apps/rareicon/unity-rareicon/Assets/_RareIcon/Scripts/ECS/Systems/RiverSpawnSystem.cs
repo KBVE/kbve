@@ -9,6 +9,7 @@ using UnityEngine.Rendering;
 namespace RareIcon
 {
     /// <summary>Spawns one decal entity per <see cref="RiverDefinition"/> emitted by <c>RiverRouter</c> — polyline mesh + HexRiver material + <see cref="RiverMetadata"/>.</summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial class RiverSpawnSystem : SystemBase
     {

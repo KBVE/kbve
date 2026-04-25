@@ -1,0 +1,36 @@
+{
+	"name": "axum-rareicon-e2e",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"implicitDependencies": ["axum-rareicon"],
+	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"target": "container",
+					"projects": ["axum-rareicon"],
+					"params": "forward"
+				}
+			],
+			"cache": false,
+			"options": {
+				"commands": [
+					"docker rm -f axum-rareicon-e2e 2>/dev/null || true",
+					"docker run -d --name axum-rareicon-e2e -p 4325:4323 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4323 -e RUST_LOG=info kbve/rareicon:latest",
+					"npx vitest run; EC=$?; docker rm -f axum-rareicon-e2e 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false,
+				"cwd": "apps/rareicon/axum-rareicon-e2e"
+			},
+			"configurations": {
+				"ci": {}
+			}
+		}
+	},
+	"tags": []
+}

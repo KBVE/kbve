@@ -20,6 +20,7 @@ namespace RareIcon
     }
 
     /// <summary>Spawns the initial King + ally-goblin cluster and exposes static spawn helpers for chunk-reload + hostile waves.</summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial class UnitSpawnSystem : SystemBase
     {

@@ -1,0 +1,47 @@
+---
+id: 01JPAUSE00000000000000AA
+ref: pause
+name: Pause
+title: Pause Icon
+description: Media pause glyph — suspend, hold.
+primary_category: media
+categories: [ui, media, action]
+tags: [pause, hold, suspend, media]
+related_term_refs: [play]
+search:
+  keywords: [pause, hold, suspend, stop, wait]
+  aliases: [hold]
+  primary_category: media
+  search_weight: 1.3
+default_license:
+  license: cc0
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render: { uses_current_color: true, monochrome: true, stroke_width: 2, stroke_cap: round, stroke_join: round }
+    recommended_sizes: [16, 20, 24, 32]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+  - ref: filled
+    label: Filled
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render: { uses_current_color: true, monochrome: true }
+    recommended_sizes: [16, 20, 24, 32]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+pagefindFilters: [ui, media]
+order: 21
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Pause — media suspend glyph. Outline and filled.
+
+<IconTermPanel termRef={frontmatter.ref} name={frontmatter.name} description={frontmatter.description} primary_category={frontmatter.primary_category} categories={frontmatter.categories} tags={frontmatter.tags} icons={frontmatter.icons} />

@@ -1,0 +1,37 @@
+---
+title: 'Rotten Food'
+description: |
+    Grey-brown mass of something that used to be food, texture somewhere between wet paper and old clay, smell at the outer edge of smells you can name without wincing. Nobody lifts the lid twice.
+lore: |
+    Terminal state of most perishables that sat too long in a pack, a cellar, or the forgotten corner of a supply shed. Can still be eaten in desperation, and the desperate eater learns why that clause sits on the last page of every field manual. Most households bury it, most armies compost it, and the apothecaries who collect it for study refuse to explain what they do with it afterwards.
+ref: 'rotten-food'
+key: 543
+id: '01KTVTRAB100R0TTENF00D0001'
+name: 'Rotten Food'
+type_flags: 8
+rarity: 'common'
+emoji: '🤢'
+stackable: true
+max_stack: 30
+buy_price: 0
+sell_price: 0
+tradeable: false
+consumable: true
+cooldown: 10
+action: 'consume'
+pool_group: 'food'
+food:
+  heals: -5
+  restore_energy: -10
+  perishable: false
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />
+
+## Sources
+
+Generic fallback for any perishable whose specific rotten variant is missing. Common sources include [berry](/itemdb/berry/), [mushroom](/itemdb/mushroom/), [carrot](/itemdb/carrot/), [cheese](/itemdb/cheese/), [butter](/itemdb/butter/), and most prepared meals that were not eaten in time.

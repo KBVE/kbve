@@ -1,0 +1,27 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+    name: rareicon-tls
+    namespace: rareicon
+spec:
+    secretName: rareicon-tls
+    dnsNames:
+        - rareicon.com
+    issuerRef:
+        name: letsencrypt-http
+        kind: ClusterIssuer
+        group: cert-manager.io
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+    name: rareicon-api-tls
+    namespace: rareicon
+spec:
+    secretName: rareicon-api-tls
+    dnsNames:
+        - api.rareicon.com
+    issuerRef:
+        name: letsencrypt-http
+        kind: ClusterIssuer
+        group: cert-manager.io

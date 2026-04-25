@@ -1,8 +1,9 @@
 ---
 title: 'Fried Fish Taco'
 description: |
-    A warm, folded miracle of fried fish, spice, and crunchy greens. 
-    It smells way too good to survive long in your pack.
+    Folded in a warm flour tortilla, fried whitefish showing through pale stripes of slaw and a line of pink sauce the cook refused to name. The oil has soaked halfway up the wrap by the time you get it to a table, which is how you know it was made for walking.
+lore: |
+    Sold off steel carts parked in the shade of harbor warehouses, run by cooks whose families have worked the same corner through three redrafts of the city plan. The batter recipe drifts a little between stalls and a lot between cities, and regulars rank the results quietly, in rankings the carts themselves never ask about. Eating one while it is still spitting from the fryer is a rite of passage that most travelers only realize they have passed in retrospect.
 ref: 'fried-fish-taco'
 key: 31
 id: '01JWFY6R3G5BQ7FZ7Q3KPKHY2C'
@@ -45,6 +46,10 @@ recipes:
             amount: 2
           - item_ref: 'butter'
             amount: 1
+food:
+  perishable: true
+  shelf_life_seconds: 43200
+  spoils_into_ref: 'rotten-food'
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
@@ -139,3 +144,8 @@ Some say the original recipe was taught by a seafaring AI chef who only spoke in
 ## DevLog
 
 - 05/30/2025 - Fish Taco added as consumable food with agility and reflex buff
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).

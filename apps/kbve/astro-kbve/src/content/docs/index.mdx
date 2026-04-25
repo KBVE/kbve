@@ -13,55 +13,57 @@ lastUpdated: false
 next: false
 ---
 
-import {
-	Card,
-	CardGrid,
-	LinkCard,
-	Tabs,
-	TabItem,
-} from '@astrojs/starlight/components';
+import { Card, CardGrid } from '@astrojs/starlight/components';
 
-import DeferredAstroGithubHero from '@/components/github/GithubHero/DeferredAstroGithubHero.astro';
 import DeferredSVGLogo from '@/components/kbve/DeferredSVGLogo.astro';
 import DeferredKBVEComicSocials from '@/components/kbve/DeferredKBVEComicSocials.astro';
-import DeferredProjectGallery from '@/components/kbve/DeferredProjectGallery.astro';
-import DeferredFeature from '@/components/kbve/DeferredFeature.astro';
 import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
-import ObserverCollections from '@kbve/astro/components/hero/observer/ObserverCollections.astro';
-import ObserverSelection from '@kbve/astro/components/hero/observer/ObserverSelection.astro';
+import ScrollZoomHero from '@kbve/astro/components/hero/scroll/ScrollZoomHero.astro';
+import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
 
-<ObserverCollections
+<ScrollZoomHero
     foreground="https://assets-global.website-files.com/63ec206c5542613e2e5aa784/643312a6bc4ac122fc4e3afa_main%20home.webp"
     background="https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80"
     alt="KBVE hero"
->
-    <ObserverSelection heading="Welcome" image="https://images.unsplash.com/photo-1479669732031-affb2ce2d265?q=80">
-        <DeferredSVGLogo />
-        <DeferredAdsense label="Sponsored" />
-    </ObserverSelection>
-    <ObserverSelection heading="Community" image="https://images.unsplash.com/photo-1512424113276-fa9f6a112384?q=80">
-        <DeferredKBVEComicSocials />
-    </ObserverSelection>
-    <ObserverSelection heading="Top Contributors" image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80">
-        <DeferredAstroGithubHero
-            title="Top Contributors"
-            subtitle="Thanks to everyone helping build the platform!"
-            commitsLabel="commits"
-            viewAllLabel="View all contributors"
-            issuesLabel="Issues"
-            projectLabel="Project Board"
-            errorMessage="Unable to load contributors. Please try again later."
-            rank1Label="1st Place"
-            rank2Label="2nd Place"
-            rank3Label="3rd Place"
-            newTabLabel="(opens in new tab)"
-        />
-    </ObserverSelection>
-    <ObserverSelection heading="Features" video="https://www.youtube.com/watch?v=aT66uumZ0Zo">
-        <DeferredFeature />
-        <DeferredAdsense label="Sponsored" />
-    </ObserverSelection>
-    <ObserverSelection heading="Projects" image="https://images.unsplash.com/photo-1502134249126-9f3755a50d78?q=80">
-        <DeferredProjectGallery />
-    </ObserverSelection>
-</ObserverCollections>
+/>
+
+<div class="ring-page">
+
+# Welcome to KBVE
+
+KBVE is a kilobyte-scale virtual enterprise — a studio, an open-source collective, and a hosting platform for community projects.
+
+<DeferredSVGLogo />
+
+<DeferredAdsense label="Sponsored" />
+
+## Community
+
+Tens of thousands of developers, gamers, and creators across our networks.
+
+<DeferredKBVEComicSocials />
+
+## What we ship
+
+<CardGrid>
+    <Card title="Services" icon="rocket">
+        Custom software, automation, managed game-server hosting. [See services →](/service/)
+    </Card>
+    <Card title="Features" icon="puzzle">
+        Live platform features powering the community. [See features →](/feature/)
+    </Card>
+    <Card title="GitHub" icon="github">
+        Open-source repos and top contributors. [See GitHub →](/github/)
+    </Card>
+    <Card title="Projects" icon="seti:default">
+        Studio games, tools, libraries. [See projects →](/projects/)
+    </Card>
+</CardGrid>
+
+## Keep scrolling
+
+The page chain loops — scroll past the bottom to enter the ring, scroll past the top to step back.
+
+</div>
+
+<ScrollRing prev="/projects/" next="/service/" prevLabel="Projects" nextLabel="Services" />

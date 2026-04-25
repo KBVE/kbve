@@ -1,0 +1,55 @@
+---
+title: Services
+description: KBVE services — software, automation, and managed game-server hosting.
+template: splash
+editUrl: false
+lastUpdated: false
+next: false
+sidebar:
+    label: Services
+    order: 3
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
+import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
+
+<div class="ring-page">
+
+# Services
+
+KBVE delivers software, automation, and managed game-server hosting. Pick a lane:
+
+<CardGrid>
+    <Card title="Custom Software" icon="rocket">
+        Bespoke web, mobile, and backend builds — TypeScript, Rust, Python, Astro, React, Bevy.
+    </Card>
+    <Card title="Automation Pipelines" icon="setting">
+        CI/CD, build orchestration, data ETL, and event-driven workflows on Kubernetes.
+    </Card>
+    <Card title="Game Servers" icon="random">
+        Managed Minecraft, Unreal, and Bevy world hosting with auto-scaling and observability.
+    </Card>
+    <Card title="Open-Source Sponsorship" icon="heart">
+        Backing for libraries you depend on — sponsor a maintainer, fund a release.
+    </Card>
+</CardGrid>
+
+## How we work
+
+Three-step engagement:
+
+1. **Discovery** — short paid scoping doc; you keep it either way.
+2. **Build** — fixed-price milestones, demo every two weeks.
+3. **Handoff** — full source, IaC, runbooks. No lock-in.
+
+<DeferredAdsense label="Sponsored" />
+
+## Talk to us
+
+Email [hello@kbve.com](mailto:hello@kbve.com) or open a thread in [Discord](/discord/).
+
+</div>
+
+<ScrollRing prev="/" next="/feature/" prevLabel="Home" nextLabel="Features" threshold={220} />

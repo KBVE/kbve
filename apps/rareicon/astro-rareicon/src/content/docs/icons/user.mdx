@@ -1,0 +1,47 @@
+---
+id: 01JUSER0000000000000000AA
+ref: user
+name: User
+title: User Icon
+description: Single-person avatar placeholder — profile, account, identity.
+primary_category: ui
+categories: [ui, social]
+tags: [profile, account, avatar, identity]
+related_term_refs: [users]
+search:
+  keywords: [user, profile, account, avatar, identity, person]
+  aliases: [profile, account, person]
+  primary_category: ui
+  search_weight: 1.4
+default_license:
+  license: cc0
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render: { uses_current_color: true, monochrome: true, stroke_width: 2, stroke_cap: round, stroke_join: round }
+    recommended_sizes: [16, 20, 24, 32]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+  - ref: filled
+    label: Filled
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render: { uses_current_color: true, monochrome: true }
+    recommended_sizes: [16, 20, 24, 32]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0H4z"/></svg>
+pagefindFilters: [ui, social]
+order: 22
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+User — avatar placeholder. Outline and filled.
+
+<IconTermPanel termRef={frontmatter.ref} name={frontmatter.name} description={frontmatter.description} primary_category={frontmatter.primary_category} categories={frontmatter.categories} tags={frontmatter.tags} icons={frontmatter.icons} />

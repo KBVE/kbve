@@ -2,6 +2,7 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 using MessagePipe;
+using RareIcon.Platform;
 
 namespace RareIcon
 {
@@ -34,6 +35,15 @@ namespace RareIcon
 
             builder.RegisterMessageBroker<InventoryChangedMessage>(options);
             builder.RegisterMessageBroker<ProfessionChangedMessage>(options);
+            builder.RegisterMessageBroker<HexChangedMessage>(options);
+
+            builder.RegisterMessageBroker<BuildingSpawnedMessage>(options);
+            builder.RegisterMessageBroker<BuildingConstructionCompleteMessage>(options);
+            builder.RegisterMessageBroker<BuildingTierChangedMessage>(options);
+            builder.RegisterMessageBroker<BuildingDamagedMessage>(options);
+            builder.RegisterMessageBroker<BuildingRepairedMessage>(options);
+            builder.RegisterMessageBroker<BuildingDestroyedMessage>(options);
+            builder.RegisterMessageBroker<BuildingDemolishedMessage>(options);
 
             builder.RegisterMessageBroker<DialogueStartMessage>(options);
             builder.RegisterMessageBroker<DialogueAdvanceMessage>(options);
@@ -44,6 +54,20 @@ namespace RareIcon
             builder.RegisterMessageBroker<QuestStartedMessage>(options);
             builder.RegisterMessageBroker<QuestCompletedMessage>(options);
             builder.RegisterMessageBroker<QuestFailedMessage>(options);
+
+            // -- Steam platform events --
+            builder.RegisterMessageBroker<SteamLobbyCreatedMessage>(options);
+            builder.RegisterMessageBroker<SteamLobbyJoinedMessage>(options);
+            builder.RegisterMessageBroker<SteamLobbyLeftMessage>(options);
+            builder.RegisterMessageBroker<SteamLobbyMemberChangedMessage>(options);
+            builder.RegisterMessageBroker<SteamLobbyInviteMessage>(options);
+            builder.RegisterMessageBroker<SteamJoinRequestedMessage>(options);
+            builder.RegisterMessageBroker<SteamLobbyDataChangedMessage>(options);
+            builder.RegisterMessageBroker<SteamNetworkPacketMessage>(options);
+            builder.RegisterMessageBroker<SteamNetworkSessionRequestMessage>(options);
+            builder.RegisterMessageBroker<SteamNetworkSessionFailedMessage>(options);
+            builder.RegisterMessageBroker<SteamAvatarReadyMessage>(options);
+            builder.RegisterMessageBroker<SteamLobbyBrowserResultMessage>(options);
 
             builder.RegisterBuildCallback(container =>
             {
@@ -75,6 +99,26 @@ namespace RareIcon
             builder.Register(_ => new BiomeGenerator(), Lifetime.Singleton).AsSelf();
             builder.Register<ChunkGeneratorService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             builder.Register<RiverRouter>(Lifetime.Singleton).AsSelf();
+
+            // -- Steam services --
+            // SteamManager itself self-bootstraps via RuntimeInitializeOnLoad —
+            // these are the managed service facades that consume its callbacks.
+            // RegisterEntryPoint wires IStartable (callback subscription),
+            // ITickable (per-frame message polling), and IDisposable (cleanup).
+            builder.RegisterEntryPoint<SteamLobbyService>(Lifetime.Singleton)
+                .AsSelf().As<ISteamLobbyService>();
+            builder.RegisterEntryPoint<SteamNetworkingService>(Lifetime.Singleton)
+                .AsSelf().As<ISteamNetworkingService>();
+            builder.RegisterEntryPoint<SteamPresenceService>(Lifetime.Singleton)
+                .AsSelf().As<ISteamPresenceService>();
+            builder.RegisterEntryPoint<SteamTransportRouter>(Lifetime.Singleton)
+                .AsSelf().As<ISteamTransportRouter>();
+            builder.RegisterEntryPoint<SteamAchievementsService>(Lifetime.Singleton)
+                .AsSelf().As<ISteamAchievementsService>();
+            builder.RegisterEntryPoint<SteamAvatarService>(Lifetime.Singleton)
+                .AsSelf().As<ISteamAvatarService>();
+            builder.RegisterEntryPoint<SteamLobbyBrowserService>(Lifetime.Singleton)
+                .AsSelf().As<ISteamLobbyBrowserService>();
 
             // -- UI --
             builder.RegisterComponentOnNewGameObject<UIPanelManager>(Lifetime.Singleton, "UIPanelManager")

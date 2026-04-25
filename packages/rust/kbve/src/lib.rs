@@ -18,6 +18,12 @@ pub mod entity;
 pub mod sys;
 pub mod utils;
 
+//  * [WEB] — shared HTTP/web building blocks for axum-* services.
+pub mod web;
+
+//  * [MARKDOWN] — safe CommonMark + GFM renderer with ammonia allowlist.
+pub mod markdown;
+
 pub use authentication::*;
 pub use db::*;
 pub use guild::*;

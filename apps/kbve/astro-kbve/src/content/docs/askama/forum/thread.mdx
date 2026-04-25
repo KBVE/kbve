@@ -1,0 +1,50 @@
+---
+title: '{{ thread_title }} | KBVE Forum'
+head:
+    - tag: title
+      content: '{{ thread_title }} — r/{{ space_slug }} | KBVE Forum'
+    - tag: meta
+      attrs:
+        name: description
+        content: '{{ thread_meta_description }}'
+    - tag: link
+      attrs:
+        rel: canonical
+        href: 'https://kbve.com/forum/t/{{ thread_slug_or_id }}'
+    - tag: meta
+      attrs:
+        property: 'og:type'
+        content: 'article'
+    - tag: meta
+      attrs:
+        property: 'og:title'
+        content: '{{ thread_title }}'
+    - tag: meta
+      attrs:
+        property: 'og:description'
+        content: '{{ thread_meta_description }}'
+    - tag: meta
+      attrs:
+        property: 'og:url'
+        content: 'https://kbve.com/forum/t/{{ thread_slug_or_id }}'
+    - tag: meta
+      attrs:
+        property: 'og:site_name'
+        content: 'KBVE Forum'
+    - tag: meta
+      attrs:
+        name: 'twitter:card'
+        content: 'summary_large_image'
+description: '{{ thread_meta_description }}'
+template: splash
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+sidebar:
+    hidden: true
+---
+
+import AskamaForumThreadProvider from '@/components/providers/AskamaForumThreadProvider.astro';
+
+<AskamaForumThreadProvider />

@@ -24,7 +24,7 @@ namespace RareIcon
         {
             new WanderJob().ScheduleParallel();
 
-            if (SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup))
+            if (SystemAPI.TryGetSingleton<HexDBSingleton>(out var hexLookup))
             {
                 state.Dependency = new WaterWanderJob
                 {

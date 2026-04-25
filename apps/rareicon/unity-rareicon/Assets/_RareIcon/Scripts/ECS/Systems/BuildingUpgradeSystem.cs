@@ -49,6 +49,10 @@ namespace RareIcon
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);
 
+            var events = default(NativeList<BuildingEvent>);
+            if (SystemAPI.HasSingleton<BuildingsDBSingleton>())
+                events = SystemAPI.GetSingleton<BuildingsDBSingleton>().Events;
+
             state.Dependency = new UpgradeJob
             {
                 Capital             = capital,
@@ -58,6 +62,7 @@ namespace RareIcon
                 CapitalLedgerLookup = SystemAPI.GetBufferLookup<CapitalLedger>(false),
                 CostTable           = _costTable.AsArray(),
                 Ecb                 = ecb,
+                Events              = events,
             }.Schedule(state.Dependency);
         }
     }
@@ -80,6 +85,8 @@ namespace RareIcon
         public            BufferLookup<CapitalLedger>    CapitalLedgerLookup;
         [ReadOnly] public NativeArray<UpgradeCostRow>    CostTable;
         public EntityCommandBuffer Ecb;
+        /// <summary>Optional — may be default if BuildingsDBSingleton hasn't booted yet. Guard IsCreated before Add.</summary>
+        public NativeList<BuildingEvent> Events;
 
         void Execute(Entity reqEntity, in BuildingUpgradeRequest request)
         {
@@ -128,6 +135,19 @@ namespace RareIcon
             if (visualId != 0 && VisualLookup.HasComponent(target))
             {
                 VisualLookup[target] = new BuildingVisual { Value = visualId };
+            }
+
+            // Emit lifecycle event so MessagePipe subscribers (UI, audio,
+            // achievements) react on the main thread next Presentation.
+            if (Events.IsCreated)
+            {
+                Events.Add(new BuildingEvent
+                {
+                    Kind   = BuildingEventKind.TierChanged,
+                    Entity = target,
+                    Type   = type,
+                    Tier   = newTier,
+                });
             }
         }
 

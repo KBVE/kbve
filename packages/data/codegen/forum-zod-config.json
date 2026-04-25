@@ -4,9 +4,23 @@
 		"kbve.forum.ForumTag",
 		"kbve.forum.ForumThread",
 		"kbve.forum.ForumComment",
+		"kbve.forum.ForumUserProfile",
+		"kbve.forum.ForumAuctionBid",
+		"kbve.forum.ForumPollVote",
 		"kbve.forum.ThreadTag",
+		"kbve.forum.ThreadVote",
+		"kbve.forum.CommentVote",
+		"kbve.forum.Reaction",
+		"kbve.forum.UserFollow",
+		"kbve.forum.Bookmark",
+		"kbve.forum.ThreadSubscription",
+		"kbve.forum.Report",
+		"kbve.forum.ModerationAction",
+		"kbve.forum.Notification",
+		"kbve.forum.Attachment",
 		"kbve.forum.FeedItem",
 		"kbve.forum.SpacePage",
+		"kbve.forum.ThreadPage",
 		"kbve.forum.DiscussionData",
 		"kbve.forum.QuestionData",
 		"kbve.forum.AnnouncementData",
@@ -14,7 +28,8 @@
 		"kbve.forum.AuctionData",
 		"kbve.forum.PollData",
 		"kbve.forum.LfgData",
-		"kbve.forum.AssetData"
+		"kbve.forum.AssetData",
+		"kbve.forum.StatusData"
 	],
 
 	"enums": {
@@ -41,6 +56,51 @@
 		"kbve.forum.TagStatus": {
 			"mode": "const_array",
 			"stripPrefix": "TAG_STATUS_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.forum.VoteDirection": {
+			"mode": "const_array",
+			"stripPrefix": "VOTE_DIRECTION_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.forum.ReactionKind": {
+			"mode": "const_array",
+			"stripPrefix": "REACTION_KIND_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.forum.ReportReason": {
+			"mode": "const_array",
+			"stripPrefix": "REPORT_REASON_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.forum.ModerationActionKind": {
+			"mode": "const_array",
+			"stripPrefix": "MODERATION_ACTION_KIND_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.forum.NotificationKind": {
+			"mode": "const_array",
+			"stripPrefix": "NOTIFICATION_KIND_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.forum.FollowTargetKind": {
+			"mode": "const_array",
+			"stripPrefix": "FOLLOW_TARGET_KIND_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.forum.AttachmentParentKind": {
+			"mode": "const_array",
+			"stripPrefix": "ATTACHMENT_PARENT_KIND_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.forum.AttachmentKind": {
+			"mode": "const_array",
+			"stripPrefix": "ATTACHMENT_KIND_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.forum.LfgStatus": {
+			"mode": "const_array",
+			"stripPrefix": "LFG_STATUS_",
 			"caseTransform": "lowercase"
 		}
 	},
@@ -75,15 +135,70 @@
 			"sourceEnum": "kbve.forum.TagStatus",
 			"typeName": "TagStatusValue",
 			"zodSchemaName": "TagStatusSchema"
+		},
+		{
+			"name": "VoteDirections",
+			"sourceEnum": "kbve.forum.VoteDirection",
+			"typeName": "VoteDirectionValue",
+			"zodSchemaName": "VoteDirectionSchema"
+		},
+		{
+			"name": "ReactionKinds",
+			"sourceEnum": "kbve.forum.ReactionKind",
+			"typeName": "ReactionKindValue",
+			"zodSchemaName": "ReactionKindSchema"
+		},
+		{
+			"name": "ReportReasons",
+			"sourceEnum": "kbve.forum.ReportReason",
+			"typeName": "ReportReasonValue",
+			"zodSchemaName": "ReportReasonSchema"
+		},
+		{
+			"name": "ModerationActionKinds",
+			"sourceEnum": "kbve.forum.ModerationActionKind",
+			"typeName": "ModerationActionKindValue",
+			"zodSchemaName": "ModerationActionKindSchema"
+		},
+		{
+			"name": "NotificationKinds",
+			"sourceEnum": "kbve.forum.NotificationKind",
+			"typeName": "NotificationKindValue",
+			"zodSchemaName": "NotificationKindSchema"
+		},
+		{
+			"name": "FollowTargetKinds",
+			"sourceEnum": "kbve.forum.FollowTargetKind",
+			"typeName": "FollowTargetKindValue",
+			"zodSchemaName": "FollowTargetKindSchema"
+		},
+		{
+			"name": "AttachmentParentKinds",
+			"sourceEnum": "kbve.forum.AttachmentParentKind",
+			"typeName": "AttachmentParentKindValue",
+			"zodSchemaName": "AttachmentParentKindSchema"
+		},
+		{
+			"name": "AttachmentKinds",
+			"sourceEnum": "kbve.forum.AttachmentKind",
+			"typeName": "AttachmentKindValue",
+			"zodSchemaName": "AttachmentKindSchema"
+		},
+		{
+			"name": "LfgStatuses",
+			"sourceEnum": "kbve.forum.LfgStatus",
+			"typeName": "LfgStatusValue",
+			"zodSchemaName": "LfgStatusSchema"
 		}
 	],
 
 	"refinements": {
-		"kbve.forum.ForumThread.title": ".min(1, 'Title is required').max(300, 'Title must be 300 characters or less')",
+		"kbve.forum.ForumThread.title": ".max(300, 'Title must be 300 characters or less')",
 		"kbve.forum.ForumThread.body": ".min(1, 'Body is required')",
 		"kbve.forum.ForumComment.body": ".min(1, 'Comment body is required').max(2000, 'Comment must be 2000 characters or less')",
 		"kbve.forum.ForumSpace.name": ".min(1, 'Space name is required').max(100, 'Space name must be 100 characters or less')",
-		"kbve.forum.ForumTag.name": ".min(1, 'Tag name is required').max(50, 'Tag name must be 50 characters or less')"
+		"kbve.forum.ForumTag.name": ".min(1, 'Tag name is required').max(50, 'Tag name must be 50 characters or less')",
+		"kbve.forum.ForumUserProfile.signature": ".max(500, 'Signature must be 500 characters or less')"
 	},
 
 	"fieldOverrides": {
@@ -99,6 +214,11 @@
 		"kbve.forum.ForumSpace.allowed_types": "z.array(ThreadTypeSchema).default([])",
 		"kbve.forum.ForumSpace.created_at": "z.string().datetime()",
 		"kbve.forum.ForumSpace.updated_at": "z.string().datetime()",
+		"kbve.forum.ForumSpace.sort_order": "z.number().int().default(0)",
+		"kbve.forum.ForumSpace.nsfw": "z.boolean().default(false)",
+		"kbve.forum.ForumSpace.flair_config_json": "z.string().optional()",
+		"kbve.forum.ForumSpace.moderator_ids": "z.array(z.string().uuid()).default([])",
+		"kbve.forum.ForumSpace.active_user_count": "z.number().int().min(0).default(0)",
 
 		"kbve.forum.ForumTag.id": "z.number().int().positive()",
 		"kbve.forum.ForumTag.slug": "z.string().min(1).max(50).regex(/^[a-z0-9][a-z0-9-]*$/, 'Tag slug must be lowercase alphanumeric with hyphens')",
@@ -108,6 +228,9 @@
 		"kbve.forum.ForumTag.usage_count": "z.number().int().min(0).default(0)",
 		"kbve.forum.ForumTag.created_by": "z.string().uuid()",
 		"kbve.forum.ForumTag.created_at": "z.string().datetime()",
+		"kbve.forum.ForumTag.parent_tag_ids": "z.array(z.number().int().positive()).default([])",
+		"kbve.forum.ForumTag.color": "z.string().regex(/^#[0-9a-fA-F]{6}$/).optional()",
+		"kbve.forum.ForumTag.icon_ref": "z.string().max(100).optional()",
 
 		"kbve.forum.ForumThread.id": "z.string().min(1)",
 		"kbve.forum.ForumThread.author_id": "z.string().uuid()",
@@ -120,6 +243,18 @@
 		"kbve.forum.ForumThread.created_at": "z.string().datetime()",
 		"kbve.forum.ForumThread.updated_at": "z.string().datetime()",
 		"kbve.forum.ForumThread.edited_at": "z.string().datetime().optional()",
+		"kbve.forum.ForumThread.score": "z.number().int().default(0)",
+		"kbve.forum.ForumThread.upvote_count": "z.number().int().min(0).default(0)",
+		"kbve.forum.ForumThread.downvote_count": "z.number().int().min(0).default(0)",
+		"kbve.forum.ForumThread.last_activity_at": "z.string().datetime()",
+		"kbve.forum.ForumThread.nsfw": "z.boolean().default(false)",
+		"kbve.forum.ForumThread.locked": "z.boolean().default(false)",
+		"kbve.forum.ForumThread.locale": "z.string().max(10).optional()",
+		"kbve.forum.ForumThread.cross_posted_from_thread_id": "z.string().min(1).optional()",
+		"kbve.forum.ForumThread.quoted_thread_id": "z.string().min(1).optional()",
+		"kbve.forum.ForumThread.scheduled_at": "z.string().datetime().optional()",
+		"kbve.forum.ForumThread.revision_count": "z.number().int().min(0).default(0)",
+		"kbve.forum.ForumThread.attachment_count": "z.number().int().min(0).default(0)",
 
 		"kbve.forum.ForumComment.id": "z.string().min(1)",
 		"kbve.forum.ForumComment.author_id": "z.string().uuid()",
@@ -129,9 +264,100 @@
 		"kbve.forum.ForumComment.is_accepted": "z.boolean().default(false)",
 		"kbve.forum.ForumComment.created_at": "z.string().datetime()",
 		"kbve.forum.ForumComment.edited_at": "z.string().datetime().optional()",
+		"kbve.forum.ForumComment.score": "z.number().int().default(0)",
+		"kbve.forum.ForumComment.upvote_count": "z.number().int().min(0).default(0)",
+		"kbve.forum.ForumComment.downvote_count": "z.number().int().min(0).default(0)",
+		"kbve.forum.ForumComment.quoted_comment_id": "z.string().min(1).optional()",
+		"kbve.forum.ForumComment.revision_count": "z.number().int().min(0).default(0)",
+		"kbve.forum.ForumComment.attachment_count": "z.number().int().min(0).default(0)",
+
+		"kbve.forum.ForumUserProfile.user_id": "z.string().uuid()",
+		"kbve.forum.ForumUserProfile.joined_forum_at": "z.string().datetime()",
+		"kbve.forum.ForumUserProfile.last_active_at": "z.string().datetime().optional()",
+		"kbve.forum.ForumUserProfile.trust_level": "z.number().int().min(0).max(5).default(0)",
+		"kbve.forum.ForumUserProfile.ban_expires_at": "z.string().datetime().optional()",
+
+		"kbve.forum.ForumAuctionBid.id": "z.string().min(1)",
+		"kbve.forum.ForumAuctionBid.thread_id": "z.string().min(1)",
+		"kbve.forum.ForumAuctionBid.bidder_id": "z.string().uuid()",
+		"kbve.forum.ForumAuctionBid.amount": "z.number().int().min(0)",
+		"kbve.forum.ForumAuctionBid.created_at": "z.string().datetime()",
+
+		"kbve.forum.ForumPollVote.id": "z.string().min(1)",
+		"kbve.forum.ForumPollVote.thread_id": "z.string().min(1)",
+		"kbve.forum.ForumPollVote.voter_id": "z.string().uuid()",
+		"kbve.forum.ForumPollVote.created_at": "z.string().datetime()",
 
 		"kbve.forum.ThreadTag.thread_id": "z.string().min(1)",
 		"kbve.forum.ThreadTag.tag_id": "z.number().int().positive()",
+
+		"kbve.forum.ThreadVote.thread_id": "z.string().min(1)",
+		"kbve.forum.ThreadVote.voter_id": "z.string().uuid()",
+		"kbve.forum.ThreadVote.created_at": "z.string().datetime()",
+		"kbve.forum.ThreadVote.updated_at": "z.string().datetime()",
+
+		"kbve.forum.CommentVote.comment_id": "z.string().min(1)",
+		"kbve.forum.CommentVote.voter_id": "z.string().uuid()",
+		"kbve.forum.CommentVote.created_at": "z.string().datetime()",
+		"kbve.forum.CommentVote.updated_at": "z.string().datetime()",
+
+		"kbve.forum.Reaction.id": "z.string().min(1)",
+		"kbve.forum.Reaction.parent_id": "z.string().min(1)",
+		"kbve.forum.Reaction.user_id": "z.string().uuid()",
+		"kbve.forum.Reaction.custom_kind": "z.string().max(50).optional()",
+		"kbve.forum.Reaction.created_at": "z.string().datetime()",
+
+		"kbve.forum.UserFollow.follower_id": "z.string().uuid()",
+		"kbve.forum.UserFollow.target_id": "z.string().min(1)",
+		"kbve.forum.UserFollow.created_at": "z.string().datetime()",
+
+		"kbve.forum.Bookmark.id": "z.string().min(1)",
+		"kbve.forum.Bookmark.user_id": "z.string().uuid()",
+		"kbve.forum.Bookmark.thread_id": "z.string().min(1)",
+		"kbve.forum.Bookmark.folder": "z.string().max(100).optional()",
+		"kbve.forum.Bookmark.note": "z.string().max(500).optional()",
+		"kbve.forum.Bookmark.created_at": "z.string().datetime()",
+
+		"kbve.forum.ThreadSubscription.thread_id": "z.string().min(1)",
+		"kbve.forum.ThreadSubscription.user_id": "z.string().uuid()",
+		"kbve.forum.ThreadSubscription.created_at": "z.string().datetime()",
+
+		"kbve.forum.Report.id": "z.string().min(1)",
+		"kbve.forum.Report.reporter_id": "z.string().uuid()",
+		"kbve.forum.Report.target_id": "z.string().min(1)",
+		"kbve.forum.Report.reason_detail": "z.string().max(2000).optional()",
+		"kbve.forum.Report.resolved_by": "z.string().uuid().optional()",
+		"kbve.forum.Report.resolved_at": "z.string().datetime().optional()",
+		"kbve.forum.Report.resolution_note": "z.string().max(2000).optional()",
+		"kbve.forum.Report.created_at": "z.string().datetime()",
+
+		"kbve.forum.ModerationAction.id": "z.string().min(1)",
+		"kbve.forum.ModerationAction.moderator_id": "z.string().uuid()",
+		"kbve.forum.ModerationAction.target_id": "z.string().min(1)",
+		"kbve.forum.ModerationAction.reason": "z.string().max(2000).optional()",
+		"kbve.forum.ModerationAction.metadata_json": "z.string().optional()",
+		"kbve.forum.ModerationAction.created_at": "z.string().datetime()",
+
+		"kbve.forum.Notification.id": "z.string().min(1)",
+		"kbve.forum.Notification.recipient_id": "z.string().uuid()",
+		"kbve.forum.Notification.actor_id": "z.string().uuid().optional()",
+		"kbve.forum.Notification.target_id": "z.string().min(1).optional()",
+		"kbve.forum.Notification.body": "z.string().max(500).optional()",
+		"kbve.forum.Notification.read_at": "z.string().datetime().optional()",
+		"kbve.forum.Notification.created_at": "z.string().datetime()",
+
+		"kbve.forum.Attachment.id": "z.string().min(1)",
+		"kbve.forum.Attachment.parent_id": "z.string().min(1)",
+		"kbve.forum.Attachment.url": "z.string().url().max(2048)",
+		"kbve.forum.Attachment.mime_type": "z.string().max(128).optional()",
+		"kbve.forum.Attachment.size_bytes": "z.number().int().min(0).optional()",
+		"kbve.forum.Attachment.alt_text": "z.string().max(500).optional()",
+		"kbve.forum.Attachment.title": "z.string().max(300).optional()",
+		"kbve.forum.Attachment.preview_image_url": "z.string().url().max(2048).optional()",
+		"kbve.forum.Attachment.language": "z.string().max(32).optional()",
+		"kbve.forum.Attachment.uploader_id": "z.string().uuid()",
+		"kbve.forum.Attachment.created_at": "z.string().datetime()",
+		"kbve.forum.Attachment.sort_order": "z.number().int().default(0)",
 
 		"kbve.forum.FeedItem.author_name": "z.string().min(1).max(128)",
 		"kbve.forum.FeedItem.author_avatar_url": "z.string().url().max(512).optional()",
@@ -142,6 +368,10 @@
 		"kbve.forum.MarketplaceData.currency": "z.string().min(1).max(32)",
 		"kbve.forum.MarketplaceData.condition": "z.string().max(50).optional()",
 		"kbve.forum.MarketplaceData.buyer_id": "z.string().uuid().optional()",
+		"kbve.forum.MarketplaceData.image_attachment_ids": "z.array(z.string().min(1)).default([])",
+		"kbve.forum.MarketplaceData.shipping_region": "z.string().max(50).optional()",
+		"kbve.forum.MarketplaceData.payment_ref": "z.string().max(200).optional()",
+		"kbve.forum.MarketplaceData.expires_at": "z.string().datetime().optional()",
 
 		"kbve.forum.AuctionData.item_name": "z.string().min(1).max(200)",
 		"kbve.forum.AuctionData.item_description": "z.string().max(2000).optional()",
@@ -151,17 +381,26 @@
 		"kbve.forum.AuctionData.currency": "z.string().min(1).max(32)",
 		"kbve.forum.AuctionData.end_time": "z.string().datetime()",
 		"kbve.forum.AuctionData.bid_count": "z.number().int().min(0).default(0)",
+		"kbve.forum.AuctionData.min_increment": "z.number().int().min(0).default(1)",
+		"kbve.forum.AuctionData.reserve_price": "z.number().int().min(0).optional()",
+		"kbve.forum.AuctionData.anti_snipe_extend_seconds": "z.number().int().min(0).default(0)",
+		"kbve.forum.AuctionData.image_attachment_ids": "z.array(z.string().min(1)).default([])",
 
 		"kbve.forum.PollData.options": "z.array(z.string().min(1).max(200)).min(2).max(20)",
 		"kbve.forum.PollData.votes": "z.array(z.number().int().min(0)).default([])",
 		"kbve.forum.PollData.multiple_choice": "z.boolean().default(false)",
 		"kbve.forum.PollData.end_time": "z.string().datetime().optional()",
+		"kbve.forum.PollData.anonymous": "z.boolean().default(false)",
+		"kbve.forum.PollData.max_choices": "z.number().int().min(0).default(0)",
 
 		"kbve.forum.LfgData.game": "z.string().min(1).max(100)",
 		"kbve.forum.LfgData.slots_total": "z.number().int().min(1).max(100)",
 		"kbve.forum.LfgData.slots_filled": "z.number().int().min(0).default(0)",
 		"kbve.forum.LfgData.requirements": "z.string().max(1000).optional()",
 		"kbve.forum.LfgData.scheduled_time": "z.string().datetime().optional()",
+		"kbve.forum.LfgData.platforms": "z.array(z.string().min(1).max(32)).default([])",
+		"kbve.forum.LfgData.leader_id": "z.string().uuid().optional()",
+		"kbve.forum.LfgData.member_user_ids": "z.array(z.string().uuid()).default([])",
 
 		"kbve.forum.AssetData.asset_name": "z.string().min(1).max(200)",
 		"kbve.forum.AssetData.asset_description": "z.string().max(2000).optional()",
@@ -171,6 +410,11 @@
 		"kbve.forum.AssetData.version": "z.string().max(32).optional()",
 		"kbve.forum.AssetData.engine": "z.string().max(64).optional()",
 		"kbve.forum.AssetData.file_types": "z.array(z.string().min(1).max(16)).max(20).default([])",
+		"kbve.forum.AssetData.file_size_bytes": "z.number().int().min(0).optional()",
+		"kbve.forum.AssetData.download_count": "z.number().int().min(0).default(0)",
+		"kbve.forum.AssetData.repo_url": "z.string().url().max(512).optional()",
+
+		"kbve.forum.StatusData.content_warning": "z.string().max(100).optional()",
 
 		"kbve.forum.AnnouncementData.expires_at": "z.string().datetime().optional()"
 	}

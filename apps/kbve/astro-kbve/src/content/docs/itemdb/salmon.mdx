@@ -1,6 +1,9 @@
 ---
 title: 'Salmon'
-description: 'A fresh salmon, delicious and nutritious! It can be used for cooking!'
+description: |
+    Thick-bodied salmon with a slate-blue back and silver underside, scales still catching light like mail in the late afternoon. The flesh under the skin is coral-pink and cuts cleanly once the fish has rested.
+lore: |
+    Runs up the coast-rivers on a calendar the fishing families memorize before they learn to read. The nets go out at dawn and again at dusk, and the haul is sorted on the dock by size and condition, with the largest fish reserved for the smokehouse and the rest set for the evening markets. Arguing with a river-master over the quota is considered a short path to a long season in the cannery.
 ref: 'salmon'
 key: 1
 id: '01JW0R6C62QK3WVJHR05XZ5K1T'
@@ -31,6 +34,10 @@ scripts:
           health: 15
           duration: 5
           tickRate: 1
+food:
+  perishable: true
+  shelf_life_seconds: 86400
+  spoils_into_ref: 'rotten-meat'
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
@@ -121,3 +128,7 @@ You can cook raw salmon using a **campfire** or **cooking station** to increase 
     }
   ]}
 />
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Meat](/itemdb/rotten-meat/).

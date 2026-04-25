@@ -121,10 +121,11 @@ namespace RareIcon
     /// <summary>Marker tag for Market buildings — goods trading + future Merchants Guild hub. Tier progression: 0 Market → 1 Trade House → 2 Merchants Guild.</summary>
     public struct MarketTag : IComponentData { }
 
-    /// <summary>Progression level within a building's upgrade chain. 0 = base tier (Market, Farm). Higher tiers unlock via BuildingUpgradeRequest + cost deduction. Locale key + visuals may branch on this.</summary>
+    /// <summary>Progression level within a building's upgrade chain. 0 = base tier (Market, Farm). Higher tiers unlock via BuildingUpgradeRequest + cost deduction. Locale key + visuals may branch on this. Ghost-replicated — clients render the tier-specific silhouette via BuildingVisual which the server mutates alongside.</summary>
+    [Unity.NetCode.GhostComponent]
     public struct BuildingTier : IComponentData
     {
-        public byte Value;
+        [Unity.NetCode.GhostField] public byte Value;
     }
 
     /// <summary>Player-issued request to advance Target to the next tier. BuildingUpgradeSystem validates cost against the Capital, deducts, bumps BuildingTier.Value. Self-destroys after processing.</summary>
@@ -375,13 +376,16 @@ namespace RareIcon
     /// <summary>
     /// Per-building instance data. `RootHex` is the centre tile; the 6
     /// neighbours are implicitly claimed via HexOccupant on each tile.
+    /// Ghost-replicated: type + footprint anchor + ownership are the
+    /// minimum a client needs to render + target a building.
     /// </summary>
     // TODO(rust-ffi): persist {Type, RootHex, OwnerFaction} + the Capital's InventorySlot treasury buffer so world state survives unload / server restart.
+    [Unity.NetCode.GhostComponent]
     public struct Building : IComponentData
     {
-        public byte Type;
-        public int2 RootHex;
-        public byte OwnerFaction;
+        [Unity.NetCode.GhostField] public byte Type;
+        [Unity.NetCode.GhostField] public int2 RootHex;
+        [Unity.NetCode.GhostField] public byte OwnerFaction;
     }
 
     /// <summary>
@@ -394,12 +398,13 @@ namespace RareIcon
         public float Value;
     }
 
-    /// <summary>Per-building HP. Damage drops Value, Builders restore it; LastRepairAbsSeconds rate-limits the per-building repair tick against WorldClock.</summary>
+    /// <summary>Per-building HP. Damage drops Value, Builders restore it; LastRepairAbsSeconds rate-limits the per-building repair tick against WorldClock. LastRepairAbsSeconds is server-only — clients don't need the throttle clock.</summary>
     // TODO(rust-ffi): persist Value across chunk unload so damaged buildings don't auto-heal on reload.
+    [Unity.NetCode.GhostComponent]
     public struct BuildingHealth : IComponentData
     {
-        public ushort Value;
-        public ushort Max;
+        [Unity.NetCode.GhostField] public ushort Value;
+        [Unity.NetCode.GhostField] public ushort Max;
         public float  LastRepairAbsSeconds;
     }
 

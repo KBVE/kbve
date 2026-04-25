@@ -1,0 +1,103 @@
+---
+id: 01JSKULL000000000000000AA
+ref: skull
+name: Skull
+title: Skull Icon
+description: Death, hostile, enemy marker. Warning and combat UI.
+primary_category: game
+categories:
+  - game
+  - combat
+  - fantasy
+tags:
+  - death
+  - enemy
+  - hostile
+  - danger
+related_term_refs:
+  - sword
+  - shield
+  - heart
+search:
+  keywords:
+    - skull
+    - death
+    - enemy
+    - hostile
+    - danger
+    - kill
+    - warning
+  aliases:
+    - death
+    - danger
+  primary_category: game
+  search_weight: 1.3
+default_license:
+  license: cc0
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 24, 32, 48]
+    tags:
+      - game-hud
+      - enemy-marker
+    themes:
+      - noir
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8v6a2 2 0 0 0 2 2h1v3h2v-3h6v3h2v-3h1a2 2 0 0 0 2-2v-6a8 8 0 0 0-8-8z"/><circle cx="9" cy="12" r="1.5" fill="currentColor"/><circle cx="15" cy="12" r="1.5" fill="currentColor"/><path d="M11 16h2"/></svg>
+  - ref: filled
+    label: Filled
+    style: filled
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 24, 32]
+    tags:
+      - solid
+      - boss-marker
+    themes:
+      - noir
+      - medieval
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a8 8 0 0 0-8 8v6a2 2 0 0 0 2 2h1v3h2v-3h6v3h2v-3h1a2 2 0 0 0 2-2v-6a8 8 0 0 0-8-8zm-3 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm6 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>
+pagefindFilters:
+  - game
+  - combat
+featured: true
+order: 15
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Skull — death / hostile / enemy marker. Outline and filled variants for HUD + boss indicators.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

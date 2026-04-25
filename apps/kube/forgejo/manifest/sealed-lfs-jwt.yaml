@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+    name: forgejo-lfs-jwt
+    namespace: forgejo
+spec:
+    encryptedData:
+        secret: AgBGinKAMOZE4jG4mAasSeIcaNSD6ooNAdCRd7EWpTbUF9xDvEL48V9ZLNavtXgoO+PnP4gGyz0woZT7aIDblVHs/prqYcWgxmEm21wolysjEgdute2uU5y6ihMtNH9X8/QyTwmDo5gLwSJMfcgJNclFjjdO6USV5eZLwaRHLTCnBRk6mmNxMZ23hAh1sson+/4drlERYkkPd67orFRpnzz0sJr5nQPiitNB2KrxCMlKSNNF/7+2gMn/or7ZWxN+QW5xgqYc0AIiR7BFU7FX0YTtvx4Vqa9L0Pj+JwpIk2LzrpGfnm2NLZbcHVRXAgtG10kmKZml78HrbnFCoqUPpnSbVUxYA0lspTT1sDn2tOMl/eqlKDZIGSQgEIfuvdA8ldkhWPJxiww3fHY26FFWY3g1sH4QbHsGDMY+oPZvHoT5h6IuwF5A8eVuQA7Wk5A/rB6VKnIo3QpGB2NFwb4ODwaizbFLl4spMbUP/zrbvzN1/mshGGuE6CkRLl4lEOVcIHQ+qwrfT0/3YlAOcngImy/SE6eUC6LMs9O8SGm8neS5fk7wsYMf3edTlUhTfMT6IiZMd744cDBujIwoQYzW7hRXYX6WKP1+MXvqLQAVUidOrpSILBJo/HPGnJ6AOBAU9CAPzbpudclsqqkY7n5ZE/fhZKGIMIrBfFXROtWtyKKY9WGNwoYMQgdHtFn+P/HnG2Tl5Yf6COXKhG6U4sdFW9b3wJ1fYpi7tkeNOfNNId36X86WYqFBiAtsoB78
+    template:
+        metadata:
+            name: forgejo-lfs-jwt
+            namespace: forgejo

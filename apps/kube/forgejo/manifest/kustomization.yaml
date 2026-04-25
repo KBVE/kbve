@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
     - httproute.yaml
     - sealed-admin.yaml
+    - sealed-lfs-jwt.yaml
     - rbac.yaml
     - forgejo-externalsecret.yaml
     - sealed-deploy-keys.yaml

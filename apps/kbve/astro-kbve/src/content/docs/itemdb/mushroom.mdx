@@ -1,6 +1,9 @@
 ---
 title: 'Mushroom'
-description: 'A plain edible mushroom pulled from the forest floor.'
+description: |
+    Off-white cap the size of a silver piece, edges starting to roll upward, stem still carrying a smudge of leaf-litter where the forager twisted it loose. Smells of damp and faint pepper.
+lore: |
+    Comes up in clusters along the woodpath between the village and the coppice, on the week after the first heavy autumn rain. Children who learn the safe species from their grandmothers are paid in sweets for a full basket, and children who learn them from each other are paid with long lectures from the apothecary.
 ref: 'mushroom'
 key: 501
 id: '01KPTSDW036BJPP1KXZKQ4GA90'
@@ -14,6 +17,9 @@ buy_price: 3
 pool_group: 'food'
 food:
   restore_energy: 7
+  perishable: true
+  shelf_life_seconds: 259200
+  spoils_into_ref: 'rotten-food'
 skilling:
   skill: 'foraging'
 compress:
@@ -26,3 +32,8 @@ import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
 ## Overview
 
 <ItemDBPanel data={frontmatter} />
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).

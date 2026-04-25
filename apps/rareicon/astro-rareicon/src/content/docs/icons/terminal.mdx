@@ -1,0 +1,105 @@
+---
+id: 01JTERMINAL00000000000AA
+ref: terminal
+name: Terminal
+title: Terminal Icon
+description: CLI / terminal window. Hacking, code, console. Core RareIcon cyber-dystopian motif.
+primary_category: sci-fi
+categories:
+  - ui
+  - sci-fi
+  - game
+tags:
+  - cli
+  - console
+  - code
+  - hacking
+  - cyber
+related_term_refs:
+  - bug
+  - bolt
+search:
+  keywords:
+    - terminal
+    - cli
+    - console
+    - command
+    - code
+    - hack
+    - prompt
+  aliases:
+    - console
+    - cli
+    - shell
+  primary_category: sci-fi
+  search_weight: 1.4
+default_license:
+  license: cc0
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 24, 32]
+    tags:
+      - web-ui
+      - game-hud
+    themes:
+      - cyberpunk
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3"/><path d="M13 15h4"/></svg>
+  - ref: prompt
+    label: Prompt
+    style: glyph
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [12, 16, 20, 24]
+    tags:
+      - web-ui
+    themes:
+      - cyberpunk
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 7 5 5-5 5"/><path d="M12 17h8"/></svg>
+pagefindFilters:
+  - ui
+  - sci-fi
+featured: true
+order: 16
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Terminal — CLI / console / hacking glyph. Cyberpunk-themed, core RareIcon motif.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

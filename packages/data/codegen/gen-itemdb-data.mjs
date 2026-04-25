@@ -14,7 +14,7 @@
  *   apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.json
  *     — { version, generated_at, count, entries: [...snake_case frontmatter...] }
  *     Mirrors the gen-mapdb-data.mjs wrapper convention so Newtonsoft can
- *     deserialise directly into an ItemdbBundle POCO (see ItemdbDef.cs).
+ *     deserialise directly into an ItemDBBundle POCO (see ItemDBDef.cs).
  *   apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.binpb
  *     — Byte-for-byte copy of the central binpb. Lets future Burst / uniti
  *     paths consume the same wire format.
@@ -56,7 +56,7 @@ const CENTRAL_BINPB = resolve(GENERATED_DIR, 'itemdb-data.binpb');
 
 // Per-game sync targets — each Unity game mirrors both formats into its
 // StreamingAssets so the runtime loader finds them at boot, and gets
-// ItemId.Generated.cs / ItemdbRefMap.Generated.cs dropped into Scripts/
+// ItemId.Generated.cs / ItemDBRefMap.Generated.cs dropped into Scripts/
 // so new mdx entries flow through to C# without any handwritten edits.
 const SYNC_TARGETS = [
 	{
@@ -67,11 +67,11 @@ const SYNC_TARGETS = [
 		),
 		itemIdPath: resolve(
 			repoRoot,
-			'apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/Components/ItemId.Generated.cs',
+			'apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemId.Generated.cs',
 		),
 		refMapPath: resolve(
 			repoRoot,
-			'apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/Data/ItemdbRefMap.Generated.cs',
+			'apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemDBRefMap.Generated.cs',
 		),
 	},
 ];
@@ -81,23 +81,9 @@ const SYNC_TARGETS = [
 // is the PascalCase of its mdx ref, with no manual aliasing.
 const ENUM_NAME_ALIAS = {};
 
-// Members the handwritten ItemId enum carries that do not yet have an mdx
-// entry. Numeric ids live at 60000+ so they never collide with mdx `key`
-// values (currently 0-999). Remove an entry here the moment its mdx file
-// lands — the generator will then assign its key directly.
-const LEGACY_ITEMS = [
-	{ name: 'ManaPotion',       id: 60001 },
-	{ name: 'WolfPelt',         id: 60002 },
-	{ name: 'WolfFang',         id: 60003 },
-	{ name: 'Meat',             id: 60004 },
-	{ name: 'Hood',             id: 60005 },
-	{ name: 'IronSword',        id: 60006 },
-	{ name: 'IronShield',       id: 60007 },
-	{ name: 'IronArmor',        id: 60008 },
-	{ name: 'QuestScroll',      id: 60009 },
-	{ name: 'BossKey',          id: 60010 },
-	{ name: 'CapitalLandGrant', id: 60011 },
-];
+// Reserved for items that ever need a stable numeric id before their mdx
+// file is authored. Empty under steady state, every item is mdx-first.
+const LEGACY_ITEMS = [];
 
 // Astro-only fields that have no place in the game-side JSON.
 const ASTRO_ONLY = new Set([
@@ -269,8 +255,8 @@ function emitRefMapSource(members) {
 		'',
 		'namespace RareIcon',
 		'{',
-		'    /// <summary>Generated mdx ref → <see cref="ItemId"/> lookup. <see cref="ItemDB"/> walks <see cref="ItemdbCache"/> and resolves each entry through this map to materialise its blittable <see cref="ItemDef"/>.</summary>',
-		'    public static class ItemdbRefMap',
+		'    /// <summary>Generated mdx ref → <see cref="ItemId"/> lookup. <see cref="ItemDB"/> walks <see cref="ItemDBCache"/> and resolves each entry through this map to materialise its blittable <see cref="ItemDef"/>.</summary>',
+		'    public static class ItemDBRefMap',
 		'    {',
 		'        public static readonly IReadOnlyDictionary<string, ItemId> RefToId = new Dictionary<string, ItemId>',
 		'        {',

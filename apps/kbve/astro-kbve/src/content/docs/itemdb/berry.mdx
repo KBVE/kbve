@@ -1,6 +1,9 @@
 ---
 title: 'Berry'
-description: 'A handful of wild berries foraged from bushes.'
+description: |
+    A handful of deep-purple berries, skins tight enough to split under a thumb, fingers stained within a step of the bush. Sweet at the top, sharp underneath, with a seed that tastes faintly of cedar.
+lore: |
+    Foraged off low thornbushes that line every goat path worth walking, and tolerated by the farms that pretend they do not notice children emptying the hedgerows. A decent forager learns early which patch belongs to which grandmother, and whose grudge is worth the shortcut. The season is short, always shorter than anyone planned for.
 ref: 'berry'
 key: 500
 id: '01KPTSDW02MJBNHGJN2QDM05X5'
@@ -14,6 +17,9 @@ buy_price: 2
 pool_group: 'food'
 food:
   restore_energy: 10
+  perishable: true
+  shelf_life_seconds: 259200
+  spoils_into_ref: 'rotten-food'
 skilling:
   skill: 'foraging'
 compress:
@@ -26,3 +32,8 @@ import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
 ## Overview
 
 <ItemDBPanel data={frontmatter} />
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).

@@ -2,12 +2,12 @@ use anyhow::Result;
 use std::{net::SocketAddr, time::Duration};
 
 use axum::{
+    Router,
     extract::Request,
-    http::{header, HeaderName, HeaderValue},
+    http::{HeaderName, HeaderValue, header},
     middleware::Next,
     response::{IntoResponse, Response},
     routing::get,
-    Router,
 };
 use tokio::net::TcpListener;
 use tower_http::set_header::SetResponseHeaderLayer;
@@ -64,10 +64,16 @@ fn router() -> Router {
                 if err.is::<tower::timeout::error::Elapsed>() {
                     (axum::http::StatusCode::REQUEST_TIMEOUT, "request timed out")
                 } else if err.is::<tower::load_shed::error::Overloaded>() {
-                    (axum::http::StatusCode::SERVICE_UNAVAILABLE, "service overloaded")
+                    (
+                        axum::http::StatusCode::SERVICE_UNAVAILABLE,
+                        "service overloaded",
+                    )
                 } else {
                     tracing::warn!(error = %err, "middleware error");
-                    (axum::http::StatusCode::INTERNAL_SERVER_ERROR, "internal server error")
+                    (
+                        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                        "internal server error",
+                    )
                 }
             },
         ))
@@ -78,11 +84,11 @@ fn router() -> Router {
 
     let static_router = crate::astro::build_static_router(&static_config);
 
-    let public_router = Router::new()
-        .route("/health", get(health));
+    let public_router = Router::new().route("/health", get(health));
 
     static_router
         .merge(public_router)
+        .layer(axum::middleware::from_fn(crate::astro::corp_static_assets))
         .layer(axum::middleware::from_fn(fix_ts_mime))
         .layer(axum::middleware::from_fn(cache_headers))
         .layer(middleware)
@@ -110,10 +116,9 @@ async fn cache_headers(request: Request, next: Next) -> Response {
         "public, max-age=86400"
     };
 
-    response.headers_mut().insert(
-        header::CACHE_CONTROL,
-        HeaderValue::from_static(cache_value),
-    );
+    response
+        .headers_mut()
+        .insert(header::CACHE_CONTROL, HeaderValue::from_static(cache_value));
 
     response
 }
@@ -133,7 +138,7 @@ async fn fix_ts_mime(request: Request, next: Next) -> Response {
 }
 
 fn tuned_listener(addr: SocketAddr) -> Result<TcpListener> {
-    use socket2::{Socket, Domain, Type, Protocol};
+    use socket2::{Domain, Protocol, Socket, Type};
 
     let domain = match addr {
         SocketAddr::V4(_) => Domain::IPV4,
@@ -229,10 +234,7 @@ mod tests {
             response.headers().get("x-content-type-options").unwrap(),
             "nosniff"
         );
-        assert_eq!(
-            response.headers().get("x-frame-options").unwrap(),
-            "DENY"
-        );
+        assert_eq!(response.headers().get("x-frame-options").unwrap(), "DENY");
         assert_eq!(
             response.headers().get("referrer-policy").unwrap(),
             "strict-origin-when-cross-origin"
@@ -272,12 +274,7 @@ mod tests {
             .layer(axum::middleware::from_fn(cache_headers));
 
         let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
+            .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
             .await
             .unwrap();
 

@@ -11,7 +11,9 @@ const currentSlug = url
 	.replace(/^docs\//, '');
 ---
 
-<div class="sl-right-sidebar-toggle-wrap">
+<div
+	class="sl-right-sidebar-toggle-wrap"
+	transition:persist="sl-right-sidebar-toggle">
 	<button
 		id="sl-right-sidebar-collapse-btn"
 		class="sl-sidebar-collapse-btn"

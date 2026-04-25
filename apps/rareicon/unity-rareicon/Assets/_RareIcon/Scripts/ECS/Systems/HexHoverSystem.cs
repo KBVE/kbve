@@ -10,86 +10,44 @@ using UnityEngine.Rendering;
 
 namespace RareIcon
 {
-    /// <summary>Moves the hover overlay entity to the hovered hex and publishes <see cref="HexHoverMessage"/> / <see cref="HexClickedMessage"/> on mouse activity.</summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    /// <summary>Moves the hover overlay entity to the hovered hex and publishes <see cref="HexHoverMessage"/> / <see cref="HexClickedMessage"/> on mouse activity. Presentation-only: mouse input + overlay rendering are client concerns. Scoped to BehaviorSystemGroup so BuildPreviewSystem's UpdateAfter resolves within the same group.</summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
+    [UpdateInGroup(typeof(BehaviorSystemGroup))]
     public partial class HexHoverSystem : SystemBase
     {
         const float HexSize = 0.25f;
-
-        static NativeHashMap<int2, Entity> _hexLookup;
-        static bool _initialized;
 
         Entity _overlayEntity;
         bool _overlayCreated;
         int2 _lastHex;
 
-        public static void Initialize(int capacity)
-        {
-            if (_initialized && _hexLookup.IsCreated) _hexLookup.Dispose();
-            _hexLookup = new NativeHashMap<int2, Entity>(capacity, Allocator.Persistent);
-            _initialized = true;
-
-            // Publish / refresh the singleton entity so Burst-compiled
-            // consumer systems can read the map via SystemAPI.GetSingleton,
-            // which is the only Burst-safe way to reach static data.
-            var world = World.DefaultGameObjectInjectionWorld;
-            if (world == null || !world.IsCreated) return;
-            var em = world.EntityManager;
-            using var q = em.CreateEntityQuery(ComponentType.ReadWrite<HexLookupSingleton>());
-            Entity e = q.CalculateEntityCount() == 0
-                ? em.CreateEntity(typeof(HexLookupSingleton))
-                : q.GetSingletonEntity();
-            em.SetComponentData(e, new HexLookupSingleton { Lookup = _hexLookup });
-        }
-
-        public static void AddHex(int2 coord, Entity entity)
-        {
-            if (!_initialized) Initialize(4096);
-            _hexLookup.TryAdd(coord, entity);
-        }
-
-        public static void RemoveHex(int2 coord)
-        {
-            if (_initialized && _hexLookup.IsCreated)
-                _hexLookup.Remove(coord);
-        }
-
-        /// <summary>
-        /// Hex coord → entity lookup. Used by HarvestSystem and any other
-        /// system that needs to resolve a hex coord into its underlying ECS
-        /// entity (for resource reads / writes / per-tile queries).
-        /// </summary>
+        /// <summary>Hex coord → entity lookup, routed through the Hex domain. Kept as a static shim so legacy callers (BuildingSpawnSystem / BuildPreviewSystem / AppStateController / HarvestSystem) don't all need rewriting — they continue calling <c>HexHoverSystem.TryGetHexEntity</c> and the actual read lands on HexDBSingleton.Lookup.</summary>
         public static bool TryGetHexEntity(int2 coord, out Entity entity)
         {
-            if (_initialized && _hexLookup.IsCreated)
-                return _hexLookup.TryGetValue(coord, out entity);
             entity = default;
-            return false;
+            var world = World.DefaultGameObjectInjectionWorld;
+            return HexDB.TryGetEntity(world, coord, out entity);
         }
 
-        public static void Cleanup()
-        {
-            if (_initialized && _hexLookup.IsCreated)
-            {
-                _hexLookup.Dispose();
-                _initialized = false;
-            }
-        }
+        /// <summary>Deprecated shim — producers should call <see cref="HexDB.EnqueueAdd"/> directly. Kept routing to the queue so HexChunkSystem's existing call site keeps working mid-migration.</summary>
+        public static void AddHex(int2 coord, Entity entity) =>
+            HexDB.EnqueueAdd(World.DefaultGameObjectInjectionWorld, coord, entity);
+
+        /// <summary>Deprecated shim — producers should call <see cref="HexDB.EnqueueRemove"/> directly.</summary>
+        public static void RemoveHex(int2 coord) =>
+            HexDB.EnqueueRemove(World.DefaultGameObjectInjectionWorld, coord);
 
         protected override void OnCreate()
         {
             RequireForUpdate<MouseState>();
+            RequireForUpdate<HexDBSingleton>();
             _lastHex = new int2(int.MinValue, int.MinValue);
-        }
-
-        protected override void OnDestroy()
-        {
-            Cleanup();
         }
 
         protected override void OnUpdate()
         {
-            if (!_initialized || !_hexLookup.IsCreated) return;
+            var db = SystemAPI.GetSingleton<HexDBSingleton>();
+            if (!db.Lookup.IsCreated) return;
 
             // Create overlay entity once
             if (!_overlayCreated)
@@ -102,7 +60,12 @@ namespace RareIcon
 
             if (mouse.LeftReleasedThisFrame && !mouse.OverUI && !mouse.DragEndedThisFrame)
             {
-                bool clickIsLand = _hexLookup.TryGetValue(mouse.HexCoord, out Entity clickedEntity);
+                // HexDBSingleton.Lookup is populated by HexDomainSystem's
+                // Burst drain job. Exists guards against cross-world entity
+                // handles in case NetCode or another world runs its own
+                // spawn pass.
+                bool clickIsLand = db.Lookup.TryGetValue(mouse.HexCoord, out Entity clickedEntity)
+                                   && EntityManager.Exists(clickedEntity);
                 byte clickBiome = 0;
                 if (clickIsLand)
                     clickBiome = EntityManager.GetComponentData<BiomeType>(clickedEntity).Value;
@@ -122,7 +85,8 @@ namespace RareIcon
             EntityManager.SetComponentData(_overlayEntity, LocalTransform.FromPosition(pos));
 
             // Publish hover info
-            bool isLand = _hexLookup.TryGetValue(mouse.HexCoord, out Entity hexEntity);
+            bool isLand = db.Lookup.TryGetValue(mouse.HexCoord, out Entity hexEntity)
+                          && EntityManager.Exists(hexEntity);
             var publisher = GlobalMessagePipe.GetPublisher<HexHoverMessage>();
 
             // Sweep units once per hex change — find any unit standing on this hex
@@ -278,11 +242,5 @@ namespace RareIcon
             _overlayCreated = true;
             Debug.Log("[HexHoverSystem] Hover overlay entity created");
         }
-    }
-
-    /// <summary>Singleton mirror of HexHoverSystem's internal hex map; Burst-compiled systems read the NativeHashMap via SystemAPI.GetSingleton since static fields aren't Burst-accessible.</summary>
-    public struct HexLookupSingleton : IComponentData
-    {
-        public NativeHashMap<int2, Entity> Lookup;
     }
 }

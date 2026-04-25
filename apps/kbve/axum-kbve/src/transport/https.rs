@@ -179,6 +179,8 @@ fn router(state: AppState) -> Router {
         .layer(tower_http::limit::RequestBodyLimitLayer::new(1024 * 1024));
 
     let static_router = crate::astro::build_static_router(&static_config)
+        .layer(axum::middleware::from_fn(crate::astro::coop_coep_isometric))
+        .layer(axum::middleware::from_fn(crate::astro::corp_static_assets))
         .layer(axum::middleware::from_fn(fix_ts_mime))
         .layer(axum::middleware::from_fn(cache_headers));
 

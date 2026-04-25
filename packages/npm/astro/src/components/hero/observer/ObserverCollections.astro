@@ -13,6 +13,8 @@ interface Props {
 	heroTranslateY?: number;
 	heroBackgroundScale?: number;
 	heroPerspective?: string;
+	prev?: string;
+	next?: string;
 }
 
 const {
@@ -27,6 +29,8 @@ const {
 	heroTranslateY = 0,
 	heroBackgroundScale = 1.1,
 	heroPerspective = '500px',
+	prev,
+	next,
 } = Astro.props;
 
 const heroVideoId = video ? parseYouTubeId(video) : null;
@@ -44,7 +48,12 @@ const heroBgStyle = [
 	.join(' ');
 ---
 
-<div class="obs not-content" data-obs-root data-obs-duration={String(duration)}>
+<div
+	class="obs not-content"
+	data-obs-root
+	data-obs-duration={String(duration)}
+	data-obs-prev={prev ?? ''}
+	data-obs-next={next ?? ''}>
 	{
 		foreground && (
 			<div
@@ -129,6 +138,7 @@ const heroBgStyle = [
 	import { gsap } from 'gsap';
 	import { Observer } from 'gsap/Observer';
 	import { ytPlay, ytPause } from './_video';
+	import { ringNavigate, isRingNavLocked } from './_ringNav';
 
 	gsap.registerPlugin(Observer);
 
@@ -157,6 +167,20 @@ const heroBgStyle = [
 				root.dataset.obsInit = 'true';
 
 				const duration = Number(root.dataset.obsDuration) || 1.25;
+				const chainPrev = root.dataset.obsPrev || '';
+				const chainNext = root.dataset.obsNext || '';
+
+				// Back-nav arrival = land at bottom for continuous feel.
+				const navDir = document.documentElement.dataset.navDir;
+				if (navDir === 'back') {
+					requestAnimationFrame(() => {
+						window.scrollTo({
+							top: document.documentElement.scrollHeight,
+							behavior: 'instant' as ScrollBehavior,
+						});
+					});
+				}
+				delete document.documentElement.dataset.navDir;
 
 				const sections = Array.from(
 					root.querySelectorAll<HTMLElement>('.obs__section'),
@@ -507,25 +531,48 @@ const heroBgStyle = [
 					});
 				}
 
-				Observer.create({
+				const lastIndex = sections.length - 1;
+
+				const observer = Observer.create({
 					target: window,
 					type: 'wheel,touch,pointer',
 					wheelSpeed: -1,
 					onDown: () => {
-						if (animating) return;
-						if (heroActive) return;
+						if (animating || isRingNavLocked()) return;
+						if (heroActive) {
+							if (chainPrev) ringNavigate(chainPrev, 'back');
+							return;
+						}
+						if (chainPrev && currentIndex === 0) {
+							ringNavigate(chainPrev, 'back');
+							return;
+						}
 						gotoSection(currentIndex - 1, -1);
 					},
 					onUp: () => {
-						if (animating) return;
+						if (animating || isRingNavLocked()) return;
 						if (heroActive) {
 							transitionFromHero();
-						} else {
-							gotoSection(currentIndex + 1, 1);
+							return;
 						}
+						if (chainNext && currentIndex === lastIndex) {
+							ringNavigate(chainNext, 'forward');
+							return;
+						}
+						gotoSection(currentIndex + 1, 1);
 					},
 					tolerance: 10,
 					preventDefault: true,
+				});
+
+				const killObserver = () => {
+					observer.kill();
+				};
+				document.addEventListener('astro:before-swap', killObserver, {
+					once: true,
+				});
+				window.addEventListener('pagehide', killObserver, {
+					once: true,
 				});
 			});
 	};

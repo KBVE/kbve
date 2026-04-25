@@ -1,0 +1,40 @@
+---
+id: 01JUSERS00000000000000AA
+ref: users
+name: Users
+title: Users Icon
+description: Group / party avatar — team, community, recruits.
+primary_category: ui
+categories: [ui, social, game]
+tags: [group, party, team, community]
+related_term_refs: [user]
+search:
+  keywords: [users, group, party, team, community, recruits, allies]
+  aliases: [group, team, party]
+  primary_category: ui
+  search_weight: 1.2
+default_license:
+  license: cc0
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render: { uses_current_color: true, monochrome: true, stroke_width: 2, stroke_cap: round, stroke_join: round }
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [web-ui, party-indicator]
+    themes: [neutral]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+pagefindFilters: [ui, social]
+order: 23
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Users — group / party / team glyph.
+
+<IconTermPanel termRef={frontmatter.ref} name={frontmatter.name} description={frontmatter.description} primary_category={frontmatter.primary_category} categories={frontmatter.categories} tags={frontmatter.tags} icons={frontmatter.icons} />

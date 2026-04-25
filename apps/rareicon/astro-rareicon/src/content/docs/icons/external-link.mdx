@@ -1,0 +1,38 @@
+---
+id: 01JEXTLINK000000000000AA
+ref: external-link
+name: External Link
+title: External Link Icon
+description: Open in new tab, leave site indicator.
+primary_category: navigation
+categories: [ui, navigation]
+tags: [external, outbound, new-tab, link]
+related_term_refs: [arrow-right]
+search:
+  keywords: [external, link, outbound, new-tab, open-in, leaves-site]
+  aliases: [outbound, new-tab]
+  primary_category: navigation
+  search_weight: 1.2
+default_license:
+  license: cc0
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render: { uses_current_color: true, monochrome: true, stroke_width: 2, stroke_cap: round, stroke_join: round }
+    recommended_sizes: [12, 16, 20, 24]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+pagefindFilters: [ui, navigation]
+order: 30
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+External link — new-tab indicator.
+
+<IconTermPanel termRef={frontmatter.ref} name={frontmatter.name} description={frontmatter.description} primary_category={frontmatter.primary_category} categories={frontmatter.categories} tags={frontmatter.tags} icons={frontmatter.icons} />

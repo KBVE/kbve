@@ -126,8 +126,9 @@ const heightValue = typeof height === 'number' ? `${height}px` : height;
 </div>
 
 <script>
-	// Handle loaded state
-	document.addEventListener('DOMContentLoaded', () => {
+	import { onMount } from '@kbve/astro/utils/clientRouter';
+
+	onMount(() => {
 		const observer = new MutationObserver((mutations) => {
 			mutations.forEach((mutation) => {
 				if (
@@ -136,8 +137,6 @@ const heightValue = typeof height === 'number' ? `${height}px` : height;
 				) {
 					const target = mutation.target as HTMLElement;
 					const channel = target.getAttribute('data-channel');
-
-					// Announce to screen readers
 					const announcement = document.createElement('div');
 					announcement.className = 'sr-only';
 					announcement.setAttribute('role', 'status');
@@ -148,21 +147,24 @@ const heightValue = typeof height === 'number' ? `${height}px` : height;
 				}
 			});
 		});
-
-		// Observe all chat embeds
 		document.querySelectorAll('[data-twitch-chat]').forEach((chat) => {
 			observer.observe(chat, { attributes: true });
 		});
-	});
 
-	// Mark as loaded when iframe loads
-	window.addEventListener('message', (event) => {
-		if (event.origin.includes('twitch.tv')) {
-			const chatContainers =
-				document.querySelectorAll('[data-twitch-chat]');
-			chatContainers.forEach((container) => {
-				container.setAttribute('data-loaded', '');
-			});
-		}
+		const onMessage = (event: MessageEvent) => {
+			if (event.origin.includes('twitch.tv')) {
+				document
+					.querySelectorAll('[data-twitch-chat]')
+					.forEach((container) => {
+						container.setAttribute('data-loaded', '');
+					});
+			}
+		};
+		window.addEventListener('message', onMessage);
+
+		return () => {
+			observer.disconnect();
+			window.removeEventListener('message', onMessage);
+		};
 	});
 </script>

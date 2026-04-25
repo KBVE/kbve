@@ -12,6 +12,7 @@ namespace RareIcon
     /// Lives in the same ECS world as hex tiles.
     /// Runs once at initialization.
     /// </summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial struct OceanSpawnSystem : ISystem
     {

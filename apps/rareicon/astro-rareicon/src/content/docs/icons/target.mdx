@@ -1,0 +1,52 @@
+---
+id: 01JTARGET0000000000000AA
+ref: target
+name: Target
+title: Target Icon
+description: Crosshair, aim, focus, objective.
+primary_category: game
+categories: [game, ui, combat]
+tags: [crosshair, aim, focus, objective, bullseye]
+related_term_refs: [bolt, skull]
+search:
+  keywords: [target, crosshair, aim, focus, objective, bullseye, reticle, scope]
+  aliases: [crosshair, aim, reticle]
+  primary_category: game
+  search_weight: 1.3
+default_license:
+  license: cc0
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render: { uses_current_color: true, monochrome: true, stroke_width: 2, stroke_cap: round, stroke_join: round }
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [game-hud, auto-aim]
+    themes: [cyberpunk]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+  - ref: crosshair
+    label: Crosshair
+    style: glyph
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render: { uses_current_color: true, monochrome: true, stroke_width: 2, stroke_cap: round, stroke_join: round }
+    recommended_sizes: [16, 20, 24]
+    tags: [game-hud, reticle]
+    themes: [cyberpunk]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+pagefindFilters: [game, combat]
+featured: true
+order: 27
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Target — crosshair / aim / objective glyph. Bullseye + reticle variants.
+
+<IconTermPanel termRef={frontmatter.ref} name={frontmatter.name} description={frontmatter.description} primary_category={frontmatter.primary_category} categories={frontmatter.categories} tags={frontmatter.tags} icons={frontmatter.icons} />

@@ -9,6 +9,7 @@ using UnityEngine.Rendering;
 namespace RareIcon
 {
     /// <summary>One-shot managed bootstrap that builds the runtime decal prefab (Shader.Find + new Mesh + new Material live here, all managed) and stashes it in a BloodDecalPrefabSingleton so the Burst-compiled spawn ISystem can consume it without touching managed APIs.</summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class BloodDecalBootstrapSystem : SystemBase
     {
@@ -79,6 +80,7 @@ namespace RareIcon
 
     /// <summary>Pure-ECS Burst spawn consumer — instantiates the bootstrap-built prefab for each SpawnBloodDecalRequest and destroys the request. Touches no managed APIs; bails until the bootstrap singleton lands.</summary>
     [BurstCompile]
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(CleanupSystemGroup))]
     [UpdateBefore(typeof(BloodDecalDecaySystem))]
     public partial struct BloodDecalSpawnSystem : ISystem

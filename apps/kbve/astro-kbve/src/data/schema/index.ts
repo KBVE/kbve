@@ -5,3 +5,4 @@ export * from './INpcSchema';
 export * from './osrs';
 export * from './ICiProjectSchema';
 export * from './IClickHouseSchema';
+export * from './IForumSchema';

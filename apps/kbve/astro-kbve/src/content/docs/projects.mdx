@@ -1,0 +1,26 @@
+---
+title: Projects
+description: KBVE projects gallery — games, tools, libraries, and community studios.
+template: splash
+editUrl: false
+lastUpdated: false
+next: false
+sidebar:
+    label: Projects
+    order: 6
+---
+
+import DeferredProjectGallery from '@/components/kbve/DeferredProjectGallery.astro';
+import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
+
+<div class="ring-page">
+
+# Projects
+
+Games, tools, libraries, and studios under the KBVE umbrella.
+
+<DeferredProjectGallery />
+
+</div>
+
+<ScrollRing prev="/github/" next="/" prevLabel="GitHub" nextLabel="Home" threshold={220} />

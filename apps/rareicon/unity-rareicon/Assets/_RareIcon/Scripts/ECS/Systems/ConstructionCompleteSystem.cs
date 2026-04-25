@@ -19,9 +19,30 @@ namespace RareIcon
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);
 
+            bool hasEvents = false;
+            var events = default(Unity.Collections.NativeList<BuildingEvent>.ParallelWriter);
+            if (SystemAPI.HasSingleton<BuildingsDBSingleton>())
+            {
+                var db = SystemAPI.GetSingleton<BuildingsDBSingleton>();
+                if (db.Events.IsCreated)
+                {
+                    // Grow once per tick — AddNoResize inside a parallel
+                    // job refuses to grow, so we front-load capacity for a
+                    // conservative worst case (one event per candidate
+                    // completion this frame).
+                    int query = SystemAPI.QueryBuilder().WithAll<ConstructionSite, Building>().Build().CalculateEntityCount();
+                    int needed = db.Events.Length + query;
+                    if (db.Events.Capacity < needed) db.Events.Capacity = needed;
+                    events = db.Events.AsParallelWriter();
+                    hasEvents = true;
+                }
+            }
+
             state.Dependency = new ConstructionCompleteJob
             {
-                Ecb = ecb.AsParallelWriter(),
+                Ecb       = ecb.AsParallelWriter(),
+                Events    = events,
+                HasEvents = hasEvents,
             }.ScheduleParallel(state.Dependency);
         }
     }
@@ -30,6 +51,8 @@ namespace RareIcon
     public partial struct ConstructionCompleteJob : IJobEntity
     {
         public EntityCommandBuffer.ParallelWriter Ecb;
+        public Unity.Collections.NativeList<BuildingEvent>.ParallelWriter Events;
+        public bool HasEvents;
 
         void Execute(Entity entity,
                      [ChunkIndexInQuery] int chunkIdx,
@@ -180,6 +203,22 @@ namespace RareIcon
             Ecb.AddComponent<NeedsStaffing>(chunkIdx, entity);
             Ecb.RemoveComponent<ConstructionSite>(chunkIdx, entity);
             Ecb.RemoveComponent<ConstructionMaterial>(chunkIdx, entity);
+
+            // Emit ConstructionComplete event so UI / audio / achievement
+            // subscribers receive a main-thread MessagePipe notification
+            // next Presentation tick. HasEvents gates the ParallelWriter
+            // access for the case where BuildingsDBSingleton isn't booted.
+            if (HasEvents)
+            {
+                Events.AddNoResize(new BuildingEvent
+                {
+                    Kind         = BuildingEventKind.ConstructionComplete,
+                    Entity       = entity,
+                    Type         = building.Type,
+                    RootHex      = building.RootHex,
+                    OwnerFaction = building.OwnerFaction,
+                });
+            }
         }
     }
 }

@@ -1,6 +1,9 @@
 ---
 title: 'Cooked Chicken'
-description: 'Chicken roasted to a safe, edible golden brown.'
+description: |
+    A whole roasted chicken with a thin glossed crust and herb-rubbed skin crackling faintly as it cools. The legs fall off the bone at a glance, the thigh juice runs clear, and the breast carries the quiet suggestion of the butter it was basted with.
+lore: |
+    Turned over the spits at roadside inns, at harvest dinners, and at the end of any market day that went better than the butcher expected. A bird cooked well is a private argument won between the cook and the fire, one that neither of them bothers to explain afterwards. The wishbone is pulled by whichever two people are willing to be seen doing it, and the luck is split honestly, which is more than can be said for most things at that table.
 ref: 'cooked-chicken'
 key: 524
 id: '01KPTSDW06FBW33WZW4G3K7EJ6'
@@ -16,6 +19,9 @@ action: 'consume'
 pool_group: 'food'
 food:
   restore_energy: 20
+  perishable: true
+  shelf_life_seconds: 259200
+  spoils_into_ref: 'rotten-meat'
 compress:
   target_ref: 'meal'
   ratio: 100
@@ -26,3 +32,8 @@ import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
 ## Overview
 
 <ItemDBPanel data={frontmatter} />
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Meat](/itemdb/rotten-meat/).

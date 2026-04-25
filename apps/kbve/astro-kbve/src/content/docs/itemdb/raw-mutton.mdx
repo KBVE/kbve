@@ -1,6 +1,9 @@
 ---
 title: 'Raw Mutton'
-description: 'Fresh mutton from a butchered sheep.'
+description: |
+    Bone-in shoulder of mutton wrapped in muslin, the fat coating the outside of the cut a creamy yellow, a light smoke still clinging to the wrapping from the butcher's cellar. The smell is heavier than beef's and less patient about it.
+lore: |
+    Hung for four days in a cellar whose temperature the butcher refuses to discuss with visitors, on the principle that half his reputation rests in the cellar and the other half in the aging. Older cuts cook down into something the younger cuts cannot, which is why the cellar list outlives the meat list in the back of the book.
 ref: 'raw-mutton'
 key: 520
 id: '01KPTSDW056MAY4EB3J1J7QKZN'
@@ -13,6 +16,9 @@ buy_price: 12
 pool_group: 'food'
 food:
   restore_energy: 17
+  perishable: true
+  shelf_life_seconds: 172800
+  spoils_into_ref: 'rotten-meat'
 compress:
   target_ref: 'meal'
   ratio: 100
@@ -23,3 +29,8 @@ import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
 ## Overview
 
 <ItemDBPanel data={frontmatter} />
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Meat](/itemdb/rotten-meat/).

@@ -1,6 +1,9 @@
 ---
 title: 'Fly Agaric'
-description: 'An iconic red-capped mushroom with white spots. Toxic if consumed raw, but useful in alchemy.'
+description: |
+    Deep red cap dotted with flaking white spots the shape of drying paint, set over a short cream-colored stalk and the faintest ring of skirt below the gills. Raw, the smell is earthy and wrong enough that most people put it down again without being told.
+lore: |
+    Pushes up under birch and pine on cool wet mornings, reliable as a calendar once the season has turned. The cap is outright poisonous at any worthwhile dose, but the apothecaries have learned to extract a narrow range of alkaloids from the trimmed skin, and the dyers have learned to extract a hard-earned red that nobody else can match. Children in the forest villages grow up with two rules about the mushroom, and the one their grandmothers repeat loudest is: do not touch it before breakfast.
 ref: 'fly-agaric'
 key: 117
 id: '01KMVPV9ZJTK4QB8KGBH5XAEW4'
@@ -22,6 +25,10 @@ skilling:
   resource_node: 'mushroom-fly-agaric'
 tags:
   - isometric
+food:
+  perishable: true
+  shelf_life_seconds: 259200
+  spoils_into_ref: 'rotten-food'
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
@@ -36,3 +43,8 @@ import {
 ## Overview
 
 <ItemDBPanel data={frontmatter} />
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).

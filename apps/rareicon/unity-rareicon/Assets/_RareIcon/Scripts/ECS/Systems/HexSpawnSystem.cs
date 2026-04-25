@@ -17,6 +17,7 @@ namespace RareIcon
     ///
     /// TODO: Rust FFI + SQLite chunk cache
     /// </summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial class HexChunkSystem : SystemBase
     {
@@ -39,11 +40,14 @@ namespace RareIcon
         static ChunkGeneratorService _generator;
         public static void SetGenerator(ChunkGeneratorService gen) => _generator = gen;
 
+        EntityQuery _buildingSnapshotQuery;
+
         protected override void OnCreate()
         {
             InitRendering();
             _currentLoadRadius = BaseLoadRadius;
             _initialLoad = true;
+            _buildingSnapshotQuery = GetEntityQuery(typeof(Building), typeof(BuildingHealth));
         }
 
         protected override void OnDestroy()
@@ -165,7 +169,11 @@ namespace RareIcon
                 UnloadDistantChunks(cameraChunk, unloadRadius);
             }
 
-            // Consume worker thread results
+            // Consume worker thread results. SpawnChunk appends to the
+            // HexDB pending-request queue via HexHoverSystem.AddHex — the
+            // drain lives in HexDomainSystem.OnUpdate which runs
+            // OrderFirst in Initialization, so the write happens cleanly
+            // through the DOTS job graph without a manual sync.
             int budget = _initialLoad ? 50 : MaxSpawnsPerFrame;
             int spawned = 0;
 
@@ -400,6 +408,320 @@ namespace RareIcon
                     }
                 }
             }
+
+            // Phase 4 hydrate — any buildings snapshotted into
+            // BuildingsDBSingleton.Unloaded when this chunk last unloaded
+            // get respawned with accumulated production / health deltas.
+            HydrateUnloadedBuildings(chunkCoord);
+        }
+
+        /// <summary>Respawns offloaded buildings into the live world as their chunk streams back in. Reads accumulated ghost-sim deltas from the UnloadedBuildingRecord and applies them to BuildingHealth + (future) ledger state. Lean v0: instantiates the shared building prefab, sets Building identity + health + tier + visual; per-type production + service components are NOT rebuilt here — that lands when the ghost-sim layer preserves full ledger state too.</summary>
+        void HydrateUnloadedBuildings(int2 chunkCoord)
+        {
+            if (!SystemAPI.HasSingleton<BuildingsDBSingleton>()) return;
+            if (!SystemAPI.HasSingleton<BuildingPrefabSingleton>()) return;
+
+            // Force completion of any in-flight ghost-sim job writing Unloaded.
+            var dbRW = SystemAPI.GetSingletonRW<BuildingsDBSingleton>();
+            var unloaded = dbRW.ValueRW.Unloaded;
+            if (!unloaded.IsCreated) return;
+
+            // FFI drain — cleans up the Rust-side mirror for this chunk so
+            // the write-back cache stays in sync with the live list. The
+            // drained records themselves are discarded because the in-memory
+            // list already holds ghost-sim-advanced copies; using the
+            // FFI records would overwrite accrued deltas with stale data.
+            // (Future: crash-recovery startup path reads FFI to seed the
+            // in-memory list before any session-local sim runs.)
+            var nativeWorld = WorldStoreSystem.Instance;
+            if (nativeWorld != null && nativeWorld.IsValid)
+            {
+                uint count = nativeWorld.BuildingCountInChunk(chunkCoord.x, chunkCoord.y);
+                if (count > 0)
+                {
+                    var discard = new FfiUnloadedBuilding[count];
+                    nativeWorld.TakeBuildingsInChunk(chunkCoord.x, chunkCoord.y, discard);
+                }
+            }
+
+            if (unloaded.Length == 0) return;
+
+            var prefab = SystemAPI.GetSingleton<BuildingPrefabSingleton>().Prefab;
+            if (prefab == Entity.Null) return;
+
+            var em = EntityManager;
+            int startX = chunkCoord.x * ChunkSize;
+            int startY = chunkCoord.y * ChunkSize;
+            int endX   = startX + ChunkSize;
+            int endY   = startY + ChunkSize;
+
+            // Iterate reverse so RemoveAtSwapBack doesn't skip records.
+            for (int i = unloaded.Length - 1; i >= 0; i--)
+            {
+                var rec = unloaded[i];
+                if (rec.RootHex.x < startX || rec.RootHex.x >= endX ||
+                    rec.RootHex.y < startY || rec.RootHex.y >= endY) continue;
+
+                var entity = em.Instantiate(prefab);
+                var pos = HexMeshUtil.HexToWorld(rec.RootHex.x, rec.RootHex.y, HexSize);
+                pos.z = -0.6f;  // BuildingZ — matches BuildingSpawnSystem.
+                em.SetComponentData(entity, LocalTransform.FromPosition(pos));
+                em.SetComponentData(entity, new Building
+                {
+                    Type         = rec.Type,
+                    RootHex      = rec.RootHex,
+                    OwnerFaction = rec.OwnerFaction,
+                });
+                byte visualId = BuildingDB.GetTieredVisualId(rec.Type, rec.Tier);
+                if (visualId == 0) visualId = rec.Type;
+                em.SetComponentData(entity, new BuildingVisual { Value = visualId });
+                em.SetComponentData(entity, new BuildingActiveVisual { Value = 1f });
+                em.SetComponentData(entity, new ConstructionProgressVisual { Value = 1f });
+
+                // Health + tier aren't on the prefab archetype — add them.
+                if (em.HasComponent<BuildingHealth>(entity))
+                    em.SetComponentData(entity, new BuildingHealth { Value = rec.Health, Max = rec.HealthMax });
+                else
+                    em.AddComponentData(entity, new BuildingHealth { Value = rec.Health, Max = rec.HealthMax });
+
+                if (rec.Tier > 0)
+                {
+                    if (em.HasComponent<BuildingTier>(entity))
+                        em.SetComponentData(entity, new BuildingTier { Value = rec.Tier });
+                    else
+                        em.AddComponentData(entity, new BuildingTier { Value = rec.Tier });
+                }
+
+                // Drain accumulated offline production into the Capital
+                // treasury. Each full unit of AccruedProduction → one
+                // output item deposited. Fractional remainder discards
+                // (rounding in the player's favour ≈ never applies).
+                DrainAccruedToCapital(rec);
+
+                // Replay the per-type init pass (tags + production
+                // components + ledger buffers) so the hydrated building
+                // joins live production again instead of being a visual
+                // shell. Mirrors ConstructionCompleteSystem's switch.
+                RehydratePerTypeComponents(entity, rec.Type, rec.RootHex, rec.OwnerFaction);
+
+                // Restore per-type ledger contents from the inline slot
+                // snapshot so stored resources survive the round-trip.
+                RestoreLedgerSlots(entity, rec);
+
+                // Resume the active ProductionRecipe at its pre-unload
+                // phase when we preserved remaining cycle time.
+                if ((rec.Flags & UnloadedBuildingFlags.HadRecipe) != 0 && rec.RecipeCycleRemaining > 0f)
+                {
+                    if (em.HasBuffer<ProductionRecipe>(entity) && SystemAPI.HasSingleton<WorldClock>())
+                    {
+                        float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
+                        var recipes = em.GetBuffer<ProductionRecipe>(entity);
+                        if (recipes.Length > 0)
+                        {
+                            var r = recipes[0];
+                            r.CycleEndsAt = now + rec.RecipeCycleRemaining;
+                            recipes[0] = r;
+                        }
+                    }
+                }
+
+                // Re-claim the footprint hexes via HexOccupant so
+                // placement + targeting systems see the building on
+                // every tile it occupies, not just the root.
+                ReclaimFootprint(entity, rec.Type, rec.RootHex);
+
+                // Emit spawn event — managed subscribers see the rehydrated
+                // entity via MessagePipe next Presentation tick.
+                if (dbRW.ValueRW.Events.IsCreated)
+                {
+                    dbRW.ValueRW.Events.Add(new BuildingEvent
+                    {
+                        Kind         = BuildingEventKind.Spawned,
+                        Entity       = entity,
+                        Type         = rec.Type,
+                        RootHex      = rec.RootHex,
+                        OwnerFaction = rec.OwnerFaction,
+                    });
+                }
+
+                unloaded.RemoveAtSwapBack(i);
+            }
+        }
+
+        /// <summary>Per-type primary output. 0 = no item output on hydrate (Barracks / GoblinCave produce units, not items; Capital / Inn / Market / Outpost / Tower / Wall have no recipe). Keep in sync with BuildingsGhostSimSystem.AdvanceJob.ProductionRate.</summary>
+        static ushort OfflineOutputItemId(byte buildingType)
+        {
+            switch (buildingType)
+            {
+                case BuildingType.Farm:       return (ushort)ItemId.Carrot;
+                case BuildingType.Village:    return (ushort)ItemId.Carrot;
+                case BuildingType.Lumbercamp: return (ushort)ItemId.Log;
+                case BuildingType.MiningPit:  return (ushort)ItemId.Stone;
+                case BuildingType.Furnace:    return (ushort)ItemId.Coal;
+                case BuildingType.Dock:       return (ushort)ItemId.Meat;
+                default:                      return 0;
+            }
+        }
+
+        void DrainAccruedToCapital(in UnloadedBuildingRecord rec)
+        {
+            if (rec.AccruedProduction < 1f) return;
+            ushort itemId = OfflineOutputItemId(rec.Type);
+            if (itemId == 0) return;
+            int yield = (int)math.floor(rec.AccruedProduction);
+            if (yield <= 0) return;
+
+            if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var cap)) return;
+            var em = EntityManager;
+            if (!em.HasBuffer<CapitalLedger>(cap)) return;
+
+            var treasury = em.GetBuffer<CapitalLedger>(cap).Reinterpret<BankLedgerBase>();
+            ushort clamped = (ushort)math.min(yield, ushort.MaxValue);
+            BankLedgerOps.AddItem(ref treasury, itemId, clamped, UlidFactory.NewUid());
+        }
+
+        /// <summary>Writes the preserved ledger slots back into the per-type ledger buffer on hydrate. Creates the buffer if the prefab archetype didn't already include it. Mirrors the per-type dispatch in <see cref="SnapshotLedgerSlots"/>.</summary>
+        void RestoreLedgerSlots(Entity entity, in UnloadedBuildingRecord rec)
+        {
+            var em = EntityManager;
+            byte type = rec.Type;
+
+            DynamicBuffer<BankLedgerBase> target = default;
+            switch (type)
+            {
+                case BuildingType.Capital:
+                    if (em.HasBuffer<CapitalLedger>(entity))
+                        target = em.GetBuffer<CapitalLedger>(entity).Reinterpret<BankLedgerBase>();
+                    break;
+                case BuildingType.Farm:
+                    if (!em.HasBuffer<FarmLedger>(entity)) em.AddBuffer<FarmLedger>(entity);
+                    target = em.GetBuffer<FarmLedger>(entity).Reinterpret<BankLedgerBase>();
+                    break;
+                case BuildingType.Barracks:
+                    if (!em.HasBuffer<BarracksLedger>(entity)) em.AddBuffer<BarracksLedger>(entity);
+                    target = em.GetBuffer<BarracksLedger>(entity).Reinterpret<BankLedgerBase>();
+                    break;
+                case BuildingType.Furnace:
+                    if (!em.HasBuffer<FurnaceLedger>(entity)) em.AddBuffer<FurnaceLedger>(entity);
+                    target = em.GetBuffer<FurnaceLedger>(entity).Reinterpret<BankLedgerBase>();
+                    break;
+                case BuildingType.Inn:
+                    if (!em.HasBuffer<InnLedger>(entity)) em.AddBuffer<InnLedger>(entity);
+                    target = em.GetBuffer<InnLedger>(entity).Reinterpret<BankLedgerBase>();
+                    break;
+                case BuildingType.Market:
+                    if (!em.HasBuffer<MarketLedger>(entity)) em.AddBuffer<MarketLedger>(entity);
+                    target = em.GetBuffer<MarketLedger>(entity).Reinterpret<BankLedgerBase>();
+                    break;
+                case BuildingType.Outpost:
+                    if (!em.HasBuffer<OutpostLedger>(entity)) em.AddBuffer<OutpostLedger>(entity);
+                    target = em.GetBuffer<OutpostLedger>(entity).Reinterpret<BankLedgerBase>();
+                    break;
+                case BuildingType.Lumbercamp:
+                    if (!em.HasBuffer<LumbercampLedger>(entity)) em.AddBuffer<LumbercampLedger>(entity);
+                    target = em.GetBuffer<LumbercampLedger>(entity).Reinterpret<BankLedgerBase>();
+                    break;
+                case BuildingType.MiningPit:
+                    if (!em.HasBuffer<MiningPitLedger>(entity)) em.AddBuffer<MiningPitLedger>(entity);
+                    target = em.GetBuffer<MiningPitLedger>(entity).Reinterpret<BankLedgerBase>();
+                    break;
+                case BuildingType.GoblinCave:
+                    if (!em.HasBuffer<GoblinCaveLedger>(entity)) em.AddBuffer<GoblinCaveLedger>(entity);
+                    target = em.GetBuffer<GoblinCaveLedger>(entity).Reinterpret<BankLedgerBase>();
+                    break;
+            }
+            if (!target.IsCreated) return;
+
+            target.Clear();
+            if (rec.Slot0Id != 0 && rec.Slot0Count != 0) target.Add(new BankLedgerBase { Uid = UlidFactory.NewUid(), ItemId = rec.Slot0Id, Count = rec.Slot0Count });
+            if (rec.Slot1Id != 0 && rec.Slot1Count != 0) target.Add(new BankLedgerBase { Uid = UlidFactory.NewUid(), ItemId = rec.Slot1Id, Count = rec.Slot1Count });
+            if (rec.Slot2Id != 0 && rec.Slot2Count != 0) target.Add(new BankLedgerBase { Uid = UlidFactory.NewUid(), ItemId = rec.Slot2Id, Count = rec.Slot2Count });
+            if (rec.Slot3Id != 0 && rec.Slot3Count != 0) target.Add(new BankLedgerBase { Uid = UlidFactory.NewUid(), ItemId = rec.Slot3Id, Count = rec.Slot3Count });
+        }
+
+        /// <summary>Re-establishes <see cref="HexOccupant"/> on every hex the building claims. Capital is the only multi-hex footprint today (7-hex flower); all others are single-hex. Skips hexes whose tile entities aren't live yet — re-entry is a natural no-op when a neighbouring chunk hasn't loaded.</summary>
+        void ReclaimFootprint(Entity building, byte type, int2 rootHex)
+        {
+            var em = EntityManager;
+            ClaimHex(em, building, rootHex);
+            if (type == BuildingType.Capital)
+            {
+                ClaimHex(em, building, rootHex + new int2( 1,  0));
+                ClaimHex(em, building, rootHex + new int2(-1,  0));
+                ClaimHex(em, building, rootHex + new int2( 0,  1));
+                ClaimHex(em, building, rootHex + new int2( 0, -1));
+                ClaimHex(em, building, rootHex + new int2( 1, -1));
+                ClaimHex(em, building, rootHex + new int2(-1,  1));
+            }
+        }
+
+        static void ClaimHex(EntityManager em, Entity building, int2 hex)
+        {
+            if (!HexHoverSystem.TryGetHexEntity(hex, out var tile)) return;
+            if (!em.Exists(tile)) return;
+            if (em.HasComponent<HexOccupant>(tile))
+                em.SetComponentData(tile, new HexOccupant { Building = building });
+            else
+                em.AddComponentData(tile, new HexOccupant { Building = building });
+        }
+
+        /// <summary>Rebuilds the per-type tags + production components that the original ConstructionCompleteSystem attaches on construction finish, so a hydrated building ticks correctly instead of being a visual-only shell. Kept deliberately light — only the tags + baseline production/service components; bespoke per-type state (Outpost arrow pool, Barracks recruit cadence) gets its default values from the authoring site, not the record.</summary>
+        void RehydratePerTypeComponents(Entity entity, byte type, int2 rootHex, byte ownerFaction)
+        {
+            var em = EntityManager;
+            switch (type)
+            {
+                case BuildingType.Farm:
+                    if (!em.HasComponent<FarmTag>(entity)) em.AddComponent<FarmTag>(entity);
+                    break;
+                case BuildingType.Barracks:
+                    if (!em.HasComponent<BarracksTag>(entity)) em.AddComponent<BarracksTag>(entity);
+                    break;
+                case BuildingType.Furnace:
+                    if (!em.HasComponent<FurnaceTag>(entity)) em.AddComponent<FurnaceTag>(entity);
+                    break;
+                case BuildingType.GoblinCave:
+                    if (!em.HasComponent<GoblinCaveTag>(entity)) em.AddComponent<GoblinCaveTag>(entity);
+                    break;
+                case BuildingType.Inn:
+                    if (!em.HasComponent<InnTag>(entity)) em.AddComponent<InnTag>(entity);
+                    break;
+                case BuildingType.Market:
+                    if (!em.HasComponent<MarketTag>(entity)) em.AddComponent<MarketTag>(entity);
+                    break;
+                case BuildingType.Outpost:
+                    if (!em.HasComponent<OutpostTag>(entity)) em.AddComponent<OutpostTag>(entity);
+                    if (!em.HasComponent<TerritoryEmitter>(entity))
+                        em.AddComponentData(entity, new TerritoryEmitter
+                        {
+                            Center       = rootHex,
+                            Radius       = 5,
+                            OwnerFaction = ownerFaction,
+                        });
+                    break;
+                case BuildingType.Lumbercamp:
+                    if (!em.HasComponent<LumbercampTag>(entity)) em.AddComponent<LumbercampTag>(entity);
+                    break;
+                case BuildingType.MiningPit:
+                    if (!em.HasComponent<MiningPitTag>(entity)) em.AddComponent<MiningPitTag>(entity);
+                    break;
+                case BuildingType.Dock:
+                    if (!em.HasComponent<DockTag>(entity)) em.AddComponent<DockTag>(entity);
+                    break;
+                case BuildingType.Tower:
+                    if (!em.HasComponent<TowerTag>(entity)) em.AddComponent<TowerTag>(entity);
+                    if (!em.HasComponent<TerritoryEmitter>(entity))
+                        em.AddComponentData(entity, new TerritoryEmitter
+                        {
+                            Center       = rootHex,
+                            Radius       = 3,
+                            OwnerFaction = ownerFaction,
+                        });
+                    break;
+                case BuildingType.Wall:
+                    if (!em.HasComponent<WallTag>(entity)) em.AddComponent<WallTag>(entity);
+                    break;
+            }
         }
 
         /// <summary>Deterministic per-hex animal spawn roll. Low biome-gated chance; no-ops for most hexes.</summary>
@@ -461,6 +783,12 @@ namespace RareIcon
             // saving them would just bloat the Rust store.
             var world = WorldStoreSystem.Instance;
             bool canSave = world != null && world.IsValid;
+
+            // Phase 4 snapshot — any Building inside the chunk bounds is
+            // serialised into BuildingsDBSingleton.Unloaded so the
+            // ghost-sim layer can advance it while the chunk is offline
+            // and hydrate it on reload. Runs BEFORE entity destruction.
+            SnapshotBuildingsInChunk(startX, startY, startX + ChunkSize, startY + ChunkSize);
 
             // Save + destroy any units whose CurrentHex falls inside this
             // chunk. Has to happen BEFORE the hex entity cleanup below so
@@ -536,6 +864,156 @@ namespace RareIcon
             float r = worldY / (HexSize * 1.5f);
             float q = worldX / (HexSize * math.sqrt(3f)) - r * 0.5f;
             return new int2((int)math.floor(q / ChunkSize), (int)math.floor(r / ChunkSize));
+        }
+
+        /// <summary>Walks every Building whose RootHex falls inside the provided chunk bounds and serialises its identity + health + tier into BuildingsDBSingleton.Unloaded. Called immediately before DespawnChunk destroys the chunk's entities; BuildingsGhostSimSystem then advances these records at low cadence on a worker thread while the chunk is offline.</summary>
+        void SnapshotBuildingsInChunk(int chunkX0, int chunkY0, int chunkX1, int chunkY1)
+        {
+            if (!SystemAPI.HasSingleton<BuildingsDBSingleton>()) return;
+
+            var dbRW = SystemAPI.GetSingletonRW<BuildingsDBSingleton>();
+            ref var unloaded = ref dbRW.ValueRW.Unloaded;
+            if (!unloaded.IsCreated) return;
+
+            var em = EntityManager;
+            var buildingArr = _buildingSnapshotQuery.ToEntityArray(Allocator.Temp);
+
+            for (int b = 0; b < buildingArr.Length; b++)
+            {
+                var entity = buildingArr[b];
+                var building = em.GetComponentData<Building>(entity);
+                if (building.RootHex.x < chunkX0 || building.RootHex.x >= chunkX1 ||
+                    building.RootHex.y < chunkY0 || building.RootHex.y >= chunkY1) continue;
+
+                var health = em.GetComponentData<BuildingHealth>(entity);
+                byte tier  = em.HasComponent<BuildingTier>(entity)
+                    ? em.GetComponentData<BuildingTier>(entity).Value
+                    : (byte)0;
+
+                var rec = new UnloadedBuildingRecord
+                {
+                    Type              = building.Type,
+                    RootHex           = building.RootHex,
+                    OwnerFaction      = building.OwnerFaction,
+                    Health            = health.Value,
+                    HealthMax         = health.Max,
+                    Tier              = tier,
+                    LastTickTurn      = SystemAPI.HasSingleton<WorldClock>() ? SystemAPI.GetSingleton<WorldClock>().TurnIndex : 0u,
+                    AccruedProduction = 0f,
+                    AccruedInput      = 0f,
+                    Flags             = building.OwnerFaction == FactionType.Hostile
+                                        ? UnloadedBuildingFlags.InHostileTerritory : (byte)0,
+                };
+
+                // FFI write-through — persist record across process
+                // restart via the Rust world store. In-memory list below
+                // is the ghost-sim working set for this session; FFI is
+                // the crash-recovery + long-term home.
+                var nativeWorld = WorldStoreSystem.Instance;
+                bool canFfi = nativeWorld != null && nativeWorld.IsValid;
+                // populated after recipe/ledger fields finalise; see below.
+
+                // Recipe cycle preservation — grab the first recipe's
+                // remaining cycle time (if any) so hydrate can resume
+                // the cycle at its pre-unload phase.
+                if (em.HasBuffer<ProductionRecipe>(entity))
+                {
+                    var recipes = em.GetBuffer<ProductionRecipe>(entity);
+                    if (recipes.Length > 0 && SystemAPI.HasSingleton<WorldClock>())
+                    {
+                        float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
+                        float remaining = recipes[0].CycleEndsAt - now;
+                        if (remaining > 0f) rec.RecipeCycleRemaining = remaining;
+                        rec.Flags |= UnloadedBuildingFlags.HadRecipe;
+                    }
+                }
+
+                // Ledger snapshot — read up to 4 slots from the per-type
+                // ledger buffer. Each type carries its own named buffer
+                // that reinterprets to BankLedgerBase, so we dispatch on
+                // Type to pick the right buffer lookup.
+                SnapshotLedgerSlots(em, entity, building.Type, ref rec);
+
+                unloaded.Add(rec);
+                if (canFfi) nativeWorld.SaveBuilding(ToFfi(rec));
+
+                // Entity destruction is deferred to the main DespawnChunk
+                // loop so the iteration order below stays stable.
+                em.DestroyEntity(entity);
+            }
+            buildingArr.Dispose();
+        }
+
+        /// <summary>UnloadedBuildingRecord → FfiUnloadedBuilding. Field order + shapes match the Rust repr(C) struct byte-for-byte so csbindgen + ECS agree on layout.</summary>
+        static FfiUnloadedBuilding ToFfi(in UnloadedBuildingRecord rec) => new FfiUnloadedBuilding
+        {
+            building_type          = rec.Type,
+            root_q                 = rec.RootHex.x,
+            root_r                 = rec.RootHex.y,
+            owner_faction          = rec.OwnerFaction,
+            health                 = rec.Health,
+            health_max             = rec.HealthMax,
+            tier                   = rec.Tier,
+            last_tick_turn         = rec.LastTickTurn,
+            accrued_production     = rec.AccruedProduction,
+            accrued_input          = rec.AccruedInput,
+            flags                  = rec.Flags,
+            recipe_cycle_remaining = rec.RecipeCycleRemaining,
+            slot0_id    = rec.Slot0Id,
+            slot0_count = rec.Slot0Count,
+            slot1_id    = rec.Slot1Id,
+            slot1_count = rec.Slot1Count,
+            slot2_id    = rec.Slot2Id,
+            slot2_count = rec.Slot2Count,
+            slot3_id    = rec.Slot3Id,
+            slot3_count = rec.Slot3Count,
+        };
+
+        /// <summary>FfiUnloadedBuilding → UnloadedBuildingRecord.</summary>
+        static UnloadedBuildingRecord FromFfi(in FfiUnloadedBuilding f) => new UnloadedBuildingRecord
+        {
+            Type              = f.building_type,
+            RootHex           = new int2(f.root_q, f.root_r),
+            OwnerFaction      = f.owner_faction,
+            Health            = f.health,
+            HealthMax         = f.health_max,
+            Tier              = f.tier,
+            LastTickTurn      = f.last_tick_turn,
+            AccruedProduction = f.accrued_production,
+            AccruedInput      = f.accrued_input,
+            Flags             = f.flags,
+            RecipeCycleRemaining = f.recipe_cycle_remaining,
+            Slot0Id    = f.slot0_id,    Slot0Count = f.slot0_count,
+            Slot1Id    = f.slot1_id,    Slot1Count = f.slot1_count,
+            Slot2Id    = f.slot2_id,    Slot2Count = f.slot2_count,
+            Slot3Id    = f.slot3_id,    Slot3Count = f.slot3_count,
+        };
+
+        /// <summary>Per-type ledger → 4 inline slots. Dispatches on BuildingType because each type stores its inventory in its own tagged DynamicBuffer (CapitalLedger, FarmLedger, …). All ledger buffers share the BankLedgerBase binary layout, so the read is uniform after the per-type buffer lookup. Truncates past 4 items — acceptable loss for offline state since real-world buildings rarely exceed 4 unique SKUs.</summary>
+        static void SnapshotLedgerSlots(EntityManager em, Entity entity, byte type, ref UnloadedBuildingRecord rec)
+        {
+            switch (type)
+            {
+                case BuildingType.Capital:    CopyLedgerSlots(em.GetBuffer<CapitalLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
+                case BuildingType.Farm:       if (em.HasBuffer<FarmLedger>(entity))       CopyLedgerSlots(em.GetBuffer<FarmLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
+                case BuildingType.Barracks:   if (em.HasBuffer<BarracksLedger>(entity))   CopyLedgerSlots(em.GetBuffer<BarracksLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
+                case BuildingType.Furnace:    if (em.HasBuffer<FurnaceLedger>(entity))    CopyLedgerSlots(em.GetBuffer<FurnaceLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
+                case BuildingType.Inn:        if (em.HasBuffer<InnLedger>(entity))        CopyLedgerSlots(em.GetBuffer<InnLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
+                case BuildingType.Market:     if (em.HasBuffer<MarketLedger>(entity))     CopyLedgerSlots(em.GetBuffer<MarketLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
+                case BuildingType.Outpost:    if (em.HasBuffer<OutpostLedger>(entity))    CopyLedgerSlots(em.GetBuffer<OutpostLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
+                case BuildingType.Lumbercamp: if (em.HasBuffer<LumbercampLedger>(entity)) CopyLedgerSlots(em.GetBuffer<LumbercampLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
+                case BuildingType.MiningPit:  if (em.HasBuffer<MiningPitLedger>(entity))  CopyLedgerSlots(em.GetBuffer<MiningPitLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
+                case BuildingType.GoblinCave: if (em.HasBuffer<GoblinCaveLedger>(entity)) CopyLedgerSlots(em.GetBuffer<GoblinCaveLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
+            }
+        }
+
+        static void CopyLedgerSlots(DynamicBuffer<BankLedgerBase> buf, ref UnloadedBuildingRecord rec)
+        {
+            int n = buf.Length;
+            if (n > 0) { rec.Slot0Id = buf[0].ItemId; rec.Slot0Count = buf[0].Count; }
+            if (n > 1) { rec.Slot1Id = buf[1].ItemId; rec.Slot1Count = buf[1].Count; }
+            if (n > 2) { rec.Slot2Id = buf[2].ItemId; rec.Slot2Count = buf[2].Count; }
+            if (n > 3) { rec.Slot3Id = buf[3].ItemId; rec.Slot3Count = buf[3].Count; }
         }
 
         // Snapshots a unit entity into the flat FFI struct so the Rust store

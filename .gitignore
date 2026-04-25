@@ -119,9 +119,10 @@ apps/rareicon/**/*.unityproj
 apps/rareicon/**/*.pidb
 apps/rareicon/**/*.pdb
 apps/rareicon/**/*.mdb
-apps/rareicon/**/Plugins/**/*.dylib
-apps/rareicon/**/Plugins/**/*.dll
-apps/rareicon/**/Plugins/**/*.so
+# Native plugin binaries (.dylib / .dll / .so) ARE tracked — but via Git
+# LFS pointing at forgejo.kbve.com/KBVE/rareicon. See .gitattributes +
+# .lfsconfig. Removing the historical ignore lines so LFS pointer files
+# get committed; without that, git silently skips the binaries entirely.
 
 # Mono
 .mono/*

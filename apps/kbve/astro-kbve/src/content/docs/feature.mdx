@@ -1,0 +1,29 @@
+---
+title: Features
+description: KBVE platform features — community, gaming, automation, and more.
+template: splash
+editUrl: false
+lastUpdated: false
+next: false
+sidebar:
+    label: Features
+    order: 4
+---
+
+import DeferredFeature from '@/components/kbve/DeferredFeature.astro';
+import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
+import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
+
+<div class="ring-page">
+
+# Features
+
+What KBVE actually ships:
+
+<DeferredFeature />
+
+<DeferredAdsense label="Sponsored" />
+
+</div>
+
+<ScrollRing prev="/service/" next="/github/" prevLabel="Services" nextLabel="GitHub" />

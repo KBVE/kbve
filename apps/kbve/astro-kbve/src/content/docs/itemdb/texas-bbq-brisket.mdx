@@ -1,9 +1,9 @@
 ---
 title: 'Texas BBQ Brisket'
 description: |
-    A thick-cut slab of smoked brisket slathered in secret sauce.
-    Tender enough to cry over.
-    Bold enough to punch fate in the face.
+    Pink-smoke ring deep as a finger around the outside of the cut, bark the color of old leather, fat rendered clear enough to pool along one edge of the slicing-board. Pulls apart under a fork without needing a knife to ask twice.
+lore: |
+    Smoked in an offset pit the cook built from a steel drum and half a trailer axle, fired with a mix of oak and pecan that his father did not approve of and his uncle did. The brisket goes on the pit at two in the morning and comes off when the cook says it comes off, which is never earlier than four in the afternoon. The sauce is served on the side, always, because the cook takes the view that putting sauce on the meat before the eater has tasted the meat is an insult to every hour of the smoke.
 ref: 'texas-bbq-brisket'
 key: 34
 id: '01JWG0HJSK6K77SAKSRC31VH4T'
@@ -37,6 +37,10 @@ scripts:
             strengthBoost: 8
             moraleBoost: 5
             duration: 180
+food:
+  perishable: true
+  shelf_life_seconds: 172800
+  spoils_into_ref: 'rotten-food'
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
@@ -72,7 +76,7 @@ Sauce recipe protected by ex-marines and one pitmaster AI.
 ## Notes
 
 - Can be shared for a **morale bonus party effect**  
-- Meat is slightly radioactive in some zones — may be used in rituals  
+- Meat is slightly radioactive in some zones, may be used in rituals  
 - Storage required: **airtight** or **refrigerated crate**
 
 ---
@@ -129,3 +133,8 @@ Smoke rings tell the truth.
 ## DevLog
 
 - 05/30/2025 - Texas BBQ Brisket added as rare food item with health, strength, and morale bonuses
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).

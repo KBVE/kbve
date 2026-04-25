@@ -7,6 +7,7 @@ using UnityEngine;
 namespace RareIcon
 {
     /// <summary>Maintains the active BanditCamp population over time. First camp lands ~30s after game start at a random hex on a ring outside the Capital. Cap starts at 1 and grows to a max of MaxCamps with 1 additional slot unlocked per CampGrowthIntervalSeconds of elapsed game time. Whenever the alive count falls below the current cap, the spawner places a new camp at a fresh ring position after RespawnDelay. SystemBase because building-entity instantiation + toast publish both need main-thread managed access.</summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     public partial class BanditCampSpawnerSystem : SystemBase
     {

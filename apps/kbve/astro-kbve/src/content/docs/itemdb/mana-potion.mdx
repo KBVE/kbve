@@ -1,0 +1,28 @@
+---
+title: 'Mana Potion'
+description: |
+    Cobalt-blue liquid in a narrow hexagonal vial, stoppered with a sliver of tin wrapped in waxed silk. Cold to the touch even when left in the sun, and the surface ripples when a spell is cast within arm's reach.
+lore: |
+    Distilled by the apothecaries' college on the same schedule as their red counterparts, from a base that travels in unlabeled barrels from a supplier the college refuses to name. Mages who carry one describe the drink as unnervingly flavorless, which the college considers a feature and most drinkers consider the hardest part. A vial restores enough focus to bridge the gap between a failed first casting and a successful second, which is usually the gap that matters.
+ref: 'mana-potion'
+key: 546
+id: '01KTVTRAB1MANAPOTI0NN000001'
+name: 'Mana Potion'
+type_flags: 544
+rarity: 'common'
+emoji: '🧪'
+stackable: true
+max_stack: 16
+buy_price: 25
+consumable: true
+cooldown: 15
+action: 'consume'
+food:
+  restore_mana: 25
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

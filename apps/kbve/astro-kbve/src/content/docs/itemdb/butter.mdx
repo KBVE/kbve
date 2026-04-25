@@ -1,7 +1,9 @@
 ---
 title: 'Butter'
 description: |
-    "A smooth, golden block of churned dairy. Adds flavor, enhances potions, and is surprisingly useful in rituals requiring softness or slip."
+    A hand-sized block of pale gold butter wrapped in waxed cloth, the surface printed with the farmhouse's maker-stamp in low relief. Soft at the corners, firm at the middle, carrying the clean smell of cultured cream.
+lore: |
+    Churned at dawn in kitchens where the first person up is the one who draws the butter duty, and the last person to bed is the one who scolds them about it. A block keeps a week in a cellar, a day in a pack, and roughly an hour on the counter in summer. Cooks use it for richness; apothecaries for carrier fat; the old hedge-circle for oiling whatever they do not want seen turning.
 ref: 'butter'
 key: 49
 id: '01JWJ9XF2P7MFM2W96T55XTGA7'
@@ -33,6 +35,10 @@ scripts:
             effectContext: 'cooking'
             flavorBoost: 1
             mobilityBonus: 0.5
+food:
+  perishable: true
+  shelf_life_seconds: 1209600
+  spoils_into_ref: 'rotten-food'
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
@@ -123,3 +129,8 @@ Butter is love, leverage and surprisingly flammable.
 ## DevLog
 
 - 05/31/2025 - Butter added as foundational food item with culinary and sneaky utility
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).

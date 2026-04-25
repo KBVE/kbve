@@ -51,8 +51,8 @@ const AD_CLIENT = 'ca-pub-3698214103602019';
 	is:inline
 	async
 	src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${AD_CLIENT}`}
-	crossorigin="anonymous"
-></script>
+	crossorigin="anonymous">
+</script>
 
 <DeferredSection
 	id={id}
@@ -88,6 +88,7 @@ const AD_CLIENT = 'ca-pub-3698214103602019';
 
 <script is:inline define:vars={{ sectionId: id }}>
 	(function () {
+		let mo = null;
 		const fire = () => {
 			const section = document.querySelector(
 				`deferred-section[data-deferred-id="${sectionId}"]`,
@@ -109,10 +110,11 @@ const AD_CLIENT = 'ca-pub-3698214103602019';
 				return;
 			}
 
-			const mo = new MutationObserver(() => {
+			mo = new MutationObserver(() => {
 				if (section.classList.contains('loaded')) {
 					tryPush();
 					mo.disconnect();
+					mo = null;
 				}
 			});
 			mo.observe(section, {
@@ -121,8 +123,15 @@ const AD_CLIENT = 'ca-pub-3698214103602019';
 			});
 		};
 
+		const cleanup = () => {
+			mo?.disconnect();
+			mo = null;
+		};
+		document.addEventListener('astro:before-swap', cleanup, { once: true });
+		window.addEventListener('pagehide', cleanup, { once: true });
+
 		if (document.readyState === 'loading') {
-			document.addEventListener('DOMContentLoaded', fire);
+			document.addEventListener('DOMContentLoaded', fire, { once: true });
 		} else {
 			fire();
 		}

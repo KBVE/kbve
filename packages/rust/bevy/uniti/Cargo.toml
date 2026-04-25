@@ -19,6 +19,13 @@ csbindgen = "1.9"
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
+# bundled = compile SQLite C source in — zero system-lib deps at runtime,
+# works cross-platform inside the Unity cdylib without needing the host to
+# ship libsqlite3.
+rusqlite = { version = "0.31", features = ["bundled"] }
+# Save-archive compression. Bundled pure-Rust backend keeps the cdylib
+# cross-platform clean.
+zstd = { version = "0.13", default-features = false }
 bevy_pathfinding = { path = "../bevy_pathfinding", default-features = false }
 bevy_inventory = { path = "../bevy_inventory", default-features = false }
 bevy_battle = { path = "../bevy_battle", default-features = false }

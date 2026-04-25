@@ -19,9 +19,65 @@ namespace RareIcon.Native
 
         public bool IsValid => _handle != null && !_disposed;
 
+        /// <summary>In-memory store only. State lives for the process lifetime; no disk persistence. Use <see cref="OpenAtPath"/> for the disk-backed path.</summary>
         public NativeWorld()
         {
             _handle = Uniti.uniti_world_new();
+        }
+
+        /// <summary>Disk-backed store. Opens (or creates) a SQLite database at <paramref name="path"/>, hydrates the in-memory cache from existing rows, and starts the background flush ticker. Flushes every 30 s automatically; call <see cref="Flush"/> for synchronous saves.</summary>
+        public static NativeWorld OpenAtPath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return null;
+            var bytes = System.Text.Encoding.UTF8.GetBytes(path);
+            fixed (byte* ptr = bytes)
+            {
+                var handle = Uniti.uniti_world_open(ptr, (uint)bytes.Length);
+                if (handle == null) return null;
+                return new NativeWorld(handle);
+            }
+        }
+
+        NativeWorld(void* handle)
+        {
+            _handle = handle;
+        }
+
+        /// <summary>Synchronously flush every dirty chunk to the SQLite database. No-op on in-memory stores. Safe to call from any thread; the Rust side locks the DB briefly.</summary>
+        public void Flush()
+        {
+            if (IsValid) Uniti.uniti_world_flush(_handle);
+        }
+
+        /// <summary>Read-only aggregate counts for UI / save-selection screens. Returns default (all zeros) if the handle is invalid.</summary>
+        public FfiWorldStats GetStats()
+        {
+            if (!IsValid) return default;
+            return Uniti.uniti_world_stats(_handle);
+        }
+
+        /// <summary>Flush + write a zstd-compressed backup to <paramref name="dstPath"/>. Use for save-slot archives + cloud sync. Returns true on success.</summary>
+        public bool Archive(string dstPath)
+        {
+            if (!IsValid || string.IsNullOrEmpty(dstPath)) return false;
+            var bytes = System.Text.Encoding.UTF8.GetBytes(dstPath);
+            fixed (byte* ptr = bytes)
+            {
+                return Uniti.uniti_world_archive(_handle, ptr, (uint)bytes.Length) != 0;
+            }
+        }
+
+        /// <summary>Decompress a zstd archive at <paramref name="srcPath"/> into a plain SQLite DB at <paramref name="dstDbPath"/>. Static helper — call BEFORE <see cref="OpenAtPath"/> on the destination so the restored DB hydrates into the new store. Returns true on success.</summary>
+        public static bool Restore(string srcPath, string dstDbPath)
+        {
+            if (string.IsNullOrEmpty(srcPath) || string.IsNullOrEmpty(dstDbPath)) return false;
+            var srcBytes = System.Text.Encoding.UTF8.GetBytes(srcPath);
+            var dstBytes = System.Text.Encoding.UTF8.GetBytes(dstDbPath);
+            fixed (byte* s = srcBytes)
+            fixed (byte* d = dstBytes)
+            {
+                return Uniti.uniti_world_restore(s, (uint)srcBytes.Length, d, (uint)dstBytes.Length) != 0;
+            }
         }
 
         // -- Hex queries --
@@ -87,6 +143,31 @@ namespace RareIcon.Native
             fixed (FfiGhostUnit* ptr = buffer)
             {
                 return Uniti.uniti_world_take_units_in_chunk(
+                    _handle, cx, cy, ptr, (uint)buffer.Length);
+            }
+        }
+
+        // -- Building ghost persistence --
+
+        /// <summary>Push an unloaded building into the store. Chunk is derived from the building's root hex by the Rust side via the same floor-div math as units + hexes.</summary>
+        public void SaveBuilding(FfiUnloadedBuilding building)
+        {
+            if (IsValid) Uniti.uniti_world_save_building(_handle, building);
+        }
+
+        /// <summary>How many unloaded buildings the store holds for a chunk.</summary>
+        public uint BuildingCountInChunk(int cx, int cy)
+        {
+            return IsValid ? Uniti.uniti_world_building_count_in_chunk(_handle, cx, cy) : 0u;
+        }
+
+        /// <summary>Drain unloaded buildings from a chunk into the caller-allocated array. Returns count actually written (≤ buffer length). Drained records are removed from the store; if the buffer is too small the remainder stays and a follow-up call drains the rest.</summary>
+        public uint TakeBuildingsInChunk(int cx, int cy, FfiUnloadedBuilding[] buffer)
+        {
+            if (!IsValid || buffer == null || buffer.Length == 0) return 0u;
+            fixed (FfiUnloadedBuilding* ptr = buffer)
+            {
+                return Uniti.uniti_world_take_buildings_in_chunk(
                     _handle, cx, cy, ptr, (uint)buffer.Length);
             }
         }

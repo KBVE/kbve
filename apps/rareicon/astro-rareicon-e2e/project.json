@@ -1,0 +1,32 @@
+{
+	"name": "astro-rareicon-e2e",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/rareicon/astro-rareicon-e2e/e2e",
+	"implicitDependencies": ["astro-rareicon"],
+	"targets": {
+		"e2e": {
+			"executor": "@nx/playwright:playwright",
+			"cache": false,
+			"options": {
+				"config": "apps/rareicon/astro-rareicon-e2e/playwright.config.ts"
+			}
+		},
+		"e2e:preview": {
+			"executor": "@nx/playwright:playwright",
+			"cache": false,
+			"dependsOn": ["astro-rareicon:build"],
+			"options": {
+				"config": "apps/rareicon/astro-rareicon-e2e/playwright.preview.config.ts"
+			}
+		},
+		"e2e:docker": {
+			"executor": "@nx/playwright:playwright",
+			"cache": false,
+			"options": {
+				"config": "apps/rareicon/astro-rareicon-e2e/playwright.docker.config.ts"
+			}
+		}
+	},
+	"tags": []
+}

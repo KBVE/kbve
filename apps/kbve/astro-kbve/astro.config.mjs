@@ -17,7 +17,10 @@ export default defineConfig({
 	image: {
 		domains: ['images.unsplash.com'],
 	},
-	prefetch: true,
+	prefetch: {
+		prefetchAll: false,
+		defaultStrategy: 'tap',
+	},
 	markdown: {
 		rehypePlugins: [rehypeLinkAttrs],
 	},
@@ -78,6 +81,8 @@ export default defineConfig({
 				PageSidebar: './src/components/pagesidebar/PageSidebar.astro',
 				Footer: './src/components/footer/AstroFooter.astro',
 				ThemeProvider: './src/components/theme/ThemeProvider.astro',
+				Head: './src/components/navigation/Head.astro',
+				Header: './src/components/navigation/Header.astro',
 			},
 			head: [
 				{

@@ -5,6 +5,7 @@ namespace RareIcon
 {
     /// <summary>Mirrors Unit equipment slots (Weapon / Helmet / Shield) onto their MaterialProperty visuals so the shader sprite follows whatever the unit has equipped.</summary>
     [BurstCompile]
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(CleanupSystemGroup))]
     public partial struct EquipmentVisualMirrorSystem : ISystem
     {

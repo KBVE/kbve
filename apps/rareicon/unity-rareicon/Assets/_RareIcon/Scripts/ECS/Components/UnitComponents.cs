@@ -105,13 +105,14 @@ namespace RareIcon
         public uint WanderStepAtRelease;
     }
 
-    /// <summary>Per-unit identity + currently-equipped loadout. Source of truth for the shader — EquipmentVisualMirrorSystem pushes these slots to UnitXVisual each tick.</summary>
+    /// <summary>Per-unit identity + currently-equipped loadout. Source of truth for the shader — EquipmentVisualMirrorSystem pushes these slots to UnitXVisual each tick. Ghost-replicated so clients see server-authoritative unit type + equipment swaps without a separate RPC.</summary>
+    [Unity.NetCode.GhostComponent]
     public struct Unit : IComponentData
     {
-        public byte Type;
-        public byte Weapon;
-        public byte Helmet;
-        public byte Shield;
+        [Unity.NetCode.GhostField] public byte Type;
+        [Unity.NetCode.GhostField] public byte Weapon;
+        [Unity.NetCode.GhostField] public byte Helmet;
+        [Unity.NetCode.GhostField] public byte Shield;
     }
 
     /// <summary>Weapon IDs — each maps to one HexX.hlsl draw function.</summary>

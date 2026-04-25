@@ -1,6 +1,9 @@
 ---
 title: 'Cooked Mutton'
-description: 'A hearty cut of roasted mutton.'
+description: |
+    A thick cut of roasted mutton, dark brown at the edges and softly pink at the center, glistening with the slow-rendered fat that pooled around it in the pan. The smell fills a room before anyone sets a plate down.
+lore: |
+    Prepared from the older sheep that the flockmaster has decided will not see another winter, which is a practical arrangement that keeps the meat on the table and the wool on the spindle. Mutton done right takes most of an afternoon and a patient cook, and done wrong takes almost as long and a less patient one. Every serious inn has a private rub for it, and none of them agree on the rosemary question.
 ref: 'cooked-mutton'
 key: 525
 id: '01KPTSDW06FXJVV2E59FQ3BAP1'
@@ -15,6 +18,9 @@ action: 'consume'
 pool_group: 'food'
 food:
   restore_energy: 35
+  perishable: true
+  shelf_life_seconds: 259200
+  spoils_into_ref: 'rotten-meat'
 compress:
   target_ref: 'meal'
   ratio: 100
@@ -25,3 +31,8 @@ import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
 ## Overview
 
 <ItemDBPanel data={frontmatter} />
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Meat](/itemdb/rotten-meat/).

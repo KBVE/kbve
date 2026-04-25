@@ -17,7 +17,7 @@ namespace RareIcon
 
         public void OnUpdate(ref SystemState state)
         {
-            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookupSingleton)) return;
+            if (!SystemAPI.TryGetSingleton<HexDBSingleton>(out var hexLookupSingleton)) return;
 
             var sleeperCounts = new NativeParallelHashMap<Entity, int>(16, Allocator.TempJob);
 

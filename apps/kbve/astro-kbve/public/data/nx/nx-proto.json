@@ -1,14 +1,45 @@
 {
-  "generated_at": "2026-04-23T08:44:37.292Z",
+  "generated_at": "2026-04-25T08:26:57.952Z",
   "summary": {
-    "total_protos": 26,
-    "registered": 22,
+    "total_protos": 27,
+    "registered": 23,
     "orphaned": 3,
     "utility_only": 1,
-    "total_messages": 520,
-    "total_enums": 86
+    "total_messages": 558,
+    "total_enums": 102
   },
   "protos": [
+    {
+      "proto": "packages/data/proto/icon/icons.proto",
+      "package": "icon",
+      "messages": [
+        "IconViewBox",
+        "IconRender",
+        "IconLicenseInfo",
+        "IconSearch",
+        "IconOfferingInfo",
+        "IconExtension",
+        "Icon",
+        "IconTerm",
+        "IconCollection",
+        "IconRegistry"
+      ],
+      "enums": [
+        "IconStyle",
+        "IconFormat",
+        "IconLicense",
+        "IconOffering"
+      ],
+      "message_count": 10,
+      "enum_count": 4,
+      "codegen": {
+        "registered": true,
+        "name": "icons",
+        "zod_config": "packages/data/codegen/icons-zod-config.json",
+        "zod_output": "packages/data/codegen/generated/icons-schema.ts",
+        "binpb": "packages/data/codegen/descriptors/icons.binpb"
+      }
+    },
     {
       "proto": "packages/data/proto/item/itemdb.proto",
       "package": "item",
@@ -380,24 +411,49 @@
         "AnnouncementData",
         "MarketplaceData",
         "AuctionData",
+        "ForumAuctionBid",
         "PollData",
+        "ForumPollVote",
         "LfgData",
         "AssetData",
+        "StatusData",
         "ForumThread",
         "ForumComment",
+        "ForumUserProfile",
+        "ThreadVote",
+        "CommentVote",
+        "Reaction",
         "ThreadTag",
+        "UserFollow",
+        "Bookmark",
+        "ThreadSubscription",
+        "Report",
+        "ModerationAction",
+        "Notification",
+        "Attachment",
         "FeedItem",
-        "SpacePage"
+        "SpacePage",
+        "ThreadPage",
+        "UserPage"
       ],
       "enums": [
         "ThreadStatus",
         "CommentStatus",
         "ThreadType",
         "SpaceStatus",
-        "TagStatus"
+        "TagStatus",
+        "VoteDirection",
+        "ReactionKind",
+        "ReportReason",
+        "ModerationActionKind",
+        "NotificationKind",
+        "FollowTargetKind",
+        "AttachmentParentKind",
+        "AttachmentKind",
+        "LfgStatus"
       ],
-      "message_count": 15,
-      "enum_count": 5,
+      "message_count": 31,
+      "enum_count": 14,
       "codegen": {
         "registered": true,
         "name": "forum",
@@ -691,6 +747,18 @@
         "TerrainConfig",
         "TerrainBandDef",
         "WaterConfig",
+        "IngredientSpec",
+        "ServiceCapability",
+        "TenderSpec",
+        "TerritoryEmitterSpec",
+        "ProductionRecipeSpec",
+        "SurplusExportSpec",
+        "PassiveProductionSpec",
+        "RangedAttackSpec",
+        "PopulationSpawnSpec",
+        "RaidSpec",
+        "UpgradeSpec",
+        "UpgradeChainSpec",
         "WorldObjectDef",
         "BuildCost",
         "WorldObjectPlacement",
@@ -715,6 +783,9 @@
         "ResourceType",
         "ContainerType",
         "CraftingStationType",
+        "FootprintShape",
+        "CostSource",
+        "ServiceKind",
         "PoiType",
         "TerrainBand",
         "SpawnCategory",
@@ -723,8 +794,8 @@
         "StreamingHint",
         "ReplicationHint"
       ],
-      "message_count": 28,
-      "enum_count": 16,
+      "message_count": 40,
+      "enum_count": 19,
       "codegen": {
         "registered": true,
         "name": "mapdb",
@@ -1051,7 +1122,7 @@
     "packages/data/proto/kbve/kbve.proto",
     "packages/data/proto/kbve/kbveproto.proto"
   ],
-  "checked_at": "2026-04-23T08:44:37Z",
+  "checked_at": "2026-04-25T08:26:58Z",
   "drift_detected": false,
   "drift_files": []
 }

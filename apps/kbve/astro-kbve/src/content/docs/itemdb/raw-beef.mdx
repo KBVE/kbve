@@ -1,6 +1,9 @@
 ---
 title: 'Raw Beef'
-description: 'A slab of fresh beef from a butchered cow.'
+description: |
+    Cut of dark red beef sitting on a butcher-paper square, fat marbled in fine white lines that catch the lamp-light, the edges still wet where the knife left them. Weight of a small meal in a single hand.
+lore: |
+    Sold off the back counter of the village butcher, whose wall chart of cuts has not been updated since the last occupation and whose loyalty to that chart has become its own kind of reputation. The serious cooks arrive before the counter opens, and the rest of us arrive later and learn to be patient about it.
 ref: 'raw-beef'
 key: 522
 id: '01KPTSDW056ZG78N01E5NACTZ0'
@@ -13,6 +16,9 @@ buy_price: 18
 pool_group: 'food'
 food:
   restore_energy: 25
+  perishable: true
+  shelf_life_seconds: 86400
+  spoils_into_ref: 'rotten-meat'
 compress:
   target_ref: 'meal'
   ratio: 100
@@ -23,3 +29,8 @@ import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
 ## Overview
 
 <ItemDBPanel data={frontmatter} />
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Meat](/itemdb/rotten-meat/).

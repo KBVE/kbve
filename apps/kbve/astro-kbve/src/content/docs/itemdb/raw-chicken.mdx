@@ -1,6 +1,9 @@
 ---
 title: 'Raw Chicken'
-description: 'Plucked raw chicken meat — cook before eating.'
+description: |
+    Whole plucked chicken hanging by the feet from a butcher's hook, pale yellow skin bunched around the ankles, a single pinfeather the plucker missed still clinging to a wing. Wet to the touch and cool against the palm.
+lore: |
+    Raised in the yards behind most households that can spare the grain, and sold on the mornings when the rooster stopped counting correctly. A fresh chicken is expected to be on the fire by dusk, and a chicken that has been on the hook overnight is used for stock and not for roasting.
 ref: 'raw-chicken'
 key: 518
 id: '01KPTSDW05751DV6FHW7P5BBHX'
@@ -13,6 +16,9 @@ buy_price: 6
 pool_group: 'food'
 food:
   restore_energy: 9
+  perishable: true
+  shelf_life_seconds: 86400
+  spoils_into_ref: 'rotten-meat'
 compress:
   target_ref: 'meal'
   ratio: 100
@@ -23,3 +29,8 @@ import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
 ## Overview
 
 <ItemDBPanel data={frontmatter} />
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Meat](/itemdb/rotten-meat/).

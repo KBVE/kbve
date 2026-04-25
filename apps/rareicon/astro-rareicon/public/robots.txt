@@ -4,4 +4,4 @@ Allow: /
 Disallow: /auth/callback/
 Disallow: /auth/logout/
 
-Sitemap: https://chuckrpg.com/sitemap-index.xml
+Sitemap: https://rareicon.com/sitemap-index.xml

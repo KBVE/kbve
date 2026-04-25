@@ -1,8 +1,9 @@
 ---
 title: 'Lobster'
 description: |
-    A large, armored crustacean pulled from the deep.
-    Its meat is prized, its shell revered, and its behavior is disturbingly strategic.
+    Deep-blue shell shades to bronze where the joints catch the light, claws banded closed with twine the fisherman will ask for back. Still wet from the pot, still holding an opinion about the matter.
+lore: |
+    Trapped off the continental shelf by crews whose pot-lines run miles along the sea floor, marked by painted floats that everybody on the dock can read at a glance. The market in the capital prices them by weight and by cunning, the latter measured informally at the unloading and never written on the tag. A lobster that reaches a cookpot without fighting is suspected of having arranged something the diner is not yet aware of.
 ref: 'lobster'
 key: 47
 id: '01JWG9JF11KYG4DAXF1VTKYZWS'
@@ -33,6 +34,10 @@ scripts:
     - guid: '83a1f3fd6c12406aa8ef9cdd54aacf99'
       vars:
             traits: 'shell-hardened'
+food:
+  perishable: true
+  shelf_life_seconds: 43200
+  spoils_into_ref: 'rotten-meat'
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
@@ -124,3 +129,8 @@ Lobsters are ancient. Older than myths. They remember things we forgot to fear.
 ## DevLog
 
 - 05/30/2025 - Lobster added as rare fish item with health and armor buffs, lore-based seafood crafting, and shell reuse potential
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Meat](/itemdb/rotten-meat/).

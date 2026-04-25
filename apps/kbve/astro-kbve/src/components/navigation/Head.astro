@@ -1,0 +1,13 @@
+---
+import DefaultHead from '@astrojs/starlight/components/Head.astro';
+import { ClientRouter } from 'astro:transitions';
+import VtBotDebug from 'astro-vtbot/components/VtBotDebug.astro';
+import Linter from 'astro-vtbot/components/Linter.astro';
+
+const isDev = import.meta.env.DEV;
+---
+
+<DefaultHead><slot /></DefaultHead>
+<ClientRouter />
+{isDev && <VtBotDebug />}
+{isDev && <Linter />}

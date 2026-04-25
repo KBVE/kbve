@@ -1,0 +1,20 @@
+; Git LFS endpoint override.
+;
+; The kbve monorepo lives on GitHub; large binary assets are stored on
+; the self-hosted Forgejo instance at forgejo.kbve.com. Each game's
+; binaries live in their own LFS-only repo under the KBVE org:
+;   KBVE/chuck      → Unreal artifact repo
+;   KBVE/rareicon   → Unity artifact repo (configured below)
+;
+; Pointer files land in this repo (small text); blobs land on Forgejo
+; over SSH. SSH transport bypasses the Cloudflare proxy on
+; forgejo.kbve.com (HTTPS proxy's 522 origin-timeout + 100MB request
+; limit don't apply over SSH). Matches the chuck Unreal repo's pattern.
+;
+; Devs touching apps/rareicon/**/Plugins/** need an SSH key registered
+; with their Forgejo user. Devs working elsewhere in the monorepo
+; never invoke the LFS smudge filter and can ignore Forgejo entirely
+; (clone with GIT_LFS_SKIP_SMUDGE=1 to skip the smudge round-trip if
+; `git lfs` isn't installed locally).
+[lfs]
+    url = ssh://git@forgejo.kbve.com/KBVE/rareicon.git

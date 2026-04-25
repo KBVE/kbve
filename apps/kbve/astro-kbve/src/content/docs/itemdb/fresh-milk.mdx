@@ -1,8 +1,9 @@
 ---
 title: 'Fresh Milk'
 description: |
-    A cold bottle of nutrient-rich milk.
-    Sourced from friendly creatures or brave robots.
+    Heavy glass bottle sweating faintly in the hand, cap pressed on by a household pressure-seal older than most of the household, liquid inside pale enough to be mistaken for diluted cream. Tastes first of grass, then of the bottle, then of whichever morning it was pulled.
+lore: |
+    Delivered before dawn by a cooperative of dairymen who still run the lower routes on foot, on the theory that anybody who oversleeps loses their spot in the order. The milk is pooled from three or four farms at the sorting-shed and only rarely from one, which is why the flavor shifts a little week to week and nobody respectable complains about it. A bottle kept cool in a shaded cellar will last the better part of two days, which is the longest anyone in the household is willing to wait for their tea.
 ref: 'fresh-milk'
 key: 35
 id: '01JWG25PJN79DJP822GGKN8B1R'
@@ -39,6 +40,9 @@ scripts:
 pool_group: 'food'
 food:
   restore_energy: 10
+  perishable: true
+  shelf_life_seconds: 172800
+  spoils_into_ref: 'rotten-milk'
 compress:
   target_ref: 'meal'
   ratio: 100
@@ -137,3 +141,8 @@ That belief stuck. Somehow, it still works.
 ## DevLog
 
 - 05/30/2025 - Fresh Milk added as comfort drink with health, calm, and bone-related utility boosts
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Milk](/itemdb/rotten-milk/).

@@ -10,7 +10,8 @@ using UnityEngine.Rendering;
 
 namespace RareIcon
 {
-    /// <summary>Instantiates landmark / settlement / arena / shrine / NPC-marker entities from MapdbCache. Creates one shared quad + material for HexWorldObject.shader and then spawns one of every dispatch-covered world object on a fixed ring around the map origin so the shader work is immediately visible. Future map-gen systems call SpawnAt(ref, hex) to place them authoritatively instead of relying on the debug ring; the ring is skipped if a non-debug spawn already landed first.</summary>
+    /// <summary>Instantiates landmark / settlement / arena / shrine / NPC-marker entities from MapdbCache. Creates one shared quad + material for HexWorldObject.shader and then spawns one of every dispatch-covered world object on a fixed ring around the map origin so the shader work is immediately visible. Future map-gen systems call SpawnAt(ref, hex) to place them authoritatively instead of relying on the debug ring; the ring is skipped if a non-debug spawn already landed first. Presentation-only: Shader.Find + Material creation are rendering concerns; server worlds don't need these.</summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     [UpdateAfter(typeof(MapdbLoaderSystem))]
     public partial class LandmarkSpawnSystem : SystemBase

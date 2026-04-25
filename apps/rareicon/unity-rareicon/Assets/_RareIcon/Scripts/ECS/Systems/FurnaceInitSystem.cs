@@ -20,7 +20,7 @@ namespace RareIcon
                 .WithNone<FurnaceProduction>()
                 .Build(ref state);
             state.RequireForUpdate(_needsInit);
-            state.RequireForUpdate<HexLookupSingleton>();
+            state.RequireForUpdate<HexDBSingleton>();
         }
 
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
@@ -31,7 +31,7 @@ namespace RareIcon
             var ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);
 
-            var hexLookup    = SystemAPI.GetSingleton<HexLookupSingleton>().Lookup;
+            var hexLookup    = SystemAPI.GetSingleton<HexDBSingleton>().Lookup;
             var biomeLookup  = SystemAPI.GetComponentLookup<BiomeType>(true);
             var buildingLookup = SystemAPI.GetComponentLookup<Building>(true);
 

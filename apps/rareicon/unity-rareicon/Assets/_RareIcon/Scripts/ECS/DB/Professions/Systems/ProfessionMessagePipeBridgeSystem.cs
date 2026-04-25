@@ -4,6 +4,7 @@ using Unity.Entities;
 namespace RareIcon
 {
     /// <summary>Flush point for the profession event pipeline. Each tick: completes the pipeline handle, hands ReadBuffer to the coalescing dispatcher which publishes one IPublisher&lt;ProfessionChangedMessage&gt; per distinct entity. Dispatcher is resolved lazily from GlobalMessagePipe so this system can exist before VContainer initialisation.</summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(ProfessionsDomainSystem))]
     public partial class ProfessionMessagePipeBridgeSystem : SystemBase

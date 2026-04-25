@@ -1,6 +1,9 @@
 ---
 title: 'Chanterelle'
-description: 'A golden funnel-shaped mushroom with a fruity aroma. A favorite among foragers.'
+description: |
+    A small funnel-shaped mushroom the color of fresh butter, with false gills that run down the stem in soft ridges. The scent is apricot at first and pepper on the second breath.
+lore: |
+    Pushed up after a summer rain on the shady side of older woodlots, where the oaks and the pines have agreed on an uneasy border. Cooks pay well for a handful, and experienced foragers know that the patch is worth walking past twice rather than stripping clean. Mistaken for two similar-looking mushrooms that are considerably less friendly, which is why every forager carries a whittled key-guide that their grandmother signed off on.
 ref: 'chanterelle'
 key: 116
 id: '01KMVPV9ZJF97SBP3WTVTPV93C'
@@ -23,6 +26,9 @@ skilling:
 food:
   heals: 4
   doses: 1
+  perishable: true
+  shelf_life_seconds: 259200
+  spoils_into_ref: 'rotten-food'
 tags:
   - isometric
 ---
@@ -39,3 +45,8 @@ import {
 ## Overview
 
 <ItemDBPanel data={frontmatter} />
+
+
+## Spoilage
+
+Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).

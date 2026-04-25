@@ -8,6 +8,7 @@ namespace RareIcon
     /// singleton each frame. No input/camera/UI logic lives here — those are
     /// owned by MouseStateSource and IUiPointerBlocker.
     /// </summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial struct MouseStateSystem : ISystem
     {

@@ -1,0 +1,47 @@
+---
+id: 01JCLOCK0000000000000AA
+ref: clock
+name: Clock
+title: Clock Icon
+description: Time, duration, cooldown, timestamp.
+primary_category: ui
+categories: [ui, game]
+tags: [time, duration, cooldown, timer]
+related_term_refs: [bell]
+search:
+  keywords: [clock, time, duration, cooldown, timer, timestamp, wait]
+  aliases: [time, timer]
+  primary_category: ui
+  search_weight: 1.2
+default_license:
+  license: cc0
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render: { uses_current_color: true, monochrome: true, stroke_width: 2, stroke_cap: round, stroke_join: round }
+    recommended_sizes: [16, 20, 24, 32]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+  - ref: filled
+    label: Filled
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render: { uses_current_color: true, monochrome: true }
+    recommended_sizes: [16, 20, 24, 32]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M12 6v6l4 2" stroke="#0F1419" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+pagefindFilters: [ui]
+order: 24
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Clock — time / duration / cooldown glyph.
+
+<IconTermPanel termRef={frontmatter.ref} name={frontmatter.name} description={frontmatter.description} primary_category={frontmatter.primary_category} categories={frontmatter.categories} tags={frontmatter.tags} icons={frontmatter.icons} />
