@@ -6,7 +6,7 @@
 --
 -- Votes are PRIVATE: only the voter sees their own row. Aggregate
 -- totals (upvote_count / downvote_count / score) on threads +
--- comments are maintained by trigger from service_cast_* RPCs.
+-- comments are maintained by service_cast_* RPCs.
 -- ============================================================
 
 BEGIN;
@@ -30,15 +30,13 @@ CREATE INDEX idx_thread_votes_thread_dir
     WHERE direction <> 'cleared';
 
 ALTER TABLE forum.thread_votes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE forum.thread_votes FORCE ROW LEVEL SECURITY;
 
--- Private-by-default: only the voter sees their own row. Aggregate counts
--- are exposed via forum.threads.{score, upvote_count, downvote_count}.
 CREATE POLICY thread_votes_self_read ON forum.thread_votes
     FOR SELECT TO authenticated
     USING (voter_id = auth.uid());
 
--- Writes go through forum.service_cast_thread_vote RPC (service_role).
--- No end-user INSERT/UPDATE/DELETE policies.
+-- Writes go through forum.service_cast_thread_vote (service_role).
 
 -- ===========================================
 -- COMMENT_VOTES — same shape as thread_votes
@@ -59,6 +57,7 @@ CREATE INDEX idx_comment_votes_comment_dir
     WHERE direction <> 'cleared';
 
 ALTER TABLE forum.comment_votes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE forum.comment_votes FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY comment_votes_self_read ON forum.comment_votes
     FOR SELECT TO authenticated
@@ -66,6 +65,8 @@ CREATE POLICY comment_votes_self_read ON forum.comment_votes
 
 -- ===========================================
 -- REACTIONS — polymorphic on thread OR comment
+-- Item 2: nullable custom_kind dedupe via expression unique index
+-- (table-level UNIQUE with NULL columns silently allows duplicates).
 -- ===========================================
 
 CREATE TABLE forum.reactions (
@@ -77,21 +78,28 @@ CREATE TABLE forum.reactions (
     kind            forum.reaction_kind NOT NULL,
     custom_kind     TEXT CHECK (custom_kind IS NULL OR char_length(custom_kind) <= 50),
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    -- Dedup: one reaction row per (user, target, kind, optional custom_kind).
-    -- Toggling off = row delete; toggling to a different kind = update.
-    UNIQUE (parent_kind, parent_id, user_id, kind, custom_kind),
     -- Enforce: custom_kind is only meaningful when kind = 'custom'.
     CHECK ((kind = 'custom' AND custom_kind IS NOT NULL) OR (kind <> 'custom' AND custom_kind IS NULL))
 );
+
+-- Item 2: expression unique index using COALESCE so NULL custom_kind dedupes
+-- correctly. A plain table-level UNIQUE would treat each NULL as distinct and
+-- let duplicate (parent, user, kind) rows slip through.
+CREATE UNIQUE INDEX ux_reactions_once
+    ON forum.reactions (
+        parent_kind,
+        parent_id,
+        user_id,
+        kind,
+        COALESCE(custom_kind, '')
+    );
 
 CREATE INDEX idx_reactions_target ON forum.reactions (parent_kind, parent_id, kind);
 CREATE INDEX idx_reactions_user   ON forum.reactions (user_id, created_at DESC);
 
 ALTER TABLE forum.reactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE forum.reactions FORCE ROW LEVEL SECURITY;
 
--- Public read: anyone can see reaction totals + who reacted (twitter-style,
--- unlike votes). If a space wants private reactions, add a space-level flag
--- later and gate this policy on it.
 CREATE POLICY reactions_public_read ON forum.reactions
     FOR SELECT TO anon, authenticated
     USING (TRUE);
@@ -124,8 +132,8 @@ CREATE INDEX idx_auction_bids_bidder
     ON forum.auction_bids (bidder_id, created_at DESC);
 
 ALTER TABLE forum.auction_bids ENABLE ROW LEVEL SECURITY;
+ALTER TABLE forum.auction_bids FORCE ROW LEVEL SECURITY;
 
--- Public: bid history is transparent for auctions.
 CREATE POLICY auction_bids_public_read ON forum.auction_bids
     FOR SELECT TO anon, authenticated
     USING (TRUE);
@@ -148,12 +156,15 @@ CREATE TABLE forum.poll_votes (
 CREATE INDEX idx_poll_votes_thread ON forum.poll_votes (thread_id);
 
 ALTER TABLE forum.poll_votes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE forum.poll_votes FORCE ROW LEVEL SECURITY;
 
--- Poll visibility depends on the owning poll's `anonymous` flag. Enforce at
--- RPC layer (reads through forum.service_fetch_poll_results). Default here
--- is private-by-voter.
 CREATE POLICY poll_votes_self_read ON forum.poll_votes
     FOR SELECT TO authenticated
     USING (voter_id = auth.uid());
+
+-- Item 8 — client grants for engagement surfaces.
+GRANT SELECT          ON forum.reactions    TO anon, authenticated;
+GRANT SELECT          ON forum.auction_bids TO anon, authenticated;
+GRANT INSERT, DELETE  ON forum.reactions    TO authenticated;
 
 COMMIT;

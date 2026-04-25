@@ -9,9 +9,11 @@
 --   - GRANTED EXECUTE only to service_role
 --
 -- The caller (axum-kbve) validates auth + authorization before
--- invoking. These functions assume their inputs have already been
--- authorized; they focus on atomicity + denormalized-counter
--- maintenance.
+-- invoking. Each write RPC:
+--   - calls forum.is_user_banned(p_user) and aborts on TRUE (item 11)
+--   - validates polymorphic refs via forum.assert_parent_exists where
+--     applicable (item 10)
+--   - takes pg_advisory_xact_lock on contentious paths (votes; item 6)
 --
 -- Depends on: forum_core.sql, forum_user.sql, forum_engagement.sql,
 --             forum_moderation.sql.
@@ -20,7 +22,7 @@
 BEGIN;
 
 -- ===========================================
--- service_resolve_tag_ids — map raw tag IDs to their canonical IDs
+-- service_resolve_tag_ids — map raw tag IDs to canonical IDs
 -- ===========================================
 CREATE OR REPLACE FUNCTION forum.service_resolve_tag_ids(p_tag_ids INTEGER[])
 RETURNS INTEGER[]
@@ -66,7 +68,39 @@ REVOKE ALL ON FUNCTION forum.service_ensure_user_profile(UUID) FROM PUBLIC, anon
 GRANT EXECUTE ON FUNCTION forum.service_ensure_user_profile(UUID) TO service_role;
 
 -- ===========================================
+-- service_update_user_profile — user-controlled profile fields (item 3)
+-- ===========================================
+CREATE OR REPLACE FUNCTION forum.service_update_user_profile(
+    p_user_id                UUID,
+    p_signature              TEXT DEFAULT NULL,
+    p_flair_text             TEXT DEFAULT NULL,
+    p_mute_all_notifications BOOLEAN DEFAULT NULL,
+    p_show_nsfw              BOOLEAN DEFAULT NULL
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    UPDATE forum.forum_user_profiles
+       SET signature              = COALESCE(p_signature, signature),
+           flair_text             = COALESCE(p_flair_text, flair_text),
+           mute_all_notifications = COALESCE(p_mute_all_notifications, mute_all_notifications),
+           show_nsfw              = COALESCE(p_show_nsfw, show_nsfw),
+           last_active_at         = NOW()
+     WHERE user_id = p_user_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION forum.service_update_user_profile(UUID, TEXT, TEXT, BOOLEAN, BOOLEAN)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION forum.service_update_user_profile(UUID, TEXT, TEXT, BOOLEAN, BOOLEAN)
+    TO service_role;
+
+-- ===========================================
 -- service_create_thread — insert thread + tag edges + bump space counter
+-- (item 11: banned-user guard.)
 -- ===========================================
 CREATE OR REPLACE FUNCTION forum.service_create_thread(
     p_author_id     UUID,
@@ -92,7 +126,10 @@ DECLARE
     v_tag           INTEGER;
     v_status        forum.thread_status;
 BEGIN
-    -- Ensure the author has a forum_user_profiles row.
+    IF forum.is_user_banned(p_author_id) THEN
+        RAISE EXCEPTION 'forum user is banned';
+    END IF;
+
     PERFORM forum.service_ensure_user_profile(p_author_id);
 
     v_status := CASE
@@ -110,7 +147,6 @@ BEGIN
     )
     RETURNING id INTO v_thread_id;
 
-    -- Resolve and persist tag edges (canonical IDs only).
     v_resolved_tags := forum.service_resolve_tag_ids(p_tag_ids);
     IF array_length(v_resolved_tags, 1) IS NOT NULL THEN
         FOREACH v_tag IN ARRAY v_resolved_tags LOOP
@@ -121,7 +157,6 @@ BEGIN
         END LOOP;
     END IF;
 
-    -- Denormalized counters.
     UPDATE forum.spaces
        SET thread_count = thread_count + 1,
            updated_at = NOW()
@@ -142,7 +177,42 @@ GRANT EXECUTE ON FUNCTION forum.service_create_thread(UUID, UUID, TEXT, TEXT, fo
     TO service_role;
 
 -- ===========================================
+-- service_edit_thread — author-only edit, atomic + audit-friendly (item 4)
+-- ===========================================
+CREATE OR REPLACE FUNCTION forum.service_edit_thread(
+    p_author_id UUID,
+    p_thread_id TEXT,
+    p_title     TEXT,
+    p_body      TEXT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF forum.is_user_banned(p_author_id) THEN
+        RAISE EXCEPTION 'forum user is banned';
+    END IF;
+
+    UPDATE forum.threads
+       SET title          = p_title,
+           body           = p_body,
+           edited_at      = NOW(),
+           revision_count = revision_count + 1
+     WHERE id = p_thread_id
+       AND author_id = p_author_id
+       AND status IN ('active', 'draft', 'scheduled')
+       AND locked = FALSE;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION forum.service_edit_thread(UUID, TEXT, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION forum.service_edit_thread(UUID, TEXT, TEXT, TEXT) TO service_role;
+
+-- ===========================================
 -- service_create_comment — insert + bump thread counter + notifications
+-- (item 12: locked-thread guard.)
 -- ===========================================
 CREATE OR REPLACE FUNCTION forum.service_create_comment(
     p_author_id         UUID,
@@ -162,9 +232,22 @@ DECLARE
     v_thread_author UUID;
     v_parent_author UUID;
 BEGIN
+    IF forum.is_user_banned(p_author_id) THEN
+        RAISE EXCEPTION 'forum user is banned';
+    END IF;
+
+    -- Item 12: thread must be accepting comments.
+    IF EXISTS (
+        SELECT 1
+          FROM forum.threads
+         WHERE id = p_thread_id
+           AND (locked = TRUE OR status NOT IN ('active'))
+    ) THEN
+        RAISE EXCEPTION 'thread is not accepting comments';
+    END IF;
+
     PERFORM forum.service_ensure_user_profile(p_author_id);
 
-    -- Derive depth from parent.
     IF p_parent_comment_id IS NOT NULL THEN
         SELECT depth + 1, author_id
           INTO v_depth, v_parent_author
@@ -188,7 +271,6 @@ BEGIN
     )
     RETURNING id INTO v_comment_id;
 
-    -- Bump thread counters + last_activity_at.
     UPDATE forum.threads
        SET comment_count = comment_count + 1,
            last_activity_at = NOW()
@@ -200,7 +282,6 @@ BEGIN
            last_active_at = NOW()
      WHERE user_id = p_author_id;
 
-    -- Notifications (skip self-notifications).
     IF v_parent_author IS NOT NULL AND v_parent_author <> p_author_id THEN
         INSERT INTO forum.notifications (recipient_id, kind, actor_id, target_kind, target_id)
              VALUES (v_parent_author, 'reply', p_author_id, 'comment', v_comment_id);
@@ -209,7 +290,6 @@ BEGIN
              VALUES (v_thread_author, 'thread_reply', p_author_id, 'comment', v_comment_id);
     END IF;
 
-    -- Fan-out to thread subscribers (excluding the author of this comment).
     INSERT INTO forum.notifications (recipient_id, kind, actor_id, target_kind, target_id)
     SELECT ts.user_id, 'thread_update', p_author_id, 'thread', p_thread_id
       FROM forum.thread_subscriptions ts
@@ -228,7 +308,38 @@ GRANT EXECUTE ON FUNCTION forum.service_create_comment(UUID, TEXT, TEXT, TEXT, T
     TO service_role;
 
 -- ===========================================
--- service_cast_thread_vote — upsert vote + update score counters + karma
+-- service_edit_comment — author-only edit (item 4)
+-- ===========================================
+CREATE OR REPLACE FUNCTION forum.service_edit_comment(
+    p_author_id  UUID,
+    p_comment_id TEXT,
+    p_body       TEXT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF forum.is_user_banned(p_author_id) THEN
+        RAISE EXCEPTION 'forum user is banned';
+    END IF;
+
+    UPDATE forum.comments
+       SET body           = p_body,
+           edited_at      = NOW(),
+           revision_count = revision_count + 1
+     WHERE id = p_comment_id
+       AND author_id = p_author_id
+       AND status IN ('active', 'draft');
+END;
+$$;
+
+REVOKE ALL ON FUNCTION forum.service_edit_comment(UUID, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION forum.service_edit_comment(UUID, TEXT, TEXT) TO service_role;
+
+-- ===========================================
+-- service_cast_thread_vote — advisory lock + DELETE-on-cleared (item 6)
 -- ===========================================
 CREATE OR REPLACE FUNCTION forum.service_cast_thread_vote(
     p_user_id   UUID,
@@ -246,6 +357,14 @@ DECLARE
     v_delta_down    INTEGER := 0;
     v_thread_author UUID;
 BEGIN
+    IF forum.is_user_banned(p_user_id) THEN
+        RAISE EXCEPTION 'forum user is banned';
+    END IF;
+
+    -- Item 6: per-(thread, voter) advisory lock so concurrent vote flips
+    -- serialize and counter deltas stay coherent.
+    PERFORM pg_advisory_xact_lock(hashtext(p_thread_id || ':' || p_user_id::TEXT));
+
     PERFORM forum.service_ensure_user_profile(p_user_id);
 
     SELECT direction
@@ -254,25 +373,23 @@ BEGIN
      WHERE thread_id = p_thread_id AND voter_id = p_user_id
          FOR UPDATE;
 
-    -- Compute delta for score counters.
-    -- Old state first (undo its effect), then new state (apply its effect).
     IF v_old = 'up'   THEN v_delta_up := v_delta_up - 1; END IF;
     IF v_old = 'down' THEN v_delta_down := v_delta_down - 1; END IF;
     IF p_direction = 'up'   THEN v_delta_up := v_delta_up + 1; END IF;
     IF p_direction = 'down' THEN v_delta_down := v_delta_down + 1; END IF;
 
-    -- Upsert vote row.
-    IF v_old IS NULL THEN
-        INSERT INTO forum.thread_votes (thread_id, voter_id, direction)
-             VALUES (p_thread_id, p_user_id, p_direction);
-    ELSE
-        UPDATE forum.thread_votes
-           SET direction = p_direction,
-               updated_at = NOW()
+    -- Item 6: clearing deletes the row instead of leaving a 'cleared' tombstone.
+    IF p_direction = 'cleared' THEN
+        DELETE FROM forum.thread_votes
          WHERE thread_id = p_thread_id AND voter_id = p_user_id;
+    ELSE
+        INSERT INTO forum.thread_votes (thread_id, voter_id, direction)
+             VALUES (p_thread_id, p_user_id, p_direction)
+        ON CONFLICT (thread_id, voter_id)
+        DO UPDATE SET direction  = EXCLUDED.direction,
+                      updated_at = NOW();
     END IF;
 
-    -- Apply counter deltas on the thread.
     UPDATE forum.threads
        SET upvote_count   = upvote_count + v_delta_up,
            downvote_count = downvote_count + v_delta_down,
@@ -281,7 +398,6 @@ BEGIN
      WHERE id = p_thread_id
      RETURNING author_id INTO v_thread_author;
 
-    -- Update voter + author karma bookkeeping.
     UPDATE forum.forum_user_profiles
        SET upvotes_given   = upvotes_given   + GREATEST(v_delta_up,   0),
            downvotes_given = downvotes_given + GREATEST(v_delta_down, 0),
@@ -306,7 +422,7 @@ GRANT EXECUTE ON FUNCTION forum.service_cast_thread_vote(UUID, TEXT, forum.vote_
     TO service_role;
 
 -- ===========================================
--- service_cast_comment_vote — same pattern as thread vote
+-- service_cast_comment_vote — same hardening as thread vote
 -- ===========================================
 CREATE OR REPLACE FUNCTION forum.service_cast_comment_vote(
     p_user_id    UUID,
@@ -324,6 +440,12 @@ DECLARE
     v_delta_down     INTEGER := 0;
     v_comment_author UUID;
 BEGIN
+    IF forum.is_user_banned(p_user_id) THEN
+        RAISE EXCEPTION 'forum user is banned';
+    END IF;
+
+    PERFORM pg_advisory_xact_lock(hashtext(p_comment_id || ':' || p_user_id::TEXT));
+
     PERFORM forum.service_ensure_user_profile(p_user_id);
 
     SELECT direction
@@ -337,14 +459,15 @@ BEGIN
     IF p_direction = 'up'   THEN v_delta_up := v_delta_up + 1; END IF;
     IF p_direction = 'down' THEN v_delta_down := v_delta_down + 1; END IF;
 
-    IF v_old IS NULL THEN
-        INSERT INTO forum.comment_votes (comment_id, voter_id, direction)
-             VALUES (p_comment_id, p_user_id, p_direction);
-    ELSE
-        UPDATE forum.comment_votes
-           SET direction = p_direction,
-               updated_at = NOW()
+    IF p_direction = 'cleared' THEN
+        DELETE FROM forum.comment_votes
          WHERE comment_id = p_comment_id AND voter_id = p_user_id;
+    ELSE
+        INSERT INTO forum.comment_votes (comment_id, voter_id, direction)
+             VALUES (p_comment_id, p_user_id, p_direction)
+        ON CONFLICT (comment_id, voter_id)
+        DO UPDATE SET direction  = EXCLUDED.direction,
+                      updated_at = NOW();
     END IF;
 
     UPDATE forum.comments
@@ -378,7 +501,7 @@ GRANT EXECUTE ON FUNCTION forum.service_cast_comment_vote(UUID, TEXT, forum.vote
     TO service_role;
 
 -- ===========================================
--- service_toggle_reaction — add or remove a reaction idempotently
+-- service_toggle_reaction — idempotent add/remove (item 10 + item 11)
 -- ===========================================
 CREATE OR REPLACE FUNCTION forum.service_toggle_reaction(
     p_user_id      UUID,
@@ -395,11 +518,17 @@ AS $$
 DECLARE
     v_existing TEXT;
 BEGIN
+    IF forum.is_user_banned(p_user_id) THEN
+        RAISE EXCEPTION 'forum user is banned';
+    END IF;
     IF p_parent_kind NOT IN ('thread', 'comment') THEN
         RAISE EXCEPTION 'reaction parent must be thread or comment, got %', p_parent_kind;
     END IF;
     IF (p_kind = 'custom') <> (p_custom_kind IS NOT NULL) THEN
         RAISE EXCEPTION 'custom_kind must be set iff kind = custom';
+    END IF;
+    IF NOT forum.assert_parent_exists(p_parent_kind, p_parent_id) THEN
+        RAISE EXCEPTION 'reaction parent %/% does not exist', p_parent_kind, p_parent_id;
     END IF;
 
     SELECT id
@@ -414,11 +543,11 @@ BEGIN
 
     IF v_existing IS NOT NULL THEN
         DELETE FROM forum.reactions WHERE id = v_existing;
-        RETURN FALSE;  -- toggled off
+        RETURN FALSE;
     ELSE
         INSERT INTO forum.reactions (parent_kind, parent_id, user_id, kind, custom_kind)
              VALUES (p_parent_kind, p_parent_id, p_user_id, p_kind, p_custom_kind);
-        RETURN TRUE;   -- toggled on
+        RETURN TRUE;
     END IF;
 END;
 $$;
@@ -429,11 +558,12 @@ GRANT EXECUTE ON FUNCTION forum.service_toggle_reaction(UUID, forum.attachment_p
     TO service_role;
 
 -- ===========================================
--- service_file_report — dedupes open reports per (reporter, target)
+-- service_file_report — dedup open reports per (reporter, target)
+-- (item 1: target_kind enum; item 10: parent existence; item 11: ban guard.)
 -- ===========================================
 CREATE OR REPLACE FUNCTION forum.service_file_report(
     p_reporter_id   UUID,
-    p_target_kind   forum.attachment_parent_kind,
+    p_target_kind   forum.target_kind,
     p_target_id     TEXT,
     p_reason        forum.report_reason,
     p_reason_detail TEXT DEFAULT NULL
@@ -446,11 +576,18 @@ AS $$
 DECLARE
     v_report_id TEXT;
 BEGIN
+    IF forum.is_user_banned(p_reporter_id) THEN
+        RAISE EXCEPTION 'forum user is banned';
+    END IF;
     IF p_target_kind NOT IN ('thread', 'comment', 'user') THEN
         RAISE EXCEPTION 'report target must be thread, comment, or user, got %', p_target_kind;
     END IF;
+    -- target_kind / attachment_parent_kind both contain thread/comment/user/space
+    -- so the assertion accepts the same input.
+    IF NOT forum.assert_parent_exists(p_target_kind::TEXT::forum.attachment_parent_kind, p_target_id) THEN
+        RAISE EXCEPTION 'report target %/% does not exist', p_target_kind, p_target_id;
+    END IF;
 
-    -- Existing open report? Return its id — idempotent.
     SELECT id
       INTO v_report_id
       FROM forum.reports
@@ -467,8 +604,6 @@ BEGIN
          VALUES (p_reporter_id, p_target_kind, p_target_id, p_reason, p_reason_detail)
       RETURNING id INTO v_report_id;
 
-    -- Auto-flag comments when a report lands on them (visibility hint for
-    -- moderators). Threads do not auto-hide; reports are mod-reviewed.
     IF p_target_kind = 'comment' THEN
         UPDATE forum.comments
            SET status = 'flagged'
@@ -479,13 +614,15 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION forum.service_file_report(UUID, forum.attachment_parent_kind, TEXT, forum.report_reason, TEXT)
+REVOKE ALL ON FUNCTION forum.service_file_report(UUID, forum.target_kind, TEXT, forum.report_reason, TEXT)
     FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION forum.service_file_report(UUID, forum.attachment_parent_kind, TEXT, forum.report_reason, TEXT)
+GRANT EXECUTE ON FUNCTION forum.service_file_report(UUID, forum.target_kind, TEXT, forum.report_reason, TEXT)
     TO service_role;
 
 -- ===========================================
--- service_place_bid — append to auction_bids, update denormalized head
+-- service_place_bid — auction-type guard, anti-snipe, outbid notification
+-- (item 7: capture v_previous_bidder before the type_data update so we
+-- notify the correct user.)
 -- ===========================================
 CREATE OR REPLACE FUNCTION forum.service_place_bid(
     p_bidder_id UUID,
@@ -499,21 +636,28 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
-    v_bid_id        TEXT;
-    v_current_bid   BIGINT;
-    v_min_increment BIGINT;
-    v_end_time      TIMESTAMPTZ;
-    v_type          forum.thread_type;
-    v_anti_snipe    BOOLEAN;
-    v_anti_snipe_s  INTEGER;
+    v_bid_id           TEXT;
+    v_current_bid      BIGINT;
+    v_previous_bidder  UUID;
+    v_min_increment    BIGINT;
+    v_end_time         TIMESTAMPTZ;
+    v_type             forum.thread_type;
+    v_anti_snipe       BOOLEAN;
+    v_anti_snipe_s     INTEGER;
 BEGIN
+    IF forum.is_user_banned(p_bidder_id) THEN
+        RAISE EXCEPTION 'forum user is banned';
+    END IF;
+
     SELECT thread_type,
            (type_data->>'current_bid')::BIGINT,
+           (type_data->>'current_bidder_id')::UUID,
            COALESCE((type_data->>'min_increment')::BIGINT, 1),
            (type_data->>'end_time')::TIMESTAMPTZ,
            COALESCE((type_data->>'anti_snipe_enabled')::BOOLEAN, FALSE),
            COALESCE((type_data->>'anti_snipe_extend_seconds')::INTEGER, 0)
-      INTO v_type, v_current_bid, v_min_increment, v_end_time, v_anti_snipe, v_anti_snipe_s
+      INTO v_type, v_current_bid, v_previous_bidder,
+           v_min_increment, v_end_time, v_anti_snipe, v_anti_snipe_s
       FROM forum.threads
      WHERE id = p_thread_id
          FOR UPDATE;
@@ -535,7 +679,6 @@ BEGIN
          VALUES (p_thread_id, p_bidder_id, p_amount, p_currency)
       RETURNING id INTO v_bid_id;
 
-    -- Update denormalized head + optional anti-snipe time extension.
     UPDATE forum.threads
        SET type_data = type_data
             || jsonb_build_object(
@@ -551,14 +694,14 @@ BEGIN
            last_activity_at = NOW()
      WHERE id = p_thread_id;
 
-    -- Notify prior bidder they were outbid.
-    IF v_current_bid IS NOT NULL THEN
-        INSERT INTO forum.notifications (recipient_id, kind, actor_id, target_kind, target_id)
-        SELECT (type_data->>'current_bidder_id')::UUID, 'auction_outbid', p_bidder_id, 'thread', p_thread_id
-          FROM forum.threads
-         WHERE id = p_thread_id
-           AND (type_data->>'current_bidder_id') IS NOT NULL
-           AND (type_data->>'current_bidder_id')::UUID <> p_bidder_id;
+    -- Item 7: previous bidder was captured BEFORE the type_data update.
+    IF v_previous_bidder IS NOT NULL AND v_previous_bidder <> p_bidder_id THEN
+        INSERT INTO forum.notifications (
+            recipient_id, kind, actor_id, target_kind, target_id
+        )
+        VALUES (
+            v_previous_bidder, 'auction_outbid', p_bidder_id, 'thread', p_thread_id
+        );
     END IF;
 
     RETURN v_bid_id;
@@ -680,12 +823,13 @@ GRANT EXECUTE ON FUNCTION forum.service_fetch_feed(UUID, INTEGER, forum.thread_t
     TO service_role;
 
 -- ===========================================
--- service_record_moderation — append to mod log + apply state change
+-- service_record_moderation — append-to-log + apply state change
+-- (item 1: uses forum.target_kind enum.)
 -- ===========================================
 CREATE OR REPLACE FUNCTION forum.service_record_moderation(
     p_moderator_id  UUID,
     p_kind          forum.moderation_action_kind,
-    p_target_kind   forum.attachment_parent_kind,
+    p_target_kind   forum.target_kind,
     p_target_id     TEXT,
     p_reason        TEXT DEFAULT NULL,
     p_metadata_json JSONB DEFAULT NULL
@@ -704,7 +848,6 @@ BEGIN
     VALUES (p_moderator_id, p_kind, p_target_kind, p_target_id, p_reason, p_metadata_json)
     RETURNING id INTO v_action_id;
 
-    -- Apply the side effect corresponding to the action kind.
     CASE p_kind
         WHEN 'thread_lock'    THEN UPDATE forum.threads SET status = 'locked',  locked = TRUE  WHERE id = p_target_id;
         WHEN 'thread_unlock'  THEN UPDATE forum.threads SET status = 'active',  locked = FALSE WHERE id = p_target_id;
@@ -756,16 +899,16 @@ BEGIN
             UPDATE forum.tags SET status = 'deprecated'
              WHERE id = p_target_id::INTEGER;
         ELSE
-            NULL;  -- other kinds: just log
+            NULL;
     END CASE;
 
     RETURN v_action_id;
 END;
 $$;
 
-REVOKE ALL ON FUNCTION forum.service_record_moderation(UUID, forum.moderation_action_kind, forum.attachment_parent_kind, TEXT, TEXT, JSONB)
+REVOKE ALL ON FUNCTION forum.service_record_moderation(UUID, forum.moderation_action_kind, forum.target_kind, TEXT, TEXT, JSONB)
     FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION forum.service_record_moderation(UUID, forum.moderation_action_kind, forum.attachment_parent_kind, TEXT, TEXT, JSONB)
+GRANT EXECUTE ON FUNCTION forum.service_record_moderation(UUID, forum.moderation_action_kind, forum.target_kind, TEXT, TEXT, JSONB)
     TO service_role;
 
 COMMIT;

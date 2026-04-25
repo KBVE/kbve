@@ -43,9 +43,7 @@ GRANT USAGE ON SCHEMA forum TO anon, authenticated;
 
 -- ===========================================
 -- ENUM TYPES — mirror kbve.forum proto enums.
--- Values use the proto's post-stripPrefix, lowercase form
--- (same convention used by the zod codegen so enum strings
--- round-trip between frontend and DB without translation).
+-- Values use the proto's post-stripPrefix, lowercase form.
 -- ===========================================
 
 CREATE TYPE forum.thread_status AS ENUM (
@@ -172,6 +170,17 @@ CREATE TYPE forum.follow_target_kind AS ENUM (
     'tag'
 );
 
+-- target_kind is the union used by reports / moderation_actions / notifications.
+-- attachment_parent_kind below stays scoped to the attachments table so we can
+-- evolve the two surfaces independently (e.g. add 'message' to attachments
+-- without touching mod tooling).
+CREATE TYPE forum.target_kind AS ENUM (
+    'thread',
+    'comment',
+    'space',
+    'user'
+);
+
 CREATE TYPE forum.attachment_parent_kind AS ENUM (
     'thread',
     'comment',
@@ -210,7 +219,6 @@ SECURITY DEFINER
 SET search_path = '';
 
 -- Reddit-style hot score. Older posts decay; high-|score| posts climb.
--- See https://medium.com/hacking-and-gonzo/how-reddit-ranking-algorithms-work-ef111e33d0d9
 CREATE OR REPLACE FUNCTION forum.hot_score(p_score BIGINT, p_created_at TIMESTAMPTZ)
 RETURNS DOUBLE PRECISION AS $$
 DECLARE
@@ -224,7 +232,6 @@ BEGIN
         WHEN p_score < 0 THEN -1.0
         ELSE 0.0
     END;
-    -- Seconds since 2026-01-01 UTC (arbitrary epoch — keeps numbers small).
     v_epoch := EXTRACT(EPOCH FROM p_created_at) - EXTRACT(EPOCH FROM TIMESTAMPTZ '2026-01-01 00:00:00Z');
     RETURN ROUND(((v_sign * v_order) + (v_epoch / 45000.0))::numeric, 7)::DOUBLE PRECISION;
 END;
@@ -233,6 +240,53 @@ SET search_path = '';
 
 COMMENT ON FUNCTION forum.hot_score IS
     'Reddit-style hot ranking. Higher = hotter. 12.5-hour half-life via 45000s denominator.';
+
+-- Polymorphic existence check for parent_id on attachments / reactions / etc.
+CREATE OR REPLACE FUNCTION forum.assert_parent_exists(
+    p_kind forum.attachment_parent_kind,
+    p_id   TEXT
+) RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF p_kind = 'thread' THEN
+        RETURN EXISTS (SELECT 1 FROM forum.threads WHERE id = p_id);
+    ELSIF p_kind = 'comment' THEN
+        RETURN EXISTS (SELECT 1 FROM forum.comments WHERE id = p_id);
+    ELSIF p_kind = 'space' THEN
+        RETURN EXISTS (SELECT 1 FROM forum.spaces WHERE id = p_id::UUID);
+    ELSIF p_kind = 'user' THEN
+        RETURN EXISTS (SELECT 1 FROM auth.users WHERE id = p_id::UUID);
+    END IF;
+    RETURN FALSE;
+END;
+$$;
+
+COMMENT ON FUNCTION forum.assert_parent_exists IS
+    'Returns TRUE if a row exists for the given (kind, id) — used by service_* RPCs to validate polymorphic refs before insert.';
+
+-- Banned-user guard. Returns TRUE if the user is currently banned.
+CREATE OR REPLACE FUNCTION forum.is_user_banned(p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1
+          FROM forum.forum_user_profiles
+         WHERE user_id = p_user_id
+           AND is_banned = TRUE
+           AND (ban_expires_at IS NULL OR ban_expires_at > NOW())
+    );
+END;
+$$;
+
+COMMENT ON FUNCTION forum.is_user_banned IS
+    'Returns TRUE when the user has an active forum ban (no expiry set, or expiry in the future).';
 
 -- ===========================================
 -- SPACES
@@ -270,7 +324,7 @@ CREATE TRIGGER spaces_updated_at
     FOR EACH ROW EXECUTE FUNCTION forum.update_updated_at();
 
 -- ===========================================
--- TAGS (integer PK, admin-curated, alias-aware)
+-- TAGS
 -- ===========================================
 
 CREATE TABLE forum.tags (
@@ -295,7 +349,6 @@ CREATE INDEX idx_tags_canonical ON forum.tags (canonical_id);
 CREATE INDEX idx_tags_status ON forum.tags (status) WHERE status <> 'deprecated';
 CREATE INDEX idx_tags_alias ON forum.tags (alias_of) WHERE alias_of IS NOT NULL;
 
--- Auto-set canonical_id = id on insert when not supplied.
 CREATE OR REPLACE FUNCTION forum.set_tag_canonical_id()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -307,21 +360,18 @@ END;
 $$ LANGUAGE plpgsql
 SET search_path = '';
 
--- Insert-time trigger. Runs AFTER id is assigned (SERIAL default) but BEFORE row write.
 CREATE TRIGGER tags_set_canonical
     BEFORE INSERT ON forum.tags
     FOR EACH ROW EXECUTE FUNCTION forum.set_tag_canonical_id();
 
 -- ===========================================
 -- THREADS
--- type_data is JSONB holding the active proto oneof branch. The edge
--- layer / RPC enforces that thread_type ↔ type_data key match.
 -- ===========================================
 
 CREATE TABLE forum.threads (
     id                          TEXT PRIMARY KEY DEFAULT public.gen_ulid(),
     title                       TEXT NOT NULL CHECK (char_length(title) <= 300),
-    body                        TEXT NOT NULL CHECK (char_length(body) >= 1),
+    body                        TEXT NOT NULL CHECK (char_length(body) BETWEEN 1 AND 20000),
     author_id                   UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     space_id                    UUID NOT NULL REFERENCES forum.spaces(id) ON DELETE CASCADE,
     status                      forum.thread_status NOT NULL DEFAULT 'active',
@@ -350,27 +400,30 @@ CREATE TABLE forum.threads (
     edited_at                   TIMESTAMPTZ
 );
 
--- Feed sort indexes. Partial indexes on status = 'active' keep them lean.
+-- Feed sort indexes (item 9 — broaden coverage so the planner can pick the
+-- best partial for hot/new/top + nsfw filtering).
 CREATE INDEX idx_threads_space_last_activity
-    ON forum.threads (space_id, last_activity_at DESC)
-    WHERE status = 'active';
+    ON forum.threads (space_id, last_activity_at DESC) WHERE status = 'active';
 CREATE INDEX idx_threads_space_score
-    ON forum.threads (space_id, score DESC)
-    WHERE status = 'active';
+    ON forum.threads (space_id, score DESC) WHERE status = 'active';
 CREATE INDEX idx_threads_space_created
-    ON forum.threads (space_id, created_at DESC)
-    WHERE status = 'active';
+    ON forum.threads (space_id, created_at DESC) WHERE status = 'active';
+CREATE INDEX idx_threads_active_hot
+    ON forum.threads (created_at DESC, score DESC) WHERE status = 'active';
+CREATE INDEX idx_threads_active_top
+    ON forum.threads (score DESC, created_at DESC) WHERE status = 'active';
+CREATE INDEX idx_threads_active_new
+    ON forum.threads (created_at DESC, id DESC) WHERE status = 'active';
+CREATE INDEX idx_threads_active_nsfw
+    ON forum.threads (nsfw, created_at DESC) WHERE status = 'active';
 CREATE INDEX idx_threads_author
     ON forum.threads (author_id, created_at DESC);
 CREATE INDEX idx_threads_type
-    ON forum.threads (thread_type, last_activity_at DESC)
-    WHERE status = 'active';
+    ON forum.threads (thread_type, last_activity_at DESC) WHERE status = 'active';
 CREATE INDEX idx_threads_pinned
-    ON forum.threads (space_id, last_activity_at DESC)
-    WHERE pinned = TRUE AND status = 'active';
+    ON forum.threads (space_id, last_activity_at DESC) WHERE pinned = TRUE AND status = 'active';
 CREATE INDEX idx_threads_scheduled
-    ON forum.threads (scheduled_at)
-    WHERE status = 'scheduled';
+    ON forum.threads (scheduled_at) WHERE status = 'scheduled';
 CREATE INDEX idx_threads_expires_auction
     ON forum.threads ((type_data->>'end_time'))
     WHERE thread_type = 'auction' AND status = 'active';
@@ -399,10 +452,10 @@ CREATE TABLE forum.comments (
     revision_count      INTEGER NOT NULL DEFAULT 0 CHECK (revision_count >= 0),
     attachment_count    INTEGER NOT NULL DEFAULT 0 CHECK (attachment_count >= 0),
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     edited_at           TIMESTAMPTZ
 );
 
--- Close the accepted_comment_id FK now that comments exists.
 ALTER TABLE forum.threads
     ADD CONSTRAINT threads_accepted_comment_fkey
     FOREIGN KEY (accepted_comment_id) REFERENCES forum.comments(id) ON DELETE SET NULL;
@@ -413,10 +466,12 @@ CREATE INDEX idx_comments_parent         ON forum.comments (parent_comment_id) W
 CREATE INDEX idx_comments_author         ON forum.comments (author_id, created_at DESC);
 CREATE INDEX idx_comments_accepted       ON forum.comments (thread_id) WHERE is_accepted = TRUE;
 
+CREATE TRIGGER comments_updated_at
+    BEFORE UPDATE ON forum.comments
+    FOR EACH ROW EXECUTE FUNCTION forum.update_updated_at();
+
 -- ===========================================
 -- THREAD ↔ TAG JUNCTION + canonical-resolving view
--- All feed/search queries MUST read through thread_tags_resolved so
--- merged-tag counts stay consistent.
 -- ===========================================
 
 CREATE TABLE forum.thread_tags (
@@ -426,6 +481,7 @@ CREATE TABLE forum.thread_tags (
 );
 
 CREATE INDEX idx_thread_tags_tag ON forum.thread_tags (tag_id);
+CREATE INDEX idx_thread_tags_tag_thread ON forum.thread_tags (tag_id, thread_id);
 
 CREATE OR REPLACE VIEW forum.thread_tags_resolved AS
     SELECT tt.thread_id, t.canonical_id AS tag_id
@@ -433,10 +489,12 @@ CREATE OR REPLACE VIEW forum.thread_tags_resolved AS
       JOIN forum.tags t ON t.id = tt.tag_id;
 
 COMMENT ON VIEW forum.thread_tags_resolved IS
-    'Canonical-resolved tag edges. Read through this view, never thread_tags directly, so merged/aliased tags aggregate correctly.';
+    'Canonical-resolved tag edges. Read through this view, never thread_tags directly.';
 
 -- ===========================================
--- RLS — readers see active rows; authors manage their own
+-- RLS — readers see active rows; mutations only via service_* RPCs.
+-- (Item 4: direct author UPDATE policies removed; edits route through
+-- forum.service_edit_thread / forum.service_edit_comment.)
 -- ===========================================
 
 ALTER TABLE forum.spaces       ENABLE ROW LEVEL SECURITY;
@@ -445,17 +503,21 @@ ALTER TABLE forum.threads      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE forum.comments     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE forum.thread_tags  ENABLE ROW LEVEL SECURITY;
 
--- spaces: public read for everything except suspended (mod-only)
+-- Item 13 — defense-in-depth FORCE RLS so even table owner respects policies.
+ALTER TABLE forum.spaces       FORCE ROW LEVEL SECURITY;
+ALTER TABLE forum.tags         FORCE ROW LEVEL SECURITY;
+ALTER TABLE forum.threads      FORCE ROW LEVEL SECURITY;
+ALTER TABLE forum.comments     FORCE ROW LEVEL SECURITY;
+ALTER TABLE forum.thread_tags  FORCE ROW LEVEL SECURITY;
+
 CREATE POLICY spaces_public_read ON forum.spaces
     FOR SELECT TO anon, authenticated
     USING (status <> 'suspended');
 
--- tags: everyone reads (taxonomy is public)
 CREATE POLICY tags_public_read ON forum.tags
     FOR SELECT TO anon, authenticated
     USING (TRUE);
 
--- threads: hide drafts/scheduled/removed/pending from public. Owner sees own drafts.
 CREATE POLICY threads_public_read ON forum.threads
     FOR SELECT TO anon, authenticated
     USING (status IN ('active', 'archived', 'locked', 'sold', 'expired'));
@@ -463,18 +525,12 @@ CREATE POLICY threads_author_read_drafts ON forum.threads
     FOR SELECT TO authenticated
     USING (author_id = auth.uid() AND status IN ('draft', 'scheduled', 'pending'));
 
--- threads: authors insert + update their own; status transitions restricted
--- to author-visible states (no self-unlocking, no self-unremoving).
 CREATE POLICY threads_author_insert ON forum.threads
     FOR INSERT TO authenticated
     WITH CHECK (author_id = auth.uid() AND status IN ('active', 'draft', 'scheduled'));
+-- Item 4: NO direct UPDATE policy on threads. Edits route through
+-- forum.service_edit_thread (SECURITY DEFINER, service_role).
 
-CREATE POLICY threads_author_update ON forum.threads
-    FOR UPDATE TO authenticated
-    USING (author_id = auth.uid() AND status IN ('active', 'draft', 'scheduled'))
-    WITH CHECK (author_id = auth.uid() AND status IN ('active', 'draft', 'scheduled'));
-
--- comments: public read of active only; owner sees drafts
 CREATE POLICY comments_public_read ON forum.comments
     FOR SELECT TO anon, authenticated
     USING (status = 'active');
@@ -485,15 +541,23 @@ CREATE POLICY comments_author_read_drafts ON forum.comments
 CREATE POLICY comments_author_insert ON forum.comments
     FOR INSERT TO authenticated
     WITH CHECK (author_id = auth.uid());
+-- Item 4: NO direct UPDATE policy on comments either.
 
-CREATE POLICY comments_author_update ON forum.comments
-    FOR UPDATE TO authenticated
-    USING (author_id = auth.uid() AND status IN ('active', 'draft'))
-    WITH CHECK (author_id = auth.uid() AND status IN ('active', 'draft'));
-
--- thread_tags: public read, writes only via service-role RPC
 CREATE POLICY thread_tags_public_read ON forum.thread_tags
     FOR SELECT TO anon, authenticated
     USING (TRUE);
+
+-- Item 8 — explicit grants. RLS policies don't matter without table-level
+-- privileges first. Reads broadly available; writes that aren't behind
+-- service_* RPCs are listed per-table elsewhere.
+GRANT SELECT ON forum.spaces      TO anon, authenticated;
+GRANT SELECT ON forum.tags        TO anon, authenticated;
+GRANT SELECT ON forum.threads     TO anon, authenticated;
+GRANT SELECT ON forum.comments    TO anon, authenticated;
+GRANT SELECT ON forum.thread_tags TO anon, authenticated;
+GRANT SELECT ON forum.thread_tags_resolved TO anon, authenticated;
+-- Author-side INSERTs (only path the policy allows; UPDATE goes via RPC).
+GRANT INSERT ON forum.threads  TO authenticated;
+GRANT INSERT ON forum.comments TO authenticated;
 
 COMMIT;

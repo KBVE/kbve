@@ -2,13 +2,16 @@
 -- FORUM SCHEMA — user-side tables.
 --
 -- Forum-specific denormalized state (karma, post_count, signature,
--- flair, rank, badges) keyed by Supabase user_id. Identity fields
--- stay in kbve.profile.UserProfile.
+-- flair, rank, badges) keyed by Supabase user_id. Identity stays in
+-- kbve.profile.UserProfile.
 --
 -- Plus user-owned graph: follows (user/space/tag), bookmarks,
 -- thread subscriptions.
 --
--- Depends on: forum_core.sql.
+-- Item 3: profile updates go through forum.service_update_user_profile —
+-- direct UPDATE policy removed so users cannot mutate karma / ban flags.
+-- A read-only public view forum.public_user_profiles exposes the safe
+-- subset for client reads.
 -- ============================================================
 
 BEGIN;
@@ -46,22 +49,38 @@ CREATE INDEX idx_forum_user_profiles_banned    ON forum.forum_user_profiles (is_
 CREATE INDEX idx_forum_user_profiles_last_act  ON forum.forum_user_profiles (last_active_at DESC) WHERE last_active_at IS NOT NULL;
 
 ALTER TABLE forum.forum_user_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE forum.forum_user_profiles FORCE ROW LEVEL SECURITY;
 
--- Public read of profiles (show karma, signature, flair on user pages).
--- Sensitive fields (ban_reason, mute_all_notifications, show_nsfw) stay
--- server-side — frontend only queries non-sensitive columns via RPC.
-CREATE POLICY forum_user_profiles_public_read ON forum.forum_user_profiles
-    FOR SELECT TO anon, authenticated
-    USING (TRUE);
+-- Item 3: NO end-user UPDATE policy on the base table. Profile mutations
+-- route through forum.service_update_user_profile so users cannot tamper
+-- with karma, post_count, ban flags, or trust_level.
+--
+-- Public reads expose the safe subset via forum.public_user_profiles view.
+-- The base table is reachable only by service_role.
 
--- User updates own profile fields (signature, flair, notification prefs).
-CREATE POLICY forum_user_profiles_self_update ON forum.forum_user_profiles
-    FOR UPDATE TO authenticated
-    USING (user_id = auth.uid())
-    WITH CHECK (user_id = auth.uid());
+-- Read-only safe subset for clients. Excludes ban_reason, mute flags,
+-- show_nsfw, ban_expires_at — those are private settings or moderation-only.
+CREATE OR REPLACE VIEW forum.public_user_profiles AS
+SELECT
+    user_id,
+    karma,
+    post_count,
+    comment_count,
+    upvotes_received,
+    downvotes_received,
+    signature,
+    flair_id,
+    flair_text,
+    rank_id,
+    badge_ids,
+    joined_forum_at,
+    last_active_at,
+    trust_level
+FROM forum.forum_user_profiles
+WHERE is_banned = FALSE OR ban_expires_at < NOW();
 
--- Insert bootstrap: new user row created by RPC the first time they post.
--- No author-side INSERT policy — service_role handles creation.
+COMMENT ON VIEW forum.public_user_profiles IS
+    'Public-safe forum stats. Hides ban_reason, notification + content prefs, and active-ban rows.';
 
 -- ===========================================
 -- USER_FOLLOWS — user → user / space / tag edges
@@ -80,10 +99,8 @@ CREATE INDEX idx_user_follows_target      ON forum.user_follows (target_kind, ta
 CREATE INDEX idx_user_follows_follower    ON forum.user_follows (follower_id, created_at DESC);
 
 ALTER TABLE forum.user_follows ENABLE ROW LEVEL SECURITY;
+ALTER TABLE forum.user_follows FORCE ROW LEVEL SECURITY;
 
--- Anyone can count followers (read-anyone); follower list visibility is
--- controlled at the RPC layer (e.g. "who follows @alice" requires auth
--- + returns only the viewer's own row, or aggregate counts).
 CREATE POLICY user_follows_self_read ON forum.user_follows
     FOR SELECT TO authenticated
     USING (follower_id = auth.uid());
@@ -113,6 +130,7 @@ CREATE TABLE forum.bookmarks (
 CREATE INDEX idx_bookmarks_user ON forum.bookmarks (user_id, created_at DESC);
 
 ALTER TABLE forum.bookmarks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE forum.bookmarks FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY bookmarks_self_all ON forum.bookmarks
     FOR ALL TO authenticated
@@ -135,10 +153,18 @@ CREATE TABLE forum.thread_subscriptions (
 CREATE INDEX idx_thread_subscriptions_user ON forum.thread_subscriptions (user_id);
 
 ALTER TABLE forum.thread_subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE forum.thread_subscriptions FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY thread_subscriptions_self_all ON forum.thread_subscriptions
     FOR ALL TO authenticated
     USING (user_id = auth.uid())
     WITH CHECK (user_id = auth.uid());
+
+-- Item 8 — explicit grants for user-side surfaces.
+GRANT SELECT ON forum.public_user_profiles TO anon, authenticated;
+
+GRANT SELECT, INSERT, DELETE         ON forum.bookmarks            TO authenticated;
+GRANT SELECT, INSERT, DELETE         ON forum.user_follows         TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON forum.thread_subscriptions TO authenticated;
 
 COMMIT;
