@@ -243,10 +243,4 @@ namespace RareIcon
             Debug.Log("[HexHoverSystem] Hover overlay entity created");
         }
     }
-
-    /// <summary>Singleton mirror of HexHoverSystem's internal hex map; Burst-compiled systems read the NativeHashMap via SystemAPI.GetSingleton since static fields aren't Burst-accessible.</summary>
-    public struct HexLookupSingleton : IComponentData
-    {
-        public NativeHashMap<int2, Entity> Lookup;
-    }
 }

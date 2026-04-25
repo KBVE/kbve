@@ -25,7 +25,7 @@ namespace RareIcon
 
         void AutoShelterRelief(ref SystemState state)
         {
-            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
+            if (!SystemAPI.TryGetSingleton<HexDBSingleton>(out var hexLookup)) return;
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);
@@ -88,7 +88,7 @@ namespace RareIcon
 
         void AutoShelterKing(ref SystemState state)
         {
-            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
+            if (!SystemAPI.TryGetSingleton<HexDBSingleton>(out var hexLookup)) return;
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);

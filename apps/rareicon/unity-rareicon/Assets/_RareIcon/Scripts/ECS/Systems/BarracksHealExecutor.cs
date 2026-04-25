@@ -14,7 +14,7 @@ namespace RareIcon
         {
             state.RequireForUpdate<LogisticsDBSingleton>();
             state.RequireForUpdate<ItemDBSingleton>();
-            state.RequireForUpdate<HexLookupSingleton>();
+            state.RequireForUpdate<HexDBSingleton>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         }
 
@@ -23,7 +23,7 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
+            if (!SystemAPI.TryGetSingleton<HexDBSingleton>(out var hexLookup)) return;
             var itemDB = SystemAPI.GetSingleton<ItemDBSingleton>();
 
             ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;

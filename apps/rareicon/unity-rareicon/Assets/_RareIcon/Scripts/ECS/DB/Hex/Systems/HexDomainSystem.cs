@@ -50,18 +50,6 @@ namespace RareIcon
             var e = state.EntityManager.CreateEntity(typeof(HexDBSingleton));
             state.EntityManager.SetComponentData(e, singleton);
             state.EntityManager.SetName(e, "HexDBSingleton");
-
-            // Legacy facade — HexLookupSingleton is referenced by ~24
-            // reader systems; keep publishing it so existing queries keep
-            // working. Both components share the SAME underlying
-            // NativeHashMap handle, so mutations drain through one path.
-            if (!SystemAPI.HasSingleton<HexLookupSingleton>())
-            {
-                var legacyEntity = state.EntityManager.CreateEntity(typeof(HexLookupSingleton));
-                state.EntityManager.SetComponentData(legacyEntity,
-                    new HexLookupSingleton { Lookup = singleton.Lookup });
-                state.EntityManager.SetName(legacyEntity, "HexLookupSingleton (legacy)");
-            }
         }
 
         public void OnDestroy(ref SystemState state)
@@ -76,9 +64,16 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            // GetSingletonRW forces completion of any job holding a write
-            // handle on HexDBSingleton; combined with Burst inline drain
-            // on main thread this is the cheap-and-correct contract.
+            // DrainInline mutates db.Lookup / db.Pending / db.Events on the
+            // main thread. Burst ISystem direct-call paths do NOT auto-sync
+            // state.Dependency before inner-NativeContainer access, even
+            // when GetSingletonRW registers write intent on the parent
+            // component. Reader jobs scheduled last frame (e.g.
+            // BuildingRepairJob with [ReadOnly] HexLookup) still hold the
+            // NativeHashMap's safety handle until their JobHandle completes.
+            // CompleteDependency flushes them synchronously so the drain is
+            // race-free.
+            state.CompleteDependency();
             var dbRW = SystemAPI.GetSingletonRW<HexDBSingleton>();
             ref var db = ref dbRW.ValueRW;
             if (!db.Pending.IsCreated || db.Pending.Length == 0) return;

@@ -424,7 +424,27 @@ namespace RareIcon
             // Force completion of any in-flight ghost-sim job writing Unloaded.
             var dbRW = SystemAPI.GetSingletonRW<BuildingsDBSingleton>();
             var unloaded = dbRW.ValueRW.Unloaded;
-            if (!unloaded.IsCreated || unloaded.Length == 0) return;
+            if (!unloaded.IsCreated) return;
+
+            // FFI drain — cleans up the Rust-side mirror for this chunk so
+            // the write-back cache stays in sync with the live list. The
+            // drained records themselves are discarded because the in-memory
+            // list already holds ghost-sim-advanced copies; using the
+            // FFI records would overwrite accrued deltas with stale data.
+            // (Future: crash-recovery startup path reads FFI to seed the
+            // in-memory list before any session-local sim runs.)
+            var nativeWorld = WorldStoreSystem.Instance;
+            if (nativeWorld != null && nativeWorld.IsValid)
+            {
+                uint count = nativeWorld.BuildingCountInChunk(chunkCoord.x, chunkCoord.y);
+                if (count > 0)
+                {
+                    var discard = new FfiUnloadedBuilding[count];
+                    nativeWorld.TakeBuildingsInChunk(chunkCoord.x, chunkCoord.y, discard);
+                }
+            }
+
+            if (unloaded.Length == 0) return;
 
             var prefab = SystemAPI.GetSingleton<BuildingPrefabSingleton>().Prefab;
             if (prefab == Entity.Null) return;
@@ -885,6 +905,14 @@ namespace RareIcon
                                         ? UnloadedBuildingFlags.InHostileTerritory : (byte)0,
                 };
 
+                // FFI write-through — persist record across process
+                // restart via the Rust world store. In-memory list below
+                // is the ghost-sim working set for this session; FFI is
+                // the crash-recovery + long-term home.
+                var nativeWorld = WorldStoreSystem.Instance;
+                bool canFfi = nativeWorld != null && nativeWorld.IsValid;
+                // populated after recipe/ledger fields finalise; see below.
+
                 // Recipe cycle preservation — grab the first recipe's
                 // remaining cycle time (if any) so hydrate can resume
                 // the cycle at its pre-unload phase.
@@ -907,6 +935,7 @@ namespace RareIcon
                 SnapshotLedgerSlots(em, entity, building.Type, ref rec);
 
                 unloaded.Add(rec);
+                if (canFfi) nativeWorld.SaveBuilding(ToFfi(rec));
 
                 // Entity destruction is deferred to the main DespawnChunk
                 // loop so the iteration order below stays stable.
@@ -914,6 +943,51 @@ namespace RareIcon
             }
             buildingArr.Dispose();
         }
+
+        /// <summary>UnloadedBuildingRecord → FfiUnloadedBuilding. Field order + shapes match the Rust repr(C) struct byte-for-byte so csbindgen + ECS agree on layout.</summary>
+        static FfiUnloadedBuilding ToFfi(in UnloadedBuildingRecord rec) => new FfiUnloadedBuilding
+        {
+            building_type          = rec.Type,
+            root_q                 = rec.RootHex.x,
+            root_r                 = rec.RootHex.y,
+            owner_faction          = rec.OwnerFaction,
+            health                 = rec.Health,
+            health_max             = rec.HealthMax,
+            tier                   = rec.Tier,
+            last_tick_turn         = rec.LastTickTurn,
+            accrued_production     = rec.AccruedProduction,
+            accrued_input          = rec.AccruedInput,
+            flags                  = rec.Flags,
+            recipe_cycle_remaining = rec.RecipeCycleRemaining,
+            slot0_id    = rec.Slot0Id,
+            slot0_count = rec.Slot0Count,
+            slot1_id    = rec.Slot1Id,
+            slot1_count = rec.Slot1Count,
+            slot2_id    = rec.Slot2Id,
+            slot2_count = rec.Slot2Count,
+            slot3_id    = rec.Slot3Id,
+            slot3_count = rec.Slot3Count,
+        };
+
+        /// <summary>FfiUnloadedBuilding → UnloadedBuildingRecord.</summary>
+        static UnloadedBuildingRecord FromFfi(in FfiUnloadedBuilding f) => new UnloadedBuildingRecord
+        {
+            Type              = f.building_type,
+            RootHex           = new int2(f.root_q, f.root_r),
+            OwnerFaction      = f.owner_faction,
+            Health            = f.health,
+            HealthMax         = f.health_max,
+            Tier              = f.tier,
+            LastTickTurn      = f.last_tick_turn,
+            AccruedProduction = f.accrued_production,
+            AccruedInput      = f.accrued_input,
+            Flags             = f.flags,
+            RecipeCycleRemaining = f.recipe_cycle_remaining,
+            Slot0Id    = f.slot0_id,    Slot0Count = f.slot0_count,
+            Slot1Id    = f.slot1_id,    Slot1Count = f.slot1_count,
+            Slot2Id    = f.slot2_id,    Slot2Count = f.slot2_count,
+            Slot3Id    = f.slot3_id,    Slot3Count = f.slot3_count,
+        };
 
         /// <summary>Per-type ledger → 4 inline slots. Dispatches on BuildingType because each type stores its inventory in its own tagged DynamicBuffer (CapitalLedger, FarmLedger, …). All ledger buffers share the BankLedgerBase binary layout, so the read is uniform after the per-type buffer lookup. Truncates past 4 items — acceptable loss for offline state since real-world buildings rarely exceed 4 unique SKUs.</summary>
         static void SnapshotLedgerSlots(EntityManager em, Entity entity, byte type, ref UnloadedBuildingRecord rec)

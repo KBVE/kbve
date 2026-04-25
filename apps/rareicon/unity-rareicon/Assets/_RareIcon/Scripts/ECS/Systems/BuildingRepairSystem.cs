@@ -19,7 +19,7 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookupSingleton)) return;
+            if (!SystemAPI.TryGetSingleton<HexDBSingleton>(out var hexLookupSingleton)) return;
             float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
 
             state.Dependency = new BuildingRepairJob

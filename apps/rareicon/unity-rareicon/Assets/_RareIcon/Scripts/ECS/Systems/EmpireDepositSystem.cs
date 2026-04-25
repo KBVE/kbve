@@ -26,7 +26,7 @@ namespace RareIcon
         {
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             if (!SystemAPI.HasBuffer<CapitalLedger>(capital)) return;
-            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
+            if (!SystemAPI.TryGetSingleton<HexDBSingleton>(out var hexLookup)) return;
 
             uint tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
 

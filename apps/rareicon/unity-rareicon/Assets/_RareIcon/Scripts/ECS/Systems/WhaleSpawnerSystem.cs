@@ -19,7 +19,7 @@ namespace RareIcon
 
         protected override void OnCreate()
         {
-            RequireForUpdate<HexLookupSingleton>();
+            RequireForUpdate<HexDBSingleton>();
             _whaleQuery = GetEntityQuery(ComponentType.ReadOnly<WhaleTag>());
         }
 
@@ -32,7 +32,7 @@ namespace RareIcon
             if (_whaleQuery.CalculateEntityCount() >= MaxWhales) return;
 
             var em = EntityManager;
-            var lookup = SystemAPI.GetSingleton<HexLookupSingleton>().Lookup;
+            var lookup = SystemAPI.GetSingleton<HexDBSingleton>().Lookup;
 
             var keys = lookup.GetKeyArray(Allocator.Temp);
             if (keys.Length == 0) { keys.Dispose(); return; }

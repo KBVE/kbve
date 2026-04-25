@@ -19,7 +19,7 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
+            if (!SystemAPI.TryGetSingleton<HexDBSingleton>(out var hexLookup)) return;
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();

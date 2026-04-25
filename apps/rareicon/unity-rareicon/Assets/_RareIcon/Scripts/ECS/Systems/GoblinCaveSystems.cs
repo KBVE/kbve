@@ -227,7 +227,7 @@ namespace RareIcon
 
         public void OnUpdate(ref SystemState state)
         {
-            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
+            if (!SystemAPI.TryGetSingleton<HexDBSingleton>(out var hexLookup)) return;
             if (!SystemAPI.TryGetSingleton<ItemDBSingleton>(out var itemDb)) return;
 
             uint tick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);

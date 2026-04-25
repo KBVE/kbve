@@ -41,7 +41,7 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookup)) return;
+            if (!SystemAPI.TryGetSingleton<HexDBSingleton>(out var hexLookup)) return;
 
             Entity capital = Entity.Null;
             if (SystemAPI.TryGetSingletonEntity<CapitalTag>(out var cap)) capital = cap;

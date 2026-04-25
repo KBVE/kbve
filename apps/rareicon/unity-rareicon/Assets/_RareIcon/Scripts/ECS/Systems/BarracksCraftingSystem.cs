@@ -18,7 +18,7 @@ namespace RareIcon
 
         public void OnUpdate(ref SystemState state)
         {
-            if (!SystemAPI.TryGetSingleton<HexLookupSingleton>(out var hexLookupSingleton)) return;
+            if (!SystemAPI.TryGetSingleton<HexDBSingleton>(out var hexLookupSingleton)) return;
 
             var craftsmen = new NativeList<CraftsmanStation>(8, Allocator.TempJob);
             foreach (var (intent, movement) in
