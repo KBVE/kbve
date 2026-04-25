@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/forum.binpb
  * Config: ../forum-zod-config.json
- * Generated: 2026-04-24T14:12:35.750Z
+ * Generated: 2026-04-25T00:20:50.916Z
  */
 
 import { z } from 'zod';
@@ -193,36 +193,6 @@ export const LfgStatuses = ['open', 'full', 'started', 'cancelled'] as const;
 export type LfgStatusValue = (typeof LfgStatuses)[number];
 
 export const LfgStatusSchema = z.enum(LfgStatuses);
-
-// ForumUserProfile
-export const ForumUserProfileSchema = z.object({
-	user_id: z.string().uuid(),
-	karma: z.number(),
-	post_count: z.number(),
-	comment_count: z.number(),
-	upvotes_given: z.number(),
-	downvotes_given: z.number(),
-	upvotes_received: z.number(),
-	downvotes_received: z.number(),
-	signature: z
-		.string()
-		.max(500, 'Signature must be 500 characters or less')
-		.optional(),
-	flair_id: z.number().optional(),
-	flair_text: z.string().optional(),
-	rank_id: z.number().optional(),
-	badge_ids: z.array(z.number()).optional(),
-	joined_forum_at: z.string().datetime(),
-	last_active_at: z.string().datetime().optional(),
-	trust_level: z.number().int().min(0).max(5).default(0),
-	mute_all_notifications: z.boolean(),
-	show_nsfw: z.boolean(),
-	is_banned: z.boolean(),
-	ban_reason: z.string().optional(),
-	ban_expires_at: z.string().datetime().optional(),
-});
-
-export type ForumUserProfile = z.infer<typeof ForumUserProfileSchema>;
 
 // DiscussionData
 export const DiscussionDataSchema = z.object({});
@@ -448,6 +418,36 @@ export const ForumTagSchema = z.object({
 
 export type ForumTag = z.infer<typeof ForumTagSchema>;
 
+// ForumUserProfile
+export const ForumUserProfileSchema = z.object({
+	user_id: z.string().uuid(),
+	karma: z.number(),
+	post_count: z.number(),
+	comment_count: z.number(),
+	upvotes_given: z.number(),
+	downvotes_given: z.number(),
+	upvotes_received: z.number(),
+	downvotes_received: z.number(),
+	signature: z
+		.string()
+		.max(500, 'Signature must be 500 characters or less')
+		.optional(),
+	flair_id: z.number().optional(),
+	flair_text: z.string().optional(),
+	rank_id: z.number().optional(),
+	badge_ids: z.array(z.number()).optional(),
+	joined_forum_at: z.string().datetime(),
+	last_active_at: z.string().datetime().optional(),
+	trust_level: z.number().int().min(0).max(5).default(0),
+	mute_all_notifications: z.boolean(),
+	show_nsfw: z.boolean(),
+	is_banned: z.boolean(),
+	ban_reason: z.string().optional(),
+	ban_expires_at: z.string().datetime().optional(),
+});
+
+export type ForumUserProfile = z.infer<typeof ForumUserProfileSchema>;
+
 // Attachment
 export const AttachmentSchema = z.object({
 	id: z.string().min(1),
@@ -470,24 +470,6 @@ export const AttachmentSchema = z.object({
 });
 
 export type Attachment = z.infer<typeof AttachmentSchema>;
-
-// FeedItem
-export const FeedItemSchema = z.object({
-	thread: ForumThreadSchema.optional(),
-	space: ForumSpaceSchema.optional(),
-	tags: z.array(ForumTagSchema).optional(),
-	author_name: z.string().min(1).max(128),
-	author_avatar_url: z.string().url().max(512).optional(),
-	author_flair_id: z.number().optional(),
-	author_rank_id: z.number().optional(),
-	viewer_vote: VoteDirectionSchema.optional(),
-	viewer_bookmarked: z.boolean(),
-	viewer_subscribed: z.boolean(),
-	attachments: z.array(AttachmentSchema).optional(),
-	reaction_total: z.number(),
-});
-
-export type FeedItem = z.infer<typeof FeedItemSchema>;
 
 // ForumComment
 export const ForumCommentSchema = z.object({
@@ -513,21 +495,6 @@ export const ForumCommentSchema = z.object({
 });
 
 export type ForumComment = z.infer<typeof ForumCommentSchema>;
-
-// UserPage
-export const UserPageSchema = z.object({
-	user_id: z.string(),
-	username: z.string(),
-	display_name: z.string().optional(),
-	bio: z.string().optional(),
-	avatar_url: z.string().optional(),
-	forum_profile: ForumUserProfileSchema.optional(),
-	recent_threads: z.array(FeedItemSchema).optional(),
-	recent_comments: z.array(ForumCommentSchema).optional(),
-	viewer_follows: z.boolean(),
-});
-
-export type UserPage = z.infer<typeof UserPageSchema>;
 
 // ForumAuctionBid
 export const ForumAuctionBidSchema = z.object({
@@ -559,6 +526,24 @@ export const ThreadPageSchema = z.object({
 });
 
 export type ThreadPage = z.infer<typeof ThreadPageSchema>;
+
+// FeedItem
+export const FeedItemSchema = z.object({
+	thread: ForumThreadSchema.optional(),
+	space: ForumSpaceSchema.optional(),
+	tags: z.array(ForumTagSchema).optional(),
+	author_name: z.string().min(1).max(128),
+	author_avatar_url: z.string().url().max(512).optional(),
+	author_flair_id: z.number().optional(),
+	author_rank_id: z.number().optional(),
+	viewer_vote: VoteDirectionSchema.optional(),
+	viewer_bookmarked: z.boolean(),
+	viewer_subscribed: z.boolean(),
+	attachments: z.array(AttachmentSchema).optional(),
+	reaction_total: z.number(),
+});
+
+export type FeedItem = z.infer<typeof FeedItemSchema>;
 
 // SpacePage
 export const SpacePageSchema = z.object({

@@ -757,18 +757,7 @@ message ThreadPage {
   repeated ForumAuctionBid recent_bids = 12;  // Populated only for AUCTION
 }
 
-// User profile page — combines identity (from kbve.profile.UserProfile) and
-// forum state (from ForumUserProfile). Identity fields are denormalized here
-// for display; authoritative source is the profile proto.
-message UserPage {
-  string user_id = 1;
-  // Denormalized identity fields (mirror kbve.profile.UserProfile):
-  string username = 2;
-  optional string display_name = 3;
-  optional string bio = 4;
-  optional string avatar_url = 5;
-  ForumUserProfile forum_profile = 6;
-  repeated FeedItem recent_threads = 7;
-  repeated ForumComment recent_comments = 8;
-  bool viewer_follows = 9;
-}
+// NOTE: User profile pages are served by the existing kbve.profile pipeline
+// at /@username (axum-kbve's ProfileTemplate). The forum-side ProfileTemplate
+// data load augments that page with `forum.forum_user_profiles` stats +
+// recent threads/comments — no separate forum user URL.

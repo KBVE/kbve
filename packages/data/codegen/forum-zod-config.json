@@ -21,7 +21,6 @@
 		"kbve.forum.FeedItem",
 		"kbve.forum.SpacePage",
 		"kbve.forum.ThreadPage",
-		"kbve.forum.UserPage",
 		"kbve.forum.DiscussionData",
 		"kbve.forum.QuestionData",
 		"kbve.forum.AnnouncementData",

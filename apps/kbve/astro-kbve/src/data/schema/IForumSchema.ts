@@ -53,7 +53,6 @@ import {
 	FeedItemSchema,
 	SpacePageSchema,
 	ThreadPageSchema,
-	UserPageSchema,
 
 	// Enum const arrays + schemas
 	ThreadStatuses,
@@ -121,7 +120,6 @@ export {
 	FeedItemSchema,
 	SpacePageSchema,
 	ThreadPageSchema,
-	UserPageSchema,
 	ThreadStatuses,
 	ThreadStatusSchema,
 	CommentStatuses,
@@ -183,7 +181,6 @@ export type {
 	FeedItem,
 	SpacePage,
 	ThreadPage,
-	UserPage,
 	ThreadStatusValue,
 	CommentStatusValue,
 	ThreadTypeValue,
