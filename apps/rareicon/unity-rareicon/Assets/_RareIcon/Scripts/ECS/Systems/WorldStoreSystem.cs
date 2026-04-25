@@ -1,13 +1,16 @@
+using System.IO;
 using Unity.Entities;
 using UnityEngine;
 using RareIcon.Native;
 
 namespace RareIcon
 {
-    /// <summary>Owns the Rust-side <see cref="NativeWorld"/> lifecycle and exposes it via a static accessor.</summary>
+    /// <summary>Owns the Rust-side <see cref="NativeWorld"/> lifecycle and exposes it via a static accessor. Opens a SQLite-backed store at <c>Application.persistentDataPath/worldstore.db</c> so chunk state (hexes, ghost units, unloaded buildings) persists across process restart.</summary>
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class WorldStoreSystem : SystemBase
     {
+        const string SaveFileName = "worldstore.db";
+
         static NativeWorld _instance;
 
         /// <summary>Shared <see cref="NativeWorld"/> handle, or null if not yet initialized / dylib failed to load.</summary>
@@ -17,10 +20,19 @@ namespace RareIcon
         {
             try
             {
-                _instance = new NativeWorld();
+                string dbPath = Path.Combine(Application.persistentDataPath, SaveFileName);
+                _instance = NativeWorld.OpenAtPath(dbPath);
+                if (_instance == null)
+                {
+                    // Disk path rejected (e.g. readonly volume) — fall back
+                    // to in-memory so the rest of the game still runs.
+                    Debug.LogWarning($"[WorldStoreSystem] SQLite open failed for {dbPath}; falling back to in-memory store (no disk persistence this session).");
+                    _instance = new NativeWorld();
+                }
+
                 if (_instance.IsValid)
                 {
-                    Debug.Log("[WorldStoreSystem] uniti world store initialized");
+                    Debug.Log($"[WorldStoreSystem] uniti world store initialized (db: {dbPath})");
                 }
                 else
                 {
@@ -42,6 +54,10 @@ namespace RareIcon
 
         protected override void OnDestroy()
         {
+            // Synchronous final flush so any in-flight dirty chunks land on
+            // disk before the NativeWorld drop runs (which also flushes,
+            // but only opportunistically on thread join).
+            _instance?.Flush();
             _instance?.Dispose();
             _instance = null;
         }

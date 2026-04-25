@@ -162,19 +162,73 @@ namespace RareIcon.Native
         public static extern void uniti_flow_free(void* field);
 
         /// <summary>
-        ///  Create a new world store. Spawns a background tick thread immediately.
-        ///  Returns an opaque handle the caller must eventually pass to
-        ///  `uniti_world_free`. Returns null only if thread spawn fails.
+        ///  Create a new in-memory world store. Spawns a background tick thread
+        ///  immediately. Returns an opaque handle the caller must eventually pass
+        ///  to `uniti_world_free`. Returns null only if thread spawn fails. Use
+        ///  `uniti_world_open` instead when you want on-disk persistence.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* uniti_world_new();
 
         /// <summary>
-        ///  Drop the store. Stops the background thread and frees all chunk state.
-        ///  Calling this twice on the same handle is undefined behavior.
+        ///  Open a disk-backed world store. `path_ptr` points at a UTF-8 byte
+        ///  string of length `path_len` (not required to be null-terminated).
+        ///  The file at that path is created if missing; existing rows hydrate
+        ///  into the in-memory cache before the function returns so the first
+        ///  read after open is hot. Returns null on invalid input.
+        ///
+        ///  The background tick thread flushes dirty chunks to the DB every 30 s
+        ///  and on shutdown. Call `uniti_world_flush` between intervals if the
+        ///  caller wants a synchronous save (e.g. before a risky operation or
+        ///  an explicit "Save Game" button in UI).
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_open", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void* uniti_world_open(byte* path_ptr, uint path_len);
+
+        /// <summary>
+        ///  Synchronously flush every dirty chunk to the DB. No-op for in-memory
+        ///  stores (created via `uniti_world_new`). Safe to call from any thread;
+        ///  locks the DB briefly.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_flush", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_world_flush(void* world);
+
+        /// <summary>
+        ///  Drop the store. Stops the background thread (which does a final
+        ///  flush before exiting) and frees all chunk state. Calling this twice
+        ///  on the same handle is undefined behavior.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_free", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void uniti_world_free(void* world);
+
+        /// <summary>
+        ///  Aggregate read-only counts. Cheap — just walks the in-memory HashMap.
+        ///  UI / save-selection screens call this to show "N saved chunks, M
+        ///  offline buildings, K ghost units" without pulling full row data.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_stats", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern FfiWorldStats uniti_world_stats(void* world);
+
+        /// <summary>
+        ///  Create a zstd-compressed backup of the live SQLite DB at `dst_path`.
+        ///  Flushes pending dirty state first so the archive is a coherent
+        ///  snapshot. Works only on disk-backed stores (opened via
+        ///  `uniti_world_open`). Returns 1 on success, 0 on failure.
+        ///
+        ///  Callers who want a .db snapshot without compression can use SQLite's
+        ///  `VACUUM INTO` via a future endpoint; zstd-path is intended for save-
+        ///  slot archival + cloud sync where the smaller file matters.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_archive", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_world_archive(void* world, byte* dst_ptr, uint dst_len);
+
+        /// <summary>
+        ///  Decompress a zstd archive produced by `uniti_world_archive` into
+        ///  `dst_db_path`. Returns 1 on success, 0 on failure. Call before
+        ///  `uniti_world_open` on the destination path to restore a save slot.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_restore", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_world_restore(byte* src_ptr, uint src_len, byte* dst_ptr, uint dst_len);
 
         /// <summary>
         ///  Returns 1 if any state is stored for the chunk that owns this hex.
@@ -221,6 +275,33 @@ namespace RareIcon.Native
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_unit_count_in_chunk", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_world_unit_count_in_chunk(void* world, int cx, int cy);
+
+        /// <summary>
+        ///  Push an unloaded building into the store. Chunk is derived from the
+        ///  building's root hex via the same `chunk_of` math as units + hexes.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_save_building", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_world_save_building(void* world, FfiUnloadedBuilding building);
+
+        /// <summary>
+        ///  How many unloaded buildings are stored for a chunk. Useful for sizing
+        ///  the buffer before `uniti_world_take_buildings_in_chunk`.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_building_count_in_chunk", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_building_count_in_chunk(void* world, int cx, int cy);
+
+        /// <summary>
+        ///  Drain all unloaded buildings in a chunk into the caller's buffer.
+        ///  Returns the number of buildings written. Buildings that fit are
+        ///  removed from the store; if `cap` is too small, the unwritten ones
+        ///  stay (and the caller can call again with a bigger buffer to drain
+        ///  the rest). Mirrors `uniti_world_take_units_in_chunk`.
+        ///
+        ///  `out_buf` must be a valid pointer to an array of at least `cap`
+        ///  `FfiUnloadedBuilding` values.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_take_buildings_in_chunk", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_take_buildings_in_chunk(void* world, int cx, int cy, FfiUnloadedBuilding* out_buf, uint cap);
 
 
     }
@@ -277,6 +358,12 @@ namespace RareIcon.Native
     ///
     ///  Inventory carries the first 4 slots only — matches the HUD snapshot
     ///  shape and keeps the FFI struct flat (~50 bytes per unit).
+    ///
+    ///  Hunger / fatigue / energy trailing fields added for Phase 5 unit
+    ///  ghost-sim. `*_max` + `*_per_second` carry the NPCDB-tuned rates so
+    ///  the background ticker advances each pool without another FFI hop.
+    ///  `last_tick_secs` is the `WorldClock.AbsSeconds` value at snapshot
+    ///  time — the ticker subtracts to compute elapsed.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public unsafe partial struct FfiGhostUnit
@@ -294,6 +381,67 @@ namespace RareIcon.Native
         public ushort inv2_qty;
         public ushort inv3_id;
         public ushort inv3_qty;
+        public float hunger;
+        public float hunger_max;
+        public float hunger_per_second;
+        public float fatigue;
+        public float fatigue_max;
+        public float fatigue_per_second;
+        public float energy;
+        public float energy_max;
+        public float energy_per_second;
+        public float last_tick_secs;
+    }
+
+    /// <summary>
+    ///  An unloaded building — mirror of the C# `UnloadedBuildingRecord` for
+    ///  cross-process persistence. Field order + types must match exactly so
+    ///  `#[repr(C)]` + C# default layout agree on padding. Version bumps via
+    ///  a schema version header in save files — bump when layout changes.
+    ///
+    ///  Inline ledger slots cap at 4 items; overflow truncates (acceptable
+    ///  loss for offline state since real-world buildings rarely exceed 4
+    ///  unique SKUs).
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct FfiUnloadedBuilding
+    {
+        public byte building_type;
+        public int root_q;
+        public int root_r;
+        public byte owner_faction;
+        public ushort health;
+        public ushort health_max;
+        public byte tier;
+        public uint last_tick_turn;
+        public float accrued_production;
+        public float accrued_input;
+        public byte flags;
+        public float recipe_cycle_remaining;
+        public ushort slot0_id;
+        public ushort slot0_count;
+        public ushort slot1_id;
+        public ushort slot1_count;
+        public ushort slot2_id;
+        public ushort slot2_count;
+        public ushort slot3_id;
+        public ushort slot3_count;
+    }
+
+    /// <summary>
+    ///  Summary of the world store's in-memory cache. Populated by
+    ///  `uniti_world_stats`. Counts are u32 — if we ever need to represent
+    ///  &gt; 4B items, bump to u64 + a schema version, but that's ~Minecraft scale.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct FfiWorldStats
+    {
+        public uint chunks;
+        public uint hexes;
+        public uint units;
+        public uint buildings;
+        public uint dirty_chunks;
+        public uint dirty_hexes;
     }
 
 
