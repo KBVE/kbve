@@ -1,0 +1,14 @@
+# Git LFS — Unity native plugins
+#
+# Stored on forgejo.kbve.com/KBVE/rareicon.git via the .lfsconfig
+# endpoint. Pointer files (text, ~150 bytes) live in this GitHub repo;
+# real binaries live on the self-hosted Forgejo LFS.
+#
+# Pattern coverage:
+#   - libuniti.dylib  (Rust FFI shared library, macOS)
+#   - uniti.dll       (Rust FFI shared library, Windows)
+#   - libuniti.so     (Rust FFI shared library, Linux)
+#   - any future native plugin under apps/rareicon/**/Plugins/**
+apps/rareicon/**/Plugins/**/*.dylib filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/**/Plugins/**/*.dll   filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/**/Plugins/**/*.so    filter=lfs diff=lfs merge=lfs -text
