@@ -44,15 +44,24 @@ spec:
                       annotations:
                           # Bump this value to force a pod rollout when config/secrets change.
                           # ArgoCD detects the annotation change → new ReplicaSet → pod restart.
-                          kbve.com/config-revision: '2026-04-24-lfs-jwt-sealed'
+                          kbve.com/config-revision: '2026-04-25-git-canonical-url'
 
                   gitea:
                       admin:
                           existingSecret: forgejo-admin
                       config:
                           server:
-                              DOMAIN: forgejo.kbve.com
-                              ROOT_URL: https://forgejo.kbve.com
+                              # Canonical user-facing URL is git.kbve.com (CNAME →
+                              # talos.kbve.com, ingress-nginx on .74). The Cilium
+                              # gateway HTTPRoute on forgejo.kbve.com (.71) is kept
+                              # alive but Cloudflare's path to .71 returns 522 on
+                              # the LFS batch endpoint, so all generated URLs
+                              # (clone, LFS batch, LFS upload) must point at
+                              # git.kbve.com to avoid a redirect into the broken
+                              # path. SSH continues to use forgejo.kbve.com on
+                              # port 2222 (SSH bypasses Cloudflare entirely).
+                              DOMAIN: git.kbve.com
+                              ROOT_URL: https://git.kbve.com
                               SSH_DOMAIN: forgejo.kbve.com
                               SSH_PORT: 2222
                               SSH_LISTEN_PORT: 2222
