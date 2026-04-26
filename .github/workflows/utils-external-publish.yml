@@ -176,6 +176,7 @@ jobs:
                   PACK_PROJECT_ID: ${{ steps.ep.outputs.pack_id }}
                   VERSION: ${{ inputs.version }}
                   VERSION_TYPE: ${{ steps.ep.outputs.version_type }}
+                  LOADERS: ${{ steps.ep.outputs.loaders }}
                   GAME_VERSIONS: ${{ steps.ep.outputs.game_versions }}
                   MRPACK_PATH: ${{ steps.mrpack.outputs.path }}
               run: |
@@ -201,7 +202,7 @@ jobs:
                     "version_number": "$VERSION",
                     "version_type": "$VERSION_TYPE",
                     "project_id": "$PACK_PROJECT_ID",
-                    "loaders": ["mrpack"],
+                    "loaders": $LOADERS,
                     "game_versions": $GAME_VERSIONS,
                     "featured": true,
                     "dependencies": [],
