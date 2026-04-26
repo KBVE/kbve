@@ -309,7 +309,7 @@ namespace RareIcon
         {
             if (speaker != Entity.Null)
             {
-                var world = Unity.Entities.World.DefaultGameObjectInjectionWorld;
+                var world = RareIcon.GameplayWorld.Resolve();
                 if (world != null && world.IsCreated && world.EntityManager.Exists(speaker))
                 {
                     var em = world.EntityManager;
@@ -329,7 +329,7 @@ namespace RareIcon
         Color TintFor(Entity speaker, DialogueNode node)
         {
             if (speaker == Entity.Null) return UIStyles.Palette.Zinc800;
-            var world = Unity.Entities.World.DefaultGameObjectInjectionWorld;
+            var world = RareIcon.GameplayWorld.Resolve();
             if (world == null || !world.IsCreated || !world.EntityManager.Exists(speaker))
                 return UIStyles.Palette.Zinc800;
             var em = world.EntityManager;

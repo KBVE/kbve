@@ -188,7 +188,7 @@ namespace RareIcon
 
         void RebuildList()
         {
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
 
@@ -304,7 +304,7 @@ namespace RareIcon
             _jumpBtn.SetEnabled(true);
             _possessBtn.SetEnabled(true);
 
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world != null && world.IsCreated) RefreshDetail(world.EntityManager, entity);
         }
 
@@ -326,7 +326,7 @@ namespace RareIcon
         void SetJobForSelected(byte jobKind, byte priority)
         {
             if (_selected == Entity.Null) return;
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
             if (!em.Exists(_selected) || !em.HasComponent<ProfessionPriorities>(_selected)) return;
@@ -424,7 +424,7 @@ namespace RareIcon
         void JumpToSelected()
         {
             if (_selected == Entity.Null) return;
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
             if (!em.Exists(_selected)) return;

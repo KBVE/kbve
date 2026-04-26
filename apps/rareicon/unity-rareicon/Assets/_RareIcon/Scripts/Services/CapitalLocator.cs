@@ -34,7 +34,7 @@ namespace RareIcon
 
         static bool TryRefreshCache()
         {
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated)
             {
                 ClearCache();

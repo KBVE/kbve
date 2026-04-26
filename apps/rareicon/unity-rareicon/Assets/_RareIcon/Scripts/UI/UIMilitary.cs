@@ -92,7 +92,7 @@ namespace RareIcon
 
         void Refresh()
         {
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
 
