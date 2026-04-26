@@ -209,7 +209,7 @@ namespace RareIcon
 
         void RefreshClock()
         {
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
             if (!_clockReady)
@@ -248,7 +248,7 @@ namespace RareIcon
             }
             _idleSkipCount = 0;
 
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
             if (!_controlledReady)
@@ -390,7 +390,7 @@ namespace RareIcon
 
         void ReleaseControl()
         {
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
             using var query = em.CreateEntityQuery(ComponentType.ReadOnly<ControlledUnitTag>());
@@ -542,7 +542,7 @@ namespace RareIcon
 
         void JumpToKing()
         {
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
             using var query = em.CreateEntityQuery(

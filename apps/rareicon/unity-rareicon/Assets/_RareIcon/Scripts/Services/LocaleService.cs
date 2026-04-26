@@ -94,65 +94,20 @@ namespace RareIcon
             return dict;
         }
 
-        /// <summary>
-        /// Resolve item ID (matches ItemId enum) to localized name.
-        /// Add new entries here AND in the locale JSON when new items land.
-        /// </summary>
+        /// <summary>Resolve item ID to display name. Looks up <c>item.&lt;ref&gt;</c> from the loaded locale; falls back to the canonical English name baked into <c>itemdb.json</c>; finally to the raw ref.</summary>
         public string GetItemName(ushort itemId)
         {
-            var key = itemId switch
+            if (itemId == BuildingDB.AnyFoodSentinel) return Get("item.any_food");
+
+            var key = ItemDB.GetNameKey(itemId);
+            if (_strings.TryGetValue(key, out var localized)) return localized;
+
+            if (ItemDBCache.TryGetByKey(itemId, out var def))
             {
-                (ushort)ItemId.Log     => "item.log",
-                (ushort)ItemId.Stone       => "item.stone",
-                (ushort)ItemId.Berry       => "item.berry",
-                (ushort)ItemId.Mushroom    => "item.mushroom",
-                (ushort)ItemId.Herb        => "item.herb",
-                (ushort)ItemId.RawCacti    => "item.raw_cacti",
-                (ushort)ItemId.CactiNeedle => "item.cacti_needle",
-                (ushort)ItemId.PricklyPear => "item.prickly_pear",
-                (ushort)ItemId.Dragonfruit => "item.dragonfruit",
-                (ushort)ItemId.CactiSeeds  => "item.cacti_seeds",
-                (ushort)ItemId.Leaves      => "item.leaves",
-                (ushort)ItemId.Branches    => "item.branches",
-                (ushort)ItemId.Compost     => "item.compost",
-                (ushort)ItemId.Carrot      => "item.carrot",
-                (ushort)ItemId.NaturalSand => "item.natural_sand",
-                (ushort)ItemId.RawGlass    => "item.raw_glass",
-                (ushort)ItemId.Coal        => "item.coal",
-                (ushort)ItemId.Ash         => "item.ash",
-                (ushort)ItemId.Oil         => "item.oil",
-                (ushort)ItemId.Arrow       => "item.arrow",
-                (ushort)ItemId.CapitalLandGrant => "item.capital_land_grant",
-                (ushort)ItemId.RawChicken  => "item.raw_chicken",
-                (ushort)ItemId.Feather     => "item.feather",
-                (ushort)ItemId.RawMutton   => "item.raw_mutton",
-                (ushort)ItemId.Wool        => "item.wool",
-                (ushort)ItemId.RawBeef     => "item.raw_beef",
-                (ushort)ItemId.Leather     => "item.leather",
-                (ushort)ItemId.CookedChicken => "item.cooked_chicken",
-                (ushort)ItemId.CookedMutton  => "item.cooked_mutton",
-                (ushort)ItemId.CookedBeef    => "item.cooked_beef",
-                (ushort)ItemId.WolfPelt    => "item.wolf_pelt",
-                (ushort)ItemId.WolfFang    => "item.wolf_fang",
-                (ushort)ItemId.Coin        => "item.coin",
-                (ushort)ItemId.GoldBar     => "item.gold_bar",
-                (ushort)ItemId.Egg         => "item.egg",
-                (ushort)ItemId.FreshMilk        => "item.fresh_milk",
-                (ushort)ItemId.CookedEgg   => "item.cooked_egg",
-                (ushort)ItemId.Cheese      => "item.cheese",
-                (ushort)ItemId.Meat        => "item.meat",
-                (ushort)ItemId.Hood        => "item.hood",
-                (ushort)ItemId.Pouch       => "item.pouch",
-                (ushort)ItemId.Bag         => "item.bag",
-                (ushort)ItemId.Pack        => "item.pack",
-                (ushort)ItemId.Timber      => "item.timber",
-                (ushort)ItemId.StoneBlock  => "item.stone_block",
-                (ushort)ItemId.Quiver      => "item.quiver",
-                (ushort)ItemId.Meal        => "item.meal",
-                BuildingDB.AnyFoodSentinel => "item.any_food",
-                _ => "item.unknown",
-            };
-            return Get(key);
+                if (!string.IsNullOrEmpty(def.Name)) return def.Name;
+                if (!string.IsNullOrEmpty(def.Ref))  return def.Ref;
+            }
+            return key;
         }
 
         /// <summary>

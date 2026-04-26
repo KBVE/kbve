@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace RareIcon
 {
-    /// <summary>One-shot bootstrap that reads <c>StreamingAssets/itemdb.json</c> (codegen'd from the shared mdx pool by <c>astro-kbve:sync:itemdb</c>), populates <see cref="ItemDBCache"/>, then materialises the Burst-safe slice into <see cref="ItemDB"/>. Runs in <see cref="InitializationSystemGroup"/> with <c>OrderFirst = true</c> so the table is warm before any consumer. Managed SystemBase — JSON deserialisation + file I/O aren't Burst-safe.</summary>
     [UpdateInGroup(typeof(InitializationSystemGroup), OrderFirst = true)]
     public partial class ItemDBLoaderSystem : SystemBase
     {

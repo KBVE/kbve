@@ -109,7 +109,7 @@ namespace RareIcon
             if (_cam == null) _cam = Camera.main;
             if (_cam == null) return;
 
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
 

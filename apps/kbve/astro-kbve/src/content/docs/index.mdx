@@ -13,12 +13,12 @@ lastUpdated: false
 next: false
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
-
 import DeferredSVGLogo from '@/components/kbve/DeferredSVGLogo.astro';
 import DeferredKBVEComicSocials from '@/components/kbve/DeferredKBVEComicSocials.astro';
 import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
 import RingHero from '@kbve/astro/components/hero/ring/RingHero.astro';
+import RingShipGrid from '@kbve/astro/components/hero/ring/RingShipGrid.astro';
+import RingShipCard from '@kbve/astro/components/hero/ring/RingShipCard.astro';
 import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
 
 <RingHero
@@ -36,15 +36,15 @@ KBVE is a kilobyte-scale virtual enterprise — a studio, an open-source collect
 
 <div class="ring-stats not-content">
     <div class="ring-stat">
-        <span class="ring-stat__num">10K+</span>
+        <span class="ring-stat__num">500+</span>
         <span class="ring-stat__label">Community members</span>
     </div>
     <div class="ring-stat">
-        <span class="ring-stat__num">200+</span>
+        <span class="ring-stat__num">100+</span>
         <span class="ring-stat__label">Open-source repos</span>
     </div>
     <div class="ring-stat">
-        <span class="ring-stat__num">5</span>
+        <span class="ring-stat__num">3</span>
         <span class="ring-stat__label">Live game servers</span>
     </div>
     <div class="ring-stat">
@@ -63,22 +63,36 @@ Tens of thousands of developers, gamers, and creators across our networks.
 
 <DeferredKBVEComicSocials />
 
-## What we ship
-
-<CardGrid>
-    <Card title="Services" icon="rocket">
-        Custom software, automation, managed game-server hosting. [See services →](/service/)
-    </Card>
-    <Card title="Features" icon="puzzle">
-        Live platform features powering the community. [See features →](/feature/)
-    </Card>
-    <Card title="GitHub" icon="github">
-        Open-source repos and top contributors. [See GitHub →](/github/)
-    </Card>
-    <Card title="Projects" icon="seti:default">
-        Studio games, tools, libraries. [See projects →](/projects/)
-    </Card>
-</CardGrid>
+<RingShipGrid heading="What we ship" tagline="Four lanes that loop forever — scroll past the bottom to enter the ring.">
+    <RingShipCard
+        title="Services"
+        description="Custom software, automation, managed game-server hosting."
+        href="/service/"
+        icon="rocket"
+        accent="#06b6d4"
+    />
+    <RingShipCard
+        title="Features"
+        description="Live platform features powering the community."
+        href="/feature/"
+        icon="zap"
+        accent="#a855f7"
+    />
+    <RingShipCard
+        title="GitHub"
+        description="Open-source repos and top contributors."
+        href="/github/"
+        icon="github"
+        accent="#c9a56a"
+    />
+    <RingShipCard
+        title="Projects"
+        description="Studio games, tools, libraries."
+        href="/projects/"
+        icon="controller"
+        accent="#22c55e"
+    />
+</RingShipGrid>
 
 ## Built in the open
 

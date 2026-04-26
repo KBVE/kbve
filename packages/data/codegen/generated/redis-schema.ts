@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/redis.binpb
  * Config: ../redis-zod-config.json
- * Generated: 2026-04-26T05:02:13.110Z
+ * Generated: 2026-04-26T15:24:29.411Z
  */
 
 import { z } from 'zod';

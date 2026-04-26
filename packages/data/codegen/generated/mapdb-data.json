@@ -1372,7 +1372,20 @@
 			"destructible": false,
 			"spawnWeight": 0.15,
 			"spawnCount": 1,
-			"blocksMovement": true
+			"blocksMovement": true,
+			"interaction": "shrine",
+			"interactionCooldownSecs": 600,
+			"faction": "neutral",
+			"maxHealth": 800,
+			"shrine": {
+				"rewardCoin": 25,
+				"rewardItems": [
+					{
+						"itemRef": "herb",
+						"amount": 3
+					}
+				]
+			}
 		},
 		{
 			"id": "01KPY32HFZGBKMW4EEEK573R59",

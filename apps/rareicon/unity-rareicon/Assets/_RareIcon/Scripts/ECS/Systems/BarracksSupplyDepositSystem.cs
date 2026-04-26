@@ -118,7 +118,7 @@ namespace RareIcon
             return OccupantLookup[tile].Building == Capital;
         }
 
-        const int BatchCap = 10;
+        const int BatchCap = 50;
 
         static void TryReserveBatch(in DynamicBuffer<BankLedgerBase> capInv,
                                     ushort itemId,

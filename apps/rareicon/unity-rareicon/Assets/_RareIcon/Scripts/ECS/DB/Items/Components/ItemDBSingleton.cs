@@ -3,7 +3,6 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Burst-side blittable mirror of ItemDef. Strings live on managed ItemDB. Field order: 4-byte → 2-byte → 1-byte for natural alignment.</summary>
     public struct ItemDefRuntime
     {
         public uint   ShelfLifeSeconds;
@@ -18,14 +17,18 @@ namespace RareIcon
         public ushort CompressRatio;
         public ushort PoolGroup;
         public ushort SpoilsIntoId;
-        public byte   Category;
+        public byte   Flags;
         public byte   StackMax;
-        public byte   HarvestRole;
         public byte   HarvestWeight;
-        public byte   Perishable;  // bool packed
+
+        public byte Category    => (byte)(Flags & 0x07);
+        public byte HarvestRole => (byte)((Flags >> 3) & 0x03);
+        public bool Perishable  => (Flags & 0x20) != 0;
+
+        public static byte PackFlags(byte category, byte harvestRole, bool perishable)
+            => (byte)((category & 0x07) | ((harvestRole & 0x03) << 3) | (perishable ? 0x20 : 0));
     }
 
-    /// <summary>Burst-side ItemDB. Defs is a flat NativeArray indexed by ItemId. Bitsets answer hot Yes/No queries (valid, edible, food-pool, perishable) in two ops: word-load + bit-test.</summary>
     public struct ItemDBSingleton : IComponentData
     {
         public NativeArray<ItemDefRuntime> Defs;

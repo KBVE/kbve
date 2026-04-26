@@ -67,6 +67,7 @@ namespace RareIcon
                 var buf = state.EntityManager.GetBuffer<CapitalLedger>(e).Reinterpret<BankLedgerBase>();
                 SeedOne(ref db, e, buf);
                 state.EntityManager.AddComponent<BankSeededTag>(e);
+                state.EntityManager.AddComponentData(e, new BankKind { Value = (byte)BankKindId.Capital });
             }
             entities.Dispose();
         }
@@ -80,6 +81,7 @@ namespace RareIcon
                 var buf = state.EntityManager.GetBuffer<FurnaceLedger>(e).Reinterpret<BankLedgerBase>();
                 SeedOne(ref db, e, buf);
                 state.EntityManager.AddComponent<BankSeededTag>(e);
+                state.EntityManager.AddComponentData(e, new BankKind { Value = (byte)BankKindId.Furnace });
             }
             entities.Dispose();
         }
@@ -93,6 +95,7 @@ namespace RareIcon
                 var buf = state.EntityManager.GetBuffer<FarmLedger>(e).Reinterpret<BankLedgerBase>();
                 SeedOne(ref db, e, buf);
                 state.EntityManager.AddComponent<BankSeededTag>(e);
+                state.EntityManager.AddComponentData(e, new BankKind { Value = (byte)BankKindId.Farm });
             }
             entities.Dispose();
         }
@@ -106,6 +109,7 @@ namespace RareIcon
                 var buf = state.EntityManager.GetBuffer<BarracksLedger>(e).Reinterpret<BankLedgerBase>();
                 SeedOne(ref db, e, buf);
                 state.EntityManager.AddComponent<BankSeededTag>(e);
+                state.EntityManager.AddComponentData(e, new BankKind { Value = (byte)BankKindId.Barracks });
             }
             entities.Dispose();
         }
@@ -119,6 +123,7 @@ namespace RareIcon
                 var buf = state.EntityManager.GetBuffer<GoblinCaveLedger>(e).Reinterpret<BankLedgerBase>();
                 SeedOne(ref db, e, buf);
                 state.EntityManager.AddComponent<BankSeededTag>(e);
+                state.EntityManager.AddComponentData(e, new BankKind { Value = (byte)BankKindId.GoblinCave });
             }
             entities.Dispose();
         }
@@ -132,6 +137,7 @@ namespace RareIcon
                 var buf = state.EntityManager.GetBuffer<LumbercampLedger>(e).Reinterpret<BankLedgerBase>();
                 SeedOne(ref db, e, buf);
                 state.EntityManager.AddComponent<BankSeededTag>(e);
+                state.EntityManager.AddComponentData(e, new BankKind { Value = (byte)BankKindId.Lumbercamp });
             }
             entities.Dispose();
         }
@@ -145,6 +151,7 @@ namespace RareIcon
                 var buf = state.EntityManager.GetBuffer<MiningPitLedger>(e).Reinterpret<BankLedgerBase>();
                 SeedOne(ref db, e, buf);
                 state.EntityManager.AddComponent<BankSeededTag>(e);
+                state.EntityManager.AddComponentData(e, new BankKind { Value = (byte)BankKindId.MiningPit });
             }
             entities.Dispose();
         }

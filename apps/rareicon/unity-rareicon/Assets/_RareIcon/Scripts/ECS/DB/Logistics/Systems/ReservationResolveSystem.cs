@@ -6,7 +6,6 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Phase 2: for each distinct LedgerKey in Reservations, sorts reservations by (Priority DESC, Tick ASC, Requester.Index ASC) and grants by intent. Pickup/Refill/Consume/Surplus are bounded by CurrentAmounts[key]; Deposit/Produce are unconditional credits on key. Pack-side recipients land in PackDeliveries keyed by Requester; bank→bank Surplus emits DeliveryRecord for the reducer to credit the destination bank.</summary>
     [UpdateInGroup(typeof(LogisticsEndGroup), OrderFirst = true)]
     public partial struct ReservationResolveSystem : ISystem
     {
@@ -137,9 +136,10 @@ namespace RareIcon
         {
             for (int i = 1; i < list.Length; i++)
             {
-                var cur = list[i];
-                int j = i - 1;
-                while (j >= 0 && Compare(cur, list[j]) < 0)
+                var cur    = list[i];
+                ulong curK = SortKey(cur);
+                int j      = i - 1;
+                while (j >= 0 && SortKey(list[j]) > curK)
                 {
                     list[j + 1] = list[j];
                     j--;
@@ -148,11 +148,9 @@ namespace RareIcon
             }
         }
 
-        static int Compare(in ReservationRecord a, in ReservationRecord b)
-        {
-            if (a.Priority != b.Priority) return b.Priority - a.Priority;
-            if (a.Tick != b.Tick) return a.Tick < b.Tick ? -1 : 1;
-            return a.Requester.Index - b.Requester.Index;
-        }
+        static ulong SortKey(in ReservationRecord r)
+            => ((ulong)(byte)~r.Priority << 56)
+             | ((ulong)r.Tick             << 24)
+             | ((ulong)((uint)r.Requester.Index & 0x00FFFFFFu));
     }
 }

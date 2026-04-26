@@ -111,7 +111,93 @@ namespace RareIcon
             {
                 Value = new FixedString64Bytes(refSlug),
             });
+
+            em.AddComponentData(entity, new Building
+            {
+                Type         = BuildingType.Landmark,
+                RootHex      = hex,
+                OwnerFaction = FactionType.Neutral,
+            });
+
+            int maxHealth = 500;
+            if (MapdbCache.TryGetByRef(refSlug, out var def) && def.MaxHealth > 0)
+                maxHealth = def.MaxHealth;
+            em.AddComponentData(entity, new BuildingHealth
+            {
+                Value = (ushort)maxHealth,
+                Max   = (ushort)maxHealth,
+            });
+            em.AddComponentData(entity, new Faction { Value = FactionType.Neutral });
+
+            AttachGameplay(em, entity, def);
+
+            if (HexHoverSystem.TryGetHexEntity(hex, out var tile))
+            {
+                if (em.HasComponent<HexOccupant>(tile))
+                    em.SetComponentData(tile, new HexOccupant { Building = entity });
+                else
+                    em.AddComponentData(tile, new HexOccupant { Building = entity });
+            }
+
             return entity;
+        }
+
+        void AttachGameplay(EntityManager em, Entity entity, WorldObjectDef def)
+        {
+            if (def == null) return;
+
+            byte interaction = def.Interaction switch
+            {
+                InteractionKind.InteractionKindShrine      => LandmarkInteractionKind.Shrine,
+                InteractionKind.InteractionKindShop        => LandmarkInteractionKind.Shop,
+                InteractionKind.InteractionKindQuestGiver  => LandmarkInteractionKind.QuestGiver,
+                InteractionKind.InteractionKindDungeon     => LandmarkInteractionKind.Dungeon,
+                InteractionKind.InteractionKindNpcDialog   => LandmarkInteractionKind.NpcDialog,
+                _                                          => LandmarkInteractionKind.None,
+            };
+            if (interaction == LandmarkInteractionKind.None) return;
+
+            byte faction = def.Faction switch
+            {
+                "hostile" => FactionType.Hostile,
+                "player"  => FactionType.Player,
+                _         => FactionType.Neutral,
+            };
+
+            em.AddComponentData(entity, new LandmarkGameplay
+            {
+                Interaction   = interaction,
+                CooldownSecs  = (ushort)def.InteractionCooldownSecs,
+                Faction       = faction,
+                NextReadyTick = 0,
+            });
+
+            if (interaction == LandmarkInteractionKind.Shrine && def.Shrine != null)
+            {
+                em.AddComponentData(entity, new LandmarkShrine { RewardCoin = def.Shrine.RewardCoin });
+                var rewards = em.AddBuffer<LandmarkShrineRewardItem>(entity);
+                for (int i = 0; i < def.Shrine.RewardItems.Count; i++)
+                {
+                    var line = def.Shrine.RewardItems[i];
+                    if (string.IsNullOrEmpty(line.ItemRef)) continue;
+                    if (!ItemDB.TryResolveRef(line.ItemRef, out var itemId)) continue;
+                    rewards.Add(new LandmarkShrineRewardItem
+                    {
+                        ItemId = (ushort)itemId,
+                        Amount = (ushort)line.Amount,
+                    });
+                }
+            }
+
+            if (def.Aura != null && def.Aura.Radius > 0)
+            {
+                em.AddComponentData(entity, new LandmarkAura
+                {
+                    Radius     = (byte)def.Aura.Radius,
+                    BonusKind  = new FixedString32Bytes(def.Aura.BonusKind ?? string.Empty),
+                    Multiplier = def.Aura.Multiplier,
+                });
+            }
         }
 
         static byte KindFromProto(WorldObjectType t) => t switch

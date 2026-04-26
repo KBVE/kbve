@@ -1,0 +1,40 @@
+---
+interface Props {
+	heading?: string;
+	tagline?: string;
+}
+const { heading, tagline } = Astro.props;
+---
+
+<section class="rsg not-content">
+	{heading && <h2 class="rsg__heading">{heading}</h2>}
+	{tagline && <p class="rsg__tagline">{tagline}</p>}
+	<div class="rsg__grid">
+		<slot />
+	</div>
+</section>
+
+<style>
+	.rsg {
+		margin: 3rem 0;
+	}
+
+	.rsg__heading {
+		font-size: clamp(1.5rem, 3vw, 2rem);
+		font-weight: 700;
+		margin: 0 0 0.5rem;
+		color: var(--sl-color-white, #fff);
+	}
+
+	.rsg__tagline {
+		font-size: 0.95rem;
+		color: var(--sl-color-gray-3, #8b949e);
+		margin: 0 0 1.5rem;
+	}
+
+	.rsg__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+		gap: 1rem;
+	}
+</style>

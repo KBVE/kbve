@@ -199,6 +199,7 @@ namespace RareIcon
             BuildingType.Dock       => "building.dock",
             BuildingType.Tower      => "building.tower",
             BuildingType.Wall       => "building.wall",
+            BuildingType.Landmark   => "building.landmark",
             _ => "building.unknown",
         };
 

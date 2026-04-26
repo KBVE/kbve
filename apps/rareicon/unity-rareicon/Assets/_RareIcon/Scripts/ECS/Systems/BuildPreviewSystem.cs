@@ -20,7 +20,6 @@ namespace RareIcon
     /// </summary>
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
-    [UpdateAfter(typeof(HexHoverSystem))]
     public partial class BuildPreviewSystem : SystemBase
     {
         const float HexSize    = 0.25f;

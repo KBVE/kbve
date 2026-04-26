@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/mapdb.binpb
  * Config: ../mapdb-zod-config.json
- * Generated: 2026-04-26T05:02:13.095Z
+ * Generated: 2026-04-26T19:55:33.137Z
  */
 
 import { z } from 'zod';
@@ -737,6 +737,64 @@ export const UpgradeChainSpecSchema = z.object({
 
 export type UpgradeChainSpec = z.infer<typeof UpgradeChainSpecSchema>;
 
+// ShrineSpec
+export const ShrineSpecSchema = z.object({
+	reward_coin: z.number(),
+	reward_items: z.array(IngredientSpecSchema).optional(),
+	xp_skill_ref: z.string().optional(),
+	xp_amount: z.number().optional(),
+	buff_ref: z.string().optional(),
+	buff_duration_secs: z.number().optional(),
+});
+
+export type ShrineSpec = z.infer<typeof ShrineSpecSchema>;
+
+// ShopOffer
+export const ShopOfferSchema = z.object({
+	item_ref: z.string(),
+	buy_price: z.number(),
+	sell_price: z.number().optional(),
+	stock: z.number().optional(),
+	restock_seconds: z.number().optional(),
+});
+
+export type ShopOffer = z.infer<typeof ShopOfferSchema>;
+
+// ShopSpec
+export const ShopSpecSchema = z.object({
+	inventory: z.array(ShopOfferSchema).optional(),
+});
+
+export type ShopSpec = z.infer<typeof ShopSpecSchema>;
+
+// DungeonSpec
+export const DungeonSpecSchema = z.object({
+	scene_ref: z.string(),
+	min_player_level: z.number().optional(),
+	party_size_max: z.number().optional(),
+	difficulty: z.string().optional(),
+	entry_quest_ref: z.string().optional(),
+});
+
+export type DungeonSpec = z.infer<typeof DungeonSpecSchema>;
+
+// QuestGiverSpec
+export const QuestGiverSpecSchema = z.object({
+	quest_refs: z.array(z.string()).optional(),
+	greeting_dialogue_ref: z.string().optional(),
+});
+
+export type QuestGiverSpec = z.infer<typeof QuestGiverSpecSchema>;
+
+// AuraSpec
+export const AuraSpecSchema = z.object({
+	radius: z.number(),
+	bonus_kind: z.string(),
+	multiplier: z.number(),
+});
+
+export type AuraSpec = z.infer<typeof AuraSpecSchema>;
+
 // WorldObjectDef
 export const WorldObjectDefSchema = z.object({
 	id: z.string(),
@@ -796,6 +854,14 @@ export const WorldObjectDefSchema = z.object({
 	population_spawn: PopulationSpawnSpecSchema.optional(),
 	raid: RaidSpecSchema.optional(),
 	upgrade_chain: UpgradeChainSpecSchema.optional(),
+	interaction: z.string().optional(),
+	interaction_cooldown_secs: z.number().optional(),
+	shrine: ShrineSpecSchema.optional(),
+	shop: ShopSpecSchema.optional(),
+	dungeon: DungeonSpecSchema.optional(),
+	quest_giver: QuestGiverSpecSchema.optional(),
+	aura: AuraSpecSchema.optional(),
+	faction: z.string().optional(),
 });
 
 export type WorldObjectDef = z.infer<typeof WorldObjectDefSchema>;

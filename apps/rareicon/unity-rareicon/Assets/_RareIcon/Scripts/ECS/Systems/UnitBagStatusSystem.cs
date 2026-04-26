@@ -130,7 +130,14 @@ namespace RareIcon
                 var inv = InvLookup[entity];
                 for (int i = 0; i < inv.Length; i++) total += inv[i].Count;
             }
-            status.IsNeedy = (byte)(total < cap.Total ? 1 : 0);
+
+            int refillTrigger = (cap.Total * 50) / 100;
+            int refillStop    = (cap.Total * 90) / 100;
+            bool wasNeedy = status.IsNeedy != 0;
+            byte needy = wasNeedy
+                ? (byte)(total < refillStop    ? 1 : 0)
+                : (byte)(total < refillTrigger ? 1 : 0);
+            status.IsNeedy = needy;
         }
     }
 }

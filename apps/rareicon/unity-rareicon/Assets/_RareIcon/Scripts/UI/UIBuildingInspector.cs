@@ -118,7 +118,7 @@ namespace RareIcon
         void RequestRelease()
         {
             if (_target == Entity.Null) return;
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
             var req = em.CreateEntity();
@@ -128,7 +128,7 @@ namespace RareIcon
         void RequestDemolish()
         {
             if (_target == Entity.Null) return;
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
             if (!em.HasComponent<Building>(_target)) return;
@@ -141,7 +141,7 @@ namespace RareIcon
         void RequestUpgrade()
         {
             if (_target == Entity.Null) return;
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
             if (!em.HasComponent<Building>(_target)) return;
@@ -157,7 +157,7 @@ namespace RareIcon
         {
             if (_titleLabel == null) return;
             if (_target == Entity.Null) return;
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
 
@@ -172,7 +172,20 @@ namespace RareIcon
             byte tier = em.HasComponent<BuildingTier>(_target)
                 ? em.GetComponentData<BuildingTier>(_target).Value
                 : (byte)0;
-            _titleLabel.text = _locale.Get(BuildingDB.GetTieredLocaleKey(b.Type, tier));
+
+            string title = _locale.Get(BuildingDB.GetTieredLocaleKey(b.Type, tier));
+            if (b.Type == BuildingType.Landmark && em.HasComponent<LandmarkRef>(_target))
+            {
+                var lr = em.GetSharedComponentManaged<LandmarkRef>(_target);
+                var refSlug = lr.Value.ToString();
+                if (!string.IsNullOrEmpty(refSlug)
+                    && MapdbCache.TryGetByRef(refSlug, out var def)
+                    && !string.IsNullOrEmpty(def.Name))
+                {
+                    title = def.Name;
+                }
+            }
+            _titleLabel.text = title;
             if (_upgradeBtn != null)
                 SetHidden(_upgradeBtn, !BuildingDB.HasUpgrade(b.Type, tier));
 

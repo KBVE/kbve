@@ -68,6 +68,7 @@ namespace RareIcon
         readonly ISubscriber<HexClickedMessage> _clickSub;
         readonly ISubscriber<EnterTileMessage> _enterSub;
         readonly IPublisher<BuildingInspectMessage> _inspectPub;
+        readonly IPublisher<LandmarkInspectMessage> _landmarkInspectPub;
         readonly IPublisher<UnitInspectMessage> _unitInspectPub;
         readonly IPublisher<ControlledUnitMoveMessage> _movePub;
         readonly IPublisher<SelectionMoveMessage> _selectionMovePub;
@@ -92,6 +93,7 @@ namespace RareIcon
             ISubscriber<HexClickedMessage> clickSub,
             ISubscriber<EnterTileMessage> enterSub,
             IPublisher<BuildingInspectMessage> inspectPub,
+            IPublisher<LandmarkInspectMessage> landmarkInspectPub,
             IPublisher<UnitInspectMessage> unitInspectPub,
             IPublisher<ControlledUnitMoveMessage> movePub,
             IPublisher<SelectionMoveMessage> selectionMovePub,
@@ -100,6 +102,7 @@ namespace RareIcon
             _clickSub = clickSub;
             _enterSub = enterSub;
             _inspectPub = inspectPub;
+            _landmarkInspectPub = landmarkInspectPub;
             _unitInspectPub = unitInspectPub;
             _movePub = movePub;
             _selectionMovePub = selectionMovePub;
@@ -129,7 +132,7 @@ namespace RareIcon
             if (_buildMode.IsActive)
                 return;
 
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated)
                 return;
 
@@ -144,6 +147,12 @@ namespace RareIcon
             if (TryGetBuildingAt(em, new int2(msg.Q, msg.R), out var building))
             {
                 _inspectPub.Publish(new BuildingInspectMessage(building));
+                return;
+            }
+
+            if (TryGetLandmarkAt(em, new int2(msg.Q, msg.R), out var landmark))
+            {
+                _inspectPub.Publish(new BuildingInspectMessage(landmark));
                 return;
             }
 
@@ -359,6 +368,19 @@ namespace RareIcon
 
             building = occ.Building;
             return true;
+        }
+
+        static bool TryGetLandmarkAt(EntityManager em, int2 hex, out Entity landmark)
+        {
+            landmark = Entity.Null;
+            var query = em.CreateEntityQuery(ComponentType.ReadOnly<Landmark>());
+            using var arr = query.ToEntityArray(Allocator.Temp);
+            for (int i = 0; i < arr.Length; i++)
+            {
+                var lm = em.GetComponentData<Landmark>(arr[i]);
+                if (lm.RootHex.Equals(hex)) { landmark = arr[i]; return true; }
+            }
+            return false;
         }
 
         static bool TryGetUnitAt(EntityManager em, int2 hex, out Entity unit)
