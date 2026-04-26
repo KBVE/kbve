@@ -180,7 +180,7 @@ const {
 					tryNav();
 
 					window.clearTimeout(pulseTimer);
-					pulseTimer = window.setTimeout(reset, 800);
+					pulseTimer = window.setTimeout(reset, 2500);
 				};
 
 				const onWheel = (e: WheelEvent) => {
@@ -200,7 +200,8 @@ const {
 				};
 				const onTouchEnd = () => {
 					lastTouchY = null;
-					reset();
+					// Don't reset immediately — let the pulseTimer fade the
+					// hint out so the user sees the next-page label linger.
 				};
 
 				const onKey = (e: KeyboardEvent) => {

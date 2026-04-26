@@ -10,9 +10,9 @@ sidebar:
     order: 3
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
-
 import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
+import RingShipGrid from '@kbve/astro/components/hero/ring/RingShipGrid.astro';
+import RingShipCard from '@kbve/astro/components/hero/ring/RingShipCard.astro';
 import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
 
 <div class="ring-page">
@@ -21,20 +21,36 @@ import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
 
 KBVE delivers software, automation, and managed game-server hosting. Pick a lane:
 
-<CardGrid>
-    <Card title="Custom Software" icon="rocket">
-        Bespoke web, mobile, and backend builds — TypeScript, Rust, Python, Astro, React, Bevy.
-    </Card>
-    <Card title="Automation Pipelines" icon="setting">
-        CI/CD, build orchestration, data ETL, and event-driven workflows on Kubernetes.
-    </Card>
-    <Card title="Game Servers" icon="random">
-        Managed Minecraft, Unreal, and Bevy world hosting with auto-scaling and observability.
-    </Card>
-    <Card title="Open-Source Sponsorship" icon="heart">
-        Backing for libraries you depend on — sponsor a maintainer, fund a release.
-    </Card>
-</CardGrid>
+<RingShipGrid tagline="Four lanes — fixed-price scoping, demos every two weeks, no lock-in.">
+    <RingShipCard
+        title="Custom Software"
+        description="Bespoke web, mobile, and backend builds — TypeScript, Rust, Python, Astro, React, Bevy."
+        href="mailto:hello@kbve.com?subject=Custom%20software%20enquiry"
+        icon="rocket"
+        accent="#06b6d4"
+    />
+    <RingShipCard
+        title="Automation Pipelines"
+        description="CI/CD, build orchestration, data ETL, and event-driven workflows on Kubernetes."
+        href="mailto:hello@kbve.com?subject=Automation%20pipeline%20enquiry"
+        icon="cog"
+        accent="#f59e0b"
+    />
+    <RingShipCard
+        title="Game Servers"
+        description="Managed Minecraft, Unreal, and Bevy world hosting with auto-scaling and observability."
+        href="mailto:hello@kbve.com?subject=Game-server%20hosting%20enquiry"
+        icon="server"
+        accent="#22c55e"
+    />
+    <RingShipCard
+        title="Open-Source Sponsorship"
+        description="Backing for libraries you depend on — sponsor a maintainer, fund a release."
+        href="https://github.com/sponsors/kbve"
+        icon="heart"
+        accent="#ef4444"
+    />
+</RingShipGrid>
 
 ## How we work
 

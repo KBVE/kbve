@@ -4,7 +4,16 @@ interface Props {
 	description: string;
 	href: string;
 	accent?: string;
-	icon?: 'rocket' | 'puzzle' | 'github' | 'controller' | 'spark' | 'compass';
+	icon?:
+		| 'rocket'
+		| 'zap'
+		| 'github'
+		| 'controller'
+		| 'spark'
+		| 'compass'
+		| 'cog'
+		| 'server'
+		| 'heart';
 }
 
 const {
@@ -40,7 +49,7 @@ const {
 			)
 		}
 		{
-			icon === 'puzzle' && (
+			icon === 'zap' && (
 				<svg
 					viewBox="0 0 24 24"
 					fill="none"
@@ -48,7 +57,7 @@ const {
 					stroke-width="2"
 					stroke-linecap="round"
 					stroke-linejoin="round">
-					<path d="M19.439 7.85c-.049.322.059.648.289.878l1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.48-.872-.95-.248-1.65-2.097-2.643-3.572-1.829-1.474.815-1.474 2.954 0 3.769 1.475.814 3.324-.18 3.572-1.829.07-.47.402-.88.872-.95a.98.98 0 0 1 .837.276l1.611 1.611c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.568 1.568c-.23.23-.556.338-.878.289-1.65-.248-2.643-2.097-1.829-3.572.815-1.474 2.954-1.474 3.769 0 .814 1.475-.18 3.324-1.829 3.572z" />
+					<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
 				</svg>
 			)
 		}
@@ -108,6 +117,49 @@ const {
 					<path d="M4.93 19.07l2.83-2.83" />
 					<path d="M16.24 7.76l2.83-2.83" />
 					<circle cx="12" cy="12" r="3" />
+				</svg>
+			)
+		}
+		{
+			icon === 'cog' && (
+				<svg
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round">
+					<circle cx="12" cy="12" r="3" />
+					<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+				</svg>
+			)
+		}
+		{
+			icon === 'server' && (
+				<svg
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round">
+					<rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
+					<rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
+					<line x1="6" y1="6" x2="6.01" y2="6" />
+					<line x1="6" y1="18" x2="6.01" y2="18" />
+				</svg>
+			)
+		}
+		{
+			icon === 'heart' && (
+				<svg
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round">
+					<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
 				</svg>
 			)
 		}
