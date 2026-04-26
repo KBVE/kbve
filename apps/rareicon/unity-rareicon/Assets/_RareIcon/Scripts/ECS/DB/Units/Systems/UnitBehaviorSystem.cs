@@ -119,6 +119,7 @@ namespace RareIcon
     [BurstCompile]
     [WithNone(typeof(ControlledUnitTag))]
     [WithNone(typeof(GarrisonPost))]
+    [WithNone(typeof(GarrisonedTag))]
     public partial struct UnitBehaviorJob : IJobEntity
     {
         public bool HasCapital;
@@ -150,7 +151,7 @@ namespace RareIcon
             if (goal.Priority >= GoalPriority.Order) return;
             if (goal.Priority >= GoalPriority.Flee)  return;
 
-            uint spread = (uint)entity.Index * 0x9E3779B1u;
+            uint spread = UnitHashOps.Spread(in entity);
 
             if (relief.Kind == ReliefKind.Eat)
             {
