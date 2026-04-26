@@ -46,7 +46,7 @@ namespace RareIcon
             live.WriteBuffer = tmp;
             live.WriteBuffer.Clear();
 
-            live.Deliveries     = new NativeStream(1, Allocator.TempJob);
+            live.Deliveries     = new NativeStream(1, Allocator.Persistent);
             live.PipelineHandle = default;
         }
 
