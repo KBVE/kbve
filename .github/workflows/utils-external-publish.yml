@@ -221,6 +221,77 @@ jobs:
                   fi
                   jq -r '"Published mrpack — version id \(.id)"' /tmp/mrpack-response.json
 
+    modrinth_prune:
+        name: Modrinth Prune (${{ inputs.app_name }})
+        needs: [modrinth]
+        if: needs.modrinth.result == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: read
+        steps:
+            - name: Resolve external_publish fields
+              id: ep
+              run: |
+                  EP='${{ inputs.external_publish }}'
+                  echo "mod_id=$(echo "$EP" | jq -r '.modrinth_mod_id // ""')" >> "$GITHUB_OUTPUT"
+                  echo "pack_id=$(echo "$EP" | jq -r '.modrinth_pack_id // ""')" >> "$GITHUB_OUTPUT"
+                  echo "retain=$(echo "$EP" | jq -r '.modrinth_retain_count // 3 | tostring')" >> "$GITHUB_OUTPUT"
+
+            - name: Prune older versions
+              env:
+                  MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+                  MOD_PROJECT_ID: ${{ steps.ep.outputs.mod_id }}
+                  PACK_PROJECT_ID: ${{ steps.ep.outputs.pack_id }}
+                  RETAIN: ${{ steps.ep.outputs.retain }}
+              run: |
+                  set -euo pipefail
+                  if [ -z "${MODRINTH_TOKEN:-}" ]; then
+                    echo "::notice::MODRINTH_TOKEN missing — skipping prune."
+                    exit 0
+                  fi
+
+                  prune_project () {
+                    local PROJECT_ID="$1"
+                    local LABEL="$2"
+                    if [ -z "$PROJECT_ID" ]; then
+                      return 0
+                    fi
+                    echo "── $LABEL ($PROJECT_ID) — retain newest $RETAIN ──"
+                    local LIST
+                    LIST=$(curl -sSL --fail-with-body \
+                      -H "Authorization: $MODRINTH_TOKEN" \
+                      "https://api.modrinth.com/v2/project/$PROJECT_ID/version")
+
+                    local COUNT
+                    COUNT=$(echo "$LIST" | jq 'length')
+                    echo "Found $COUNT versions on Modrinth."
+                    if [ "$COUNT" -le "$RETAIN" ]; then
+                      echo "Nothing to prune."
+                      return 0
+                    fi
+
+                    local TO_DELETE
+                    TO_DELETE=$(echo "$LIST" \
+                      | jq -r --argjson keep "$RETAIN" \
+                          'sort_by(.date_published) | reverse | .[$keep:] | .[] | "\(.id)\t\(.version_number)"')
+
+                    while IFS=$'\t' read -r ID VER; do
+                      [ -z "$ID" ] && continue
+                      echo "Deleting $LABEL v$VER (id=$ID)"
+                      HTTP_CODE=$(curl -sSL -o /tmp/del-response.json -w '%{http_code}' \
+                        -X DELETE "https://api.modrinth.com/v2/version/$ID" \
+                        -H "Authorization: $MODRINTH_TOKEN")
+                      if [ "$HTTP_CODE" != "204" ]; then
+                        echo "::warning::Delete failed for $LABEL v$VER (HTTP $HTTP_CODE)"
+                        cat /tmp/del-response.json || true
+                      fi
+                    done <<< "$TO_DELETE"
+                  }
+
+                  prune_project "$MOD_PROJECT_ID" "mod"
+                  prune_project "$PACK_PROJECT_ID" "modpack"
+
     itch:
         name: Itch.io (stub)
         if: fromJson(inputs.external_publish).itch_game != ''

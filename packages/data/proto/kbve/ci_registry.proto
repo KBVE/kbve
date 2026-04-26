@@ -48,6 +48,7 @@ message ExternalPublish {
   optional string modrinth_version_type = 3;    // alpha | beta | release (default: release)
   optional string modrinth_game_versions = 4;   // JSON array string, e.g. '["1.21.11"]'
   optional string modrinth_loaders = 5;         // JSON array string, e.g. '["fabric"]'
+  optional uint32 modrinth_retain_count = 6;    // Newest versions to keep; older ones are pruned. 0/unset = default 3.
 
   // ── Itch.io (HTML5 / native game builds) ──────────────────────────
   optional string itch_user = 10;               // Itch.io user/publisher slug
