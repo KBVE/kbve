@@ -1,0 +1,229 @@
+name: External Publish
+
+on:
+    workflow_call:
+        inputs:
+            app_name:
+                description: 'CI registry app key (e.g. mc)'
+                required: true
+                type: string
+            version:
+                description: 'Version that was published (semver)'
+                required: true
+                type: string
+            source_path:
+                description: 'Path to the app source directory (repo-relative)'
+                required: true
+                type: string
+            external_publish:
+                description: 'JSON-encoded ExternalPublish object from the dispatch manifest'
+                required: true
+                type: string
+        secrets:
+            MODRINTH_TOKEN:
+                description: 'Modrinth PAT with version:create scope'
+                required: false
+            ITCH_API_KEY:
+                description: 'butler API key for Itch.io uploads'
+                required: false
+            STEAM_USERNAME:
+                description: 'Steamworks builder username'
+                required: false
+            STEAM_PASSWORD:
+                description: 'Steamworks builder password'
+                required: false
+            CURSEFORGE_TOKEN:
+                description: 'CurseForge upload API token'
+                required: false
+
+jobs:
+    modrinth:
+        name: Modrinth (${{ inputs.app_name }} v${{ inputs.version }})
+        if: |
+            fromJson(inputs.external_publish).modrinth_mod_id != '' ||
+            fromJson(inputs.external_publish).modrinth_pack_id != ''
+        runs-on: ubuntu-latest
+        timeout-minutes: 25
+        permissions:
+            contents: read
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Set up JDK 21
+              uses: actions/setup-java@v4
+              with:
+                  distribution: temurin
+                  java-version: '21'
+
+            - name: Resolve external_publish fields
+              id: ep
+              run: |
+                  EP='${{ inputs.external_publish }}'
+                  echo "mod_id=$(echo "$EP" | jq -r '.modrinth_mod_id // ""')" >> "$GITHUB_OUTPUT"
+                  echo "pack_id=$(echo "$EP" | jq -r '.modrinth_pack_id // ""')" >> "$GITHUB_OUTPUT"
+                  echo "version_type=$(echo "$EP" | jq -r '.modrinth_version_type // "release"')" >> "$GITHUB_OUTPUT"
+                  echo "loaders=$(echo "$EP" | jq -c '.modrinth_loaders // "[\"fabric\"]" | if type=="string" then fromjson else . end')" >> "$GITHUB_OUTPUT"
+                  echo "game_versions=$(echo "$EP" | jq -c '.modrinth_game_versions // "[]" | if type=="string" then fromjson else . end')" >> "$GITHUB_OUTPUT"
+
+            - name: Build Fabric mod JAR
+              run: |
+                  cd "${{ inputs.source_path }}/behavior_statetree/java"
+                  ./gradlew build --no-daemon
+
+            - name: Locate built JAR
+              id: jar
+              run: |
+                  JAR=$(ls "${{ inputs.source_path }}/behavior_statetree/java/build/libs/"*.jar 2>/dev/null | head -1)
+                  if [ -z "$JAR" ]; then
+                    echo "::error::No JAR found under build/libs/"
+                    exit 1
+                  fi
+                  echo "path=$JAR" >> "$GITHUB_OUTPUT"
+                  echo "name=$(basename "$JAR")" >> "$GITHUB_OUTPUT"
+
+            - name: Publish JAR to Modrinth mod project
+              if: steps.ep.outputs.mod_id != ''
+              env:
+                  MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+                  MOD_PROJECT_ID: ${{ steps.ep.outputs.mod_id }}
+                  VERSION: ${{ inputs.version }}
+                  VERSION_TYPE: ${{ steps.ep.outputs.version_type }}
+                  LOADERS: ${{ steps.ep.outputs.loaders }}
+                  GAME_VERSIONS: ${{ steps.ep.outputs.game_versions }}
+                  JAR_PATH: ${{ steps.jar.outputs.path }}
+              run: |
+                  set -euo pipefail
+                  if [ -z "${MODRINTH_TOKEN:-}" ]; then
+                    echo "::error::MODRINTH_TOKEN secret missing"
+                    exit 1
+                  fi
+
+                  EXISTING=$(curl -fsSL -H "Authorization: $MODRINTH_TOKEN" \
+                    "https://api.modrinth.com/v2/project/$MOD_PROJECT_ID/version" \
+                    | jq -r --arg v "$VERSION" '.[] | select(.version_number == $v) | .id' \
+                    | head -1)
+
+                  if [ -n "$EXISTING" ]; then
+                    echo "::notice::JAR v$VERSION already on Modrinth (id=$EXISTING) — skipping."
+                    exit 0
+                  fi
+
+                  cat > /tmp/data.json <<JSON
+                  {
+                    "name": "behavior_statetree $VERSION",
+                    "version_number": "$VERSION",
+                    "version_type": "$VERSION_TYPE",
+                    "project_id": "$MOD_PROJECT_ID",
+                    "loaders": $LOADERS,
+                    "game_versions": $GAME_VERSIONS,
+                    "featured": false,
+                    "dependencies": [{"project_id":"P7dR8mSH","dependency_type":"required"}],
+                    "file_parts": ["jar"]
+                  }
+                  JSON
+
+                  curl -fsSL -X POST "https://api.modrinth.com/v2/version" \
+                    -H "Authorization: $MODRINTH_TOKEN" \
+                    -F "data=@/tmp/data.json;type=application/json" \
+                    -F "jar=@$JAR_PATH;type=application/java-archive" \
+                    | jq -r '"Published JAR — version id \(.id)"'
+
+            - name: Build mrpack
+              if: steps.ep.outputs.pack_id != ''
+              run: |
+                  cd "${{ inputs.source_path }}/behavior_statetree"
+                  ./mrpack/build-mrpack.sh
+
+            - name: Locate built mrpack
+              if: steps.ep.outputs.pack_id != ''
+              id: mrpack
+              run: |
+                  MRPACK=$(ls "${{ inputs.source_path }}/behavior_statetree/mrpack/dist/"*.mrpack 2>/dev/null | head -1)
+                  if [ -z "$MRPACK" ]; then
+                    echo "::error::No .mrpack produced"
+                    exit 1
+                  fi
+                  echo "path=$MRPACK" >> "$GITHUB_OUTPUT"
+                  echo "name=$(basename "$MRPACK")" >> "$GITHUB_OUTPUT"
+
+            - name: Publish mrpack to Modrinth modpack project
+              if: steps.ep.outputs.pack_id != ''
+              env:
+                  MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+                  PACK_PROJECT_ID: ${{ steps.ep.outputs.pack_id }}
+                  VERSION: ${{ inputs.version }}
+                  VERSION_TYPE: ${{ steps.ep.outputs.version_type }}
+                  GAME_VERSIONS: ${{ steps.ep.outputs.game_versions }}
+                  MRPACK_PATH: ${{ steps.mrpack.outputs.path }}
+              run: |
+                  set -euo pipefail
+                  if [ -z "${MODRINTH_TOKEN:-}" ]; then
+                    echo "::error::MODRINTH_TOKEN secret missing"
+                    exit 1
+                  fi
+
+                  EXISTING=$(curl -fsSL -H "Authorization: $MODRINTH_TOKEN" \
+                    "https://api.modrinth.com/v2/project/$PACK_PROJECT_ID/version" \
+                    | jq -r --arg v "$VERSION" '.[] | select(.version_number == $v) | .id' \
+                    | head -1)
+
+                  if [ -n "$EXISTING" ]; then
+                    echo "::notice::mrpack v$VERSION already on Modrinth (id=$EXISTING) — skipping."
+                    exit 0
+                  fi
+
+                  cat > /tmp/pack-data.json <<JSON
+                  {
+                    "name": "KBVE MC Client $VERSION",
+                    "version_number": "$VERSION",
+                    "version_type": "$VERSION_TYPE",
+                    "project_id": "$PACK_PROJECT_ID",
+                    "loaders": ["mrpack"],
+                    "game_versions": $GAME_VERSIONS,
+                    "featured": true,
+                    "dependencies": [],
+                    "file_parts": ["mrpack"]
+                  }
+                  JSON
+
+                  curl -fsSL -X POST "https://api.modrinth.com/v2/version" \
+                    -H "Authorization: $MODRINTH_TOKEN" \
+                    -F "data=@/tmp/pack-data.json;type=application/json" \
+                    -F "mrpack=@$MRPACK_PATH;type=application/x-modrinth-modpack+zip" \
+                    | jq -r '"Published mrpack — version id \(.id)"'
+
+    itch:
+        name: Itch.io (stub)
+        if: fromJson(inputs.external_publish).itch_game != ''
+        runs-on: ubuntu-latest
+        steps:
+            - run: echo "::notice::Itch publish not yet implemented for ${{ inputs.app_name }}"
+
+    steam:
+        name: Steam (stub)
+        if: fromJson(inputs.external_publish).steam_app_id != ''
+        runs-on: ubuntu-latest
+        steps:
+            - run: echo "::notice::Steam publish not yet implemented for ${{ inputs.app_name }}"
+
+    apple:
+        name: Apple App Store (stub)
+        if: fromJson(inputs.external_publish).apple_app_id != ''
+        runs-on: ubuntu-latest
+        steps:
+            - run: echo "::notice::Apple App Store publish not yet implemented for ${{ inputs.app_name }}"
+
+    google:
+        name: Google Play (stub)
+        if: fromJson(inputs.external_publish).google_play_package != ''
+        runs-on: ubuntu-latest
+        steps:
+            - run: echo "::notice::Google Play publish not yet implemented for ${{ inputs.app_name }}"
+
+    curseforge:
+        name: CurseForge (stub)
+        if: fromJson(inputs.external_publish).curseforge_project_id != ''
+        runs-on: ubuntu-latest
+        steps:
+            - run: echo "::notice::CurseForge publish not yet implemented for ${{ inputs.app_name }}"

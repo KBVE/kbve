@@ -194,7 +194,14 @@
 			"image": "kbve/mc",
 			"e2e_name": "mc",
 			"deployment_yaml": "apps/kube/agones/mc/fleet.yaml",
-			"has_test": true
+			"has_test": true,
+			"external_publish": {
+				"modrinth_mod_id": "QoFCg0tO",
+				"modrinth_pack_id": "86Wqkiak",
+				"modrinth_version_type": "alpha",
+				"modrinth_game_versions": "[\"1.21.11\"]",
+				"modrinth_loaders": "[\"fabric\"]"
+			}
 		},
 		{
 			"key": "mc_lobby",

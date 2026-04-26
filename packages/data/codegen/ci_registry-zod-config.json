@@ -1,5 +1,9 @@
 {
-	"include": ["kbve.ci.CiProject", "kbve.ci.CiRegistry"],
+	"include": [
+		"kbve.ci.CiProject",
+		"kbve.ci.CiRegistry",
+		"kbve.ci.ExternalPublish"
+	],
 
 	"enums": {
 		"kbve.ci.DispatchPipeline": {
@@ -62,6 +66,26 @@
 		"kbve.ci.CiProject.has_test": "z.boolean().optional()",
 		"kbve.ci.CiProject.target": "z.string().max(64).optional()",
 		"kbve.ci.CiProject.nx_project": "z.string().max(64).optional()",
-		"kbve.ci.CiProject.test_framework": "TestFrameworkSchema.optional()"
+		"kbve.ci.CiProject.test_framework": "TestFrameworkSchema.optional()",
+		"kbve.ci.CiProject.external_publish": "ExternalPublishSchema.optional()",
+		"kbve.ci.ExternalPublish.modrinth_mod_id": "z.string().max(32).optional()",
+		"kbve.ci.ExternalPublish.modrinth_pack_id": "z.string().max(32).optional()",
+		"kbve.ci.ExternalPublish.modrinth_version_type": "z.enum(['alpha', 'beta', 'release']).optional()",
+		"kbve.ci.ExternalPublish.modrinth_game_versions": "z.string().max(512).optional()",
+		"kbve.ci.ExternalPublish.modrinth_loaders": "z.string().max(256).optional()",
+		"kbve.ci.ExternalPublish.itch_user": "z.string().min(1).max(64).optional()",
+		"kbve.ci.ExternalPublish.itch_game": "z.string().min(1).max(64).optional()",
+		"kbve.ci.ExternalPublish.itch_channel": "z.string().min(1).max(64).optional()",
+		"kbve.ci.ExternalPublish.steam_app_id": "z.string().regex(/^\\d+$/, 'Steam app id must be numeric').max(16).optional()",
+		"kbve.ci.ExternalPublish.steam_depot_id": "z.string().regex(/^\\d+$/).max(16).optional()",
+		"kbve.ci.ExternalPublish.steam_branch": "z.string().min(1).max(64).optional()",
+		"kbve.ci.ExternalPublish.apple_bundle_id": "z.string().min(1).max(128).optional()",
+		"kbve.ci.ExternalPublish.apple_app_id": "z.string().regex(/^\\d+$/).max(16).optional()",
+		"kbve.ci.ExternalPublish.apple_team_id": "z.string().min(1).max(32).optional()",
+		"kbve.ci.ExternalPublish.google_play_package": "z.string().min(1).max(128).optional()",
+		"kbve.ci.ExternalPublish.google_play_track": "z.enum(['internal', 'alpha', 'beta', 'production']).optional()",
+		"kbve.ci.ExternalPublish.curseforge_project_id": "z.string().regex(/^\\d+$/).max(16).optional()",
+		"kbve.ci.ExternalPublish.curseforge_pack_id": "z.string().regex(/^\\d+$/).max(16).optional()",
+		"kbve.ci.ExternalPublish.curseforge_release_type": "z.enum(['alpha', 'beta', 'release']).optional()"
 	}
 }
