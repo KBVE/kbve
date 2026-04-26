@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
@@ -8,25 +9,28 @@ namespace RareIcon
     /// <summary>
     /// Authoritative owner of <see cref="HexDBSingleton"/>. Allocates the
     /// coord→entity NativeHashMap + pending-request NativeList at
-    /// OnCreate; drains pending mutations inside a Burst-compiled
-    /// main-thread loop each tick.
+    /// OnCreate; schedules a Burst <see cref="DrainHexDBJob"/> each tick
+    /// that applies pending mutations on a worker thread.
     ///
-    /// <para>Why main-thread-Burst instead of scheduled IJob: the drain
-    /// work is O(pending.Length) with trivial per-op cost (HashMap set /
-    /// remove / clear). Scheduling overhead + safety-handle juggling
-    /// between the drain job and main-thread producers
-    /// (HexChunkSystem.SpawnChunk) would cost more than the inline
-    /// execution. Burst still optimises the loop.</para>
+    /// <para>The drain runs as a scheduled IJob (not main-thread inline)
+    /// so the framework chains it through <c>state.Dependency</c>. Reader
+    /// jobs from the previous frame (BuildingRepairJob, ShelterJob, every
+    /// other system that fetched <see cref="HexDBSingleton"/>) wait on
+    /// the prior frame's drain handle automatically; the drain in turn
+    /// waits on those readers via the same dependency graph. No manual
+    /// <c>CompleteDependency</c> sync point, no main-thread stall.</para>
     ///
-    /// <para>Readers (Burst jobs querying <c>HexDBSingleton.Lookup</c>)
-    /// continue to run on worker threads — that's where the
-    /// multi-threaded win actually lives. DOTS's atomic safety handle on
-    /// the NativeHashMap auto-serialises reader jobs against the
-    /// main-thread drain, so no manual sync points needed downstream.</para>
+    /// <para>Producers calling <see cref="HexDB.EnqueueAdd"/> /
+    /// <see cref="HexDB.EnqueueRemove"/> from the main thread go through
+    /// <c>EntityManager.GetComponentData&lt;HexDBSingleton&gt;</c>, which
+    /// auto-syncs against pending writers (the drain). Producers wait
+    /// for the drain transparently, while the drain runs in parallel
+    /// with any other Initialization-group work.</para>
     ///
     /// <para>Runs <c>OrderFirst</c> in
-    /// <see cref="InitializationSystemGroup"/> so all downstream groups
-    /// this frame observe a freshly-applied index.</para>
+    /// <see cref="InitializationSystemGroup"/> so the first scheduled
+    /// drain handle is in place before any later system this frame
+    /// reads <see cref="HexDBSingleton.Lookup"/>.</para>
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(InitializationSystemGroup), OrderFirst = true)]
@@ -64,38 +68,37 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            // DrainInline mutates db.Lookup / db.Pending / db.Events on the
-            // main thread. Burst ISystem direct-call paths do NOT auto-sync
-            // state.Dependency before inner-NativeContainer access, even
-            // when GetSingletonRW registers write intent on the parent
-            // component. Reader jobs scheduled last frame (e.g.
-            // BuildingRepairJob with [ReadOnly] HexLookup) still hold the
-            // NativeHashMap's safety handle until their JobHandle completes.
-            // CompleteDependency flushes them synchronously so the drain is
-            // race-free.
-            state.CompleteDependency();
             var dbRW = SystemAPI.GetSingletonRW<HexDBSingleton>();
             ref var db = ref dbRW.ValueRW;
             if (!db.Pending.IsCreated || db.Pending.Length == 0) return;
 
-            DrainInline(ref db.Lookup, ref db.Pending, ref db.Events);
+            state.Dependency = new DrainHexDBJob
+            {
+                Lookup  = db.Lookup,
+                Pending = db.Pending,
+                Events  = db.Events,
+            }.Schedule(state.Dependency);
         }
+    }
 
-        [BurstCompile]
-        static void DrainInline(
-            ref NativeHashMap<int2, Entity> lookup,
-            ref NativeList<HexIndexRequest> pending,
-            ref NativeList<HexEvent>        events)
+    [BurstCompile]
+    struct DrainHexDBJob : IJob
+    {
+        public NativeHashMap<int2, Entity> Lookup;
+        public NativeList<HexIndexRequest> Pending;
+        public NativeList<HexEvent>        Events;
+
+        public void Execute()
         {
-            int n = pending.Length;
+            int n = Pending.Length;
             for (int i = 0; i < n; i++)
             {
-                var r = pending[i];
+                var r = Pending[i];
                 switch (r.Op)
                 {
                     case HexIndexOp.Add:
-                        lookup[r.Coord] = r.Entity;
-                        events.Add(new HexEvent
+                        Lookup[r.Coord] = r.Entity;
+                        Events.Add(new HexEvent
                         {
                             Kind = HexEventKind.Added,
                             Coord = r.Coord,
@@ -103,10 +106,10 @@ namespace RareIcon
                         });
                         break;
                     case HexIndexOp.Remove:
-                        if (lookup.TryGetValue(r.Coord, out var prior))
+                        if (Lookup.TryGetValue(r.Coord, out var prior))
                         {
-                            lookup.Remove(r.Coord);
-                            events.Add(new HexEvent
+                            Lookup.Remove(r.Coord);
+                            Events.Add(new HexEvent
                             {
                                 Kind = HexEventKind.Removed,
                                 Coord = r.Coord,
@@ -115,13 +118,13 @@ namespace RareIcon
                         }
                         break;
                     case HexIndexOp.Clear:
-                        // Bulk reset — no per-entry events (subscribers
+                        // Bulk reset, no per-entry events (subscribers
                         // resync from Lookup on the following frame).
-                        lookup.Clear();
+                        Lookup.Clear();
                         break;
                 }
             }
-            pending.Clear();
+            Pending.Clear();
         }
     }
 }
