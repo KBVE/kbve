@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-04-25T08:30:06Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-04-26T08:36:28Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
@@ -29,7 +29,7 @@ Last generated: **2026-04-25T08:30:06Z** — updated daily by `ci-dashboard`.
   <Card title="32 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="59 Medium" icon="information">
+  <Card title="60 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="5 Low" icon="approve-check-circle">
@@ -44,7 +44,7 @@ Last generated: **2026-04-25T08:30:06Z** — updated daily by `ci-dashboard`.
     **85** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
-    **40** advisories
+    **41** advisories
   </Card>
   <Card title="Python" icon="seti:python">
     **1** advisories
@@ -64,7 +64,7 @@ pie showData
     title Findings by Severity
     "Critical" : 1
     "High" : 32
-    "Medium" : 59
+    "Medium" : 60
     "Low" : 5
 ```
 
@@ -74,7 +74,7 @@ pie showData
 pie showData
     title Findings by Ecosystem
     "npm" : 85
-    "Cargo" : 40
+    "Cargo" : 41
     "Python" : 1
 ```
 
@@ -84,11 +84,11 @@ pie showData
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
 | **npm** | 1 | 32 | 47 | 5 | 85 |
-| **Cargo** | 0 | 0 | 11 | 0 | 40 |
+| **Cargo** | 0 | 0 | 12 | 0 | 41 |
 | **Python** | 0 | 0 | 1 | 0 | 1 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 32 | 59 | 5 | 126 |
+| **Total** | 1 | 32 | 60 | 5 | 127 |
 
   </TabItem>
   <TabItem label="npm">
@@ -197,6 +197,7 @@ pie showData
 | Medium | `rustls-webpki` | Name constraints for URI names were incorrectly accepted |  |
 | Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
 | Medium | `rustls-webpki` | Reachable panic in certificate revocation list parsing |  |
+| Medium | `sqlx` | Binary Protocol Misinterpretation caused by Truncating or... | [Details](https://github.com/launchbadge/sqlx/issues/3440) |
 | Info | `atk` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `atk-sys` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `bincode` | Bincode is unmaintained | [Details](https://git.sr.ht/~stygianentity/bincode/tree/v3.0/item/README.md) |
