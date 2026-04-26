@@ -413,6 +413,7 @@ namespace RareIcon
 
         void OnHexHover(HexHoverMessage msg)
         {
+            UnityEngine.Debug.Log($"[WorldHUD] OnHexHover q={msg.Q} r={msg.R} land={msg.IsLand} hoverName={(_hoverName!=null)}");
             if (_hoverName == null) return;
 
             _hoverName.text = msg.IsLand ? _locale.GetBiomeName(msg.BiomeId) : _locale.Get("hex.empty");

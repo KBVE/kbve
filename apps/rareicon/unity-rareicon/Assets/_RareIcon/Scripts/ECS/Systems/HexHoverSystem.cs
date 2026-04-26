@@ -98,6 +98,7 @@ namespace RareIcon
             if (!mouse.Changed) return;
             if (mouse.HexCoord.Equals(_lastHex)) return;
             _lastHex = mouse.HexCoord;
+            UnityEngine.Debug.Log($"[HexHover] hover q={mouse.HexCoord.x} r={mouse.HexCoord.y} world={World.Name}");
 
             // Always move overlay to hovered hex position
             float3 pos = HexMeshUtil.HexToWorld(mouse.HexCoord.x, mouse.HexCoord.y, HexSize);

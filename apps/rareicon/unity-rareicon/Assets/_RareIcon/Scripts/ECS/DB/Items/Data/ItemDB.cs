@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace RareIcon
 {
-    /// <summary>Top-level item category. Keep in sync with the Rust RareItem enum's ranges.</summary>
+    /// <summary>Item category. Keep in sync with Rust RareItem enum ranges.</summary>
     public enum ItemCategory : byte
     {
         Misc       = 0,
@@ -13,7 +13,7 @@ namespace RareIcon
         Magic      = 5,
     }
 
-    /// <summary>Which job is allowed to pick this up off the world; None = never hand-harvested (crafted / station-only / environmental).</summary>
+    /// <summary>Job allowed to hand-harvest this item. None = crafted / station-only / environmental.</summary>
     public enum HarvestRole : byte
     {
         None       = 0,
@@ -22,31 +22,26 @@ namespace RareIcon
         Miner      = 3,
     }
 
-    /// <summary>Static per-item numeric data. Fully blittable — NameKey localization strings live in ItemDB._nameKeys, a parallel managed Dictionary&lt;ushort, string&gt; that only main-thread callers touch. This way ItemDef is safe to materialize inside Burst jobs if anyone ever bypasses ItemDBSingleton and pokes the managed ItemDB directly, and the Burst error BC1051 "managed String field" can't reoccur.</summary>
+    /// <summary>Per-item numeric data. Field order: 4-byte → 2-byte → 1-byte for natural alignment.</summary>
     public readonly struct ItemDef
     {
-        public readonly ushort Id;
-        public readonly ItemCategory Category;
-        public readonly byte StackMax;
-        public readonly ushort BaseValue;
-
+        public readonly uint  ShelfLifeSeconds;
         public readonly float RestoreHealth;
         public readonly float RestoreEnergy;
         public readonly float RestoreMana;
-
         public readonly float RegenPerSecond;
         public readonly float RegenDuration;
-
-        public readonly HarvestRole HarvestRole;
-        public readonly byte HarvestWeight;
-
+        public readonly ushort Id;
+        public readonly ushort BaseValue;
         public readonly ushort CompressesTo;
         public readonly ushort CompressRatio;
         public readonly ushort PoolGroup;
-
-        public readonly bool   Perishable;
-        public readonly uint   ShelfLifeSeconds;
         public readonly ushort SpoilsIntoId;
+        public readonly ItemCategory Category;
+        public readonly byte         StackMax;
+        public readonly HarvestRole  HarvestRole;
+        public readonly byte         HarvestWeight;
+        public readonly bool         Perishable;
 
         public ItemDef(ushort id, ItemCategory category,
                        byte stackMax, ushort baseValue,
@@ -84,22 +79,22 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Pool group IDs for the food → Meal consolidator. All edibles share PoolGroup.Food so a mix of Berry + Mushroom + CookedBeef all contribute to the same Meal bucket.</summary>
+    /// <summary>Pool group IDs for the food → Meal consolidator. All edibles share PoolGroup.Food.</summary>
     public static class PoolGroup
     {
         public const ushort None = 0;
         public const ushort Food = 1;
     }
 
-    /// <summary>Source of truth for item properties; extend as new consumables / materials come online.</summary>
-    // TODO(rust-ffi): mirror table into uniti crate so client/server agree on HarvestRole + weights.
+    /// <summary>Managed ItemDB hydrated from ItemDBCache (mdx). Burst-side mirror lives on ItemDBSingleton.</summary>
+    // TODO(rust-ffi): mirror into uniti crate so client/server agree on HarvestRole + weights.
     public static class ItemDB
     {
         static readonly Dictionary<ushort, ItemDef> _byId     = new();
         static readonly Dictionary<ushort, string>  _nameKeys = new();
         static bool _initialized;
 
-        /// <summary>Resolve an mdx ref through ItemDBRefMap, falling back through the spoilage chain (specific rotten variant, then rotten-food) when the ref is missing. Returns false if no mapping exists anywhere.</summary>
+        /// <summary>mdx ref → ItemId. Returns false only if `rotten-food` itself is unregistered, in which case the out parameter still defaults to ItemId.RottenFood.</summary>
         public static bool TryResolveRef(string refSlug, out ItemId id)
         {
             if (!string.IsNullOrEmpty(refSlug) && ItemDBRefMap.RefToId.TryGetValue(refSlug, out id))
@@ -108,7 +103,7 @@ namespace RareIcon
             return ItemDBRefMap.RefToId.ContainsKey("rotten-food");
         }
 
-        /// <summary>Resolve a perishable item's spoilage target. Honors explicit `spoils_into_ref`; if absent or invalid, falls back to rotten-food. Returns false only if rotten-food itself is missing (catastrophic data failure).</summary>
+        /// <summary>Spoilage target resolver. Honors `spoils_into_ref`; falls back to rotten-food. False only if rotten-food itself is missing.</summary>
         public static bool TryGetSpoilageTarget(string spoilsIntoRef, out ItemId target)
         {
             if (!string.IsNullOrEmpty(spoilsIntoRef) && ItemDBRefMap.RefToId.TryGetValue(spoilsIntoRef, out target))
@@ -119,7 +114,7 @@ namespace RareIcon
             return false;
         }
 
-        /// <summary>Called by ItemDBLoaderSystem after ItemDBCache is filled. Walks the cache, materialises each entry resolved through the generated ItemDBRefMap into a blittable ItemDef. mdx is the sole source of truth, no hardcoded fallback.</summary>
+        /// <summary>Hydrate _byId from ItemDBCache. Called by ItemDBLoaderSystem after the cache is filled.</summary>
         public static int HydrateFromCache()
         {
             if (_initialized) return 0;
@@ -251,44 +246,51 @@ namespace RareIcon
                  : new ItemDef(id, ItemCategory.Misc, 1, 0);
         }
 
-        /// <summary>Managed main-thread localization lookup. Returns "item.unknown" for unregistered IDs. Never call from Burst — Burst jobs get their numeric data from ItemDBSingleton instead.</summary>
+        /// <summary>Main-thread localization lookup. Burst jobs use ItemDBSingleton instead.</summary>
         public static string GetNameKey(ushort id)
-        {
-            return _nameKeys.TryGetValue(id, out var key) ? key : "item.unknown";
-        }
+            => _nameKeys.TryGetValue(id, out var key) ? key : "item.unknown";
 
-        public static float EnergyValue(ushort id)
-            => TryGet(id, out var def) ? def.RestoreEnergy : 0f;
-        public static float HealthValue(ushort id)
-            => TryGet(id, out var def) ? def.RestoreHealth : 0f;
-        public static float ManaValue(ushort id)
-            => TryGet(id, out var def) ? def.RestoreMana : 0f;
+        public static float EnergyValue(ushort id) => TryGet(id, out var def) ? def.RestoreEnergy : 0f;
+        public static float HealthValue(ushort id) => TryGet(id, out var def) ? def.RestoreHealth : 0f;
+        public static float ManaValue(ushort id)   => TryGet(id, out var def) ? def.RestoreMana   : 0f;
+        public static bool  IsEdible(ushort id)    => EnergyValue(id) > 0f;
 
-        /// <summary>True if eating one unit of this item would reduce Hunger.</summary>
-        public static bool IsEdible(ushort id) => EnergyValue(id) > 0f;
-
-        /// <summary>Which job is allowed to hand-harvest this item from the world; None = crafted / environmental.</summary>
         public static HarvestRole GetHarvestRole(ushort id)
             => TryGet(id, out var def) ? def.HarvestRole : HarvestRole.None;
 
-        /// <summary>0-100 preference weight; UI later edits this to let players focus collection on specific drops.</summary>
         public static byte GetHarvestWeight(ushort id)
             => TryGet(id, out var def) ? def.HarvestWeight : (byte)100;
 
-        /// <summary>Enumerate every item whose HarvestRole matches — used by the Diet UI to build per-item preference rows.</summary>
+        /// <summary>Enumerate items by HarvestRole. Used by the Diet UI to build per-item preference rows.</summary>
         public static IEnumerable<ItemDef> EnumerateByRole(HarvestRole role)
         {
             foreach (var kv in _byId)
                 if (kv.Value.HarvestRole == role) yield return kv.Value;
         }
 
-        /// <summary>Seed a Burst-safe NativeHashMap&lt;ushort, ItemDefRuntime&gt; from the managed table. Called once at startup by ItemDBBootstrapSystem so Burst jobs can query item stats without touching the managed Dictionary.</summary>
-        public static void PopulateRuntimeLookup(Unity.Collections.NativeHashMap<ushort, ItemDefRuntime> lookup)
+        /// <summary>Highest registered ItemId. ItemDBBootstrapSystem sizes the runtime arrays as MaxItemId + 1.</summary>
+        public static ushort GetMaxItemId()
+        {
+            ushort max = 0;
+            foreach (var k in _byId.Keys) if (k > max) max = k;
+            return max;
+        }
+
+        /// <summary>Fill runtime arrays + bitsets from the managed table. Call after HydrateFromCache.</summary>
+        public static void PopulateRuntimeLookup(
+            Unity.Collections.NativeArray<ItemDefRuntime> defs,
+            Unity.Collections.NativeArray<ulong> validBits,
+            Unity.Collections.NativeArray<ulong> edibleBits,
+            Unity.Collections.NativeArray<ulong> foodPoolBits,
+            Unity.Collections.NativeArray<ulong> perishableBits)
         {
             foreach (var kv in _byId)
             {
                 var d = kv.Value;
-                lookup.TryAdd(d.Id, new ItemDefRuntime
+                ushort id = d.Id;
+                if (id >= defs.Length) continue;
+
+                defs[id] = new ItemDefRuntime
                 {
                     Id               = d.Id,
                     Category         = (byte)d.Category,
@@ -307,7 +309,14 @@ namespace RareIcon
                     Perishable       = d.Perishable ? (byte)1 : (byte)0,
                     ShelfLifeSeconds = d.ShelfLifeSeconds,
                     SpoilsIntoId     = d.SpoilsIntoId,
-                });
+                };
+
+                int word  = id >> 6;
+                ulong bit = 1ul << (id & 63);
+                validBits[word]  |= bit;
+                if (d.RestoreEnergy > 0f)         edibleBits[word]     |= bit;
+                if (d.PoolGroup == PoolGroup.Food) foodPoolBits[word]   |= bit;
+                if (d.Perishable)                 perishableBits[word] |= bit;
             }
         }
     }

@@ -3,7 +3,7 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>One-shot managed bootstrap that builds a Burst-safe Mirror of the managed ItemDB table. Copies every ItemDef into a NativeHashMap&lt;ushort, ItemDefRuntime&gt; (strings omitted — not Burst-safe) and stamps it into an ItemDBSingleton. Consumers (ProfessionDispatchSystem.capitalHasFood, ConsumeFoodExecutor, future arrow / potion logic) read via SystemAPI.GetSingleton&lt;ItemDBSingleton&gt;() and call IsEdible / EnergyValue / HealthValue directly from inside Burst jobs. Disposes the map in OnDestroy so the persistent allocation never leaks across world reloads.</summary>
+    /// <summary>One-shot. Builds Burst-side ItemDBSingleton (NativeArray defs + bitsets) and DietPreferencesSingleton from the managed tables.</summary>
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class ItemDBBootstrapSystem : SystemBase
     {
@@ -15,10 +15,26 @@ namespace RareIcon
         {
             if (_initialized) return;
 
-            var itemLookup = new NativeHashMap<ushort, ItemDefRuntime>(128, Allocator.Persistent);
-            ItemDB.PopulateRuntimeLookup(itemLookup);
+            ushort maxId    = (ushort)(ItemDB.GetMaxItemId() + 1);
+            int    bitWords = (maxId + 63) >> 6;
+
+            var defs       = new NativeArray<ItemDefRuntime>(maxId, Allocator.Persistent);
+            var validBits  = new NativeArray<ulong>(bitWords, Allocator.Persistent);
+            var edibleBits = new NativeArray<ulong>(bitWords, Allocator.Persistent);
+            var foodBits   = new NativeArray<ulong>(bitWords, Allocator.Persistent);
+            var perishBits = new NativeArray<ulong>(bitWords, Allocator.Persistent);
+            ItemDB.PopulateRuntimeLookup(defs, validBits, edibleBits, foodBits, perishBits);
+
             _itemDbEntity = EntityManager.CreateEntity(typeof(ItemDBSingleton));
-            EntityManager.SetComponentData(_itemDbEntity, new ItemDBSingleton { Lookup = itemLookup });
+            EntityManager.SetComponentData(_itemDbEntity, new ItemDBSingleton
+            {
+                Defs           = defs,
+                ValidBits      = validBits,
+                EdibleBits     = edibleBits,
+                FoodPoolBits   = foodBits,
+                PerishableBits = perishBits,
+                MaxItemId      = maxId,
+            });
 
             var dietLookup = new NativeHashMap<uint, byte>(64, Allocator.Persistent);
             _dietEntity = EntityManager.CreateEntity(typeof(DietPreferencesSingleton));
@@ -34,7 +50,11 @@ namespace RareIcon
             if (EntityManager.Exists(_itemDbEntity))
             {
                 var s = EntityManager.GetComponentData<ItemDBSingleton>(_itemDbEntity);
-                if (s.Lookup.IsCreated) s.Lookup.Dispose();
+                if (s.Defs.IsCreated)           s.Defs.Dispose();
+                if (s.ValidBits.IsCreated)      s.ValidBits.Dispose();
+                if (s.EdibleBits.IsCreated)     s.EdibleBits.Dispose();
+                if (s.FoodPoolBits.IsCreated)   s.FoodPoolBits.Dispose();
+                if (s.PerishableBits.IsCreated) s.PerishableBits.Dispose();
             }
             if (EntityManager.Exists(_dietEntity))
             {
