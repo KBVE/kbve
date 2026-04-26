@@ -60,7 +60,7 @@ const baseBg = image ? `background-image: url(${image});` : '';
 	import { ytPlay, ytPause } from '../observer/_video';
 	import { onMount } from '../../../utils/clientRouter';
 
-	const KICK_DELAY_MS = 3000;
+	const VERIFY_DELAY_MS = 3000;
 	const RETRY_INTERVAL_MS = 4000;
 	const MAX_RETRIES = 4;
 
@@ -69,7 +69,7 @@ const baseBg = image ? `background-image: url(${image});` : '';
 		if (!iframe) return;
 
 		let retries = 0;
-		let kickTimer = 0;
+		let verifyTimer = 0;
 		let retryTimer = 0;
 
 		const kick = () => {
@@ -77,11 +77,28 @@ const baseBg = image ? `background-image: url(${image});` : '';
 			ytPlay(iframe);
 		};
 
-		// Initial kick after the iframe + YT JS API have a moment to settle.
-		kickTimer = window.setTimeout(() => {
+		// 1) Eager kick the moment the iframe finishes loading. Browser
+		//    will already attempt autoplay via the iframe src params; this
+		//    reinforces it via the JS API the instant the player is up.
+		const onIframeLoad = () => {
 			kick();
-			// Then keep blasting playVideo on a short cadence to fight
-			// browser autoplay throttling. Idempotent — no-op once playing.
+		};
+		if ((iframe as any).complete || iframe.contentWindow) {
+			kick();
+		}
+		iframe.addEventListener('load', onIframeLoad);
+
+		// 2) Page-load fallback in case load event already fired.
+		if (document.readyState === 'complete') {
+			kick();
+		} else {
+			window.addEventListener('load', kick, { once: true });
+		}
+
+		// 3) Verification window: 3s after mount, kick once + start
+		//    bounded retry loop in case autoplay was throttled.
+		verifyTimer = window.setTimeout(() => {
+			kick();
 			retryTimer = window.setInterval(() => {
 				if (retries++ >= MAX_RETRIES) {
 					window.clearInterval(retryTimer);
@@ -89,7 +106,7 @@ const baseBg = image ? `background-image: url(${image});` : '';
 				}
 				kick();
 			}, RETRY_INTERVAL_MS);
-		}, KICK_DELAY_MS);
+		}, VERIFY_DELAY_MS);
 
 		const onVisibility = () => {
 			if (document.hidden) ytPause(iframe);
@@ -97,8 +114,8 @@ const baseBg = image ? `background-image: url(${image});` : '';
 		};
 		document.addEventListener('visibilitychange', onVisibility);
 
-		// One-shot user-gesture kick so the browser allows playback after
-		// any interaction even if autoplay was initially blocked.
+		// 4) One-shot user-gesture kick — browsers always allow play
+		//    after any interaction even if autoplay was blocked.
 		const onFirstGesture = () => {
 			kick();
 			window.removeEventListener('pointerdown', onFirstGesture);
@@ -108,8 +125,10 @@ const baseBg = image ? `background-image: url(${image});` : '';
 		window.addEventListener('keydown', onFirstGesture, { once: true });
 
 		return () => {
-			window.clearTimeout(kickTimer);
+			window.clearTimeout(verifyTimer);
 			window.clearInterval(retryTimer);
+			iframe.removeEventListener('load', onIframeLoad);
+			window.removeEventListener('load', kick);
 			document.removeEventListener('visibilitychange', onVisibility);
 			window.removeEventListener('pointerdown', onFirstGesture);
 			window.removeEventListener('keydown', onFirstGesture);
