@@ -60,7 +60,14 @@ namespace RareIcon
             byte buildingType = BuildingDB.BuildTargetToType(target);
             if (buildingType == BuildingType.None) return;
 
-            var world = World.DefaultGameObjectInjectionWorld;
+            World world = null;
+            foreach (var w in World.All)
+            {
+                if (!w.IsCreated) continue;
+                using var q = w.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<KingTag>());
+                if (!q.IsEmpty) { world = w; break; }
+            }
+            if (world == null) world = World.DefaultGameObjectInjectionWorld;
             if (world == null || !world.IsCreated) return;
 
             var em = world.EntityManager;
