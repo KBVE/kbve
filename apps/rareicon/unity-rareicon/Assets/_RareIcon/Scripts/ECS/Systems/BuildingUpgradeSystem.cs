@@ -2,6 +2,7 @@ using System;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 
 namespace RareIcon
 {
@@ -50,8 +51,29 @@ namespace RareIcon
                                .CreateCommandBuffer(state.WorldUnmanaged);
 
             var events = default(NativeList<BuildingEvent>);
-            if (SystemAPI.HasSingleton<BuildingsDBSingleton>())
-                events = SystemAPI.GetSingleton<BuildingsDBSingleton>().Events;
+            bool hasDB = SystemAPI.HasSingleton<BuildingsDBSingleton>();
+            if (hasDB)
+            {
+                var dbRW = SystemAPI.GetSingletonRW<BuildingsDBSingleton>();
+                ref var db = ref dbRW.ValueRW;
+                events = db.Events;
+                state.Dependency = JobHandle.CombineDependencies(state.Dependency, db.EventsWriteHandle);
+
+                var handle = new UpgradeJob
+                {
+                    Capital             = capital,
+                    BuildingLookup      = SystemAPI.GetComponentLookup<Building>(true),
+                    TierLookup          = SystemAPI.GetComponentLookup<BuildingTier>(false),
+                    VisualLookup        = SystemAPI.GetComponentLookup<BuildingVisual>(false),
+                    CapitalLedgerLookup = SystemAPI.GetBufferLookup<CapitalLedger>(false),
+                    CostTable           = _costTable.AsArray(),
+                    Ecb                 = ecb,
+                    Events              = events,
+                }.Schedule(state.Dependency);
+                db.EventsWriteHandle = handle;
+                state.Dependency     = handle;
+                return;
+            }
 
             state.Dependency = new UpgradeJob
             {

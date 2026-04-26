@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-25T08:26:57.952Z",
+  "generated_at": "2026-04-26T08:33:20.913Z",
   "summary": {
     "total_protos": 27,
     "registered": 23,
@@ -284,6 +284,7 @@
       "proto": "packages/data/proto/kbve/ci_registry.proto",
       "package": "kbve.ci",
       "messages": [
+        "ExternalPublish",
         "CiProject",
         "CiRegistry"
       ],
@@ -291,7 +292,7 @@
         "DispatchPipeline",
         "TestFramework"
       ],
-      "message_count": 2,
+      "message_count": 3,
       "enum_count": 2,
       "codegen": {
         "registered": true,
@@ -433,8 +434,7 @@
         "Attachment",
         "FeedItem",
         "SpacePage",
-        "ThreadPage",
-        "UserPage"
+        "ThreadPage"
       ],
       "enums": [
         "ThreadStatus",
@@ -452,7 +452,7 @@
         "AttachmentKind",
         "LfgStatus"
       ],
-      "message_count": 31,
+      "message_count": 30,
       "enum_count": 14,
       "codegen": {
         "registered": true,
@@ -1122,7 +1122,7 @@
     "packages/data/proto/kbve/kbve.proto",
     "packages/data/proto/kbve/kbveproto.proto"
   ],
-  "checked_at": "2026-04-25T08:26:58Z",
+  "checked_at": "2026-04-26T08:33:20Z",
   "drift_detected": false,
   "drift_files": []
 }

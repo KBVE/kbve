@@ -24,9 +24,17 @@ namespace RareIcon
     {
         const int InitialEventsCapacity   = 128;
         const int InitialUnloadedCapacity = 64;
+        const int EventsHeadroomPerEntity = 2;
+        const int EventsHeadroomFloor     = 64;
+
+        EntityQuery _buildingQuery;
 
         public void OnCreate(ref SystemState state)
         {
+            _buildingQuery = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<Building>()
+                .Build(ref state);
+
             if (SystemAPI.HasSingleton<BuildingsDBSingleton>()) return;
 
             var singleton = new BuildingsDBSingleton
@@ -50,8 +58,12 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            // Today: no-op. Reserved for Phase 4 ghost-sim kick + any
-            // future per-tick Buildings bookkeeping that needs Init OrderFirst.
+            ref var db = ref SystemAPI.GetSingletonRW<BuildingsDBSingleton>().ValueRW;
+            if (!db.Events.IsCreated) return;
+
+            int liveBuildings = _buildingQuery.CalculateEntityCount();
+            int needed = db.Events.Length + liveBuildings * EventsHeadroomPerEntity + EventsHeadroomFloor;
+            if (db.Events.Capacity < needed) db.Events.Capacity = needed;
         }
     }
 }

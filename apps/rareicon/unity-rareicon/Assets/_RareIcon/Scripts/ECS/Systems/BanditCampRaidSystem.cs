@@ -5,6 +5,7 @@ using Unity.Mathematics;
 namespace RareIcon
 {
     /// <summary>Per-camp raid dispatch. When NowTick passes BanditCampState.NextRaidTick, spawns RaidPartySize bandits at jittered positions near the camp's RootHex and re-arms for the next cadence. Main-thread SystemBase because UnitSpawnSystem.SpawnBanditAt touches managed render assets; spawns are queued during the query iteration and executed after it closes so the structural changes don't invalidate the live iterator.</summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(BanditCampSpawnerSystem))]
     public partial class BanditCampRaidSystem : SystemBase

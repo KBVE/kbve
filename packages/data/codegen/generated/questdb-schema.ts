@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/questdb.binpb
  * Config: ../questdb-zod-config.json
- * Generated: 2026-04-23T20:55:54.339Z
+ * Generated: 2026-04-26T05:02:13.093Z
  */
 
 import { z } from 'zod';

@@ -3,67 +3,65 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Burst-accessible subset of ItemDef — everything except the managed NameKey string. Mirrored into ItemDBSingleton.Lookup at boot so any Burst ISystem / IJobEntity can ask "is this edible? how much energy does it give?" without reaching into the managed ItemDB._byId Dictionary.</summary>
+    /// <summary>Burst-side blittable mirror of ItemDef. Strings live on managed ItemDB. Field order: 4-byte → 2-byte → 1-byte for natural alignment.</summary>
     public struct ItemDefRuntime
     {
-        public ushort Id;
-        public byte   Category;
-        public byte   StackMax;
-        public ushort BaseValue;
+        public uint   ShelfLifeSeconds;
         public float  RestoreHealth;
         public float  RestoreEnergy;
         public float  RestoreMana;
         public float  RegenPerSecond;
         public float  RegenDuration;
-        public byte   HarvestRole;
-        public byte   HarvestWeight;
+        public ushort Id;
+        public ushort BaseValue;
         public ushort CompressesTo;
         public ushort CompressRatio;
         public ushort PoolGroup;
-        public byte   Perishable;        // 1 if the item spoils, 0 otherwise (bool padded to byte for blittable layout)
-        public uint   ShelfLifeSeconds;  // 0 when Perishable == 0
-        public ushort SpoilsIntoId;      // ItemId of the target; 0 when non-perishable, auto-fallback to rotten-food at Materialise time
+        public ushort SpoilsIntoId;
+        public byte   Category;
+        public byte   StackMax;
+        public byte   HarvestRole;
+        public byte   HarvestWeight;
+        public byte   Perishable;  // bool packed
     }
 
-    /// <summary>Burst-safe mirror of ItemDB. ItemDBBootstrapSystem populates Lookup once at startup from the managed ItemDB table; consumers read via SystemAPI.GetSingleton&lt;ItemDBSingleton&gt;() and call the helper methods inside any Burst job.</summary>
+    /// <summary>Burst-side ItemDB. Defs is a flat NativeArray indexed by ItemId. Bitsets answer hot Yes/No queries (valid, edible, food-pool, perishable) in two ops: word-load + bit-test.</summary>
     public struct ItemDBSingleton : IComponentData
     {
-        public NativeHashMap<ushort, ItemDefRuntime> Lookup;
+        public NativeArray<ItemDefRuntime> Defs;
+        public NativeArray<ulong>          ValidBits;
+        public NativeArray<ulong>          EdibleBits;
+        public NativeArray<ulong>          FoodPoolBits;
+        public NativeArray<ulong>          PerishableBits;
+        public ushort MaxItemId;
 
-        public bool IsEdible(ushort itemId)
-            => Lookup.TryGetValue(itemId, out var def) && def.RestoreEnergy > 0f;
+        public bool IsValid(ushort id)
+            => id < MaxItemId && (ValidBits[id >> 6] & (1ul << (id & 63))) != 0;
 
-        public float EnergyValue(ushort itemId)
-            => Lookup.TryGetValue(itemId, out var def) ? def.RestoreEnergy : 0f;
+        public bool IsEdible(ushort id)
+            => id < MaxItemId && (EdibleBits[id >> 6] & (1ul << (id & 63))) != 0;
 
-        public float HealthValue(ushort itemId)
-            => Lookup.TryGetValue(itemId, out var def) ? def.RestoreHealth : 0f;
+        public bool IsFood(ushort id)
+            => id < MaxItemId && (FoodPoolBits[id >> 6] & (1ul << (id & 63))) != 0;
 
-        public float ManaValue(ushort itemId)
-            => Lookup.TryGetValue(itemId, out var def) ? def.RestoreMana : 0f;
+        public bool IsPerishable(ushort id)
+            => id < MaxItemId && (PerishableBits[id >> 6] & (1ul << (id & 63))) != 0;
 
-        public float RegenPerSecond(ushort itemId)
-            => Lookup.TryGetValue(itemId, out var def) ? def.RegenPerSecond : 0f;
+        public bool TryGet(ushort id, out ItemDefRuntime def)
+        {
+            if (IsValid(id)) { def = Defs[id]; return true; }
+            def = default;
+            return false;
+        }
 
-        public float RegenDuration(ushort itemId)
-            => Lookup.TryGetValue(itemId, out var def) ? def.RegenDuration : 0f;
-
-        public bool TryGet(ushort itemId, out ItemDefRuntime def)
-            => Lookup.TryGetValue(itemId, out def);
-
-        public byte GetHarvestRole(ushort itemId)
-            => Lookup.TryGetValue(itemId, out var def) ? def.HarvestRole : (byte)0;
-
-        public byte GetHarvestWeight(ushort itemId)
-            => Lookup.TryGetValue(itemId, out var def) ? def.HarvestWeight : (byte)100;
-
-        public bool IsPerishable(ushort itemId)
-            => Lookup.TryGetValue(itemId, out var def) && def.Perishable != 0;
-
-        public uint GetShelfLifeSeconds(ushort itemId)
-            => Lookup.TryGetValue(itemId, out var def) ? def.ShelfLifeSeconds : 0u;
-
-        public ushort GetSpoilsIntoId(ushort itemId)
-            => Lookup.TryGetValue(itemId, out var def) ? def.SpoilsIntoId : (ushort)0;
+        public float  EnergyValue(ushort id)        => IsValid(id) ? Defs[id].RestoreEnergy   : 0f;
+        public float  HealthValue(ushort id)        => IsValid(id) ? Defs[id].RestoreHealth   : 0f;
+        public float  ManaValue(ushort id)          => IsValid(id) ? Defs[id].RestoreMana     : 0f;
+        public float  RegenPerSecond(ushort id)     => IsValid(id) ? Defs[id].RegenPerSecond  : 0f;
+        public float  RegenDuration(ushort id)      => IsValid(id) ? Defs[id].RegenDuration   : 0f;
+        public byte   GetHarvestRole(ushort id)     => IsValid(id) ? Defs[id].HarvestRole     : (byte)0;
+        public byte   GetHarvestWeight(ushort id)   => IsValid(id) ? Defs[id].HarvestWeight   : (byte)100;
+        public uint   GetShelfLifeSeconds(ushort id)=> IsValid(id) ? Defs[id].ShelfLifeSeconds: 0u;
+        public ushort GetSpoilsIntoId(ushort id)    => IsValid(id) ? Defs[id].SpoilsIntoId    : (ushort)0;
     }
 }

@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-04-25T08:30:06Z",
+  "generated_at": "2026-04-26T08:36:28Z",
   "summary": {
     "critical": 1,
     "high": 32,
-    "medium": 59,
+    "medium": 60,
     "low": 5,
     "info": 29
   },
@@ -616,11 +616,11 @@
       ]
     },
     "cargo": {
-      "total": 40,
+      "total": 41,
       "severities": {
         "critical": 0,
         "high": 0,
-        "medium": 11,
+        "medium": 12,
         "low": 0,
         "info": 29
       },
@@ -701,6 +701,13 @@
           "severity": "medium",
           "package": "rustls-webpki",
           "url": null
+        },
+        {
+          "id": "RUSTSEC-2024-0363",
+          "title": "Binary Protocol Misinterpretation caused by Truncating or Overflowing Casts",
+          "severity": "medium",
+          "package": "sqlx",
+          "url": "https://github.com/launchbadge/sqlx/issues/3440"
         },
         {
           "id": "RUSTSEC-2024-0413",

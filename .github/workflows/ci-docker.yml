@@ -158,6 +158,7 @@ jobs:
             target: ${{ steps.resolve.outputs.target }}
             nx_project: ${{ steps.resolve.outputs.nx_project }}
             source_path: ${{ steps.resolve.outputs.source_path }}
+            external_publish: ${{ steps.resolve.outputs.external_publish }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v6
@@ -188,6 +189,7 @@ jobs:
                   echo "target=$(echo "$ENTRY" | jq -r '.target // "container"')"              >> "$GITHUB_OUTPUT"
                   echo "nx_project=$(echo "$ENTRY" | jq -r '.nx_project // empty')"            >> "$GITHUB_OUTPUT"
                   echo "source_path=$(echo "$ENTRY" | jq -r '.source_path // empty')"          >> "$GITHUB_OUTPUT"
+                  echo "external_publish=$(echo "$ENTRY" | jq -c '.external_publish // empty')" >> "$GITHUB_OUTPUT"
 
     # ---------------------------------------------------------------------------
     # Test — builds the app image, tags as ci-{sha} in GHCR, runs e2e tests.
@@ -270,14 +272,33 @@ jobs:
         secrets:
             TRIGGER_PAT: ${{ secrets.UNITY_PAT }}
 
-    # ---------------------------------------------------------------------------
-    # Failure Tracker — opens a GitHub issue on any pipeline failure (#8186).
-    # Per-app job_name makes the issue title actionable: "CI - Docker / axum-kbve"
-    # ---------------------------------------------------------------------------
+    external_publish:
+        name: External Publish
+        needs: [config, version_gate, publish]
+        if: |
+            always() &&
+            needs.publish.result == 'success' &&
+            needs.version_gate.outputs.should_publish == 'true' &&
+            needs.config.outputs.external_publish != ''
+        permissions:
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-external-publish.yml@main
+        with:
+            app_name: ${{ inputs.app_name }}
+            version: ${{ needs.version_gate.outputs.local_version }}
+            source_path: ${{ needs.config.outputs.source_path }}
+            external_publish: ${{ needs.config.outputs.external_publish }}
+        secrets:
+            MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+            ITCH_API_KEY: ${{ secrets.ITCH_API_KEY }}
+            STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+            STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
+            CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+
     track_failure:
         name: Track Failures
         if: ${{ always() && contains(needs.*.result, 'failure') }}
-        needs: [version_gate, test, publish, post_publish]
+        needs: [version_gate, test, publish, post_publish, external_publish]
         permissions:
             issues: write
             contents: read

@@ -1,0 +1,278 @@
+---
+import { parseYouTubeId, buildYouTubeBgEmbed } from '../observer/_video';
+
+interface Props {
+	title: string;
+	tag?: string;
+	video?: string;
+	image?: string;
+	hint?: string;
+	overlay?: string;
+}
+
+const {
+	title,
+	tag,
+	video,
+	image,
+	hint = 'Scroll',
+	overlay = 'linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.25) 100%)',
+} = Astro.props;
+
+const videoId = video ? parseYouTubeId(video) : null;
+const embedSrc = videoId ? buildYouTubeBgEmbed(videoId) : null;
+const baseBg = image ? `background-image: url(${image});` : '';
+---
+
+<section class="rh not-content">
+	<div class="rh__bg" style={baseBg} aria-hidden="true">
+		{
+			embedSrc && (
+				<iframe
+					class="rh__video"
+					src={embedSrc}
+					title={`${title} background video`}
+					loading="lazy"
+					allow="autoplay; encrypted-media; picture-in-picture"
+					aria-hidden="true"
+					tabindex="-1"
+				/>
+			)
+		}
+		<div class="rh__overlay" style={`background-image: ${overlay};`}></div>
+	</div>
+	<div class="rh__inner">
+		<h1 class="rh__title">{title}</h1>
+		{tag && <p class="rh__tag">{tag}</p>}
+		<slot />
+	</div>
+	{
+		hint && (
+			<div class="rh__hint" aria-hidden="true">
+				<span>{hint}</span>
+				<div class="rh__hint-line" />
+			</div>
+		)
+	}
+</section>
+
+<script>
+	import { ytPlay, ytPause } from '../observer/_video';
+	import { onMount } from '../../../utils/clientRouter';
+
+	const VERIFY_DELAY_MS = 3000;
+	const RETRY_INTERVAL_MS = 4000;
+	const MAX_RETRIES = 4;
+
+	onMount(() => {
+		const iframe = document.querySelector<HTMLIFrameElement>('.rh__video');
+		if (!iframe) return;
+
+		let retries = 0;
+		let verifyTimer = 0;
+		let retryTimer = 0;
+
+		const kick = () => {
+			if (document.hidden) return;
+			ytPlay(iframe);
+		};
+
+		// 1) Eager kick the moment the iframe finishes loading. Browser
+		//    will already attempt autoplay via the iframe src params; this
+		//    reinforces it via the JS API the instant the player is up.
+		const onIframeLoad = () => {
+			kick();
+		};
+		if ((iframe as any).complete || iframe.contentWindow) {
+			kick();
+		}
+		iframe.addEventListener('load', onIframeLoad);
+
+		// 2) Page-load fallback in case load event already fired.
+		if (document.readyState === 'complete') {
+			kick();
+		} else {
+			window.addEventListener('load', kick, { once: true });
+		}
+
+		// 3) Verification window: 3s after mount, kick once + start
+		//    bounded retry loop in case autoplay was throttled.
+		verifyTimer = window.setTimeout(() => {
+			kick();
+			retryTimer = window.setInterval(() => {
+				if (retries++ >= MAX_RETRIES) {
+					window.clearInterval(retryTimer);
+					return;
+				}
+				kick();
+			}, RETRY_INTERVAL_MS);
+		}, VERIFY_DELAY_MS);
+
+		const onVisibility = () => {
+			if (document.hidden) ytPause(iframe);
+			else kick();
+		};
+		document.addEventListener('visibilitychange', onVisibility);
+
+		// 4) One-shot user-gesture kick — browsers always allow play
+		//    after any interaction even if autoplay was blocked.
+		const onFirstGesture = () => {
+			kick();
+			window.removeEventListener('pointerdown', onFirstGesture);
+			window.removeEventListener('keydown', onFirstGesture);
+		};
+		window.addEventListener('pointerdown', onFirstGesture, { once: true });
+		window.addEventListener('keydown', onFirstGesture, { once: true });
+
+		return () => {
+			window.clearTimeout(verifyTimer);
+			window.clearInterval(retryTimer);
+			iframe.removeEventListener('load', onIframeLoad);
+			window.removeEventListener('load', kick);
+			document.removeEventListener('visibilitychange', onVisibility);
+			window.removeEventListener('pointerdown', onFirstGesture);
+			window.removeEventListener('keydown', onFirstGesture);
+		};
+	});
+</script>
+
+<style>
+	.rh {
+		--rh-nav: var(--sl-nav-height, 3.5rem);
+		position: relative;
+		height: calc(100vh + var(--rh-nav));
+		min-height: 36rem;
+		width: 100%;
+		margin-top: calc(var(--rh-nav) * -1);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		color: #fff;
+		text-align: center;
+		overflow: hidden;
+		isolation: isolate;
+	}
+
+	.rh__bg {
+		position: absolute;
+		inset: 0;
+		background-size: cover;
+		background-position: center;
+		z-index: 0;
+		overflow: hidden;
+	}
+
+	/* Iframe scaled big + clipped so YouTube branding/title/controls
+	   sit outside the visible area. pointer-events:none stops hover
+	   from re-summoning controls. */
+	.rh__video {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 178vh;
+		height: 100vh;
+		min-width: 100vw;
+		min-height: 56.25vw;
+		transform: translate(-50%, -50%) scale(1.6);
+		transform-origin: center center;
+		border: 0;
+		pointer-events: none;
+		user-select: none;
+	}
+
+	.rh__overlay {
+		position: absolute;
+		inset: 0;
+		background-size: cover;
+		background-position: center;
+		pointer-events: none;
+	}
+
+	/* Hover shield — covers iframe so any cursor activity that bleeds
+	   through doesn't trigger YouTube's control overlay. */
+	.rh__bg::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		pointer-events: auto;
+		z-index: 1;
+	}
+
+	.rh__inner {
+		position: relative;
+		z-index: 1;
+		padding: 0 1.5rem;
+		max-width: 64rem;
+	}
+
+	.rh__title {
+		font-size: clamp(2rem, 6vw, 5rem);
+		font-weight: 700;
+		margin: 0 0 1rem;
+		line-height: 1.1;
+		color: #fff;
+		text-shadow:
+			-1px -1px 0 rgba(0, 0, 0, 0.85),
+			1px -1px 0 rgba(0, 0, 0, 0.85),
+			-1px 1px 0 rgba(0, 0, 0, 0.85),
+			1px 1px 0 rgba(0, 0, 0, 0.85),
+			0 2px 4px rgba(0, 0, 0, 0.85),
+			0 0 18px rgba(0, 0, 0, 0.6),
+			0 0 2px rgba(0, 0, 0, 0.95);
+		-webkit-text-stroke: 0.5px rgba(0, 0, 0, 0.4);
+	}
+
+	.rh__tag {
+		font-size: clamp(0.85rem, 1.5vw, 1.2rem);
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		opacity: 0.95;
+		margin: 0;
+		color: #fff;
+		text-shadow:
+			-1px -1px 0 rgba(0, 0, 0, 0.7),
+			1px -1px 0 rgba(0, 0, 0, 0.7),
+			-1px 1px 0 rgba(0, 0, 0, 0.7),
+			1px 1px 0 rgba(0, 0, 0, 0.7),
+			0 1px 8px rgba(0, 0, 0, 0.7);
+	}
+
+	.rh__hint {
+		position: absolute;
+		bottom: 2.5rem;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 2;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		font-size: 0.65rem;
+		letter-spacing: 0.3em;
+		text-transform: uppercase;
+		animation: rh-bounce 3s ease-in-out infinite;
+	}
+
+	.rh__hint-line {
+		width: 1px;
+		height: 2.25rem;
+		margin-top: 0.5rem;
+		background: linear-gradient(
+			to bottom,
+			rgba(255, 255, 255, 0.85),
+			transparent
+		);
+	}
+
+	@keyframes rh-bounce {
+		0%,
+		100% {
+			opacity: 1;
+			transform: translateX(-50%) translateY(0);
+		}
+		50% {
+			opacity: 0.5;
+			transform: translateX(-50%) translateY(8px);
+		}
+	}
+</style>

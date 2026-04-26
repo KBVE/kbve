@@ -1,5 +1,6 @@
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
@@ -87,5 +88,8 @@ namespace RareIcon
     {
         public NativeList<BuildingEvent>          Events;
         public NativeList<UnloadedBuildingRecord> Unloaded;
+
+        /// <summary>Combined writer handle for <see cref="Events"/>. Each producer system reads this, combines into <c>state.Dependency</c>, schedules its parallel writer, then writes the new handle back. Bridge consumer Completes it before draining. Replaces the framework's auto-chaining for ParallelWriter handles, which doesn't track across systems.</summary>
+        public JobHandle EventsWriteHandle;
     }
 }

@@ -1,5 +1,6 @@
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
@@ -66,5 +67,8 @@ namespace RareIcon
 
         /// <summary>Single-buffer event channel: drain appends during Initialization, bridge drains during Presentation. No cross-frame contention since producers + consumers never run at the same phase.</summary>
         public NativeList<HexEvent> Events;
+
+        /// <summary>Handle for the most recently scheduled drain job. Burst readers combine this with their <c>state.Dependency</c> so the framework chains automatically; main-thread readers and managed shims call <c>DrainHandle.Complete()</c> before reading <see cref="Lookup"/>.</summary>
+        public JobHandle DrainHandle;
     }
 }

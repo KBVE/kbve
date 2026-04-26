@@ -317,14 +317,19 @@ namespace RareIcon
             if (state.Inv2Id != 0 && state.Inv2Qty > 0) pack.Add(new PackSlot { Uid = UlidFactory.NewUid(), ItemId = state.Inv2Id, Count = state.Inv2Qty });
             if (state.Inv3Id != 0 && state.Inv3Qty > 0) pack.Add(new PackSlot { Uid = UlidFactory.NewUid(), ItemId = state.Inv3Id, Count = state.Inv3Qty });
 
-            // Founding charter — only seeded on the FRESH spawn (state has
-            // no inventory). Ghost-restore preserves its own inventory and
-            // a returning King shouldn't get a duplicate grant. Once the
-            // Capital is placed the grant is consumed; future Royal Decree
-            // / event items can re-grant the privilege.
-            bool freshSpawn = state.Inv0Id == 0 && state.Inv1Id == 0
-                           && state.Inv2Id == 0 && state.Inv3Id == 0;
-            if (freshSpawn)
+            bool alreadyHasGrant = false;
+            for (int s = 0; s < pack.Length; s++)
+            {
+                if (pack[s].ItemId == (ushort)ItemId.CapitalLandGrant && pack[s].Count > 0)
+                {
+                    alreadyHasGrant = true;
+                    break;
+                }
+            }
+            bool worldHasCapital = false;
+            using (var capitalQuery = em.CreateEntityQuery(ComponentType.ReadOnly<CapitalTag>()))
+                worldHasCapital = !capitalQuery.IsEmpty;
+            if (!alreadyHasGrant && !worldHasCapital)
                 pack.Add(new PackSlot { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CapitalLandGrant, Count = 1 });
 
             em.AddComponent<KingTag>(entity);

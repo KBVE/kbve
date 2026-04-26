@@ -1,7 +1,7 @@
 ---
 title: 'April: 25'
 category: Daily
-date: 2025-04-25 12:00:00
+date: 2026-04-25 12:00:00
 client: Self
 unsplash: 1713782894016-01154435f4f4
 img: https://images.unsplash.com/photo-1713782894016-01154435f4f4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -13,6 +13,39 @@ tags:
 import { Adsense } from '@/components/astropad';
 
 <Adsense />
+
+## 2026
+
+
+### MC
+
+-   7:05PM
+
+    I am trying to keep my usage to an understandable limit, but it sure seems to be an issue!
+    Anyhow, I have about 10-20 more patches that I need to apply to the MC gameserver, but still have not yet gotten approval from ModRinth.
+    Maybe it might be time to setup the CurseForge for the server instead, or maybe it might be because of the bugs?
+    Both are valid points that I need to address in the MC universe, however I am glad the online playerlist is functional.
+    With that being said, let me prepare the next version of the MC release with the patched Apple skin configuration issue.
+
+
+### Unity Rareicon Steam Rewrite
+
+-   10:17PM
+
+    The rewrite of the steam code has started, since we are in the process of getting the demo approval, having the steam integration ready would make sense.
+    Once we get approved, that means we can easily start to roll out demo deployments!
+    I am thinking that we keep it vanilla for the first week and focus on getting multiplayer opertional asap.
+    The first idea I had was to do a casual multiplayer through steam networking rather than dedicated servers because that would keep the costs down.
+    Having our own dedicated instance that would be running could be too much, but I did see openfront io and maybe if the game gets popular enough, we could do a global server.
+    I was looking through some of the general concepts of that game and it would be really cool to implement something like that in our game?
+    These are just notes aka food for thought.
+
+-   10:54PM
+
+    The current bug that we are facing is that the simulation does not account for building fast enough and some minor ui issues.
+    We might need to also get a launcher that would be semi-operational and displays the i18n, supabase and steam login, ect..
+    The launcher window would be running as the game is booting up and preparing, something that I have done in the past games as well.
+    After the game launches, it will switch from a launcher window to the settings window, that way we do not have to destroy but rather keep some of the data there and swap it out.
 
 
 

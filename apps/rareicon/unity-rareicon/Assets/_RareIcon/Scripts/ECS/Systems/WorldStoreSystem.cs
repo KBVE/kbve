@@ -6,6 +6,7 @@ using RareIcon.Native;
 namespace RareIcon
 {
     /// <summary>Owns the Rust-side <see cref="NativeWorld"/> lifecycle and exposes it via a static accessor. Opens a SQLite-backed store at <c>Application.persistentDataPath/worldstore.db</c> so chunk state (hexes, ghost units, unloaded buildings) persists across process restart.</summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class WorldStoreSystem : SystemBase
     {

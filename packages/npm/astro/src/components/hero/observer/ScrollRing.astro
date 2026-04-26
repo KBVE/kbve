@@ -21,8 +21,7 @@ const {
 	data-ring-root
 	data-ring-prev={prev ?? ''}
 	data-ring-next={next ?? ''}
-	data-ring-threshold={String(threshold)}
-	transition:persist>
+	data-ring-threshold={String(threshold)}>
 	{
 		next && (
 			<div class="ring__hint ring__hint--bottom" data-ring-hint="next">
@@ -70,9 +69,32 @@ const {
 </div>
 
 <script>
-	import { ringNavigate, isRingNavLocked } from './_ringNav';
+	import {
+		ringNavigate,
+		isRingNavLocked,
+		consumeRingNavDir,
+	} from './_ringNav';
 
 	const init = () => {
+		// Disable browser scroll restoration so back-nav lands at our bottom.
+		if ('scrollRestoration' in history) {
+			history.scrollRestoration = 'manual';
+		}
+
+		const arrivalDir = consumeRingNavDir();
+		if (arrivalDir === 'back') {
+			document.documentElement.dataset.navDir = 'back';
+			requestAnimationFrame(() => {
+				window.scrollTo({
+					top: document.documentElement.scrollHeight,
+					behavior: 'instant' as ScrollBehavior,
+				});
+			});
+		} else if (arrivalDir === 'forward') {
+			document.documentElement.dataset.navDir = 'forward';
+			window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+		}
+
 		document
 			.querySelectorAll<HTMLElement>('[data-ring-root]')
 			.forEach((root) => {
@@ -82,20 +104,6 @@ const {
 				const prev = root.dataset.ringPrev || '';
 				const next = root.dataset.ringNext || '';
 				const threshold = Number(root.dataset.ringThreshold) || 220;
-
-				// If user arrived via "back" nav, restore them to the bottom of
-				// this page so the scroll feels continuous. Then clear the
-				// marker so it doesn't fire again on a hard refresh.
-				const navDir = document.documentElement.dataset.navDir;
-				if (navDir === 'back') {
-					requestAnimationFrame(() => {
-						window.scrollTo({
-							top: document.documentElement.scrollHeight,
-							behavior: 'instant' as ScrollBehavior,
-						});
-					});
-				}
-				delete document.documentElement.dataset.navDir;
 
 				const fillNext = root.querySelector<HTMLElement>(
 					'[data-ring-fill="next"]',
@@ -226,22 +234,15 @@ const {
 					window.removeEventListener('keydown', onKey);
 					window.clearTimeout(pulseTimer);
 				};
-				document.addEventListener('astro:before-swap', cleanup, {
-					once: true,
-				});
 				window.addEventListener('pagehide', cleanup, { once: true });
 			});
 	};
 
-	init();
-	document.addEventListener('astro:after-swap', () => {
-		document
-			.querySelectorAll<HTMLElement>('[data-ring-root]')
-			.forEach((r) => {
-				r.dataset.ringInit = 'false';
-			});
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', init, { once: true });
+	} else {
 		init();
-	});
+	}
 </script>
 
 <style>

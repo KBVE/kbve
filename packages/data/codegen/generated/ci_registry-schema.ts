@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/ci_registry.binpb
  * Config: ../ci_registry-zod-config.json
- * Generated: 2026-04-23T20:55:54.347Z
+ * Generated: 2026-04-26T05:02:13.102Z
  */
 
 import { z } from 'zod';
@@ -34,6 +34,37 @@ export const TestFrameworks = [
 export type TestFrameworkValue = (typeof TestFrameworks)[number];
 
 export const TestFrameworkSchema = z.enum(TestFrameworks);
+
+// ExternalPublish
+export const ExternalPublishSchema = z.object({
+	modrinth_mod_id: z.string().max(32).optional(),
+	modrinth_pack_id: z.string().max(32).optional(),
+	modrinth_version_type: z.enum(['alpha', 'beta', 'release']).optional(),
+	modrinth_game_versions: z.string().max(512).optional(),
+	modrinth_loaders: z.string().max(256).optional(),
+	itch_user: z.string().min(1).max(64).optional(),
+	itch_game: z.string().min(1).max(64).optional(),
+	itch_channel: z.string().min(1).max(64).optional(),
+	steam_app_id: z
+		.string()
+		.regex(/^\d+$/, 'Steam app id must be numeric')
+		.max(16)
+		.optional(),
+	steam_depot_id: z.string().regex(/^\d+$/).max(16).optional(),
+	steam_branch: z.string().min(1).max(64).optional(),
+	apple_bundle_id: z.string().min(1).max(128).optional(),
+	apple_app_id: z.string().regex(/^\d+$/).max(16).optional(),
+	apple_team_id: z.string().min(1).max(32).optional(),
+	google_play_package: z.string().min(1).max(128).optional(),
+	google_play_track: z
+		.enum(['internal', 'alpha', 'beta', 'production'])
+		.optional(),
+	curseforge_project_id: z.string().regex(/^\d+$/).max(16).optional(),
+	curseforge_pack_id: z.string().regex(/^\d+$/).max(16).optional(),
+	curseforge_release_type: z.enum(['alpha', 'beta', 'release']).optional(),
+});
+
+export type ExternalPublish = z.infer<typeof ExternalPublishSchema>;
 
 // CiProject
 export const CiProjectSchema = z.object({
@@ -89,6 +120,7 @@ export const CiProjectSchema = z.object({
 	nx_project: z.string().max(64).optional(),
 	test_framework: TestFrameworkSchema.optional(),
 	shell_path: z.string().optional(),
+	external_publish: ExternalPublishSchema.optional(),
 });
 
 export type CiProject = z.infer<typeof CiProjectSchema>;

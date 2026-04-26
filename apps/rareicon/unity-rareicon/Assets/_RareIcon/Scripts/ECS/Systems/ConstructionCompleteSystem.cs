@@ -1,5 +1,6 @@
 using Unity.Burst;
 using Unity.Entities;
+using Unity.Jobs;
 
 namespace RareIcon
 {
@@ -23,18 +24,23 @@ namespace RareIcon
             var events = default(Unity.Collections.NativeList<BuildingEvent>.ParallelWriter);
             if (SystemAPI.HasSingleton<BuildingsDBSingleton>())
             {
-                var db = SystemAPI.GetSingleton<BuildingsDBSingleton>();
+                var dbRW = SystemAPI.GetSingletonRW<BuildingsDBSingleton>();
+                ref var db = ref dbRW.ValueRW;
                 if (db.Events.IsCreated)
                 {
-                    // Grow once per tick — AddNoResize inside a parallel
-                    // job refuses to grow, so we front-load capacity for a
-                    // conservative worst case (one event per candidate
-                    // completion this frame).
-                    int query = SystemAPI.QueryBuilder().WithAll<ConstructionSite, Building>().Build().CalculateEntityCount();
-                    int needed = db.Events.Length + query;
-                    if (db.Events.Capacity < needed) db.Events.Capacity = needed;
+                    state.Dependency = JobHandle.CombineDependencies(state.Dependency, db.EventsWriteHandle);
                     events = db.Events.AsParallelWriter();
                     hasEvents = true;
+
+                    var handle = new ConstructionCompleteJob
+                    {
+                        Ecb       = ecb.AsParallelWriter(),
+                        Events    = events,
+                        HasEvents = hasEvents,
+                    }.ScheduleParallel(state.Dependency);
+                    db.EventsWriteHandle = handle;
+                    state.Dependency     = handle;
+                    return;
                 }
             }
 
