@@ -338,6 +338,18 @@ cat > "$WORK_DIR/modrinth.index.json" << MANIFEST
       "env": { "client": "optional", "server": "optional" }
     },
     {
+      "path": "mods/cloth-config-21.11.153-fabric.jar",
+      "hashes": {
+        "sha1": "4c224606a963bce223db5b27edb4959ecf40d4ee",
+        "sha512": "8f455489d4b71069e998568cf4e1450116f4360a4eb481cd89117f629c6883164886cf63ca08ac4fc929dd13d1112152755a6216d4a1498ee6406ef102093e51"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/9s6osm5g/versions/xuX40TN5/cloth-config-21.11.153-fabric.jar"
+      ],
+      "fileSize": 1148427,
+      "env": { "client": "required", "server": "unsupported" }
+    },
+    {
       "path": "mods/travelersbackpack-fabric-1.21.11-10.11.9.jar",
       "hashes": {
         "sha1": "fb2d5a2fd919ee127d9a170e3e85f798edb852a5",
