@@ -179,6 +179,19 @@ enum CostSource {
   COST_SOURCE_FREE             = 3;  // No cost (admin / cheats / narrative grant)
 }
 
+// Click-interaction kind for landmarks / buildings. Discriminator for
+// the per-kind specs below (ShrineSpec / ShopSpec / DungeonSpec /
+// QuestGiverSpec). UNSPECIFIED / NONE = inert object, no interaction.
+enum InteractionKind {
+  INTERACTION_KIND_UNSPECIFIED  = 0;
+  INTERACTION_KIND_NONE         = 1;
+  INTERACTION_KIND_SHRINE       = 2;
+  INTERACTION_KIND_SHOP         = 3;
+  INTERACTION_KIND_QUEST_GIVER  = 4;
+  INTERACTION_KIND_DUNGEON      = 5;
+  INTERACTION_KIND_NPC_DIALOG   = 6;
+}
+
 // Service a structure offers to nearby units. Service seekers read
 // ServiceCapability.kind and pick the highest priority provider.
 enum ServiceKind {
@@ -602,6 +615,56 @@ message UpgradeChainSpec {
   repeated UpgradeSpec tiers = 1;
 }
 
+// One-shot or cooldown-gated reward grant — clicked shrines, blessings.
+message ShrineSpec {
+  int32 reward_coin = 1;
+  repeated IngredientSpec reward_items = 2;
+  optional string xp_skill_ref = 3;     // skill slug (e.g. "scavenging")
+  optional int32 xp_amount = 4;
+  optional string buff_ref = 5;         // status effect slug applied on use
+  optional float buff_duration_secs = 6;
+}
+
+// Shop offer — one tradable item line.
+message ShopOffer {
+  string item_ref = 1;                  // itemdb ref
+  int32 buy_price = 2;                  // coin cost to buy from the shop
+  optional int32 sell_price = 3;        // coin paid if player sells the item TO the shop
+  optional int32 stock = 4;             // -1 = infinite, 0+ = finite
+  optional int32 restock_seconds = 5;   // 0 = no restock
+}
+
+// A merchant landmark / building's stock list.
+message ShopSpec {
+  repeated ShopOffer inventory = 1;
+}
+
+// Dungeon entry — clicking the landmark transitions to the named scene.
+message DungeonSpec {
+  string scene_ref = 1;                 // scene slug to load
+  optional int32 min_player_level = 2;
+  optional int32 party_size_max = 3;
+  optional string difficulty = 4;       // "normal" | "hard" | "legendary"
+  optional string entry_quest_ref = 5;  // gates entry to a quest progression
+}
+
+// Quest-giver landmark — offers one or more quest scrolls on click.
+message QuestGiverSpec {
+  repeated string quest_refs = 1;
+  optional string greeting_dialogue_ref = 2;
+}
+
+// Passive radius effect emitted by a living landmark / building.
+// Bonus kind keys are gameplay slugs ("production", "movement_speed",
+// "hp_regen", "mana_regen") so new aura types add without touching
+// proto. multiplier is applied to the named stat for entities inside
+// the radius.
+message AuraSpec {
+  int32 radius = 1;
+  string bonus_kind = 2;
+  float multiplier = 3;
+}
+
 // =============================================================================
 // Sub-messages — World Objects
 // =============================================================================
@@ -694,6 +757,22 @@ message WorldObjectDef {
   optional PopulationSpawnSpec population_spawn = 55;
   optional RaidSpec raid = 56;
   optional UpgradeChainSpec upgrade_chain = 57;
+
+  // Click interaction (landmark / shrine / shop / dungeon / quest-giver) ─
+  // `interaction` is the discriminator; populate the matching spec block
+  // (`shrine` for SHRINE, `shop` for SHOP, etc.). `interaction_cooldown_secs`
+  // gates reuse on a per-instance basis. `aura` is independent of
+  // interaction and runs as long as the landmark is alive. `faction`
+  // identifies the landmark's allegiance ("neutral" | "hostile" |
+  // "player" | named faction slug) — drives combat/aggression rules.
+  optional InteractionKind interaction = 58;
+  optional int32 interaction_cooldown_secs = 59;
+  optional ShrineSpec shrine = 60;
+  optional ShopSpec shop = 61;
+  optional DungeonSpec dungeon = 62;
+  optional QuestGiverSpec quest_giver = 63;
+  optional AuraSpec aura = 64;
+  optional string faction = 65;
 }
 
 // Resource cost for constructing a structure
