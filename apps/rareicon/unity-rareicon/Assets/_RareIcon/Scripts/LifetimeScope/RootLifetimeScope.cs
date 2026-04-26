@@ -88,6 +88,7 @@ namespace RareIcon
             builder.RegisterEntryPoint<BuildInputSource>();
             builder.RegisterEntryPoint<BuildCommandHandler>();
             builder.RegisterEntryPoint<LandmarkInspectorService>();
+            builder.RegisterEntryPoint<LandmarkInteractSystem>();
 
             builder.RegisterEntryPoint<DragSelectInput>();
             builder.RegisterEntryPoint<SelectionController>().AsSelf();

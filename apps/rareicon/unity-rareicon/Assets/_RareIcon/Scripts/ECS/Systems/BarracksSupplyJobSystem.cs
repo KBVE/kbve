@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
@@ -10,7 +11,15 @@ namespace RareIcon
     [UpdateAfter(typeof(ProfessionDispatchSystem))]
     public partial struct BarracksSupplyJobSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        EntityQuery _candidateQuery;
+
+        public void OnCreate(ref SystemState state)
+        {
+            _candidateQuery = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<ProfessionPriorities, ProfessionIntent, UnitMovement>()
+                .Build(ref state);
+        }
+
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
         public void OnUpdate(ref SystemState state)
@@ -34,12 +43,21 @@ namespace RareIcon
                 return;
             }
 
+            var candidates = _candidateQuery.ToEntityListAsync(state.WorldUpdateAllocator,
+                                                               state.Dependency,
+                                                               out var candHandle);
+            var dep = JobHandle.CombineDependencies(state.Dependency, candHandle);
+
             var jobHandle = new BarracksSupplyPlannerJob
             {
-                CapitalHex = capitalHex,
-                Needy      = needy.AsDeferredJobArray(),
-                PackLookup  = SystemAPI.GetBufferLookup<PackSlot>(true),
-            }.ScheduleParallel(state.Dependency);
+                CapitalHex     = capitalHex,
+                Needy          = needy,
+                Candidates     = candidates,
+                PriorityLookup = SystemAPI.GetComponentLookup<ProfessionPriorities>(true),
+                MovementLookup = SystemAPI.GetComponentLookup<UnitMovement>(true),
+                IntentLookup   = SystemAPI.GetComponentLookup<ProfessionIntent>(false),
+                PackLookup     = SystemAPI.GetBufferLookup<PackSlot>(true),
+            }.Schedule(dep);
 
             state.Dependency = needy.Dispose(jobHandle);
         }
@@ -52,47 +70,64 @@ namespace RareIcon
     }
 
     [BurstCompile]
-    public partial struct BarracksSupplyPlannerJob : IJobEntity
+    struct BarracksSupplyPlannerJob : IJob
     {
+        const int LooterSlotsPerBarracks = 2;
+
         public int2 CapitalHex;
-        [ReadOnly] public NativeArray<NeedyBarracks> Needy;
-        [ReadOnly] public BufferLookup<PackSlot> PackLookup;
+        [ReadOnly] public NativeList<NeedyBarracks> Needy;
+        [ReadOnly] public NativeList<Entity>        Candidates;
+        [ReadOnly] public ComponentLookup<ProfessionPriorities> PriorityLookup;
+        [ReadOnly] public ComponentLookup<UnitMovement>         MovementLookup;
+        public ComponentLookup<ProfessionIntent>                IntentLookup;
+        [ReadOnly] public BufferLookup<PackSlot>                PackLookup;
 
-        void Execute(Entity entity,
-                     in ProfessionPriorities priorities,
-                     in UnitMovement movement,
-                     ref ProfessionIntent intent)
+        public void Execute()
         {
-            if (priorities.Looter == 0 && priorities.Farmer == 0) return;
+            int n = Needy.Length;
+            var slots = new NativeArray<int>(n, Allocator.Temp);
 
-            byte currentKind = intent.Kind;
-            if (currentKind != ProfessionKind.None && currentKind != ProfessionKind.Looter) return;
-
-            var here = movement.CurrentHex;
-            Entity bestEntity = Entity.Null;
-            int2   bestHex    = default;
-            int    bestDist   = int.MaxValue;
-            for (int i = 0; i < Needy.Length; i++)
+            for (int c = 0; c < Candidates.Length; c++)
             {
-                var n = Needy[i];
-                int d = HexDistance(here, n.Hex);
-                if (d < bestDist)
+                var entity = Candidates[c];
+                if (!PriorityLookup.HasComponent(entity)) continue;
+                if (!MovementLookup.HasComponent(entity)) continue;
+                if (!IntentLookup.HasComponent(entity))   continue;
+
+                var priorities = PriorityLookup[entity];
+                if (priorities.Looter == 0 && priorities.Farmer == 0) continue;
+
+                var intent = IntentLookup[entity];
+                if (intent.Kind != ProfessionKind.None && intent.Kind != ProfessionKind.Looter) continue;
+
+                var here = MovementLookup[entity].CurrentHex;
+
+                int bestIdx  = -1;
+                int bestDist = int.MaxValue;
+                for (int i = 0; i < n; i++)
                 {
-                    bestDist   = d;
-                    bestEntity = n.Entity;
-                    bestHex    = n.Hex;
+                    if (slots[i] >= LooterSlotsPerBarracks) continue;
+                    int d = HexDistance(here, Needy[i].Hex);
+                    if (d < bestDist)
+                    {
+                        bestDist = d;
+                        bestIdx  = i;
+                    }
                 }
-            }
-            if (bestEntity == Entity.Null) return;
-            if (!PackLookup.HasBuffer(entity)) return;
+                if (bestIdx < 0) continue;
+                if (!PackLookup.HasBuffer(entity)) continue;
 
-            bool carrying = CarriesSupply(PackLookup[entity]);
-            intent = new ProfessionIntent
-            {
-                Kind         = ProfessionKind.Looter,
-                TargetHex    = carrying ? bestHex : CapitalHex,
-                TargetEntity = bestEntity,
-            };
+                bool carrying = CarriesSupply(PackLookup[entity]);
+                IntentLookup[entity] = new ProfessionIntent
+                {
+                    Kind         = ProfessionKind.Looter,
+                    TargetHex    = carrying ? Needy[bestIdx].Hex : CapitalHex,
+                    TargetEntity = Needy[bestIdx].Entity,
+                };
+                slots[bestIdx]++;
+            }
+
+            slots.Dispose();
         }
 
         static bool CarriesSupply(in DynamicBuffer<PackSlot> inv)

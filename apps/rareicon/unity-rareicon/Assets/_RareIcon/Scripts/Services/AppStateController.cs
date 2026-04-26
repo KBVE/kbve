@@ -152,7 +152,7 @@ namespace RareIcon
 
             if (TryGetLandmarkAt(em, new int2(msg.Q, msg.R), out var landmark))
             {
-                _landmarkInspectPub.Publish(new LandmarkInspectMessage(landmark));
+                _inspectPub.Publish(new BuildingInspectMessage(landmark));
                 return;
             }
 
