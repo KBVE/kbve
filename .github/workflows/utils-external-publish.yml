@@ -66,6 +66,22 @@ jobs:
                   echo "loaders=$(echo "$EP" | jq -c '.modrinth_loaders // "[\"fabric\"]" | if type=="string" then fromjson else . end')" >> "$GITHUB_OUTPUT"
                   echo "game_versions=$(echo "$EP" | jq -c '.modrinth_game_versions // "[]" | if type=="string" then fromjson else . end')" >> "$GITHUB_OUTPUT"
 
+            - name: Pin version.toml to publishing version
+              env:
+                  VERSION: ${{ inputs.version }}
+              run: |
+                  set -euo pipefail
+                  VTOML="${{ inputs.source_path }}/version.toml"
+                  if [ ! -f "$VTOML" ]; then
+                    echo "::error::version.toml not found at $VTOML"
+                    exit 1
+                  fi
+                  CURRENT=$(grep -E '^version' "$VTOML" | head -1 | sed 's/.*"\(.*\)"/\1/')
+                  if [ "$CURRENT" != "$VERSION" ]; then
+                    echo "Pinning $VTOML: $CURRENT → $VERSION (post_publish bump not yet applied)"
+                    sed -i "s/^version = .*/version = \"${VERSION}\"/" "$VTOML"
+                  fi
+
             - name: Build Fabric mod JAR
               run: |
                   cd "${{ inputs.source_path }}/behavior_statetree/java"
@@ -99,7 +115,7 @@ jobs:
                     exit 1
                   fi
 
-                  EXISTING=$(curl -fsSL -H "Authorization: $MODRINTH_TOKEN" \
+                  EXISTING=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
                     "https://api.modrinth.com/v2/project/$MOD_PROJECT_ID/version" \
                     | jq -r --arg v "$VERSION" '.[] | select(.version_number == $v) | .id' \
                     | head -1)
@@ -123,11 +139,17 @@ jobs:
                   }
                   JSON
 
-                  curl -fsSL -X POST "https://api.modrinth.com/v2/version" \
+                  HTTP_CODE=$(curl -sSL -o /tmp/jar-response.json -w '%{http_code}' \
+                    -X POST "https://api.modrinth.com/v2/version" \
                     -H "Authorization: $MODRINTH_TOKEN" \
                     -F "data=@/tmp/data.json;type=application/json" \
-                    -F "jar=@$JAR_PATH;type=application/java-archive" \
-                    | jq -r '"Published JAR — version id \(.id)"'
+                    -F "jar=@$JAR_PATH;type=application/java-archive")
+                  if [ "$HTTP_CODE" != "200" ]; then
+                    echo "::error::Modrinth JAR upload failed (HTTP $HTTP_CODE)"
+                    cat /tmp/jar-response.json
+                    exit 1
+                  fi
+                  jq -r '"Published JAR — version id \(.id)"' /tmp/jar-response.json
 
             - name: Build mrpack
               if: steps.ep.outputs.pack_id != ''
@@ -163,7 +185,7 @@ jobs:
                     exit 1
                   fi
 
-                  EXISTING=$(curl -fsSL -H "Authorization: $MODRINTH_TOKEN" \
+                  EXISTING=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
                     "https://api.modrinth.com/v2/project/$PACK_PROJECT_ID/version" \
                     | jq -r --arg v "$VERSION" '.[] | select(.version_number == $v) | .id' \
                     | head -1)
@@ -187,11 +209,17 @@ jobs:
                   }
                   JSON
 
-                  curl -fsSL -X POST "https://api.modrinth.com/v2/version" \
+                  HTTP_CODE=$(curl -sSL -o /tmp/mrpack-response.json -w '%{http_code}' \
+                    -X POST "https://api.modrinth.com/v2/version" \
                     -H "Authorization: $MODRINTH_TOKEN" \
                     -F "data=@/tmp/pack-data.json;type=application/json" \
-                    -F "mrpack=@$MRPACK_PATH;type=application/x-modrinth-modpack+zip" \
-                    | jq -r '"Published mrpack — version id \(.id)"'
+                    -F "mrpack=@$MRPACK_PATH;type=application/x-modrinth-modpack+zip")
+                  if [ "$HTTP_CODE" != "200" ]; then
+                    echo "::error::Modrinth mrpack upload failed (HTTP $HTTP_CODE)"
+                    cat /tmp/mrpack-response.json
+                    exit 1
+                  fi
+                  jq -r '"Published mrpack — version id \(.id)"' /tmp/mrpack-response.json
 
     itch:
         name: Itch.io (stub)
