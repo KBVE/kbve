@@ -26,6 +26,7 @@ namespace RareIcon
             builder.RegisterMessageBroker<ToastMessage>(options);
 
             builder.RegisterMessageBroker<BuildingInspectMessage>(options);
+            builder.RegisterMessageBroker<LandmarkInspectMessage>(options);
             builder.RegisterMessageBroker<PossessUnitMessage>(options);
             builder.RegisterMessageBroker<UnitInspectMessage>(options);
             builder.RegisterMessageBroker<ControlledUnitMoveMessage>(options);
@@ -86,6 +87,7 @@ namespace RareIcon
             builder.Register<BuildModeController>(Lifetime.Singleton).AsSelf();
             builder.RegisterEntryPoint<BuildInputSource>();
             builder.RegisterEntryPoint<BuildCommandHandler>();
+            builder.RegisterEntryPoint<LandmarkInspectorService>();
 
             builder.RegisterEntryPoint<DragSelectInput>();
             builder.RegisterEntryPoint<SelectionController>().AsSelf();

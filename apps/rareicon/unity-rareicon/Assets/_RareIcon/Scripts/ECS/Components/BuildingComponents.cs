@@ -32,6 +32,7 @@ namespace RareIcon
         public const byte Castle         = 17;  // Barracks tier 2.
         public const byte Tower          = 18;  // Standalone defensive spire.
         public const byte Wall           = 19;  // Standalone barrier segment.
+        public const byte Landmark       = 20;  // Naturally-spawned world object — neutral-owned, has HP, gameplay TBD.
     }
 
     /// <summary>

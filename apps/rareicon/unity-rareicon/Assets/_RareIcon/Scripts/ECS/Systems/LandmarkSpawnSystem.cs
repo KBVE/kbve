@@ -111,6 +111,24 @@ namespace RareIcon
             {
                 Value = new FixedString64Bytes(refSlug),
             });
+
+            em.AddComponentData(entity, new Building
+            {
+                Type         = BuildingType.Landmark,
+                RootHex      = hex,
+                OwnerFaction = FactionType.Neutral,
+            });
+            em.AddComponentData(entity, new BuildingHealth { Value = 500, Max = 500 });
+            em.AddComponentData(entity, new Faction { Value = FactionType.Neutral });
+
+            if (HexHoverSystem.TryGetHexEntity(hex, out var tile))
+            {
+                if (em.HasComponent<HexOccupant>(tile))
+                    em.SetComponentData(tile, new HexOccupant { Building = entity });
+                else
+                    em.AddComponentData(tile, new HexOccupant { Building = entity });
+            }
+
             return entity;
         }
 

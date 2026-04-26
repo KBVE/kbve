@@ -168,6 +168,13 @@ namespace RareIcon
         public BuildingInspectMessage(Unity.Entities.Entity building) => Building = building;
     }
 
+    /// <summary>"Player clicked a landmark / settlement / arena / npc-marker hex" — Landmark inspector target.</summary>
+    public readonly struct LandmarkInspectMessage
+    {
+        public readonly Unity.Entities.Entity Landmark;
+        public LandmarkInspectMessage(Unity.Entities.Entity landmark) => Landmark = landmark;
+    }
+
     /// <summary>"Player clicked a unit hex (not the one already controlled)" — possession target.</summary>
     public readonly struct PossessUnitMessage
     {
