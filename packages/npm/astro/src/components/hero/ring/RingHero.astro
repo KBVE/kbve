@@ -30,9 +30,10 @@ const baseBg = image ? `background-image: url(${image});` : '';
 			embedSrc && (
 				<iframe
 					class="rh__video"
-					src={embedSrc}
+					data-src={embedSrc}
 					title={`${title} background video`}
 					loading="lazy"
+					fetchpriority="low"
 					allow="autoplay; encrypted-media; picture-in-picture"
 					aria-hidden="true"
 					tabindex="-1"
@@ -71,11 +72,31 @@ const baseBg = image ? `background-image: url(${image});` : '';
 		let retries = 0;
 		let verifyTimer = 0;
 		let retryTimer = 0;
+		let idleHandle: number | null = null;
 
 		const kick = () => {
 			if (document.hidden) return;
 			ytPlay(iframe);
 		};
+
+		// 0) Defer setting iframe src until the browser is idle so the
+		//    YouTube network/parse cost doesn't compete with LCP. Falls
+		//    back to a short setTimeout when requestIdleCallback is unavailable.
+		const lazyAttach = () => {
+			const src = iframe.dataset.src;
+			if (!src || iframe.src) return;
+			iframe.src = src;
+		};
+		if ('requestIdleCallback' in window) {
+			idleHandle = (window as any).requestIdleCallback(lazyAttach, {
+				timeout: 2500,
+			});
+		} else {
+			idleHandle = window.setTimeout(
+				lazyAttach,
+				1500,
+			) as unknown as number;
+		}
 
 		// 1) Eager kick the moment the iframe finishes loading. Browser
 		//    will already attempt autoplay via the iframe src params; this
@@ -83,9 +104,6 @@ const baseBg = image ? `background-image: url(${image});` : '';
 		const onIframeLoad = () => {
 			kick();
 		};
-		if ((iframe as any).complete || iframe.contentWindow) {
-			kick();
-		}
 		iframe.addEventListener('load', onIframeLoad);
 
 		// 2) Page-load fallback in case load event already fired.
@@ -127,6 +145,13 @@ const baseBg = image ? `background-image: url(${image});` : '';
 		return () => {
 			window.clearTimeout(verifyTimer);
 			window.clearInterval(retryTimer);
+			if (idleHandle !== null) {
+				if ('cancelIdleCallback' in window) {
+					(window as any).cancelIdleCallback(idleHandle);
+				} else {
+					window.clearTimeout(idleHandle);
+				}
+			}
 			iframe.removeEventListener('load', onIframeLoad);
 			window.removeEventListener('load', kick);
 			document.removeEventListener('visibilitychange', onVisibility);

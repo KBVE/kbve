@@ -4,3 +4,9 @@ import DefaultHead from '@astrojs/starlight/components/Head.astro';
 
 <DefaultHead><slot /></DefaultHead>
 <meta name="view-transition" content="same-origin" />
+
+<!-- YouTube hero-bg DNS + TLS warm so the iframe doesn't gate LCP -->
+<link rel="preconnect" href="https://www.youtube.com" crossorigin />
+<link rel="preconnect" href="https://i.ytimg.com" crossorigin />
+<link rel="preconnect" href="https://yt3.ggpht.com" crossorigin />
+<link rel="dns-prefetch" href="https://www.youtube-nocookie.com" />
