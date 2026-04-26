@@ -547,7 +547,11 @@ textarea:focus-visible {
    before sidebar state JS hydrated. Can be re-added behind a user
    preference toggle in the future. */
 
-/* ── ScrollRing view transitions ── */
+/* ── ScrollRing native cross-document view transitions ── */
+@view-transition {
+	navigation: auto;
+}
+
 ::view-transition-old(root),
 ::view-transition-new(root) {
 	animation-duration: 480ms;
@@ -622,4 +626,37 @@ html[data-nav-dir='back']::view-transition-new(root) {
 	max-width: 72rem;
 	margin: 0 auto;
 	padding: 4rem 1.5rem 8rem;
+}
+
+/* Inline stats grid (RingHero-driven home page) */
+.ring-stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+	gap: 1rem;
+	margin: 2rem 0 3rem;
+}
+.ring-stat {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 1.25rem 1rem;
+	border-radius: 12px;
+	border: 1px solid var(--sl-color-gray-5, #262626);
+	background: var(--sl-color-bg-nav, #111);
+}
+.ring-stat__num {
+	font-size: 1.75rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	color: var(--sl-color-text-accent, #c9a56a);
+	line-height: 1;
+	margin-bottom: 0.4rem;
+}
+.ring-stat__label {
+	font-size: 0.7rem;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--sl-color-gray-3, #8b949e);
+	text-align: center;
 }

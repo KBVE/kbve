@@ -18,13 +18,14 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 import DeferredSVGLogo from '@/components/kbve/DeferredSVGLogo.astro';
 import DeferredKBVEComicSocials from '@/components/kbve/DeferredKBVEComicSocials.astro';
 import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
-import ScrollZoomHero from '@kbve/astro/components/hero/scroll/ScrollZoomHero.astro';
+import RingHero from '@kbve/astro/components/hero/ring/RingHero.astro';
 import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
 
-<ScrollZoomHero
-    foreground="https://assets-global.website-files.com/63ec206c5542613e2e5aa784/643312a6bc4ac122fc4e3afa_main%20home.webp"
-    background="https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80"
-    alt="KBVE hero"
+<RingHero
+    title="KiloByte Virtual Enterprise"
+    tag="Studio · Open-source collective · Hosting platform"
+    video="https://www.youtube.com/watch?v=aT66uumZ0Zo"
+    image="https://assets-global.website-files.com/63ec206c5542613e2e5aa784/643312a6bc4ac122fc4e3afa_main%20home.webp"
 />
 
 <div class="ring-page">
@@ -32,6 +33,25 @@ import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
 # Welcome to KBVE
 
 KBVE is a kilobyte-scale virtual enterprise — a studio, an open-source collective, and a hosting platform for community projects.
+
+<div class="ring-stats not-content">
+    <div class="ring-stat">
+        <span class="ring-stat__num">10K+</span>
+        <span class="ring-stat__label">Community members</span>
+    </div>
+    <div class="ring-stat">
+        <span class="ring-stat__num">200+</span>
+        <span class="ring-stat__label">Open-source repos</span>
+    </div>
+    <div class="ring-stat">
+        <span class="ring-stat__num">5</span>
+        <span class="ring-stat__label">Live game servers</span>
+    </div>
+    <div class="ring-stat">
+        <span class="ring-stat__num">24/7</span>
+        <span class="ring-stat__label">Discord + dev streams</span>
+    </div>
+</div>
 
 <DeferredSVGLogo />
 
@@ -59,6 +79,10 @@ Tens of thousands of developers, gamers, and creators across our networks.
         Studio games, tools, libraries. [See projects →](/projects/)
     </Card>
 </CardGrid>
+
+## Built in the open
+
+Every line of code, every config, every commit — public on GitHub. Pull requests welcome, sponsorships fund the maintainers, contributors get credit on the [contributors page](/github/).
 
 ## Keep scrolling
 
