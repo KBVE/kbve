@@ -421,8 +421,9 @@ namespace RareIcon
             if (!SystemAPI.HasSingleton<BuildingsDBSingleton>()) return;
             if (!SystemAPI.HasSingleton<BuildingPrefabSingleton>()) return;
 
-            // Force completion of any in-flight ghost-sim job writing Unloaded.
             var dbRW = SystemAPI.GetSingletonRW<BuildingsDBSingleton>();
+            dbRW.ValueRW.EventsWriteHandle.Complete();
+            dbRW.ValueRW.EventsWriteHandle = default;
             var unloaded = dbRW.ValueRW.Unloaded;
             if (!unloaded.IsCreated) return;
 

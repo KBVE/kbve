@@ -55,7 +55,6 @@ namespace RareIcon
             if (!_buildMode.IsActive) return;
             if (!CanAcceptBuildClick(msg)) return;
 
-            //byte target = _buildMode.Target.CurrentValue;
             byte target = _buildMode.CurrentTarget;
             byte buildingType = BuildingDB.BuildTargetToType(target);
             if (buildingType == BuildingType.None) return;

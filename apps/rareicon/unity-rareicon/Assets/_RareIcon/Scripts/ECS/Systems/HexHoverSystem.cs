@@ -21,33 +21,53 @@ namespace RareIcon
         bool _overlayCreated;
         int2 _lastHex;
 
-        /// <summary>Hex coord → entity lookup, routed through the Hex domain. Kept as a static shim so legacy callers (BuildingSpawnSystem / BuildPreviewSystem / AppStateController / HarvestSystem) don't all need rewriting — they continue calling <c>HexHoverSystem.TryGetHexEntity</c> and the actual read lands on HexDBSingleton.Lookup.</summary>
+        static World _cachedWorld;
+
+        static World ResolveGameplayWorld()
+        {
+            if (_cachedWorld != null && _cachedWorld.IsCreated) return _cachedWorld;
+            _cachedWorld = null;
+            foreach (var w in World.All)
+            {
+                if (!w.IsCreated) continue;
+                using var q = w.EntityManager.CreateEntityQuery(ComponentType.ReadWrite<HexDBSingleton>());
+                if ((w.Flags & WorldFlags.GameServer) != 0) continue;
+                if (q.CalculateEntityCount() == 0) continue;
+                _cachedWorld = w;
+                break;
+            }
+            if (_cachedWorld == null) _cachedWorld = World.DefaultGameObjectInjectionWorld;
+            return _cachedWorld;
+        }
+
+        /// <summary>Hex coord → entity lookup.</summary>
         public static bool TryGetHexEntity(int2 coord, out Entity entity)
         {
             entity = default;
-            var world = World.DefaultGameObjectInjectionWorld;
-            return HexDB.TryGetEntity(world, coord, out entity);
+            return HexDB.TryGetEntity(ResolveGameplayWorld(), coord, out entity);
         }
 
-        /// <summary>Deprecated shim — producers should call <see cref="HexDB.EnqueueAdd"/> directly. Kept routing to the queue so HexChunkSystem's existing call site keeps working mid-migration.</summary>
+        /// <summary>Enqueues an Add request to the gameplay world's HexDB.</summary>
         public static void AddHex(int2 coord, Entity entity) =>
-            HexDB.EnqueueAdd(World.DefaultGameObjectInjectionWorld, coord, entity);
+            HexDB.EnqueueAdd(ResolveGameplayWorld(), coord, entity);
 
-        /// <summary>Deprecated shim — producers should call <see cref="HexDB.EnqueueRemove"/> directly.</summary>
+        /// <summary>Enqueues a Remove request to the gameplay world's HexDB.</summary>
         public static void RemoveHex(int2 coord) =>
-            HexDB.EnqueueRemove(World.DefaultGameObjectInjectionWorld, coord);
+            HexDB.EnqueueRemove(ResolveGameplayWorld(), coord);
 
         protected override void OnCreate()
         {
             RequireForUpdate<MouseState>();
             RequireForUpdate<HexDBSingleton>();
             _lastHex = new int2(int.MinValue, int.MinValue);
+            _cachedWorld = World;
         }
 
         protected override void OnUpdate()
         {
             var db = SystemAPI.GetSingleton<HexDBSingleton>();
             if (!db.Lookup.IsCreated) return;
+            db.DrainHandle.Complete();
 
             // Create overlay entity once
             if (!_overlayCreated)

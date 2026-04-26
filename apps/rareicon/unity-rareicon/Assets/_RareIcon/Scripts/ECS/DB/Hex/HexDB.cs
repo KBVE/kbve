@@ -25,6 +25,7 @@ namespace RareIcon
         {
             if (!TryGet(world, out var db, out _)) return;
             if (!db.Pending.IsCreated) return;
+            db.DrainHandle.Complete();
             db.Pending.Add(new HexIndexRequest { Coord = coord, Entity = entity, Op = HexIndexOp.Add });
         }
 
@@ -32,6 +33,7 @@ namespace RareIcon
         {
             if (!TryGet(world, out var db, out _)) return;
             if (!db.Pending.IsCreated) return;
+            db.DrainHandle.Complete();
             db.Pending.Add(new HexIndexRequest { Coord = coord, Entity = Entity.Null, Op = HexIndexOp.Remove });
         }
 
@@ -39,15 +41,17 @@ namespace RareIcon
         {
             if (!TryGet(world, out var db, out _)) return;
             if (!db.Pending.IsCreated) return;
+            db.DrainHandle.Complete();
             db.Pending.Add(new HexIndexRequest { Coord = default, Entity = Entity.Null, Op = HexIndexOp.Clear });
         }
 
-        /// <summary>Read-side helper for managed main-thread queries (UI hover, click resolution). Burst consumers should inline the singleton read via SystemAPI.GetSingleton so dependency tracking covers the access.</summary>
+        /// <summary>Read-side helper for managed main-thread queries. Completes the drain handle so the inner Lookup is consistent before reading. Burst consumers should declare Lookup as a job input and combine <c>db.DrainHandle</c> into their <c>state.Dependency</c> instead.</summary>
         public static bool TryGetEntity(World world, int2 coord, out Entity entity)
         {
             entity = Entity.Null;
             if (!TryGet(world, out var db, out _)) return false;
             if (!db.Lookup.IsCreated) return false;
+            db.DrainHandle.Complete();
             return db.Lookup.TryGetValue(coord, out entity);
         }
     }

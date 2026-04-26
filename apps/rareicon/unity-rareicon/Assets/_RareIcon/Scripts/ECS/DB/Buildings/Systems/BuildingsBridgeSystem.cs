@@ -59,7 +59,10 @@ namespace RareIcon
             if (!TryResolve()) return;
 
             var dbRW = SystemAPI.GetSingletonRW<BuildingsDBSingleton>();
-            ref var events = ref dbRW.ValueRW.Events;
+            ref var db = ref dbRW.ValueRW;
+            db.EventsWriteHandle.Complete();
+            db.EventsWriteHandle = default;
+            ref var events = ref db.Events;
             if (!events.IsCreated || events.Length == 0) return;
 
             int n = events.Length;
