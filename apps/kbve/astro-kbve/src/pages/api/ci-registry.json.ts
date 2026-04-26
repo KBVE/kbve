@@ -9,7 +9,7 @@
  *   Proto → Zod → MDX frontmatter → /api/ci-registry.json → ci-dispatch-manifest.json
  */
 import { getCollection } from 'astro:content';
-import type { ICiProject } from '@/data/schema';
+import type { ExternalPublish, ICiProject } from '@/data/schema';
 import { DispatchPipelines } from '@/data/schema';
 
 interface DockerEntry {
@@ -27,6 +27,7 @@ interface DockerEntry {
 	has_test?: boolean;
 	target?: string;
 	nx_project?: string;
+	external_publish?: ExternalPublish;
 }
 
 interface NpmEntry {
@@ -121,6 +122,9 @@ function toManifestEntry(
 				...(d.has_test !== undefined && { has_test: d.has_test }),
 				...(d.target && { target: d.target }),
 				...(d.nx_project && { nx_project: d.nx_project }),
+				...(d.external_publish && {
+					external_publish: d.external_publish,
+				}),
 			};
 		case 'npm': {
 			if (!d.package_name) return null;

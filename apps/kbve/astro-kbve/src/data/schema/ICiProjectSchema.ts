@@ -10,6 +10,7 @@ import {
 	CiProjectSchema,
 	DispatchPipelineSchema,
 	DispatchPipelines,
+	ExternalPublishSchema,
 	TestFrameworkSchema,
 	TestFrameworks,
 } from '../../../../../../packages/data/codegen/generated/ci_registry-schema';
@@ -18,12 +19,14 @@ import {
 export {
 	DispatchPipelineSchema,
 	DispatchPipelines,
+	ExternalPublishSchema,
 	TestFrameworkSchema,
 	TestFrameworks,
 };
 export type {
 	CiProject,
 	DispatchPipelineValue,
+	ExternalPublish,
 	TestFrameworkValue,
 } from '../../../../../../packages/data/codegen/generated/ci_registry-schema';
 
@@ -73,6 +76,7 @@ export const ICiProjectSchema = AstroProjectExtensions.extend({
 	nx_project: CiProjectSchema.shape.nx_project,
 	test_framework: TestFrameworkSchema.optional(),
 	shell_path: CiProjectSchema.shape.shell_path,
+	external_publish: ExternalPublishSchema.optional(),
 });
 
 export type ICiProject = z.infer<typeof ICiProjectSchema>;

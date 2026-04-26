@@ -35,6 +35,45 @@ enum TestFramework {
   TEST_FRAMEWORK_CPP = 7;       // Unreal Engine / C++ compile checks
 }
 
+// External publish targets — storefronts, mod platforms, package indexes
+// outside the GitHub/GHCR/PyPI core. Consumed by utils-external-publish.yml
+// after a successful Docker / package build to fan out artifacts.
+//
+// Every field is optional. Empty / unset means "skip that target".
+// Add new target sections here when expanding to additional platforms.
+message ExternalPublish {
+  // ── Modrinth (Minecraft mods + modpacks) ──────────────────────────
+  optional string modrinth_mod_id = 1;          // Modrinth project ID for the mod (loader = fabric/forge/etc)
+  optional string modrinth_pack_id = 2;         // Modrinth project ID for the modpack (loader = mrpack)
+  optional string modrinth_version_type = 3;    // alpha | beta | release (default: release)
+  optional string modrinth_game_versions = 4;   // JSON array string, e.g. '["1.21.11"]'
+  optional string modrinth_loaders = 5;         // JSON array string, e.g. '["fabric"]'
+
+  // ── Itch.io (HTML5 / native game builds) ──────────────────────────
+  optional string itch_user = 10;               // Itch.io user/publisher slug
+  optional string itch_game = 11;               // Itch.io game slug (preferred over legacy itch_game_id)
+  optional string itch_channel = 12;            // butler channel (e.g. "html5", "win64")
+
+  // ── Steam (Steamworks app) ────────────────────────────────────────
+  optional string steam_app_id = 20;            // Steamworks numeric app id (string for proto stability)
+  optional string steam_depot_id = 21;          // Optional depot id for builds
+  optional string steam_branch = 22;            // Branch name (default | beta | etc.)
+
+  // ── Apple App Store (iOS / macOS) ─────────────────────────────────
+  optional string apple_bundle_id = 30;         // Bundle identifier (e.g. com.kbve.foo)
+  optional string apple_app_id = 31;            // Numeric App Store ID
+  optional string apple_team_id = 32;           // Apple developer team id
+
+  // ── Google Play Store (Android) ───────────────────────────────────
+  optional string google_play_package = 40;     // Package name (e.g. com.kbve.foo)
+  optional string google_play_track = 41;       // Release track (internal | alpha | beta | production)
+
+  // ── CurseForge (Minecraft mods + modpacks) ────────────────────────
+  optional string curseforge_project_id = 50;   // Numeric CurseForge project id
+  optional string curseforge_pack_id = 51;      // Optional separate modpack project id
+  optional string curseforge_release_type = 52; // alpha | beta | release
+}
+
 // A tracked item in the CI dispatch registry.
 // Each entry corresponds to one fan-out dispatch from ci-main.yml.
 message CiProject {
@@ -92,6 +131,10 @@ message CiProject {
 
   // --- UE5 server build config (ue5_server pipeline) ---
   optional string shell_path = 32;         // Monorepo shell project path (e.g. "apps/chuckrpg/unreal-chuck")
+
+  // --- External publish targets (storefronts / mod platforms) -----------
+  // Consumed by utils-external-publish.yml. Empty / unset = skip target.
+  optional ExternalPublish external_publish = 34;
 }
 
 // The full registry — a flat list of all tracked items.

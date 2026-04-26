@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/schema.binpb
  * Config: ../schema-zod-config.json
- * Generated: 2026-04-23T20:55:54.357Z
+ * Generated: 2026-04-26T05:02:13.109Z
  */
 
 import { z } from 'zod';
