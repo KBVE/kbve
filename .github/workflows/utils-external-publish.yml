@@ -66,6 +66,22 @@ jobs:
                   echo "loaders=$(echo "$EP" | jq -c '.modrinth_loaders // "[\"fabric\"]" | if type=="string" then fromjson else . end')" >> "$GITHUB_OUTPUT"
                   echo "game_versions=$(echo "$EP" | jq -c '.modrinth_game_versions // "[]" | if type=="string" then fromjson else . end')" >> "$GITHUB_OUTPUT"
 
+            - name: Pin version.toml to publishing version
+              env:
+                  VERSION: ${{ inputs.version }}
+              run: |
+                  set -euo pipefail
+                  VTOML="${{ inputs.source_path }}/version.toml"
+                  if [ ! -f "$VTOML" ]; then
+                    echo "::error::version.toml not found at $VTOML"
+                    exit 1
+                  fi
+                  CURRENT=$(grep -E '^version' "$VTOML" | head -1 | sed 's/.*"\(.*\)"/\1/')
+                  if [ "$CURRENT" != "$VERSION" ]; then
+                    echo "Pinning $VTOML: $CURRENT → $VERSION (post_publish bump not yet applied)"
+                    sed -i "s/^version = .*/version = \"${VERSION}\"/" "$VTOML"
+                  fi
+
             - name: Build Fabric mod JAR
               run: |
                   cd "${{ inputs.source_path }}/behavior_statetree/java"
@@ -99,7 +115,7 @@ jobs:
                     exit 1
                   fi
 
-                  EXISTING=$(curl -fsSL -H "Authorization: $MODRINTH_TOKEN" \
+                  EXISTING=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
                     "https://api.modrinth.com/v2/project/$MOD_PROJECT_ID/version" \
                     | jq -r --arg v "$VERSION" '.[] | select(.version_number == $v) | .id' \
                     | head -1)
@@ -123,11 +139,17 @@ jobs:
                   }
                   JSON
 
-                  curl -fsSL -X POST "https://api.modrinth.com/v2/version" \
+                  HTTP_CODE=$(curl -sSL -o /tmp/jar-response.json -w '%{http_code}' \
+                    -X POST "https://api.modrinth.com/v2/version" \
                     -H "Authorization: $MODRINTH_TOKEN" \
                     -F "data=@/tmp/data.json;type=application/json" \
-                    -F "jar=@$JAR_PATH;type=application/java-archive" \
-                    | jq -r '"Published JAR — version id \(.id)"'
+                    -F "jar=@$JAR_PATH;type=application/java-archive")
+                  if [ "$HTTP_CODE" != "200" ]; then
+                    echo "::error::Modrinth JAR upload failed (HTTP $HTTP_CODE)"
+                    cat /tmp/jar-response.json
+                    exit 1
+                  fi
+                  jq -r '"Published JAR — version id \(.id)"' /tmp/jar-response.json
 
             - name: Build mrpack
               if: steps.ep.outputs.pack_id != ''
@@ -163,7 +185,7 @@ jobs:
                     exit 1
                   fi
 
-                  EXISTING=$(curl -fsSL -H "Authorization: $MODRINTH_TOKEN" \
+                  EXISTING=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
                     "https://api.modrinth.com/v2/project/$PACK_PROJECT_ID/version" \
                     | jq -r --arg v "$VERSION" '.[] | select(.version_number == $v) | .id' \
                     | head -1)
@@ -187,11 +209,88 @@ jobs:
                   }
                   JSON
 
-                  curl -fsSL -X POST "https://api.modrinth.com/v2/version" \
+                  HTTP_CODE=$(curl -sSL -o /tmp/mrpack-response.json -w '%{http_code}' \
+                    -X POST "https://api.modrinth.com/v2/version" \
                     -H "Authorization: $MODRINTH_TOKEN" \
                     -F "data=@/tmp/pack-data.json;type=application/json" \
-                    -F "mrpack=@$MRPACK_PATH;type=application/x-modrinth-modpack+zip" \
-                    | jq -r '"Published mrpack — version id \(.id)"'
+                    -F "mrpack=@$MRPACK_PATH;type=application/x-modrinth-modpack+zip")
+                  if [ "$HTTP_CODE" != "200" ]; then
+                    echo "::error::Modrinth mrpack upload failed (HTTP $HTTP_CODE)"
+                    cat /tmp/mrpack-response.json
+                    exit 1
+                  fi
+                  jq -r '"Published mrpack — version id \(.id)"' /tmp/mrpack-response.json
+
+    modrinth_prune:
+        name: Modrinth Prune (${{ inputs.app_name }})
+        needs: [modrinth]
+        if: needs.modrinth.result == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: read
+        steps:
+            - name: Resolve external_publish fields
+              id: ep
+              run: |
+                  EP='${{ inputs.external_publish }}'
+                  echo "mod_id=$(echo "$EP" | jq -r '.modrinth_mod_id // ""')" >> "$GITHUB_OUTPUT"
+                  echo "pack_id=$(echo "$EP" | jq -r '.modrinth_pack_id // ""')" >> "$GITHUB_OUTPUT"
+                  echo "retain=$(echo "$EP" | jq -r '.modrinth_retain_count // 3 | tostring')" >> "$GITHUB_OUTPUT"
+
+            - name: Prune older versions
+              env:
+                  MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+                  MOD_PROJECT_ID: ${{ steps.ep.outputs.mod_id }}
+                  PACK_PROJECT_ID: ${{ steps.ep.outputs.pack_id }}
+                  RETAIN: ${{ steps.ep.outputs.retain }}
+              run: |
+                  set -euo pipefail
+                  if [ -z "${MODRINTH_TOKEN:-}" ]; then
+                    echo "::notice::MODRINTH_TOKEN missing — skipping prune."
+                    exit 0
+                  fi
+
+                  prune_project () {
+                    local PROJECT_ID="$1"
+                    local LABEL="$2"
+                    if [ -z "$PROJECT_ID" ]; then
+                      return 0
+                    fi
+                    echo "── $LABEL ($PROJECT_ID) — retain newest $RETAIN ──"
+                    local LIST
+                    LIST=$(curl -sSL --fail-with-body \
+                      -H "Authorization: $MODRINTH_TOKEN" \
+                      "https://api.modrinth.com/v2/project/$PROJECT_ID/version")
+
+                    local COUNT
+                    COUNT=$(echo "$LIST" | jq 'length')
+                    echo "Found $COUNT versions on Modrinth."
+                    if [ "$COUNT" -le "$RETAIN" ]; then
+                      echo "Nothing to prune."
+                      return 0
+                    fi
+
+                    local TO_DELETE
+                    TO_DELETE=$(echo "$LIST" \
+                      | jq -r --argjson keep "$RETAIN" \
+                          'sort_by(.date_published) | reverse | .[$keep:] | .[] | "\(.id)\t\(.version_number)"')
+
+                    while IFS=$'\t' read -r ID VER; do
+                      [ -z "$ID" ] && continue
+                      echo "Deleting $LABEL v$VER (id=$ID)"
+                      HTTP_CODE=$(curl -sSL -o /tmp/del-response.json -w '%{http_code}' \
+                        -X DELETE "https://api.modrinth.com/v2/version/$ID" \
+                        -H "Authorization: $MODRINTH_TOKEN")
+                      if [ "$HTTP_CODE" != "204" ]; then
+                        echo "::warning::Delete failed for $LABEL v$VER (HTTP $HTTP_CODE)"
+                        cat /tmp/del-response.json || true
+                      fi
+                    done <<< "$TO_DELETE"
+                  }
+
+                  prune_project "$MOD_PROJECT_ID" "mod"
+                  prune_project "$PACK_PROJECT_ID" "modpack"
 
     itch:
         name: Itch.io (stub)
