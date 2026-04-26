@@ -6,7 +6,6 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Owns <see cref="HexDBSingleton"/>; schedules a Burst drain each tick and exposes the handle on the singleton so readers chain dependencies automatically.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(InitializationSystemGroup), OrderFirst = true)]
     public partial struct HexDomainSystem : ISystem

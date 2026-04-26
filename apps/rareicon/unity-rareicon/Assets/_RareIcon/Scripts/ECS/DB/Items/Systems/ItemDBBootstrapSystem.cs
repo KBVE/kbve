@@ -3,7 +3,6 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>One-shot. Builds Burst-side ItemDBSingleton (NativeArray defs + bitsets) and DietPreferencesSingleton from the managed tables.</summary>
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class ItemDBBootstrapSystem : SystemBase
     {

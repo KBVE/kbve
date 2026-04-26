@@ -6,7 +6,6 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Phase 6: mirrors committed CurrentAmounts back into per-entity DynamicBuffer&lt;*Ledger&gt; views (Capital/Furnace/Farm/Barracks/GoblinCave/Lumbercamp/MiningPit). Walks the keys in PendingDeltas (the subset that changed this frame) and pushes each value to the matching ledger buffer. Sole writer of every bank buffer now that the DB is authoritative.</summary>
     [UpdateInGroup(typeof(LogisticsEndGroup))]
     [UpdateAfter(typeof(PackApplySystem))]
     public partial struct LedgerMirrorSystem : ISystem
@@ -26,6 +25,7 @@ namespace RareIcon
             {
                 PendingDeltas    = db.PendingDeltas,
                 CurrentAmounts   = db.CurrentAmounts,
+                BankKindLookup   = SystemAPI.GetComponentLookup<BankKind>(true),
                 CapitalLookup    = SystemAPI.GetBufferLookup<CapitalLedger>(false),
                 FurnaceLookup    = SystemAPI.GetBufferLookup<FurnaceLedger>(false),
                 FarmLookup       = SystemAPI.GetBufferLookup<FarmLedger>(false),
@@ -44,6 +44,7 @@ namespace RareIcon
     {
         [ReadOnly] public NativeParallelMultiHashMap<LedgerKey, int> PendingDeltas;
         [ReadOnly] public NativeParallelHashMap<LedgerKey, int>      CurrentAmounts;
+        [ReadOnly] public ComponentLookup<BankKind>                  BankKindLookup;
 
         public BufferLookup<CapitalLedger>    CapitalLookup;
         public BufferLookup<FurnaceLedger>    FurnaceLookup;
@@ -62,42 +63,32 @@ namespace RareIcon
             for (int k = 0; k < keyCount; k++)
             {
                 var key = keys[k];
+                if (!BankKindLookup.HasComponent(key.Bank)) continue;
                 CurrentAmounts.TryGetValue(key, out var amount);
 
-                if (CapitalLookup.HasBuffer(key.Bank))
+                switch ((BankKindId)BankKindLookup[key.Bank].Value)
                 {
-                    var view = CapitalLookup[key.Bank].Reinterpret<BankLedgerBase>();
-                    SetSlotCount(view, key.ItemId, amount);
-                }
-                else if (FurnaceLookup.HasBuffer(key.Bank))
-                {
-                    var view = FurnaceLookup[key.Bank].Reinterpret<BankLedgerBase>();
-                    SetSlotCount(view, key.ItemId, amount);
-                }
-                else if (FarmLookup.HasBuffer(key.Bank))
-                {
-                    var view = FarmLookup[key.Bank].Reinterpret<BankLedgerBase>();
-                    SetSlotCount(view, key.ItemId, amount);
-                }
-                else if (BarracksLookup.HasBuffer(key.Bank))
-                {
-                    var view = BarracksLookup[key.Bank].Reinterpret<BankLedgerBase>();
-                    SetSlotCount(view, key.ItemId, amount);
-                }
-                else if (GoblinCaveLookup.HasBuffer(key.Bank))
-                {
-                    var view = GoblinCaveLookup[key.Bank].Reinterpret<BankLedgerBase>();
-                    SetSlotCount(view, key.ItemId, amount);
-                }
-                else if (LumbercampLookup.HasBuffer(key.Bank))
-                {
-                    var view = LumbercampLookup[key.Bank].Reinterpret<BankLedgerBase>();
-                    SetSlotCount(view, key.ItemId, amount);
-                }
-                else if (MiningPitLookup.HasBuffer(key.Bank))
-                {
-                    var view = MiningPitLookup[key.Bank].Reinterpret<BankLedgerBase>();
-                    SetSlotCount(view, key.ItemId, amount);
+                    case BankKindId.Capital:
+                        SetSlotCount(CapitalLookup[key.Bank].Reinterpret<BankLedgerBase>(), key.ItemId, amount);
+                        break;
+                    case BankKindId.Furnace:
+                        SetSlotCount(FurnaceLookup[key.Bank].Reinterpret<BankLedgerBase>(), key.ItemId, amount);
+                        break;
+                    case BankKindId.Farm:
+                        SetSlotCount(FarmLookup[key.Bank].Reinterpret<BankLedgerBase>(), key.ItemId, amount);
+                        break;
+                    case BankKindId.Barracks:
+                        SetSlotCount(BarracksLookup[key.Bank].Reinterpret<BankLedgerBase>(), key.ItemId, amount);
+                        break;
+                    case BankKindId.GoblinCave:
+                        SetSlotCount(GoblinCaveLookup[key.Bank].Reinterpret<BankLedgerBase>(), key.ItemId, amount);
+                        break;
+                    case BankKindId.Lumbercamp:
+                        SetSlotCount(LumbercampLookup[key.Bank].Reinterpret<BankLedgerBase>(), key.ItemId, amount);
+                        break;
+                    case BankKindId.MiningPit:
+                        SetSlotCount(MiningPitLookup[key.Bank].Reinterpret<BankLedgerBase>(), key.ItemId, amount);
+                        break;
                 }
             }
 

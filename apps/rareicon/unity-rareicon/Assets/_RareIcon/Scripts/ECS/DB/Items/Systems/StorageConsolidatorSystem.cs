@@ -5,7 +5,6 @@ using Unity.Jobs;
 
 namespace RareIcon
 {
-    /// <summary>100:1 raw→bulk rollup per-bank. Five jobs (one per ledger type) chained through a shared Reservations ParallelWriter.</summary>
     [UpdateInGroup(typeof(EconomySystemGroup), OrderLast = true)]
     public partial struct StorageConsolidatorSystem : ISystem
     {
@@ -89,7 +88,6 @@ namespace RareIcon
 
     internal static class ConsolidatorCore
     {
-        /// <summary>Single-pass body. Walks inv once: raw items get the 100:1 reservation, food slots cached into a stack-allocated index list. After the loop, food slots drain in a second short pass against cached indices, no re-TryGet.</summary>
         public static void Run(in DynamicBuffer<BankLedgerBase> inv,
                                Entity target,
                                uint tick,

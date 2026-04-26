@@ -2,7 +2,6 @@ using System.Collections.Generic;
 
 namespace RareIcon
 {
-    /// <summary>Item category. Keep in sync with Rust RareItem enum ranges.</summary>
     public enum ItemCategory : byte
     {
         Misc       = 0,
@@ -13,7 +12,6 @@ namespace RareIcon
         Magic      = 5,
     }
 
-    /// <summary>Job allowed to hand-harvest this item. None = crafted / station-only / environmental.</summary>
     public enum HarvestRole : byte
     {
         None       = 0,
@@ -22,7 +20,6 @@ namespace RareIcon
         Miner      = 3,
     }
 
-    /// <summary>Per-item numeric data. Field order: 4-byte → 2-byte → 1-byte for natural alignment.</summary>
     public readonly struct ItemDef
     {
         public readonly uint  ShelfLifeSeconds;
@@ -79,14 +76,12 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Pool group IDs for the food → Meal consolidator. All edibles share PoolGroup.Food.</summary>
     public static class PoolGroup
     {
         public const ushort None = 0;
         public const ushort Food = 1;
     }
 
-    /// <summary>Managed ItemDB hydrated from ItemDBCache (mdx). Burst-side mirror lives on ItemDBSingleton.</summary>
     // TODO(rust-ffi): mirror into uniti crate so client/server agree on HarvestRole + weights.
     public static class ItemDB
     {
@@ -94,7 +89,6 @@ namespace RareIcon
         static readonly Dictionary<ushort, string>  _nameKeys = new();
         static bool _initialized;
 
-        /// <summary>mdx ref → ItemId. Returns false only if `rotten-food` itself is unregistered, in which case the out parameter still defaults to ItemId.RottenFood.</summary>
         public static bool TryResolveRef(string refSlug, out ItemId id)
         {
             if (!string.IsNullOrEmpty(refSlug) && ItemDBRefMap.RefToId.TryGetValue(refSlug, out id))
@@ -103,7 +97,6 @@ namespace RareIcon
             return ItemDBRefMap.RefToId.ContainsKey("rotten-food");
         }
 
-        /// <summary>Spoilage target resolver. Honors `spoils_into_ref`; falls back to rotten-food. False only if rotten-food itself is missing.</summary>
         public static bool TryGetSpoilageTarget(string spoilsIntoRef, out ItemId target)
         {
             if (!string.IsNullOrEmpty(spoilsIntoRef) && ItemDBRefMap.RefToId.TryGetValue(spoilsIntoRef, out target))
@@ -114,7 +107,6 @@ namespace RareIcon
             return false;
         }
 
-        /// <summary>Hydrate _byId from ItemDBCache. Called by ItemDBLoaderSystem after the cache is filled.</summary>
         public static int HydrateFromCache()
         {
             if (_initialized) return 0;
@@ -246,7 +238,6 @@ namespace RareIcon
                  : new ItemDef(id, ItemCategory.Misc, 1, 0);
         }
 
-        /// <summary>Main-thread localization lookup. Burst jobs use ItemDBSingleton instead.</summary>
         public static string GetNameKey(ushort id)
             => _nameKeys.TryGetValue(id, out var key) ? key : "item.unknown";
 
@@ -261,14 +252,12 @@ namespace RareIcon
         public static byte GetHarvestWeight(ushort id)
             => TryGet(id, out var def) ? def.HarvestWeight : (byte)100;
 
-        /// <summary>Enumerate items by HarvestRole. Used by the Diet UI to build per-item preference rows.</summary>
         public static IEnumerable<ItemDef> EnumerateByRole(HarvestRole role)
         {
             foreach (var kv in _byId)
                 if (kv.Value.HarvestRole == role) yield return kv.Value;
         }
 
-        /// <summary>Highest registered ItemId. ItemDBBootstrapSystem sizes the runtime arrays as MaxItemId + 1.</summary>
         public static ushort GetMaxItemId()
         {
             ushort max = 0;
@@ -276,7 +265,6 @@ namespace RareIcon
             return max;
         }
 
-        /// <summary>Fill runtime arrays + bitsets from the managed table. Call after HydrateFromCache.</summary>
         public static void PopulateRuntimeLookup(
             Unity.Collections.NativeArray<ItemDefRuntime> defs,
             Unity.Collections.NativeArray<ulong> validBits,
@@ -293,7 +281,7 @@ namespace RareIcon
                 defs[id] = new ItemDefRuntime
                 {
                     Id               = d.Id,
-                    Category         = (byte)d.Category,
+                    Flags            = ItemDefRuntime.PackFlags((byte)d.Category, (byte)d.HarvestRole, d.Perishable),
                     StackMax         = d.StackMax,
                     BaseValue        = d.BaseValue,
                     RestoreHealth    = d.RestoreHealth,
@@ -301,12 +289,10 @@ namespace RareIcon
                     RestoreMana      = d.RestoreMana,
                     RegenPerSecond   = d.RegenPerSecond,
                     RegenDuration    = d.RegenDuration,
-                    HarvestRole      = (byte)d.HarvestRole,
                     HarvestWeight    = d.HarvestWeight,
                     CompressesTo     = d.CompressesTo,
                     CompressRatio    = d.CompressRatio,
                     PoolGroup        = d.PoolGroup,
-                    Perishable       = d.Perishable ? (byte)1 : (byte)0,
                     ShelfLifeSeconds = d.ShelfLifeSeconds,
                     SpoilsIntoId     = d.SpoilsIntoId,
                 };
