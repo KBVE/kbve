@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 
@@ -48,19 +49,18 @@ namespace RareIcon
         protected override void OnUpdate()
         {
             int count = _query.CalculateEntityCount();
-            if (Hash.Capacity < count * 2)
-                Hash.Capacity = count * 2;
-            Hash.Clear();
+
+            Dependency = new ResetHashJob
+            {
+                Hash       = Hash,
+                NewCapacity = count * 2,
+            }.Schedule(Dependency);
 
             Dependency = new BuildHashJob
             {
                 Writer = Hash.AsParallelWriter(),
             }.ScheduleParallel(Dependency);
 
-            // Sync here — downstream consumers (CollisionSystem) read the
-            // hash immediately. The sync cost is ~tenths of a millisecond
-            // per thousand units; optimise to JobHandle-chaining if the
-            // profile ever complains.
             Dependency.Complete();
         }
 
@@ -83,6 +83,20 @@ namespace RareIcon
     public struct SpatialHashSingleton : IComponentData
     {
         public NativeParallelMultiHashMap<int, HashedTarget> Hash;
+    }
+
+    /// <summary>Single-thread Burst clear + capacity grow. Scheduling through state.Dependency forces the framework to chain on every prior reader of the hash via its safety handle, eliminating the main-thread race against last-frame's UnitBehaviorJob.</summary>
+    [BurstCompile]
+    struct ResetHashJob : IJob
+    {
+        public NativeParallelMultiHashMap<int, HashedTarget> Hash;
+        public int NewCapacity;
+
+        public void Execute()
+        {
+            if (Hash.Capacity < NewCapacity) Hash.Capacity = NewCapacity;
+            Hash.Clear();
+        }
     }
 
     /// <summary>Per-unit hash insert. Runs in parallel across all Collidable entities — lock-free because NativeParallelMultiHashMap's parallel writer serialises via atomics on each bucket head.</summary>
