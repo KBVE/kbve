@@ -106,13 +106,31 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 BEGIN
+    -- Bounds match table CHECKs but raise earlier with a friendlier message.
+    IF p_signature IS NOT NULL AND length(p_signature) > 500 THEN
+        RAISE EXCEPTION 'signature too long (max 500)';
+    END IF;
+    IF p_flair_text IS NOT NULL AND length(p_flair_text) > 100 THEN
+        RAISE EXCEPTION 'flair_text too long (max 100)';
+    END IF;
+
+    -- Bootstrap the row so first-time writes can't silently no-op.
+    PERFORM forum.service_ensure_user_profile(p_user_id);
+
+    -- NULLIF(trim(...), '') turns empty / whitespace strings into NULL,
+    -- which COALESCE then maps back to "no change". Clients that want
+    -- to clear a field should pass NULL explicitly — same effect, but
+    -- nobody overwrites an existing signature with whitespace.
     UPDATE forum.forum_user_profiles
-       SET signature              = COALESCE(p_signature, signature),
-           flair_text             = COALESCE(p_flair_text, flair_text),
+       SET signature              = COALESCE(NULLIF(trim(p_signature),  ''), signature),
+           flair_text             = COALESCE(NULLIF(trim(p_flair_text), ''), flair_text),
            mute_all_notifications = COALESCE(p_mute_all_notifications, mute_all_notifications),
            show_nsfw              = COALESCE(p_show_nsfw, show_nsfw),
            last_active_at         = NOW()
      WHERE user_id = p_user_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'forum profile % not found', p_user_id;
+    END IF;
 END;
 $$;
 
@@ -151,6 +169,20 @@ DECLARE
 BEGIN
     IF forum.is_user_banned(p_author_id) THEN
         RAISE EXCEPTION 'forum user is banned';
+    END IF;
+
+    -- Fail fast on bad input so we don't get to the table CHECK.
+    IF p_title IS NULL OR length(trim(p_title)) < 3 OR length(p_title) > 180 THEN
+        RAISE EXCEPTION 'invalid thread title length';
+    END IF;
+    IF p_body IS NULL OR length(p_body) < 1 OR length(p_body) > 50000 THEN
+        RAISE EXCEPTION 'invalid thread body length';
+    END IF;
+    IF p_slug IS NOT NULL AND length(p_slug) > 160 THEN
+        RAISE EXCEPTION 'slug too long';
+    END IF;
+    IF p_tag_ids IS NOT NULL AND array_length(p_tag_ids, 1) > 20 THEN
+        RAISE EXCEPTION 'too many tags (max 20, got %)', array_length(p_tag_ids, 1);
     END IF;
 
     -- Validate space exists + the requested thread_type is allowed.
@@ -282,14 +314,27 @@ BEGIN
         RAISE EXCEPTION 'forum user is banned';
     END IF;
 
-    -- Item 12: thread must be accepting comments.
+    IF p_body IS NULL OR length(p_body) < 1 OR length(p_body) > 20000 THEN
+        RAISE EXCEPTION 'invalid comment body length';
+    END IF;
+
+    -- Take a SHARE lock on the thread row so concurrent moderation
+    -- (lock / remove) can't slip in between this check and our INSERT.
+    -- Distinguishes "no such thread" from "thread not accepting".
+    PERFORM 1
+      FROM forum.threads
+     WHERE id = p_thread_id
+           FOR SHARE;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'thread % not found', p_thread_id;
+    END IF;
     IF EXISTS (
         SELECT 1
           FROM forum.threads
          WHERE id = p_thread_id
-           AND (locked = TRUE OR status NOT IN ('active'))
+           AND (locked = TRUE OR status <> 'active')
     ) THEN
-        RAISE EXCEPTION 'thread is not accepting comments';
+        RAISE EXCEPTION 'thread % is not accepting comments', p_thread_id;
     END IF;
 
     PERFORM forum.service_ensure_user_profile(p_author_id);
@@ -409,6 +454,7 @@ RETURNS TEXT
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
+SET lock_timeout = '1s'
 AS $$
 DECLARE
     v_old           forum.vote_direction;
@@ -422,7 +468,16 @@ BEGIN
 
     -- Item 6: per-(thread, voter) advisory lock so concurrent vote flips
     -- serialize and counter deltas stay coherent.
-    PERFORM pg_advisory_xact_lock(hashtext(p_thread_id || ':' || p_user_id::TEXT));
+    PERFORM pg_advisory_xact_lock(hashtextextended(
+        'forum.thread_vote:' || p_thread_id || ':' || p_user_id::TEXT, 0));
+
+    PERFORM 1
+      FROM forum.threads
+     WHERE id = p_thread_id
+       AND status = 'active';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'thread % not votable', p_thread_id;
+    END IF;
 
     PERFORM forum.service_ensure_user_profile(p_user_id);
 
@@ -492,6 +547,7 @@ RETURNS TEXT
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
+SET lock_timeout = '1s'
 AS $$
 DECLARE
     v_old            forum.vote_direction;
@@ -503,7 +559,16 @@ BEGIN
         RAISE EXCEPTION 'forum user is banned';
     END IF;
 
-    PERFORM pg_advisory_xact_lock(hashtext(p_comment_id || ':' || p_user_id::TEXT));
+    PERFORM pg_advisory_xact_lock(hashtextextended(
+        'forum.comment_vote:' || p_comment_id || ':' || p_user_id::TEXT, 0));
+
+    PERFORM 1
+      FROM forum.comments
+     WHERE id = p_comment_id
+       AND status = 'active';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'comment % not votable', p_comment_id;
+    END IF;
 
     PERFORM forum.service_ensure_user_profile(p_user_id);
 
@@ -573,6 +638,7 @@ RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
+SET lock_timeout = '1s'
 AS $$
 DECLARE
     v_existing TEXT;
@@ -593,12 +659,15 @@ BEGIN
         RAISE EXCEPTION 'reaction parent %/% does not exist', p_parent_kind, p_parent_id;
     END IF;
 
-    -- Serialize toggle/dedup races against ux_reactions_once.
-    PERFORM pg_advisory_xact_lock(
-        hashtext(p_parent_kind::TEXT || ':' || p_parent_id),
-        hashtext(p_user_id::TEXT || ':' || p_kind::TEXT
-                 || ':' || COALESCE(p_custom_kind, ''))
-    );
+    -- Serialize toggle/dedup races against ux_reactions_once. 64-bit
+    -- hash keeps cross-key collisions below epsilon.
+    PERFORM pg_advisory_xact_lock(hashtextextended(
+        'forum.reaction:' ||
+        p_parent_kind::TEXT || ':' || p_parent_id || ':' ||
+        p_user_id::TEXT || ':' || p_kind::TEXT || ':' ||
+        COALESCE(p_custom_kind, ''),
+        0
+    ));
 
     SELECT id
       INTO v_existing
@@ -641,6 +710,7 @@ RETURNS TEXT
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
+SET lock_timeout = '1s'
 AS $$
 DECLARE
     v_report_id TEXT;
@@ -661,10 +731,11 @@ BEGIN
 
     -- Serialize concurrent reports from the same (reporter, target).
     -- Cleaner failure than racing against ux_reports_open_once.
-    PERFORM pg_advisory_xact_lock(
-        hashtext(p_reporter_id::TEXT),
-        hashtext(p_target_kind::TEXT || ':' || p_target_id)
-    );
+    PERFORM pg_advisory_xact_lock(hashtextextended(
+        'forum.report:' || p_reporter_id::TEXT || ':' ||
+        p_target_kind::TEXT || ':' || p_target_id,
+        0
+    ));
 
     SELECT id
       INTO v_report_id
@@ -718,6 +789,7 @@ RETURNS TEXT
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
+SET lock_timeout = '1s'
 AS $$
 DECLARE
     v_bid_id           TEXT;
@@ -734,6 +806,23 @@ DECLARE
 BEGIN
     IF forum.is_user_banned(p_bidder_id) THEN
         RAISE EXCEPTION 'forum user is banned';
+    END IF;
+
+    IF p_amount IS NULL OR p_amount <= 0 THEN
+        RAISE EXCEPTION 'bid amount must be positive';
+    END IF;
+    IF p_currency IS NULL
+       OR length(trim(p_currency)) < 2
+       OR length(trim(p_currency)) > 16 THEN
+        RAISE EXCEPTION 'invalid currency';
+    END IF;
+
+    -- Self-bidding lets the owner inflate their own auction.
+    IF EXISTS (
+        SELECT 1 FROM forum.threads
+         WHERE id = p_thread_id AND author_id = p_bidder_id
+    ) THEN
+        RAISE EXCEPTION 'cannot bid on own auction';
     END IF;
 
     v_normalized_curr := lower(trim(p_currency));
@@ -781,7 +870,7 @@ BEGIN
     END IF;
 
     INSERT INTO forum.auction_bids (thread_id, bidder_id, amount, currency)
-         VALUES (p_thread_id, p_bidder_id, p_amount, p_currency)
+         VALUES (p_thread_id, p_bidder_id, p_amount, v_normalized_curr)
       RETURNING id INTO v_bid_id;
 
     UPDATE forum.threads
@@ -889,6 +978,7 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
+SET statement_timeout = '2s'
 AS $$
 DECLARE
     v_limit       INTEGER;
@@ -915,7 +1005,7 @@ BEGIN
             RAISE EXCEPTION 'malformed cursor: %', p_cursor;
         END IF;
 
-        IF v_sort IN ('top') THEN
+        IF v_sort = 'top' THEN
             v_cur_score := v_cursor_key::BIGINT;
         ELSIF v_sort = 'hot' THEN
             v_cur_hot := v_cursor_key::DOUBLE PRECISION;
@@ -924,41 +1014,81 @@ BEGIN
         END IF;
     END IF;
 
-    RETURN QUERY
-    WITH base AS (
-        SELECT t.*
+    -- Per-sort RETURN QUERY branches let the planner pick the matching
+    -- partial index (idx_threads_feed_*) instead of CASE-wrapping the
+    -- ORDER BY which prevents index ordering.
+    IF v_sort = 'new' THEN
+        RETURN QUERY
+        SELECT t.id, t.title, t.body, t.author_id, t.space_id, t.thread_type,
+               t.type_data, t.status, t.comment_count, t.view_count,
+               t.score, t.upvote_count, t.downvote_count,
+               t.last_activity_at, t.created_at, t.nsfw, t.pinned, t.slug
           FROM forum.threads t
          WHERE t.status = 'active'
-           AND (p_space_id IS NULL OR t.space_id = p_space_id)
+           AND (p_space_id    IS NULL OR t.space_id    = p_space_id)
            AND (p_thread_type IS NULL OR t.thread_type = p_thread_type)
            AND (p_include_nsfw OR NOT t.nsfw)
-           AND (
-                 p_tag_id IS NULL
-                 OR EXISTS (
-                    SELECT 1 FROM forum.thread_tags_resolved r
-                     WHERE r.thread_id = t.id AND r.tag_id = p_tag_id
-                 )
-           )
-           AND (
-                 p_cursor IS NULL
-                 OR (v_sort = 'new'  AND (t.created_at,       t.id) < (v_cur_ts,    v_cursor_id))
-                 OR (v_sort = 'bump' AND (t.last_activity_at, t.id) < (v_cur_ts,    v_cursor_id))
-                 OR (v_sort = 'top'  AND (t.score,            t.id) < (v_cur_score, v_cursor_id))
-                 OR (v_sort = 'hot'  AND (t.hot_rank,         t.id) < (v_cur_hot,   v_cursor_id))
-           )
-    )
-    SELECT b.id, b.title, b.body, b.author_id, b.space_id, b.thread_type,
-           b.type_data, b.status, b.comment_count, b.view_count,
-           b.score, b.upvote_count, b.downvote_count,
-           b.last_activity_at, b.created_at, b.nsfw, b.pinned, b.slug
-      FROM base b
-     ORDER BY
-        CASE WHEN v_sort = 'hot'  THEN b.hot_rank         END DESC NULLS LAST,
-        CASE WHEN v_sort = 'top'  THEN b.score            END DESC NULLS LAST,
-        CASE WHEN v_sort = 'bump' THEN b.last_activity_at END DESC NULLS LAST,
-        CASE WHEN v_sort = 'new'  THEN b.created_at       END DESC NULLS LAST,
-        b.id DESC
-     LIMIT v_limit;
+           AND (p_tag_id IS NULL OR EXISTS (
+                SELECT 1 FROM forum.thread_tags_resolved r
+                 WHERE r.thread_id = t.id AND r.tag_id = p_tag_id))
+           AND (p_cursor IS NULL OR (t.created_at, t.id) < (v_cur_ts, v_cursor_id))
+         ORDER BY t.created_at DESC, t.id DESC
+         LIMIT v_limit;
+
+    ELSIF v_sort = 'bump' THEN
+        RETURN QUERY
+        SELECT t.id, t.title, t.body, t.author_id, t.space_id, t.thread_type,
+               t.type_data, t.status, t.comment_count, t.view_count,
+               t.score, t.upvote_count, t.downvote_count,
+               t.last_activity_at, t.created_at, t.nsfw, t.pinned, t.slug
+          FROM forum.threads t
+         WHERE t.status = 'active'
+           AND (p_space_id    IS NULL OR t.space_id    = p_space_id)
+           AND (p_thread_type IS NULL OR t.thread_type = p_thread_type)
+           AND (p_include_nsfw OR NOT t.nsfw)
+           AND (p_tag_id IS NULL OR EXISTS (
+                SELECT 1 FROM forum.thread_tags_resolved r
+                 WHERE r.thread_id = t.id AND r.tag_id = p_tag_id))
+           AND (p_cursor IS NULL OR (t.last_activity_at, t.id) < (v_cur_ts, v_cursor_id))
+         ORDER BY t.last_activity_at DESC, t.id DESC
+         LIMIT v_limit;
+
+    ELSIF v_sort = 'top' THEN
+        RETURN QUERY
+        SELECT t.id, t.title, t.body, t.author_id, t.space_id, t.thread_type,
+               t.type_data, t.status, t.comment_count, t.view_count,
+               t.score, t.upvote_count, t.downvote_count,
+               t.last_activity_at, t.created_at, t.nsfw, t.pinned, t.slug
+          FROM forum.threads t
+         WHERE t.status = 'active'
+           AND (p_space_id    IS NULL OR t.space_id    = p_space_id)
+           AND (p_thread_type IS NULL OR t.thread_type = p_thread_type)
+           AND (p_include_nsfw OR NOT t.nsfw)
+           AND (p_tag_id IS NULL OR EXISTS (
+                SELECT 1 FROM forum.thread_tags_resolved r
+                 WHERE r.thread_id = t.id AND r.tag_id = p_tag_id))
+           AND (p_cursor IS NULL OR (t.score, t.id) < (v_cur_score, v_cursor_id))
+         ORDER BY t.score DESC, t.id DESC
+         LIMIT v_limit;
+
+    ELSE  -- 'hot' default
+        RETURN QUERY
+        SELECT t.id, t.title, t.body, t.author_id, t.space_id, t.thread_type,
+               t.type_data, t.status, t.comment_count, t.view_count,
+               t.score, t.upvote_count, t.downvote_count,
+               t.last_activity_at, t.created_at, t.nsfw, t.pinned, t.slug
+          FROM forum.threads t
+         WHERE t.status = 'active'
+           AND (p_space_id    IS NULL OR t.space_id    = p_space_id)
+           AND (p_thread_type IS NULL OR t.thread_type = p_thread_type)
+           AND (p_include_nsfw OR NOT t.nsfw)
+           AND (p_tag_id IS NULL OR EXISTS (
+                SELECT 1 FROM forum.thread_tags_resolved r
+                 WHERE r.thread_id = t.id AND r.tag_id = p_tag_id))
+           AND (p_cursor IS NULL OR (t.hot_rank, t.id) < (v_cur_hot, v_cursor_id))
+         ORDER BY t.hot_rank DESC, t.id DESC
+         LIMIT v_limit;
+    END IF;
 END;
 $$;
 
@@ -992,7 +1122,22 @@ DECLARE
     v_old_status   forum.thread_status;
     v_thread_space UUID;
     v_comment_thread TEXT;
+    v_kind_text    TEXT;
 BEGIN
+    -- Reject obvious mismatches (comment_remove against a thread, etc).
+    -- Cheaper than discovering the same in a per-branch UPDATE that
+    -- silently zero-rows.
+    v_kind_text := p_kind::TEXT;
+    IF v_kind_text LIKE 'thread_%'  AND p_target_kind <> 'thread'  THEN
+        RAISE EXCEPTION 'kind % requires target_kind=thread (got %)',  p_kind, p_target_kind;
+    END IF;
+    IF v_kind_text LIKE 'comment_%' AND p_target_kind <> 'comment' THEN
+        RAISE EXCEPTION 'kind % requires target_kind=comment (got %)', p_kind, p_target_kind;
+    END IF;
+    IF v_kind_text LIKE 'user_%'    AND p_target_kind <> 'user'    THEN
+        RAISE EXCEPTION 'kind % requires target_kind=user (got %)',    p_kind, p_target_kind;
+    END IF;
+
     INSERT INTO forum.moderation_actions (
         moderator_id, kind, target_kind, target_id, reason,
         metadata_json, correlation_id
@@ -1004,8 +1149,18 @@ BEGIN
     RETURNING id INTO v_action_id;
 
     CASE p_kind
-        WHEN 'thread_lock'    THEN UPDATE forum.threads SET status = 'locked',  locked = TRUE  WHERE id = p_target_id;
-        WHEN 'thread_unlock'  THEN UPDATE forum.threads SET status = 'active',  locked = FALSE WHERE id = p_target_id;
+        WHEN 'thread_lock' THEN
+            UPDATE forum.threads SET status = 'locked', locked = TRUE
+             WHERE id = p_target_id AND status <> 'removed';
+            IF NOT FOUND THEN
+                RAISE EXCEPTION 'thread % not lockable', p_target_id;
+            END IF;
+        WHEN 'thread_unlock' THEN
+            UPDATE forum.threads SET status = 'active', locked = FALSE
+             WHERE id = p_target_id AND status = 'locked';
+            IF NOT FOUND THEN
+                RAISE EXCEPTION 'thread % not unlockable', p_target_id;
+            END IF;
         WHEN 'thread_remove'  THEN
             -- Decrement space.thread_count only on the active→removed
             -- edge so repeated remove calls don't drift the counter.
@@ -1032,8 +1187,16 @@ BEGIN
                        updated_at   = NOW()
                  WHERE id = v_thread_space;
             END IF;
-        WHEN 'thread_pin'     THEN UPDATE forum.threads SET pinned = TRUE  WHERE id = p_target_id;
-        WHEN 'thread_unpin'   THEN UPDATE forum.threads SET pinned = FALSE WHERE id = p_target_id;
+        WHEN 'thread_pin' THEN
+            UPDATE forum.threads SET pinned = TRUE  WHERE id = p_target_id;
+            IF NOT FOUND THEN
+                RAISE EXCEPTION 'thread % not found for pin', p_target_id;
+            END IF;
+        WHEN 'thread_unpin' THEN
+            UPDATE forum.threads SET pinned = FALSE WHERE id = p_target_id;
+            IF NOT FOUND THEN
+                RAISE EXCEPTION 'thread % not found for unpin', p_target_id;
+            END IF;
         WHEN 'thread_move'    THEN
             IF p_metadata_json ? 'space_id' THEN
                 UPDATE forum.threads
@@ -1072,19 +1235,28 @@ BEGIN
                    SET comment_count = comment_count + 1
                  WHERE id = v_comment_thread;
             END IF;
-        WHEN 'user_ban'        THEN
+        WHEN 'user_ban' THEN
             UPDATE forum.forum_user_profiles
                SET is_banned = TRUE,
                    ban_reason = COALESCE(p_reason, ban_reason),
                    ban_expires_at = NULLIF(p_metadata_json->>'expires_at','')::TIMESTAMPTZ
              WHERE user_id = p_target_id::UUID;
+            IF NOT FOUND THEN
+                RAISE EXCEPTION 'forum profile for user % not found', p_target_id;
+            END IF;
         WHEN 'user_unban' THEN
             UPDATE forum.forum_user_profiles
                SET is_banned = FALSE, ban_reason = NULL, ban_expires_at = NULL
              WHERE user_id = p_target_id::UUID;
-        WHEN 'user_mute'  THEN
+            IF NOT FOUND THEN
+                RAISE EXCEPTION 'forum profile for user % not found', p_target_id;
+            END IF;
+        WHEN 'user_mute' THEN
             UPDATE forum.forum_user_profiles SET mute_all_notifications = TRUE
              WHERE user_id = p_target_id::UUID;
+            IF NOT FOUND THEN
+                RAISE EXCEPTION 'forum profile for user % not found', p_target_id;
+            END IF;
         WHEN 'report_resolve' THEN
             UPDATE forum.reports
                SET resolved_by = p_moderator_id,
@@ -1130,5 +1302,43 @@ REVOKE ALL ON FUNCTION forum.service_record_moderation(UUID, forum.moderation_ac
     FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION forum.service_record_moderation(UUID, forum.moderation_action_kind, forum.target_kind, TEXT, TEXT, JSONB, TEXT)
     TO service_role;
+
+-- ============================================================
+-- Feed support indexes — co-located with service_fetch_feed.
+--
+-- Each branch in service_fetch_feed targets one of these partial
+-- indexes. status='active' AND nsfw=FALSE matches the default
+-- (non-NSFW) feed; the NSFW path falls back to a sequential scan
+-- since most clients never request it.
+-- ============================================================
+
+CREATE INDEX IF NOT EXISTS idx_threads_feed_new
+    ON forum.threads (created_at DESC, id DESC)
+    WHERE status = 'active' AND nsfw = FALSE;
+
+CREATE INDEX IF NOT EXISTS idx_threads_feed_bump
+    ON forum.threads (last_activity_at DESC, id DESC)
+    WHERE status = 'active' AND nsfw = FALSE;
+
+CREATE INDEX IF NOT EXISTS idx_threads_feed_top
+    ON forum.threads (score DESC, id DESC)
+    WHERE status = 'active' AND nsfw = FALSE;
+
+CREATE INDEX IF NOT EXISTS idx_threads_feed_hot
+    ON forum.threads (hot_rank DESC, id DESC)
+    WHERE status = 'active' AND nsfw = FALSE;
+
+-- Per-space variants for the common case of "show me a single space".
+CREATE INDEX IF NOT EXISTS idx_threads_space_feed_new
+    ON forum.threads (space_id, created_at DESC, id DESC)
+    WHERE status = 'active' AND nsfw = FALSE;
+
+CREATE INDEX IF NOT EXISTS idx_threads_space_feed_bump
+    ON forum.threads (space_id, last_activity_at DESC, id DESC)
+    WHERE status = 'active' AND nsfw = FALSE;
+
+CREATE INDEX IF NOT EXISTS idx_threads_space_feed_hot
+    ON forum.threads (space_id, hot_rank DESC, id DESC)
+    WHERE status = 'active' AND nsfw = FALSE;
 
 COMMIT;
