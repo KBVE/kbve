@@ -1,0 +1,241 @@
+name: CI - Godot
+
+run-name: 'CI - Godot / ${{ inputs.app_name }}'
+
+on:
+    workflow_dispatch:
+        inputs:
+            key:
+                description: 'Manifest key'
+                required: true
+                type: string
+            app_name:
+                description: 'Godot project / build name'
+                required: true
+                type: string
+            project_path:
+                description: 'Path to dir containing project.godot'
+                required: true
+                type: string
+            engine_version:
+                description: 'Godot version (e.g. 4.3-stable)'
+                required: true
+                type: string
+            build_targets:
+                description: 'JSON array of export preset names matching export_presets.cfg'
+                required: false
+                type: string
+                default: '["Linux/X11"]'
+            dotnet_enabled:
+                description: 'Use Godot .NET / C# build'
+                required: false
+                type: boolean
+                default: false
+            version_source:
+                description: 'Path to version source file (mdx)'
+                required: false
+                type: string
+                default: ''
+            version_toml:
+                description: 'Path to version.toml (PUBLISHED tracker)'
+                required: false
+                type: string
+                default: ''
+            manifest_version:
+                description: 'Version from manifest (LOCAL)'
+                required: false
+                type: string
+                default: ''
+            deploy_to_itch:
+                description: 'Deploy artefacts to itch.io after build'
+                required: false
+                type: boolean
+                default: false
+            itch_user:
+                description: 'Itch.io publisher user'
+                required: false
+                type: string
+                default: ''
+            itch_game:
+                description: 'Itch.io game slug'
+                required: false
+                type: string
+                default: ''
+            dispatched_at:
+                description: 'Unix timestamp when this was dispatched (queue guard)'
+                required: true
+                type: string
+
+permissions: {}
+
+jobs:
+    queue_guard:
+        name: Queue Guard
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        steps:
+            - run: |
+                  AGE=$(( $(date +%s) - ${{ inputs.dispatched_at }} ))
+                  echo "godot/${{ inputs.app_name }} queued ${AGE}s"
+                  if [ "$AGE" -gt 7200 ]; then
+                    echo "::error::Queue timeout: ${AGE}s > 2h"
+                    exit 1
+                  fi
+
+    version_gate:
+        name: Version Gate
+        needs: [queue_guard]
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        outputs:
+            should_publish: ${{ steps.check.outputs.should_publish }}
+            local_version: ${{ steps.check.outputs.local }}
+        steps:
+            - uses: actions/checkout@v6
+            - id: check
+              run: |
+                  LOCAL="${{ inputs.manifest_version }}"
+                  VTOML="${{ inputs.version_toml }}"
+                  PUB="0.0.0"
+                  if [ -n "$VTOML" ] && [ -f "$VTOML" ]; then
+                    PUB=$(grep -m1 '^version' "$VTOML" | sed 's/version = "\(.*\)"/\1/' || echo "0.0.0")
+                  fi
+                  echo "local=$LOCAL" >> "$GITHUB_OUTPUT"
+                  if [ -z "$LOCAL" ] || [ "$LOCAL" = "0.0.0" ] || [ "$LOCAL" = "$PUB" ]; then
+                    echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                    echo "::notice::No version bump (local=$LOCAL, published=$PUB) — publish skipped."
+                  else
+                    echo "should_publish=true" >> "$GITHUB_OUTPUT"
+                    echo "::notice::v$LOCAL > v$PUB — will publish."
+                  fi
+
+    test:
+        name: Test (godot --headless)
+        needs: [version_gate]
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        permissions:
+            contents: read
+        container:
+            image: barichello/godot-ci:${{ inputs.engine_version }}${{ inputs.dotnet_enabled && '-mono' || '' }}
+        steps:
+            - uses: actions/checkout@v6
+            - name: Run headless test pass
+              working-directory: ${{ inputs.project_path }}
+              run: |
+                  if [ -d tests ] || ls test_*.gd 2>/dev/null | head -1 > /dev/null; then
+                    godot --headless --path . --quit-after 10
+                  else
+                    echo "::notice::No tests/ dir or test_*.gd files — skipping headless run"
+                  fi
+
+    build:
+        name: Build (${{ matrix.preset }})
+        needs: [version_gate, test]
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        permissions:
+            contents: read
+        container:
+            image: barichello/godot-ci:${{ inputs.engine_version }}${{ inputs.dotnet_enabled && '-mono' || '' }}
+        strategy:
+            fail-fast: false
+            matrix:
+                preset: ${{ fromJSON(inputs.build_targets) }}
+        steps:
+            - uses: actions/checkout@v6
+            - name: Stage export templates
+              run: |
+                  mkdir -p ~/.local/share/godot/export_templates/${{ inputs.engine_version }}
+                  if [ -d /root/.local/share/godot/export_templates/${{ inputs.engine_version }} ]; then
+                    cp -r /root/.local/share/godot/export_templates/${{ inputs.engine_version }}/* \
+                          ~/.local/share/godot/export_templates/${{ inputs.engine_version }}/
+                  fi
+            - name: Sanitize preset name for path
+              id: san
+              run: |
+                  CLEAN=$(echo '${{ matrix.preset }}' | tr '/' '-' | tr ' ' '-')
+                  echo "name=$CLEAN" >> "$GITHUB_OUTPUT"
+            - name: Export
+              working-directory: ${{ inputs.project_path }}
+              run: |
+                  mkdir -p build/${{ steps.san.outputs.name }}
+                  godot --headless --export-release "${{ matrix.preset }}" \
+                        "build/${{ steps.san.outputs.name }}/${{ inputs.app_name }}"
+            - name: Upload artefact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ inputs.app_name }}-${{ steps.san.outputs.name }}
+                  path: ${{ inputs.project_path }}/build/${{ steps.san.outputs.name }}
+                  if-no-files-found: error
+
+    itch:
+        name: Itch.io Publish
+        needs: [version_gate, build]
+        if: needs.version_gate.outputs.should_publish == 'true' && inputs.deploy_to_itch && inputs.itch_user != '' && inputs.itch_game != ''
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        strategy:
+            fail-fast: false
+            matrix:
+                preset: ${{ fromJSON(inputs.build_targets) }}
+        steps:
+            - name: Sanitize preset name
+              id: san
+              run: echo "name=$(echo '${{ matrix.preset }}' | tr '/' '-' | tr ' ' '-')" >> "$GITHUB_OUTPUT"
+            - uses: actions/download-artifact@v4
+              with:
+                  name: ${{ inputs.app_name }}-${{ steps.san.outputs.name }}
+                  path: ./build
+            - name: Install butler
+              run: |
+                  curl -L -o butler.zip 'https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default'
+                  unzip -q butler.zip
+                  chmod +x butler
+            - name: Channel from preset
+              id: chan
+              run: |
+                  CASE=$(echo '${{ matrix.preset }}' | tr '[:upper:]' '[:lower:]')
+                  case "$CASE" in
+                    *html*|*web*)   echo "channel=html5"   >> "$GITHUB_OUTPUT" ;;
+                    *windows*|*win*)echo "channel=windows" >> "$GITHUB_OUTPUT" ;;
+                    *mac*|*osx*)    echo "channel=mac"     >> "$GITHUB_OUTPUT" ;;
+                    *linux*|*x11*)  echo "channel=linux"   >> "$GITHUB_OUTPUT" ;;
+                    *android*)      echo "channel=android" >> "$GITHUB_OUTPUT" ;;
+                    *)              echo "channel=${{ steps.san.outputs.name }}" >> "$GITHUB_OUTPUT" ;;
+                  esac
+            - name: Push to itch
+              env:
+                  BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+              run: |
+                  ./butler push ./build "${{ inputs.itch_user }}/${{ inputs.itch_game }}:${{ steps.chan.outputs.channel }}" \
+                    --userversion "${{ inputs.manifest_version }}"
+
+    post_publish_sync:
+        name: Post-publish version sync
+        needs: [version_gate, build, itch]
+        if: always() && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' && (needs.itch.result == 'success' || needs.itch.result == 'skipped')
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: write
+            pull-requests: write
+        steps:
+            - uses: actions/checkout@v6
+            - if: ${{ inputs.version_toml != '' }}
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  BRANCH="godot-sync-${{ inputs.app_name }}-${{ inputs.manifest_version }}"
+                  git checkout -b "$BRANCH"
+                  sed -i.bak "s/^version = \".*\"/version = \"${{ inputs.manifest_version }}\"/" "${{ inputs.version_toml }}"
+                  rm -f "${{ inputs.version_toml }}.bak"
+                  git add "${{ inputs.version_toml }}"
+                  git commit -m "chore(${{ inputs.app_name }}): post-publish sync to v${{ inputs.manifest_version }}" || exit 0
+                  git push origin "$BRANCH"
+                  gh pr create --title "chore(${{ inputs.app_name }}): post-publish sync v${{ inputs.manifest_version }}" \
+                    --body "Auto-generated post-publish sync." --base main --head "$BRANCH"

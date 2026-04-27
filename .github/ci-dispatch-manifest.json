@@ -581,6 +581,10 @@
 			"version_toml": "apps/rareicon/unreal-rareicon/version.toml"
 		}
 	],
+	"unity": [],
+	"godot": [],
+	"unreal_game": [],
+	"bevy_game": [],
 	"summary": {
 		"docker": 20,
 		"npm": 4,

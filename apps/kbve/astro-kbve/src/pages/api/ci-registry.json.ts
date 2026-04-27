@@ -76,13 +76,39 @@ interface Ue5ServerEntry {
 	version_toml?: string;
 }
 
+// Common shape for all four game-engine pipelines (unity / godot /
+// unreal_game / bevy_game). The per-engine workflow reads the engine
+// sub-object for matrix fan-out.
+interface GameEntryBase {
+	key: string;
+	app_name: string;
+	source_path?: string;
+	version?: string;
+	version_toml?: string;
+	version_source?: string;
+	version_target?: string;
+	runner?: string;
+	has_test?: boolean;
+	engine: NonNullable<ICiProject['engine']>;
+	external_publish?: ICiProject['external_publish'];
+}
+
+interface UnityEntry extends GameEntryBase {}
+interface GodotEntry extends GameEntryBase {}
+interface UnrealGameEntry extends GameEntryBase {}
+interface BevyGameEntry extends GameEntryBase {}
+
 type ManifestEntry =
 	| DockerEntry
 	| NpmEntry
 	| CratesEntry
 	| PythonEntry
 	| UnrealEntry
-	| Ue5ServerEntry;
+	| Ue5ServerEntry
+	| UnityEntry
+	| GodotEntry
+	| UnrealGameEntry
+	| BevyGameEntry;
 
 interface DispatchManifest {
 	docker: DockerEntry[];
@@ -91,6 +117,10 @@ interface DispatchManifest {
 	python: PythonEntry[];
 	unreal: UnrealEntry[];
 	ue5_server: Ue5ServerEntry[];
+	unity: UnityEntry[];
+	godot: GodotEntry[];
+	unreal_game: UnrealGameEntry[];
+	bevy_game: BevyGameEntry[];
 	index: Record<string, number>;
 	summary: Record<string, number>;
 }
@@ -198,6 +228,28 @@ function toManifestEntry(
 				...(vt && { version_toml: vt }),
 			};
 		}
+		case 'unity':
+		case 'godot':
+		case 'unreal_game':
+		case 'bevy_game': {
+			if (!d.app_name || !d.engine) return null;
+			const ge: GameEntryBase = {
+				key: d.key!,
+				app_name: d.app_name,
+				engine: d.engine,
+				...(d.source_path && { source_path: d.source_path }),
+				...(ver && { version: ver }),
+				...(vt && { version_toml: vt }),
+				...(mdxPath && { version_source: mdxPath }),
+				...(d.version_target && { version_target: d.version_target }),
+				...(d.runner && { runner: d.runner }),
+				...(d.has_test !== undefined && { has_test: d.has_test }),
+				...(d.external_publish && {
+					external_publish: d.external_publish,
+				}),
+			};
+			return ge;
+		}
 		default:
 			return null;
 	}
@@ -233,6 +285,10 @@ export const GET = async () => {
 		python: [],
 		unreal: [],
 		ue5_server: [],
+		unity: [],
+		godot: [],
+		unreal_game: [],
+		bevy_game: [],
 		index: {},
 		summary: {},
 	};
@@ -250,7 +306,16 @@ export const GET = async () => {
 
 		const pipeline = d.pipeline as keyof Pick<
 			DispatchManifest,
-			'docker' | 'npm' | 'crates' | 'python' | 'unreal' | 'ue5_server'
+			| 'docker'
+			| 'npm'
+			| 'crates'
+			| 'python'
+			| 'unreal'
+			| 'ue5_server'
+			| 'unity'
+			| 'godot'
+			| 'unreal_game'
+			| 'bevy_game'
 		>;
 		const arr = manifest[pipeline] as ManifestEntry[];
 		const idx = arr.length;
