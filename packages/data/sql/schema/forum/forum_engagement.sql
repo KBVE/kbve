@@ -49,6 +49,43 @@ CREATE TRIGGER thread_votes_updated_at
     BEFORE UPDATE ON forum.thread_votes
     FOR EACH ROW EXECUTE FUNCTION forum.update_updated_at();
 
+-- Identity guard. Catches service_role mistakes that try to UPDATE the
+-- (thread_id, voter_id) primary key columns instead of upserting.
+-- Shared across thread/comment/poll vote tables — TG_TABLE_NAME picks
+-- the right column pair.
+CREATE OR REPLACE FUNCTION forum.prevent_vote_identity_mutation()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF TG_TABLE_NAME = 'thread_votes' THEN
+        IF NEW.thread_id IS DISTINCT FROM OLD.thread_id
+        OR NEW.voter_id  IS DISTINCT FROM OLD.voter_id THEN
+            RAISE EXCEPTION 'thread_votes identity fields are immutable';
+        END IF;
+    ELSIF TG_TABLE_NAME = 'comment_votes' THEN
+        IF NEW.comment_id IS DISTINCT FROM OLD.comment_id
+        OR NEW.voter_id   IS DISTINCT FROM OLD.voter_id THEN
+            RAISE EXCEPTION 'comment_votes identity fields are immutable';
+        END IF;
+    ELSIF TG_TABLE_NAME = 'poll_votes' THEN
+        IF NEW.thread_id IS DISTINCT FROM OLD.thread_id
+        OR NEW.voter_id  IS DISTINCT FROM OLD.voter_id THEN
+            RAISE EXCEPTION 'poll_votes identity fields are immutable';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION forum.prevent_vote_identity_mutation() FROM PUBLIC;
+
+CREATE TRIGGER thread_votes_identity_immutable
+    BEFORE UPDATE ON forum.thread_votes
+    FOR EACH ROW EXECUTE FUNCTION forum.prevent_vote_identity_mutation();
+
 ALTER TABLE forum.thread_votes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE forum.thread_votes FORCE ROW LEVEL SECURITY;
 
@@ -80,6 +117,10 @@ CREATE INDEX idx_comment_votes_comment_dir
 CREATE TRIGGER comment_votes_updated_at
     BEFORE UPDATE ON forum.comment_votes
     FOR EACH ROW EXECUTE FUNCTION forum.update_updated_at();
+
+CREATE TRIGGER comment_votes_identity_immutable
+    BEFORE UPDATE ON forum.comment_votes
+    FOR EACH ROW EXECUTE FUNCTION forum.prevent_vote_identity_mutation();
 
 ALTER TABLE forum.comment_votes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE forum.comment_votes FORCE ROW LEVEL SECURITY;
@@ -129,6 +170,33 @@ CREATE INDEX idx_reactions_target_counts
     ON forum.reactions (parent_kind, parent_id, kind, custom_kind);
 CREATE INDEX idx_reactions_user
     ON forum.reactions (user_id, created_at DESC);
+-- "Did I react to this parent?" UI lookup (per-user reactions on a
+-- given target). Distinct from idx_reactions_user (recent activity).
+CREATE INDEX idx_reactions_user_parent
+    ON forum.reactions (user_id, parent_kind, parent_id, kind, custom_kind);
+
+-- Lowercase + trim so dedupe and UI matching see canonical strings.
+CREATE OR REPLACE FUNCTION forum.normalize_reaction_custom_kind()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+    IF NEW.custom_kind IS NOT NULL THEN
+        NEW.custom_kind := lower(trim(NEW.custom_kind));
+        IF NEW.custom_kind = '' THEN
+            NEW.custom_kind := NULL;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION forum.normalize_reaction_custom_kind() FROM PUBLIC;
+
+CREATE TRIGGER reactions_normalize_custom_kind
+    BEFORE INSERT OR UPDATE OF custom_kind ON forum.reactions
+    FOR EACH ROW EXECUTE FUNCTION forum.normalize_reaction_custom_kind();
 
 ALTER TABLE forum.reactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE forum.reactions FORCE ROW LEVEL SECURITY;
@@ -203,9 +271,11 @@ CREATE INDEX idx_auction_bids_bidder
 CREATE INDEX idx_auction_bids_bidder_thread
     ON forum.auction_bids (bidder_id, thread_id, created_at DESC);
 -- Hot path for "current winning bid": filter retracted out, sort by
--- amount desc + earliest tiebreaker.
+-- amount desc + earliest tiebreaker. INCLUDE keeps bidder_id +
+-- currency in the leaf so winner display can be index-only.
 CREATE INDEX idx_auction_bids_current
     ON forum.auction_bids (thread_id, amount DESC, created_at ASC)
+    INCLUDE (bidder_id, currency)
     WHERE retracted = FALSE;
 
 CREATE OR REPLACE FUNCTION forum.normalize_auction_bid_currency()
@@ -252,6 +322,32 @@ CREATE TRIGGER auction_bids_valid
     BEFORE INSERT ON forum.auction_bids
     FOR EACH ROW EXECUTE FUNCTION forum.assert_auction_bid_valid();
 
+-- Append-only at the row layer: only `retracted` may flip after insert.
+CREATE OR REPLACE FUNCTION forum.prevent_auction_bid_mutation()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF NEW.id          IS DISTINCT FROM OLD.id
+    OR NEW.thread_id   IS DISTINCT FROM OLD.thread_id
+    OR NEW.bidder_id   IS DISTINCT FROM OLD.bidder_id
+    OR NEW.amount      IS DISTINCT FROM OLD.amount
+    OR NEW.currency    IS DISTINCT FROM OLD.currency
+    OR NEW.created_at  IS DISTINCT FROM OLD.created_at THEN
+        RAISE EXCEPTION 'auction bids are append-only; only retracted may change';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION forum.prevent_auction_bid_mutation() FROM PUBLIC;
+
+CREATE TRIGGER auction_bids_append_only
+    BEFORE UPDATE ON forum.auction_bids
+    FOR EACH ROW EXECUTE FUNCTION forum.prevent_auction_bid_mutation();
+
 ALTER TABLE forum.auction_bids ENABLE ROW LEVEL SECURITY;
 ALTER TABLE forum.auction_bids FORCE ROW LEVEL SECURITY;
 
@@ -280,22 +376,38 @@ CREATE TABLE forum.poll_votes (
 );
 
 CREATE INDEX idx_poll_votes_thread ON forum.poll_votes (thread_id);
+-- "My recent poll votes" UI lookup, parallel to thread/comment vote indexes.
+CREATE INDEX idx_poll_votes_voter_recent
+    ON forum.poll_votes (voter_id, updated_at DESC);
 
 CREATE TRIGGER poll_votes_updated_at
     BEFORE UPDATE ON forum.poll_votes
     FOR EACH ROW EXECUTE FUNCTION forum.update_updated_at();
 
+CREATE TRIGGER poll_votes_identity_immutable
+    BEFORE UPDATE ON forum.poll_votes
+    FOR EACH ROW EXECUTE FUNCTION forum.prevent_vote_identity_mutation();
+
+-- Single pass over the array: collect total count, distinct count,
+-- and non-negative count in one unnest scan.
 CREATE OR REPLACE FUNCTION forum.assert_poll_vote_options_unique()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 SET search_path = ''
 AS $$
+DECLARE
+    v_total      INTEGER;
+    v_distinct   INTEGER;
+    v_non_neg    INTEGER;
 BEGIN
-    IF EXISTS (SELECT 1 FROM unnest(NEW.option_indices) AS x WHERE x < 0) THEN
+    SELECT COUNT(*), COUNT(DISTINCT x), COUNT(*) FILTER (WHERE x >= 0)
+      INTO v_total, v_distinct, v_non_neg
+      FROM unnest(NEW.option_indices) AS x;
+
+    IF v_non_neg <> v_total THEN
         RAISE EXCEPTION 'poll option indices must be non-negative';
     END IF;
-    IF (SELECT COUNT(*)          FROM unnest(NEW.option_indices) AS x)
-     <> (SELECT COUNT(DISTINCT x) FROM unnest(NEW.option_indices) AS x) THEN
+    IF v_distinct <> v_total THEN
         RAISE EXCEPTION 'poll option indices must be unique';
     END IF;
     RETURN NEW;
@@ -308,38 +420,10 @@ CREATE TRIGGER poll_votes_unique_options
     BEFORE INSERT OR UPDATE OF option_indices ON forum.poll_votes
     FOR EACH ROW EXECUTE FUNCTION forum.assert_poll_vote_options_unique();
 
-CREATE OR REPLACE FUNCTION forum.assert_poll_vote_valid()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1
-          FROM forum.threads
-         WHERE id = NEW.thread_id
-           AND thread_type = 'poll'
-           AND status = 'active'
-           AND locked = FALSE
-    ) THEN
-        RAISE EXCEPTION 'poll votes only allowed on active unlocked poll threads';
-    END IF;
-    RETURN NEW;
-END;
-$$;
-
-REVOKE ALL ON FUNCTION forum.assert_poll_vote_valid() FROM PUBLIC;
-
-CREATE TRIGGER poll_votes_valid
-    BEFORE INSERT OR UPDATE OF thread_id ON forum.poll_votes
-    FOR EACH ROW EXECUTE FUNCTION forum.assert_poll_vote_valid();
-
--- Cross-row gate: every option_index must point at a defined option in
--- the parent thread's type_data->'options' array. Cheaper than the RPC
--- looking it up because the JSONB row is already in cache from the
--- _valid trigger above.
-CREATE OR REPLACE FUNCTION forum.assert_poll_vote_options_in_range()
+-- Combined gate: poll thread must be active+unlocked AND every
+-- option_index must fall within type_data->'options'. Single thread
+-- lookup serves both checks (was two lookups before).
+CREATE OR REPLACE FUNCTION forum.assert_poll_vote_valid_full()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -348,14 +432,16 @@ AS $$
 DECLARE
     v_option_count INTEGER;
 BEGIN
-    SELECT jsonb_array_length(type_data->'options')
+    SELECT jsonb_array_length(t.type_data->'options')
       INTO v_option_count
-      FROM forum.threads
-     WHERE id = NEW.thread_id
-       AND thread_type = 'poll';
+      FROM forum.threads t
+     WHERE t.id          = NEW.thread_id
+       AND t.thread_type = 'poll'
+       AND t.status      = 'active'
+       AND t.locked      = FALSE;
 
     IF v_option_count IS NULL OR v_option_count <= 0 THEN
-        RAISE EXCEPTION 'poll has no options';
+        RAISE EXCEPTION 'poll votes only allowed on active unlocked polls with options';
     END IF;
 
     IF EXISTS (
@@ -370,11 +456,11 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION forum.assert_poll_vote_options_in_range() FROM PUBLIC;
+REVOKE ALL ON FUNCTION forum.assert_poll_vote_valid_full() FROM PUBLIC;
 
-CREATE TRIGGER poll_votes_options_in_range
+CREATE TRIGGER poll_votes_valid_full
     BEFORE INSERT OR UPDATE OF thread_id, option_indices ON forum.poll_votes
-    FOR EACH ROW EXECUTE FUNCTION forum.assert_poll_vote_options_in_range();
+    FOR EACH ROW EXECUTE FUNCTION forum.assert_poll_vote_valid_full();
 
 ALTER TABLE forum.poll_votes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE forum.poll_votes FORCE ROW LEVEL SECURITY;
@@ -402,12 +488,12 @@ GRANT SELECT ON forum.poll_votes    TO authenticated;
 -- No GRANT INSERT/UPDATE/DELETE on engagement tables to authenticated.
 -- All mutations route through service_* RPCs (service_role only).
 -- Explicit REVOKE belt-and-suspenders against any future schema-wide
--- GRANT ALL.
-REVOKE INSERT, UPDATE, DELETE ON forum.thread_votes  FROM authenticated;
-REVOKE INSERT, UPDATE, DELETE ON forum.comment_votes FROM authenticated;
-REVOKE INSERT, UPDATE, DELETE ON forum.poll_votes    FROM authenticated;
-REVOKE INSERT, UPDATE, DELETE ON forum.auction_bids  FROM authenticated;
-REVOKE INSERT, UPDATE, DELETE ON forum.reactions     FROM authenticated;
+-- GRANT ALL — applied to both authenticated and anon for completeness.
+REVOKE INSERT, UPDATE, DELETE ON forum.thread_votes  FROM authenticated, anon;
+REVOKE INSERT, UPDATE, DELETE ON forum.comment_votes FROM authenticated, anon;
+REVOKE INSERT, UPDATE, DELETE ON forum.poll_votes    FROM authenticated, anon;
+REVOKE INSERT, UPDATE, DELETE ON forum.auction_bids  FROM authenticated, anon;
+REVOKE INSERT, UPDATE, DELETE ON forum.reactions     FROM authenticated, anon;
 
 -- service_role bypasses RLS, but explicit GRANT keeps RPC writes
 -- working even if a future schema-wide REVOKE ALL strips defaults.
@@ -416,5 +502,18 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON forum.comment_votes TO service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON forum.poll_votes    TO service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON forum.auction_bids  TO service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON forum.reactions     TO service_role;
+
+-- Documentation. Future migrations should not GRANT writes to anon /
+-- authenticated; mutations belong inside service_* RPCs.
+COMMENT ON TABLE forum.thread_votes  IS
+    'Private vote rows. RPC-only mutation surface. Do not grant direct writes to anon/authenticated.';
+COMMENT ON TABLE forum.comment_votes IS
+    'Private comment vote rows. RPC-only mutation surface. Do not grant direct writes to anon/authenticated.';
+COMMENT ON TABLE forum.reactions     IS
+    'Publicly readable reactions. RPC-only mutation surface. Parent validity enforced by trigger.';
+COMMENT ON TABLE forum.auction_bids  IS
+    'Append-only auction bid history. RPC-only mutation surface. Only retracted is mutable post-insert.';
+COMMENT ON TABLE forum.poll_votes    IS
+    'Private poll vote audit rows. RPC-only mutation surface.';
 
 COMMIT;
