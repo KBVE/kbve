@@ -175,6 +175,13 @@ namespace RareIcon
         public LandmarkInspectMessage(Unity.Entities.Entity landmark) => Landmark = landmark;
     }
 
+    /// <summary>"Player clicked an item slot / world drop" — opens the Item Details modal.</summary>
+    public readonly struct ItemInspectMessage
+    {
+        public readonly ushort ItemId;
+        public ItemInspectMessage(ushort itemId) => ItemId = itemId;
+    }
+
     /// <summary>"Player clicked a unit hex (not the one already controlled)" — possession target.</summary>
     public readonly struct PossessUnitMessage
     {
