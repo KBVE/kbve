@@ -1,0 +1,36 @@
+---
+title: bevy_behavior
+description: |
+    bevy_behavior — Game-agnostic behavior tree engine for Bevy. Composable nodes, cooldown tracking, observation traits.
+sidebar:
+    label: bevy_behavior
+tags:
+    - crates
+    - rust
+    - bevy
+    - ai
+key: bevy_behavior_crate
+pipeline: crates
+package_name: bevy_behavior
+version: "0.0.0"
+source_path: packages/rust/bevy/bevy_behavior
+version_source: packages/rust/bevy/bevy_behavior/Cargo.toml
+version_target: packages/rust/bevy/bevy_behavior/Cargo.toml
+version_toml: packages/rust/bevy/bevy_behavior/version.toml
+author: h0lybyte
+license: MIT
+status: active
+---
+
+## Overview
+
+Game-agnostic behavior tree engine that drives NPCs across Minecraft, Bevy Isometric, Discord MUD, and Unity. Pure Rust core with optional Bevy integration.
+
+## Surface
+
+- `BehaviorNode<O, A, C>` generic node trait
+- `Selector` / `Sequence` composites
+- `BehaviorContext` / `CooldownState` / `TickCooldown`
+- `Positioned` / `Healthed` / `Aware` / `Ticked` observation traits
+
+Enable the `bevy` feature for `Resource`/`Component` derives.

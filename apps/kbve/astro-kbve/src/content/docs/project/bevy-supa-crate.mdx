@@ -1,0 +1,38 @@
+---
+title: bevy_supa
+description: |
+    bevy_supa — Agnostic Supabase (PostgREST) client with optional Bevy integration. Native HTTP now, WASM stub for later.
+sidebar:
+    label: bevy_supa
+tags:
+    - crates
+    - rust
+    - bevy
+    - supabase
+    - http
+key: bevy_supa_crate
+pipeline: crates
+package_name: bevy_supa
+version: "0.0.0"
+source_path: packages/rust/bevy/bevy_supa
+version_source: packages/rust/bevy/bevy_supa/Cargo.toml
+version_target: packages/rust/bevy/bevy_supa/Cargo.toml
+version_toml: packages/rust/bevy/bevy_supa/version.toml
+author: h0lybyte
+license: MIT
+status: active
+---
+
+## Overview
+
+Transport-agnostic Supabase / PostgREST client. The default feature set ships the `native` HTTP transport (`reqwest` + rustls). Bevy integration is opt-in so that lean consumers (JNI cdylibs, CLIs) stay slim.
+
+## Features
+
+| Feature | Description |
+| --- | --- |
+| `native` (default) | `reqwest` + rustls native HTTP transport |
+| `wasm` | Browser `fetch` transport (stub — not yet implemented) |
+| `bevy` | `BevySupaPlugin` + `SupaClient` Bevy `Resource` |
+
+Disable default features when only the type surface is needed (build scripts, codegen).

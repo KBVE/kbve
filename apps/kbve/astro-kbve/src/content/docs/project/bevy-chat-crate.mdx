@@ -1,0 +1,37 @@
+---
+title: bevy_chat
+description: |
+    bevy_chat — IRC-backed chat and event bridge for MUD/game clients with optional Bevy plugin.
+sidebar:
+    label: bevy_chat
+tags:
+    - crates
+    - rust
+    - bevy
+    - irc
+    - chat
+key: bevy_chat_crate
+pipeline: crates
+package_name: bevy_chat
+version: "0.0.0"
+source_path: packages/rust/bevy/bevy_chat
+version_source: packages/rust/bevy/bevy_chat/Cargo.toml
+version_target: packages/rust/bevy/bevy_chat/Cargo.toml
+version_toml: packages/rust/bevy/bevy_chat/version.toml
+author: h0lybyte
+license: MIT
+status: active
+---
+
+## Overview
+
+Headless async IRC client with a unified API across native (tokio TCP) and WASM (`web_sys::WebSocket`) targets. Used by the Discord bot, the Lightyear server, and the in-browser isometric game.
+
+## Features
+
+| Feature | Description |
+| --- | --- |
+| `plugin` | Bevy `ChatPlugin` bridging IRC traffic into ECS events |
+| `ffi` | C-FFI surface (native only) for JNI / `csbindgen` consumers |
+
+The default feature set is the headless client with no Bevy or FFI surface pulled in.

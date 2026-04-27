@@ -1,0 +1,66 @@
+{
+	"name": "bevy_db",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/rust/bevy/bevy_db/src",
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo build -p bevy_db"],
+				"cwd": "packages/rust/bevy/bevy_db"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo test -p bevy_db"],
+				"cwd": "packages/rust/bevy/bevy_db"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo clippy -p bevy_db -- -D warnings"],
+				"cwd": "packages/rust/bevy/bevy_db"
+			}
+		},
+		"check-wasm": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo +nightly check -p bevy_db --target wasm32-unknown-unknown"
+				],
+				"cwd": "packages/rust/bevy/bevy_db"
+			}
+		},
+		"check-desktop": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo check -p bevy_db"],
+				"cwd": "packages/rust/bevy/bevy_db"
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"nx run bevy_db:test",
+					"nx run bevy_db:check-wasm",
+					"nx run bevy_db:check-desktop"
+				]
+			}
+		},
+		"dry": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo publish -p bevy_db --dry-run --allow-dirty"
+				],
+				"parallel": false
+			}
+		}
+	}
+}

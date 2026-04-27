@@ -22,7 +22,7 @@ rand = "0.10"
 # Shared behavior tree engine — enables the optional BehaviorPolicy
 # component that lets consumers override the random enemy_turn roll
 # with a conditional tree. No tree attached = unchanged random behavior.
-bevy_behavior = { path = "../bevy_behavior" }
+bevy_behavior = { version = "0.1", path = "../bevy_behavior" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.4", features = ["wasm_js"] }
