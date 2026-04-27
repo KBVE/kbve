@@ -1374,17 +1374,19 @@
 			"spawnCount": 1,
 			"blocksMovement": true,
 			"interaction": "shrine",
-			"interactionCooldownSecs": 600,
 			"faction": "neutral",
 			"maxHealth": 800,
 			"shrine": {
+				"cadenceTurns": 3,
 				"rewardCoin": 25,
 				"rewardItems": [
 					{
 						"itemRef": "herb",
 						"amount": 3
 					}
-				]
+				],
+				"territoryActive": true,
+				"kingVisitActive": true
 			}
 		},
 		{

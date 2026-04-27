@@ -615,14 +615,21 @@ message UpgradeChainSpec {
   repeated UpgradeSpec tiers = 1;
 }
 
-// One-shot or cooldown-gated reward grant — clicked shrines, blessings.
+// Turn-cadenced shrine grant. Anchored to WorldClock.TurnIndex so the
+// shrine acts like passive production rather than a wall-clock cooldown.
+// Bonus fires when (`territory_active` AND shrine is inside player
+// territory) OR (`king_visit_active` AND the King's root hex == shrine
+// hex), gated by `cadence_turns` between grants.
 message ShrineSpec {
-  int32 reward_coin = 1;
-  repeated IngredientSpec reward_items = 2;
-  optional string xp_skill_ref = 3;     // skill slug (e.g. "scavenging")
-  optional int32 xp_amount = 4;
-  optional string buff_ref = 5;         // status effect slug applied on use
-  optional float buff_duration_secs = 6;
+  int32 cadence_turns      = 1;          // turns between grants (3–4 typical)
+  int32 reward_coin        = 2;
+  repeated IngredientSpec reward_items = 3;
+  bool  territory_active   = 4;          // grants while inside player territory
+  bool  king_visit_active  = 5;          // grants while King is on shrine hex
+  optional string xp_skill_ref     = 6;
+  optional int32  xp_amount        = 7;
+  optional string buff_ref         = 8;
+  optional float  buff_duration_secs = 9;
 }
 
 // Shop offer — one tradable item line.
@@ -766,7 +773,6 @@ message WorldObjectDef {
   // identifies the landmark's allegiance ("neutral" | "hostile" |
   // "player" | named faction slug) — drives combat/aggression rules.
   optional InteractionKind interaction = 58;
-  optional int32 interaction_cooldown_secs = 59;
   optional ShrineSpec shrine = 60;
   optional ShopSpec shop = 61;
   optional DungeonSpec dungeon = 62;

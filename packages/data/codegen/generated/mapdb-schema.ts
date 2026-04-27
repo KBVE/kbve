@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/mapdb.binpb
  * Config: ../mapdb-zod-config.json
- * Generated: 2026-04-26T19:55:33.137Z
+ * Generated: 2026-04-26T20:03:40.460Z
  */
 
 import { z } from 'zod';
@@ -739,8 +739,11 @@ export type UpgradeChainSpec = z.infer<typeof UpgradeChainSpecSchema>;
 
 // ShrineSpec
 export const ShrineSpecSchema = z.object({
+	cadence_turns: z.number(),
 	reward_coin: z.number(),
 	reward_items: z.array(IngredientSpecSchema).optional(),
+	territory_active: z.boolean(),
+	king_visit_active: z.boolean(),
 	xp_skill_ref: z.string().optional(),
 	xp_amount: z.number().optional(),
 	buff_ref: z.string().optional(),
@@ -855,7 +858,6 @@ export const WorldObjectDefSchema = z.object({
 	raid: RaidSpecSchema.optional(),
 	upgrade_chain: UpgradeChainSpecSchema.optional(),
 	interaction: z.string().optional(),
-	interaction_cooldown_secs: z.number().optional(),
 	shrine: ShrineSpecSchema.optional(),
 	shop: ShopSpecSchema.optional(),
 	dungeon: DungeonSpecSchema.optional(),
