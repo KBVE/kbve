@@ -139,6 +139,23 @@
 				"cwd": "{workspaceRoot}"
 			},
 			"cache": true
+		},
+		"sync:itemdb-atlas": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/src/content/docs/itemdb/*.mdx",
+				"{projectRoot}/public/assets/items/**/*.png",
+				"{workspaceRoot}/packages/data/codegen/gen-itemdb-atlas.mjs"
+			],
+			"outputs": [
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb-atlas.png",
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-itemdb-atlas.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
 		}
 	}
 }
