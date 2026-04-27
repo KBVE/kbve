@@ -17,9 +17,10 @@
             <a href="/forum/">Forum</a> › <a href="/forum/s/{{ space_slug }}">{{ space_name }}</a>
         </nav>
         <h1>{{ thread_title }}</h1>
-        <p>
-            by <a href="/@{{ author_username }}">@{{ author_username }}</a>
+        <p data-thread-id="{{ thread_slug_or_id }}">
+            by <a href="/@{{ author_username }}" data-avatar="{{ author_avatar_url }}">@{{ author_username }}</a>
             · {{ created_at_human }}
+            · last activity {{ last_activity_human }}
             · {{ score }} pts
             · {{ comment_count }} replies
         </p>

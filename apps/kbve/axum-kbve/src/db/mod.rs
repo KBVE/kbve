@@ -2,6 +2,7 @@
 
 mod cache;
 mod discord;
+mod forum;
 pub mod mc;
 mod osrs;
 mod profile;
@@ -23,6 +24,9 @@ pub(crate) fn ensure_https(url: &str) -> Result<&str, String> {
 
 pub use cache::{get_profile_cache, init_profile_cache};
 pub use discord::{DiscordClient, get_discord_client, get_role_names, init_discord_client};
+pub use forum::{
+    CommentRow, FeedQuery, FeedRow, SpaceRow, ThreadRow, get_forum_service, init_forum_service,
+};
 pub use mc::{get_mc_service, init_mc_service};
 pub use osrs::{get_osrs_cache, init_osrs_cache};
 pub use profile::{UserProfile, get_profile_service, init_profile_service, validate_username};

@@ -1,0 +1,16 @@
+<article class="forum-feed__item">
+  <header class="forum-feed__item-header">
+    <a class="forum-feed__item-title" href="/forum/t/{{ thread_slug_or_id }}">
+      {%- if pinned %}<span class="forum-feed__pin" aria-label="Pinned">📌</span> {% endif -%}
+      {{ title }}
+    </a>
+    <p class="forum-feed__item-meta">
+      <a href="/forum/s/{{ space_slug }}">{{ space_name }}</a>
+      · <span title="{{ author_id }}">{{ author_short }}</span>
+      · {{ created_at_human }}
+      · {{ score }} pts
+      · {{ comment_count }} replies
+    </p>
+  </header>
+  <div class="forum-feed__item-body">{{ body_excerpt_html|safe }}</div>
+</article>

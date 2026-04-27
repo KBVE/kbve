@@ -75,6 +75,12 @@ async fn main() -> anyhow::Result<()> {
         info!("MC service not configured (set MC_RCON_HOST to enable)");
     }
 
+    if db::init_forum_service() {
+        info!("Forum service initialized - SSR forum routes enabled");
+    } else {
+        info!("Forum service not configured - /forum routes will 503");
+    }
+
     let _osrs_cache = db::init_osrs_cache().await;
     info!("OSRS cache actor started");
 
