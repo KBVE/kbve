@@ -163,6 +163,7 @@ pub struct ForumFeedTemplate {
 
 /// Per-row partial for forum feed items. Rendered inside
 /// `forum_feed_handler` and concatenated into `feed_items_html`.
+#[allow(dead_code)] // space_name kept for future "rich space chip" surface
 #[derive(Template)]
 #[template(path = "askama/forum/feed/_item.html")]
 pub struct ForumFeedItemPartial {

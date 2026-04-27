@@ -1,79 +1,435 @@
 ---
-// AskamaForumFeedProvider — forum landing + space feed template.
+// AskamaForumFeedProvider — first-class forum landing + space feed.
 // Served by axum-kbve at /forum/ and /forum/s/{slug}.
 //
 // Askama placeholders consumed by axum-kbve's ForumFeedTemplate:
-//   {{ feed_heading }}        — "Forum" / space name / tag label
+//   {{ feed_heading }}        — "KBVE Forum" / space name
 //   {{ feed_meta_description }}
 //   {{ feed_og_title }}
 //   {{ feed_canonical_suffix }}
-//   {{ active_sort_label }}   — "Hot", "New", "Top", etc.
+//   {{ active_sort_label }}   — "Hot" | "New" | "Top" | "Bump"
 //   {{ feed_items_html }}     — pre-rendered list of FeedItem cards
-//   {{ pagination_html }}     — next/prev cursor controls
-//   {{ spaces_nav_html }}     — sidebar / top nav of spaces
+//   {{ pagination_html }}     — cursor pagination controls
+//   {{ spaces_nav_html }}     — sidebar list of spaces
 //
-// feed_items_html is composed server-side from per-item askama partials so
-// each card has consistent sanitized output (title, truncated body_html,
-// author, tags, score, comment count). No raw user input reaches this slot.
+// `feed_items_html`, `pagination_html`, and `spaces_nav_html` arrive as
+// already-sanitized HTML composed server-side from per-row askama
+// partials. They go through `set:html` directly. Plain text fields
+// (heading / sort label) use askama's default escape.
 ---
 
-<main class="forum-feed">
-	<header class="forum-feed__header">
-		<h1 class="forum-feed__heading">{`{{ feed_heading }}`}</h1>
-		<div class="forum-feed__sort">
-			<span aria-hidden="true">Sort:</span>
-			<strong>{`{{ active_sort_label }}`}</strong>
+<div class="forum-shell">
+	<header class="forum-shell__header">
+		<div class="forum-shell__header-row">
+			<h1 class="forum-shell__heading">{`{{ feed_heading }}`}</h1>
+			<a class="forum-shell__post-cta" href="/forum/compose">
+				+ New thread
+			</a>
 		</div>
+
+		<nav
+			class="forum-sort"
+			aria-label="Sort threads"
+			data-active={`{{ active_sort_label }}`}>
+			<a class="forum-sort__tab" data-sort="Hot" href="?sort=hot">
+				<span class="forum-sort__icon" aria-hidden="true">🔥</span> Hot
+			</a>
+			<a class="forum-sort__tab" data-sort="New" href="?sort=new">
+				<span class="forum-sort__icon" aria-hidden="true">✨</span> New
+			</a>
+			<a class="forum-sort__tab" data-sort="Top" href="?sort=top">
+				<span class="forum-sort__icon" aria-hidden="true">⭐</span> Top
+			</a>
+			<a class="forum-sort__tab" data-sort="Bump" href="?sort=bump">
+				<span class="forum-sort__icon" aria-hidden="true">💬</span>
+				Active
+			</a>
+		</nav>
 	</header>
 
-	<nav
-		class="forum-feed__spaces"
-		aria-label="Spaces"
-		set:html={`{{ spaces_nav_html }}`}
-	/>
+	<div class="forum-shell__layout">
+		<main class="forum-shell__main">
+			<section
+				class="forum-feed"
+				aria-label="Threads"
+				set:html={`{{ feed_items_html }}`}
+			/>
 
-	<section class="forum-feed__items" set:html={`{{ feed_items_html }}`} />
+			<nav
+				class="forum-shell__pagination"
+				aria-label="Pagination"
+				set:html={`{{ pagination_html }}`}
+			/>
+		</main>
 
-	<nav
-		class="forum-feed__pagination"
-		aria-label="Pagination"
-		set:html={`{{ pagination_html }}`}
-	/>
-</main>
+		<aside class="forum-shell__sidebar" aria-label="Forum sidebar">
+			<section class="forum-card">
+				<h2 class="forum-card__title">Spaces</h2>
+				<nav
+					class="forum-card__body"
+					aria-label="Spaces"
+					set:html={`{{ spaces_nav_html }}`}
+				/>
+			</section>
+
+			<section class="forum-card">
+				<h2 class="forum-card__title">Posting rules</h2>
+				<ul class="forum-card__list">
+					<li>Be civil. No personal attacks or harassment.</li>
+					<li>Stay on topic. Off-topic posts get moved.</li>
+					<li>No spam, NSFW outside marked spaces, or piracy.</li>
+					<li>
+						Report issues with the
+						<a href="/contact">contact form</a>.
+					</li>
+				</ul>
+			</section>
+
+			<section class="forum-card forum-card--accent">
+				<h2 class="forum-card__title">Need a username?</h2>
+				<p class="forum-card__copy">
+					Posting requires a KBVE username. Set yours from your
+					profile page.
+				</p>
+				<a class="forum-card__cta" href="/profile">Manage profile →</a>
+			</section>
+		</aside>
+	</div>
+</div>
 
 <style>
-	.forum-feed {
-		max-width: 960px;
+	:root {
+		--forum-accent: var(--sl-color-accent, #8b5cf6);
+		--forum-accent-soft: color-mix(
+			in srgb,
+			var(--forum-accent) 18%,
+			transparent
+		);
+		--forum-bg: var(--sl-color-bg, #09090b);
+		--forum-bg-soft: var(--sl-color-bg-nav, #131318);
+		--forum-bg-card: var(--sl-color-black, #0c0c10);
+		--forum-border: var(--sl-color-gray-5, #2a2a33);
+		--forum-text: var(--sl-color-text, #fafafa);
+		--forum-muted: var(--sl-color-gray-2, #a1a1aa);
+		--forum-radius: 12px;
+		--forum-radius-sm: 8px;
+		--forum-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+	}
+
+	.forum-shell {
+		max-width: 1180px;
 		margin: 0 auto;
-		padding: 2rem 1.5rem;
+		padding: 1.5rem 1.25rem 4rem;
+		color: var(--forum-text);
+	}
+
+	.forum-shell__header {
 		display: grid;
-		gap: 1.25rem;
-	}
-	.forum-feed__header {
-		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
 		gap: 1rem;
+		margin-bottom: 1.5rem;
 	}
-	.forum-feed__heading {
-		font-size: 1.75rem;
+	.forum-shell__header-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+	.forum-shell__heading {
+		font-size: clamp(1.5rem, 2.5vw, 2rem);
+		font-weight: 700;
 		margin: 0;
+		letter-spacing: -0.01em;
 	}
-	.forum-feed__sort {
+	.forum-shell__post-cta {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		background: var(--forum-accent);
+		color: white;
+		padding: 0.55rem 1rem;
+		border-radius: var(--forum-radius-sm);
 		font-size: 0.875rem;
-		color: var(--sl-color-gray-2);
+		font-weight: 600;
+		text-decoration: none;
+		transition:
+			transform 0.12s ease,
+			box-shadow 0.12s ease;
+		box-shadow: var(--forum-shadow);
 	}
-	.forum-feed__spaces {
-		font-size: 0.8125rem;
+	.forum-shell__post-cta:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 	}
-	.forum-feed__items {
+
+	/* ── Sort tabs ─────────────────────────────────────────────── */
+	.forum-sort {
+		display: flex;
+		gap: 0.25rem;
+		padding: 0.35rem;
+		background: var(--forum-bg-soft);
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius);
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+	.forum-sort::-webkit-scrollbar {
+		display: none;
+	}
+	.forum-sort__tab {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.45rem 0.9rem;
+		border-radius: var(--forum-radius-sm);
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: var(--forum-muted);
+		text-decoration: none;
+		white-space: nowrap;
+		transition:
+			background 0.12s ease,
+			color 0.12s ease;
+	}
+	.forum-sort__tab:hover {
+		background: color-mix(in srgb, var(--forum-text) 6%, transparent);
+		color: var(--forum-text);
+	}
+	.forum-sort[data-active='Hot'] .forum-sort__tab[data-sort='Hot'],
+	.forum-sort[data-active='New'] .forum-sort__tab[data-sort='New'],
+	.forum-sort[data-active='Top'] .forum-sort__tab[data-sort='Top'],
+	.forum-sort[data-active='Bump'] .forum-sort__tab[data-sort='Bump'] {
+		background: var(--forum-accent-soft);
+		color: var(--forum-text);
+	}
+	.forum-sort__icon {
+		font-size: 0.95rem;
+		line-height: 1;
+	}
+
+	/* ── Layout ────────────────────────────────────────────────── */
+	.forum-shell__layout {
+		display: grid;
+		gap: 1.5rem;
+		grid-template-columns: minmax(0, 1fr);
+	}
+	@media (min-width: 920px) {
+		.forum-shell__layout {
+			grid-template-columns: minmax(0, 1fr) 280px;
+		}
+	}
+
+	.forum-shell__main {
 		display: grid;
 		gap: 0.75rem;
 	}
-	.forum-feed__pagination {
+
+	/* ── Feed cards (rendered server-side, styled here) ────────── */
+	.forum-feed :global(.forum-feed__item) {
+		display: grid;
+		grid-template-columns: 48px minmax(0, 1fr);
+		gap: 1rem;
+		background: var(--forum-bg-card);
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius);
+		padding: 1rem 1.25rem;
+		transition:
+			border-color 0.15s ease,
+			transform 0.15s ease;
+	}
+	.forum-feed :global(.forum-feed__item:hover) {
+		border-color: var(--forum-accent);
+		transform: translateY(-1px);
+	}
+
+	.forum-feed :global(.forum-feed__score) {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		font-weight: 600;
+		font-size: 1rem;
+		color: var(--forum-text);
+		background: var(--forum-bg-soft);
+		border-radius: var(--forum-radius-sm);
+		padding: 0.5rem 0;
+		gap: 0.15rem;
+		line-height: 1;
+	}
+	.forum-feed :global(.forum-feed__score-label) {
+		font-size: 0.625rem;
+		font-weight: 500;
+		color: var(--forum-muted);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.forum-feed :global(.forum-feed__item-body-col) {
+		display: grid;
+		gap: 0.4rem;
+		min-width: 0;
+	}
+
+	.forum-feed :global(.forum-feed__item-title) {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 1.0625rem;
+		font-weight: 600;
+		color: var(--forum-text);
+		text-decoration: none;
+		line-height: 1.35;
+	}
+	.forum-feed :global(.forum-feed__item-title:hover) {
+		color: var(--forum-accent);
+	}
+	.forum-feed :global(.forum-feed__pin) {
+		font-size: 0.875rem;
+		filter: drop-shadow(0 0 4px var(--forum-accent-soft));
+	}
+
+	.forum-feed :global(.forum-feed__item-meta) {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		font-size: 0.8125rem;
+		color: var(--forum-muted);
+		margin: 0;
+	}
+	.forum-feed :global(.forum-feed__item-meta a) {
+		color: var(--forum-muted);
+		text-decoration: none;
+	}
+	.forum-feed :global(.forum-feed__item-meta a:hover) {
+		color: var(--forum-accent);
+	}
+	.forum-feed :global(.forum-feed__chip) {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.1rem 0.5rem;
+		border-radius: 999px;
+		background: var(--forum-bg-soft);
+		font-size: 0.75rem;
+		font-weight: 500;
+	}
+	.forum-feed :global(.forum-feed__chip--space) {
+		background: var(--forum-accent-soft);
+		color: var(--forum-text);
+	}
+
+	.forum-feed :global(.forum-feed__item-body) {
+		font-size: 0.9375rem;
+		color: var(--forum-muted);
+		line-height: 1.5;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		max-height: 4.5em;
+	}
+	.forum-feed :global(.forum-feed__item-body :is(p, ul, ol)) {
+		margin: 0;
+	}
+
+	/* ── Pagination ────────────────────────────────────────────── */
+	.forum-shell__pagination {
 		display: flex;
 		justify-content: center;
+		gap: 0.75rem;
+		margin-top: 1.25rem;
+	}
+	.forum-shell__pagination :global(a) {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.55rem 1.25rem;
+		background: var(--forum-bg-soft);
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius-sm);
+		color: var(--forum-text);
+		text-decoration: none;
+		font-size: 0.875rem;
+		font-weight: 500;
+		transition:
+			border-color 0.12s ease,
+			background 0.12s ease;
+	}
+	.forum-shell__pagination :global(a:hover) {
+		border-color: var(--forum-accent);
+		background: var(--forum-accent-soft);
+	}
+
+	/* ── Sidebar cards ─────────────────────────────────────────── */
+	.forum-shell__sidebar {
+		display: grid;
 		gap: 1rem;
-		margin-top: 1.5rem;
+		align-self: start;
+		position: sticky;
+		top: 1rem;
+	}
+	.forum-card {
+		background: var(--forum-bg-card);
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius);
+		padding: 1rem 1.25rem;
+	}
+	.forum-card--accent {
+		border-color: var(--forum-accent);
+		background: linear-gradient(
+			135deg,
+			var(--forum-accent-soft),
+			var(--forum-bg-card) 60%
+		);
+	}
+	.forum-card__title {
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--forum-muted);
+		margin: 0 0 0.6rem;
+	}
+	.forum-card__body :global(a) {
+		display: block;
+		padding: 0.4rem 0.6rem;
+		margin: 0 -0.6rem;
+		border-radius: var(--forum-radius-sm);
+		color: var(--forum-text);
+		text-decoration: none;
+		font-size: 0.875rem;
+		transition: background 0.12s ease;
+	}
+	.forum-card__body :global(a:hover) {
+		background: var(--forum-bg-soft);
+	}
+	.forum-card__list {
+		margin: 0;
+		padding: 0 0 0 1.1rem;
+		font-size: 0.8125rem;
+		color: var(--forum-muted);
+		display: grid;
+		gap: 0.35rem;
+	}
+	.forum-card__list a {
+		color: var(--forum-accent);
+	}
+	.forum-card__copy {
+		font-size: 0.875rem;
+		color: var(--forum-muted);
+		margin: 0 0 0.6rem;
+		line-height: 1.5;
+	}
+	.forum-card__cta {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--forum-accent);
+		text-decoration: none;
+	}
+	.forum-card__cta:hover {
+		text-decoration: underline;
 	}
 </style>

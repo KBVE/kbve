@@ -1,147 +1,647 @@
 ---
-// AskamaForumThreadProvider — mirrors the axum-kbve askama thread template.
-// Renders the full forum thread page served at /forum/t/{slug_or_id}.
+// AskamaForumThreadProvider — first-class thread page layout.
+// Served by axum-kbve at /forum/t/{slug_or_id}.
 //
 // Askama placeholders consumed by axum-kbve's ForumThreadTemplate:
-//   {{ thread_title }}        — plain text title
-//   {{ thread_slug_or_id }}   — URL-safe identifier for canonical link
-//   {{ space_slug }}          — parent space slug for breadcrumb
-//   {{ space_name }}          — display name of parent space
-//   {{ author_username }}     — author handle
-//   {{ author_avatar_url }}   — author avatar or placeholder
-//   {{ created_at_human }}    — human-friendly timestamp
-//   {{ last_activity_human }} — "last reply X ago" label
-//   {{ score }}               — numeric score (upvotes - downvotes)
-//   {{ comment_count }}       — number of comments
-//   {{ thread_body_html }}    — sanitized HTML body (rendered upstream via kbve::markdown)
-//   {{ thread_meta_description }} — SEO summary
-//   {{ comments_html }}       — rendered comment tree (server-composed)
-//   {{ tags_html }}           — rendered tag chips
+//   {{ thread_title }}
+//   {{ thread_slug_or_id }}
+//   {{ space_slug }}, {{ space_name }}
+//   {{ author_username }}, {{ author_avatar_url }}
+//   {{ created_at_human }}, {{ last_activity_human }}
+//   {{ score }}, {{ comment_count }}
+//   {{ thread_body_html }}     — sanitized markdown HTML (kbve::markdown)
+//   {{ thread_meta_description }}
+//   {{ comments_html }}        — server-composed comment tree
+//   {{ tags_html }}            — server-composed tag chips (may be empty)
 //
-// The body + comments arrive already sanitized (kbve::markdown::render output),
-// so this file uses `set:html` on those slots. Never pass raw user input here.
+// thread_body_html, comments_html, tags_html arrive sanitized via
+// `kbve::markdown::render` + `forum_render` partials. Pass them through
+// `set:html`. Plain-text fields auto-escape via askama default.
 ---
 
-<main class="forum-thread">
-	<nav class="forum-thread__breadcrumb" aria-label="Breadcrumb">
+<div class="forum-shell">
+	<nav class="forum-shell__breadcrumb" aria-label="Breadcrumb">
 		<a href="/forum/">Forum</a>
 		<span aria-hidden="true">›</span>
 		<a href={`/forum/s/{{ space_slug }}`}>{`{{ space_name }}`}</a>
+		<span aria-hidden="true">›</span>
+		<span class="forum-shell__breadcrumb-current">
+			{`{{ thread_title }}`}
+		</span>
 	</nav>
 
-	<header class="forum-thread__header">
-		<h1 class="forum-thread__title">{`{{ thread_title }}`}</h1>
-		<div class="forum-thread__meta">
-			<a class="forum-thread__author" href={`/@{{ author_username }}`}>
-				<img
-					src={`{{ author_avatar_url }}`}
-					alt={`{{ author_username }} avatar`}
-					width="24"
-					height="24"
-					loading="lazy"
+	<div class="forum-shell__layout">
+		<main class="forum-shell__main">
+			<article class="thread-card">
+				<header class="thread-card__header">
+					<h1 class="thread-card__title">{`{{ thread_title }}`}</h1>
+
+					<div class="thread-card__meta">
+						<a
+							class="thread-card__author"
+							href={`/@{{ author_username }}`}>
+							<span
+								class="thread-card__author-avatar"
+								data-avatar={`{{ author_avatar_url }}`}
+								data-letter={`{{ author_username }}`}>
+							</span>
+							<span>@{`{{ author_username }}`}</span>
+						</a>
+						<span aria-hidden="true">·</span>
+						<time>{`{{ created_at_human }}`}</time>
+						<span aria-hidden="true">·</span>
+						<span class="thread-card__last-active">
+							active {`{{ last_activity_human }}`}
+						</span>
+					</div>
+
+					<div class="thread-card__chips">
+						<span class="thread-card__chip">
+							<span aria-hidden="true">⬆</span>
+							{`{{ score }}`} pts
+						</span>
+						<span class="thread-card__chip">
+							<span aria-hidden="true">💬</span>
+							{`{{ comment_count }}`} replies
+						</span>
+					</div>
+
+					<div
+						class="thread-card__tags"
+						set:html={`{{ tags_html }}`}
+					/>
+				</header>
+
+				<div
+					class="thread-card__body prose"
+					set:html={`{{ thread_body_html }}`}
 				/>
-				<span>@{`{{ author_username }}`}</span>
-			</a>
-			<span class="forum-thread__dot" aria-hidden="true">·</span>
-			<time class="forum-thread__time">{`{{ created_at_human }}`}</time>
-			<span class="forum-thread__dot" aria-hidden="true">·</span>
-			<span class="forum-thread__last-active">
-				last reply {`{{ last_activity_human }}`}
-			</span>
-			<span class="forum-thread__dot" aria-hidden="true">·</span>
-			<span class="forum-thread__score">
-				{`{{ score }}`} pts
-			</span>
-			<span class="forum-thread__dot" aria-hidden="true">·</span>
-			<span class="forum-thread__replies">
-				{`{{ comment_count }}`} replies
-			</span>
-		</div>
+			</article>
 
-		<div class="forum-thread__tags" set:html={`{{ tags_html }}`} />
-	</header>
+			<section class="thread-comments" aria-labelledby="comments-heading">
+				<header class="thread-comments__header">
+					<h2 id="comments-heading" class="thread-comments__title">
+						Comments
+						<span class="thread-comments__count">
+							{`{{ comment_count }}`}
+						</span>
+					</h2>
+				</header>
 
-	<article
-		class="forum-thread__body prose"
-		set:html={`{{ thread_body_html }}`}
-	/>
+				<form
+					class="thread-compose"
+					method="post"
+					action={`/forum/t/{{ thread_slug_or_id }}/comments`}
+					data-thread-id={`{{ thread_slug_or_id }}`}>
+					<label
+						for="thread-compose-body"
+						class="thread-compose__label">
+						Reply with markdown
+					</label>
+					<textarea
+						id="thread-compose-body"
+						class="thread-compose__textarea"
+						name="body"
+						rows="4"
+						placeholder="Be civil. Markdown supported. Sign in to post."
+						maxlength="20000"
+						disabled>
+					</textarea>
+					<div class="thread-compose__row">
+						<p class="thread-compose__hint">
+							Need a username first? Set one from your <a
+								href="/profile">
+								profile
+							</a>.
+						</p>
+						<button
+							class="thread-compose__submit"
+							type="submit"
+							disabled>
+							Post reply
+						</button>
+					</div>
+				</form>
 
-	<section class="forum-thread__comments" aria-label="Comments">
-		<h2 class="forum-thread__comments-title">
-			Comments ({`{{ comment_count }}`})
-		</h2>
-		<div
-			class="forum-thread__comments-tree"
-			set:html={`{{ comments_html }}`}
-		/>
-	</section>
-</main>
+				<div
+					class="thread-comments__tree"
+					set:html={`{{ comments_html }}`}
+				/>
+			</section>
+		</main>
+
+		<aside class="forum-shell__sidebar" aria-label="Thread sidebar">
+			<section class="forum-card">
+				<h2 class="forum-card__title">Space</h2>
+				<a class="forum-card__space" href={`/forum/s/{{ space_slug }}`}>
+					<span class="forum-card__space-name">
+						{`{{ space_name }}`}
+					</span>
+					<span class="forum-card__space-slug">
+						s/{`{{ space_slug }}`}
+					</span>
+				</a>
+				<a class="forum-card__cta" href={`/forum/s/{{ space_slug }}`}>
+					Browse threads →
+				</a>
+			</section>
+
+			<section class="forum-card">
+				<h2 class="forum-card__title">Thread actions</h2>
+				<ul class="forum-card__actions">
+					<li>
+						<button data-action="bookmark" type="button" disabled>
+							🔖 Bookmark
+						</button>
+					</li>
+					<li>
+						<button data-action="subscribe" type="button" disabled>
+							🔔 Subscribe
+						</button>
+					</li>
+					<li>
+						<button data-action="report" type="button" disabled>
+							🚩 Report
+						</button>
+					</li>
+				</ul>
+				<p class="forum-card__copy">Sign in to use these actions.</p>
+			</section>
+		</aside>
+	</div>
+</div>
+
+<script>
+	// Initial-letter fallback for the author avatar slot. The askama
+	// template emits `data-avatar="<url-or-empty>"` and `data-letter="<username>"`.
+	// When the URL is non-empty we swap the letter for an `<img>`; otherwise
+	// the first character renders inside the rounded square.
+	for (const el of document.querySelectorAll<HTMLElement>(
+		'.thread-card__author-avatar',
+	)) {
+		const url = el.dataset.avatar?.trim();
+		const letter = el.dataset.letter?.trim().charAt(0).toUpperCase() || '?';
+		if (url) {
+			const img = document.createElement('img');
+			img.src = url;
+			img.alt = '';
+			img.width = 32;
+			img.height = 32;
+			el.appendChild(img);
+		} else {
+			el.textContent = letter;
+		}
+	}
+</script>
 
 <style>
-	.forum-thread {
-		max-width: 800px;
+	:root {
+		--forum-accent: var(--sl-color-accent, #8b5cf6);
+		--forum-accent-soft: color-mix(
+			in srgb,
+			var(--forum-accent) 18%,
+			transparent
+		);
+		--forum-bg: var(--sl-color-bg, #09090b);
+		--forum-bg-soft: var(--sl-color-bg-nav, #131318);
+		--forum-bg-card: var(--sl-color-black, #0c0c10);
+		--forum-border: var(--sl-color-gray-5, #2a2a33);
+		--forum-text: var(--sl-color-text, #fafafa);
+		--forum-muted: var(--sl-color-gray-2, #a1a1aa);
+		--forum-radius: 12px;
+		--forum-radius-sm: 8px;
+		--forum-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+	}
+
+	.forum-shell {
+		max-width: 1180px;
 		margin: 0 auto;
-		padding: 2rem 1.5rem;
+		padding: 1.5rem 1.25rem 4rem;
+		color: var(--forum-text);
 	}
-	.forum-thread__breadcrumb {
-		font-size: 0.875rem;
-		color: var(--sl-color-gray-2);
-		margin-bottom: 1rem;
+
+	.forum-shell__breadcrumb {
 		display: flex;
-		gap: 0.5rem;
+		flex-wrap: wrap;
+		gap: 0.4rem;
 		align-items: center;
+		font-size: 0.8125rem;
+		color: var(--forum-muted);
+		margin-bottom: 1rem;
 	}
-	.forum-thread__title {
-		font-size: 1.75rem;
+	.forum-shell__breadcrumb a {
+		color: var(--forum-muted);
+		text-decoration: none;
+	}
+	.forum-shell__breadcrumb a:hover {
+		color: var(--forum-accent);
+	}
+	.forum-shell__breadcrumb-current {
+		color: var(--forum-text);
+		font-weight: 500;
+		max-width: 28rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.forum-shell__layout {
+		display: grid;
+		gap: 1.5rem;
+		grid-template-columns: minmax(0, 1fr);
+	}
+	@media (min-width: 920px) {
+		.forum-shell__layout {
+			grid-template-columns: minmax(0, 1fr) 280px;
+		}
+	}
+
+	.forum-shell__main {
+		display: grid;
+		gap: 1.25rem;
+	}
+
+	/* ── Thread card ──────────────────────────────────────────── */
+	.thread-card {
+		background: var(--forum-bg-card);
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius);
+		padding: 1.5rem 1.5rem 1.25rem;
+	}
+	.thread-card__header {
+		display: grid;
+		gap: 0.75rem;
+		padding-bottom: 1rem;
+		border-bottom: 1px solid var(--forum-border);
+	}
+	.thread-card__title {
+		font-size: clamp(1.5rem, 2.6vw, 2.125rem);
 		line-height: 1.2;
-		margin: 0 0 0.5rem;
+		margin: 0;
+		letter-spacing: -0.01em;
 	}
-	.forum-thread__meta {
+	.thread-card__meta {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.5rem;
 		align-items: center;
 		font-size: 0.875rem;
-		color: var(--sl-color-gray-2);
-		margin-bottom: 0.75rem;
+		color: var(--forum-muted);
 	}
-	.forum-thread__author {
+	.thread-card__author {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.4rem;
+		gap: 0.5rem;
+		color: var(--forum-text);
+		text-decoration: none;
+		font-weight: 500;
 	}
-	.forum-thread__author img {
-		border-radius: 50%;
+	.thread-card__author:hover {
+		color: var(--forum-accent);
 	}
-	.forum-thread__tags {
+	.thread-card__author-avatar {
+		width: 32px;
+		height: 32px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 8px;
+		background: var(--forum-accent-soft);
+		color: var(--forum-text);
+		font-weight: 600;
+		font-size: 0.875rem;
+		text-transform: uppercase;
+		overflow: hidden;
+	}
+	.thread-card__author-avatar img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	.thread-card__last-active {
+		color: var(--forum-muted);
+	}
+	.thread-card__chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+	.thread-card__chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		padding: 0.25rem 0.65rem;
+		background: var(--forum-bg-soft);
+		border: 1px solid var(--forum-border);
+		border-radius: 999px;
+		font-size: 0.8125rem;
+		color: var(--forum-text);
+	}
+	.thread-card__tags {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.35rem;
-		margin-top: 0.75rem;
 	}
-	.forum-thread__body {
-		margin: 1.5rem 0 2rem;
-		color: var(--sl-color-text);
-		line-height: 1.65;
+	.thread-card__tags:empty {
+		display: none;
 	}
-	.forum-thread__body :global(pre) {
+
+	.thread-card__body {
+		padding-top: 1rem;
+		font-size: 1rem;
+		line-height: 1.7;
+		color: var(--forum-text);
+	}
+	.thread-card__body :global(p) {
+		margin: 0 0 1em;
+	}
+	.thread-card__body :global(p:last-child) {
+		margin-bottom: 0;
+	}
+	.thread-card__body :global(h1),
+	.thread-card__body :global(h2),
+	.thread-card__body :global(h3) {
+		margin: 1.5em 0 0.5em;
+		line-height: 1.25;
+	}
+	.thread-card__body :global(pre) {
 		overflow-x: auto;
 		padding: 1rem;
-		border-radius: 6px;
-		background: var(--sl-color-bg-inline-code, #1a1a1a);
+		border-radius: var(--forum-radius-sm);
+		background: var(--forum-bg-soft);
+		font-size: 0.875rem;
 	}
-	.forum-thread__body :global(blockquote) {
-		border-left: 3px solid var(--sl-color-gray-5);
-		padding-left: 1rem;
-		color: var(--sl-color-gray-2);
+	.thread-card__body :global(code) {
+		background: var(--forum-bg-soft);
+		padding: 0.1em 0.35em;
+		border-radius: 4px;
+		font-size: 0.9em;
+	}
+	.thread-card__body :global(pre code) {
+		background: transparent;
+		padding: 0;
+	}
+	.thread-card__body :global(blockquote) {
+		border-left: 3px solid var(--forum-accent);
+		padding: 0.25rem 0 0.25rem 1rem;
+		color: var(--forum-muted);
 		margin: 1rem 0;
+		background: var(--forum-bg-soft);
+		border-radius: 0 var(--forum-radius-sm) var(--forum-radius-sm) 0;
 	}
-	.forum-thread__comments {
-		border-top: 1px solid var(--sl-color-gray-5);
-		padding-top: 1.5rem;
+	.thread-card__body :global(a) {
+		color: var(--forum-accent);
+		text-decoration: underline;
+		text-decoration-thickness: 1px;
+		text-underline-offset: 2px;
 	}
-	.forum-thread__comments-title {
+	.thread-card__body :global(a:hover) {
+		text-decoration-thickness: 2px;
+	}
+	.thread-card__body :global(img) {
+		max-width: 100%;
+		border-radius: var(--forum-radius-sm);
+	}
+
+	/* ── Comments section ─────────────────────────────────────── */
+	.thread-comments {
+		background: var(--forum-bg-card);
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius);
+		padding: 1.25rem 1.5rem 1.5rem;
+		display: grid;
+		gap: 1.25rem;
+	}
+	.thread-comments__header {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+	.thread-comments__title {
 		font-size: 1.125rem;
-		margin-bottom: 1rem;
+		font-weight: 600;
+		margin: 0;
+	}
+	.thread-comments__count {
+		display: inline-flex;
+		min-width: 1.75rem;
+		justify-content: center;
+		padding: 0.05rem 0.5rem;
+		margin-left: 0.4rem;
+		background: var(--forum-bg-soft);
+		border-radius: 999px;
+		font-size: 0.8125rem;
+		font-weight: 500;
+		color: var(--forum-muted);
+	}
+
+	.thread-compose {
+		display: grid;
+		gap: 0.6rem;
+		padding: 1rem;
+		background: var(--forum-bg-soft);
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius);
+	}
+	.thread-compose__label {
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--forum-muted);
+	}
+	.thread-compose__textarea {
+		width: 100%;
+		resize: vertical;
+		padding: 0.75rem;
+		font-family: inherit;
+		font-size: 0.9375rem;
+		line-height: 1.5;
+		background: var(--forum-bg);
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius-sm);
+		color: var(--forum-text);
+	}
+	.thread-compose__textarea:focus {
+		outline: 2px solid var(--forum-accent);
+		outline-offset: -2px;
+	}
+	.thread-compose__textarea:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+	.thread-compose__row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+	.thread-compose__hint {
+		font-size: 0.8125rem;
+		color: var(--forum-muted);
+		margin: 0;
+	}
+	.thread-compose__hint a {
+		color: var(--forum-accent);
+	}
+	.thread-compose__submit {
+		padding: 0.5rem 1.1rem;
+		background: var(--forum-accent);
+		color: white;
+		border: none;
+		border-radius: var(--forum-radius-sm);
+		font-size: 0.875rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: opacity 0.12s ease;
+	}
+	.thread-compose__submit:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	/* ── Comment cards ────────────────────────────────────────── */
+	.thread-comments__tree :global(.forum-comment) {
+		padding: 0.85rem 1rem;
+		border-left: 2px solid var(--forum-border);
+		margin-left: calc(var(--depth, 0) * 1.25rem);
+		background: var(--forum-bg-soft);
+		border-radius: 0 var(--forum-radius-sm) var(--forum-radius-sm) 0;
+		display: grid;
+		gap: 0.5rem;
+		margin-bottom: 0.6rem;
+	}
+	.thread-comments__tree :global(.forum-comment[data-depth='1']) {
+		--depth: 1;
+		border-left-color: var(--forum-accent-soft);
+	}
+	.thread-comments__tree :global(.forum-comment[data-depth='2']) {
+		--depth: 2;
+	}
+	.thread-comments__tree :global(.forum-comment[data-depth='3']) {
+		--depth: 3;
+	}
+	.thread-comments__tree :global(.forum-comment[data-depth='4']) {
+		--depth: 4;
+	}
+	.thread-comments__tree :global(.forum-comment[data-depth='5']) {
+		--depth: 5;
+	}
+	.thread-comments__tree :global(.forum-comment__header) {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		font-size: 0.8125rem;
+		color: var(--forum-muted);
+	}
+	.thread-comments__tree :global(.forum-comment__header a) {
+		color: var(--forum-text);
+		font-weight: 500;
+		text-decoration: none;
+	}
+	.thread-comments__tree :global(.forum-comment__header a:hover) {
+		color: var(--forum-accent);
+	}
+	.thread-comments__tree :global(.forum-comment__body) {
+		font-size: 0.9375rem;
+		line-height: 1.55;
+		color: var(--forum-text);
+	}
+	.thread-comments__tree :global(.forum-comment__body p) {
+		margin: 0 0 0.6em;
+	}
+	.thread-comments__tree :global(.forum-comment__body p:last-child) {
+		margin-bottom: 0;
+	}
+	.thread-comments__tree :global(.forum-comment__body code) {
+		background: var(--forum-bg);
+		padding: 0.1em 0.35em;
+		border-radius: 4px;
+		font-size: 0.9em;
+	}
+
+	/* ── Sidebar ──────────────────────────────────────────────── */
+	.forum-shell__sidebar {
+		display: grid;
+		gap: 1rem;
+		align-self: start;
+		position: sticky;
+		top: 1rem;
+	}
+	.forum-card {
+		background: var(--forum-bg-card);
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius);
+		padding: 1rem 1.25rem;
+		display: grid;
+		gap: 0.6rem;
+	}
+	.forum-card__title {
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--forum-muted);
+		margin: 0;
+	}
+	.forum-card__space {
+		display: grid;
+		gap: 0.1rem;
+		text-decoration: none;
+		color: var(--forum-text);
+	}
+	.forum-card__space-name {
+		font-size: 0.9375rem;
+		font-weight: 600;
+	}
+	.forum-card__space-slug {
+		font-size: 0.75rem;
+		color: var(--forum-muted);
+		font-family: ui-monospace, SFMono-Regular, monospace;
+	}
+	.forum-card__cta {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--forum-accent);
+		text-decoration: none;
+	}
+	.forum-card__cta:hover {
+		text-decoration: underline;
+	}
+	.forum-card__actions {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 0.4rem;
+	}
+	.forum-card__actions button {
+		width: 100%;
+		text-align: left;
+		padding: 0.5rem 0.7rem;
+		background: var(--forum-bg-soft);
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius-sm);
+		color: var(--forum-text);
+		font-size: 0.875rem;
+		cursor: pointer;
+		transition:
+			border-color 0.12s ease,
+			background 0.12s ease;
+	}
+	.forum-card__actions button:hover:not(:disabled) {
+		border-color: var(--forum-accent);
+		background: var(--forum-accent-soft);
+	}
+	.forum-card__actions button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+	.forum-card__copy {
+		font-size: 0.8125rem;
+		color: var(--forum-muted);
+		margin: 0;
 	}
 </style>
