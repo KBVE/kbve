@@ -14,8 +14,36 @@
 --     refined feed/comment indexes, typed JSONB index, slug
 --     normalization, self-reference guards, tags.updated_at,
 --     counter REVOKE, function grant cleanup).
+--   * Pass 3 (this file): auction end_time CHECK gate on the typed
+--     JSONB index, REVOKE on remaining helper functions, ordering
+--     notes for is_user_banned + FORCE RLS.
 --
 -- Depends on: 20260227215000_gen_ulid (public.gen_ulid function).
+--
+-- ─── DESIGN NOTES ────────────────────────────────────────────────────────────
+--
+-- forum.is_user_banned references forum.forum_user_profiles which is
+-- created in forum_user.sql. plpgsql function bodies are stored as text
+-- and parsed at first call, NOT at CREATE FUNCTION time, so it is safe
+-- to declare the function here before the table exists in the migration
+-- order. The first invocation only happens after migration completes,
+-- by which time forum_user_profiles is live.
+--
+-- FORCE ROW LEVEL SECURITY is applied to the read-side tables. It does
+-- NOT block service_* RPC mutations because Postgres superusers
+-- (postgres) and roles with the BYPASSRLS attribute (service_role in
+-- Supabase) bypass RLS unconditionally — FORCE RLS only matters when
+-- the table owner is a non-superuser without BYPASSRLS. Our migrations
+-- run as postgres and the Rust supabase client uses service_role; both
+-- bypass.
+--
+-- Author INSERT policies (threads_author_insert / comments_author_insert)
+-- and the table-level INSERT REVOKE for `authenticated` are intentionally
+-- both present. The REVOKE makes mutations RPC-only today; the policies
+-- stay as the correct-by-construction enforcement if a future change
+-- ever re-GRANTs INSERT to authenticated. Banned-user check inside the
+-- WITH CHECK never fires under the current GRANT setup but documents the
+-- invariant.
 -- ============================================================
 
 BEGIN;
@@ -270,6 +298,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION forum.normalize_slug() FROM PUBLIC;
+
 -- Polymorphic existence check for parent_id on attachments / reactions / etc.
 CREATE OR REPLACE FUNCTION forum.assert_parent_exists(
     p_kind forum.attachment_parent_kind,
@@ -411,6 +441,8 @@ END;
 $$ LANGUAGE plpgsql
 SET search_path = '';
 
+REVOKE ALL ON FUNCTION forum.set_tag_canonical_id() FROM PUBLIC;
+
 CREATE TRIGGER tags_set_canonical
     BEFORE INSERT ON forum.tags
     FOR EACH ROW EXECUTE FUNCTION forum.set_tag_canonical_id();
@@ -464,7 +496,18 @@ CREATE TABLE forum.threads (
                                     (forum.hot_score(score, created_at)) STORED,
     -- Item 13: a thread can't crosspost or quote itself.
     CONSTRAINT threads_no_self_crosspost CHECK (cross_posted_from_thread_id IS NULL OR cross_posted_from_thread_id <> id),
-    CONSTRAINT threads_no_self_quote     CHECK (quoted_thread_id IS NULL OR quoted_thread_id <> id)
+    CONSTRAINT threads_no_self_quote     CHECK (quoted_thread_id IS NULL OR quoted_thread_id <> id),
+    -- Item 5 (review pass 2): the typed-timestamp index
+    -- idx_threads_auction_end_time_ts blows up if `end_time` is present
+    -- but malformed. Reject obvious garbage at write time so the index
+    -- expression is always castable. Loose ISO-8601 prefix check —
+    -- service_create_thread is expected to write proper TIMESTAMPTZ
+    -- strings, this is a belt-and-suspenders sanity gate.
+    CONSTRAINT threads_auction_end_time_valid CHECK (
+        thread_type <> 'auction'
+        OR NOT (type_data ? 'end_time')
+        OR (type_data->>'end_time') ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}T'
+    )
 );
 
 -- Item 6: thread slug uniqueness scoped per space.
@@ -608,6 +651,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION forum.assert_comment_parent_same_thread() FROM PUBLIC;
+
 CREATE TRIGGER comments_parent_same_thread
     BEFORE INSERT OR UPDATE OF parent_comment_id, thread_id ON forum.comments
     FOR EACH ROW EXECUTE FUNCTION forum.assert_comment_parent_same_thread();
@@ -640,6 +685,8 @@ BEGIN
     RETURN NEW;
 END;
 $$;
+
+REVOKE ALL ON FUNCTION forum.assert_accepted_comment_same_thread() FROM PUBLIC;
 
 CREATE TRIGGER threads_accepted_comment_same_thread
     BEFORE INSERT OR UPDATE OF accepted_comment_id ON forum.threads
