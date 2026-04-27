@@ -101,7 +101,11 @@ CREATE TABLE forum.reactions (
     parent_id       TEXT NOT NULL,
     user_id         UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     kind            forum.reaction_kind NOT NULL,
-    custom_kind     TEXT CHECK (custom_kind IS NULL OR char_length(custom_kind) <= 50),
+    -- Format gate: lowercase emoji shortcodes (party_blob, kbve:wave).
+    custom_kind     TEXT CHECK (
+        custom_kind IS NULL
+        OR custom_kind ~ '^[a-z0-9_:-]{1,50}$'
+    ),
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     -- Enforce: custom_kind is only meaningful when kind = 'custom'.
     CHECK ((kind = 'custom' AND custom_kind IS NOT NULL) OR (kind <> 'custom' AND custom_kind IS NULL))
@@ -119,8 +123,12 @@ CREATE UNIQUE INDEX ux_reactions_once
         COALESCE(custom_kind, '')
     );
 
-CREATE INDEX idx_reactions_target ON forum.reactions (parent_kind, parent_id, kind);
-CREATE INDEX idx_reactions_user   ON forum.reactions (user_id, created_at DESC);
+-- Aggregation index for "show emoji counts per parent". Includes
+-- custom_kind so GROUP BY (kind, custom_kind) can be index-only.
+CREATE INDEX idx_reactions_target_counts
+    ON forum.reactions (parent_kind, parent_id, kind, custom_kind);
+CREATE INDEX idx_reactions_user
+    ON forum.reactions (user_id, created_at DESC);
 
 ALTER TABLE forum.reactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE forum.reactions FORCE ROW LEVEL SECURITY;
@@ -180,7 +188,9 @@ CREATE TABLE forum.auction_bids (
     thread_id   TEXT NOT NULL REFERENCES forum.threads(id) ON DELETE CASCADE,
     bidder_id   UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     amount      BIGINT NOT NULL CHECK (amount > 0),
-    currency    TEXT NOT NULL CHECK (char_length(currency) BETWEEN 1 AND 32),
+    -- Lowercased + bounded by normalize_auction_bid_currency trigger.
+    -- Format gate keeps storage tidy (usd, eur, gp, kbve_credit, etc).
+    currency    TEXT NOT NULL CHECK (currency ~ '^[a-z0-9_:-]{1,32}$'),
     retracted   BOOLEAN NOT NULL DEFAULT FALSE,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -189,6 +199,9 @@ CREATE INDEX idx_auction_bids_thread_amount
     ON forum.auction_bids (thread_id, amount DESC);
 CREATE INDEX idx_auction_bids_bidder
     ON forum.auction_bids (bidder_id, created_at DESC);
+-- "My bids on thread X" without scanning the whole bidder history.
+CREATE INDEX idx_auction_bids_bidder_thread
+    ON forum.auction_bids (bidder_id, thread_id, created_at DESC);
 -- Hot path for "current winning bid": filter retracted out, sort by
 -- amount desc + earliest tiebreaker.
 CREATE INDEX idx_auction_bids_current
@@ -258,6 +271,7 @@ CREATE TABLE forum.poll_votes (
     voter_id        UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     option_indices  INTEGER[] NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (thread_id, voter_id),
     CONSTRAINT poll_votes_options_not_empty
         CHECK (cardinality(option_indices) > 0),
@@ -266,6 +280,10 @@ CREATE TABLE forum.poll_votes (
 );
 
 CREATE INDEX idx_poll_votes_thread ON forum.poll_votes (thread_id);
+
+CREATE TRIGGER poll_votes_updated_at
+    BEFORE UPDATE ON forum.poll_votes
+    FOR EACH ROW EXECUTE FUNCTION forum.update_updated_at();
 
 CREATE OR REPLACE FUNCTION forum.assert_poll_vote_options_unique()
 RETURNS TRIGGER
@@ -317,6 +335,47 @@ CREATE TRIGGER poll_votes_valid
     BEFORE INSERT OR UPDATE OF thread_id ON forum.poll_votes
     FOR EACH ROW EXECUTE FUNCTION forum.assert_poll_vote_valid();
 
+-- Cross-row gate: every option_index must point at a defined option in
+-- the parent thread's type_data->'options' array. Cheaper than the RPC
+-- looking it up because the JSONB row is already in cache from the
+-- _valid trigger above.
+CREATE OR REPLACE FUNCTION forum.assert_poll_vote_options_in_range()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_option_count INTEGER;
+BEGIN
+    SELECT jsonb_array_length(type_data->'options')
+      INTO v_option_count
+      FROM forum.threads
+     WHERE id = NEW.thread_id
+       AND thread_type = 'poll';
+
+    IF v_option_count IS NULL OR v_option_count <= 0 THEN
+        RAISE EXCEPTION 'poll has no options';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+          FROM unnest(NEW.option_indices) AS x
+         WHERE x >= v_option_count
+    ) THEN
+        RAISE EXCEPTION 'poll option index out of range (max %)', v_option_count - 1;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION forum.assert_poll_vote_options_in_range() FROM PUBLIC;
+
+CREATE TRIGGER poll_votes_options_in_range
+    BEFORE INSERT OR UPDATE OF thread_id, option_indices ON forum.poll_votes
+    FOR EACH ROW EXECUTE FUNCTION forum.assert_poll_vote_options_in_range();
+
 ALTER TABLE forum.poll_votes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE forum.poll_votes FORCE ROW LEVEL SECURITY;
 
@@ -349,5 +408,13 @@ REVOKE INSERT, UPDATE, DELETE ON forum.comment_votes FROM authenticated;
 REVOKE INSERT, UPDATE, DELETE ON forum.poll_votes    FROM authenticated;
 REVOKE INSERT, UPDATE, DELETE ON forum.auction_bids  FROM authenticated;
 REVOKE INSERT, UPDATE, DELETE ON forum.reactions     FROM authenticated;
+
+-- service_role bypasses RLS, but explicit GRANT keeps RPC writes
+-- working even if a future schema-wide REVOKE ALL strips defaults.
+GRANT SELECT, INSERT, UPDATE, DELETE ON forum.thread_votes  TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON forum.comment_votes TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON forum.poll_votes    TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON forum.auction_bids  TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON forum.reactions     TO service_role;
 
 COMMIT;
