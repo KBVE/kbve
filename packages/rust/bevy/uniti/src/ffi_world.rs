@@ -1130,6 +1130,39 @@ pub unsafe extern "C" fn uniti_world_take_units_in_chunk(
     take_n as u32
 }
 
+/// Replace the entire unit set for a chunk. Drops every existing unit
+/// in the chunk and writes the caller's buffer in its place. Use during
+/// the periodic flush to push ghost-sim-advanced state back to disk
+/// without growing duplicates — units don't have a stable per-record uid
+/// in the FFI struct, so we replace at the chunk granularity instead of
+/// per-row upsert.
+///
+/// `units_buf` may be null only if `count == 0` (chunk-wipe).
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_replace_chunk_units(
+    world: *mut c_void,
+    cx: i32,
+    cy: i32,
+    units_buf: *const FfiGhostUnit,
+    count: u32,
+) {
+    let world = match unsafe { to_world_mut(world) } {
+        Some(w) => w,
+        None => return,
+    };
+    let mut state = match world.state.lock() {
+        Ok(s) => s,
+        Err(_) => return,
+    };
+    let chunk_data = state.chunks.entry((cx, cy)).or_default();
+    chunk_data.units.clear();
+    if count > 0 && !units_buf.is_null() {
+        let slice = unsafe { std::slice::from_raw_parts(units_buf, count as usize) };
+        chunk_data.units.extend_from_slice(slice);
+    }
+    state.dirty_chunks.insert((cx, cy));
+}
+
 /// How many ghost units are stored for a chunk. Useful for sizing the
 /// buffer before `uniti_world_take_units_in_chunk`.
 #[unsafe(no_mangle)]
@@ -1153,6 +1186,69 @@ pub unsafe extern "C" fn uniti_world_unit_count_in_chunk(
         .unwrap_or(0)
 }
 
+/// Total ghost units across all chunks. Use to size the buffer for
+/// `uniti_world_take_all_units` at session startup.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_total_unit_count(world: *const c_void) -> u32 {
+    let world = match unsafe { to_world(world) } {
+        Some(w) => w,
+        None => return 0,
+    };
+    let state = match world.state.lock() {
+        Ok(s) => s,
+        Err(_) => return 0,
+    };
+    let mut total: u32 = 0;
+    for (_coord, chunk) in state.chunks.iter() {
+        total = total.saturating_add(chunk.units.len() as u32);
+    }
+    total
+}
+
+/// Drain every ghost unit across every chunk into the caller's flat
+/// buffer. Returns the number written. Use at session startup to
+/// rebuild the in-memory Unloaded unit list from on-disk state.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_take_all_units(
+    world: *mut c_void,
+    out_buf: *mut FfiGhostUnit,
+    cap: u32,
+) -> u32 {
+    let world = match unsafe { to_world_mut(world) } {
+        Some(w) => w,
+        None => return 0,
+    };
+    if out_buf.is_null() || cap == 0 {
+        return 0;
+    }
+    let mut state = match world.state.lock() {
+        Ok(s) => s,
+        Err(_) => return 0,
+    };
+
+    let mut written: usize = 0;
+    let cap_usize = cap as usize;
+    let coords: Vec<(i32, i32)> = state.chunks.keys().copied().collect();
+    for coord in coords {
+        if written >= cap_usize {
+            break;
+        }
+        if let Some(chunk_data) = state.chunks.get_mut(&coord) {
+            let remaining = cap_usize - written;
+            let take_n = remaining.min(chunk_data.units.len());
+            if take_n == 0 {
+                continue;
+            }
+            let drained: Vec<FfiGhostUnit> = chunk_data.units.drain(..take_n).collect();
+            let slice = unsafe { std::slice::from_raw_parts_mut(out_buf.add(written), take_n) };
+            slice.copy_from_slice(&drained);
+            written += take_n;
+            state.dirty_chunks.insert(coord);
+        }
+    }
+    written as u32
+}
+
 // ---------------------------------------------------------------------------
 // Building queries
 // ---------------------------------------------------------------------------
@@ -1173,12 +1269,20 @@ pub unsafe extern "C" fn uniti_world_save_building(
         Err(_) => return,
     };
     let chunk = chunk_of(building.root_q, building.root_r);
-    state
-        .chunks
-        .entry(chunk)
-        .or_default()
+    let chunk_data = state.chunks.entry(chunk).or_default();
+    // Upsert by (root_q, root_r) — periodic flush re-saves every in-memory
+    // ghost-sim record back to disk, so without dedup the on-disk Vec
+    // would grow unbounded. Buildings are uniquely identified by their
+    // root hex within the empire.
+    if let Some(existing) = chunk_data
         .buildings
-        .push(building);
+        .iter_mut()
+        .find(|b| b.root_q == building.root_q && b.root_r == building.root_r)
+    {
+        *existing = building;
+    } else {
+        chunk_data.buildings.push(building);
+    }
     state.dirty_chunks.insert(chunk);
 }
 
@@ -1246,4 +1350,113 @@ pub unsafe extern "C" fn uniti_world_take_buildings_in_chunk(
     slice.copy_from_slice(&drained);
     state.dirty_chunks.insert((cx, cy));
     take_n as u32
+}
+
+/// Bulk variant of `uniti_world_save_building`. Pushes `count`
+/// buildings from `buildings_buf` in one FFI call — keeps periodic
+/// flush from making N round-trips through Mono → C. Each entry
+/// upserts by `(root_q, root_r)` like the single-record path.
+///
+/// `buildings_buf` may be null only when `count == 0`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_save_buildings_batch(
+    world: *mut c_void,
+    buildings_buf: *const FfiUnloadedBuilding,
+    count: u32,
+) {
+    let world = match unsafe { to_world_mut(world) } {
+        Some(w) => w,
+        None => return,
+    };
+    if count == 0 || buildings_buf.is_null() {
+        return;
+    }
+    let mut state = match world.state.lock() {
+        Ok(s) => s,
+        Err(_) => return,
+    };
+    let slice = unsafe { std::slice::from_raw_parts(buildings_buf, count as usize) };
+    for building in slice {
+        let chunk = chunk_of(building.root_q, building.root_r);
+        let chunk_data = state.chunks.entry(chunk).or_default();
+        if let Some(existing) = chunk_data
+            .buildings
+            .iter_mut()
+            .find(|b| b.root_q == building.root_q && b.root_r == building.root_r)
+        {
+            *existing = *building;
+        } else {
+            chunk_data.buildings.push(*building);
+        }
+        state.dirty_chunks.insert(chunk);
+    }
+}
+
+/// Total count of unloaded buildings across all chunks. Use for buffer
+/// sizing before `uniti_world_take_all_buildings`. Cheap O(N_chunks).
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_total_building_count(world: *const c_void) -> u32 {
+    let world = match unsafe { to_world(world) } {
+        Some(w) => w,
+        None => return 0,
+    };
+    let state = match world.state.lock() {
+        Ok(s) => s,
+        Err(_) => return 0,
+    };
+    let mut total: u32 = 0;
+    for (_coord, chunk) in state.chunks.iter() {
+        total = total.saturating_add(chunk.buildings.len() as u32);
+    }
+    total
+}
+
+/// Drain every unloaded building across every chunk into the caller's
+/// flat buffer. Returns the number written. Use at session startup to
+/// rebuild the in-memory Unloaded list from on-disk state — Rust is the
+/// canonical persistence layer; the in-memory list is a session cache.
+/// Buildings that fit are removed from the store; oversize remainders
+/// stay until the next call.
+///
+/// `out_buf` must be a valid pointer to an array of at least `cap`
+/// `FfiUnloadedBuilding` values.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_take_all_buildings(
+    world: *mut c_void,
+    out_buf: *mut FfiUnloadedBuilding,
+    cap: u32,
+) -> u32 {
+    let world = match unsafe { to_world_mut(world) } {
+        Some(w) => w,
+        None => return 0,
+    };
+    if out_buf.is_null() || cap == 0 {
+        return 0;
+    }
+    let mut state = match world.state.lock() {
+        Ok(s) => s,
+        Err(_) => return 0,
+    };
+
+    let mut written: usize = 0;
+    let cap_usize = cap as usize;
+    let coords: Vec<(i32, i32)> = state.chunks.keys().copied().collect();
+    for coord in coords {
+        if written >= cap_usize {
+            break;
+        }
+        if let Some(chunk_data) = state.chunks.get_mut(&coord) {
+            let remaining = cap_usize - written;
+            let take_n = remaining.min(chunk_data.buildings.len());
+            if take_n == 0 {
+                continue;
+            }
+            let drained: Vec<FfiUnloadedBuilding> = chunk_data.buildings.drain(..take_n).collect();
+            let slice = unsafe { std::slice::from_raw_parts_mut(out_buf.add(written), take_n) };
+            slice.copy_from_slice(&drained);
+            written += take_n;
+            state.dirty_chunks.insert(coord);
+        }
+    }
+    written as u32
 }

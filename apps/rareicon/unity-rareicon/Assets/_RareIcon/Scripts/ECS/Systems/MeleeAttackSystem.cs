@@ -125,6 +125,7 @@ namespace RareIcon
                         {
                             if (target.Entity == entity) continue;
                             if (target.Faction == strikerFaction) continue;
+                            if (target.Faction == FactionType.Neutral) continue;
                             float d2 = math.distancesq(pos, target.Position);
                             if (d2 < bestUnitSq)
                             {
@@ -142,6 +143,7 @@ namespace RareIcon
                 {
                     var bt = BuildingTargets[i];
                     if (bt.OwnerFaction == strikerFaction) continue;
+                    if (bt.OwnerFaction == FactionType.Neutral) continue;
                     float d2 = math.distancesq(pos, bt.Position);
                     if (d2 < bestBldgSq)
                     {

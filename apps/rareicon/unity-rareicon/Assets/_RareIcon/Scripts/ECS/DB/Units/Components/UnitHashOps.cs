@@ -1,13 +1,10 @@
-using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    [BurstCompile]
     public static class UnitHashOps
     {
-        [BurstCompile]
         public static uint Spread(in Entity e)
         {
             unchecked
@@ -23,7 +20,6 @@ namespace RareIcon
             }
         }
 
-        [BurstCompile]
         public static uint Spread(uint seed)
         {
             unchecked
@@ -38,7 +34,6 @@ namespace RareIcon
             }
         }
 
-        [BurstCompile]
         public static uint HexHash(int2 hex)
         {
             unchecked

@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-04-26T08:36:28Z",
+  "generated_at": "2026-04-27T09:02:38Z",
   "summary": {
     "critical": 1,
     "high": 32,
-    "medium": 60,
+    "medium": 59,
     "low": 5,
     "info": 29
   },
@@ -915,23 +915,15 @@
       ]
     },
     "python": {
-      "total": 1,
+      "total": 0,
       "severities": {
         "critical": 0,
         "high": 0,
-        "medium": 1,
+        "medium": 0,
         "low": 0,
         "info": 0
       },
-      "advisories": [
-        {
-          "id": "CVE-2026-3219",
-          "title": "pip handles concatenated tar and ZIP files as ZIP files regardless of filename or whether a file is both a tar and ZIP file. This behavior could result in confusing installation behavior, such as installing \"incorrect\" files according to the filename of the archive. New behavior only proceeds with installation if the file identifies uniquely as a ZIP or tar archive, not as both.",
-          "severity": "medium",
-          "package": "pip",
-          "url": "https://osv.dev/vulnerability/CVE-2026-3219"
-        }
-      ]
+      "advisories": []
     },
     "codeql": {
       "total": 0,

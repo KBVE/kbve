@@ -270,11 +270,39 @@ namespace RareIcon.Native
         public static extern uint uniti_world_take_units_in_chunk(void* world, int cx, int cy, FfiGhostUnit* out_buf, uint cap);
 
         /// <summary>
+        ///  Replace the entire unit set for a chunk. Drops every existing unit
+        ///  in the chunk and writes the caller's buffer in its place. Use during
+        ///  the periodic flush to push ghost-sim-advanced state back to disk
+        ///  without growing duplicates — units don't have a stable per-record uid
+        ///  in the FFI struct, so we replace at the chunk granularity instead of
+        ///  per-row upsert.
+        ///
+        ///  `units_buf` may be null only if `count == 0` (chunk-wipe).
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_replace_chunk_units", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_world_replace_chunk_units(void* world, int cx, int cy, FfiGhostUnit* units_buf, uint count);
+
+        /// <summary>
         ///  How many ghost units are stored for a chunk. Useful for sizing the
         ///  buffer before `uniti_world_take_units_in_chunk`.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_unit_count_in_chunk", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_world_unit_count_in_chunk(void* world, int cx, int cy);
+
+        /// <summary>
+        ///  Total ghost units across all chunks. Use to size the buffer for
+        ///  `uniti_world_take_all_units` at session startup.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_total_unit_count", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_total_unit_count(void* world);
+
+        /// <summary>
+        ///  Drain every ghost unit across every chunk into the caller's flat
+        ///  buffer. Returns the number written. Use at session startup to
+        ///  rebuild the in-memory Unloaded unit list from on-disk state.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_take_all_units", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_take_all_units(void* world, FfiGhostUnit* out_buf, uint cap);
 
         /// <summary>
         ///  Push an unloaded building into the store. Chunk is derived from the
@@ -302,6 +330,38 @@ namespace RareIcon.Native
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_take_buildings_in_chunk", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_world_take_buildings_in_chunk(void* world, int cx, int cy, FfiUnloadedBuilding* out_buf, uint cap);
+
+        /// <summary>
+        ///  Bulk variant of `uniti_world_save_building`. Pushes `count`
+        ///  buildings from `buildings_buf` in one FFI call — keeps periodic
+        ///  flush from making N round-trips through Mono → C. Each entry
+        ///  upserts by `(root_q, root_r)` like the single-record path.
+        ///
+        ///  `buildings_buf` may be null only when `count == 0`.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_save_buildings_batch", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_world_save_buildings_batch(void* world, FfiUnloadedBuilding* buildings_buf, uint count);
+
+        /// <summary>
+        ///  Total count of unloaded buildings across all chunks. Use for buffer
+        ///  sizing before `uniti_world_take_all_buildings`. Cheap O(N_chunks).
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_total_building_count", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_total_building_count(void* world);
+
+        /// <summary>
+        ///  Drain every unloaded building across every chunk into the caller's
+        ///  flat buffer. Returns the number written. Use at session startup to
+        ///  rebuild the in-memory Unloaded list from on-disk state — Rust is the
+        ///  canonical persistence layer; the in-memory list is a session cache.
+        ///  Buildings that fit are removed from the store; oversize remainders
+        ///  stay until the next call.
+        ///
+        ///  `out_buf` must be a valid pointer to an array of at least `cap`
+        ///  `FfiUnloadedBuilding` values.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_take_all_buildings", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_take_all_buildings(void* world, FfiUnloadedBuilding* out_buf, uint cap);
 
 
     }

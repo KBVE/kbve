@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-04-26T08:33:20.913Z",
+  "generated_at": "2026-04-27T08:59:23.927Z",
   "summary": {
     "total_protos": 27,
     "registered": 23,
     "orphaned": 3,
     "utility_only": 1,
-    "total_messages": 558,
-    "total_enums": 102
+    "total_messages": 564,
+    "total_enums": 103
   },
   "protos": [
     {
@@ -759,6 +759,12 @@
         "RaidSpec",
         "UpgradeSpec",
         "UpgradeChainSpec",
+        "ShrineSpec",
+        "ShopOffer",
+        "ShopSpec",
+        "DungeonSpec",
+        "QuestGiverSpec",
+        "AuraSpec",
         "WorldObjectDef",
         "BuildCost",
         "WorldObjectPlacement",
@@ -785,6 +791,7 @@
         "CraftingStationType",
         "FootprintShape",
         "CostSource",
+        "InteractionKind",
         "ServiceKind",
         "PoiType",
         "TerrainBand",
@@ -794,8 +801,8 @@
         "StreamingHint",
         "ReplicationHint"
       ],
-      "message_count": 40,
-      "enum_count": 19,
+      "message_count": 46,
+      "enum_count": 20,
       "codegen": {
         "registered": true,
         "name": "mapdb",
@@ -1122,7 +1129,7 @@
     "packages/data/proto/kbve/kbve.proto",
     "packages/data/proto/kbve/kbveproto.proto"
   ],
-  "checked_at": "2026-04-26T08:33:20Z",
+  "checked_at": "2026-04-27T08:59:24Z",
   "drift_detected": false,
   "drift_files": []
 }

@@ -148,12 +148,12 @@ namespace RareIcon
 
             byte interaction = def.Interaction switch
             {
-                InteractionKind.InteractionKindShrine      => LandmarkInteractionKind.Shrine,
-                InteractionKind.InteractionKindShop        => LandmarkInteractionKind.Shop,
-                InteractionKind.InteractionKindQuestGiver  => LandmarkInteractionKind.QuestGiver,
-                InteractionKind.InteractionKindDungeon     => LandmarkInteractionKind.Dungeon,
-                InteractionKind.InteractionKindNpcDialog   => LandmarkInteractionKind.NpcDialog,
-                _                                          => LandmarkInteractionKind.None,
+                InteractionKind.Shrine      => LandmarkInteractionKind.Shrine,
+                InteractionKind.Shop        => LandmarkInteractionKind.Shop,
+                InteractionKind.QuestGiver  => LandmarkInteractionKind.QuestGiver,
+                InteractionKind.Dungeon     => LandmarkInteractionKind.Dungeon,
+                InteractionKind.NpcDialog   => LandmarkInteractionKind.NpcDialog,
+                _                           => LandmarkInteractionKind.None,
             };
             if (interaction == LandmarkInteractionKind.None) return;
 
@@ -166,15 +166,23 @@ namespace RareIcon
 
             em.AddComponentData(entity, new LandmarkGameplay
             {
-                Interaction   = interaction,
-                CooldownSecs  = (ushort)def.InteractionCooldownSecs,
-                Faction       = faction,
-                NextReadyTick = 0,
+                Interaction = interaction,
+                Faction     = faction,
             });
 
             if (interaction == LandmarkInteractionKind.Shrine && def.Shrine != null)
             {
-                em.AddComponentData(entity, new LandmarkShrine { RewardCoin = def.Shrine.RewardCoin });
+                byte flags = 0;
+                if (def.Shrine.TerritoryActive)  flags |= ShrineFlags.TerritoryActive;
+                if (def.Shrine.KingVisitActive)  flags |= ShrineFlags.KingVisitActive;
+
+                em.AddComponentData(entity, new LandmarkShrine
+                {
+                    NextEligibleTurn = 0,
+                    CadenceTurns     = (ushort)math.max(1, def.Shrine.CadenceTurns),
+                    RewardCoin       = (ushort)def.Shrine.RewardCoin,
+                    Flags            = flags,
+                });
                 var rewards = em.AddBuffer<LandmarkShrineRewardItem>(entity);
                 for (int i = 0; i < def.Shrine.RewardItems.Count; i++)
                 {

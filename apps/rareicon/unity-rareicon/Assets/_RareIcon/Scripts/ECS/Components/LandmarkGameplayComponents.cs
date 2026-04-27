@@ -14,19 +14,32 @@ namespace RareIcon
         public const byte NpcDialog   = 5;
     }
 
-    /// <summary>Gameplay attributes resolved from mapdb at landmark spawn — interaction kind, cooldown, faction. Per-kind payload (shrine reward, shop inventory) lives in dedicated components attached only when applicable.</summary>
-    public struct LandmarkGameplay : IComponentData
+    /// <summary>Bit flags for shrine activation rules. Packed in a single byte.</summary>
+    public static class ShrineFlags
     {
-        public byte   Interaction;
-        public ushort CooldownSecs;
-        public byte   Faction;
-        public uint   NextReadyTick;
+        public const byte TerritoryActive = 1 << 0;
+        public const byte KingVisitActive = 1 << 1;
     }
 
-    /// <summary>Shrine reward payload — populated when LandmarkGameplay.Interaction == Shrine. Item rewards live in a sibling DynamicBuffer.</summary>
+    /// <summary>Gameplay attributes resolved from mapdb at landmark spawn — interaction kind + faction. Per-kind payload (shrine cadence, shop inventory, dungeon scene) lives in dedicated sibling components attached only when applicable. Tight 4-byte struct.</summary>
+    public struct LandmarkGameplay : IComponentData
+    {
+        public byte Interaction;
+        public byte Faction;
+        public byte _Padding0;
+        public byte _Padding1;
+    }
+
+    /// <summary>Turn-anchored shrine state. Cadence = turns between grants; NextEligibleTurn = WorldClock.TurnIndex floor before the next grant fires. Flags packs (TerritoryActive, KingVisitActive) into a single byte.</summary>
     public struct LandmarkShrine : IComponentData
     {
-        public int RewardCoin;
+        public uint   NextEligibleTurn;
+        public ushort CadenceTurns;
+        public ushort RewardCoin;
+        public byte   Flags;
+        public byte   _Padding0;
+        public byte   _Padding1;
+        public byte   _Padding2;
     }
 
     /// <summary>One reward line for a shrine — paired with LandmarkShrine on the entity.</summary>

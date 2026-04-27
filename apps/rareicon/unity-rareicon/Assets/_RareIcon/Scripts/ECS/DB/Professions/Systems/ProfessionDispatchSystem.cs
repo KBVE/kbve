@@ -362,9 +362,7 @@ namespace RareIcon
                         // AND re-rolls on each arrival (WanderStep advances
                         // when UnitMovementSystem snaps to the new hex).
                         var e = friendlyEmitters[0];
-                        uint rng = (uint)entity.Index * 0x9E3779B1u
-                                 ^ movement.ValueRO.WanderStep * 0x85EBCA77u;
-                        rng ^= rng >> 13; rng *= 0xC2B2AE3Du; rng ^= rng >> 16;
+                        uint rng = UnitHashOps.Spread(in entity) ^ (movement.ValueRO.WanderStep * 0x85EBCA77u);
                         int span = e.Radius * 2 + 1;
                         int dq = (int)(rng % (uint)span) - e.Radius;
                         rng ^= rng >> 7; rng *= 0x27D4EB2Fu;
@@ -392,8 +390,7 @@ namespace RareIcon
 
                 if (bestKind == ProfessionKind.None)
                 {
-                    uint rng = (uint)entity.Index * 0x9E3779B1u ^ nowTick * 0x85EBCA77u;
-                    rng ^= rng >> 13; rng *= 0xC2B2AE3Du; rng ^= rng >> 16;
+                    uint rng = UnitHashOps.Spread(in entity) ^ (nowTick * 0x85EBCA77u);
                     int dir = (int)(rng % 6u);
                     rng ^= rng >> 7; rng *= 0x27D4EB2Fu;
                     int dist = (int)(3u + (rng % 3u));

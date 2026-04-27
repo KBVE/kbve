@@ -137,6 +137,41 @@ namespace RareIcon.Native
         /// are removed from the store; if the buffer is too small the
         /// remainder stays and a follow-up call drains the rest.
         /// </summary>
+        /// <summary>Total ghost units across all chunks. Use to size the buffer for <see cref="TakeAllUnits"/> at session startup.</summary>
+        public uint TotalUnitCount()
+        {
+            return IsValid ? Uniti.uniti_world_total_unit_count(_handle) : 0u;
+        }
+
+        /// <summary>Replace every ghost unit in (cx, cy) with the caller's buffer. Drops the existing unit set for that chunk first. Pass length=0 to wipe the chunk's unit set entirely.</summary>
+        public void ReplaceChunkUnits(int cx, int cy, FfiGhostUnit[] buffer, int length)
+        {
+            if (!IsValid) return;
+            if (length < 0) length = 0;
+            if (buffer != null && length > 0)
+            {
+                fixed (FfiGhostUnit* ptr = buffer)
+                {
+                    Uniti.uniti_world_replace_chunk_units(_handle, cx, cy, ptr, (uint)length);
+                }
+            }
+            else
+            {
+                Uniti.uniti_world_replace_chunk_units(_handle, cx, cy, null, 0u);
+            }
+        }
+
+        /// <summary>Drain every ghost unit from every chunk into the caller-allocated buffer. Returns count actually written. Use once at session startup to seed the in-memory Unloaded unit list from the persistent SQLite store.</summary>
+        public uint TakeAllUnits(FfiGhostUnit[] buffer)
+        {
+            if (!IsValid || buffer == null || buffer.Length == 0) return 0u;
+            fixed (FfiGhostUnit* ptr = buffer)
+            {
+                return Uniti.uniti_world_take_all_units(
+                    _handle, ptr, (uint)buffer.Length);
+            }
+        }
+
         public uint TakeUnitsInChunk(int cx, int cy, FfiGhostUnit[] buffer)
         {
             if (!IsValid || buffer == null || buffer.Length == 0) return 0u;
@@ -155,6 +190,16 @@ namespace RareIcon.Native
             if (IsValid) Uniti.uniti_world_save_building(_handle, building);
         }
 
+        /// <summary>Bulk push N buildings in a single FFI call. Each upserts by root hex. Use during periodic flush to drop N FFI hops to 1.</summary>
+        public void SaveBuildingsBatch(FfiUnloadedBuilding[] buffer, int length)
+        {
+            if (!IsValid || buffer == null || length <= 0) return;
+            fixed (FfiUnloadedBuilding* ptr = buffer)
+            {
+                Uniti.uniti_world_save_buildings_batch(_handle, ptr, (uint)length);
+            }
+        }
+
         /// <summary>How many unloaded buildings the store holds for a chunk.</summary>
         public uint BuildingCountInChunk(int cx, int cy)
         {
@@ -169,6 +214,23 @@ namespace RareIcon.Native
             {
                 return Uniti.uniti_world_take_buildings_in_chunk(
                     _handle, cx, cy, ptr, (uint)buffer.Length);
+            }
+        }
+
+        /// <summary>Total buildings across all chunks in the store. Use to size the buffer for <see cref="TakeAllBuildings"/> at session startup.</summary>
+        public uint TotalBuildingCount()
+        {
+            return IsValid ? Uniti.uniti_world_total_building_count(_handle) : 0u;
+        }
+
+        /// <summary>Drain every unloaded building from every chunk into the caller-allocated buffer. Returns count actually written. Use once at session startup to seed the in-memory Unloaded list from the persistent SQLite store. Buildings that fit are removed; oversize remainders stay until the next call.</summary>
+        public uint TakeAllBuildings(FfiUnloadedBuilding[] buffer)
+        {
+            if (!IsValid || buffer == null || buffer.Length == 0) return 0u;
+            fixed (FfiUnloadedBuilding* ptr = buffer)
+            {
+                return Uniti.uniti_world_take_all_buildings(
+                    _handle, ptr, (uint)buffer.Length);
             }
         }
 

@@ -28,6 +28,17 @@ namespace RareIcon
 
         readonly Dictionary<int2, NativeList<Entity>> _loadedChunks = new();
         readonly HashSet<int2> _pendingChunks = new();
+
+        /// <summary>True if the chunk at the given chunk-coord is currently in the loaded set. Hex-coord callers should derive the chunk first via <c>floor(hex / ChunkSize)</c>.</summary>
+        public bool IsChunkLoaded(int2 chunkCoord) => _loadedChunks.ContainsKey(chunkCoord);
+
+        /// <summary>True when the hex coord falls inside any currently-loaded chunk. Cheap O(1) — converts hex to chunk and dictionary-tests.</summary>
+        public bool IsHexLoaded(int2 hex)
+        {
+            int cx = (int)System.Math.Floor((float)hex.x / ChunkSize);
+            int cy = (int)System.Math.Floor((float)hex.y / ChunkSize);
+            return _loadedChunks.ContainsKey(new int2(cx, cy));
+        }
         int2 _lastCameraChunk = new(int.MinValue, int.MinValue);
         int _currentLoadRadius;
         bool _initialLoad;
@@ -437,6 +448,7 @@ namespace RareIcon
             dbRW.ValueRW.EventsWriteHandle.Complete();
             dbRW.ValueRW.EventsWriteHandle = default;
             var unloaded = dbRW.ValueRW.Unloaded;
+            var events   = dbRW.ValueRW.Events;
             if (!unloaded.IsCreated) return;
 
             // FFI drain — cleans up the Rust-side mirror for this chunk so
@@ -543,11 +555,9 @@ namespace RareIcon
                 // every tile it occupies, not just the root.
                 ReclaimFootprint(entity, rec.Type, rec.RootHex);
 
-                // Emit spawn event — managed subscribers see the rehydrated
-                // entity via MessagePipe next Presentation tick.
-                if (dbRW.ValueRW.Events.IsCreated)
+                if (events.IsCreated)
                 {
-                    dbRW.ValueRW.Events.Add(new BuildingEvent
+                    events.Add(new BuildingEvent
                     {
                         Kind         = BuildingEventKind.Spawned,
                         Entity       = entity,
