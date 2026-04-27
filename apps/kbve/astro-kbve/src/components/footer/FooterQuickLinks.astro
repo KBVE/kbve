@@ -1,0 +1,113 @@
+---
+/**
+ * Vanilla replacement for ReactFooter quick-links portal.
+ *
+ * Renders nothing on its own — the existing #footer-quicklinks-content
+ * <div> in AstroFooter.astro is the mount point. This script attaches
+ * a tiny vanilla driver that subscribes to footerService (nanostore)
+ * and writes <ul><li><a> directly into the DOM. No React, no portal.
+ *
+ * Convention: every interactive island in this site carries a
+ * data-island="<name>" attribute so a future custom directive driver
+ * (Alpine-/Million-style) can find + mount it without grepping React.
+ */
+---
+
+<script>
+	import { footerService } from './serviceFooter';
+	import { onMount } from '@kbve/astro/utils/clientRouter';
+
+	const ICON_EXTERNAL = `
+		<svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+			stroke="currentColor" stroke-width="2" stroke-linecap="round"
+			stroke-linejoin="round" aria-hidden="true">
+			<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+			<polyline points="15 3 21 3 21 9" />
+			<line x1="10" y1="14" x2="21" y2="3" />
+		</svg>
+	`;
+
+	const fadeOutSkeleton = () => {
+		const skeleton = document.querySelector<HTMLElement>(
+			'[data-skeleton="footer-quicklinks"]',
+		);
+		if (!skeleton) return;
+		skeleton.style.transition = 'opacity 0.3s ease';
+		skeleton.style.opacity = '0';
+		skeleton.style.pointerEvents = 'none';
+	};
+
+	const checkAuth = () => {
+		try {
+			const userService = (window as any).userClientService;
+			const user = userService?.userAtom?.get?.();
+			if (user) {
+				footerService.setUserAuthenticated(true);
+				footerService.updateLinksForUser(true);
+			}
+		} catch {}
+	};
+
+	const renderLinks = (mount: HTMLElement) => {
+		const links = footerService.getQuickLinks().get();
+		const ul = document.createElement('ul');
+		ul.className = 'fql__list';
+		ul.setAttribute('data-island', 'footer-quicklinks-list');
+		ul.style.cssText =
+			'list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:0.5rem;opacity:0;transition:opacity 0.3s ease;';
+
+		for (const link of links) {
+			const li = document.createElement('li');
+			li.className = 'fql__item';
+			li.setAttribute('data-x-link', link.href);
+			li.style.transition = 'transform 0.2s ease';
+
+			const a = document.createElement('a');
+			a.href = link.href;
+			a.textContent = link.label;
+			a.className = 'fql__link kf-nav-link';
+			a.setAttribute('data-x-label', link.label);
+			if (link.external) {
+				a.target = '_blank';
+				a.rel = 'noopener noreferrer';
+				a.insertAdjacentHTML('beforeend', ICON_EXTERNAL);
+			}
+			if (link.prefetch) a.setAttribute('data-astro-prefetch', '');
+			li.appendChild(a);
+
+			li.addEventListener('pointerenter', () => {
+				li.style.transform = 'translateX(4px)';
+			});
+			li.addEventListener('pointerleave', () => {
+				li.style.transform = 'translateX(0)';
+			});
+
+			ul.appendChild(li);
+		}
+
+		mount.replaceChildren(ul);
+		requestAnimationFrame(() => {
+			ul.style.opacity = '1';
+		});
+	};
+
+	onMount(() => {
+		const mount = document.getElementById('footer-quicklinks-content');
+		if (!mount) return;
+		mount.setAttribute('data-island', 'footer-quicklinks');
+
+		const unsub = footerService.getQuickLinks().subscribe(() => {
+			renderLinks(mount);
+		});
+
+		const t = window.setTimeout(() => {
+			checkAuth();
+			fadeOutSkeleton();
+		}, 150);
+
+		return () => {
+			unsub();
+			window.clearTimeout(t);
+		};
+	});
+</script>

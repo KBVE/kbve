@@ -1,5 +1,5 @@
 ---
-import ReactFooter from './ReactFooter.tsx';
+import FooterQuickLinks from './FooterQuickLinks.astro';
 import { DroidOverlays } from '@/components/providers/DroidOverlays';
 import SocialTooltip from '@kbve/astro/components/tooltip/social/SocialTooltip.astro';
 
@@ -222,8 +222,10 @@ const currentYear = new Date().getFullYear();
 		</div>
 	</div>
 
-	<ReactFooter client:only="react" />
-	<DroidOverlays client:only="react" />
+	<FooterQuickLinks />
+	<div data-island="toast-mount" hidden>
+		<DroidOverlays client:only="react" />
+	</div>
 </footer>
 
 <style>

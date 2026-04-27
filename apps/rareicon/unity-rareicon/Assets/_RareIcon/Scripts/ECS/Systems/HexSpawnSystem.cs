@@ -347,6 +347,18 @@ namespace RareIcon
             // last unloaded. Has to come AFTER the hex loop so the units land
             // on top of restored hex state (otherwise their CurrentHex lookup
             // races the chunk entity creation).
+            if (SystemAPI.HasSingleton<UnitsDBSingleton>())
+            {
+                ref var udb = ref SystemAPI.GetSingletonRW<UnitsDBSingleton>().ValueRW;
+                if (udb.Unloaded.IsCreated)
+                {
+                    int chunkX0 = startX;
+                    int chunkY0 = startY;
+                    int chunkX1 = startX + ChunkSize;
+                    int chunkY1 = startY + ChunkSize;
+                    UnitColdStoreOps.DrainChunk(udb.Unloaded, new int2(chunkX0, chunkY0), new int2(chunkX1, chunkY1));
+                }
+            }
             if (hasGhost)
             {
                 int unitCount = (int)world.UnitCountInChunk(chunkCoord.x, chunkCoord.y);
@@ -792,14 +804,23 @@ namespace RareIcon
             SnapshotBuildingsInChunk(startX, startY, startX + ChunkSize, startY + ChunkSize);
 
             // Save + destroy any units whose CurrentHex falls inside this
-            // chunk. Has to happen BEFORE the hex entity cleanup below so
-            // the units are still fully queryable when we read their state.
-            if (canSave)
+            // chunk. UnitColdStoreOps.Snapshot builds the in-memory ghost-sim
+            // record and the same struct converts to FfiGhostUnit for the
+            // Rust crash-recovery store.
             {
                 int chunkX0 = startX;
                 int chunkY0 = startY;
                 int chunkX1 = startX + ChunkSize;
                 int chunkY1 = startY + ChunkSize;
+
+                bool hasUnitsDb = SystemAPI.HasSingleton<UnitsDBSingleton>();
+                NativeList<UnloadedUnitRecord> unloaded = default;
+                if (hasUnitsDb)
+                    unloaded = SystemAPI.GetSingletonRW<UnitsDBSingleton>().ValueRW.Unloaded;
+
+                float nowSecs = SystemAPI.HasSingleton<WorldClock>()
+                    ? SystemAPI.GetSingleton<WorldClock>().AbsSeconds
+                    : 0f;
 
                 var unitQuery = GetEntityQuery(typeof(Unit), typeof(UnitMovement));
                 var unitArr = unitQuery.ToEntityArray(Allocator.Temp);
@@ -811,7 +832,9 @@ namespace RareIcon
                     if (hex.x < chunkX0 || hex.x >= chunkX1 ||
                         hex.y < chunkY0 || hex.y >= chunkY1) continue;
 
-                    world.SaveUnit(MakeGhostUnit(unitEntity, mov));
+                    var rec = UnitColdStoreOps.Snapshot(EntityManager, unitEntity, nowSecs);
+                    if (hasUnitsDb && unloaded.IsCreated) unloaded.Add(rec);
+                    if (canSave) world.SaveUnit(UnitColdStoreOps.ToFfi(rec));
                     EntityManager.DestroyEntity(unitEntity);
                 }
                 unitArr.Dispose();
@@ -1017,45 +1040,5 @@ namespace RareIcon
             if (n > 3) { rec.Slot3Id = buf[3].ItemId; rec.Slot3Count = buf[3].Count; }
         }
 
-        // Snapshots a unit entity into the flat FFI struct so the Rust store
-        // can hold it across chunk reloads. Mirrors the per-unit data the
-        // hover sweep already reads (first 4 inventory slots + health).
-        // Energy/Mana/RandomState are NOT preserved in v1 — they reseed on
-        // restore, which is acceptable since regen fills stats and the unit
-        // only loses RNG continuity (next direction pick is fresh).
-        FfiGhostUnit MakeGhostUnit(Entity e, in UnitMovement mov)
-        {
-            var unit = EntityManager.GetComponentData<Unit>(e);
-
-            float health = 0f, maxHealth = 0f;
-            if (EntityManager.HasComponent<Health>(e))
-            {
-                var h = EntityManager.GetComponentData<Health>(e);
-                health = h.Value; maxHealth = h.Max;
-            }
-
-            ushort i0 = 0, c0 = 0, i1 = 0, c1 = 0, i2 = 0, c2 = 0, i3 = 0, c3 = 0;
-            if (EntityManager.HasBuffer<PackSlot>(e))
-            {
-                var inv = EntityManager.GetBuffer<PackSlot>(e);
-                if (inv.Length > 0) { i0 = inv[0].ItemId; c0 = inv[0].Count; }
-                if (inv.Length > 1) { i1 = inv[1].ItemId; c1 = inv[1].Count; }
-                if (inv.Length > 2) { i2 = inv[2].ItemId; c2 = inv[2].Count; }
-                if (inv.Length > 3) { i3 = inv[3].ItemId; c3 = inv[3].Count; }
-            }
-
-            return new FfiGhostUnit
-            {
-                unit_type  = unit.Type,
-                q          = mov.CurrentHex.x,
-                r          = mov.CurrentHex.y,
-                health     = health,
-                max_health = maxHealth,
-                inv0_id    = i0, inv0_qty = c0,
-                inv1_id    = i1, inv1_qty = c1,
-                inv2_id    = i2, inv2_qty = c2,
-                inv3_id    = i3, inv3_qty = c3,
-            };
-        }
     }
 }

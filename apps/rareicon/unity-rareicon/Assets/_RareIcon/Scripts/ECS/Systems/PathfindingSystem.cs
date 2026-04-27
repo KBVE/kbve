@@ -85,16 +85,6 @@ namespace RareIcon
             return x;
         }
 
-        static uint HashHex(int2 hex)
-        {
-            uint h = (uint)hex.x * 0x9E3779B1u;
-            h ^= (uint)hex.y * 0x85EBCA77u;
-            h ^= h >> 16;
-            h *= 0x7FEB352Du;
-            h ^= h >> 15;
-            h *= 0x846CA68Bu;
-            h ^= h >> 16;
-            return h;
-        }
+        static uint HashHex(int2 hex) => UnitHashOps.HexHash(hex);
     }
 }

@@ -91,6 +91,7 @@ namespace RareIcon
             ushort cap = prod.StorageCap == 0 ? (ushort)200 : prod.StorageCap;
             status.FoodCount = (ushort)math.min(food, ushort.MaxValue);
             status.Capacity  = cap;
+            status.IsNeedy   = SupplyHysteresisOps.Update(food, cap, 50, 90, status.IsNeedy);
         }
     }
 
@@ -130,14 +131,7 @@ namespace RareIcon
                 var inv = InvLookup[entity];
                 for (int i = 0; i < inv.Length; i++) total += inv[i].Count;
             }
-
-            int refillTrigger = (cap.Total * 50) / 100;
-            int refillStop    = (cap.Total * 90) / 100;
-            bool wasNeedy = status.IsNeedy != 0;
-            byte needy = wasNeedy
-                ? (byte)(total < refillStop    ? 1 : 0)
-                : (byte)(total < refillTrigger ? 1 : 0);
-            status.IsNeedy = needy;
+            status.IsNeedy = SupplyHysteresisOps.Update(total, cap.Total, 50, 90, status.IsNeedy);
         }
     }
 }

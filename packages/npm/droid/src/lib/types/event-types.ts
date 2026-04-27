@@ -61,6 +61,16 @@ export const WorkerErrorSchema = z.object({
 	message: z.string(),
 });
 
+// Page lifecycle — emitted by @kbve/astro's onMount/onSwap helpers so any
+// module on the bus (mods, plugins, vanilla driver) can react to navigation
+// without knowing whether the host is using ClientRouter, native cross-doc
+// view transitions, full reloads, or bfcache restores.
+export const PageLifecycleSchema = z.object({
+	timestamp: z.number(),
+	url: z.string(),
+	source: z.enum(['initial', 'astro-swap', 'page-reveal', 'bfcache']),
+});
+
 export const DroidEventSchemas = {
 	'droid-first-connect': DroidFirstConnectSchema,
 	'droid-ready': DroidReadySchema,
@@ -78,6 +88,9 @@ export const DroidEventSchemas = {
 	'auth-ready': AuthReadySchema,
 	'auth-error': AuthErrorSchema,
 	'worker-error': WorkerErrorSchema,
+	'page-mount': PageLifecycleSchema,
+	'page-swap': PageLifecycleSchema,
+	'page-hide': PageLifecycleSchema,
 };
 
 export type DroidEventMap = {
