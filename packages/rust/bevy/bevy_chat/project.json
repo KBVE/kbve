@@ -1,0 +1,66 @@
+{
+	"name": "bevy_chat",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/rust/bevy/bevy_chat/src",
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo build -p bevy_chat"],
+				"cwd": "packages/rust/bevy/bevy_chat"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo test -p bevy_chat"],
+				"cwd": "packages/rust/bevy/bevy_chat"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo clippy -p bevy_chat -- -D warnings"],
+				"cwd": "packages/rust/bevy/bevy_chat"
+			}
+		},
+		"check-wasm": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo +nightly check -p bevy_chat --target wasm32-unknown-unknown"
+				],
+				"cwd": "packages/rust/bevy/bevy_chat"
+			}
+		},
+		"check-desktop": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo check -p bevy_chat"],
+				"cwd": "packages/rust/bevy/bevy_chat"
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"nx run bevy_chat:test",
+					"nx run bevy_chat:check-wasm",
+					"nx run bevy_chat:check-desktop"
+				]
+			}
+		},
+		"dry": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo publish -p bevy_chat --dry-run --allow-dirty"
+				],
+				"parallel": false
+			}
+		}
+	}
+}

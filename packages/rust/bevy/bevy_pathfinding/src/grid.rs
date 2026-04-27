@@ -11,10 +11,6 @@
 
 use serde::{Deserialize, Serialize};
 
-// ---------------------------------------------------------------------------
-// Terrain classification
-// ---------------------------------------------------------------------------
-
 /// Simplified block surface classification for pathfinding cost.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u8)]
@@ -31,6 +27,12 @@ pub enum SurfaceKind {
 
 impl SurfaceKind {
     /// Base traversal cost for entering a cell with this surface.
+    ///
+    /// # Returns
+    ///
+    /// `f32::MAX` for [`SurfaceKind::Blocked`] (effectively infinite),
+    /// `1.0` for [`SurfaceKind::Solid`], `2.5` for [`SurfaceKind::Slow`],
+    /// `4.0` for [`SurfaceKind::Hazard`].
     pub fn base_cost(self) -> f32 {
         match self {
             Self::Blocked => f32::MAX,
@@ -40,10 +42,6 @@ impl SurfaceKind {
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// Per-cell navigation data
-// ---------------------------------------------------------------------------
 
 /// Navigation data for one (x, z) cell in the grid.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -67,15 +65,13 @@ impl Default for CellNav {
 }
 
 impl CellNav {
+    /// Returns `true` if the cell's surface is anything other than
+    /// [`SurfaceKind::Blocked`].
     #[inline]
     pub fn walkable(&self) -> bool {
         self.surface != SurfaceKind::Blocked
     }
 }
-
-// ---------------------------------------------------------------------------
-// BlockGrid
-// ---------------------------------------------------------------------------
 
 /// 2D walkability grid covering a rectangular region of the Minecraft world.
 ///
@@ -100,7 +96,24 @@ pub struct BlockGrid {
 pub const MAX_STEP_HEIGHT: i32 = 1;
 
 impl BlockGrid {
-    /// Create an empty grid (all cells Blocked) covering the given region.
+    /// Create an empty grid (all cells [`SurfaceKind::Blocked`]) covering
+    /// the given region.
+    ///
+    /// # Arguments
+    ///
+    /// * `origin_x` — minimum X block coord of the grid (inclusive).
+    /// * `origin_z` — minimum Z block coord of the grid (inclusive).
+    /// * `width` — number of cells along the X axis.
+    /// * `depth` — number of cells along the Z axis.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bevy_pathfinding::grid::BlockGrid;
+    ///
+    /// let grid = BlockGrid::new(0, 0, 64, 64);
+    /// assert_eq!(grid.len(), 64 * 64);
+    /// ```
     pub fn new(origin_x: i32, origin_z: i32, width: u32, depth: u32) -> Self {
         Self {
             origin_x,
@@ -111,10 +124,18 @@ impl BlockGrid {
         }
     }
 
-    /// Build a grid from a flat array of cell data sent by Java.
+    /// Build a grid from a flat array of cell data.
     ///
-    /// `cells` must have exactly `width * depth` elements in row-major
-    /// (z-major) order. Returns `None` if the length doesn't match.
+    /// # Arguments
+    ///
+    /// * `origin_x`, `origin_z` — minimum block coords (inclusive).
+    /// * `width`, `depth` — region dimensions in cells.
+    /// * `cells` — flat row-major (z-major) cell array of length
+    ///   `width * depth`.
+    ///
+    /// # Returns
+    ///
+    /// `Some(grid)` on success, `None` if `cells.len() != width * depth`.
     pub fn from_cells(
         origin_x: i32,
         origin_z: i32,
@@ -134,10 +155,11 @@ impl BlockGrid {
         })
     }
 
-    // -- Indexing -----------------------------------------------------------
-
-    /// Convert absolute block coords to a flat index, or `None` if out of
-    /// bounds.
+    /// Convert absolute block coords to a flat cell index.
+    ///
+    /// # Returns
+    ///
+    /// `Some(idx)` if `(x, z)` is inside the grid, `None` otherwise.
     #[inline]
     fn index(&self, x: i32, z: i32) -> Option<usize> {
         let lx = x - self.origin_x;
@@ -149,6 +171,11 @@ impl BlockGrid {
     }
 
     /// Get cell nav data at absolute block coords.
+    ///
+    /// # Returns
+    ///
+    /// The stored [`CellNav`] when in bounds, or [`CellNav::default()`]
+    /// (a [`SurfaceKind::Blocked`] cell at height 0) when out of bounds.
     #[inline]
     pub fn get(&self, x: i32, z: i32) -> CellNav {
         self.index(x, z).map(|i| self.cells[i]).unwrap_or_default()
@@ -162,20 +189,27 @@ impl BlockGrid {
         }
     }
 
-    /// Is the cell walkable?
+    /// Returns `true` if the cell at `(x, z)` is walkable. Out-of-bounds
+    /// coords return `false`.
     #[inline]
     pub fn is_walkable(&self, x: i32, z: i32) -> bool {
         self.get(x, z).walkable()
     }
 
-    /// Traversal cost at the given cell.
+    /// Traversal cost at the given cell. Returns `f32::MAX` for
+    /// out-of-bounds or blocked cells.
     #[inline]
     pub fn cost(&self, x: i32, z: i32) -> f32 {
         self.get(x, z).cost
     }
 
-    /// Return walkable 8-connected neighbors where the height delta is
-    /// within `MAX_STEP_HEIGHT`.
+    /// Return walkable 8-connected neighbors of `(x, z)` whose height
+    /// delta is within [`MAX_STEP_HEIGHT`].
+    ///
+    /// # Returns
+    ///
+    /// An empty `Vec` if the center cell is itself non-walkable; up to
+    /// 8 `(x, z)` pairs otherwise.
     pub fn walkable_neighbors(&self, x: i32, z: i32) -> Vec<(i32, i32)> {
         let center = self.get(x, z);
         if !center.walkable() {
@@ -205,19 +239,19 @@ impl BlockGrid {
         result
     }
 
-    /// Total number of cells in the grid.
+    /// Total number of cells in the grid (`width * depth`).
     #[inline]
     pub fn len(&self) -> usize {
         self.cells.len()
     }
 
-    /// Whether the grid is empty (zero-area).
+    /// Whether the grid covers a zero-area region.
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.cells.is_empty()
     }
 
-    /// Iterate all cells with their absolute (x, z) coordinates.
+    /// Iterate all cells with their absolute `(x, z)` coordinates.
     pub fn iter(&self) -> impl Iterator<Item = (i32, i32, &CellNav)> {
         self.cells.iter().enumerate().map(move |(i, cell)| {
             let lx = (i as u32) % self.width;
@@ -226,22 +260,19 @@ impl BlockGrid {
         })
     }
 
-    /// Check if the given coordinate is within the grid bounds.
+    /// Returns `true` if the given coordinate is within the grid bounds.
     #[inline]
     pub fn in_bounds(&self, x: i32, z: i32) -> bool {
         self.index(x, z).is_some()
     }
 }
 
-// ---------------------------------------------------------------------------
-// MapRegionSnapshot — the JSON payload Java sends via JNI
-// ---------------------------------------------------------------------------
-
 /// Snapshot of a rectangular region of the Minecraft world, sent from Java
 /// to Rust periodically (every few seconds, not every tick).
 ///
 /// Java scans the surface around each player and packs the walkability
-/// data into this struct. Rust deserializes it and builds a [`BlockGrid`].
+/// data into this struct. Rust deserializes it and builds a [`BlockGrid`]
+/// via [`MapRegionSnapshot::into_grid`].
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MapRegionSnapshot {
     /// Minimum X block coordinate of the scanned region.
@@ -253,16 +284,20 @@ pub struct MapRegionSnapshot {
     /// Number of cells along the Z axis.
     pub depth: u32,
     /// Flat array of per-cell data, row-major (z-major).
-    /// Each entry: `[height_y, surface_kind]` where surface_kind is the
-    /// `SurfaceKind` discriminant (0=Blocked, 1=Solid, 2=Slow, 3=Hazard).
+    /// Each entry: `[height_y, surface_kind]` where `surface_kind` is the
+    /// [`SurfaceKind`] discriminant (0 = Blocked, 1 = Solid, 2 = Slow,
+    /// 3 = Hazard).
     pub cells: Vec<[i32; 2]>,
     /// Server tick at which this snapshot was taken.
     pub tick: u64,
 }
 
 impl MapRegionSnapshot {
-    /// Convert this snapshot into a [`BlockGrid`]. Returns `None` if the
-    /// cell count doesn't match `width * depth`.
+    /// Convert this snapshot into a [`BlockGrid`].
+    ///
+    /// # Returns
+    ///
+    /// `Some(grid)` on success, `None` if `cells.len() != width * depth`.
     pub fn into_grid(self) -> Option<BlockGrid> {
         let expected = (self.width * self.depth) as usize;
         if self.cells.len() != expected {

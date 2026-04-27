@@ -1,0 +1,116 @@
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using R3;
+using Unity.Mathematics;
+using UnityEngine;
+
+namespace RareIcon
+{
+    public enum TitleStage : byte
+    {
+        Locale,
+        Seed,
+        Generating,
+        Ready,
+    }
+
+    /// <summary>Reactive title-screen state machine. Holds the player's locale + seed pick, drives background world prep (noise reseed → river routing → chunk streaming gate), and exposes a Ready signal so the title's Start button enables only once the world has streamed enough chunks to drop into. Owns the BiomeGenerator + ChunkGeneratorService + RiverRouter — the title screen flips them on after seed selection so chunks don't generate against the default seed before the player commits.</summary>
+    public sealed class WorldGenSession : IDisposable
+    {
+        const int MinChunksReady = 9;
+        const int RiverRoutingRadius = 200;
+
+        readonly BiomeGenerator _biomes;
+        readonly ChunkGeneratorService _chunks;
+        readonly RiverRouter _rivers;
+        readonly LocaleService _locale;
+
+        readonly ReactiveProperty<TitleStage> _stage = new(TitleStage.Locale);
+        readonly ReactiveProperty<int> _seed = new(unchecked((int)DateTime.UtcNow.Ticks));
+        readonly ReactiveProperty<int> _chunksReady = new(0);
+
+        public ReadOnlyReactiveProperty<TitleStage> Stage => _stage;
+        public ReadOnlyReactiveProperty<int> Seed => _seed;
+        public ReadOnlyReactiveProperty<int> ChunksReady => _chunksReady;
+        public int RequiredChunks => MinChunksReady;
+
+        /// <summary>Static gate read by initial-spawn ECS systems (King + Capital + heroes + initial goblin cluster) so they don't fire while the title screen is up. Flipped <c>true</c> by <see cref="MarkWorldStarted"/> on the player's Start click. Stays <c>true</c> for the rest of the session — re-entering the title is not supported (yet).</summary>
+        public static bool HasStarted { get; private set; }
+
+        public static void MarkWorldStarted() => HasStarted = true;
+
+        CancellationTokenSource _genCts;
+
+        public WorldGenSession(
+            BiomeGenerator biomes,
+            ChunkGeneratorService chunks,
+            RiverRouter rivers,
+            LocaleService locale)
+        {
+            _biomes = biomes;
+            _chunks = chunks;
+            _rivers = rivers;
+            _locale = locale;
+        }
+
+        public void SelectLocale(string locale)
+        {
+            _locale.SetLocale(locale);
+            if (_stage.Value == TitleStage.Locale) _stage.Value = TitleStage.Seed;
+        }
+
+        public void SetSeed(int seed) => _seed.Value = seed;
+
+        public void Randomize() => _seed.Value = unchecked((int)DateTime.UtcNow.Ticks ^ UnityEngine.Random.Range(int.MinValue, int.MaxValue));
+
+        /// <summary>Lock the seed in, kick off background world generation, and advance to the Generating stage. Idempotent — calling twice is a no-op.</summary>
+        public void BeginGeneration()
+        {
+            if (_stage.Value == TitleStage.Generating || _stage.Value == TitleStage.Ready) return;
+
+            _stage.Value = TitleStage.Generating;
+            _biomes.Reseed(_seed.Value);
+
+            _genCts?.Cancel();
+            _genCts = new CancellationTokenSource();
+            RunGenerationAsync(_genCts.Token).Forget();
+        }
+
+        async UniTaskVoid RunGenerationAsync(CancellationToken ct)
+        {
+            try
+            {
+                var rivers = await UniTask.RunOnThreadPool(
+                    () => _rivers.RouteRegion(new int2(0, 0), RiverRoutingRadius),
+                    cancellationToken: ct);
+
+                if (ct.IsCancellationRequested) return;
+
+                RiverSpawnSystem.SetRivers(rivers);
+                HexChunkSystem.SetGenerator(_chunks);
+
+                while (!ct.IsCancellationRequested)
+                {
+                    int produced = HexChunkSystem.LoadedChunkCountStatic + _chunks.ResultCount;
+                    _chunksReady.Value = produced;
+                    if (produced >= MinChunksReady) break;
+                    await UniTask.Delay(100, cancellationToken: ct);
+                }
+
+                _stage.Value = TitleStage.Ready;
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception e) { Debug.LogError($"[WorldGenSession] generation failed: {e}"); }
+        }
+
+        public void Dispose()
+        {
+            _genCts?.Cancel();
+            _genCts?.Dispose();
+            _stage.Dispose();
+            _seed.Dispose();
+            _chunksReady.Dispose();
+        }
+    }
+}

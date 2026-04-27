@@ -28,10 +28,6 @@ use std::collections::VecDeque;
 
 use crate::grid::BlockGrid;
 
-// ---------------------------------------------------------------------------
-// Direction encoding
-// ---------------------------------------------------------------------------
-
 /// Packed direction: (dx, dz) where each is -1, 0, or 1.
 /// `(0, 0)` means "at goal" or "unreachable".
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -41,8 +37,11 @@ pub struct Dir {
 }
 
 impl Dir {
+    /// The zero direction `(0, 0)` — used as the default for unreachable
+    /// or at-goal cells.
     pub const ZERO: Self = Self { dx: 0, dz: 0 };
 
+    /// Returns `true` if both components are zero.
     #[inline]
     pub fn is_zero(self) -> bool {
         self.dx == 0 && self.dz == 0
@@ -51,10 +50,6 @@ impl Dir {
 
 /// Cost-to-goal value for unreachable / unvisited cells.
 const UNREACHABLE: u32 = u32::MAX;
-
-// ---------------------------------------------------------------------------
-// FlowField
-// ---------------------------------------------------------------------------
 
 /// Direction vector field computed from one or more goal positions.
 ///
@@ -88,8 +83,34 @@ static OFFSETS: [(i32, i32); 8] = [
 impl FlowField {
     /// Compute a flow field from the given goals on the grid.
     ///
-    /// Goals that are out of bounds or on non-walkable cells are skipped.
-    /// Returns a flow field covering the same region as the grid.
+    /// A single multi-source BFS expands outward from every goal in
+    /// `O(width * depth)` time. Goals that are out of bounds or on
+    /// non-walkable cells are skipped. The resulting field covers the
+    /// same region as `grid`.
+    ///
+    /// # Arguments
+    ///
+    /// * `grid` — walkability grid the field is computed over.
+    /// * `goals` — list of `(x, z)` block coords every walkable cell
+    ///   should point toward.
+    ///
+    /// # Returns
+    ///
+    /// A new [`FlowField`]. If `goals` is empty or every goal is
+    /// invalid, every cell will be marked unreachable.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bevy_pathfinding::{grid::{BlockGrid, CellNav, SurfaceKind}, flow_field::FlowField};
+    ///
+    /// let mut grid = BlockGrid::new(0, 0, 4, 4);
+    /// for (x, z, _) in grid.clone().iter() {
+    ///     grid.set(x, z, CellNav { height: 0, surface: SurfaceKind::Solid, cost: 1.0 });
+    /// }
+    /// let field = FlowField::compute(&grid, &[(0, 0)]);
+    /// assert_eq!(field.distance(0, 0), Some(0));
+    /// ```
     pub fn compute(grid: &BlockGrid, goals: &[(i32, i32)]) -> Self {
         let w = grid.width;
         let d = grid.depth;
@@ -98,7 +119,6 @@ impl FlowField {
         let mut dirs = vec![Dir::ZERO; n];
         let mut queue = VecDeque::with_capacity(n / 4);
 
-        // Seed BFS from all goal positions
         for &(gx, gz) in goals {
             if !grid.in_bounds(gx, gz) || !grid.is_walkable(gx, gz) {
                 continue;
@@ -111,7 +131,6 @@ impl FlowField {
             }
         }
 
-        // BFS expansion
         while let Some((cx, cz)) = queue.pop_front() {
             let ci = match Self::idx(cx, cz, grid.origin_x, grid.origin_z, w, d) {
                 Some(i) => i,
@@ -161,6 +180,21 @@ impl FlowField {
     }
 
     /// Compute a flow field that guides AWAY from the given sources.
+    ///
+    /// Internally calls [`FlowField::compute`] to build a "toward" field,
+    /// then for every reachable cell picks the neighbor with the highest
+    /// cost-to-source as the flee direction.
+    ///
+    /// # Arguments
+    ///
+    /// * `grid` — walkability grid the field is computed over.
+    /// * `sources` — list of `(x, z)` block coords agents flee from.
+    ///
+    /// # Returns
+    ///
+    /// A new [`FlowField`] where each walkable cell's [`Dir`] points
+    /// toward the highest-cost neighbor (the next step away from any
+    /// source).
     pub fn compute_flee(grid: &BlockGrid, sources: &[(i32, i32)]) -> Self {
         let toward = Self::compute(grid, sources);
 
@@ -210,9 +244,14 @@ impl FlowField {
         }
     }
 
-    // -- Queries -----------------------------------------------------------
-
-    /// Get the direction to move from the given cell toward the nearest goal.
+    /// Direction to move from `(x, z)` toward the nearest goal.
+    ///
+    /// # Returns
+    ///
+    /// * `Some((0, 0))` — `(x, z)` is itself a goal.
+    /// * `Some((dx, dz))` — the next-step delta (each component in
+    ///   `-1..=1`).
+    /// * `None` — `(x, z)` is out of bounds or unreachable from any goal.
     pub fn direction(&self, x: i32, z: i32) -> Option<(i32, i32)> {
         let i = Self::idx(x, z, self.origin_x, self.origin_z, self.width, self.depth)?;
         let d = self.dirs[i];
@@ -222,14 +261,30 @@ impl FlowField {
         Some((d.dx as i32, d.dz as i32))
     }
 
-    /// Get the BFS distance from the given cell to the nearest goal.
+    /// BFS distance (in cells) from `(x, z)` to the nearest goal.
+    ///
+    /// # Returns
+    ///
+    /// `Some(d)` for reachable cells, `None` for out-of-bounds or
+    /// unreachable cells.
     pub fn distance(&self, x: i32, z: i32) -> Option<u32> {
         let i = Self::idx(x, z, self.origin_x, self.origin_z, self.width, self.depth)?;
         let c = self.cost[i];
         if c == UNREACHABLE { None } else { Some(c) }
     }
 
-    /// Convert the direction at `(x, z)` into a world-space target position.
+    /// Convert the direction at `(x, z)` into a world-space target.
+    ///
+    /// # Arguments
+    ///
+    /// * `grid` — grid used to look up the target cell's height.
+    /// * `x`, `z` — current block coords.
+    ///
+    /// # Returns
+    ///
+    /// `Some([cx, cy, cz])` where `cx`/`cz` are block-center coords
+    /// (`+0.5`) and `cy` is the target cell's surface height. `None` if
+    /// `(x, z)` is unreachable, out of bounds, or already at the goal.
     pub fn next_target(&self, grid: &BlockGrid, x: i32, z: i32) -> Option<[f64; 3]> {
         let (dx, dz) = self.direction(x, z)?;
         if dx == 0 && dz == 0 {
@@ -241,12 +296,11 @@ impl FlowField {
         Some([nx as f64 + 0.5, cell.height as f64, nz as f64 + 0.5])
     }
 
-    /// Check if the given position is at or adjacent to a goal (distance 0 or 1).
+    /// Returns `true` if `(x, z)` is at a goal or one cell away (BFS
+    /// distance ≤ 1).
     pub fn at_goal(&self, x: i32, z: i32) -> bool {
         self.distance(x, z).is_some_and(|d| d <= 1)
     }
-
-    // -- Internals ---------------------------------------------------------
 
     /// Bounds-checked index with both width and depth validation.
     #[inline]

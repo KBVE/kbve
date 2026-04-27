@@ -1,0 +1,66 @@
+{
+	"name": "bevy_supa",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/rust/bevy/bevy_supa/src",
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo build -p bevy_supa"],
+				"cwd": "packages/rust/bevy/bevy_supa"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo test -p bevy_supa"],
+				"cwd": "packages/rust/bevy/bevy_supa"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo clippy -p bevy_supa -- -D warnings"],
+				"cwd": "packages/rust/bevy/bevy_supa"
+			}
+		},
+		"check-wasm": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo +nightly check -p bevy_supa --target wasm32-unknown-unknown"
+				],
+				"cwd": "packages/rust/bevy/bevy_supa"
+			}
+		},
+		"check-desktop": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo check -p bevy_supa"],
+				"cwd": "packages/rust/bevy/bevy_supa"
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"nx run bevy_supa:test",
+					"nx run bevy_supa:check-wasm",
+					"nx run bevy_supa:check-desktop"
+				]
+			}
+		},
+		"dry": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo publish -p bevy_supa --dry-run --allow-dirty"
+				],
+				"parallel": false
+			}
+		}
+	}
+}

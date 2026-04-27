@@ -71,6 +71,9 @@ COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
 COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
 COPY packages/rust/bevy/bevy_kbve_net/Cargo.toml packages/rust/bevy/bevy_kbve_net/Cargo.toml
 COPY packages/rust/bevy/bevy_npc/Cargo.toml packages/rust/bevy/bevy_npc/Cargo.toml
+# bevy_tasker — referenced by bevy_kbve_net's optional `creatures` feature.
+# cargo metadata reads the manifest even when the feature is off.
+COPY packages/rust/bevy/bevy_tasker/Cargo.toml packages/rust/bevy/bevy_tasker/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
@@ -78,7 +81,8 @@ RUN mkdir -p apps/rareicon/axum-rareicon/src && echo "fn main() {}" > apps/rarei
     mkdir -p packages/rust/jedi/src && echo "" > packages/rust/jedi/src/lib.rs && \
     mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_kbve_net/src && echo "" > packages/rust/bevy/bevy_kbve_net/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_npc/src && echo "" > packages/rust/bevy/bevy_npc/src/lib.rs
+    mkdir -p packages/rust/bevy/bevy_npc/src && echo "" > packages/rust/bevy/bevy_npc/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_tasker/src && echo "" > packages/rust/bevy/bevy_tasker/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -121,6 +125,11 @@ COPY packages/rust/jedi packages/rust/jedi
 COPY packages/rust/kbve packages/rust/kbve
 COPY packages/rust/bevy/bevy_kbve_net packages/rust/bevy/bevy_kbve_net
 COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
+# Stub bevy_tasker manifest so cargo metadata can resolve bevy_kbve_net's
+# feature-gated path dep (creatures feature is off in this build).
+COPY packages/rust/bevy/bevy_tasker/Cargo.toml packages/rust/bevy/bevy_tasker/Cargo.toml
+RUN mkdir -p packages/rust/bevy/bevy_tasker/src && \
+    echo "" > packages/rust/bevy/bevy_tasker/src/lib.rs
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \

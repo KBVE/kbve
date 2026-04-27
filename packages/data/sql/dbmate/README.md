@@ -4,24 +4,27 @@ Manages PostgreSQL schema migrations for the KBVE Supabase cluster (`supabase-cl
 
 ## Applied Migrations
 
-| Version          | Name                          | Schema      | Objects                                   |
-| ---------------- | ----------------------------- | ----------- | ----------------------------------------- |
-| `20260227210000` | `mc_schema_init`              | `mc`        | 6 tables, 28 functions                    |
-| `20260227215000` | `gen_ulid`                    | `public`    | 1 function (`gen_ulid()`)                 |
-| `20260227220000` | `meme_schema_init`            | `meme`      | 14 tables, 18 functions                   |
-| `20260228000000` | `discordsh_schema_init`       | `discordsh` | 2 tables, 13 functions                    |
-| `20260228210000` | `meme_rpcs`                   | `meme`      | +7 service RPC functions                  |
-| `20260228220000` | `osrs_schema_init`            | `osrs`      | 9 tables, 11 functions                    |
-| `20260228230000` | `discordsh_update_server`     | `discordsh` | +2 functions, removes direct UPDATE       |
-| `20260301210000` | `meme_rpcs_v2`                | `meme`      | +12 service RPC functions                 |
-| `20260302000000` | `discordsh_guild_vault`       | `discordsh` | 1 table, 7 functions (guild token vault)  |
-| `20260302100000` | `n8n_schema_init`             | `n8n`       | Schema creation for n8n workflow engine   |
-| `20260303210000` | `meme_create_rpc`             | `meme`      | +1 function (`service_create_meme`)       |
-| `20260304210000` | `meme_service_get_meme_by_id` | `meme`      | +1 function (`service_get_meme_by_id`)    |
-| `20260307210000` | `staff_schema_init`           | `staff`     | 2 tables, 12 functions (permissions)      |
-| `20260312183000` | `discordsh_list_servers`      | `discordsh` | +1 function (`service_list_servers`)      |
-| `20260316210000` | `discordsh_dungeon_profiles`  | `discordsh` | 2 tables, 4 functions (dungeon RPG)       |
-| `20260318210000` | `rls_subquery_auth_uid`       | _multi_     | ALTER 39 RLS policies (perf optimization) |
+| Version          | Name                          | Schema      | Objects                                                                                                                                       |
+| ---------------- | ----------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `20260227210000` | `mc_schema_init`              | `mc`        | 6 tables, 28 functions                                                                                                                        |
+| `20260227215000` | `gen_ulid`                    | `public`    | 1 function (`gen_ulid()`)                                                                                                                     |
+| `20260227220000` | `meme_schema_init`            | `meme`      | 14 tables, 18 functions                                                                                                                       |
+| `20260228000000` | `discordsh_schema_init`       | `discordsh` | 2 tables, 13 functions                                                                                                                        |
+| `20260228210000` | `meme_rpcs`                   | `meme`      | +7 service RPC functions                                                                                                                      |
+| `20260228220000` | `osrs_schema_init`            | `osrs`      | 9 tables, 11 functions                                                                                                                        |
+| `20260228230000` | `discordsh_update_server`     | `discordsh` | +2 functions, removes direct UPDATE                                                                                                           |
+| `20260301210000` | `meme_rpcs_v2`                | `meme`      | +12 service RPC functions                                                                                                                     |
+| `20260302000000` | `discordsh_guild_vault`       | `discordsh` | 1 table, 7 functions (guild token vault)                                                                                                      |
+| `20260302100000` | `n8n_schema_init`             | `n8n`       | Schema creation for n8n workflow engine                                                                                                       |
+| `20260303210000` | `meme_create_rpc`             | `meme`      | +1 function (`service_create_meme`)                                                                                                           |
+| `20260304210000` | `meme_service_get_meme_by_id` | `meme`      | +1 function (`service_get_meme_by_id`)                                                                                                        |
+| `20260307210000` | `staff_schema_init`           | `staff`     | 2 tables, 12 functions (permissions)                                                                                                          |
+| `20260312183000` | `discordsh_list_servers`      | `discordsh` | +1 function (`service_list_servers`)                                                                                                          |
+| `20260316210000` | `discordsh_dungeon_profiles`  | `discordsh` | 2 tables, 4 functions (dungeon RPG)                                                                                                           |
+| `20260318210000` | `rls_subquery_auth_uid`       | _multi_     | ALTER 39 RLS policies (perf optimization)                                                                                                     |
+| `20260427210000` | `forum_schema_init`           | `forum`     | 18 tables, 2 views, 15 enums, 42 functions (15 service RPCs), 101 indexes, 30 RLS policies                                                    |
+| `20260427220000` | `forum_feed_indexes_safe`     | `forum`     | Drop 4 redundant feed indexes, add 7 `_safe` partials (status='active' AND nsfw=FALSE) for service_fetch_feed default path                    |
+| `20260427230000` | `forum_username_gate`         | `forum`     | Add `forum.assert_user_has_username` helper; `service_create_thread` + `service_create_comment` reject authors with no `profile.username` row |
 
 Migration state is tracked in `dbmate.schema_migrations` (not `public`) to isolate it from PostgREST/RPC.
 
@@ -78,6 +81,16 @@ Schema container only — n8n TypeORM manages its own 23 tables (workflows, exec
 ### `public` — Shared utilities
 
 `gen_ulid()` function for ULID primary key generation. Available to all roles.
+
+### `forum` — Reddit-style discussion / marketplace / auction / poll system
+
+18 tables (`spaces`, `tags`, `threads`, `comments`, `thread_tags`, `forum_user_profiles`, `user_follows`, `bookmarks`, `thread_subscriptions`, `thread_votes`, `comment_votes`, `reactions`, `auction_bids`, `poll_votes`, `reports`, `moderation_actions`, `notifications`, `attachments`), 2 views (`public_user_profiles`, `thread_tags_resolved`), 15 enums, 42 functions (27 trigger/normalize + 15 service RPCs), 101 indexes, 30 RLS policies.
+
+- **Source**: `../schema/forum/` (`forum_core.sql`, `forum_user.sql`, `forum_engagement.sql`, `forum_moderation.sql`, `forum_rpcs.sql`)
+- **Access**: read paths via `public_user_profiles` view + RLS-gated SELECTs on threads / comments / reactions / attachments / moderation*actions; all writes route through `service*\*` RPCs (service_role only)
+- **Identity**: stays in `kbve.profile.UserProfile` — `forum.forum_user_profiles` only holds forum-side denormalized state (karma, post_count, signature, badges, ban flags)
+- **RPC surface**: `service_create_thread` / `service_edit_thread` / `service_create_comment` / `service_edit_comment` / `service_cast_thread_vote` / `service_cast_comment_vote` / `service_toggle_reaction` / `service_file_report` / `service_place_bid` / `service_mark_notifications_read` / `service_fetch_feed` / `service_record_moderation` / `service_update_user_profile` / `service_ensure_user_profile` / `service_resolve_tag_ids`
+- **Hardening**: FORCE RLS on every base table, advisory `pg_advisory_xact_lock` on contentious paths (votes, reactions, reports), `lock_timeout = '1s'` on contentious write RPCs, `statement_timeout = '2s'` on `service_fetch_feed`, append-only audit log (`moderation_actions` REVOKEs UPDATE/DELETE even from service_role), polymorphic parent existence triggers, FORCE RLS bypass via service_role's BYPASSRLS attribute
 
 ## Security Model
 

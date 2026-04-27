@@ -1,0 +1,34 @@
+---
+title: bevy_pathfinding
+description: |
+    bevy_pathfinding — Grid-based flow field pathfinding and chokepoint detection. Pure Rust core with optional Bevy integration.
+sidebar:
+    label: bevy_pathfinding
+tags:
+    - crates
+    - rust
+    - bevy
+    - pathfinding
+    - ai
+key: bevy_pathfinding_crate
+pipeline: crates
+package_name: bevy_pathfinding
+version: "0.0.0"
+source_path: packages/rust/bevy/bevy_pathfinding
+version_source: packages/rust/bevy/bevy_pathfinding/Cargo.toml
+version_target: packages/rust/bevy/bevy_pathfinding/Cargo.toml
+version_toml: packages/rust/bevy/bevy_pathfinding/version.toml
+author: h0lybyte
+license: MIT
+status: active
+---
+
+## Overview
+
+Three layers stacked on a tile-based world:
+
+1. **`BlockGrid`** — 2D walkability grid with per-cell height + terrain cost.
+2. **`FlowField`** — BFS-computed direction vectors pointing every walkable cell at one or more goals. Agents share a goal and look up their next move in O(1) instead of running per-agent A*.
+3. **`FlowGate`** — narrow-passage detector. Useful for ambush AI, territory control, and patrol route generation.
+
+The crate is pure Rust by default. Enable the `bevy` feature to get `Resource` derives for ECS integration.

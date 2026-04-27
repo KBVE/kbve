@@ -439,6 +439,94 @@ jobs:
                     DISPATCHED=$((DISPATCHED + 1))
                   done < <(jq -c '.unreal[]' "$MANIFEST")
 
+                  # =================================================================
+                  # Game-engine pipelines — unity / godot / unreal_game / bevy_game.
+                  # Same dispatch shape, one workflow file per engine. Reads the
+                  # shared GameEngineConfig sub-object from the manifest entry.
+                  # =================================================================
+                  dispatch_game_engine() {
+                    local pipeline="$1"; local workflow="$2"; local entry="$3"
+                    local key app src vtoml ver vtgt run has_test
+                    local engine_version proj_path build_targets features dotnet ext_repo lic
+                    local itch_user itch_game itch_chan deploy_itch
+                    key=$(echo "$entry" | jq -r '.key')
+                    app=$(echo "$entry" | jq -r '.app_name')
+                    src=$(echo "$entry" | jq -r '.version_source // empty')
+                    vtoml=$(echo "$entry" | jq -r '.version_toml // empty')
+                    ver=$(echo "$entry" | jq -r '.version // empty')
+                    vtgt=$(echo "$entry" | jq -r '.version_target // empty')
+                    run=$(echo "$entry" | jq -r '.runner // empty')
+                    has_test=$(echo "$entry" | jq -r '.has_test // empty')
+                    engine_version=$(echo "$entry" | jq -r '.engine.version // empty')
+                    proj_path=$(echo "$entry" | jq -r '.engine.project_path // empty')
+                    build_targets=$(echo "$entry" | jq -c '.engine.build_targets // []')
+                    features=$(echo "$entry" | jq -c '.engine.features // []')
+                    dotnet=$(echo "$entry" | jq -r '.engine.dotnet_enabled // false')
+                    lic=$(echo "$entry" | jq -r '.engine.license_method // empty')
+                    ext_repo=$(echo "$entry" | jq -r '.engine.external_repo_url // empty')
+                    itch_user=$(echo "$entry" | jq -r '.external_publish.itch_user // empty')
+                    itch_game=$(echo "$entry" | jq -r '.external_publish.itch_game // empty')
+                    deploy_itch="false"
+                    [ -n "$itch_user" ] && [ -n "$itch_game" ] && deploy_itch="true"
+
+                    local altered reason
+                    altered=$(is_altered "$key")
+                    reason=""
+                    if [ "$altered" = "true" ]; then
+                      reason="files changed"
+                    elif [ -n "$src" ] && [ "$(check_version "$src" "$vtoml")" = "true" ]; then
+                      reason="unpublished version"
+                    else
+                      echo "  · $app — no changes, version published, skipping"
+                      SKIPPED=$((SKIPPED + 1))
+                      return
+                    fi
+                    echo "  ✓ $app — $reason, dispatching ($pipeline)"
+
+                    local extra=""
+                    [ -n "$src" ] && extra="$extra --field version_source=${src}"
+                    [ -n "$vtoml" ] && extra="$extra --field version_toml=${vtoml}"
+                    [ -n "$ver" ] && extra="$extra --field manifest_version=${ver}"
+                    [ -n "$vtgt" ] && extra="$extra --field version_target=${vtgt}"
+                    [ -n "$proj_path" ] && extra="$extra --field project_path=${proj_path}"
+                    [ -n "$engine_version" ] && extra="$extra --field engine_version=${engine_version}"
+                    [ "$build_targets" != "[]" ] && extra="$extra --field build_targets=${build_targets}"
+                    [ "$features" != "[]" ] && extra="$extra --field features=${features}"
+                    [ -n "$lic" ] && extra="$extra --field license_method=${lic}"
+                    [ -n "$ext_repo" ] && extra="$extra --field external_repo_url=${ext_repo}"
+                    [ "$dotnet" = "true" ] && extra="$extra --field dotnet_enabled=true"
+                    extra="$extra --field deploy_to_itch=${deploy_itch}"
+                    [ -n "$itch_user" ] && extra="$extra --field itch_user=${itch_user}"
+                    [ -n "$itch_game" ] && extra="$extra --field itch_game=${itch_game}"
+
+                    gh workflow run "$workflow" --repo "$REPO" --ref main \
+                      --field key="$key" \
+                      --field app_name="$app" \
+                      --field dispatched_at="$DISPATCHED_AT" \
+                      $extra
+                    DISPATCHED=$((DISPATCHED + 1))
+                  }
+
+                  echo "=== Unity ==="
+                  while IFS= read -r entry; do
+                    dispatch_game_engine unity ci-unity.yml "$entry"
+                  done < <(jq -c '.unity[]? // empty' "$MANIFEST")
+
+                  echo "=== Godot ==="
+                  while IFS= read -r entry; do
+                    dispatch_game_engine godot ci-godot.yml "$entry"
+                  done < <(jq -c '.godot[]? // empty' "$MANIFEST")
+
+                  echo "=== Unreal Game ==="
+                  while IFS= read -r entry; do
+                    dispatch_game_engine unreal_game ci-unreal-game.yml "$entry"
+                  done < <(jq -c '.unreal_game[]? // empty' "$MANIFEST")
+
+                  echo "=== Bevy Game ==="
+                  while IFS= read -r entry; do
+                    dispatch_game_engine bevy_game ci-bevy-game.yml "$entry"
+                  done < <(jq -c '.bevy_game[]? // empty' "$MANIFEST")
+
                   echo ""
                   echo "=== Summary: ${DISPATCHED} dispatched, ${SKIPPED} skipped ==="
 

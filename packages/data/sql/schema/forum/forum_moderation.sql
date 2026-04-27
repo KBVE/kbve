@@ -363,18 +363,31 @@ CREATE INDEX idx_notifications_old_read
 CREATE INDEX idx_notifications_expiry
     ON forum.notifications (expires_at)
     WHERE expires_at IS NOT NULL;
--- Anti-spam dedupe: collapse identical unread notifications. NULL
--- columns (actor / target) get sentinel values so COALESCE matches —
--- a plain partial UNIQUE would treat each NULL as distinct.
-CREATE UNIQUE INDEX ux_notifications_dedupe_unread
+-- Anti-spam dedupe split by target presence. We can't COALESCE the
+-- target_kind enum into a sentinel because enum→text is STABLE (rename
+-- via ALTER TYPE) and Postgres rejects STABLE functions in index
+-- expressions. Splitting into two partials avoids the cast entirely
+-- and the notifications_target_pair CHECK guarantees target_kind +
+-- target_id are set/cleared together so the targeted index sees both
+-- NOT NULL together. actor_id (nullable UUID) still uses a literal
+-- sentinel — UUID literal cast is IMMUTABLE.
+CREATE UNIQUE INDEX ux_notifications_dedupe_unread_targeted
     ON forum.notifications (
         recipient_id,
         kind,
         COALESCE(actor_id, '00000000-0000-0000-0000-000000000000'::UUID),
-        COALESCE(target_kind::TEXT, ''),
-        COALESCE(target_id, '')
+        target_kind,
+        target_id
     )
-    WHERE read_at IS NULL;
+    WHERE read_at IS NULL AND target_kind IS NOT NULL;
+
+CREATE UNIQUE INDEX ux_notifications_dedupe_unread_targetless
+    ON forum.notifications (
+        recipient_id,
+        kind,
+        COALESCE(actor_id, '00000000-0000-0000-0000-000000000000'::UUID)
+    )
+    WHERE read_at IS NULL AND target_kind IS NULL;
 -- Bulk mark-all-read fast path. Smaller than idx_notifications_unread
 -- because it omits created_at — the bulk UPDATE only filters on
 -- (recipient_id, read_at IS NULL).

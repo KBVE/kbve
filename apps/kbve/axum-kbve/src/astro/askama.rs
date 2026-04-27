@@ -122,7 +122,6 @@ pub struct ProfileNotFoundTemplate {
 // escaped by askama's default filter.
 
 /// Individual forum thread page served at /forum/t/{slug_or_id}.
-#[allow(dead_code)] // fields consumed once the /forum routes wire in
 #[derive(Template)]
 #[template(path = "askama/forum/thread/index.html")]
 pub struct ForumThreadTemplate {
@@ -146,7 +145,6 @@ pub struct ForumThreadTemplate {
 }
 
 /// Forum feed / space-index page served at /forum/ and /forum/s/{slug}.
-#[allow(dead_code)] // fields consumed once the /forum routes wire in
 #[derive(Template)]
 #[template(path = "askama/forum/feed/index.html")]
 pub struct ForumFeedTemplate {
@@ -161,4 +159,40 @@ pub struct ForumFeedTemplate {
     pub spaces_nav_html: String,
     /// Cursor-based pagination controls.
     pub pagination_html: String,
+}
+
+/// Per-row partial for forum feed items. Rendered inside
+/// `forum_feed_handler` and concatenated into `feed_items_html`.
+#[allow(dead_code)] // space_name kept for future "rich space chip" surface
+#[derive(Template)]
+#[template(path = "askama/forum/feed/_item.html")]
+pub struct ForumFeedItemPartial {
+    pub thread_slug_or_id: String,
+    pub title: String,
+    pub space_slug: String,
+    pub space_name: String,
+    /// Resolved from the author UUID via ProfileService::get_usernames_by_ids.
+    /// Falls back to a "deleted-user" sentinel when no row maps — under the
+    /// username-required gate this should be vanishingly rare.
+    pub author_username: String,
+    pub created_at_human: String,
+    pub score: i64,
+    pub comment_count: i32,
+    pub pinned: bool,
+    /// Sanitized HTML — output of `kbve::markdown::render(..).html` truncated
+    /// to a feed excerpt. Already passes through ammonia.
+    pub body_excerpt_html: String,
+}
+
+/// Per-row partial for thread comments.
+#[derive(Template)]
+#[template(path = "askama/forum/thread/_comment.html")]
+pub struct ForumCommentPartial {
+    pub id: String,
+    pub depth: i32,
+    pub author_username: String,
+    pub created_at_human: String,
+    pub score: i64,
+    /// Sanitized HTML — output of `kbve::markdown::render(..).html`.
+    pub body_html: String,
 }

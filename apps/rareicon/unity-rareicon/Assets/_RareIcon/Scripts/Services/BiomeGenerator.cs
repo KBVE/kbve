@@ -27,7 +27,8 @@ namespace RareIcon
         public const int BIOME_COUNT = 8;
 
         readonly int _size;
-        readonly int _seed;
+        int _seed;
+        public int Seed => _seed;
 
         readonly FastNoiseLite _continental;
         readonly FastNoiseLite _elevation;
@@ -92,6 +93,19 @@ namespace RareIcon
             _river.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2S);
             _river.SetFrequency(0.0035f);
             _river.SetFractalType(FastNoiseLite.FractalType.None);
+        }
+
+        /// <summary>Re-seed every noise source. Call BEFORE any chunk request goes through ChunkGeneratorService — running noise instances are read-only after the first sample, so a mid-stream reseed will produce a torn map.</summary>
+        public void Reseed(int seed)
+        {
+            _seed = seed;
+            _continental.SetSeed(seed);
+            _elevation  .SetSeed(seed + 1);
+            _islands    .SetSeed(seed + 2);
+            _moisture   .SetSeed(seed + 100);
+            _temperature.SetSeed(seed + 200);
+            _warp       .SetSeed(seed + 300);
+            _river      .SetSeed(seed + 400);
         }
 
         /// <summary>

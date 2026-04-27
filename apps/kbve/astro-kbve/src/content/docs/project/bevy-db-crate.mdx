@@ -1,0 +1,40 @@
+---
+title: bevy_db
+description: |
+    bevy_db — Cross-platform async key-value persistence for Bevy. redb on native, IndexedDB on WASM.
+sidebar:
+    label: bevy_db
+tags:
+    - crates
+    - rust
+    - bevy
+    - persistence
+    - wasm
+key: bevy_db_crate
+pipeline: crates
+package_name: bevy_db
+version: "0.0.0"
+source_path: packages/rust/bevy/bevy_db
+version_source: packages/rust/bevy/bevy_db/Cargo.toml
+version_target: packages/rust/bevy/bevy_db/Cargo.toml
+version_toml: packages/rust/bevy/bevy_db/version.toml
+author: h0lybyte
+license: MIT
+status: active
+---
+
+## Overview
+
+Async key-value persistence with one Bevy-facing API and two backends:
+
+- **Native** — `redb` pure-Rust B+tree on disk
+- **WASM** — `rexie` over IndexedDB in the browser
+
+All I/O runs off the game thread via [`bevy_tasker`](/project/bevy-tasker-crate/). Game systems poll `DbRequest<T>` handles via `try_recv()` to drain results without stalling the schedule.
+
+## Surface
+
+- `BevyDbPlugin` — initializes the backend and inserts the `Db` resource
+- `Db` — request handle for `get` / `put` / `delete`
+- `DbRequest<T>` — pending async result polled with `try_recv()`
+- `DbError` — backend-agnostic error enum

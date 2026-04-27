@@ -1,16 +1,16 @@
-// FFI bridge for the pathfinding system (Unity / C# consumer).
-// Shared safety contract for `pub unsafe extern "C" fn` items is
-// documented at the crate root (src/lib.rs).
+//! Pathfinding FFI surface — `BlockGrid` + `FlowField` over an opaque
+//! handle. See the crate root for the shared safety contract.
 
 use std::ffi::c_void;
 
 use bevy_pathfinding::flow_field::FlowField;
 use bevy_pathfinding::grid::{BlockGrid, CellNav, SurfaceKind};
 
-// ---------------------------------------------------------------------------
-// FFI result struct for direction queries
-// ---------------------------------------------------------------------------
-
+/// Direction sample returned by [`uniti_flow_direction`].
+///
+/// `valid = 0` means the cell has no resolved direction (out of bounds,
+/// blocked, or equidistant from all goals). `valid = 1` means `(dx, dz)`
+/// is the next-step delta with each component in `-1..=1`.
 #[repr(C)]
 pub struct FfiDirection {
     pub dx: i32,
@@ -18,11 +18,18 @@ pub struct FfiDirection {
     pub valid: u8,
 }
 
-// ---------------------------------------------------------------------------
-// BlockGrid — opaque handle (C# sees IntPtr)
-// ---------------------------------------------------------------------------
-
-/// Create an empty grid. Caller must free with `uniti_grid_free`.
+/// Create an empty grid (all cells [`SurfaceKind::Blocked`]) covering
+/// the rectangle `(origin_x, origin_z) ..= (origin_x + width - 1,
+/// origin_z + depth - 1)`.
+///
+/// # Arguments
+///
+/// * `origin_x` / `origin_z` — minimum block coords (inclusive).
+/// * `width` / `depth` — region dimensions in cells.
+///
+/// # Returns
+///
+/// Opaque handle the caller must eventually pass to [`uniti_grid_free`].
 #[unsafe(no_mangle)]
 pub extern "C" fn uniti_grid_new(
     origin_x: i32,
@@ -34,9 +41,21 @@ pub extern "C" fn uniti_grid_new(
     Box::into_raw(grid) as *mut c_void
 }
 
-/// Set a cell in the grid.
+/// Set a cell in the grid. No-op if `grid` is null or `(x, z)` is out
+/// of bounds.
 ///
-/// `surface_kind`: 0=Blocked, 1=Solid, 2=Slow, 3=Hazard
+/// # Arguments
+///
+/// * `grid` — handle from [`uniti_grid_new`].
+/// * `x` / `z` — absolute block coords.
+/// * `height` — Y coordinate of the walkable surface.
+/// * `surface_kind` — `0 = Blocked, 1 = Solid, 2 = Slow, 3 = Hazard`.
+///   Any other value is treated as `Blocked`.
+///
+/// # Safety
+///
+/// `grid` (when non-null) must point to a live grid handle returned by
+/// [`uniti_grid_new`].
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_grid_set(
     grid: *mut c_void,
@@ -66,7 +85,13 @@ pub unsafe extern "C" fn uniti_grid_set(
     );
 }
 
-/// Check if a cell is walkable.
+/// Returns `1` if the cell at `(x, z)` is walkable, `0` otherwise.
+/// Out-of-bounds coords and a null `grid` return `0`.
+///
+/// # Safety
+///
+/// `grid` (when non-null) must point to a live grid handle returned by
+/// [`uniti_grid_new`].
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_grid_is_walkable(grid: *const c_void, x: i32, z: i32) -> u8 {
     if grid.is_null() {
@@ -76,7 +101,12 @@ pub unsafe extern "C" fn uniti_grid_is_walkable(grid: *const c_void, x: i32, z: 
     grid.is_walkable(x, z) as u8
 }
 
-/// Free a grid allocated by `uniti_grid_new`.
+/// Free a grid allocated by [`uniti_grid_new`]. Null-safe.
+///
+/// # Safety
+///
+/// `grid` (when non-null) must be a live handle returned by
+/// [`uniti_grid_new`] that has not yet been freed.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_grid_free(grid: *mut c_void) {
     if !grid.is_null() {
@@ -84,14 +114,25 @@ pub unsafe extern "C" fn uniti_grid_free(grid: *mut c_void) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// FlowField — opaque handle (C# sees IntPtr)
-// ---------------------------------------------------------------------------
-
 /// Compute a flow field toward the given goals.
 ///
-/// `goals_ptr` is a flat array of `[x0, z0, x1, z1, ...]` with `goal_count` pairs.
-/// Caller must free the result with `uniti_flow_free`.
+/// # Arguments
+///
+/// * `grid` — handle from [`uniti_grid_new`].
+/// * `goals_ptr` — flat array of `[x0, z0, x1, z1, ...]` block coords.
+/// * `goal_count` — number of `(x, z)` pairs (so `2 * goal_count` i32s
+///   total).
+///
+/// # Returns
+///
+/// Opaque flow-field handle, or null if `grid` / `goals_ptr` is null or
+/// `goal_count == 0`. Caller must free with [`uniti_flow_free`].
+///
+/// # Safety
+///
+/// `grid` (when non-null) must point to a live grid handle. `goals_ptr`
+/// (when non-null) must point to at least `2 * goal_count` valid `i32`
+/// elements.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_flow_compute(
     grid: *const c_void,
@@ -108,7 +149,24 @@ pub unsafe extern "C" fn uniti_flow_compute(
     Box::into_raw(Box::new(FlowField::compute(grid, &goals))) as *mut c_void
 }
 
-/// Compute a flee field (away from sources).
+/// Compute a flee field that guides AWAY from the given sources.
+///
+/// # Arguments
+///
+/// * `grid` — handle from [`uniti_grid_new`].
+/// * `sources_ptr` — flat array of `[x0, z0, x1, z1, ...]` block coords.
+/// * `source_count` — number of `(x, z)` pairs.
+///
+/// # Returns
+///
+/// Opaque flow-field handle, or null on invalid input. Caller must free
+/// with [`uniti_flow_free`].
+///
+/// # Safety
+///
+/// `grid` (when non-null) must point to a live grid handle. `sources_ptr`
+/// (when non-null) must point to at least `2 * source_count` valid `i32`
+/// elements.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_flow_compute_flee(
     grid: *const c_void,
@@ -126,6 +184,17 @@ pub unsafe extern "C" fn uniti_flow_compute_flee(
 }
 
 /// Query the direction at a cell.
+///
+/// # Returns
+///
+/// [`FfiDirection`] with `valid = 1` and the next-step delta when the
+/// cell is reachable; `valid = 0` (and `dx = dz = 0`) when `field` is
+/// null, the cell is out of bounds, or the cell is unreachable.
+///
+/// # Safety
+///
+/// `field` (when non-null) must point to a live flow-field handle
+/// returned by [`uniti_flow_compute`] or [`uniti_flow_compute_flee`].
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_flow_direction(
     field: *const c_void,
@@ -150,7 +219,16 @@ pub unsafe extern "C" fn uniti_flow_direction(
     }
 }
 
-/// Query the BFS distance to the nearest goal. Returns u32::MAX if unreachable.
+/// BFS distance to the nearest goal.
+///
+/// # Returns
+///
+/// The cell distance, or `u32::MAX` for out-of-bounds, unreachable, or
+/// when `field` is null.
+///
+/// # Safety
+///
+/// `field` (when non-null) must point to a live flow-field handle.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_flow_distance(field: *const c_void, x: i32, z: i32) -> u32 {
     if field.is_null() {
@@ -160,7 +238,13 @@ pub unsafe extern "C" fn uniti_flow_distance(field: *const c_void, x: i32, z: i3
     field.distance(x, z).unwrap_or(u32::MAX)
 }
 
-/// Free a flow field allocated by `uniti_flow_compute` or `uniti_flow_compute_flee`.
+/// Free a flow field allocated by [`uniti_flow_compute`] or
+/// [`uniti_flow_compute_flee`]. Null-safe.
+///
+/// # Safety
+///
+/// `field` (when non-null) must be a live handle that has not yet been
+/// freed.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_flow_free(field: *mut c_void) {
     if !field.is_null() {

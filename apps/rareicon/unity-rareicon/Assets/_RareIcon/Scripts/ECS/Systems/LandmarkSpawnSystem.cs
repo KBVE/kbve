@@ -34,6 +34,7 @@ namespace RareIcon
 
         protected override void OnUpdate()
         {
+            if (!WorldGenSession.HasStarted) return;
             if (!MapdbCache.IsLoaded) return;
 
             if (!_initialized)

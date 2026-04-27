@@ -1,0 +1,58 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="styles.uss" />
+    <Style src="title-screen.uss" />
+
+    <ui:VisualElement name="title-wrapper" class="title-wrapper">
+        <ui:VisualElement name="title-backdrop" class="title-backdrop" />
+
+        <ui:VisualElement name="title-window" class="title-window">
+            <ui:VisualElement class="title-header">
+                <ui:Label name="title-brand" class="title-brand" text="RareIcon" />
+                <ui:Label name="title-tagline" class="title-tagline" text="Bullet-hell roguelite" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="title-stage-locale" class="title-stage">
+                <ui:Label class="title-stage__title" text="Choose a language" />
+
+                <ui:VisualElement name="title-persona" class="title-persona">
+                    <ui:VisualElement name="title-avatar" class="title-avatar" />
+                    <ui:VisualElement class="title-persona__meta">
+                        <ui:Label name="title-persona-name" class="title-persona__name" text="Offline" />
+                        <ui:Label name="title-persona-status" class="title-persona__status" text="Steam not detected" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="title-locale-row">
+                    <ui:Button name="title-locale-en" class="btn title-locale-btn" text="English" />
+                    <ui:Button name="title-locale-ja" class="btn title-locale-btn" text="日本語" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="title-stage-seed" class="title-stage is-hidden">
+                <ui:Label class="title-stage__title" text="World seed" />
+                <ui:Label class="title-stage__hint" text="Pick a seed or roll a fresh one. Same seed = same world." />
+
+                <ui:VisualElement class="title-seed-row">
+                    <ui:IntegerField name="title-seed-input" class="title-seed-input" value="0" />
+                    <ui:Button name="title-seed-random" class="btn title-seed-btn" text="Random" />
+                </ui:VisualElement>
+
+                <ui:VisualElement class="title-action-row">
+                    <ui:Button name="title-seed-back" class="btn title-action-btn" text="Back" />
+                    <ui:Button name="title-seed-confirm" class="btn title-action-btn title-action-btn--primary" text="Generate" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="title-stage-generating" class="title-stage is-hidden">
+                <ui:Label class="title-stage__title" text="Forging the world" />
+                <ui:Label name="title-progress" class="title-stage__hint" text="Routing rivers..." />
+
+                <ui:VisualElement name="title-progress-track" class="title-progress-track">
+                    <ui:VisualElement name="title-progress-fill" class="title-progress-fill" />
+                </ui:VisualElement>
+
+                <ui:Button name="title-start" class="btn title-action-btn title-action-btn--primary title-start" text="Start" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

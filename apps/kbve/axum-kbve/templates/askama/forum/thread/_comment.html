@@ -1,0 +1,8 @@
+<article class="forum-comment" data-depth="{{ depth }}" id="c{{ id }}">
+  <header class="forum-comment__header">
+    <a href="/@{{ author_username }}">@{{ author_username }}</a>
+    · {{ created_at_human }}
+    · {{ score }} pts
+  </header>
+  <div class="forum-comment__body">{{ body_html|safe }}</div>
+</article>

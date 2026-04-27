@@ -1,33 +1,27 @@
-// FFI bridge for the inventory system (Unity / C# consumer).
-// Shared safety contract for `pub unsafe extern "C" fn` items is
-// documented at the crate root (src/lib.rs).
+//! Inventory FFI surface — slot-based storage over an opaque handle.
+//! See the crate root for the shared safety contract.
 
 use std::ffi::c_void;
 
 use bevy_inventory::{Inventory, ItemKind};
 use serde::{Deserialize, Serialize};
 
-// ---------------------------------------------------------------------------
-// RareIcon item enum — the concrete type for FFI
-// ---------------------------------------------------------------------------
-
-/// Item kinds for RareIcon. This is the FFI-side definition that mirrors
-/// what Unity uses. Add new items here and they're automatically available
-/// through the FFI.
+/// Item kinds for RareIcon. Mirrors the Unity-side enum; new entries
+/// here become available to C# automatically.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u16)]
 pub enum RareItem {
-    // -- Consumables --
+    // Consumables
     HealthPotion = 0,
     ManaPotion = 1,
     Antidote = 2,
 
-    // -- Equipment --
+    // Equipment
     IronSword = 100,
     IronShield = 101,
     IronArmor = 102,
 
-    // -- Materials --
+    // Materials
     WoodLog = 200,
     IronOre = 201,
     Crystal = 202,
@@ -53,7 +47,7 @@ pub enum RareItem {
     CookedEgg = 235,
     Cheese = 236,
 
-    // -- Quest --
+    // Quest
     QuestScroll = 300,
     BossKey = 301,
 }
@@ -111,16 +105,13 @@ impl ItemKind for RareItem {
             Self::CookedEgg | Self::Cheese => 32,
             Self::QuestScroll => 1,
             Self::BossKey => 1,
-            _ => 1, // equipment doesn't stack
+            _ => 1,
         }
     }
 }
 
-// ---------------------------------------------------------------------------
-// FFI structs
-// ---------------------------------------------------------------------------
-
-/// Slot data returned to C#.
+/// Slot data returned to C#. `valid = 0` indicates an empty or
+/// out-of-range slot.
 #[repr(C)]
 pub struct FfiSlot {
     pub item_id: u16,
@@ -128,19 +119,28 @@ pub struct FfiSlot {
     pub valid: u8,
 }
 
-// ---------------------------------------------------------------------------
-// Inventory lifecycle
-// ---------------------------------------------------------------------------
-
 /// Create an inventory with the given slot capacity.
-/// Caller must free with `uniti_inventory_free`.
+///
+/// # Arguments
+///
+/// * `max_slots` — slot capacity.
+///
+/// # Returns
+///
+/// Opaque handle the caller must eventually pass to
+/// [`uniti_inventory_free`].
 #[unsafe(no_mangle)]
 pub extern "C" fn uniti_inventory_new(max_slots: u32) -> *mut c_void {
     let inv = Box::new(Inventory::<RareItem>::new(max_slots as usize));
     Box::into_raw(inv) as *mut c_void
 }
 
-/// Free an inventory.
+/// Free an inventory. Null-safe.
+///
+/// # Safety
+///
+/// `inv` (when non-null) must be a live handle from
+/// [`uniti_inventory_new`] that has not yet been freed.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_free(inv: *mut c_void) {
     if !inv.is_null() {
@@ -148,11 +148,16 @@ pub unsafe extern "C" fn uniti_inventory_free(inv: *mut c_void) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Add / Remove
-// ---------------------------------------------------------------------------
-
-/// Add items to the inventory. Returns overflow count (0 = all fit).
+/// Add `quantity` of `item_id` to the inventory.
+///
+/// # Returns
+///
+/// Overflow count — items that did not fit (`0` = all fit). When `inv`
+/// is null or `item_id` is unknown, returns `quantity` (nothing added).
+///
+/// # Safety
+///
+/// `inv` (when non-null) must point to a live inventory handle.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_add(inv: *mut c_void, item_id: u16, quantity: u32) -> u32 {
     let inv = match unsafe { to_inv_mut(inv) } {
@@ -166,7 +171,16 @@ pub unsafe extern "C" fn uniti_inventory_add(inv: *mut c_void, item_id: u16, qua
     inv.add(kind, quantity)
 }
 
-/// Remove items from the inventory. Returns amount actually removed.
+/// Remove up to `quantity` of `item_id` from the inventory.
+///
+/// # Returns
+///
+/// The amount actually removed. Returns `0` for null `inv` or unknown
+/// `item_id`.
+///
+/// # Safety
+///
+/// `inv` (when non-null) must point to a live inventory handle.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_remove(
     inv: *mut c_void,
@@ -184,11 +198,15 @@ pub unsafe extern "C" fn uniti_inventory_remove(
     inv.remove(kind, quantity)
 }
 
-// ---------------------------------------------------------------------------
-// Queries
-// ---------------------------------------------------------------------------
-
-/// Count total quantity of an item kind.
+/// Total quantity of `item_id` summed across all slots.
+///
+/// # Returns
+///
+/// `0` for null `inv` or unknown `item_id`.
+///
+/// # Safety
+///
+/// `inv` (when non-null) must point to a live inventory handle.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_count(inv: *const c_void, item_id: u16) -> u32 {
     let inv = match unsafe { to_inv(inv) } {
@@ -203,6 +221,14 @@ pub unsafe extern "C" fn uniti_inventory_count(inv: *const c_void, item_id: u16)
 }
 
 /// Number of occupied slots.
+///
+/// # Returns
+///
+/// Slot count, or `0` if `inv` is null.
+///
+/// # Safety
+///
+/// `inv` (when non-null) must point to a live inventory handle.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_slot_count(inv: *const c_void) -> u32 {
     match unsafe { to_inv(inv) } {
@@ -211,7 +237,17 @@ pub unsafe extern "C" fn uniti_inventory_slot_count(inv: *const c_void) -> u32 {
     }
 }
 
-/// Read a specific slot. Returns FfiSlot with valid=0 if out of bounds.
+/// Read the slot at `index`.
+///
+/// # Returns
+///
+/// [`FfiSlot`] with `valid = 1` and the stack contents on hit;
+/// `valid = 0` (and zeroed `item_id`/`quantity`) when `inv` is null or
+/// `index` is out of range.
+///
+/// # Safety
+///
+/// `inv` (when non-null) must point to a live inventory handle.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_get_slot(inv: *const c_void, index: u32) -> FfiSlot {
     let inv = match unsafe { to_inv(inv) } {
@@ -238,7 +274,12 @@ pub unsafe extern "C" fn uniti_inventory_get_slot(inv: *const c_void, index: u32
     }
 }
 
-/// Check if the inventory has room for a quantity of an item.
+/// Returns `1` if the inventory has room for `quantity` of `item_id`,
+/// `0` otherwise (also `0` for null `inv` or unknown `item_id`).
+///
+/// # Safety
+///
+/// `inv` (when non-null) must point to a live inventory handle.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_has_room(
     inv: *const c_void,
@@ -256,11 +297,15 @@ pub unsafe extern "C" fn uniti_inventory_has_room(
     inv.has_room_for(kind, quantity) as u8
 }
 
-// ---------------------------------------------------------------------------
-// Slot operations
-// ---------------------------------------------------------------------------
-
-/// Swap two slots. Returns 1 on success, 0 on failure.
+/// Swap two slots by index.
+///
+/// # Returns
+///
+/// `1` on success, `0` if `inv` is null or either index is out of range.
+///
+/// # Safety
+///
+/// `inv` (when non-null) must point to a live inventory handle.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_swap(inv: *mut c_void, a: u32, b: u32) -> u8 {
     match unsafe { to_inv_mut(inv) } {
@@ -269,7 +314,16 @@ pub unsafe extern "C" fn uniti_inventory_swap(inv: *mut c_void, a: u32, b: u32) 
     }
 }
 
-/// Split a stack. Returns 1 on success, 0 on failure.
+/// Split `quantity` items off the stack at `slot` into a new stack.
+///
+/// # Returns
+///
+/// `1` on success, `0` if `inv` is null, `slot` is out of range, or the
+/// inventory has no free slot to receive the split.
+///
+/// # Safety
+///
+/// `inv` (when non-null) must point to a live inventory handle.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_split(inv: *mut c_void, slot: u32, quantity: u32) -> u8 {
     match unsafe { to_inv_mut(inv) } {
@@ -278,7 +332,15 @@ pub unsafe extern "C" fn uniti_inventory_split(inv: *mut c_void, slot: u32, quan
     }
 }
 
-/// Merge slot `from` into slot `to`. Returns items moved.
+/// Merge slot `from` into slot `to`.
+///
+/// # Returns
+///
+/// Number of items moved. `0` for null `inv` or invalid slot indices.
+///
+/// # Safety
+///
+/// `inv` (when non-null) must point to a live inventory handle.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_merge(inv: *mut c_void, from: u32, to: u32) -> u32 {
     match unsafe { to_inv_mut(inv) } {
@@ -287,7 +349,12 @@ pub unsafe extern "C" fn uniti_inventory_merge(inv: *mut c_void, from: u32, to: 
     }
 }
 
-/// Compact fragmented stacks.
+/// Compact fragmented stacks (merges partial stacks of the same kind).
+/// No-op if `inv` is null.
+///
+/// # Safety
+///
+/// `inv` (when non-null) must point to a live inventory handle.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_compact(inv: *mut c_void) {
     if let Some(i) = unsafe { to_inv_mut(inv) } {
@@ -295,17 +362,17 @@ pub unsafe extern "C" fn uniti_inventory_compact(inv: *mut c_void) {
     }
 }
 
-/// Clear all items.
+/// Clear all items. No-op if `inv` is null.
+///
+/// # Safety
+///
+/// `inv` (when non-null) must point to a live inventory handle.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_inventory_clear(inv: *mut c_void) {
     if let Some(i) = unsafe { to_inv_mut(inv) } {
         i.clear();
     }
 }
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 unsafe fn to_inv(ptr: *const c_void) -> Option<&'static Inventory<RareItem>> {
     if ptr.is_null() {

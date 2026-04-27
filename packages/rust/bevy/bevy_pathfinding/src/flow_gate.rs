@@ -27,10 +27,6 @@ use std::collections::VecDeque;
 
 use crate::grid::BlockGrid;
 
-// ---------------------------------------------------------------------------
-// FlowGate
-// ---------------------------------------------------------------------------
-
 /// A detected chokepoint / narrow passage in the grid.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FlowGate {
@@ -50,10 +46,6 @@ pub struct FlowGate {
     pub clearance: f32,
 }
 
-// ---------------------------------------------------------------------------
-// Clearance map
-// ---------------------------------------------------------------------------
-
 /// Compute a clearance map: for each walkable cell, the BFS distance to
 /// the nearest non-walkable cell (wall, water, out-of-bounds).
 ///
@@ -64,7 +56,6 @@ fn compute_clearance(grid: &BlockGrid) -> Vec<u32> {
     let mut clearance = vec![u32::MAX; n];
     let mut queue = VecDeque::with_capacity(n / 4);
 
-    // Seed from all non-walkable cells and grid edges
     for lz in 0..grid.depth {
         for lx in 0..grid.width {
             let x = grid.origin_x + lx as i32;
@@ -83,7 +74,6 @@ fn compute_clearance(grid: &BlockGrid) -> Vec<u32> {
         }
     }
 
-    // BFS outward from walls
     static OFFSETS: [(i32, i32); 8] = [
         (-1, -1),
         (0, -1),
@@ -117,10 +107,6 @@ fn compute_clearance(grid: &BlockGrid) -> Vec<u32> {
     clearance
 }
 
-// ---------------------------------------------------------------------------
-// Gate detection
-// ---------------------------------------------------------------------------
-
 /// Minimum clearance threshold — cells with clearance at or below this
 /// value are candidates for being part of a gate.
 const GATE_CLEARANCE_THRESHOLD: u32 = 2;
@@ -131,14 +117,25 @@ const OPEN_REGION_CLEARANCE: u32 = 4;
 
 /// Detect flow gates in the grid.
 ///
-/// Returns a list of [`FlowGate`]s sorted by clearance (tightest first).
+/// Builds a clearance map (BFS distance from every walkable cell to the
+/// nearest wall), scans for cells whose clearance is at a local minimum
+/// connecting wider regions, then flood-fills adjacent bottleneck cells
+/// into clusters and emits one [`FlowGate`] per cluster.
+///
+/// # Arguments
+///
+/// * `grid` — walkability grid to analyze.
+///
+/// # Returns
+///
+/// Gates sorted by `clearance` ascending (tightest first), with `id`
+/// assigned by the post-sort index. Empty if the grid contains no
+/// chokepoints.
 pub fn detect_gates(grid: &BlockGrid) -> Vec<FlowGate> {
     let clearance = compute_clearance(grid);
     let w = grid.width;
     let d = grid.depth;
 
-    // Find bottleneck cells: walkable cells where clearance is low AND
-    // there exist higher-clearance cells reachable on opposite sides.
     let mut bottleneck = vec![false; clearance.len()];
 
     for lz in 1..(d - 1) {
@@ -146,7 +143,6 @@ pub fn detect_gates(grid: &BlockGrid) -> Vec<FlowGate> {
             let i = (lz * w + lx) as usize;
             let c = clearance[i];
 
-            // Skip walls and cells that are already wide
             if c == 0 || c > GATE_CLEARANCE_THRESHOLD {
                 continue;
             }
@@ -158,8 +154,6 @@ pub fn detect_gates(grid: &BlockGrid) -> Vec<FlowGate> {
                 continue;
             }
 
-            // Check if this cell connects higher-clearance regions along
-            // either the X axis or the Z axis.
             let is_gate = check_axis_gate(&clearance, w, lx, lz, 1, 0)
                 || check_axis_gate(&clearance, w, lx, lz, 0, 1)
                 || check_axis_gate(&clearance, w, lx, lz, 1, 1)
@@ -171,7 +165,6 @@ pub fn detect_gates(grid: &BlockGrid) -> Vec<FlowGate> {
         }
     }
 
-    // Cluster adjacent bottleneck cells into gates
     let mut visited = vec![false; clearance.len()];
     let mut gates = Vec::new();
 
@@ -182,7 +175,6 @@ pub fn detect_gates(grid: &BlockGrid) -> Vec<FlowGate> {
                 continue;
             }
 
-            // Flood-fill to collect the cluster
             let mut cluster = Vec::new();
             let mut stack = vec![(lx, lz)];
 
@@ -194,7 +186,6 @@ pub fn detect_gates(grid: &BlockGrid) -> Vec<FlowGate> {
                 visited[ci] = true;
                 cluster.push((grid.origin_x + cx as i32, grid.origin_z + cz as i32));
 
-                // Check 8-connected neighbors
                 for &(dx, dz) in &[
                     (0i32, -1i32),
                     (0, 1),
@@ -217,7 +208,6 @@ pub fn detect_gates(grid: &BlockGrid) -> Vec<FlowGate> {
                 continue;
             }
 
-            // Compute gate properties from the cluster
             let center_x =
                 cluster.iter().map(|&(x, _)| x as f64).sum::<f64>() / cluster.len() as f64;
             let center_z =
@@ -233,7 +223,6 @@ pub fn detect_gates(grid: &BlockGrid) -> Vec<FlowGate> {
                 .sum::<f32>()
                 / cluster.len() as f32;
 
-            // Estimate gate direction from the cluster's principal axis
             let dir = estimate_direction(&cluster);
 
             gates.push(FlowGate {
@@ -274,7 +263,6 @@ fn check_axis_gate(clearance: &[u32], w: u32, lx: u32, lz: u32, ax: u32, az: u32
     let mut found_open_pos = false;
     let mut found_open_neg = false;
 
-    // Scan in positive direction
     for step in 1..=scan_dist {
         let nx = lx as i32 + ax * step;
         let nz = lz as i32 + az * step;
@@ -283,7 +271,7 @@ fn check_axis_gate(clearance: &[u32], w: u32, lx: u32, lz: u32, ax: u32, az: u32
         }
         let ni = (nz as u32 * w + nx as u32) as usize;
         if clearance[ni] == 0 {
-            break; // Hit a wall
+            break;
         }
         if clearance[ni] >= OPEN_REGION_CLEARANCE {
             found_open_pos = true;
@@ -291,7 +279,6 @@ fn check_axis_gate(clearance: &[u32], w: u32, lx: u32, lz: u32, ax: u32, az: u32
         }
     }
 
-    // Scan in negative direction
     for step in 1..=scan_dist {
         let nx = lx as i32 - ax * step;
         let nz = lz as i32 - az * step;
@@ -335,11 +322,17 @@ fn estimate_direction(cells: &[(i32, i32)]) -> (i8, i8) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Convenience: find nearest gate to a position
-// ---------------------------------------------------------------------------
-
-/// Find the nearest flow gate to a given block position.
+/// Find the nearest flow gate to a given block position by squared
+/// Euclidean distance from the gate center.
+///
+/// # Arguments
+///
+/// * `gates` — gate list (typically from [`detect_gates`]).
+/// * `x`, `z` — block coords to measure from.
+///
+/// # Returns
+///
+/// `Some(&gate)` to the closest gate, or `None` if `gates` is empty.
 pub fn nearest_gate(gates: &[FlowGate], x: i32, z: i32) -> Option<&FlowGate> {
     gates.iter().min_by_key(|g| {
         let dx = (g.center_x - x) as i64;
@@ -349,6 +342,17 @@ pub fn nearest_gate(gates: &[FlowGate], x: i32, z: i32) -> Option<&FlowGate> {
 }
 
 /// Find all flow gates within a radius of a given position.
+///
+/// # Arguments
+///
+/// * `gates` — gate list (typically from [`detect_gates`]).
+/// * `x`, `z` — block coords at the center of the search.
+/// * `radius` — search radius in blocks (squared internally).
+///
+/// # Returns
+///
+/// References to every gate whose center lies within `radius` blocks of
+/// `(x, z)`. Order matches the input `gates` slice.
 pub fn gates_in_radius(gates: &[FlowGate], x: i32, z: i32, radius: i32) -> Vec<&FlowGate> {
     let r2 = (radius as i64) * (radius as i64);
     gates

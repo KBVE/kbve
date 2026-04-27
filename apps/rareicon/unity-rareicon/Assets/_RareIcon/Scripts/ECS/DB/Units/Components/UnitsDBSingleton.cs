@@ -51,6 +51,15 @@ namespace RareIcon
         public ushort Slot2Id; public ushort Slot2Count;
         public ushort Slot3Id; public ushort Slot3Count;
         public uint   LastTickTurn;
+
+        /// <summary>Combat snapshot — copied from the live <see cref="MeleeAttack"/> / <see cref="RangedAttack"/> / <see cref="SpellCast"/> component at unload time. Ghost-sim combat reads this without needing the managed component back. <see cref="AttackKind"/> dispatches against <see cref="CombatAttackKind"/>; <see cref="TargetMode"/> only matters for melee.</summary>
+        public float  AttackDamage;
+        public float  AttackRange;
+        public float  AttackCooldown;
+        public float  TimeSinceAttack;
+        public byte   AttackKind;
+        public byte   TargetMode;
+
         public byte   Type;
         public byte   Faction;
         public byte   Flags;

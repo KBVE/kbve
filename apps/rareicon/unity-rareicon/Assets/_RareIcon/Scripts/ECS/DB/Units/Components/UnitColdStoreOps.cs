@@ -27,6 +27,12 @@ namespace RareIcon
             energy_max         = rec.EnergyMax,
             energy_per_second  = rec.EnergyPerSec,
             last_tick_secs     = rec.LastTickSecs,
+            attack_damage      = rec.AttackDamage,
+            attack_range       = rec.AttackRange,
+            attack_cooldown    = rec.AttackCooldown,
+            time_since_attack  = rec.TimeSinceAttack,
+            attack_kind        = rec.AttackKind,
+            target_mode        = rec.TargetMode,
         };
 
         public static UnloadedUnitRecord FromFfi(in FfiGhostUnit f) => new UnloadedUnitRecord
@@ -49,6 +55,12 @@ namespace RareIcon
             Slot1Id       = f.inv1_id, Slot1Count = f.inv1_qty,
             Slot2Id       = f.inv2_id, Slot2Count = f.inv2_qty,
             Slot3Id       = f.inv3_id, Slot3Count = f.inv3_qty,
+            AttackDamage    = f.attack_damage,
+            AttackRange     = f.attack_range,
+            AttackCooldown  = f.attack_cooldown,
+            TimeSinceAttack = f.time_since_attack,
+            AttackKind      = f.attack_kind,
+            TargetMode      = f.target_mode,
         };
 
         public static UnloadedUnitRecord Snapshot(EntityManager em, Entity entity, float nowSecs = 0f)
@@ -93,6 +105,35 @@ namespace RareIcon
                 var n = em.GetComponentData<UnitName>(entity);
                 rec.FirstNameId = n.FirstNameId;
                 rec.EpithetId   = n.EpithetId;
+            }
+
+            if (em.HasComponent<MeleeAttack>(entity))
+            {
+                var m = em.GetComponentData<MeleeAttack>(entity);
+                rec.AttackKind      = CombatAttackKind.Melee;
+                rec.AttackDamage    = m.Damage;
+                rec.AttackRange     = m.Range;
+                rec.AttackCooldown  = m.Cooldown;
+                rec.TimeSinceAttack = m.TimeSinceShot;
+                rec.TargetMode      = m.TargetMode;
+            }
+            else if (em.HasComponent<RangedAttack>(entity))
+            {
+                var r = em.GetComponentData<RangedAttack>(entity);
+                rec.AttackKind      = CombatAttackKind.Ranged;
+                rec.AttackDamage    = r.Damage;
+                rec.AttackRange     = r.Range;
+                rec.AttackCooldown  = r.Cooldown;
+                rec.TimeSinceAttack = r.TimeSinceShot;
+            }
+            else if (em.HasComponent<SpellCast>(entity))
+            {
+                var s = em.GetComponentData<SpellCast>(entity);
+                rec.AttackKind      = CombatAttackKind.Spell;
+                rec.AttackDamage    = s.Damage;
+                rec.AttackRange     = s.Range;
+                rec.AttackCooldown  = s.Cooldown;
+                rec.TimeSinceAttack = s.TimeSinceCast;
             }
 
             byte flags = 0;

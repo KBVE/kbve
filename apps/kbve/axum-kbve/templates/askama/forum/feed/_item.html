@@ -1,0 +1,19 @@
+<article class="forum-feed__item">
+  <div class="forum-feed__score" aria-label="Score">
+    <span>{{ score }}</span>
+    <span class="forum-feed__score-label">pts</span>
+  </div>
+  <div class="forum-feed__item-body-col">
+    <a class="forum-feed__item-title" href="/forum/t/{{ thread_slug_or_id }}">
+      {%- if pinned %}<span class="forum-feed__pin" aria-label="Pinned">📌</span>{% endif -%}
+      <span>{{ title }}</span>
+    </a>
+    <p class="forum-feed__item-meta">
+      <a class="forum-feed__chip forum-feed__chip--space" href="/forum/s/{{ space_slug }}">s/{{ space_slug }}</a>
+      <span>by <a href="/@{{ author_username }}">@{{ author_username }}</a></span>
+      <span>· {{ created_at_human }}</span>
+      <span class="forum-feed__chip">💬 {{ comment_count }}</span>
+    </p>
+    <div class="forum-feed__item-body">{{ body_excerpt_html|safe }}</div>
+  </div>
+</article>

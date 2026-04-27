@@ -17,15 +17,18 @@ use tower_http::set_header::SetResponseHeaderLayer;
 use tracing::info;
 
 use crate::astro::askama::{
+    ForumCommentPartial, ForumFeedItemPartial, ForumFeedTemplate, ForumThreadTemplate,
     HealthTemplate, ProfileNotFoundTemplate, ProfileTemplate, RentEarthCharacterDisplay,
     TemplateResponse,
 };
 use crate::auth::{extract_bearer_token, get_jwt_cache};
 use crate::db::{
-    DiscordClient, UserProfile, get_discord_client, get_mc_service, get_osrs_cache,
-    get_profile_cache, get_profile_service, get_rentearth_service, get_role_names,
-    get_twitch_client, validate_username,
+    CommentRow, DiscordClient, FeedQuery, FeedRow, SpaceRow, ThreadRow, UserProfile,
+    get_discord_client, get_forum_service, get_mc_service, get_osrs_cache, get_profile_cache,
+    get_profile_service, get_rentearth_service, get_role_names, get_twitch_client,
+    validate_username,
 };
+use askama::Template;
 
 /// Static table of simple permanent redirects handled by Axum before hitting Astro.
 const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
@@ -204,7 +207,16 @@ fn router(state: AppState) -> Router {
         .route("/api/v1/mc/textures/{hash}", get(mc_texture_handler))
         .route("/@{username}", get(profile_handler))
         .route("/osrs/{item}", get(osrs_item_handler))
-        .route("/osrs/{item}/", get(osrs_item_handler_trailing));
+        .route("/osrs/{item}/", get(osrs_item_handler_trailing))
+        .route("/forum/", get(forum_feed_handler))
+        .route("/forum/s/{slug}", get(forum_space_handler))
+        .route("/forum/t/{slug_or_id}", get(forum_thread_handler))
+        // SEO-friendly 301: /forum/c/{slug} → /forum/s/{slug}. `c/` reads
+        // as "category" but the canonical URL is `s/` (space). Crawlers
+        // collapse the duplicate into the canonical via the redirect.
+        .route("/forum/c/", get(forum_c_root_redirect))
+        .route("/forum/c/{slug}", get(forum_c_redirect))
+        .route("/forum/c/{slug}/", get(forum_c_redirect));
 
     let public_router =
         mount_permanent_redirects(public_router, PERMANENT_REDIRECTS).with_state(state.clone());
@@ -1692,6 +1704,442 @@ fn tuned_listener(addr: SocketAddr) -> Result<TcpListener> {
 
 async fn shutdown_signal() {
     let _ = tokio::signal::ctrl_c().await;
+}
+
+// ---------------------------------------------------------------------------
+// Forum SSR handlers
+// ---------------------------------------------------------------------------
+
+/// Image-host allowlist for thread + comment markdown rendering. Empty
+/// by default; populate once we wire avatars / Supabase storage.
+const FORUM_IMG_HOSTS: &[&str] = &[];
+
+const FEED_BODY_EXCERPT_CHARS: usize = 280;
+const META_DESCRIPTION_CHARS: usize = 200;
+
+fn forum_render_ctx() -> kbve::markdown::RenderCtx<'static> {
+    kbve::markdown::RenderCtx {
+        allowed_image_hosts: FORUM_IMG_HOSTS,
+        extract_mentions: true,
+        extract_hashtags: true,
+    }
+}
+
+/// Crude HTML-escape for plain text strings going into pre-rendered HTML
+/// fragments. Askama templates use the default `e` filter for direct
+/// interpolation; this helper is for the few spots we hand-roll HTML.
+fn html_escape(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for ch in s.chars() {
+        match ch {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&#39;"),
+            _ => out.push(ch),
+        }
+    }
+    out
+}
+
+/// Sentinel shown when an author UUID has no matching `profile.username`
+/// row. Under the username-required RPC gate this only surfaces for
+/// pre-gate posts or rows where the user has been deleted.
+const FORUM_DELETED_USER: &str = "deleted-user";
+
+fn resolve_username(map: &std::collections::HashMap<String, String>, uuid: &str) -> String {
+    map.get(uuid)
+        .cloned()
+        .unwrap_or_else(|| FORUM_DELETED_USER.to_string())
+}
+
+/// Truncate the rendered markdown to a feed excerpt. Naive char-count
+/// truncation is fine here because ammonia already balanced the tags.
+/// We append an ellipsis if the body was cut.
+fn excerpt_html(rendered: &str, limit: usize) -> String {
+    if rendered.chars().count() <= limit {
+        return rendered.to_string();
+    }
+    let cut: String = rendered.chars().take(limit).collect();
+    format!("{cut}…")
+}
+
+/// Strip HTML tags + collapse whitespace into a plain text meta description.
+fn plain_excerpt(html: &str, limit: usize) -> String {
+    let mut out = String::with_capacity(html.len().min(limit + 16));
+    let mut in_tag = false;
+    let mut last_was_space = true;
+    for ch in html.chars() {
+        match ch {
+            '<' => in_tag = true,
+            '>' => in_tag = false,
+            _ if in_tag => {}
+            c if c.is_whitespace() => {
+                if !last_was_space {
+                    out.push(' ');
+                    last_was_space = true;
+                }
+            }
+            c => {
+                out.push(c);
+                last_was_space = false;
+            }
+        }
+        if out.chars().count() >= limit {
+            break;
+        }
+    }
+    out.trim().to_string()
+}
+
+fn render_partial<T: Template>(tpl: &T, name: &str) -> String {
+    match tpl.render() {
+        Ok(html) => html,
+        Err(err) => {
+            tracing::error!("forum partial '{}' render failed: {}", name, err);
+            String::new()
+        }
+    }
+}
+
+fn humanize_ts(ts: &str) -> String {
+    // Trim to date+time prefix (YYYY-MM-DDTHH:MM:SS). Good enough until a
+    // real relative-time formatter lands.
+    ts.split('.')
+        .next()
+        .unwrap_or(ts)
+        .replace('T', " ")
+        .replace('Z', "")
+}
+
+fn humanize_opt(ts: Option<&str>) -> String {
+    ts.map(humanize_ts).unwrap_or_default()
+}
+
+fn sort_label(sort: &str) -> &'static str {
+    match sort {
+        "new" => "New",
+        "top" => "Top",
+        "bump" => "Bump",
+        _ => "Hot",
+    }
+}
+
+fn build_feed_items_html(
+    rows: &[FeedRow],
+    spaces_by_id: &std::collections::HashMap<String, SpaceRow>,
+    usernames_by_id: &std::collections::HashMap<String, String>,
+) -> String {
+    let mut out = String::with_capacity(rows.len() * 512);
+    let ctx = forum_render_ctx();
+    for row in rows {
+        let rendered = kbve::markdown::render(&row.body, &ctx);
+        let body_excerpt_html = excerpt_html(&rendered.html, FEED_BODY_EXCERPT_CHARS);
+        let (space_slug, space_name) = match spaces_by_id.get(&row.space_id) {
+            Some(s) => (s.slug.clone(), s.name.clone()),
+            None => (row.space_id.clone(), row.space_id.clone()),
+        };
+        let thread_slug_or_id = row.slug.clone().unwrap_or_else(|| row.id.clone());
+        let partial = ForumFeedItemPartial {
+            thread_slug_or_id,
+            title: row.title.clone(),
+            space_slug,
+            space_name,
+            author_username: resolve_username(usernames_by_id, &row.author_id),
+            created_at_human: humanize_ts(&row.created_at),
+            score: row.score,
+            comment_count: row.comment_count,
+            pinned: row.pinned,
+            body_excerpt_html,
+        };
+        out.push_str(&render_partial(&partial, "forum/feed/_item"));
+    }
+    out
+}
+
+fn build_comments_html(
+    rows: &[CommentRow],
+    usernames_by_id: &std::collections::HashMap<String, String>,
+) -> String {
+    let mut out = String::with_capacity(rows.len() * 512);
+    let ctx = forum_render_ctx();
+    for row in rows {
+        let rendered = kbve::markdown::render(&row.body, &ctx);
+        let partial = ForumCommentPartial {
+            id: row.id.clone(),
+            depth: row.depth,
+            author_username: resolve_username(usernames_by_id, &row.author_id),
+            created_at_human: humanize_ts(&row.created_at),
+            score: row.score,
+            body_html: rendered.html,
+        };
+        out.push_str(&render_partial(&partial, "forum/thread/_comment"));
+    }
+    out
+}
+
+fn build_pagination_html(rows: &[FeedRow], sort: &str, space_path: &str) -> String {
+    if rows.is_empty() {
+        return String::new();
+    }
+    let last = match rows.last() {
+        Some(r) => r,
+        None => return String::new(),
+    };
+    let key = match sort {
+        "new" => last.created_at.clone(),
+        "bump" => last.last_activity_at.clone().unwrap_or_default(),
+        "top" => last.score.to_string(),
+        _ => return String::new(), // hot cursor needs hot_rank — skip
+    };
+    let cursor = format!("{}|{}", key, last.id);
+    format!(
+        r#"<a class="forum-pagination__next" href="{base}?sort={sort}&cursor={cursor}">Older →</a>"#,
+        base = html_escape(space_path),
+        sort = html_escape(sort),
+        cursor = html_escape(&cursor),
+    )
+}
+
+fn build_spaces_nav_html() -> String {
+    // Minimal nav until a service_list_spaces RPC + caching layer lands.
+    r#"<a href="/forum/">All</a>"#.to_string()
+}
+
+async fn forum_feed_handler(
+    axum::extract::Query(q): axum::extract::Query<FeedSortQuery>,
+) -> Response {
+    render_feed_page(None, &q).await
+}
+
+async fn forum_space_handler(
+    Path(slug): Path<String>,
+    axum::extract::Query(q): axum::extract::Query<FeedSortQuery>,
+) -> Response {
+    render_feed_page(Some(slug), &q).await
+}
+
+#[derive(serde::Deserialize, Default)]
+struct FeedSortQuery {
+    sort: Option<String>,
+    cursor: Option<String>,
+}
+
+async fn render_feed_page(space_slug: Option<String>, q: &FeedSortQuery) -> Response {
+    let svc = match get_forum_service() {
+        Some(s) => s,
+        None => {
+            return (StatusCode::SERVICE_UNAVAILABLE, "forum service unavailable").into_response();
+        }
+    };
+
+    // Resolve space if filtering by slug.
+    let space = match space_slug.as_deref() {
+        Some(slug) => match svc.get_space_by_slug(slug).await {
+            Ok(Some(space)) => Some(space),
+            Ok(None) => {
+                return (StatusCode::NOT_FOUND, format!("space {} not found", slug))
+                    .into_response();
+            }
+            Err(e) => {
+                tracing::error!("forum: get_space_by_slug({}) failed: {}", slug, e);
+                return (StatusCode::BAD_GATEWAY, "forum upstream error").into_response();
+            }
+        },
+        None => None,
+    };
+
+    let sort = q
+        .sort
+        .as_deref()
+        .filter(|s| matches!(*s, "hot" | "new" | "top" | "bump"))
+        .unwrap_or("hot")
+        .to_string();
+    let cursor = q.cursor.as_deref();
+    let space_id_owned = space.as_ref().map(|s| s.id.clone());
+
+    let query = FeedQuery {
+        space_id: space_id_owned.as_deref(),
+        sort: &sort,
+        cursor,
+        limit: 25,
+        ..FeedQuery::default()
+    };
+
+    let rows = match svc.fetch_feed(&query).await {
+        Ok(rows) => rows,
+        Err(e) => {
+            tracing::error!("forum: fetch_feed failed: {}", e);
+            return (StatusCode::BAD_GATEWAY, "forum upstream error").into_response();
+        }
+    };
+
+    // Build a (space_id → SpaceRow) lookup. Currently we either filter to
+    // one space (single entry) or accept the row.space_id stand-in. Future:
+    // batch-fetch spaces referenced in the feed for cross-space lists.
+    let mut spaces_by_id = std::collections::HashMap::new();
+    if let Some(s) = space.as_ref() {
+        spaces_by_id.insert(s.id.clone(), s.clone());
+    }
+
+    // Batch-resolve every author UUID to a username. One round-trip via
+    // PostgREST `?user_id=in.(…)`. Missing rows fall back to a sentinel
+    // through resolve_username().
+    let usernames_by_id = match get_profile_service() {
+        Some(profile_svc) => {
+            let ids: Vec<String> = rows.iter().map(|r| r.author_id.clone()).collect();
+            profile_svc
+                .get_usernames_by_ids(&ids)
+                .await
+                .unwrap_or_else(|e| {
+                    tracing::warn!("forum feed: username batch failed: {}", e);
+                    std::collections::HashMap::new()
+                })
+        }
+        None => std::collections::HashMap::new(),
+    };
+
+    let feed_items_html = build_feed_items_html(&rows, &spaces_by_id, &usernames_by_id);
+
+    let space_path = match space.as_ref() {
+        Some(s) => format!("/forum/s/{}", s.slug),
+        None => "/forum/".to_string(),
+    };
+    let pagination_html = build_pagination_html(&rows, &sort, &space_path);
+
+    let (heading, og_title, canonical_suffix) = match space.as_ref() {
+        Some(s) => (
+            s.name.clone(),
+            format!("{} — KBVE Forum", s.name),
+            format!("s/{}", s.slug),
+        ),
+        None => (
+            "KBVE Forum".to_string(),
+            "KBVE Forum — Hot threads".to_string(),
+            String::new(),
+        ),
+    };
+
+    let meta_description = match space.as_ref() {
+        Some(s) => s
+            .description
+            .clone()
+            .unwrap_or_else(|| format!("{} discussions on KBVE.", s.name)),
+        None => "Discuss, trade, and play across KBVE communities.".to_string(),
+    };
+
+    TemplateResponse(ForumFeedTemplate {
+        feed_heading: heading,
+        feed_og_title: og_title,
+        feed_meta_description: meta_description,
+        feed_canonical_suffix: canonical_suffix,
+        active_sort_label: sort_label(&sort).to_string(),
+        feed_items_html,
+        spaces_nav_html: build_spaces_nav_html(),
+        pagination_html,
+    })
+    .into_response()
+}
+
+/// GET /forum/c/{slug} — permanent redirect to /forum/s/{slug}.
+async fn forum_c_redirect(Path(slug): Path<String>) -> Redirect {
+    Redirect::permanent(&format!("/forum/s/{}", slug))
+}
+
+/// GET /forum/c/ — permanent redirect to /forum/.
+async fn forum_c_root_redirect() -> Redirect {
+    Redirect::permanent("/forum/")
+}
+
+/// GET /forum/t/{slug_or_id}
+async fn forum_thread_handler(Path(slug_or_id): Path<String>) -> Response {
+    let svc = match get_forum_service() {
+        Some(s) => s,
+        None => {
+            return (StatusCode::SERVICE_UNAVAILABLE, "forum service unavailable").into_response();
+        }
+    };
+
+    let pair: Option<(ThreadRow, SpaceRow)> =
+        match svc.get_thread_by_slug_or_id(None, &slug_or_id).await {
+            Ok(p) => p,
+            Err(e) => {
+                tracing::error!(
+                    "forum: get_thread_by_slug_or_id({}) failed: {}",
+                    slug_or_id,
+                    e
+                );
+                return (StatusCode::BAD_GATEWAY, "forum upstream error").into_response();
+            }
+        };
+
+    let (thread, space) = match pair {
+        Some(p) => p,
+        None => {
+            return (
+                StatusCode::NOT_FOUND,
+                format!("thread {} not found", slug_or_id),
+            )
+                .into_response();
+        }
+    };
+
+    let comments = match svc.get_comments_for_thread(&thread.id).await {
+        Ok(c) => c,
+        Err(e) => {
+            tracing::warn!(
+                "forum: get_comments_for_thread({}) failed: {}",
+                thread.id,
+                e
+            );
+            Vec::new()
+        }
+    };
+
+    let ctx = forum_render_ctx();
+    let body_rendered = kbve::markdown::render(&thread.body, &ctx);
+
+    // Batch-resolve thread author + every commenter to a username.
+    let usernames_by_id = match get_profile_service() {
+        Some(profile_svc) => {
+            let mut ids: Vec<String> = Vec::with_capacity(comments.len() + 1);
+            ids.push(thread.author_id.clone());
+            for c in &comments {
+                ids.push(c.author_id.clone());
+            }
+            profile_svc
+                .get_usernames_by_ids(&ids)
+                .await
+                .unwrap_or_else(|e| {
+                    tracing::warn!("forum thread: username batch failed: {}", e);
+                    std::collections::HashMap::new()
+                })
+        }
+        None => std::collections::HashMap::new(),
+    };
+
+    let comments_html = build_comments_html(&comments, &usernames_by_id);
+    let meta_description = plain_excerpt(&body_rendered.html, META_DESCRIPTION_CHARS);
+    let thread_slug_or_id = thread.slug.clone().unwrap_or_else(|| thread.id.clone());
+
+    TemplateResponse(ForumThreadTemplate {
+        thread_title: thread.title.clone(),
+        thread_slug_or_id,
+        thread_meta_description: meta_description,
+        space_slug: space.slug.clone(),
+        space_name: space.name.clone(),
+        author_username: resolve_username(&usernames_by_id, &thread.author_id),
+        author_avatar_url: String::new(),
+        created_at_human: humanize_ts(&thread.created_at),
+        last_activity_human: humanize_opt(thread.last_activity_at.as_deref()),
+        score: thread.score,
+        comment_count: thread.comment_count,
+        thread_body_html: body_rendered.html,
+        tags_html: String::new(),
+        comments_html,
+    })
+    .into_response()
 }
 
 #[cfg(test)]

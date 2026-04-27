@@ -1,0 +1,66 @@
+{
+	"name": "bevy_pathfinding",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/rust/bevy/bevy_pathfinding/src",
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo build -p bevy_pathfinding"],
+				"cwd": "packages/rust/bevy/bevy_pathfinding"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo test -p bevy_pathfinding"],
+				"cwd": "packages/rust/bevy/bevy_pathfinding"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo clippy -p bevy_pathfinding -- -D warnings"],
+				"cwd": "packages/rust/bevy/bevy_pathfinding"
+			}
+		},
+		"check-wasm": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo +nightly check -p bevy_pathfinding --target wasm32-unknown-unknown"
+				],
+				"cwd": "packages/rust/bevy/bevy_pathfinding"
+			}
+		},
+		"check-desktop": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo check -p bevy_pathfinding"],
+				"cwd": "packages/rust/bevy/bevy_pathfinding"
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"nx run bevy_pathfinding:test",
+					"nx run bevy_pathfinding:check-wasm",
+					"nx run bevy_pathfinding:check-desktop"
+				]
+			}
+		},
+		"dry": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo publish -p bevy_pathfinding --dry-run --allow-dirty"
+				],
+				"parallel": false
+			}
+		}
+	}
+}

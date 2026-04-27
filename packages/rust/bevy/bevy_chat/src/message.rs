@@ -103,11 +103,11 @@ impl ChatMessage {
             self.channel, kind_tag, self.sender, self.platform, self.content
         );
 
-        if let Some(ref payload) = self.payload {
-            if let Ok(json) = serde_json::to_string(payload) {
-                line.push(' ');
-                line.push_str(&json);
-            }
+        if let Some(ref payload) = self.payload
+            && let Ok(json) = serde_json::to_string(payload)
+        {
+            line.push(' ');
+            line.push_str(&json);
         }
 
         line
