@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-04-26T08:36:28Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-04-27T09:02:38Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
@@ -29,7 +29,7 @@ Last generated: **2026-04-26T08:36:28Z** — updated daily by `ci-dashboard`.
   <Card title="32 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="60 Medium" icon="information">
+  <Card title="59 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="5 Low" icon="approve-check-circle">
@@ -47,7 +47,7 @@ Last generated: **2026-04-26T08:36:28Z** — updated daily by `ci-dashboard`.
     **41** advisories
   </Card>
   <Card title="Python" icon="seti:python">
-    **1** advisories
+    **0** advisories
   </Card>
   <Card title="CodeQL" icon="magnifier">
     **0** alerts
@@ -64,7 +64,7 @@ pie showData
     title Findings by Severity
     "Critical" : 1
     "High" : 32
-    "Medium" : 60
+    "Medium" : 59
     "Low" : 5
 ```
 
@@ -75,7 +75,6 @@ pie showData
     title Findings by Ecosystem
     "npm" : 85
     "Cargo" : 41
-    "Python" : 1
 ```
 
 <Tabs>
@@ -85,10 +84,10 @@ pie showData
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
 | **npm** | 1 | 32 | 47 | 5 | 85 |
 | **Cargo** | 0 | 0 | 12 | 0 | 41 |
-| **Python** | 0 | 0 | 1 | 0 | 1 |
+| **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 32 | 60 | 5 | 127 |
+| **Total** | 1 | 32 | 59 | 5 | 126 |
 
   </TabItem>
   <TabItem label="npm">
@@ -231,9 +230,9 @@ pie showData
   </TabItem>
   <TabItem label="Python">
 
-| Severity | Package | Advisory | Link |
-|----------|---------|----------|------|
-| Medium | `pip` | pip handles concatenated tar and ZIP files as ZIP files r... | [Details](https://osv.dev/vulnerability/CVE-2026-3219) |
+:::tip[All Clear]
+No python advisories found.
+:::
 
   </TabItem>
   <TabItem label="CodeQL">
