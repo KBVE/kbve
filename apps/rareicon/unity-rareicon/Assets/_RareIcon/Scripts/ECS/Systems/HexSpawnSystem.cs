@@ -32,6 +32,21 @@ namespace RareIcon
         /// <summary>True if the chunk at the given chunk-coord is currently in the loaded set. Hex-coord callers should derive the chunk first via <c>floor(hex / ChunkSize)</c>.</summary>
         public bool IsChunkLoaded(int2 chunkCoord) => _loadedChunks.ContainsKey(chunkCoord);
 
+        /// <summary>Total number of chunks currently spawned in the live world. Used by the title screen to gate the Start button on having streamed enough chunks to drop into.</summary>
+        public int LoadedChunkCount => _loadedChunks.Count;
+
+        /// <summary>Resolve <see cref="LoadedChunkCount"/> via <see cref="GameplayWorld.Resolve"/>; returns 0 before the world is created. Static so callers (title screen, save service) don't need an entity-world ref.</summary>
+        public static int LoadedChunkCountStatic
+        {
+            get
+            {
+                var world = GameplayWorld.Resolve();
+                if (world == null || !world.IsCreated) return 0;
+                var sys = world.GetExistingSystemManaged<HexChunkSystem>();
+                return sys != null ? sys.LoadedChunkCount : 0;
+            }
+        }
+
         /// <summary>True when the hex coord falls inside any currently-loaded chunk. Cheap O(1) — converts hex to chunk and dictionary-tests.</summary>
         public bool IsHexLoaded(int2 hex)
         {
@@ -966,7 +981,7 @@ namespace RareIcon
                 // ledger buffer. Each type carries its own named buffer
                 // that reinterprets to BankLedgerBase, so we dispatch on
                 // Type to pick the right buffer lookup.
-                SnapshotLedgerSlots(em, entity, building.Type, ref rec);
+                BuildingColdStoreOps.SnapshotLedgerSlots(em, entity, building.Type, ref rec);
 
                 unloaded.Add(rec);
                 if (canFfi) nativeWorld.SaveBuilding(ToFfi(rec));
@@ -1022,33 +1037,6 @@ namespace RareIcon
             Slot2Id    = f.slot2_id,    Slot2Count = f.slot2_count,
             Slot3Id    = f.slot3_id,    Slot3Count = f.slot3_count,
         };
-
-        /// <summary>Per-type ledger → 4 inline slots. Dispatches on BuildingType because each type stores its inventory in its own tagged DynamicBuffer (CapitalLedger, FarmLedger, …). All ledger buffers share the BankLedgerBase binary layout, so the read is uniform after the per-type buffer lookup. Truncates past 4 items — acceptable loss for offline state since real-world buildings rarely exceed 4 unique SKUs.</summary>
-        static void SnapshotLedgerSlots(EntityManager em, Entity entity, byte type, ref UnloadedBuildingRecord rec)
-        {
-            switch (type)
-            {
-                case BuildingType.Capital:    CopyLedgerSlots(em.GetBuffer<CapitalLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
-                case BuildingType.Farm:       if (em.HasBuffer<FarmLedger>(entity))       CopyLedgerSlots(em.GetBuffer<FarmLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
-                case BuildingType.Barracks:   if (em.HasBuffer<BarracksLedger>(entity))   CopyLedgerSlots(em.GetBuffer<BarracksLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
-                case BuildingType.Furnace:    if (em.HasBuffer<FurnaceLedger>(entity))    CopyLedgerSlots(em.GetBuffer<FurnaceLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
-                case BuildingType.Inn:        if (em.HasBuffer<InnLedger>(entity))        CopyLedgerSlots(em.GetBuffer<InnLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
-                case BuildingType.Market:     if (em.HasBuffer<MarketLedger>(entity))     CopyLedgerSlots(em.GetBuffer<MarketLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
-                case BuildingType.Outpost:    if (em.HasBuffer<OutpostLedger>(entity))    CopyLedgerSlots(em.GetBuffer<OutpostLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
-                case BuildingType.Lumbercamp: if (em.HasBuffer<LumbercampLedger>(entity)) CopyLedgerSlots(em.GetBuffer<LumbercampLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
-                case BuildingType.MiningPit:  if (em.HasBuffer<MiningPitLedger>(entity))  CopyLedgerSlots(em.GetBuffer<MiningPitLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
-                case BuildingType.GoblinCave: if (em.HasBuffer<GoblinCaveLedger>(entity)) CopyLedgerSlots(em.GetBuffer<GoblinCaveLedger>(entity).Reinterpret<BankLedgerBase>(), ref rec); break;
-            }
-        }
-
-        static void CopyLedgerSlots(DynamicBuffer<BankLedgerBase> buf, ref UnloadedBuildingRecord rec)
-        {
-            int n = buf.Length;
-            if (n > 0) { rec.Slot0Id = buf[0].ItemId; rec.Slot0Count = buf[0].Count; }
-            if (n > 1) { rec.Slot1Id = buf[1].ItemId; rec.Slot1Count = buf[1].Count; }
-            if (n > 2) { rec.Slot2Id = buf[2].ItemId; rec.Slot2Count = buf[2].Count; }
-            if (n > 3) { rec.Slot3Id = buf[3].ItemId; rec.Slot3Count = buf[3].Count; }
-        }
 
     }
 }

@@ -111,7 +111,7 @@ namespace RareIcon
 
         public UniTask StartAsync(CancellationToken cancellation)
         {
-            SetState(AppInterfaceState.World);
+            SetState(AppInterfaceState.MainMenu);
             SetOverlay(AppOverlayFlags.None);
 
             var bag = MessagePipe.DisposableBag.CreateBuilder();

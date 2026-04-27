@@ -102,6 +102,7 @@ namespace RareIcon
             builder.Register(_ => new BiomeGenerator(), Lifetime.Singleton).AsSelf();
             builder.Register<ChunkGeneratorService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             builder.Register<RiverRouter>(Lifetime.Singleton).AsSelf();
+            builder.Register<WorldGenSession>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
 
             // -- Steam services --
             // SteamManager itself self-bootstraps via RuntimeInitializeOnLoad —
@@ -139,6 +140,9 @@ namespace RareIcon
             builder.RegisterEntryPoint<ScreenFrameHost>().AsSelf();
 
             builder.RegisterEntryPoint<SelectionOverlay>().AsSelf();
+
+            // -- Title screen (locale → seed → background gen → start) --
+            builder.RegisterEntryPoint<UITitleScreen>().AsSelf();
 
             // -- Treasury panel (capital storage viewer) --
             builder.RegisterEntryPoint<UITreasury>().AsSelf();
