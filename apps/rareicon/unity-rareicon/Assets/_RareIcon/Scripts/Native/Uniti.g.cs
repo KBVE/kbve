@@ -202,6 +202,14 @@ namespace RareIcon.Native
         public static extern void uniti_world_free(void* world);
 
         /// <summary>
+        ///  Returns the current FFI schema version. Unity calls this once on
+        ///  `WorldStoreSystem` boot and aborts if the returned value doesn't
+        ///  match `UnitiSchema.Version` in the C# bindings.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_schema_version", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_schema_version();
+
+        /// <summary>
         ///  Aggregate read-only counts. Cheap — just walks the in-memory HashMap.
         ///  UI / save-selection screens call this to show "N saved chunks, M
         ///  offline buildings, K ghost units" without pulling full row data.
@@ -245,6 +253,14 @@ namespace RareIcon.Native
         public static extern FfiHexLookup uniti_world_get_hex(void* world, int q, int r);
 
         /// <summary>
+        ///  Bulk variant of `uniti_world_save_hex`. Pushes `count` divergent
+        ///  hexes in one FFI hop. Each entry upserts by `(q, r)` like the
+        ///  single-record path.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_save_hexes_batch", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_world_save_hexes_batch(void* world, FfiHexSave* hexes_buf, uint count);
+
+        /// <summary>
         ///  Save a hex's resource state. Caller is responsible for only calling
         ///  this on hexes that actually diverged from the gen-time roll.
         /// </summary>
@@ -268,6 +284,19 @@ namespace RareIcon.Native
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_take_units_in_chunk", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_world_take_units_in_chunk(void* world, int cx, int cy, FfiGhostUnit* out_buf, uint cap);
+
+        /// <summary>
+        ///  Bulk variant of `uniti_world_replace_chunk_units`. Replaces every
+        ///  chunk listed in `ranges_buf` in one call — periodic flush groups
+        ///  ghost-sim units by chunk and ships the whole batch through one FFI
+        ///  hop instead of N. Each `FfiChunkRange.offset` indexes into
+        ///  `units_buf`; `count` is the slice length.
+        ///
+        ///  `units_buf` may be null when every range has count = 0 (chunk-wipe
+        ///  batch). `ranges_buf` may not be null when `ranges_count &gt; 0`.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_world_replace_chunks_units_bulk", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_world_replace_chunks_units_bulk(void* world, FfiGhostUnit* units_buf, uint units_count, FfiChunkRange* ranges_buf, uint ranges_count);
 
         /// <summary>
         ///  Replace the entire unit set for a chunk. Drops every existing unit
@@ -492,6 +521,11 @@ namespace RareIcon.Native
     ///  Summary of the world store's in-memory cache. Populated by
     ///  `uniti_world_stats`. Counts are u32 — if we ever need to represent
     ///  &gt; 4B items, bump to u64 + a schema version, but that's ~Minecraft scale.
+    ///
+    ///  `last_flush_micros` is the wall-clock time of the most recent
+    ///  `uniti_world_flush` call (sum of SQLite write batches in microseconds).
+    ///  `total_flushes` is a session-monotonic counter — UI / dev panels
+    ///  can derive cadence + flush-rate over time without polling timing.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public unsafe partial struct FfiWorldStats
@@ -502,6 +536,33 @@ namespace RareIcon.Native
         public uint buildings;
         public uint dirty_chunks;
         public uint dirty_hexes;
+        public ulong last_flush_micros;
+        public ulong total_flushes;
+    }
+
+    /// <summary>
+    ///  One hex divergence record for `uniti_world_save_hexes_batch`.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct FfiHexSave
+    {
+        public int q;
+        public int r;
+        public FfiHexResources res;
+    }
+
+    /// <summary>
+    ///  One slice of `FfiGhostUnit`s belonging to chunk `(cx, cy)`. Used by
+    ///  `uniti_world_replace_chunks_units_bulk` to replace many chunks in a
+    ///  single FFI call.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct FfiChunkRange
+    {
+        public int cx;
+        public int cy;
+        public uint offset;
+        public uint count;
     }
 
 

@@ -21,6 +21,14 @@ namespace RareIcon
         {
             try
             {
+                uint nativeVer = NativeWorld.NativeSchemaVersion();
+                if (nativeVer != NativeWorld.ExpectedSchemaVersion)
+                {
+                    Debug.LogError($"[WorldStoreSystem] FFI schema mismatch — Rust dylib reports v{nativeVer}, C# expects v{NativeWorld.ExpectedSchemaVersion}. Rebuild the dylib via `npx nx run uniti:build:macos` (or :windows / :linux) so csbindgen regenerates Uniti.g.cs against the new struct layout. Falling back to in-memory store; persistence disabled this session.");
+                    _instance = new NativeWorld();
+                    return;
+                }
+
                 string dbPath = Path.Combine(Application.persistentDataPath, SaveFileName);
                 _instance = NativeWorld.OpenAtPath(dbPath);
                 if (_instance == null)

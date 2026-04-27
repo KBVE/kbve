@@ -14,10 +14,20 @@ namespace RareIcon.Native
     /// </summary>
     public unsafe class NativeWorld : IDisposable
     {
+        /// <summary>FFI struct schema version. Must match <c>UNITI_FFI_SCHEMA_VERSION</c> in <c>packages/rust/bevy/uniti/src/ffi_world.rs</c>. Bumped together when any blittable struct layout changes.</summary>
+        public const uint ExpectedSchemaVersion = 2;
+
         void* _handle;
         bool  _disposed;
 
         public bool IsValid => _handle != null && !_disposed;
+
+        /// <summary>Asks the dylib for its FFI struct schema version. Caller compares against <see cref="ExpectedSchemaVersion"/> on bootstrap; mismatch means the Rust + C# struct layouts have drifted (rebuild the dylib + regen bindings).</summary>
+        public static uint NativeSchemaVersion()
+        {
+            try { return Uniti.uniti_world_schema_version(); }
+            catch { return 0; }
+        }
 
         /// <summary>In-memory store only. State lives for the process lifetime; no disk persistence. Use <see cref="OpenAtPath"/> for the disk-backed path.</summary>
         public NativeWorld()
@@ -197,6 +207,38 @@ namespace RareIcon.Native
             fixed (FfiUnloadedBuilding* ptr = buffer)
             {
                 Uniti.uniti_world_save_buildings_batch(_handle, ptr, (uint)length);
+            }
+        }
+
+        /// <summary>Bulk replace units across many chunks in one FFI call. <paramref name="ranges"/> indexes into <paramref name="units"/> via offset+count per chunk.</summary>
+        public void ReplaceChunksUnitsBulk(FfiGhostUnit[] units, int unitsCount, FfiChunkRange[] ranges, int rangesCount)
+        {
+            if (!IsValid || ranges == null || rangesCount <= 0) return;
+            fixed (FfiChunkRange* rangesPtr = ranges)
+            {
+                if (units != null && unitsCount > 0)
+                {
+                    fixed (FfiGhostUnit* unitsPtr = units)
+                    {
+                        Uniti.uniti_world_replace_chunks_units_bulk(
+                            _handle, unitsPtr, (uint)unitsCount, rangesPtr, (uint)rangesCount);
+                    }
+                }
+                else
+                {
+                    Uniti.uniti_world_replace_chunks_units_bulk(
+                        _handle, null, 0u, rangesPtr, (uint)rangesCount);
+                }
+            }
+        }
+
+        /// <summary>Bulk save divergent hexes in one FFI call. Each upserts by (q, r).</summary>
+        public void SaveHexesBatch(FfiHexSave[] buffer, int length)
+        {
+            if (!IsValid || buffer == null || length <= 0) return;
+            fixed (FfiHexSave* ptr = buffer)
+            {
+                Uniti.uniti_world_save_hexes_batch(_handle, ptr, (uint)length);
             }
         }
 

@@ -173,6 +173,10 @@ pub struct WorldStore {
     db: Arc<Mutex<Option<Connection>>>,
     running: Arc<AtomicBool>,
     ticker: Option<JoinHandle<()>>,
+    /// Telemetry — last flush wall-clock in micros + lifetime flush count.
+    /// Updated by `flush_dirty` whenever it actually writes to SQLite.
+    last_flush_micros: Arc<std::sync::atomic::AtomicU64>,
+    total_flushes: Arc<std::sync::atomic::AtomicU64>,
 }
 
 // Hex chunk size — must match C# HexChunkSystem.ChunkSize.
@@ -225,6 +229,8 @@ impl WorldStore {
         let state = Arc::new(Mutex::new(WorldState::default()));
         let db: Arc<Mutex<Option<Connection>>> = Arc::new(Mutex::new(conn));
         let running = Arc::new(AtomicBool::new(true));
+        let last_flush_micros = Arc::new(std::sync::atomic::AtomicU64::new(0));
+        let total_flushes = Arc::new(std::sync::atomic::AtomicU64::new(0));
 
         // Background ticker — advances per-unit hunger / fatigue /
         // energy while the owning chunk is unloaded. Ticks at ~1 Hz
@@ -239,6 +245,8 @@ impl WorldStore {
         let state_for_thread = Arc::clone(&state);
         let db_for_thread = Arc::clone(&db);
         let running_for_thread = Arc::clone(&running);
+        let last_flush_for_thread = Arc::clone(&last_flush_micros);
+        let total_flushes_for_thread = Arc::clone(&total_flushes);
         let ticker = thread::Builder::new()
             .name("uniti-world-tick".into())
             .spawn(move || {
@@ -294,13 +302,23 @@ impl WorldStore {
                     // --- Flush pass (every FLUSH_INTERVAL_SECS) ---
                     if now.duration_since(last_flush).as_secs_f32() >= FLUSH_INTERVAL_SECS {
                         last_flush = now;
-                        flush_dirty(&state_for_thread, &db_for_thread);
+                        flush_dirty(
+                            &state_for_thread,
+                            &db_for_thread,
+                            &last_flush_for_thread,
+                            &total_flushes_for_thread,
+                        );
                     }
                 }
 
                 // Final flush on shutdown so the last tick of work + any
                 // pending writes make it to disk before the process exits.
-                flush_dirty(&state_for_thread, &db_for_thread);
+                flush_dirty(
+                    &state_for_thread,
+                    &db_for_thread,
+                    &last_flush_for_thread,
+                    &total_flushes_for_thread,
+                );
             })
             .expect("spawn uniti-world-tick");
 
@@ -309,6 +327,8 @@ impl WorldStore {
             db,
             running,
             ticker: Some(ticker),
+            last_flush_micros,
+            total_flushes,
         }
     }
 }
@@ -567,7 +587,13 @@ fn load_all_from_db(conn: &Connection) -> rusqlite::Result<HashMap<ChunkKey, Chu
 /// Per-hex rows upsert by (q, r); per-chunk lists (units, buildings)
 /// delete-then-insert by chunk so drained items disappear. Called every
 /// FLUSH_INTERVAL_SECS by the ticker + on shutdown.
-fn flush_dirty(state: &Arc<Mutex<WorldState>>, db: &Arc<Mutex<Option<Connection>>>) {
+fn flush_dirty(
+    state: &Arc<Mutex<WorldState>>,
+    db: &Arc<Mutex<Option<Connection>>>,
+    last_flush_micros: &Arc<std::sync::atomic::AtomicU64>,
+    total_flushes: &Arc<std::sync::atomic::AtomicU64>,
+) {
+    let started = std::time::Instant::now();
     // Snapshot dirty sets + the per-chunk/per-hex rows under the state
     // lock, then release so the main ticker + FFI calls don't stall on
     // long SQL transactions.
@@ -755,6 +781,10 @@ fn flush_dirty(state: &Arc<Mutex<WorldState>>, db: &Arc<Mutex<Option<Connection>
         s.dirty_chunks.clear();
         s.dirty_hexes.clear();
     }
+
+    let elapsed = started.elapsed().as_micros() as u64;
+    last_flush_micros.store(elapsed, std::sync::atomic::Ordering::Relaxed);
+    total_flushes.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 }
 
 impl Drop for WorldStore {
@@ -836,7 +866,12 @@ pub unsafe extern "C" fn uniti_world_flush(world: *mut c_void) {
         Some(w) => w,
         None => return,
     };
-    flush_dirty(&world.state, &world.db);
+    flush_dirty(
+        &world.state,
+        &world.db,
+        &world.last_flush_micros,
+        &world.total_flushes,
+    );
 }
 
 /// Drop the store. Stops the background thread (which does a final
@@ -854,9 +889,31 @@ pub unsafe extern "C" fn uniti_world_free(world: *mut c_void) {
 // World stats (read-only UI-friendly aggregate)
 // ---------------------------------------------------------------------------
 
+/// FFI struct schema version. Bump when any `repr(C)` struct in this
+/// file (`FfiUnloadedBuilding`, `FfiGhostUnit`, `FfiHexResources`,
+/// `FfiHexLookup`, `FfiWorldStats`, `FfiChunkRange`, `FfiHexSave`)
+/// changes layout — Unity asserts on this at boot and refuses to load
+/// the dylib if the value drifts from the C# constant. Catches the
+/// silent-corruption case where you rebuild the Rust side without
+/// regenerating the C# bindings (or vice-versa).
+pub const UNITI_FFI_SCHEMA_VERSION: u32 = 2;
+
+/// Returns the current FFI schema version. Unity calls this once on
+/// `WorldStoreSystem` boot and aborts if the returned value doesn't
+/// match `UnitiSchema.Version` in the C# bindings.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_schema_version() -> u32 {
+    UNITI_FFI_SCHEMA_VERSION
+}
+
 /// Summary of the world store's in-memory cache. Populated by
 /// `uniti_world_stats`. Counts are u32 — if we ever need to represent
 /// > 4B items, bump to u64 + a schema version, but that's ~Minecraft scale.
+///
+/// `last_flush_micros` is the wall-clock time of the most recent
+/// `uniti_world_flush` call (sum of SQLite write batches in microseconds).
+/// `total_flushes` is a session-monotonic counter — UI / dev panels
+/// can derive cadence + flush-rate over time without polling timing.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Default)]
 pub struct FfiWorldStats {
@@ -866,6 +923,8 @@ pub struct FfiWorldStats {
     pub buildings: u32,
     pub dirty_chunks: u32,
     pub dirty_hexes: u32,
+    pub last_flush_micros: u64,
+    pub total_flushes: u64,
 }
 
 /// Aggregate read-only counts. Cheap — just walks the in-memory HashMap.
@@ -885,6 +944,12 @@ pub unsafe extern "C" fn uniti_world_stats(world: *const c_void) -> FfiWorldStat
     let mut stats = FfiWorldStats {
         chunks: state.chunks.len() as u32,
         dirty_chunks: state.dirty_chunks.len() as u32,
+        last_flush_micros: world
+            .last_flush_micros
+            .load(std::sync::atomic::Ordering::Relaxed),
+        total_flushes: world
+            .total_flushes
+            .load(std::sync::atomic::Ordering::Relaxed),
         dirty_hexes: state.dirty_hexes.len() as u32,
         ..Default::default()
     };
@@ -928,7 +993,12 @@ pub unsafe extern "C" fn uniti_world_archive(
     let dst = PathBuf::from(dst_str);
 
     // Ensure pending state is on disk first, then read DB bytes.
-    flush_dirty(&world.state, &world.db);
+    flush_dirty(
+        &world.state,
+        &world.db,
+        &world.last_flush_micros,
+        &world.total_flushes,
+    );
 
     // Locate the DB path via SQLite's pragma_database_list.
     let db_lock = match world.db.lock() {
@@ -1038,6 +1108,48 @@ pub unsafe extern "C" fn uniti_world_get_hex(world: *const c_void, q: i32, r: i3
     }
 }
 
+/// One hex divergence record for `uniti_world_save_hexes_batch`.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, Default)]
+pub struct FfiHexSave {
+    pub q: i32,
+    pub r: i32,
+    pub res: FfiHexResources,
+}
+
+/// Bulk variant of `uniti_world_save_hex`. Pushes `count` divergent
+/// hexes in one FFI hop. Each entry upserts by `(q, r)` like the
+/// single-record path.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_save_hexes_batch(
+    world: *mut c_void,
+    hexes_buf: *const FfiHexSave,
+    count: u32,
+) {
+    let world = match unsafe { to_world_mut(world) } {
+        Some(w) => w,
+        None => return,
+    };
+    if count == 0 || hexes_buf.is_null() {
+        return;
+    }
+    let mut state = match world.state.lock() {
+        Ok(s) => s,
+        Err(_) => return,
+    };
+    let slice = unsafe { std::slice::from_raw_parts(hexes_buf, count as usize) };
+    for hex in slice {
+        let chunk = chunk_of(hex.q, hex.r);
+        state
+            .chunks
+            .entry(chunk)
+            .or_default()
+            .hexes
+            .insert((hex.q, hex.r), hex.res);
+        state.dirty_hexes.insert((hex.q, hex.r));
+    }
+}
+
 /// Save a hex's resource state. Caller is responsible for only calling
 /// this on hexes that actually diverged from the gen-time roll.
 #[unsafe(no_mangle)]
@@ -1128,6 +1240,67 @@ pub unsafe extern "C" fn uniti_world_take_units_in_chunk(
     slice.copy_from_slice(&drained);
     state.dirty_chunks.insert((cx, cy));
     take_n as u32
+}
+
+/// One slice of `FfiGhostUnit`s belonging to chunk `(cx, cy)`. Used by
+/// `uniti_world_replace_chunks_units_bulk` to replace many chunks in a
+/// single FFI call.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, Default)]
+pub struct FfiChunkRange {
+    pub cx: i32,
+    pub cy: i32,
+    pub offset: u32,
+    pub count: u32,
+}
+
+/// Bulk variant of `uniti_world_replace_chunk_units`. Replaces every
+/// chunk listed in `ranges_buf` in one call — periodic flush groups
+/// ghost-sim units by chunk and ships the whole batch through one FFI
+/// hop instead of N. Each `FfiChunkRange.offset` indexes into
+/// `units_buf`; `count` is the slice length.
+///
+/// `units_buf` may be null when every range has count = 0 (chunk-wipe
+/// batch). `ranges_buf` may not be null when `ranges_count > 0`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_replace_chunks_units_bulk(
+    world: *mut c_void,
+    units_buf: *const FfiGhostUnit,
+    units_count: u32,
+    ranges_buf: *const FfiChunkRange,
+    ranges_count: u32,
+) {
+    let world = match unsafe { to_world_mut(world) } {
+        Some(w) => w,
+        None => return,
+    };
+    if ranges_count == 0 || ranges_buf.is_null() {
+        return;
+    }
+    let mut state = match world.state.lock() {
+        Ok(s) => s,
+        Err(_) => return,
+    };
+
+    let ranges = unsafe { std::slice::from_raw_parts(ranges_buf, ranges_count as usize) };
+    let units = if units_buf.is_null() || units_count == 0 {
+        &[][..]
+    } else {
+        unsafe { std::slice::from_raw_parts(units_buf, units_count as usize) }
+    };
+
+    for r in ranges {
+        let chunk_data = state.chunks.entry((r.cx, r.cy)).or_default();
+        chunk_data.units.clear();
+        if r.count > 0 {
+            let start = r.offset as usize;
+            let end = start.saturating_add(r.count as usize);
+            if end <= units.len() {
+                chunk_data.units.extend_from_slice(&units[start..end]);
+            }
+        }
+        state.dirty_chunks.insert((r.cx, r.cy));
+    }
 }
 
 /// Replace the entire unit set for a chunk. Drops every existing unit
