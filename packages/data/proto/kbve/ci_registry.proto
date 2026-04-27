@@ -18,21 +18,72 @@ enum DispatchPipeline {
   DISPATCH_PIPELINE_NPM = 2;
   DISPATCH_PIPELINE_CRATES = 3;
   DISPATCH_PIPELINE_PYTHON = 4;
-  DISPATCH_PIPELINE_UNREAL = 5;
-  DISPATCH_PIPELINE_UE5_SERVER = 6;
+  DISPATCH_PIPELINE_UNREAL = 5;       // UE plugin/marketplace publish
+  DISPATCH_PIPELINE_UE5_SERVER = 6;   // UE dedicated server (linux container)
+  DISPATCH_PIPELINE_UNITY = 7;        // Unity standalone game (GameCI / Azure DevOps)
+  DISPATCH_PIPELINE_GODOT = 8;        // Godot game export (godot-ci docker)
+  DISPATCH_PIPELINE_UNREAL_GAME = 9;  // UE standalone game build (vs server / vs plugin)
+  DISPATCH_PIPELINE_BEVY_GAME = 10;   // Bevy game executable (vs library crate)
 }
 
 // Language / framework that determines which CI toolchain is needed for tests.
 // Used by the E2E matrix to fan out with the correct runner setup.
 enum TestFramework {
   TEST_FRAMEWORK_UNSPECIFIED = 0;
-  TEST_FRAMEWORK_RUST = 1;       // Cargo test + optional wasm32 target
-  TEST_FRAMEWORK_TYPESCRIPT = 2; // Vitest / Jest (Node)
-  TEST_FRAMEWORK_ASTRO = 3;     // Astro build + Playwright
-  TEST_FRAMEWORK_CSHARP = 4;    // dotnet test
-  TEST_FRAMEWORK_PYTHON = 5;    // pytest / uv
-  TEST_FRAMEWORK_DENO = 6;      // Deno test
-  TEST_FRAMEWORK_CPP = 7;       // Unreal Engine / C++ compile checks
+  TEST_FRAMEWORK_RUST = 1;            // Cargo test + optional wasm32 target (also covers Bevy)
+  TEST_FRAMEWORK_TYPESCRIPT = 2;     // Vitest / Jest (Node)
+  TEST_FRAMEWORK_ASTRO = 3;          // Astro build + Playwright
+  TEST_FRAMEWORK_CSHARP = 4;         // dotnet test
+  TEST_FRAMEWORK_PYTHON = 5;         // pytest / uv
+  TEST_FRAMEWORK_DENO = 6;           // Deno test
+  TEST_FRAMEWORK_CPP = 7;            // Plain C++ compile checks
+  TEST_FRAMEWORK_UNITY = 8;          // Unity Test Runner (EditMode + PlayMode) via GameCI
+  TEST_FRAMEWORK_GODOT = 9;          // godot --headless --quit-after N + GUT/Godot test scripts
+  TEST_FRAMEWORK_UE_AUTOMATION = 10; // Unreal Automation Tests (vs raw CPP)
+}
+
+// Game-engine specific config — used by Unity / Godot / Unreal-Game / Bevy-Game
+// pipelines. One shared sub-message instead of per-engine fields keeps CiProject
+// flat; engine-specific knowledge lives in the per-engine workflow.
+message GameEngineConfig {
+  // Engine version pin. Examples:
+  //   Unity:  "6000.0.30f1"
+  //   UE:     "5.4.4"
+  //   Godot:  "4.3-stable"
+  //   Bevy:   cargo crate version, e.g. "0.14"
+  string version = 1;
+
+  // Path to the engine project root, relative to repo root.
+  // Unity: dir containing Assets/ + ProjectSettings/
+  // UE:    dir containing the .uproject file
+  // Godot: dir containing project.godot
+  // Bevy:  dir containing Cargo.toml of the game crate
+  string project_path = 2;
+
+  // Build targets / export presets / cargo profiles to fan out into a matrix.
+  //   Unity:  ["StandaloneWindows64", "StandaloneLinux64", "WebGL"]
+  //   UE:     ["Win64", "Linux", "Mac"]
+  //   Godot:  matches export_presets.cfg names, e.g. ["windows-x64", "html5"]
+  //   Bevy:   target triples or named profiles, e.g. ["x86_64-pc-windows-gnu"]
+  repeated string build_targets = 3;
+
+  // Unity-specific licensing method. One of: "personal" | "professional" | "serial".
+  optional string license_method = 4;
+
+  // Godot-specific: true when the project uses the .NET / C# build (vs GDScript).
+  optional bool dotnet_enabled = 5;
+
+  // Extra args forwarded to the engine's test runner.
+  repeated string test_args = 6;
+
+  // Bevy / engine cargo features to enable per build.
+  // UE plugin deps can also reuse this for build-time toggles.
+  repeated string features = 7;
+
+  // Optional source repo if the game lives outside this monorepo
+  // (e.g. Azure DevOps repo for a private Unity project that ships
+  // public artifacts).
+  optional string external_repo_url = 8;
 }
 
 // External publish targets — storefronts, mod platforms, package indexes
@@ -136,6 +187,11 @@ message CiProject {
   // --- External publish targets (storefronts / mod platforms) -----------
   // Consumed by utils-external-publish.yml. Empty / unset = skip target.
   optional ExternalPublish external_publish = 34;
+
+  // --- Game-engine config (unity / godot / unreal_game / bevy_game) ----
+  // Required when pipeline is one of the four game-engine pipelines.
+  // Drives the per-engine workflow's matrix, test runner, and build args.
+  optional GameEngineConfig engine = 35;
 }
 
 // The full registry — a flat list of all tracked items.
