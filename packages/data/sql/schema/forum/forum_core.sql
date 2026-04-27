@@ -546,13 +546,12 @@ CREATE INDEX idx_threads_author_visible
     WHERE status IN ('active', 'archived', 'locked', 'sold', 'expired');
 CREATE INDEX idx_threads_scheduled
     ON forum.threads (scheduled_at) WHERE status = 'scheduled';
--- Item 10: typed timestamp extraction so the planner can do range scans on
--- auction end_time. Replaces the old text-sorted index.
-CREATE INDEX idx_threads_auction_end_time_ts
-    ON forum.threads (((type_data->>'end_time')::TIMESTAMPTZ))
-    WHERE thread_type = 'auction'
-      AND status = 'active'
-      AND type_data ? 'end_time';
+-- Auction end_time queries route through idx_threads_type_data_gin
+-- below. The original plan was a typed-timestamp expression index, but
+-- text→TIMESTAMP / TIMESTAMPTZ casts are STABLE (DateStyle GUC) and
+-- Postgres rejects them in index expressions. The CHECK constraint
+-- threads_auction_end_time_valid still gates write-time format so the
+-- GIN scan can rely on a parsable end_time when a query needs one.
 -- Item 11: GIN on the JSONB blob for type-specific filters
 -- (e.g. PollData.options @> ['…'], MarketplaceData price ranges).
 CREATE INDEX idx_threads_type_data_gin
