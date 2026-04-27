@@ -170,8 +170,10 @@ pub struct ForumFeedItemPartial {
     pub title: String,
     pub space_slug: String,
     pub space_name: String,
-    pub author_id: String,
-    pub author_short: String,
+    /// Resolved from the author UUID via ProfileService::get_usernames_by_ids.
+    /// Falls back to a "deleted-user" sentinel when no row maps — under the
+    /// username-required gate this should be vanishingly rare.
+    pub author_username: String,
     pub created_at_human: String,
     pub score: i64,
     pub comment_count: i32,
@@ -187,8 +189,7 @@ pub struct ForumFeedItemPartial {
 pub struct ForumCommentPartial {
     pub id: String,
     pub depth: i32,
-    pub author_id: String,
-    pub author_short: String,
+    pub author_username: String,
     pub created_at_human: String,
     pub score: i64,
     /// Sanitized HTML — output of `kbve::markdown::render(..).html`.

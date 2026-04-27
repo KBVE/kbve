@@ -354,6 +354,32 @@ COMMENT ON FUNCTION forum.is_user_banned IS
 REVOKE ALL ON FUNCTION forum.is_user_banned(UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION forum.is_user_banned(UUID) TO authenticated;
 
+-- Username gate. Posting without a username is rejected upstream of the
+-- table CHECKs; resolves the read-side stand-in problem (axum-kbve was
+-- forced to render an 8-char UUID for unnamed authors). Calls into the
+-- `profile.username` table cross-schema; SECURITY DEFINER means the
+-- postgres owner runs the SELECT, which has SELECT on every schema.
+CREATE OR REPLACE FUNCTION forum.assert_user_has_username(p_user_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM profile.username WHERE user_id = p_user_id
+    ) THEN
+        RAISE EXCEPTION 'username required: user must set a username before posting'
+            USING ERRCODE = 'P0001', HINT = 'Call profile.service_add_username before posting.';
+    END IF;
+END;
+$$;
+
+COMMENT ON FUNCTION forum.assert_user_has_username IS
+    'Raises if the user has no row in profile.username. Called by every forum.service_create_* RPC before insert.';
+
+REVOKE ALL ON FUNCTION forum.assert_user_has_username(UUID) FROM PUBLIC;
+
 -- ===========================================
 -- SPACES
 -- ===========================================

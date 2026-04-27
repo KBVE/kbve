@@ -171,6 +171,10 @@ BEGIN
         RAISE EXCEPTION 'forum user is banned';
     END IF;
 
+    -- Username gate: posting without a username is rejected so the read
+    -- side never has to render a UUID stand-in.
+    PERFORM forum.assert_user_has_username(p_author_id);
+
     -- Fail fast on bad input so we don't get to the table CHECK.
     IF p_title IS NULL OR length(trim(p_title)) < 3 OR length(p_title) > 180 THEN
         RAISE EXCEPTION 'invalid thread title length';
@@ -313,6 +317,9 @@ BEGIN
     IF forum.is_user_banned(p_author_id) THEN
         RAISE EXCEPTION 'forum user is banned';
     END IF;
+
+    -- Username gate: see service_create_thread.
+    PERFORM forum.assert_user_has_username(p_author_id);
 
     IF p_body IS NULL OR length(p_body) < 1 OR length(p_body) > 20000 THEN
         RAISE EXCEPTION 'invalid comment body length';

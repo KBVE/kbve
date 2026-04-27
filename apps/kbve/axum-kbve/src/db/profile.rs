@@ -560,6 +560,59 @@ impl ProfileService {
         Ok(canonical)
     }
 
+    /// Batch resolve `user_id → username` via direct PostgREST SELECT on
+    /// `profile.username`. Single round-trip with `?user_id=in.(…)`.
+    /// Missing rows (user with no username set) are absent from the map.
+    pub async fn get_usernames_by_ids(
+        &self,
+        ids: &[String],
+    ) -> Result<std::collections::HashMap<String, String>, String> {
+        if ids.is_empty() {
+            return Ok(std::collections::HashMap::new());
+        }
+        // Cap at 100 to keep the URL bounded and the planner happy.
+        let mut deduped: Vec<&str> = ids.iter().map(|s| s.as_str()).collect();
+        deduped.sort();
+        deduped.dedup();
+        if deduped.len() > 100 {
+            deduped.truncate(100);
+        }
+        let in_list = format!("({})", deduped.join(","));
+
+        let url = format!("{}/username", self.client.config().rest_url());
+        let headers = self.client.rpc_headers("profile")?;
+
+        let response = self
+            .client
+            .client()
+            .get(&url)
+            .headers(headers)
+            .query(&[
+                ("select", "user_id,username"),
+                ("user_id", format!("in.{}", in_list).as_str()),
+            ])
+            .send()
+            .await
+            .map_err(|e| format!("profile.username network error: {}", e))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!("profile.username {} → {}", status, body));
+        }
+
+        #[derive(Deserialize)]
+        struct Row {
+            user_id: String,
+            username: String,
+        }
+        let rows: Vec<Row> = response
+            .json()
+            .await
+            .map_err(|e| format!("profile.username parse: {}", e))?;
+        Ok(rows.into_iter().map(|r| (r.user_id, r.username)).collect())
+    }
+
     /// Get username by user_id using RPC
     async fn get_username_by_id(&self, user_id: &str) -> Result<Option<String>, String> {
         let url = self.client.config().rpc_url("get_username_by_id");

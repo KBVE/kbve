@@ -1737,10 +1737,15 @@ fn html_escape(s: &str) -> String {
     out
 }
 
-/// First 8 chars of a UUID — display-only stand-in until the SSR layer
-/// learns to batch-resolve UUIDs to usernames via the profile cache.
-fn short_author(uuid: &str) -> String {
-    uuid.chars().take(8).collect()
+/// Sentinel shown when an author UUID has no matching `profile.username`
+/// row. Under the username-required RPC gate this only surfaces for
+/// pre-gate posts or rows where the user has been deleted.
+const FORUM_DELETED_USER: &str = "deleted-user";
+
+fn resolve_username(map: &std::collections::HashMap<String, String>, uuid: &str) -> String {
+    map.get(uuid)
+        .cloned()
+        .unwrap_or_else(|| FORUM_DELETED_USER.to_string())
 }
 
 /// Truncate the rendered markdown to a feed excerpt. Naive char-count
@@ -1818,6 +1823,7 @@ fn sort_label(sort: &str) -> &'static str {
 fn build_feed_items_html(
     rows: &[FeedRow],
     spaces_by_id: &std::collections::HashMap<String, SpaceRow>,
+    usernames_by_id: &std::collections::HashMap<String, String>,
 ) -> String {
     let mut out = String::with_capacity(rows.len() * 512);
     let ctx = forum_render_ctx();
@@ -1834,8 +1840,7 @@ fn build_feed_items_html(
             title: row.title.clone(),
             space_slug,
             space_name,
-            author_id: row.author_id.clone(),
-            author_short: short_author(&row.author_id),
+            author_username: resolve_username(usernames_by_id, &row.author_id),
             created_at_human: humanize_ts(&row.created_at),
             score: row.score,
             comment_count: row.comment_count,
@@ -1847,7 +1852,10 @@ fn build_feed_items_html(
     out
 }
 
-fn build_comments_html(rows: &[CommentRow]) -> String {
+fn build_comments_html(
+    rows: &[CommentRow],
+    usernames_by_id: &std::collections::HashMap<String, String>,
+) -> String {
     let mut out = String::with_capacity(rows.len() * 512);
     let ctx = forum_render_ctx();
     for row in rows {
@@ -1855,8 +1863,7 @@ fn build_comments_html(rows: &[CommentRow]) -> String {
         let partial = ForumCommentPartial {
             id: row.id.clone(),
             depth: row.depth,
-            author_id: row.author_id.clone(),
-            author_short: short_author(&row.author_id),
+            author_username: resolve_username(usernames_by_id, &row.author_id),
             created_at_human: humanize_ts(&row.created_at),
             score: row.score,
             body_html: rendered.html,
@@ -1970,7 +1977,24 @@ async fn render_feed_page(space_slug: Option<String>, q: &FeedSortQuery) -> Resp
         spaces_by_id.insert(s.id.clone(), s.clone());
     }
 
-    let feed_items_html = build_feed_items_html(&rows, &spaces_by_id);
+    // Batch-resolve every author UUID to a username. One round-trip via
+    // PostgREST `?user_id=in.(…)`. Missing rows fall back to a sentinel
+    // through resolve_username().
+    let usernames_by_id = match get_profile_service() {
+        Some(profile_svc) => {
+            let ids: Vec<String> = rows.iter().map(|r| r.author_id.clone()).collect();
+            profile_svc
+                .get_usernames_by_ids(&ids)
+                .await
+                .unwrap_or_else(|e| {
+                    tracing::warn!("forum feed: username batch failed: {}", e);
+                    std::collections::HashMap::new()
+                })
+        }
+        None => std::collections::HashMap::new(),
+    };
+
+    let feed_items_html = build_feed_items_html(&rows, &spaces_by_id, &usernames_by_id);
 
     let space_path = match space.as_ref() {
         Some(s) => format!("/forum/s/{}", s.slug),
@@ -2059,7 +2083,27 @@ async fn forum_thread_handler(Path(slug_or_id): Path<String>) -> Response {
 
     let ctx = forum_render_ctx();
     let body_rendered = kbve::markdown::render(&thread.body, &ctx);
-    let comments_html = build_comments_html(&comments);
+
+    // Batch-resolve thread author + every commenter to a username.
+    let usernames_by_id = match get_profile_service() {
+        Some(profile_svc) => {
+            let mut ids: Vec<String> = Vec::with_capacity(comments.len() + 1);
+            ids.push(thread.author_id.clone());
+            for c in &comments {
+                ids.push(c.author_id.clone());
+            }
+            profile_svc
+                .get_usernames_by_ids(&ids)
+                .await
+                .unwrap_or_else(|e| {
+                    tracing::warn!("forum thread: username batch failed: {}", e);
+                    std::collections::HashMap::new()
+                })
+        }
+        None => std::collections::HashMap::new(),
+    };
+
+    let comments_html = build_comments_html(&comments, &usernames_by_id);
     let meta_description = plain_excerpt(&body_rendered.html, META_DESCRIPTION_CHARS);
     let thread_slug_or_id = thread.slug.clone().unwrap_or_else(|| thread.id.clone());
 
@@ -2069,7 +2113,7 @@ async fn forum_thread_handler(Path(slug_or_id): Path<String>) -> Response {
         thread_meta_description: meta_description,
         space_slug: space.slug.clone(),
         space_name: space.name.clone(),
-        author_username: short_author(&thread.author_id),
+        author_username: resolve_username(&usernames_by_id, &thread.author_id),
         author_avatar_url: String::new(),
         created_at_human: humanize_ts(&thread.created_at),
         last_activity_human: humanize_opt(thread.last_activity_at.as_deref()),
