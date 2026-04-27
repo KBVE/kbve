@@ -210,7 +210,13 @@ fn router(state: AppState) -> Router {
         .route("/osrs/{item}/", get(osrs_item_handler_trailing))
         .route("/forum/", get(forum_feed_handler))
         .route("/forum/s/{slug}", get(forum_space_handler))
-        .route("/forum/t/{slug_or_id}", get(forum_thread_handler));
+        .route("/forum/t/{slug_or_id}", get(forum_thread_handler))
+        // SEO-friendly 301: /forum/c/{slug} → /forum/s/{slug}. `c/` reads
+        // as "category" but the canonical URL is `s/` (space). Crawlers
+        // collapse the duplicate into the canonical via the redirect.
+        .route("/forum/c/", get(forum_c_root_redirect))
+        .route("/forum/c/{slug}", get(forum_c_redirect))
+        .route("/forum/c/{slug}/", get(forum_c_redirect));
 
     let public_router =
         mount_permanent_redirects(public_router, PERMANENT_REDIRECTS).with_state(state.clone());
@@ -2034,6 +2040,16 @@ async fn render_feed_page(space_slug: Option<String>, q: &FeedSortQuery) -> Resp
         pagination_html,
     })
     .into_response()
+}
+
+/// GET /forum/c/{slug} — permanent redirect to /forum/s/{slug}.
+async fn forum_c_redirect(Path(slug): Path<String>) -> Redirect {
+    Redirect::permanent(&format!("/forum/s/{}", slug))
+}
+
+/// GET /forum/c/ — permanent redirect to /forum/.
+async fn forum_c_root_redirect() -> Redirect {
+    Redirect::permanent("/forum/")
 }
 
 /// GET /forum/t/{slug_or_id}
