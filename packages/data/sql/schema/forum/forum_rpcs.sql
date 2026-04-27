@@ -1304,40 +1304,43 @@ GRANT EXECUTE ON FUNCTION forum.service_record_moderation(UUID, forum.moderation
     TO service_role;
 
 -- ============================================================
--- Feed support indexes — co-located with service_fetch_feed.
+-- Feed support indexes (default-safe variants) — co-located with
+-- service_fetch_feed.
 --
 -- Each branch in service_fetch_feed targets one of these partial
--- indexes. status='active' AND nsfw=FALSE matches the default
--- (non-NSFW) feed; the NSFW path falls back to a sequential scan
--- since most clients never request it.
+-- indexes. The `_safe` suffix distinguishes them from the broader
+-- forum_core feed indexes (which gate only on status='active'); the
+-- _safe variants additionally filter nsfw=FALSE to match the default
+-- p_include_nsfw=FALSE feed path. The NSFW path falls back to the
+-- core indexes since most clients never request NSFW threads.
 -- ============================================================
 
-CREATE INDEX IF NOT EXISTS idx_threads_feed_new
+CREATE INDEX IF NOT EXISTS idx_threads_feed_new_safe
     ON forum.threads (created_at DESC, id DESC)
     WHERE status = 'active' AND nsfw = FALSE;
 
-CREATE INDEX IF NOT EXISTS idx_threads_feed_bump
+CREATE INDEX IF NOT EXISTS idx_threads_feed_bump_safe
     ON forum.threads (last_activity_at DESC, id DESC)
     WHERE status = 'active' AND nsfw = FALSE;
 
-CREATE INDEX IF NOT EXISTS idx_threads_feed_top
+CREATE INDEX IF NOT EXISTS idx_threads_feed_top_safe
     ON forum.threads (score DESC, id DESC)
     WHERE status = 'active' AND nsfw = FALSE;
 
-CREATE INDEX IF NOT EXISTS idx_threads_feed_hot
+CREATE INDEX IF NOT EXISTS idx_threads_feed_hot_safe
     ON forum.threads (hot_rank DESC, id DESC)
     WHERE status = 'active' AND nsfw = FALSE;
 
 -- Per-space variants for the common case of "show me a single space".
-CREATE INDEX IF NOT EXISTS idx_threads_space_feed_new
+CREATE INDEX IF NOT EXISTS idx_threads_space_feed_new_safe
     ON forum.threads (space_id, created_at DESC, id DESC)
     WHERE status = 'active' AND nsfw = FALSE;
 
-CREATE INDEX IF NOT EXISTS idx_threads_space_feed_bump
+CREATE INDEX IF NOT EXISTS idx_threads_space_feed_bump_safe
     ON forum.threads (space_id, last_activity_at DESC, id DESC)
     WHERE status = 'active' AND nsfw = FALSE;
 
-CREATE INDEX IF NOT EXISTS idx_threads_space_feed_hot
+CREATE INDEX IF NOT EXISTS idx_threads_space_feed_hot_safe
     ON forum.threads (space_id, hot_rank DESC, id DESC)
     WHERE status = 'active' AND nsfw = FALSE;
 
