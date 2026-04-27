@@ -31,9 +31,10 @@ namespace RareIcon
 
     public struct UnloadedUnitRecord
     {
-        public byte   Type;
-        public byte   Faction;
-        public byte   Flags;
+        public float  HungerPerSec;
+        public float  FatiguePerSec;
+        public float  EnergyPerSec;
+        public float  LastTickSecs;
         public int2   Hex;
         public ushort Health;
         public ushort HealthMax;
@@ -43,13 +44,16 @@ namespace RareIcon
         public ushort HungerMax;
         public ushort Fatigue;
         public ushort FatigueMax;
-        public uint   LastTickTurn;
         public ushort FirstNameId;
         public ushort EpithetId;
         public ushort Slot0Id; public ushort Slot0Count;
         public ushort Slot1Id; public ushort Slot1Count;
         public ushort Slot2Id; public ushort Slot2Count;
         public ushort Slot3Id; public ushort Slot3Count;
+        public uint   LastTickTurn;
+        public byte   Type;
+        public byte   Faction;
+        public byte   Flags;
     }
 
     public static class UnloadedUnitFlags

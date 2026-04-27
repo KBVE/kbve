@@ -347,6 +347,18 @@ namespace RareIcon
             // last unloaded. Has to come AFTER the hex loop so the units land
             // on top of restored hex state (otherwise their CurrentHex lookup
             // races the chunk entity creation).
+            if (SystemAPI.HasSingleton<UnitsDBSingleton>())
+            {
+                ref var udb = ref SystemAPI.GetSingletonRW<UnitsDBSingleton>().ValueRW;
+                if (udb.Unloaded.IsCreated)
+                {
+                    int chunkX0 = startX;
+                    int chunkY0 = startY;
+                    int chunkX1 = startX + ChunkSize;
+                    int chunkY1 = startY + ChunkSize;
+                    UnitColdStoreOps.DrainChunk(udb.Unloaded, new int2(chunkX0, chunkY0), new int2(chunkX1, chunkY1));
+                }
+            }
             if (hasGhost)
             {
                 int unitCount = (int)world.UnitCountInChunk(chunkCoord.x, chunkCoord.y);
@@ -806,6 +818,10 @@ namespace RareIcon
                 if (hasUnitsDb)
                     unloaded = SystemAPI.GetSingletonRW<UnitsDBSingleton>().ValueRW.Unloaded;
 
+                float nowSecs = SystemAPI.HasSingleton<WorldClock>()
+                    ? SystemAPI.GetSingleton<WorldClock>().AbsSeconds
+                    : 0f;
+
                 var unitQuery = GetEntityQuery(typeof(Unit), typeof(UnitMovement));
                 var unitArr = unitQuery.ToEntityArray(Allocator.Temp);
                 for (int u = 0; u < unitArr.Length; u++)
@@ -816,7 +832,7 @@ namespace RareIcon
                     if (hex.x < chunkX0 || hex.x >= chunkX1 ||
                         hex.y < chunkY0 || hex.y >= chunkY1) continue;
 
-                    var rec = UnitColdStoreOps.Snapshot(EntityManager, unitEntity);
+                    var rec = UnitColdStoreOps.Snapshot(EntityManager, unitEntity, nowSecs);
                     if (hasUnitsDb && unloaded.IsCreated) unloaded.Add(rec);
                     if (canSave) world.SaveUnit(UnitColdStoreOps.ToFfi(rec));
                     EntityManager.DestroyEntity(unitEntity);

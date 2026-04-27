@@ -92,8 +92,7 @@ namespace RareIcon
         /// <summary>Deterministic trait roll from an rngSeed. Picks up to 3 distinct traits (~60/30/10% for 1/2/3 count). Each slot has ~20% chance of pulling from the flaw pool instead of the positive pool — flaws are balancing weight, not the default outcome.</summary>
         public static UnitTraits Roll(uint rngSeed)
         {
-            uint h = rngSeed * 0x9E3779B1u;
-            h ^= h >> 13; h *= 0x85EBCA77u; h ^= h >> 16;
+            uint h = UnitHashOps.Spread(rngSeed);
 
             int traitCount;
             uint pick = h & 0xFFu;

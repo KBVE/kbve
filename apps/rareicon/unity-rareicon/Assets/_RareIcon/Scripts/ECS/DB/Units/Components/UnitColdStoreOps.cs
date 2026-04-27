@@ -1,5 +1,6 @@
 using Unity.Entities;
 using Unity.Mathematics;
+using RareIcon.Native;
 
 namespace RareIcon
 {
@@ -7,44 +8,52 @@ namespace RareIcon
     {
         public static FfiGhostUnit ToFfi(in UnloadedUnitRecord rec) => new FfiGhostUnit
         {
-            unit_type  = rec.Type,
-            q          = rec.Hex.x,
-            r          = rec.Hex.y,
-            health     = rec.Health,
-            max_health = rec.HealthMax,
-            inv0_id    = rec.Slot0Id, inv0_qty = rec.Slot0Count,
-            inv1_id    = rec.Slot1Id, inv1_qty = rec.Slot1Count,
-            inv2_id    = rec.Slot2Id, inv2_qty = rec.Slot2Count,
-            inv3_id    = rec.Slot3Id, inv3_qty = rec.Slot3Count,
-            hunger     = rec.Hunger,
-            hunger_max = rec.HungerMax,
-            fatigue    = rec.Fatigue,
-            fatigue_max= rec.FatigueMax,
-            energy     = rec.Energy,
-            energy_max = rec.EnergyMax,
+            unit_type          = rec.Type,
+            q                  = rec.Hex.x,
+            r                  = rec.Hex.y,
+            health             = rec.Health,
+            max_health         = rec.HealthMax,
+            inv0_id            = rec.Slot0Id, inv0_qty = rec.Slot0Count,
+            inv1_id            = rec.Slot1Id, inv1_qty = rec.Slot1Count,
+            inv2_id            = rec.Slot2Id, inv2_qty = rec.Slot2Count,
+            inv3_id            = rec.Slot3Id, inv3_qty = rec.Slot3Count,
+            hunger             = rec.Hunger,
+            hunger_max         = rec.HungerMax,
+            hunger_per_second  = rec.HungerPerSec,
+            fatigue            = rec.Fatigue,
+            fatigue_max        = rec.FatigueMax,
+            fatigue_per_second = rec.FatiguePerSec,
+            energy             = rec.Energy,
+            energy_max         = rec.EnergyMax,
+            energy_per_second  = rec.EnergyPerSec,
+            last_tick_secs     = rec.LastTickSecs,
         };
 
         public static UnloadedUnitRecord FromFfi(in FfiGhostUnit f) => new UnloadedUnitRecord
         {
-            Type       = f.unit_type,
-            Hex        = new int2(f.q, f.r),
-            Health     = (ushort)math.min(f.health,     ushort.MaxValue),
-            HealthMax  = (ushort)math.min(f.max_health, ushort.MaxValue),
-            Hunger     = (ushort)math.min(f.hunger,     ushort.MaxValue),
-            HungerMax  = (ushort)math.min(f.hunger_max, ushort.MaxValue),
-            Fatigue    = (ushort)math.min(f.fatigue,    ushort.MaxValue),
-            FatigueMax = (ushort)math.min(f.fatigue_max,ushort.MaxValue),
-            Energy     = (ushort)math.min(f.energy,     ushort.MaxValue),
-            EnergyMax  = (ushort)math.min(f.energy_max, ushort.MaxValue),
-            Slot0Id    = f.inv0_id, Slot0Count = f.inv0_qty,
-            Slot1Id    = f.inv1_id, Slot1Count = f.inv1_qty,
-            Slot2Id    = f.inv2_id, Slot2Count = f.inv2_qty,
-            Slot3Id    = f.inv3_id, Slot3Count = f.inv3_qty,
+            Type          = f.unit_type,
+            Hex           = new int2(f.q, f.r),
+            Health        = (ushort)math.min(f.health,     ushort.MaxValue),
+            HealthMax     = (ushort)math.min(f.max_health, ushort.MaxValue),
+            Hunger        = (ushort)math.min(f.hunger,     ushort.MaxValue),
+            HungerMax     = (ushort)math.min(f.hunger_max, ushort.MaxValue),
+            HungerPerSec  = f.hunger_per_second,
+            Fatigue       = (ushort)math.min(f.fatigue,    ushort.MaxValue),
+            FatigueMax    = (ushort)math.min(f.fatigue_max,ushort.MaxValue),
+            FatiguePerSec = f.fatigue_per_second,
+            Energy        = (ushort)math.min(f.energy,     ushort.MaxValue),
+            EnergyMax     = (ushort)math.min(f.energy_max, ushort.MaxValue),
+            EnergyPerSec  = f.energy_per_second,
+            LastTickSecs  = f.last_tick_secs,
+            Slot0Id       = f.inv0_id, Slot0Count = f.inv0_qty,
+            Slot1Id       = f.inv1_id, Slot1Count = f.inv1_qty,
+            Slot2Id       = f.inv2_id, Slot2Count = f.inv2_qty,
+            Slot3Id       = f.inv3_id, Slot3Count = f.inv3_qty,
         };
 
-        public static UnloadedUnitRecord Snapshot(EntityManager em, Entity entity)
+        public static UnloadedUnitRecord Snapshot(EntityManager em, Entity entity, float nowSecs = 0f)
         {
-            var rec = new UnloadedUnitRecord();
+            var rec = new UnloadedUnitRecord { LastTickSecs = nowSecs };
 
             if (em.HasComponent<Unit>(entity))    rec.Type    = em.GetComponentData<Unit>(entity).Type;
             if (em.HasComponent<Faction>(entity)) rec.Faction = em.GetComponentData<Faction>(entity).Value;
@@ -63,17 +72,21 @@ namespace RareIcon
                 rec.Energy    = (ushort)math.min(e.Value, ushort.MaxValue);
                 rec.EnergyMax = (ushort)math.min(e.Max,   ushort.MaxValue);
             }
+            if (em.HasComponent<EnergyRegen>(entity))
+                rec.EnergyPerSec = em.GetComponentData<EnergyRegen>(entity).PerSecond;
             if (em.HasComponent<Hunger>(entity))
             {
                 var h = em.GetComponentData<Hunger>(entity);
-                rec.Hunger    = (ushort)math.min(h.Value, ushort.MaxValue);
-                rec.HungerMax = (ushort)math.min(h.Max,   ushort.MaxValue);
+                rec.Hunger       = (ushort)math.min(h.Value, ushort.MaxValue);
+                rec.HungerMax    = (ushort)math.min(h.Max,   ushort.MaxValue);
+                rec.HungerPerSec = h.PerSecond;
             }
             if (em.HasComponent<Fatigue>(entity))
             {
                 var f = em.GetComponentData<Fatigue>(entity);
-                rec.Fatigue    = (ushort)math.min(f.Value, ushort.MaxValue);
-                rec.FatigueMax = (ushort)math.min(f.Max,   ushort.MaxValue);
+                rec.Fatigue       = (ushort)math.min(f.Value, ushort.MaxValue);
+                rec.FatigueMax    = (ushort)math.min(f.Max,   ushort.MaxValue);
+                rec.FatiguePerSec = f.PerSecond;
             }
             if (em.HasComponent<UnitName>(entity))
             {
@@ -111,7 +124,8 @@ namespace RareIcon
                                         EntityManager em,
                                         Unity.Collections.NativeList<UnloadedUnitRecord> dest,
                                         int2 chunkLow,
-                                        int2 chunkHigh)
+                                        int2 chunkHigh,
+                                        float nowSecs = 0f)
         {
             var entities = unitsInChunk.ToEntityArray(Unity.Collections.Allocator.Temp);
             int written = 0;
@@ -123,12 +137,26 @@ namespace RareIcon
                 if (hex.x < chunkLow.x || hex.x >= chunkHigh.x) continue;
                 if (hex.y < chunkLow.y || hex.y >= chunkHigh.y) continue;
 
-                dest.Add(Snapshot(em, e));
+                dest.Add(Snapshot(em, e, nowSecs));
                 em.DestroyEntity(e);
                 written++;
             }
             entities.Dispose();
             return written;
+        }
+
+        public static int DrainChunk(Unity.Collections.NativeList<UnloadedUnitRecord> store, int2 chunkLow, int2 chunkHigh)
+        {
+            int removed = 0;
+            for (int i = store.Length - 1; i >= 0; i--)
+            {
+                var hex = store[i].Hex;
+                if (hex.x < chunkLow.x || hex.x >= chunkHigh.x) continue;
+                if (hex.y < chunkLow.y || hex.y >= chunkHigh.y) continue;
+                store.RemoveAtSwapBack(i);
+                removed++;
+            }
+            return removed;
         }
     }
 }
