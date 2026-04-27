@@ -25,105 +25,235 @@ namespace RareIcon.Native
 
         /// <summary>
         ///  Create an inventory with the given slot capacity.
-        ///  Caller must free with `uniti_inventory_free`.
+        ///
+        ///  # Arguments
+        ///
+        ///  * `max_slots` — slot capacity.
+        ///
+        ///  # Returns
+        ///
+        ///  Opaque handle the caller must eventually pass to
+        ///  [`uniti_inventory_free`].
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_inventory_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* uniti_inventory_new(uint max_slots);
 
         /// <summary>
-        ///  Free an inventory.
+        ///  Free an inventory. Null-safe.
+        ///
+        ///  # Safety
+        ///
+        ///  `inv` (when non-null) must be a live handle from
+        ///  [`uniti_inventory_new`] that has not yet been freed.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_inventory_free", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void uniti_inventory_free(void* inv);
 
         /// <summary>
-        ///  Add items to the inventory. Returns overflow count (0 = all fit).
+        ///  Add `quantity` of `item_id` to the inventory.
+        ///
+        ///  # Returns
+        ///
+        ///  Overflow count — items that did not fit (`0` = all fit). When `inv`
+        ///  is null or `item_id` is unknown, returns `quantity` (nothing added).
+        ///
+        ///  # Safety
+        ///
+        ///  `inv` (when non-null) must point to a live inventory handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_inventory_add", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_inventory_add(void* inv, ushort item_id, uint quantity);
 
         /// <summary>
-        ///  Remove items from the inventory. Returns amount actually removed.
+        ///  Remove up to `quantity` of `item_id` from the inventory.
+        ///
+        ///  # Returns
+        ///
+        ///  The amount actually removed. Returns `0` for null `inv` or unknown
+        ///  `item_id`.
+        ///
+        ///  # Safety
+        ///
+        ///  `inv` (when non-null) must point to a live inventory handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_inventory_remove", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_inventory_remove(void* inv, ushort item_id, uint quantity);
 
         /// <summary>
-        ///  Count total quantity of an item kind.
+        ///  Total quantity of `item_id` summed across all slots.
+        ///
+        ///  # Returns
+        ///
+        ///  `0` for null `inv` or unknown `item_id`.
+        ///
+        ///  # Safety
+        ///
+        ///  `inv` (when non-null) must point to a live inventory handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_inventory_count", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_inventory_count(void* inv, ushort item_id);
 
         /// <summary>
         ///  Number of occupied slots.
+        ///
+        ///  # Returns
+        ///
+        ///  Slot count, or `0` if `inv` is null.
+        ///
+        ///  # Safety
+        ///
+        ///  `inv` (when non-null) must point to a live inventory handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_inventory_slot_count", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_inventory_slot_count(void* inv);
 
         /// <summary>
-        ///  Read a specific slot. Returns FfiSlot with valid=0 if out of bounds.
+        ///  Read the slot at `index`.
+        ///
+        ///  # Returns
+        ///
+        ///  [`FfiSlot`] with `valid = 1` and the stack contents on hit;
+        ///  `valid = 0` (and zeroed `item_id`/`quantity`) when `inv` is null or
+        ///  `index` is out of range.
+        ///
+        ///  # Safety
+        ///
+        ///  `inv` (when non-null) must point to a live inventory handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_inventory_get_slot", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern FfiSlot uniti_inventory_get_slot(void* inv, uint index);
 
         /// <summary>
-        ///  Check if the inventory has room for a quantity of an item.
+        ///  Returns `1` if the inventory has room for `quantity` of `item_id`,
+        ///  `0` otherwise (also `0` for null `inv` or unknown `item_id`).
+        ///
+        ///  # Safety
+        ///
+        ///  `inv` (when non-null) must point to a live inventory handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_inventory_has_room", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern byte uniti_inventory_has_room(void* inv, ushort item_id, uint quantity);
 
         /// <summary>
-        ///  Swap two slots. Returns 1 on success, 0 on failure.
+        ///  Swap two slots by index.
+        ///
+        ///  # Returns
+        ///
+        ///  `1` on success, `0` if `inv` is null or either index is out of range.
+        ///
+        ///  # Safety
+        ///
+        ///  `inv` (when non-null) must point to a live inventory handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_inventory_swap", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern byte uniti_inventory_swap(void* inv, uint a, uint b);
 
         /// <summary>
-        ///  Split a stack. Returns 1 on success, 0 on failure.
+        ///  Split `quantity` items off the stack at `slot` into a new stack.
+        ///
+        ///  # Returns
+        ///
+        ///  `1` on success, `0` if `inv` is null, `slot` is out of range, or the
+        ///  inventory has no free slot to receive the split.
+        ///
+        ///  # Safety
+        ///
+        ///  `inv` (when non-null) must point to a live inventory handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_inventory_split", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern byte uniti_inventory_split(void* inv, uint slot, uint quantity);
 
         /// <summary>
-        ///  Merge slot `from` into slot `to`. Returns items moved.
+        ///  Merge slot `from` into slot `to`.
+        ///
+        ///  # Returns
+        ///
+        ///  Number of items moved. `0` for null `inv` or invalid slot indices.
+        ///
+        ///  # Safety
+        ///
+        ///  `inv` (when non-null) must point to a live inventory handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_inventory_merge", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_inventory_merge(void* inv, uint from, uint to);
 
         /// <summary>
-        ///  Compact fragmented stacks.
+        ///  Compact fragmented stacks (merges partial stacks of the same kind).
+        ///  No-op if `inv` is null.
+        ///
+        ///  # Safety
+        ///
+        ///  `inv` (when non-null) must point to a live inventory handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_inventory_compact", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void uniti_inventory_compact(void* inv);
 
         /// <summary>
-        ///  Clear all items.
+        ///  Clear all items. No-op if `inv` is null.
+        ///
+        ///  # Safety
+        ///
+        ///  `inv` (when non-null) must point to a live inventory handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_inventory_clear", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void uniti_inventory_clear(void* inv);
 
         /// <summary>
-        ///  Create an empty grid. Caller must free with `uniti_grid_free`.
+        ///  Create an empty grid (all cells [`SurfaceKind::Blocked`]) covering
+        ///  the rectangle `(origin_x, origin_z) ..= (origin_x + width - 1,
+        ///  origin_z + depth - 1)`.
+        ///
+        ///  # Arguments
+        ///
+        ///  * `origin_x` / `origin_z` — minimum block coords (inclusive).
+        ///  * `width` / `depth` — region dimensions in cells.
+        ///
+        ///  # Returns
+        ///
+        ///  Opaque handle the caller must eventually pass to [`uniti_grid_free`].
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_grid_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* uniti_grid_new(int origin_x, int origin_z, uint width, uint depth);
 
         /// <summary>
-        ///  Set a cell in the grid.
+        ///  Set a cell in the grid. No-op if `grid` is null or `(x, z)` is out
+        ///  of bounds.
         ///
-        ///  `surface_kind`: 0=Blocked, 1=Solid, 2=Slow, 3=Hazard
+        ///  # Arguments
+        ///
+        ///  * `grid` — handle from [`uniti_grid_new`].
+        ///  * `x` / `z` — absolute block coords.
+        ///  * `height` — Y coordinate of the walkable surface.
+        ///  * `surface_kind` — `0 = Blocked, 1 = Solid, 2 = Slow, 3 = Hazard`.
+        ///    Any other value is treated as `Blocked`.
+        ///
+        ///  # Safety
+        ///
+        ///  `grid` (when non-null) must point to a live grid handle returned by
+        ///  [`uniti_grid_new`].
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_grid_set", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void uniti_grid_set(void* grid, int x, int z, int height, byte surface_kind);
 
         /// <summary>
-        ///  Check if a cell is walkable.
+        ///  Returns `1` if the cell at `(x, z)` is walkable, `0` otherwise.
+        ///  Out-of-bounds coords and a null `grid` return `0`.
+        ///
+        ///  # Safety
+        ///
+        ///  `grid` (when non-null) must point to a live grid handle returned by
+        ///  [`uniti_grid_new`].
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_grid_is_walkable", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern byte uniti_grid_is_walkable(void* grid, int x, int z);
 
         /// <summary>
-        ///  Free a grid allocated by `uniti_grid_new`.
+        ///  Free a grid allocated by [`uniti_grid_new`]. Null-safe.
+        ///
+        ///  # Safety
+        ///
+        ///  `grid` (when non-null) must be a live handle returned by
+        ///  [`uniti_grid_new`] that has not yet been freed.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_grid_free", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void uniti_grid_free(void* grid);
@@ -131,72 +261,169 @@ namespace RareIcon.Native
         /// <summary>
         ///  Compute a flow field toward the given goals.
         ///
-        ///  `goals_ptr` is a flat array of `[x0, z0, x1, z1, ...]` with `goal_count` pairs.
-        ///  Caller must free the result with `uniti_flow_free`.
+        ///  # Arguments
+        ///
+        ///  * `grid` — handle from [`uniti_grid_new`].
+        ///  * `goals_ptr` — flat array of `[x0, z0, x1, z1, ...]` block coords.
+        ///  * `goal_count` — number of `(x, z)` pairs (so `2 * goal_count` i32s
+        ///    total).
+        ///
+        ///  # Returns
+        ///
+        ///  Opaque flow-field handle, or null if `grid` / `goals_ptr` is null or
+        ///  `goal_count == 0`. Caller must free with [`uniti_flow_free`].
+        ///
+        ///  # Safety
+        ///
+        ///  `grid` (when non-null) must point to a live grid handle. `goals_ptr`
+        ///  (when non-null) must point to at least `2 * goal_count` valid `i32`
+        ///  elements.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_flow_compute", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* uniti_flow_compute(void* grid, int* goals_ptr, uint goal_count);
 
         /// <summary>
-        ///  Compute a flee field (away from sources).
+        ///  Compute a flee field that guides AWAY from the given sources.
+        ///
+        ///  # Arguments
+        ///
+        ///  * `grid` — handle from [`uniti_grid_new`].
+        ///  * `sources_ptr` — flat array of `[x0, z0, x1, z1, ...]` block coords.
+        ///  * `source_count` — number of `(x, z)` pairs.
+        ///
+        ///  # Returns
+        ///
+        ///  Opaque flow-field handle, or null on invalid input. Caller must free
+        ///  with [`uniti_flow_free`].
+        ///
+        ///  # Safety
+        ///
+        ///  `grid` (when non-null) must point to a live grid handle. `sources_ptr`
+        ///  (when non-null) must point to at least `2 * source_count` valid `i32`
+        ///  elements.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_flow_compute_flee", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* uniti_flow_compute_flee(void* grid, int* sources_ptr, uint source_count);
 
         /// <summary>
         ///  Query the direction at a cell.
+        ///
+        ///  # Returns
+        ///
+        ///  [`FfiDirection`] with `valid = 1` and the next-step delta when the
+        ///  cell is reachable; `valid = 0` (and `dx = dz = 0`) when `field` is
+        ///  null, the cell is out of bounds, or the cell is unreachable.
+        ///
+        ///  # Safety
+        ///
+        ///  `field` (when non-null) must point to a live flow-field handle
+        ///  returned by [`uniti_flow_compute`] or [`uniti_flow_compute_flee`].
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_flow_direction", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern FfiDirection uniti_flow_direction(void* field, int x, int z);
 
         /// <summary>
-        ///  Query the BFS distance to the nearest goal. Returns u32::MAX if unreachable.
+        ///  BFS distance to the nearest goal.
+        ///
+        ///  # Returns
+        ///
+        ///  The cell distance, or `u32::MAX` for out-of-bounds, unreachable, or
+        ///  when `field` is null.
+        ///
+        ///  # Safety
+        ///
+        ///  `field` (when non-null) must point to a live flow-field handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_flow_distance", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_flow_distance(void* field, int x, int z);
 
         /// <summary>
-        ///  Free a flow field allocated by `uniti_flow_compute` or `uniti_flow_compute_flee`.
+        ///  Free a flow field allocated by [`uniti_flow_compute`] or
+        ///  [`uniti_flow_compute_flee`]. Null-safe.
+        ///
+        ///  # Safety
+        ///
+        ///  `field` (when non-null) must be a live handle that has not yet been
+        ///  freed.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_flow_free", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void uniti_flow_free(void* field);
 
         /// <summary>
-        ///  Create a new in-memory world store. Spawns a background tick thread
-        ///  immediately. Returns an opaque handle the caller must eventually pass
-        ///  to `uniti_world_free`. Returns null only if thread spawn fails. Use
-        ///  `uniti_world_open` instead when you want on-disk persistence.
+        ///  Create a new in-memory world store. Spawns the background tick
+        ///  thread immediately. Use [`uniti_world_open`] instead when on-disk
+        ///  persistence is needed.
+        ///
+        ///  # Returns
+        ///
+        ///  Opaque handle the caller must eventually pass to [`uniti_world_free`].
+        ///
+        ///  # Panics
+        ///
+        ///  Panics if the background `uniti-world-tick` thread fails to spawn.
+        ///
+        ///  # Safety
+        ///
+        ///  Always safe to call. Marked `unsafe` for FFI consistency with the
+        ///  rest of the module.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* uniti_world_new();
 
         /// <summary>
-        ///  Open a disk-backed world store. `path_ptr` points at a UTF-8 byte
-        ///  string of length `path_len` (not required to be null-terminated).
-        ///  The file at that path is created if missing; existing rows hydrate
-        ///  into the in-memory cache before the function returns so the first
-        ///  read after open is hot. Returns null on invalid input.
+        ///  Open a disk-backed world store. The file is created if missing;
+        ///  existing rows hydrate into the in-memory cache before the function
+        ///  returns so the first read after open is hot.
         ///
-        ///  The background tick thread flushes dirty chunks to the DB every 30 s
-        ///  and on shutdown. Call `uniti_world_flush` between intervals if the
-        ///  caller wants a synchronous save (e.g. before a risky operation or
-        ///  an explicit "Save Game" button in UI).
+        ///  The background tick thread flushes dirty chunks every 30 s and on
+        ///  shutdown. Call [`uniti_world_flush`] for a synchronous save (e.g.
+        ///  before a risky operation or an explicit "Save Game" UI button).
+        ///
+        ///  # Arguments
+        ///
+        ///  * `path_ptr` — pointer to a UTF-8 byte string. Not required to be
+        ///    null-terminated.
+        ///  * `path_len` — number of bytes pointed at by `path_ptr`.
+        ///
+        ///  # Returns
+        ///
+        ///  Opaque handle the caller must eventually pass to [`uniti_world_free`].
+        ///  Returns null when `path_ptr` is null, `path_len == 0`, or the bytes
+        ///  are not valid UTF-8.
+        ///
+        ///  # Panics
+        ///
+        ///  Panics if the background `uniti-world-tick` thread fails to spawn.
+        ///
+        ///  # Safety
+        ///
+        ///  `path_ptr` (when non-null) must point to at least `path_len` valid
+        ///  bytes. The pointer is read but not retained beyond the call.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_open", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* uniti_world_open(byte* path_ptr, uint path_len);
 
         /// <summary>
-        ///  Synchronously flush every dirty chunk to the DB. No-op for in-memory
-        ///  stores (created via `uniti_world_new`). Safe to call from any thread;
-        ///  locks the DB briefly.
+        ///  Synchronously flush every dirty chunk to the DB. No-op for
+        ///  in-memory stores or a null `world`. Locks the DB briefly; safe to
+        ///  call from any thread.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_flush", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void uniti_world_flush(void* world);
 
         /// <summary>
         ///  Drop the store. Stops the background thread (which does a final
-        ///  flush before exiting) and frees all chunk state. Calling this twice
-        ///  on the same handle is undefined behavior.
+        ///  flush before exiting) and frees all chunk state. Null-safe.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must be a live handle returned by
+        ///  [`uniti_world_new`] or [`uniti_world_open`] that has not yet been
+        ///  freed. Calling this twice on the same handle is undefined behavior.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_free", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void uniti_world_free(void* world);
@@ -205,189 +432,389 @@ namespace RareIcon.Native
         ///  Returns the current FFI schema version. Unity calls this once on
         ///  `WorldStoreSystem` boot and aborts if the returned value doesn't
         ///  match `UnitiSchema.Version` in the C# bindings.
+        ///
+        ///  # Safety
+        ///
+        ///  Always safe to call. Marked `unsafe` for FFI consistency.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_schema_version", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_world_schema_version();
 
         /// <summary>
-        ///  Aggregate read-only counts. Cheap — just walks the in-memory HashMap.
-        ///  UI / save-selection screens call this to show "N saved chunks, M
-        ///  offline buildings, K ghost units" without pulling full row data.
+        ///  Aggregate read-only counts.
+        ///
+        ///  # Returns
+        ///
+        ///  [`FfiWorldStats`] populated from the in-memory cache, or
+        ///  [`FfiWorldStats::default`] (all zeros) if `world` is null or its
+        ///  state lock is poisoned. Walks the in-memory `HashMap` only — no
+        ///  SQLite read.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_stats", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern FfiWorldStats uniti_world_stats(void* world);
 
         /// <summary>
-        ///  Create a zstd-compressed backup of the live SQLite DB at `dst_path`.
-        ///  Flushes pending dirty state first so the archive is a coherent
-        ///  snapshot. Works only on disk-backed stores (opened via
-        ///  `uniti_world_open`). Returns 1 on success, 0 on failure.
+        ///  Create a zstd-compressed backup of the live SQLite DB. Flushes
+        ///  pending dirty state first so the archive is a coherent snapshot.
+        ///  Works only on disk-backed stores.
         ///
-        ///  Callers who want a .db snapshot without compression can use SQLite's
-        ///  `VACUUM INTO` via a future endpoint; zstd-path is intended for save-
-        ///  slot archival + cloud sync where the smaller file matters.
+        ///  # Arguments
+        ///
+        ///  * `world` — live disk-backed store handle.
+        ///  * `dst_ptr` — pointer to a UTF-8 destination path.
+        ///  * `dst_len` — number of bytes pointed at by `dst_ptr`.
+        ///
+        ///  # Returns
+        ///
+        ///  `1` on success, `0` on any failure (null input, in-memory store,
+        ///  invalid UTF-8, IO error, compression error).
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle. `dst_ptr`
+        ///  (when non-null) must point to at least `dst_len` valid bytes.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_archive", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern byte uniti_world_archive(void* world, byte* dst_ptr, uint dst_len);
 
         /// <summary>
-        ///  Decompress a zstd archive produced by `uniti_world_archive` into
-        ///  `dst_db_path`. Returns 1 on success, 0 on failure. Call before
-        ///  `uniti_world_open` on the destination path to restore a save slot.
+        ///  Decompress a zstd archive produced by [`uniti_world_archive`] into
+        ///  the destination path. Call before [`uniti_world_open`] on the
+        ///  destination to restore a save slot.
+        ///
+        ///  # Arguments
+        ///
+        ///  * `src_ptr` / `src_len` — source archive path (UTF-8 bytes).
+        ///  * `dst_ptr` / `dst_len` — destination DB path (UTF-8 bytes).
+        ///
+        ///  # Returns
+        ///
+        ///  `1` on success, `0` on any failure (null input, invalid UTF-8, IO
+        ///  error, decompression error).
+        ///
+        ///  # Safety
+        ///
+        ///  `src_ptr` and `dst_ptr` (when non-null) must point to at least their
+        ///  respective `*_len` bytes of valid UTF-8 data.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_restore", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern byte uniti_world_restore(byte* src_ptr, uint src_len, byte* dst_ptr, uint dst_len);
 
         /// <summary>
-        ///  Returns 1 if any state is stored for the chunk that owns this hex.
-        ///  Cheap fast-path for chunk-load: skip the per-hex queries entirely if 0.
+        ///  Returns `1` if any state is stored for the chunk `(cx, cy)`, `0`
+        ///  otherwise. Cheap fast-path for chunk-load: skip per-hex queries
+        ///  entirely if `0`.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_has_chunk", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern byte uniti_world_has_chunk(void* world, int cx, int cy);
 
         /// <summary>
-        ///  Read the saved override for a hex. `valid=0` means no override exists
-        ///  (caller falls back to deterministic gen).
+        ///  Read the saved override for a hex.
+        ///
+        ///  # Returns
+        ///
+        ///  [`FfiHexLookup`] with `valid = 1` and the stored resources on hit;
+        ///  `valid = 0` (and zeroed `res`) means no override exists — the caller
+        ///  falls back to deterministic gen.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_get_hex", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern FfiHexLookup uniti_world_get_hex(void* world, int q, int r);
 
         /// <summary>
-        ///  Bulk variant of `uniti_world_save_hex`. Pushes `count` divergent
-        ///  hexes in one FFI hop. Each entry upserts by `(q, r)` like the
-        ///  single-record path.
+        ///  Bulk variant of [`uniti_world_save_hex`]. Each entry upserts by
+        ///  `(q, r)` like the single-record path.
+        ///
+        ///  # Arguments
+        ///
+        ///  * `world` — live store handle.
+        ///  * `hexes_buf` — pointer to an array of [`FfiHexSave`] of length `count`.
+        ///  * `count` — number of records.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle.
+        ///  `hexes_buf` (when non-null and `count &gt; 0`) must point to at least
+        ///  `count` valid [`FfiHexSave`] values.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_save_hexes_batch", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void uniti_world_save_hexes_batch(void* world, FfiHexSave* hexes_buf, uint count);
 
         /// <summary>
-        ///  Save a hex's resource state. Caller is responsible for only calling
-        ///  this on hexes that actually diverged from the gen-time roll.
+        ///  Save a hex's resource state.
+        ///
+        ///  # Arguments
+        ///
+        ///  * `world` — live store handle.
+        ///  * `q`, `r` — hex axial coords.
+        ///  * `res` — divergent resource counts to persist.
+        ///
+        ///  Caller is responsible for only calling this on hexes that actually
+        ///  diverged from the gen-time roll — pristine hexes should stay implicit.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_save_hex", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void uniti_world_save_hex(void* world, int q, int r, FfiHexResources res);
 
         /// <summary>
         ///  Push a ghost unit into the store. Chunk is derived from unit position.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_save_unit", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void uniti_world_save_unit(void* world, FfiGhostUnit unit);
 
         /// <summary>
-        ///  Drain all ghost units in a chunk into the caller's buffer.
-        ///  Returns the number of units written. Units that fit are removed from
-        ///  the store; if `cap` is too small, the unwritten ones stay (and the
-        ///  caller can call again with a bigger buffer to drain the rest).
+        ///  Drain ghost units in a chunk into the caller's buffer. Units that
+        ///  fit are removed from the store; unwritten remainders stay until the
+        ///  next call.
         ///
-        ///  `out_buf` must be a valid pointer to an array of at least `cap`
-        ///  `FfiGhostUnit` values.
+        ///  # Arguments
+        ///
+        ///  * `world` — live store handle.
+        ///  * `cx`, `cy` — chunk coords.
+        ///  * `out_buf` — pointer to an array of at least `cap` [`FfiGhostUnit`].
+        ///  * `cap` — buffer capacity in elements.
+        ///
+        ///  # Returns
+        ///
+        ///  Number of units written.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle. `out_buf`
+        ///  (when non-null and `cap &gt; 0`) must point to at least `cap` writable
+        ///  [`FfiGhostUnit`] slots.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_take_units_in_chunk", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_world_take_units_in_chunk(void* world, int cx, int cy, FfiGhostUnit* out_buf, uint cap);
 
         /// <summary>
-        ///  Bulk variant of `uniti_world_replace_chunk_units`. Replaces every
-        ///  chunk listed in `ranges_buf` in one call — periodic flush groups
-        ///  ghost-sim units by chunk and ships the whole batch through one FFI
-        ///  hop instead of N. Each `FfiChunkRange.offset` indexes into
-        ///  `units_buf`; `count` is the slice length.
+        ///  Bulk variant of [`uniti_world_replace_chunk_units`]. Replaces every
+        ///  chunk listed in `ranges_buf` in one FFI call.
         ///
-        ///  `units_buf` may be null when every range has count = 0 (chunk-wipe
-        ///  batch). `ranges_buf` may not be null when `ranges_count &gt; 0`.
+        ///  # Arguments
+        ///
+        ///  * `world` — live store handle.
+        ///  * `units_buf` — flat array of [`FfiGhostUnit`] of length `units_count`.
+        ///    May be null when every range has `count = 0`.
+        ///  * `units_count` — total elements in `units_buf`.
+        ///  * `ranges_buf` — array of [`FfiChunkRange`] of length `ranges_count`.
+        ///    Each `offset` indexes into `units_buf`; `count` is the slice length.
+        ///  * `ranges_count` — number of ranges. Must be `&gt; 0` for any work to
+        ///    happen.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle.
+        ///  `ranges_buf` (when `ranges_count &gt; 0`) must point to at least
+        ///  `ranges_count` valid [`FfiChunkRange`] values. `units_buf` (when
+        ///  non-null and `units_count &gt; 0`) must point to at least `units_count`
+        ///  valid [`FfiGhostUnit`] values, and every range's
+        ///  `[offset, offset + count)` slice must lie within those bounds.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_replace_chunks_units_bulk", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void uniti_world_replace_chunks_units_bulk(void* world, FfiGhostUnit* units_buf, uint units_count, FfiChunkRange* ranges_buf, uint ranges_count);
 
         /// <summary>
         ///  Replace the entire unit set for a chunk. Drops every existing unit
-        ///  in the chunk and writes the caller's buffer in its place. Use during
-        ///  the periodic flush to push ghost-sim-advanced state back to disk
-        ///  without growing duplicates — units don't have a stable per-record uid
-        ///  in the FFI struct, so we replace at the chunk granularity instead of
-        ///  per-row upsert.
+        ///  in the chunk and writes the caller's buffer in its place.
         ///
-        ///  `units_buf` may be null only if `count == 0` (chunk-wipe).
+        ///  Used during the periodic flush to push ghost-sim-advanced state back
+        ///  to disk without growing duplicates — units have no stable per-record
+        ///  uid in the FFI struct, so replacement is at chunk granularity.
+        ///
+        ///  # Arguments
+        ///
+        ///  * `world` — live store handle.
+        ///  * `cx`, `cy` — chunk coords.
+        ///  * `units_buf` — array of [`FfiGhostUnit`] of length `count`. May be
+        ///    null only if `count == 0` (chunk-wipe).
+        ///  * `count` — element count.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle.
+        ///  `units_buf` (when non-null and `count &gt; 0`) must point to at least
+        ///  `count` valid [`FfiGhostUnit`] values.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_replace_chunk_units", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void uniti_world_replace_chunk_units(void* world, int cx, int cy, FfiGhostUnit* units_buf, uint count);
 
         /// <summary>
-        ///  How many ghost units are stored for a chunk. Useful for sizing the
-        ///  buffer before `uniti_world_take_units_in_chunk`.
+        ///  Number of ghost units stored for a chunk. Useful for sizing the
+        ///  buffer before [`uniti_world_take_units_in_chunk`].
+        ///
+        ///  # Returns
+        ///
+        ///  Unit count, or `0` if the chunk has no entry or `world` is null.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_unit_count_in_chunk", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_world_unit_count_in_chunk(void* world, int cx, int cy);
 
         /// <summary>
         ///  Total ghost units across all chunks. Use to size the buffer for
-        ///  `uniti_world_take_all_units` at session startup.
+        ///  [`uniti_world_take_all_units`] at session startup.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_total_unit_count", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_world_total_unit_count(void* world);
 
         /// <summary>
         ///  Drain every ghost unit across every chunk into the caller's flat
-        ///  buffer. Returns the number written. Use at session startup to
-        ///  rebuild the in-memory Unloaded unit list from on-disk state.
+        ///  buffer. Used at session startup to rebuild the in-memory Unloaded
+        ///  unit list from on-disk state.
+        ///
+        ///  # Arguments
+        ///
+        ///  * `world` — live store handle.
+        ///  * `out_buf` — pointer to an array of at least `cap` [`FfiGhostUnit`].
+        ///  * `cap` — buffer capacity in elements.
+        ///
+        ///  # Returns
+        ///
+        ///  Number of units written. If the total exceeds `cap`, the leftover
+        ///  units stay in the store for the next call.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle. `out_buf`
+        ///  (when non-null and `cap &gt; 0`) must point to at least `cap` writable
+        ///  [`FfiGhostUnit`] slots.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_take_all_units", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_world_take_all_units(void* world, FfiGhostUnit* out_buf, uint cap);
 
         /// <summary>
         ///  Push an unloaded building into the store. Chunk is derived from the
-        ///  building's root hex via the same `chunk_of` math as units + hexes.
+        ///  building's root hex. Upserts by `(root_q, root_r)` so the periodic
+        ///  flush re-saving every record back to disk doesn't grow duplicates.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_save_building", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void uniti_world_save_building(void* world, FfiUnloadedBuilding building);
 
         /// <summary>
-        ///  How many unloaded buildings are stored for a chunk. Useful for sizing
-        ///  the buffer before `uniti_world_take_buildings_in_chunk`.
+        ///  Number of unloaded buildings stored for a chunk. Useful for sizing
+        ///  the buffer before [`uniti_world_take_buildings_in_chunk`].
+        ///
+        ///  # Returns
+        ///
+        ///  Building count, or `0` if the chunk has no entry or `world` is null.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_building_count_in_chunk", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_world_building_count_in_chunk(void* world, int cx, int cy);
 
         /// <summary>
-        ///  Drain all unloaded buildings in a chunk into the caller's buffer.
-        ///  Returns the number of buildings written. Buildings that fit are
-        ///  removed from the store; if `cap` is too small, the unwritten ones
-        ///  stay (and the caller can call again with a bigger buffer to drain
-        ///  the rest). Mirrors `uniti_world_take_units_in_chunk`.
+        ///  Drain unloaded buildings in a chunk into the caller's buffer.
+        ///  Buildings that fit are removed; unwritten remainders stay until the
+        ///  next call.
         ///
-        ///  `out_buf` must be a valid pointer to an array of at least `cap`
-        ///  `FfiUnloadedBuilding` values.
+        ///  # Arguments
+        ///
+        ///  * `world` — live store handle.
+        ///  * `cx`, `cy` — chunk coords.
+        ///  * `out_buf` — pointer to an array of at least `cap`
+        ///    [`FfiUnloadedBuilding`].
+        ///  * `cap` — buffer capacity in elements.
+        ///
+        ///  # Returns
+        ///
+        ///  Number of buildings written.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle. `out_buf`
+        ///  (when non-null and `cap &gt; 0`) must point to at least `cap` writable
+        ///  [`FfiUnloadedBuilding`] slots.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_take_buildings_in_chunk", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_world_take_buildings_in_chunk(void* world, int cx, int cy, FfiUnloadedBuilding* out_buf, uint cap);
 
         /// <summary>
-        ///  Bulk variant of `uniti_world_save_building`. Pushes `count`
-        ///  buildings from `buildings_buf` in one FFI call — keeps periodic
-        ///  flush from making N round-trips through Mono → C. Each entry
-        ///  upserts by `(root_q, root_r)` like the single-record path.
+        ///  Bulk variant of [`uniti_world_save_building`]. Each entry upserts by
+        ///  `(root_q, root_r)` like the single-record path.
         ///
-        ///  `buildings_buf` may be null only when `count == 0`.
+        ///  # Arguments
+        ///
+        ///  * `world` — live store handle.
+        ///  * `buildings_buf` — array of [`FfiUnloadedBuilding`] of length
+        ///    `count`. May be null only when `count == 0`.
+        ///  * `count` — element count.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle.
+        ///  `buildings_buf` (when non-null and `count &gt; 0`) must point to at
+        ///  least `count` valid [`FfiUnloadedBuilding`] values.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_save_buildings_batch", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void uniti_world_save_buildings_batch(void* world, FfiUnloadedBuilding* buildings_buf, uint count);
 
         /// <summary>
-        ///  Total count of unloaded buildings across all chunks. Use for buffer
-        ///  sizing before `uniti_world_take_all_buildings`. Cheap O(N_chunks).
+        ///  Total unloaded buildings across all chunks. Use to size the buffer
+        ///  for [`uniti_world_take_all_buildings`].
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_total_building_count", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_world_total_building_count(void* world);
 
         /// <summary>
         ///  Drain every unloaded building across every chunk into the caller's
-        ///  flat buffer. Returns the number written. Use at session startup to
-        ///  rebuild the in-memory Unloaded list from on-disk state — Rust is the
-        ///  canonical persistence layer; the in-memory list is a session cache.
-        ///  Buildings that fit are removed from the store; oversize remainders
+        ///  flat buffer. Used at session startup to rebuild the in-memory
+        ///  Unloaded list from on-disk state — Rust is the canonical persistence
+        ///  layer; the in-memory list is a session cache. Unwritten remainders
         ///  stay until the next call.
         ///
-        ///  `out_buf` must be a valid pointer to an array of at least `cap`
-        ///  `FfiUnloadedBuilding` values.
+        ///  # Arguments
+        ///
+        ///  * `world` — live store handle.
+        ///  * `out_buf` — pointer to an array of at least `cap`
+        ///    [`FfiUnloadedBuilding`].
+        ///  * `cap` — buffer capacity in elements.
+        ///
+        ///  # Returns
+        ///
+        ///  Number of buildings written.
+        ///
+        ///  # Safety
+        ///
+        ///  `world` (when non-null) must point to a live store handle. `out_buf`
+        ///  (when non-null and `cap &gt; 0`) must point to at least `cap` writable
+        ///  [`FfiUnloadedBuilding`] slots.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_world_take_all_buildings", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_world_take_all_buildings(void* world, FfiUnloadedBuilding* out_buf, uint cap);
@@ -396,7 +823,8 @@ namespace RareIcon.Native
     }
 
     /// <summary>
-    ///  Slot data returned to C#.
+    ///  Slot data returned to C#. `valid = 0` indicates an empty or
+    ///  out-of-range slot.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public unsafe partial struct FfiSlot
@@ -406,6 +834,13 @@ namespace RareIcon.Native
         public byte valid;
     }
 
+    /// <summary>
+    ///  Direction sample returned by [`uniti_flow_direction`].
+    ///
+    ///  `valid = 0` means the cell has no resolved direction (out of bounds,
+    ///  blocked, or equidistant from all goals). `valid = 1` means `(dx, dz)`
+    ///  is the next-step delta with each component in `-1..=1`.
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public unsafe partial struct FfiDirection
     {
@@ -415,7 +850,7 @@ namespace RareIcon.Native
     }
 
     /// <summary>
-    ///  Per-hex resource amounts, mirrors the C# HexResources struct exactly.
+    ///  Per-hex resource amounts. Mirrors the C# `HexResources` struct exactly.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public unsafe partial struct FfiHexResources
@@ -430,8 +865,8 @@ namespace RareIcon.Native
     }
 
     /// <summary>
-    ///  Result of `uniti_world_get_hex` — `valid=0` means "no override stored,
-    ///  caller should fall back to deterministic gen".
+    ///  Result of [`uniti_world_get_hex`]. `valid = 0` means no override is
+    ///  stored — the caller falls back to deterministic world-gen.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public unsafe partial struct FfiHexLookup
@@ -441,18 +876,15 @@ namespace RareIcon.Native
     }
 
     /// <summary>
-    ///  A ghost unit — abstract state of a unit that lived in an unloaded chunk.
-    ///  Position is in hex-axial coords; the chunk it belongs to is derived by
-    ///  the caller (currently `chunk = floor(q / 32), floor(r / 32)`).
+    ///  Abstract state of a unit that lived in an unloaded chunk. Position is
+    ///  in hex-axial coords; the owning chunk is derived as
+    ///  `(q.div_euclid(CHUNK_SIZE), r.div_euclid(CHUNK_SIZE))`.
     ///
     ///  Inventory carries the first 4 slots only — matches the HUD snapshot
     ///  shape and keeps the FFI struct flat (~50 bytes per unit).
     ///
-    ///  Hunger / fatigue / energy trailing fields added for Phase 5 unit
-    ///  ghost-sim. `*_max` + `*_per_second` carry the NPCDB-tuned rates so
-    ///  the background ticker advances each pool without another FFI hop.
     ///  `last_tick_secs` is the `WorldClock.AbsSeconds` value at snapshot
-    ///  time — the ticker subtracts to compute elapsed.
+    ///  time; the background ticker subtracts to compute elapsed.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public unsafe partial struct FfiGhostUnit
@@ -480,13 +912,19 @@ namespace RareIcon.Native
         public float energy_max;
         public float energy_per_second;
         public float last_tick_secs;
+        public float attack_damage;
+        public float attack_range;
+        public float attack_cooldown;
+        public float time_since_attack;
+        public byte attack_kind;
+        public byte target_mode;
     }
 
     /// <summary>
-    ///  An unloaded building — mirror of the C# `UnloadedBuildingRecord` for
-    ///  cross-process persistence. Field order + types must match exactly so
-    ///  `#[repr(C)]` + C# default layout agree on padding. Version bumps via
-    ///  a schema version header in save files — bump when layout changes.
+    ///  Mirror of the C# `UnloadedBuildingRecord`. Field order + types must
+    ///  match the C# struct exactly so `#[repr(C)]` and the C# default layout
+    ///  agree on padding. Bump [`UNITI_FFI_SCHEMA_VERSION`] when this layout
+    ///  changes.
     ///
     ///  Inline ledger slots cap at 4 items; overflow truncates (acceptable
     ///  loss for offline state since real-world buildings rarely exceed 4
@@ -515,17 +953,21 @@ namespace RareIcon.Native
         public ushort slot2_count;
         public ushort slot3_id;
         public ushort slot3_count;
+        public float attack_damage;
+        public float attack_range;
+        public float attack_cooldown;
+        public float time_since_attack;
+        public byte attack_kind;
+        public byte target_mode;
     }
 
     /// <summary>
-    ///  Summary of the world store's in-memory cache. Populated by
-    ///  `uniti_world_stats`. Counts are u32 — if we ever need to represent
-    ///  &gt; 4B items, bump to u64 + a schema version, but that's ~Minecraft scale.
+    ///  Summary of the world store's in-memory cache.
     ///
-    ///  `last_flush_micros` is the wall-clock time of the most recent
-    ///  `uniti_world_flush` call (sum of SQLite write batches in microseconds).
+    ///  `last_flush_micros` is the wall-clock duration of the most recent
+    ///  flush (sum of SQLite write batches, in microseconds).
     ///  `total_flushes` is a session-monotonic counter — UI / dev panels
-    ///  can derive cadence + flush-rate over time without polling timing.
+    ///  derive cadence + flush rate from these without polling timing.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public unsafe partial struct FfiWorldStats
@@ -541,7 +983,7 @@ namespace RareIcon.Native
     }
 
     /// <summary>
-    ///  One hex divergence record for `uniti_world_save_hexes_batch`.
+    ///  One hex divergence record for [`uniti_world_save_hexes_batch`].
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public unsafe partial struct FfiHexSave
@@ -552,9 +994,9 @@ namespace RareIcon.Native
     }
 
     /// <summary>
-    ///  One slice of `FfiGhostUnit`s belonging to chunk `(cx, cy)`. Used by
-    ///  `uniti_world_replace_chunks_units_bulk` to replace many chunks in a
-    ///  single FFI call.
+    ///  One slice of [`FfiGhostUnit`]s belonging to chunk `(cx, cy)`. Used by
+    ///  [`uniti_world_replace_chunks_units_bulk`] to replace many chunks in
+    ///  one FFI call.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public unsafe partial struct FfiChunkRange

@@ -10,6 +10,7 @@ namespace RareIcon
 
         protected override void OnUpdate()
         {
+            if (!WorldGenSession.HasStarted) return;
             if (_spawned) return;
             _spawned = true;
 

@@ -2,6 +2,15 @@ using Unity.Entities;
 
 namespace RareIcon
 {
+    /// <summary>Tag for the attack flavor stored on an unloaded record. Maps to the live <see cref="MeleeAttack"/>, <see cref="RangedAttack"/>, or <see cref="SpellCast"/> component the entity carried at snapshot time. Ghost-sim resolves combat against this enum so it doesn't need to know which managed component the unit will get on hydrate.</summary>
+    public static class CombatAttackKind
+    {
+        public const byte None   = 0;
+        public const byte Melee  = 1;
+        public const byte Ranged = 2;
+        public const byte Spell  = 3;
+    }
+
     /// <summary>Ranged-attack loadout: cooldown-gated auto-fire at the nearest enemy inside Range.</summary>
     public struct RangedAttack : IComponentData
     {

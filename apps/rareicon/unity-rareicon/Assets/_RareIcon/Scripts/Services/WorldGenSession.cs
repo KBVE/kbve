@@ -35,6 +35,11 @@ namespace RareIcon
         public ReadOnlyReactiveProperty<int> ChunksReady => _chunksReady;
         public int RequiredChunks => MinChunksReady;
 
+        /// <summary>Static gate read by initial-spawn ECS systems (King + Capital + heroes + initial goblin cluster) so they don't fire while the title screen is up. Flipped <c>true</c> by <see cref="MarkWorldStarted"/> on the player's Start click. Stays <c>true</c> for the rest of the session — re-entering the title is not supported (yet).</summary>
+        public static bool HasStarted { get; private set; }
+
+        public static void MarkWorldStarted() => HasStarted = true;
+
         CancellationTokenSource _genCts;
 
         public WorldGenSession(

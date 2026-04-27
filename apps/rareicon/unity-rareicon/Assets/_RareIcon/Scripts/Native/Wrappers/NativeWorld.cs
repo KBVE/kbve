@@ -15,7 +15,7 @@ namespace RareIcon.Native
     public unsafe class NativeWorld : IDisposable
     {
         /// <summary>FFI struct schema version. Must match <c>UNITI_FFI_SCHEMA_VERSION</c> in <c>packages/rust/bevy/uniti/src/ffi_world.rs</c>. Bumped together when any blittable struct layout changes.</summary>
-        public const uint ExpectedSchemaVersion = 2;
+        public const uint ExpectedSchemaVersion = 3;
 
         void* _handle;
         bool  _disposed;

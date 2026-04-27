@@ -129,6 +129,7 @@ namespace RareIcon
                     }
 
                     BuildingColdStoreOps.SnapshotLedgerSlots(em, entity, building.Type, ref rec);
+                    BuildingColdStoreOps.SnapshotAttack(em, entity, ref rec);
                     buf[idx++] = BuildingColdStoreOps.ToFfi(rec);
                 }
             }

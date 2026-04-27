@@ -52,6 +52,14 @@ namespace RareIcon
         public ushort Slot1Id; public ushort Slot1Count;
         public ushort Slot2Id; public ushort Slot2Count;
         public ushort Slot3Id; public ushort Slot3Count;
+
+        /// <summary>Combat snapshot — copied from the live <see cref="MeleeAttack"/> / <see cref="RangedAttack"/> / <see cref="SpellCast"/> component at unload time, for tower / keep / castle types that auto-fire. Ghost-sim combat reads this without needing the managed component back. <see cref="AttackKind"/> dispatches against <see cref="CombatAttackKind"/>; non-attacking buildings leave the kind at <see cref="CombatAttackKind.None"/>.</summary>
+        public float  AttackDamage;
+        public float  AttackRange;
+        public float  AttackCooldown;
+        public float  TimeSinceAttack;
+        public byte   AttackKind;
+        public byte   TargetMode;
     }
 
     /// <summary>Flag bits for <see cref="UnloadedBuildingRecord.Flags"/>.</summary>

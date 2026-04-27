@@ -982,6 +982,7 @@ namespace RareIcon
                 // that reinterprets to BankLedgerBase, so we dispatch on
                 // Type to pick the right buffer lookup.
                 BuildingColdStoreOps.SnapshotLedgerSlots(em, entity, building.Type, ref rec);
+                BuildingColdStoreOps.SnapshotAttack(em, entity, ref rec);
 
                 unloaded.Add(rec);
                 if (canFfi) nativeWorld.SaveBuilding(ToFfi(rec));

@@ -176,7 +176,13 @@ namespace RareIcon
         void OnStartClicked()
         {
             if (_session.Stage.CurrentValue != TitleStage.Ready) return;
+            WorldGenSession.MarkWorldStarted();
             _wrapper?.AddToClassList("is-hidden");
+            if (_root != null)
+            {
+                _root.pickingMode  = PickingMode.Ignore;
+                _root.style.display = DisplayStyle.None;
+            }
             _appState.EnterWorld();
         }
 
