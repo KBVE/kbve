@@ -13,14 +13,16 @@ spawn_weight: 0.15
 spawn_count: 1
 blocks_movement: true
 interaction: "shrine"
-interaction_cooldown_secs: 600
 faction: "neutral"
 max_health: 800
 shrine:
+  cadence_turns: 3
   reward_coin: 25
   reward_items:
     - item_ref: "herb"
       amount: 3
+  territory_active: true
+  king_visit_active: true
 pixels_per_unit: 64
 pivot: "Center"
 pivot_x: 0.5
