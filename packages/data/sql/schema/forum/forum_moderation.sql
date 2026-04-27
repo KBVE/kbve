@@ -80,7 +80,13 @@ CREATE TABLE forum.reports (
     resolved_by     UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     resolved_at     TIMESTAMPTZ,
     resolution_note TEXT CHECK (resolution_note IS NULL OR char_length(resolution_note) <= 2000),
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    -- Resolution must be atomic: both columns set or both NULL.
+    CONSTRAINT reports_resolution_pair CHECK (
+        (resolved_at IS NULL AND resolved_by IS NULL)
+        OR
+        (resolved_at IS NOT NULL AND resolved_by IS NOT NULL)
+    )
 );
 
 -- Item 2: one open report per (reporter, target). Partial unique index
@@ -208,6 +214,30 @@ CREATE TRIGGER reports_not_banned
     BEFORE INSERT ON forum.reports
     FOR EACH ROW EXECUTE FUNCTION forum.assert_reporter_not_banned();
 
+-- Trim reason_detail and collapse empty strings to NULL so analytics
+-- and partial unique indexes don't see whitespace duplicates.
+CREATE OR REPLACE FUNCTION forum.normalize_report_detail()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+    IF NEW.reason_detail IS NOT NULL THEN
+        NEW.reason_detail := trim(NEW.reason_detail);
+        IF NEW.reason_detail = '' THEN
+            NEW.reason_detail := NULL;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION forum.normalize_report_detail() FROM PUBLIC;
+
+CREATE TRIGGER reports_normalize_detail
+    BEFORE INSERT OR UPDATE OF reason_detail ON forum.reports
+    FOR EACH ROW EXECUTE FUNCTION forum.normalize_report_detail();
+
 ALTER TABLE forum.reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE forum.reports FORCE ROW LEVEL SECURITY;
 
@@ -235,7 +265,11 @@ CREATE TABLE forum.moderation_actions (
     -- Groups multi-step moderation actions (e.g. "ban + remove all
     -- posts + clear reports") into one audit chain.
     correlation_id  TEXT CHECK (correlation_id IS NULL OR char_length(correlation_id) <= 64),
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    -- Mods cannot moderate themselves.
+    CONSTRAINT moderation_actions_no_self_target_user CHECK (
+        NOT (target_kind = 'user' AND target_id = moderator_id::TEXT)
+    )
 );
 
 CREATE INDEX idx_moderation_actions_target
@@ -249,9 +283,10 @@ CREATE INDEX idx_moderation_actions_kind
 CREATE INDEX idx_moderation_actions_metadata_gin
     ON forum.moderation_actions USING GIN (metadata_json jsonb_path_ops)
     WHERE metadata_json IS NOT NULL;
--- Group lookup for a multi-step moderation chain.
+-- Group lookup for a multi-step moderation chain. DESC matches the
+-- most common read pattern (newest action in chain first).
 CREATE INDEX idx_moderation_actions_correlation
-    ON forum.moderation_actions (correlation_id, created_at)
+    ON forum.moderation_actions (correlation_id, created_at DESC)
     WHERE correlation_id IS NOT NULL;
 
 CREATE OR REPLACE FUNCTION forum.assert_mod_action_target_exists()
@@ -340,6 +375,35 @@ CREATE UNIQUE INDEX ux_notifications_dedupe_unread
         COALESCE(target_id, '')
     )
     WHERE read_at IS NULL;
+-- Bulk mark-all-read fast path. Smaller than idx_notifications_unread
+-- because it omits created_at — the bulk UPDATE only filters on
+-- (recipient_id, read_at IS NULL).
+CREATE INDEX idx_notifications_unread_only
+    ON forum.notifications (recipient_id)
+    WHERE read_at IS NULL;
+
+CREATE OR REPLACE FUNCTION forum.assert_notification_target_exists()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF NEW.target_kind IS NOT NULL THEN
+        IF NOT forum.assert_target_exists(NEW.target_kind, NEW.target_id) THEN
+            RAISE EXCEPTION 'notification target % % does not exist',
+                NEW.target_kind, NEW.target_id;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION forum.assert_notification_target_exists() FROM PUBLIC;
+
+CREATE TRIGGER notifications_target_exists
+    BEFORE INSERT OR UPDATE OF target_kind, target_id ON forum.notifications
+    FOR EACH ROW EXECUTE FUNCTION forum.assert_notification_target_exists();
 
 ALTER TABLE forum.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE forum.notifications FORCE ROW LEVEL SECURITY;
@@ -371,7 +435,14 @@ CREATE TABLE forum.attachments (
         char_length(url) <= 2048
         AND url ~* '^https://'
     ),
-    mime_type           TEXT CHECK (mime_type IS NULL OR char_length(mime_type) <= 128),
+    -- IANA-ish format: type/subtype with the subset of legal chars.
+    mime_type           TEXT CHECK (
+        mime_type IS NULL
+        OR (
+            char_length(mime_type) <= 128
+            AND mime_type ~ '^[a-z0-9.+-]+/[a-z0-9.+-]+$'
+        )
+    ),
     -- 50 MiB upper bound. Tune per product; image hosts can lower
     -- via column-level CHECK on a per-uploader_role basis later.
     size_bytes          BIGINT CHECK (
@@ -400,6 +471,15 @@ CREATE TABLE forum.attachments (
         OR (kind = 'video' AND mime_type LIKE 'video/%')
         OR (kind = 'audio' AND mime_type LIKE 'audio/%')
         OR (kind = 'link')
+    ),
+    -- Catch obviously bogus dimensions (e.g. corrupt EXIF).
+    CONSTRAINT attachments_dims_sane CHECK (
+        kind NOT IN ('image', 'video')
+        OR (
+            (width  IS NULL OR width  <= 16384)
+            AND
+            (height IS NULL OR height <= 16384)
+        )
     )
 );
 
