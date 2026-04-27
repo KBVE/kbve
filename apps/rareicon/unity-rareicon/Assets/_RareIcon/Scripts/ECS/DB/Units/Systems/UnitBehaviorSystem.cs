@@ -258,7 +258,7 @@ namespace RareIcon
             for (int i = 1; i < hexes.Length; i++)
             {
                 int d = HexDist(from, hexes[i]);
-                int score = d * 4 + (int)((spread + (uint)i * 0x9E3779B1u) % 4u);
+                int score = d * 4 + (int)((spread + UnitHashOps.Spread((uint)i)) % 4u);
                 if (score < bestScore) { bestScore = score; best = hexes[i]; }
             }
             return best;

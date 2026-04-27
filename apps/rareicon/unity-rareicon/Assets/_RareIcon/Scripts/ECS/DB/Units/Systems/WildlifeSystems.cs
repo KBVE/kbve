@@ -50,8 +50,7 @@ namespace RareIcon
             if (!HexLookup.TryGetValue(movement.CurrentHex, out var hex)) return;
             if (!DropLookup.HasBuffer(hex)) return;
 
-            uint h = (uint)entity.Index * 0x9E3779B1u ^ (uint)entity.Version * 0x85EBCA77u;
-            h ^= h >> 13; h *= 0xC2B2AE3Du; h ^= h >> 16;
+            uint h = UnitHashOps.Spread(in entity);
             float r0 = ((h       ) & 0xFFFFu) / 65535f;
             float r1 = ((h >> 16 ) & 0xFFFFu) / 65535f;
 

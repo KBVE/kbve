@@ -68,9 +68,7 @@ namespace RareIcon
 
             for (int i = 0; i < GoblinCount; i++)
             {
-                uint h = (uint)(i + 1) * 0x9E3779B1u;
-                h ^= h >> 13;
-                h *= 0x85EBCA77u;
+                uint h = UnitHashOps.Spread((uint)(i + 1));
                 int span = SpawnRadius * 2 + 1;
                 int q = (int)(h % (uint)span) - SpawnRadius;
                 int r = (int)((h >> 16) % (uint)span) - SpawnRadius;
@@ -857,10 +855,8 @@ namespace RareIcon
         {
             if (faction != FactionType.Player) return;
 
-            uint h1 = rngSeed ^ 0x9E3779B1u;
-            h1 ^= h1 >> 13; h1 *= 0x85EBCA77u; h1 ^= h1 >> 16;
-            uint h2 = rngSeed ^ 0xC2B2AE3Du;
-            h2 ^= h2 >> 13; h2 *= 0x27D4EB2Fu; h2 ^= h2 >> 16;
+            uint h1 = UnitHashOps.Spread(rngSeed);
+            uint h2 = UnitHashOps.Spread(rngSeed ^ 0xDEADBEEFu);
 
             float hungerPct  = (h1 & 0xFFFFu) / 65535f * 0.45f;
             float fatiguePct = (h2 & 0xFFFFu) / 65535f * 0.45f;
