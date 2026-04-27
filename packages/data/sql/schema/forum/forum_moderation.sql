@@ -103,6 +103,10 @@ CREATE INDEX idx_reports_reason
 CREATE INDEX idx_reports_unresolved_target
     ON forum.reports (target_kind, target_id, created_at DESC)
     WHERE resolved_at IS NULL;
+-- RPC-side rate limiting: "how many reports has this user filed in
+-- the last N minutes".
+CREATE INDEX idx_reports_reporter_recent
+    ON forum.reports (reporter_id, created_at DESC);
 
 CREATE OR REPLACE FUNCTION forum.assert_report_target_exists()
 RETURNS TRIGGER
@@ -124,6 +128,44 @@ CREATE TRIGGER reports_target_exists
     BEFORE INSERT OR UPDATE OF target_kind, target_id ON forum.reports
     FOR EACH ROW EXECUTE FUNCTION forum.assert_report_target_exists();
 
+-- Stricter than assert_target_exists: blocks reports against threads
+-- already in removed/draft/pending/scheduled state and non-active
+-- comments. Stops reports from being filed against content that was
+-- already actioned.
+CREATE OR REPLACE FUNCTION forum.assert_report_target_visible()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF NEW.target_kind = 'thread' THEN
+        IF NOT EXISTS (
+            SELECT 1 FROM forum.threads
+             WHERE id = NEW.target_id
+               AND status NOT IN ('removed', 'draft', 'pending', 'scheduled')
+        ) THEN
+            RAISE EXCEPTION 'cannot report non-visible thread %', NEW.target_id;
+        END IF;
+    ELSIF NEW.target_kind = 'comment' THEN
+        IF NOT EXISTS (
+            SELECT 1 FROM forum.comments
+             WHERE id = NEW.target_id
+               AND status = 'active'
+        ) THEN
+            RAISE EXCEPTION 'cannot report non-active comment %', NEW.target_id;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION forum.assert_report_target_visible() FROM PUBLIC;
+
+CREATE TRIGGER reports_target_visible
+    BEFORE INSERT ON forum.reports
+    FOR EACH ROW EXECUTE FUNCTION forum.assert_report_target_visible();
+
 CREATE OR REPLACE FUNCTION forum.assert_report_not_self_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -142,6 +184,29 @@ REVOKE ALL ON FUNCTION forum.assert_report_not_self_user() FROM PUBLIC;
 CREATE TRIGGER reports_not_self_user
     BEFORE INSERT ON forum.reports
     FOR EACH ROW EXECUTE FUNCTION forum.assert_report_not_self_user();
+
+-- Defense-in-depth: even though service_create_report checks
+-- is_user_banned, the trigger blocks any direct service_role insert
+-- that bypasses the RPC guard.
+CREATE OR REPLACE FUNCTION forum.assert_reporter_not_banned()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF forum.is_user_banned(NEW.reporter_id) THEN
+        RAISE EXCEPTION 'banned users cannot file reports';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION forum.assert_reporter_not_banned() FROM PUBLIC;
+
+CREATE TRIGGER reports_not_banned
+    BEFORE INSERT ON forum.reports
+    FOR EACH ROW EXECUTE FUNCTION forum.assert_reporter_not_banned();
 
 ALTER TABLE forum.reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE forum.reports FORCE ROW LEVEL SECURITY;
@@ -167,6 +232,9 @@ CREATE TABLE forum.moderation_actions (
     target_id       TEXT NOT NULL,
     reason          TEXT CHECK (reason IS NULL OR char_length(reason) <= 2000),
     metadata_json   JSONB,
+    -- Groups multi-step moderation actions (e.g. "ban + remove all
+    -- posts + clear reports") into one audit chain.
+    correlation_id  TEXT CHECK (correlation_id IS NULL OR char_length(correlation_id) <= 64),
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -181,6 +249,31 @@ CREATE INDEX idx_moderation_actions_kind
 CREATE INDEX idx_moderation_actions_metadata_gin
     ON forum.moderation_actions USING GIN (metadata_json jsonb_path_ops)
     WHERE metadata_json IS NOT NULL;
+-- Group lookup for a multi-step moderation chain.
+CREATE INDEX idx_moderation_actions_correlation
+    ON forum.moderation_actions (correlation_id, created_at)
+    WHERE correlation_id IS NOT NULL;
+
+CREATE OR REPLACE FUNCTION forum.assert_mod_action_target_exists()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF NOT forum.assert_target_exists(NEW.target_kind, NEW.target_id) THEN
+        RAISE EXCEPTION 'moderation action target % % does not exist',
+            NEW.target_kind, NEW.target_id;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION forum.assert_mod_action_target_exists() FROM PUBLIC;
+
+CREATE TRIGGER moderation_actions_target_exists
+    BEFORE INSERT ON forum.moderation_actions
+    FOR EACH ROW EXECUTE FUNCTION forum.assert_mod_action_target_exists();
 
 ALTER TABLE forum.moderation_actions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE forum.moderation_actions FORCE ROW LEVEL SECURITY;
@@ -207,6 +300,8 @@ CREATE TABLE forum.notifications (
     target_id       TEXT,
     body            TEXT CHECK (body IS NULL OR char_length(body) <= 500),
     read_at         TIMESTAMPTZ,
+    -- Optional TTL. Cleanup job sweeps expired rows.
+    expires_at      TIMESTAMPTZ,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     -- target_kind and target_id must be set together or both NULL.
     CONSTRAINT notifications_target_pair
@@ -229,6 +324,22 @@ CREATE INDEX idx_notifications_recipient_read
 CREATE INDEX idx_notifications_old_read
     ON forum.notifications (created_at)
     WHERE read_at IS NOT NULL;
+-- TTL sweep.
+CREATE INDEX idx_notifications_expiry
+    ON forum.notifications (expires_at)
+    WHERE expires_at IS NOT NULL;
+-- Anti-spam dedupe: collapse identical unread notifications. NULL
+-- columns (actor / target) get sentinel values so COALESCE matches —
+-- a plain partial UNIQUE would treat each NULL as distinct.
+CREATE UNIQUE INDEX ux_notifications_dedupe_unread
+    ON forum.notifications (
+        recipient_id,
+        kind,
+        COALESCE(actor_id, '00000000-0000-0000-0000-000000000000'::UUID),
+        COALESCE(target_kind::TEXT, ''),
+        COALESCE(target_id, '')
+    )
+    WHERE read_at IS NULL;
 
 ALTER TABLE forum.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE forum.notifications FORCE ROW LEVEL SECURITY;
@@ -261,7 +372,12 @@ CREATE TABLE forum.attachments (
         AND url ~* '^https://'
     ),
     mime_type           TEXT CHECK (mime_type IS NULL OR char_length(mime_type) <= 128),
-    size_bytes          BIGINT CHECK (size_bytes IS NULL OR size_bytes >= 0),
+    -- 50 MiB upper bound. Tune per product; image hosts can lower
+    -- via column-level CHECK on a per-uploader_role basis later.
+    size_bytes          BIGINT CHECK (
+        size_bytes IS NULL
+        OR (size_bytes >= 0 AND size_bytes <= 50 * 1024 * 1024)
+    ),
     width               INTEGER CHECK (width IS NULL OR width > 0),
     height              INTEGER CHECK (height IS NULL OR height > 0),
     duration_seconds    INTEGER CHECK (duration_seconds IS NULL OR duration_seconds >= 0),
@@ -293,7 +409,36 @@ CREATE INDEX idx_attachments_uploader
     ON forum.attachments (uploader_id, created_at DESC);
 CREATE INDEX idx_attachments_kind
     ON forum.attachments (kind);
+-- One URL per parent. Stops accidental double-uploads + lets the RPC
+-- treat (parent, url) as a natural key.
+CREATE UNIQUE INDEX ux_attachments_dedupe
+    ON forum.attachments (parent_kind, parent_id, url);
 
+CREATE OR REPLACE FUNCTION forum.normalize_attachment_language()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+    IF NEW.language IS NOT NULL THEN
+        NEW.language := lower(trim(NEW.language));
+        IF NEW.language = '' THEN
+            NEW.language := NULL;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION forum.normalize_attachment_language() FROM PUBLIC;
+
+CREATE TRIGGER attachments_normalize_language
+    BEFORE INSERT OR UPDATE OF language ON forum.attachments
+    FOR EACH ROW EXECUTE FUNCTION forum.normalize_attachment_language();
+
+-- Stricter than core forum.assert_parent_exists: thread / comment
+-- parents must be in a visible state. Stops attachments from being
+-- attached to removed or draft content.
 CREATE OR REPLACE FUNCTION forum.assert_attachment_parent_exists()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -301,8 +446,27 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 BEGIN
-    IF NOT forum.assert_parent_exists(NEW.parent_kind, NEW.parent_id) THEN
-        RAISE EXCEPTION 'attachment parent % % does not exist', NEW.parent_kind, NEW.parent_id;
+    IF NEW.parent_kind = 'thread' THEN
+        IF NOT EXISTS (
+            SELECT 1 FROM forum.threads
+             WHERE id = NEW.parent_id
+               AND status NOT IN ('removed', 'draft', 'pending', 'scheduled')
+        ) THEN
+            RAISE EXCEPTION 'attachment parent thread % not visible', NEW.parent_id;
+        END IF;
+    ELSIF NEW.parent_kind = 'comment' THEN
+        IF NOT EXISTS (
+            SELECT 1 FROM forum.comments
+             WHERE id = NEW.parent_id
+               AND status = 'active'
+        ) THEN
+            RAISE EXCEPTION 'attachment parent comment % not active', NEW.parent_id;
+        END IF;
+    ELSE
+        IF NOT forum.assert_parent_exists(NEW.parent_kind, NEW.parent_id) THEN
+            RAISE EXCEPTION 'attachment parent % % does not exist',
+                NEW.parent_kind, NEW.parent_id;
+        END IF;
     END IF;
     RETURN NEW;
 END;
