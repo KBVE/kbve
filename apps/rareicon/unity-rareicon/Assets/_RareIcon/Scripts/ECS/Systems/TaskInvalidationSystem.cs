@@ -128,7 +128,7 @@ namespace RareIcon
             {
                 if (!CaveFoodLookup.HasComponent(entry.TargetEntity)) return false;
                 var status = CaveFoodLookup[entry.TargetEntity];
-                return status.IsNeedy;
+                return status.IsNeedy != 0;
             }
             if (CapitalLookup.HasComponent(entry.TargetEntity))
             {

@@ -64,6 +64,7 @@ namespace RareIcon
                     do
                     {
                         if (target.Faction == projectile.OwnerFaction) continue;
+                        if (target.Faction == FactionType.Neutral) continue;
 
                         float reach = target.Radius + ProjectileRadius;
                         if (math.distancesq(pos, target.Position) < reach * reach)

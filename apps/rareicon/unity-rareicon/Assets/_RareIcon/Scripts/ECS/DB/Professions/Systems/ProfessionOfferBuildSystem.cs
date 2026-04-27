@@ -59,7 +59,6 @@ namespace RareIcon
             ref var db   = ref SystemAPI.GetSingletonRW<ProfessionOffersSingleton>().ValueRW;
             var itemDB   = SystemAPI.GetSingleton<ItemDBSingleton>();
             var capLookup  = SystemAPI.GetBufferLookup<CapitalLedger>(true);
-            var caveLookup = SystemAPI.GetBufferLookup<GoblinCaveLedger>(true);
 
             db.Offers.Clear();
             db.NeedyCaves.Clear();
@@ -80,15 +79,12 @@ namespace RareIcon
                 break;
             }
 
-            foreach (var (prodRO, buildingRO, e) in
-                     SystemAPI.Query<RefRO<GoblinCaveProduction>, RefRO<Building>>()
+            foreach (var (statusRO, buildingRO, e) in
+                     SystemAPI.Query<RefRO<CaveFoodStatus>, RefRO<Building>>()
                               .WithAll<GoblinCaveTag>()
                               .WithEntityAccess())
             {
-                if (!caveLookup.HasBuffer(e)) continue;
-                ushort cap = prodRO.ValueRO.StorageCap == 0 ? (ushort)200 : prodRO.ValueRO.StorageCap;
-                int food   = CountFood(itemDB, caveLookup[e].Reinterpret<BankLedgerBase>());
-                if (food >= cap) continue;
+                if (statusRO.ValueRO.IsNeedy == 0) continue;
                 db.NeedyCaves.Add(new NeedyCave { Entity = e, Hex = buildingRO.ValueRO.RootHex });
             }
 

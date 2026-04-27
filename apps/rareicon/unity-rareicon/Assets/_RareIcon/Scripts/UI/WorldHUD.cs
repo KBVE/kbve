@@ -545,15 +545,83 @@ namespace RareIcon
             var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
-            using var query = em.CreateEntityQuery(
-                ComponentType.ReadOnly<KingTag>(),
-                ComponentType.ReadOnly<LocalTransform>());
-            if (query.CalculateEntityCount() == 0) return;
-            using var arr = query.ToEntityArray(Allocator.Temp);
-            var king = arr[0];
-            var t = em.GetComponentData<LocalTransform>(king);
-            _camera.JumpTo(new float2(t.Position.x, t.Position.y));
-            _possessPub?.Publish(new PossessUnitMessage(king));
+
+            using (var liveKing = em.CreateEntityQuery(
+                       ComponentType.ReadOnly<KingTag>(),
+                       ComponentType.ReadOnly<LocalTransform>()))
+            {
+                if (!liveKing.IsEmpty)
+                {
+                    using var arr = liveKing.ToEntityArray(Allocator.Temp);
+                    var king = arr[0];
+                    var t = em.GetComponentData<LocalTransform>(king);
+                    _camera.JumpTo(new float2(t.Position.x, t.Position.y));
+                    _possessPub?.Publish(new PossessUnitMessage(king));
+                    return;
+                }
+            }
+
+            int2 fallbackHex = default;
+            bool haveFallback = false;
+
+            using (var udb = em.CreateEntityQuery(ComponentType.ReadOnly<UnitsDBSingleton>()))
+            {
+                if (!udb.IsEmpty)
+                {
+                    var unloaded = em.GetComponentData<UnitsDBSingleton>(udb.GetSingletonEntity()).Unloaded;
+                    if (unloaded.IsCreated)
+                    {
+                        for (int i = 0; i < unloaded.Length; i++)
+                        {
+                            if (unloaded[i].Type == UnitType.King)
+                            {
+                                fallbackHex = unloaded[i].Hex;
+                                haveFallback = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!haveFallback)
+            {
+                using var liveCapital = em.CreateEntityQuery(
+                    ComponentType.ReadOnly<CapitalTag>(),
+                    ComponentType.ReadOnly<Building>());
+                if (!liveCapital.IsEmpty)
+                {
+                    fallbackHex = em.GetComponentData<Building>(liveCapital.GetSingletonEntity()).RootHex;
+                    haveFallback = true;
+                }
+            }
+
+            if (!haveFallback)
+            {
+                using var bdb = em.CreateEntityQuery(ComponentType.ReadOnly<BuildingsDBSingleton>());
+                if (!bdb.IsEmpty)
+                {
+                    var unloaded = em.GetComponentData<BuildingsDBSingleton>(bdb.GetSingletonEntity()).Unloaded;
+                    if (unloaded.IsCreated)
+                    {
+                        for (int i = 0; i < unloaded.Length; i++)
+                        {
+                            if (unloaded[i].Type == BuildingType.Capital)
+                            {
+                                fallbackHex = unloaded[i].RootHex;
+                                haveFallback = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            const float HexSize = 0.25f;
+            float3 worldPos = haveFallback
+                ? HexMeshUtil.HexToWorld(fallbackHex.x, fallbackHex.y, HexSize)
+                : new float3(0f, 0f, 0f);
+            _camera.JumpTo(new float2(worldPos.x, worldPos.y));
         }
 
         public void Dispose()
