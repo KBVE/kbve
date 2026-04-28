@@ -122,7 +122,7 @@ namespace RareIcon
             _closeBtn.style.paddingBottom = 0;
             _closeBtn.style.fontSize = 18;
             _closeBtn.style.unityTextAlign = TextAnchor.MiddleCenter;
-            _panel.Add(_closeBtn);
+            _closeBtn.RegisterCallback<ClickEvent>(e => e.StopPropagation());
 
             var topRow = new VisualElement();
             topRow.style.flexDirection = FlexDirection.Row;
@@ -182,6 +182,7 @@ namespace RareIcon
             _panel.Add(topRow);
             _panel.Add(_choiceRow);
             _panel.Add(_advanceBtn);
+            _panel.Add(_closeBtn);
             _backdrop.Add(_panel);
             root.Add(_backdrop);
 

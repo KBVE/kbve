@@ -167,6 +167,13 @@ namespace RareIcon
             ? FlowerOffsets
             : SingleHex;
 
+        /// <summary>World-space scale to apply to the shared 1.5-unit building quad so the shader's hex inside-mask lines up with the actual hex tile size on the map. The shared mesh is sized for the Capital's 7-hex flower (default 1.0); single-hex buildings scale down so their drawn silhouette fits one hex instead of three. Bandit Camp / Landmark drawn at single-hex scale; multi-hex types should bump this back to 1.0 once their footprint flips to <see cref="FlowerOffsets"/>.</summary>
+        public static float GetVisualScale(byte buildingType) => buildingType switch
+        {
+            BuildingType.Capital => 1.0f,
+            _                    => 2.0f / 3.0f,
+        };
+
         // -- Biome rules --
         /// <summary>Returns true if `biome` can host `buildingType`. Ocean refuses every build; river refuses every build except the Dock (river-only); Lumbercamp must be on Forest; Mining Pit must be on Sand.</summary>
         public static bool IsBuildable(byte buildingType, byte biome)

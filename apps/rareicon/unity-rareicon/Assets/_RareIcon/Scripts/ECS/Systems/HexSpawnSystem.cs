@@ -505,7 +505,8 @@ namespace RareIcon
                 var entity = em.Instantiate(prefab);
                 var pos = HexMeshUtil.HexToWorld(rec.RootHex.x, rec.RootHex.y, HexSize);
                 pos.z = -0.6f;  // BuildingZ — matches BuildingSpawnSystem.
-                em.SetComponentData(entity, LocalTransform.FromPosition(pos));
+                float scale = BuildingDB.GetVisualScale(rec.Type);
+                em.SetComponentData(entity, LocalTransform.FromPositionRotationScale(pos, quaternion.identity, scale));
                 em.SetComponentData(entity, new Building
                 {
                     Type         = rec.Type,

@@ -118,6 +118,8 @@
 	"building.lumbercamp": "伐採場",
 	"building.mining_pit": "採掘場",
 	"building.dock": "船着場",
+	"building.tower": "塔",
+	"building.wall": "城壁",
 	"building.unknown": "建物",
 	"item.any_food": "何でも食料",
 	"item.pouch": "小袋",

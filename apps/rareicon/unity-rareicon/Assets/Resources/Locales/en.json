@@ -142,6 +142,8 @@
 	"building.lumbercamp": "Lumbercamp",
 	"building.mining_pit": "Mining Pit",
 	"building.dock": "Dock",
+	"building.tower": "Tower",
+	"building.wall": "Wall",
 	"building.unknown": "Building",
 	"item.any_food": "Any Food",
 	"item.pouch": "Pouch",

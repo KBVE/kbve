@@ -22,7 +22,6 @@ namespace RareIcon.Platform
     public sealed class SteamManager : MonoBehaviour
     {
         static SteamManager _instance;
-        static bool _everInitialized;
 
         public static bool IsReady => _instance != null && _instance._ready;
 
@@ -91,7 +90,6 @@ namespace RareIcon.Platform
 
             _warningHook = OnSteamWarning;
             SteamClient.SetWarningMessageHook(_warningHook);
-            _everInitialized = true;
             Debug.Log($"[Steam] initialized for persona '{SteamFriends.GetPersonaName()}' (SteamID {SteamUser.GetSteamID().m_SteamID})");
         }
 
