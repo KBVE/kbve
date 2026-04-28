@@ -157,7 +157,7 @@ import Adsense from '@/components/astropad/adsense/Adsense.astro';
 	<Adsense />
 </div>
 
-<style is:global>
+<style is:global>{`
 	/* Scoped to .discord-page so it can't leak past the splash. */
 	.discord-page {
 		--dp-accent: var(--sl-color-accent, #5865f2);
@@ -439,4 +439,4 @@ import Adsense from '@/components/astropad/adsense/Adsense.astro';
 			justify-content: center;
 		}
 	}
-</style>
+`}</style>
