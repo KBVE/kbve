@@ -3,10 +3,12 @@ title: Discord
 description: Join the KBVE Discord — where indie devs, game makers, and open-source enthusiasts hang out, share ideas, and build cool stuff together.
 template: splash
 sidebar:
-  label: Discord
-  order: 4
+    label: Discord
+    order: 4
 editUrl: false
 lastUpdated: false
+prev: false
+next: false
 ---
 
 import DiscordEmbed from '@/components/discord/DiscordEmbed.astro';
@@ -14,12 +16,427 @@ import DiscordCalendar from '@/components/kbve/DiscordCalendar.astro';
 import DiscordRule from '@/components/kbve/DiscordRule.astro';
 import Adsense from '@/components/astropad/adsense/Adsense.astro';
 
-Whether you're here to chat about game dev, get help on a project, or just lurk and vibe — you're welcome. We're a laid-back crew of builders who believe the best ideas happen when people collaborate in the open. Drop in, say hi, or just watch the chaos unfold.
+<div class="discord-page">
+	<section class="discord-hero" aria-label="Join the KBVE Discord">
+		<div class="discord-hero__bg" aria-hidden="true"></div>
+		<div class="discord-hero__inner">
+			<div class="discord-hero__badge">
+				<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+					<path
+						d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"
+					/>
+				</svg>
+				<span>KBVE Community</span>
+			</div>
+			<h1 class="discord-hero__title">
+				Pull up a chair on the
+				<span class="discord-hero__title-accent">KBVE Discord</span>
+			</h1>
+			<p class="discord-hero__lede">
+				Builders, game devs, and open-source folks hang out, share
+				progress, and ship together. Drop in, ask questions, or just
+				lurk.
+			</p>
 
-<DiscordEmbed serverId="342732838598082562" theme="auto" />
+			<div class="discord-hero__cta">
+				<a
+					class="discord-hero__btn discord-hero__btn--primary"
+					href="https://discord.com/invite/342732838598082562"
+					target="_blank"
+					rel="noopener noreferrer">
+					Join the server
+					<svg
+						viewBox="0 0 20 20"
+						fill="none"
+						stroke="currentColor"
+						aria-hidden="true">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="1.8"
+							d="M5 10h10m0 0l-4-4m4 4l-4 4"
+						/>
+					</svg>
+				</a>
+				<a class="discord-hero__btn discord-hero__btn--ghost" href="#rules">
+					Server rules
+				</a>
+				<a class="discord-hero__btn discord-hero__btn--ghost" href="/forum/">
+					Or visit the forum →
+				</a>
+			</div>
 
-<DiscordCalendar />
+			<dl class="discord-hero__stats">
+				<div class="discord-hero__stat">
+					<dt>Founded</dt>
+					<dd>2017</dd>
+				</div>
+				<div class="discord-hero__stat">
+					<dt>Voice + text</dt>
+					<dd>24 / 7</dd>
+				</div>
+				<div class="discord-hero__stat">
+					<dt>Dev streams</dt>
+					<dd>Saturdays</dd>
+				</div>
+				<div class="discord-hero__stat">
+					<dt>License</dt>
+					<dd>Open source</dd>
+				</div>
+			</dl>
+		</div>
+	</section>
 
-<DiscordRule />
+	<nav class="discord-jump" aria-label="On this page">
+		<a href="#widget">Live widget</a>
+		<a href="#events">Events</a>
+		<a href="#rules">Rules</a>
+		<a href="#related">Related</a>
+	</nav>
 
-<Adsense />
+	<section id="widget" class="discord-section">
+		<header class="discord-section__header">
+			<h2>What's happening right now</h2>
+			<p>
+				Live channel + member preview straight from Discord. Click any
+				name to open the server.
+			</p>
+		</header>
+		<DiscordEmbed serverId="342732838598082562" theme="auto" />
+	</section>
+
+	<section id="events" class="discord-section">
+		<DiscordCalendar />
+	</section>
+
+	<section id="rules" class="discord-section">
+		<DiscordRule />
+	</section>
+
+	<section id="related" class="discord-section">
+		<header class="discord-section__header">
+			<h2>While you're here</h2>
+			<p>
+				Other places the KBVE crew hangs out. Pick whichever feels
+				right.
+			</p>
+		</header>
+		<div class="discord-related">
+			<a class="discord-related__card" href="/forum/">
+				<span class="discord-related__icon" aria-hidden="true">💬</span>
+				<span class="discord-related__title">KBVE Forum</span>
+				<span class="discord-related__copy">
+					Long-form threads, marketplace, polls, and announcements.
+				</span>
+			</a>
+			<a
+				class="discord-related__card"
+				href="https://github.com/kbve/kbve"
+				target="_blank"
+				rel="noopener noreferrer">
+				<span class="discord-related__icon" aria-hidden="true">⚙</span>
+				<span class="discord-related__title">GitHub</span>
+				<span class="discord-related__copy">
+					The monorepo behind every KBVE project. PRs welcome.
+				</span>
+			</a>
+			<a
+				class="discord-related__card"
+				href="https://twitch.tv/kbvepoint"
+				target="_blank"
+				rel="noopener noreferrer">
+				<span class="discord-related__icon" aria-hidden="true">▶</span>
+				<span class="discord-related__title">Twitch</span>
+				<span class="discord-related__copy">
+					Saturday-night dev streams. Live coding, Q&amp;A, demos.
+				</span>
+			</a>
+		</div>
+	</section>
+
+	<Adsense />
+</div>
+
+<style is:global>
+	/* Scoped to .discord-page so it can't leak past the splash. */
+	.discord-page {
+		--dp-accent: var(--sl-color-accent, #5865f2);
+		--dp-blurple: #5865f2;
+		--dp-blurple-soft: color-mix(in srgb, #5865f2 18%, transparent);
+		--dp-bg: var(--sl-color-bg, #0d1117);
+		--dp-bg-soft: var(--sl-color-bg-nav, #131318);
+		--dp-bg-card: var(--sl-color-black, #0c0c10);
+		--dp-border: var(--sl-color-gray-5, #2a2a33);
+		--dp-text: var(--sl-color-text, #e6edf3);
+		--dp-muted: var(--sl-color-gray-2, #a1a1aa);
+		--dp-radius: 16px;
+		--dp-radius-sm: 10px;
+		max-width: 1180px;
+		margin: 0 auto;
+		padding: 1.5rem 1.25rem 4rem;
+		color: var(--dp-text);
+	}
+
+	/* ── Hero ─────────────────────────────────────────────────── */
+	.discord-page .discord-hero {
+		position: relative;
+		padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 3vw, 2.5rem);
+		border-radius: var(--dp-radius);
+		background:
+			radial-gradient(
+				circle at 0% 0%,
+				color-mix(in srgb, var(--dp-blurple) 24%, transparent),
+				transparent 55%
+			),
+			radial-gradient(
+				circle at 100% 100%,
+				color-mix(in srgb, var(--dp-accent) 14%, transparent),
+				transparent 60%
+			),
+			var(--dp-bg-card);
+		border: 1px solid var(--dp-border);
+		overflow: hidden;
+	}
+	.discord-page .discord-hero__bg {
+		position: absolute;
+		inset: -40% -10%;
+		background:
+			radial-gradient(
+				circle,
+				var(--dp-blurple-soft) 0%,
+				transparent 60%
+			);
+		filter: blur(80px);
+		opacity: 0.6;
+		pointer-events: none;
+	}
+	.discord-page .discord-hero__inner {
+		position: relative;
+		display: grid;
+		gap: 1.25rem;
+		max-width: 720px;
+	}
+	.discord-page .discord-hero__badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.55rem;
+		padding: 0.4rem 0.85rem;
+		background: var(--dp-blurple-soft);
+		border: 1px solid color-mix(in srgb, var(--dp-blurple) 35%, transparent);
+		border-radius: 999px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--dp-text);
+		width: fit-content;
+	}
+	.discord-page .discord-hero__badge svg {
+		width: 16px;
+		height: 16px;
+		color: var(--dp-blurple);
+	}
+	.discord-page .discord-hero__title {
+		font-size: clamp(2rem, 5vw, 3.25rem);
+		font-weight: 800;
+		line-height: 1.05;
+		letter-spacing: -0.02em;
+		margin: 0;
+	}
+	.discord-page .discord-hero__title-accent {
+		display: inline-block;
+		background: linear-gradient(135deg, var(--dp-blurple), #c084fc);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+	}
+	.discord-page .discord-hero__lede {
+		font-size: 1.0625rem;
+		line-height: 1.55;
+		color: var(--dp-muted);
+		margin: 0;
+		max-width: 56ch;
+	}
+	.discord-page .discord-hero__cta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		margin-top: 0.4rem;
+	}
+	.discord-page .discord-hero__btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.7rem 1.2rem;
+		border-radius: var(--dp-radius-sm);
+		font-size: 0.9375rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition:
+			transform 0.12s ease,
+			background 0.12s ease,
+			border-color 0.12s ease,
+			box-shadow 0.12s ease;
+	}
+	.discord-page .discord-hero__btn svg {
+		width: 18px;
+		height: 18px;
+	}
+	.discord-page .discord-hero__btn--primary {
+		background: var(--dp-blurple);
+		color: white;
+		box-shadow: 0 6px 20px color-mix(in srgb, var(--dp-blurple) 35%, transparent);
+	}
+	.discord-page .discord-hero__btn--primary:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 10px 28px color-mix(in srgb, var(--dp-blurple) 45%, transparent);
+	}
+	.discord-page .discord-hero__btn--ghost {
+		color: var(--dp-text);
+		background: transparent;
+		border: 1px solid var(--dp-border);
+	}
+	.discord-page .discord-hero__btn--ghost:hover {
+		border-color: var(--dp-blurple);
+		background: var(--dp-blurple-soft);
+	}
+	.discord-page .discord-hero__stats {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+		gap: 0.75rem;
+		margin: 1.5rem 0 0;
+		padding: 1rem;
+		background: color-mix(in srgb, var(--dp-bg) 60%, transparent);
+		border: 1px solid var(--dp-border);
+		border-radius: var(--dp-radius-sm);
+	}
+	.discord-page .discord-hero__stat {
+		display: grid;
+		gap: 0.15rem;
+		margin: 0;
+	}
+	.discord-page .discord-hero__stat dt {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--dp-muted);
+		margin: 0;
+	}
+	.discord-page .discord-hero__stat dd {
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--dp-text);
+		margin: 0;
+	}
+
+	/* ── Jump nav ─────────────────────────────────────────────── */
+	.discord-page .discord-jump {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin: 2rem 0 1rem;
+		padding: 0.4rem;
+		background: var(--dp-bg-soft);
+		border: 1px solid var(--dp-border);
+		border-radius: var(--dp-radius);
+		position: sticky;
+		top: 1rem;
+		z-index: 10;
+		backdrop-filter: blur(8px);
+	}
+	.discord-page .discord-jump a {
+		padding: 0.45rem 0.95rem;
+		border-radius: var(--dp-radius-sm);
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: var(--dp-muted);
+		text-decoration: none;
+		transition:
+			background 0.12s ease,
+			color 0.12s ease;
+	}
+	.discord-page .discord-jump a:hover {
+		color: var(--dp-text);
+		background: color-mix(in srgb, var(--dp-text) 6%, transparent);
+	}
+
+	/* ── Sections ─────────────────────────────────────────────── */
+	.discord-page .discord-section {
+		margin: 2rem 0;
+		scroll-margin-top: 5rem;
+	}
+	.discord-page .discord-section__header {
+		display: grid;
+		gap: 0.4rem;
+		margin-bottom: 1.25rem;
+		text-align: center;
+	}
+	.discord-page .discord-section__header h2 {
+		font-size: clamp(1.5rem, 3vw, 2rem);
+		font-weight: 700;
+		margin: 0;
+		letter-spacing: -0.01em;
+	}
+	.discord-page .discord-section__header p {
+		font-size: 1rem;
+		color: var(--dp-muted);
+		margin: 0;
+		max-width: 60ch;
+		margin-inline: auto;
+	}
+
+	/* Soften the rules / calendar sections so they don't double-pad. */
+	.discord-page #discord-rules,
+	.discord-page section[id^='discord-'] {
+		padding: 0 !important;
+	}
+
+	/* ── Related cards ────────────────────────────────────────── */
+	.discord-page .discord-related {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: 1rem;
+	}
+	.discord-page .discord-related__card {
+		display: grid;
+		gap: 0.5rem;
+		padding: 1.25rem;
+		background: var(--dp-bg-card);
+		border: 1px solid var(--dp-border);
+		border-radius: var(--dp-radius);
+		text-decoration: none;
+		color: var(--dp-text);
+		transition:
+			transform 0.15s ease,
+			border-color 0.15s ease;
+	}
+	.discord-page .discord-related__card:hover {
+		transform: translateY(-2px);
+		border-color: var(--dp-blurple);
+	}
+	.discord-page .discord-related__icon {
+		font-size: 1.5rem;
+		line-height: 1;
+	}
+	.discord-page .discord-related__title {
+		font-size: 1.0625rem;
+		font-weight: 600;
+	}
+	.discord-page .discord-related__copy {
+		font-size: 0.875rem;
+		color: var(--dp-muted);
+		line-height: 1.5;
+	}
+
+	@media (max-width: 720px) {
+		.discord-page .discord-hero__cta {
+			flex-direction: column;
+			align-items: stretch;
+		}
+		.discord-page .discord-hero__btn {
+			justify-content: center;
+		}
+	}
+</style>
