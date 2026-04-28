@@ -53,12 +53,29 @@ const gdd = defineCollection({
 	}),
 });
 
+const ProjectSchemaWithEngine = ICiProjectSchema.extend({
+	engine: z
+		.object({
+			version: z.string().min(1).max(64),
+			project_path: z.string().min(1).max(256),
+			build_targets: z.array(z.string().min(1).max(64)).max(20),
+			license_method: z
+				.enum(['personal', 'professional', 'serial'])
+				.optional(),
+			dotnet_enabled: z.boolean().optional(),
+			test_args: z.array(z.string().max(256)).max(50).optional(),
+			features: z.array(z.string().min(1).max(64)).max(50).optional(),
+			external_repo_url: z.string().url().max(512).optional(),
+		})
+		.optional(),
+});
+
 const project = defineCollection({
 	loader: glob({
 		pattern: '**/*.mdx',
 		base: './src/content/docs/project',
 	}),
-	schema: ICiProjectSchema,
+	schema: ProjectSchemaWithEngine,
 });
 
 const itemdb = defineCollection({
