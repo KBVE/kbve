@@ -222,10 +222,91 @@ jobs:
                   fi
                   jq -r '"Published mrpack — version id \(.id)"' /tmp/mrpack-response.json
 
-    modrinth_prune:
-        name: Modrinth Prune (${{ inputs.app_name }})
+    modrinth_verify:
+        name: Modrinth Verify (${{ inputs.app_name }} v${{ inputs.version }})
         needs: [modrinth]
         if: needs.modrinth.result == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: read
+        steps:
+            - name: Resolve external_publish fields
+              id: ep
+              run: |
+                  EP='${{ inputs.external_publish }}'
+                  echo "mod_id=$(echo "$EP" | jq -r '.modrinth_mod_id // ""')" >> "$GITHUB_OUTPUT"
+                  echo "pack_id=$(echo "$EP" | jq -r '.modrinth_pack_id // ""')" >> "$GITHUB_OUTPUT"
+
+            - name: Verify Modrinth published versions
+              env:
+                  MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+                  MOD_PROJECT_ID: ${{ steps.ep.outputs.mod_id }}
+                  PACK_PROJECT_ID: ${{ steps.ep.outputs.pack_id }}
+                  VERSION: ${{ inputs.version }}
+              run: |
+                  set -euo pipefail
+                  if [ -z "${MODRINTH_TOKEN:-}" ]; then
+                    echo "::error::MODRINTH_TOKEN missing — cannot verify."
+                    exit 1
+                  fi
+
+                  verify_project () {
+                    local PROJECT_ID="$1"
+                    local LABEL="$2"
+                    if [ -z "$PROJECT_ID" ]; then
+                      return 0
+                    fi
+
+                    echo "── Verifying $LABEL v$VERSION on project $PROJECT_ID ──"
+
+                    local META
+                    META=$(curl -sSL --fail-with-body \
+                      -H "Authorization: $MODRINTH_TOKEN" \
+                      "https://api.modrinth.com/v2/project/$PROJECT_ID/version" \
+                      | jq --arg v "$VERSION" '[.[] | select(.version_number == $v)] | .[0]')
+
+                    if [ "$META" = "null" ] || [ -z "$META" ]; then
+                      echo "::error::$LABEL v$VERSION NOT found on Modrinth"
+                      exit 1
+                    fi
+
+                    local STATUS FNAME FURL FSIZE
+                    STATUS=$(echo "$META" | jq -r '.status')
+                    FNAME=$(echo "$META" | jq -r '.files[0].filename')
+                    FURL=$(echo "$META" | jq -r '.files[0].url')
+                    FSIZE=$(echo "$META" | jq -r '.files[0].size')
+
+                    echo "  status:   $STATUS"
+                    echo "  file:     $FNAME ($FSIZE bytes)"
+                    echo "  url:      $FURL"
+
+                    if [ "$STATUS" != "listed" ] && [ "$STATUS" != "unlisted" ]; then
+                      echo "::error::$LABEL v$VERSION status is '$STATUS' — expected 'listed' or 'unlisted'"
+                      exit 1
+                    fi
+
+                    if [[ "$FNAME" != *"$VERSION"* ]]; then
+                      echo "::warning::$LABEL v$VERSION file '$FNAME' does not contain version string '$VERSION'"
+                    fi
+
+                    local HTTP_CODE
+                    HTTP_CODE=$(curl -sSL -o /dev/null -w '%{http_code}' -I "$FURL")
+                    if [ "$HTTP_CODE" != "200" ]; then
+                      echo "::error::$LABEL v$VERSION CDN download HEAD returned HTTP $HTTP_CODE"
+                      exit 1
+                    fi
+
+                    echo "  ✓ $LABEL v$VERSION live + downloadable"
+                  }
+
+                  verify_project "$MOD_PROJECT_ID" "mod"
+                  verify_project "$PACK_PROJECT_ID" "modpack"
+
+    modrinth_prune:
+        name: Modrinth Prune (${{ inputs.app_name }})
+        needs: [modrinth, modrinth_verify]
+        if: needs.modrinth.result == 'success' && needs.modrinth_verify.result == 'success'
         runs-on: ubuntu-latest
         timeout-minutes: 10
         permissions:
