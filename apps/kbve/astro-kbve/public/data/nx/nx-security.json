@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-27T09:02:38Z",
+  "generated_at": "2026-04-28T09:00:43Z",
   "summary": {
     "critical": 1,
     "high": 32,
@@ -523,34 +523,6 @@
           "url": "https://github.com/advisories/GHSA-fvcv-3m26-pcqx"
         },
         {
-          "id": "1116896",
-          "title": "Astro: XSS in define:vars via incomplete </script> tag sanitization",
-          "severity": "medium",
-          "package": "astro",
-          "url": "https://github.com/advisories/GHSA-j687-52p2-xcff"
-        },
-        {
-          "id": "1116950",
-          "title": "DOMPurify: FORBID_TAGS bypassed by function-based ADD_TAGS predicate (asymmetry with FORBID_ATTR fix)",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-h7mw-gpvr-xq4m"
-        },
-        {
-          "id": "1116951",
-          "title": "DOMPurify has a SAFE_FOR_TEMPLATES bypass in RETURN_DOM mode",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-crv5-9vww-q3g8"
-        },
-        {
-          "id": "1116952",
-          "title": "DOMPurify: Prototype Pollution to XSS Bypass via CUSTOM_ELEMENT_HANDLING Fallback",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-v9jr-rg53-9pgp"
-        },
-        {
           "id": "1116957",
           "title": "fast-xml-parser XMLBuilder: XML Comment and CDATA Injection via Unescaped Delimiters",
           "severity": "medium",
@@ -612,6 +584,34 @@
           "severity": "high",
           "package": "@xmldom/xmldom",
           "url": "https://github.com/advisories/GHSA-wh4c-j3r5-mjhp"
+        },
+        {
+          "id": "1117138",
+          "title": "DOMPurify: FORBID_TAGS bypassed by function-based ADD_TAGS predicate (asymmetry with FORBID_ATTR fix)",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-h7mw-gpvr-xq4m"
+        },
+        {
+          "id": "1117139",
+          "title": "DOMPurify has a SAFE_FOR_TEMPLATES bypass in RETURN_DOM mode",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-crv5-9vww-q3g8"
+        },
+        {
+          "id": "1117140",
+          "title": "DOMPurify: Prototype Pollution to XSS Bypass via CUSTOM_ELEMENT_HANDLING Fallback",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-v9jr-rg53-9pgp"
+        },
+        {
+          "id": "1117141",
+          "title": "Astro: XSS in define:vars via incomplete </script> tag sanitization",
+          "severity": "medium",
+          "package": "astro",
+          "url": "https://github.com/advisories/GHSA-j687-52p2-xcff"
         }
       ]
     },
