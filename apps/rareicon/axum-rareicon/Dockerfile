@@ -90,6 +90,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 # [STAGE D] - Cargo Chef Cook (Cache External Dependencies)
 # ============================================================================
 FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder-deps
+ENV CARGO_INCREMENTAL=0
 
 WORKDIR /app
 
@@ -106,6 +107,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # [STAGE E] - Foundation Layer (Compile kbve + jedi from real source)
 # ============================================================================
 FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS foundation
+ENV CARGO_INCREMENTAL=0
 
 WORKDIR /app
 
