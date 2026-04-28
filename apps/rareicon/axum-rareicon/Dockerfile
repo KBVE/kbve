@@ -101,6 +101,7 @@ COPY --from=planner /app/packages packages
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo chef cook --release --recipe-path recipe.json -p axum-rareicon
 
 # ============================================================================
@@ -135,6 +136,7 @@ RUN mkdir -p packages/rust/bevy/bevy_tasker/src && \
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo build --release -p kbve -p jedi -p bevy_kbve_net -p bevy_npc
 
 # ============================================================================
@@ -157,6 +159,7 @@ COPY apps/rareicon/axum-rareicon apps/rareicon/axum-rareicon
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo build --release -p axum-rareicon && \
     strip target/release/axum-rareicon
 
