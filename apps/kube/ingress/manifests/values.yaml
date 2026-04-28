@@ -88,6 +88,7 @@ defaultBackend:
 tcp:
     6667: 'irc/ergo-irc-service:6667'
     6697: 'irc/ergo-irc-service:6697'
+    30022: 'forgejo/forgejo-ssh:2222'
 
 udp: {}
 # WebTransport (UDP 5001) is exposed via a dedicated LoadBalancer
