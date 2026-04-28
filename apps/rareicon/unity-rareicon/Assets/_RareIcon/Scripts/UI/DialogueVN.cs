@@ -23,13 +23,15 @@ namespace RareIcon
         readonly UIPanelManager _panelManager;
         readonly IPublisher<DialogueAdvanceMessage> _advancePub;
         readonly IPublisher<DialogueChoiceMessage>  _choicePub;
+        readonly IPublisher<DialogueCancelMessage>  _cancelPub;
 
         VisualElement _backdrop;
         VisualElement _panel;
         VisualElement _portraitBox;
         Label _speakerLabel;
         Label _textLabel;
-        Label _advanceHint;
+        Button _advanceBtn;
+        Button _closeBtn;
         VisualElement _choiceRow;
         Button[] _choiceButtons;
 
@@ -46,12 +48,14 @@ namespace RareIcon
             LocaleService locale,
             UIPanelManager panelManager,
             IPublisher<DialogueAdvanceMessage> advancePub,
-            IPublisher<DialogueChoiceMessage>  choicePub)
+            IPublisher<DialogueChoiceMessage>  choicePub,
+            IPublisher<DialogueCancelMessage>  cancelPub)
         {
             _locale       = locale;
             _panelManager = panelManager;
             _advancePub   = advancePub;
             _choicePub    = choicePub;
+            _cancelPub    = cancelPub;
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
@@ -91,7 +95,9 @@ namespace RareIcon
             _backdrop.style.justifyContent = Justify.FlexEnd;
             _backdrop.style.paddingBottom = 40;
             _backdrop.style.display = DisplayStyle.None;
+            _backdrop.focusable = true;
             _backdrop.RegisterCallback<ClickEvent>(OnBackdropClick);
+            _backdrop.RegisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
 
             _panel = new VisualElement().ApplyPanelChrome(
                 background:  UIStyles.Palette.ModalBg,
@@ -103,6 +109,20 @@ namespace RareIcon
             _panel.style.maxWidth = PanelMaxWidth;
             _panel.style.minHeight = 180;
             _panel.RegisterCallback<ClickEvent>(e => e.StopPropagation());
+
+            _closeBtn = UIStyles.MakeButton("×", () => _cancelPub.Publish(new DialogueCancelMessage()));
+            _closeBtn.style.position = Position.Absolute;
+            _closeBtn.style.top = 6;
+            _closeBtn.style.right = 6;
+            _closeBtn.style.width = 28;
+            _closeBtn.style.height = 28;
+            _closeBtn.style.paddingLeft = 0;
+            _closeBtn.style.paddingRight = 0;
+            _closeBtn.style.paddingTop = 0;
+            _closeBtn.style.paddingBottom = 0;
+            _closeBtn.style.fontSize = 18;
+            _closeBtn.style.unityTextAlign = TextAnchor.MiddleCenter;
+            _panel.Add(_closeBtn);
 
             var topRow = new VisualElement();
             topRow.style.flexDirection = FlexDirection.Row;
@@ -154,16 +174,14 @@ namespace RareIcon
                 _choiceRow.Add(btn);
             }
 
-            _advanceHint = new Label();
-            _advanceHint.style.color = UIStyles.Palette.GoldMuted;
-            _advanceHint.style.fontSize = 11;
-            _advanceHint.style.marginTop = 8;
-            _advanceHint.style.unityTextAlign = TextAnchor.MiddleRight;
-            _advanceHint.style.display = DisplayStyle.None;
+            _advanceBtn = UIStyles.MakeButton("", OnAdvanceClicked);
+            _advanceBtn.style.alignSelf = Align.FlexEnd;
+            _advanceBtn.style.marginTop = 8;
+            _advanceBtn.style.display = DisplayStyle.None;
 
             _panel.Add(topRow);
             _panel.Add(_choiceRow);
-            _panel.Add(_advanceHint);
+            _panel.Add(_advanceBtn);
             _backdrop.Add(_panel);
             root.Add(_backdrop);
 
@@ -201,18 +219,19 @@ namespace RareIcon
                         _choiceButtons[i].style.display = DisplayStyle.None;
                     }
                 }
-                _advanceHint.style.display = DisplayStyle.None;
+                _advanceBtn.style.display = DisplayStyle.None;
             }
             else
             {
                 for (int i = 0; i < MaxChoices; i++)
                     _choiceButtons[i].style.display = DisplayStyle.None;
-                _advanceHint.text = _locale.Get("dialogue.next") + " [Space]";
-                _advanceHint.style.display = DisplayStyle.Flex;
+                _advanceBtn.text = _locale.Get("dialogue.next") + " [Space]";
+                _advanceBtn.style.display = DisplayStyle.Flex;
             }
 
             _backdrop.style.display = DisplayStyle.Flex;
             _visible = true;
+            _backdrop.schedule.Execute(() => _backdrop.Focus()).StartingIn(16);
         }
 
         public void Hide()
@@ -292,7 +311,54 @@ namespace RareIcon
             }
         }
 
+        void OnKeyDown(KeyDownEvent evt)
+        {
+            if (!_visible) return;
+
+            if (evt.keyCode == KeyCode.Space || evt.keyCode == KeyCode.Return || evt.keyCode == KeyCode.KeypadEnter)
+            {
+                if (!_typewriterDone) { FastForward(); evt.StopPropagation(); return; }
+                if (_activeChoiceCount == 0)
+                {
+                    _advancePub.Publish(new DialogueAdvanceMessage());
+                    evt.StopPropagation();
+                }
+                return;
+            }
+
+            if (evt.keyCode == KeyCode.Escape)
+            {
+                _cancelPub.Publish(new DialogueCancelMessage());
+                evt.StopPropagation();
+                return;
+            }
+
+            if (_activeChoiceCount > 0)
+            {
+                int digit = evt.keyCode switch
+                {
+                    KeyCode.Alpha1 => 1, KeyCode.Alpha2 => 2, KeyCode.Alpha3 => 3,
+                    KeyCode.Alpha4 => 4, KeyCode.Alpha5 => 5, KeyCode.Alpha6 => 6,
+                    KeyCode.Keypad1 => 1, KeyCode.Keypad2 => 2, KeyCode.Keypad3 => 3,
+                    KeyCode.Keypad4 => 4, KeyCode.Keypad5 => 5, KeyCode.Keypad6 => 6,
+                    _ => 0,
+                };
+                if (digit > 0 && digit <= _activeChoiceCount)
+                {
+                    _choicePub.Publish(new DialogueChoiceMessage(digit - 1));
+                    evt.StopPropagation();
+                }
+            }
+        }
+
         void OnBackdropClick(ClickEvent _)
+        {
+            if (!_visible) return;
+            if (!_typewriterDone) { FastForward(); return; }
+            if (_activeChoiceCount == 0) _advancePub.Publish(new DialogueAdvanceMessage());
+        }
+
+        void OnAdvanceClicked()
         {
             if (!_visible) return;
             if (!_typewriterDone) { FastForward(); return; }

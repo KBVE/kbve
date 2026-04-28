@@ -18,6 +18,7 @@ namespace RareIcon
         readonly ISubscriber<DialogueStartMessage>     _startSub;
         readonly ISubscriber<DialogueAdvanceMessage>   _advanceSub;
         readonly ISubscriber<DialogueChoiceMessage>    _choiceSub;
+        readonly ISubscriber<DialogueCancelMessage>    _cancelSub;
         readonly IPublisher<DialogueEndedMessage>      _endedPub;
         readonly IPublisher<SpeechBubbleMessage>       _bubblePub;
         readonly IPublisher<DialogueStartMessage>      _startPub;
@@ -37,6 +38,7 @@ namespace RareIcon
             ISubscriber<DialogueStartMessage>   startSub,
             ISubscriber<DialogueAdvanceMessage> advanceSub,
             ISubscriber<DialogueChoiceMessage>  choiceSub,
+            ISubscriber<DialogueCancelMessage>  cancelSub,
             IPublisher<DialogueEndedMessage>    endedPub,
             IPublisher<SpeechBubbleMessage>     bubblePub,
             IPublisher<DialogueStartMessage>    startPub,
@@ -47,6 +49,7 @@ namespace RareIcon
             _startSub   = startSub;
             _advanceSub = advanceSub;
             _choiceSub  = choiceSub;
+            _cancelSub  = cancelSub;
             _endedPub   = endedPub;
             _bubblePub  = bubblePub;
             _startPub   = startPub;
@@ -61,6 +64,7 @@ namespace RareIcon
             _startSub.Subscribe(OnStart).AddTo(bag);
             _advanceSub.Subscribe(OnAdvance).AddTo(bag);
             _choiceSub.Subscribe(OnChoice).AddTo(bag);
+            _cancelSub.Subscribe(_ => End()).AddTo(bag);
             _disposables.Add(bag.Build());
 
             // Debug hotkey — F10 fires the hello-world tree. Scheduled on

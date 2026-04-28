@@ -49,6 +49,7 @@ namespace RareIcon
             builder.RegisterMessageBroker<DialogueStartMessage>(options);
             builder.RegisterMessageBroker<DialogueAdvanceMessage>(options);
             builder.RegisterMessageBroker<DialogueChoiceMessage>(options);
+            builder.RegisterMessageBroker<DialogueCancelMessage>(options);
             builder.RegisterMessageBroker<DialogueEndedMessage>(options);
             builder.RegisterMessageBroker<SpeechBubbleMessage>(options);
 
