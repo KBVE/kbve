@@ -137,8 +137,8 @@ importers:
                 specifier: ^1.1.7
                 version: 1.1.7(@types/react@19.2.9)(dexie@4.0.11)(react@19.2.4)
             dompurify:
-                specifier: ^3.1.7
-                version: 3.2.5
+                specifier: ^3.4.1
+                version: 3.4.1
             embla-carousel-react:
                 specifier: ^8.3.1
                 version: 8.6.0(react@19.2.4)
@@ -10040,6 +10040,7 @@ packages:
                 integrity: sha512-9k/gHF6n/pAi/9tqr3m3aqkuiNosYTurLLUtc7xQ9sxB/wm7WPygCv8GYa6mS0fLJEHhqMC1ATYhz++U/lRHqg==,
             }
         engines: { node: '>=10.0.0' }
+        deprecated: this version has critical issues, please update to the latest version
 
     '@xtuc/ieee754@1.2.0':
         resolution:
@@ -13431,10 +13432,10 @@ packages:
             }
         engines: { node: '>= 4' }
 
-    dompurify@3.2.5:
+    dompurify@3.4.1:
         resolution:
             {
-                integrity: sha512-mLPd29uoRe9HpvwP2TxClGQBzGXeEC/we/q+bFlmPPmj2p2Ugl3r6ATu/UU1v77DXNcehiBg9zsr1dREyA/dJQ==,
+                integrity: sha512-JahakDAIg1gyOm7dlgWSDjV4n7Ip2PKR55NIT6jrMfIgLFgWo81vdr1/QGqWtFNRqXP9UV71oVePtjqS2ebnPw==,
             }
 
     domutils@3.2.2:
@@ -33317,7 +33318,7 @@ snapshots:
 
     '@types/dompurify@3.2.0':
         dependencies:
-            dompurify: 3.2.5
+            dompurify: 3.4.1
 
     '@types/draco3d@1.4.10': {}
 
@@ -36746,7 +36747,7 @@ snapshots:
         dependencies:
             domelementtype: 2.3.0
 
-    dompurify@3.2.5:
+    dompurify@3.4.1:
         optionalDependencies:
             '@types/trusted-types': 2.0.7
 
@@ -40586,7 +40587,7 @@ snapshots:
             d3-sankey: 0.12.3
             dagre-d3-es: 7.0.13
             dayjs: 1.11.20
-            dompurify: 3.2.5
+            dompurify: 3.4.1
             katex: 0.16.23
             khroma: 2.1.0
             lodash-es: 4.17.23
