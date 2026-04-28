@@ -85,7 +85,8 @@ namespace RareIcon
 
             var em = EntityManager;
             var camp = em.Instantiate(prefab);
-            em.SetComponentData(camp, LocalTransform.FromPosition(pos));
+            float scale = BuildingDB.GetVisualScale(BuildingType.BanditCamp);
+            em.SetComponentData(camp, LocalTransform.FromPositionRotationScale(pos, quaternion.identity, scale));
             em.SetComponentData(camp, new Building
             {
                 Type         = BuildingType.BanditCamp,

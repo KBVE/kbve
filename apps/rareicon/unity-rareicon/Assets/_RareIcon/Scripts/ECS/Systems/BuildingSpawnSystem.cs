@@ -162,7 +162,8 @@ namespace RareIcon
             pos.z = BuildingZ;
 
             var building = ecb.Instantiate(_buildingPrefab);
-            ecb.SetComponent(building, LocalTransform.FromPosition(pos));
+            float scale = BuildingDB.GetVisualScale(req.BuildingType);
+            ecb.SetComponent(building, LocalTransform.FromPositionRotationScale(pos, quaternion.identity, scale));
             ecb.SetComponent(building, new Building
             {
                 Type         = req.BuildingType,
