@@ -460,6 +460,125 @@
           "implicitDependencies": []
         }
       },
+      "bevy_pathfinding": {
+        "name": "bevy_pathfinding",
+        "type": "lib",
+        "data": {
+          "root": "packages/rust/bevy/bevy_pathfinding",
+          "name": "bevy_pathfinding",
+          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "library",
+          "sourceRoot": "packages/rust/bevy/bevy_pathfinding/src",
+          "tags": [],
+          "targets": {
+            "build": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo build -p bevy_pathfinding"
+                ],
+                "cwd": "packages/rust/bevy/bevy_pathfinding"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo test -p bevy_pathfinding"
+                ],
+                "cwd": "packages/rust/bevy/bevy_pathfinding"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo clippy -p bevy_pathfinding -- -D warnings"
+                ],
+                "cwd": "packages/rust/bevy/bevy_pathfinding"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true
+            },
+            "check-wasm": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo +nightly check -p bevy_pathfinding --target wasm32-unknown-unknown"
+                ],
+                "cwd": "packages/rust/bevy/bevy_pathfinding"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "check-desktop": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo check -p bevy_pathfinding"
+                ],
+                "cwd": "packages/rust/bevy/bevy_pathfinding"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "nx run bevy_pathfinding:test",
+                  "nx run bevy_pathfinding:check-wasm",
+                  "nx run bevy_pathfinding:check-desktop"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "dry": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo publish -p bevy_pathfinding --dry-run --allow-dirty"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "chisel-ubuntu-axum": {
         "name": "chisel-ubuntu-axum",
         "type": "lib",
@@ -800,6 +919,125 @@
           "implicitDependencies": [
             "astro-rareicon"
           ]
+        }
+      },
+      "bevy_behavior": {
+        "name": "bevy_behavior",
+        "type": "lib",
+        "data": {
+          "root": "packages/rust/bevy/bevy_behavior",
+          "name": "bevy_behavior",
+          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "library",
+          "sourceRoot": "packages/rust/bevy/bevy_behavior/src",
+          "tags": [],
+          "targets": {
+            "build": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo build -p bevy_behavior"
+                ],
+                "cwd": "packages/rust/bevy/bevy_behavior"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo test -p bevy_behavior"
+                ],
+                "cwd": "packages/rust/bevy/bevy_behavior"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo clippy -p bevy_behavior -- -D warnings"
+                ],
+                "cwd": "packages/rust/bevy/bevy_behavior"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true
+            },
+            "check-wasm": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo +nightly check -p bevy_behavior --target wasm32-unknown-unknown"
+                ],
+                "cwd": "packages/rust/bevy/bevy_behavior"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "check-desktop": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo check -p bevy_behavior"
+                ],
+                "cwd": "packages/rust/bevy/bevy_behavior"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "nx run bevy_behavior:test",
+                  "nx run bevy_behavior:check-wasm",
+                  "nx run bevy_behavior:check-desktop"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "dry": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo publish -p bevy_behavior --dry-run --allow-dirty"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
         }
       },
       "bevy_kbve_net": {
@@ -2878,6 +3116,244 @@
           "implicitDependencies": []
         }
       },
+      "bevy_chat": {
+        "name": "bevy_chat",
+        "type": "lib",
+        "data": {
+          "root": "packages/rust/bevy/bevy_chat",
+          "name": "bevy_chat",
+          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "library",
+          "sourceRoot": "packages/rust/bevy/bevy_chat/src",
+          "tags": [],
+          "targets": {
+            "build": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo build -p bevy_chat"
+                ],
+                "cwd": "packages/rust/bevy/bevy_chat"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo test -p bevy_chat"
+                ],
+                "cwd": "packages/rust/bevy/bevy_chat"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo clippy -p bevy_chat -- -D warnings"
+                ],
+                "cwd": "packages/rust/bevy/bevy_chat"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true
+            },
+            "check-wasm": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo +nightly check -p bevy_chat --target wasm32-unknown-unknown"
+                ],
+                "cwd": "packages/rust/bevy/bevy_chat"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "check-desktop": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo check -p bevy_chat"
+                ],
+                "cwd": "packages/rust/bevy/bevy_chat"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "nx run bevy_chat:test",
+                  "nx run bevy_chat:check-wasm",
+                  "nx run bevy_chat:check-desktop"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "dry": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo publish -p bevy_chat --dry-run --allow-dirty"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
+      "bevy_supa": {
+        "name": "bevy_supa",
+        "type": "lib",
+        "data": {
+          "root": "packages/rust/bevy/bevy_supa",
+          "name": "bevy_supa",
+          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "library",
+          "sourceRoot": "packages/rust/bevy/bevy_supa/src",
+          "tags": [],
+          "targets": {
+            "build": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo build -p bevy_supa"
+                ],
+                "cwd": "packages/rust/bevy/bevy_supa"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo test -p bevy_supa"
+                ],
+                "cwd": "packages/rust/bevy/bevy_supa"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo clippy -p bevy_supa -- -D warnings"
+                ],
+                "cwd": "packages/rust/bevy/bevy_supa"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true
+            },
+            "check-wasm": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo +nightly check -p bevy_supa --target wasm32-unknown-unknown"
+                ],
+                "cwd": "packages/rust/bevy/bevy_supa"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "check-desktop": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo check -p bevy_supa"
+                ],
+                "cwd": "packages/rust/bevy/bevy_supa"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "nx run bevy_supa:test",
+                  "nx run bevy_supa:check-wasm",
+                  "nx run bevy_supa:check-desktop"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "dry": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo publish -p bevy_supa --dry-run --allow-dirty"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "discordsh-bot": {
         "name": "discordsh-bot",
         "type": "app",
@@ -3867,6 +4343,125 @@
           "implicitDependencies": [
             "khashvault"
           ]
+        }
+      },
+      "bevy_db": {
+        "name": "bevy_db",
+        "type": "lib",
+        "data": {
+          "root": "packages/rust/bevy/bevy_db",
+          "name": "bevy_db",
+          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "library",
+          "sourceRoot": "packages/rust/bevy/bevy_db/src",
+          "tags": [],
+          "targets": {
+            "build": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo build -p bevy_db"
+                ],
+                "cwd": "packages/rust/bevy/bevy_db"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo test -p bevy_db"
+                ],
+                "cwd": "packages/rust/bevy/bevy_db"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo clippy -p bevy_db -- -D warnings"
+                ],
+                "cwd": "packages/rust/bevy/bevy_db"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true
+            },
+            "check-wasm": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo +nightly check -p bevy_db --target wasm32-unknown-unknown"
+                ],
+                "cwd": "packages/rust/bevy/bevy_db"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "check-desktop": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo check -p bevy_db"
+                ],
+                "cwd": "packages/rust/bevy/bevy_db"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "nx run bevy_db:test",
+                  "nx run bevy_db:check-wasm",
+                  "nx run bevy_db:check-desktop"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "dry": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo publish -p bevy_db --dry-run --allow-dirty"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
         }
       },
       "herbmail-e2e": {
@@ -6422,6 +7017,25 @@
               ],
               "options": {
                 "command": "node packages/data/codegen/gen-itemdb-data.mjs",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync:itemdb-atlas": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{projectRoot}/src/content/docs/itemdb/*.mdx",
+                "{projectRoot}/public/assets/items/**/*.png",
+                "{workspaceRoot}/packages/data/codegen/gen-itemdb-atlas.mjs"
+              ],
+              "outputs": [
+                "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb-atlas.png",
+                "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs"
+              ],
+              "options": {
+                "command": "node packages/data/codegen/gen-itemdb-atlas.mjs",
                 "cwd": ""
               },
               "cache": true,
@@ -11464,6 +12078,7 @@
       ],
       "bevy_statemachine": [],
       "axum-cryptothrone": [],
+      "bevy_pathfinding": [],
       "chisel-ubuntu-axum": [],
       "bevy_inventory": [],
       "astro-rareicon-e2e": [
@@ -11473,6 +12088,7 @@
           "type": "implicit"
         }
       ],
+      "bevy_behavior": [],
       "bevy_kbve_net": [],
       "discordsh-bot-e2e": [
         {
@@ -11552,6 +12168,8 @@
           "type": "static"
         }
       ],
+      "bevy_chat": [],
+      "bevy_supa": [],
       "discordsh-bot": [],
       "discordsh-e2e": [
         {
@@ -11589,6 +12207,7 @@
           "type": "static"
         }
       ],
+      "bevy_db": [],
       "herbmail-e2e": [
         {
           "source": "herbmail-e2e",
