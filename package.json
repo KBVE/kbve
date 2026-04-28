@@ -132,7 +132,7 @@
 		"@react-three/flex": "^1.0.1",
 		"@supabase/supabase-js": "^2.95.3",
 		"@swc/helpers": "0.5.18",
-		"@tanstack/query-core": "^5.90.20",
+		"@tanstack/query-core": "^5.100.5",
 		"@tauri-apps/api": "^2.0.0",
 		"@tauri-apps/plugin-opener": "^2.0.0",
 		"@tauri-apps/plugin-store": "^2.0.0",
