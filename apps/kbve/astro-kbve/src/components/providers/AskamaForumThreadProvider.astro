@@ -68,13 +68,13 @@
 
 					<div
 						class="thread-card__tags"
-						set:html={`{{ tags_html }}`}
+						set:html={`{{ tags_html|safe }}`}
 					/>
 				</header>
 
 				<div
 					class="thread-card__body prose"
-					set:html={`{{ thread_body_html }}`}
+					set:html={`{{ thread_body_html|safe }}`}
 				/>
 			</article>
 
@@ -125,7 +125,7 @@
 
 				<div
 					class="thread-comments__tree"
-					set:html={`{{ comments_html }}`}
+					set:html={`{{ comments_html|safe }}`}
 				/>
 			</section>
 		</main>

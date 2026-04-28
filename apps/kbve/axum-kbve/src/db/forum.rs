@@ -218,6 +218,50 @@ impl ForumService {
             .and_then(|row| row.space.map(|space| (row.thread, space))))
     }
 
+    /// Batch resolve `space_id → SpaceRow` via direct PostgREST SELECT.
+    /// Single round-trip with `?id=in.(…)`. Empty input returns an empty
+    /// map. Capped at 100 ids per call.
+    pub async fn get_spaces_by_ids(
+        &self,
+        ids: &[String],
+    ) -> Result<std::collections::HashMap<String, SpaceRow>, String> {
+        if ids.is_empty() {
+            return Ok(std::collections::HashMap::new());
+        }
+        let mut deduped: Vec<&str> = ids.iter().map(|s| s.as_str()).collect();
+        deduped.sort();
+        deduped.dedup();
+        if deduped.len() > 100 {
+            deduped.truncate(100);
+        }
+        let in_list = format!("({})", deduped.join(","));
+
+        let url = format!("{}/spaces", self.client.config().rest_url());
+        let headers = self.client.rpc_headers(SCHEMA)?;
+
+        let response = self
+            .client
+            .client()
+            .get(&url)
+            .headers(headers)
+            .query(&[("select", "*"), ("id", format!("in.{}", in_list).as_str())])
+            .send()
+            .await
+            .map_err(|e| format!("forum.spaces network error: {}", e))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!("forum.spaces {} → {}", status, body));
+        }
+
+        let rows: Vec<SpaceRow> = response
+            .json()
+            .await
+            .map_err(|e| format!("forum.spaces parse: {}", e))?;
+        Ok(rows.into_iter().map(|s| (s.id.clone(), s)).collect())
+    }
+
     pub async fn get_space_by_slug(&self, slug: &str) -> Result<Option<SpaceRow>, String> {
         let url = format!("{}/spaces", self.client.config().rest_url());
         let headers = self.client.rpc_headers(SCHEMA)?;

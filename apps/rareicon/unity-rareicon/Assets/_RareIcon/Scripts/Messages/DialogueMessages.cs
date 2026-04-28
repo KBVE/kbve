@@ -46,6 +46,9 @@ namespace RareIcon
         public DialogueChoiceMessage(int index) => Index = index;
     }
 
+    /// <summary>Player asked to abort the active tree (X button on the VN panel). Distinct from <see cref="DialogueAdvanceMessage"/> because choice nodes block advance — cancel skips straight to End regardless of the current node's choice state. Controller emits <see cref="DialogueEndedMessage"/> as the post-cancel signal so downstream listeners stay agnostic to how the tree closed.</summary>
+    public readonly struct DialogueCancelMessage { }
+
     /// <summary>Active tree finished (reached a terminal node or was cancelled). Sent once per tree run.</summary>
     public readonly struct DialogueEndedMessage
     {

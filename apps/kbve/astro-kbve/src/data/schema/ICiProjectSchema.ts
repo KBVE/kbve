@@ -11,6 +11,7 @@ import {
 	DispatchPipelineSchema,
 	DispatchPipelines,
 	ExternalPublishSchema,
+	GameEngineConfigSchema,
 	TestFrameworkSchema,
 	TestFrameworks,
 } from '../../../../../../packages/data/codegen/generated/ci_registry-schema';
@@ -20,6 +21,7 @@ export {
 	DispatchPipelineSchema,
 	DispatchPipelines,
 	ExternalPublishSchema,
+	GameEngineConfigSchema,
 	TestFrameworkSchema,
 	TestFrameworks,
 };
@@ -77,6 +79,7 @@ export const ICiProjectSchema = AstroProjectExtensions.extend({
 	test_framework: TestFrameworkSchema.optional(),
 	shell_path: CiProjectSchema.shape.shell_path,
 	external_publish: ExternalPublishSchema.optional(),
+	engine: GameEngineConfigSchema.optional(),
 });
 
 export type ICiProject = z.infer<typeof ICiProjectSchema>;

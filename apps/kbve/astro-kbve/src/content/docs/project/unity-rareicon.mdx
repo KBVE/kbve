@@ -1,0 +1,85 @@
+---
+title: Unity RareIcon
+description: |
+    RareIcon Unity client — DOTS hex world, Burst-driven sim, ships to itch.io as Win/Linux/macOS standalone and to Steam (AppID 2238370) as a demo.
+sidebar:
+    label: Unity RareIcon
+    order: 96
+tags:
+    - unity
+    - game
+    - rareicon
+key: unity_rareicon
+pipeline: unity
+app_name: rareicon
+source_path: apps/rareicon/unity-rareicon
+version_toml: apps/rareicon/unity-rareicon/version.toml
+version: "0.1.0"
+runner: ubuntu-latest
+author: h0lybyte
+license: KBVE
+status: beta
+homepage_url: https://kbve.itch.io/rareicon
+engine:
+    version: "6000.0.30f1"
+    project_path: apps/rareicon/unity-rareicon
+    build_targets:
+        - StandaloneLinux64
+        - StandaloneWindows64
+        - StandaloneOSX
+    license_method: personal
+external_publish:
+    itch_user: kbve
+    itch_game: rareicon
+    steam_app_id: "2238370"
+    steam_branch: demo
+---
+
+## Overview
+
+RareIcon Unity client. Source: `apps/rareicon/unity-rareicon`. ECS DOTS world (Hex / Items / Logistics / Buildings / Units / Combat / Professions / Quests).
+
+## Pipeline
+
+`pipeline: unity` → dispatched by `ci-main.yml` to `ci-unity.yml` whenever `version` here outpaces `version.toml`. Standard manifest-driven flow, no bespoke workflow.
+
+## Build matrix
+
+`engine.build_targets`:
+
+- `StandaloneLinux64`
+- `StandaloneWindows64`
+- `StandaloneOSX`
+
+WebGL deliberately omitted — DOTS hybrid renderer + Burst aren't WebGL-friendly.
+
+## External publish
+
+Two destinations from one build:
+
+**Itch** (`external_publish.itch_user` / `itch_game`):
+
+- `kbve/rareicon:linux-x86_64`
+- `kbve/rareicon:windows-x86_64`
+- `kbve/rareicon:osx-universal`
+
+Build runs with `DISABLESTEAMWORKS` scripting define so SteamManager auto-no-ops when launched outside Steam.
+
+**Steam** (`external_publish.steam_app_id`):
+
+- AppID 2238370 (registered)
+- `external_publish.steam_branch = demo`
+- Build keeps `steam_appid.txt` + Steamworks.NET enabled
+
+The same `ci-unity.yml` run can target either route — the workflow reads `external_publish` to pick which post-build deploy fires.
+
+## Secrets required
+
+- `UNITY_LICENSE` (Personal/Professional auth artifact, GameCI flow)
+- `UNITY_EMAIL`, `UNITY_PASSWORD` (Personal license)
+- `BUTLER_API_KEY` (itch.io upload)
+- `STEAM_USERNAME`, `STEAM_CONFIG_VDF` (Steam Guard mobile auth, encoded)
+
+## Trigger
+
+Tag-driven via the standard manifest dispatch. Bump `version` here, run `npx nx run astro-kbve:sync:ci-manifest`, commit, the next push fans `ci-main.yml` → `ci-unity.yml` for this entry.

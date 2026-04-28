@@ -39,6 +39,9 @@ namespace RareIcon
 
         bool _spawned;
 
+        /// <summary>True while the one-shot initial spawn loop runs; <see cref="PublishTraitToast"/> reads this and skips publishing so the king's starting retinue doesn't fire "Hero born" toasts. New heroes (barracks recruitment, settler arrival) spawn after the loop completes and toast normally.</summary>
+        static bool _suppressTraitToasts;
+
         protected override void OnUpdate()
         {
             if (!WorldGenSession.HasStarted) return;
@@ -46,6 +49,10 @@ namespace RareIcon
             _spawned = true;
 
             if (!EnsureRenderAssets()) return;
+
+            _suppressTraitToasts = true;
+            try
+            {
 
             SpawnKingAt(EntityManager, new int2(0, 0));
 
@@ -76,6 +83,9 @@ namespace RareIcon
                 uint rng = h * 0xC2B2AE3Du ^ ((uint)i * 0x27D4EB2Fu);
                 SpawnGoblinAt(EntityManager, new int2(q, r), rng);
             }
+
+            }
+            finally { _suppressTraitToasts = false; }
         }
 
         /// <summary>Spawn a humanoid (defaults to Goblin) at the given hex with the given faction. Used for garrisons, ghost-unit restore, and Barracks recruitment (Soldier).</summary>
@@ -1070,6 +1080,7 @@ namespace RareIcon
 
         static void PublishTraitToast(UnitTraits traits, byte unitType)
         {
+            if (_suppressTraitToasts) return;
             if (unitType == UnitType.Goblin) return;
             if (traits.T0 == TraitKind.None) return;
             if (!IsNoteworthy(traits)) return;

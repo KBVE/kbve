@@ -90,6 +90,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 # [STAGE D] - Cargo Chef Cook (Cache External Dependencies)
 # ============================================================================
 FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder-deps
+ENV CARGO_INCREMENTAL=0
 
 WORKDIR /app
 
@@ -100,12 +101,14 @@ COPY --from=planner /app/packages packages
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo chef cook --release --recipe-path recipe.json -p axum-rareicon
 
 # ============================================================================
 # [STAGE E] - Foundation Layer (Compile kbve + jedi from real source)
 # ============================================================================
 FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS foundation
+ENV CARGO_INCREMENTAL=0
 
 WORKDIR /app
 
@@ -133,6 +136,7 @@ RUN mkdir -p packages/rust/bevy/bevy_tasker/src && \
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo build --release -p kbve -p jedi -p bevy_kbve_net -p bevy_npc
 
 # ============================================================================
@@ -155,6 +159,7 @@ COPY apps/rareicon/axum-rareicon apps/rareicon/axum-rareicon
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo build --release -p axum-rareicon && \
     strip target/release/axum-rareicon
 

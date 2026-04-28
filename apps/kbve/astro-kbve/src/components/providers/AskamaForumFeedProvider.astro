@@ -52,13 +52,13 @@
 			<section
 				class="forum-feed"
 				aria-label="Threads"
-				set:html={`{{ feed_items_html }}`}
+				set:html={`{{ feed_items_html|safe }}`}
 			/>
 
 			<nav
 				class="forum-shell__pagination"
 				aria-label="Pagination"
-				set:html={`{{ pagination_html }}`}
+				set:html={`{{ pagination_html|safe }}`}
 			/>
 		</main>
 
@@ -68,7 +68,7 @@
 				<nav
 					class="forum-card__body"
 					aria-label="Spaces"
-					set:html={`{{ spaces_nav_html }}`}
+					set:html={`{{ spaces_nav_html|safe }}`}
 				/>
 			</section>
 
