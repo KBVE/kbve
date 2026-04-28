@@ -208,6 +208,9 @@ fn router(state: AppState) -> Router {
         .route("/@{username}", get(profile_handler))
         .route("/osrs/{item}", get(osrs_item_handler))
         .route("/osrs/{item}/", get(osrs_item_handler_trailing))
+        // Bare /forum (no trailing slash) → /forum/. Crawlers + typed
+        // URLs land on the canonical with a permanent redirect.
+        .route("/forum", get(|| async { Redirect::permanent("/forum/") }))
         .route("/forum/", get(forum_feed_handler))
         .route("/forum/s/{slug}", get(forum_space_handler))
         .route("/forum/t/{slug_or_id}", get(forum_thread_handler))
@@ -1975,12 +1978,18 @@ async fn render_feed_page(space_slug: Option<String>, q: &FeedSortQuery) -> Resp
         }
     };
 
-    // Build a (space_id → SpaceRow) lookup. Currently we either filter to
-    // one space (single entry) or accept the row.space_id stand-in. Future:
-    // batch-fetch spaces referenced in the feed for cross-space lists.
+    // Build (space_id → SpaceRow). When filtered to a single space we
+    // already have the row; otherwise batch-fetch every space referenced
+    // by the feed rows so the chip renders the slug instead of a UUID.
     let mut spaces_by_id = std::collections::HashMap::new();
     if let Some(s) = space.as_ref() {
         spaces_by_id.insert(s.id.clone(), s.clone());
+    } else {
+        let space_ids: Vec<String> = rows.iter().map(|r| r.space_id.clone()).collect();
+        spaces_by_id = svc.get_spaces_by_ids(&space_ids).await.unwrap_or_else(|e| {
+            tracing::warn!("forum feed: spaces batch failed: {}", e);
+            std::collections::HashMap::new()
+        });
     }
 
     // Batch-resolve every author UUID to a username. One round-trip via
