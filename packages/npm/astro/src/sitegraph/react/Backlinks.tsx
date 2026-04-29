@@ -1,18 +1,12 @@
 import { useEffect, useState } from 'react';
+import { fetchSiteGraph } from './cache';
 
-interface SiteGraphNode {
-	title: string;
-	links: string[];
-	backlinks: string[];
-}
-
-type SiteGraphData = Record<string, SiteGraphNode>;
-
-interface BacklinksProps {
+export interface BacklinksProps {
 	currentSlug: string;
+	endpoint?: string;
 }
 
-export default function Backlinks({ currentSlug }: BacklinksProps) {
+export function Backlinks({ currentSlug, endpoint }: BacklinksProps) {
 	const [backlinks, setBacklinks] = useState<Array<{
 		slug: string;
 		title: string;
@@ -20,12 +14,8 @@ export default function Backlinks({ currentSlug }: BacklinksProps) {
 
 	useEffect(() => {
 		let cancelled = false;
-		fetch('/api/sitegraph.json')
-			.then((res) => {
-				if (!res.ok) throw new Error(`HTTP ${res.status}`);
-				return res.json();
-			})
-			.then((data: SiteGraphData) => {
+		fetchSiteGraph(endpoint)
+			.then((data) => {
 				if (cancelled) return;
 				const node = data[currentSlug];
 				if (!node?.backlinks?.length) {
@@ -35,10 +25,7 @@ export default function Backlinks({ currentSlug }: BacklinksProps) {
 				setBacklinks(
 					node.backlinks
 						.filter((slug) => data[slug])
-						.map((slug) => ({
-							slug,
-							title: data[slug].title,
-						}))
+						.map((slug) => ({ slug, title: data[slug].title }))
 						.sort((a, b) => a.title.localeCompare(b.title)),
 				);
 			})
@@ -48,7 +35,7 @@ export default function Backlinks({ currentSlug }: BacklinksProps) {
 		return () => {
 			cancelled = true;
 		};
-	}, [currentSlug]);
+	}, [currentSlug, endpoint]);
 
 	if (backlinks === null) return null;
 	if (backlinks.length === 0) return null;
@@ -92,3 +79,5 @@ export default function Backlinks({ currentSlug }: BacklinksProps) {
 		</div>
 	);
 }
+
+export default Backlinks;

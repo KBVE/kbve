@@ -60,6 +60,12 @@ namespace RareIcon
             if (_stage.Value == TitleStage.Locale) _stage.Value = TitleStage.Seed;
         }
 
+        /// <summary>Drop back to the locale picker from the seed stage. No-op if generation has already started — there's no in-flight cancel for that path.</summary>
+        public void BackToLocale()
+        {
+            if (_stage.Value == TitleStage.Seed) _stage.Value = TitleStage.Locale;
+        }
+
         public void SetSeed(int seed) => _seed.Value = seed;
 
         public void Randomize() => _seed.Value = unchecked((int)DateTime.UtcNow.Ticks ^ UnityEngine.Random.Range(int.MinValue, int.MaxValue));

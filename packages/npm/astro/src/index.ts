@@ -84,3 +84,38 @@ export { SupabaseGateway } from '@kbve/droid';
 
 // Utilities
 export { cn } from './utils/cn';
+
+// Sitegraph
+export type {
+	SiteGraphData,
+	SiteGraphNode,
+	SiteGraphEntry,
+	Extractor,
+	ExtractorResult,
+	BuildSiteGraphOptions,
+	FrontmatterLinksOptions,
+	CollectionRefField,
+	CollectionRefsOptions,
+	SiteGraphProps,
+	BacklinksProps,
+	SiteGraphLoaderProps,
+} from './sitegraph';
+export {
+	buildSiteGraph,
+	markdownExtractor,
+	mdxAnchorExtractor,
+	frontmatterLinksExtractor,
+	collectionRefsExtractor,
+	fetchSiteGraph,
+	resetSiteGraphCache,
+	$siteGraphCache,
+	createSiteGraphWorker,
+	setSiteGraphWorker,
+	clearSiteGraphWorker,
+	getSiteGraphWorkerPort,
+	fetchViaWorker,
+	SITE_GRAPH_WORKER_SOURCE,
+	SiteGraph,
+	Backlinks,
+	SiteGraphLoader,
+} from './sitegraph';

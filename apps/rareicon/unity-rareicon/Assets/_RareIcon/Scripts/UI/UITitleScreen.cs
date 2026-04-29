@@ -79,6 +79,13 @@ namespace RareIcon
                 window.AddToClassList("title-window--enter");
                 window.schedule.Execute(() => window.RemoveFromClassList("title-window--enter"))
                               .StartingIn(32);
+
+                window.RegisterCallback<GeometryChangedEvent>(evt =>
+                {
+                    bool narrow = evt.newRect.width > 0f && evt.newRect.width < 420f;
+                    if (narrow) window.AddToClassList("title-window--narrow");
+                    else        window.RemoveFromClassList("title-window--narrow");
+                });
             }
 
             _wrapper         = _root.Q<VisualElement>("title-wrapper");
@@ -122,7 +129,7 @@ namespace RareIcon
             _seedInput?.RegisterValueChangedCallback(evt => _session.SetSeed(evt.newValue));
 
             _root.Q<Button>("title-seed-random").clicked += _session.Randomize;
-            _root.Q<Button>("title-seed-back").clicked   += () => _session.SelectLocale(_locale.CurrentLocale);
+            _root.Q<Button>("title-seed-back").clicked   += _session.BackToLocale;
             _root.Q<Button>("title-seed-confirm").clicked += () => _session.BeginGeneration();
         }
 

@@ -9,6 +9,7 @@
             <ui:VisualElement class="title-header">
                 <ui:Label name="title-brand" class="title-brand" text="RAREICON" />
                 <ui:Label name="title-tagline" class="title-tagline" text="BULLET-HELL ROGUELITE" />
+                <ui:VisualElement class="title-tagline-rule" />
             </ui:VisualElement>
 
             <ui:VisualElement name="title-stage-locale" class="title-stage">
