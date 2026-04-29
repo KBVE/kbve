@@ -354,6 +354,35 @@ COMMENT ON FUNCTION forum.is_user_banned IS
 REVOKE ALL ON FUNCTION forum.is_user_banned(UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION forum.is_user_banned(UUID) TO authenticated;
 
+-- Cross-schema staff check. Returns TRUE if the user has any non-zero
+-- permissions row in `staff.members`. Used by service_staff_* RPCs to
+-- gate moderation calls at the SQL layer (belt-and-suspenders behind
+-- the axum-kbve JWT staff check).
+CREATE OR REPLACE FUNCTION forum.is_staff(p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+STABLE
+AS $$
+BEGIN
+    IF p_user_id IS NULL THEN
+        RETURN FALSE;
+    END IF;
+    RETURN EXISTS (
+        SELECT 1 FROM staff.members
+         WHERE user_id = p_user_id
+           AND permissions <> 0
+    );
+END;
+$$;
+
+COMMENT ON FUNCTION forum.is_staff(UUID) IS
+    'TRUE if the user has any non-zero permissions row in staff.members.';
+
+REVOKE ALL ON FUNCTION forum.is_staff(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION forum.is_staff(UUID) TO authenticated, service_role;
+
 -- Username gate. Posting without a username is rejected upstream of the
 -- table CHECKs; resolves the read-side stand-in problem (axum-kbve was
 -- forced to render an 8-char UUID for unnamed authors). Calls into the
@@ -766,12 +795,20 @@ CREATE POLICY tags_public_read ON forum.tags
     FOR SELECT TO anon, authenticated
     USING (TRUE);
 
-CREATE POLICY threads_public_read ON forum.threads
+-- Single SELECT policy. Used to be split into threads_public_read +
+-- threads_author_read_drafts but Postgres OR's permissive policies and
+-- evaluates each per row. The merged form runs once per row. The
+-- `(SELECT auth.uid())` wrap also caches the function call once per
+-- query (Supabase RLS perf advisory).
+CREATE POLICY threads_select ON forum.threads
     FOR SELECT TO anon, authenticated
-    USING (status IN ('active', 'archived', 'locked', 'sold', 'expired'));
-CREATE POLICY threads_author_read_drafts ON forum.threads
-    FOR SELECT TO authenticated
-    USING (author_id = auth.uid() AND status IN ('draft', 'scheduled', 'pending'));
+    USING (
+        status IN ('active', 'archived', 'locked', 'sold', 'expired')
+        OR (
+            author_id = (SELECT auth.uid())
+            AND status IN ('draft', 'scheduled', 'pending')
+        )
+    );
 
 -- Item 2: insert policy gates on banned-user check. Item 1 also REVOKEs
 -- the table-level INSERT below — both layers enforce the same invariant
@@ -780,23 +817,27 @@ CREATE POLICY threads_author_read_drafts ON forum.threads
 CREATE POLICY threads_author_insert ON forum.threads
     FOR INSERT TO authenticated
     WITH CHECK (
-        author_id = auth.uid()
+        author_id = (SELECT auth.uid())
         AND status IN ('active', 'draft', 'scheduled')
-        AND NOT forum.is_user_banned(auth.uid())
+        AND NOT forum.is_user_banned((SELECT auth.uid()))
     );
 
-CREATE POLICY comments_public_read ON forum.comments
+-- Single SELECT policy — same merged-permissive optimization as threads.
+CREATE POLICY comments_select ON forum.comments
     FOR SELECT TO anon, authenticated
-    USING (status = 'active');
-CREATE POLICY comments_author_read_drafts ON forum.comments
-    FOR SELECT TO authenticated
-    USING (author_id = auth.uid() AND status = 'draft');
+    USING (
+        status = 'active'
+        OR (
+            author_id = (SELECT auth.uid())
+            AND status = 'draft'
+        )
+    );
 
 CREATE POLICY comments_author_insert ON forum.comments
     FOR INSERT TO authenticated
     WITH CHECK (
-        author_id = auth.uid()
-        AND NOT forum.is_user_banned(auth.uid())
+        author_id = (SELECT auth.uid())
+        AND NOT forum.is_user_banned((SELECT auth.uid()))
     );
 
 CREATE POLICY thread_tags_public_read ON forum.thread_tags

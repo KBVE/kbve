@@ -1,21 +1,22 @@
 //! Built-in behavior tree leaf nodes.
 //!
-//! These are generic over any observation type that implements the
-//! [`Positioned`], [`Healthed`], [`Aware`], and [`Ticked`] traits, plus
-//! any action type that can be constructed from the provided factory
-//! closures. This keeps the leaves game-agnostic while each game
-//! supplies its own command enum (MC's `NpcCommand`, Isometric's
-//! `BattleAction`, etc.).
+//! Generic over any observation type that implements the relevant
+//! observation traits ([`Positioned`], [`Healthed`], [`Aware`],
+//! [`Ticked`]) plus any action type that can be constructed from the
+//! provided factory closures. This keeps the leaves game-agnostic while
+//! each game supplies its own command enum (MC's `NpcCommand`,
+//! Isometric's `BattleAction`, etc.).
 
 use crate::cooldown::BehaviorContext;
 use crate::observation::{Aware, Healthed, Positioned, Ticked, dist_sq};
 
 use super::{BehaviorNode, NodeStatus};
 
-// ── Conditions ──────────────────────────────────────────────────────
-
-/// Succeeds if health is below `threshold` (absolute HP, not fraction).
+/// Succeeds if health is below `threshold` (absolute HP, not a fraction).
+///
+/// Pure condition node — emits no commands.
 pub struct IsHealthLow {
+    /// Absolute HP value below which the node succeeds.
     pub threshold: f32,
 }
 
@@ -34,6 +35,8 @@ where
 }
 
 /// Succeeds if any hostile entity is within the observation's nearby list.
+///
+/// Pure condition node — emits no commands.
 pub struct HasHostileNearby;
 
 impl<O, A> BehaviorNode<O, A> for HasHostileNearby
@@ -50,14 +53,19 @@ where
     }
 }
 
-// ── Actions (closure-driven) ────────────────────────────────────────
-
 /// Wander randomly within `radius` of the current position.
 ///
 /// The caller supplies `make_move` — a closure that turns a target
-/// position into the game's action type.
+/// position and walking-speed multiplier into the game's action type.
+///
+/// Wander is deterministic per tick — the angle derives from
+/// `tick * 0.1`, so the same NPC at the same tick always picks the
+/// same target. Pair with a per-NPC seed if you want randomness.
 pub struct Wander<F> {
+    /// Maximum displacement from the current position.
     pub radius: f64,
+    /// Factory turning `(target_pos, speed_mult)` into the game's
+    /// action type.
     pub make_move: F,
 }
 
@@ -81,9 +89,23 @@ where
 
 /// Flee from the nearest hostile entity.
 ///
-/// `make_move` converts (target_pos, speed) into the game's action type.
+/// Picks the closest hostile in `observation.nearby_entities()` and
+/// emits a single move command toward a point `flee_distance` units
+/// away in the opposite direction (XZ plane only — Y is preserved so
+/// flat-ground games don't try to fly).
+///
+/// `make_move` converts `(target_pos, speed_mult)` into the game's
+/// action type.
+///
+/// # Returns
+///
+/// [`NodeStatus::Success`] with one move command when a hostile is
+/// found; [`NodeStatus::Failure`] when there are no hostiles nearby.
 pub struct Flee<F> {
+    /// Distance to flee in the direction away from the nearest hostile.
     pub flee_distance: f64,
+    /// Factory turning `(target_pos, speed_mult)` into the game's
+    /// action type. Speed multiplier is `1.4` (sprint).
     pub make_move: F,
 }
 
@@ -126,9 +148,17 @@ where
 
 /// Attack the nearest hostile entity within `range`.
 ///
-/// `make_attack` converts a target entity_id into the game's action type.
+/// `make_attack` converts a target `entity_id` into the game's action
+/// type.
+///
+/// # Returns
+///
+/// [`NodeStatus::Success`] with one attack command when a hostile is
+/// in range; [`NodeStatus::Failure`] otherwise.
 pub struct AttackNearest<F> {
+    /// Maximum distance at which the NPC will engage.
     pub range: f64,
+    /// Factory turning `entity_id` into the game's action type.
     pub make_attack: F,
 }
 
@@ -161,12 +191,24 @@ where
     }
 }
 
-/// Call for help when health drops below threshold + hostiles nearby.
+/// Call for help when health drops below threshold and hostiles are nearby.
 ///
-/// Checks both per-NPC and global cooldowns. `make_actions` produces the
-/// game-specific commands (chat broadcast + spawn reinforcements, etc.).
+/// Checks both the per-NPC and the global cooldown via [`BehaviorContext`]
+/// before emitting. On success, marks both cooldowns fired so callers
+/// don't spam the broadcast.
+///
+/// `make_actions` produces the game-specific commands (chat broadcast +
+/// spawn reinforcements, etc.).
+///
+/// # Returns
+///
+/// [`NodeStatus::Success`] with the actions from `make_actions` when:
+/// hostiles are nearby AND health is below `health_threshold` AND both
+/// cooldowns are ready. Otherwise [`NodeStatus::Failure`].
 pub struct CallAllies<F> {
+    /// Absolute HP value below which the NPC will broadcast.
     pub health_threshold: f32,
+    /// Factory producing the broadcast actions (chat, spawn allies, etc.).
     pub make_actions: F,
 }
 

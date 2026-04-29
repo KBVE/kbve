@@ -1,10 +1,16 @@
+//! Bevy systems wired up by [`crate::BevySkillsPlugin`].
+
 use bevy::prelude::*;
 
 use crate::events::{GrantXpMsg, LevelUpMsg, SkillCheckMsg, SkillCheckResultMsg};
 use crate::profile::SkillProfile;
 use crate::registry::SkillRegistry;
 
-/// Processes [`GrantXpMsg`]s: adds XP, recalculates levels, fires [`LevelUpMsg`]s.
+/// Drain [`GrantXpMsg`]s, add XP, recalculate levels, and fire a
+/// [`LevelUpMsg`] whenever the level increased.
+///
+/// Targets entities carrying a [`SkillProfile`] component. Messages
+/// addressed to entities without a profile are logged + skipped.
 pub fn process_xp_grants(
     mut xp_msgs: MessageReader<GrantXpMsg>,
     mut level_up_msgs: MessageWriter<LevelUpMsg>,
@@ -39,7 +45,11 @@ pub fn process_xp_grants(
     }
 }
 
-/// Processes [`SkillCheckMsg`]s: reads the profile and fires [`SkillCheckResultMsg`]s.
+/// Drain [`SkillCheckMsg`]s, read the entity's level, and fire a
+/// [`SkillCheckResultMsg`] for every check (passed or failed).
+///
+/// Entities without a [`SkillProfile`] are treated as level `0`, so
+/// any non-zero requirement fails for them.
 pub fn process_skill_checks(
     mut check_msgs: MessageReader<SkillCheckMsg>,
     mut result_msgs: MessageWriter<SkillCheckResultMsg>,

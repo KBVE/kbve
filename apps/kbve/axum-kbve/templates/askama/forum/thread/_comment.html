@@ -1,8 +1,14 @@
-<article class="forum-comment" data-depth="{{ depth }}" id="c{{ id }}">
+<article class="forum-comment" data-depth="{{ depth }}" data-comment-id="{{ id }}" data-author-id="{{ author_id }}" id="c{{ id }}">
   <header class="forum-comment__header">
     <a href="/@{{ author_username }}">@{{ author_username }}</a>
     · {{ created_at_human }}
     · {{ score }} pts
+    <span class="forum-comment__actions" hidden>
+      <button type="button" class="forum-comment__action" data-action="edit-own">Edit</button>
+      <button type="button" class="forum-comment__action" data-action="mod-edit">Mod edit</button>
+      <button type="button" class="forum-comment__action forum-comment__action--danger" data-action="mod-remove">Remove</button>
+    </span>
   </header>
   <div class="forum-comment__body">{{ body_html|safe }}</div>
+  <template class="forum-comment__raw">{{ body_raw }}</template>
 </article>

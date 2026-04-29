@@ -1383,7 +1383,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.123"
+version = "1.0.124"
 dependencies = [
  "anyhow",
  "askama",

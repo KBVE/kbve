@@ -1,16 +1,23 @@
+//! Quadratic XP curve.
+
 /// XP curve defining how much XP is needed per level.
 ///
-/// The default curve uses a quadratic formula:
-/// `xp_for_level(n) = base + (n * n * scaling)`
+/// Default formula:
 ///
-/// This produces a gentle early game and a steep late game.
+/// ```text
+/// xp_for_level(n) = base * n + scaling * n * n
+/// ```
+///
+/// Quadratic scaling produces a gentle early game and a steep late
+/// game. Defaults are tuned for a 99-level cap (RuneScape-style
+/// progression).
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct XpCurve {
     /// Base XP required for level 1.
     pub base: u64,
     /// Quadratic scaling factor.
     pub scaling: u64,
-    /// Maximum level a skill can reach.
+    /// Maximum level the curve allows.
     pub max_level: u32,
 }
 
@@ -25,7 +32,11 @@ impl Default for XpCurve {
 }
 
 impl XpCurve {
-    /// Total XP required to reach a given level (cumulative).
+    /// Total XP required to reach `level` (cumulative).
+    ///
+    /// # Returns
+    ///
+    /// `0` for level `0`; `base * n + scaling * n * n` for level `n`.
     pub fn xp_for_level(&self, level: u32) -> u64 {
         if level == 0 {
             return 0;
@@ -34,7 +45,14 @@ impl XpCurve {
         self.base * n + self.scaling * n * n
     }
 
-    /// Calculate the level for a given total XP amount.
+    /// Level corresponding to a given total XP amount.
+    ///
+    /// # Returns
+    ///
+    /// The highest level whose [`xp_for_level`] is `<= total_xp`,
+    /// capped at [`Self::max_level`].
+    ///
+    /// [`xp_for_level`]: Self::xp_for_level
     pub fn level_for_xp(&self, total_xp: u64) -> u32 {
         let mut level = 0u32;
         while level < self.max_level && self.xp_for_level(level + 1) <= total_xp {
@@ -43,7 +61,8 @@ impl XpCurve {
         level
     }
 
-    /// XP remaining until the next level.
+    /// XP remaining until the next level. Returns `0` once the cap is
+    /// reached.
     pub fn xp_to_next_level(&self, total_xp: u64) -> u64 {
         let current = self.level_for_xp(total_xp);
         if current >= self.max_level {
@@ -52,7 +71,9 @@ impl XpCurve {
         self.xp_for_level(current + 1).saturating_sub(total_xp)
     }
 
-    /// Progress fraction (0.0 to 1.0) through the current level.
+    /// Progress fraction `0.0..=1.0` through the current level.
+    ///
+    /// Returns `1.0` at the level cap.
     pub fn progress(&self, total_xp: u64) -> f32 {
         let current = self.level_for_xp(total_xp);
         if current >= self.max_level {
@@ -76,7 +97,7 @@ mod tests {
     fn default_curve_basics() {
         let curve = XpCurve::default();
         assert_eq!(curve.xp_for_level(0), 0);
-        assert_eq!(curve.xp_for_level(1), 75); // 50 + 25
+        assert_eq!(curve.xp_for_level(1), 75);
         assert_eq!(curve.level_for_xp(0), 0);
         assert_eq!(curve.level_for_xp(75), 1);
         assert_eq!(curve.level_for_xp(74), 0);

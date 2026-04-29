@@ -173,17 +173,19 @@ CREATE INDEX idx_user_follows_follower    ON forum.user_follows (follower_id, cr
 ALTER TABLE forum.user_follows ENABLE ROW LEVEL SECURITY;
 ALTER TABLE forum.user_follows FORCE ROW LEVEL SECURITY;
 
+-- All `auth.uid()` calls wrapped in `(SELECT …)` so Postgres caches
+-- one call per query (Supabase RLS perf advisory).
 CREATE POLICY user_follows_self_read ON forum.user_follows
     FOR SELECT TO authenticated
-    USING (follower_id = auth.uid());
+    USING (follower_id = (SELECT auth.uid()));
 
 CREATE POLICY user_follows_self_write ON forum.user_follows
     FOR INSERT TO authenticated
-    WITH CHECK (follower_id = auth.uid());
+    WITH CHECK (follower_id = (SELECT auth.uid()));
 
 CREATE POLICY user_follows_self_delete ON forum.user_follows
     FOR DELETE TO authenticated
-    USING (follower_id = auth.uid());
+    USING (follower_id = (SELECT auth.uid()));
 
 -- ===========================================
 -- BOOKMARKS — private saved threads per user
@@ -220,20 +222,20 @@ ALTER TABLE forum.bookmarks FORCE ROW LEVEL SECURITY;
 -- pg_policies.
 CREATE POLICY bookmarks_self_select ON forum.bookmarks
     FOR SELECT TO authenticated
-    USING (user_id = auth.uid());
+    USING (user_id = (SELECT auth.uid()));
 
 CREATE POLICY bookmarks_self_insert ON forum.bookmarks
     FOR INSERT TO authenticated
-    WITH CHECK (user_id = auth.uid());
+    WITH CHECK (user_id = (SELECT auth.uid()));
 
 CREATE POLICY bookmarks_self_update ON forum.bookmarks
     FOR UPDATE TO authenticated
-    USING (user_id = auth.uid())
-    WITH CHECK (user_id = auth.uid());
+    USING (user_id = (SELECT auth.uid()))
+    WITH CHECK (user_id = (SELECT auth.uid()));
 
 CREATE POLICY bookmarks_self_delete ON forum.bookmarks
     FOR DELETE TO authenticated
-    USING (user_id = auth.uid());
+    USING (user_id = (SELECT auth.uid()));
 
 -- ===========================================
 -- THREAD_SUBSCRIPTIONS — per-thread notification opt-in
@@ -268,20 +270,20 @@ ALTER TABLE forum.thread_subscriptions FORCE ROW LEVEL SECURITY;
 -- Split FOR ALL into per-action policies (matches bookmarks above).
 CREATE POLICY thread_subscriptions_self_select ON forum.thread_subscriptions
     FOR SELECT TO authenticated
-    USING (user_id = auth.uid());
+    USING (user_id = (SELECT auth.uid()));
 
 CREATE POLICY thread_subscriptions_self_insert ON forum.thread_subscriptions
     FOR INSERT TO authenticated
-    WITH CHECK (user_id = auth.uid());
+    WITH CHECK (user_id = (SELECT auth.uid()));
 
 CREATE POLICY thread_subscriptions_self_update ON forum.thread_subscriptions
     FOR UPDATE TO authenticated
-    USING (user_id = auth.uid())
-    WITH CHECK (user_id = auth.uid());
+    USING (user_id = (SELECT auth.uid()))
+    WITH CHECK (user_id = (SELECT auth.uid()));
 
 CREATE POLICY thread_subscriptions_self_delete ON forum.thread_subscriptions
     FOR DELETE TO authenticated
-    USING (user_id = auth.uid());
+    USING (user_id = (SELECT auth.uid()));
 
 -- ============================================================
 -- Grants — base profile table is RPC-only on the write side,
