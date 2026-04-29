@@ -83,7 +83,7 @@ field via `#[holy(sanitize = "...")]` and runs in the order written.
 | `nul_strip`       | `String`   | drop every `\0` byte _(0.2.1)_                                                                                                           |
 | `control_strip`   | `String`   | drop ASCII/Unicode control chars + bidi overrides (U+202A..U+202E, U+2066..U+2069) + zero-width chars (U+200B..U+200D, U+FEFF) _(0.2.1)_ |
 | `slug`            | `String`   | lowercase + ASCII alphanumerics + collapse separator runs into single `-` + trim leading/trailing `-` _(0.2.1)_                          |
-| `truncate(N)`     | `String`   | `.truncate(N)` (byte length)                                                                                                             |
+| `truncate(N)`     | `String`   | UTF-8-safe byte truncate to `N`; walks back to nearest char boundary so multi-byte codepoints never panic                                |
 | `clamp(min, max)` | numeric    | `.clamp(min, max)`                                                                                                                       |
 
 Use `control_strip` only on inline text fields (titles, signatures,

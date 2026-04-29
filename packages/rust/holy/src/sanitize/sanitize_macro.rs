@@ -194,8 +194,17 @@ fn rule_to_tokens(field_name: &syn::Ident, rule: &SanitizeRule) -> proc_macro2::
         SanitizeRule::Uppercase => quote! {
             self.#field_name = self.#field_name.to_uppercase();
         },
+        // UTF-8-safe byte truncate: walk back to nearest char boundary
+        // <= n so multi-byte codepoints (emoji, CJK) never panic
+        // String::truncate.
         SanitizeRule::Truncate(n) => quote! {
-            self.#field_name.truncate(#n);
+            if self.#field_name.len() > #n {
+                let mut __end = #n;
+                while __end > 0 && !self.#field_name.is_char_boundary(__end) {
+                    __end -= 1;
+                }
+                self.#field_name.truncate(__end);
+            }
         },
         SanitizeRule::Alphanumeric => quote! {
             self.#field_name = self.#field_name.chars().filter(|c| c.is_alphanumeric()).collect();
