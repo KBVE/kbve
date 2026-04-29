@@ -9,66 +9,58 @@ import {
 	type SimulationLinkDatum,
 } from 'd3-force';
 import { openTooltip, closeTooltip } from '@kbve/droid';
-
-interface SiteGraphNode {
-	title: string;
-	links: string[];
-	backlinks: string[];
-	/** OSRS relationship metadata: target slug → relationship type */
-	osrsEdges?: Record<string, string>;
-}
-
-type SiteGraphData = Record<string, SiteGraphNode>;
+import { fetchSiteGraph } from './cache';
+import type { SiteGraphData } from '../types';
 
 interface GraphNode extends SimulationNodeDatum {
 	id: string;
 	title: string;
 	isCurrent: boolean;
-	/** True if this is an OSRS item page */
-	isOsrs: boolean;
+	tag: string | null;
 }
-
-/** OSRS relationship type → edge color */
-const EDGE_COLORS: Record<string, string> = {
-	upgrade: '#22c55e',
-	downgrade: '#ef4444',
-	product: '#3b82f6',
-	component: '#f97316',
-	variant: '#a855f7',
-	'set-piece': '#eab308',
-	alternative: '#64748b',
-	'drop-source': '#ec4899',
-};
 
 interface GraphLink extends SimulationLinkDatum<GraphNode> {
 	source: GraphNode;
 	target: GraphNode;
-	/** OSRS relationship type if available */
 	relationship?: string;
 }
 
-interface SiteGraphProps {
+export interface SiteGraphProps {
 	currentSlug: string;
 	depth?: number;
 	width?: number;
 	height?: number;
+	endpoint?: string;
+	/**
+	 * Maps relationship key (from `node.edges`) to stroke color. Lets each
+	 * consuming site theme its own taxonomy without forking the component.
+	 */
+	edgeColors?: Record<string, string>;
+	/**
+	 * Returns a domain-specific tag for a slug. Used to style nodes (color
+	 * + radius); pass `null` for the default look. Example: tag OSRS pages
+	 * gold, NPC pages teal, etc.
+	 */
+	tagOf?: (slug: string) => string | null;
+	/**
+	 * Maps a tag returned by `tagOf` to fill/stroke colors + radius. Falls
+	 * back to default theming when missing.
+	 */
+	tagStyles?: Record<
+		string,
+		{ fill: string; stroke: string; radius: number }
+	>;
 }
 
-// ---------------------------------------------------------------------------
-// Zoom constants
-// ---------------------------------------------------------------------------
 const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 3;
 const ZOOM_SENSITIVITY = 0.002;
-
-// ---------------------------------------------------------------------------
-// BFS neighborhood
-// ---------------------------------------------------------------------------
 
 function getNeighborhood(
 	graph: SiteGraphData,
 	startSlug: string,
 	maxDepth: number,
+	tagOf: (slug: string) => string | null,
 ): { nodes: GraphNode[]; links: GraphLink[] } {
 	const visited = new Set<string>();
 	const queue: Array<{ slug: string; depth: number }> = [
@@ -100,7 +92,7 @@ function getNeighborhood(
 			id: slug,
 			title: entry.title,
 			isCurrent: slug === startSlug,
-			isOsrs: slug.startsWith('osrs/'),
+			tag: tagOf(slug),
 		});
 	}
 
@@ -113,7 +105,7 @@ function getNeighborhood(
 				links.push({
 					source: nodeMap.get(slug)!,
 					target: nodeMap.get(target)!,
-					relationship: entry.osrsEdges?.[target],
+					relationship: entry.edges?.[target],
 				});
 			}
 		}
@@ -122,15 +114,15 @@ function getNeighborhood(
 	return { nodes: [...nodeMap.values()], links };
 }
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
-
-export default function SiteGraph({
+export function SiteGraph({
 	currentSlug,
 	depth = 2,
 	width = 280,
 	height = 280,
+	endpoint,
+	edgeColors,
+	tagOf = () => null,
+	tagStyles,
 }: SiteGraphProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const svgRef = useRef<SVGSVGElement>(null);
@@ -141,21 +133,14 @@ export default function SiteGraph({
 		null,
 	);
 
-	// Hovered node id for highlight styling
 	const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-	// Zoom / pan state
 	const [zoom, setZoom] = useState(1);
 	const [panX, setPanX] = useState(0);
 	const [panY, setPanY] = useState(0);
 
-	// Track if pointer is over the SVG
 	const isPointerOverSvg = useRef(false);
-
-	// Refs for pinch tracking
 	const lastPinchDist = useRef<number | null>(null);
-
-	// ── Tooltip helpers (mutate persistent DOM element directly) ──
 
 	const showTooltip = useCallback(
 		(title: string, id: string, e: React.MouseEvent) => {
@@ -197,30 +182,30 @@ export default function SiteGraph({
 		tip.style.visibility = 'hidden';
 	}, []);
 
-	// ── Fetch sitemap data ──
 	useEffect(() => {
 		let cancelled = false;
-		fetch('/api/sitegraph.json')
-			.then((res) => {
-				if (!res.ok) throw new Error(`HTTP ${res.status}`);
-				return res.json();
-			})
-			.then((data: SiteGraphData) => {
+		fetchSiteGraph(endpoint)
+			.then((data) => {
 				if (!cancelled) setGraphData(data);
 			})
 			.catch((err) => {
-				if (!cancelled) setError(err.message);
+				if (!cancelled)
+					setError(err instanceof Error ? err.message : String(err));
 			});
 		return () => {
 			cancelled = true;
 		};
-	}, []);
+	}, [endpoint]);
 
-	// ── Run d3-force simulation ──
 	useEffect(() => {
 		if (!graphData || !svgRef.current) return;
 
-		const { nodes, links } = getNeighborhood(graphData, currentSlug, depth);
+		const { nodes, links } = getNeighborhood(
+			graphData,
+			currentSlug,
+			depth,
+			tagOf,
+		);
 		if (nodes.length === 0) return;
 
 		const svg = svgRef.current;
@@ -264,9 +249,8 @@ export default function SiteGraph({
 			simulation.stop();
 			simulationRef.current = null;
 		};
-	}, [graphData, currentSlug, depth, width, height]);
+	}, [graphData, currentSlug, depth, width, height, tagOf]);
 
-	// ── Wheel zoom — only when pointer is over the SVG ──
 	useEffect(() => {
 		const svg = svgRef.current;
 		if (!svg) return;
@@ -315,7 +299,6 @@ export default function SiteGraph({
 		};
 	}, []);
 
-	// ── Touch pinch zoom (mobile) ──
 	useEffect(() => {
 		const svg = svgRef.current;
 		if (!svg) return;
@@ -358,8 +341,6 @@ export default function SiteGraph({
 		};
 	}, []);
 
-	// ── Handlers ──
-
 	const handleNodeClick = useCallback(
 		(slug: string) => {
 			if (slug !== currentSlug) {
@@ -381,8 +362,6 @@ export default function SiteGraph({
 		setPanX(0);
 		setPanY(0);
 	}, []);
-
-	// ── Render states ──
 
 	if (error) {
 		return (
@@ -412,7 +391,12 @@ export default function SiteGraph({
 		);
 	}
 
-	const { nodes, links } = getNeighborhood(graphData, currentSlug, depth);
+	const { nodes, links } = getNeighborhood(
+		graphData,
+		currentSlug,
+		depth,
+		tagOf,
+	);
 
 	if (nodes.length === 0) {
 		return (
@@ -427,6 +411,11 @@ export default function SiteGraph({
 			</div>
 		);
 	}
+
+	const styleFor = (node: GraphNode) => {
+		if (node.tag && tagStyles?.[node.tag]) return tagStyles[node.tag];
+		return null;
+	};
 
 	return (
 		<div ref={containerRef} style={{ position: 'relative' }}>
@@ -444,17 +433,15 @@ export default function SiteGraph({
 					touchAction: 'none',
 					overflow: 'hidden',
 				}}>
-				{/* Zoomable / pannable group */}
 				<g
 					transform={`translate(${width / 2 + panX},${height / 2 + panY}) scale(${zoom}) translate(${-width / 2},${-height / 2})`}>
-					{/* Links */}
 					{links.map((l, i) => (
 						<line
 							key={`link-${i}`}
 							className="sg-link"
 							stroke={
 								l.relationship
-									? EDGE_COLORS[l.relationship] ||
+									? edgeColors?.[l.relationship] ||
 										'var(--sl-color-gray-4)'
 									: 'var(--sl-color-gray-5)'
 							}
@@ -463,79 +450,79 @@ export default function SiteGraph({
 						/>
 					))}
 
-					{/* Nodes */}
-					{nodes.map((node) => (
-						<g
-							key={node.id}
-							className="sg-node"
-							style={{ cursor: 'pointer' }}
-							onClick={() => handleNodeClick(node.id)}
-							onMouseEnter={(e) => {
-								setHoveredId(node.id);
-								showTooltip(node.title, node.id, e);
-								openTooltip(`sg-node-${node.id}`);
-							}}
-							onMouseMove={moveTooltip}
-							onMouseLeave={() => {
-								setHoveredId(null);
-								hideTooltip();
-								closeTooltip(`sg-node-${node.id}`);
-							}}>
-							<circle
-								r={node.isCurrent ? 6 : node.isOsrs ? 4.5 : 4}
-								fill={
-									node.isCurrent
-										? 'var(--sl-color-accent)'
-										: hoveredId === node.id
-											? 'var(--sl-color-accent)'
-											: node.isOsrs
-												? '#eab308'
-												: 'var(--sl-color-white)'
-								}
-								stroke={
-									node.isCurrent
-										? 'var(--sl-color-accent-high)'
-										: hoveredId === node.id
-											? 'var(--sl-color-accent-high)'
-											: node.isOsrs
-												? '#a16207'
-												: 'var(--sl-color-gray-4)'
-								}
-								strokeWidth={node.isCurrent ? 2 : 1}
-								style={{
-									transition: 'fill 0.15s, stroke 0.15s',
+					{nodes.map((node) => {
+						const tagStyle = styleFor(node);
+						const radius = node.isCurrent
+							? 6
+							: (tagStyle?.radius ?? 4);
+						const fill = node.isCurrent
+							? 'var(--sl-color-accent)'
+							: hoveredId === node.id
+								? 'var(--sl-color-accent)'
+								: (tagStyle?.fill ?? 'var(--sl-color-white)');
+						const stroke = node.isCurrent
+							? 'var(--sl-color-accent-high)'
+							: hoveredId === node.id
+								? 'var(--sl-color-accent-high)'
+								: (tagStyle?.stroke ??
+									'var(--sl-color-gray-4)');
+
+						return (
+							<g
+								key={node.id}
+								className="sg-node"
+								style={{ cursor: 'pointer' }}
+								onClick={() => handleNodeClick(node.id)}
+								onMouseEnter={(e) => {
+									setHoveredId(node.id);
+									showTooltip(node.title, node.id, e);
+									openTooltip(`sg-node-${node.id}`);
 								}}
-							/>
-							<text
-								dy={node.isCurrent ? -10 : -8}
-								textAnchor="middle"
-								fill={
-									node.isCurrent
-										? 'var(--sl-color-white)'
-										: hoveredId === node.id
-											? 'var(--sl-color-white)'
-											: 'var(--sl-color-gray-3)'
-								}
-								fontSize={node.isCurrent ? 10 : 8}
-								fontWeight={
-									node.isCurrent || hoveredId === node.id
-										? 600
-										: 400
-								}
-								style={{
-									pointerEvents: 'none',
-									transition: 'fill 0.15s',
+								onMouseMove={moveTooltip}
+								onMouseLeave={() => {
+									setHoveredId(null);
+									hideTooltip();
+									closeTooltip(`sg-node-${node.id}`);
 								}}>
-								{node.title.length > 20
-									? node.title.slice(0, 18) + '...'
-									: node.title}
-							</text>
-						</g>
-					))}
+								<circle
+									r={radius}
+									fill={fill}
+									stroke={stroke}
+									strokeWidth={node.isCurrent ? 2 : 1}
+									style={{
+										transition: 'fill 0.15s, stroke 0.15s',
+									}}
+								/>
+								<text
+									dy={node.isCurrent ? -10 : -8}
+									textAnchor="middle"
+									fill={
+										node.isCurrent
+											? 'var(--sl-color-white)'
+											: hoveredId === node.id
+												? 'var(--sl-color-white)'
+												: 'var(--sl-color-gray-3)'
+									}
+									fontSize={node.isCurrent ? 10 : 8}
+									fontWeight={
+										node.isCurrent || hoveredId === node.id
+											? 600
+											: 400
+									}
+									style={{
+										pointerEvents: 'none',
+										transition: 'fill 0.15s',
+									}}>
+									{node.title.length > 20
+										? node.title.slice(0, 18) + '...'
+										: node.title}
+								</text>
+							</g>
+						);
+					})}
 				</g>
 			</svg>
 
-			{/* Persistent tooltip — single element, content updated via ref */}
 			<div
 				ref={tooltipRef}
 				role="tooltip"
@@ -576,7 +563,6 @@ export default function SiteGraph({
 				/>
 			</div>
 
-			{/* Zoom slider control */}
 			<div
 				style={{
 					display: 'flex',
@@ -626,3 +612,5 @@ export default function SiteGraph({
 		</div>
 	);
 }
+
+export default SiteGraph;

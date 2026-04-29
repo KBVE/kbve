@@ -1,44 +1,54 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
 import { DroidEvents } from '@kbve/droid';
+import type { SiteGraphProps } from './SiteGraph';
 
 const SiteGraph = lazy(() => import('./SiteGraph'));
 const Backlinks = lazy(() => import('./Backlinks'));
 
-interface SiteGraphLoaderProps {
+export interface SiteGraphLoaderProps extends Omit<
+	SiteGraphProps,
+	'currentSlug'
+> {
 	currentSlug: string;
+	/** DOM data attribute the loader inspects on mount to detect initial open state. */
+	collapsedAttribute?: string;
+	/** Panel id on the droid event bus; defaults to `'right'`. */
+	panelId?: string;
 }
 
 /**
- * Lazy-loads the site graph and backlinks only when the right sidebar
- * is expanded. Listens to the droid event bus for panel-open/panel-close.
- *
- * Zero JS parsed on page load — the graph module is never downloaded
- * unless the user opens the right sidebar.
+ * Lazy-mounts SiteGraph + Backlinks on droid `panel-open` for the right
+ * sidebar. Skips downloading the d3-force chunk until the user actually
+ * opens the panel; once mounted, stays in the DOM (hidden) so re-opens
+ * don't refetch the graph.
  */
-export default function SiteGraphLoader({ currentSlug }: SiteGraphLoaderProps) {
+export function SiteGraphLoader({
+	currentSlug,
+	collapsedAttribute = 'data-right-sidebar-collapsed',
+	panelId = 'right',
+	...graphProps
+}: SiteGraphLoaderProps) {
 	const [visible, setVisible] = useState(false);
 	const [hasLoaded, setHasLoaded] = useState(false);
 
 	useEffect(() => {
-		// Check initial state from DOM attribute
 		const isOpen =
-			document.documentElement.getAttribute(
-				'data-right-sidebar-collapsed',
-			) !== 'true';
+			document.documentElement.getAttribute(collapsedAttribute) !==
+			'true';
 		if (isOpen) {
 			setVisible(true);
 			setHasLoaded(true);
 		}
 
 		const offOpen = DroidEvents.on('panel-open', (payload: any) => {
-			if (payload?.id === 'right') {
+			if (payload?.id === panelId) {
 				setVisible(true);
 				setHasLoaded(true);
 			}
 		});
 
 		const offClose = DroidEvents.on('panel-close', (payload: any) => {
-			if (payload?.id === 'right') {
+			if (payload?.id === panelId) {
 				setVisible(false);
 			}
 		});
@@ -47,9 +57,8 @@ export default function SiteGraphLoader({ currentSlug }: SiteGraphLoaderProps) {
 			offOpen();
 			offClose();
 		};
-	}, []);
+	}, [collapsedAttribute, panelId]);
 
-	// Once loaded, keep mounted but hidden (avoids refetching sitemap)
 	if (!hasLoaded) return null;
 
 	const fallback = (
@@ -85,10 +94,15 @@ export default function SiteGraphLoader({ currentSlug }: SiteGraphLoaderProps) {
 						}}>
 						Graph
 					</h3>
-					<SiteGraph currentSlug={currentSlug} />
+					<SiteGraph currentSlug={currentSlug} {...graphProps} />
 				</div>
-				<Backlinks currentSlug={currentSlug} />
+				<Backlinks
+					currentSlug={currentSlug}
+					endpoint={graphProps.endpoint}
+				/>
 			</Suspense>
 		</div>
 	);
 }
+
+export default SiteGraphLoader;
