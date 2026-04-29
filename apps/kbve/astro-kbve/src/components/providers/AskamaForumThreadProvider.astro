@@ -232,7 +232,11 @@
 			return;
 		}
 		const supa = getSupa();
-		const session = await supa.getSession().catch(() => null);
+		// SupabaseGateway returns `{ session, ... }` — unwrap before
+		// reaching for access_token. Without this we read undefined and
+		// every signed-in user sees "Sign in first to comment."
+		const sessionResult = await supa.getSession().catch(() => null);
+		const session = sessionResult?.session ?? null;
 		if (!session?.access_token) {
 			setComposeStatus('error', 'Sign in first to comment.');
 			return;

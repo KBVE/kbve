@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-04-28T09:00:43Z",
+  "generated_at": "2026-04-29T08:57:40Z",
   "summary": {
     "critical": 1,
     "high": 32,
-    "medium": 59,
+    "medium": 48,
     "low": 5,
     "info": 29
   },
   "ecosystems": {
     "npm": {
-      "total": 85,
+      "total": 74,
       "severities": {
         "critical": 1,
         "high": 32,
-        "medium": 47,
+        "medium": 36,
         "low": 5,
         "info": 0
       },
@@ -129,13 +129,6 @@
           "severity": "medium",
           "package": "qs",
           "url": "https://github.com/advisories/GHSA-6rw7-vpxm-498p"
-        },
-        {
-          "id": "1113981",
-          "title": "DOMPurify contains a Cross-site Scripting vulnerability",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-v8jm-5vwx-cfxm"
         },
         {
           "id": "1114150",
@@ -271,13 +264,6 @@
           "url": "https://github.com/advisories/GHSA-37ch-88jc-xwx2"
         },
         {
-          "id": "1115529",
-          "title": "DOMPurify is vulnerable to mutation-XSS via Re-Contextualization ",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-h8r8-wccr-v5f2"
-        },
-        {
           "id": "1115538",
           "title": "Handlebars.js has JavaScript Injection via AST Type Confusion by tampering @partial-block",
           "severity": "high",
@@ -376,13 +362,6 @@
           "url": "https://github.com/advisories/GHSA-442j-39wm-28r2"
         },
         {
-          "id": "1115668",
-          "title": "DOMPurify contains a Cross-site Scripting vulnerability",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-v2wj-7wpq-c8vv"
-        },
-        {
           "id": "1115692",
           "title": "Handlebars.js has JavaScript Injection in CLI Precompiler via Unescaped Names and Options",
           "severity": "high",
@@ -439,20 +418,6 @@
           "url": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
         },
         {
-          "id": "1115921",
-          "title": "DOMPurify ADD_ATTR predicate skips URI validation",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-cjmm-f4jc-qw8r"
-        },
-        {
-          "id": "1115922",
-          "title": "DOMPurify USE_PROFILES prototype pollution allows event handlers",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-cj63-jhhr-wcxv"
-        },
-        {
           "id": "1116102",
           "title": "defu: Prototype pollution via `__proto__` key in defaults argument",
           "severity": "high",
@@ -500,27 +465,6 @@
           "severity": "medium",
           "package": "follow-redirects",
           "url": "https://github.com/advisories/GHSA-r4q5-vmmm-2653"
-        },
-        {
-          "id": "1116663",
-          "title": "DOMPurify's ADD_TAGS function form bypasses FORBID_TAGS due to short-circuit evaluation",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-39q2-94rc-95cp"
-        },
-        {
-          "id": "1116673",
-          "title": "Axios has a NO_PROXY Hostname Normalization Bypass that Leads to SSRF",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-3p68-rc4w-qgx5"
-        },
-        {
-          "id": "1116675",
-          "title": "Axios has Unrestricted Cloud Metadata Exfiltration via Header Injection Chain",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-fvcv-3m26-pcqx"
         },
         {
           "id": "1116957",
@@ -584,27 +528,6 @@
           "severity": "high",
           "package": "@xmldom/xmldom",
           "url": "https://github.com/advisories/GHSA-wh4c-j3r5-mjhp"
-        },
-        {
-          "id": "1117138",
-          "title": "DOMPurify: FORBID_TAGS bypassed by function-based ADD_TAGS predicate (asymmetry with FORBID_ATTR fix)",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-h7mw-gpvr-xq4m"
-        },
-        {
-          "id": "1117139",
-          "title": "DOMPurify has a SAFE_FOR_TEMPLATES bypass in RETURN_DOM mode",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-crv5-9vww-q3g8"
-        },
-        {
-          "id": "1117140",
-          "title": "DOMPurify: Prototype Pollution to XSS Bypass via CUSTOM_ELEMENT_HANDLING Fallback",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-v9jr-rg53-9pgp"
         },
         {
           "id": "1117141",
