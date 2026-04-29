@@ -14,7 +14,7 @@ enum SanitizeRule {
     NulStrip,
     ControlStrip,
     Slug,
-    Clamp(String, String),
+    Clamp(proc_macro2::TokenStream, proc_macro2::TokenStream),
 }
 
 enum FieldTypeKind {
@@ -117,7 +117,15 @@ fn parse_sanitize_rules(
                     ),
                 ));
             }
-            SanitizeRule::Clamp(parts[0].trim().to_string(), parts[1].trim().to_string())
+            let min_raw = parts[0].trim();
+            let max_raw = parts[1].trim();
+            let min_ts: proc_macro2::TokenStream = min_raw.parse().map_err(|_| {
+                syn::Error::new(span, format!("invalid clamp min argument: '{}'", min_raw))
+            })?;
+            let max_ts: proc_macro2::TokenStream = max_raw.parse().map_err(|_| {
+                syn::Error::new(span, format!("invalid clamp max argument: '{}'", max_raw))
+            })?;
+            SanitizeRule::Clamp(min_ts, max_ts)
         } else {
             return Err(syn::Error::new(
                 span,
@@ -265,13 +273,9 @@ fn rule_to_tokens(field_name: &syn::Ident, rule: &SanitizeRule) -> proc_macro2::
                 out.trim_matches('-').to_string()
             };
         },
-        SanitizeRule::Clamp(min, max) => {
-            let min_lit: proc_macro2::TokenStream = min.parse().unwrap();
-            let max_lit: proc_macro2::TokenStream = max.parse().unwrap();
-            quote! {
-                self.#field_name = self.#field_name.clamp(#min_lit, #max_lit);
-            }
-        }
+        SanitizeRule::Clamp(min, max) => quote! {
+            self.#field_name = self.#field_name.clamp(#min, #max);
+        },
     }
 }
 
