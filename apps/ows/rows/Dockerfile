@@ -9,6 +9,7 @@
 
 # ── Stage 1: Plan — generate dependency recipe ──────────────
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
+ENV CARGO_INCREMENTAL=0
 
 # Create workspace
 RUN printf '[workspace]\nmembers = ["apps/ows/rows", "packages/rust/jedi", "packages/rust/kbve"]\nresolver = "2"\n' > Cargo.toml
