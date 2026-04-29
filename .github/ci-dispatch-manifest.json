@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.121",
+			"version": "1.0.125",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -186,7 +186,7 @@
 		{
 			"key": "mc",
 			"app_name": "mc",
-			"version": "1.0.28",
+			"version": "1.0.29",
 			"version_toml": "apps/mc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
 			"source_path": "apps/mc",
@@ -453,7 +453,7 @@
 		{
 			"key": "holy_crate",
 			"package_name": "holy",
-			"version": "0.2.0",
+			"version": "0.2.1",
 			"version_toml": "packages/rust/holy/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/holy-crate.mdx",
 			"version_target": "packages/rust/holy/Cargo.toml"
@@ -586,7 +586,7 @@
 			"key": "unity_rareicon",
 			"app_name": "rareicon",
 			"engine": {
-				"version": "6000.0.30f1",
+				"version": "6000.3.10f1",
 				"project_path": "apps/rareicon/unity-rareicon",
 				"build_targets": [
 					"StandaloneLinux64",
@@ -596,7 +596,7 @@
 				"license_method": "personal"
 			},
 			"source_path": "apps/rareicon/unity-rareicon",
-			"version": "0.1.0",
+			"version": "0.1.1",
 			"version_toml": "apps/rareicon/unity-rareicon/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unity-rareicon.mdx",
 			"runner": "ubuntu-latest",
