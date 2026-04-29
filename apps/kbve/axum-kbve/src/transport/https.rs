@@ -210,8 +210,19 @@ fn router(state: AppState) -> Router {
         .route("/osrs/{item}", get(osrs_item_handler))
         .route("/osrs/{item}/", get(osrs_item_handler_trailing))
         // Bare /forum (no trailing slash) → /forum/. Crawlers + typed
-        // URLs land on the canonical with a permanent redirect.
+        // URLs land on the canonical with a permanent redirect. Same
+        // for shorthand aliases /community + /c.
         .route("/forum", get(|| async { Redirect::permanent("/forum/") }))
+        .route(
+            "/community",
+            get(|| async { Redirect::permanent("/forum/") }),
+        )
+        .route(
+            "/community/",
+            get(|| async { Redirect::permanent("/forum/") }),
+        )
+        .route("/c", get(|| async { Redirect::permanent("/forum/") }))
+        .route("/c/", get(|| async { Redirect::permanent("/forum/") }))
         .route("/forum/", get(forum_feed_handler))
         .route("/forum/compose", get(forum_compose_handler))
         .route(
