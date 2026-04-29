@@ -55,9 +55,18 @@ public final class ShipCommands {
                             return 0;
                         })));
 
+        com.mojang.brigadier.suggestion.SuggestionProvider<ServerCommandSource> shipUuidSuggestions =
+                (ctx, builder) -> {
+                    for (UUID id : manager.getActiveShips().keySet()) {
+                        builder.suggest(id.toString());
+                    }
+                    return builder.buildFuture();
+                };
+
         dispatcher.register(CommandManager.literal("removeship")
                 .requires(ServerCommandSource::isExecutedByPlayer)
                 .then(CommandManager.argument("uuid", StringArgumentType.string())
+                        .suggests(shipUuidSuggestions)
                         .executes(ctx -> {
                             String uuidStr = StringArgumentType.getString(ctx, "uuid");
                             try {
@@ -74,6 +83,7 @@ public final class ShipCommands {
         dispatcher.register(CommandManager.literal("boardship")
                 .requires(ServerCommandSource::isExecutedByPlayer)
                 .then(CommandManager.argument("uuid", StringArgumentType.string())
+                        .suggests(shipUuidSuggestions)
                         .executes(ctx -> {
                             ServerPlayerEntity player = ctx.getSource().getPlayer();
                             String uuidStr = StringArgumentType.getString(ctx, "uuid");
