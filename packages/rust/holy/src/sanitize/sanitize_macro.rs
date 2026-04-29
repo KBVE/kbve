@@ -2,7 +2,7 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{Data, DeriveInput, Field, Fields, Type};
 
-use crate::utils::get_holy_string_value;
+use crate::utils::{determine_visibility, get_holy_string_value};
 
 enum SanitizeRule {
     Trim,
@@ -335,8 +335,14 @@ pub fn impl_sanitize_macro(ast: &DeriveInput) -> Result<TokenStream, syn::Error>
         let sanitize_method_name =
             syn::Ident::new(&format!("sanitize_{}", field_name), field_name.span());
 
+        // Per-field helper inherits the field's own visibility (or
+        // its #[holy(public|private)] override) so private fields
+        // don't leak helpers. The aggregate `sanitize()` method
+        // below stays `pub` so callers can always invoke it.
+        let method_vis = determine_visibility(&field.vis, &field.attrs)?;
+
         per_field_methods.push(quote! {
-            pub fn #sanitize_method_name(&mut self) {
+            #method_vis fn #sanitize_method_name(&mut self) {
                 #(#rule_tokens)*
             }
         });
