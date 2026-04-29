@@ -136,6 +136,10 @@ jobs:
             contents: read
         strategy:
             fail-fast: false
+            # Personal Unity licenses cap at 2 active seats. max-parallel: 2
+            # keeps the matrix from blowing past that and starving the 3rd job
+            # of activation. Bump to len(build_targets) once on Pro / Plus.
+            max-parallel: 2
             matrix:
                 target: ${{ fromJson(needs.build_matrix.outputs.matrix) }}
         steps:
