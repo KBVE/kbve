@@ -32,16 +32,75 @@
 			aria-label="Sort threads"
 			data-active={`{{ active_sort_label }}`}>
 			<a class="forum-sort__tab" data-sort="Hot" href="?sort=hot">
-				<span class="forum-sort__icon" aria-hidden="true">🔥</span> Hot
+				<svg
+					class="forum-sort__icon"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.8"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					aria-hidden="true">
+					<path
+						d="M12 22c4.418 0 8-3.582 8-8 0-4-3-7-3-7s-1 2-3 2c0-3-3-6-6-7 .5 4-1 6-2.5 8C3.5 12 4 14 4 14c0 4.418 3.582 8 8 8z">
+					</path>
+					<path
+						d="M12 22c2.21 0 4-2 4-4.5S14 14 12 12c-2 2-4 3-4 5.5S9.79 22 12 22z">
+					</path>
+				</svg>
+				Hot
 			</a>
 			<a class="forum-sort__tab" data-sort="New" href="?sort=new">
-				<span class="forum-sort__icon" aria-hidden="true">✨</span> New
+				<svg
+					class="forum-sort__icon"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.8"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					aria-hidden="true">
+					<path d="M12 4v6"></path>
+					<path d="M5 12h14"></path>
+					<path d="M12 14v6"></path>
+					<path d="M19 5l-2 2"></path>
+					<path d="M5 19l2-2"></path>
+					<path d="M19 19l-2-2"></path>
+					<path d="M5 5l2 2"></path>
+				</svg>
+				New
 			</a>
 			<a class="forum-sort__tab" data-sort="Top" href="?sort=top">
-				<span class="forum-sort__icon" aria-hidden="true">⭐</span> Top
+				<svg
+					class="forum-sort__icon"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.8"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					aria-hidden="true">
+					<path d="M12 19V6"></path>
+					<path d="M5 13l7-7 7 7"></path>
+				</svg>
+				Top
 			</a>
 			<a class="forum-sort__tab" data-sort="Bump" href="?sort=bump">
-				<span class="forum-sort__icon" aria-hidden="true">💬</span>
+				<svg
+					class="forum-sort__icon"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.8"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					aria-hidden="true">
+					<path
+						d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z">
+					</path>
+					<path d="M8 10h8"></path>
+					<path d="M8 13h5"></path>
+				</svg>
 				Active
 			</a>
 		</nav>
@@ -212,8 +271,9 @@
 		color: var(--forum-text);
 	}
 	.forum-sort__icon {
-		font-size: 0.95rem;
-		line-height: 1;
+		width: 1rem;
+		height: 1rem;
+		flex-shrink: 0;
 	}
 
 	/* ── Layout ────────────────────────────────────────────────── */

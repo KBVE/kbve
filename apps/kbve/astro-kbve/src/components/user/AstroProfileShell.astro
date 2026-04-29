@@ -242,11 +242,38 @@
 			</a>
 		</div>
 	</div>
+
+	{/* ── Footer (always visible) ────────────────────────────────── */}
+	<footer class="profile-footer">
+		<nav class="profile-footer__nav" aria-label="Site links">
+			<a href="/">Home</a>
+			<a href="/forum/">Forum</a>
+			<a href="/discord">Discord</a>
+			<a href="/crypto/">Crypto</a>
+			<a href="/legal/terms-of-service">Terms</a>
+			<a href="/legal/privacy-policy">Privacy</a>
+			<a href="/contact">Contact</a>
+			<a
+				href="https://github.com/kbve/kbve"
+				target="_blank"
+				rel="noopener noreferrer">
+				GitHub ↗
+			</a>
+		</nav>
+		<p class="profile-footer__copy">
+			© <span id="profile-footer-year"></span> KBVE — open-source by builders,
+			for builders.
+		</p>
+	</footer>
 </div>
 
 <script>
 	import { bootProfile } from './profile-controller';
 	bootProfile();
+
+	// Tiny script: stamp the current year in the footer.
+	const yearEl = document.getElementById('profile-footer-year');
+	if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 </script>
 
 <style>
@@ -579,5 +606,36 @@
 	}
 	.profile-back-link:hover {
 		color: var(--sl-color-white, #e6edf3);
+	}
+
+	/* ── Footer (visible across every state) ──────────────────────── */
+	.profile-footer {
+		max-width: 480px;
+		margin: 1.5rem auto 0;
+		padding: 1.25rem 0.5rem 0;
+		border-top: 1px solid var(--sl-color-hairline, #30363d);
+		display: grid;
+		gap: 0.75rem;
+		text-align: center;
+	}
+	.profile-footer__nav {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.5rem 1rem;
+		font-size: 0.8125rem;
+	}
+	.profile-footer__nav a {
+		color: var(--sl-color-gray-3, #8b949e);
+		text-decoration: none;
+		transition: color 0.12s ease;
+	}
+	.profile-footer__nav a:hover {
+		color: #06b6d4;
+	}
+	.profile-footer__copy {
+		margin: 0;
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-3, #8b949e);
 	}
 </style>

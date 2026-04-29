@@ -18,7 +18,7 @@ use tracing::info;
 
 use crate::astro::askama::{
     ForumCommentPartial, ForumComposeTemplate, ForumFeedItemPartial, ForumFeedTemplate,
-    ForumThreadTemplate, HealthTemplate, ProfileForumCommentRowPartial,
+    ForumSpaceNotFoundTemplate, ForumThreadTemplate, HealthTemplate, ProfileForumCommentRowPartial,
     ProfileForumThreadRowPartial, ProfileNotFoundTemplate, ProfileTemplate,
     RentEarthCharacterDisplay, TemplateResponse,
 };
@@ -37,6 +37,8 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/application/kubectl", "/application/kubernetes/"),
     ("/application/bevy", "/application/rust/#bevy"),
     ("/application/bevy/", "/application/rust/#bevy"),
+    ("/dogevideo", "/crypto/"),
+    ("/dogevideo/", "/crypto/"),
 ];
 
 fn mount_permanent_redirects<S>(
@@ -210,12 +212,39 @@ fn router(state: AppState) -> Router {
         .route("/osrs/{item}", get(osrs_item_handler))
         .route("/osrs/{item}/", get(osrs_item_handler_trailing))
         // Bare /forum (no trailing slash) → /forum/. Crawlers + typed
-        // URLs land on the canonical with a permanent redirect.
+        // URLs land on the canonical with a permanent redirect. Same
+        // for shorthand aliases /community + /c.
         .route("/forum", get(|| async { Redirect::permanent("/forum/") }))
+        .route(
+            "/community",
+            get(|| async { Redirect::permanent("/forum/") }),
+        )
+        .route(
+            "/community/",
+            get(|| async { Redirect::permanent("/forum/") }),
+        )
+        .route("/c", get(|| async { Redirect::permanent("/forum/") }))
+        .route("/c/", get(|| async { Redirect::permanent("/forum/") }))
         .route("/forum/", get(forum_feed_handler))
         .route("/forum/compose", get(forum_compose_handler))
+        .route(
+            "/forum/compose/",
+            get(|| async { Redirect::permanent("/forum/compose") }),
+        )
         .route("/forum/s/{slug}", get(forum_space_handler))
+        .route(
+            "/forum/s/{slug}/",
+            get(|Path(slug): Path<String>| async move {
+                Redirect::permanent(&format!("/forum/s/{}", slug))
+            }),
+        )
         .route("/forum/t/{slug_or_id}", get(forum_thread_handler))
+        .route(
+            "/forum/t/{slug_or_id}/",
+            get(|Path(slug): Path<String>| async move {
+                Redirect::permanent(&format!("/forum/t/{}", slug))
+            }),
+        )
         .route("/api/v1/forum/threads", post(api_create_thread))
         .route(
             "/api/v1/forum/t/{slug_or_id}/comments",
@@ -2080,7 +2109,16 @@ async fn render_feed_page(space_slug: Option<String>, q: &FeedSortQuery) -> Resp
         Some(slug) => match svc.get_space_by_slug(slug).await {
             Ok(Some(space)) => Some(space),
             Ok(None) => {
-                return (StatusCode::NOT_FOUND, format!("space {} not found", slug))
+                // Render the styled space-not-found template instead of a
+                // plaintext error so visitors get a friendly 404 with
+                // navigation back into the forum.
+                return (
+                    StatusCode::NOT_FOUND,
+                    [(header::CACHE_CONTROL, "public, max-age=60")],
+                    TemplateResponse(ForumSpaceNotFoundTemplate {
+                        space_slug: slug.to_string(),
+                    }),
+                )
                     .into_response();
             }
             Err(e) => {

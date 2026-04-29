@@ -22,7 +22,7 @@ on:
                 required: true
                 type: string
             build_targets:
-                description: 'JSON array of Unity build targets (e.g. ["StandaloneLinux64","WebGL"])'
+                description: 'JSON array of Unity build targets (e.g. ["StandaloneLinux64","StandaloneWindows64","StandaloneOSX"])'
                 required: false
                 type: string
                 default: '["StandaloneLinux64"]'
@@ -116,33 +116,128 @@ jobs:
                     echo "::notice::v$LOCAL > v$PUB — will publish."
                   fi
 
-    # Delegates the actual Unity build to the existing reusable util
-    # (utils-unity-azure-deployment.yml) which already wraps GameCI +
-    # the unity_license / unity_email / unity_password secrets and the
-    # itch.io deployment path.
-    build:
-        name: Build (${{ inputs.engine_version }})
+    build_matrix:
+        name: Build Matrix Setup
         needs: [version_gate]
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            matrix: ${{ steps.set.outputs.matrix }}
+        steps:
+            - id: set
+              run: echo "matrix=$(echo '${{ inputs.build_targets }}' | jq -c .)" >> "$GITHUB_OUTPUT"
+
+    build:
+        name: Build ${{ matrix.target }}
+        needs: [build_matrix]
+        runs-on: arc-runner-set
+        timeout-minutes: 180
         permissions:
             contents: read
-        uses: KBVE/kbve/.github/workflows/utils-unity-azure-deployment.yml@main
-        with:
-            unity_version: ${{ inputs.engine_version }}
-            project_path: ${{ inputs.project_path }}
-            azure_repo_url: ${{ inputs.external_repo_url }}
-            target_platforms: ${{ inputs.build_targets }}
-            deploy_to_itch: ${{ inputs.deploy_to_itch }}
-            itch_username: ${{ inputs.itch_user }}
-            itch_gameid: ${{ inputs.itch_game }}
-        secrets:
-            unity_license: ${{ secrets.UNITY_LICENSE }}
-            unity_email: ${{ secrets.UNITY_EMAIL }}
-            unity_password: ${{ secrets.UNITY_PASSWORD }}
+        strategy:
+            fail-fast: false
+            matrix:
+                target: ${{ fromJson(needs.build_matrix.outputs.matrix) }}
+        steps:
+            - name: Configure Forgejo LFS credentials
+              env:
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+              run: |
+                  if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — cannot pull LFS from git.kbve.com"
+                    exit 1
+                  fi
+                  printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
+                    "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
+                  chmod 600 "$HOME/.netrc"
+
+            - name: Checkout monorepo (no LFS smudge)
+              uses: actions/checkout@v6
+              with:
+                  lfs: false
+
+            - name: Pull LFS objects (rareicon scope only)
+              run: |
+                  git lfs install --local
+                  git lfs pull --include="${{ inputs.project_path }}/**" --exclude=""
+
+            - name: Restore Unity Library cache
+              uses: actions/cache@v5
+              with:
+                  path: ${{ inputs.project_path }}/Library
+                  key: Library-${{ inputs.app_name }}-${{ matrix.target }}-${{ hashFiles(format('{0}/Packages/manifest.json', inputs.project_path), format('{0}/ProjectSettings/ProjectVersion.txt', inputs.project_path)) }}
+                  restore-keys: |
+                      Library-${{ inputs.app_name }}-${{ matrix.target }}-
+                      Library-${{ inputs.app_name }}-
+
+            - name: Build with Unity
+              uses: game-ci/unity-builder@v4
+              env:
+                  UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+                  UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+                  UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+              with:
+                  projectPath: ${{ inputs.project_path }}
+                  unityVersion: ${{ inputs.engine_version }}
+                  targetPlatform: ${{ matrix.target }}
+                  buildName: ${{ inputs.app_name }}
+
+            - name: Upload build artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.app_name }}-${{ matrix.target }}
+                  path: build/${{ matrix.target }}
+                  retention-days: 7
+
+            - name: Wipe Forgejo netrc
+              if: always()
+              run: rm -f "$HOME/.netrc"
+
+    deploy_itch:
+        name: Itch deploy ${{ matrix.target }}
+        needs: [version_gate, build_matrix, build]
+        if: ${{ inputs.deploy_to_itch && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        strategy:
+            fail-fast: false
+            matrix:
+                target: ${{ fromJson(needs.build_matrix.outputs.matrix) }}
+        steps:
+            - name: Map target → itch channel
+              id: chan
+              run: |
+                  case "${{ matrix.target }}" in
+                    StandaloneLinux64)   echo "channel=linux"   >> "$GITHUB_OUTPUT" ;;
+                    StandaloneWindows64) echo "channel=windows" >> "$GITHUB_OUTPUT" ;;
+                    StandaloneOSX)       echo "channel=osx"     >> "$GITHUB_OUTPUT" ;;
+                    WebGL)               echo "channel=webgl"   >> "$GITHUB_OUTPUT" ;;
+                    *)                   echo "channel=${{ matrix.target }}" >> "$GITHUB_OUTPUT" ;;
+                  esac
+
+            - name: Download build artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: ${{ inputs.app_name }}-${{ matrix.target }}
+                  path: build/${{ matrix.target }}
+
+            - name: Push to itch.io via butler
+              env:
+                  BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+              run: |
+                  curl -sL -o butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default
+                  unzip -q butler.zip
+                  chmod +x butler
+                  ./butler -V
+                  ./butler push "build/${{ matrix.target }}" \
+                    "${{ inputs.itch_user }}/${{ inputs.itch_game }}:${{ steps.chan.outputs.channel }}" \
+                    --userversion "${{ inputs.manifest_version }}"
 
     post_publish_sync:
         name: Post-publish version sync
-        needs: [version_gate, build]
-        if: needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success'
+        needs: [version_gate, build, deploy_itch]
+        if: ${{ always() && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' && (needs.deploy_itch.result == 'success' || needs.deploy_itch.result == 'skipped') }}
         runs-on: ubuntu-latest
         timeout-minutes: 5
         permissions:
