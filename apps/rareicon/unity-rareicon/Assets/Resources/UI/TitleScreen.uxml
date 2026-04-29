@@ -7,8 +7,8 @@
 
         <ui:VisualElement name="title-window" class="title-window">
             <ui:VisualElement class="title-header">
-                <ui:Label name="title-brand" class="title-brand" text="RareIcon" />
-                <ui:Label name="title-tagline" class="title-tagline" text="Bullet-hell roguelite" />
+                <ui:Label name="title-brand" class="title-brand" text="RAREICON" />
+                <ui:Label name="title-tagline" class="title-tagline" text="BULLET-HELL ROGUELITE" />
             </ui:VisualElement>
 
             <ui:VisualElement name="title-stage-locale" class="title-stage">

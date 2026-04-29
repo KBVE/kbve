@@ -95,6 +95,19 @@ namespace RareIcon
             _backdrop.style.justifyContent = Justify.FlexEnd;
             _backdrop.style.paddingBottom = 40;
             _backdrop.style.display = DisplayStyle.None;
+            _backdrop.style.opacity = 0f;
+            _backdrop.style.transitionProperty = new System.Collections.Generic.List<StylePropertyName>
+            {
+                new StylePropertyName("opacity"),
+            };
+            _backdrop.style.transitionDuration = new System.Collections.Generic.List<TimeValue>
+            {
+                new TimeValue(220, TimeUnit.Millisecond),
+            };
+            _backdrop.style.transitionTimingFunction = new System.Collections.Generic.List<EasingFunction>
+            {
+                new EasingFunction(EasingMode.EaseOutCubic),
+            };
             _backdrop.focusable = true;
             _backdrop.RegisterCallback<ClickEvent>(OnBackdropClick);
             _backdrop.RegisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
@@ -108,6 +121,21 @@ namespace RareIcon
             _panel.style.width = new Length(90, LengthUnit.Percent);
             _panel.style.maxWidth = PanelMaxWidth;
             _panel.style.minHeight = 180;
+            _panel.style.translate = new Translate(0, 32);
+            _panel.style.opacity = 0f;
+            _panel.style.transitionProperty = new System.Collections.Generic.List<StylePropertyName>
+            {
+                new StylePropertyName("opacity"),
+                new StylePropertyName("translate"),
+            };
+            _panel.style.transitionDuration = new System.Collections.Generic.List<TimeValue>
+            {
+                new TimeValue(260, TimeUnit.Millisecond),
+            };
+            _panel.style.transitionTimingFunction = new System.Collections.Generic.List<EasingFunction>
+            {
+                new EasingFunction(EasingMode.EaseOutCubic),
+            };
             _panel.RegisterCallback<ClickEvent>(e => e.StopPropagation());
 
             _closeBtn = UIStyles.MakeButton("×", () => _cancelPub.Publish(new DialogueCancelMessage()));
@@ -183,6 +211,7 @@ namespace RareIcon
             _panel.Add(_choiceRow);
             _panel.Add(_advanceBtn);
             _panel.Add(_closeBtn);
+            _panel.AddCornerNotches();
             _backdrop.Add(_panel);
             root.Add(_backdrop);
 
@@ -232,13 +261,25 @@ namespace RareIcon
 
             _backdrop.style.display = DisplayStyle.Flex;
             _visible = true;
-            _backdrop.schedule.Execute(() => _backdrop.Focus()).StartingIn(16);
+            _backdrop.schedule.Execute(() =>
+            {
+                _backdrop.style.opacity = 1f;
+                _panel.style.opacity   = 1f;
+                _panel.style.translate = new Translate(0, 0);
+                _backdrop.Focus();
+            }).StartingIn(16);
         }
 
         public void Hide()
         {
             if (_backdrop == null) return;
-            _backdrop.style.display = DisplayStyle.None;
+            _backdrop.style.opacity = 0f;
+            _panel.style.opacity    = 0f;
+            _panel.style.translate  = new Translate(0, 32);
+            _backdrop.schedule.Execute(() =>
+            {
+                if (!_visible) _backdrop.style.display = DisplayStyle.None;
+            }).StartingIn(280);
             _visible = false;
             _typewriterHandle?.Pause();
             _typewriterHandle = null;

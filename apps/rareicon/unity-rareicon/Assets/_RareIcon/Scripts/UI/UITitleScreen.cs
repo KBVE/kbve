@@ -72,6 +72,15 @@ namespace RareIcon
             _root.pickingMode = PickingMode.Position;
             _root.BringToFront();
 
+            var window = _root.Q<VisualElement>("title-window");
+            if (window != null)
+            {
+                window.AddCornerNotches();
+                window.AddToClassList("title-window--enter");
+                window.schedule.Execute(() => window.RemoveFromClassList("title-window--enter"))
+                              .StartingIn(32);
+            }
+
             _wrapper         = _root.Q<VisualElement>("title-wrapper");
             _stageLocale     = _root.Q<VisualElement>("title-stage-locale");
             _stageSeed       = _root.Q<VisualElement>("title-stage-seed");
@@ -177,13 +186,20 @@ namespace RareIcon
         {
             if (_session.Stage.CurrentValue != TitleStage.Ready) return;
             WorldGenSession.MarkWorldStarted();
-            _wrapper?.AddToClassList("is-hidden");
+            _appState.EnterWorld();
+
             if (_root != null)
             {
-                _root.pickingMode  = PickingMode.Ignore;
-                _root.style.display = DisplayStyle.None;
+                _root.pickingMode = PickingMode.Ignore;
+                var window = _root.Q<VisualElement>("title-window");
+                if (window != null) window.AddToClassList("title-window--enter");
+                _root.style.opacity = 0f;
+                _root.schedule.Execute(() =>
+                {
+                    _wrapper?.AddToClassList("is-hidden");
+                    _root.style.display = DisplayStyle.None;
+                }).StartingIn(320);
             }
-            _appState.EnterWorld();
         }
 
         static void SetStage(VisualElement el, bool visible)

@@ -1,6 +1,10 @@
 .title-wrapper {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
+    opacity: 1;
+    transition-property: opacity;
+    transition-duration: 0.28s;
+    transition-timing-function: ease-out;
 }
 .title-wrapper.is-hidden { display: none; }
 
@@ -20,23 +24,41 @@
     border-color: var(--color-accent);
     border-width: 1px;
     flex-direction: column;
+    opacity: 1;
+    scale: 1 1;
+    transition-property: opacity, scale;
+    transition-duration: 0.32s;
+    transition-timing-function: ease-out;
+}
+.title-window--enter {
+    opacity: 0;
+    scale: 0.94 0.94;
+}
+.title-stage {
+    opacity: 1;
+    transition-property: opacity;
+    transition-duration: 0.18s;
+    transition-timing-function: ease-out;
 }
 
 .title-header {
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
 }
 .title-brand {
-    font-size: 36px;
+    font-size: 42px;
     -unity-font-style: bold;
     color: var(--color-text-strong);
-    letter-spacing: 4px;
+    letter-spacing: 10px;
+    margin-left: 10px;
 }
 .title-tagline {
-    font-size: var(--font-label);
+    font-size: 11px;
     color: var(--color-accent);
-    letter-spacing: 2px;
-    margin-top: 4px;
+    letter-spacing: 6px;
+    -unity-font-style: bold;
+    margin-top: 6px;
+    -unity-text-align: middle-center;
 }
 
 .title-stage {
