@@ -29,6 +29,12 @@ COPY packages/npm/laser/ packages/npm/laser/
 # Copy generated schemas used by astro-kbve content collections
 COPY packages/data/codegen/generated/ packages/data/codegen/generated/
 
+# Crate READMEs imported by astro-kbve project pages (e.g.
+# /project/holy-crate uses `import { Content } from '...README.md'`
+# so the crate doc and the kbve.com page stay in sync from one file).
+# Add new entries here when more crate READMEs are imported.
+COPY packages/rust/holy/README.md packages/rust/holy/README.md
+
 # Copy astro-kbve source
 COPY apps/kbve/astro-kbve/ apps/kbve/astro-kbve/
 
