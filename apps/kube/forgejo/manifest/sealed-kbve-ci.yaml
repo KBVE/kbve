@@ -1,0 +1,14 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+    name: forgejo-kbve-ci
+    namespace: forgejo
+spec:
+    encryptedData:
+        token: AgAr5jq39Xlo6FhlJPic6IGAI69NqfeJJQ/pGk0wp7DVIMbfk4PK/0DD2AY67KcnB9FGGh8rEsVwNyFDJbOKZLbheznySfKU/WIcs/3M0hAAe3Av3Y0+fBM7kcZY4pONKHBWjH0/PEQK6olZ6kC0sCPSHIdvR+rWAQ8PUZTLFfdUfyLrkAy56wHCXcIhRGNHwcOczdp0X5gLv/hPF+8UuKGYeuKf9oBthKToNrMS/7hlE4oiSRIe3+BxxKkrfRn9izITKjFD3Uf7DxraB2STZM+t2k6lLW0sBQ3YWsZanDZcuBiK5HTQywwv3F2+jX/kQ04fsUqUyOAIng7h3BeTCZvIFrzZ8F5+kqSLB2jO6Kz1wB+SwfiB7lbd6OkR6crRHtIASsFXkjymRHh2cKIiSbgE/FKDFTC22DopAggLjy/KizuKQ2JUpcHu+W0bAcjYoKI1qsbnQhHdnobjp8PkPGZHuk2o2eNAORELZvy3CYcTFosccU7KSCJOGVmEIU8dpmgpFguU1IIbwwdsrOa7ZYzfksIVRC89M0UT25gLC1ba34xwnWi2jQBHstPORu6RTYWOt7smjJWnrWlHBdNDUcgwCnqq5NDfIp8G6q86IqmY9onDS1Iiub3SmMYLJW7g+Z13lIBR9RrLwq3dW6nDmFTDuriHz9bQLGNI+all8mWlLj59XFPBorAwaN//fCrqjUjWrzrOu2ejedFm0agcEScjbP8dg+htVa5wr+KCyEC3s3eyktUgkLvo
+        username: AgBsotlWGBZp/xq+5PrBGXkhB1ywKZ5fUuUlzAesOUISA0OmLbp/Cj6TYph6Nw6JrjUcbkfNbETxUmkVsxAIuMc4GsZQEIbc2Fe8J3OXDv0wqgFjhNFlkPYtvh2hi1/aJACfZifjon/RR/aLoAboir7IFgdKuJh3eiFcJrzIYdjZKGSNoz1MNUtvymIIw4vmeww5WKqiFPJ7Wj5mOazDSgbAakeIUAMaEQuj4N63Pmtl3mwKmL/uCVwTNJVxCyPaEFJx8V6kD/CMH8s2CPla90A6VU6kzEgNaceG6+30d29cirUQ+9sUNVODKxipLz/fdaIyG2Jlf4cImAHzJNFrSIz9FeWe0/sGK4EskLuPSvK+BWcGkTdCebkjvC+U2qZL5+NsY842RewTeSv7R84r5ICfxpdj4VO7cHmfxwmJzl86EkSqqPaXk0sBHBqPu8tHsCY52j1m8ZpL24Q0vkoFaX9qHL2AgTLYUsXop0zS1BK9+crCDjlan1mTsPgK8RqdivPsUSU3mmQuuMhy+gkNZqnoeHlItN5pGLsrtYW2JmL0lv+eGNhcIT0w/fMiIYlRyZVhzbmlfKKQioGXO0yyvuFt6rUJastJNGw2pQqYjwy7rJ7B3OqHIhhhMwCz/oqkyXABt2Mn0dudTf1XgJVYITykciktS1vBUzlY/p5GxdW1xt4N4NMTykZUWyqbiLap+ZDXccQAqJ/h
+    template:
+        metadata:
+            name: forgejo-kbve-ci
+            namespace: forgejo
