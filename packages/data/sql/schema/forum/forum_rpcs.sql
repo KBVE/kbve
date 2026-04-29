@@ -1310,6 +1310,110 @@ REVOKE ALL ON FUNCTION forum.service_record_moderation(UUID, forum.moderation_ac
 GRANT EXECUTE ON FUNCTION forum.service_record_moderation(UUID, forum.moderation_action_kind, forum.target_kind, TEXT, TEXT, JSONB, TEXT)
     TO service_role;
 
+-- ===========================================
+-- Staff comment moderation RPCs.
+--
+-- Both gate on `forum.is_staff(p_user_id)` so a misbehaving
+-- service_role caller can't moderate without staff rights. axum-kbve
+-- still does its own JWT-side staff check before forwarding —
+-- belt-and-suspenders.
+-- ===========================================
+CREATE OR REPLACE FUNCTION forum.service_staff_edit_comment(
+    p_user_id    UUID,
+    p_comment_id TEXT,
+    p_new_body   TEXT,
+    p_reason     TEXT DEFAULT NULL
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+SET lock_timeout = '1s'
+AS $$
+BEGIN
+    IF NOT forum.is_staff(p_user_id) THEN
+        RAISE EXCEPTION 'staff permissions required';
+    END IF;
+
+    IF p_new_body IS NULL OR length(p_new_body) < 1 OR length(p_new_body) > 20000 THEN
+        RAISE EXCEPTION 'invalid comment body length';
+    END IF;
+
+    UPDATE forum.comments
+       SET body           = p_new_body,
+           edited_at      = NOW(),
+           revision_count = revision_count + 1
+     WHERE id = p_comment_id
+       AND status IN ('active', 'flagged');
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'comment % not found or not editable', p_comment_id;
+    END IF;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION forum.service_staff_edit_comment(UUID, TEXT, TEXT, TEXT)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION forum.service_staff_edit_comment(UUID, TEXT, TEXT, TEXT)
+    TO service_role;
+
+-- Mirrors the comment_remove branch in service_record_moderation but
+-- enforces the staff gate inline. Decrements the parent thread's
+-- comment_count and writes to forum.moderation_actions for the audit
+-- trail.
+CREATE OR REPLACE FUNCTION forum.service_staff_remove_comment(
+    p_user_id    UUID,
+    p_comment_id TEXT,
+    p_reason     TEXT DEFAULT NULL
+)
+RETURNS TEXT
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+SET lock_timeout = '1s'
+AS $$
+DECLARE
+    v_action_id      TEXT;
+    v_comment_thread TEXT;
+BEGIN
+    IF NOT forum.is_staff(p_user_id) THEN
+        RAISE EXCEPTION 'staff permissions required';
+    END IF;
+
+    UPDATE forum.comments
+       SET status = 'removed'
+     WHERE id = p_comment_id
+       AND status <> 'removed'
+    RETURNING thread_id INTO v_comment_thread;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'comment % not found or already removed', p_comment_id;
+    END IF;
+
+    UPDATE forum.threads
+       SET comment_count = GREATEST(comment_count - 1, 0)
+     WHERE id = v_comment_thread;
+
+    INSERT INTO forum.moderation_actions (
+        moderator_id, kind, target_kind, target_id, reason, metadata_json
+    )
+    VALUES (
+        p_user_id,
+        'comment_remove',
+        'comment',
+        p_comment_id,
+        p_reason,
+        jsonb_build_object('via', 'service_staff_remove_comment')
+    )
+    RETURNING id INTO v_action_id;
+
+    RETURN v_action_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION forum.service_staff_remove_comment(UUID, TEXT, TEXT)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION forum.service_staff_remove_comment(UUID, TEXT, TEXT)
+    TO service_role;
+
 -- ============================================================
 -- Feed support indexes (default-safe variants) — co-located with
 -- service_fetch_feed.

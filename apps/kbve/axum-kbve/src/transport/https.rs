@@ -250,6 +250,18 @@ fn router(state: AppState) -> Router {
             "/api/v1/forum/t/{slug_or_id}/comments",
             post(api_create_comment),
         )
+        // PATCH = author edit-own. DELETE = staff remove. The mod-edit
+        // path lives at a sibling /moderate route to keep the verb/url
+        // matrix readable.
+        .route(
+            "/api/v1/forum/c/{comment_id}",
+            axum::routing::patch(api_edit_comment).delete(api_remove_comment),
+        )
+        .route(
+            "/api/v1/forum/c/{comment_id}/moderate",
+            axum::routing::patch(api_staff_edit_comment),
+        )
+        .route("/api/v1/me/staff", get(api_me_staff))
         // SEO-friendly 301: /forum/c/{slug} → /forum/s/{slug}. `c/` reads
         // as "category" but the canonical URL is `s/` (space). Crawlers
         // collapse the duplicate into the canonical via the redirect.
@@ -2039,9 +2051,11 @@ fn build_comments_html(
         let partial = ForumCommentPartial {
             id: row.id.clone(),
             depth: row.depth,
+            author_id: row.author_id.clone(),
             author_username: resolve_username(usernames_by_id, &row.author_id),
             created_at_human: humanize_ts(&row.created_at),
             score: row.score,
+            body_raw: row.body.clone(),
             body_html: rendered.html,
         };
         out.push_str(&render_partial(&partial, "forum/thread/_comment"));
@@ -2532,6 +2546,199 @@ async fn api_create_comment(
             .into_response(),
         Err(e) => {
             tracing::warn!("forum.service_create_comment error: {}", e);
+            (StatusCode::BAD_REQUEST, Json(json!({"error": e}))).into_response()
+        }
+    }
+}
+
+#[derive(serde::Deserialize)]
+struct EditCommentBody {
+    body: String,
+    /// Optional moderator reason — only honored on the staff-edit path.
+    #[serde(default)]
+    reason: Option<String>,
+}
+
+/// PATCH /api/v1/forum/c/{comment_id} — author edit-own.
+/// SQL `service_edit_comment` re-checks author ownership.
+async fn api_edit_comment(
+    Path(comment_id): Path<String>,
+    headers: HeaderMap,
+    Json(payload): Json<EditCommentBody>,
+) -> Response {
+    let user_id = match auth_user_id(&headers).await {
+        Ok(id) => id,
+        Err(resp) => return resp,
+    };
+    let svc = match get_forum_service() {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({"error": "Forum service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+
+    match svc
+        .edit_comment_as_author(&user_id, &comment_id, &payload.body)
+        .await
+    {
+        Ok(()) => (StatusCode::OK, Json(json!({"comment_id": comment_id}))).into_response(),
+        Err(e) => {
+            tracing::warn!("forum edit_comment_as_author error: {}", e);
+            (StatusCode::BAD_REQUEST, Json(json!({"error": e}))).into_response()
+        }
+    }
+}
+
+/// DELETE /api/v1/forum/c/{comment_id} — staff remove.
+/// axum checks staff at the JWT layer first, then forwards to the
+/// `service_staff_remove_comment` RPC which re-checks at the SQL layer.
+async fn api_remove_comment(
+    Path(comment_id): Path<String>,
+    headers: HeaderMap,
+    Json(payload): Json<EditCommentBody>,
+) -> Response {
+    let user_id = match auth_user_id(&headers).await {
+        Ok(id) => id,
+        Err(resp) => return resp,
+    };
+    let svc = match get_forum_service() {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({"error": "Forum service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+
+    // First belt: deny non-staff at the axum layer.
+    match svc.is_staff(&user_id).await {
+        Ok(true) => {}
+        Ok(false) => {
+            return (
+                StatusCode::FORBIDDEN,
+                Json(json!({"error": "staff permissions required"})),
+            )
+                .into_response();
+        }
+        Err(e) => {
+            tracing::error!("forum.is_staff lookup failed: {}", e);
+            return (
+                StatusCode::BAD_GATEWAY,
+                Json(json!({"error": "staff check upstream error"})),
+            )
+                .into_response();
+        }
+    }
+
+    match svc
+        .staff_remove_comment(&user_id, &comment_id, payload.reason.as_deref())
+        .await
+    {
+        Ok(action_id) => (
+            StatusCode::OK,
+            Json(json!({"action_id": action_id, "comment_id": comment_id})),
+        )
+            .into_response(),
+        Err(e) => {
+            tracing::warn!("forum staff_remove_comment error: {}", e);
+            (StatusCode::BAD_REQUEST, Json(json!({"error": e}))).into_response()
+        }
+    }
+}
+
+/// GET /api/v1/me/staff — Bearer-authed staff probe. Returns
+/// `{is_staff: bool, user_id: <uuid>}`. The client uses this to
+/// decide whether to render the mod buttons on comment rows.
+async fn api_me_staff(headers: HeaderMap) -> Response {
+    let user_id = match auth_user_id(&headers).await {
+        Ok(id) => id,
+        Err(resp) => return resp,
+    };
+    let svc = match get_forum_service() {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({"error": "Forum service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+    match svc.is_staff(&user_id).await {
+        Ok(is_staff) => (
+            StatusCode::OK,
+            Json(json!({"is_staff": is_staff, "user_id": user_id})),
+        )
+            .into_response(),
+        Err(e) => {
+            tracing::warn!("forum.is_staff probe failed: {}", e);
+            (
+                StatusCode::BAD_GATEWAY,
+                Json(json!({"error": "staff check upstream error"})),
+            )
+                .into_response()
+        }
+    }
+}
+
+/// PATCH /api/v1/forum/c/{comment_id}/moderate — staff overwrite body.
+async fn api_staff_edit_comment(
+    Path(comment_id): Path<String>,
+    headers: HeaderMap,
+    Json(payload): Json<EditCommentBody>,
+) -> Response {
+    let user_id = match auth_user_id(&headers).await {
+        Ok(id) => id,
+        Err(resp) => return resp,
+    };
+    let svc = match get_forum_service() {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({"error": "Forum service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+
+    match svc.is_staff(&user_id).await {
+        Ok(true) => {}
+        Ok(false) => {
+            return (
+                StatusCode::FORBIDDEN,
+                Json(json!({"error": "staff permissions required"})),
+            )
+                .into_response();
+        }
+        Err(e) => {
+            tracing::error!("forum.is_staff lookup failed: {}", e);
+            return (
+                StatusCode::BAD_GATEWAY,
+                Json(json!({"error": "staff check upstream error"})),
+            )
+                .into_response();
+        }
+    }
+
+    match svc
+        .staff_edit_comment(
+            &user_id,
+            &comment_id,
+            &payload.body,
+            payload.reason.as_deref(),
+        )
+        .await
+    {
+        Ok(()) => (StatusCode::OK, Json(json!({"comment_id": comment_id}))).into_response(),
+        Err(e) => {
+            tracing::warn!("forum staff_edit_comment error: {}", e);
             (StatusCode::BAD_REQUEST, Json(json!({"error": e}))).into_response()
         }
     }

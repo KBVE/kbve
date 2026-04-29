@@ -4,27 +4,28 @@ Manages PostgreSQL schema migrations for the KBVE Supabase cluster (`supabase-cl
 
 ## Applied Migrations
 
-| Version          | Name                          | Schema      | Objects                                                                                                                                       |
-| ---------------- | ----------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `20260227210000` | `mc_schema_init`              | `mc`        | 6 tables, 28 functions                                                                                                                        |
-| `20260227215000` | `gen_ulid`                    | `public`    | 1 function (`gen_ulid()`)                                                                                                                     |
-| `20260227220000` | `meme_schema_init`            | `meme`      | 14 tables, 18 functions                                                                                                                       |
-| `20260228000000` | `discordsh_schema_init`       | `discordsh` | 2 tables, 13 functions                                                                                                                        |
-| `20260228210000` | `meme_rpcs`                   | `meme`      | +7 service RPC functions                                                                                                                      |
-| `20260228220000` | `osrs_schema_init`            | `osrs`      | 9 tables, 11 functions                                                                                                                        |
-| `20260228230000` | `discordsh_update_server`     | `discordsh` | +2 functions, removes direct UPDATE                                                                                                           |
-| `20260301210000` | `meme_rpcs_v2`                | `meme`      | +12 service RPC functions                                                                                                                     |
-| `20260302000000` | `discordsh_guild_vault`       | `discordsh` | 1 table, 7 functions (guild token vault)                                                                                                      |
-| `20260302100000` | `n8n_schema_init`             | `n8n`       | Schema creation for n8n workflow engine                                                                                                       |
-| `20260303210000` | `meme_create_rpc`             | `meme`      | +1 function (`service_create_meme`)                                                                                                           |
-| `20260304210000` | `meme_service_get_meme_by_id` | `meme`      | +1 function (`service_get_meme_by_id`)                                                                                                        |
-| `20260307210000` | `staff_schema_init`           | `staff`     | 2 tables, 12 functions (permissions)                                                                                                          |
-| `20260312183000` | `discordsh_list_servers`      | `discordsh` | +1 function (`service_list_servers`)                                                                                                          |
-| `20260316210000` | `discordsh_dungeon_profiles`  | `discordsh` | 2 tables, 4 functions (dungeon RPG)                                                                                                           |
-| `20260318210000` | `rls_subquery_auth_uid`       | _multi_     | ALTER 39 RLS policies (perf optimization)                                                                                                     |
-| `20260427210000` | `forum_schema_init`           | `forum`     | 18 tables, 2 views, 15 enums, 42 functions (15 service RPCs), 101 indexes, 30 RLS policies                                                    |
-| `20260427220000` | `forum_feed_indexes_safe`     | `forum`     | Drop 4 redundant feed indexes, add 7 `_safe` partials (status='active' AND nsfw=FALSE) for service_fetch_feed default path                    |
-| `20260427230000` | `forum_username_gate`         | `forum`     | Add `forum.assert_user_has_username` helper; `service_create_thread` + `service_create_comment` reject authors with no `profile.username` row |
+| Version          | Name                          | Schema      | Objects                                                                                                                                                     |
+| ---------------- | ----------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `20260227210000` | `mc_schema_init`              | `mc`        | 6 tables, 28 functions                                                                                                                                      |
+| `20260227215000` | `gen_ulid`                    | `public`    | 1 function (`gen_ulid()`)                                                                                                                                   |
+| `20260227220000` | `meme_schema_init`            | `meme`      | 14 tables, 18 functions                                                                                                                                     |
+| `20260228000000` | `discordsh_schema_init`       | `discordsh` | 2 tables, 13 functions                                                                                                                                      |
+| `20260228210000` | `meme_rpcs`                   | `meme`      | +7 service RPC functions                                                                                                                                    |
+| `20260228220000` | `osrs_schema_init`            | `osrs`      | 9 tables, 11 functions                                                                                                                                      |
+| `20260228230000` | `discordsh_update_server`     | `discordsh` | +2 functions, removes direct UPDATE                                                                                                                         |
+| `20260301210000` | `meme_rpcs_v2`                | `meme`      | +12 service RPC functions                                                                                                                                   |
+| `20260302000000` | `discordsh_guild_vault`       | `discordsh` | 1 table, 7 functions (guild token vault)                                                                                                                    |
+| `20260302100000` | `n8n_schema_init`             | `n8n`       | Schema creation for n8n workflow engine                                                                                                                     |
+| `20260303210000` | `meme_create_rpc`             | `meme`      | +1 function (`service_create_meme`)                                                                                                                         |
+| `20260304210000` | `meme_service_get_meme_by_id` | `meme`      | +1 function (`service_get_meme_by_id`)                                                                                                                      |
+| `20260307210000` | `staff_schema_init`           | `staff`     | 2 tables, 12 functions (permissions)                                                                                                                        |
+| `20260312183000` | `discordsh_list_servers`      | `discordsh` | +1 function (`service_list_servers`)                                                                                                                        |
+| `20260316210000` | `discordsh_dungeon_profiles`  | `discordsh` | 2 tables, 4 functions (dungeon RPG)                                                                                                                         |
+| `20260318210000` | `rls_subquery_auth_uid`       | _multi_     | ALTER 39 RLS policies (perf optimization)                                                                                                                   |
+| `20260427210000` | `forum_schema_init`           | `forum`     | 18 tables, 2 views, 15 enums, 42 functions (15 service RPCs), 101 indexes, 30 RLS policies                                                                  |
+| `20260427220000` | `forum_feed_indexes_safe`     | `forum`     | Drop 4 redundant feed indexes, add 7 `_safe` partials (status='active' AND nsfw=FALSE) for service_fetch_feed default path                                  |
+| `20260427230000` | `forum_username_gate`         | `forum`     | Add `forum.assert_user_has_username` helper; `service_create_thread` + `service_create_comment` reject authors with no `profile.username` row               |
+| `20260429210000` | `forum_staff_comment_rpcs`    | `forum`     | `forum.is_staff(uuid)` cross-schema helper + `service_staff_edit_comment` / `service_staff_remove_comment` RPCs (gated on `staff.members.permissions <> 0`) |
 
 Migration state is tracked in `dbmate.schema_migrations` (not `public`) to isolate it from PostgREST/RPC.
 

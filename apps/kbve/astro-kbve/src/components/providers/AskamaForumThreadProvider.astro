@@ -272,6 +272,152 @@
 			);
 		}
 	});
+
+	// ── Comment row actions: edit-own / mod-edit / mod-remove ─────
+	(async () => {
+		const rows = Array.from(
+			document.querySelectorAll<HTMLElement>(
+				'.forum-comment[data-comment-id]',
+			),
+		);
+		if (rows.length === 0) return;
+
+		try {
+			await initSupa();
+		} catch {
+			return;
+		}
+		const supa = getSupa();
+		const sessionResult = await supa.getSession().catch(() => null);
+		const session = sessionResult?.session ?? null;
+		if (!session?.access_token) return;
+
+		const myId = String(session.user?.id ?? '');
+		let isStaff = false;
+		try {
+			const res = await fetch('/api/v1/me/staff', {
+				headers: { Authorization: `Bearer ${session.access_token}` },
+			});
+			if (res.ok) {
+				const data = (await res.json()) as { is_staff?: boolean };
+				isStaff = !!data.is_staff;
+			}
+		} catch {
+			/* swallow — we just hide the mod buttons */
+		}
+
+		for (const row of rows) {
+			const authorId = row.dataset.authorId || '';
+			const actionsEl = row.querySelector<HTMLElement>(
+				'.forum-comment__actions',
+			);
+			if (!actionsEl) continue;
+
+			const isOwn = myId && authorId === myId;
+			const editOwnBtn = actionsEl.querySelector<HTMLButtonElement>(
+				'[data-action="edit-own"]',
+			);
+			const modEditBtn = actionsEl.querySelector<HTMLButtonElement>(
+				'[data-action="mod-edit"]',
+			);
+			const modRemoveBtn = actionsEl.querySelector<HTMLButtonElement>(
+				'[data-action="mod-remove"]',
+			);
+
+			if (editOwnBtn) editOwnBtn.hidden = !isOwn;
+			if (modEditBtn) modEditBtn.hidden = !isStaff;
+			if (modRemoveBtn) modRemoveBtn.hidden = !isStaff;
+
+			if (isOwn || isStaff) actionsEl.hidden = false;
+		}
+
+		document.addEventListener('click', async (ev) => {
+			const target = ev.target as HTMLElement | null;
+			if (!target) return;
+			const btn = target.closest<HTMLButtonElement>(
+				'.forum-comment__action',
+			);
+			if (!btn) return;
+
+			const row = btn.closest<HTMLElement>(
+				'.forum-comment[data-comment-id]',
+			);
+			if (!row) return;
+			const commentId = row.dataset.commentId || '';
+			const action = btn.dataset.action;
+			if (!commentId || !action) return;
+
+			ev.preventDefault();
+			const supa2 = getSupa();
+			const sr = await supa2.getSession().catch(() => null);
+			const sess = sr?.session ?? null;
+			if (!sess?.access_token) {
+				alert('Sign in first.');
+				return;
+			}
+
+			const rawTpl = row.querySelector<HTMLTemplateElement>(
+				'.forum-comment__raw',
+			);
+			const currentBody = rawTpl?.innerHTML?.trim() ?? '';
+
+			let url = '';
+			let method = 'PATCH';
+			let body: Record<string, string> | null = null;
+			let confirmMsg = '';
+
+			if (action === 'edit-own') {
+				const next = window.prompt(
+					'Edit your comment (markdown):',
+					currentBody,
+				);
+				if (next === null || next.trim() === currentBody) return;
+				url = `/api/v1/forum/c/${commentId}`;
+				body = { body: next };
+			} else if (action === 'mod-edit') {
+				const next = window.prompt(
+					'Mod-edit comment (markdown):',
+					currentBody,
+				);
+				if (next === null || next.trim() === currentBody) return;
+				const reason = window.prompt('Reason (optional):') || '';
+				url = `/api/v1/forum/c/${commentId}/moderate`;
+				body = { body: next, reason };
+			} else if (action === 'mod-remove') {
+				confirmMsg =
+					"Remove this comment? This decrements the thread's comment count.";
+				if (!window.confirm(confirmMsg)) return;
+				const reason = window.prompt('Reason (optional):') || '';
+				url = `/api/v1/forum/c/${commentId}`;
+				method = 'DELETE';
+				body = { body: '', reason };
+			} else {
+				return;
+			}
+
+			btn.disabled = true;
+			try {
+				const res = await fetch(url, {
+					method,
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${sess.access_token}`,
+					},
+					body: JSON.stringify(body),
+				});
+				if (!res.ok) {
+					const text = await res.text().catch(() => '');
+					alert(`${res.status}: ${text || res.statusText}`);
+					btn.disabled = false;
+					return;
+				}
+				window.location.reload();
+			} catch (err) {
+				alert(err instanceof Error ? err.message : 'Network error');
+				btn.disabled = false;
+			}
+		});
+	})();
 </script>
 
 <style>
@@ -649,6 +795,37 @@
 	}
 	.thread-comments__tree :global(.forum-comment__header a:hover) {
 		color: var(--forum-accent);
+	}
+	.thread-comments__tree :global(.forum-comment__actions) {
+		display: inline-flex;
+		gap: 0.3rem;
+		margin-left: auto;
+	}
+	.thread-comments__tree :global(.forum-comment__action) {
+		appearance: none;
+		border: 1px solid var(--forum-border);
+		background: transparent;
+		color: var(--forum-muted);
+		padding: 0.15rem 0.55rem;
+		border-radius: 6px;
+		font-size: 0.75rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition:
+			color 0.12s ease,
+			border-color 0.12s ease;
+	}
+	.thread-comments__tree :global(.forum-comment__action:hover) {
+		color: var(--forum-text);
+		border-color: var(--forum-accent);
+	}
+	.thread-comments__tree :global(.forum-comment__action--danger:hover) {
+		color: #f87171;
+		border-color: #f87171;
+	}
+	.thread-comments__tree :global(.forum-comment__action:disabled) {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 	.thread-comments__tree :global(.forum-comment__body) {
 		font-size: 0.9375rem;

@@ -262,9 +262,15 @@ pub struct ForumComposeTemplate {
 pub struct ForumCommentPartial {
     pub id: String,
     pub depth: i32,
+    /// Author UUID — emitted as `data-author-id` so client-side JS can
+    /// compare against the signed-in user and show/hide edit buttons.
+    pub author_id: String,
     pub author_username: String,
     pub created_at_human: String,
     pub score: i64,
+    /// Raw markdown body — emitted in a hidden `<template>` so the
+    /// inline edit form can pre-fill the textarea without a roundtrip.
+    pub body_raw: String,
     /// Sanitized HTML — output of `kbve::markdown::render(..).html`.
     pub body_html: String,
 }

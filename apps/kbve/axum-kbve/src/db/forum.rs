@@ -450,6 +450,144 @@ impl ForumService {
         Ok(id)
     }
 
+    /// Author edit-own. Calls `forum.service_edit_comment`. RPC raises
+    /// if the comment isn't authored by `author_id` or isn't editable.
+    pub async fn edit_comment_as_author(
+        &self,
+        author_id: &str,
+        comment_id: &str,
+        body: &str,
+    ) -> Result<(), String> {
+        let url = self.client.config().rpc_url("service_edit_comment");
+        let headers = self.client.rpc_headers(SCHEMA)?;
+        let payload = serde_json::json!({
+            "p_author_id": author_id,
+            "p_comment_id": comment_id,
+            "p_body": body,
+        });
+        let response = self
+            .client
+            .client()
+            .post(&url)
+            .headers(headers)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| format!("forum.service_edit_comment network: {}", e))?;
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!("forum.service_edit_comment {} → {}", status, body));
+        }
+        Ok(())
+    }
+
+    /// Staff override. Calls `forum.service_staff_edit_comment` which
+    /// itself re-checks `forum.is_staff(p_user_id)` before writing.
+    pub async fn staff_edit_comment(
+        &self,
+        user_id: &str,
+        comment_id: &str,
+        new_body: &str,
+        reason: Option<&str>,
+    ) -> Result<(), String> {
+        let url = self.client.config().rpc_url("service_staff_edit_comment");
+        let headers = self.client.rpc_headers(SCHEMA)?;
+        let payload = serde_json::json!({
+            "p_user_id": user_id,
+            "p_comment_id": comment_id,
+            "p_new_body": new_body,
+            "p_reason": reason,
+        });
+        let response = self
+            .client
+            .client()
+            .post(&url)
+            .headers(headers)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| format!("forum.service_staff_edit_comment network: {}", e))?;
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!(
+                "forum.service_staff_edit_comment {} → {}",
+                status, body
+            ));
+        }
+        Ok(())
+    }
+
+    /// Staff remove. Calls `forum.service_staff_remove_comment`. Returns
+    /// the moderation_actions row id for the audit trail.
+    pub async fn staff_remove_comment(
+        &self,
+        user_id: &str,
+        comment_id: &str,
+        reason: Option<&str>,
+    ) -> Result<String, String> {
+        let url = self.client.config().rpc_url("service_staff_remove_comment");
+        let headers = self.client.rpc_headers(SCHEMA)?;
+        let payload = serde_json::json!({
+            "p_user_id": user_id,
+            "p_comment_id": comment_id,
+            "p_reason": reason,
+        });
+        let response = self
+            .client
+            .client()
+            .post(&url)
+            .headers(headers)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| format!("forum.service_staff_remove_comment network: {}", e))?;
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!(
+                "forum.service_staff_remove_comment {} → {}",
+                status, body
+            ));
+        }
+        let text = response
+            .text()
+            .await
+            .map_err(|e| format!("forum.service_staff_remove_comment read: {}", e))?;
+        let id: String = serde_json::from_str(&text)
+            .map_err(|e| format!("forum.service_staff_remove_comment parse {}: {}", text, e))?;
+        Ok(id)
+    }
+
+    /// Belt-and-suspenders staff check. Calls `forum.is_staff(uuid)`
+    /// directly so axum can fail fast before forwarding.
+    pub async fn is_staff(&self, user_id: &str) -> Result<bool, String> {
+        let url = self.client.config().rpc_url("is_staff");
+        let headers = self.client.rpc_headers(SCHEMA)?;
+        let payload = serde_json::json!({ "p_user_id": user_id });
+        let response = self
+            .client
+            .client()
+            .post(&url)
+            .headers(headers)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| format!("forum.is_staff network: {}", e))?;
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!("forum.is_staff {} → {}", status, body));
+        }
+        let text = response
+            .text()
+            .await
+            .map_err(|e| format!("forum.is_staff read: {}", e))?;
+        let trimmed = text.trim();
+        Ok(trimmed.eq_ignore_ascii_case("true"))
+    }
+
     /// Call `forum.service_create_comment`. Returns the new comment id.
     pub async fn create_comment(
         &self,

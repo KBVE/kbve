@@ -354,6 +354,35 @@ COMMENT ON FUNCTION forum.is_user_banned IS
 REVOKE ALL ON FUNCTION forum.is_user_banned(UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION forum.is_user_banned(UUID) TO authenticated;
 
+-- Cross-schema staff check. Returns TRUE if the user has any non-zero
+-- permissions row in `staff.members`. Used by service_staff_* RPCs to
+-- gate moderation calls at the SQL layer (belt-and-suspenders behind
+-- the axum-kbve JWT staff check).
+CREATE OR REPLACE FUNCTION forum.is_staff(p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+STABLE
+AS $$
+BEGIN
+    IF p_user_id IS NULL THEN
+        RETURN FALSE;
+    END IF;
+    RETURN EXISTS (
+        SELECT 1 FROM staff.members
+         WHERE user_id = p_user_id
+           AND permissions <> 0
+    );
+END;
+$$;
+
+COMMENT ON FUNCTION forum.is_staff(UUID) IS
+    'TRUE if the user has any non-zero permissions row in staff.members.';
+
+REVOKE ALL ON FUNCTION forum.is_staff(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION forum.is_staff(UUID) TO authenticated, service_role;
+
 -- Username gate. Posting without a username is rejected upstream of the
 -- table CHECKs; resolves the read-side stand-in problem (axum-kbve was
 -- forced to render an 8-char UUID for unnamed authors). Calls into the
