@@ -134,7 +134,10 @@
 			return;
 		}
 		const supa = getSupa();
-		const session = await supa.getSession().catch(() => null);
+		// SupabaseGateway returns `{ session, ... }` — unwrap before
+		// reaching for access_token.
+		const sessionResult = await supa.getSession().catch(() => null);
+		const session = sessionResult?.session ?? null;
 		if (!session?.access_token) {
 			setStatus('error', 'Sign in first to post a thread.');
 			return;
