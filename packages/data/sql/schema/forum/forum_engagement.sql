@@ -91,7 +91,7 @@ ALTER TABLE forum.thread_votes FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY thread_votes_self_read ON forum.thread_votes
     FOR SELECT TO authenticated
-    USING (voter_id = auth.uid());
+    USING (voter_id = (SELECT auth.uid()));
 
 -- Writes go through forum.service_cast_thread_vote (service_role).
 
@@ -127,7 +127,7 @@ ALTER TABLE forum.comment_votes FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY comment_votes_self_read ON forum.comment_votes
     FOR SELECT TO authenticated
-    USING (voter_id = auth.uid());
+    USING (voter_id = (SELECT auth.uid()));
 
 -- ===========================================
 -- REACTIONS — polymorphic on thread OR comment
@@ -467,7 +467,7 @@ ALTER TABLE forum.poll_votes FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY poll_votes_self_read ON forum.poll_votes
     FOR SELECT TO authenticated
-    USING (voter_id = auth.uid());
+    USING (voter_id = (SELECT auth.uid()));
 
 -- ============================================================
 -- Grants — engagement is RPC-only on the write side.

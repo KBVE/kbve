@@ -243,7 +243,7 @@ ALTER TABLE forum.reports FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY reports_self_read ON forum.reports
     FOR SELECT TO authenticated
-    USING (reporter_id = auth.uid());
+    USING (reporter_id = (SELECT auth.uid()));
 
 -- Writes through forum.service_create_report (service_role).
 -- No author INSERT policy: the table-level REVOKE makes the RPC the
@@ -423,15 +423,15 @@ ALTER TABLE forum.notifications FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY notifications_self_read ON forum.notifications
     FOR SELECT TO authenticated
-    USING (recipient_id = auth.uid());
+    USING (recipient_id = (SELECT auth.uid()));
 
 -- Mark-as-read only. RLS row gate + column-level GRANT (in the grants
 -- block below) means clients can flip read_at on their own rows but
 -- not touch body / kind / actor / target.
 CREATE POLICY notifications_self_update ON forum.notifications
     FOR UPDATE TO authenticated
-    USING (recipient_id = auth.uid())
-    WITH CHECK (recipient_id = auth.uid());
+    USING (recipient_id = (SELECT auth.uid()))
+    WITH CHECK (recipient_id = (SELECT auth.uid()));
 
 -- Deletes only through service_role.
 

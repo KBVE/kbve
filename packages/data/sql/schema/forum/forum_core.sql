@@ -795,12 +795,20 @@ CREATE POLICY tags_public_read ON forum.tags
     FOR SELECT TO anon, authenticated
     USING (TRUE);
 
-CREATE POLICY threads_public_read ON forum.threads
+-- Single SELECT policy. Used to be split into threads_public_read +
+-- threads_author_read_drafts but Postgres OR's permissive policies and
+-- evaluates each per row. The merged form runs once per row. The
+-- `(SELECT auth.uid())` wrap also caches the function call once per
+-- query (Supabase RLS perf advisory).
+CREATE POLICY threads_select ON forum.threads
     FOR SELECT TO anon, authenticated
-    USING (status IN ('active', 'archived', 'locked', 'sold', 'expired'));
-CREATE POLICY threads_author_read_drafts ON forum.threads
-    FOR SELECT TO authenticated
-    USING (author_id = auth.uid() AND status IN ('draft', 'scheduled', 'pending'));
+    USING (
+        status IN ('active', 'archived', 'locked', 'sold', 'expired')
+        OR (
+            author_id = (SELECT auth.uid())
+            AND status IN ('draft', 'scheduled', 'pending')
+        )
+    );
 
 -- Item 2: insert policy gates on banned-user check. Item 1 also REVOKEs
 -- the table-level INSERT below — both layers enforce the same invariant
@@ -809,23 +817,27 @@ CREATE POLICY threads_author_read_drafts ON forum.threads
 CREATE POLICY threads_author_insert ON forum.threads
     FOR INSERT TO authenticated
     WITH CHECK (
-        author_id = auth.uid()
+        author_id = (SELECT auth.uid())
         AND status IN ('active', 'draft', 'scheduled')
-        AND NOT forum.is_user_banned(auth.uid())
+        AND NOT forum.is_user_banned((SELECT auth.uid()))
     );
 
-CREATE POLICY comments_public_read ON forum.comments
+-- Single SELECT policy — same merged-permissive optimization as threads.
+CREATE POLICY comments_select ON forum.comments
     FOR SELECT TO anon, authenticated
-    USING (status = 'active');
-CREATE POLICY comments_author_read_drafts ON forum.comments
-    FOR SELECT TO authenticated
-    USING (author_id = auth.uid() AND status = 'draft');
+    USING (
+        status = 'active'
+        OR (
+            author_id = (SELECT auth.uid())
+            AND status = 'draft'
+        )
+    );
 
 CREATE POLICY comments_author_insert ON forum.comments
     FOR INSERT TO authenticated
     WITH CHECK (
-        author_id = auth.uid()
-        AND NOT forum.is_user_banned(auth.uid())
+        author_id = (SELECT auth.uid())
+        AND NOT forum.is_user_banned((SELECT auth.uid()))
     );
 
 CREATE POLICY thread_tags_public_read ON forum.thread_tags
