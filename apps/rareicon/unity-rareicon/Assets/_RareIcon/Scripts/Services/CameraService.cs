@@ -32,8 +32,6 @@ namespace RareIcon
         readonly ReactiveProperty<float2> _worldMousePos = new(float2.zero);
         public ReadOnlyReactiveProperty<float2> WorldMousePos => _worldMousePos;
 
-        EntityQuery _controlledQuery;
-        bool _queryReady;
         Entity _lastControlled = Entity.Null;
         float _nextUnitMoveTime;
         IPublisher<ControlledUnitMoveMessage> _movePublisher;
@@ -68,13 +66,7 @@ namespace RareIcon
             Entity controlled = Entity.Null;
             if (world != null && world.IsCreated)
             {
-                if (!_queryReady)
-                {
-                    _controlledQuery = world.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<ControlledUnitTag>());
-                    _queryReady = true;
-                }
-                if (_controlledQuery.TryGetSingletonEntity<ControlledUnitTag>(out var e))
-                    controlled = e;
+                controlled = CharacterOrchestrator.Current(world.EntityManager, ControllerId.Local);
             }
 
             if (controlled != _lastControlled)

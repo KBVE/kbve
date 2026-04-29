@@ -383,33 +383,88 @@ namespace RareIcon
             return false;
         }
 
+        static EntityQuery _hashQuery;
+        static EntityQuery _linearQuery;
+        static bool        _hashQueryReady;
+        static bool        _linearQueryReady;
+
         static bool TryGetUnitAt(EntityManager em, int2 hex, out Entity unit)
         {
             const float HexSize = 0.25f;
             unit = Entity.Null;
 
-            var query = em.CreateEntityQuery(
-                ComponentType.ReadOnly<Unit>(),
-                ComponentType.ReadOnly<LocalTransform>(),
-                ComponentType.ReadOnly<Faction>());
+            float3 hexCenter = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
+            float2 click     = new float2(hexCenter.x, hexCenter.y);
 
-            using var arr = query.ToEntityArray(Allocator.Temp);
+            if (!_hashQueryReady)
+            {
+                _hashQuery = em.CreateEntityQuery(ComponentType.ReadOnly<SpatialHashSingleton>());
+                _hashQueryReady = true;
+            }
+            if (_hashQuery.CalculateEntityCount() == 0)
+                return TryGetUnitAtLinear(em, hex, out unit);
 
+            var snap = _hashQuery.GetSingleton<SpatialHashSingleton>();
+            // Wait for the in-flight ResetHash + BuildHash jobs before
+            // touching the container from the main thread; Burst readers
+            // chain via NativeContainer safety, but managed code bypasses
+            // that path so we Complete the handle here.
+            snap.WriteHandle.Complete();
+            var hash = snap.Hash;
+            if (!hash.IsCreated) return TryGetUnitAtLinear(em, hex, out unit);
+
+            // Walk the clicked cell + 8 neighbors to cover units sitting on
+            // cell boundaries; cell size is 1.0 world unit so a single hex
+            // (0.5 wide) always lands inside one cell, but a unit's render
+            // position can drift to the adjacent cell mid-step.
+            int cx = (int)math.floor(click.x / SpatialHashSystem.CellSize);
+            int cy = (int)math.floor(click.y / SpatialHashSystem.CellSize);
+
+            for (int dy = -1; dy <= 1; dy++)
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                int key = SpatialHashSystem.CellKey(cx + dx, cy + dy);
+                if (!hash.TryGetFirstValue(key, out var hit, out var iter)) continue;
+                do
+                {
+                    if (hit.Faction != FactionType.Player) continue;
+                    if (!em.Exists(hit.Entity))             continue;
+
+                    var hexAt = HexMeshUtil.WorldToHex(hit.Position.x, hit.Position.y, HexSize);
+                    if (!hexAt.Equals(hex)) continue;
+
+                    unit = hit.Entity;
+                    return true;
+                }
+                while (hash.TryGetNextValue(out hit, ref iter));
+            }
+            return false;
+        }
+
+        /// <summary>Fallback linear scan over <see cref="Unit"/> + <see cref="Faction"/> for the rare frame where the spatial-hash singleton hasn't been published yet (e.g. very first frame after world bootstrap, before <see cref="SpatialHashSystem"/> ran). Cheaper to keep the safety net than to gate every world click on hash readiness.</summary>
+        static bool TryGetUnitAtLinear(EntityManager em, int2 hex, out Entity unit)
+        {
+            const float HexSize = 0.25f;
+            unit = Entity.Null;
+            if (!_linearQueryReady)
+            {
+                _linearQuery = em.CreateEntityQuery(
+                    ComponentType.ReadOnly<Unit>(),
+                    ComponentType.ReadOnly<LocalTransform>(),
+                    ComponentType.ReadOnly<Faction>());
+                _linearQueryReady = true;
+            }
+            using var arr = _linearQuery.ToEntityArray(Allocator.Temp);
             for (int i = 0; i < arr.Length; i++)
             {
                 var faction = em.GetComponentData<Faction>(arr[i]);
-                if (faction.Value != FactionType.Player)
-                    continue;
-
+                if (faction.Value != FactionType.Player) continue;
                 var t = em.GetComponentData<LocalTransform>(arr[i]);
                 var unitHex = HexMeshUtil.WorldToHex(t.Position.x, t.Position.y, HexSize);
-                if (!unitHex.Equals(hex))
-                    continue;
-
+                if (!unitHex.Equals(hex)) continue;
                 unit = arr[i];
                 return true;
             }
-
             return false;
         }
 

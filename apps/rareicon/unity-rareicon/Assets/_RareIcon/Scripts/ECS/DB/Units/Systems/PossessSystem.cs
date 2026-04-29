@@ -1,6 +1,5 @@
 using System;
 using MessagePipe;
-using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
@@ -16,12 +15,14 @@ namespace RareIcon
 
         protected override void OnUpdate()
         {
-            if (_sub != null) return;
             try
             {
                 _sub = GlobalMessagePipe
                     .GetSubscriber<PossessUnitMessage>()
                     .Subscribe(OnPossess);
+                // Subscriber callback fires independently — kill OnUpdate so
+                // the system stops getting ticked once we're wired in.
+                Enabled = false;
             }
             catch (Exception ex)
             {
@@ -37,28 +38,7 @@ namespace RareIcon
 
         void OnPossess(PossessUnitMessage msg)
         {
-            var em = EntityManager;
-            if (msg.Unit == Entity.Null || !em.Exists(msg.Unit)) return;
-
-            var holders = em.CreateEntityQuery(ComponentType.ReadOnly<ControlledUnitTag>());
-            using (var arr = holders.ToEntityArray(Allocator.Temp))
-            {
-                for (int i = 0; i < arr.Length; i++)
-                {
-                    if (arr[i] == msg.Unit) continue;
-                    em.RemoveComponent<ControlledUnitTag>(arr[i]);
-
-                    if (em.HasComponent<MovementGoal>(arr[i]))
-                    {
-                        var g = em.GetComponentData<MovementGoal>(arr[i]);
-                        if (g.Priority == GoalPriority.Order)
-                            em.SetComponentData(arr[i], default(MovementGoal));
-                    }
-                }
-            }
-
-            if (!em.HasComponent<ControlledUnitTag>(msg.Unit))
-                em.AddComponent<ControlledUnitTag>(msg.Unit);
+            CharacterOrchestrator.Possess(EntityManager, ControllerId.Local, msg.Unit);
         }
     }
 }

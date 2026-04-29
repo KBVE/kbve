@@ -38,7 +38,11 @@ namespace RareIcon
             // the hash via SystemAPI.GetSingleton — state.World is managed
             // and unreachable from Burst.
             var singleton = EntityManager.CreateEntity(typeof(SpatialHashSingleton));
-            EntityManager.SetComponentData(singleton, new SpatialHashSingleton { Hash = Hash });
+            EntityManager.SetComponentData(singleton, new SpatialHashSingleton
+            {
+                Hash        = Hash,
+                WriteHandle = default,
+            });
         }
 
         protected override void OnDestroy()
@@ -61,7 +65,16 @@ namespace RareIcon
                 Writer = Hash.AsParallelWriter(),
             }.ScheduleParallel(Dependency);
 
-            Dependency.Complete();
+            // Publish the write handle on the singleton so managed readers
+            // (AppStateController click router, etc.) can Complete it before
+            // touching the hash. Burst readers chain through the framework's
+            // NativeContainer safety; the explicit handle exists for the
+            // main-thread query path that bypasses state.Dependency.
+            SystemAPI.SetSingleton(new SpatialHashSingleton
+            {
+                Hash        = Hash,
+                WriteHandle = Dependency,
+            });
         }
 
         // Cheap pair hash. Spreads int2 cell coords across an int space
@@ -79,10 +92,11 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Singleton mirror of SpatialHashSystem.Hash; Burst ISystems read this via SystemAPI.GetSingleton since state.World is not Burst-accessible.</summary>
+    /// <summary>Singleton mirror of SpatialHashSystem.Hash; Burst ISystems read this via SystemAPI.GetSingleton since state.World is not Burst-accessible. <see cref="WriteHandle"/> tracks the in-flight ResetHash + BuildHash chain so any main-thread reader (managed code, click router, hover probe consumers) can <c>Complete()</c> it before iterating without going through <c>state.Dependency</c>. Burst job readers automatically chain through the <see cref="Hash"/> NativeContainer safety system and don't need to touch the handle.</summary>
     public struct SpatialHashSingleton : IComponentData
     {
         public NativeParallelMultiHashMap<int, HashedTarget> Hash;
+        public Unity.Jobs.JobHandle WriteHandle;
     }
 
     /// <summary>Single-thread Burst clear + capacity grow. Scheduling through state.Dependency forces the framework to chain on every prior reader of the hash via its safety handle, eliminating the main-thread race against last-frame's UnitBehaviorJob.</summary>
