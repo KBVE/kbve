@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-04-28T09:00:43Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-04-29T08:57:40Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
@@ -29,7 +29,7 @@ Last generated: **2026-04-28T09:00:43Z** — updated daily by `ci-dashboard`.
   <Card title="32 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="59 Medium" icon="information">
+  <Card title="48 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="5 Low" icon="approve-check-circle">
@@ -41,7 +41,7 @@ Last generated: **2026-04-28T09:00:43Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **85** advisories
+    **74** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **41** advisories
@@ -64,7 +64,7 @@ pie showData
     title Findings by Severity
     "Critical" : 1
     "High" : 32
-    "Medium" : 59
+    "Medium" : 48
     "Low" : 5
 ```
 
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 85
+    "npm" : 74
     "Cargo" : 41
 ```
 
@@ -82,12 +82,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 1 | 32 | 47 | 5 | 85 |
+| **npm** | 1 | 32 | 36 | 5 | 74 |
 | **Cargo** | 0 | 0 | 12 | 0 | 41 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 32 | 59 | 5 | 126 |
+| **Total** | 1 | 32 | 48 | 5 | 115 |
 
   </TabItem>
   <TabItem label="npm">
@@ -136,7 +136,6 @@ pie showData
 | Medium | `ajv` | ajv has ReDoS when using `$data` option | [Details](https://github.com/advisories/GHSA-2g4f-4pwh-qvx6) |
 | Medium | `ajv` | ajv has ReDoS when using `$data` option | [Details](https://github.com/advisories/GHSA-2g4f-4pwh-qvx6) |
 | Medium | `qs` | qs's arrayLimit bypass in its bracket notation allows DoS... | [Details](https://github.com/advisories/GHSA-6rw7-vpxm-498p) |
-| Medium | `dompurify` | DOMPurify contains a Cross-site Scripting vulnerability | [Details](https://github.com/advisories/GHSA-v8jm-5vwx-cfxm) |
 | Medium | `file-type` | file-type affected by infinite loop in ASF parser on malf... | [Details](https://github.com/advisories/GHSA-5v7r-6r5c-r473) |
 | Medium | `undici` | Undici has an HTTP Request/Response Smuggling issue | [Details](https://github.com/advisories/GHSA-2mjp-6q6p-2qxm) |
 | Medium | `undici` | Undici has CRLF Injection in undici via `upgrade` option | [Details](https://github.com/advisories/GHSA-4992-7rv2-5pvq) |
@@ -145,7 +144,6 @@ pie showData
 | Medium | `h3` | h3: SSE Event Injection via Unsanitized Carriage Return (... | [Details](https://github.com/advisories/GHSA-4hxc-9384-m385) |
 | Medium | `h3` | h3: Double Decoding in `serveStatic` Bypasses `resolveDot... | [Details](https://github.com/advisories/GHSA-72gr-qfp7-vwhw) |
 | Medium | `smol-toml` | smol-toml: Denial of Service via TOML documents containin... | [Details](https://github.com/advisories/GHSA-v3rj-xjv7-4jmq) |
-| Medium | `dompurify` | DOMPurify is vulnerable to mutation-XSS via Re-Contextual... | [Details](https://github.com/advisories/GHSA-h8r8-wccr-v5f2) |
 | Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
 | Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
 | Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
@@ -155,24 +153,15 @@ pie showData
 | Medium | `yaml` | yaml is vulnerable to Stack Overflow via deeply nested YA... | [Details](https://github.com/advisories/GHSA-48c2-rrv3-qjmp) |
 | Medium | `yaml` | yaml is vulnerable to Stack Overflow via deeply nested YA... | [Details](https://github.com/advisories/GHSA-48c2-rrv3-qjmp) |
 | Medium | `handlebars` | Handlebars.js has a Prototype Method Access Control Gap v... | [Details](https://github.com/advisories/GHSA-7rx3-28cr-v5wh) |
-| Medium | `dompurify` | DOMPurify contains a Cross-site Scripting vulnerability | [Details](https://github.com/advisories/GHSA-v2wj-7wpq-c8vv) |
 | Medium | `serialize-javascript` | Serialize JavaScript has CPU Exhaustion Denial of Service... | [Details](https://github.com/advisories/GHSA-qj8w-gfj5-8c6v) |
 | Medium | `lodash-es` | lodash vulnerable to Prototype Pollution via array path b... | [Details](https://github.com/advisories/GHSA-f23m-r3pf-42rh) |
 | Medium | `lodash` | lodash vulnerable to Prototype Pollution via array path b... | [Details](https://github.com/advisories/GHSA-f23m-r3pf-42rh) |
-| Medium | `dompurify` | DOMPurify ADD_ATTR predicate skips URI validation | [Details](https://github.com/advisories/GHSA-cjmm-f4jc-qw8r) |
-| Medium | `dompurify` | DOMPurify USE_PROFILES prototype pollution allows event h... | [Details](https://github.com/advisories/GHSA-cj63-jhhr-wcxv) |
 | Medium | `vite` | Vite Vulnerable to Path Traversal in Optimized Deps `.map... | [Details](https://github.com/advisories/GHSA-4w7w-66w2-5vf9) |
 | Medium | `vite` | Vite Vulnerable to Path Traversal in Optimized Deps `.map... | [Details](https://github.com/advisories/GHSA-4w7w-66w2-5vf9) |
 | Medium | `follow-redirects` | follow-redirects leaks Custom Authentication Headers to C... | [Details](https://github.com/advisories/GHSA-r4q5-vmmm-2653) |
-| Medium | `dompurify` | DOMPurify's ADD_TAGS function form bypasses FORBID_TAGS d... | [Details](https://github.com/advisories/GHSA-39q2-94rc-95cp) |
-| Medium | `axios` | Axios has a NO_PROXY Hostname Normalization Bypass that L... | [Details](https://github.com/advisories/GHSA-3p68-rc4w-qgx5) |
-| Medium | `axios` | Axios has Unrestricted Cloud Metadata Exfiltration via He... | [Details](https://github.com/advisories/GHSA-fvcv-3m26-pcqx) |
 | Medium | `fast-xml-parser` | fast-xml-parser XMLBuilder: XML Comment and CDATA Injecti... | [Details](https://github.com/advisories/GHSA-gh4j-gqv2-49f6) |
 | Medium | `uuid` | uuid: Missing buffer bounds check in v3/v5/v6 when buf is... | [Details](https://github.com/advisories/GHSA-w5hq-g745-h8pq) |
 | Medium | `postcss` | PostCSS has XSS via Unescaped &lt;/style&gt; in its CSS Stringi... | [Details](https://github.com/advisories/GHSA-qx2v-qp2m-jg93) |
-| Medium | `dompurify` | DOMPurify: FORBID_TAGS bypassed by function-based ADD_TAG... | [Details](https://github.com/advisories/GHSA-h7mw-gpvr-xq4m) |
-| Medium | `dompurify` | DOMPurify has a SAFE_FOR_TEMPLATES bypass in RETURN_DOM mode | [Details](https://github.com/advisories/GHSA-crv5-9vww-q3g8) |
-| Medium | `dompurify` | DOMPurify: Prototype Pollution to XSS Bypass via CUSTOM_E... | [Details](https://github.com/advisories/GHSA-v9jr-rg53-9pgp) |
 | Medium | `astro` | Astro: XSS in define:vars via incomplete &lt;/script&gt; tag sa... | [Details](https://github.com/advisories/GHSA-j687-52p2-xcff) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
