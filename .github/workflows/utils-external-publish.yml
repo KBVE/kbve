@@ -133,7 +133,7 @@ jobs:
                     "project_id": "$MOD_PROJECT_ID",
                     "loaders": $LOADERS,
                     "game_versions": $GAME_VERSIONS,
-                    "featured": false,
+                    "featured": true,
                     "dependencies": [{"project_id":"P7dR8mSH","dependency_type":"required"}],
                     "file_parts": ["jar"]
                   }
@@ -302,6 +302,60 @@ jobs:
 
                   verify_project "$MOD_PROJECT_ID" "mod"
                   verify_project "$PACK_PROJECT_ID" "modpack"
+
+            - name: Enforce single featured version
+              env:
+                  MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+                  MOD_PROJECT_ID: ${{ steps.ep.outputs.mod_id }}
+                  PACK_PROJECT_ID: ${{ steps.ep.outputs.pack_id }}
+                  VERSION: ${{ inputs.version }}
+              run: |
+                  set -euo pipefail
+                  if [ -z "${MODRINTH_TOKEN:-}" ]; then
+                    echo "::warning::MODRINTH_TOKEN missing — skipping unfeature sweep."
+                    exit 0
+                  fi
+
+                  unfeature_others () {
+                    local PROJECT_ID="$1"
+                    local LABEL="$2"
+                    if [ -z "$PROJECT_ID" ]; then
+                      return 0
+                    fi
+
+                    echo "── Unfeaturing older versions on $LABEL ──"
+
+                    local LIST
+                    LIST=$(curl -sSL --fail-with-body \
+                      -H "Authorization: $MODRINTH_TOKEN" \
+                      "https://api.modrinth.com/v2/project/$PROJECT_ID/version")
+
+                    local OTHERS
+                    OTHERS=$(echo "$LIST" | jq -r --arg v "$VERSION" \
+                      '.[] | select(.featured == true and .version_number != $v) | "\(.id)\t\(.version_number)"')
+
+                    if [ -z "$OTHERS" ]; then
+                      echo "  Only v$VERSION is featured — nothing to do."
+                      return 0
+                    fi
+
+                    while IFS=$'\t' read -r ID VER; do
+                      [ -z "$ID" ] && continue
+                      echo "  Unfeaturing $LABEL v$VER (id=$ID)"
+                      HTTP_CODE=$(curl -sSL -o /tmp/patch-response.json -w '%{http_code}' \
+                        -X PATCH "https://api.modrinth.com/v2/version/$ID" \
+                        -H "Authorization: $MODRINTH_TOKEN" \
+                        -H "Content-Type: application/json" \
+                        -d '{"featured": false}')
+                      if [ "$HTTP_CODE" != "204" ]; then
+                        echo "::warning::Unfeature failed for $LABEL v$VER (HTTP $HTTP_CODE)"
+                        cat /tmp/patch-response.json || true
+                      fi
+                    done <<< "$OTHERS"
+                  }
+
+                  unfeature_others "$MOD_PROJECT_ID" "mod"
+                  unfeature_others "$PACK_PROJECT_ID" "modpack"
 
     modrinth_prune:
         name: Modrinth Prune (${{ inputs.app_name }})
