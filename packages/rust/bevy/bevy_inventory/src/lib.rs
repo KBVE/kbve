@@ -112,6 +112,22 @@ impl<K: ItemKind> Default for Inventory<K> {
 
 impl<K: ItemKind> Inventory<K> {
     /// Create an inventory with the given slot capacity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bevy_inventory::{Inventory, ItemKind};
+    /// use serde::{Deserialize, Serialize};
+    ///
+    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    /// enum Item { Wood }
+    /// impl ItemKind for Item {
+    ///     fn display_name(&self) -> &'static str { "Wood" }
+    /// }
+    ///
+    /// let inv: Inventory<Item> = Inventory::new(20);
+    /// assert!(inv.is_empty());
+    /// ```
     pub fn new(max_slots: usize) -> Self {
         Self {
             items: Vec::new(),
@@ -119,9 +135,18 @@ impl<K: ItemKind> Inventory<K> {
         }
     }
 
-    /// Add items, stacking with existing items of the same kind.
+    /// Add items, filling existing stacks of the same kind first, then
+    /// allocating new slots.
     ///
-    /// Returns the quantity that could **not** be added (`0` if everything fit).
+    /// # Arguments
+    ///
+    /// * `kind` — item kind to add.
+    /// * `quantity` — how many to add.
+    ///
+    /// # Returns
+    ///
+    /// The overflow — quantity that could not be added because the
+    /// inventory is full. `0` means everything fit.
     pub fn add(&mut self, kind: K, mut quantity: u32) -> u32 {
         for stack in &mut self.items {
             if stack.kind == kind {
@@ -147,9 +172,12 @@ impl<K: ItemKind> Inventory<K> {
         quantity
     }
 
-    /// Remove up to `quantity` of the given item kind.
+    /// Remove up to `quantity` of the given item kind, draining stacks
+    /// front-to-back.
     ///
-    /// Returns the amount **actually removed**.
+    /// # Returns
+    ///
+    /// The amount actually removed (clamped at the available count).
     pub fn remove(&mut self, kind: K, mut quantity: u32) -> u32 {
         let mut removed = 0u32;
 
@@ -167,7 +195,11 @@ impl<K: ItemKind> Inventory<K> {
         removed
     }
 
-    /// Remove all items from a specific slot index.
+    /// Remove the entire stack at slot `index`.
+    ///
+    /// # Returns
+    ///
+    /// `Some(stack)` on hit, `None` if `index` is out of range.
     pub fn remove_at_slot(&mut self, index: usize) -> Option<ItemStack<K>> {
         if index < self.items.len() {
             Some(self.items.remove(index))
@@ -196,7 +228,13 @@ impl<K: ItemKind> Inventory<K> {
             || self.items.iter().any(|s| s.quantity < s.kind.max_stack())
     }
 
-    /// Check if the inventory can fit a specific quantity of a given item kind.
+    /// Returns `true` if the inventory can fit `quantity` of `kind`,
+    /// accounting for both partial stacks and empty slots.
+    ///
+    /// # Arguments
+    ///
+    /// * `kind` — item kind to test.
+    /// * `quantity` — how many would be added.
     pub fn has_room_for(&self, kind: K, mut quantity: u32) -> bool {
         for stack in &self.items {
             if stack.kind == kind {
@@ -224,6 +262,12 @@ impl<K: ItemKind> Inventory<K> {
     }
 
     /// Swap the contents of two slots.
+    ///
+    /// # Returns
+    ///
+    /// `true` on success. `false` when either index is out of range.
+    /// Swapping a slot with itself returns `true` if the index is in
+    /// range.
     pub fn swap_slots(&mut self, a: usize, b: usize) -> bool {
         if a == b {
             return a < self.items.len();
@@ -272,7 +316,16 @@ impl<K: ItemKind> Inventory<K> {
         seen
     }
 
-    /// Split a stack at `index`, moving `quantity` items into a new slot.
+    /// Split a stack at `index`, moving `quantity` items into a new
+    /// slot at the end.
+    ///
+    /// # Returns
+    ///
+    /// `true` on success. `false` when:
+    ///
+    /// - `index` is out of range,
+    /// - `quantity == 0` or `quantity >= stack.quantity` (no split needed),
+    /// - the inventory is at `max_slots` and has no room for the new stack.
     pub fn split_stack(&mut self, index: usize, quantity: u32) -> bool {
         if index >= self.items.len() || quantity == 0 || self.items.len() >= self.max_slots {
             return false;
@@ -287,7 +340,16 @@ impl<K: ItemKind> Inventory<K> {
         true
     }
 
-    /// Merge the stack at `from` into the stack at `to`.
+    /// Merge the stack at `from` into the stack at `to`. The source
+    /// slot is removed entirely once drained.
+    ///
+    /// # Returns
+    ///
+    /// Number of items moved. `0` when:
+    ///
+    /// - `from == to`,
+    /// - either index is out of range,
+    /// - the kinds differ.
     pub fn merge_slots(&mut self, from: usize, to: usize) -> u32 {
         if from == to || from >= self.items.len() || to >= self.items.len() {
             return 0;
@@ -333,6 +395,14 @@ impl<K: ItemKind> Inventory<K> {
     }
 
     /// Transfer items from this inventory to another.
+    ///
+    /// Fills `target` first; only items that successfully land in
+    /// `target` are removed from `self`. Anything that bounces off
+    /// `target`'s capacity stays here.
+    ///
+    /// # Returns
+    ///
+    /// Number of items actually moved.
     pub fn transfer(&mut self, target: &mut Inventory<K>, kind: K, quantity: u32) -> u32 {
         let available = self.count(kind).min(quantity);
         if available == 0 {
@@ -346,7 +416,12 @@ impl<K: ItemKind> Inventory<K> {
         transferred
     }
 
-    /// Search for items whose display name contains the query (case-insensitive).
+    /// Search for items whose display name contains `query`
+    /// (case-insensitive substring match).
+    ///
+    /// # Returns
+    ///
+    /// `(slot_index, &stack)` pairs in slot order.
     pub fn search(&self, query: &str) -> Vec<(usize, &ItemStack<K>)> {
         let query_lower = query.to_lowercase();
         self.items
@@ -370,20 +445,38 @@ impl<K: ItemKind> Inventory<K> {
 
 // ── Action outcomes (always available) ─────────────────────────────────
 
-/// The outcome of an inventory action.
+/// The outcome of an inventory action ([`SplitStackAction`],
+/// [`MergeStackAction`], [`MoveSlotAction`]).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ActionOutcome {
+    /// The action ran with the requested parameters.
     Success,
-    Clamped { requested: u32, actual: u32 },
+    /// The action ran but the requested quantity was clamped to fit
+    /// the available stack (e.g. asking to split off more items than
+    /// the stack contains).
+    Clamped {
+        /// What the caller asked for.
+        requested: u32,
+        /// What actually happened.
+        actual: u32,
+    },
+    /// The action did not run — see [`ActionError`].
     Failed(ActionError),
 }
 
 /// Reasons an inventory action can fail.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ActionError {
+    /// One of the slot indices is `>= inventory.slot_count()`.
     SlotOutOfBounds,
+    /// The action needed to allocate a new slot but the inventory is
+    /// already at `max_slots`.
     NoEmptySlots,
+    /// A merge / move was requested between slots holding different
+    /// item kinds.
     KindMismatch,
+    /// Quantity is zero, equal to the source quantity (split would be
+    /// a no-op), or otherwise rejected by the operation.
     InvalidQuantity,
 }
 
@@ -397,29 +490,42 @@ mod bevy_integration {
 
     // ── Events ─────────────────────────────────────────────────────────
 
-    /// Event to add items to the inventory.
+    /// Event requesting items be added to the inventory. Trigger this
+    /// from your loot / pickup systems; the plugin observer drains it
+    /// into the [`Inventory`] resource and fires
+    /// [`InventoryFullEvent`] for any overflow.
     #[derive(Event, Debug, Clone)]
     pub struct LootEvent<K: ItemKind> {
+        /// Item kind to add.
         pub kind: K,
+        /// How many to add.
         pub quantity: u32,
     }
 
-    /// Fired when items could not fit in the inventory during a [`LootEvent`].
+    /// Fired when items could not fit during a [`LootEvent`].
+    /// `overflow` is the leftover count.
     #[derive(Event, Debug, Clone)]
     pub struct InventoryFullEvent<K: ItemKind> {
+        /// Item kind that overflowed.
         pub kind: K,
+        /// Quantity that did not fit.
         pub overflow: u32,
     }
 
-    /// Split a stack at `slot` into two, moving `quantity` items to a new slot.
+    /// Split a stack at `slot` into two, moving `quantity` items to a
+    /// new slot at the end. Result reported via
+    /// [`InventoryActionResult`].
     #[derive(Event, Debug, Clone)]
     pub struct SplitStackAction<K: ItemKind> {
+        /// Source slot to split.
         pub slot: usize,
+        /// How many items to move into the new slot.
         pub quantity: u32,
         _marker: PhantomData<K>,
     }
 
     impl<K: ItemKind> SplitStackAction<K> {
+        /// Create a new split request.
         pub fn new(slot: usize, quantity: u32) -> Self {
             Self {
                 slot,
@@ -429,15 +535,19 @@ mod bevy_integration {
         }
     }
 
-    /// Merge the stack at `from` into the stack at `to`.
+    /// Merge the stack at `from` into the stack at `to`. Result
+    /// reported via [`InventoryActionResult`].
     #[derive(Event, Debug, Clone)]
     pub struct MergeStackAction<K: ItemKind> {
+        /// Source slot — drained into `to`.
         pub from: usize,
+        /// Destination slot — accepts items from `from`.
         pub to: usize,
         _marker: PhantomData<K>,
     }
 
     impl<K: ItemKind> MergeStackAction<K> {
+        /// Create a new merge request.
         pub fn new(from: usize, to: usize) -> Self {
             Self {
                 from,
@@ -447,15 +557,19 @@ mod bevy_integration {
         }
     }
 
-    /// Move (swap) the contents of two slots.
+    /// Swap the contents of two slots. Result reported via
+    /// [`InventoryActionResult`].
     #[derive(Event, Debug, Clone)]
     pub struct MoveSlotAction<K: ItemKind> {
+        /// First slot.
         pub from: usize,
+        /// Second slot.
         pub to: usize,
         _marker: PhantomData<K>,
     }
 
     impl<K: ItemKind> MoveSlotAction<K> {
+        /// Create a new move request.
         pub fn new(from: usize, to: usize) -> Self {
             Self {
                 from,
@@ -465,21 +579,29 @@ mod bevy_integration {
         }
     }
 
-    /// Fired after an inventory action is processed.
+    /// Fired after an inventory action ([`SplitStackAction`],
+    /// [`MergeStackAction`], [`MoveSlotAction`]) is processed.
     #[derive(Event, Debug, Clone)]
     pub struct InventoryActionResult {
+        /// `"split"`, `"merge"`, or `"move"`.
         pub action: &'static str,
+        /// What happened.
         pub outcome: ActionOutcome,
     }
 
-    // ── Plugin ─────────────────────────────────────────────────────────
-
+    /// Bevy plugin that wires up the inventory resource, action
+    /// observers, and (with `snapshot` feature) the snapshot writer.
     pub struct InventoryPlugin<K: ItemKind> {
         max_slots: usize,
         _marker: PhantomData<K>,
     }
 
     impl<K: ItemKind> InventoryPlugin<K> {
+        /// Create a plugin instance for an inventory with `max_slots`
+        /// slot capacity. The plugin inserts an [`Inventory`]
+        /// resource and registers observers for [`LootEvent`],
+        /// [`SplitStackAction`], [`MergeStackAction`], and
+        /// [`MoveSlotAction`].
         pub fn new(max_slots: usize) -> Self {
             Self {
                 max_slots,
@@ -684,12 +806,27 @@ mod snapshot_store {
     }
 }
 
+/// Read the most recent inventory snapshot as a typed [`Inventory<K>`].
+///
+/// Available with the `snapshot` feature. The snapshot is written
+/// each tick the inventory resource changes by the `snapshot_inventory`
+/// system installed by [`InventoryPlugin`].
+///
+/// # Returns
+///
+/// `Some(inv)` when a snapshot has been written and deserializes
+/// cleanly with the requested `K`. `None` if no snapshot exists yet
+/// or the stored JSON does not match `K`.
 #[cfg(feature = "snapshot")]
 pub fn get_inventory_snapshot<K: ItemKind>() -> Option<Inventory<K>> {
     let json = snapshot_store::read()?;
     serde_json::from_str(&json).ok()
 }
 
+/// Read the most recent inventory snapshot as raw JSON.
+///
+/// Cheaper than [`get_inventory_snapshot`] when the consumer only
+/// needs to forward the bytes (FFI / Tauri IPC / network sync).
 #[cfg(feature = "snapshot")]
 pub fn get_inventory_snapshot_json() -> Option<String> {
     snapshot_store::read()
