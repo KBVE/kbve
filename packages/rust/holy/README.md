@@ -91,6 +91,10 @@ slugs). It removes `\n` and `\t` so it is **not** appropriate for
 markdown bodies — those should be rendered through a markdown sanitizer
 on the read path instead.
 
+`Option<String>` fields work the same way: rules run only when the
+field is `Some(_)` and `None` passes through. Useful for partial-update
+DTOs (e.g. `pub bio: Option<String>`).
+
 ```rust
 #[derive(holy::Sanitize, serde::Deserialize)]
 pub struct CreateThreadBody {

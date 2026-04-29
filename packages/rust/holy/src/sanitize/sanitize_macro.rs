@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{Data, DeriveInput, Field, Fields, Type};
+use syn::{Data, DeriveInput, Field, Fields, GenericArgument, PathArguments, Type};
 
 use crate::utils::{determine_visibility, get_holy_string_value};
 
@@ -19,14 +19,34 @@ enum SanitizeRule {
 
 enum FieldTypeKind {
     String,
+    OptionString,
     Numeric,
     Other,
+}
+
+fn is_string_type(ty: &Type) -> bool {
+    if let Type::Path(type_path) = ty {
+        if let Some(segment) = type_path.path.segments.last() {
+            return segment.ident == "String";
+        }
+    }
+    false
 }
 
 fn classify_type(ty: &Type) -> FieldTypeKind {
     if let Type::Path(type_path) = ty {
         if let Some(segment) = type_path.path.segments.last() {
             let ident = segment.ident.to_string();
+            if ident == "Option" {
+                if let PathArguments::AngleBracketed(args) = &segment.arguments {
+                    if let Some(GenericArgument::Type(inner)) = args.args.first() {
+                        if is_string_type(inner) {
+                            return FieldTypeKind::OptionString;
+                        }
+                    }
+                }
+                return FieldTypeKind::Other;
+            }
             return match ident.as_str() {
                 "String" => FieldTypeKind::String,
                 "i8" | "i16" | "i32" | "i64" | "u8" | "u16" | "u32" | "u64" | "f32" | "f64"
@@ -154,7 +174,10 @@ fn validate_rule_for_type(
         | SanitizeRule::NulStrip
         | SanitizeRule::ControlStrip
         | SanitizeRule::Slug => {
-            if !matches!(type_kind, FieldTypeKind::String) {
+            if !matches!(
+                type_kind,
+                FieldTypeKind::String | FieldTypeKind::OptionString
+            ) {
                 let rule_name = match rule {
                     SanitizeRule::Trim => "trim",
                     SanitizeRule::Lowercase => "lowercase",
@@ -191,34 +214,37 @@ fn validate_rule_for_type(
     Ok(())
 }
 
-fn rule_to_tokens(field_name: &syn::Ident, rule: &SanitizeRule) -> proc_macro2::TokenStream {
+fn rule_to_tokens(
+    access: &proc_macro2::TokenStream,
+    rule: &SanitizeRule,
+) -> proc_macro2::TokenStream {
     match rule {
         SanitizeRule::Trim => quote! {
-            self.#field_name = self.#field_name.trim().to_string();
+            #access = #access.trim().to_string();
         },
         SanitizeRule::Lowercase => quote! {
-            self.#field_name = self.#field_name.to_lowercase();
+            #access = #access.to_lowercase();
         },
         SanitizeRule::Uppercase => quote! {
-            self.#field_name = self.#field_name.to_uppercase();
+            #access = #access.to_uppercase();
         },
         // UTF-8-safe byte truncate: walk back to nearest char boundary
         // <= n so multi-byte codepoints (emoji, CJK) never panic
         // String::truncate.
         SanitizeRule::Truncate(n) => quote! {
-            if self.#field_name.len() > #n {
+            if #access.len() > #n {
                 let mut __end = #n;
-                while __end > 0 && !self.#field_name.is_char_boundary(__end) {
+                while __end > 0 && !#access.is_char_boundary(__end) {
                     __end -= 1;
                 }
-                self.#field_name.truncate(__end);
+                #access.truncate(__end);
             }
         },
         SanitizeRule::Alphanumeric => quote! {
-            self.#field_name = self.#field_name.chars().filter(|c| c.is_alphanumeric()).collect();
+            #access = #access.chars().filter(|c| c.is_alphanumeric()).collect();
         },
         SanitizeRule::EscapeHtml => quote! {
-            self.#field_name = self.#field_name
+            #access = #access
                 .replace('&', "&amp;")
                 .replace('<', "&lt;")
                 .replace('>', "&gt;")
@@ -229,8 +255,8 @@ fn rule_to_tokens(field_name: &syn::Ident, rule: &SanitizeRule) -> proc_macro2::
         // some downstream tools (printf, certain DB clients) choke on
         // embedded NULs.
         SanitizeRule::NulStrip => quote! {
-            if self.#field_name.contains('\0') {
-                self.#field_name = self.#field_name.replace('\0', "");
+            if #access.contains('\0') {
+                #access = #access.replace('\0', "");
             }
         },
         // Strips ASCII/Unicode control characters (Cc category) plus the
@@ -240,8 +266,7 @@ fn rule_to_tokens(field_name: &syn::Ident, rule: &SanitizeRule) -> proc_macro2::
         // text fields like titles and signatures. Caller should NOT use
         // this on markdown bodies — it removes \n / \t too.
         SanitizeRule::ControlStrip => quote! {
-            self.#field_name = self
-                .#field_name
+            #access = #access
                 .chars()
                 .filter(|c| {
                     let cp = *c as u32;
@@ -257,8 +282,8 @@ fn rule_to_tokens(field_name: &syn::Ident, rule: &SanitizeRule) -> proc_macro2::
         // `^[a-z0-9](-?[a-z0-9])*$` after a non-empty input. Empty input
         // stays empty.
         SanitizeRule::Slug => quote! {
-            self.#field_name = {
-                let lower = self.#field_name.to_lowercase();
+            #access = {
+                let lower = #access.to_lowercase();
                 let mut out = String::with_capacity(lower.len());
                 let mut last_dash = false;
                 for ch in lower.chars() {
@@ -274,14 +299,14 @@ fn rule_to_tokens(field_name: &syn::Ident, rule: &SanitizeRule) -> proc_macro2::
             };
         },
         SanitizeRule::Clamp(min, max) => quote! {
-            self.#field_name = self.#field_name.clamp(#min, #max);
+            #access = #access.clamp(#min, #max);
         },
     }
 }
 
 fn process_field(
     field: &Field,
-) -> Result<Option<(syn::Ident, Vec<proc_macro2::TokenStream>)>, syn::Error> {
+) -> Result<Option<(syn::Ident, proc_macro2::TokenStream)>, syn::Error> {
     let Some((raw_rules, span)) = get_holy_string_value(&field.attrs, "sanitize") else {
         return Ok(None);
     };
@@ -294,12 +319,28 @@ fn process_field(
         validate_rule_for_type(rule, &type_kind, &field_name, span)?;
     }
 
-    let rule_tokens: Vec<_> = rules
-        .iter()
-        .map(|r| rule_to_tokens(&field_name, r))
-        .collect();
+    // For Option<String> we want every rule to operate inside an
+    // `if let Some(__s)` so callers don't have to unwrap manually. The
+    // `__s` binding is `&mut String`, so `*__s` is a place expression
+    // that the rule codegen can both read from and assign to.
+    let body = match type_kind {
+        FieldTypeKind::OptionString => {
+            let access = quote! { (*__s) };
+            let rule_tokens = rules.iter().map(|r| rule_to_tokens(&access, r));
+            quote! {
+                if let Some(__s) = self.#field_name.as_mut() {
+                    #(#rule_tokens)*
+                }
+            }
+        }
+        _ => {
+            let access = quote! { self.#field_name };
+            let rule_tokens = rules.iter().map(|r| rule_to_tokens(&access, r));
+            quote! { #(#rule_tokens)* }
+        }
+    };
 
-    Ok(Some((field_name, rule_tokens)))
+    Ok(Some((field_name, body)))
 }
 
 pub fn impl_sanitize_macro(ast: &DeriveInput) -> Result<TokenStream, syn::Error> {
@@ -328,7 +369,7 @@ pub fn impl_sanitize_macro(ast: &DeriveInput) -> Result<TokenStream, syn::Error>
     let mut all_field_calls = Vec::new();
 
     for field in fields.iter() {
-        let Some((field_name, rule_tokens)) = process_field(field)? else {
+        let Some((field_name, body)) = process_field(field)? else {
             continue;
         };
 
@@ -343,7 +384,7 @@ pub fn impl_sanitize_macro(ast: &DeriveInput) -> Result<TokenStream, syn::Error>
 
         per_field_methods.push(quote! {
             #method_vis fn #sanitize_method_name(&mut self) {
-                #(#rule_tokens)*
+                #body
             }
         });
 
