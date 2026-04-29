@@ -32,6 +32,7 @@ dependencies {
 // Inject version into fabric.mod.json + copy Rust native libraries
 processResources {
     inputs.property "version", version
+    exclude "**/README.md", "**/LICENSE", "**/LICENSE.txt", "**/CHANGELOG.md"
     filesMatching("fabric.mod.json") {
         expand "version": version
     }
