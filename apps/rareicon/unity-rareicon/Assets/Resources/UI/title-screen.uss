@@ -1,6 +1,18 @@
+/* Title screen — responsive shell.
+   Wrapper fills viewport; backdrop is a flex centerer so the window sits
+   centered without the old absolute `translate: -280px -50%` trick.
+   Window scales 90% of viewport width, capped at 640px, floored at 320px,
+   so it adapts to phones, tablets, and ultrawide without a fixed pixel
+   layout. Padding/font scale also tighten for narrow viewports. */
+
 .title-wrapper {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
+    /* Wrapper is the flex centerer — backdrop sits absolute behind it
+       (zero flex space) and the window centers as the only flow child. */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     opacity: 1;
     transition-property: opacity;
     transition-duration: 0.28s;
@@ -15,136 +27,209 @@
 }
 
 .title-window {
-    position: absolute;
-    top: 50%; left: 50%;
-    width: 560px;
-    translate: -280px -50%;
-    padding: 28px 32px;
+    /* Responsive sizing — scales with viewport, never exceeds 640px and
+       never drops below 320px so layout stays usable. */
+    width: 90%;
+    max-width: 640px;
+    min-width: 320px;
+    max-height: 92%;
+
+    padding: 32px 36px;
     background-color: var(--color-bg-panel);
     border-color: var(--color-accent);
     border-width: 1px;
+
     flex-direction: column;
     opacity: 1;
     scale: 1 1;
-    transition-property: opacity, scale;
+    transition-property: opacity, scale, translate;
     transition-duration: 0.32s;
     transition-timing-function: ease-out;
 }
 .title-window--enter {
     opacity: 0;
     scale: 0.94 0.94;
+    translate: 0 8px;
 }
+
 .title-stage {
+    flex-direction: column;
     opacity: 1;
     transition-property: opacity;
     transition-duration: 0.18s;
     transition-timing-function: ease-out;
 }
+.title-stage.is-hidden { display: none; }
 
+/* Header */
 .title-header {
     align-items: center;
-    margin-bottom: 28px;
+    margin-bottom: 32px;
 }
 .title-brand {
-    font-size: 42px;
+    font-size: 40px;
     -unity-font-style: bold;
     color: var(--color-text-strong);
-    letter-spacing: 10px;
-    margin-left: 10px;
+    letter-spacing: 8px;
+    margin-left: 8px;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
 }
 .title-tagline {
     font-size: 11px;
     color: var(--color-accent);
-    letter-spacing: 6px;
+    letter-spacing: 4px;
     -unity-font-style: bold;
-    margin-top: 6px;
+    margin-top: 8px;
     -unity-text-align: middle-center;
+    white-space: normal;
+}
+.title-tagline-rule {
+    height: 1px;
+    width: 64px;
+    margin-top: 12px;
+    background-color: var(--color-accent);
+    opacity: 0.55;
 }
 
-.title-stage {
-    flex-direction: column;
-}
-.title-stage.is-hidden { display: none; }
-
+/* Stage headings */
 .title-stage__title {
-    font-size: var(--font-title);
+    font-size: 16px;
     color: var(--color-text-strong);
     -unity-font-style: bold;
-    margin-bottom: var(--space-sm);
+    margin-bottom: 12px;
+    letter-spacing: 1px;
 }
 .title-stage__hint {
-    font-size: var(--font-label);
+    font-size: 11px;
     color: var(--color-text-muted);
-    margin-bottom: var(--space-md);
+    margin-bottom: 16px;
     white-space: normal;
 }
 
+/* Persona card */
 .title-persona {
     flex-direction: row;
     align-items: center;
-    padding: 12px;
-    margin-bottom: 16px;
+    padding: 14px;
+    margin-bottom: 18px;
     background-color: rgba(0, 0, 0, 0.35);
     border-color: var(--color-accent);
     border-width: 1px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
 }
 .title-avatar {
-    width: 56px; height: 56px;
-    margin-right: 12px;
+    width: 56px;
+    height: 56px;
+    margin-right: 14px;
     background-color: rgba(255, 255, 255, 0.05);
     border-color: var(--color-accent);
     border-width: 1px;
+    flex-shrink: 0;
 }
-.title-persona__meta { flex-grow: 1; flex-direction: column; }
+.title-persona__meta {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-direction: column;
+    min-width: 120px;
+}
 .title-persona__name {
-    font-size: var(--font-bodylg);
+    font-size: 14px;
     -unity-font-style: bold;
     color: var(--color-text-strong);
+    white-space: normal;
 }
 .title-persona__status {
-    font-size: var(--font-label);
+    font-size: 11px;
     color: var(--color-text-muted);
+    margin-top: 2px;
 }
 
+/* Locale row — flexes to fill, wraps on very narrow viewports. */
 .title-locale-row {
     flex-direction: row;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    margin: 0 -6px;
 }
 .title-locale-btn {
     flex-grow: 1;
-    margin: 0 4px;
-    padding: 12px 0;
+    flex-basis: 40%;
+    margin: 6px;
+    padding: 14px 0;
     -unity-text-align: middle-center;
+    font-size: 14px;
+    -unity-font-style: bold;
+    transition-property: background-color, color, scale;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out;
+}
+.title-locale-btn:hover {
+    background-color: rgba(252, 211, 77, 0.12);
+}
+.title-locale-btn:active {
+    scale: 0.98 0.98;
 }
 
+/* Seed row */
 .title-seed-row {
     flex-direction: row;
-    margin-bottom: 16px;
+    flex-wrap: wrap;
+    margin: 0 -4px 16px -4px;
 }
 .title-seed-input {
     flex-grow: 1;
-    margin-right: 8px;
+    flex-basis: 60%;
+    margin: 4px;
+    min-width: 140px;
 }
-.title-seed-input > .unity-base-text-field__input {
+/* IntegerField wraps a label + a TextField; hide the (empty) label so the
+   input takes the full row, and reach the deeply-nested input element via
+   descendant (not direct-child) selector. */
+.title-seed-input .unity-base-field__label {
+    display: none;
+}
+.title-seed-input .unity-base-text-field__input {
     background-color: rgba(0, 0, 0, 0.45);
     border-color: var(--color-accent);
     border-width: 1px;
     color: var(--color-text-strong);
-    padding: 8px 10px;
-    font-size: var(--font-bodylg);
+    padding: 10px 12px;
+    font-size: 14px;
+    -unity-text-align: middle-left;
+    flex-grow: 1;
+    min-height: 36px;
 }
-.title-seed-btn { padding: 0 16px; }
+.title-seed-btn {
+    flex-grow: 1;
+    flex-basis: 30%;
+    margin: 4px;
+    padding: 0 16px;
+}
 
+/* Action row (Back / Generate, Start) */
 .title-action-row {
     flex-direction: row;
-    justify-content: space-between;
-    margin-top: 8px;
+    flex-wrap: wrap;
+    margin: 12px -6px 0 -6px;
 }
 .title-action-btn {
     flex-grow: 1;
-    margin: 0 4px;
-    padding: 12px 0;
+    flex-basis: 40%;
+    margin: 6px;
+    padding: 14px 0;
     -unity-text-align: middle-center;
+    font-size: 14px;
+    -unity-font-style: bold;
+    transition-property: background-color, color, scale;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out;
+}
+.title-action-btn:hover {
+    background-color: rgba(252, 211, 77, 0.12);
+}
+.title-action-btn:active {
+    scale: 0.98 0.98;
 }
 .title-action-btn--primary {
     background-color: var(--color-accent);
@@ -155,12 +240,13 @@
     color: var(--color-bg-panel);
 }
 .title-action-btn--primary:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
 }
 
+/* Generation progress */
 .title-progress-track {
-    height: 12px;
-    margin: 8px 0 20px 0;
+    height: 14px;
+    margin: 10px 0 22px 0;
     background-color: rgba(0, 0, 0, 0.45);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -169,6 +255,38 @@
     height: 100%;
     width: 0%;
     background-color: var(--color-accent);
+    transition-property: width;
+    transition-duration: 0.18s;
+    transition-timing-function: ease-out;
 }
 
-.title-start { margin-top: 8px; }
+.title-start { margin-top: 10px; }
+
+/* ---- Narrow viewport adjustments ----
+   Toggled by UITitleScreen when window width crosses below 420px so the
+   brand row stays inside the panel and inner padding doesn't crowd the
+   buttons. UI Toolkit doesn't have media queries; the C# side adds /
+   removes `.title-window--narrow` on geometry-changed events. */
+
+.title-window--narrow {
+    padding: 22px 20px;
+}
+.title-window--narrow .title-header {
+    margin-bottom: 22px;
+}
+.title-window--narrow .title-brand {
+    font-size: 32px;
+    letter-spacing: 4px;
+    margin-left: 4px;
+}
+.title-window--narrow .title-tagline {
+    letter-spacing: 2px;
+    font-size: 10px;
+}
+.title-window--narrow .title-stage__title {
+    font-size: 14px;
+}
+.title-window--narrow .title-locale-btn,
+.title-window--narrow .title-action-btn {
+    flex-basis: 100%;
+}
