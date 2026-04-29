@@ -270,3 +270,49 @@ jobs:
                   git push origin "$BRANCH"
                   gh pr create --title "chore(${{ inputs.app_name }}): post-publish sync v${{ inputs.manifest_version }}" \
                     --body "Auto-generated post-publish sync." --base main --head "$BRANCH"
+
+    track_failure:
+        name: Track Failures
+        if: ${{ always() && contains(needs.*.result, 'failure') }}
+        needs:
+            [
+                queue_guard,
+                version_gate,
+                build_matrix,
+                build,
+                deploy_itch,
+                post_publish_sync,
+            ]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - Unity'
+            job_name: ${{ inputs.app_name }}
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'failure'
+
+    track_success:
+        name: Track Success (close resolved)
+        if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
+        needs:
+            [
+                queue_guard,
+                version_gate,
+                build_matrix,
+                build,
+                deploy_itch,
+                post_publish_sync,
+            ]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - Unity'
+            job_name: ${{ inputs.app_name }}
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'success'
