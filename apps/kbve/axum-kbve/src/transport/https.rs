@@ -214,6 +214,10 @@ fn router(state: AppState) -> Router {
         .route("/forum", get(|| async { Redirect::permanent("/forum/") }))
         .route("/forum/", get(forum_feed_handler))
         .route("/forum/compose", get(forum_compose_handler))
+        .route(
+            "/forum/compose/",
+            get(|| async { Redirect::permanent("/forum/compose") }),
+        )
         .route("/forum/s/{slug}", get(forum_space_handler))
         .route("/forum/t/{slug_or_id}", get(forum_thread_handler))
         .route("/api/v1/forum/threads", post(api_create_thread))
