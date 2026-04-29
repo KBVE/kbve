@@ -139,6 +139,16 @@ jobs:
             matrix:
                 target: ${{ fromJson(needs.build_matrix.outputs.matrix) }}
         steps:
+            - name: Install git-lfs
+              run: |
+                  if command -v git-lfs >/dev/null 2>&1; then
+                    git-lfs version
+                  else
+                    apt-get update -qq
+                    apt-get install -y -qq --no-install-recommends git-lfs
+                    git-lfs version
+                  fi
+
             - name: Configure Forgejo LFS credentials
               env:
                   FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
