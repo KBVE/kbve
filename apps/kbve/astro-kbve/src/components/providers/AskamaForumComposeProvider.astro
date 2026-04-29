@@ -1,0 +1,336 @@
+---
+// AskamaForumComposeProvider — first-class new-thread compose page.
+// Served by axum-kbve at /forum/compose.
+//
+// Askama placeholders consumed by axum-kbve's ForumComposeTemplate:
+//   {{ compose_title }}             — page heading
+//   {{ compose_meta_description }}  — SEO summary
+//   {{ default_space_slug }}        — pre-fill from `?space=<slug>`
+//
+// The form submits via fetch to POST /api/v1/forum/threads with a
+// Bearer token pulled from the local Supabase session. axum's API
+// resolves the space slug, calls forum.service_create_thread, and
+// returns the new thread id; on success we redirect to /forum/t/{id}.
+---
+
+<div class="forum-shell forum-compose">
+	<nav class="forum-shell__breadcrumb" aria-label="Breadcrumb">
+		<a href="/forum/">Forum</a>
+		<span aria-hidden="true">›</span>
+		<span class="forum-shell__breadcrumb-current">New thread</span>
+	</nav>
+
+	<article class="compose-card">
+		<header class="compose-card__header">
+			<h1 class="compose-card__title">{`{{ compose_title }}`}</h1>
+			<p class="compose-card__lede">
+				Markdown is supported. Be civil. New threads need a username —
+				set one from your <a href="/profile">profile</a> if you haven't yet.
+			</p>
+		</header>
+
+		<form
+			id="compose-form"
+			class="compose-form"
+			method="post"
+			action="/api/v1/forum/threads"
+			data-default-space={`{{ default_space_slug }}`}
+			novalidate>
+			<div class="compose-form__row">
+				<label class="compose-form__field">
+					<span>Space</span>
+					<input
+						type="text"
+						name="space_slug"
+						value={`{{ default_space_slug }}`}
+						placeholder="announcements"
+						required
+						pattern="^[a-z0-9][a-z0-9-]*$"
+						maxlength="50"
+					/>
+					<small>The space (slug, lowercase) where this lands.</small>
+				</label>
+				<label class="compose-form__field">
+					<span>Type</span>
+					<select name="thread_type" required>
+						<option value="discussion">Discussion</option>
+						<option value="question">Question</option>
+						<option value="announcement">Announcement</option>
+						<option value="guide">Guide</option>
+						<option value="poll">Poll</option>
+						<option value="marketplace">Marketplace</option>
+						<option value="auction">Auction</option>
+						<option value="lfg">Looking for group</option>
+					</select>
+					<small>Choose how the thread should render.</small>
+				</label>
+			</div>
+
+			<label class="compose-form__field">
+				<span>Title</span>
+				<input
+					type="text"
+					name="title"
+					placeholder="A clear, specific subject"
+					required
+					minlength="3"
+					maxlength="180"
+				/>
+				<small>3 to 180 characters.</small>
+			</label>
+
+			<label class="compose-form__field">
+				<span>Body</span>
+				<textarea
+					name="body"
+					rows="12"
+					placeholder="Write your post in markdown..."
+					required
+					minlength="1"
+					maxlength="50000">
+				</textarea>
+				<small>Up to 50,000 characters.</small>
+			</label>
+
+			<div class="compose-form__actions">
+				<a class="compose-form__cancel" href="/forum/">Cancel</a>
+				<button class="compose-form__submit" type="submit">
+					Post thread
+				</button>
+			</div>
+
+			<output id="compose-status" class="compose-form__status"></output>
+		</form>
+	</article>
+</div>
+
+<script>
+	import { initSupa, getSupa } from '@/lib/supa';
+
+	const form = document.getElementById(
+		'compose-form',
+	) as HTMLFormElement | null;
+	const status = document.getElementById(
+		'compose-status',
+	) as HTMLOutputElement | null;
+
+	function setStatus(kind: 'idle' | 'busy' | 'error' | 'ok', msg = '') {
+		if (!status) return;
+		status.dataset.kind = kind;
+		status.textContent = msg;
+	}
+
+	form?.addEventListener('submit', async (ev) => {
+		ev.preventDefault();
+		setStatus('busy', 'Posting…');
+
+		try {
+			await initSupa();
+		} catch {
+			setStatus(
+				'error',
+				'Could not initialize auth. Reload and try again.',
+			);
+			return;
+		}
+		const supa = getSupa();
+		const session = await supa.getSession().catch(() => null);
+		if (!session?.access_token) {
+			setStatus('error', 'Sign in first to post a thread.');
+			return;
+		}
+
+		const fd = new FormData(form);
+		const payload = {
+			space_slug: String(fd.get('space_slug') || '').trim(),
+			thread_type: String(fd.get('thread_type') || 'discussion'),
+			title: String(fd.get('title') || '').trim(),
+			body: String(fd.get('body') || ''),
+		};
+
+		try {
+			const res = await fetch('/api/v1/forum/threads', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${session.access_token}`,
+				},
+				body: JSON.stringify(payload),
+			});
+
+			if (!res.ok) {
+				const body = await res.text().catch(() => '');
+				setStatus('error', `${res.status}: ${body || res.statusText}`);
+				return;
+			}
+
+			const data = (await res.json()) as {
+				thread_id?: string;
+				slug?: string;
+			};
+			const target = data.slug || data.thread_id;
+			if (!target) {
+				setStatus('error', 'Posted but no id returned.');
+				return;
+			}
+			setStatus('ok', 'Posted! Redirecting…');
+			window.location.assign(`/forum/t/${target}`);
+		} catch (err) {
+			setStatus(
+				'error',
+				err instanceof Error ? err.message : 'Network error',
+			);
+		}
+	});
+</script>
+
+<style is:global>
+	.forum-compose {
+		--forum-accent: var(--sl-color-accent, #8b5cf6);
+		--forum-accent-soft: color-mix(
+			in srgb,
+			var(--forum-accent) 18%,
+			transparent
+		);
+		--forum-bg: var(--sl-color-bg, #09090b);
+		--forum-bg-soft: var(--sl-color-bg-nav, #131318);
+		--forum-bg-card: var(--sl-color-black, #0c0c10);
+		--forum-border: var(--sl-color-gray-5, #2a2a33);
+		--forum-text: var(--sl-color-text, #fafafa);
+		--forum-muted: var(--sl-color-gray-2, #a1a1aa);
+		--forum-radius: 12px;
+		--forum-radius-sm: 8px;
+	}
+
+	.forum-shell.forum-compose {
+		max-width: 880px;
+	}
+
+	.compose-card {
+		background: var(--forum-bg-card);
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius);
+		padding: 1.75rem 1.75rem 1.5rem;
+	}
+	.compose-card__header {
+		display: grid;
+		gap: 0.4rem;
+		margin-bottom: 1.5rem;
+	}
+	.compose-card__title {
+		font-size: clamp(1.5rem, 2.6vw, 2rem);
+		font-weight: 700;
+		margin: 0;
+		letter-spacing: -0.01em;
+	}
+	.compose-card__lede {
+		color: var(--forum-muted);
+		font-size: 0.9375rem;
+		margin: 0;
+	}
+	.compose-card__lede a {
+		color: var(--forum-accent);
+	}
+
+	.compose-form {
+		display: grid;
+		gap: 1.25rem;
+	}
+	.compose-form__row {
+		display: grid;
+		gap: 1.25rem;
+		grid-template-columns: minmax(0, 1fr);
+	}
+	@media (min-width: 640px) {
+		.compose-form__row {
+			grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+		}
+	}
+	.compose-form__field {
+		display: grid;
+		gap: 0.4rem;
+	}
+	.compose-form__field > span {
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--forum-muted);
+	}
+	.compose-form__field input,
+	.compose-form__field select,
+	.compose-form__field textarea {
+		width: 100%;
+		padding: 0.7rem 0.85rem;
+		background: var(--forum-bg-soft);
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius-sm);
+		color: var(--forum-text);
+		font-family: inherit;
+		font-size: 0.9375rem;
+		line-height: 1.5;
+	}
+	.compose-form__field textarea {
+		resize: vertical;
+		min-height: 12rem;
+	}
+	.compose-form__field input:focus,
+	.compose-form__field select:focus,
+	.compose-form__field textarea:focus {
+		outline: 2px solid var(--forum-accent);
+		outline-offset: -2px;
+	}
+	.compose-form__field small {
+		font-size: 0.75rem;
+		color: var(--forum-muted);
+	}
+
+	.compose-form__actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.6rem;
+		flex-wrap: wrap;
+	}
+	.compose-form__cancel {
+		padding: 0.6rem 1rem;
+		color: var(--forum-muted);
+		text-decoration: none;
+		font-size: 0.875rem;
+		font-weight: 500;
+		border-radius: var(--forum-radius-sm);
+	}
+	.compose-form__cancel:hover {
+		color: var(--forum-text);
+	}
+	.compose-form__submit {
+		padding: 0.6rem 1.4rem;
+		background: var(--forum-accent);
+		color: white;
+		border: none;
+		border-radius: var(--forum-radius-sm);
+		font-size: 0.9375rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.compose-form__submit:hover {
+		filter: brightness(1.1);
+	}
+	.compose-form__submit:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.compose-form__status {
+		font-size: 0.875rem;
+		min-height: 1.25em;
+	}
+	.compose-form__status[data-kind='busy'] {
+		color: var(--forum-muted);
+	}
+	.compose-form__status[data-kind='error'] {
+		color: #f87171;
+	}
+	.compose-form__status[data-kind='ok'] {
+		color: #34d399;
+	}
+</style>

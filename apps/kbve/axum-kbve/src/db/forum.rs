@@ -71,6 +71,27 @@ pub struct SpaceRow {
     pub status: String,
 }
 
+/// Row from `forum.public_user_profiles` view. Hides ban_reason +
+/// notification prefs; safe to surface to anon visitors.
+#[allow(dead_code)]
+#[derive(Debug, Clone, Deserialize)]
+pub struct ForumPublicProfile {
+    pub user_id: String,
+    pub karma: i64,
+    pub post_count: i64,
+    pub comment_count: i64,
+    pub upvotes_received: i64,
+    pub downvotes_received: i64,
+    pub signature: Option<String>,
+    pub flair_id: Option<i32>,
+    pub flair_text: Option<String>,
+    pub rank_id: Option<i32>,
+    pub badge_ids: Vec<i32>,
+    pub joined_forum_at: String,
+    pub last_active_at: Option<String>,
+    pub trust_level: i16,
+}
+
 #[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]
 pub struct CommentRow {
@@ -260,6 +281,220 @@ impl ForumService {
             .await
             .map_err(|e| format!("forum.spaces parse: {}", e))?;
         Ok(rows.into_iter().map(|s| (s.id.clone(), s)).collect())
+    }
+
+    /// Public-safe forum profile read. Returns the row from
+    /// `forum.public_user_profiles` (the view that hides ban_reason +
+    /// notification prefs). Returns Ok(None) when the user has no forum
+    /// activity yet.
+    pub async fn get_public_profile(
+        &self,
+        user_id: &str,
+    ) -> Result<Option<ForumPublicProfile>, String> {
+        let url = format!("{}/public_user_profiles", self.client.config().rest_url());
+        let headers = self.client.rpc_headers(SCHEMA)?;
+
+        let response = self
+            .client
+            .client()
+            .get(&url)
+            .headers(headers)
+            .query(&[
+                ("select", "*"),
+                ("user_id", format!("eq.{}", user_id).as_str()),
+                ("limit", "1"),
+            ])
+            .send()
+            .await
+            .map_err(|e| format!("forum.public_user_profiles network: {}", e))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!("forum.public_user_profiles {} → {}", status, body));
+        }
+        let rows: Vec<ForumPublicProfile> = response
+            .json()
+            .await
+            .map_err(|e| format!("forum.public_user_profiles parse: {}", e))?;
+        Ok(rows.into_iter().next())
+    }
+
+    /// Recent threads authored by the user, newest first. Capped at the
+    /// caller's limit (further capped to 50 here for safety).
+    pub async fn list_threads_by_author(
+        &self,
+        author_id: &str,
+        limit: i32,
+    ) -> Result<Vec<ThreadRow>, String> {
+        let lim = limit.clamp(1, 50);
+        let url = format!("{}/threads", self.client.config().rest_url());
+        let headers = self.client.rpc_headers(SCHEMA)?;
+        let response = self
+            .client
+            .client()
+            .get(&url)
+            .headers(headers)
+            .query(&[
+                ("select", "*"),
+                ("author_id", format!("eq.{}", author_id).as_str()),
+                ("status", "in.(active,locked,archived)"),
+                ("order", "created_at.desc"),
+                ("limit", lim.to_string().as_str()),
+            ])
+            .send()
+            .await
+            .map_err(|e| format!("forum.threads (by_author) network: {}", e))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!("forum.threads {} → {}", status, body));
+        }
+        response
+            .json::<Vec<ThreadRow>>()
+            .await
+            .map_err(|e| format!("forum.threads parse: {}", e))
+    }
+
+    /// Recent comments authored by the user.
+    pub async fn list_comments_by_author(
+        &self,
+        author_id: &str,
+        limit: i32,
+    ) -> Result<Vec<CommentRow>, String> {
+        let lim = limit.clamp(1, 50);
+        let url = format!("{}/comments", self.client.config().rest_url());
+        let headers = self.client.rpc_headers(SCHEMA)?;
+        let response = self
+            .client
+            .client()
+            .get(&url)
+            .headers(headers)
+            .query(&[
+                (
+                    "select",
+                    "id,thread_id,parent_comment_id,author_id,body,depth,score,status,created_at",
+                ),
+                ("author_id", format!("eq.{}", author_id).as_str()),
+                ("status", "eq.active"),
+                ("order", "created_at.desc"),
+                ("limit", lim.to_string().as_str()),
+            ])
+            .send()
+            .await
+            .map_err(|e| format!("forum.comments (by_author) network: {}", e))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!("forum.comments {} → {}", status, body));
+        }
+        response
+            .json::<Vec<CommentRow>>()
+            .await
+            .map_err(|e| format!("forum.comments parse: {}", e))
+    }
+
+    /// Call `forum.service_create_thread`. Returns the new thread id.
+    /// Caller is responsible for resolving the space slug → UUID.
+    pub async fn create_thread(
+        &self,
+        author_id: &str,
+        space_id: &str,
+        title: &str,
+        body: &str,
+        thread_type: &str,
+        slug: Option<&str>,
+        tag_ids: &[i32],
+    ) -> Result<String, String> {
+        let url = self.client.config().rpc_url("service_create_thread");
+        let headers = self.client.rpc_headers(SCHEMA)?;
+
+        let payload = serde_json::json!({
+            "p_author_id": author_id,
+            "p_space_id": space_id,
+            "p_title": title,
+            "p_body": body,
+            "p_thread_type": thread_type,
+            "p_type_data": serde_json::json!({}),
+            "p_tag_ids": tag_ids,
+            "p_slug": slug,
+            "p_nsfw": false,
+            "p_locale": "en",
+            "p_scheduled_at": serde_json::Value::Null,
+        });
+
+        let response = self
+            .client
+            .client()
+            .post(&url)
+            .headers(headers)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| format!("forum.service_create_thread network: {}", e))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!("forum.service_create_thread {} → {}", status, body));
+        }
+
+        let text = response
+            .text()
+            .await
+            .map_err(|e| format!("forum.service_create_thread read: {}", e))?;
+        let id: String = serde_json::from_str(&text)
+            .map_err(|e| format!("forum.service_create_thread parse {}: {}", text, e))?;
+        Ok(id)
+    }
+
+    /// Call `forum.service_create_comment`. Returns the new comment id.
+    pub async fn create_comment(
+        &self,
+        author_id: &str,
+        thread_id: &str,
+        body: &str,
+        parent_comment_id: Option<&str>,
+    ) -> Result<String, String> {
+        let url = self.client.config().rpc_url("service_create_comment");
+        let headers = self.client.rpc_headers(SCHEMA)?;
+
+        let payload = serde_json::json!({
+            "p_author_id": author_id,
+            "p_thread_id": thread_id,
+            "p_body": body,
+            "p_parent_comment_id": parent_comment_id,
+            "p_quoted_comment_id": serde_json::Value::Null,
+        });
+
+        let response = self
+            .client
+            .client()
+            .post(&url)
+            .headers(headers)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| format!("forum.service_create_comment network: {}", e))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!(
+                "forum.service_create_comment {} → {}",
+                status, body
+            ));
+        }
+
+        let text = response
+            .text()
+            .await
+            .map_err(|e| format!("forum.service_create_comment read: {}", e))?;
+        let id: String = serde_json::from_str(&text)
+            .map_err(|e| format!("forum.service_create_comment parse {}: {}", text, e))?;
+        Ok(id)
     }
 
     pub async fn get_space_by_slug(&self, slug: &str) -> Result<Option<SpaceRow>, String> {

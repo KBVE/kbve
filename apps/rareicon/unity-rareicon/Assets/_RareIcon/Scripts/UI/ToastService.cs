@@ -148,6 +148,21 @@ namespace RareIcon
                 _root.style.maxWidth = MaxWidth;
                 _root.style.marginBottom = 4;
                 _root.style.display = DisplayStyle.None;
+                _root.style.opacity = 0f;
+                _root.style.translate = new Translate(0, 24);
+                _root.style.transitionProperty = new System.Collections.Generic.List<StylePropertyName>
+                {
+                    new StylePropertyName("opacity"),
+                    new StylePropertyName("translate"),
+                };
+                _root.style.transitionDuration = new System.Collections.Generic.List<TimeValue>
+                {
+                    new TimeValue(220, TimeUnit.Millisecond),
+                };
+                _root.style.transitionTimingFunction = new System.Collections.Generic.List<EasingFunction>
+                {
+                    new EasingFunction(EasingMode.EaseOutCubic),
+                };
                 _root.pickingMode = PickingMode.Ignore;
 
                 _label = new Label("");
@@ -166,13 +181,23 @@ namespace RareIcon
                 _label.text = msg.Text;
                 _root.style.BorderColor(BorderForKind(msg.Kind));
                 _root.style.display = DisplayStyle.Flex;
+                _root.schedule.Execute(() =>
+                {
+                    _root.style.opacity = 1f;
+                    _root.style.translate = new Translate(0, 0);
+                }).StartingIn(16);
                 Active = true;
                 ExpiresAt = expiresAt;
             }
 
             public void Hide()
             {
-                _root.style.display = DisplayStyle.None;
+                _root.style.opacity = 0f;
+                _root.style.translate = new Translate(0, 24);
+                _root.schedule.Execute(() =>
+                {
+                    if (!Active) _root.style.display = DisplayStyle.None;
+                }).StartingIn(240);
                 Active = false;
                 ExpiresAt = 0f;
             }

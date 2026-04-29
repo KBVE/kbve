@@ -104,6 +104,35 @@ pub struct ProfileTemplate {
     pub rentearth_total_playtime_hours: Option<i64>,
     #[allow(dead_code)]
     pub rentearth_last_activity: Option<String>,
+    // Forum-side stats. `forum_present` = false when the user has no
+    // forum activity yet — the template can hide the section entirely.
+    // Fields are read by the production AskamaProfileProvider.astro
+    // overlay (templates/dist/askama/profile/index.html); the dev stub
+    // doesn't reference them yet, so silence cargo's dead-code lint.
+    #[allow(dead_code)]
+    pub forum_present: bool,
+    #[allow(dead_code)]
+    pub forum_karma: i64,
+    #[allow(dead_code)]
+    pub forum_post_count: i64,
+    #[allow(dead_code)]
+    pub forum_comment_count: i64,
+    #[allow(dead_code)]
+    pub forum_upvotes_received: i64,
+    #[allow(dead_code)]
+    pub forum_trust_level: i16,
+    #[allow(dead_code)]
+    pub forum_signature: Option<String>,
+    #[allow(dead_code)]
+    pub forum_joined_human: String,
+    #[allow(dead_code)]
+    pub forum_last_active_human: Option<String>,
+    /// Pre-rendered list of recent thread cards (askama partial).
+    #[allow(dead_code)]
+    pub forum_recent_threads_html: String,
+    /// Pre-rendered list of recent comments.
+    #[allow(dead_code)]
+    pub forum_recent_comments_html: String,
 }
 
 /// Profile not found template (Astro-built)
@@ -111,6 +140,30 @@ pub struct ProfileTemplate {
 #[template(path = "askama/profile_not_found/index.html")]
 pub struct ProfileNotFoundTemplate {
     pub username: String,
+}
+
+/// Per-row partial for "recent forum threads" on the profile page.
+#[derive(Template)]
+#[template(path = "askama/profile/_forum_thread_row.html")]
+pub struct ProfileForumThreadRowPartial {
+    pub thread_slug_or_id: String,
+    pub title: String,
+    pub space_slug: String,
+    pub created_at_human: String,
+    pub score: i64,
+    pub comment_count: i32,
+    pub pinned: bool,
+}
+
+/// Per-row partial for "recent forum comments" on the profile page.
+#[derive(Template)]
+#[template(path = "askama/profile/_forum_comment_row.html")]
+pub struct ProfileForumCommentRowPartial {
+    pub id: String,
+    pub thread_id: String,
+    pub excerpt: String,
+    pub created_at_human: String,
+    pub score: i64,
 }
 
 // ===========================================================================
@@ -182,6 +235,17 @@ pub struct ForumFeedItemPartial {
     /// Sanitized HTML — output of `kbve::markdown::render(..).html` truncated
     /// to a feed excerpt. Already passes through ammonia.
     pub body_excerpt_html: String,
+}
+
+/// New-thread compose page served at /forum/compose.
+#[derive(Template)]
+#[template(path = "askama/forum/compose/index.html")]
+pub struct ForumComposeTemplate {
+    pub compose_title: String,
+    pub compose_meta_description: String,
+    /// Pre-filled `?space=<slug>` from query string. Empty when no
+    /// preference; the form lets the user pick.
+    pub default_space_slug: String,
 }
 
 /// Per-row partial for thread comments.

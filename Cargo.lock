@@ -1383,7 +1383,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.120"
+version = "1.0.121"
 dependencies = [
  "anyhow",
  "askama",
@@ -1471,7 +1471,7 @@ dependencies = [
 
 [[package]]
 name = "axum-rareicon"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "askama",

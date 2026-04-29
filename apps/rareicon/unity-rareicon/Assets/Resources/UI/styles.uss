@@ -108,6 +108,7 @@
     top: 0; left: 0; right: 0; bottom: 0;
     background-color: rgba(0, 0, 0, 0.55);
 }
+
 .panel--modal {
     position: absolute;
     top:    6%;
@@ -138,11 +139,20 @@
     font-size: var(--font-title);
     color: var(--color-text-strong);
     -unity-font-style: bold;
+    letter-spacing: 4px;
 }
 .panel__strip {
-    height: 1px;
+    height: 2px;
     background-color: var(--color-accent);
     margin-bottom: var(--space-sm);
+}
+/* Decorative accent stripe — short bold gold tick that sits just under
+   panel titles, paired with .panel__strip for a YoRHA-style double rule. */
+.panel__strip--accent {
+    height: 1px;
+    width: 60px;
+    background-color: var(--color-accent-deep);
+    margin-bottom: var(--space-md);
 }
 .panel__body  { flex-grow: 1; }
 .panel__body--scroll { /* applied to ScrollView; lets it consume remaining height */ flex-grow: 1; }

@@ -123,6 +123,15 @@
 		color: var(--forum-text);
 	}
 
+	/* Override Starlight splash content wrapper so we own width + spacing. */
+	:global(.sl-markdown-content):has(.forum-shell) {
+		max-width: none;
+		margin: 0;
+	}
+	:global(.sl-markdown-content) .forum-shell :is(p, h1, h2, h3, h4) {
+		margin-top: 0;
+	}
+
 	.forum-shell__header {
 		display: grid;
 		gap: 1rem;

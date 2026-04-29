@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -113,8 +114,17 @@ namespace RareIcon
             public const int Body    = 10;  // dense list row body
             public const int BodyLg  = 11;  // standard panel body
             public const int Label   = 12;  // bold labels, button text
-            public const int Heading = 13;  // section headings inside a panel
-            public const int Title   = 15;  // panel title (top of card)
+            public const int Heading = 14;  // section headings inside a panel
+            public const int Title   = 18;  // panel title (top of card)
+            public const int Display = 24;  // hero / title-screen display headings
+        }
+
+        /// <summary>Letter-spacing presets for headings — tracking that lifts a label from "default Unity text" to "designed UI" without swapping the font. Use <see cref="Display"/> on hero headings, <see cref="Title"/> on panel titles, <see cref="Tag"/> on small caps labels.</summary>
+        public static class Tracking
+        {
+            public const float Tag     = 2f;
+            public const float Title   = 4f;
+            public const float Display = 8f;
         }
 
         /// <summary>Min/max pixel widths sized for 1280-wide windows; pair with VwMaxPct to clamp on smaller viewports.</summary>
@@ -342,7 +352,69 @@ namespace RareIcon
             label.style.color    = color ?? Palette.TextStrong;
             label.style.fontSize = fontSize;
             label.style.unityFontStyleAndWeight = FontStyle.Bold;
+            label.style.letterSpacing = Tracking.Title;
             return label;
+        }
+
+        /// <summary>Hero display heading — letter-spaced gold-bright label sized for title screens / hero sections. Larger + tighter than <see cref="MakeHeading"/>; use sparingly so it stays load-bearing.</summary>
+        public static Label MakeDisplayHeading(string text, int fontSize = Type.Display,
+                                               Color? color = null,
+                                               float tracking = Tracking.Display)
+        {
+            var label = new Label(text);
+            label.style.color    = color ?? Palette.TextStrong;
+            label.style.fontSize = fontSize;
+            label.style.unityFontStyleAndWeight = FontStyle.Bold;
+            label.style.letterSpacing = tracking;
+            return label;
+        }
+
+        /// <summary>Small caps tag label — uppercase, narrow letter-spaced, dim gold. For metadata strips ("LV. 14", "STAGE 2", "SAVE SLOT"). Pairs with <see cref="MakeDisplayHeading"/> as the subhead.</summary>
+        public static Label MakeTag(string text, Color? color = null)
+        {
+            var label = new Label(text);
+            label.style.color    = color ?? Palette.GoldMuted;
+            label.style.fontSize = Type.Tiny;
+            label.style.unityFontStyleAndWeight = FontStyle.Bold;
+            label.style.letterSpacing = Tracking.Tag;
+            return label;
+        }
+
+        /// <summary>YoRHA-style corner notches — four L-shaped gold ticks anchored at the panel's outer corners. Adds visual chrome that reads as "designed UI" without changing the panel's content layout. Picking-mode Ignore so the notches never block clicks. Call once after the panel's chrome is laid out; safe to call on a panel with absolutely-positioned children since notches sit at extreme corners.</summary>
+        public static void AddCornerNotches(this VisualElement panel,
+                                            float length    = 14f,
+                                            float thickness = 2f,
+                                            Color? color    = null)
+        {
+            var c = color ?? Palette.Gold;
+            AddNotch(panel, c, length, thickness, top: true,  left: true);
+            AddNotch(panel, c, length, thickness, top: true,  left: false);
+            AddNotch(panel, c, length, thickness, top: false, left: true);
+            AddNotch(panel, c, length, thickness, top: false, left: false);
+        }
+
+        static void AddNotch(VisualElement panel, Color color, float length, float thickness,
+                             bool top, bool left)
+        {
+            var horiz = new VisualElement();
+            horiz.style.position        = Position.Absolute;
+            horiz.style.width           = length;
+            horiz.style.height          = thickness;
+            horiz.style.backgroundColor = color;
+            horiz.pickingMode           = PickingMode.Ignore;
+            if (top)  horiz.style.top    = -1; else horiz.style.bottom = -1;
+            if (left) horiz.style.left   = -1; else horiz.style.right  = -1;
+            panel.Add(horiz);
+
+            var vert = new VisualElement();
+            vert.style.position        = Position.Absolute;
+            vert.style.width           = thickness;
+            vert.style.height          = length;
+            vert.style.backgroundColor = color;
+            vert.pickingMode           = PickingMode.Ignore;
+            if (top)  vert.style.top    = -1; else vert.style.bottom = -1;
+            if (left) vert.style.left   = -1; else vert.style.right  = -1;
+            panel.Add(vert);
         }
 
         /// <summary>
@@ -546,6 +618,21 @@ namespace RareIcon
             btn.style.unityFontStyleAndWeight = FontStyle.Bold;
             btn.style.marginLeft = 0; btn.style.marginRight = 0;
             btn.style.marginTop  = 0; btn.style.marginBottom = 0;
+            btn.style.transitionProperty = new List<StylePropertyName>
+            {
+                new StylePropertyName("background-color"),
+                new StylePropertyName("color"),
+                new StylePropertyName("border-color"),
+                new StylePropertyName("scale"),
+            };
+            btn.style.transitionDuration = new List<TimeValue>
+            {
+                new TimeValue(110, TimeUnit.Millisecond),
+            };
+            btn.style.transitionTimingFunction = new List<EasingFunction>
+            {
+                new EasingFunction(EasingMode.EaseOutCubic),
+            };
 
             bool pressed = false;
             bool hovered = false;
@@ -564,18 +651,21 @@ namespace RareIcon
                     btn.style.backgroundColor = Palette.GoldDeep;
                     btn.style.color           = Palette.Black;
                     btn.style.BorderColor(Palette.GoldDeep);
+                    btn.style.scale = new Scale(new Vector3(0.97f, 0.97f, 1f));
                 }
                 else if (hovered)
                 {
                     btn.style.backgroundColor = Palette.Gold;
                     btn.style.color           = Palette.Zinc950;
                     btn.style.BorderColor(Palette.Gold);
+                    btn.style.scale = new Scale(new Vector3(1.03f, 1.03f, 1f));
                 }
                 else
                 {
                     btn.style.backgroundColor = Palette.Zinc900;
                     btn.style.color           = Palette.Gold;
                     btn.style.BorderColor(Palette.Gold);
+                    btn.style.scale = new Scale(Vector3.one);
                 }
             }
 
