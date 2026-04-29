@@ -237,6 +237,14 @@ pub struct ForumFeedItemPartial {
     pub body_excerpt_html: String,
 }
 
+/// 404 page served when a `/forum/s/{slug}` slug doesn't resolve to
+/// an active space.
+#[derive(Template)]
+#[template(path = "askama/forum/space_not_found/index.html")]
+pub struct ForumSpaceNotFoundTemplate {
+    pub space_slug: String,
+}
+
 /// New-thread compose page served at /forum/compose.
 #[derive(Template)]
 #[template(path = "askama/forum/compose/index.html")]

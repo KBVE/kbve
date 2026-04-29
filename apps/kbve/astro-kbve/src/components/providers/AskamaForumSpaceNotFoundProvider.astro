@@ -1,0 +1,205 @@
+---
+// AskamaForumSpaceNotFoundProvider — 404 page for missing forum spaces.
+// Served by axum-kbve at /forum/s/{slug} when the slug doesn't resolve
+// to an active row in forum.spaces.
+//
+// Askama placeholders consumed by axum-kbve's ForumSpaceNotFoundTemplate:
+//   {{ space_slug }} — the slug the visitor typed
+---
+
+<div class="forum-shell forum-404">
+	<nav class="forum-shell__breadcrumb" aria-label="Breadcrumb">
+		<a href="/forum/">Forum</a>
+		<span aria-hidden="true">›</span>
+		<span class="forum-shell__breadcrumb-current">Not found</span>
+	</nav>
+
+	<article class="forum-404__card">
+		<div class="forum-404__icon" aria-hidden="true">
+			<svg
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.6"
+				stroke-linecap="round"
+				stroke-linejoin="round">
+				<circle cx="11" cy="11" r="7"></circle>
+				<path d="M21 21l-4.35-4.35"></path>
+				<path d="M8 11h6"></path>
+			</svg>
+		</div>
+
+		<h1 class="forum-404__title">No such space</h1>
+		<p class="forum-404__copy">
+			Nothing matches
+			<code class="forum-404__slug">
+				s/{`{{ space_slug }}`}
+			</code>
+			. It may have been renamed, removed, or never existed.
+		</p>
+
+		<div class="forum-404__actions">
+			<a class="forum-404__btn forum-404__btn--primary" href="/forum/">
+				← Back to forum
+			</a>
+			<a
+				class="forum-404__btn forum-404__btn--ghost"
+				href="/forum/compose">
+				Start a thread
+			</a>
+		</div>
+
+		<div class="forum-404__suggestions">
+			<p class="forum-404__suggestion-title">Active spaces</p>
+			<ul>
+				<li>
+					<a href="/forum/s/announcements">s/announcements</a> — site updates
+					from the KBVE team
+				</li>
+				<li>
+					<a href="/forum/s/support">s/support</a> — help, bug reports,
+					and account questions
+				</li>
+			</ul>
+		</div>
+	</article>
+</div>
+
+<style is:global>
+	.forum-404 {
+		--forum-accent: var(--sl-color-accent, #8b5cf6);
+		--forum-accent-soft: color-mix(
+			in srgb,
+			var(--forum-accent) 18%,
+			transparent
+		);
+		--forum-bg-soft: var(--sl-color-bg-nav, #131318);
+		--forum-bg-card: var(--sl-color-black, #0c0c10);
+		--forum-border: var(--sl-color-gray-5, #2a2a33);
+		--forum-text: var(--sl-color-text, #fafafa);
+		--forum-muted: var(--sl-color-gray-2, #a1a1aa);
+		--forum-radius: 14px;
+		--forum-radius-sm: 8px;
+		max-width: 720px;
+	}
+	.forum-404 .forum-404__card {
+		background: var(--forum-bg-card);
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius);
+		padding: clamp(1.75rem, 4vw, 3rem);
+		display: grid;
+		gap: 1rem;
+		text-align: center;
+	}
+	.forum-404 .forum-404__icon {
+		justify-self: center;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 56px;
+		height: 56px;
+		border-radius: 50%;
+		background: var(--forum-accent-soft);
+		color: var(--forum-accent);
+	}
+	.forum-404 .forum-404__icon svg {
+		width: 28px;
+		height: 28px;
+	}
+	.forum-404 .forum-404__title {
+		font-size: clamp(1.5rem, 3vw, 2rem);
+		font-weight: 700;
+		margin: 0;
+		letter-spacing: -0.01em;
+	}
+	.forum-404 .forum-404__copy {
+		color: var(--forum-muted);
+		font-size: 1rem;
+		line-height: 1.6;
+		margin: 0;
+		max-width: 48ch;
+		margin-inline: auto;
+	}
+	.forum-404 .forum-404__slug {
+		display: inline-block;
+		padding: 0.1em 0.5em;
+		margin: 0 0.15em;
+		background: var(--forum-bg-soft);
+		border: 1px solid var(--forum-border);
+		border-radius: 6px;
+		font-family: ui-monospace, SFMono-Regular, monospace;
+		font-size: 0.9em;
+		color: var(--forum-text);
+	}
+	.forum-404 .forum-404__actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.6rem;
+		margin-top: 0.4rem;
+	}
+	.forum-404 .forum-404__btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.65rem 1.25rem;
+		border-radius: var(--forum-radius-sm);
+		font-size: 0.9375rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition:
+			background 0.12s ease,
+			border-color 0.12s ease,
+			transform 0.12s ease;
+	}
+	.forum-404 .forum-404__btn--primary {
+		background: var(--forum-accent);
+		color: white;
+	}
+	.forum-404 .forum-404__btn--primary:hover {
+		filter: brightness(1.1);
+		transform: translateY(-1px);
+	}
+	.forum-404 .forum-404__btn--ghost {
+		color: var(--forum-text);
+		background: transparent;
+		border: 1px solid var(--forum-border);
+	}
+	.forum-404 .forum-404__btn--ghost:hover {
+		border-color: var(--forum-accent);
+		background: var(--forum-accent-soft);
+	}
+
+	.forum-404 .forum-404__suggestions {
+		text-align: left;
+		padding: 1rem 1.25rem;
+		background: var(--forum-bg-soft);
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius-sm);
+		margin-top: 1rem;
+	}
+	.forum-404 .forum-404__suggestion-title {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--forum-muted);
+		margin: 0 0 0.5rem;
+	}
+	.forum-404 .forum-404__suggestions ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: grid;
+		gap: 0.4rem;
+		font-size: 0.875rem;
+	}
+	.forum-404 .forum-404__suggestions a {
+		color: var(--forum-accent);
+		text-decoration: none;
+		font-weight: 600;
+	}
+	.forum-404 .forum-404__suggestions a:hover {
+		text-decoration: underline;
+	}
+</style>

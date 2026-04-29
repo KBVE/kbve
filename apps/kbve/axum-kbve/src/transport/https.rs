@@ -18,7 +18,7 @@ use tracing::info;
 
 use crate::astro::askama::{
     ForumCommentPartial, ForumComposeTemplate, ForumFeedItemPartial, ForumFeedTemplate,
-    ForumThreadTemplate, HealthTemplate, ProfileForumCommentRowPartial,
+    ForumSpaceNotFoundTemplate, ForumThreadTemplate, HealthTemplate, ProfileForumCommentRowPartial,
     ProfileForumThreadRowPartial, ProfileNotFoundTemplate, ProfileTemplate,
     RentEarthCharacterDisplay, TemplateResponse,
 };
@@ -232,7 +232,19 @@ fn router(state: AppState) -> Router {
             get(|| async { Redirect::permanent("/forum/compose") }),
         )
         .route("/forum/s/{slug}", get(forum_space_handler))
+        .route(
+            "/forum/s/{slug}/",
+            get(|Path(slug): Path<String>| async move {
+                Redirect::permanent(&format!("/forum/s/{}", slug))
+            }),
+        )
         .route("/forum/t/{slug_or_id}", get(forum_thread_handler))
+        .route(
+            "/forum/t/{slug_or_id}/",
+            get(|Path(slug): Path<String>| async move {
+                Redirect::permanent(&format!("/forum/t/{}", slug))
+            }),
+        )
         .route("/api/v1/forum/threads", post(api_create_thread))
         .route(
             "/api/v1/forum/t/{slug_or_id}/comments",
@@ -2097,7 +2109,16 @@ async fn render_feed_page(space_slug: Option<String>, q: &FeedSortQuery) -> Resp
         Some(slug) => match svc.get_space_by_slug(slug).await {
             Ok(Some(space)) => Some(space),
             Ok(None) => {
-                return (StatusCode::NOT_FOUND, format!("space {} not found", slug))
+                // Render the styled space-not-found template instead of a
+                // plaintext error so visitors get a friendly 404 with
+                // navigation back into the forum.
+                return (
+                    StatusCode::NOT_FOUND,
+                    [(header::CACHE_CONTROL, "public, max-age=60")],
+                    TemplateResponse(ForumSpaceNotFoundTemplate {
+                        space_slug: slug.to_string(),
+                    }),
+                )
                     .into_response();
             }
             Err(e) => {
