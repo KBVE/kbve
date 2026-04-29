@@ -6,6 +6,12 @@
         <ui:VisualElement name="title-backdrop" class="title-backdrop" />
 
         <ui:VisualElement name="title-window" class="title-window">
+            <!-- Inner stroke wrapper — gives a YoRHA-style double border. -->
+            <ui:VisualElement name="title-window-inner" class="title-window-inner" />
+
+            <!-- Close button, anchored top-right; fires Application.Quit. -->
+            <ui:Button name="title-close" class="title-close" text="✕" />
+
             <ui:VisualElement class="title-header">
                 <ui:Label name="title-brand" class="title-brand" text="RAREICON" />
                 <ui:Label name="title-tagline" class="title-tagline" text="BULLET-HELL ROGUELITE" />
@@ -15,17 +21,17 @@
             <ui:VisualElement name="title-stage-locale" class="title-stage">
                 <ui:Label class="title-stage__title" text="Choose a language" />
 
+                <ui:VisualElement class="title-locale-row">
+                    <ui:Button name="title-locale-en" class="btn title-locale-btn" text="English" />
+                    <ui:Button name="title-locale-ja" class="btn title-locale-btn" text="日本語" />
+                </ui:VisualElement>
+
                 <ui:VisualElement name="title-persona" class="title-persona">
                     <ui:VisualElement name="title-avatar" class="title-avatar" />
                     <ui:VisualElement class="title-persona__meta">
                         <ui:Label name="title-persona-name" class="title-persona__name" text="Offline" />
                         <ui:Label name="title-persona-status" class="title-persona__status" text="Steam not detected" />
                     </ui:VisualElement>
-                </ui:VisualElement>
-
-                <ui:VisualElement class="title-locale-row">
-                    <ui:Button name="title-locale-en" class="btn title-locale-btn" text="English" />
-                    <ui:Button name="title-locale-ja" class="btn title-locale-btn" text="日本語" />
                 </ui:VisualElement>
             </ui:VisualElement>
 
@@ -53,6 +59,22 @@
                 </ui:VisualElement>
 
                 <ui:Button name="title-start" class="btn title-action-btn title-action-btn--primary title-start" text="Start" />
+            </ui:VisualElement>
+
+            <!-- Social links footer, anchored bottom-right of the window. -->
+            <ui:VisualElement name="title-socials" class="title-socials">
+                <ui:Button name="title-social-discord" class="title-social-btn" tooltip="Discord">
+                    <ui:VisualElement class="title-social-icon title-social-icon--discord" />
+                    <ui:Label class="title-social-fallback" text="DC" />
+                </ui:Button>
+                <ui:Button name="title-social-github" class="title-social-btn" tooltip="GitHub">
+                    <ui:VisualElement class="title-social-icon title-social-icon--github" />
+                    <ui:Label class="title-social-fallback" text="GH" />
+                </ui:Button>
+                <ui:Button name="title-social-twitch" class="title-social-btn" tooltip="Twitch">
+                    <ui:VisualElement class="title-social-icon title-social-icon--twitch" />
+                    <ui:Label class="title-social-fallback" text="TW" />
+                </ui:Button>
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

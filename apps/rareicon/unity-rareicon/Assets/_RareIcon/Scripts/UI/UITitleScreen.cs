@@ -104,6 +104,8 @@ namespace RareIcon
             BindSeedStage();
             BindGeneratingStage();
             BindPersona();
+            BindClose();
+            BindSocials();
 
             _session.Stage.Subscribe(OnStageChanged).AddTo(_disposables);
             _session.ChunksReady.Subscribe(_ => RefreshProgress()).AddTo(_disposables);
@@ -121,6 +123,42 @@ namespace RareIcon
         {
             _root.Q<Button>("title-locale-en").clicked += () => _session.SelectLocale("en");
             _root.Q<Button>("title-locale-ja").clicked += () => _session.SelectLocale("ja");
+        }
+
+        /// <summary>Wire the top-right × button to Application.Quit. In the editor we stop play mode so devs aren't dropped onto the desktop.</summary>
+        void BindClose()
+        {
+            var closeBtn = _root.Q<Button>("title-close");
+            if (closeBtn == null) return;
+            closeBtn.clicked += () =>
+            {
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+#else
+                Application.Quit();
+#endif
+            };
+        }
+
+        /// <summary>Wire the bottom-right Discord / GitHub / Twitch buttons. SVG icons live under Resources/UI/icons/; if the project's vectorgraphics importer hasn't promoted them to a VectorImage the USS background-image lookup fails silently — when that happens we leave the two-letter text fallback visible.</summary>
+        void BindSocials()
+        {
+            WireSocial("title-social-discord", "UI/icons/discord", "https://kbve.com/discord/");
+            WireSocial("title-social-github",  "UI/icons/github",  "https://github.com/kbve/kbve");
+            WireSocial("title-social-twitch",  "UI/icons/twitch",  "https://twitch.tv/kbve");
+        }
+
+        void WireSocial(string buttonName, string iconResource, string url)
+        {
+            var btn = _root.Q<Button>(buttonName);
+            if (btn == null) return;
+            btn.clicked += () => Application.OpenURL(url);
+
+            // Probe Resources for the icon — if it loads as anything (Texture / VectorImage / Sprite),
+            // mark the button so the text fallback collapses. SVG support varies by project; Resources
+            // returns null when the importer is missing and the fallback letters stay visible.
+            var probe = Resources.Load(iconResource);
+            if (probe != null) btn.AddToClassList("title-social-btn--has-icon");
         }
 
         void BindSeedStage()

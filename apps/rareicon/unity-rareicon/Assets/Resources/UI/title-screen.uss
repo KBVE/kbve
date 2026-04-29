@@ -34,7 +34,9 @@
     min-width: 320px;
     max-height: 92%;
 
-    padding: 32px 36px;
+    /* Extra bottom padding leaves room for the absolutely-positioned
+       socials row docked along the bottom-right edge. */
+    padding: 36px 36px 60px 36px;
     background-color: var(--color-bg-panel);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -45,6 +47,107 @@
     transition-property: opacity, scale, translate;
     transition-duration: 0.32s;
     transition-timing-function: ease-out;
+}
+
+/* Inner stroke layer — sits 6px inside the outer border to give the
+   YoRHA-style double-line frame. picking-mode is ignored so it never
+   eats clicks meant for content. */
+.title-window-inner {
+    position: absolute;
+    top: 6px; left: 6px; right: 6px; bottom: 6px;
+    border-color: var(--color-accent);
+    border-width: 1px;
+    opacity: 0.45;
+}
+
+/* Close (×) button, top-right of the window. */
+.title-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    margin: 0;
+    background-color: rgba(0, 0, 0, 0);
+    border-color: var(--color-accent);
+    border-width: 1px;
+    color: var(--color-accent);
+    font-size: 18px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    transition-property: background-color, color, scale;
+    transition-duration: 0.14s;
+}
+.title-close:hover {
+    background-color: var(--color-accent);
+    color: var(--color-bg-panel);
+}
+.title-close:active { scale: 0.94 0.94; }
+
+/* Bottom-right social row. Anchored absolute so it doesn't push the
+   stage content; sits inside the extra bottom padding. */
+.title-socials {
+    position: absolute;
+    bottom: 14px;
+    right: 18px;
+    flex-direction: row;
+}
+.title-social-btn {
+    width: 32px;
+    height: 32px;
+    margin-left: 8px;
+    padding: 0;
+    background-color: rgba(0, 0, 0, 0);
+    border-color: var(--color-accent);
+    border-width: 1px;
+    -unity-text-align: middle-center;
+    color: var(--color-accent);
+    font-size: 11px;
+    -unity-font-style: bold;
+    transition-property: background-color, scale;
+    transition-duration: 0.14s;
+}
+.title-social-btn:hover {
+    background-color: rgba(252, 211, 77, 0.15);
+}
+.title-social-btn:active { scale: 0.94 0.94; }
+
+/* PNG-backed icon. Source PNGs are white shapes on transparent bg
+   (Resources/UI/icons/*.png) so the gold tint multiplies to the
+   panel accent colour at runtime. No SVG/vectorgraphics package
+   required — pure Texture2D import. Hover state on the parent
+   button bumps the tint to the brighter strong-text yellow. */
+.title-social-icon {
+    position: absolute;
+    top: 5px; left: 5px; right: 5px; bottom: 5px;
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: rgb(252, 211, 77);
+}
+.title-social-btn:hover .title-social-icon {
+    -unity-background-image-tint-color: rgb(253, 230, 138);
+}
+.title-social-icon--discord {
+    background-image: url('icons/discord.png');
+}
+.title-social-icon--github {
+    background-image: url('icons/github.png');
+}
+.title-social-icon--twitch {
+    background-image: url('icons/twitch.png');
+}
+.title-social-fallback {
+    -unity-text-align: middle-center;
+    color: var(--color-accent);
+    font-size: 11px;
+}
+/* Hide the text fallback when the SVG icon resolves — both layers
+   share the same anchored bounds, so once the SVG paints we collapse
+   the label to keep the button readable.
+   The C# side adds .title-social-btn--has-icon when it confirms the
+   icon texture loaded; until then the fallback stays visible. */
+.title-social-btn--has-icon .title-social-fallback {
+    display: none;
 }
 .title-window--enter {
     opacity: 0;
@@ -107,17 +210,19 @@
     white-space: normal;
 }
 
-/* Persona card */
+/* Persona card — sits below the locale row as a "current user" footer. */
 .title-persona {
     flex-direction: row;
     align-items: center;
-    padding: 14px;
-    margin-bottom: 18px;
-    background-color: rgba(0, 0, 0, 0.35);
+    padding: 12px;
+    margin-top: 16px;
+    margin-bottom: 4px;
+    background-color: rgba(0, 0, 0, 0.4);
     border-color: var(--color-accent);
     border-width: 1px;
     flex-wrap: wrap;
     flex-shrink: 0;
+    opacity: 0.92;
 }
 .title-avatar {
     width: 56px;
@@ -171,40 +276,68 @@
     scale: 0.98 0.98;
 }
 
-/* Seed row */
+/* Seed row — one-line on wide, stacks on narrow (.title-window--narrow). */
 .title-seed-row {
     flex-direction: row;
-    flex-wrap: wrap;
-    margin: 0 -4px 16px -4px;
+    flex-wrap: nowrap;
+    margin-bottom: 16px;
+    align-items: stretch;
 }
 .title-seed-input {
     flex-grow: 1;
-    flex-basis: 60%;
-    margin: 4px;
-    min-width: 140px;
+    flex-shrink: 1;
+    margin-right: 8px;
+    min-width: 0;       /* allow flex shrink past content */
+    min-height: 40px;
 }
-/* IntegerField wraps a label + a TextField; hide the (empty) label so the
-   input takes the full row, and reach the deeply-nested input element via
-   descendant (not direct-child) selector. */
+/* IntegerField hierarchy:
+     IntegerField (.unity-integer-field .title-seed-input)
+       Label (.unity-base-field__label)               ← hidden
+       VisualElement (.unity-base-text-field__input)  ← styled box
+         TextElement (.unity-text-element)            ← actual value text
+   Style the box AND the TextElement so the typed value renders in
+   the gold accent color and the box fills the flex row. */
+.title-seed-input > .unity-base-field__label,
 .title-seed-input .unity-base-field__label {
     display: none;
 }
 .title-seed-input .unity-base-text-field__input {
+    flex-grow: 1;
+    flex-shrink: 1;
     background-color: rgba(0, 0, 0, 0.45);
     border-color: var(--color-accent);
     border-width: 1px;
-    color: var(--color-text-strong);
-    padding: 10px 12px;
-    font-size: 14px;
+    padding: 8px 12px;
+    min-height: 40px;
     -unity-text-align: middle-left;
-    flex-grow: 1;
-    min-height: 36px;
+    color: var(--color-text-strong);
+    font-size: 16px;
+}
+.title-seed-input .unity-text-element {
+    color: var(--color-text-strong);
+    font-size: 16px;
 }
 .title-seed-btn {
-    flex-grow: 1;
-    flex-basis: 30%;
-    margin: 4px;
+    flex-grow: 0;
+    flex-shrink: 0;
+    width: 120px;
+    min-height: 40px;
     padding: 0 16px;
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+}
+
+/* Narrow viewport — stack input above the Random button so the field
+   gets the full row and the value isn't squeezed. */
+.title-window--narrow .title-seed-row {
+    flex-direction: column;
+}
+.title-window--narrow .title-seed-input {
+    margin-right: 0;
+    margin-bottom: 8px;
+}
+.title-window--narrow .title-seed-btn {
+    width: auto;
 }
 
 /* Action row (Back / Generate, Start) */
