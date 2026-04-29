@@ -22,7 +22,7 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import {  Adsense } from '@/components/astropad';
 
 ## Information
 
@@ -379,13 +379,57 @@ Cargo ensures that Rust developers can efficiently manage their projects' librar
 This is a quick repo / guide on a Rust MySQL Microservice!
 Official [Repo](https://github.com/second-state/microservice-rust-mysql)
 
-### Youki
 
-Youki is an Open Container Initiative runtime specification library written in Rust.
+---
+
+## Youki
+
+Youki is a low-level OCI-compliant container runtime written in Rust, broadly comparable to `runc` and `crun`. 
+Youki focuses on memory safety, good performance, and low resource usage, making it suitable as an alternative runtime under Docker, containerd, Podman, Kubernetes, and similar systems.
 Official [Youki Repo](https://github.com/containers/youki)
-There are some issues with some devices within `CGroups v2` that should be noted.
-Since youki is a low-level runtime, its recommend that you combine it with a high-level runtime, such as Docker / Podman.
 
+### What Youki Actually Is
+
+Youki is a low-level container runtime — the same layer that Docker, containerd, and Kubernetes ultimately call down into when they spin up a container. 
+It implements the OCI runtime specification, which means it is responsible for:
+
+-   Spawning the container process
+-   Applying Linux namespaces and cgroups
+-   Setting up the container environment (mounts, capabilities, seccomp, etc.)
+-   Handing the running process back to the higher-level runtime
+
+In practice, this makes Youki a drop-in replacement for `runc` or `crun`. It still relies on the host Linux kernel like any normal container runtime; it does not virtualize the kernel.
+
+### Youki Key Facts
+
+-   **Type:** OCI container runtime (low-level)
+-   **Language:** Rust
+-   **Spec support:** Implements the OCI runtime-spec
+-   **Role:** Drop-in alternative to `runc` / `crun` in container stacks
+-   **Initial release:** v0.0.1 announced December 2021
+
+### Purpose and Design
+
+Youki's goal is to implement the Open Container Initiative Runtime Specification in a modern, memory-safe language. Rust lets Youki interact directly with Linux syscalls — namespaces, cgroups, mounts, and so on — without the multi-threading constraints of Go or the memory-unsafe semantics of C. This design aims to reduce entire classes of vulnerabilities, such as buffer overflows and use-after-free bugs, while still achieving very low-level control over container creation.
+
+### Performance and Resource Usage
+
+Benchmarks published by the project show Youki's container create–start–delete cycle being faster and using less memory than `runc`, and competitive with `crun`. Measured runs on Linux report roughly 2× lower latency than `runc` in certain scenarios, which makes it attractive in resource-constrained environments and high-container-density workloads. Actual gains depend on the workload and environment, so treat these numbers as a directional signal rather than a guarantee.
+
+### Integration and Ecosystem
+
+Youki can act as a drop-in runtime for Docker by registering it in `daemon.json`, and for containerd, Podman, and CRI-O via their runtime configuration hooks.
+It is also used as a base for more specialized runtimes - secure wrappers, alternate exec models, and WebAssembly-focused setups such as the WasmEdge integration where Youki is built with WASM support.
+
+There are some quirks around device handling under `cgroups v2` that are worth noting if you are running Youki on newer distributions; check the project's issue tracker before relying on it for production workloads. Since Youki is a low-level runtime, the typical pattern is to pair it with a high-level runtime such as Docker, Podman, or containerd rather than driving it directly.
+
+### Use Cases
+
+Typical use cases include:
+
+-   Running Linux containers in clusters where startup latency and memory headroom matter
+-   Experimenting with Rust-based container tooling
+-   Building derivative OCI runtimes that leverage Youki's core implementation while layering on extras like sandboxing, alternate exec models, or WASM support
 
 ---
 
@@ -1008,6 +1052,3 @@ Github Actions can provide you with a cloud windows VM that will pull the source
 **Docker**
 
 Nix-ready or custom docker image that has a multi-stage build process, including a cargo chef and layer caching, provides a fast and local way to build across multiple operating systems.
-
-
-<Giscus />
