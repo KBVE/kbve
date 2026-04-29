@@ -18,7 +18,8 @@ use tracing::info;
 
 use crate::astro::askama::{
     ForumCommentPartial, ForumComposeTemplate, ForumFeedItemPartial, ForumFeedTemplate,
-    ForumThreadTemplate, HealthTemplate, ProfileNotFoundTemplate, ProfileTemplate,
+    ForumThreadTemplate, HealthTemplate, ProfileForumCommentRowPartial,
+    ProfileForumThreadRowPartial, ProfileNotFoundTemplate, ProfileTemplate,
     RentEarthCharacterDisplay, TemplateResponse,
 };
 use crate::auth::{extract_bearer_token, get_jwt_cache};
@@ -427,7 +428,11 @@ async fn profile_handler(Path(username): Path<String>) -> impl IntoResponse {
     // Step 3: Render response with appropriate cache headers
     match profile {
         Some(profile) => {
-            let response = render_profile_template(&validated_username, &profile);
+            // Forum block is fetched fresh (not cached with the rest of the
+            // profile) so post counts and recent activity stay current.
+            let forum_block = fetch_forum_profile_block(&profile.user_id).await;
+            let response =
+                render_profile_template(&validated_username, &profile, forum_block.as_ref());
             // Cache for 5 minutes, allow stale content while revalidating
             (
                 [
@@ -680,10 +685,13 @@ fn archetype_flags_to_name(flags: i64) -> String {
     }
 }
 
-/// Render profile to template response
+/// Render profile to template response. Forum block is optional —
+/// pre-fetched in the handler so post counts and recent activity stay
+/// fresh while the rest of the profile sits in the cache.
 fn render_profile_template(
     username: &str,
     profile: &UserProfile,
+    forum: Option<&ForumProfileBlock>,
 ) -> TemplateResponse<ProfileTemplate> {
     // Extract Discord info
     let (
@@ -847,6 +855,24 @@ fn render_profile_template(
         rentearth_characters,
         rentearth_total_playtime_hours,
         rentearth_last_activity,
+        // Forum block — empty defaults when forum lookup found no row
+        // (user has never posted) so the template can still render and
+        // hide the section via `forum_present == false`.
+        forum_present: forum.is_some(),
+        forum_karma: forum.map(|f| f.karma).unwrap_or(0),
+        forum_post_count: forum.map(|f| f.post_count).unwrap_or(0),
+        forum_comment_count: forum.map(|f| f.comment_count).unwrap_or(0),
+        forum_upvotes_received: forum.map(|f| f.upvotes_received).unwrap_or(0),
+        forum_trust_level: forum.map(|f| f.trust_level).unwrap_or(0),
+        forum_signature: forum.and_then(|f| f.signature.clone()),
+        forum_joined_human: forum.map(|f| f.joined_human.clone()).unwrap_or_default(),
+        forum_last_active_human: forum.and_then(|f| f.last_active_human.clone()),
+        forum_recent_threads_html: forum
+            .map(|f| f.recent_threads_html.clone())
+            .unwrap_or_default(),
+        forum_recent_comments_html: forum
+            .map(|f| f.recent_comments_html.clone())
+            .unwrap_or_default(),
     })
 }
 
@@ -1713,6 +1739,112 @@ fn tuned_listener(addr: SocketAddr) -> Result<TcpListener> {
 
 async fn shutdown_signal() {
     let _ = tokio::signal::ctrl_c().await;
+}
+
+// ---------------------------------------------------------------------------
+// Forum profile block (renders the "Forum activity" section on /@username)
+// ---------------------------------------------------------------------------
+
+/// Subset of forum data shown on the profile page. Built by
+/// `fetch_forum_profile_block`; consumed by `render_profile_template`.
+struct ForumProfileBlock {
+    karma: i64,
+    post_count: i64,
+    comment_count: i64,
+    upvotes_received: i64,
+    trust_level: i16,
+    signature: Option<String>,
+    joined_human: String,
+    last_active_human: Option<String>,
+    /// Pre-rendered HTML for the recent threads list.
+    recent_threads_html: String,
+    /// Pre-rendered HTML for the recent comments list.
+    recent_comments_html: String,
+}
+
+const FORUM_PROFILE_RECENT_LIMIT: i32 = 5;
+const FORUM_PROFILE_COMMENT_EXCERPT: usize = 160;
+
+async fn fetch_forum_profile_block(user_id: &str) -> Option<ForumProfileBlock> {
+    let svc = get_forum_service()?;
+
+    let public = match svc.get_public_profile(user_id).await {
+        Ok(Some(p)) => p,
+        Ok(None) => return None,
+        Err(e) => {
+            tracing::warn!("forum profile lookup failed for {}: {}", user_id, e);
+            return None;
+        }
+    };
+
+    // Fetch recent threads + spaces map for slug resolution.
+    let threads = svc
+        .list_threads_by_author(user_id, FORUM_PROFILE_RECENT_LIMIT)
+        .await
+        .unwrap_or_else(|e| {
+            tracing::warn!("forum recent threads lookup failed: {}", e);
+            Vec::new()
+        });
+    let comments = svc
+        .list_comments_by_author(user_id, FORUM_PROFILE_RECENT_LIMIT)
+        .await
+        .unwrap_or_else(|e| {
+            tracing::warn!("forum recent comments lookup failed: {}", e);
+            Vec::new()
+        });
+
+    let space_ids: Vec<String> = threads.iter().map(|t| t.space_id.clone()).collect();
+    let spaces_by_id = svc.get_spaces_by_ids(&space_ids).await.unwrap_or_default();
+
+    let mut recent_threads_html = String::with_capacity(threads.len() * 256);
+    for t in &threads {
+        let space_slug = spaces_by_id
+            .get(&t.space_id)
+            .map(|s| s.slug.clone())
+            .unwrap_or_else(|| t.space_id.clone());
+        let thread_slug_or_id = t.slug.clone().unwrap_or_else(|| t.id.clone());
+        let partial = ProfileForumThreadRowPartial {
+            thread_slug_or_id,
+            title: t.title.clone(),
+            space_slug,
+            created_at_human: humanize_ts(&t.created_at),
+            score: t.score,
+            comment_count: t.comment_count,
+            pinned: t.pinned,
+        };
+        recent_threads_html.push_str(&render_partial(&partial, "profile/_forum_thread_row"));
+    }
+
+    let mut recent_comments_html = String::with_capacity(comments.len() * 256);
+    let ctx = forum_render_ctx();
+    for c in &comments {
+        // Render comment markdown then strip to plain text excerpt for
+        // the profile preview row. Avoid leaking nested HTML into the
+        // anchor that wraps the row.
+        let rendered = kbve::markdown::render(&c.body, &ctx);
+        let excerpt = plain_excerpt(&rendered.html, FORUM_PROFILE_COMMENT_EXCERPT);
+        let partial = ProfileForumCommentRowPartial {
+            id: c.id.clone(),
+            thread_id: c.thread_id.clone(),
+            excerpt,
+            created_at_human: humanize_ts(&c.created_at),
+            score: c.score,
+        };
+        recent_comments_html.push_str(&render_partial(&partial, "profile/_forum_comment_row"));
+    }
+
+    Some(ForumProfileBlock {
+        karma: public.karma,
+        post_count: public.post_count,
+        comment_count: public.comment_count,
+        upvotes_received: public.upvotes_received,
+        trust_level: public.trust_level,
+        signature: public.signature,
+        joined_human: humanize_ts(&public.joined_forum_at),
+        last_active_human: public.last_active_at.as_deref().map(humanize_ts),
+        recent_threads_html,
+        recent_comments_html,
+    })
 }
 
 // ---------------------------------------------------------------------------

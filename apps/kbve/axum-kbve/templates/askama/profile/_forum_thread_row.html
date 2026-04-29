@@ -1,0 +1,12 @@
+<a class="profile-forum__row" href="/forum/t/{{ thread_slug_or_id }}">
+  <span class="profile-forum__row-title">
+    {%- if pinned %}<span class="profile-forum__pin" aria-hidden="true">📌</span>{% endif -%}
+    {{ title }}
+  </span>
+  <span class="profile-forum__row-meta">
+    <span>s/{{ space_slug }}</span>
+    <span>· {{ created_at_human }}</span>
+    <span>· {{ score }} pts</span>
+    <span>· {{ comment_count }} replies</span>
+  </span>
+</a>
