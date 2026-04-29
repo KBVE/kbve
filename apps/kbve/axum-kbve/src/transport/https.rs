@@ -37,6 +37,8 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/application/kubectl", "/application/kubernetes/"),
     ("/application/bevy", "/application/rust/#bevy"),
     ("/application/bevy/", "/application/rust/#bevy"),
+    ("/dogevideo", "/crypto/"),
+    ("/dogevideo/", "/crypto/"),
 ];
 
 fn mount_permanent_redirects<S>(
