@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ compose_title }} | KBVE Forum</title>
+    <meta name="description" content="{{ compose_meta_description }}">
+</head>
+<body>
+    <!--
+        Stub fallback — overwritten at docker build time by the Starlight-built
+        version copied from dist/askama/forum/compose/index.html.
+    -->
+    <main>
+        <nav>
+            <a href="/forum/">Forum</a> ›
+            <span>New thread</span>
+        </nav>
+        <h1>{{ compose_title }}</h1>
+        <form method="post" action="/api/v1/forum/threads">
+            <label>Space slug<input name="space_slug" value="{{ default_space_slug }}" /></label>
+            <label>Type<input name="thread_type" value="discussion" /></label>
+            <label>Title<input name="title" required /></label>
+            <label>Body<textarea name="body" required></textarea></label>
+            <button type="submit">Post thread</button>
+        </form>
+    </main>
+</body>
+</html>

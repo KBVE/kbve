@@ -184,6 +184,17 @@ pub struct ForumFeedItemPartial {
     pub body_excerpt_html: String,
 }
 
+/// New-thread compose page served at /forum/compose.
+#[derive(Template)]
+#[template(path = "askama/forum/compose/index.html")]
+pub struct ForumComposeTemplate {
+    pub compose_title: String,
+    pub compose_meta_description: String,
+    /// Pre-filled `?space=<slug>` from query string. Empty when no
+    /// preference; the form lets the user pick.
+    pub default_space_slug: String,
+}
+
 /// Per-row partial for thread comments.
 #[derive(Template)]
 #[template(path = "askama/forum/thread/_comment.html")]

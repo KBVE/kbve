@@ -262,6 +262,107 @@ impl ForumService {
         Ok(rows.into_iter().map(|s| (s.id.clone(), s)).collect())
     }
 
+    /// Call `forum.service_create_thread`. Returns the new thread id.
+    /// Caller is responsible for resolving the space slug → UUID.
+    pub async fn create_thread(
+        &self,
+        author_id: &str,
+        space_id: &str,
+        title: &str,
+        body: &str,
+        thread_type: &str,
+        slug: Option<&str>,
+        tag_ids: &[i32],
+    ) -> Result<String, String> {
+        let url = self.client.config().rpc_url("service_create_thread");
+        let headers = self.client.rpc_headers(SCHEMA)?;
+
+        let payload = serde_json::json!({
+            "p_author_id": author_id,
+            "p_space_id": space_id,
+            "p_title": title,
+            "p_body": body,
+            "p_thread_type": thread_type,
+            "p_type_data": serde_json::json!({}),
+            "p_tag_ids": tag_ids,
+            "p_slug": slug,
+            "p_nsfw": false,
+            "p_locale": "en",
+            "p_scheduled_at": serde_json::Value::Null,
+        });
+
+        let response = self
+            .client
+            .client()
+            .post(&url)
+            .headers(headers)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| format!("forum.service_create_thread network: {}", e))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!("forum.service_create_thread {} → {}", status, body));
+        }
+
+        let text = response
+            .text()
+            .await
+            .map_err(|e| format!("forum.service_create_thread read: {}", e))?;
+        let id: String = serde_json::from_str(&text)
+            .map_err(|e| format!("forum.service_create_thread parse {}: {}", text, e))?;
+        Ok(id)
+    }
+
+    /// Call `forum.service_create_comment`. Returns the new comment id.
+    pub async fn create_comment(
+        &self,
+        author_id: &str,
+        thread_id: &str,
+        body: &str,
+        parent_comment_id: Option<&str>,
+    ) -> Result<String, String> {
+        let url = self.client.config().rpc_url("service_create_comment");
+        let headers = self.client.rpc_headers(SCHEMA)?;
+
+        let payload = serde_json::json!({
+            "p_author_id": author_id,
+            "p_thread_id": thread_id,
+            "p_body": body,
+            "p_parent_comment_id": parent_comment_id,
+            "p_quoted_comment_id": serde_json::Value::Null,
+        });
+
+        let response = self
+            .client
+            .client()
+            .post(&url)
+            .headers(headers)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| format!("forum.service_create_comment network: {}", e))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!(
+                "forum.service_create_comment {} → {}",
+                status, body
+            ));
+        }
+
+        let text = response
+            .text()
+            .await
+            .map_err(|e| format!("forum.service_create_comment read: {}", e))?;
+        let id: String = serde_json::from_str(&text)
+            .map_err(|e| format!("forum.service_create_comment parse {}: {}", text, e))?;
+        Ok(id)
+    }
+
     pub async fn get_space_by_slug(&self, slug: &str) -> Result<Option<SpaceRow>, String> {
         let url = format!("{}/spaces", self.client.config().rest_url());
         let headers = self.client.rpc_headers(SCHEMA)?;

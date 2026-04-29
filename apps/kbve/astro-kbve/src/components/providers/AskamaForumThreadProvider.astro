@@ -73,7 +73,7 @@
 				</header>
 
 				<div
-					class="thread-card__body prose"
+					class="thread-card__body"
 					set:html={`{{ thread_body_html|safe }}`}
 				/>
 			</article>
@@ -89,10 +89,12 @@
 				</header>
 
 				<form
+					id="thread-compose-form"
 					class="thread-compose"
 					method="post"
-					action={`/forum/t/{{ thread_slug_or_id }}/comments`}
-					data-thread-id={`{{ thread_slug_or_id }}`}>
+					action={`/api/v1/forum/t/{{ thread_slug_or_id }}/comments`}
+					data-thread-slug={`{{ thread_slug_or_id }}`}
+					novalidate>
 					<label
 						for="thread-compose-body"
 						class="thread-compose__label">
@@ -103,9 +105,10 @@
 						class="thread-compose__textarea"
 						name="body"
 						rows="4"
-						placeholder="Be civil. Markdown supported. Sign in to post."
+						placeholder="Be civil. Markdown supported."
+						minlength="1"
 						maxlength="20000"
-						disabled>
+						required>
 					</textarea>
 					<div class="thread-compose__row">
 						<p class="thread-compose__hint">
@@ -114,13 +117,14 @@
 								profile
 							</a>.
 						</p>
-						<button
-							class="thread-compose__submit"
-							type="submit"
-							disabled>
+						<button class="thread-compose__submit" type="submit">
 							Post reply
 						</button>
 					</div>
+					<output
+						id="thread-compose-status"
+						class="thread-compose__status">
+					</output>
 				</form>
 
 				<div
@@ -172,6 +176,8 @@
 </div>
 
 <script>
+	import { initSupa, getSupa } from '@/lib/supa';
+
 	// Initial-letter fallback for the author avatar slot. The askama
 	// template emits `data-avatar="<url-or-empty>"` and `data-letter="<username>"`.
 	// When the URL is non-empty we swap the letter for an `<img>`; otherwise
@@ -192,6 +198,76 @@
 			el.textContent = letter;
 		}
 	}
+
+	// Comment compose: submit via fetch with the local Supabase access
+	// token. axum's POST /api/v1/forum/t/{slug}/comments runs the
+	// service_create_comment RPC and returns the new comment id.
+	const composeForm = document.getElementById(
+		'thread-compose-form',
+	) as HTMLFormElement | null;
+	const composeStatus = document.getElementById(
+		'thread-compose-status',
+	) as HTMLOutputElement | null;
+
+	function setComposeStatus(
+		kind: 'idle' | 'busy' | 'error' | 'ok',
+		msg = '',
+	) {
+		if (!composeStatus) return;
+		composeStatus.dataset.kind = kind;
+		composeStatus.textContent = msg;
+	}
+
+	composeForm?.addEventListener('submit', async (ev) => {
+		ev.preventDefault();
+		setComposeStatus('busy', 'Posting…');
+
+		try {
+			await initSupa();
+		} catch {
+			setComposeStatus(
+				'error',
+				'Could not initialize auth. Reload and try again.',
+			);
+			return;
+		}
+		const supa = getSupa();
+		const session = await supa.getSession().catch(() => null);
+		if (!session?.access_token) {
+			setComposeStatus('error', 'Sign in first to comment.');
+			return;
+		}
+
+		const slug = composeForm.dataset.threadSlug || '';
+		const fd = new FormData(composeForm);
+		const payload = { body: String(fd.get('body') || '') };
+
+		try {
+			const res = await fetch(`/api/v1/forum/t/${slug}/comments`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${session.access_token}`,
+				},
+				body: JSON.stringify(payload),
+			});
+			if (!res.ok) {
+				const body = await res.text().catch(() => '');
+				setComposeStatus(
+					'error',
+					`${res.status}: ${body || res.statusText}`,
+				);
+				return;
+			}
+			setComposeStatus('ok', 'Posted! Reloading…');
+			window.location.reload();
+		} catch (err) {
+			setComposeStatus(
+				'error',
+				err instanceof Error ? err.message : 'Network error',
+			);
+		}
+	});
 </script>
 
 <style>
@@ -218,6 +294,19 @@
 		margin: 0 auto;
 		padding: 1.5rem 1.25rem 4rem;
 		color: var(--forum-text);
+	}
+
+	/* Starlight's splash template wraps content in `.sl-markdown-content`
+	 * which adds its own paragraph margins, max-width, and prose styles.
+	 * Reset the wrapper so our forum shell can use the full width and
+	 * own the spacing. Scoped to `.forum-shell` ancestors so we don't
+	 * touch the rest of Starlight. */
+	:global(.sl-markdown-content):has(.forum-shell) {
+		max-width: none;
+		margin: 0;
+	}
+	:global(.sl-markdown-content) .forum-shell :is(p, h1, h2, h3, h4) {
+		margin-top: 0;
 	}
 
 	.forum-shell__breadcrumb {
@@ -500,6 +589,19 @@
 	.thread-compose__submit:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+	.thread-compose__status {
+		font-size: 0.8125rem;
+		min-height: 1.25em;
+	}
+	.thread-compose__status[data-kind='busy'] {
+		color: var(--forum-muted);
+	}
+	.thread-compose__status[data-kind='error'] {
+		color: #f87171;
+	}
+	.thread-compose__status[data-kind='ok'] {
+		color: #34d399;
 	}
 
 	/* ── Comment cards ────────────────────────────────────────── */

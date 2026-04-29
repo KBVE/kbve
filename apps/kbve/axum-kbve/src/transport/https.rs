@@ -17,9 +17,9 @@ use tower_http::set_header::SetResponseHeaderLayer;
 use tracing::info;
 
 use crate::astro::askama::{
-    ForumCommentPartial, ForumFeedItemPartial, ForumFeedTemplate, ForumThreadTemplate,
-    HealthTemplate, ProfileNotFoundTemplate, ProfileTemplate, RentEarthCharacterDisplay,
-    TemplateResponse,
+    ForumCommentPartial, ForumComposeTemplate, ForumFeedItemPartial, ForumFeedTemplate,
+    ForumThreadTemplate, HealthTemplate, ProfileNotFoundTemplate, ProfileTemplate,
+    RentEarthCharacterDisplay, TemplateResponse,
 };
 use crate::auth::{extract_bearer_token, get_jwt_cache};
 use crate::db::{
@@ -212,8 +212,14 @@ fn router(state: AppState) -> Router {
         // URLs land on the canonical with a permanent redirect.
         .route("/forum", get(|| async { Redirect::permanent("/forum/") }))
         .route("/forum/", get(forum_feed_handler))
+        .route("/forum/compose", get(forum_compose_handler))
         .route("/forum/s/{slug}", get(forum_space_handler))
         .route("/forum/t/{slug_or_id}", get(forum_thread_handler))
+        .route("/api/v1/forum/threads", post(api_create_thread))
+        .route(
+            "/api/v1/forum/t/{slug_or_id}/comments",
+            post(api_create_comment),
+        )
         // SEO-friendly 301: /forum/c/{slug} → /forum/s/{slug}. `c/` reads
         // as "category" but the canonical URL is `s/` (space). Crawlers
         // collapse the duplicate into the canonical via the redirect.
@@ -2149,6 +2155,216 @@ async fn forum_thread_handler(Path(slug_or_id): Path<String>) -> Response {
         comments_html,
     })
     .into_response()
+}
+
+// ---------------------------------------------------------------------------
+// Forum compose page + write APIs
+// ---------------------------------------------------------------------------
+
+#[derive(serde::Deserialize, Default)]
+struct ComposeQuery {
+    space: Option<String>,
+}
+
+/// GET /forum/compose — renders the new-thread form. The actual submit
+/// goes through POST /api/v1/forum/threads with a Bearer JWT.
+async fn forum_compose_handler(
+    axum::extract::Query(q): axum::extract::Query<ComposeQuery>,
+) -> Response {
+    TemplateResponse(ForumComposeTemplate {
+        compose_title: "New thread".to_string(),
+        compose_meta_description: "Start a new thread on the KBVE Forum. Markdown supported."
+            .to_string(),
+        default_space_slug: q.space.unwrap_or_default(),
+    })
+    .into_response()
+}
+
+/// Helper: pull `Authorization: Bearer <token>` and verify via the JWT
+/// cache. Returns Ok(user_id) or an error response.
+async fn auth_user_id(headers: &HeaderMap) -> Result<String, Response> {
+    let auth_header = headers
+        .get(header::AUTHORIZATION)
+        .and_then(|h| h.to_str().ok())
+        .ok_or_else(|| {
+            (
+                StatusCode::UNAUTHORIZED,
+                Json(json!({"error": "Missing Authorization header"})),
+            )
+                .into_response()
+        })?;
+
+    let token = extract_bearer_token(auth_header).ok_or_else(|| {
+        (
+            StatusCode::UNAUTHORIZED,
+            Json(json!({"error": "Invalid bearer token"})),
+        )
+            .into_response()
+    })?;
+
+    let cache = get_jwt_cache().ok_or_else(|| {
+        (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(json!({"error": "Auth service unavailable"})),
+        )
+            .into_response()
+    })?;
+
+    cache
+        .verify_and_cache(token)
+        .await
+        .map(|info| info.user_id)
+        .map_err(|e| {
+            tracing::warn!(error = %e, "JWT verify failed in forum write");
+            (
+                StatusCode::UNAUTHORIZED,
+                Json(json!({"error": "Invalid or expired token"})),
+            )
+                .into_response()
+        })
+}
+
+#[derive(serde::Deserialize)]
+struct CreateThreadBody {
+    space_slug: String,
+    title: String,
+    body: String,
+    #[serde(default = "default_thread_type")]
+    thread_type: String,
+}
+fn default_thread_type() -> String {
+    "discussion".to_string()
+}
+
+/// POST /api/v1/forum/threads — Bearer-authed thread creation.
+/// Body: `{ space_slug, title, body, thread_type }`.
+async fn api_create_thread(headers: HeaderMap, Json(payload): Json<CreateThreadBody>) -> Response {
+    let user_id = match auth_user_id(&headers).await {
+        Ok(id) => id,
+        Err(resp) => return resp,
+    };
+    let svc = match get_forum_service() {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({"error": "Forum service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+
+    let space = match svc.get_space_by_slug(&payload.space_slug).await {
+        Ok(Some(s)) => s,
+        Ok(None) => {
+            return (
+                StatusCode::NOT_FOUND,
+                Json(json!({
+                    "error": format!("space '{}' not found or inactive", payload.space_slug)
+                })),
+            )
+                .into_response();
+        }
+        Err(e) => {
+            tracing::error!("forum: space lookup failed: {}", e);
+            return (
+                StatusCode::BAD_GATEWAY,
+                Json(json!({"error": "upstream error"})),
+            )
+                .into_response();
+        }
+    };
+
+    match svc
+        .create_thread(
+            &user_id,
+            &space.id,
+            payload.title.trim(),
+            &payload.body,
+            &payload.thread_type,
+            None,
+            &[],
+        )
+        .await
+    {
+        Ok(thread_id) => {
+            (StatusCode::CREATED, Json(json!({"thread_id": thread_id}))).into_response()
+        }
+        Err(e) => {
+            tracing::warn!("forum.service_create_thread error: {}", e);
+            // Surface RPC error message so the client can show "username
+            // required" / "thread title length" / etc directly.
+            (StatusCode::BAD_REQUEST, Json(json!({"error": e}))).into_response()
+        }
+    }
+}
+
+#[derive(serde::Deserialize)]
+struct CreateCommentBody {
+    body: String,
+    #[serde(default)]
+    parent_comment_id: Option<String>,
+}
+
+/// POST /api/v1/forum/t/{slug_or_id}/comments — Bearer-authed comment.
+async fn api_create_comment(
+    Path(slug_or_id): Path<String>,
+    headers: HeaderMap,
+    Json(payload): Json<CreateCommentBody>,
+) -> Response {
+    let user_id = match auth_user_id(&headers).await {
+        Ok(id) => id,
+        Err(resp) => return resp,
+    };
+    let svc = match get_forum_service() {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({"error": "Forum service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+
+    let thread = match svc.get_thread_by_slug_or_id(None, &slug_or_id).await {
+        Ok(Some((t, _))) => t,
+        Ok(None) => {
+            return (
+                StatusCode::NOT_FOUND,
+                Json(json!({"error": format!("thread '{}' not found", slug_or_id)})),
+            )
+                .into_response();
+        }
+        Err(e) => {
+            tracing::error!("forum: thread lookup failed: {}", e);
+            return (
+                StatusCode::BAD_GATEWAY,
+                Json(json!({"error": "upstream error"})),
+            )
+                .into_response();
+        }
+    };
+
+    match svc
+        .create_comment(
+            &user_id,
+            &thread.id,
+            &payload.body,
+            payload.parent_comment_id.as_deref(),
+        )
+        .await
+    {
+        Ok(comment_id) => (
+            StatusCode::CREATED,
+            Json(json!({"comment_id": comment_id, "thread_id": thread.id})),
+        )
+            .into_response(),
+        Err(e) => {
+            tracing::warn!("forum.service_create_comment error: {}", e);
+            (StatusCode::BAD_REQUEST, Json(json!({"error": e}))).into_response()
+        }
+    }
 }
 
 #[cfg(test)]
