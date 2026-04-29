@@ -1,0 +1,8 @@
+error[E0624]: method `sanitize_b` is private
+  --> tests/fail/08-sanitize-private-helper.rs:17:7
+   |
+ 2 |     #[derive(holy::Sanitize)]
+   |              -------------- private method defined here
+...
+17 |     p.sanitize_b();
+   |       ^^^^^^^^^^ private method
