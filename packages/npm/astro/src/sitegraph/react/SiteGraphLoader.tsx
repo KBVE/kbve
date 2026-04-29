@@ -71,22 +71,22 @@ export function SiteGraphLoader({
 			setHasLoaded(true);
 		}
 
-		const offOpen = DroidEvents.on('panel-open', (payload: any) => {
+		const handleOpen = (payload: any) => {
 			if (payload?.id === panelId) {
 				setVisible(true);
 				setHasLoaded(true);
 			}
-		});
+		};
+		const handleClose = (payload: any) => {
+			if (payload?.id === panelId) setVisible(false);
+		};
 
-		const offClose = DroidEvents.on('panel-close', (payload: any) => {
-			if (payload?.id === panelId) {
-				setVisible(false);
-			}
-		});
+		DroidEvents.on('panel-open', handleOpen);
+		DroidEvents.on('panel-close', handleClose);
 
 		return () => {
-			offOpen();
-			offClose();
+			DroidEvents.off('panel-open', handleOpen);
+			DroidEvents.off('panel-close', handleClose);
 		};
 	}, [collapsedAttribute, panelId, wideEnough]);
 

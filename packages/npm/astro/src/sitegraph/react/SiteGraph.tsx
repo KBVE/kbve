@@ -14,6 +14,7 @@ import {
 	forceCollide,
 	forceX,
 	forceY,
+	type Simulation,
 	type SimulationNodeDatum,
 	type SimulationLinkDatum,
 } from 'd3-force';
@@ -189,9 +190,7 @@ export function SiteGraph({
 	const tooltipRef = useRef<HTMLDivElement>(null);
 	const [graphData, setGraphData] = useState<SiteGraphData | null>(null);
 	const [error, setError] = useState<string | null>(null);
-	const simulationRef = useRef<ReturnType<typeof forceSimulation> | null>(
-		null,
-	);
+	const simulationRef = useRef<Simulation<GraphNode, GraphLink> | null>(null);
 
 	const [hoveredId, setHoveredId] = useState<string | null>(null);
 	const [depth, setDepth] = useState(depthProp);
