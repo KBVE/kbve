@@ -113,3 +113,33 @@ jobs:
               env:
                   INPUT_GITHUB_TOKEN: ${{ github.token }}
               run: pnpm nx run mc:container-gradle --configuration=production --no-cloud
+
+    track_failure:
+        name: Track Failures
+        if: ${{ always() && contains(needs.*.result, 'failure') && github.event_name != 'pull_request' }}
+        needs: [build]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - MC Gradle Cache'
+            job_name: 'gradle-cache'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'failure'
+
+    track_success:
+        name: Track Success
+        if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') && github.event_name != 'pull_request' }}
+        needs: [build]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - MC Gradle Cache'
+            job_name: 'gradle-cache'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'success'

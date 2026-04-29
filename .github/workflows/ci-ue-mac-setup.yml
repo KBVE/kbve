@@ -144,3 +144,33 @@ jobs:
                   echo "Brew: $(brew --version 2>/dev/null | head -1 || echo 'NOT INSTALLED')"
                   echo "=== Disk space ==="
                   df -h /
+
+    track_failure:
+        name: Track Failures
+        if: ${{ always() && contains(needs.*.result, 'failure') }}
+        needs: [install]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'UE Mac Setup'
+            job_name: 'install'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'failure'
+
+    track_success:
+        name: Track Success
+        if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
+        needs: [install]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'UE Mac Setup'
+            job_name: 'install'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'success'
