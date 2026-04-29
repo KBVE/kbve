@@ -95,7 +95,16 @@ export const osrsEdgeColors: Record<string, string> = {
 export const osrsTagOf = (slug: string): string | null =>
 	slug.startsWith('osrs/') ? 'osrs' : null;
 
-/** Style for the `'osrs'` tag — gold node + amber stroke + slightly larger radius. */
+/**
+ * Style for the `'osrs'` tag. Fill/stroke read from CSS custom properties
+ * (`--sg-osrs-fill`, `--sg-osrs-stroke`) so light/dark themes stay in sync
+ * with the Starlight color scheme. Token definitions live in
+ * `src/styles/global.css`.
+ */
 export const osrsTagStyles = {
-	osrs: { fill: '#eab308', stroke: '#a16207', radius: 4.5 },
+	osrs: {
+		fill: 'var(--sg-osrs-fill, #eab308)',
+		stroke: 'var(--sg-osrs-stroke, #a16207)',
+		radius: 4.5,
+	},
 };

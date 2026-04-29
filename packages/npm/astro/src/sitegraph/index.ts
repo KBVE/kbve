@@ -9,13 +9,28 @@ export {
 	buildSiteGraph,
 	markdownExtractor,
 	mdxAnchorExtractor,
+	frontmatterLinksExtractor,
+	collectionRefsExtractor,
 } from './builder';
-export type { BuildSiteGraphOptions } from './builder';
+export type {
+	BuildSiteGraphOptions,
+	FrontmatterLinksOptions,
+	CollectionRefField,
+	CollectionRefsOptions,
+} from './builder';
 export {
 	fetchSiteGraph,
 	resetSiteGraphCache,
 	$siteGraphCache,
 } from './react/cache';
+export {
+	createSiteGraphWorker,
+	setSiteGraphWorker,
+	clearSiteGraphWorker,
+	getSiteGraphWorkerPort,
+	fetchViaWorker,
+} from './react/worker-client';
+export { SITE_GRAPH_WORKER_SOURCE } from './react/worker-source';
 export { SiteGraph } from './react/SiteGraph';
 export type { SiteGraphProps } from './react/SiteGraph';
 export { Backlinks } from './react/Backlinks';

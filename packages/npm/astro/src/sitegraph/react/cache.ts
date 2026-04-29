@@ -1,5 +1,6 @@
 import { atom } from 'nanostores';
 import type { SiteGraphData } from '../types';
+import { fetchViaWorker } from './worker-client';
 
 interface CacheState {
 	data: SiteGraphData | null;
@@ -17,8 +18,10 @@ const $cache = atom<CacheState>({ data: null, error: null, promise: null });
  * dedupes in-flight requests and persists the parsed payload across
  * navigations within a SPA-style session.
  *
- * Pass a custom `endpoint` if a consumer site mounts the API at a
- * different path. The cache is keyed by endpoint internally.
+ * If a SharedWorker has been wired via `createSiteGraphWorker` /
+ * `setSiteGraphWorker`, the request is delegated to the worker so all
+ * tabs share the same cached payload. Otherwise the function falls back
+ * to a direct `fetch` keyed by endpoint.
  */
 export function fetchSiteGraph(
 	endpoint = '/api/sitegraph.json',
@@ -27,11 +30,14 @@ export function fetchSiteGraph(
 	if (state.data) return Promise.resolve(state.data);
 	if (state.promise) return state.promise;
 
-	const promise = fetch(endpoint)
-		.then((res) => {
+	const workerPromise = fetchViaWorker(endpoint);
+	const promise = (
+		workerPromise ??
+		fetch(endpoint).then((res) => {
 			if (!res.ok) throw new Error(`HTTP ${res.status}`);
 			return res.json() as Promise<SiteGraphData>;
 		})
+	)
 		.then((data) => {
 			$cache.set({ data, error: null, promise: null });
 			return data;

@@ -7,6 +7,13 @@ import type {
 
 export { markdownExtractor } from './extractors/markdown';
 export { mdxAnchorExtractor } from './extractors/mdx-anchor';
+export { frontmatterLinksExtractor } from './extractors/frontmatter-links';
+export type { FrontmatterLinksOptions } from './extractors/frontmatter-links';
+export { collectionRefsExtractor } from './extractors/collection-refs';
+export type {
+	CollectionRefField,
+	CollectionRefsOptions,
+} from './extractors/collection-refs';
 
 export interface BuildSiteGraphOptions {
 	extractors: Extractor[];

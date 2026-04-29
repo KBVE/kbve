@@ -660,3 +660,13 @@ html[data-nav-dir='back']::view-transition-new(root) {
 	color: var(--sl-color-gray-3, #8b949e);
 	text-align: center;
 }
+
+/* ── Sitegraph theme tokens — consumed by @kbve/astro SiteGraph via tagStyles ── */
+:root {
+	--sg-osrs-fill: #eab308;
+	--sg-osrs-stroke: #a16207;
+}
+:root[data-theme='light'] {
+	--sg-osrs-fill: #b8860b;
+	--sg-osrs-stroke: #6b4a05;
+}

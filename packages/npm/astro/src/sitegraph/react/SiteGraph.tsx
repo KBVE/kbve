@@ -1,10 +1,19 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import {
+	useEffect,
+	useRef,
+	useState,
+	useCallback,
+	useMemo,
+	type CSSProperties,
+} from 'react';
 import {
 	forceSimulation,
 	forceLink,
 	forceManyBody,
 	forceCenter,
 	forceCollide,
+	forceX,
+	forceY,
 	type SimulationNodeDatum,
 	type SimulationLinkDatum,
 } from 'd3-force';
@@ -17,6 +26,7 @@ interface GraphNode extends SimulationNodeDatum {
 	title: string;
 	isCurrent: boolean;
 	tag: string | null;
+	degree: number;
 }
 
 interface GraphLink extends SimulationLinkDatum<GraphNode> {
@@ -37,9 +47,8 @@ export interface SiteGraphProps {
 	 */
 	edgeColors?: Record<string, string>;
 	/**
-	 * Returns a domain-specific tag for a slug. Used to style nodes (color
-	 * + radius); pass `null` for the default look. Example: tag OSRS pages
-	 * gold, NPC pages teal, etc.
+	 * Returns a domain-specific tag for a slug. Used to style nodes (color,
+	 * radius) + cluster nodes by tag in the simulation.
 	 */
 	tagOf?: (slug: string) => string | null;
 	/**
@@ -50,11 +59,26 @@ export interface SiteGraphProps {
 		string,
 		{ fill: string; stroke: string; radius: number }
 	>;
+	/** Fixed-size mode (no ResizeObserver). Defaults to `false` (responsive). */
+	fixedSize?: boolean;
+	/** Min/max depth allowed in the depth selector. Defaults to 1..3. */
+	minDepth?: number;
+	maxDepth?: number;
+	/** Hide the inline controls bar (depth, search, fullscreen). */
+	hideControls?: boolean;
+	/** Render in fullscreen-modal mode. Internal — passed by FullscreenSiteGraph. */
+	isFullscreen?: boolean;
+	/** Notifies the host when the user toggles fullscreen. */
+	onFullscreenChange?: (next: boolean) => void;
 }
 
 const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 3;
 const ZOOM_SENSITIVITY = 0.002;
+
+/** d3-force tick budget — caps long-running simulations on dense neighborhoods. */
+const ALPHA_MIN = 0.05;
+const ALPHA_DECAY = 0.05;
 
 function getNeighborhood(
 	graph: SiteGraphData,
@@ -88,11 +112,14 @@ function getNeighborhood(
 	for (const slug of visited) {
 		const entry = graph[slug];
 		if (!entry) continue;
+		const degree =
+			(entry.links?.length ?? 0) + (entry.backlinks?.length ?? 0);
 		nodeMap.set(slug, {
 			id: slug,
 			title: entry.title,
 			isCurrent: slug === startSlug,
 			tag: tagOf(slug),
+			degree,
 		});
 	}
 
@@ -114,15 +141,48 @@ function getNeighborhood(
 	return { nodes: [...nodeMap.values()], links };
 }
 
+/**
+ * Maps degree (links + backlinks) to a node radius. sqrt-scaled so a 100-link
+ * hub doesn't dwarf the rest of the neighborhood.
+ */
+function radiusForDegree(degree: number, base: number): number {
+	const extra = Math.min(6, Math.sqrt(Math.max(degree - 1, 0)) * 1.2);
+	return base + extra;
+}
+
+/**
+ * Builds the neighbor lookup used for hover-dim. Lets us fade everything
+ * except the hovered node + its immediate neighbors without re-running
+ * BFS on every mouse-enter.
+ */
+function buildAdjacency(links: GraphLink[]): Map<string, Set<string>> {
+	const adj = new Map<string, Set<string>>();
+	for (const l of links) {
+		const a = l.source.id;
+		const b = l.target.id;
+		if (!adj.has(a)) adj.set(a, new Set());
+		if (!adj.has(b)) adj.set(b, new Set());
+		adj.get(a)!.add(b);
+		adj.get(b)!.add(a);
+	}
+	return adj;
+}
+
 export function SiteGraph({
 	currentSlug,
-	depth = 2,
-	width = 280,
-	height = 280,
+	depth: depthProp = 2,
+	width: widthProp = 280,
+	height: heightProp = 280,
 	endpoint,
 	edgeColors,
 	tagOf = () => null,
 	tagStyles,
+	fixedSize = false,
+	minDepth = 1,
+	maxDepth = 3,
+	hideControls = false,
+	isFullscreen = false,
+	onFullscreenChange,
 }: SiteGraphProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const svgRef = useRef<SVGSVGElement>(null);
@@ -134,6 +194,37 @@ export function SiteGraph({
 	);
 
 	const [hoveredId, setHoveredId] = useState<string | null>(null);
+	const [depth, setDepth] = useState(depthProp);
+	const [search, setSearch] = useState('');
+
+	// Responsive sizing — ResizeObserver on the container.
+	const [size, setSize] = useState({ width: widthProp, height: heightProp });
+	useEffect(() => {
+		if (fixedSize) {
+			setSize({ width: widthProp, height: heightProp });
+			return;
+		}
+		const el = containerRef.current;
+		if (!el || typeof ResizeObserver === 'undefined') return;
+		const ro = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				const cw = Math.round(entry.contentRect.width);
+				if (cw > 0) {
+					setSize({
+						width: cw,
+						height: isFullscreen
+							? Math.round(entry.contentRect.height)
+							: heightProp,
+					});
+				}
+			}
+		});
+		ro.observe(el);
+		return () => ro.disconnect();
+	}, [fixedSize, widthProp, heightProp, isFullscreen]);
+
+	const width = size.width;
+	const height = size.height;
 
 	const [zoom, setZoom] = useState(1);
 	const [panX, setPanX] = useState(0);
@@ -197,20 +288,44 @@ export function SiteGraph({
 		};
 	}, [endpoint]);
 
-	useEffect(() => {
-		if (!graphData || !svgRef.current) return;
+	// Memoize neighborhood so adjacency + render don't recompute every keystroke.
+	const { nodes, links, adjacency } = useMemo(() => {
+		if (!graphData)
+			return {
+				nodes: [],
+				links: [],
+				adjacency: new Map<string, Set<string>>(),
+			};
+		const result = getNeighborhood(graphData, currentSlug, depth, tagOf);
+		return {
+			...result,
+			adjacency: buildAdjacency(result.links),
+		};
+	}, [graphData, currentSlug, depth, tagOf]);
 
-		const { nodes, links } = getNeighborhood(
-			graphData,
-			currentSlug,
-			depth,
-			tagOf,
-		);
-		if (nodes.length === 0) return;
+	useEffect(() => {
+		if (!graphData || !svgRef.current || nodes.length === 0) return;
 
 		const svg = svgRef.current;
 
+		// Group nodes by tag for cluster forces — pulls same-tag nodes toward
+		// the same anchor so users can spot domain clusters at a glance.
+		const tagAnchors = new Map<string, { x: number; y: number }>();
+		const distinctTags = [
+			...new Set(nodes.map((n) => n.tag).filter((t): t is string => !!t)),
+		];
+		distinctTags.forEach((tag, i) => {
+			const angle = (i / Math.max(distinctTags.length, 1)) * Math.PI * 2;
+			const radius = Math.min(width, height) * 0.25;
+			tagAnchors.set(tag, {
+				x: width / 2 + Math.cos(angle) * radius,
+				y: height / 2 + Math.sin(angle) * radius,
+			});
+		});
+
 		const simulation = forceSimulation<GraphNode>(nodes)
+			.alphaMin(ALPHA_MIN)
+			.alphaDecay(ALPHA_DECAY)
 			.force(
 				'link',
 				forceLink<GraphNode, GraphLink>(links)
@@ -220,6 +335,26 @@ export function SiteGraph({
 			.force('charge', forceManyBody().strength(-120))
 			.force('center', forceCenter(width / 2, height / 2))
 			.force('collide', forceCollide(24));
+
+		if (distinctTags.length >= 2) {
+			simulation
+				.force(
+					'cluster-x',
+					forceX<GraphNode>((d) =>
+						d.tag
+							? (tagAnchors.get(d.tag)?.x ?? width / 2)
+							: width / 2,
+					).strength(0.06),
+				)
+				.force(
+					'cluster-y',
+					forceY<GraphNode>((d) =>
+						d.tag
+							? (tagAnchors.get(d.tag)?.y ?? height / 2)
+							: height / 2,
+					).strength(0.06),
+				);
+		}
 
 		simulationRef.current = simulation;
 
@@ -249,7 +384,7 @@ export function SiteGraph({
 			simulation.stop();
 			simulationRef.current = null;
 		};
-	}, [graphData, currentSlug, depth, width, height, tagOf]);
+	}, [graphData, nodes, links, width, height]);
 
 	useEffect(() => {
 		const svg = svgRef.current;
@@ -391,13 +526,6 @@ export function SiteGraph({
 		);
 	}
 
-	const { nodes, links } = getNeighborhood(
-		graphData,
-		currentSlug,
-		depth,
-		tagOf,
-	);
-
 	if (nodes.length === 0) {
 		return (
 			<div
@@ -417,8 +545,115 @@ export function SiteGraph({
 		return null;
 	};
 
+	const matchesSearch = (node: GraphNode): boolean => {
+		if (!search) return true;
+		const q = search.toLowerCase();
+		return (
+			node.title.toLowerCase().includes(q) ||
+			node.id.toLowerCase().includes(q)
+		);
+	};
+
+	// Hover-dim adjacency: nodes/links touching the hovered node stay full
+	// opacity; everything else fades. Search-filter dimming layers on top.
+	const isAdjacent = (id: string): boolean => {
+		if (!hoveredId) return true;
+		if (id === hoveredId) return true;
+		return adjacency.get(hoveredId)?.has(id) ?? false;
+	};
+
+	const containerStyle: CSSProperties = isFullscreen
+		? {
+				position: 'fixed',
+				inset: 0,
+				zIndex: 1000,
+				background: 'var(--sl-color-bg, #0d1117)',
+				padding: '16px',
+				display: 'flex',
+				flexDirection: 'column',
+			}
+		: { position: 'relative' };
+
 	return (
-		<div ref={containerRef} style={{ position: 'relative' }}>
+		<div ref={containerRef} style={containerStyle}>
+			{!hideControls && (
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: '6px',
+						padding: '0 8px 6px',
+						fontSize: '11px',
+						color: 'var(--sl-color-gray-3, #8b949e)',
+					}}>
+					<label
+						style={{
+							display: 'inline-flex',
+							alignItems: 'center',
+							gap: '4px',
+						}}>
+						Depth
+						<select
+							value={depth}
+							onChange={(e) => setDepth(Number(e.target.value))}
+							style={{
+								background: 'var(--sl-color-bg-nav)',
+								color: 'inherit',
+								border: '1px solid var(--sl-color-gray-5, #262626)',
+								borderRadius: 4,
+								padding: '1px 4px',
+								fontSize: '11px',
+							}}>
+							{Array.from(
+								{ length: maxDepth - minDepth + 1 },
+								(_, i) => minDepth + i,
+							).map((d) => (
+								<option key={d} value={d}>
+									{d}
+								</option>
+							))}
+						</select>
+					</label>
+					<input
+						type="search"
+						value={search}
+						onChange={(e) => setSearch(e.target.value)}
+						placeholder="Filter…"
+						aria-label="Filter nodes by title"
+						style={{
+							flex: 1,
+							minWidth: 0,
+							background: 'var(--sl-color-bg-nav)',
+							color: 'inherit',
+							border: '1px solid var(--sl-color-gray-5, #262626)',
+							borderRadius: 4,
+							padding: '2px 6px',
+							fontSize: '11px',
+						}}
+					/>
+					{onFullscreenChange && (
+						<button
+							onClick={() => onFullscreenChange(!isFullscreen)}
+							title={
+								isFullscreen ? 'Exit fullscreen' : 'Fullscreen'
+							}
+							aria-label={
+								isFullscreen ? 'Exit fullscreen' : 'Fullscreen'
+							}
+							style={{
+								background: 'none',
+								border: '1px solid var(--sl-color-gray-5, #262626)',
+								color: 'inherit',
+								borderRadius: 4,
+								padding: '1px 6px',
+								fontSize: '11px',
+								cursor: 'pointer',
+							}}>
+							{isFullscreen ? '×' : '⤢'}
+						</button>
+					)}
+				</div>
+			)}
 			<svg
 				ref={svgRef}
 				width={width}
@@ -426,7 +661,8 @@ export function SiteGraph({
 				viewBox={`0 0 ${width} ${height}`}
 				style={{
 					width: '100%',
-					height: `${height}px`,
+					height: isFullscreen ? '100%' : `${height}px`,
+					flex: isFullscreen ? 1 : undefined,
 					background: 'var(--sl-color-bg-nav)',
 					borderRadius: '8px',
 					cursor: 'grab',
@@ -435,26 +671,41 @@ export function SiteGraph({
 				}}>
 				<g
 					transform={`translate(${width / 2 + panX},${height / 2 + panY}) scale(${zoom}) translate(${-width / 2},${-height / 2})`}>
-					{links.map((l, i) => (
-						<line
-							key={`link-${i}`}
-							className="sg-link"
-							stroke={
-								l.relationship
-									? edgeColors?.[l.relationship] ||
-										'var(--sl-color-gray-4)'
-									: 'var(--sl-color-gray-5)'
-							}
-							strokeWidth={l.relationship ? 1.5 / zoom : 1 / zoom}
-							strokeOpacity={l.relationship ? 0.6 : 0.4}
-						/>
-					))}
+					{links.map((l, i) => {
+						const adj =
+							isAdjacent(l.source.id) && isAdjacent(l.target.id);
+						const opacity = adj
+							? l.relationship
+								? 0.6
+								: 0.4
+							: 0.08;
+						return (
+							<line
+								key={`link-${i}`}
+								className="sg-link"
+								stroke={
+									l.relationship
+										? edgeColors?.[l.relationship] ||
+											'var(--sl-color-gray-4)'
+										: 'var(--sl-color-gray-5)'
+								}
+								strokeWidth={
+									l.relationship ? 1.5 / zoom : 1 / zoom
+								}
+								strokeOpacity={opacity}
+								style={{ transition: 'stroke-opacity 0.12s' }}
+							/>
+						);
+					})}
 
 					{nodes.map((node) => {
 						const tagStyle = styleFor(node);
-						const radius = node.isCurrent
+						const baseRadius = node.isCurrent
 							? 6
 							: (tagStyle?.radius ?? 4);
+						const radius = node.isCurrent
+							? baseRadius
+							: radiusForDegree(node.degree, baseRadius);
 						const fill = node.isCurrent
 							? 'var(--sl-color-accent)'
 							: hoveredId === node.id
@@ -467,11 +718,20 @@ export function SiteGraph({
 								: (tagStyle?.stroke ??
 									'var(--sl-color-gray-4)');
 
+						const filterPass = matchesSearch(node);
+						const adjPass = isAdjacent(node.id);
+						const visible = filterPass && adjPass;
+						const opacity = visible ? 1 : filterPass ? 0.18 : 0.05;
+
 						return (
 							<g
 								key={node.id}
 								className="sg-node"
-								style={{ cursor: 'pointer' }}
+								style={{
+									cursor: 'pointer',
+									opacity,
+									transition: 'opacity 0.12s',
+								}}
 								onClick={() => handleNodeClick(node.id)}
 								onMouseEnter={(e) => {
 									setHoveredId(node.id);
