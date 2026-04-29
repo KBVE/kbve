@@ -37,6 +37,9 @@ export default defineConfig({
 				'react/jsx-runtime',
 				'astro',
 				'@kbve/droid',
+				'd3-force',
+				'nanostores',
+				'@nanostores/react',
 			],
 			output: {
 				globals: {

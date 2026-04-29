@@ -1,7 +1,7 @@
 ---
 import Default from '@astrojs/starlight/components/PageSidebar.astro';
 import BentoDock from '../bento/BentoDock.tsx';
-import SiteGraphLoader from '../sitegraph/SiteGraphLoader.tsx';
+import SiteGraphHost from '../sitegraph/SiteGraphHost.tsx';
 
 // Derive the current page slug from the URL
 const url = Astro.url.pathname;
@@ -61,7 +61,7 @@ const currentSlug = url
 	<div class="sg-slot-loading" aria-hidden="true">
 		<div class="sg-spinner"></div>
 	</div>
-	<SiteGraphLoader client:only="react" currentSlug={currentSlug} />
+	<SiteGraphHost client:only="react" currentSlug={currentSlug} />
 </div>
 
 <!-- Bento card dock — hidden cards appear here as restore buttons -->
