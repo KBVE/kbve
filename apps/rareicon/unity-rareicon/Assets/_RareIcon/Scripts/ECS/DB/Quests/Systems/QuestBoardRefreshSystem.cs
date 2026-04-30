@@ -35,7 +35,7 @@ namespace RareIcon
 
             if (!SystemAPI.HasSingleton<QuestDBSingleton>()) return;
             var db = SystemAPI.GetSingleton<QuestDBSingleton>();
-            if (!db.Defs.IsCreated || db.Defs.Count() == 0) return;
+            if (!db.Defs.IsCreated || db.Defs.Count == 0) return;
 
             var entities = _boardQuery.ToEntityArray(Allocator.Temp);
             var tierLU   = SystemAPI.GetComponentLookup<BuildingTier>(true);
@@ -69,7 +69,7 @@ namespace RareIcon
                        NativeHashMap<ushort, QuestDefRuntime> defs,
                        byte tier, uint turn, int needed)
         {
-            var pool = new NativeList<ushort>(defs.Count(), Allocator.Temp);
+            var pool = new NativeList<ushort>(defs.Count, Allocator.Temp);
             using (var keys = defs.GetKeyArray(Allocator.Temp))
             {
                 for (int i = 0; i < keys.Length; i++)
