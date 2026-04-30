@@ -200,7 +200,8 @@
 				"modrinth_pack_id": "86Wqkiak",
 				"modrinth_version_type": "release",
 				"modrinth_game_versions": "[\"1.21.11\"]",
-				"modrinth_loaders": "[\"fabric\"]"
+				"modrinth_loaders": "[\"fabric\"]",
+				"modrinth_rolling_version": "latest"
 			}
 		},
 		{
