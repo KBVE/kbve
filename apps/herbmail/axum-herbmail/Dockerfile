@@ -68,12 +68,14 @@ COPY Cargo.lock ./
 COPY apps/herbmail/axum-herbmail/Cargo.toml apps/herbmail/axum-herbmail/Cargo.toml
 COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
 COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
+COPY packages/rust/holy/Cargo.toml packages/rust/holy/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
 RUN mkdir -p apps/herbmail/axum-herbmail/src && echo "fn main() {}" > apps/herbmail/axum-herbmail/src/main.rs && \
     mkdir -p packages/rust/jedi/src && echo "" > packages/rust/jedi/src/lib.rs && \
-    mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs
+    mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs && \
+    mkdir -p packages/rust/holy/src && echo "" > packages/rust/holy/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -109,11 +111,12 @@ COPY packages/data/proto packages/data/proto
 
 COPY packages/rust/jedi packages/rust/jedi
 COPY packages/rust/kbve packages/rust/kbve
+COPY packages/rust/holy packages/rust/holy
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    cargo build --release -p kbve -p jedi
+    cargo build --release -p kbve -p jedi -p holy
 
 # ============================================================================
 # [STAGE F] - Build Application
@@ -129,6 +132,7 @@ COPY --from=astro-precompressor /static /app/apps/herbmail/axum-herbmail/templat
 COPY packages/data/proto packages/data/proto
 COPY packages/rust/jedi packages/rust/jedi
 COPY packages/rust/kbve packages/rust/kbve
+COPY packages/rust/holy packages/rust/holy
 
 COPY apps/herbmail/axum-herbmail apps/herbmail/axum-herbmail
 
