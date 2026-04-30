@@ -290,7 +290,7 @@ jobs:
             external_publish: ${{ needs.config.outputs.external_publish }}
         secrets:
             MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-            ITCH_API_KEY: ${{ secrets.ITCH_API_KEY }}
+            ITCH_API_KEY: ${{ secrets.ITCH_API }}
             STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
             STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
             CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}

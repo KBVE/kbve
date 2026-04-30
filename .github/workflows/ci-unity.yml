@@ -238,7 +238,7 @@ jobs:
 
             - name: Push to itch.io via butler
               env:
-                  BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+                  BUTLER_API_KEY: ${{ secrets.ITCH_API }}
               run: |
                   curl -sL -o butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default
                   unzip -q butler.zip
