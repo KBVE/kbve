@@ -54,7 +54,7 @@
     min-width: 320px;
     max-height: 96%;
 
-    padding: 12px 22px 10px 22px;
+    padding: 10px 18px 8px 18px;
     background-color: var(--color-bg-panel);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -109,9 +109,9 @@
     flex-shrink: 0;
 }
 .title-social-btn {
-    width: 22px;
-    height: 22px;
-    margin-left: 5px;
+    width: 20px;
+    height: 20px;
+    margin-left: 4px;
     padding: 0;
     background-color: rgba(0, 0, 0, 0);
     border-color: var(--color-accent);
@@ -187,24 +187,24 @@
     flex-direction: row;
     align-items: baseline;
     flex-wrap: wrap;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     flex-shrink: 0;
 }
 .title-brand {
-    font-size: 20px;
+    font-size: 18px;
     -unity-font-style: bold;
     color: var(--color-text-strong);
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     margin: 0;
     -unity-text-align: middle-left;
     white-space: nowrap;
 }
 .title-tagline {
-    font-size: 9px;
+    font-size: 8px;
     color: var(--color-accent);
     letter-spacing: 2px;
     -unity-font-style: bold;
-    margin-left: 12px;
+    margin-left: 10px;
     margin-bottom: 0;
     -unity-text-align: middle-left;
     white-space: nowrap;
@@ -215,16 +215,16 @@
 
 /* Stage headings */
 .title-stage__title {
-    font-size: 16px;
+    font-size: 14px;
     color: var(--color-text-strong);
     -unity-font-style: bold;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     letter-spacing: 1px;
 }
 .title-stage__hint {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--color-text-muted);
-    margin-bottom: 16px;
+    margin-bottom: 10px;
     white-space: normal;
 }
 
@@ -238,32 +238,32 @@
     flex-grow: 1;
     flex-shrink: 1;
     min-height: 0;
-    margin-top: 4px;
+    margin-top: 2px;
     overflow: hidden;
 }
 
 /* Menu rail */
 .title-menu {
     flex-direction: column;
-    width: 32%;
-    min-width: 200px;
-    max-width: 280px;
-    margin-right: 24px;
-    padding-right: 4px;
+    width: 30%;
+    min-width: 170px;
+    max-width: 260px;
+    margin-right: 16px;
+    padding-right: 2px;
     border-right-color: var(--color-accent);
     border-right-width: 1px;
 }
 .title-menu-btn {
     width: 100%;
-    margin: 4px 0;
-    padding: 14px 16px;
+    margin: 2px 0;
+    padding: 8px 12px;
     background-color: rgba(0, 0, 0, 0);
     border-color: rgba(0, 0, 0, 0);
     border-left-color: rgba(0, 0, 0, 0);
     border-left-width: 3px;
     border-width: 0;
     color: var(--color-text-strong);
-    font-size: 15px;
+    font-size: 13px;
     -unity-font-style: bold;
     -unity-text-align: middle-left;
     letter-spacing: 1px;
@@ -290,10 +290,10 @@
 }
 .title-menu-btn--exit {
     color: var(--color-accent-deep);
-    margin-top: 16px;
+    margin-top: 8px;
     border-top-color: rgba(252, 211, 77, 0.25);
     border-top-width: 1px;
-    padding-top: 18px;
+    padding-top: 10px;
 }
 
 /* Right pane — single visible stage at a time. */
@@ -314,9 +314,9 @@
     flex-direction: column;
     flex-grow: 1;
     flex-basis: 30%;
-    min-width: 140px;
-    margin: 6px;
-    padding: 14px 16px;
+    min-width: 120px;
+    margin: 4px;
+    padding: 8px 10px;
     background-color: rgba(0, 0, 0, 0.4);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -329,21 +329,21 @@
     translate: 0 -2px;
 }
 .title-info-card__label {
-    font-size: 10px;
+    font-size: 9px;
     letter-spacing: 2px;
     color: var(--color-accent-deep);
     -unity-font-style: bold;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 .title-info-card__value {
-    font-size: 16px;
+    font-size: 13px;
     color: var(--color-text-strong);
     -unity-font-style: bold;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
     white-space: normal;
 }
 .title-info-card__sub {
-    font-size: 11px;
+    font-size: 9px;
     color: var(--color-text-muted);
     white-space: normal;
 }
@@ -355,8 +355,8 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    margin-top: 8px;
-    padding-top: 6px;
+    margin-top: 6px;
+    padding-top: 4px;
     border-top-color: rgba(252, 211, 77, 0.25);
     border-top-width: 1px;
     flex-shrink: 0;
@@ -364,7 +364,7 @@
 .title-persona {
     flex-direction: row;
     align-items: center;
-    padding: 2px 8px;
+    padding: 1px 6px;
     background-color: rgba(0, 0, 0, 0.4);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -375,9 +375,9 @@
     opacity: 0.85;
 }
 .title-avatar {
-    width: 22px;
-    height: 22px;
-    margin-right: 8px;
+    width: 18px;
+    height: 18px;
+    margin-right: 6px;
     background-color: rgba(255, 255, 255, 0.05);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -390,7 +390,7 @@
     min-width: 0;
 }
 .title-persona__name {
-    font-size: 10px;
+    font-size: 9px;
     -unity-font-style: bold;
     color: var(--color-text-strong);
     white-space: nowrap;
