@@ -207,6 +207,7 @@ message QuestPrerequisite {
   repeated string item_refs = 5;         // Items player must possess
   optional string class_ref = 6;         // Required player class
   optional string trigger = 7;           // Custom trigger expression
+  optional uint32 inn_tier_min = 8;      // Min Inn upgrade tier required for the giver to surface this quest (0=Inn, 1=Tavern, 2=Lodge)
 }
 
 // Time constraints for the quest
