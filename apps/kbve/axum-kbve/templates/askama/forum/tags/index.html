@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tags | KBVE Forum</title>
+    <meta name="description" content="Browse {{ tag_count }} tags on the KBVE Forum.">
+</head>
+<body>
+    <main>
+        <nav>
+            <a href="/forum/">Forum</a>
+        </nav>
+        <h1>Tags ({{ tag_count }})</h1>
+        {{ tags_html|safe }}
+    </main>
+</body>
+</html>

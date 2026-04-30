@@ -1,0 +1,121 @@
+---
+// Tags index served by axum-kbve at /forum/tags.
+// Askama placeholders consumed by ForumTagsIndexTemplate:
+//   {{ tags_html }}    — server-composed list of tag chips
+//   {{ tag_count }}    — total active tag count
+---
+
+<div class="forum-shell">
+	<nav class="forum-shell__breadcrumb" aria-label="Breadcrumb">
+		<a href="/forum/">Forum</a>
+		<span aria-hidden="true">›</span>
+		<span class="forum-shell__breadcrumb-current">Tags</span>
+	</nav>
+
+	<header class="forum-tags-index__header">
+		<h1 class="forum-tags-index__title">Tags</h1>
+		<p class="forum-tags-index__hint">
+			Top {`{{ tag_count }}`} tags by thread count. Tags are auto-created from
+			<code>#hashtags</code> in thread bodies.
+		</p>
+	</header>
+
+	<section class="forum-tags-index__grid" set:html={`{{ tags_html|safe }}`} />
+</div>
+
+<style>
+	.forum-shell {
+		max-width: 1180px;
+		margin: 0 auto;
+		padding: 1.5rem 1.25rem 4rem;
+		color: var(--sl-color-text, #fafafa);
+	}
+	:global(.sl-markdown-content):has(.forum-shell) {
+		max-width: none;
+		margin: 0;
+	}
+
+	.forum-shell__breadcrumb {
+		display: flex;
+		gap: 0.4rem;
+		align-items: center;
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-2, #a1a1aa);
+		margin-bottom: 1rem;
+	}
+	.forum-shell__breadcrumb a {
+		color: var(--sl-color-gray-2, #a1a1aa);
+		text-decoration: none;
+	}
+	.forum-shell__breadcrumb a:hover {
+		color: var(--sl-color-accent, #8b5cf6);
+	}
+	.forum-shell__breadcrumb-current {
+		color: var(--sl-color-text, #fafafa);
+		font-weight: 500;
+	}
+
+	.forum-tags-index__header {
+		margin-bottom: 1.25rem;
+	}
+	.forum-tags-index__title {
+		margin: 0 0 0.4rem;
+		font-size: clamp(1.5rem, 2.6vw, 2.125rem);
+		letter-spacing: -0.01em;
+	}
+	.forum-tags-index__hint {
+		margin: 0;
+		color: var(--sl-color-gray-2, #a1a1aa);
+		font-size: 0.9375rem;
+	}
+	.forum-tags-index__hint code {
+		background: var(--sl-color-bg-nav, #131318);
+		padding: 0.1em 0.35em;
+		border-radius: 4px;
+		font-size: 0.9em;
+	}
+
+	.forum-tags-index__grid {
+		display: grid;
+		gap: 0.6rem;
+		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	}
+	.forum-tags-index__grid :global(.forum-tag-card) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding: 0.75rem 1rem;
+		background: var(--sl-color-black, #0c0c10);
+		border: 1px solid var(--sl-color-gray-5, #2a2a33);
+		border-radius: 10px;
+		text-decoration: none;
+		color: var(--sl-color-text, #fafafa);
+		transition:
+			border-color 0.12s ease,
+			transform 0.12s ease;
+	}
+	.forum-tags-index__grid :global(.forum-tag-card:hover) {
+		border-color: var(--sl-color-accent, #8b5cf6);
+		transform: translateY(-1px);
+	}
+	.forum-tags-index__grid :global(.forum-tag-card__slug) {
+		font-weight: 600;
+		font-size: 0.9375rem;
+	}
+	.forum-tags-index__grid :global(.forum-tag-card__count) {
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-2, #a1a1aa);
+		background: var(--sl-color-bg-nav, #131318);
+		padding: 0.15rem 0.55rem;
+		border-radius: 999px;
+	}
+	.forum-tags-index__grid :global(.forum-tag-card__empty) {
+		grid-column: 1 / -1;
+		padding: 2rem;
+		text-align: center;
+		color: var(--sl-color-gray-2, #a1a1aa);
+		border: 1px dashed var(--sl-color-gray-5, #2a2a33);
+		border-radius: 12px;
+	}
+</style>

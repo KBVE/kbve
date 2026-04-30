@@ -245,6 +245,14 @@ pub struct ForumSpaceNotFoundTemplate {
     pub space_slug: String,
 }
 
+/// /forum/tags — listing of every active canonical tag.
+#[derive(Template)]
+#[template(path = "askama/forum/tags/index.html")]
+pub struct ForumTagsIndexTemplate {
+    pub tags_html: String,
+    pub tag_count: usize,
+}
+
 /// New-thread compose page served at /forum/compose.
 #[derive(Template)]
 #[template(path = "askama/forum/compose/index.html")]

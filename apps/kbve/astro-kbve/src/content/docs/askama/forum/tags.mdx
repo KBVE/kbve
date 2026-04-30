@@ -1,0 +1,26 @@
+---
+title: 'Forum tags'
+head:
+    - tag: title
+      content: 'Tags — KBVE Forum'
+    - tag: meta
+      attrs:
+        name: description
+        content: 'Browse every active tag on the KBVE Forum.'
+    - tag: link
+      attrs:
+        rel: canonical
+        href: 'https://kbve.com/forum/tags'
+description: 'Browse every active tag on the KBVE Forum.'
+template: splash
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+sidebar:
+    hidden: true
+---
+
+import AskamaForumTagsProvider from '@/components/providers/AskamaForumTagsProvider.astro';
+
+<AskamaForumTagsProvider />
