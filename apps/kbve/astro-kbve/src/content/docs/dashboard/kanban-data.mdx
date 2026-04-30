@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-04-29T08:53:19.024Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-04-30T08:53:32.913Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -21,19 +21,19 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 
 <CardGrid>
   <Card title="Theory" icon="star">
-    **23** items
+    **20** items
   </Card>
   <Card title="AI" icon="rocket">
     **1** items
   </Card>
   <Card title="Todo" icon="list-format">
-    **8** items
+    **9** items
   </Card>
   <Card title="Backlog" icon="document">
     **7** items
   </Card>
   <Card title="Error" icon="warning">
-    **11** items
+    **9** items
   </Card>
   <Card title="Support" icon="information">
     **0** items
@@ -45,7 +45,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **0** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **99** items
+    **115** items
   </Card>
 </CardGrid>
 
@@ -55,22 +55,22 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 ```mermaid
 pie showData
     title Items by Status
-    "Theory" : 23
+    "Theory" : 20
     "AI" : 1
-    "Todo" : 8
+    "Todo" : 9
     "Backlog" : 7
-    "Error" : 11
+    "Error" : 9
     "Staging" : 3
-    "Done" : 99
+    "Done" : 115
 ```
 
 ```mermaid
 pie showData
     title Work State
-    "Active (Todo+Staging+Review)" : 11
-    "Blocked (Error+Support)" : 11
-    "Done" : 99
-    "Planning (Theory+AI+Backlog)" : 31
+    "Active (Todo+Staging+Review)" : 12
+    "Blocked (Error+Support)" : 9
+    "Done" : 115
+    "Planning (Theory+AI+Backlog)" : 28
 ```
 
   </TabItem>
@@ -82,15 +82,15 @@ flowchart LR
     classDef active fill:#3b82f6,stroke:#1d4ed8,color:#fff
     classDef blocked fill:#ef4444,stroke:#b91c1c,color:#fff
     classDef done fill:#10b981,stroke:#059669,color:#fff
-    Theory["Theory<br/><strong>23</strong>"]
+    Theory["Theory<br/><strong>20</strong>"]
     Theory --> AI
     AI["AI<br/><strong>1</strong>"]
     AI --> Todo
-    Todo["Todo<br/><strong>8</strong>"]
+    Todo["Todo<br/><strong>9</strong>"]
     Todo --> Backlog
     Backlog["Backlog<br/><strong>7</strong>"]
     Backlog --> Error
-    Error["Error<br/><strong>11</strong>"]
+    Error["Error<br/><strong>9</strong>"]
     Error --> Support
     Support["Support<br/><strong>0</strong>"]
     Support --> Staging
@@ -98,7 +98,7 @@ flowchart LR
     Staging --> Review
     Review["Review<br/><strong>0</strong>"]
     Review --> Done
-    Done["Done<br/><strong>99</strong>"]
+    Done["Done<br/><strong>115</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -115,18 +115,18 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 97
-    "Issue" : 55
+    "Pull Request" : 108
+    "Issue" : 56
 ```
 
 #### Top Labels
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 97 |
-| dev→main | 45 |
-| atomic | 38 |
-| enhancement | 28 |
+| auto-pr | 108 |
+| dev→main | 51 |
+| atomic | 41 |
+| enhancement | 29 |
 | 0 | 22 |
 | unity | 16 |
 | 1 | 13 |
@@ -137,7 +137,7 @@ pie showData
   </TabItem>
 </Tabs>
 
-### Theory (23)
+### Theory (20)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -146,10 +146,8 @@ pie showData
 | [#3472](https://github.com/KBVE/kbve/issues/3472) | [Concept] : [Unity] : TileMap GameObject | — | h0lybyte | 0, enhancement, unity |
 | [#4643](https://github.com/KBVE/kbve/issues/4643) | [Concept] : [Unity] : Transport System | — | h0lybyte | 0, enhancement, unity |
 | [#5624](https://github.com/KBVE/kbve/issues/5624) | [Concept] : Add Intel NUC worker nodes to existing Talos KBVE cluster | — | h0lybyte, Copilot | 0, enhancement |
-| [#6436](https://github.com/KBVE/kbve/issues/6436) | [Concept] : [Unity] : NPCDB - ECS | — | h0lybyte | 0, enhancement, unity |
 | [#6437](https://github.com/KBVE/kbve/issues/6437) | [Concept] : [Unity] : Pathfinding ECS | — | h0lybyte | 0, enhancement, unity |
 | [#6438](https://github.com/KBVE/kbve/issues/6438) | [Concept] : [Unity] : ItemDB ECS Migration | — | h0lybyte | 0, enhancement, unity |
-| [#6446](https://github.com/KBVE/kbve/issues/6446) | [Concept] : [Unity] : MapDB - Schemas | — | h0lybyte | 0, enhancement, unity |
 | [#6576](https://github.com/KBVE/kbve/issues/6576) | [Concept] : [Unity] : Entity Blittable System | — | h0lybyte | 0, enhancement, unity |
 | [#7547](https://github.com/KBVE/kbve/issues/7547) | [MC] [Pumpkin] Implement CMerchantOffers packet and Merchant Trading GUI | — | h0lybyte | 0, enhancement |
 | [#7730](https://github.com/KBVE/kbve/issues/7730) | [DISCORDSH] Rust-First Vote Process — Rate-Limited Server Voting Pipeline | — | h0lybyte | 1, enhancement, security |
@@ -157,7 +155,6 @@ pie showData
 | [#8180](https://github.com/KBVE/kbve/issues/8180) | [DISCORDSH] POC: Mockoon docker-compose for local E2E testing | — | h0lybyte | 1, enhancement |
 | [#8189](https://github.com/KBVE/kbve/issues/8189) | [BEVY] NPC Creatures — Performance Audit | — | — | enhancement |
 | [#8245](https://github.com/KBVE/kbve/issues/8245) | perf(dashboard): migrate ClickHouse queries to @kbve/droid worker pipeline with  | — | — | 1, enhancement |
-| [#9327](https://github.com/KBVE/kbve/issues/9327) | feat(astro-kbve): site graph integration — polish, testing, and rollout | — | h0lybyte | 1, enhancement, todo |
 | [#9789](https://github.com/KBVE/kbve/issues/9789) | [Dashboard] Forgejo dashboard expansion — token scopes, user management, DB role | — | — | 3, enhancement, ci |
 | [#9724](https://github.com/KBVE/kbve/issues/9724) | [ISOMETRIC] [BEVY] Convert sprite atlases from PNG to KTX2 with basis universal  | — | h0lybyte | 1, enhancement |
 | [#9588](https://github.com/KBVE/kbve/issues/9588) | [ISOMETRIC] Pixel Smoothing | — | h0lybyte | 0, enhancement |
@@ -171,7 +168,7 @@ pie showData
 |---|-------|----------|-----------|--------|
 | [#4906](https://github.com/KBVE/kbve/issues/4906) | [Bug] : [Unity] : Character Orchestrator | — | h0lybyte | 0, bug, unity |
 
-### Todo (8)
+### Todo (9)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -183,6 +180,7 @@ pie showData
 | [#8170](https://github.com/KBVE/kbve/issues/8170) | feat(proto): ArgoCD application state schema via protobuf → zod → edge pipeline | — | h0lybyte | 4, documentation, todo |
 | [#9334](https://github.com/KBVE/kbve/issues/9334) | [ROWS] v0.4/v0.5 — Complete migration from C# OWS to Rust ROWS | — | h0lybyte | 6, enhancement, todo |
 | [#8817](https://github.com/KBVE/kbve/issues/8817) | [E2E] kilobase needs pgrx/PostgreSQL build environment | — | h0lybyte | 1, todo |
+| [#10329](https://github.com/KBVE/kbve/issues/10329) | [CICD] [Github] Custom Arc Runner Image | — | — | enhancement, update |
 
 ### Backlog (7)
 
@@ -196,7 +194,7 @@ pie showData
 | [#7548](https://github.com/KBVE/kbve/issues/7548) | feat(memes): responsive bento grid feed + dedicated meme pages | — | h0lybyte | 1, backlog |
 | [#7709](https://github.com/KBVE/kbve/issues/7709) | [CRYPTOTHRONE] Inventory System, Event Bridge, and Gameplay Loop Completion | — | h0lybyte | 1, enhancement, backlog |
 
-### Error (11)
+### Error (9)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -204,8 +202,6 @@ pie showData
 | [#3536](https://github.com/KBVE/kbve/issues/3536) | [Bug] : Update CONTRIBUE.MD | — | h0lybyte | 0, bug |
 | [#3538](https://github.com/KBVE/kbve/issues/3538) | [Bug] : [Unity] : Gameplay Mechanics - Farming &amp; Crafting | — | h0lybyte | 0, bug, unity |
 | [#4538](https://github.com/KBVE/kbve/issues/4538) | [Bug] : [Unity] : Multiplayer / Steam Integration | — | h0lybyte | 0, bug, unity |
-| [#4623](https://github.com/KBVE/kbve/issues/4623) | [Bug] : [Unity] : Procedural Map Generation | — | h0lybyte | 2, bug, unity |
-| [#4797](https://github.com/KBVE/kbve/issues/4797) | [Bug] : [Unity] : Enemy Ai should attack player structures, if players are not a | — | h0lybyte | 4, bug, unity |
 | [#6705](https://github.com/KBVE/kbve/issues/6705) | [Bug] : [Unity] : Chip Character Sheet Off Center Sprites | — | h0lybyte | 0, bug, unity |
 | [#8169](https://github.com/KBVE/kbve/issues/8169) | [CI] Docker image version mismatch — cached binary reports stale version | — | — | 6, bug, ci |
 | [#9182](https://github.com/KBVE/kbve/issues/9182) | [ROWS] Performance Audit — missing indexes, unbounded caches, query optimization | — | h0lybyte | 6, bug, enhancement |
@@ -220,15 +216,17 @@ pie showData
 | [#2267](https://github.com/KBVE/kbve/issues/2267) | [Concept] : CryptoThrone.com - King of the Hill App/Game | — | h0lybyte, BChip | 6 |
 | [#6943](https://github.com/KBVE/kbve/issues/6943) | Phase 2: Frontend - Orchestration Tab | — | — | todo |
 
-### Done (99)
+### Done (115)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
 | [#3396](https://github.com/KBVE/kbve/issues/3396) | [Concept] : [Unity] : Adding Quirky Character Pack by Noiryt | — | h0lybyte | 4, unity |
+| [#4623](https://github.com/KBVE/kbve/issues/4623) | [Bug] : [Unity] : Procedural Map Generation | — | h0lybyte | 2, bug, unity |
+| [#4797](https://github.com/KBVE/kbve/issues/4797) | [Bug] : [Unity] : Enemy Ai should attack player structures, if players are not a | — | h0lybyte | 4, bug, unity |
 | [#4812](https://github.com/KBVE/kbve/issues/4812) | [Concept] : [Unity] : Elven Mage - Character | — | h0lybyte | 0, enhancement, unity |
-| [#10067](https://github.com/KBVE/kbve/pull/10067) | Release: 23 features, 35 fixes, 8 chores → Main | — | — | auto-pr, dev→main |
-| [#10094](https://github.com/KBVE/kbve/pull/10094) | Release: 3 features, 3 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#10095](https://github.com/KBVE/kbve/pull/10095) | Atomic: mc v1.0.14 post-publish sync | — | — | auto-pr, atomic |
+| [#6436](https://github.com/KBVE/kbve/issues/6436) | [Concept] : [Unity] : NPCDB - ECS | — | h0lybyte | 0, enhancement, unity |
+| [#6446](https://github.com/KBVE/kbve/issues/6446) | [Concept] : [Unity] : MapDB - Schemas | — | h0lybyte | 0, enhancement, unity |
+| [#9327](https://github.com/KBVE/kbve/issues/9327) | feat(astro-kbve): site graph integration — polish, testing, and rollout | — | h0lybyte | 1, enhancement, todo |
 | [#10097](https://github.com/KBVE/kbve/pull/10097) | Release: 1 feature, 5 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#10102](https://github.com/KBVE/kbve/pull/10102) | Release: 2 features, 1 fix → Main | — | — | auto-pr, dev→main |
 | [#10107](https://github.com/KBVE/kbve/pull/10107) | Release: 1 feature, 1 fix → Main | — | — | auto-pr, dev→main |
@@ -323,6 +321,20 @@ pie showData
 | [#10315](https://github.com/KBVE/kbve/pull/10315) | Release: 3 features, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#10316](https://github.com/KBVE/kbve/pull/10316) | Atomic: axum-kbve v1.0.123 post-publish sync | — | — | auto-pr, atomic |
 | [#10317](https://github.com/KBVE/kbve/pull/10317) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#10318](https://github.com/KBVE/kbve/pull/10318) | chore(dashboard): daily sync — 2026-04-29 | — | — | auto-pr |
+| [#10319](https://github.com/KBVE/kbve/pull/10319) | Release: 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#10320](https://github.com/KBVE/kbve/pull/10320) | Release: 6 features, 4 fixes, 2 docs, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#10322](https://github.com/KBVE/kbve/pull/10322) | Atomic: axum-kbve v1.0.124 post-publish sync | — | — | auto-pr, atomic |
+| [#10323](https://github.com/KBVE/kbve/pull/10323) | Atomic: mc v1.0.29 post-publish sync | — | — | auto-pr, atomic |
+| [#10324](https://github.com/KBVE/kbve/pull/10324) | Release: 2 features, 2 fixes, 2 docs, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#10326](https://github.com/KBVE/kbve/pull/10326) | Release: 2 features, 3 fixes, 1 doc, 1 refactor, 4 chores → Main | — | — | auto-pr, dev→main |
+| [#10334](https://github.com/KBVE/kbve/pull/10334) | Release: 3 fixes → Main | — | — | auto-pr, dev→main |
+| [#10335](https://github.com/KBVE/kbve/pull/10335) | chore(holy): update version.toml to 0.2.1 | — | — | auto-pr |
+| [#10336](https://github.com/KBVE/kbve/pull/10336) | Atomic: axum-kbve v1.0.125 post-publish sync | — | — | auto-pr, atomic |
+| [#10337](https://github.com/KBVE/kbve/pull/10337) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
+| [#10338](https://github.com/KBVE/kbve/pull/10338) | Release: 16 features, 11 fixes, 1 doc, 2 perfs, 6 chores → Main | — | — | auto-pr, dev→main |
+| [#10342](https://github.com/KBVE/kbve/pull/10342) | Release: 7 features, 2 fixes, 1 CI, 1 perf, 2 refactors, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#10343](https://github.com/KBVE/kbve/pull/10343) | Atomic: mc v1.0.30 post-publish sync | — | — | auto-pr, atomic |
 
 ---
 
