@@ -469,6 +469,11 @@ jobs:
                     deploy_itch="false"
                     [ -n "$itch_user" ] && [ -n "$itch_game" ] && deploy_itch="true"
 
+                    local steam_apps deploy_steam
+                    steam_apps=$(echo "$entry" | jq -c '.external_publish.steam_apps // []')
+                    deploy_steam="false"
+                    [ "$steam_apps" != "[]" ] && [ "$steam_apps" != "null" ] && deploy_steam="true"
+
                     local altered reason
                     altered=$(is_altered "$key")
                     reason=""
@@ -498,6 +503,8 @@ jobs:
                     extra="$extra --field deploy_to_itch=${deploy_itch}"
                     [ -n "$itch_user" ] && extra="$extra --field itch_user=${itch_user}"
                     [ -n "$itch_game" ] && extra="$extra --field itch_game=${itch_game}"
+                    extra="$extra --field deploy_to_steam=${deploy_steam}"
+                    [ "$steam_apps" != "[]" ] && extra="$extra --field steam_apps=${steam_apps}"
 
                     gh workflow run "$workflow" --repo "$REPO" --ref main \
                       --field key="$key" \

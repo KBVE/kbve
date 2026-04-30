@@ -66,6 +66,16 @@ on:
                 required: false
                 type: string
                 default: ''
+            deploy_to_steam:
+                description: 'Run the Steam upload step after build'
+                required: false
+                type: boolean
+                default: false
+            steam_apps:
+                description: 'JSON array of SteamApp entries from external_publish.steam_apps'
+                required: false
+                type: string
+                default: '[]'
             dispatched_at:
                 description: 'Unix timestamp when this was dispatched (queue guard)'
                 required: true
@@ -191,6 +201,7 @@ jobs:
                   UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
                   UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
                   UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+                  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
               with:
                   projectPath: ${{ inputs.project_path }}
                   unityVersion: ${{ inputs.engine_version }}
@@ -202,7 +213,7 @@ jobs:
               with:
                   name: ${{ inputs.app_name }}-${{ matrix.target }}
                   path: build/${{ matrix.target }}
-                  retention-days: 7
+                  retention-days: 3
 
             - name: Wipe Forgejo netrc
               if: always()
@@ -258,10 +269,109 @@ jobs:
                     "${{ inputs.itch_user }}/${{ inputs.itch_game }}:${{ steps.chan.outputs.channel }}" \
                     --userversion "${{ inputs.manifest_version }}"
 
+    deploy_steam:
+        name: Steam deploy ${{ matrix.app.label || matrix.app.app_id }}
+        needs: [version_gate, build_matrix, build]
+        # Independent of deploy_itch — runs in parallel after build.
+        # One job per SteamApp entry. Each entry expects a matching
+        # apps/<project>/Steam/app_build_<label>.vdf — missing files
+        # log + skip so dormant entries (e.g. main game queued for
+        # later release) can sit in the manifest without breaking the
+        # matrix.
+        if: ${{ inputs.deploy_to_steam && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' && inputs.steam_apps != '[]' }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        strategy:
+            fail-fast: false
+            matrix:
+                app: ${{ fromJson(inputs.steam_apps) }}
+        steps:
+            - name: Checkout monorepo
+              uses: actions/checkout@v6
+              with:
+                  lfs: false
+
+            - name: Resolve VDF
+              id: vdf
+              run: |
+                  LABEL="${{ matrix.app.label }}"
+                  if [ -z "$LABEL" ]; then
+                      LABEL="${{ matrix.app.app_id }}"
+                  fi
+                  VDF="${{ inputs.project_path }}/Steam/app_build_${LABEL}.vdf"
+                  if [ ! -f "$VDF" ]; then
+                      echo "::notice::Skipping Steam upload for app ${{ matrix.app.app_id }} — VDF missing at $VDF"
+                      echo "skip=true" >> "$GITHUB_OUTPUT"
+                      exit 0
+                  fi
+                  echo "skip=false" >> "$GITHUB_OUTPUT"
+                  echo "label=$LABEL" >> "$GITHUB_OUTPUT"
+
+            - name: Download all build artifacts
+              if: steps.vdf.outputs.skip != 'true'
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: ${{ inputs.app_name }}-*
+                  path: ${{ inputs.project_path }}/build/
+                  merge-multiple: false
+
+            - name: Flatten artifact paths into VDF ContentRoot layout
+              if: steps.vdf.outputs.skip != 'true'
+              run: |
+                  # download-artifact creates build/<app>-<target>/ for each
+                  # build artifact; the VDFs reference build/<target>/, so
+                  # rename each subdir back to the bare target name.
+                  cd "${{ inputs.project_path }}/build"
+                  for d in "${{ inputs.app_name }}-"*/; do
+                      [ -d "$d" ] || continue
+                      target="${d#${{ inputs.app_name }}-}"
+                      target="${target%/}"
+                      if [ ! -d "$target" ]; then
+                          mv "$d" "$target/"
+                      fi
+                  done
+                  ls -la
+
+            - name: Install steamcmd
+              if: steps.vdf.outputs.skip != 'true'
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends lib32gcc-s1 ca-certificates
+                  mkdir -p ~/Steam ~/Steam/config
+                  cd ~/Steam
+                  curl -sL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" \
+                      | tar -xzf -
+                  ./steamcmd.sh +quit || true
+
+            - name: Restore Steam auth cache
+              if: steps.vdf.outputs.skip != 'true'
+              env:
+                  STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF }}
+              run: |
+                  if [ -z "$STEAM_CONFIG_VDF" ]; then
+                      echo "::error::STEAM_CONFIG_VDF missing — cannot skip 2FA on the Linux runner"
+                      exit 1
+                  fi
+                  echo "$STEAM_CONFIG_VDF" | base64 -d > ~/Steam/config/config.vdf
+                  chmod 600 ~/Steam/config/config.vdf
+
+            - name: Upload via SteamPipe
+              if: steps.vdf.outputs.skip != 'true'
+              env:
+                  STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+                  STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
+              working-directory: ${{ inputs.project_path }}/Steam
+              run: |
+                  VDF_ABS="$(pwd)/app_build_${{ steps.vdf.outputs.label }}.vdf"
+                  ~/Steam/steamcmd.sh \
+                      +login "$STEAM_USERNAME" "$STEAM_PASSWORD" \
+                      +run_app_build "$VDF_ABS" \
+                      +quit
+
     post_publish_sync:
         name: Post-publish version sync
-        needs: [version_gate, build, deploy_itch]
-        if: ${{ always() && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' && (needs.deploy_itch.result == 'success' || needs.deploy_itch.result == 'skipped') }}
+        needs: [version_gate, build, deploy_itch, deploy_steam]
+        if: ${{ always() && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' && (needs.deploy_itch.result == 'success' || needs.deploy_itch.result == 'skipped') && (needs.deploy_steam.result == 'success' || needs.deploy_steam.result == 'skipped') }}
         runs-on: ubuntu-latest
         timeout-minutes: 5
         permissions:
@@ -295,6 +405,7 @@ jobs:
                 build_matrix,
                 build,
                 deploy_itch,
+                deploy_steam,
                 post_publish_sync,
             ]
         permissions:
@@ -318,6 +429,7 @@ jobs:
                 build_matrix,
                 build,
                 deploy_itch,
+                deploy_steam,
                 post_publish_sync,
             ]
         permissions:
