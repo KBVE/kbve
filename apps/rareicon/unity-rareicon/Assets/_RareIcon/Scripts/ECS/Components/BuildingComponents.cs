@@ -36,6 +36,7 @@ namespace RareIcon
         public const byte Tavern         = 21;  // Inn tier 1 — heal-on-rest + coin trickle.
         public const byte Lodge          = 22;  // Inn tier 2 — bigger sleep cap, faster heal, higher coin yield.
         public const byte GoblinVillage  = 23;  // Naturally-spawned settlement — random Hostile or Player faction roll at spawn time. Hostile variants drip out small raid parties; Player variants are passive ally settlements.
+        public const byte Sawmill        = 24;  // Lumbercamp tier 1 — keeps producing Log AND adds a Log → Timber recipe so the build-cost loop closes mid-game.
     }
 
     /// <summary>Tag for naturally-spawned Goblin Villages — sister structure to BanditCamp. Faction (Hostile or Player) is rolled once at spawn and never changes; <see cref="GoblinVillageState"/> + <see cref="TerritoryEmitter"/> carry the per-instance data.</summary>

@@ -189,7 +189,8 @@ namespace RareIcon
                         CycleEndsAt   = 0f,
                     });
                     var lumberExports = Ecb.AddBuffer<SurplusExport>(chunkIdx, entity);
-                    lumberExports.Add(new SurplusExport { ItemId = (ushort)ItemId.Log, Floor = 0 });
+                    lumberExports.Add(new SurplusExport { ItemId = (ushort)ItemId.Log,    Floor = 8 });
+                    lumberExports.Add(new SurplusExport { ItemId = (ushort)ItemId.Timber, Floor = 0 });
                     break;
                 case BuildingType.MiningPit:
                     Ecb.AddComponent<MiningPitTag>(chunkIdx, entity);

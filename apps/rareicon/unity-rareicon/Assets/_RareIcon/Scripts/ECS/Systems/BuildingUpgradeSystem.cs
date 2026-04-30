@@ -194,6 +194,10 @@ namespace RareIcon
                 if (tier == 1) return BuildingType.Tavern;
                 if (tier == 2) return BuildingType.Lodge;
             }
+            else if (type == BuildingType.Lumbercamp)
+            {
+                if (tier == 1) return BuildingType.Sawmill;
+            }
             return 0;
         }
     }

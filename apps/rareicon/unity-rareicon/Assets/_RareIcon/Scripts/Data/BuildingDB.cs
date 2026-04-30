@@ -75,6 +75,8 @@ namespace RareIcon
         static readonly Ingredient[] UpgradeTradeHouseToGuild     = { new((ushort)ItemId.GoldBar,  50) };
         static readonly Ingredient[] UpgradeFarmToVillage         = { new((ushort)ItemId.Timber,   10),
                                                                       new((ushort)ItemId.StoneBlock, 4) };
+        static readonly Ingredient[] UpgradeLumbercampToSawmill   = { new((ushort)ItemId.Timber,    8),
+                                                                      new((ushort)ItemId.StoneBlock, 4) };
         static readonly Ingredient[] UpgradeBarracksToKeep        = { new((ushort)ItemId.Timber,    6),
                                                                       new((ushort)ItemId.StoneBlock, 12) };
         static readonly Ingredient[] UpgradeKeepToCastle          = { new((ushort)ItemId.Timber,   10),
@@ -109,6 +111,10 @@ namespace RareIcon
                 if (fromTier == 0) return UpgradeInnToTavern;
                 if (fromTier == 1) return UpgradeTavernToLodge;
             }
+            else if (buildingType == BuildingType.Lumbercamp)
+            {
+                if (fromTier == 0) return UpgradeLumbercampToSawmill;
+            }
             return CostNone;
         }
 
@@ -133,6 +139,10 @@ namespace RareIcon
             {
                 if (tier == 1) return BuildingType.Tavern;
                 if (tier == 2) return BuildingType.Lodge;
+            }
+            else if (buildingType == BuildingType.Lumbercamp)
+            {
+                if (tier == 1) return BuildingType.Sawmill;
             }
             return 0;
         }
@@ -247,6 +257,10 @@ namespace RareIcon
             {
                 if (tier == 1) return "building.tavern";
                 if (tier == 2) return "building.lodge";
+            }
+            else if (buildingType == BuildingType.Lumbercamp)
+            {
+                if (tier == 1) return "building.sawmill";
             }
             return GetLocaleKey(buildingType);
         }
