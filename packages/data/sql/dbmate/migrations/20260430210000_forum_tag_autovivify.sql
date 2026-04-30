@@ -34,7 +34,7 @@ DECLARE
     v_clean   TEXT[];
     v_out     INTEGER[];
 BEGIN
-    IF p_slugs IS NULL OR array_length(p_slugs, 1) IS NULL THEN
+    IF p_slugs IS NULL OR cardinality(p_slugs) = 0 THEN
         RETURN '{}'::INTEGER[];
     END IF;
 
@@ -42,19 +42,19 @@ BEGIN
         RAISE EXCEPTION 'p_created_by required for tag creation';
     END IF;
 
-    SELECT array_agg(DISTINCT lower(s) ORDER BY lower(s))
+    SELECT array_agg(s ORDER BY s)
       INTO v_clean
-      FROM unnest(p_slugs) AS s
-     WHERE s IS NOT NULL
-       AND lower(s) ~ '^[a-z0-9][a-z0-9-]*$'
-       AND char_length(s) BETWEEN 1 AND 50;
+      FROM (
+          SELECT DISTINCT lower(trim(slug)) AS s
+            FROM unnest(p_slugs) AS slug
+           WHERE slug IS NOT NULL
+             AND lower(trim(slug)) ~ '^[a-z0-9][a-z0-9-]*$'
+             AND char_length(trim(slug)) BETWEEN 1 AND 50
+           LIMIT 20
+      ) clean;
 
-    IF v_clean IS NULL OR array_length(v_clean, 1) IS NULL THEN
+    IF v_clean IS NULL OR cardinality(v_clean) = 0 THEN
         RETURN '{}'::INTEGER[];
-    END IF;
-
-    IF array_length(v_clean, 1) > 20 THEN
-        v_clean := v_clean[1:20];
     END IF;
 
     INSERT INTO forum.tags (slug, name, canonical_id, created_by)
@@ -91,10 +91,19 @@ RETURNS TABLE (
     thread_count    BIGINT
 )
 LANGUAGE plpgsql
+STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $$
+DECLARE
+    v_slug TEXT := lower(trim(coalesce(p_slug, '')));
 BEGIN
+    IF v_slug = ''
+       OR v_slug !~ '^[a-z0-9][a-z0-9-]*$'
+       OR char_length(v_slug) > 50 THEN
+        RETURN;
+    END IF;
+
     RETURN QUERY
     SELECT canonical.id,
            canonical.canonical_id,
@@ -112,7 +121,7 @@ BEGIN
            ), 0) AS thread_count
       FROM forum.tags input
       JOIN forum.tags canonical ON canonical.id = input.canonical_id
-     WHERE input.slug = lower(p_slug)
+     WHERE input.slug = v_slug
        AND canonical.status <> 'deprecated';
 END;
 $$;
@@ -132,6 +141,7 @@ RETURNS TABLE (
     thread_count    BIGINT
 )
 LANGUAGE plpgsql
+STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $$
@@ -139,23 +149,24 @@ DECLARE
     v_limit INT := LEAST(GREATEST(COALESCE(p_limit, 100), 1), 200);
 BEGIN
     RETURN QUERY
+    WITH counts AS (
+        SELECT tr.tag_id, count(*)::BIGINT AS thread_count
+          FROM forum.thread_tags_resolved tr
+          JOIN forum.threads th ON th.id = tr.thread_id
+         WHERE th.status = 'active'
+           AND th.nsfw = FALSE
+         GROUP BY tr.tag_id
+    )
     SELECT t.id,
            t.slug,
            t.name,
            t.description,
-           COALESCE(counts.thread_count, 0) AS thread_count
+           COALESCE(c.thread_count, 0) AS thread_count
       FROM forum.tags t
-      LEFT JOIN LATERAL (
-          SELECT count(*)::BIGINT AS thread_count
-            FROM forum.thread_tags_resolved tr
-            JOIN forum.threads th ON th.id = tr.thread_id
-           WHERE tr.tag_id = t.id
-             AND th.status = 'active'
-             AND th.nsfw = FALSE
-      ) counts ON TRUE
+      LEFT JOIN counts c ON c.tag_id = t.id
      WHERE t.status = 'active'
        AND t.id = t.canonical_id
-     ORDER BY thread_count DESC, t.slug ASC
+     ORDER BY COALESCE(c.thread_count, 0) DESC, t.slug ASC
      LIMIT v_limit;
 END;
 $$;
@@ -173,10 +184,15 @@ RETURNS TABLE (
     name  TEXT
 )
 LANGUAGE plpgsql
+STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $$
 BEGIN
+    IF p_thread_id IS NULL OR char_length(p_thread_id) > 64 THEN
+        RETURN;
+    END IF;
+
     RETURN QUERY
     SELECT t.id, t.slug, t.name
       FROM forum.thread_tags_resolved tr
