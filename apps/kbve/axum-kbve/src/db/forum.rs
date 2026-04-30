@@ -71,6 +71,16 @@ pub struct SpaceRow {
     pub status: String,
 }
 
+#[allow(dead_code)]
+#[derive(Debug, Clone, Deserialize)]
+pub struct TagRow {
+    pub id: i32,
+    pub slug: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub thread_count: i64,
+}
+
 /// Row from `forum.public_user_profiles` view. Hides ban_reason +
 /// notification prefs; safe to surface to anon visitors.
 #[allow(dead_code)]
@@ -633,6 +643,140 @@ impl ForumService {
         let id: String = serde_json::from_str(&text)
             .map_err(|e| format!("forum.service_create_comment parse {}: {}", text, e))?;
         Ok(id)
+    }
+
+    /// Resolve hashtag slugs to canonical tag IDs, creating new rows on demand.
+    pub async fn resolve_or_create_tag_slugs(
+        &self,
+        slugs: &[String],
+        created_by: &str,
+    ) -> Result<Vec<i32>, String> {
+        if slugs.is_empty() {
+            return Ok(Vec::new());
+        }
+        let url = self
+            .client
+            .config()
+            .rpc_url("service_resolve_or_create_tag_slugs");
+        let headers = self.client.rpc_headers(SCHEMA)?;
+        let payload = serde_json::json!({
+            "p_slugs": slugs,
+            "p_created_by": created_by,
+        });
+        let response = self
+            .client
+            .client()
+            .post(&url)
+            .headers(headers)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| format!("forum.resolve_or_create_tag_slugs network: {}", e))?;
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!(
+                "forum.resolve_or_create_tag_slugs {} → {}",
+                status, body
+            ));
+        }
+        let text = response
+            .text()
+            .await
+            .map_err(|e| format!("forum.resolve_or_create_tag_slugs read: {}", e))?;
+        serde_json::from_str::<Vec<i32>>(&text)
+            .map_err(|e| format!("forum.resolve_or_create_tag_slugs parse {}: {}", text, e))
+    }
+
+    /// Canonical tag row for `slug`, or None if unknown / deprecated.
+    pub async fn get_tag_by_slug(&self, slug: &str) -> Result<Option<TagRow>, String> {
+        let url = self.client.config().rpc_url("service_get_tag_by_slug");
+        let headers = self.client.rpc_headers(SCHEMA)?;
+        let payload = serde_json::json!({ "p_slug": slug });
+        let response = self
+            .client
+            .client()
+            .post(&url)
+            .headers(headers)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| format!("forum.get_tag_by_slug network: {}", e))?;
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!("forum.get_tag_by_slug {} → {}", status, body));
+        }
+        let rows: Vec<TagRow> = response
+            .json()
+            .await
+            .map_err(|e| format!("forum.get_tag_by_slug parse: {}", e))?;
+        Ok(rows.into_iter().next())
+    }
+
+    pub async fn list_tags(&self, limit: i32) -> Result<Vec<TagRow>, String> {
+        let url = self.client.config().rpc_url("service_list_tags");
+        let headers = self.client.rpc_headers(SCHEMA)?;
+        let payload = serde_json::json!({ "p_limit": limit });
+        let response = self
+            .client
+            .client()
+            .post(&url)
+            .headers(headers)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| format!("forum.list_tags network: {}", e))?;
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!("forum.list_tags {} → {}", status, body));
+        }
+        response
+            .json::<Vec<TagRow>>()
+            .await
+            .map_err(|e| format!("forum.list_tags parse: {}", e))
+    }
+
+    pub async fn get_thread_tags(&self, thread_id: &str) -> Result<Vec<TagRow>, String> {
+        let url = self.client.config().rpc_url("service_get_thread_tags");
+        let headers = self.client.rpc_headers(SCHEMA)?;
+        let payload = serde_json::json!({ "p_thread_id": thread_id });
+        let response = self
+            .client
+            .client()
+            .post(&url)
+            .headers(headers)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| format!("forum.get_thread_tags network: {}", e))?;
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!("forum.get_thread_tags {} → {}", status, body));
+        }
+
+        #[derive(Deserialize)]
+        struct ThreadTagRow {
+            id: i32,
+            slug: String,
+            name: String,
+        }
+        let rows: Vec<ThreadTagRow> = response
+            .json()
+            .await
+            .map_err(|e| format!("forum.get_thread_tags parse: {}", e))?;
+        Ok(rows
+            .into_iter()
+            .map(|r| TagRow {
+                id: r.id,
+                slug: r.slug,
+                name: r.name,
+                description: None,
+                thread_count: 0,
+            })
+            .collect())
     }
 
     pub async fn get_space_by_slug(&self, slug: &str) -> Result<Option<SpaceRow>, String> {

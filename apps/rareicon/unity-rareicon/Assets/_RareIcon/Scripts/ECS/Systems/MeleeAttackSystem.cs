@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 
@@ -36,28 +37,25 @@ namespace RareIcon
             if (!SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial)) return;
             if (!spatial.Hash.IsCreated) return;
 
-            // Main-thread staging array is Allocator.Temp (auto-cleared at frame end);
-            // the TempJob copy that crosses into the parallel job is the only
-            // allocation that needs an explicit deferred dispose.
-            var buildingEntities = _buildingQuery.ToEntityArray(Allocator.Temp);
+            // Stage building targets through a Burst IJob so the
+            // ComponentLookup<LocalTransform> reads chain via lookup safety
+            // against in-flight writers (UnitMovementJob etc.). Main-thread
+            // indexer access in Burst-direct OnUpdate doesn't auto-sync;
+            // moving the loop into a job both fixes the latent race and
+            // leaves the chain async (no Complete barrier needed).
+            var buildingEntities = _buildingQuery.ToEntityArray(Allocator.TempJob);
             var buildingTargets  = new NativeArray<MeleeBuildingTarget>(
                 buildingEntities.Length, Allocator.TempJob);
 
-            var buildingLookup  = SystemAPI.GetComponentLookup<Building>(true);
-            var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true);
-            for (int i = 0; i < buildingEntities.Length; i++)
+            state.Dependency = new BuildMeleeTargetsJob
             {
-                var be = buildingEntities[i];
-                var b  = buildingLookup[be];
-                var t  = transformLookup[be];
-                buildingTargets[i] = new MeleeBuildingTarget
-                {
-                    Entity       = be,
-                    OwnerFaction = b.OwnerFaction,
-                    Position     = new float2(t.Position.x, t.Position.y),
-                };
-            }
-            buildingEntities.Dispose();
+                Entities        = buildingEntities,
+                BuildingLookup  = SystemAPI.GetComponentLookup<Building>(true),
+                TransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true),
+                Output          = buildingTargets,
+            }.Schedule(state.Dependency);
+
+            state.Dependency = buildingEntities.Dispose(state.Dependency);
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);
@@ -71,6 +69,32 @@ namespace RareIcon
             }.ScheduleParallel(state.Dependency);
 
             state.Dependency = buildingTargets.Dispose(state.Dependency);
+        }
+    }
+
+    /// <summary>Burst-compiled main-thread-replacement for <see cref="MeleeAttackSystem"/>'s building-target staging. Chains via <see cref="ComponentLookup{T}"/> safety so it sees fully-written <see cref="LocalTransform"/> data without a sync barrier; the parallel <see cref="MeleeAttackJob"/> downstream picks up the resulting array directly.</summary>
+    [BurstCompile]
+    public struct BuildMeleeTargetsJob : IJob
+    {
+        [ReadOnly] public NativeArray<Entity>             Entities;
+        [ReadOnly] public ComponentLookup<Building>       BuildingLookup;
+        [ReadOnly] public ComponentLookup<LocalTransform> TransformLookup;
+        public NativeArray<MeleeBuildingTarget>           Output;
+
+        public void Execute()
+        {
+            for (int i = 0; i < Entities.Length; i++)
+            {
+                var e = Entities[i];
+                var b = BuildingLookup[e];
+                var t = TransformLookup[e];
+                Output[i] = new MeleeBuildingTarget
+                {
+                    Entity       = e,
+                    OwnerFaction = b.OwnerFaction,
+                    Position     = new float2(t.Position.x, t.Position.y),
+                };
+            }
         }
     }
 

@@ -3,11 +3,13 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using MessagePipe;
 using R3;
-using RareIcon.Platform;
 using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
 using VContainer.Unity;
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
+using RareIcon.Platform;
+#endif
 
 namespace RareIcon
 {
@@ -18,13 +20,16 @@ namespace RareIcon
         readonly UIPanelManager _panelManager;
         readonly WorldGenSession _session;
         readonly AppStateController _appState;
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
         readonly ISubscriber<SteamAvatarReadyMessage> _avatarSub;
         readonly ISteamAvatarService _avatars;
+#endif
 
         readonly CompositeDisposable _disposables = new();
 
         VisualElement _root;
         VisualElement _wrapper;
+        VisualElement _stageInfo;
         VisualElement _stageLocale;
         VisualElement _stageSeed;
         VisualElement _stageGenerating;
@@ -41,16 +46,21 @@ namespace RareIcon
             LocaleService locale,
             UIPanelManager panelManager,
             WorldGenSession session,
-            AppStateController appState,
-            ISubscriber<SteamAvatarReadyMessage> avatarSub,
-            ISteamAvatarService avatars)
+            AppStateController appState
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
+            , ISubscriber<SteamAvatarReadyMessage> avatarSub
+            , ISteamAvatarService avatars
+#endif
+        )
         {
             _locale = locale;
             _panelManager = panelManager;
             _session = session;
             _appState = appState;
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             _avatarSub = avatarSub;
             _avatars = avatars;
+#endif
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
@@ -82,13 +92,18 @@ namespace RareIcon
 
                 window.RegisterCallback<GeometryChangedEvent>(evt =>
                 {
-                    bool narrow = evt.newRect.width > 0f && evt.newRect.width < 420f;
+                    float w = evt.newRect.width;
+                    bool narrow = w > 0f && w < 640f;
+                    bool wide   = w >= 1280f;
                     if (narrow) window.AddToClassList("title-window--narrow");
                     else        window.RemoveFromClassList("title-window--narrow");
+                    if (wide)   window.AddToClassList("title-window--wide");
+                    else        window.RemoveFromClassList("title-window--wide");
                 });
             }
 
             _wrapper         = _root.Q<VisualElement>("title-wrapper");
+            _stageInfo       = _root.Q<VisualElement>("title-stage-info");
             _stageLocale     = _root.Q<VisualElement>("title-stage-locale");
             _stageSeed       = _root.Q<VisualElement>("title-stage-seed");
             _stageGenerating = _root.Q<VisualElement>("title-stage-generating");
@@ -100,10 +115,13 @@ namespace RareIcon
             _progressLabel   = _root.Q<Label>("title-progress");
             _startBtn        = _root.Q<Button>("title-start");
 
+            BindMenu();
             BindLocaleStage();
             BindSeedStage();
             BindGeneratingStage();
             BindPersona();
+            BindClose();
+            BindSocials();
 
             _session.Stage.Subscribe(OnStageChanged).AddTo(_disposables);
             _session.ChunksReady.Subscribe(_ => RefreshProgress()).AddTo(_disposables);
@@ -112,15 +130,78 @@ namespace RareIcon
                 if (_seedInput != null && _seedInput.value != s) _seedInput.SetValueWithoutNotify(s);
             }).AddTo(_disposables);
 
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             var bag = MessagePipe.DisposableBag.CreateBuilder();
             _avatarSub.Subscribe(_ => RefreshAvatar()).AddTo(bag);
             _disposables.Add(bag.Build());
+#endif
+        }
+
+        /// <summary>Wire the AoE-style left menu rail. Single Player drops into the existing locale → seed → generating flow; Codex / Credits open external KBVE pages; Exit triggers Application.Quit. Multiplayer / Mods / Settings stay disabled visually until backend support lands.</summary>
+        void BindMenu()
+        {
+            var sp = _root.Q<Button>("title-menu-singleplayer");
+            if (sp != null) sp.clicked += _session.BeginSinglePlayer;
+
+            var codex = _root.Q<Button>("title-menu-codex");
+            if (codex != null) codex.clicked += () => Application.OpenURL("https://kbve.com/itemdb/");
+
+            var credits = _root.Q<Button>("title-menu-credits");
+            if (credits != null) credits.clicked += () => Application.OpenURL("https://kbve.com/about/");
+
+            var exit = _root.Q<Button>("title-menu-exit");
+            if (exit != null) exit.clicked += () =>
+            {
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+#else
+                Application.Quit();
+#endif
+            };
         }
 
         void BindLocaleStage()
         {
             _root.Q<Button>("title-locale-en").clicked += () => _session.SelectLocale("en");
             _root.Q<Button>("title-locale-ja").clicked += () => _session.SelectLocale("ja");
+            var localeBack = _root.Q<Button>("title-locale-back");
+            if (localeBack != null) localeBack.clicked += _session.BackToMenu;
+        }
+
+        /// <summary>Wire the top-right × button to Application.Quit. In the editor we stop play mode so devs aren't dropped onto the desktop.</summary>
+        void BindClose()
+        {
+            var closeBtn = _root.Q<Button>("title-close");
+            if (closeBtn == null) return;
+            closeBtn.clicked += () =>
+            {
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+#else
+                Application.Quit();
+#endif
+            };
+        }
+
+        /// <summary>Wire the bottom-right Discord / GitHub / Twitch buttons. SVG icons live under Resources/UI/icons/; if the project's vectorgraphics importer hasn't promoted them to a VectorImage the USS background-image lookup fails silently — when that happens we leave the two-letter text fallback visible.</summary>
+        void BindSocials()
+        {
+            WireSocial("title-social-discord", "UI/icons/discord", "https://kbve.com/discord/");
+            WireSocial("title-social-github",  "UI/icons/github",  "https://github.com/kbve/kbve");
+            WireSocial("title-social-twitch",  "UI/icons/twitch",  "https://twitch.tv/kbve");
+        }
+
+        void WireSocial(string buttonName, string iconResource, string url)
+        {
+            var btn = _root.Q<Button>(buttonName);
+            if (btn == null) return;
+            btn.clicked += () => Application.OpenURL(url);
+
+            // Probe Resources for the icon — if it loads as anything (Texture / VectorImage / Sprite),
+            // mark the button so the text fallback collapses. SVG support varies by project; Resources
+            // returns null when the importer is missing and the fallback letters stay visible.
+            var probe = Resources.Load(iconResource);
+            if (probe != null) btn.AddToClassList("title-social-btn--has-icon");
         }
 
         void BindSeedStage()
@@ -141,19 +222,20 @@ namespace RareIcon
 
         void BindPersona()
         {
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             if (SteamManager.IsReady)
             {
                 _personaName.text = SteamManager.LocalPersonaName;
                 _personaStatus.text = "Steam";
                 RefreshAvatar();
+                return;
             }
-            else
-            {
-                _personaName.text = "Wanderer";
-                _personaStatus.text = "Offline";
-            }
+#endif
+            _personaName.text = "Wanderer";
+            _personaStatus.text = "Offline";
         }
 
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
         void RefreshAvatar()
         {
             if (!SteamManager.IsReady || _avatars == null) return;
@@ -161,9 +243,11 @@ namespace RareIcon
             if (tex == null) return;
             _avatar.style.backgroundImage = new StyleBackground(tex);
         }
+#endif
 
         void OnStageChanged(TitleStage stage)
         {
+            SetStage(_stageInfo,       stage == TitleStage.Info);
             SetStage(_stageLocale,     stage == TitleStage.Locale);
             SetStage(_stageSeed,       stage == TitleStage.Seed);
             SetStage(_stageGenerating, stage == TitleStage.Generating || stage == TitleStage.Ready);

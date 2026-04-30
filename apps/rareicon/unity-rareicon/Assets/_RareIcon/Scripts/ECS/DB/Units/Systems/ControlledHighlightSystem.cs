@@ -1,4 +1,6 @@
+using Unity.Burst;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
@@ -7,7 +9,7 @@ using UnityEngine.Rendering;
 
 namespace RareIcon
 {
-    /// <summary>Renders a single pulsing gold ring under the unit currently held by <see cref="ControllerId.Local"/>. Reads the active possession from <see cref="CharacterOrchestrator"/> rather than scanning <see cref="ControlledUnitTag"/> directly so multi-controller scenarios (split-screen, spectator, cinematic) can branch on controller id without changing this system. Pulse driven by <c>sin(time * PulseHz)</c> on scale; off-screen when no possession is active.</summary>
+    /// <summary>Renders a single pulsing gold ring under the unit currently held by <see cref="ControllerId.Local"/>. Reads the active possession from <see cref="CharacterOrchestrator"/> rather than scanning <see cref="ControlledUnitTag"/> directly so multi-controller scenarios (split-screen, spectator, cinematic) can branch on controller id without changing this system. Pulse driven by <c>sin(time * PulseHz)</c> on scale; off-screen when no possession is active. Position write runs in a Burst <see cref="IJob"/> via <see cref="ComponentLookup{T}"/> so the dependency graph chains cleanly with parallel <c>LocalTransform</c> writers (ProjectileTickJob etc.) — main-thread access here would race them.</summary>
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     public partial class ControlledHighlightSystem : SystemBase
@@ -21,13 +23,11 @@ namespace RareIcon
 
         Entity _markerEntity;
         bool   _ready;
-        ComponentLookup<LocalTransform> _transformRO;
         ComponentLookup<LocalTransform> _transformRW;
 
         protected override void OnCreate()
         {
             RequireForUpdate<CharacterOrchestratorSingleton>();
-            _transformRO = GetComponentLookup<LocalTransform>(true);
             _transformRW = GetComponentLookup<LocalTransform>(false);
         }
 
@@ -35,24 +35,24 @@ namespace RareIcon
         {
             if (!_ready) { CreateMarker(); if (!_ready) return; }
 
-            _transformRO.Update(this);
             _transformRW.Update(this);
 
             var reg = SystemAPI.GetSingleton<CharacterOrchestratorSingleton>();
-            if (!reg.Active.IsCreated || !reg.Active.TryGetValue(ControllerId.Local, out var current)
-                || current == Entity.Null
-                || !_transformRO.HasComponent(current))
-            {
-                _transformRW[_markerEntity] = LocalTransform.FromPosition(new float3(HiddenZ, HiddenZ, HiddenZ));
-                return;
-            }
+            Entity current = Entity.Null;
+            if (reg.Active.IsCreated)
+                reg.Active.TryGetValue(ControllerId.Local, out current);
 
-            var unitTf = _transformRO[current];
             float pulse = OverlayScale + PulseAmount * math.sin((float)SystemAPI.Time.ElapsedTime * PulseHz);
-            _transformRW[_markerEntity] = LocalTransform.FromPositionRotationScale(
-                new float3(unitTf.Position.x, unitTf.Position.y, MarkerZ),
-                quaternion.identity,
-                pulse);
+
+            Dependency = new MarkerUpdateJob
+            {
+                Transforms = _transformRW,
+                Marker     = _markerEntity,
+                Current    = current,
+                Pulse      = pulse,
+                MarkerZ    = MarkerZ,
+                HiddenZ    = HiddenZ,
+            }.Schedule(Dependency);
         }
 
         protected override void OnDestroy()
@@ -82,6 +82,32 @@ namespace RareIcon
             RenderMeshUtility.AddComponents(_markerEntity, EntityManager, desc, array,
                 MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
             _ready = true;
+        }
+
+        [BurstCompile]
+        struct MarkerUpdateJob : IJob
+        {
+            public ComponentLookup<LocalTransform> Transforms;
+            public Entity Marker;
+            public Entity Current;
+            public float  Pulse;
+            public float  MarkerZ;
+            public float  HiddenZ;
+
+            public void Execute()
+            {
+                if (Current == Entity.Null || !Transforms.HasComponent(Current))
+                {
+                    Transforms[Marker] = LocalTransform.FromPosition(new float3(HiddenZ, HiddenZ, HiddenZ));
+                    return;
+                }
+
+                var pos = Transforms[Current].Position;
+                Transforms[Marker] = LocalTransform.FromPositionRotationScale(
+                    new float3(pos.x, pos.y, MarkerZ),
+                    quaternion.identity,
+                    Pulse);
+            }
         }
     }
 }

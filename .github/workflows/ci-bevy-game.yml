@@ -237,7 +237,7 @@ jobs:
                   esac
             - name: Push to itch
               env:
-                  BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+                  BUTLER_API_KEY: ${{ secrets.ITCH_API }}
               run: |
                   ./butler push ./build "${{ inputs.itch_user }}/${{ inputs.itch_game }}:${{ steps.chan.outputs.channel }}" \
                     --userversion "${{ inputs.manifest_version }}"

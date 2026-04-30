@@ -43,10 +43,15 @@ namespace RareIcon
         public void Tick()
         {
             var cam = _cameras.Camera;
-            var mouse = Mouse.current;
-            if (cam == null || mouse == null) return;
+            // Pointer.current returns the most-recently-used pointer device:
+            // Mouse on desktop, Touchscreen.primaryTouch on mobile.
+            // Pointer.press is the left mouse button or the primary-finger
+            // press, so wasPressedThisFrame / wasReleasedThisFrame work for
+            // both inputs without branching on platform.
+            var pointer = Pointer.current;
+            if (cam == null || pointer == null) return;
 
-            var sp = mouse.position.ReadValue();
+            var sp = pointer.position.ReadValue();
             var screen = new float2(sp.x, sp.y);
 
             float zDist = math.abs(cam.transform.position.z);
@@ -58,8 +63,8 @@ namespace RareIcon
             _lastHex = hex;
 
             bool overUiNow = _uiBlocker.IsPointerOverUi(sp);
-            bool pressed = mouse.leftButton.wasPressedThisFrame;
-            bool released = mouse.leftButton.wasReleasedThisFrame;
+            bool pressed = pointer.press.wasPressedThisFrame;
+            bool released = pointer.press.wasReleasedThisFrame;
 
             if (pressed)
             {

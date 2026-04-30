@@ -3,11 +3,14 @@
     <a href="/@{{ author_username }}">@{{ author_username }}</a>
     · {{ created_at_human }}
     · {{ score }} pts
-    <span class="forum-comment__actions" hidden>
-      <button type="button" class="forum-comment__action" data-action="edit-own">Edit</button>
-      <button type="button" class="forum-comment__action" data-action="mod-edit">Mod edit</button>
-      <button type="button" class="forum-comment__action forum-comment__action--danger" data-action="mod-remove">Remove</button>
-    </span>
+    <details class="forum-comment__menu" hidden>
+      <summary class="forum-comment__menu-toggle" aria-label="Comment actions">⋯</summary>
+      <div class="forum-comment__menu-items" role="menu">
+        <button type="button" role="menuitem" class="forum-comment__action" data-action="edit-own" hidden>Edit</button>
+        <button type="button" role="menuitem" class="forum-comment__action" data-action="mod-edit" hidden>Mod edit</button>
+        <button type="button" role="menuitem" class="forum-comment__action forum-comment__action--danger" data-action="mod-remove" hidden>Remove</button>
+      </div>
+    </details>
   </header>
   <div class="forum-comment__body">{{ body_html|safe }}</div>
   <template class="forum-comment__raw">{{ body_raw }}</template>

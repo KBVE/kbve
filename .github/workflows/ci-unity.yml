@@ -211,7 +211,9 @@ jobs:
     deploy_itch:
         name: Itch deploy ${{ matrix.target }}
         needs: [version_gate, build_matrix, build]
-        if: ${{ inputs.deploy_to_itch && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' }}
+        # Skip iOS — itch.io has no iOS channel; Unity only exports an
+        # unsigned Xcode project for that target anyway.
+        if: ${{ inputs.deploy_to_itch && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' && matrix.target != 'iOS' }}
         runs-on: ubuntu-latest
         timeout-minutes: 30
         strategy:
@@ -227,6 +229,7 @@ jobs:
                     StandaloneWindows64) echo "channel=windows" >> "$GITHUB_OUTPUT" ;;
                     StandaloneOSX)       echo "channel=osx"     >> "$GITHUB_OUTPUT" ;;
                     WebGL)               echo "channel=webgl"   >> "$GITHUB_OUTPUT" ;;
+                    Android)             echo "channel=android" >> "$GITHUB_OUTPUT" ;;
                     *)                   echo "channel=${{ matrix.target }}" >> "$GITHUB_OUTPUT" ;;
                   esac
 
@@ -238,7 +241,7 @@ jobs:
 
             - name: Push to itch.io via butler
               env:
-                  BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+                  BUTLER_API_KEY: ${{ secrets.ITCH_API }}
               run: |
                   curl -sL -o butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default
                   unzip -q butler.zip

@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Writes TenderMultiplier.Value = 1 when any Farmer-intent unit stands on the farm's 7-hex footprint; otherwise 0. ProductionSystem reads TenderMultiplier when starting a recipe cycle to halve the duration. Main-thread hex-snapshot + parallel per-farm multiplier writes.</summary>
+    /// <summary>Writes TenderMultiplier.Value = 1 when any Farmer-intent unit stands on the farm's 7-hex footprint; otherwise 0. ProductionSystem hard-gates new Farm cycles on tender > 0 (no Farmer = no production) and additionally halves the duration when tended, so the worker is required to start a cycle and rewarded for staying through it. Main-thread hex-snapshot + parallel per-farm multiplier writes.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(ProfessionDispatchSystem))]

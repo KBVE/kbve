@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/twitch.binpb
  * Config: ../twitch-zod-config.json
- * Generated: 2026-04-26T15:24:29.412Z
+ * Generated: 2026-04-30T06:38:13.172Z
  */
 
 import { z } from 'zod';

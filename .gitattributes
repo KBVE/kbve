@@ -7,8 +7,15 @@
 # Pattern coverage:
 #   - libuniti.dylib  (Rust FFI shared library, macOS)
 #   - uniti.dll       (Rust FFI shared library, Windows)
-#   - libuniti.so     (Rust FFI shared library, Linux)
+#   - libuniti.so     (Rust FFI shared library, Linux + Android per-ABI)
+#   - libuniti.a      (Rust FFI static library, iOS — inside uniti.xcframework/)
 #   - any future native plugin under apps/rareicon/**/Plugins/**
 apps/rareicon/**/Plugins/**/*.dylib filter=lfs diff=lfs merge=lfs -text
 apps/rareicon/**/Plugins/**/*.dll   filter=lfs diff=lfs merge=lfs -text
 apps/rareicon/**/Plugins/**/*.so    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/**/Plugins/**/*.a     filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/**/Plugins/**/*.bundle filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/**/Plugins/**/*.framework/** filter=lfs diff=lfs merge=lfs -text
+# XCFramework binary slices — Info.plist + headers stay text, the
+# library payload (.a per arch slice) is matched by the *.a rule above.
+# Explicit rule for any future *.framework wrapped libraries too.

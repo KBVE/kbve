@@ -32,6 +32,7 @@ namespace RareIcon
         DialogueNode _currentNode;
         Entity _activeSpeaker;
         bool _isActive;
+        int  _lastChoiceIndex;
 
         [Inject]
         public DialogueController(
@@ -103,9 +104,10 @@ namespace RareIcon
                 return;
             }
 
-            _activeTree    = tree;
-            _activeSpeaker = msg.Speaker;
-            _isActive      = true;
+            _activeTree      = tree;
+            _activeSpeaker   = msg.Speaker;
+            _isActive        = true;
+            _lastChoiceIndex = -1;
 
             VisitNode(tree.EntryNodeId);
         }
@@ -122,6 +124,7 @@ namespace RareIcon
         {
             if (!_isActive || _currentNode?.Choices == null) return;
             if (msg.Index < 0 || msg.Index >= _currentNode.Choices.Length) return;
+            _lastChoiceIndex = msg.Index;
             VisitNode(_currentNode.Choices[msg.Index].NextNodeId);
         }
 
@@ -180,7 +183,7 @@ namespace RareIcon
             _vn.Hide();
             _pause.Resume(PauseReason.Dialogue);
 
-            if (treeId != 0) _endedPub.Publish(new DialogueEndedMessage(treeId));
+            if (treeId != 0) _endedPub.Publish(new DialogueEndedMessage(treeId, _lastChoiceIndex));
         }
 
         public void Dispose() => _disposables?.Dispose();

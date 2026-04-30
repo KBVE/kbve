@@ -6,15 +6,96 @@
         <ui:VisualElement name="title-backdrop" class="title-backdrop" />
 
         <ui:VisualElement name="title-window" class="title-window">
+            <ui:VisualElement name="title-window-inner" class="title-window-inner" />
+
+            <ui:Button name="title-close" class="title-close" text="✕" />
+
             <ui:VisualElement class="title-header">
                 <ui:Label name="title-brand" class="title-brand" text="RAREICON" />
                 <ui:Label name="title-tagline" class="title-tagline" text="BULLET-HELL ROGUELITE" />
                 <ui:VisualElement class="title-tagline-rule" />
             </ui:VisualElement>
 
-            <ui:VisualElement name="title-stage-locale" class="title-stage">
-                <ui:Label class="title-stage__title" text="Choose a language" />
+            <!-- Two-column body: menu rail (left) + content panel (right). -->
+            <ui:VisualElement class="title-body">
+                <ui:VisualElement name="title-menu" class="title-menu">
+                    <ui:Button name="title-menu-singleplayer" class="title-menu-btn" text="Single Player" />
+                    <ui:Button name="title-menu-multiplayer" class="title-menu-btn title-menu-btn--disabled" text="Multiplayer · Soon" />
+                    <ui:Button name="title-menu-mods" class="title-menu-btn title-menu-btn--disabled" text="Mods · Soon" />
+                    <ui:Button name="title-menu-codex" class="title-menu-btn" text="Codex" />
+                    <ui:Button name="title-menu-settings" class="title-menu-btn title-menu-btn--disabled" text="Settings · Soon" />
+                    <ui:Button name="title-menu-credits" class="title-menu-btn" text="Credits" />
+                    <ui:Button name="title-menu-exit" class="title-menu-btn title-menu-btn--exit" text="Exit" />
+                </ui:VisualElement>
 
+                <ui:VisualElement name="title-content" class="title-content">
+                    <!-- Default info panel — shown until the player picks a menu option. -->
+                    <ui:VisualElement name="title-stage-info" class="title-stage title-stage-info">
+                        <ui:Label class="title-stage__title" text="Welcome, Wanderer" />
+                        <ui:Label class="title-stage__hint" text="A 2D sci-fi action-RPG bullet-hell roguelite. Chip vs DaemonCorps." />
+
+                        <ui:VisualElement class="title-info-grid">
+                            <ui:VisualElement class="title-info-card">
+                                <ui:Label class="title-info-card__label" text="LATEST" />
+                                <ui:Label class="title-info-card__value" text="Demo build" />
+                                <ui:Label class="title-info-card__sub"   text="v0.1.x · pre-alpha" />
+                            </ui:VisualElement>
+                            <ui:VisualElement class="title-info-card">
+                                <ui:Label class="title-info-card__label" text="STEAM" />
+                                <ui:Label class="title-info-card__value" text="App 2238370" />
+                                <ui:Label class="title-info-card__sub"   text="demo branch" />
+                            </ui:VisualElement>
+                            <ui:VisualElement class="title-info-card">
+                                <ui:Label class="title-info-card__label" text="COMMUNITY" />
+                                <ui:Label class="title-info-card__value" text="Discord" />
+                                <ui:Label class="title-info-card__sub"   text="kbve.com/discord/" />
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement name="title-stage-locale" class="title-stage is-hidden">
+                        <ui:Label class="title-stage__title" text="Choose a language" />
+
+                        <ui:VisualElement class="title-locale-row">
+                            <ui:Button name="title-locale-en" class="btn title-locale-btn" text="English" />
+                            <ui:Button name="title-locale-ja" class="btn title-locale-btn" text="日本語" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="title-action-row">
+                            <ui:Button name="title-locale-back" class="btn title-action-btn" text="Back to menu" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement name="title-stage-seed" class="title-stage is-hidden">
+                        <ui:Label class="title-stage__title" text="World seed" />
+                        <ui:Label class="title-stage__hint" text="Pick a seed or roll a fresh one. Same seed = same world." />
+
+                        <ui:VisualElement class="title-seed-row">
+                            <ui:IntegerField name="title-seed-input" class="title-seed-input" value="0" />
+                            <ui:Button name="title-seed-random" class="btn title-seed-btn" text="Random" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="title-action-row">
+                            <ui:Button name="title-seed-back" class="btn title-action-btn" text="Back" />
+                            <ui:Button name="title-seed-confirm" class="btn title-action-btn title-action-btn--primary" text="Generate" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement name="title-stage-generating" class="title-stage is-hidden">
+                        <ui:Label class="title-stage__title" text="Forging the world" />
+                        <ui:Label name="title-progress" class="title-stage__hint" text="Routing rivers..." />
+
+                        <ui:VisualElement name="title-progress-track" class="title-progress-track">
+                            <ui:VisualElement name="title-progress-fill" class="title-progress-fill" />
+                        </ui:VisualElement>
+
+                        <ui:Button name="title-start" class="btn title-action-btn title-action-btn--primary title-start" text="Start" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <!-- Footer: persona left, socials right, both anchored at the bottom of the window. -->
+            <ui:VisualElement class="title-footer">
                 <ui:VisualElement name="title-persona" class="title-persona">
                     <ui:VisualElement name="title-avatar" class="title-avatar" />
                     <ui:VisualElement class="title-persona__meta">
@@ -23,36 +104,20 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
 
-                <ui:VisualElement class="title-locale-row">
-                    <ui:Button name="title-locale-en" class="btn title-locale-btn" text="English" />
-                    <ui:Button name="title-locale-ja" class="btn title-locale-btn" text="日本語" />
+                <ui:VisualElement name="title-socials" class="title-socials">
+                    <ui:Button name="title-social-discord" class="title-social-btn" tooltip="Discord">
+                        <ui:VisualElement class="title-social-icon title-social-icon--discord" />
+                        <ui:Label class="title-social-fallback" text="DC" />
+                    </ui:Button>
+                    <ui:Button name="title-social-github" class="title-social-btn" tooltip="GitHub">
+                        <ui:VisualElement class="title-social-icon title-social-icon--github" />
+                        <ui:Label class="title-social-fallback" text="GH" />
+                    </ui:Button>
+                    <ui:Button name="title-social-twitch" class="title-social-btn" tooltip="Twitch">
+                        <ui:VisualElement class="title-social-icon title-social-icon--twitch" />
+                        <ui:Label class="title-social-fallback" text="TW" />
+                    </ui:Button>
                 </ui:VisualElement>
-            </ui:VisualElement>
-
-            <ui:VisualElement name="title-stage-seed" class="title-stage is-hidden">
-                <ui:Label class="title-stage__title" text="World seed" />
-                <ui:Label class="title-stage__hint" text="Pick a seed or roll a fresh one. Same seed = same world." />
-
-                <ui:VisualElement class="title-seed-row">
-                    <ui:IntegerField name="title-seed-input" class="title-seed-input" value="0" />
-                    <ui:Button name="title-seed-random" class="btn title-seed-btn" text="Random" />
-                </ui:VisualElement>
-
-                <ui:VisualElement class="title-action-row">
-                    <ui:Button name="title-seed-back" class="btn title-action-btn" text="Back" />
-                    <ui:Button name="title-seed-confirm" class="btn title-action-btn title-action-btn--primary" text="Generate" />
-                </ui:VisualElement>
-            </ui:VisualElement>
-
-            <ui:VisualElement name="title-stage-generating" class="title-stage is-hidden">
-                <ui:Label class="title-stage__title" text="Forging the world" />
-                <ui:Label name="title-progress" class="title-stage__hint" text="Routing rivers..." />
-
-                <ui:VisualElement name="title-progress-track" class="title-progress-track">
-                    <ui:VisualElement name="title-progress-fill" class="title-progress-fill" />
-                </ui:VisualElement>
-
-                <ui:Button name="title-start" class="btn title-action-btn title-action-btn--primary title-start" text="Start" />
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

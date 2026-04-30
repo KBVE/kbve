@@ -18,9 +18,9 @@ use tracing::info;
 
 use crate::astro::askama::{
     ForumCommentPartial, ForumComposeTemplate, ForumFeedItemPartial, ForumFeedTemplate,
-    ForumSpaceNotFoundTemplate, ForumThreadTemplate, HealthTemplate, ProfileForumCommentRowPartial,
-    ProfileForumThreadRowPartial, ProfileNotFoundTemplate, ProfileTemplate,
-    RentEarthCharacterDisplay, TemplateResponse,
+    ForumSpaceNotFoundTemplate, ForumTagsIndexTemplate, ForumThreadTemplate, HealthTemplate,
+    ProfileForumCommentRowPartial, ProfileForumThreadRowPartial, ProfileNotFoundTemplate,
+    ProfileTemplate, RentEarthCharacterDisplay, TemplateResponse,
 };
 use crate::auth::{extract_bearer_token, get_jwt_cache};
 use crate::db::{
@@ -237,6 +237,18 @@ fn router(state: AppState) -> Router {
             get(|Path(slug): Path<String>| async move {
                 Redirect::permanent(&format!("/forum/s/{}", slug))
             }),
+        )
+        .route("/forum/tag/{slug}", get(forum_tag_handler))
+        .route(
+            "/forum/tag/{slug}/",
+            get(|Path(slug): Path<String>| async move {
+                Redirect::permanent(&format!("/forum/tag/{}", slug))
+            }),
+        )
+        .route("/forum/tags", get(forum_tags_index_handler))
+        .route(
+            "/forum/tags/",
+            get(|| async { Redirect::permanent("/forum/tags") }),
         )
         .route("/forum/t/{slug_or_id}", get(forum_thread_handler))
         .route(
@@ -1907,6 +1919,28 @@ fn forum_render_ctx() -> kbve::markdown::RenderCtx<'static> {
     }
 }
 
+/// Percent-encode a string for safe inclusion as an `application/x-www-form-urlencoded`
+/// query-component value. RFC 3986 unreserved chars pass through; everything
+/// else (including `+`, `|`, `:`, space, etc.) gets `%HH` encoded. We need
+/// this for cursor pagination because the feed cursor format
+/// `<timestamp+offset>|<id>` carries `+` and `|`, both of which the browser
+/// + axum::extract::Query mangle if dumped raw into an `<a href>`.
+fn url_encode_component(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for byte in s.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                out.push(byte as char);
+            }
+            _ => {
+                out.push('%');
+                out.push_str(&format!("{:02X}", byte));
+            }
+        }
+    }
+    out
+}
+
 /// Crude HTML-escape for plain text strings going into pre-rendered HTML
 /// fragments. Askama templates use the default `e` filter for direct
 /// interpolation; this helper is for the few spots we hand-roll HTML.
@@ -2078,30 +2112,118 @@ fn build_pagination_html(rows: &[FeedRow], sort: &str, space_path: &str) -> Stri
         _ => return String::new(), // hot cursor needs hot_rank — skip
     };
     let cursor = format!("{}|{}", key, last.id);
+    // `+`, `|`, `:` in the cursor must be percent-encoded — otherwise
+    // the browser reads them as form-urlencoded and `+` becomes a space,
+    // which axum::extract::Query then deserializes as a malformed
+    // timestamp. html_escape only handles `&<>"'`, so we run the cursor
+    // (and the space_path / sort, defensively) through url_encode_component.
     format!(
-        r#"<a class="forum-pagination__next" href="{base}?sort={sort}&cursor={cursor}">Older →</a>"#,
+        r#"<a class="forum-pagination__next" href="{base}?sort={sort}&amp;cursor={cursor}">Older →</a>"#,
         base = html_escape(space_path),
-        sort = html_escape(sort),
-        cursor = html_escape(&cursor),
+        sort = url_encode_component(sort),
+        cursor = url_encode_component(&cursor),
     )
 }
 
-fn build_spaces_nav_html() -> String {
-    // Minimal nav until a service_list_spaces RPC + caching layer lands.
-    r#"<a href="/forum/">All</a>"#.to_string()
+fn build_spaces_nav_html(current_slug: Option<&str>) -> String {
+    // Hard-coded until service_list_spaces RPC + caching layer lands.
+    // Each entry: (slug-or-empty for "All", display name).
+    // The current space gets aria-current="page" so the sidebar shows
+    // active state without an extra DB round trip.
+    const ENTRIES: &[(&str, &str)] = &[
+        ("", "All"),
+        ("announcements", "Announcements"),
+        ("support", "Support"),
+    ];
+
+    let current = current_slug.unwrap_or("");
+    let mut out = String::with_capacity(256);
+    for (slug, label) in ENTRIES {
+        let href = if slug.is_empty() {
+            "/forum/".to_string()
+        } else {
+            format!("/forum/s/{}/", slug)
+        };
+        let is_active = *slug == current;
+        let class = if is_active {
+            r#" class="forum-spaces__link forum-spaces__link--active""#
+        } else {
+            r#" class="forum-spaces__link""#
+        };
+        let aria = if is_active {
+            r#" aria-current="page""#
+        } else {
+            ""
+        };
+        out.push_str(&format!(
+            r#"<a href="{}"{}{}>{}</a>"#,
+            href, class, aria, label
+        ));
+    }
+    out
 }
 
 async fn forum_feed_handler(
     axum::extract::Query(q): axum::extract::Query<FeedSortQuery>,
 ) -> Response {
-    render_feed_page(None, &q).await
+    render_feed_page(None, None, &q).await
 }
 
 async fn forum_space_handler(
     Path(slug): Path<String>,
     axum::extract::Query(q): axum::extract::Query<FeedSortQuery>,
 ) -> Response {
-    render_feed_page(Some(slug), &q).await
+    render_feed_page(Some(slug), None, &q).await
+}
+
+async fn forum_tag_handler(
+    Path(slug): Path<String>,
+    axum::extract::Query(q): axum::extract::Query<FeedSortQuery>,
+) -> Response {
+    render_feed_page(None, Some(slug), &q).await
+}
+
+/// GET /forum/tags — popularity-sorted tag listing.
+async fn forum_tags_index_handler() -> Response {
+    let svc = match get_forum_service() {
+        Some(s) => s,
+        None => {
+            return (StatusCode::SERVICE_UNAVAILABLE, "forum service unavailable").into_response();
+        }
+    };
+
+    let rows = match svc.list_tags(200).await {
+        Ok(rows) => rows,
+        Err(e) => {
+            tracing::error!("forum: list_tags failed: {}", e);
+            return (StatusCode::BAD_GATEWAY, "forum upstream error").into_response();
+        }
+    };
+
+    let tags_html = build_tag_cards_html(&rows);
+    let tag_count = rows.len();
+
+    TemplateResponse(ForumTagsIndexTemplate {
+        tags_html,
+        tag_count,
+    })
+    .into_response()
+}
+
+fn build_tag_cards_html(rows: &[crate::db::TagRow]) -> String {
+    if rows.is_empty() {
+        return r#"<p class="forum-tag-card__empty">No tags yet — use <code>#hashtag</code> in a thread to create one.</p>"#.to_string();
+    }
+    let mut out = String::with_capacity(rows.len() * 96);
+    for row in rows {
+        out.push_str(&format!(
+            r#"<a class="forum-tag-card" href="/forum/tag/{slug}/"><span class="forum-tag-card__slug">#{name}</span><span class="forum-tag-card__count">{count}</span></a>"#,
+            slug = row.slug,
+            name = html_escape(&row.name),
+            count = row.thread_count,
+        ));
+    }
+    out
 }
 
 #[derive(serde::Deserialize, Default)]
@@ -2110,7 +2232,11 @@ struct FeedSortQuery {
     cursor: Option<String>,
 }
 
-async fn render_feed_page(space_slug: Option<String>, q: &FeedSortQuery) -> Response {
+async fn render_feed_page(
+    space_slug: Option<String>,
+    tag_slug: Option<String>,
+    q: &FeedSortQuery,
+) -> Response {
     let svc = match get_forum_service() {
         Some(s) => s,
         None => {
@@ -2118,14 +2244,10 @@ async fn render_feed_page(space_slug: Option<String>, q: &FeedSortQuery) -> Resp
         }
     };
 
-    // Resolve space if filtering by slug.
     let space = match space_slug.as_deref() {
         Some(slug) => match svc.get_space_by_slug(slug).await {
             Ok(Some(space)) => Some(space),
             Ok(None) => {
-                // Render the styled space-not-found template instead of a
-                // plaintext error so visitors get a friendly 404 with
-                // navigation back into the forum.
                 return (
                     StatusCode::NOT_FOUND,
                     [(header::CACHE_CONTROL, "public, max-age=60")],
@@ -2143,6 +2265,21 @@ async fn render_feed_page(space_slug: Option<String>, q: &FeedSortQuery) -> Resp
         None => None,
     };
 
+    let tag = match tag_slug.as_deref() {
+        Some(slug) => match svc.get_tag_by_slug(slug).await {
+            Ok(Some(t)) => Some(t),
+            Ok(None) => {
+                return (StatusCode::NOT_FOUND, format!("tag '{}' not found", slug))
+                    .into_response();
+            }
+            Err(e) => {
+                tracing::error!("forum: get_tag_by_slug({}) failed: {}", slug, e);
+                return (StatusCode::BAD_GATEWAY, "forum upstream error").into_response();
+            }
+        },
+        None => None,
+    };
+
     let sort = q
         .sort
         .as_deref()
@@ -2154,6 +2291,7 @@ async fn render_feed_page(space_slug: Option<String>, q: &FeedSortQuery) -> Resp
 
     let query = FeedQuery {
         space_id: space_id_owned.as_deref(),
+        tag_id: tag.as_ref().map(|t| t.id),
         sort: &sort,
         cursor,
         limit: 25,
@@ -2201,31 +2339,41 @@ async fn render_feed_page(space_slug: Option<String>, q: &FeedSortQuery) -> Resp
 
     let feed_items_html = build_feed_items_html(&rows, &spaces_by_id, &usernames_by_id);
 
-    let space_path = match space.as_ref() {
-        Some(s) => format!("/forum/s/{}", s.slug),
-        None => "/forum/".to_string(),
+    let feed_base_path = match (space.as_ref(), tag.as_ref()) {
+        (Some(s), _) => format!("/forum/s/{}", s.slug),
+        (_, Some(t)) => format!("/forum/tag/{}", t.slug),
+        _ => "/forum/".to_string(),
     };
-    let pagination_html = build_pagination_html(&rows, &sort, &space_path);
+    let pagination_html = build_pagination_html(&rows, &sort, &feed_base_path);
 
-    let (heading, og_title, canonical_suffix) = match space.as_ref() {
-        Some(s) => (
+    let (heading, og_title, canonical_suffix) = match (space.as_ref(), tag.as_ref()) {
+        (Some(s), _) => (
             s.name.clone(),
             format!("{} — KBVE Forum", s.name),
             format!("s/{}", s.slug),
         ),
-        None => (
+        (_, Some(t)) => (
+            format!("#{}", t.slug),
+            format!("#{} — KBVE Forum", t.slug),
+            format!("tag/{}", t.slug),
+        ),
+        _ => (
             "KBVE Forum".to_string(),
             "KBVE Forum — Hot threads".to_string(),
             String::new(),
         ),
     };
 
-    let meta_description = match space.as_ref() {
-        Some(s) => s
+    let meta_description = match (space.as_ref(), tag.as_ref()) {
+        (Some(s), _) => s
             .description
             .clone()
             .unwrap_or_else(|| format!("{} discussions on KBVE.", s.name)),
-        None => "Discuss, trade, and play across KBVE communities.".to_string(),
+        (_, Some(t)) => t
+            .description
+            .clone()
+            .unwrap_or_else(|| format!("Threads tagged #{} on KBVE.", t.slug)),
+        _ => "Discuss, trade, and play across KBVE communities.".to_string(),
     };
 
     TemplateResponse(ForumFeedTemplate {
@@ -2235,7 +2383,7 @@ async fn render_feed_page(space_slug: Option<String>, q: &FeedSortQuery) -> Resp
         feed_canonical_suffix: canonical_suffix,
         active_sort_label: sort_label(&sort).to_string(),
         feed_items_html,
-        spaces_nav_html: build_spaces_nav_html(),
+        spaces_nav_html: build_spaces_nav_html(space_slug.as_deref()),
         pagination_html,
     })
     .into_response()
@@ -2322,6 +2470,12 @@ async fn forum_thread_handler(Path(slug_or_id): Path<String>) -> Response {
     let meta_description = plain_excerpt(&body_rendered.html, META_DESCRIPTION_CHARS);
     let thread_slug_or_id = thread.slug.clone().unwrap_or_else(|| thread.id.clone());
 
+    let tag_rows = svc.get_thread_tags(&thread.id).await.unwrap_or_else(|e| {
+        tracing::warn!("forum: get_thread_tags({}) failed: {}", thread.id, e);
+        Vec::new()
+    });
+    let tags_html = build_tag_chips_html(&tag_rows);
+
     TemplateResponse(ForumThreadTemplate {
         thread_title: thread.title.clone(),
         thread_slug_or_id,
@@ -2335,10 +2489,25 @@ async fn forum_thread_handler(Path(slug_or_id): Path<String>) -> Response {
         score: thread.score,
         comment_count: thread.comment_count,
         thread_body_html: body_rendered.html,
-        tags_html: String::new(),
+        tags_html,
         comments_html,
     })
     .into_response()
+}
+
+fn build_tag_chips_html(rows: &[crate::db::TagRow]) -> String {
+    if rows.is_empty() {
+        return String::new();
+    }
+    let mut out = String::with_capacity(rows.len() * 64);
+    for row in rows {
+        out.push_str(&format!(
+            r#"<a class="forum-tag-chip" href="/forum/tag/{slug}/">#{name}</a>"#,
+            slug = row.slug,
+            name = html_escape(&row.name),
+        ));
+    }
+    out
 }
 
 // ---------------------------------------------------------------------------
@@ -2408,12 +2577,20 @@ async fn auth_user_id(headers: &HeaderMap) -> Result<String, Response> {
         })
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, kbve::holy::Sanitize)]
 struct CreateThreadBody {
+    #[holy(sanitize = "trim, lowercase, slug, truncate(50)")]
     space_slug: String,
+    // No `escape_html` here — askama auto-escapes on render. Storing
+    // pre-escaped HTML would double-escape `&amp;` etc.
+    #[holy(sanitize = "trim, control_strip, truncate(180)")]
     title: String,
+    // body is markdown; only nul_strip + length cap. control_strip
+    // would eat \n / \t.
+    #[holy(sanitize = "nul_strip, truncate(50000)")]
     body: String,
     #[serde(default = "default_thread_type")]
+    #[holy(sanitize = "trim, lowercase, truncate(32)")]
     thread_type: String,
 }
 fn default_thread_type() -> String {
@@ -2422,7 +2599,11 @@ fn default_thread_type() -> String {
 
 /// POST /api/v1/forum/threads — Bearer-authed thread creation.
 /// Body: `{ space_slug, title, body, thread_type }`.
-async fn api_create_thread(headers: HeaderMap, Json(payload): Json<CreateThreadBody>) -> Response {
+async fn api_create_thread(
+    headers: HeaderMap,
+    Json(mut payload): Json<CreateThreadBody>,
+) -> Response {
+    payload.sanitize();
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,
@@ -2459,6 +2640,23 @@ async fn api_create_thread(headers: HeaderMap, Json(payload): Json<CreateThreadB
         }
     };
 
+    let ctx = forum_render_ctx();
+    let body_render = kbve::markdown::render(&payload.body, &ctx);
+    let tag_ids = if body_render.hashtags.is_empty() {
+        Vec::new()
+    } else {
+        match svc
+            .resolve_or_create_tag_slugs(&body_render.hashtags, &user_id)
+            .await
+        {
+            Ok(ids) => ids,
+            Err(e) => {
+                tracing::warn!("forum: tag resolve failed, dropping tags: {}", e);
+                Vec::new()
+            }
+        }
+    };
+
     match svc
         .create_thread(
             &user_id,
@@ -2467,7 +2665,7 @@ async fn api_create_thread(headers: HeaderMap, Json(payload): Json<CreateThreadB
             &payload.body,
             &payload.thread_type,
             None,
-            &[],
+            &tag_ids,
         )
         .await
     {
@@ -2483,9 +2681,12 @@ async fn api_create_thread(headers: HeaderMap, Json(payload): Json<CreateThreadB
     }
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, kbve::holy::Sanitize)]
 struct CreateCommentBody {
+    #[holy(sanitize = "nul_strip, truncate(50000)")]
     body: String,
+    // parent_comment_id is a UUID — RPC will reject malformed values,
+    // no sanitize needed.
     #[serde(default)]
     parent_comment_id: Option<String>,
 }
@@ -2494,8 +2695,9 @@ struct CreateCommentBody {
 async fn api_create_comment(
     Path(slug_or_id): Path<String>,
     headers: HeaderMap,
-    Json(payload): Json<CreateCommentBody>,
+    Json(mut payload): Json<CreateCommentBody>,
 ) -> Response {
+    payload.sanitize();
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,
@@ -2551,11 +2753,14 @@ async fn api_create_comment(
     }
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, kbve::holy::Sanitize)]
 struct EditCommentBody {
+    #[holy(sanitize = "nul_strip, truncate(50000)")]
     body: String,
-    /// Optional moderator reason — only honored on the staff-edit path.
+    /// Optional moderator reason — only honored on the staff-edit /
+    /// staff-remove paths. Inline text, sanitized as a title-like field.
     #[serde(default)]
+    #[holy(sanitize = "trim, control_strip, truncate(500)")]
     reason: Option<String>,
 }
 
@@ -2564,8 +2769,9 @@ struct EditCommentBody {
 async fn api_edit_comment(
     Path(comment_id): Path<String>,
     headers: HeaderMap,
-    Json(payload): Json<EditCommentBody>,
+    Json(mut payload): Json<EditCommentBody>,
 ) -> Response {
+    payload.sanitize();
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,
@@ -2599,8 +2805,9 @@ async fn api_edit_comment(
 async fn api_remove_comment(
     Path(comment_id): Path<String>,
     headers: HeaderMap,
-    Json(payload): Json<EditCommentBody>,
+    Json(mut payload): Json<EditCommentBody>,
 ) -> Response {
+    payload.sanitize();
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,
@@ -2691,8 +2898,9 @@ async fn api_me_staff(headers: HeaderMap) -> Response {
 async fn api_staff_edit_comment(
     Path(comment_id): Path<String>,
     headers: HeaderMap,
-    Json(payload): Json<EditCommentBody>,
+    Json(mut payload): Json<EditCommentBody>,
 ) -> Response {
+    payload.sanitize();
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,
