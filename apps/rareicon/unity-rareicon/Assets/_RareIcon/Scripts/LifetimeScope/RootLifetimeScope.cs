@@ -2,7 +2,9 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 using MessagePipe;
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
 using RareIcon.Platform;
+#endif
 
 namespace RareIcon
 {
@@ -57,7 +59,8 @@ namespace RareIcon
             builder.RegisterMessageBroker<QuestCompletedMessage>(options);
             builder.RegisterMessageBroker<QuestFailedMessage>(options);
 
-            // -- Steam platform events --
+            // -- Steam platform events (standalone-only; stripped on iOS/Android via asmdef) --
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             builder.RegisterMessageBroker<SteamLobbyCreatedMessage>(options);
             builder.RegisterMessageBroker<SteamLobbyJoinedMessage>(options);
             builder.RegisterMessageBroker<SteamLobbyLeftMessage>(options);
@@ -70,6 +73,7 @@ namespace RareIcon
             builder.RegisterMessageBroker<SteamNetworkSessionFailedMessage>(options);
             builder.RegisterMessageBroker<SteamAvatarReadyMessage>(options);
             builder.RegisterMessageBroker<SteamLobbyBrowserResultMessage>(options);
+#endif
 
             builder.RegisterBuildCallback(container =>
             {
@@ -105,11 +109,13 @@ namespace RareIcon
             builder.Register<RiverRouter>(Lifetime.Singleton).AsSelf();
             builder.Register<WorldGenSession>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
 
-            // -- Steam services --
+            // -- Steam services (standalone-only; entire RareIcon.Platform asmdef
+            //    is excluded on iOS/Android/WebGL targets) --
             // SteamManager itself self-bootstraps via RuntimeInitializeOnLoad —
             // these are the managed service facades that consume its callbacks.
             // RegisterEntryPoint wires IStartable (callback subscription),
             // ITickable (per-frame message polling), and IDisposable (cleanup).
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             builder.RegisterEntryPoint<SteamLobbyService>(Lifetime.Singleton)
                 .AsSelf().As<ISteamLobbyService>();
             builder.RegisterEntryPoint<SteamNetworkingService>(Lifetime.Singleton)
@@ -124,6 +130,7 @@ namespace RareIcon
                 .AsSelf().As<ISteamAvatarService>();
             builder.RegisterEntryPoint<SteamLobbyBrowserService>(Lifetime.Singleton)
                 .AsSelf().As<ISteamLobbyBrowserService>();
+#endif
 
             // -- UI --
             builder.RegisterComponentOnNewGameObject<UIPanelManager>(Lifetime.Singleton, "UIPanelManager")

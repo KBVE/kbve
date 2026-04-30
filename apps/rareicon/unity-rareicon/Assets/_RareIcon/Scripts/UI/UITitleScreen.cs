@@ -3,11 +3,13 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using MessagePipe;
 using R3;
-using RareIcon.Platform;
 using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
 using VContainer.Unity;
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
+using RareIcon.Platform;
+#endif
 
 namespace RareIcon
 {
@@ -18,8 +20,10 @@ namespace RareIcon
         readonly UIPanelManager _panelManager;
         readonly WorldGenSession _session;
         readonly AppStateController _appState;
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
         readonly ISubscriber<SteamAvatarReadyMessage> _avatarSub;
         readonly ISteamAvatarService _avatars;
+#endif
 
         readonly CompositeDisposable _disposables = new();
 
@@ -42,16 +46,21 @@ namespace RareIcon
             LocaleService locale,
             UIPanelManager panelManager,
             WorldGenSession session,
-            AppStateController appState,
-            ISubscriber<SteamAvatarReadyMessage> avatarSub,
-            ISteamAvatarService avatars)
+            AppStateController appState
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
+            , ISubscriber<SteamAvatarReadyMessage> avatarSub
+            , ISteamAvatarService avatars
+#endif
+        )
         {
             _locale = locale;
             _panelManager = panelManager;
             _session = session;
             _appState = appState;
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             _avatarSub = avatarSub;
             _avatars = avatars;
+#endif
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
@@ -121,9 +130,11 @@ namespace RareIcon
                 if (_seedInput != null && _seedInput.value != s) _seedInput.SetValueWithoutNotify(s);
             }).AddTo(_disposables);
 
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             var bag = MessagePipe.DisposableBag.CreateBuilder();
             _avatarSub.Subscribe(_ => RefreshAvatar()).AddTo(bag);
             _disposables.Add(bag.Build());
+#endif
         }
 
         /// <summary>Wire the AoE-style left menu rail. Single Player drops into the existing locale → seed → generating flow; Codex / Credits open external KBVE pages; Exit triggers Application.Quit. Multiplayer / Mods / Settings stay disabled visually until backend support lands.</summary>
@@ -211,19 +222,20 @@ namespace RareIcon
 
         void BindPersona()
         {
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             if (SteamManager.IsReady)
             {
                 _personaName.text = SteamManager.LocalPersonaName;
                 _personaStatus.text = "Steam";
                 RefreshAvatar();
+                return;
             }
-            else
-            {
-                _personaName.text = "Wanderer";
-                _personaStatus.text = "Offline";
-            }
+#endif
+            _personaName.text = "Wanderer";
+            _personaStatus.text = "Offline";
         }
 
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
         void RefreshAvatar()
         {
             if (!SteamManager.IsReady || _avatars == null) return;
@@ -231,6 +243,7 @@ namespace RareIcon
             if (tex == null) return;
             _avatar.style.backgroundImage = new StyleBackground(tex);
         }
+#endif
 
         void OnStageChanged(TitleStage stage)
         {
