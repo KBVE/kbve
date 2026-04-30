@@ -51,6 +51,41 @@ namespace RareIcon
                     Cooldown     = 6f * 60f,
                     ProbPerCheck = 0.08f,
                 },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.WanderingHero,
+                    MinFromBoot  = 7f * 60f,
+                    Cooldown     = 12f * 60f,
+                    ProbPerCheck = 0.03f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.MerchantCaravan,
+                    MinFromBoot  = 4f * 60f,
+                    Cooldown     = 7f * 60f,
+                    ProbPerCheck = 0.06f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.WolfPack,
+                    MinFromBoot  = 3f * 60f,
+                    Cooldown     = 5f * 60f,
+                    ProbPerCheck = 0.10f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.BanditRaidMini,
+                    MinFromBoot  = 6f * 60f,
+                    Cooldown     = 4f * 60f,
+                    ProbPerCheck = 0.10f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.FallingStar,
+                    MinFromBoot  = 8f * 60f,
+                    Cooldown     = 15f * 60f,
+                    ProbPerCheck = 0.02f,
+                },
             };
             _nextEarliest = new float[_events.Length];
         }
