@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/ci_registry.binpb
  * Config: ../ci_registry-zod-config.json
- * Generated: 2026-04-26T15:24:29.403Z
+ * Generated: 2026-04-30T06:38:13.163Z
  */
 
 import { z } from 'zod';
@@ -15,6 +15,10 @@ export const DispatchPipelines = [
 	'python',
 	'unreal',
 	'ue5_server',
+	'unity',
+	'godot',
+	'unreal_game',
+	'bevy_game',
 ] as const;
 
 export type DispatchPipelineValue = (typeof DispatchPipelines)[number];
@@ -29,6 +33,9 @@ export const TestFrameworks = [
 	'python',
 	'deno',
 	'cpp',
+	'unity',
+	'godot',
+	'ue_automation',
 ] as const;
 
 export type TestFrameworkValue = (typeof TestFrameworks)[number];
@@ -43,6 +50,7 @@ export const ExternalPublishSchema = z.object({
 	modrinth_game_versions: z.string().max(512).optional(),
 	modrinth_loaders: z.string().max(256).optional(),
 	modrinth_retain_count: z.number().int().min(1).max(50).optional(),
+	modrinth_rolling_version: z.string().min(1).max(64).optional(),
 	itch_user: z.string().min(1).max(64).optional(),
 	itch_game: z.string().min(1).max(64).optional(),
 	itch_channel: z.string().min(1).max(64).optional(),
@@ -66,6 +74,20 @@ export const ExternalPublishSchema = z.object({
 });
 
 export type ExternalPublish = z.infer<typeof ExternalPublishSchema>;
+
+// GameEngineConfig
+export const GameEngineConfigSchema = z.object({
+	version: z.string().min(1).max(64),
+	project_path: z.string().min(1).max(256),
+	build_targets: z.array(z.string().min(1).max(64)).max(20),
+	license_method: z.enum(['personal', 'professional', 'serial']).optional(),
+	dotnet_enabled: z.boolean().optional(),
+	test_args: z.array(z.string().max(256)).max(50).optional(),
+	features: z.array(z.string().min(1).max(64)).max(50).optional(),
+	external_repo_url: z.string().url().max(512).optional(),
+});
+
+export type GameEngineConfig = z.infer<typeof GameEngineConfigSchema>;
 
 // CiProject
 export const CiProjectSchema = z.object({
@@ -103,7 +125,7 @@ export const CiProjectSchema = z.object({
 		.string()
 		.regex(/^\d+\.\d+\.\d+$/, 'Must be valid semver (x.y.z)')
 		.optional(),
-	version_source: z.string().optional(),
+	version_source: z.string().max(256).optional(),
 	author: z.string().min(1).max(128).optional(),
 	license: z.string().min(1).max(64).optional(),
 	repository_url: z.string().url().max(512).optional(),
@@ -120,8 +142,9 @@ export const CiProjectSchema = z.object({
 	target: z.string().max(64).optional(),
 	nx_project: z.string().max(64).optional(),
 	test_framework: TestFrameworkSchema.optional(),
-	shell_path: z.string().optional(),
+	shell_path: z.string().max(256).optional(),
 	external_publish: ExternalPublishSchema.optional(),
+	engine: GameEngineConfigSchema.optional(),
 });
 
 export type CiProject = z.infer<typeof CiProjectSchema>;

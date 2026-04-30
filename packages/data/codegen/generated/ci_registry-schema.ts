@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/ci_registry.binpb
  * Config: ../ci_registry-zod-config.json
- * Generated: 2026-04-27T17:14:50.613Z
+ * Generated: 2026-04-30T06:38:13.163Z
  */
 
 import { z } from 'zod';
@@ -50,6 +50,7 @@ export const ExternalPublishSchema = z.object({
 	modrinth_game_versions: z.string().max(512).optional(),
 	modrinth_loaders: z.string().max(256).optional(),
 	modrinth_retain_count: z.number().int().min(1).max(50).optional(),
+	modrinth_rolling_version: z.string().min(1).max(64).optional(),
 	itch_user: z.string().min(1).max(64).optional(),
 	itch_game: z.string().min(1).max(64).optional(),
 	itch_channel: z.string().min(1).max(64).optional(),

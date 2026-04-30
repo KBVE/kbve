@@ -65,6 +65,7 @@ jobs:
                   echo "version_type=$(echo "$EP" | jq -r '.modrinth_version_type // "release"')" >> "$GITHUB_OUTPUT"
                   echo "loaders=$(echo "$EP" | jq -c '.modrinth_loaders // "[\"fabric\"]" | if type=="string" then fromjson else . end')" >> "$GITHUB_OUTPUT"
                   echo "game_versions=$(echo "$EP" | jq -c '.modrinth_game_versions // "[]" | if type=="string" then fromjson else . end')" >> "$GITHUB_OUTPUT"
+                  echo "rolling_version=$(echo "$EP" | jq -r '.modrinth_rolling_version // ""')" >> "$GITHUB_OUTPUT"
 
             - name: Pin version.toml to publishing version
               env:
@@ -107,6 +108,7 @@ jobs:
                   VERSION_TYPE: ${{ steps.ep.outputs.version_type }}
                   LOADERS: ${{ steps.ep.outputs.loaders }}
                   GAME_VERSIONS: ${{ steps.ep.outputs.game_versions }}
+                  ROLLING_VERSION: ${{ steps.ep.outputs.rolling_version }}
                   JAR_PATH: ${{ steps.jar.outputs.path }}
               run: |
                   set -euo pipefail
@@ -115,20 +117,54 @@ jobs:
                     exit 1
                   fi
 
+                  TARGET_VERSION="${ROLLING_VERSION:-$VERSION}"
+
                   EXISTING=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
                     "https://api.modrinth.com/v2/project/$MOD_PROJECT_ID/version" \
-                    | jq -r --arg v "$VERSION" '.[] | select(.version_number == $v) | .id' \
+                    | jq -r --arg v "$TARGET_VERSION" '.[] | select(.version_number == $v) | .id' \
                     | head -1)
 
-                  if [ -n "$EXISTING" ]; then
-                    echo "::notice::JAR v$VERSION already on Modrinth (id=$EXISTING) — skipping."
+                  if [ -n "$EXISTING" ] && [ -z "$ROLLING_VERSION" ]; then
+                    echo "::notice::JAR v$TARGET_VERSION already on Modrinth (id=$EXISTING) — skipping."
+                    exit 0
+                  fi
+
+                  if [ -n "$EXISTING" ] && [ -n "$ROLLING_VERSION" ]; then
+                    echo "── Rolling JAR mode: replacing file on existing version $EXISTING (tag=$ROLLING_VERSION) ──"
+                    OLD_HASHES=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
+                      "https://api.modrinth.com/v2/version/$EXISTING" \
+                      | jq -r '.files[].hashes.sha1')
+
+                    HTTP_CODE=$(curl -sSL -o /tmp/jar-add.json -w '%{http_code}' \
+                      -X POST "https://api.modrinth.com/v2/version/$EXISTING/file" \
+                      -H "Authorization: $MODRINTH_TOKEN" \
+                      -F "jar=@$JAR_PATH;type=application/java-archive")
+                    if [ "$HTTP_CODE" != "204" ] && [ "$HTTP_CODE" != "200" ]; then
+                      echo "::error::Modrinth JAR add-to-version failed (HTTP $HTTP_CODE)"
+                      cat /tmp/jar-add.json
+                      exit 1
+                    fi
+                    echo "Added new JAR file to v$TARGET_VERSION (id=$EXISTING)"
+
+                    for hash in $OLD_HASHES; do
+                      [ -z "$hash" ] && continue
+                      DEL_CODE=$(curl -sSL -o /tmp/del-resp.json -w '%{http_code}' \
+                        -X DELETE "https://api.modrinth.com/v2/version_file/$hash" \
+                        -H "Authorization: $MODRINTH_TOKEN")
+                      if [ "$DEL_CODE" != "204" ]; then
+                        echo "::warning::Delete old JAR file (sha1=$hash) failed HTTP $DEL_CODE"
+                        cat /tmp/del-resp.json || true
+                      else
+                        echo "Removed old JAR file sha1=$hash"
+                      fi
+                    done
                     exit 0
                   fi
 
                   cat > /tmp/data.json <<JSON
                   {
-                    "name": "behavior_statetree $VERSION",
-                    "version_number": "$VERSION",
+                    "name": "behavior_statetree $TARGET_VERSION",
+                    "version_number": "$TARGET_VERSION",
                     "version_type": "$VERSION_TYPE",
                     "project_id": "$MOD_PROJECT_ID",
                     "loaders": $LOADERS,
@@ -178,6 +214,7 @@ jobs:
                   VERSION_TYPE: ${{ steps.ep.outputs.version_type }}
                   LOADERS: ${{ steps.ep.outputs.loaders }}
                   GAME_VERSIONS: ${{ steps.ep.outputs.game_versions }}
+                  ROLLING_VERSION: ${{ steps.ep.outputs.rolling_version }}
                   MRPACK_PATH: ${{ steps.mrpack.outputs.path }}
               run: |
                   set -euo pipefail
@@ -186,20 +223,54 @@ jobs:
                     exit 1
                   fi
 
+                  TARGET_VERSION="${ROLLING_VERSION:-$VERSION}"
+
                   EXISTING=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
                     "https://api.modrinth.com/v2/project/$PACK_PROJECT_ID/version" \
-                    | jq -r --arg v "$VERSION" '.[] | select(.version_number == $v) | .id' \
+                    | jq -r --arg v "$TARGET_VERSION" '.[] | select(.version_number == $v) | .id' \
                     | head -1)
 
-                  if [ -n "$EXISTING" ]; then
-                    echo "::notice::mrpack v$VERSION already on Modrinth (id=$EXISTING) — skipping."
+                  if [ -n "$EXISTING" ] && [ -z "$ROLLING_VERSION" ]; then
+                    echo "::notice::mrpack v$TARGET_VERSION already on Modrinth (id=$EXISTING) — skipping."
+                    exit 0
+                  fi
+
+                  if [ -n "$EXISTING" ] && [ -n "$ROLLING_VERSION" ]; then
+                    echo "── Rolling mrpack mode: replacing file on existing version $EXISTING (tag=$ROLLING_VERSION) ──"
+                    OLD_HASHES=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
+                      "https://api.modrinth.com/v2/version/$EXISTING" \
+                      | jq -r '.files[].hashes.sha1')
+
+                    HTTP_CODE=$(curl -sSL -o /tmp/mrpack-add.json -w '%{http_code}' \
+                      -X POST "https://api.modrinth.com/v2/version/$EXISTING/file" \
+                      -H "Authorization: $MODRINTH_TOKEN" \
+                      -F "mrpack=@$MRPACK_PATH;type=application/x-modrinth-modpack+zip")
+                    if [ "$HTTP_CODE" != "204" ] && [ "$HTTP_CODE" != "200" ]; then
+                      echo "::error::Modrinth mrpack add-to-version failed (HTTP $HTTP_CODE)"
+                      cat /tmp/mrpack-add.json
+                      exit 1
+                    fi
+                    echo "Added new mrpack file to v$TARGET_VERSION (id=$EXISTING)"
+
+                    for hash in $OLD_HASHES; do
+                      [ -z "$hash" ] && continue
+                      DEL_CODE=$(curl -sSL -o /tmp/del-resp.json -w '%{http_code}' \
+                        -X DELETE "https://api.modrinth.com/v2/version_file/$hash" \
+                        -H "Authorization: $MODRINTH_TOKEN")
+                      if [ "$DEL_CODE" != "204" ]; then
+                        echo "::warning::Delete old mrpack file (sha1=$hash) failed HTTP $DEL_CODE"
+                        cat /tmp/del-resp.json || true
+                      else
+                        echo "Removed old mrpack file sha1=$hash"
+                      fi
+                    done
                     exit 0
                   fi
 
                   cat > /tmp/pack-data.json <<JSON
                   {
-                    "name": "KBVE MC Client $VERSION",
-                    "version_number": "$VERSION",
+                    "name": "KBVE MC Client $TARGET_VERSION",
+                    "version_number": "$TARGET_VERSION",
                     "version_type": "$VERSION_TYPE",
                     "project_id": "$PACK_PROJECT_ID",
                     "loaders": $LOADERS,
@@ -237,6 +308,7 @@ jobs:
                   EP='${{ inputs.external_publish }}'
                   echo "mod_id=$(echo "$EP" | jq -r '.modrinth_mod_id // ""')" >> "$GITHUB_OUTPUT"
                   echo "pack_id=$(echo "$EP" | jq -r '.modrinth_pack_id // ""')" >> "$GITHUB_OUTPUT"
+                  echo "rolling_version=$(echo "$EP" | jq -r '.modrinth_rolling_version // ""')" >> "$GITHUB_OUTPUT"
 
             - name: Verify Modrinth published versions
               env:
@@ -244,12 +316,15 @@ jobs:
                   MOD_PROJECT_ID: ${{ steps.ep.outputs.mod_id }}
                   PACK_PROJECT_ID: ${{ steps.ep.outputs.pack_id }}
                   VERSION: ${{ inputs.version }}
+                  ROLLING_VERSION: ${{ steps.ep.outputs.rolling_version }}
               run: |
                   set -euo pipefail
                   if [ -z "${MODRINTH_TOKEN:-}" ]; then
                     echo "::error::MODRINTH_TOKEN missing — cannot verify."
                     exit 1
                   fi
+
+                  TARGET_VERSION="${ROLLING_VERSION:-$VERSION}"
 
                   verify_project () {
                     local PROJECT_ID="$1"
@@ -258,16 +333,16 @@ jobs:
                       return 0
                     fi
 
-                    echo "── Verifying $LABEL v$VERSION on project $PROJECT_ID ──"
+                    echo "── Verifying $LABEL v$TARGET_VERSION on project $PROJECT_ID ──"
 
                     local META
                     META=$(curl -sSL --fail-with-body \
                       -H "Authorization: $MODRINTH_TOKEN" \
                       "https://api.modrinth.com/v2/project/$PROJECT_ID/version" \
-                      | jq --arg v "$VERSION" '[.[] | select(.version_number == $v)] | .[0]')
+                      | jq --arg v "$TARGET_VERSION" '[.[] | select(.version_number == $v)] | .[0]')
 
                     if [ "$META" = "null" ] || [ -z "$META" ]; then
-                      echo "::error::$LABEL v$VERSION NOT found on Modrinth"
+                      echo "::error::$LABEL v$TARGET_VERSION NOT found on Modrinth"
                       exit 1
                     fi
 
@@ -282,22 +357,22 @@ jobs:
                     echo "  url:      $FURL"
 
                     if [ "$STATUS" != "listed" ] && [ "$STATUS" != "unlisted" ]; then
-                      echo "::error::$LABEL v$VERSION status is '$STATUS' — expected 'listed' or 'unlisted'"
+                      echo "::error::$LABEL v$TARGET_VERSION status is '$STATUS' — expected 'listed' or 'unlisted'"
                       exit 1
                     fi
 
-                    if [[ "$FNAME" != *"$VERSION"* ]]; then
+                    if [ -z "$ROLLING_VERSION" ] && [[ "$FNAME" != *"$VERSION"* ]]; then
                       echo "::warning::$LABEL v$VERSION file '$FNAME' does not contain version string '$VERSION'"
                     fi
 
                     local HTTP_CODE
                     HTTP_CODE=$(curl -sSL -o /dev/null -w '%{http_code}' -I "$FURL")
                     if [ "$HTTP_CODE" != "200" ]; then
-                      echo "::error::$LABEL v$VERSION CDN download HEAD returned HTTP $HTTP_CODE"
+                      echo "::error::$LABEL v$TARGET_VERSION CDN download HEAD returned HTTP $HTTP_CODE"
                       exit 1
                     fi
 
-                    echo "  ✓ $LABEL v$VERSION live + downloadable"
+                    echo "  ✓ $LABEL v$TARGET_VERSION live + downloadable"
                   }
 
                   verify_project "$MOD_PROJECT_ID" "mod"
@@ -309,12 +384,15 @@ jobs:
                   MOD_PROJECT_ID: ${{ steps.ep.outputs.mod_id }}
                   PACK_PROJECT_ID: ${{ steps.ep.outputs.pack_id }}
                   VERSION: ${{ inputs.version }}
+                  ROLLING_VERSION: ${{ steps.ep.outputs.rolling_version }}
               run: |
                   set -euo pipefail
                   if [ -z "${MODRINTH_TOKEN:-}" ]; then
                     echo "::warning::MODRINTH_TOKEN missing — skipping unfeature sweep."
                     exit 0
                   fi
+
+                  TARGET_VERSION="${ROLLING_VERSION:-$VERSION}"
 
                   unfeature_others () {
                     local PROJECT_ID="$1"
@@ -331,11 +409,11 @@ jobs:
                       "https://api.modrinth.com/v2/project/$PROJECT_ID/version")
 
                     local OTHERS
-                    OTHERS=$(echo "$LIST" | jq -r --arg v "$VERSION" \
+                    OTHERS=$(echo "$LIST" | jq -r --arg v "$TARGET_VERSION" \
                       '.[] | select(.featured == true and .version_number != $v) | "\(.id)\t\(.version_number)"')
 
                     if [ -z "$OTHERS" ]; then
-                      echo "  Only v$VERSION is featured — nothing to do."
+                      echo "  Only v$TARGET_VERSION is featured — nothing to do."
                       return 0
                     fi
 
@@ -360,7 +438,10 @@ jobs:
     modrinth_prune:
         name: Modrinth Prune (${{ inputs.app_name }})
         needs: [modrinth, modrinth_verify]
-        if: needs.modrinth.result == 'success' && needs.modrinth_verify.result == 'success'
+        if: |
+            needs.modrinth.result == 'success' &&
+            needs.modrinth_verify.result == 'success' &&
+            fromJson(inputs.external_publish).modrinth_rolling_version == ''
         runs-on: ubuntu-latest
         timeout-minutes: 10
         permissions:
