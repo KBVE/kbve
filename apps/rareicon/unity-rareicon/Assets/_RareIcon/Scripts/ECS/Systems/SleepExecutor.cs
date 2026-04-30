@@ -31,13 +31,19 @@ namespace RareIcon
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);
 
+            uint currentTurn = SystemAPI.HasSingleton<WorldClock>()
+                ? SystemAPI.GetSingleton<WorldClock>().TurnIndex
+                : 0u;
+
             var sleepHandle = new SleepJob
             {
                 Dt                    = SystemAPI.Time.DeltaTime,
+                CurrentTurn           = currentTurn,
                 HexLookup             = hexLookupSingleton.Lookup,
                 HexOccupantLookup     = SystemAPI.GetComponentLookup<HexOccupant>(true),
                 ProvidesSleepLookup   = SystemAPI.GetComponentLookup<ProvidesSleep>(true),
                 ProvidesHealingLookup = SystemAPI.GetComponentLookup<ProvidesHealing>(true),
+                ProvidesMoraleLookup  = SystemAPI.GetComponentLookup<ProvidesMorale>(true),
                 SleeperCounts         = sleeperCounts,
                 SleepingLookup        = SystemAPI.GetComponentLookup<SleepingTag>(true),
                 HealthLookup          = SystemAPI.GetComponentLookup<Health>(false),
@@ -71,20 +77,26 @@ namespace RareIcon
     [BurstCompile]
     public partial struct SleepJob : IJobEntity
     {
-        const float SleepDrainPerSec      = 20f;
-        const float GoblinSleepMultiplier = 1.75f;
-        const float WakeThresholdPct      = 0.15f;
-        const float SleepHealPerSec       = 2f;
-        const float HealingScalePerTier   = 2f;
+        const float SleepDrainPerSec       = 20f;
+        const float GoblinSleepMultiplier  = 1.75f;
+        const float WakeThresholdPct       = 0.15f;
+        const float SleepHealPerSec        = 2f;
+        const float HealingScalePerTier    = 2f;
+        const uint  MoraleBuffDurationT1   = 200;
+        const uint  MoraleBuffDurationT2   = 400;
+        const sbyte MoraleWorkBonusT1      = 5;
+        const sbyte MoraleWorkBonusT2      = 10;
 
         public float Dt;
+        public uint  CurrentTurn;
 
-        [ReadOnly] public NativeHashMap<int2, Entity>     HexLookup;
-        [ReadOnly] public ComponentLookup<HexOccupant>    HexOccupantLookup;
-        [ReadOnly] public ComponentLookup<ProvidesSleep>  ProvidesSleepLookup;
-        [ReadOnly] public ComponentLookup<ProvidesHealing> ProvidesHealingLookup;
+        [ReadOnly] public NativeHashMap<int2, Entity>        HexLookup;
+        [ReadOnly] public ComponentLookup<HexOccupant>       HexOccupantLookup;
+        [ReadOnly] public ComponentLookup<ProvidesSleep>     ProvidesSleepLookup;
+        [ReadOnly] public ComponentLookup<ProvidesHealing>   ProvidesHealingLookup;
+        [ReadOnly] public ComponentLookup<ProvidesMorale>    ProvidesMoraleLookup;
         [ReadOnly] public NativeParallelHashMap<Entity, int> SleeperCounts;
-        [ReadOnly] public ComponentLookup<SleepingTag>    SleepingLookup;
+        [ReadOnly] public ComponentLookup<SleepingTag>       SleepingLookup;
 
         [NativeDisableParallelForRestriction]
         public ComponentLookup<Health> HealthLookup;
@@ -134,12 +146,30 @@ namespace RareIcon
                 }
 
                 if (fatigue.Value <= fatigue.Max * WakeThresholdPct && alreadySleeping)
+                {
                     Ecb.RemoveComponent<SleepingTag>(chunkIdx, entity);
+                    AttachMoraleBuffIfProvided(chunkIdx, entity, building);
+                }
                 return;
             }
 
             if (alreadySleeping)
                 Ecb.RemoveComponent<SleepingTag>(chunkIdx, entity);
+        }
+
+        void AttachMoraleBuffIfProvided(int chunkIdx, Entity unit, Entity building)
+        {
+            if (!ProvidesMoraleLookup.HasComponent(building)) return;
+            byte mag = ProvidesMoraleLookup[building].Magnitude;
+            if (mag == 0) return;
+            uint duration = mag == 1 ? MoraleBuffDurationT1 : MoraleBuffDurationT2;
+            sbyte bonus   = mag == 1 ? MoraleWorkBonusT1   : MoraleWorkBonusT2;
+            Ecb.AddComponent(chunkIdx, unit, new MoraleBuff
+            {
+                ExpiresAtTurn  = CurrentTurn + duration,
+                WorkBonusPct   = bonus,
+                CombatBonusPct = bonus,
+            });
         }
 
         Entity ResolveBuildingAt(int2 hex)

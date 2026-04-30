@@ -36,6 +36,7 @@ namespace RareIcon
             var sleepLookup   = SystemAPI.GetComponentLookup<ProvidesSleep>(true);
             var healLookup    = SystemAPI.GetComponentLookup<ProvidesHealing>(true);
             var boardLookup   = SystemAPI.GetComponentLookup<QuestBoardState>(true);
+            var moraleLookup  = SystemAPI.GetComponentLookup<ProvidesMorale>(true);
 
             for (int i = 0; i < entities.Length; i++)
             {
@@ -46,6 +47,7 @@ namespace RareIcon
                 ApplySleep(ecb, e, tier, sleepLookup);
                 ApplyHealing(ecb, e, tier, healLookup);
                 ApplyQuestBoard(ecb, e, tier, boardLookup);
+                ApplyMorale(ecb, e, tier, moraleLookup);
             }
             entities.Dispose();
         }
@@ -112,6 +114,21 @@ namespace RareIcon
                 ecb.AddComponent(e, new QuestBoardState { NextRefreshTurn = 0, Capacity = capacity });
                 ecb.AddBuffer<QuestBoardSlot>(e);
             }
+        }
+
+        static void ApplyMorale(EntityCommandBuffer ecb, Entity e, byte tier,
+                                ComponentLookup<ProvidesMorale> lookup)
+        {
+            if (tier == 0)
+            {
+                if (lookup.HasComponent(e)) ecb.RemoveComponent<ProvidesMorale>(e);
+                return;
+            }
+            byte mag = tier == 1 ? (byte)1 : (byte)2;
+            if (lookup.HasComponent(e))
+                ecb.SetComponent(e, new ProvidesMorale { Magnitude = mag });
+            else
+                ecb.AddComponent(e,  new ProvidesMorale { Magnitude = mag });
         }
     }
 }

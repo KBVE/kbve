@@ -41,6 +41,7 @@ namespace RareIcon
             var tierLU   = SystemAPI.GetComponentLookup<BuildingTier>(true);
             var stateLU  = SystemAPI.GetComponentLookup<QuestBoardState>(false);
             var slotsLU  = SystemAPI.GetBufferLookup<QuestBoardSlot>(false);
+            var ownedLU  = SystemAPI.GetComponentLookup<InnkeeperOwned>(true);
 
             for (int i = 0; i < entities.Length; i++)
             {
@@ -49,6 +50,7 @@ namespace RareIcon
                 if (turn < s.NextRefreshTurn) continue;
 
                 byte tier = tierLU[board].Value;
+                uint giverHash = ownedLU.HasComponent(board) ? ownedLU[board].KeeperRefHash : 0u;
                 var slots = slotsLU[board];
 
                 for (int k = slots.Length - 1; k >= 0; k--)
@@ -56,7 +58,7 @@ namespace RareIcon
                         slots.RemoveAtSwapBack(k);
 
                 int needed = s.Capacity - slots.Length;
-                if (needed > 0) FillSlots(slots, db.Defs, tier, turn, needed);
+                if (needed > 0) FillSlots(slots, db.Defs, tier, giverHash, turn, needed);
 
                 s.NextRefreshTurn = turn + RefreshCadenceTurns;
                 stateLU[board] = s;
@@ -67,7 +69,7 @@ namespace RareIcon
 
         void FillSlots(DynamicBuffer<QuestBoardSlot> slots,
                        NativeHashMap<ushort, QuestDefRuntime> defs,
-                       byte tier, uint turn, int needed)
+                       byte tier, uint giverHash, uint turn, int needed)
         {
             var pool = new NativeList<ushort>(defs.Count, Allocator.Temp);
             using (var keys = defs.GetKeyArray(Allocator.Temp))
@@ -76,6 +78,9 @@ namespace RareIcon
                 {
                     var def = defs[keys[i]];
                     if (def.InnTierMin > tier) continue;
+                    if (def.GiverNpcRefHash != 0u &&
+                        giverHash != 0u &&
+                        def.GiverNpcRefHash != giverHash) continue;
                     if (Contains(slots, def.Id)) continue;
                     pool.Add(def.Id);
                 }
