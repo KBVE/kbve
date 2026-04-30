@@ -2468,12 +2468,20 @@ async fn auth_user_id(headers: &HeaderMap) -> Result<String, Response> {
         })
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, kbve::holy::Sanitize)]
 struct CreateThreadBody {
+    #[holy(sanitize = "trim, lowercase, slug, truncate(50)")]
     space_slug: String,
+    // No `escape_html` here — askama auto-escapes on render. Storing
+    // pre-escaped HTML would double-escape `&amp;` etc.
+    #[holy(sanitize = "trim, control_strip, truncate(180)")]
     title: String,
+    // body is markdown; only nul_strip + length cap. control_strip
+    // would eat \n / \t.
+    #[holy(sanitize = "nul_strip, truncate(50000)")]
     body: String,
     #[serde(default = "default_thread_type")]
+    #[holy(sanitize = "trim, lowercase, truncate(32)")]
     thread_type: String,
 }
 fn default_thread_type() -> String {
@@ -2482,7 +2490,11 @@ fn default_thread_type() -> String {
 
 /// POST /api/v1/forum/threads — Bearer-authed thread creation.
 /// Body: `{ space_slug, title, body, thread_type }`.
-async fn api_create_thread(headers: HeaderMap, Json(payload): Json<CreateThreadBody>) -> Response {
+async fn api_create_thread(
+    headers: HeaderMap,
+    Json(mut payload): Json<CreateThreadBody>,
+) -> Response {
+    payload.sanitize();
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,
@@ -2543,9 +2555,12 @@ async fn api_create_thread(headers: HeaderMap, Json(payload): Json<CreateThreadB
     }
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, kbve::holy::Sanitize)]
 struct CreateCommentBody {
+    #[holy(sanitize = "nul_strip, truncate(50000)")]
     body: String,
+    // parent_comment_id is a UUID — RPC will reject malformed values,
+    // no sanitize needed.
     #[serde(default)]
     parent_comment_id: Option<String>,
 }
@@ -2554,8 +2569,9 @@ struct CreateCommentBody {
 async fn api_create_comment(
     Path(slug_or_id): Path<String>,
     headers: HeaderMap,
-    Json(payload): Json<CreateCommentBody>,
+    Json(mut payload): Json<CreateCommentBody>,
 ) -> Response {
+    payload.sanitize();
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,
@@ -2611,11 +2627,14 @@ async fn api_create_comment(
     }
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, kbve::holy::Sanitize)]
 struct EditCommentBody {
+    #[holy(sanitize = "nul_strip, truncate(50000)")]
     body: String,
-    /// Optional moderator reason — only honored on the staff-edit path.
+    /// Optional moderator reason — only honored on the staff-edit /
+    /// staff-remove paths. Inline text, sanitized as a title-like field.
     #[serde(default)]
+    #[holy(sanitize = "trim, control_strip, truncate(500)")]
     reason: Option<String>,
 }
 
@@ -2624,8 +2643,9 @@ struct EditCommentBody {
 async fn api_edit_comment(
     Path(comment_id): Path<String>,
     headers: HeaderMap,
-    Json(payload): Json<EditCommentBody>,
+    Json(mut payload): Json<EditCommentBody>,
 ) -> Response {
+    payload.sanitize();
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,
@@ -2659,8 +2679,9 @@ async fn api_edit_comment(
 async fn api_remove_comment(
     Path(comment_id): Path<String>,
     headers: HeaderMap,
-    Json(payload): Json<EditCommentBody>,
+    Json(mut payload): Json<EditCommentBody>,
 ) -> Response {
+    payload.sanitize();
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,
@@ -2751,8 +2772,9 @@ async fn api_me_staff(headers: HeaderMap) -> Response {
 async fn api_staff_edit_comment(
     Path(comment_id): Path<String>,
     headers: HeaderMap,
-    Json(payload): Json<EditCommentBody>,
+    Json(mut payload): Json<EditCommentBody>,
 ) -> Response {
+    payload.sanitize();
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,

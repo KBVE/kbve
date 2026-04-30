@@ -24,6 +24,12 @@ pub mod web;
 //  * [MARKDOWN] — safe CommonMark + GFM renderer with ammonia allowlist.
 pub mod markdown;
 
+// Re-export the `holy` proc-macro crate so downstream axum-* services
+// can pull derive(Sanitize) / derive(Getters) etc. through `kbve::holy::*`
+// without taking a second top-level dependency. Single boundary = one
+// place to bump.
+pub use holy;
+
 pub use authentication::*;
 pub use db::*;
 pub use guild::*;

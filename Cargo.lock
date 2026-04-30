@@ -1383,7 +1383,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.124"
+version = "1.0.125"
 dependencies = [
  "anyhow",
  "askama",
@@ -7349,7 +7349,7 @@ dependencies = [
 
 [[package]]
 name = "holy"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -8358,6 +8358,7 @@ dependencies = [
  "dashmap 6.1.0",
  "diesel",
  "dotenvy",
+ "holy",
  "jedi",
  "jsonwebtoken 10.3.0",
  "lru",
