@@ -20,10 +20,10 @@
             <ui:VisualElement class="title-body">
                 <ui:VisualElement name="title-menu" class="title-menu">
                     <ui:Button name="title-menu-singleplayer" class="title-menu-btn" text="Single Player" />
-                    <ui:Button name="title-menu-multiplayer" class="title-menu-btn title-menu-btn--disabled" text="Multiplayer" />
-                    <ui:Button name="title-menu-mods" class="title-menu-btn title-menu-btn--disabled" text="Mods" />
+                    <ui:Button name="title-menu-multiplayer" class="title-menu-btn title-menu-btn--disabled" text="Multiplayer · Soon" />
+                    <ui:Button name="title-menu-mods" class="title-menu-btn title-menu-btn--disabled" text="Mods · Soon" />
                     <ui:Button name="title-menu-codex" class="title-menu-btn" text="Codex" />
-                    <ui:Button name="title-menu-settings" class="title-menu-btn title-menu-btn--disabled" text="Settings" />
+                    <ui:Button name="title-menu-settings" class="title-menu-btn title-menu-btn--disabled" text="Settings · Soon" />
                     <ui:Button name="title-menu-credits" class="title-menu-btn" text="Credits" />
                     <ui:Button name="title-menu-exit" class="title-menu-btn title-menu-btn--exit" text="Exit" />
                 </ui:VisualElement>

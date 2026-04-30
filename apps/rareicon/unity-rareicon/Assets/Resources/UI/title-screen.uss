@@ -317,6 +317,13 @@
     background-color: rgba(0, 0, 0, 0.4);
     border-color: var(--color-accent);
     border-width: 1px;
+    transition-property: background-color, border-color, translate;
+    transition-duration: 0.16s;
+}
+.title-info-card:hover {
+    background-color: rgba(252, 211, 77, 0.06);
+    border-color: var(--color-text-strong);
+    translate: 0 -2px;
 }
 .title-info-card__label {
     font-size: 10px;
