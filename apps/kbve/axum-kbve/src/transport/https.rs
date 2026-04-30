@@ -39,6 +39,15 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/application/bevy/", "/application/rust/#bevy"),
     ("/dogevideo", "/crypto/"),
     ("/dogevideo/", "/crypto/"),
+    // Tag listing — short alias + the SSG-rendered askama source page
+    // (which still ships in dist/) all funnel into /forum/tags so the
+    // canonical URL is the only one that resolves.
+    ("/tags", "/forum/tags"),
+    ("/tags/", "/forum/tags"),
+    ("/t", "/forum/tags"),
+    ("/t/", "/forum/tags"),
+    ("/askama/forum/tags", "/forum/tags"),
+    ("/askama/forum/tags/", "/forum/tags"),
 ];
 
 fn mount_permanent_redirects<S>(
