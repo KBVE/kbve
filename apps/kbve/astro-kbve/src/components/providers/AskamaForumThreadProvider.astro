@@ -803,7 +803,7 @@
 	}
 
 	.thread-card__body {
-		padding-top: 1rem;
+		padding-top: 1.25rem;
 		font-size: 1rem;
 		line-height: 1.7;
 		color: var(--forum-text);
@@ -814,11 +814,29 @@
 	.thread-card__body :global(p:last-child) {
 		margin-bottom: 0;
 	}
+	/* Cap rendered-markdown headings so a one-line `# Title` does not
+	   blow up to the splash template's huge default H1 and visually
+	   crowd the card padding. The forum-shell margin reset zeros
+	   margin-top, so we re-add explicit space above. */
 	.thread-card__body :global(h1),
 	.thread-card__body :global(h2),
 	.thread-card__body :global(h3) {
 		margin: 1.5em 0 0.5em;
-		line-height: 1.25;
+		line-height: 1.3;
+		font-weight: 600;
+		color: var(--forum-text);
+	}
+	.thread-card__body :global(h1) {
+		font-size: 1.625rem;
+	}
+	.thread-card__body :global(h2) {
+		font-size: 1.375rem;
+	}
+	.thread-card__body :global(h3) {
+		font-size: 1.125rem;
+	}
+	.thread-card__body :global(:first-child) {
+		margin-top: 0;
 	}
 	.thread-card__body :global(pre) {
 		overflow-x: auto;
