@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package npc;
 
+option csharp_namespace = "KBVE.Proto.Npc";
+
 import "kbve/common.proto";
 
 // =============================================================================
