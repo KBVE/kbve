@@ -204,7 +204,8 @@ namespace RareIcon
                         CycleEndsAt   = 0f,
                     });
                     var pitExports = Ecb.AddBuffer<SurplusExport>(chunkIdx, entity);
-                    pitExports.Add(new SurplusExport { ItemId = (ushort)ItemId.Stone, Floor = 0 });
+                    pitExports.Add(new SurplusExport { ItemId = (ushort)ItemId.Stone,      Floor = 8 });
+                    pitExports.Add(new SurplusExport { ItemId = (ushort)ItemId.StoneBlock, Floor = 0 });
                     break;
             }
 

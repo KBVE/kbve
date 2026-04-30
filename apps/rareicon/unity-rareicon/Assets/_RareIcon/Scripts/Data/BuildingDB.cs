@@ -77,6 +77,8 @@ namespace RareIcon
                                                                       new((ushort)ItemId.StoneBlock, 4) };
         static readonly Ingredient[] UpgradeLumbercampToSawmill   = { new((ushort)ItemId.Timber,    8),
                                                                       new((ushort)ItemId.StoneBlock, 4) };
+        static readonly Ingredient[] UpgradeMiningPitToQuarry     = { new((ushort)ItemId.Timber,    6),
+                                                                      new((ushort)ItemId.StoneBlock, 6) };
         static readonly Ingredient[] UpgradeBarracksToKeep        = { new((ushort)ItemId.Timber,    6),
                                                                       new((ushort)ItemId.StoneBlock, 12) };
         static readonly Ingredient[] UpgradeKeepToCastle          = { new((ushort)ItemId.Timber,   10),
@@ -115,6 +117,10 @@ namespace RareIcon
             {
                 if (fromTier == 0) return UpgradeLumbercampToSawmill;
             }
+            else if (buildingType == BuildingType.MiningPit)
+            {
+                if (fromTier == 0) return UpgradeMiningPitToQuarry;
+            }
             return CostNone;
         }
 
@@ -143,6 +149,10 @@ namespace RareIcon
             else if (buildingType == BuildingType.Lumbercamp)
             {
                 if (tier == 1) return BuildingType.Sawmill;
+            }
+            else if (buildingType == BuildingType.MiningPit)
+            {
+                if (tier == 1) return BuildingType.Quarry;
             }
             return 0;
         }
@@ -261,6 +271,10 @@ namespace RareIcon
             else if (buildingType == BuildingType.Lumbercamp)
             {
                 if (tier == 1) return "building.sawmill";
+            }
+            else if (buildingType == BuildingType.MiningPit)
+            {
+                if (tier == 1) return "building.quarry";
             }
             return GetLocaleKey(buildingType);
         }

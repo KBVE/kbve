@@ -198,6 +198,10 @@ namespace RareIcon
             {
                 if (tier == 1) return BuildingType.Sawmill;
             }
+            else if (type == BuildingType.MiningPit)
+            {
+                if (tier == 1) return BuildingType.Quarry;
+            }
             return 0;
         }
     }
