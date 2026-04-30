@@ -16617,6 +16617,7 @@ dependencies = [
  "bevy_skills",
  "criterion",
  "csbindgen",
+ "proptest",
  "rusqlite",
  "serde",
  "tempfile",
