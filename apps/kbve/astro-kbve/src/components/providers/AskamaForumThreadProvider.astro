@@ -701,7 +701,12 @@
 		background: var(--forum-bg-card);
 		border: 1px solid var(--forum-border);
 		border-radius: var(--forum-radius);
-		padding: 1.5rem 1.5rem 1.25rem;
+		padding: 1.75rem 2rem 1.5rem;
+	}
+	@media (max-width: 640px) {
+		.thread-card {
+			padding: 1.25rem 1.25rem 1rem;
+		}
 	}
 	.thread-card__header {
 		display: grid;
@@ -843,9 +848,14 @@
 		background: var(--forum-bg-card);
 		border: 1px solid var(--forum-border);
 		border-radius: var(--forum-radius);
-		padding: 1.25rem 1.5rem 1.5rem;
+		padding: 1.5rem 2rem 1.75rem;
 		display: grid;
 		gap: 1.25rem;
+	}
+	@media (max-width: 640px) {
+		.thread-comments {
+			padding: 1rem 1rem 1.25rem;
+		}
 	}
 	.thread-comments__header {
 		display: flex;
@@ -952,14 +962,14 @@
 
 	/* ── Comment cards ────────────────────────────────────────── */
 	.thread-comments__tree :global(.forum-comment) {
-		padding: 0.85rem 1rem;
+		padding: 1rem 1.25rem;
 		border-left: 2px solid var(--forum-border);
 		margin-left: calc(var(--depth, 0) * 1.25rem);
 		background: var(--forum-bg-soft);
 		border-radius: 0 var(--forum-radius-sm) var(--forum-radius-sm) 0;
 		display: grid;
 		gap: 0.5rem;
-		margin-bottom: 0.6rem;
+		margin-bottom: 0.75rem;
 	}
 	.thread-comments__tree :global(.forum-comment[data-depth='1']) {
 		--depth: 1;
