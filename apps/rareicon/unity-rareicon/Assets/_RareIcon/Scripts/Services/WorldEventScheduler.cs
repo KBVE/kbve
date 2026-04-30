@@ -86,6 +86,41 @@ namespace RareIcon
                     Cooldown     = 15f * 60f,
                     ProbPerCheck = 0.02f,
                 },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.BountifulHarvest,
+                    MinFromBoot  = 12f * 60f,
+                    Cooldown     = 18f * 60f,
+                    ProbPerCheck = 0.025f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.Earthquake,
+                    MinFromBoot  = 10f * 60f,
+                    Cooldown     = 14f * 60f,
+                    ProbPerCheck = 0.025f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.TreasureCache,
+                    MinFromBoot  = 9f * 60f,
+                    Cooldown     = 18f * 60f,
+                    ProbPerCheck = 0.02f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.SagesBlessing,
+                    MinFromBoot  = 15f * 60f,
+                    Cooldown     = 20f * 60f,
+                    ProbPerCheck = 0.02f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.GoblinCaveStir,
+                    MinFromBoot  = 18f * 60f,
+                    Cooldown     = 25f * 60f,
+                    ProbPerCheck = 0.015f,
+                },
             };
             _nextEarliest = new float[_events.Length];
         }

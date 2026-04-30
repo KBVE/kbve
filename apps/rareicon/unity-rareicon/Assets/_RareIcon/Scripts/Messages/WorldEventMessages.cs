@@ -11,6 +11,11 @@ namespace RareIcon
         public const byte WolfPack         = 5;
         public const byte BanditRaidMini   = 6;
         public const byte FallingStar      = 7;
+        public const byte BountifulHarvest = 8;
+        public const byte Earthquake       = 9;
+        public const byte TreasureCache    = 10;
+        public const byte SagesBlessing    = 11;
+        public const byte GoblinCaveStir   = 12;
     }
 
     /// <summary>Fired by <see cref="WorldEventScheduler"/> whenever a registered event passes its precondition + RNG roll. The handler subscribes once and branches on <see cref="Kind"/>; events that ask the player a question (Lost Goblin Band) start a dialogue and read the response off <see cref="DialogueEndedMessage.LastChoiceIndex"/>.</summary>

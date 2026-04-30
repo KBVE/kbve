@@ -6,6 +6,7 @@ using MessagePipe;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 using VContainer.Unity;
 
 namespace RareIcon
@@ -28,6 +29,18 @@ namespace RareIcon
         const int   FallingStarMaxDist    = 20;
         const ushort BarterTimberCost     = 30;
         const ushort BarterStoneReward    = 10;
+        const ushort HarvestCarrot        = 20;
+        const ushort HarvestEgg           = 10;
+        const ushort HarvestMeat          = 5;
+        const ushort SageCoinReward       = 25;
+        const int    EarthquakeMinTargets = 1;
+        const int    EarthquakeMaxTargets = 3;
+        const float  EarthquakeDamageFrac = 0.25f;
+        const int    TreasureMinDist      = 25;
+        const int    TreasureMaxDist      = 35;
+        const int    GoblinCaveMinDist    = 16;
+        const int    GoblinCaveMaxDist    = 24;
+        const ushort GoblinCaveMaxHp      = 220;
 
         readonly LocaleService _locale;
         readonly ISubscriber<WorldEventTriggeredMessage> _eventSub;
@@ -106,6 +119,26 @@ namespace RareIcon
 
                 case WorldEventKind.FallingStar:
                     SpawnFallingStar();
+                    break;
+
+                case WorldEventKind.BountifulHarvest:
+                    GrantBountifulHarvest();
+                    break;
+
+                case WorldEventKind.Earthquake:
+                    ApplyEarthquakeDamage();
+                    break;
+
+                case WorldEventKind.TreasureCache:
+                    SpawnTreasureCache();
+                    break;
+
+                case WorldEventKind.SagesBlessing:
+                    GrantSagesBlessing();
+                    break;
+
+                case WorldEventKind.GoblinCaveStir:
+                    SpawnGoblinCave();
                     break;
             }
         }
@@ -352,6 +385,151 @@ namespace RareIcon
             if (!em.HasBuffer<CapitalLedger>(capital)) return false;
             var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
             return BankLedgerOps.CountOf(ledger, itemId) >= minCount;
+        }
+
+        void GrantBountifulHarvest()
+        {
+            if (!TryGetCapitalEntity(out var capital, out _)) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.HasBuffer<CapitalLedger>(capital)) return;
+
+            var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
+            BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Carrot, HarvestCarrot, UlidFactory.NewUid());
+            BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Egg,    HarvestEgg,    UlidFactory.NewUid());
+            BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Meat,   HarvestMeat,   UlidFactory.NewUid());
+
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.event.bountiful_harvest"), ToastKind.Success));
+        }
+
+        void ApplyEarthquakeDamage()
+        {
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+
+            // Player-faction non-Capital buildings only — sparing the Capital
+            // keeps the event from one-shotting the player's empire centre.
+            var query = em.CreateEntityQuery(
+                ComponentType.ReadOnly<Building>(),
+                ComponentType.ReadWrite<BuildingHealth>());
+            using var arr = query.ToEntityArray(Allocator.Temp);
+            if (arr.Length == 0) return;
+
+            // Reservoir-sample up to N candidates so we don't bias toward
+            // earlier-spawned buildings; cheap because we'll only damage 1-3.
+            int targetCount = EarthquakeMinTargets + _rng.Next(0, EarthquakeMaxTargets - EarthquakeMinTargets + 1);
+            int picked = 0;
+            for (int i = 0; i < arr.Length && picked < targetCount; i++)
+            {
+                var b = em.GetComponentData<Building>(arr[i]);
+                if (b.Type == BuildingType.Capital)             continue;
+                if (b.OwnerFaction != FactionType.Player)        continue;
+                if (!em.HasComponent<BuildingHealth>(arr[i]))    continue;
+
+                var hp = em.GetComponentData<BuildingHealth>(arr[i]);
+                int dmg = (int)math.max(1f, hp.Max * EarthquakeDamageFrac);
+                int next = hp.Value - dmg;
+                hp.Value = (ushort)math.max(0, next);
+                em.SetComponentData(arr[i], hp);
+                picked++;
+            }
+
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.event.earthquake"), ToastKind.Warning));
+        }
+
+        void SpawnTreasureCache()
+        {
+            if (!TryGetCapitalHex(out var capitalHex)) return;
+            int dist = TreasureMinDist + _rng.Next(0, TreasureMaxDist - TreasureMinDist + 1);
+            float angle = (float)(_rng.NextDouble() * Math.PI * 2.0);
+            int2 hex = new int2(
+                capitalHex.x + (int)Math.Round(Math.Cos(angle) * dist),
+                capitalHex.y + (int)Math.Round(Math.Sin(angle) * dist));
+
+            // "the-still-pool" is a shrine-flavored landmark with reward
+            // wiring already in place via LandmarkInteractSystem.
+            var entity = LandmarkSpawnSystem.SpawnAt("the-still-pool", hex);
+            if (entity == Entity.Null) return;
+
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.event.treasure_cache"), ToastKind.Info));
+        }
+
+        void GrantSagesBlessing()
+        {
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+
+            // Heal every Player-faction unit to max HP. The blessing is
+            // narrative — no per-unit toast since players notice via the
+            // single empire-wide toast + healed unit list when inspecting.
+            var query = em.CreateEntityQuery(
+                ComponentType.ReadOnly<Unit>(),
+                ComponentType.ReadOnly<Faction>(),
+                ComponentType.ReadWrite<Health>());
+            using var arr = query.ToEntityArray(Allocator.Temp);
+            for (int i = 0; i < arr.Length; i++)
+            {
+                if (em.GetComponentData<Faction>(arr[i]).Value != FactionType.Player) continue;
+                var h = em.GetComponentData<Health>(arr[i]);
+                if (h.Value >= h.Max) continue;
+                h.Value = h.Max;
+                em.SetComponentData(arr[i], h);
+            }
+
+            // Bonus coin sweetens the heal for empires with no wounded.
+            if (TryGetCapitalEntity(out var capital, out _) && em.HasBuffer<CapitalLedger>(capital))
+            {
+                var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
+                BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Coin, SageCoinReward, UlidFactory.NewUid());
+            }
+
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.event.sage_blessing"), ToastKind.Success));
+        }
+
+        void SpawnGoblinCave()
+        {
+            if (!TryGetCapitalHex(out var capitalHex)) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+
+            var prefabQuery = em.CreateEntityQuery(ComponentType.ReadOnly<BuildingPrefabSingleton>());
+            if (prefabQuery.CalculateEntityCount() == 0) return;
+            var prefab = prefabQuery.GetSingleton<BuildingPrefabSingleton>().Prefab;
+            if (prefab == Entity.Null) return;
+
+            int dist = GoblinCaveMinDist + _rng.Next(0, GoblinCaveMaxDist - GoblinCaveMinDist + 1);
+            float angle = (float)(_rng.NextDouble() * Math.PI * 2.0);
+            int2 hex = new int2(
+                capitalHex.x + (int)Math.Round(Math.Cos(angle) * dist),
+                capitalHex.y + (int)Math.Round(Math.Sin(angle) * dist));
+
+            float3 pos = HexMeshUtil.HexToWorld(hex.x, hex.y, 0.25f);
+            pos.z = -0.6f;
+
+            var cave = em.Instantiate(prefab);
+            float scale = BuildingDB.GetVisualScale(BuildingType.GoblinCave);
+            em.SetComponentData(cave, LocalTransform.FromPositionRotationScale(pos, quaternion.identity, scale));
+            em.SetComponentData(cave, new Building
+            {
+                Type         = BuildingType.GoblinCave,
+                RootHex      = hex,
+                OwnerFaction = FactionType.Hostile,
+            });
+            em.SetComponentData(cave, new BuildingVisual { Value = BuildingType.GoblinCave });
+            em.AddComponentData(cave, new BuildingHealth { Value = GoblinCaveMaxHp, Max = GoblinCaveMaxHp });
+            em.AddComponent<GoblinCaveTag>(cave);
+            em.AddComponentData(cave, new Faction { Value = FactionType.Hostile });
+
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.event.goblin_cave"), ToastKind.Warning));
         }
     }
 }
