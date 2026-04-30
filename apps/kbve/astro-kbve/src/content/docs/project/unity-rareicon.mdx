@@ -33,8 +33,11 @@ engine:
 external_publish:
     itch_user: kbve
     itch_game: rareicon
-    steam_app_id: "2238370"
-    steam_branch: demo
+    steam_apps:
+        - app_id: "3791950"
+          label: demo
+        - app_id: "2238370"
+          label: main
 ---
 
 ## Overview
@@ -71,11 +74,11 @@ Two destinations from one build:
 
 Build runs with `DISABLESTEAMWORKS` scripting define so SteamManager auto-no-ops when launched outside Steam.
 
-**Steam** (`external_publish.steam_app_id`):
+**Steam** (`external_publish.steam_apps[]`):
 
-- AppID 2238370 (registered)
-- `external_publish.steam_branch = demo`
-- Build keeps `steam_appid.txt` + Steamworks.NET enabled
+- AppID `3791950` — `label: demo` (the public demo, shipped first)
+- AppID `2238370` — `label: main` (full game, queued for later)
+- Build keeps `steam_appid.txt` + Steamworks.NET enabled (the AppID flips per build via the Editor postprocessor)
 
 The same `ci-unity.yml` run can target either route — the workflow reads `external_publish` to pick which post-build deploy fires.
 

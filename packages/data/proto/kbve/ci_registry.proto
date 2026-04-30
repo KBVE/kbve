@@ -86,6 +86,17 @@ message GameEngineConfig {
   optional string external_repo_url = 8;
 }
 
+// One Steam application entry for [`ExternalPublish`]. Demos, the main
+// game, and DLC each get their own SteamApp entry sharing a single CI
+// project. The label disambiguates VDF filenames + log lines so a
+// dispatch run targeting the demo doesn't collide with the main app.
+message SteamApp {
+  string app_id = 1;            // Steamworks numeric app ID (string for proto stability)
+  optional string label = 2;    // "main" | "demo" | "dlc-foo" — used in VDF filenames + logs
+  optional string depot_id = 3; // Optional inline depot override (usually depots live in the VDF files instead)
+  optional string branch = 4;   // Steam branch (default | beta | preview); empty = default branch
+}
+
 // External publish targets — storefronts, mod platforms, package indexes
 // outside the GitHub/GHCR/PyPI core. Consumed by utils-external-publish.yml
 // after a successful Docker / package build to fan out artifacts.
@@ -108,9 +119,11 @@ message ExternalPublish {
   optional string itch_channel = 12;            // butler channel (e.g. "html5", "win64")
 
   // ── Steam (Steamworks app) ────────────────────────────────────────
-  optional string steam_app_id = 20;            // Steamworks numeric app id (string for proto stability)
-  optional string steam_depot_id = 21;          // Optional depot id for builds
-  optional string steam_branch = 22;            // Branch name (default | beta | etc.)
+  // List of Steam apps for this project — supports demo + main game +
+  // future DLC sharing one CI entry. Each entry has its own AppID,
+  // optional depot override, and target branch. Field numbers 20 / 21
+  // / 22 retired with the migration to the repeated SteamApp shape.
+  repeated SteamApp steam_apps = 23;
 
   // ── Apple App Store (iOS / macOS) ─────────────────────────────────
   optional string apple_bundle_id = 30;         // Bundle identifier (e.g. com.kbve.foo)
