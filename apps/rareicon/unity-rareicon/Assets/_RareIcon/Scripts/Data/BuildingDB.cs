@@ -79,6 +79,11 @@ namespace RareIcon
                                                                       new((ushort)ItemId.StoneBlock, 4) };
         static readonly Ingredient[] UpgradeMiningPitToQuarry     = { new((ushort)ItemId.Timber,    6),
                                                                       new((ushort)ItemId.StoneBlock, 6) };
+        static readonly Ingredient[] UpgradeDockToShipyard        = { new((ushort)ItemId.Timber,   10),
+                                                                      new((ushort)ItemId.StoneBlock, 4) };
+        static readonly Ingredient[] UpgradeShipyardToHarbour     = { new((ushort)ItemId.Timber,   16),
+                                                                      new((ushort)ItemId.StoneBlock, 12),
+                                                                      new((ushort)ItemId.GoldBar,    8) };
         static readonly Ingredient[] UpgradeBarracksToKeep        = { new((ushort)ItemId.Timber,    6),
                                                                       new((ushort)ItemId.StoneBlock, 12) };
         static readonly Ingredient[] UpgradeKeepToCastle          = { new((ushort)ItemId.Timber,   10),
@@ -121,6 +126,11 @@ namespace RareIcon
             {
                 if (fromTier == 0) return UpgradeMiningPitToQuarry;
             }
+            else if (buildingType == BuildingType.Dock)
+            {
+                if (fromTier == 0) return UpgradeDockToShipyard;
+                if (fromTier == 1) return UpgradeShipyardToHarbour;
+            }
             return CostNone;
         }
 
@@ -153,6 +163,11 @@ namespace RareIcon
             else if (buildingType == BuildingType.MiningPit)
             {
                 if (tier == 1) return BuildingType.Quarry;
+            }
+            else if (buildingType == BuildingType.Dock)
+            {
+                if (tier == 1) return BuildingType.Shipyard;
+                if (tier == 2) return BuildingType.Harbour;
             }
             return 0;
         }
@@ -275,6 +290,11 @@ namespace RareIcon
             else if (buildingType == BuildingType.MiningPit)
             {
                 if (tier == 1) return "building.quarry";
+            }
+            else if (buildingType == BuildingType.Dock)
+            {
+                if (tier == 1) return "building.shipyard";
+                if (tier == 2) return "building.harbour";
             }
             return GetLocaleKey(buildingType);
         }

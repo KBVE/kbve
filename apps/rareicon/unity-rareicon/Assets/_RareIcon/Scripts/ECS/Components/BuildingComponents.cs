@@ -38,6 +38,9 @@ namespace RareIcon
         public const byte GoblinVillage  = 23;  // Naturally-spawned settlement — random Hostile or Player faction roll at spawn time. Hostile variants drip out small raid parties; Player variants are passive ally settlements.
         public const byte Sawmill        = 24;  // Lumbercamp tier 1 — keeps producing Log AND adds a Log → Timber recipe so the build-cost loop closes mid-game.
         public const byte Quarry         = 25;  // Mining Pit tier 1 — keeps producing Stone AND adds a Stone → StoneBlock recipe so masonry costs flow without round-tripping the Capital seed.
+        public const byte Shipyard       = 26;  // Dock tier 1 — keeps spawning FishingBoats AND unlocks Galley combat-boat production from Timber + StoneBlock.
+        public const byte Harbour        = 27;  // Dock tier 2 — adds a passive Coin trickle and ups the FishingBoat / Galley cap.
+        public const byte PirateCove     = 28;  // Hostile-owned coastal structure — drips out PirateShip raids on cadence (sister to BanditCamp on water).
     }
 
     /// <summary>Tag for naturally-spawned Goblin Villages — sister structure to BanditCamp. Faction (Hostile or Player) is rolled once at spawn and never changes; <see cref="GoblinVillageState"/> + <see cref="TerritoryEmitter"/> carry the per-instance data.</summary>

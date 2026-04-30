@@ -202,6 +202,11 @@ namespace RareIcon
             {
                 if (tier == 1) return BuildingType.Quarry;
             }
+            else if (type == BuildingType.Dock)
+            {
+                if (tier == 1) return BuildingType.Shipyard;
+                if (tier == 2) return BuildingType.Harbour;
+            }
             return 0;
         }
     }
