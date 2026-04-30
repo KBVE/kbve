@@ -306,6 +306,30 @@ namespace RareIcon
                 strength:      18, agility: 2, intellect: 6, will: 14,
                 defaultWeapon: WeaponType.None));
 
+            Add(new NPCDef(
+                unitType:      UnitType.Galley,
+                nameKey:       "creature.galley",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     140f, maxEnergy: 0f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.50f,
+                healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      14, agility: 8, intellect: 6, will: 10,
+                defaultWeapon: WeaponType.None));
+
+            Add(new NPCDef(
+                unitType:      UnitType.PirateShip,
+                nameKey:       "creature.pirate_ship",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     120f, maxEnergy: 0f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.55f,
+                healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      14, agility: 10, intellect: 5, will: 10,
+                defaultWeapon: WeaponType.None));
+
             // Future creatures land here — Skeleton, GoblinShaman, etc.
         }
 

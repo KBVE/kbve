@@ -311,6 +311,41 @@ namespace RareIcon
         public uint Seed;
     }
 
+    /// <summary>Transient request emitted by <c>ShipyardGalleyProductionSystem</c> when a Galley craft cycle clears cost. <c>GalleySpawnApplierSystem</c> drains on the main thread + calls <see cref="UnitSpawnSystem"/>.SpawnGalleyAt.</summary>
+    public struct SpawnGalleyRequest : IComponentData
+    {
+        public int2 Hex;
+        public uint Seed;
+        public byte Faction;
+    }
+
+    /// <summary>Transient request emitted by <c>PirateCoveRaidSystem</c> on raid cadence. <c>PirateShipSpawnApplierSystem</c> drains + calls <see cref="UnitSpawnSystem"/>.SpawnPirateShipAt.</summary>
+    public struct SpawnPirateShipRequest : IComponentData
+    {
+        public int2 Hex;
+        public uint Seed;
+    }
+
+    /// <summary>Marker tag for Hostile-owned PirateCove buildings — coastal raid source spawning <see cref="PirateShipTag"/> ships on cadence. Sister to <see cref="BanditCampTag"/>.</summary>
+    public struct PirateCoveTag : IComponentData { }
+
+    /// <summary>Per-cove raid state. <c>PirateCoveRaidSystem</c> emits a <see cref="SpawnPirateShipRequest"/> every <see cref="RaidCadenceTicks"/>; raids consist of <see cref="RaidPartySize"/> ships per cycle. Inert until first cadence elapses.</summary>
+    public struct PirateCoveState : IComponentData
+    {
+        public uint NextRaidTick;
+        public uint RaidCadenceTicks;
+        public byte RaidPartySize;
+    }
+
+    /// <summary>Per-Shipyard Galley-craft cadence (only fires when <see cref="BuildingTier"/> ≥ 1). Once per <see cref="CadenceTurns"/>, consumes <see cref="TimberCost"/> + <see cref="StoneCost"/> from Capital and emits a <see cref="SpawnGalleyRequest"/> on a hex adjacent to the dock.</summary>
+    public struct ShipyardGalleyProduction : IComponentData
+    {
+        public uint   LastProducedTurn;
+        public byte   CadenceTurns;
+        public ushort TimberCost;
+        public ushort StoneCost;
+    }
+
     /// <summary>Per-outpost cooldown-gated arrow volley. Every CooldownSeconds the outpost fires ArrowsPerVolley projectiles in a cone of half-angle SpreadHalfAngleRad around the closest CombatDB threat within Range. Burns ArrowCost from the sibling OutpostArrowPool per firing.</summary>
     public struct OutpostVolley : IComponentData
     {

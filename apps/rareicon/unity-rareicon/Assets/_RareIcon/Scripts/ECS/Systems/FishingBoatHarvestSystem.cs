@@ -44,7 +44,7 @@ namespace RareIcon
             var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
 
             int harvested = 0;
-            foreach (var (boatTf, _) in
+            foreach (var boatTf in
                      SystemAPI.Query<RefRO<LocalTransform>>().WithAll<FishingBoatTag>())
             {
                 int2 boatHex = HexMeshUtil.WorldToHex(boatTf.ValueRO.Position.x, boatTf.ValueRO.Position.y, HexSize);

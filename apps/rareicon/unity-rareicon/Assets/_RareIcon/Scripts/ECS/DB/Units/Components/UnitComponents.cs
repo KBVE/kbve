@@ -29,6 +29,8 @@ namespace RareIcon
         public const byte GoblinGeneral = 16; // Warlord goblin — chestplate, spiked crown, warpaint.
         public const byte FishingBoat   = 17; // Water-locked craftsman-built vessel; hunts Whales for Oil + Meat.
         public const byte Whale         = 18; // Oceanic / river leviathan — FishingBoats' prey.
+        public const byte Galley        = 19; // Water-locked Player-faction warship — Shipyard-built, ranged arrow attack.
+        public const byte PirateShip    = 20; // Water-locked Hostile-faction raider — PirateCove-spawned, ranged arrow attack.
         // Skeleton, etc. land here as we add them.
     }
 
@@ -48,6 +50,12 @@ namespace RareIcon
 
     /// <summary>Marker tag for Whales — FishingBoats' prey. Drops Oil + 400 Meat via EnemyLootDropSystem on death.</summary>
     public struct WhaleTag : IComponentData { }
+
+    /// <summary>Marker tag for Player-faction Galley warships — Shipyard-built, water-locked, carries a <see cref="RangedAttack"/> arrow loadout. Distinguishes Galleys from FishingBoats so combat AI / repair systems can branch.</summary>
+    public struct GalleyTag : IComponentData { }
+
+    /// <summary>Marker tag for Hostile-faction PirateShip raiders — PirateCove-spawned, water-locked, carries a <see cref="RangedAttack"/> arrow loadout. Treated as a threat by ProfessionDispatch + threat scan.</summary>
+    public struct PirateShipTag : IComponentData { }
 
     /// <summary>Unit only accepts river/ocean destinations when wandering. WaterWanderJob validates the rolled target's BiomeType against this tag before committing the goal. Attach to Fishing Boats + Whales.</summary>
     public struct WaterLockedTag : IComponentData { }

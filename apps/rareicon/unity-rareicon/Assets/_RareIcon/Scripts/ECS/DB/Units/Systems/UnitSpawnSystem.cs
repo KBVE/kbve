@@ -710,6 +710,149 @@ namespace RareIcon
             return entity;
         }
 
+        /// <summary>Spawn a Player-faction Galley warship at the given hex. Shipyard-built; carries a <see cref="RangedAttack"/> arrow loadout that auto-fires at hostile targets in range. Mirrors the FishingBoat shape (water-locked, hull rendered as a humanoid sprite slot) but swaps melee for ranged + bumps HP / damage.</summary>
+        public static Entity SpawnGalleyAt(EntityManager em, int2 hex, uint rngSeed,
+                                           byte faction = FactionType.Player)
+        {
+            if (!EnsureRenderAssets()) return Entity.Null;
+
+            var def = NPCDB.Get(UnitType.Galley);
+            var entity = em.CreateEntity();
+
+            float3 worldPos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
+            worldPos.z = -0.7f;
+
+            em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
+            em.AddComponentData(entity, new Unit { Type = def.UnitType, Weapon = WeaponType.None });
+
+            float maxHp = def.MaxHealth;
+            em.AddComponentData(entity, new Health { Value = maxHp, Max = maxHp });
+
+            em.AddComponentData(entity, new UnitVisual       { Value = (float)def.UnitType });
+            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)WeaponType.None });
+            em.AddComponentData(entity, new UnitShieldVisual { Value = (float)ShieldType.None });
+            em.AddComponentData(entity, new UnitFacingVisual { Value = (float)UnitFacing.East });
+            em.AddComponentData(entity, new UnitMovingVisual { Value = 1f });
+
+            em.AddComponentData(entity, new Faction    { Value = faction });
+            em.AddComponentData(entity, new Collidable { Radius = 0.24f });
+            em.AddComponent<GalleyTag>(entity);
+            em.AddComponent<WaterLockedTag>(entity);
+
+            em.AddComponentData(entity, new RangedAttack
+            {
+                Range              = 4.0f,
+                Damage             = 10f,
+                Cooldown           = 1.6f,
+                TimeSinceShot      = 0f,
+                ProjectileType     = ProjectileType.Arrow,
+                ProjectileMod      = ArrowMod.None,
+                ProjectileSpeed    = 5.0f,
+                ProjectileLifetime = 1.4f,
+            });
+
+            em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
+            em.AddBuffer<StatusEffect>(entity);
+
+            float speedJit = 0.9f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.2f;
+            em.AddComponentData(entity, new UnitMovement
+            {
+                CurrentHex      = hex,
+                TargetHex       = hex,
+                MoveSpeed       = def.MoveSpeed * speedJit,
+                Facing          = UnitFacing.East,
+                RandomState     = rngSeed | 1u,
+                WanderStep      = 0u,
+                DwellTimer      = (rngSeed % 200u) / 200f,
+                LastDir         = 255,
+                LastHarvestStep = uint.MaxValue,
+            });
+
+            em.AddComponentData(entity, new MovementGoal
+            {
+                Kind      = GoalKind.None,
+                Priority  = GoalPriority.None,
+                TargetHex = hex,
+            });
+
+            RenderMeshUtility.AddComponents(
+                entity, em, _renderDesc, _renderArray,
+                MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+            return entity;
+        }
+
+        /// <summary>Spawn a Hostile-faction PirateShip raider at the given hex. PirateCove-spawned; carries a <see cref="RangedAttack"/> arrow loadout. Faster than the Player Galley but slightly less HP — leans on speed + numbers as a swarm threat.</summary>
+        public static Entity SpawnPirateShipAt(EntityManager em, int2 hex, uint rngSeed)
+        {
+            if (!EnsureRenderAssets()) return Entity.Null;
+
+            var def = NPCDB.Get(UnitType.PirateShip);
+            var entity = em.CreateEntity();
+
+            float3 worldPos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
+            worldPos.z = -0.7f;
+
+            em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
+            em.AddComponentData(entity, new Unit { Type = def.UnitType, Weapon = WeaponType.None });
+
+            float maxHp = def.MaxHealth;
+            em.AddComponentData(entity, new Health { Value = maxHp, Max = maxHp });
+
+            em.AddComponentData(entity, new UnitVisual       { Value = (float)def.UnitType });
+            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)WeaponType.None });
+            em.AddComponentData(entity, new UnitShieldVisual { Value = (float)ShieldType.None });
+            em.AddComponentData(entity, new UnitFacingVisual { Value = (float)UnitFacing.East });
+            em.AddComponentData(entity, new UnitMovingVisual { Value = 1f });
+
+            em.AddComponentData(entity, new Faction    { Value = FactionType.Hostile });
+            em.AddComponentData(entity, new Collidable { Radius = 0.24f });
+            em.AddComponent<PirateShipTag>(entity);
+            em.AddComponent<WaterLockedTag>(entity);
+
+            em.AddComponentData(entity, new RangedAttack
+            {
+                Range              = 3.6f,
+                Damage             = 8f,
+                Cooldown           = 1.4f,
+                TimeSinceShot      = 0f,
+                ProjectileType     = ProjectileType.Arrow,
+                ProjectileMod      = ArrowMod.None,
+                ProjectileSpeed    = 5.5f,
+                ProjectileLifetime = 1.2f,
+            });
+
+            em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
+            em.AddBuffer<StatusEffect>(entity);
+
+            float speedJit = 0.9f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.2f;
+            em.AddComponentData(entity, new UnitMovement
+            {
+                CurrentHex      = hex,
+                TargetHex       = hex,
+                MoveSpeed       = def.MoveSpeed * speedJit,
+                Facing          = UnitFacing.East,
+                RandomState     = rngSeed | 1u,
+                WanderStep      = 0u,
+                DwellTimer      = (rngSeed % 200u) / 200f,
+                LastDir         = 255,
+                LastHarvestStep = uint.MaxValue,
+            });
+
+            em.AddComponentData(entity, new MovementGoal
+            {
+                Kind      = GoalKind.None,
+                Priority  = GoalPriority.None,
+                TargetHex = hex,
+            });
+
+            RenderMeshUtility.AddComponents(
+                entity, em, _renderDesc, _renderArray,
+                MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+            return entity;
+        }
+
         /// <summary>Spawn a Whale at the given water hex. Beast faction, passive — no attack components so it just wanders slowly until a FishingBoat harpoons it dead. Death drops Oil + 400 Meat via EnemyLootDropSystem.</summary>
         public static Entity SpawnWhaleAt(EntityManager em, int2 hex, uint rngSeed)
         {

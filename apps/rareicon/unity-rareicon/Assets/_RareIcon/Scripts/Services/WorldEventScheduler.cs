@@ -163,6 +163,13 @@ namespace RareIcon
                     Cooldown     = 22f * 60f,
                     ProbPerCheck = 0.02f,
                 },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.PirateCoveRising,
+                    MinFromBoot  = 20f * 60f,
+                    Cooldown     = 25f * 60f,
+                    ProbPerCheck = 0.015f,
+                },
             };
             _nextEarliest = new float[_events.Length];
         }

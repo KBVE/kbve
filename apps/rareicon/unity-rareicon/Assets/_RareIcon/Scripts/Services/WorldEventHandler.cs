@@ -59,6 +59,11 @@ namespace RareIcon
         const ushort GoblinVillageMaxHp   = 180;
         const byte   GoblinVillageRadius  = 2;
         const int    GoblinVillageDefenders = 4;
+        const int    PirateCoveMinDist    = 20;
+        const int    PirateCoveMaxDist    = 32;
+        const int    PirateCoveSearchRing = 6;
+        const ushort PirateCoveMaxHp      = 240;
+        const byte   PirateCoveRadius     = 2;
 
         readonly LocaleService _locale;
         readonly ISubscriber<WorldEventTriggeredMessage> _eventSub;
@@ -329,6 +334,10 @@ namespace RareIcon
 
                 case WorldEventKind.GoblinVillageRising:
                     SpawnGoblinVillage();
+                    break;
+
+                case WorldEventKind.PirateCoveRising:
+                    SpawnPirateCove();
                     break;
             }
         }
@@ -976,6 +985,82 @@ namespace RareIcon
                 : "toast.event.goblin_village_ally";
             var kind = faction == FactionType.Hostile ? ToastKind.Warning : ToastKind.Success;
             _toastPub.Publish(new ToastMessage(_locale.Get(toastKey), kind));
+        }
+
+        void SpawnPirateCove()
+        {
+            if (!TryGetCapitalHex(out var capitalHex)) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+
+            var prefabQuery = em.CreateEntityQuery(ComponentType.ReadOnly<BuildingPrefabSingleton>());
+            if (prefabQuery.CalculateEntityCount() == 0) return;
+            var prefab = prefabQuery.GetSingleton<BuildingPrefabSingleton>().Prefab;
+            if (prefab == Entity.Null) return;
+
+            int dist = PirateCoveMinDist + _rng.Next(0, PirateCoveMaxDist - PirateCoveMinDist + 1);
+            float angle = (float)(_rng.NextDouble() * Math.PI * 2.0);
+            int2 anchor = new int2(
+                capitalHex.x + (int)Math.Round(Math.Cos(angle) * dist),
+                capitalHex.y + (int)Math.Round(Math.Sin(angle) * dist));
+
+            if (!TryFindCoastalHex(em, anchor, PirateCoveSearchRing, out var hex)) return;
+
+            float3 pos = HexMeshUtil.HexToWorld(hex.x, hex.y, 0.25f);
+            pos.z = -0.6f;
+
+            var cove = em.Instantiate(prefab);
+            float scale = BuildingDB.GetVisualScale(BuildingType.PirateCove);
+            em.SetComponentData(cove, LocalTransform.FromPositionRotationScale(pos, quaternion.identity, scale));
+            em.SetComponentData(cove, new Building
+            {
+                Type         = BuildingType.PirateCove,
+                RootHex      = hex,
+                OwnerFaction = FactionType.Hostile,
+            });
+            em.SetComponentData(cove, new BuildingVisual { Value = BuildingType.GoblinCave });
+            em.AddComponentData(cove, new BuildingHealth { Value = PirateCoveMaxHp, Max = PirateCoveMaxHp });
+            em.AddComponent<PirateCoveTag>(cove);
+            em.AddComponentData(cove, new TerritoryEmitter
+            {
+                Center       = hex,
+                Radius       = PirateCoveRadius,
+                OwnerFaction = FactionType.Hostile,
+            });
+            em.AddComponentData(cove, new Faction { Value = FactionType.Hostile });
+
+            uint nowTick = (uint)(UnityEngine.Time.time * 1000f);
+            em.AddComponentData(cove, new PirateCoveState
+            {
+                NextRaidTick     = nowTick + 50000u,
+                RaidCadenceTicks = 50000u,
+                RaidPartySize    = 2,
+            });
+
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.event.pirate_cove"), ToastKind.Warning));
+        }
+
+        bool TryFindCoastalHex(EntityManager em, int2 anchor, int searchRing, out int2 hex)
+        {
+            hex = anchor;
+            for (int r = 0; r <= searchRing; r++)
+            {
+                for (int dx = -r; dx <= r; dx++)
+                for (int dy = -r; dy <= r; dy++)
+                {
+                    if (math.abs(dx) != r && math.abs(dy) != r) continue;
+                    int2 candidate = new int2(anchor.x + dx, anchor.y + dy);
+                    if (!HexHoverSystem.TryGetHexEntity(candidate, out var hexEntity)) continue;
+                    if (!em.HasComponent<BiomeType>(hexEntity)) continue;
+                    byte biome = em.GetComponentData<BiomeType>(hexEntity).Value;
+                    if (biome != BiomeGenerator.BIOME_RIVER) continue;
+                    hex = candidate;
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
