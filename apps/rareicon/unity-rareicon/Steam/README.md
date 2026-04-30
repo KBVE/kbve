@@ -34,11 +34,11 @@ verified.
 
 - AppID `3791950` is the standalone **Steam demo**. The full game is
   AppID `2238370` (separate app + depots, queued for later release).
-- The Editor postprocessor (`SteamBuildPostprocessor.cs`) copies
+- The Editor postprocessor (`SteamBuildPostprocessor.cs`) writes
   `steam_appid.txt` into each build's output dir so the Steamworks SDK
-  finds the AppID at first launch. The demo and main game each need
-  their own `steam_appid.txt` flipped before the corresponding build —
-  handled by a future build define (`RAREICON_DEMO`) once both pipelines
-  are live.
+  finds the AppID at first launch. **Default = demo (3791950)**; opt
+  into main with the `RAREICON_MAIN` scripting define under Player
+  Settings → Other Settings → Scripting Define Symbols (or pass
+  `-define:RAREICON_MAIN` via game-ci builder customParameters).
 - `BuildOutput/` in this directory holds steamcmd's intermediate cache
   files and is git-ignored.
