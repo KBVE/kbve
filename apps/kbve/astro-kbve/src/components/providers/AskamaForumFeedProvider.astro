@@ -400,6 +400,17 @@
 	.forum-feed :global(.forum-feed__item-body :is(p, ul, ol)) {
 		margin: 0;
 	}
+	/* Markdown excerpts can contain h1-h6; in a card preview we never
+	   want the giant default sizing — flatten to body weight so the
+	   feed item doesn't blow up vertically on a one-line H1 like
+	   "We're live!". */
+	.forum-feed :global(.forum-feed__item-body :is(h1, h2, h3, h4, h5, h6)) {
+		margin: 0;
+		font-size: inherit;
+		font-weight: 600;
+		color: var(--forum-text);
+		line-height: 1.4;
+	}
 
 	/* ── Pagination ────────────────────────────────────────────── */
 	.forum-shell__pagination {
@@ -467,10 +478,20 @@
 		color: var(--forum-text);
 		text-decoration: none;
 		font-size: 0.875rem;
-		transition: background 0.12s ease;
+		transition:
+			background 0.12s ease,
+			color 0.12s ease;
 	}
 	.forum-card__body :global(a:hover) {
 		background: var(--forum-bg-soft);
+	}
+	.forum-card__body :global(.forum-spaces__link--active) {
+		background: var(--forum-accent-soft);
+		color: var(--forum-accent);
+		font-weight: 600;
+	}
+	.forum-card__body :global(.forum-spaces__link--active:hover) {
+		background: var(--forum-accent-soft);
 	}
 	.forum-card__list {
 		margin: 0;

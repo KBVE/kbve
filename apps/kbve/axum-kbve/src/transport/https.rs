@@ -1907,6 +1907,28 @@ fn forum_render_ctx() -> kbve::markdown::RenderCtx<'static> {
     }
 }
 
+/// Percent-encode a string for safe inclusion as an `application/x-www-form-urlencoded`
+/// query-component value. RFC 3986 unreserved chars pass through; everything
+/// else (including `+`, `|`, `:`, space, etc.) gets `%HH` encoded. We need
+/// this for cursor pagination because the feed cursor format
+/// `<timestamp+offset>|<id>` carries `+` and `|`, both of which the browser
+/// + axum::extract::Query mangle if dumped raw into an `<a href>`.
+fn url_encode_component(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for byte in s.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                out.push(byte as char);
+            }
+            _ => {
+                out.push('%');
+                out.push_str(&format!("{:02X}", byte));
+            }
+        }
+    }
+    out
+}
+
 /// Crude HTML-escape for plain text strings going into pre-rendered HTML
 /// fragments. Askama templates use the default `e` filter for direct
 /// interpolation; this helper is for the few spots we hand-roll HTML.
@@ -2078,17 +2100,55 @@ fn build_pagination_html(rows: &[FeedRow], sort: &str, space_path: &str) -> Stri
         _ => return String::new(), // hot cursor needs hot_rank — skip
     };
     let cursor = format!("{}|{}", key, last.id);
+    // `+`, `|`, `:` in the cursor must be percent-encoded — otherwise
+    // the browser reads them as form-urlencoded and `+` becomes a space,
+    // which axum::extract::Query then deserializes as a malformed
+    // timestamp. html_escape only handles `&<>"'`, so we run the cursor
+    // (and the space_path / sort, defensively) through url_encode_component.
     format!(
-        r#"<a class="forum-pagination__next" href="{base}?sort={sort}&cursor={cursor}">Older →</a>"#,
+        r#"<a class="forum-pagination__next" href="{base}?sort={sort}&amp;cursor={cursor}">Older →</a>"#,
         base = html_escape(space_path),
-        sort = html_escape(sort),
-        cursor = html_escape(&cursor),
+        sort = url_encode_component(sort),
+        cursor = url_encode_component(&cursor),
     )
 }
 
-fn build_spaces_nav_html() -> String {
-    // Minimal nav until a service_list_spaces RPC + caching layer lands.
-    r#"<a href="/forum/">All</a>"#.to_string()
+fn build_spaces_nav_html(current_slug: Option<&str>) -> String {
+    // Hard-coded until service_list_spaces RPC + caching layer lands.
+    // Each entry: (slug-or-empty for "All", display name).
+    // The current space gets aria-current="page" so the sidebar shows
+    // active state without an extra DB round trip.
+    const ENTRIES: &[(&str, &str)] = &[
+        ("", "All"),
+        ("announcements", "Announcements"),
+        ("support", "Support"),
+    ];
+
+    let current = current_slug.unwrap_or("");
+    let mut out = String::with_capacity(256);
+    for (slug, label) in ENTRIES {
+        let href = if slug.is_empty() {
+            "/forum/".to_string()
+        } else {
+            format!("/forum/s/{}/", slug)
+        };
+        let is_active = *slug == current;
+        let class = if is_active {
+            r#" class="forum-spaces__link forum-spaces__link--active""#
+        } else {
+            r#" class="forum-spaces__link""#
+        };
+        let aria = if is_active {
+            r#" aria-current="page""#
+        } else {
+            ""
+        };
+        out.push_str(&format!(
+            r#"<a href="{}"{}{}>{}</a>"#,
+            href, class, aria, label
+        ));
+    }
+    out
 }
 
 async fn forum_feed_handler(
@@ -2235,7 +2295,7 @@ async fn render_feed_page(space_slug: Option<String>, q: &FeedSortQuery) -> Resp
         feed_canonical_suffix: canonical_suffix,
         active_sort_label: sort_label(&sort).to_string(),
         feed_items_html,
-        spaces_nav_html: build_spaces_nav_html(),
+        spaces_nav_html: build_spaces_nav_html(space_slug.as_deref()),
         pagination_html,
     })
     .into_response()
