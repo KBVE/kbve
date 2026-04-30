@@ -1,20 +1,20 @@
 {
-	"generated_at": "2026-04-29T08:53:19.024Z",
+	"generated_at": "2026-04-30T08:53:32.913Z",
 	"project": {
 		"title": "KBVE",
 		"url": "https://github.com/orgs/KBVE/projects/5",
-		"total_items": 158
+		"total_items": 170
 	},
 	"summary": {
-		"Theory": 23,
+		"Theory": 20,
 		"AI": 1,
-		"Todo": 8,
+		"Todo": 9,
 		"Backlog": 7,
-		"Error": 11,
+		"Error": 9,
 		"Support": 0,
 		"Staging": 3,
 		"Review": 0,
-		"Done": 99
+		"Done": 115
 	},
 	"columns": {
 		"Theory": [
@@ -107,24 +107,6 @@
 			},
 			{
 				"type": "ISSUE",
-				"number": 6436,
-				"title": "[Concept] : [Unity] : NPCDB - ECS",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/6436",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"enhancement",
-					"unity"
-				],
-				"matrix": null,
-				"date": "2025-09-28",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
 				"number": 6437,
 				"title": "[Concept] : [Unity] : Pathfinding ECS",
 				"state": "OPEN",
@@ -157,24 +139,6 @@
 				],
 				"matrix": null,
 				"date": "2025-09-28",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 6446,
-				"title": "[Concept] : [Unity] : MapDB - Schemas",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/6446",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"enhancement",
-					"unity"
-				],
-				"matrix": null,
-				"date": "2025-09-30",
 				"milestone": null
 			},
 			{
@@ -293,24 +257,6 @@
 				],
 				"matrix": null,
 				"date": "2026-04-09",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 9327,
-				"title": "feat(astro-kbve): site graph integration — polish, testing, and rollout",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/9327",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"1",
-					"enhancement",
-					"todo"
-				],
-				"matrix": null,
-				"date": "2026-03-31",
 				"milestone": null
 			},
 			{
@@ -576,6 +522,21 @@
 				"matrix": null,
 				"date": "2026-04-09",
 				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 10329,
+				"title": "[CICD] [Github] Custom Arc Runner Image",
+				"state": "OPEN",
+				"url": "https://github.com/KBVE/kbve/issues/10329",
+				"assignees": [],
+				"labels": [
+					"enhancement",
+					"update"
+				],
+				"matrix": null,
+				"date": "2026-04-29",
+				"milestone": null
 			}
 		],
 		"Backlog": [
@@ -769,42 +730,6 @@
 			},
 			{
 				"type": "ISSUE",
-				"number": 4623,
-				"title": "[Bug] : [Unity] : Procedural Map Generation",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/4623",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"2",
-					"bug",
-					"unity"
-				],
-				"matrix": null,
-				"date": "2025-05-25",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 4797,
-				"title": "[Bug] : [Unity] : Enemy Ai should attack player structures, if players are not around.",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/4797",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"4",
-					"bug",
-					"unity"
-				],
-				"matrix": null,
-				"date": "2025-05-24",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
 				"number": 6705,
 				"title": "[Bug] : [Unity] : Chip Character Sheet Off Center Sprites",
 				"state": "OPEN",
@@ -966,6 +891,42 @@
 			},
 			{
 				"type": "ISSUE",
+				"number": 4623,
+				"title": "[Bug] : [Unity] : Procedural Map Generation",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/4623",
+				"assignees": [
+					"h0lybyte"
+				],
+				"labels": [
+					"2",
+					"bug",
+					"unity"
+				],
+				"matrix": null,
+				"date": "2025-05-25",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 4797,
+				"title": "[Bug] : [Unity] : Enemy Ai should attack player structures, if players are not around.",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/4797",
+				"assignees": [
+					"h0lybyte"
+				],
+				"labels": [
+					"4",
+					"bug",
+					"unity"
+				],
+				"matrix": null,
+				"date": "2025-05-24",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
 				"number": 4812,
 				"title": "[Concept] : [Unity] : Elven Mage - Character",
 				"state": "CLOSED",
@@ -983,48 +944,57 @@
 				"milestone": null
 			},
 			{
-				"type": "PULL_REQUEST",
-				"number": 10067,
-				"title": "Release: 23 features, 35 fixes, 8 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10067",
-				"assignees": [],
+				"type": "ISSUE",
+				"number": 6436,
+				"title": "[Concept] : [Unity] : NPCDB - ECS",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/6436",
+				"assignees": [
+					"h0lybyte"
+				],
 				"labels": [
-					"auto-pr",
-					"dev→main"
+					"0",
+					"enhancement",
+					"unity"
 				],
 				"matrix": null,
-				"date": null,
+				"date": "2025-09-28",
 				"milestone": null
 			},
 			{
-				"type": "PULL_REQUEST",
-				"number": 10094,
-				"title": "Release: 3 features, 3 fixes, 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10094",
-				"assignees": [],
+				"type": "ISSUE",
+				"number": 6446,
+				"title": "[Concept] : [Unity] : MapDB - Schemas",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/6446",
+				"assignees": [
+					"h0lybyte"
+				],
 				"labels": [
-					"auto-pr",
-					"dev→main"
+					"0",
+					"enhancement",
+					"unity"
 				],
 				"matrix": null,
-				"date": null,
+				"date": "2025-09-30",
 				"milestone": null
 			},
 			{
-				"type": "PULL_REQUEST",
-				"number": 10095,
-				"title": "Atomic: mc v1.0.14 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10095",
-				"assignees": [],
+				"type": "ISSUE",
+				"number": 9327,
+				"title": "feat(astro-kbve): site graph integration — polish, testing, and rollout",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/9327",
+				"assignees": [
+					"h0lybyte"
+				],
 				"labels": [
-					"auto-pr",
-					"atomic"
+					"1",
+					"enhancement",
+					"todo"
 				],
 				"matrix": null,
-				"date": null,
+				"date": "2026-03-31",
 				"milestone": null
 			},
 			{
@@ -2418,6 +2388,214 @@
 				"labels": [
 					"auto-pr",
 					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10318,
+				"title": "chore(dashboard): daily sync — 2026-04-29",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10318",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10319,
+				"title": "Release: 1 fix, 2 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10319",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10320,
+				"title": "Release: 6 features, 4 fixes, 2 docs, 2 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10320",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10322,
+				"title": "Atomic: axum-kbve v1.0.124 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10322",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10323,
+				"title": "Atomic: mc v1.0.29 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10323",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10324,
+				"title": "Release: 2 features, 2 fixes, 2 docs, 3 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10324",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10326,
+				"title": "Release: 2 features, 3 fixes, 1 doc, 1 refactor, 4 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10326",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10334,
+				"title": "Release: 3 fixes → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10334",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10335,
+				"title": "chore(holy): update version.toml to 0.2.1",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10335",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10336,
+				"title": "Atomic: axum-kbve v1.0.125 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10336",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10337,
+				"title": "Release: 2 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10337",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10338,
+				"title": "Release: 16 features, 11 fixes, 1 doc, 2 perfs, 6 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10338",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10342,
+				"title": "Release: 7 features, 2 fixes, 1 CI, 1 perf, 2 refactors, 2 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10342",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10343,
+				"title": "Atomic: mc v1.0.30 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10343",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
 				],
 				"matrix": null,
 				"date": null,

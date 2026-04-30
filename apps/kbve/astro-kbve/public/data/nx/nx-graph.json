@@ -4126,7 +4126,7 @@
               "options": {
                 "commands": [
                   "docker rm -f firecracker-ctl-e2e 2>/dev/null || true",
-                  "docker buildx build --platform linux/amd64 -f apps/vm/firecracker-ctl-e2e/mock/Dockerfile.mock -t kbve/firecracker-ctl:mock --load .",
+                  "docker buildx build --platform linux/amd64 -f apps/vm/firecracker-ctl-e2e/mock/Dockerfile.mock -t kbve/firecracker-ctl:mock --load ../../..",
                   "docker run -d --name firecracker-ctl-e2e -p 19001:9001 -e FC_USE_JAILER=false -e RUST_LOG=info -e FC_MAX_CONCURRENT_VMS=5 -e FC_VM_TTL_SECS=60 kbve/firecracker-ctl:mock",
                   "echo 'Waiting for firecracker-ctl container to become ready...' && for i in $(seq 1 60); do if curl -sf http://127.0.0.1:19001/health >/dev/null 2>&1; then echo 'Container ready after '\"$i\"'s'; break; fi; if [ $i -eq 60 ]; then echo 'Container did not become ready in 60s'; docker logs firecracker-ctl-e2e 2>&1 | tail -30; docker rm -f firecracker-ctl-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
                   "npx vitest run; EC=$?; echo '--- container logs ---'; docker logs firecracker-ctl-e2e 2>&1 | tail -50; docker rm -f firecracker-ctl-e2e 2>/dev/null || true; exit $EC"
@@ -4713,6 +4713,37 @@
               "configurations": {},
               "parallelism": true
             },
+            "build:ios": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "rustup target add aarch64-apple-ios aarch64-apple-ios-sim",
+                  "cargo build -p uniti --release --target aarch64-apple-ios",
+                  "cargo build -p uniti --release --target aarch64-apple-ios-sim",
+                  "rm -rf ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/iOS/uniti.xcframework",
+                  "mkdir -p ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/iOS",
+                  "xcodebuild -create-xcframework -library ../../../../dist/target/aarch64-apple-ios/release/libuniti.a -library ../../../../dist/target/aarch64-apple-ios-sim/release/libuniti.a -output ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/iOS/uniti.xcframework"
+                ],
+                "cwd": "packages/rust/bevy/uniti"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build:android": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android",
+                  "cargo ndk --version > /dev/null 2>&1 || cargo install cargo-ndk --locked",
+                  "cargo ndk -t arm64-v8a -t armeabi-v7a -t x86 -t x86_64 -o ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/Android/libs build -p uniti --release"
+                ],
+                "cwd": "packages/rust/bevy/uniti"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "build:all": {
               "executor": "nx:run-commands",
               "options": {
@@ -4720,7 +4751,34 @@
                 "commands": [
                   "npx nx run uniti:build:macos",
                   "npx nx run uniti:build:windows",
+                  "npx nx run uniti:build:linux",
+                  "npx nx run uniti:build:ios",
+                  "npx nx run uniti:build:android"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build:desktop": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "npx nx run uniti:build:macos",
+                  "npx nx run uniti:build:windows",
                   "npx nx run uniti:build:linux"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build:mobile": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "npx nx run uniti:build:ios",
+                  "npx nx run uniti:build:android"
                 ]
               },
               "configurations": {},
