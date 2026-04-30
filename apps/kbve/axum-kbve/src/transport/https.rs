@@ -39,15 +39,34 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/application/bevy/", "/application/rust/#bevy"),
     ("/dogevideo", "/crypto/"),
     ("/dogevideo/", "/crypto/"),
-    // Tag listing — short alias + the SSG-rendered askama source page
-    // (which still ships in dist/) all funnel into /forum/tags so the
-    // canonical URL is the only one that resolves.
+    // Tag listing — short alias for users.
     ("/tags", "/forum/tags"),
     ("/tags/", "/forum/tags"),
     ("/t", "/forum/tags"),
     ("/t/", "/forum/tags"),
+    // Askama SSG source pages — every .mdx under
+    // src/content/docs/askama/* still ships an HTML file in dist/
+    // because Starlight builds the whole content collection. None of
+    // them are meant to resolve as public URLs; the live versions
+    // are handled by axum routes that interpolate the askama
+    // placeholders. Funnel each to its canonical target so search
+    // engines + bookmarks land on the dynamic version.
+    ("/askama/forum/feed", "/forum/"),
+    ("/askama/forum/feed/", "/forum/"),
+    ("/askama/forum/thread", "/forum/"),
+    ("/askama/forum/thread/", "/forum/"),
+    ("/askama/forum/compose", "/forum/compose"),
+    ("/askama/forum/compose/", "/forum/compose"),
     ("/askama/forum/tags", "/forum/tags"),
     ("/askama/forum/tags/", "/forum/tags"),
+    ("/askama/forum/space_not_found", "/forum/"),
+    ("/askama/forum/space_not_found/", "/forum/"),
+    ("/askama/profile", "/profile"),
+    ("/askama/profile/", "/profile"),
+    ("/askama/profile_not_found", "/profile"),
+    ("/askama/profile_not_found/", "/profile"),
+    ("/askama/osrs_not_found", "/osrs/"),
+    ("/askama/osrs_not_found/", "/osrs/"),
 ];
 
 fn mount_permanent_redirects<S>(
