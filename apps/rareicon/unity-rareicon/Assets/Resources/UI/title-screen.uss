@@ -54,7 +54,7 @@
     min-width: 320px;
     max-height: 96%;
 
-    padding: 22px 28px 18px 28px;
+    padding: 12px 22px 10px 22px;
     background-color: var(--color-bg-panel);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -109,9 +109,9 @@
     flex-shrink: 0;
 }
 .title-social-btn {
-    width: 26px;
-    height: 26px;
-    margin-left: 6px;
+    width: 22px;
+    height: 22px;
+    margin-left: 5px;
     padding: 0;
     background-color: rgba(0, 0, 0, 0);
     border-color: var(--color-accent);
@@ -179,33 +179,33 @@
 }
 .title-stage.is-hidden { display: none; }
 
-/* Header — top-left wordmark + inline tagline. Compact so the body
-   gets the lion's share of vertical room. The brand and tagline sit
-   on the same baseline-ish line; the tiny gold rule below ties them
-   to the panel chrome without eating another row of height. */
+/* Header — single-line top-left wordmark + inline tagline. Tuned to
+   eat as little vertical real-estate as possible so the body can
+   stretch. Total header height ≈ brand line-height (~22px) + 8px
+   margin-bottom = ~30px. */
 .title-header {
     flex-direction: row;
-    align-items: flex-end;
+    align-items: baseline;
     flex-wrap: wrap;
-    margin-bottom: 18px;
+    margin-bottom: 8px;
     flex-shrink: 0;
 }
 .title-brand {
-    font-size: 28px;
+    font-size: 20px;
     -unity-font-style: bold;
     color: var(--color-text-strong);
-    letter-spacing: 5px;
+    letter-spacing: 3px;
     margin: 0;
     -unity-text-align: middle-left;
     white-space: nowrap;
 }
 .title-tagline {
-    font-size: 10px;
+    font-size: 9px;
     color: var(--color-accent);
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     -unity-font-style: bold;
-    margin-left: 14px;
-    margin-bottom: 4px;
+    margin-left: 12px;
+    margin-bottom: 0;
     -unity-text-align: middle-left;
     white-space: nowrap;
 }
@@ -348,14 +348,15 @@
     white-space: normal;
 }
 
-/* Footer strip — slim. persona left, socials right. Lives in the
-   window's flex-column flow so it can't overlap the body. */
+/* Footer strip — minimum-viable. persona left, socials right. Lives
+   in the window's flex-column flow so it can't overlap the body.
+   Total footer height ≈ 28px (avatar/socials) + 10px margin/padding. */
 .title-footer {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    margin-top: 12px;
-    padding-top: 10px;
+    margin-top: 8px;
+    padding-top: 6px;
     border-top-color: rgba(252, 211, 77, 0.25);
     border-top-width: 1px;
     flex-shrink: 0;
@@ -363,7 +364,7 @@
 .title-persona {
     flex-direction: row;
     align-items: center;
-    padding: 4px 10px;
+    padding: 2px 8px;
     background-color: rgba(0, 0, 0, 0.4);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -374,9 +375,9 @@
     opacity: 0.85;
 }
 .title-avatar {
-    width: 28px;
-    height: 28px;
-    margin-right: 10px;
+    width: 22px;
+    height: 22px;
+    margin-right: 8px;
     background-color: rgba(255, 255, 255, 0.05);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -389,16 +390,16 @@
     min-width: 0;
 }
 .title-persona__name {
-    font-size: 12px;
+    font-size: 10px;
     -unity-font-style: bold;
     color: var(--color-text-strong);
     white-space: nowrap;
     -unity-text-align: middle-left;
 }
 .title-persona__status {
-    font-size: 9px;
+    font-size: 8px;
     color: var(--color-text-muted);
-    margin-top: 1px;
+    margin-top: 0;
     letter-spacing: 1px;
 }
 
@@ -559,22 +560,22 @@
 
 /* Narrow (phones / portrait tablets) — single column, larger touch targets. */
 .title-window--narrow {
-    padding: 18px 14px;
+    padding: 10px 12px;
 }
 .title-window--narrow .title-header {
-    margin-bottom: 14px;
+    margin-bottom: 6px;
     flex-direction: column;
     align-items: flex-start;
 }
 .title-window--narrow .title-brand {
-    font-size: 24px;
-    letter-spacing: 3px;
+    font-size: 18px;
+    letter-spacing: 2px;
 }
 .title-window--narrow .title-tagline {
     letter-spacing: 2px;
-    font-size: 9px;
+    font-size: 8px;
     margin-left: 0;
-    margin-top: 4px;
+    margin-top: 2px;
     margin-bottom: 0;
 }
 .title-window--narrow .title-body {
@@ -644,20 +645,20 @@
 /* Wide (1080p+ / 4K) — bigger panel padding, larger type for readable
    distance from a couch / desk monitor. Two-column layout stays. */
 .title-window--wide {
-    padding: 32px 44px 24px 44px;
+    padding: 18px 32px 14px 32px;
 }
 .title-window--wide .title-brand {
-    font-size: 38px;
-    letter-spacing: 7px;
+    font-size: 28px;
+    letter-spacing: 5px;
 }
 .title-window--wide .title-tagline {
-    font-size: 12px;
-    letter-spacing: 4px;
-    margin-left: 18px;
-    margin-bottom: 6px;
+    font-size: 11px;
+    letter-spacing: 3px;
+    margin-left: 16px;
+    margin-bottom: 0;
 }
 .title-window--wide .title-header {
-    margin-bottom: 24px;
+    margin-bottom: 12px;
 }
 .title-window--wide .title-menu {
     min-width: 240px;
@@ -686,10 +687,10 @@
     padding-top: 22px;
 }
 .title-window--wide .title-avatar {
-    width: 48px;
-    height: 48px;
+    width: 28px;
+    height: 28px;
 }
 .title-window--wide .title-social-btn {
-    width: 40px;
-    height: 40px;
+    width: 28px;
+    height: 28px;
 }
