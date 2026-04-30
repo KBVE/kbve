@@ -13,10 +13,9 @@ categories = ["game-development", "api-bindings"]
 readme = "README.md"
 
 [lib]
-# cdylib for desktop hosts (Unity loads via DllImport: .dll/.so/.dylib).
-# staticlib for Unity iOS — Apple requires static linkage so the FFI gets
-# baked into the Il2CPP-generated Xcode project. Same source, two artefacts.
-crate-type = ["cdylib", "staticlib"]
+# cdylib + staticlib for Unity (desktop DllImport + iOS static link).
+# rlib so integration tests under tests/ can link the crate directly.
+crate-type = ["cdylib", "staticlib", "rlib"]
 
 [build-dependencies]
 csbindgen = "1.9"
@@ -36,3 +35,6 @@ bevy_pathfinding = { version = "0.1", path = "../bevy_pathfinding", default-feat
 bevy_inventory = { version = "0.1", path = "../bevy_inventory", default-features = false }
 bevy_battle = { version = "0.1", path = "../bevy_battle", default-features = false }
 bevy_skills = { version = "0.1", path = "../bevy_skills", default-features = false }
+
+[dev-dependencies]
+tempfile = "3"

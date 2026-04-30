@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/questdb.binpb
  * Config: ../questdb-zod-config.json
- * Generated: 2026-04-30T06:38:13.154Z
+ * Generated: 2026-04-30T08:48:30.087Z
  */
 
 import { z } from 'zod';
@@ -98,6 +98,7 @@ export const QuestPrerequisiteSchema = z
 		item_refs: z.array(z.string()).nullable().optional(),
 		class_ref: z.string().nullable().optional(),
 		trigger: z.string().nullable().optional(),
+		inn_tier_min: z.number().nullable().optional(),
 	})
 	.passthrough();
 
