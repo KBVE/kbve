@@ -59,6 +59,8 @@ namespace RareIcon
             builder.RegisterMessageBroker<QuestCompletedMessage>(options);
             builder.RegisterMessageBroker<QuestFailedMessage>(options);
 
+            builder.RegisterMessageBroker<WorldEventTriggeredMessage>(options);
+
             // -- Steam platform events (standalone-only; stripped on iOS/Android via asmdef) --
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             builder.RegisterMessageBroker<SteamLobbyCreatedMessage>(options);
@@ -173,6 +175,10 @@ namespace RareIcon
             builder.RegisterEntryPoint<DialogueVN>().AsSelf();
             builder.RegisterEntryPoint<DialogueBubble>();
             builder.RegisterEntryPoint<DialogueController>();
+
+            // -- Random world events (dispatcher + handler) --
+            builder.RegisterEntryPoint<WorldEventScheduler>().AsSelf();
+            builder.RegisterEntryPoint<WorldEventHandler>().AsSelf();
 
             // -- Building palette panel (per-type cost + affordability) --
             builder.RegisterEntryPoint<UIBuildingPalette>().AsSelf();

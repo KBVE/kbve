@@ -49,11 +49,16 @@ namespace RareIcon
     /// <summary>Player asked to abort the active tree (X button on the VN panel). Distinct from <see cref="DialogueAdvanceMessage"/> because choice nodes block advance — cancel skips straight to End regardless of the current node's choice state. Controller emits <see cref="DialogueEndedMessage"/> as the post-cancel signal so downstream listeners stay agnostic to how the tree closed.</summary>
     public readonly struct DialogueCancelMessage { }
 
-    /// <summary>Active tree finished (reached a terminal node or was cancelled). Sent once per tree run.</summary>
+    /// <summary>Active tree finished (reached a terminal node or was cancelled). Sent once per tree run. <see cref="LastChoiceIndex"/> carries the most-recent choice picked during the run (0-based) or -1 when no choice node was visited (auto-advance trees, cancel via X) — random-event handlers branch on this to decide accept/refuse outcomes without holding their own dialogue state.</summary>
     public readonly struct DialogueEndedMessage
     {
         public readonly ushort TreeId;
-        public DialogueEndedMessage(ushort treeId) => TreeId = treeId;
+        public readonly int    LastChoiceIndex;
+        public DialogueEndedMessage(ushort treeId, int lastChoiceIndex = -1)
+        {
+            TreeId          = treeId;
+            LastChoiceIndex = lastChoiceIndex;
+        }
     }
 
     /// <summary>Fire an ambient speech bubble above an entity. Non-blocking — game keeps ticking. <paramref name="Duration"/> of 0 uses the renderer's default.</summary>

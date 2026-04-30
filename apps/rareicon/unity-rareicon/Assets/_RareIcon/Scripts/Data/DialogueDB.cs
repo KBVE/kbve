@@ -11,6 +11,8 @@ namespace RareIcon
         public const ushort BanditTaunt         = 10;
         public const ushort FirstContactBandit  = 11;
         public const ushort FirstContactZombie  = 12;
+        public const ushort LostGoblinBand      = 20;
+        public const ushort RaiderSwarmWarning  = 21;
     }
 
     /// <summary>One branch from a node. <see cref="NextNodeId"/> of 0 ends the tree.</summary>
@@ -173,6 +175,76 @@ namespace RareIcon
                         Mode           = DialogueMode.VN,
                         SpeakerNameKey = "creature.bandit",
                         TextKey        = "dialogue.first_contact.bandit.line1",
+                        NextNodeId     = 0,
+                    },
+                },
+            });
+
+            Add(new DialogueTree
+            {
+                Id = DialogueTreeId.LostGoblinBand,
+                EntryNodeId = 1,
+                Nodes = new[]
+                {
+                    new DialogueNode
+                    {
+                        Id             = 1,
+                        Mode           = DialogueMode.VN,
+                        SpeakerNameKey = "dialogue.lost_goblins.speaker",
+                        TextKey        = "dialogue.lost_goblins.line0",
+                        NextNodeId     = 2,
+                    },
+                    new DialogueNode
+                    {
+                        Id             = 2,
+                        Mode           = DialogueMode.VN,
+                        SpeakerNameKey = "dialogue.lost_goblins.speaker",
+                        TextKey        = "dialogue.lost_goblins.line1",
+                        Choices = new[]
+                        {
+                            new DialogueChoice { TextKey = "dialogue.lost_goblins.choice_accept", NextNodeId = 3 },
+                            new DialogueChoice { TextKey = "dialogue.lost_goblins.choice_refuse", NextNodeId = 4 },
+                        },
+                    },
+                    new DialogueNode
+                    {
+                        Id             = 3,
+                        Mode           = DialogueMode.VN,
+                        SpeakerNameKey = "dialogue.lost_goblins.speaker",
+                        TextKey        = "dialogue.lost_goblins.line_accept",
+                        NextNodeId     = 0,
+                    },
+                    new DialogueNode
+                    {
+                        Id             = 4,
+                        Mode           = DialogueMode.VN,
+                        SpeakerNameKey = "dialogue.lost_goblins.speaker",
+                        TextKey        = "dialogue.lost_goblins.line_refuse",
+                        NextNodeId     = 0,
+                    },
+                },
+            });
+
+            Add(new DialogueTree
+            {
+                Id = DialogueTreeId.RaiderSwarmWarning,
+                EntryNodeId = 1,
+                Nodes = new[]
+                {
+                    new DialogueNode
+                    {
+                        Id             = 1,
+                        Mode           = DialogueMode.VN,
+                        SpeakerNameKey = "dialogue.raider_swarm.speaker",
+                        TextKey        = "dialogue.raider_swarm.line0",
+                        NextNodeId     = 2,
+                    },
+                    new DialogueNode
+                    {
+                        Id             = 2,
+                        Mode           = DialogueMode.VN,
+                        SpeakerNameKey = "dialogue.raider_swarm.speaker",
+                        TextKey        = "dialogue.raider_swarm.line1",
                         NextNodeId     = 0,
                     },
                 },
