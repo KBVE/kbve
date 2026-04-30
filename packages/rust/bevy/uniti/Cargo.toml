@@ -38,3 +38,8 @@ bevy_skills = { version = "0.1", path = "../bevy_skills", default-features = fal
 
 [dev-dependencies]
 tempfile = "3"
+criterion = { version = "0.5", default-features = false, features = ["plotters", "cargo_bench_support"] }
+
+[[bench]]
+name = "ffi_world_bench"
+harness = false
