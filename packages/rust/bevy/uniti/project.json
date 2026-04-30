@@ -79,6 +79,7 @@
 		},
 		"build:all": {
 			"executor": "nx:run-commands",
+			"dependsOn": ["verify"],
 			"options": {
 				"parallel": false,
 				"commands": [
@@ -88,6 +89,18 @@
 					"npx nx run uniti:build:ios",
 					"npx nx run uniti:build:android"
 				]
+			}
+		},
+		"verify": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"cargo fmt -p uniti -- --check",
+					"cargo clippy -p uniti --all-targets -- -D warnings",
+					"cargo test -p uniti --no-fail-fast"
+				],
+				"cwd": "packages/rust/bevy/uniti"
 			}
 		},
 		"build:desktop": {

@@ -423,6 +423,15 @@ fn init_schema(conn: &Connection) -> rusqlite::Result<()> {
 /// Migration ladder. Keep blocks append-only and idempotent so players
 /// who skip releases don't hit data loss.
 fn migrate_schema(conn: &Connection) -> rusqlite::Result<()> {
+    let row_count: i64 = conn.query_row("SELECT COUNT(*) FROM meta", [], |r| r.get(0))?;
+    if row_count == 0 {
+        conn.execute(
+            "INSERT INTO meta (key, value) VALUES ('schema_version', ?1)",
+            [SCHEMA_VERSION.to_string()],
+        )?;
+        return Ok(());
+    }
+
     let current: i64 = conn
         .query_row(
             "SELECT value FROM meta WHERE key = 'schema_version'",
@@ -1975,7 +1984,9 @@ pub unsafe extern "C" fn uniti_world_chunk_touch(
     flags: u32,
     threat_level: u32,
 ) -> u8 {
+    telemetry::bump(telemetry::CALL_CHUNK_TOUCH);
     if world.is_null() {
+        set_error("chunk_touch: null world handle");
         return 0;
     }
     let world = unsafe { &*(world as *const WorldStore) };
@@ -2015,6 +2026,7 @@ pub unsafe extern "C" fn uniti_world_chunk_summary(
     cx: i32,
     cy: i32,
 ) -> FfiChunkSummary {
+    telemetry::bump(telemetry::CALL_CHUNK_SUMMARY);
     if world.is_null() {
         return FfiChunkSummary::default();
     }
@@ -2037,6 +2049,7 @@ pub unsafe extern "C" fn uniti_world_prefetch_neighbors(
     out: *mut FfiChunkSummary,
     cap: u32,
 ) -> u32 {
+    telemetry::bump(telemetry::CALL_PREFETCH_NEIGHBORS);
     if world.is_null() || out.is_null() || cap < 6 {
         return 0;
     }
@@ -2073,6 +2086,7 @@ pub unsafe extern "C" fn uniti_world_take_chunks_in_range(
     out: *mut FfiChunkSummary,
     cap: u32,
 ) -> u32 {
+    telemetry::bump(telemetry::CALL_TAKE_CHUNKS_RANGE);
     if world.is_null() || out.is_null() || cap == 0 {
         return 0;
     }
@@ -2135,7 +2149,9 @@ pub unsafe extern "C" fn uniti_world_save_unit_aggregate(
     world: *mut c_void,
     agg: FfiUnitAggregate,
 ) -> u8 {
+    telemetry::bump(telemetry::CALL_SAVE_AGGREGATE);
     if world.is_null() {
+        set_error("save_unit_aggregate: null world handle");
         return 0;
     }
     let world = unsafe { &*(world as *const WorldStore) };
@@ -2180,6 +2196,7 @@ pub unsafe extern "C" fn uniti_world_take_unit_aggregates_in_chunk(
     out: *mut FfiUnitAggregate,
     cap: u32,
 ) -> u32 {
+    telemetry::bump(telemetry::CALL_TAKE_AGGREGATES);
     if world.is_null() || out.is_null() || cap == 0 {
         return 0;
     }
@@ -2231,6 +2248,7 @@ pub unsafe extern "C" fn uniti_world_take_unit_aggregates_in_chunk(
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_world_due_count(world: *const c_void, due_before_ms: u64) -> u32 {
+    telemetry::bump(telemetry::CALL_DUE_COUNT);
     if world.is_null() {
         return 0;
     }
@@ -2256,6 +2274,7 @@ pub unsafe extern "C" fn uniti_world_chunks_purge_stale(
     world: *mut c_void,
     older_than_ms: u64,
 ) -> u32 {
+    telemetry::bump(telemetry::CALL_PURGE_STALE);
     if world.is_null() {
         return 0;
     }
@@ -2290,4 +2309,264 @@ pub unsafe extern "C" fn uniti_world_chunks_purge_stale(
         }
     }
     purged
+}
+
+use std::cell::RefCell;
+use std::ffi::CString;
+
+thread_local! {
+    static LAST_ERROR: RefCell<Option<CString>> = const { RefCell::new(None) };
+}
+
+fn set_error(msg: impl Into<String>) {
+    let s = CString::new(msg.into())
+        .unwrap_or_else(|_| CString::new("uniti: error message contained NUL").unwrap());
+    LAST_ERROR.with(|cell| *cell.borrow_mut() = Some(s));
+}
+
+fn clear_error() {
+    LAST_ERROR.with(|cell| *cell.borrow_mut() = None);
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_last_error() -> *const c_char {
+    LAST_ERROR.with(|cell| match cell.borrow().as_ref() {
+        Some(s) => s.as_ptr(),
+        None => std::ptr::null(),
+    })
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_clear_error() {
+    clear_error();
+}
+
+mod telemetry {
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    pub const N: usize = 16;
+    pub const CALL_CHUNK_TOUCH: usize = 0;
+    pub const CALL_CHUNK_SUMMARY: usize = 1;
+    pub const CALL_PREFETCH_NEIGHBORS: usize = 2;
+    pub const CALL_TAKE_CHUNKS_RANGE: usize = 3;
+    pub const CALL_SAVE_AGGREGATE: usize = 4;
+    pub const CALL_TAKE_AGGREGATES: usize = 5;
+    pub const CALL_DUE_COUNT: usize = 6;
+    pub const CALL_PURGE_STALE: usize = 7;
+    pub const CALL_CHUNK_TOUCH_BATCH: usize = 8;
+    pub const CALL_SAVE_AGGREGATE_BATCH: usize = 9;
+
+    static COUNTERS: [AtomicU64; N] = [
+        AtomicU64::new(0),
+        AtomicU64::new(0),
+        AtomicU64::new(0),
+        AtomicU64::new(0),
+        AtomicU64::new(0),
+        AtomicU64::new(0),
+        AtomicU64::new(0),
+        AtomicU64::new(0),
+        AtomicU64::new(0),
+        AtomicU64::new(0),
+        AtomicU64::new(0),
+        AtomicU64::new(0),
+        AtomicU64::new(0),
+        AtomicU64::new(0),
+        AtomicU64::new(0),
+        AtomicU64::new(0),
+    ];
+
+    pub fn bump(idx: usize) {
+        if idx < N {
+            COUNTERS[idx].fetch_add(1, Ordering::Relaxed);
+        }
+    }
+
+    pub fn snapshot(out: &mut [u64; N]) {
+        for (i, c) in COUNTERS.iter().enumerate() {
+            out[i] = c.load(Ordering::Relaxed);
+        }
+    }
+
+    pub fn reset() {
+        for c in COUNTERS.iter() {
+            c.store(0, Ordering::Relaxed);
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy, Default)]
+pub struct FfiCallCounts {
+    pub chunk_touch: u64,
+    pub chunk_summary: u64,
+    pub prefetch_neighbors: u64,
+    pub take_chunks_range: u64,
+    pub save_aggregate: u64,
+    pub take_aggregates: u64,
+    pub due_count: u64,
+    pub purge_stale: u64,
+    pub chunk_touch_batch: u64,
+    pub save_aggregate_batch: u64,
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_call_counts() -> FfiCallCounts {
+    let mut buf = [0u64; telemetry::N];
+    telemetry::snapshot(&mut buf);
+    FfiCallCounts {
+        chunk_touch: buf[telemetry::CALL_CHUNK_TOUCH],
+        chunk_summary: buf[telemetry::CALL_CHUNK_SUMMARY],
+        prefetch_neighbors: buf[telemetry::CALL_PREFETCH_NEIGHBORS],
+        take_chunks_range: buf[telemetry::CALL_TAKE_CHUNKS_RANGE],
+        save_aggregate: buf[telemetry::CALL_SAVE_AGGREGATE],
+        take_aggregates: buf[telemetry::CALL_TAKE_AGGREGATES],
+        due_count: buf[telemetry::CALL_DUE_COUNT],
+        purge_stale: buf[telemetry::CALL_PURGE_STALE],
+        chunk_touch_batch: buf[telemetry::CALL_CHUNK_TOUCH_BATCH],
+        save_aggregate_batch: buf[telemetry::CALL_SAVE_AGGREGATE_BATCH],
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_call_counts_reset() {
+    telemetry::reset();
+}
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy, Default)]
+pub struct FfiChunkTouch {
+    pub cx: i32,
+    pub cy: i32,
+    pub last_seen_ms: u64,
+    pub flags: u32,
+    pub threat_level: u32,
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_chunk_touch_batch(
+    world: *mut c_void,
+    items: *const FfiChunkTouch,
+    count: u32,
+) -> u32 {
+    telemetry::bump(telemetry::CALL_CHUNK_TOUCH_BATCH);
+    if world.is_null() || items.is_null() || count == 0 {
+        set_error("chunk_touch_batch: null world/items or zero count");
+        return 0;
+    }
+    let world = unsafe { &*(world as *const WorldStore) };
+    let mut db_guard = match world.db.lock() {
+        Ok(g) => g,
+        Err(_) => {
+            set_error("chunk_touch_batch: db mutex poisoned");
+            return 0;
+        }
+    };
+    let Some(conn) = db_guard.as_mut() else {
+        set_error("chunk_touch_batch: db not open");
+        return 0;
+    };
+    let slice = unsafe { std::slice::from_raw_parts(items, count as usize) };
+    let tx = match conn.transaction() {
+        Ok(t) => t,
+        Err(e) => {
+            set_error(format!("chunk_touch_batch: begin tx: {e}"));
+            return 0;
+        }
+    };
+    let mut written = 0u32;
+    for item in slice {
+        let res = tx.execute(
+            "INSERT INTO chunks (cx, cy, last_seen_ms, flags, threat_level)
+             VALUES (?1, ?2, ?3, ?4, ?5)
+             ON CONFLICT(cx, cy) DO UPDATE SET
+                last_seen_ms = excluded.last_seen_ms,
+                flags = excluded.flags,
+                threat_level = excluded.threat_level",
+            [
+                item.cx as i64,
+                item.cy as i64,
+                item.last_seen_ms as i64,
+                item.flags as i64,
+                item.threat_level as i64,
+            ],
+        );
+        if res.is_ok() {
+            written += 1;
+        }
+    }
+    if let Err(e) = tx.commit() {
+        set_error(format!("chunk_touch_batch: commit: {e}"));
+        return 0;
+    }
+    for item in slice {
+        let _ = refresh_chunk_counts(conn, item.cx, item.cy);
+    }
+    written
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_save_unit_aggregate_batch(
+    world: *mut c_void,
+    items: *const FfiUnitAggregate,
+    count: u32,
+) -> u32 {
+    telemetry::bump(telemetry::CALL_SAVE_AGGREGATE_BATCH);
+    if world.is_null() || items.is_null() || count == 0 {
+        set_error("save_unit_aggregate_batch: null world/items or zero count");
+        return 0;
+    }
+    let world = unsafe { &*(world as *const WorldStore) };
+    let mut db_guard = match world.db.lock() {
+        Ok(g) => g,
+        Err(_) => {
+            set_error("save_unit_aggregate_batch: db mutex poisoned");
+            return 0;
+        }
+    };
+    let Some(conn) = db_guard.as_mut() else {
+        set_error("save_unit_aggregate_batch: db not open");
+        return 0;
+    };
+    let slice = unsafe { std::slice::from_raw_parts(items, count as usize) };
+    let tx = match conn.transaction() {
+        Ok(t) => t,
+        Err(e) => {
+            set_error(format!("save_unit_aggregate_batch: begin tx: {e}"));
+            return 0;
+        }
+    };
+    let mut written = 0u32;
+    let mut touched: std::collections::HashSet<(i32, i32)> = std::collections::HashSet::new();
+    for item in slice {
+        let res = tx.execute(
+            "INSERT INTO unit_aggregates (cx, cy, unit_type, count, avg_health, hunger_pool, last_tick_secs)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+             ON CONFLICT(cx, cy, unit_type) DO UPDATE SET
+                count = excluded.count,
+                avg_health = excluded.avg_health,
+                hunger_pool = excluded.hunger_pool,
+                last_tick_secs = excluded.last_tick_secs",
+            rusqlite::params![
+                item.cx as i64,
+                item.cy as i64,
+                item.unit_type as i64,
+                item.count as i64,
+                item.avg_health as f64,
+                item.hunger_pool as f64,
+                item.last_tick_secs as f64,
+            ],
+        );
+        if res.is_ok() {
+            written += 1;
+            touched.insert((item.cx, item.cy));
+        }
+    }
+    if let Err(e) = tx.commit() {
+        set_error(format!("save_unit_aggregate_batch: commit: {e}"));
+        return 0;
+    }
+    for (cx, cy) in touched {
+        let _ = refresh_chunk_counts(conn, cx, cy);
+    }
+    written
 }

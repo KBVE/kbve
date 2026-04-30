@@ -843,6 +843,24 @@ namespace RareIcon.Native
         [DllImport(__DllName, EntryPoint = "uniti_world_chunks_purge_stale", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_world_chunks_purge_stale(void* world, ulong older_than_ms);
 
+        [DllImport(__DllName, EntryPoint = "uniti_world_last_error", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte* uniti_world_last_error();
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_clear_error", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_world_clear_error();
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_call_counts", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern FfiCallCounts uniti_world_call_counts();
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_call_counts_reset", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_world_call_counts_reset();
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_chunk_touch_batch", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_chunk_touch_batch(void* world, FfiChunkTouch* items, uint count);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_save_unit_aggregate_batch", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_save_unit_aggregate_batch(void* world, FfiUnitAggregate* items, uint count);
+
 
     }
 
@@ -1056,6 +1074,31 @@ namespace RareIcon.Native
         public float avg_health;
         public float hunger_pool;
         public float last_tick_secs;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct FfiCallCounts
+    {
+        public ulong chunk_touch;
+        public ulong chunk_summary;
+        public ulong prefetch_neighbors;
+        public ulong take_chunks_range;
+        public ulong save_aggregate;
+        public ulong take_aggregates;
+        public ulong due_count;
+        public ulong purge_stale;
+        public ulong chunk_touch_batch;
+        public ulong save_aggregate_batch;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct FfiChunkTouch
+    {
+        public int cx;
+        public int cy;
+        public ulong last_seen_ms;
+        public uint flags;
+        public uint threat_level;
     }
 
 

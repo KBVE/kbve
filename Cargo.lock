@@ -16480,6 +16480,7 @@ dependencies = [
  "csbindgen",
  "rusqlite",
  "serde",
+ "tempfile",
  "zstd",
 ]
 
