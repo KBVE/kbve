@@ -2,6 +2,9 @@ import { useEffect } from 'react';
 import { SiteGraphLoader, createSiteGraphWorker } from '@kbve/astro';
 import {
 	osrsEdgeColors,
+	osrsEdgeDashes,
+	osrsEdgeLabels,
+	osrsTagLabels,
 	osrsTagOf,
 	osrsTagStyles,
 } from '../../lib/sitegraph/osrs-extractor';
@@ -27,8 +30,11 @@ export default function SiteGraphHost({ currentSlug }: Props) {
 		<SiteGraphLoader
 			currentSlug={currentSlug}
 			edgeColors={osrsEdgeColors}
+			edgeDashes={osrsEdgeDashes}
+			edgeLabels={osrsEdgeLabels}
 			tagOf={osrsTagOf}
 			tagStyles={osrsTagStyles}
+			tagLabels={osrsTagLabels}
 		/>
 	);
 }

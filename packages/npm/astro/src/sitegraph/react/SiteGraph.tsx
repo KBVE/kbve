@@ -60,6 +60,22 @@ export interface SiteGraphProps {
 		string,
 		{ fill: string; stroke: string; radius: number }
 	>;
+	/**
+	 * Optional SVG `stroke-dasharray` keyed by relationship. Layered on top
+	 * of `edgeColors` so color-blind users have a redundant signal for
+	 * relationship type. Example: `{ downgrade: '4 2', upgrade: '0' }`.
+	 */
+	edgeDashes?: Record<string, string>;
+	/**
+	 * Human-readable labels for relationships, used in the cluster legend
+	 * + tooltips. Falls back to the relationship key itself.
+	 */
+	edgeLabels?: Record<string, string>;
+	/**
+	 * Pretty labels for tags in the cluster legend. Falls back to the tag
+	 * key itself.
+	 */
+	tagLabels?: Record<string, string>;
 	/** Fixed-size mode (no ResizeObserver). Defaults to `false` (responsive). */
 	fixedSize?: boolean;
 	/** Min/max depth allowed in the depth selector. Defaults to 1..3. */
@@ -80,6 +96,57 @@ const ZOOM_SENSITIVITY = 0.002;
 /** d3-force tick budget — caps long-running simulations on dense neighborhoods. */
 const ALPHA_MIN = 0.05;
 const ALPHA_DECAY = 0.05;
+
+/** localStorage key for the user's preferred neighborhood depth. */
+const DEPTH_STORAGE_KEY = 'kbve-sitegraph-depth';
+
+/** Reads the user's reduced-motion preference. SSR-safe. */
+function prefersReducedMotion(): boolean {
+	if (typeof window === 'undefined') return false;
+	return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+}
+
+/** Reads + writes the depth selection to localStorage. */
+function loadStoredDepth(fallback: number, min: number, max: number): number {
+	if (typeof localStorage === 'undefined') return fallback;
+	const raw = localStorage.getItem(DEPTH_STORAGE_KEY);
+	if (!raw) return fallback;
+	const n = Number(raw);
+	return Number.isFinite(n) && n >= min && n <= max ? n : fallback;
+}
+
+function persistDepth(depth: number): void {
+	if (typeof localStorage === 'undefined') return;
+	try {
+		localStorage.setItem(DEPTH_STORAGE_KEY, String(depth));
+	} catch {
+		// quota / disabled — ignore
+	}
+}
+
+/** Reads sg-prefixed query params for shareable graph state. */
+function readUrlState(): { depth: number | null; q: string | null } {
+	if (typeof window === 'undefined') return { depth: null, q: null };
+	const params = new URLSearchParams(window.location.search);
+	const depthRaw = params.get('sg-depth');
+	const depth = depthRaw ? Number(depthRaw) : null;
+	return {
+		depth: depth !== null && Number.isFinite(depth) ? depth : null,
+		q: params.get('sg-q'),
+	};
+}
+
+function writeUrlState(state: { depth: number; q: string }): void {
+	if (typeof window === 'undefined') return;
+	const params = new URLSearchParams(window.location.search);
+	params.set('sg-depth', String(state.depth));
+	if (state.q) params.set('sg-q', state.q);
+	else params.delete('sg-q');
+	const next = `${window.location.pathname}${
+		params.toString() ? '?' + params.toString() : ''
+	}${window.location.hash}`;
+	window.history.replaceState(null, '', next);
+}
 
 function getNeighborhood(
 	graph: SiteGraphData,
@@ -156,6 +223,31 @@ function radiusForDegree(degree: number, base: number): number {
  * except the hovered node + its immediate neighbors without re-running
  * BFS on every mouse-enter.
  */
+/**
+ * Returns an SVG path for a quadratic bezier from `s` to `t`. The control
+ * point is offset perpendicular to the segment by ~15% of its length so
+ * dense graphs read as a fan of curves instead of overlapping lines.
+ */
+function curvedEdgePath(
+	s: { x?: number; y?: number },
+	t: { x?: number; y?: number },
+): string {
+	const sx = s.x ?? 0;
+	const sy = s.y ?? 0;
+	const tx = t.x ?? 0;
+	const ty = t.y ?? 0;
+	const dx = tx - sx;
+	const dy = ty - sy;
+	const dist = Math.hypot(dx, dy) || 1;
+	const offset = dist * 0.15;
+	const mx = (sx + tx) / 2;
+	const my = (sy + ty) / 2;
+	// Perpendicular unit vector → control point.
+	const cx = mx + (-dy / dist) * offset;
+	const cy = my + (dx / dist) * offset;
+	return `M${sx} ${sy} Q${cx} ${cy} ${tx} ${ty}`;
+}
+
 function buildAdjacency(links: GraphLink[]): Map<string, Set<string>> {
 	const adj = new Map<string, Set<string>>();
 	for (const l of links) {
@@ -176,8 +268,11 @@ export function SiteGraph({
 	height: heightProp = 280,
 	endpoint,
 	edgeColors,
+	edgeDashes,
+	edgeLabels,
 	tagOf = () => null,
 	tagStyles,
+	tagLabels,
 	fixedSize = false,
 	minDepth = 1,
 	maxDepth = 3,
@@ -188,13 +283,24 @@ export function SiteGraph({
 	const containerRef = useRef<HTMLDivElement>(null);
 	const svgRef = useRef<SVGSVGElement>(null);
 	const tooltipRef = useRef<HTMLDivElement>(null);
+	const searchInputRef = useRef<HTMLInputElement>(null);
 	const [graphData, setGraphData] = useState<SiteGraphData | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [retryNonce, setRetryNonce] = useState(0);
 	const simulationRef = useRef<Simulation<GraphNode, GraphLink> | null>(null);
 
 	const [hoveredId, setHoveredId] = useState<string | null>(null);
-	const [depth, setDepth] = useState(depthProp);
-	const [search, setSearch] = useState('');
+	const [pinnedId, setPinnedId] = useState<string | null>(null);
+	// Depth seeds from (in order): URL `sg-depth` → localStorage → prop default.
+	const [depth, setDepth] = useState(() => {
+		const urlDepth = readUrlState().depth;
+		if (urlDepth !== null && urlDepth >= minDepth && urlDepth <= maxDepth) {
+			return urlDepth;
+		}
+		return loadStoredDepth(depthProp, minDepth, maxDepth);
+	});
+	const [search, setSearch] = useState(() => readUrlState().q ?? '');
+	const reducedMotion = useMemo(prefersReducedMotion, []);
 
 	// Responsive sizing — ResizeObserver on the container.
 	const [size, setSize] = useState({ width: widthProp, height: heightProp });
@@ -274,6 +380,7 @@ export function SiteGraph({
 
 	useEffect(() => {
 		let cancelled = false;
+		setError(null);
 		fetchSiteGraph(endpoint)
 			.then((data) => {
 				if (!cancelled) setGraphData(data);
@@ -285,7 +392,14 @@ export function SiteGraph({
 		return () => {
 			cancelled = true;
 		};
-	}, [endpoint]);
+	}, [endpoint, retryNonce]);
+
+	// Persist depth to localStorage and reflect depth + search in the URL so
+	// users can share/refresh into the same view.
+	useEffect(() => {
+		persistDepth(depth);
+		writeUrlState({ depth, q: search });
+	}, [depth, search]);
 
 	// Memoize neighborhood so adjacency + render don't recompute every keystroke.
 	const { nodes, links, adjacency } = useMemo(() => {
@@ -301,6 +415,24 @@ export function SiteGraph({
 			adjacency: buildAdjacency(result.links),
 		};
 	}, [graphData, currentSlug, depth, tagOf]);
+
+	// Distinct tags / relationships drive the cluster legend below the SVG.
+	const distinctTags = useMemo(
+		() => [
+			...new Set(nodes.map((n) => n.tag).filter((t): t is string => !!t)),
+		],
+		[nodes],
+	);
+	const distinctRelationships = useMemo(
+		() => [
+			...new Set(
+				links
+					.map((l) => l.relationship)
+					.filter((r): r is string => !!r),
+			),
+		],
+		[links],
+	);
 
 	useEffect(() => {
 		if (!graphData || !svgRef.current || nodes.length === 0) return;
@@ -323,8 +455,8 @@ export function SiteGraph({
 		});
 
 		const simulation = forceSimulation<GraphNode>(nodes)
-			.alphaMin(ALPHA_MIN)
-			.alphaDecay(ALPHA_DECAY)
+			.alphaMin(reducedMotion ? 0.5 : ALPHA_MIN)
+			.alphaDecay(reducedMotion ? 0.4 : ALPHA_DECAY)
 			.force(
 				'link',
 				forceLink<GraphNode, GraphLink>(links)
@@ -358,13 +490,13 @@ export function SiteGraph({
 		simulationRef.current = simulation;
 
 		simulation.on('tick', () => {
-			const linkEls = svg.querySelectorAll<SVGLineElement>('.sg-link');
+			const linkEls = svg.querySelectorAll<SVGPathElement>('.sg-link');
 			links.forEach((link, i) => {
 				if (linkEls[i]) {
-					linkEls[i].setAttribute('x1', String(link.source.x ?? 0));
-					linkEls[i].setAttribute('y1', String(link.source.y ?? 0));
-					linkEls[i].setAttribute('x2', String(link.target.x ?? 0));
-					linkEls[i].setAttribute('y2', String(link.target.y ?? 0));
+					linkEls[i].setAttribute(
+						'd',
+						curvedEdgePath(link.source, link.target),
+					);
 				}
 			});
 
@@ -383,7 +515,7 @@ export function SiteGraph({
 			simulation.stop();
 			simulationRef.current = null;
 		};
-	}, [graphData, nodes, links, width, height]);
+	}, [graphData, nodes, links, width, height, reducedMotion]);
 
 	useEffect(() => {
 		const svg = svgRef.current;
@@ -475,11 +607,102 @@ export function SiteGraph({
 		};
 	}, []);
 
+	// Click-drag pan on empty SVG space. Clicks that originate inside an
+	// `.sg-node` group are ignored — those are claimed by node-drag below.
+	useEffect(() => {
+		const svg = svgRef.current;
+		if (!svg) return;
+
+		let dragging = false;
+		let startX = 0;
+		let startY = 0;
+		let startPanX = 0;
+		let startPanY = 0;
+
+		const onDown = (e: MouseEvent) => {
+			if (e.button !== 0) return;
+			const target = e.target as SVGElement | null;
+			if (target?.closest('.sg-node')) return;
+			dragging = true;
+			startX = e.clientX;
+			startY = e.clientY;
+			startPanX = panX;
+			startPanY = panY;
+			svg.style.cursor = 'grabbing';
+		};
+		const onMove = (e: MouseEvent) => {
+			if (!dragging) return;
+			setPanX(startPanX + (e.clientX - startX));
+			setPanY(startPanY + (e.clientY - startY));
+		};
+		const onUp = () => {
+			if (!dragging) return;
+			dragging = false;
+			svg.style.cursor = 'grab';
+		};
+
+		svg.addEventListener('mousedown', onDown);
+		window.addEventListener('mousemove', onMove);
+		window.addEventListener('mouseup', onUp);
+		return () => {
+			svg.removeEventListener('mousedown', onDown);
+			window.removeEventListener('mousemove', onMove);
+			window.removeEventListener('mouseup', onUp);
+		};
+	}, [panX, panY]);
+
+	// Node drag — pin the node's simulation position while dragging by
+	// setting fx/fy, and release with `simulation.alphaTarget` ramping back
+	// down so the rest of the graph re-settles.
+	const dragNode = useCallback(
+		(node: GraphNode) => (e: React.MouseEvent) => {
+			e.stopPropagation();
+			const sim = simulationRef.current;
+			const svg = svgRef.current;
+			if (!sim || !svg) return;
+
+			const rect = svg.getBoundingClientRect();
+			const toSvg = (clientX: number, clientY: number) => {
+				const relX = clientX - rect.left - rect.width / 2 - panX;
+				const relY = clientY - rect.top - rect.height / 2 - panY;
+				return {
+					x: relX / zoom + width / 2,
+					y: relY / zoom + height / 2,
+				};
+			};
+
+			node.fx = node.x;
+			node.fy = node.y;
+			sim.alphaTarget(0.3).restart();
+
+			const onMove = (ev: MouseEvent) => {
+				const p = toSvg(ev.clientX, ev.clientY);
+				node.fx = p.x;
+				node.fy = p.y;
+			};
+			const onUp = () => {
+				node.fx = null;
+				node.fy = null;
+				sim.alphaTarget(0);
+				window.removeEventListener('mousemove', onMove);
+				window.removeEventListener('mouseup', onUp);
+			};
+			window.addEventListener('mousemove', onMove);
+			window.addEventListener('mouseup', onUp);
+		},
+		[panX, panY, zoom, width, height],
+	);
+
 	const handleNodeClick = useCallback(
-		(slug: string) => {
-			if (slug !== currentSlug) {
-				window.location.href = `/${slug}/`;
+		(slug: string, e: React.MouseEvent) => {
+			if (slug === currentSlug) return;
+			const url = `/${slug}/`;
+			// Match anchor-tag conventions: ctrl/meta/middle-click → new tab.
+			if (e.ctrlKey || e.metaKey || e.button === 1) {
+				window.open(url, '_blank', 'noopener');
+				return;
 			}
+			window.location.href = url;
 		},
 		[currentSlug],
 	);
@@ -497,16 +720,90 @@ export function SiteGraph({
 		setPanY(0);
 	}, []);
 
+	// Keyboard shortcuts (only fire when the pointer is over the graph or it's
+	// in fullscreen, so we don't hijack typing in unrelated parts of the page).
+	useEffect(() => {
+		const handler = (e: KeyboardEvent) => {
+			const inText =
+				e.target instanceof HTMLElement &&
+				(e.target.tagName === 'INPUT' ||
+					e.target.tagName === 'TEXTAREA' ||
+					e.target.isContentEditable);
+			if (!isFullscreen && !isPointerOverSvg.current && !inText) return;
+
+			if (e.key === '/' && !inText) {
+				e.preventDefault();
+				searchInputRef.current?.focus();
+				searchInputRef.current?.select();
+				return;
+			}
+			if (e.key === 'f' && !inText && onFullscreenChange) {
+				e.preventDefault();
+				onFullscreenChange(!isFullscreen);
+				return;
+			}
+			if (e.key === 'Escape') {
+				if (search) {
+					setSearch('');
+					return;
+				}
+				if (pinnedId) {
+					setPinnedId(null);
+					setHoveredId(null);
+					hideTooltip();
+					return;
+				}
+				if (isFullscreen && onFullscreenChange) {
+					onFullscreenChange(false);
+				}
+			}
+		};
+		window.addEventListener('keydown', handler);
+		return () => window.removeEventListener('keydown', handler);
+	}, [isFullscreen, onFullscreenChange, search, pinnedId, hideTooltip]);
+
+	// Background tap on the SVG dismisses any pinned tooltip (touch only).
+	useEffect(() => {
+		const svg = svgRef.current;
+		if (!svg) return;
+		const onTouch = (e: TouchEvent) => {
+			const target = e.target as SVGElement | null;
+			if (target?.closest('.sg-node')) return;
+			setPinnedId(null);
+			setHoveredId(null);
+			hideTooltip();
+		};
+		svg.addEventListener('touchstart', onTouch, { passive: true });
+		return () => svg.removeEventListener('touchstart', onTouch);
+	}, [hideTooltip]);
+
 	if (error) {
 		return (
 			<div
 				className="sg-error"
+				role="alert"
 				style={{
 					padding: '8px',
 					fontSize: '12px',
 					color: 'var(--sl-color-gray-4)',
+					display: 'flex',
+					alignItems: 'center',
+					gap: '8px',
 				}}>
-				Graph unavailable
+				<span>Graph unavailable</span>
+				<button
+					onClick={() => setRetryNonce((n) => n + 1)}
+					style={{
+						background: 'var(--sl-color-bg-nav)',
+						color: 'inherit',
+						border: '1px solid var(--sl-color-gray-5, #262626)',
+						borderRadius: 4,
+						padding: '2px 8px',
+						fontSize: '11px',
+						cursor: 'pointer',
+					}}>
+					Retry
+				</button>
 			</div>
 		);
 	}
@@ -614,11 +911,12 @@ export function SiteGraph({
 						</select>
 					</label>
 					<input
+						ref={searchInputRef}
 						type="search"
 						value={search}
 						onChange={(e) => setSearch(e.target.value)}
-						placeholder="Filter…"
-						aria-label="Filter nodes by title"
+						placeholder="Filter…  (/)"
+						aria-label="Filter nodes by title (press / to focus)"
 						style={{
 							flex: 1,
 							minWidth: 0,
@@ -678,10 +976,14 @@ export function SiteGraph({
 								? 0.6
 								: 0.4
 							: 0.08;
+						const dash = l.relationship
+							? edgeDashes?.[l.relationship]
+							: undefined;
 						return (
-							<line
+							<path
 								key={`link-${i}`}
 								className="sg-link"
+								fill="none"
 								stroke={
 									l.relationship
 										? edgeColors?.[l.relationship] ||
@@ -692,6 +994,7 @@ export function SiteGraph({
 									l.relationship ? 1.5 / zoom : 1 / zoom
 								}
 								strokeOpacity={opacity}
+								strokeDasharray={dash}
 								style={{ transition: 'stroke-opacity 0.12s' }}
 							/>
 						);
@@ -722,6 +1025,17 @@ export function SiteGraph({
 						const visible = filterPass && adjPass;
 						const opacity = visible ? 1 : filterPass ? 0.18 : 0.05;
 
+						// Label-visibility heuristic: always show labels for the
+						// current node, hovered/pinned, search matches; show
+						// degree-≥5 hubs by default; hide other low-signal labels
+						// at low zoom to declutter dense neighborhoods.
+						const labelVisible =
+							node.isCurrent ||
+							hoveredId === node.id ||
+							(search && filterPass) ||
+							node.degree >= 5 ||
+							zoom >= 1.2;
+
 						return (
 							<g
 								key={node.id}
@@ -731,7 +1045,8 @@ export function SiteGraph({
 									opacity,
 									transition: 'opacity 0.12s',
 								}}
-								onClick={() => handleNodeClick(node.id)}
+								onClick={(e) => handleNodeClick(node.id, e)}
+								onMouseDown={dragNode(node)}
 								onMouseEnter={(e) => {
 									setHoveredId(node.id);
 									showTooltip(node.title, node.id, e);
@@ -739,9 +1054,20 @@ export function SiteGraph({
 								}}
 								onMouseMove={moveTooltip}
 								onMouseLeave={() => {
+									if (pinnedId === node.id) return;
 									setHoveredId(null);
 									hideTooltip();
 									closeTooltip(`sg-node-${node.id}`);
+								}}
+								onTouchStart={(e) => {
+									setPinnedId(node.id);
+									setHoveredId(node.id);
+									const touch = e.touches[0];
+									if (!touch) return;
+									showTooltip(node.title, node.id, {
+										clientX: touch.clientX,
+										clientY: touch.clientY,
+									} as React.MouseEvent);
 								}}>
 								<circle
 									r={radius}
@@ -768,9 +1094,10 @@ export function SiteGraph({
 											? 600
 											: 400
 									}
+									opacity={labelVisible ? 1 : 0}
 									style={{
 										pointerEvents: 'none',
-										transition: 'fill 0.15s',
+										transition: 'fill 0.15s, opacity 0.15s',
 									}}>
 									{node.title.length > 20
 										? node.title.slice(0, 18) + '...'
@@ -781,6 +1108,78 @@ export function SiteGraph({
 					})}
 				</g>
 			</svg>
+
+			{(distinctTags.length >= 2 || distinctRelationships.length > 0) && (
+				<ul
+					className="sg-legend"
+					aria-label="Graph legend"
+					style={{
+						listStyle: 'none',
+						margin: '6px 0 0',
+						padding: '0 8px',
+						display: 'flex',
+						flexWrap: 'wrap',
+						gap: '4px 10px',
+						fontSize: '10px',
+						color: 'var(--sl-color-gray-3, #8b949e)',
+					}}>
+					{distinctTags.length >= 2 &&
+						distinctTags.map((tag) => {
+							const style = tagStyles?.[tag];
+							return (
+								<li
+									key={`tag-${tag}`}
+									style={{
+										display: 'inline-flex',
+										alignItems: 'center',
+										gap: '4px',
+									}}>
+									<span
+										style={{
+											width: 8,
+											height: 8,
+											borderRadius: '50%',
+											background:
+												style?.fill ??
+												'var(--sl-color-white)',
+											border: `1px solid ${style?.stroke ?? 'var(--sl-color-gray-4)'}`,
+											display: 'inline-block',
+										}}
+										aria-hidden="true"
+									/>
+									{tagLabels?.[tag] ?? tag}
+								</li>
+							);
+						})}
+					{distinctRelationships.map((rel) => {
+						const dash = edgeDashes?.[rel];
+						const stroke =
+							edgeColors?.[rel] ?? 'var(--sl-color-gray-4)';
+						return (
+							<li
+								key={`rel-${rel}`}
+								style={{
+									display: 'inline-flex',
+									alignItems: 'center',
+									gap: '4px',
+								}}>
+								<svg width={16} height={6} aria-hidden="true">
+									<line
+										x1={0}
+										y1={3}
+										x2={16}
+										y2={3}
+										stroke={stroke}
+										strokeWidth={1.5}
+										strokeDasharray={dash}
+									/>
+								</svg>
+								{edgeLabels?.[rel] ?? rel}
+							</li>
+						);
+					})}
+				</ul>
+			)}
 
 			<div
 				ref={tooltipRef}
