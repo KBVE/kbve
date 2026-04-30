@@ -54,7 +54,7 @@
     min-width: 320px;
     max-height: 96%;
 
-    padding: 32px 36px;
+    padding: 22px 28px 18px 28px;
     background-color: var(--color-bg-panel);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -109,16 +109,16 @@
     flex-shrink: 0;
 }
 .title-social-btn {
-    width: 32px;
-    height: 32px;
-    margin-left: 8px;
+    width: 26px;
+    height: 26px;
+    margin-left: 6px;
     padding: 0;
     background-color: rgba(0, 0, 0, 0);
     border-color: var(--color-accent);
     border-width: 1px;
     -unity-text-align: middle-center;
     color: var(--color-accent);
-    font-size: 11px;
+    font-size: 10px;
     -unity-font-style: bold;
     transition-property: background-color, scale;
     transition-duration: 0.14s;
@@ -179,35 +179,38 @@
 }
 .title-stage.is-hidden { display: none; }
 
-/* Header */
+/* Header — top-left wordmark + inline tagline. Compact so the body
+   gets the lion's share of vertical room. The brand and tagline sit
+   on the same baseline-ish line; the tiny gold rule below ties them
+   to the panel chrome without eating another row of height. */
 .title-header {
-    align-items: center;
-    margin-bottom: 32px;
+    flex-direction: row;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+    flex-shrink: 0;
 }
 .title-brand {
-    font-size: 40px;
+    font-size: 28px;
     -unity-font-style: bold;
     color: var(--color-text-strong);
-    letter-spacing: 8px;
-    margin-left: 8px;
-    -unity-text-align: middle-center;
+    letter-spacing: 5px;
+    margin: 0;
+    -unity-text-align: middle-left;
     white-space: nowrap;
 }
 .title-tagline {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--color-accent);
-    letter-spacing: 4px;
+    letter-spacing: 3px;
     -unity-font-style: bold;
-    margin-top: 8px;
-    -unity-text-align: middle-center;
-    white-space: normal;
+    margin-left: 14px;
+    margin-bottom: 4px;
+    -unity-text-align: middle-left;
+    white-space: nowrap;
 }
 .title-tagline-rule {
-    height: 1px;
-    width: 64px;
-    margin-top: 12px;
-    background-color: var(--color-accent);
-    opacity: 0.55;
+    display: none;
 }
 
 /* Stage headings */
@@ -345,17 +348,14 @@
     white-space: normal;
 }
 
-/* Footer strip — persona left, socials right. Lives in the window's
-   normal flex-column flow as the last child so it can't overlap the
-   body. flex-shrink: 0 keeps it visible even when content above is
-   tall; margin-top + padding-top + a thin top border give a clean
-   visual break from the body. */
+/* Footer strip — slim. persona left, socials right. Lives in the
+   window's flex-column flow so it can't overlap the body. */
 .title-footer {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    margin-top: 20px;
-    padding-top: 16px;
+    margin-top: 12px;
+    padding-top: 10px;
     border-top-color: rgba(252, 211, 77, 0.25);
     border-top-width: 1px;
     flex-shrink: 0;
@@ -363,20 +363,20 @@
 .title-persona {
     flex-direction: row;
     align-items: center;
-    padding: 8px 14px;
-    background-color: rgba(0, 0, 0, 0.45);
+    padding: 4px 10px;
+    background-color: rgba(0, 0, 0, 0.4);
     border-color: var(--color-accent);
     border-width: 1px;
     flex-shrink: 1;
     flex-grow: 0;
-    min-width: 200px;
+    min-width: 0;
     max-width: 60%;
-    opacity: 0.92;
+    opacity: 0.85;
 }
 .title-avatar {
-    width: 40px;
-    height: 40px;
-    margin-right: 12px;
+    width: 28px;
+    height: 28px;
+    margin-right: 10px;
     background-color: rgba(255, 255, 255, 0.05);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -386,18 +386,20 @@
     flex-grow: 1;
     flex-shrink: 1;
     flex-direction: column;
-    min-width: 120px;
+    min-width: 0;
 }
 .title-persona__name {
-    font-size: 14px;
+    font-size: 12px;
     -unity-font-style: bold;
     color: var(--color-text-strong);
-    white-space: normal;
+    white-space: nowrap;
+    -unity-text-align: middle-left;
 }
 .title-persona__status {
-    font-size: 11px;
+    font-size: 9px;
     color: var(--color-text-muted);
-    margin-top: 2px;
+    margin-top: 1px;
+    letter-spacing: 1px;
 }
 
 /* Locale row — UI Toolkit USS doesn't support child-position pseudo
@@ -557,19 +559,23 @@
 
 /* Narrow (phones / portrait tablets) — single column, larger touch targets. */
 .title-window--narrow {
-    padding: 20px 16px 84px 16px;
+    padding: 18px 14px;
 }
 .title-window--narrow .title-header {
-    margin-bottom: 22px;
+    margin-bottom: 14px;
+    flex-direction: column;
+    align-items: flex-start;
 }
 .title-window--narrow .title-brand {
-    font-size: 32px;
-    letter-spacing: 4px;
-    margin-left: 4px;
+    font-size: 24px;
+    letter-spacing: 3px;
 }
 .title-window--narrow .title-tagline {
     letter-spacing: 2px;
-    font-size: 10px;
+    font-size: 9px;
+    margin-left: 0;
+    margin-top: 4px;
+    margin-bottom: 0;
 }
 .title-window--narrow .title-body {
     flex-direction: column;
@@ -638,22 +644,20 @@
 /* Wide (1080p+ / 4K) — bigger panel padding, larger type for readable
    distance from a couch / desk monitor. Two-column layout stays. */
 .title-window--wide {
-    padding: 48px 56px;
+    padding: 32px 44px 24px 44px;
 }
 .title-window--wide .title-brand {
-    font-size: 56px;
-    letter-spacing: 12px;
+    font-size: 38px;
+    letter-spacing: 7px;
 }
 .title-window--wide .title-tagline {
-    font-size: 14px;
-    letter-spacing: 6px;
-}
-.title-window--wide .title-tagline-rule {
-    width: 96px;
-    margin-top: 16px;
+    font-size: 12px;
+    letter-spacing: 4px;
+    margin-left: 18px;
+    margin-bottom: 6px;
 }
 .title-window--wide .title-header {
-    margin-bottom: 44px;
+    margin-bottom: 24px;
 }
 .title-window--wide .title-menu {
     min-width: 240px;
