@@ -2,8 +2,6 @@
 
 use std::collections::HashMap;
 
-use bevy::prelude::*;
-
 use crate::xp::XpCurve;
 
 /// Stable identifier for a skill, derived from its string ref via a
@@ -48,11 +46,13 @@ pub struct SkillDef {
     pub icon: Option<String>,
 }
 
-/// Bevy resource holding all skill definitions.
+/// Skill definition registry.
 ///
 /// Loaded once at startup and provides lookups by [`SkillId`] or string
 /// ref. Games register their skills here before any XP is granted.
-#[derive(Resource, Default)]
+/// Used as a `Resource` when the `bevy` feature is enabled.
+#[derive(Default)]
+#[cfg_attr(feature = "bevy", derive(bevy::prelude::Resource))]
 pub struct SkillRegistry {
     defs: HashMap<SkillId, SkillDef>,
     by_ref: HashMap<String, SkillId>,
