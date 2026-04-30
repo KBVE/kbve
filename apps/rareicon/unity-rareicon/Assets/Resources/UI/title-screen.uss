@@ -52,9 +52,9 @@
     width: 92%;
     max-width: 1080px;
     min-width: 320px;
-    max-height: 92%;
+    max-height: 96%;
 
-    padding: 32px 36px 96px 36px;
+    padding: 32px 36px;
     background-color: var(--color-bg-panel);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -234,7 +234,9 @@
     flex-direction: row;
     flex-grow: 1;
     flex-shrink: 1;
+    min-height: 0;
     margin-top: 4px;
+    overflow: hidden;
 }
 
 /* Menu rail */
@@ -336,16 +338,20 @@
     white-space: normal;
 }
 
-/* Footer strip — persona left, socials right. Anchored at the bottom of
-   the window via .title-window's extra bottom padding (96px). */
+/* Footer strip — persona left, socials right. Lives in the window's
+   normal flex-column flow as the last child so it can't overlap the
+   body. flex-shrink: 0 keeps it visible even when content above is
+   tall; margin-top + padding-top + a thin top border give a clean
+   visual break from the body. */
 .title-footer {
-    position: absolute;
-    bottom: 18px;
-    left: 36px;
-    right: 36px;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top-color: rgba(252, 211, 77, 0.25);
+    border-top-width: 1px;
+    flex-shrink: 0;
 }
 .title-persona {
     flex-direction: row;
@@ -387,12 +393,12 @@
     margin-top: 2px;
 }
 
-/* Locale row — UI Toolkit USS doesn't support `:first-child` / `:last-child`
-   pseudos, so the inter-button gap uses the negative-margin trick: the row
-   pulls its content edges in by 6px on each side and every button adds 6px
-   horizontal margin. The leak cancels at the row's edges, the gap appears
-   between buttons. Bottom margin (28px) is explicit so the persona / next
-   element below has a deterministic gap. */
+/* Locale row — UI Toolkit USS doesn't support child-position pseudo
+   classes, so the inter-button gap uses the negative-margin trick: the
+   row pulls its content edges in by 6px on each side and every button
+   adds 6px horizontal margin. The leak cancels at the row's edges, the
+   gap appears between buttons. Bottom margin (28px) is explicit so the
+   persona / next element below has a deterministic gap. */
 .title-locale-row {
     flex-direction: row;
     flex-wrap: nowrap;
@@ -598,11 +604,10 @@
     flex-basis: 100%;
 }
 .title-window--narrow .title-footer {
-    left: 16px;
-    right: 16px;
-    bottom: 14px;
     flex-direction: column;
     align-items: stretch;
+    margin-top: 16px;
+    padding-top: 12px;
 }
 .title-window--narrow .title-persona {
     max-width: none;
@@ -626,7 +631,7 @@
 /* Wide (1080p+ / 4K) — bigger panel padding, larger type for readable
    distance from a couch / desk monitor. Two-column layout stays. */
 .title-window--wide {
-    padding: 48px 56px 120px 56px;
+    padding: 48px 56px;
 }
 .title-window--wide .title-brand {
     font-size: 56px;
@@ -666,9 +671,8 @@
     font-size: 12px;
 }
 .title-window--wide .title-footer {
-    left: 56px;
-    right: 56px;
-    bottom: 24px;
+    margin-top: 28px;
+    padding-top: 22px;
 }
 .title-window--wide .title-avatar {
     width: 48px;
