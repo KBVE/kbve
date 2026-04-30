@@ -42,14 +42,17 @@ BEGIN
         RAISE EXCEPTION 'p_created_by required for tag creation';
     END IF;
 
-    SELECT array_agg(s ORDER BY s)
+    SELECT array_agg(s)
       INTO v_clean
       FROM (
-          SELECT DISTINCT lower(trim(slug)) AS s
-            FROM unnest(p_slugs) AS slug
-           WHERE slug IS NOT NULL
-             AND lower(trim(slug)) ~ '^[a-z0-9][a-z0-9-]*$'
-             AND char_length(trim(slug)) BETWEEN 1 AND 50
+          SELECT DISTINCT s
+            FROM (
+                SELECT lower(trim(slug)) AS s
+                  FROM unnest(p_slugs) AS slug
+                 WHERE slug IS NOT NULL
+            ) projected
+           WHERE s ~ '^[a-z0-9][a-z0-9-]*$'
+             AND char_length(s) BETWEEN 1 AND 50
            LIMIT 20
       ) clean;
 
@@ -140,15 +143,11 @@ RETURNS TABLE (
     description     TEXT,
     thread_count    BIGINT
 )
-LANGUAGE plpgsql
+LANGUAGE sql
 STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-DECLARE
-    v_limit INT := LEAST(GREATEST(COALESCE(p_limit, 100), 1), 200);
-BEGIN
-    RETURN QUERY
     WITH counts AS (
         SELECT tr.tag_id, count(*)::BIGINT AS thread_count
           FROM forum.thread_tags_resolved tr
@@ -167,8 +166,7 @@ BEGIN
      WHERE t.status = 'active'
        AND t.id = t.canonical_id
      ORDER BY COALESCE(c.thread_count, 0) DESC, t.slug ASC
-     LIMIT v_limit;
-END;
+     LIMIT LEAST(GREATEST(COALESCE(p_limit, 100), 1), 200);
 $$;
 
 REVOKE ALL ON FUNCTION forum.service_list_tags(INT) FROM PUBLIC, anon, authenticated;
@@ -206,7 +204,18 @@ $$;
 REVOKE ALL ON FUNCTION forum.service_get_thread_tags(TEXT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION forum.service_get_thread_tags(TEXT) TO service_role;
 
+-- ===========================================
+-- Index for the public-thread join used by service_list_tags +
+-- service_get_tag_by_slug. Lets the planner skip rows that the
+-- counts CTE filters out instead of scanning the whole feed PK.
+-- ===========================================
+CREATE INDEX IF NOT EXISTS idx_threads_active_public
+    ON forum.threads (id)
+    WHERE status = 'active' AND nsfw = FALSE;
+
 -- migrate:down
+
+DROP INDEX IF EXISTS forum.idx_threads_active_public;
 
 DROP FUNCTION IF EXISTS forum.service_get_thread_tags(TEXT);
 DROP FUNCTION IF EXISTS forum.service_list_tags(INT);

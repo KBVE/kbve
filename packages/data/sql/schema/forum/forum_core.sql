@@ -591,6 +591,11 @@ CREATE INDEX idx_threads_feed_activity
 CREATE INDEX idx_threads_active_nsfw
     ON forum.threads (nsfw, created_at DESC)
     WHERE status = 'active';
+-- Public-thread join target for tag count CTEs (service_list_tags,
+-- service_get_tag_by_slug); narrow partial keeps the index tiny.
+CREATE INDEX IF NOT EXISTS idx_threads_active_public
+    ON forum.threads (id)
+    WHERE status = 'active' AND nsfw = FALSE;
 CREATE INDEX idx_threads_type
     ON forum.threads (thread_type, last_activity_at DESC)
     WHERE status = 'active';

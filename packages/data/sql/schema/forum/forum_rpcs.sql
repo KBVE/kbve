@@ -95,17 +95,18 @@ BEGIN
         RAISE EXCEPTION 'p_created_by required for tag creation';
     END IF;
 
-    -- Single pass: trim + lowercase, validate against the table CHECK,
-    -- DISTINCT, sort, cap at 20 — same query that drives the INSERT
-    -- and the lookup.
-    SELECT array_agg(s ORDER BY s)
+    -- Project lower(trim(slug)) once, then filter + dedup + cap.
+    SELECT array_agg(s)
       INTO v_clean
       FROM (
-          SELECT DISTINCT lower(trim(slug)) AS s
-            FROM unnest(p_slugs) AS slug
-           WHERE slug IS NOT NULL
-             AND lower(trim(slug)) ~ '^[a-z0-9][a-z0-9-]*$'
-             AND char_length(trim(slug)) BETWEEN 1 AND 50
+          SELECT DISTINCT s
+            FROM (
+                SELECT lower(trim(slug)) AS s
+                  FROM unnest(p_slugs) AS slug
+                 WHERE slug IS NOT NULL
+            ) projected
+           WHERE s ~ '^[a-z0-9][a-z0-9-]*$'
+             AND char_length(s) BETWEEN 1 AND 50
            LIMIT 20
       ) clean;
 
@@ -196,17 +197,11 @@ RETURNS TABLE (
     description     TEXT,
     thread_count    BIGINT
 )
-LANGUAGE plpgsql
+LANGUAGE sql
 STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-DECLARE
-    v_limit INT := LEAST(GREATEST(COALESCE(p_limit, 100), 1), 200);
-BEGIN
-    -- Aggregate counts once via a CTE rather than a per-row LATERAL
-    -- subquery; lifts /forum/tags from O(N) subqueries to O(1).
-    RETURN QUERY
     WITH counts AS (
         SELECT tr.tag_id, count(*)::BIGINT AS thread_count
           FROM forum.thread_tags_resolved tr
@@ -225,8 +220,7 @@ BEGIN
      WHERE t.status = 'active'
        AND t.id = t.canonical_id
      ORDER BY COALESCE(c.thread_count, 0) DESC, t.slug ASC
-     LIMIT v_limit;
-END;
+     LIMIT LEAST(GREATEST(COALESCE(p_limit, 100), 1), 200);
 $$;
 
 REVOKE ALL ON FUNCTION forum.service_list_tags(INT) FROM PUBLIC, anon, authenticated;
