@@ -211,9 +211,7 @@ jobs:
     deploy_itch:
         name: Itch deploy ${{ matrix.target }}
         needs: [version_gate, build_matrix, build]
-        # Skip iOS — itch.io has no iOS channel; Unity only exports an
-        # unsigned Xcode project for that target anyway.
-        if: ${{ inputs.deploy_to_itch && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' && matrix.target != 'iOS' }}
+        if: ${{ inputs.deploy_to_itch && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' }}
         runs-on: ubuntu-latest
         timeout-minutes: 30
         strategy:
@@ -221,7 +219,14 @@ jobs:
             matrix:
                 target: ${{ fromJson(needs.build_matrix.outputs.matrix) }}
         steps:
+            # Skip iOS — itch.io has no iOS channel; Unity only exports an
+            # unsigned Xcode project for that target anyway.
+            - name: Skip iOS
+              if: ${{ matrix.target == 'iOS' }}
+              run: echo "iOS target has no itch channel; skipping."
+
             - name: Map target → itch channel
+              if: ${{ matrix.target != 'iOS' }}
               id: chan
               run: |
                   case "${{ matrix.target }}" in
@@ -234,12 +239,14 @@ jobs:
                   esac
 
             - name: Download build artifact
+              if: ${{ matrix.target != 'iOS' }}
               uses: actions/download-artifact@v8
               with:
                   name: ${{ inputs.app_name }}-${{ matrix.target }}
                   path: build/${{ matrix.target }}
 
             - name: Push to itch.io via butler
+              if: ${{ matrix.target != 'iOS' }}
               env:
                   BUTLER_API_KEY: ${{ secrets.ITCH_API }}
               run: |
