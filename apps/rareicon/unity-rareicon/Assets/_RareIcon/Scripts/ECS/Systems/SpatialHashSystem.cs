@@ -7,20 +7,28 @@ using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>Rebuilds a 2D spatial hash of all Collidable units each frame for O(1) "who's nearby" queries.</summary>
+    /// <summary>Rebuilds a 2D spatial hash of all Collidable units for O(1) "who's nearby" queries. Double-buffered: each frame, readers consume the previously-built buffer (singleton's <see cref="SpatialHashSingleton.Hash"/> always points to the just-completed buffer) while a fresh build runs async into the back buffer. The previous frame's build handle is Complete()'d at the start of the next frame's OnUpdate before the swap, so readers always see fully-built data without paying the build cost on their critical path. Cost: one frame of staleness — units appear lagged by a single tick to combat / threat scan / click router, invisible at 30Hz tick. Frees the main thread from waiting on BuildHashJob in the same frame it's scheduled. Safe to ship after MeleeAttackSystem's main-thread <c>ComponentLookup&lt;LocalTransform&gt;</c> staging was moved into a Burst <c>IJob</c> — the prior single-buffer Complete was implicitly syncing that latent race; see <c>feedback_burst_isystem_lookup_sync.md</c> for the audit pattern.</summary>
     [UpdateInGroup(typeof(CombatSystemGroup))]
     public partial class SpatialHashSystem : SystemBase
     {
         public const float CellSize = 1.0f;
 
-        public NativeParallelMultiHashMap<int, HashedTarget> Hash;
+        NativeParallelMultiHashMap<int, HashedTarget> _hashA;
+        NativeParallelMultiHashMap<int, HashedTarget> _hashB;
+        bool _readIsA;
+        bool _primed;
 
+        /// <summary>Currently-published read buffer (last frame's build, fully completed). Exposed for legacy direct readers; new code should go through <see cref="SpatialHashSingleton"/>.</summary>
+        public NativeParallelMultiHashMap<int, HashedTarget> Hash => _readIsA ? _hashA : _hashB;
+
+        JobHandle _writeHandle;
         EntityQuery _query;
 
         protected override void OnCreate()
         {
-            Hash = new NativeParallelMultiHashMap<int, HashedTarget>(
-                1024, Allocator.Persistent);
+            _hashA = new NativeParallelMultiHashMap<int, HashedTarget>(1024, Allocator.Persistent);
+            _hashB = new NativeParallelMultiHashMap<int, HashedTarget>(1024, Allocator.Persistent);
+            _readIsA = true;
 
             _query = GetEntityQuery(new EntityQueryDesc
             {
@@ -34,47 +42,98 @@ namespace RareIcon
             });
             RequireForUpdate(_query);
 
-            // Publish a singleton mirror so Burst-compiled ISystems can read
-            // the hash via SystemAPI.GetSingleton — state.World is managed
-            // and unreachable from Burst.
             var singleton = EntityManager.CreateEntity(typeof(SpatialHashSingleton));
             EntityManager.SetComponentData(singleton, new SpatialHashSingleton
             {
-                Hash        = Hash,
+                Hash        = _hashA,
                 WriteHandle = default,
             });
         }
 
         protected override void OnDestroy()
         {
-            if (Hash.IsCreated) Hash.Dispose();
+            _writeHandle.Complete();
+            if (_hashA.IsCreated) _hashA.Dispose();
+            if (_hashB.IsCreated) _hashB.Dispose();
         }
 
         protected override void OnUpdate()
         {
             int count = _query.CalculateEntityCount();
 
+            if (!_primed)
+            {
+                // First-frame prime: synchronously build A so this frame's
+                // readers see real data, then kick off an async build into B
+                // so the next frame can swap-and-publish without waiting.
+                Dependency = new ResetHashJob
+                {
+                    Hash       = _hashA,
+                    NewCapacity = count * 2,
+                }.Schedule(Dependency);
+                Dependency = new BuildHashJob
+                {
+                    Writer = _hashA.AsParallelWriter(),
+                }.ScheduleParallel(Dependency);
+                Dependency.Complete();
+
+                _readIsA = true;
+                SystemAPI.SetSingleton(new SpatialHashSingleton
+                {
+                    Hash        = _hashA,
+                    WriteHandle = default,
+                });
+
+                Dependency = new ResetHashJob
+                {
+                    Hash       = _hashB,
+                    NewCapacity = count * 2,
+                }.Schedule(Dependency);
+                Dependency = new BuildHashJob
+                {
+                    Writer = _hashB.AsParallelWriter(),
+                }.ScheduleParallel(Dependency);
+                _writeHandle = Dependency;
+                _primed = true;
+                return;
+            }
+
+            // Sync last frame's build into the back buffer, then promote.
+            // Complete() is cheap when the build already finished during the
+            // back half of the previous frame; expensive only when build
+            // overruns the rest of the frame (rare at typical unit counts).
+            _writeHandle.Complete();
+            _readIsA = !_readIsA;
+
+            var readBuf  = _readIsA ? _hashA : _hashB;
+            var writeBuf = _readIsA ? _hashB : _hashA;
+
+            // Publish the freshly-built buffer to consumers. WriteHandle on
+            // the singleton stays default — the read buffer is fully built
+            // by the time we set it, and Complete on default is a no-op so
+            // existing main-thread readers (AppStateController click router)
+            // keep working without changes.
+            SystemAPI.SetSingleton(new SpatialHashSingleton
+            {
+                Hash        = readBuf,
+                WriteHandle = default,
+            });
+
+            // Schedule next frame's build into the back buffer; runs async
+            // through the rest of this frame. Capture the handle for the
+            // next OnUpdate to wait on before promoting.
             Dependency = new ResetHashJob
             {
-                Hash       = Hash,
+                Hash       = writeBuf,
                 NewCapacity = count * 2,
             }.Schedule(Dependency);
 
             Dependency = new BuildHashJob
             {
-                Writer = Hash.AsParallelWriter(),
+                Writer = writeBuf.AsParallelWriter(),
             }.ScheduleParallel(Dependency);
 
-            // Publish the write handle on the singleton so managed readers
-            // (AppStateController click router, etc.) can Complete it before
-            // touching the hash. Burst readers chain through the framework's
-            // NativeContainer safety; the explicit handle exists for the
-            // main-thread query path that bypasses state.Dependency.
-            SystemAPI.SetSingleton(new SpatialHashSingleton
-            {
-                Hash        = Hash,
-                WriteHandle = Dependency,
-            });
+            _writeHandle = Dependency;
         }
 
         // Cheap pair hash. Spreads int2 cell coords across an int space
