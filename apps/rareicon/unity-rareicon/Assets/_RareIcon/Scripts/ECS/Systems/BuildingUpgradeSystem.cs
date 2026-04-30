@@ -189,6 +189,11 @@ namespace RareIcon
                 if (tier == 1) return BuildingType.Keep;
                 if (tier == 2) return BuildingType.Castle;
             }
+            else if (type == BuildingType.Inn)
+            {
+                if (tier == 1) return BuildingType.Tavern;
+                if (tier == 2) return BuildingType.Lodge;
+            }
             return 0;
         }
     }

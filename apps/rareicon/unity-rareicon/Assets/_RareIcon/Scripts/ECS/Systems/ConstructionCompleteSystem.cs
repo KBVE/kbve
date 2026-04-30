@@ -120,6 +120,7 @@ namespace RareIcon
                     Ecb.AddComponent<InnTag>(chunkIdx, entity);
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesFood  { Priority = 1 });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesSleep { Capacity = 5 });
+                    Ecb.AddComponent(chunkIdx, entity, new BuildingTier { Value = 0 });
                     break;
                 case BuildingType.Market:
                     Ecb.AddComponent<MarketTag>(chunkIdx, entity);
