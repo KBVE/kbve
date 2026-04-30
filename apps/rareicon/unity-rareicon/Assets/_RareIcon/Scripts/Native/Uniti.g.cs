@@ -861,6 +861,33 @@ namespace RareIcon.Native
         [DllImport(__DllName, EntryPoint = "uniti_world_save_unit_aggregate_batch", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_world_save_unit_aggregate_batch(void* world, FfiUnitAggregate* items, uint count);
 
+        [DllImport(__DllName, EntryPoint = "uniti_world_pause_ticker", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_world_pause_ticker(void* world);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_resume_ticker", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_world_resume_ticker(void* world);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_is_ticker_paused", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_world_is_ticker_paused(void* world);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_compact", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_world_compact(void* world);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_disk_stats", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern FfiDiskStats uniti_world_disk_stats(void* world);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_chunks_iter_open", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void* uniti_world_chunks_iter_open(void* world);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_chunks_iter_next", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_world_chunks_iter_next(void* iter, FfiChunkSummary* @out);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_chunks_iter_remaining", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_chunks_iter_remaining(void* iter);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_chunks_iter_close", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_world_chunks_iter_close(void* iter);
+
 
     }
 
@@ -1099,6 +1126,17 @@ namespace RareIcon.Native
         public ulong last_seen_ms;
         public uint flags;
         public uint threat_level;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct FfiDiskStats
+    {
+        public uint page_size_bytes;
+        public ulong page_count;
+        public ulong freelist_count;
+        public ulong wal_pages;
+        public ulong disk_size_bytes;
+        public byte valid;
     }
 
 
