@@ -149,3 +149,5 @@ vitest.config.*.timestamp*
 .fake
 *.log.gz
 *.log
+
+mono_crash.*.json

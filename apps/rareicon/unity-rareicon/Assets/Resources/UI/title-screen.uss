@@ -185,7 +185,7 @@
    margin-bottom = ~30px. */
 .title-header {
     flex-direction: row;
-    align-items: baseline;
+    align-items: flex-end;
     flex-wrap: wrap;
     margin-bottom: 4px;
     flex-shrink: 0;
