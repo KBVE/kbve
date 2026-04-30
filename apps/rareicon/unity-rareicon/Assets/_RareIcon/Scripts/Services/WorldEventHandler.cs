@@ -54,6 +54,11 @@ namespace RareIcon
         const int    CrowZombieMin        = 1;
         const int    CrowZombieMax        = 2;
         const int    CrowSpawnRadius      = 3;
+        const int    GoblinVillageMinDist = 18;
+        const int    GoblinVillageMaxDist = 28;
+        const ushort GoblinVillageMaxHp   = 180;
+        const byte   GoblinVillageRadius  = 2;
+        const int    GoblinVillageDefenders = 4;
 
         readonly LocaleService _locale;
         readonly ISubscriber<WorldEventTriggeredMessage> _eventSub;
@@ -320,6 +325,10 @@ namespace RareIcon
 
                 case WorldEventKind.CrowOmen:
                     SpawnCrowOmen();
+                    break;
+
+                case WorldEventKind.GoblinVillageRising:
+                    SpawnGoblinVillage();
                     break;
             }
         }
@@ -902,6 +911,71 @@ namespace RareIcon
 
             _toastPub.Publish(new ToastMessage(
                 _locale.Get("toast.event.goblin_cave"), ToastKind.Warning));
+        }
+
+        void SpawnGoblinVillage()
+        {
+            if (!TryGetCapitalHex(out var capitalHex)) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+
+            var prefabQuery = em.CreateEntityQuery(ComponentType.ReadOnly<BuildingPrefabSingleton>());
+            if (prefabQuery.CalculateEntityCount() == 0) return;
+            var prefab = prefabQuery.GetSingleton<BuildingPrefabSingleton>().Prefab;
+            if (prefab == Entity.Null) return;
+
+            int dist = GoblinVillageMinDist + _rng.Next(0, GoblinVillageMaxDist - GoblinVillageMinDist + 1);
+            float angle = (float)(_rng.NextDouble() * Math.PI * 2.0);
+            int2 hex = new int2(
+                capitalHex.x + (int)Math.Round(Math.Cos(angle) * dist),
+                capitalHex.y + (int)Math.Round(Math.Sin(angle) * dist));
+
+            byte faction = (_rng.Next(0, 2) == 0) ? FactionType.Player : FactionType.Hostile;
+
+            float3 pos = HexMeshUtil.HexToWorld(hex.x, hex.y, 0.25f);
+            pos.z = -0.6f;
+
+            var village = em.Instantiate(prefab);
+            float scale = BuildingDB.GetVisualScale(BuildingType.GoblinCave);
+            em.SetComponentData(village, LocalTransform.FromPositionRotationScale(pos, quaternion.identity, scale));
+            em.SetComponentData(village, new Building
+            {
+                Type         = BuildingType.GoblinVillage,
+                RootHex      = hex,
+                OwnerFaction = faction,
+            });
+            em.SetComponentData(village, new BuildingVisual { Value = BuildingType.GoblinCave });
+            em.AddComponentData(village, new BuildingHealth { Value = GoblinVillageMaxHp, Max = GoblinVillageMaxHp });
+            em.AddComponent<GoblinVillageTag>(village);
+            em.AddComponentData(village, new TerritoryEmitter
+            {
+                Center       = hex,
+                Radius       = GoblinVillageRadius,
+                OwnerFaction = faction,
+            });
+            em.AddComponentData(village, new Faction { Value = faction });
+
+            uint nowTick = (uint)(UnityEngine.Time.time * 1000f);
+            em.AddComponentData(village, new GoblinVillageState
+            {
+                NextRaidTick     = nowTick + 60000u,
+                RaidCadenceTicks = 60000u,
+                RaidPartySize    = 3,
+            });
+
+            for (int i = 0; i < GoblinVillageDefenders; i++)
+            {
+                int2 defHex = new int2(hex.x + NextOffset(GoblinVillageRadius),
+                                       hex.y + NextOffset(GoblinVillageRadius));
+                TrySpawnGoblin(defHex, faction);
+            }
+
+            string toastKey = faction == FactionType.Hostile
+                ? "toast.event.goblin_village_hostile"
+                : "toast.event.goblin_village_ally";
+            var kind = faction == FactionType.Hostile ? ToastKind.Warning : ToastKind.Success;
+            _toastPub.Publish(new ToastMessage(_locale.Get(toastKey), kind));
         }
     }
 }

@@ -35,6 +35,18 @@ namespace RareIcon
         public const byte Landmark       = 20;  // Naturally-spawned world object — neutral-owned, has HP, gameplay TBD.
         public const byte Tavern         = 21;  // Inn tier 1 — heal-on-rest + coin trickle.
         public const byte Lodge          = 22;  // Inn tier 2 — bigger sleep cap, faster heal, higher coin yield.
+        public const byte GoblinVillage  = 23;  // Naturally-spawned settlement — random Hostile or Player faction roll at spawn time. Hostile variants drip out small raid parties; Player variants are passive ally settlements.
+    }
+
+    /// <summary>Tag for naturally-spawned Goblin Villages — sister structure to BanditCamp. Faction (Hostile or Player) is rolled once at spawn and never changes; <see cref="GoblinVillageState"/> + <see cref="TerritoryEmitter"/> carry the per-instance data.</summary>
+    public struct GoblinVillageTag : IComponentData { }
+
+    /// <summary>Per-village state used by <see cref="GoblinVillageRaidSystem"/> for the Hostile variant — fires raid parties on cadence (smaller than BanditCamp). Inert on Player-faction villages.</summary>
+    public struct GoblinVillageState : IComponentData
+    {
+        public uint   NextRaidTick;
+        public uint   RaidCadenceTicks;
+        public byte   RaidPartySize;
     }
 
     /// <summary>

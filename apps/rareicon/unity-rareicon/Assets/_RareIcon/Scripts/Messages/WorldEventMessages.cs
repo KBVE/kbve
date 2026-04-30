@@ -21,6 +21,7 @@ namespace RareIcon
         public const byte MysteriousStranger = 15;
         public const byte PlagueOutbreak   = 16;
         public const byte CrowOmen         = 17;
+        public const byte GoblinVillageRising = 18;
     }
 
     /// <summary>Fired by <see cref="WorldEventScheduler"/> whenever a registered event passes its precondition + RNG roll. The handler subscribes once and branches on <see cref="Kind"/>; events that ask the player a question (Lost Goblin Band) start a dialogue and read the response off <see cref="DialogueEndedMessage.LastChoiceIndex"/>.</summary>

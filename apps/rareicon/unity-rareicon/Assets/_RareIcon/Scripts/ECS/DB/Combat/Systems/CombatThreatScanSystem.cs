@@ -29,14 +29,12 @@ namespace RareIcon
         {
             ref var db = ref SystemAPI.GetSingletonRW<CombatDBSingleton>().ValueRW;
 
-            // Territory emitters are a tiny query (a handful of buildings
-            // at most). Gather serially on main — jobifying saves nothing.
             foreach (var emRO in SystemAPI.Query<RefRO<TerritoryEmitter>>())
             {
                 var em = emRO.ValueRO;
                 if (em.Radius == 0) continue;
-                if (em.OwnerFaction != FactionType.Player) continue;
-                db.FriendlyEmitters.Add(em);
+                if (em.OwnerFaction == FactionType.Player)       db.FriendlyEmitters.Add(em);
+                else if (em.OwnerFaction == FactionType.Hostile) db.HostileEmitters.Add(em);
             }
 
             // Upper bound = full archetype population (hostiles share

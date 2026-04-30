@@ -64,6 +64,8 @@
 	"toast.landmark.vein_demolished": "鉱脈を掘り尽くし——石材が首都に届いた。",
 	"toast.landmark.market_demolished": "市場の残骸から——貨幣を回収した。",
 	"toast.landmark.curse_demolished": "亡霊が血の代償を求めている!",
+	"toast.event.goblin_village_hostile": "敵対するゴブリンの村が国境に現れました!",
+	"toast.event.goblin_village_ally": "友好的なゴブリンの村が近隣に定住しました。",
 	"dialogue.stranger.speaker": "頭巾の見知らぬ者",
 	"dialogue.stranger.line0": "王よ——遠路をはるばる参った。夜は更け、財布は重い。",
 	"dialogue.stranger.line_offer": "選んでくれ:金貨の袋か、傷ついた者への祈りか、我が刃か——王冠の意のままに。",

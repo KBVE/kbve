@@ -64,6 +64,8 @@
 	"toast.landmark.vein_demolished": "Vein cleared — stone delivered to the Capital.",
 	"toast.landmark.market_demolished": "Market salvaged — coin recovered.",
 	"toast.landmark.curse_demolished": "A wraith claims payment in blood!",
+	"toast.event.goblin_village_hostile": "A hostile goblin village rises at the edge of your lands!",
+	"toast.event.goblin_village_ally": "A friendly goblin village settles within your reach.",
 	"dialogue.stranger.speaker": "Hooded Stranger",
 	"dialogue.stranger.line0": "King — I've walked far to reach your hall. The hour is late and my purse is heavy.",
 	"dialogue.stranger.line_offer": "I offer you a choice: a purse of gold, a healing word for your wounded, or my blade — whichever the crown wills.",
