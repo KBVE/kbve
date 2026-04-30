@@ -14,6 +14,7 @@ namespace RareIcon
         public const ushort LostGoblinBand      = 20;
         public const ushort RaiderSwarmWarning  = 21;
         public const ushort MerchantCaravan     = 22;
+        public const ushort MysteriousStranger  = 23;
     }
 
     /// <summary>One branch from a node. <see cref="NextNodeId"/> of 0 ends the tree.</summary>
@@ -266,6 +267,60 @@ namespace RareIcon
                         Mode           = DialogueMode.VN,
                         SpeakerNameKey = "dialogue.merchant.speaker",
                         TextKey        = "dialogue.merchant.line_refuse",
+                        NextNodeId     = 0,
+                    },
+                },
+            });
+
+            Add(new DialogueTree
+            {
+                Id = DialogueTreeId.MysteriousStranger,
+                EntryNodeId = 1,
+                Nodes = new[]
+                {
+                    new DialogueNode
+                    {
+                        Id             = 1,
+                        Mode           = DialogueMode.VN,
+                        SpeakerNameKey = "dialogue.stranger.speaker",
+                        TextKey        = "dialogue.stranger.line0",
+                        NextNodeId     = 2,
+                    },
+                    new DialogueNode
+                    {
+                        Id             = 2,
+                        Mode           = DialogueMode.VN,
+                        SpeakerNameKey = "dialogue.stranger.speaker",
+                        TextKey        = "dialogue.stranger.line_offer",
+                        Choices = new[]
+                        {
+                            new DialogueChoice { TextKey = "dialogue.stranger.choice_gold",    NextNodeId = 3 },
+                            new DialogueChoice { TextKey = "dialogue.stranger.choice_blessing", NextNodeId = 4 },
+                            new DialogueChoice { TextKey = "dialogue.stranger.choice_refuse",  NextNodeId = 5 },
+                        },
+                    },
+                    new DialogueNode
+                    {
+                        Id             = 3,
+                        Mode           = DialogueMode.VN,
+                        SpeakerNameKey = "dialogue.stranger.speaker",
+                        TextKey        = "dialogue.stranger.line_gold",
+                        NextNodeId     = 0,
+                    },
+                    new DialogueNode
+                    {
+                        Id             = 4,
+                        Mode           = DialogueMode.VN,
+                        SpeakerNameKey = "dialogue.stranger.speaker",
+                        TextKey        = "dialogue.stranger.line_blessing",
+                        NextNodeId     = 0,
+                    },
+                    new DialogueNode
+                    {
+                        Id             = 5,
+                        Mode           = DialogueMode.VN,
+                        SpeakerNameKey = "dialogue.stranger.speaker",
+                        TextKey        = "dialogue.stranger.line_refuse",
                         NextNodeId     = 0,
                     },
                 },

@@ -86,6 +86,76 @@ namespace RareIcon
                     Cooldown     = 15f * 60f,
                     ProbPerCheck = 0.02f,
                 },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.BountifulHarvest,
+                    MinFromBoot  = 12f * 60f,
+                    Cooldown     = 18f * 60f,
+                    ProbPerCheck = 0.025f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.Earthquake,
+                    MinFromBoot  = 10f * 60f,
+                    Cooldown     = 14f * 60f,
+                    ProbPerCheck = 0.025f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.TreasureCache,
+                    MinFromBoot  = 9f * 60f,
+                    Cooldown     = 18f * 60f,
+                    ProbPerCheck = 0.02f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.SagesBlessing,
+                    MinFromBoot  = 15f * 60f,
+                    Cooldown     = 20f * 60f,
+                    ProbPerCheck = 0.02f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.GoblinCaveStir,
+                    MinFromBoot  = 18f * 60f,
+                    Cooldown     = 25f * 60f,
+                    ProbPerCheck = 0.015f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.LostCaravan,
+                    MinFromBoot  = 11f * 60f,
+                    Cooldown     = 16f * 60f,
+                    ProbPerCheck = 0.025f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.Migration,
+                    MinFromBoot  = 8f * 60f,
+                    Cooldown     = 14f * 60f,
+                    ProbPerCheck = 0.03f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.MysteriousStranger,
+                    MinFromBoot  = 13f * 60f,
+                    Cooldown     = 18f * 60f,
+                    ProbPerCheck = 0.025f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.PlagueOutbreak,
+                    MinFromBoot  = 16f * 60f,
+                    Cooldown     = 20f * 60f,
+                    ProbPerCheck = 0.02f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.CrowOmen,
+                    MinFromBoot  = 14f * 60f,
+                    Cooldown     = 18f * 60f,
+                    ProbPerCheck = 0.025f,
+                },
             };
             _nextEarliest = new float[_events.Length];
         }

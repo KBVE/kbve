@@ -819,6 +819,30 @@ namespace RareIcon.Native
         [DllImport(__DllName, EntryPoint = "uniti_world_take_all_buildings", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_world_take_all_buildings(void* world, FfiUnloadedBuilding* out_buf, uint cap);
 
+        [DllImport(__DllName, EntryPoint = "uniti_world_chunk_touch", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_world_chunk_touch(void* world, int cx, int cy, ulong last_seen_ms, uint flags, uint threat_level);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_chunk_summary", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern FfiChunkSummary uniti_world_chunk_summary(void* world, int cx, int cy);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_prefetch_neighbors", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_prefetch_neighbors(void* world, int cx, int cy, FfiChunkSummary* @out, uint cap);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_take_chunks_in_range", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_take_chunks_in_range(void* world, int cx_min, int cy_min, int cx_max, int cy_max, FfiChunkSummary* @out, uint cap);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_save_unit_aggregate", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_world_save_unit_aggregate(void* world, FfiUnitAggregate agg);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_take_unit_aggregates_in_chunk", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_take_unit_aggregates_in_chunk(void* world, int cx, int cy, FfiUnitAggregate* @out, uint cap);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_due_count", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_due_count(void* world, ulong due_before_ms);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_chunks_purge_stale", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_chunks_purge_stale(void* world, ulong older_than_ms);
+
 
     }
 
@@ -1005,6 +1029,33 @@ namespace RareIcon.Native
         public int cy;
         public uint offset;
         public uint count;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct FfiChunkSummary
+    {
+        public int cx;
+        public int cy;
+        public ulong last_seen_ms;
+        public ulong last_tick_ms;
+        public uint flags;
+        public uint threat_level;
+        public uint unit_count;
+        public uint building_count;
+        public uint aggregate_count;
+        public byte valid;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct FfiUnitAggregate
+    {
+        public int cx;
+        public int cy;
+        public byte unit_type;
+        public uint count;
+        public float avg_health;
+        public float hunger_pool;
+        public float last_tick_secs;
     }
 
 

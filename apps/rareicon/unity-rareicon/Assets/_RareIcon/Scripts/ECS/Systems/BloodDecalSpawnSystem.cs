@@ -87,14 +87,18 @@ namespace RareIcon
     {
         const float DecalZ = -0.55f;
 
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<SpawnBloodDecalRequest>();
+            state.RequireForUpdate<BloodDecalPrefabSingleton>();
+        }
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            if (!SystemAPI.TryGetSingleton<BloodDecalPrefabSingleton>(out var prefabSingleton))
-                return;
+            var prefabSingleton = SystemAPI.GetSingleton<BloodDecalPrefabSingleton>();
 
             float absSeconds = 0f;
             if (SystemAPI.TryGetSingleton<WorldClock>(out var clock))

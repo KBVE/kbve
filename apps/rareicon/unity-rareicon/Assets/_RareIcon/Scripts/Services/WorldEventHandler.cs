@@ -6,6 +6,7 @@ using MessagePipe;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 using VContainer.Unity;
 
 namespace RareIcon
@@ -28,9 +29,35 @@ namespace RareIcon
         const int   FallingStarMaxDist    = 20;
         const ushort BarterTimberCost     = 30;
         const ushort BarterStoneReward    = 10;
+        const ushort HarvestCarrot        = 20;
+        const ushort HarvestEgg           = 10;
+        const ushort HarvestMeat          = 5;
+        const ushort SageCoinReward       = 25;
+        const int    EarthquakeMinTargets = 1;
+        const int    EarthquakeMaxTargets = 3;
+        const float  EarthquakeDamageFrac = 0.25f;
+        const int    TreasureMinDist      = 25;
+        const int    TreasureMaxDist      = 35;
+        const int    GoblinCaveMinDist    = 16;
+        const int    GoblinCaveMaxDist    = 24;
+        const ushort GoblinCaveMaxHp      = 220;
+        const int    LostCaravanMinDist   = 18;
+        const int    LostCaravanMaxDist   = 28;
+        const ushort LostCaravanCoin      = 30;
+        const int    MigrationMinCount    = 6;
+        const int    MigrationMaxCount    = 10;
+        const int    MigrationSpawnRadius = 5;
+        const ushort StrangerGoldGift     = 15;
+        const int    PlagueMinTargets     = 3;
+        const int    PlagueMaxTargets     = 5;
+        const float  PlagueDamageFrac     = 0.30f;
+        const int    CrowZombieMin        = 1;
+        const int    CrowZombieMax        = 2;
+        const int    CrowSpawnRadius      = 3;
 
         readonly LocaleService _locale;
         readonly ISubscriber<WorldEventTriggeredMessage> _eventSub;
+        readonly ISubscriber<LandmarkDemolishedEvent>    _landmarkSub;
         readonly ISubscriber<DialogueEndedMessage>       _dialogueEndSub;
         readonly IPublisher<DialogueStartMessage>        _dialoguePub;
         readonly IPublisher<ToastMessage>                _toastPub;
@@ -41,12 +68,14 @@ namespace RareIcon
         public WorldEventHandler(
             LocaleService locale,
             ISubscriber<WorldEventTriggeredMessage> eventSub,
+            ISubscriber<LandmarkDemolishedEvent>    landmarkSub,
             ISubscriber<DialogueEndedMessage>       dialogueEndSub,
             IPublisher<DialogueStartMessage>        dialoguePub,
             IPublisher<ToastMessage>                toastPub)
         {
             _locale         = locale;
             _eventSub       = eventSub;
+            _landmarkSub    = landmarkSub;
             _dialogueEndSub = dialogueEndSub;
             _dialoguePub    = dialoguePub;
             _toastPub       = toastPub;
@@ -56,9 +85,152 @@ namespace RareIcon
         {
             var b = DisposableBag.CreateBuilder();
             _eventSub.Subscribe(OnEvent).AddTo(b);
+            _landmarkSub.Subscribe(OnLandmarkDemolished).AddTo(b);
             _dialogueEndSub.Subscribe(OnDialogueEnded).AddTo(b);
             _bag = b.Build();
             return UniTask.CompletedTask;
+        }
+
+        void OnLandmarkDemolished(LandmarkDemolishedEvent msg)
+        {
+            string slug = msg.Slug.ToString();
+            if (string.IsNullOrEmpty(slug)) return;
+            var category = ClassifyLandmarkSlug(slug);
+            switch (category)
+            {
+                case LandmarkCategory.Shrine: ApplyShrineDemolish(msg.Hex); break;
+                case LandmarkCategory.Tree:   ApplyTreeDemolish();         break;
+                case LandmarkCategory.Vein:   ApplyVeinDemolish();         break;
+                case LandmarkCategory.Market: ApplyMarketDemolish();       break;
+                case LandmarkCategory.Curse:  ApplyCurseDemolish();        break;
+            }
+        }
+
+        enum LandmarkCategory : byte { None, Shrine, Tree, Vein, Market, Curse }
+
+        static LandmarkCategory ClassifyLandmarkSlug(string slug)
+        {
+            switch (slug)
+            {
+                case "quiet-spring":
+                case "the-still-pool":
+                case "ember-hearth":
+                case "luminous-alcove":
+                    return LandmarkCategory.Shrine;
+                case "oak-tree":
+                case "redwood-tree":
+                    return LandmarkCategory.Tree;
+                case "iron-vein":
+                case "silver-vein":
+                case "gold-vein":
+                case "copper-vein":
+                case "coal-vein":
+                case "salt-vein":
+                case "cobalt-vein":
+                case "mithril-vein":
+                case "adamantine-vein":
+                    return LandmarkCategory.Vein;
+                case "sunken-market":
+                case "dusty-bazaar":
+                case "mushroom-bazaar":
+                case "dwarven-outpost":
+                    return LandmarkCategory.Market;
+                case "shattered-crown":
+                case "prismatic-throne":
+                case "mirror-chamber":
+                case "ruby-crystal":
+                case "sapphire-crystal":
+                case "jade-crystal":
+                    return LandmarkCategory.Curse;
+                default:
+                    return LandmarkCategory.None;
+            }
+        }
+
+        void ApplyShrineDemolish(int2 hex)
+        {
+            const int ShrineZombieMin = 4;
+            const int ShrineZombieMax = 6;
+            const int ZombieRadius    = 2;
+            int count = ShrineZombieMin + _rng.Next(0, ShrineZombieMax - ShrineZombieMin + 1);
+            for (int i = 0; i < count; i++)
+            {
+                int dq = NextOffset(ZombieRadius);
+                int dr = NextOffset(ZombieRadius);
+                TrySpawnZombie(new int2(hex.x + dq, hex.y + dr));
+            }
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.landmark.shrine_demolished"), ToastKind.Warning));
+        }
+
+        void ApplyTreeDemolish()
+        {
+            const ushort TreeRefundTimber = 8;
+            if (!TryGetCapitalEntity(out var capital, out _)) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.HasBuffer<CapitalLedger>(capital)) return;
+            var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
+            BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Timber, TreeRefundTimber, UlidFactory.NewUid());
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.landmark.tree_demolished"), ToastKind.Success));
+        }
+
+        void ApplyVeinDemolish()
+        {
+            const ushort VeinRefundOre = 5;
+            if (!TryGetCapitalEntity(out var capital, out _)) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.HasBuffer<CapitalLedger>(capital)) return;
+            var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
+            BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.StoneBlock, VeinRefundOre, UlidFactory.NewUid());
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.landmark.vein_demolished"), ToastKind.Success));
+        }
+
+        void ApplyMarketDemolish()
+        {
+            const ushort MarketRefundCoin = 25;
+            if (!TryGetCapitalEntity(out var capital, out _)) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.HasBuffer<CapitalLedger>(capital)) return;
+            var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
+            BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Coin, MarketRefundCoin, UlidFactory.NewUid());
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.landmark.market_demolished"), ToastKind.Success));
+        }
+
+        void ApplyCurseDemolish()
+        {
+            const int   CurseTargetCount = 3;
+            const float CurseDamageFrac  = 0.25f;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            var query = em.CreateEntityQuery(
+                ComponentType.ReadOnly<Unit>(),
+                ComponentType.ReadOnly<Faction>(),
+                ComponentType.ReadWrite<Health>());
+            using var arr = query.ToEntityArray(Allocator.Temp);
+            int hits = 0;
+            for (int i = 0; i < arr.Length && hits < CurseTargetCount; i++)
+            {
+                int idx = _rng.Next(0, arr.Length);
+                var ent = arr[idx];
+                if (em.GetComponentData<Faction>(ent).Value != FactionType.Player) continue;
+                var h = em.GetComponentData<Health>(ent);
+                float dmg = math.max(1f, h.Max * CurseDamageFrac);
+                h.Value = math.max(1f, h.Value - dmg);
+                em.SetComponentData(ent, h);
+                hits++;
+            }
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.landmark.curse_demolished"), ToastKind.Warning));
         }
 
         public void Dispose() => _bag?.Dispose();
@@ -107,20 +279,62 @@ namespace RareIcon
                 case WorldEventKind.FallingStar:
                     SpawnFallingStar();
                     break;
+
+                case WorldEventKind.BountifulHarvest:
+                    GrantBountifulHarvest();
+                    break;
+
+                case WorldEventKind.Earthquake:
+                    ApplyEarthquakeDamage();
+                    break;
+
+                case WorldEventKind.TreasureCache:
+                    SpawnTreasureCache();
+                    break;
+
+                case WorldEventKind.SagesBlessing:
+                    GrantSagesBlessing();
+                    break;
+
+                case WorldEventKind.GoblinCaveStir:
+                    SpawnGoblinCave();
+                    break;
+
+                case WorldEventKind.LostCaravan:
+                    SpawnLostCaravan();
+                    break;
+
+                case WorldEventKind.Migration:
+                    SpawnMigration();
+                    break;
+
+                case WorldEventKind.MysteriousStranger:
+                    _toastPub.Publish(new ToastMessage(
+                        _locale.Get("toast.event.stranger_arrives"), ToastKind.Info));
+                    _dialoguePub.Publish(new DialogueStartMessage(DialogueTreeId.MysteriousStranger));
+                    break;
+
+                case WorldEventKind.PlagueOutbreak:
+                    ApplyPlagueDamage();
+                    break;
+
+                case WorldEventKind.CrowOmen:
+                    SpawnCrowOmen();
+                    break;
             }
         }
 
         void OnDialogueEnded(DialogueEndedMessage msg)
         {
-            // Choice index 0 == accept across the random-event trees
-            // (matches DialogueDB tree authoring).
-            if (msg.LastChoiceIndex != 0) return;
-
-            switch (msg.TreeId)
-            {
-                case DialogueTreeId.LostGoblinBand: SpawnLostGoblins(); break;
-                case DialogueTreeId.MerchantCaravan: ResolveMerchantBarter(); break;
-            }
+            // Branch on (treeId, choice). Most random-event trees use
+            // choice 0 == accept; MysteriousStranger has 3 distinct paths
+            // (gold / blessing / refuse) with different rewards.
+            if (msg.TreeId == DialogueTreeId.LostGoblinBand && msg.LastChoiceIndex == 0)
+            { SpawnLostGoblins(); return; }
+            if (msg.TreeId == DialogueTreeId.MerchantCaravan && msg.LastChoiceIndex == 0)
+            { ResolveMerchantBarter(); return; }
+            if (msg.TreeId == DialogueTreeId.MysteriousStranger)
+            { ResolveMysteriousStranger(msg.LastChoiceIndex); return; }
         }
 
         void SpawnLostGoblins()
@@ -352,6 +566,342 @@ namespace RareIcon
             if (!em.HasBuffer<CapitalLedger>(capital)) return false;
             var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
             return BankLedgerOps.CountOf(ledger, itemId) >= minCount;
+        }
+
+        void GrantBountifulHarvest()
+        {
+            if (!TryGetCapitalEntity(out var capital, out _)) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.HasBuffer<CapitalLedger>(capital)) return;
+
+            var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
+            BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Carrot, HarvestCarrot, UlidFactory.NewUid());
+            BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Egg,    HarvestEgg,    UlidFactory.NewUid());
+            BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Meat,   HarvestMeat,   UlidFactory.NewUid());
+
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.event.bountiful_harvest"), ToastKind.Success));
+        }
+
+        void ApplyEarthquakeDamage()
+        {
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+
+            // Player-faction non-Capital buildings only — sparing the Capital
+            // keeps the event from one-shotting the player's empire centre.
+            var query = em.CreateEntityQuery(
+                ComponentType.ReadOnly<Building>(),
+                ComponentType.ReadWrite<BuildingHealth>());
+            using var arr = query.ToEntityArray(Allocator.Temp);
+            if (arr.Length == 0) return;
+
+            // Reservoir-sample up to N candidates so we don't bias toward
+            // earlier-spawned buildings; cheap because we'll only damage 1-3.
+            int targetCount = EarthquakeMinTargets + _rng.Next(0, EarthquakeMaxTargets - EarthquakeMinTargets + 1);
+            int picked = 0;
+            for (int i = 0; i < arr.Length && picked < targetCount; i++)
+            {
+                var b = em.GetComponentData<Building>(arr[i]);
+                if (b.Type == BuildingType.Capital)             continue;
+                if (b.OwnerFaction != FactionType.Player)        continue;
+                if (!em.HasComponent<BuildingHealth>(arr[i]))    continue;
+
+                var hp = em.GetComponentData<BuildingHealth>(arr[i]);
+                int dmg = (int)math.max(1f, hp.Max * EarthquakeDamageFrac);
+                int next = hp.Value - dmg;
+                hp.Value = (ushort)math.max(0, next);
+                em.SetComponentData(arr[i], hp);
+                picked++;
+            }
+
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.event.earthquake"), ToastKind.Warning));
+        }
+
+        void SpawnTreasureCache()
+        {
+            if (!TryGetCapitalHex(out var capitalHex)) return;
+            int dist = TreasureMinDist + _rng.Next(0, TreasureMaxDist - TreasureMinDist + 1);
+            float angle = (float)(_rng.NextDouble() * Math.PI * 2.0);
+            int2 hex = new int2(
+                capitalHex.x + (int)Math.Round(Math.Cos(angle) * dist),
+                capitalHex.y + (int)Math.Round(Math.Sin(angle) * dist));
+
+            // "the-still-pool" is a shrine-flavored landmark with reward
+            // wiring already in place via LandmarkInteractSystem.
+            var entity = LandmarkSpawnSystem.SpawnAt("the-still-pool", hex);
+            if (entity == Entity.Null) return;
+
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.event.treasure_cache"), ToastKind.Info));
+        }
+
+        void GrantSagesBlessing()
+        {
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+
+            // Heal every Player-faction unit to max HP. The blessing is
+            // narrative — no per-unit toast since players notice via the
+            // single empire-wide toast + healed unit list when inspecting.
+            var query = em.CreateEntityQuery(
+                ComponentType.ReadOnly<Unit>(),
+                ComponentType.ReadOnly<Faction>(),
+                ComponentType.ReadWrite<Health>());
+            using var arr = query.ToEntityArray(Allocator.Temp);
+            for (int i = 0; i < arr.Length; i++)
+            {
+                if (em.GetComponentData<Faction>(arr[i]).Value != FactionType.Player) continue;
+                var h = em.GetComponentData<Health>(arr[i]);
+                if (h.Value >= h.Max) continue;
+                h.Value = h.Max;
+                em.SetComponentData(arr[i], h);
+            }
+
+            // Bonus coin sweetens the heal for empires with no wounded.
+            if (TryGetCapitalEntity(out var capital, out _) && em.HasBuffer<CapitalLedger>(capital))
+            {
+                var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
+                BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Coin, SageCoinReward, UlidFactory.NewUid());
+            }
+
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.event.sage_blessing"), ToastKind.Success));
+        }
+
+        void SpawnLostCaravan()
+        {
+            if (!TryGetCapitalHex(out var capitalHex)) return;
+            int dist = LostCaravanMinDist + _rng.Next(0, LostCaravanMaxDist - LostCaravanMinDist + 1);
+            float angle = (float)(_rng.NextDouble() * Math.PI * 2.0);
+            int2 hex = new int2(
+                capitalHex.x + (int)Math.Round(Math.Cos(angle) * dist),
+                capitalHex.y + (int)Math.Round(Math.Sin(angle) * dist));
+
+            var entity = LandmarkSpawnSystem.SpawnAt("luminous-alcove", hex);
+            if (entity == Entity.Null) return;
+
+            // Drop a small coin bonus alongside the discoverable landmark
+            // so the event still rewards the player even if they never walk
+            // out to find the wreckage.
+            if (TryGetCapitalEntity(out var capital, out _))
+            {
+                var world = GameplayWorld.Resolve();
+                if (world != null && world.IsCreated)
+                {
+                    var em = world.EntityManager;
+                    if (em.HasBuffer<CapitalLedger>(capital))
+                    {
+                        var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
+                        BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Coin, LostCaravanCoin, UlidFactory.NewUid());
+                    }
+                }
+            }
+
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.event.lost_caravan"), ToastKind.Info));
+        }
+
+        void SpawnMigration()
+        {
+            if (!TryGetCapitalHex(out var capitalHex)) return;
+            int count = MigrationMinCount + _rng.Next(0, MigrationMaxCount - MigrationMinCount + 1);
+            byte[] species = { UnitType.Chicken, UnitType.Sheep, UnitType.Cow };
+
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+
+            int spawned = 0;
+            for (int i = 0; i < count; i++)
+            {
+                int dq = NextOffset(MigrationSpawnRadius);
+                int dr = NextOffset(MigrationSpawnRadius);
+                int2 hex = new int2(capitalHex.x + dq, capitalHex.y + dr);
+                byte sp  = species[_rng.Next(0, species.Length)];
+                uint seed = unchecked((uint)_rng.Next() | 1u);
+                var entity = UnitSpawnSystem.SpawnAnimalAt(em, hex, seed, sp);
+                if (entity != Entity.Null) spawned++;
+            }
+            if (spawned == 0) return;
+
+            var sb = ZString.CreateStringBuilder();
+            try
+            {
+                sb.AppendFormat(_locale.Get("toast.event.migration"), spawned);
+                _toastPub.Publish(new ToastMessage(sb.ToString(), ToastKind.Success));
+            }
+            finally { sb.Dispose(); }
+        }
+
+        void ResolveMysteriousStranger(int choice)
+        {
+            // 0 = take gold, 1 = accept blessing, 2 = refuse.
+            switch (choice)
+            {
+                case 0:
+                    if (TryGetCapitalEntity(out var capital, out _))
+                    {
+                        var world = GameplayWorld.Resolve();
+                        if (world == null || !world.IsCreated) return;
+                        var em = world.EntityManager;
+                        if (em.HasBuffer<CapitalLedger>(capital))
+                        {
+                            var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
+                            BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Coin, StrangerGoldGift, UlidFactory.NewUid());
+                        }
+                    }
+                    _toastPub.Publish(new ToastMessage(
+                        _locale.Get("toast.event.stranger_gold"), ToastKind.Success));
+                    break;
+
+                case 1:
+                    HealAllPlayerUnits();
+                    _toastPub.Publish(new ToastMessage(
+                        _locale.Get("toast.event.stranger_blessing"), ToastKind.Success));
+                    break;
+
+                default:
+                    _toastPub.Publish(new ToastMessage(
+                        _locale.Get("toast.event.stranger_refuse"), ToastKind.Info));
+                    break;
+            }
+        }
+
+        void HealAllPlayerUnits()
+        {
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            var query = em.CreateEntityQuery(
+                ComponentType.ReadOnly<Unit>(),
+                ComponentType.ReadOnly<Faction>(),
+                ComponentType.ReadWrite<Health>());
+            using var arr = query.ToEntityArray(Allocator.Temp);
+            for (int i = 0; i < arr.Length; i++)
+            {
+                if (em.GetComponentData<Faction>(arr[i]).Value != FactionType.Player) continue;
+                var h = em.GetComponentData<Health>(arr[i]);
+                if (h.Value < h.Max) { h.Value = h.Max; em.SetComponentData(arr[i], h); }
+            }
+        }
+
+        void ApplyPlagueDamage()
+        {
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            var query = em.CreateEntityQuery(
+                ComponentType.ReadOnly<Unit>(),
+                ComponentType.ReadOnly<Faction>(),
+                ComponentType.ReadWrite<Health>());
+            using var arr = query.ToEntityArray(Allocator.Temp);
+            int targetCount = PlagueMinTargets + _rng.Next(0, PlagueMaxTargets - PlagueMinTargets + 1);
+            int picked = 0;
+            for (int i = 0; i < arr.Length && picked < targetCount; i++)
+            {
+                int idx = _rng.Next(0, arr.Length);
+                var ent = arr[idx];
+                if (em.GetComponentData<Faction>(ent).Value != FactionType.Player) continue;
+                var h = em.GetComponentData<Health>(ent);
+                float dmg = math.max(1f, h.Max * PlagueDamageFrac);
+                h.Value = math.max(1f, h.Value - dmg);
+                em.SetComponentData(ent, h);
+                picked++;
+            }
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.event.plague"), ToastKind.Warning));
+        }
+
+        void SpawnCrowOmen()
+        {
+            if (!TryGetCapitalHex(out var capitalHex)) return;
+            // Anchor on a random Player building when one exists; otherwise
+            // drop near the Capital with wider jitter so the omen still lands
+            // in the player's neighbourhood.
+            int2 anchor = capitalHex;
+            var world = GameplayWorld.Resolve();
+            if (world != null && world.IsCreated)
+            {
+                var em = world.EntityManager;
+                var query = em.CreateEntityQuery(ComponentType.ReadOnly<Building>());
+                using var arr = query.ToEntityArray(Allocator.Temp);
+                if (arr.Length > 0)
+                {
+                    for (int tries = 0; tries < 4; tries++)
+                    {
+                        int idx = _rng.Next(0, arr.Length);
+                        var b = em.GetComponentData<Building>(arr[idx]);
+                        if (b.OwnerFaction != FactionType.Player) continue;
+                        if (b.Type == BuildingType.Capital) continue;
+                        anchor = b.RootHex;
+                        break;
+                    }
+                }
+            }
+
+            int count = CrowZombieMin + _rng.Next(0, CrowZombieMax - CrowZombieMin + 1);
+            for (int i = 0; i < count; i++)
+            {
+                int2 hex = new int2(anchor.x + NextOffset(CrowSpawnRadius),
+                                    anchor.y + NextOffset(CrowSpawnRadius));
+                TrySpawnZombie(hex);
+            }
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.event.crow_omen"), ToastKind.Warning));
+        }
+
+        bool TrySpawnZombie(int2 hex)
+        {
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return false;
+            uint seed = unchecked((uint)_rng.Next() | 1u);
+            var entity = UnitSpawnSystem.SpawnZombieAt(world.EntityManager, hex, seed);
+            return entity != Entity.Null;
+        }
+
+        void SpawnGoblinCave()
+        {
+            if (!TryGetCapitalHex(out var capitalHex)) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+
+            var prefabQuery = em.CreateEntityQuery(ComponentType.ReadOnly<BuildingPrefabSingleton>());
+            if (prefabQuery.CalculateEntityCount() == 0) return;
+            var prefab = prefabQuery.GetSingleton<BuildingPrefabSingleton>().Prefab;
+            if (prefab == Entity.Null) return;
+
+            int dist = GoblinCaveMinDist + _rng.Next(0, GoblinCaveMaxDist - GoblinCaveMinDist + 1);
+            float angle = (float)(_rng.NextDouble() * Math.PI * 2.0);
+            int2 hex = new int2(
+                capitalHex.x + (int)Math.Round(Math.Cos(angle) * dist),
+                capitalHex.y + (int)Math.Round(Math.Sin(angle) * dist));
+
+            float3 pos = HexMeshUtil.HexToWorld(hex.x, hex.y, 0.25f);
+            pos.z = -0.6f;
+
+            var cave = em.Instantiate(prefab);
+            float scale = BuildingDB.GetVisualScale(BuildingType.GoblinCave);
+            em.SetComponentData(cave, LocalTransform.FromPositionRotationScale(pos, quaternion.identity, scale));
+            em.SetComponentData(cave, new Building
+            {
+                Type         = BuildingType.GoblinCave,
+                RootHex      = hex,
+                OwnerFaction = FactionType.Hostile,
+            });
+            em.SetComponentData(cave, new BuildingVisual { Value = BuildingType.GoblinCave });
+            em.AddComponentData(cave, new BuildingHealth { Value = GoblinCaveMaxHp, Max = GoblinCaveMaxHp });
+            em.AddComponent<GoblinCaveTag>(cave);
+            em.AddComponentData(cave, new Faction { Value = FactionType.Hostile });
+
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.event.goblin_cave"), ToastKind.Warning));
         }
     }
 }

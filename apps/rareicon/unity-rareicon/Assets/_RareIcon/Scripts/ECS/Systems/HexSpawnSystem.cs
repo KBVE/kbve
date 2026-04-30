@@ -369,6 +369,11 @@ namespace RareIcon
             batchEntities.Dispose();
             _loadedChunks[chunkCoord] = entities;
 
+            // Procedural landmark scatter — deterministic per-chunk RNG
+            // drops 0-3 landmarks at random hexes inside the chunk. Same
+            // chunk coord = same landmarks across saves / reloads.
+            LandmarkChunkSpawner.RollForChunk(chunkCoord, biomes, startX, startY);
+
             // Re-materialize any ghost units that were saved when this chunk
             // last unloaded. Has to come AFTER the hex loop so the units land
             // on top of restored hex state (otherwise their CurrentHex lookup

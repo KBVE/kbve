@@ -80,6 +80,12 @@ namespace RareIcon
         static readonly Ingredient[] UpgradeKeepToCastle          = { new((ushort)ItemId.Timber,   10),
                                                                       new((ushort)ItemId.StoneBlock, 24),
                                                                       new((ushort)ItemId.GoldBar,   20) };
+        static readonly Ingredient[] UpgradeInnToTavern           = { new((ushort)ItemId.Timber,    6),
+                                                                      new((ushort)ItemId.StoneBlock, 4),
+                                                                      new((ushort)ItemId.GoldBar,    5) };
+        static readonly Ingredient[] UpgradeTavernToLodge         = { new((ushort)ItemId.Timber,   12),
+                                                                      new((ushort)ItemId.StoneBlock, 8),
+                                                                      new((ushort)ItemId.GoldBar,   15) };
 
         /// <summary>Returns the material cost to advance `type` from `fromTier` to `fromTier + 1`. Empty array if no further tier exists.</summary>
         public static Ingredient[] GetUpgradeCost(byte buildingType, byte fromTier)
@@ -97,6 +103,11 @@ namespace RareIcon
             {
                 if (fromTier == 0) return UpgradeBarracksToKeep;
                 if (fromTier == 1) return UpgradeKeepToCastle;
+            }
+            else if (buildingType == BuildingType.Inn)
+            {
+                if (fromTier == 0) return UpgradeInnToTavern;
+                if (fromTier == 1) return UpgradeTavernToLodge;
             }
             return CostNone;
         }
@@ -117,6 +128,11 @@ namespace RareIcon
             {
                 if (tier == 1) return BuildingType.Keep;
                 if (tier == 2) return BuildingType.Castle;
+            }
+            else if (buildingType == BuildingType.Inn)
+            {
+                if (tier == 1) return BuildingType.Tavern;
+                if (tier == 2) return BuildingType.Lodge;
             }
             return 0;
         }
@@ -226,6 +242,11 @@ namespace RareIcon
             {
                 if (tier == 1) return "building.keep";
                 if (tier == 2) return "building.castle";
+            }
+            else if (buildingType == BuildingType.Inn)
+            {
+                if (tier == 1) return "building.tavern";
+                if (tier == 2) return "building.lodge";
             }
             return GetLocaleKey(buildingType);
         }

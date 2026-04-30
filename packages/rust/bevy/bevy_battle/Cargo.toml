@@ -5,24 +5,39 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.94"
 license = "MIT"
-description = "Generic Bevy turn-based battle plugin with damage, effects, class procs, and enemy AI."
+description = "Generic turn-based battle types — pure Rust core + optional Bevy ECS plugin (components, events, systems)"
 homepage = "https://kbve.com/"
 repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_battle"
 keywords = ["bevy", "combat", "battle", "gamedev", "ecs"]
 categories = ["game-development", "game-engines"]
 readme = "README.md"
 
+[features]
+# Default keeps existing consumers (discordsh-bot battle bridge, rareicon
+# bevy game) working out of the box. Disable with `default-features = false`
+# from FFI / mobile crates that can't pull bevy_app + android-activity —
+# they'll get just the pure type/enum surface from types.rs.
+default = ["bevy"]
+
+# Bevy ECS integration — adds Component / Event / Resource / Message
+# derives, the BevyBattlePlugin, snapshot/world helpers, and the full
+# combat system pipeline. Without this feature the crate is plain Rust
+# with zero Bevy dependency, suitable for FFI cdylibs (uniti) and
+# headless serializers.
+bevy = ["dep:bevy", "dep:bevy_behavior"]
+
 [dependencies]
-bevy = { version = "0.18", default-features = false, features = [
-    "bevy_state",
-] }
 serde = { version = "1", features = ["derive"] }
 rand = "0.10"
 
-# Shared behavior tree engine — enables the optional BehaviorPolicy
-# component that lets consumers override the random enemy_turn roll
-# with a conditional tree. No tree attached = unchanged random behavior.
-bevy_behavior = { version = "0.1", path = "../bevy_behavior" }
+# Bevy — only pulled in under the `bevy` feature.
+bevy = { version = "0.18", default-features = false, features = [
+    "bevy_state",
+], optional = true }
+
+# Shared behavior tree engine — only used by the bevy-feature systems
+# (BehaviorPolicy enemy_turn override). Skipped without bevy.
+bevy_behavior = { version = "0.1", path = "../bevy_behavior", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.4", features = ["wasm_js"] }

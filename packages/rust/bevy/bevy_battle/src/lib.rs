@@ -19,54 +19,82 @@
 //! // Spawn player/enemy entities, send events, call app.update()
 //! ```
 
-pub mod component;
-pub mod event;
-pub mod resource;
-pub mod snapshot;
-pub mod system;
+// Pure type/enum surface — always available, no bevy dependency.
 pub mod types;
-
-// Re-export key types for convenience
-pub use component::*;
-pub use event::*;
-pub use resource::*;
 pub use types::*;
 
-// Re-export bevy types needed by bridge consumers
+// Bevy-only modules — Component / Event / Resource derives, snapshot
+// helpers that touch World, and the full system pipeline. Gated behind
+// the `bevy` feature so non-bevy consumers (uniti FFI, mobile builds)
+// compile without pulling bevy_app + android-activity.
+#[cfg(feature = "bevy")]
+pub mod component;
+#[cfg(feature = "bevy")]
+pub mod event;
+#[cfg(feature = "bevy")]
+pub mod resource;
+#[cfg(feature = "bevy")]
+pub mod snapshot;
+#[cfg(feature = "bevy")]
+pub mod system;
+
+#[cfg(feature = "bevy")]
+pub use component::*;
+#[cfg(feature = "bevy")]
+pub use event::*;
+#[cfg(feature = "bevy")]
+pub use resource::*;
+
+// Re-export bevy types needed by bridge consumers (discordsh-bot etc.)
+#[cfg(feature = "bevy")]
 pub use bevy::MinimalPlugins;
+#[cfg(feature = "bevy")]
 pub use bevy::app::App;
+#[cfg(feature = "bevy")]
 pub use bevy::ecs::entity::Entity;
+#[cfg(feature = "bevy")]
 pub use bevy::ecs::message::Messages;
 
-use bevy::prelude::*;
+#[cfg(feature = "bevy")]
+mod plugin {
+    use bevy::prelude::*;
 
-/// Plugin that registers all battle components, events, resources, and systems.
-pub struct BevyBattlePlugin;
+    use crate::component::*;
+    use crate::event::*;
+    use crate::resource::*;
+    use crate::system;
 
-impl Plugin for BevyBattlePlugin {
-    fn build(&self, app: &mut App) {
-        // Resources
-        app.init_resource::<CombatModifiers>();
-        app.init_resource::<BattleRng>();
-        app.init_resource::<FirstStrikeFired>();
+    /// Plugin that registers all battle components, events, resources, and systems.
+    pub struct BevyBattlePlugin;
 
-        // Messages — input
-        app.add_message::<AttackIntent>();
-        app.add_message::<DefendIntent>();
-        app.add_message::<FleeIntent>();
-        app.add_message::<UseItemIntent>();
-        app.add_message::<EnemyTurnRequest>();
-        app.add_message::<TickEffectsRequest>();
+    impl Plugin for BevyBattlePlugin {
+        fn build(&self, app: &mut App) {
+            // Resources
+            app.init_resource::<CombatModifiers>();
+            app.init_resource::<BattleRng>();
+            app.init_resource::<FirstStrikeFired>();
 
-        // Messages — output
-        app.add_message::<CombatOutcome>();
+            // Messages — input
+            app.add_message::<AttackIntent>();
+            app.add_message::<DefendIntent>();
+            app.add_message::<FleeIntent>();
+            app.add_message::<UseItemIntent>();
+            app.add_message::<EnemyTurnRequest>();
+            app.add_message::<TickEffectsRequest>();
 
-        // Systems
-        system::register_systems(app);
+            // Messages — output
+            app.add_message::<CombatOutcome>();
+
+            // Systems
+            system::register_systems(app);
+        }
     }
 }
 
-#[cfg(test)]
+#[cfg(feature = "bevy")]
+pub use plugin::BevyBattlePlugin;
+
+#[cfg(all(test, feature = "bevy"))]
 mod tests {
     use super::*;
     use rand::SeedableRng;

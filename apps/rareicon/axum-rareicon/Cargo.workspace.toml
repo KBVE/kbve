@@ -4,6 +4,7 @@ members = [
     "apps/rareicon/axum-rareicon",
     "packages/rust/jedi",
     "packages/rust/kbve",
+    "packages/rust/holy",
     "packages/rust/bevy/bevy_kbve_net",
     "packages/rust/bevy/bevy_npc",
 ]

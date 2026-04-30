@@ -10,13 +10,17 @@ namespace RareIcon
     [UpdateInGroup(typeof(EconomySystemGroup))]
     public partial struct BarracksProductionSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<BarracksTag>();
+            state.RequireForUpdate<WorldClock>();
+        }
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            if (!SystemAPI.HasSingleton<WorldClock>()) return;
             uint currentTurn = SystemAPI.GetSingleton<WorldClock>().TurnIndex;
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()

@@ -69,6 +69,7 @@ COPY Cargo.lock ./
 COPY apps/rareicon/axum-rareicon/Cargo.toml apps/rareicon/axum-rareicon/Cargo.toml
 COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
 COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
+COPY packages/rust/holy/Cargo.toml packages/rust/holy/Cargo.toml
 COPY packages/rust/bevy/bevy_kbve_net/Cargo.toml packages/rust/bevy/bevy_kbve_net/Cargo.toml
 COPY packages/rust/bevy/bevy_npc/Cargo.toml packages/rust/bevy/bevy_npc/Cargo.toml
 # bevy_tasker — referenced by bevy_kbve_net's optional `creatures` feature.
@@ -80,6 +81,7 @@ COPY packages/data/proto packages/data/proto
 RUN mkdir -p apps/rareicon/axum-rareicon/src && echo "fn main() {}" > apps/rareicon/axum-rareicon/src/main.rs && \
     mkdir -p packages/rust/jedi/src && echo "" > packages/rust/jedi/src/lib.rs && \
     mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs && \
+    mkdir -p packages/rust/holy/src && echo "" > packages/rust/holy/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_kbve_net/src && echo "" > packages/rust/bevy/bevy_kbve_net/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_npc/src && echo "" > packages/rust/bevy/bevy_npc/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_tasker/src && echo "" > packages/rust/bevy/bevy_tasker/src/lib.rs
@@ -126,6 +128,7 @@ COPY packages/data/proto packages/data/proto
 
 COPY packages/rust/jedi packages/rust/jedi
 COPY packages/rust/kbve packages/rust/kbve
+COPY packages/rust/holy packages/rust/holy
 COPY packages/rust/bevy/bevy_kbve_net packages/rust/bevy/bevy_kbve_net
 COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
 # Stub bevy_tasker manifest so cargo metadata can resolve bevy_kbve_net's
@@ -137,7 +140,7 @@ RUN mkdir -p packages/rust/bevy/bevy_tasker/src && \
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    cargo build --release -p kbve -p jedi -p bevy_kbve_net -p bevy_npc
+    cargo build --release -p kbve -p jedi -p holy -p bevy_kbve_net -p bevy_npc
 
 # ============================================================================
 # [STAGE F] - Build Application
@@ -151,6 +154,7 @@ COPY --from=astro-precompressor /static /app/apps/rareicon/axum-rareicon/templat
 COPY packages/data/proto packages/data/proto
 COPY packages/rust/jedi packages/rust/jedi
 COPY packages/rust/kbve packages/rust/kbve
+COPY packages/rust/holy packages/rust/holy
 COPY packages/rust/bevy/bevy_kbve_net packages/rust/bevy/bevy_kbve_net
 COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
 

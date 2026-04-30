@@ -2,8 +2,6 @@
 
 use std::collections::HashMap;
 
-use bevy::prelude::*;
-
 use crate::registry::SkillId;
 
 /// A single skill's state on an entity.
@@ -18,7 +16,8 @@ pub struct SkillEntry {
 
 /// Component holding all skill data for a single entity (player, NPC,
 /// etc.). Attach to any entity that should track skill progression.
-#[derive(Component, Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "bevy", derive(bevy::prelude::Component))]
 pub struct SkillProfile {
     skills: HashMap<SkillId, SkillEntry>,
 }

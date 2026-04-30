@@ -184,6 +184,8 @@ impl WorldStore {
             let _ = c.pragma_update(None, "journal_mode", "WAL");
             let _ = c.pragma_update(None, "synchronous", "NORMAL");
             let _ = c.pragma_update(None, "foreign_keys", "ON");
+            let _ = c.pragma_update(None, "mmap_size", 268_435_456i64);
+            let _ = c.pragma_update(None, "temp_store", "MEMORY");
             if let Err(e) = init_schema(c) {
                 eprintln!("[uniti-world] SQLite schema init failed: {e}");
             }
@@ -312,9 +314,7 @@ struct DirtySnapshot {
     per_chunk: Vec<FlushSnapshot>,
 }
 
-/// Current schema version. Bump and add a migration step in
-/// [`migrate_schema`] whenever the table layout changes.
-const SCHEMA_VERSION: i64 = 2;
+const SCHEMA_VERSION: i64 = 3;
 
 fn init_schema(conn: &Connection) -> rusqlite::Result<()> {
     conn.execute_batch(
@@ -386,7 +386,35 @@ fn init_schema(conn: &Connection) -> rusqlite::Result<()> {
             attack_kind INTEGER NOT NULL DEFAULT 0,
             target_mode INTEGER NOT NULL DEFAULT 0
          );
-         CREATE INDEX IF NOT EXISTS idx_buildings_chunk ON buildings(cx, cy);",
+         CREATE INDEX IF NOT EXISTS idx_buildings_chunk ON buildings(cx, cy);
+         CREATE TABLE IF NOT EXISTS chunks (
+            cx INTEGER NOT NULL,
+            cy INTEGER NOT NULL,
+            last_seen_ms INTEGER NOT NULL DEFAULT 0,
+            last_tick_ms INTEGER NOT NULL DEFAULT 0,
+            flags INTEGER NOT NULL DEFAULT 0,
+            threat_level INTEGER NOT NULL DEFAULT 0,
+            unit_count INTEGER NOT NULL DEFAULT 0,
+            building_count INTEGER NOT NULL DEFAULT 0,
+            aggregate_count INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY (cx, cy)
+         );
+         CREATE INDEX IF NOT EXISTS idx_chunks_due ON chunks(last_tick_ms);
+         CREATE INDEX IF NOT EXISTS idx_chunks_seen ON chunks(last_seen_ms);
+         CREATE INDEX IF NOT EXISTS idx_chunks_flags ON chunks(flags) WHERE flags != 0;
+         CREATE TABLE IF NOT EXISTS unit_aggregates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cx INTEGER NOT NULL,
+            cy INTEGER NOT NULL,
+            unit_type INTEGER NOT NULL,
+            count INTEGER NOT NULL,
+            avg_health REAL NOT NULL,
+            hunger_pool REAL NOT NULL DEFAULT 0,
+            last_tick_secs REAL NOT NULL DEFAULT 0
+         );
+         CREATE INDEX IF NOT EXISTS idx_unit_aggregates_chunk ON unit_aggregates(cx, cy);
+         CREATE UNIQUE INDEX IF NOT EXISTS idx_unit_aggregates_chunk_type
+            ON unit_aggregates(cx, cy, unit_type);",
     )?;
     migrate_schema(conn)?;
     Ok(())
@@ -427,6 +455,39 @@ fn migrate_schema(conn: &Connection) -> rusqlite::Result<()> {
              ALTER TABLE buildings ADD COLUMN time_since_attack REAL NOT NULL DEFAULT 0;
              ALTER TABLE buildings ADD COLUMN attack_kind INTEGER NOT NULL DEFAULT 0;
              ALTER TABLE buildings ADD COLUMN target_mode INTEGER NOT NULL DEFAULT 0;",
+        )?;
+    }
+
+    if current < 3 {
+        conn.execute_batch(
+            "CREATE TABLE IF NOT EXISTS chunks (
+                cx INTEGER NOT NULL,
+                cy INTEGER NOT NULL,
+                last_seen_ms INTEGER NOT NULL DEFAULT 0,
+                last_tick_ms INTEGER NOT NULL DEFAULT 0,
+                flags INTEGER NOT NULL DEFAULT 0,
+                threat_level INTEGER NOT NULL DEFAULT 0,
+                unit_count INTEGER NOT NULL DEFAULT 0,
+                building_count INTEGER NOT NULL DEFAULT 0,
+                aggregate_count INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (cx, cy)
+             );
+             CREATE INDEX IF NOT EXISTS idx_chunks_due ON chunks(last_tick_ms);
+             CREATE INDEX IF NOT EXISTS idx_chunks_seen ON chunks(last_seen_ms);
+             CREATE INDEX IF NOT EXISTS idx_chunks_flags ON chunks(flags) WHERE flags != 0;
+             CREATE TABLE IF NOT EXISTS unit_aggregates (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                cx INTEGER NOT NULL,
+                cy INTEGER NOT NULL,
+                unit_type INTEGER NOT NULL,
+                count INTEGER NOT NULL,
+                avg_health REAL NOT NULL,
+                hunger_pool REAL NOT NULL DEFAULT 0,
+                last_tick_secs REAL NOT NULL DEFAULT 0
+             );
+             CREATE INDEX IF NOT EXISTS idx_unit_aggregates_chunk ON unit_aggregates(cx, cy);
+             CREATE UNIQUE INDEX IF NOT EXISTS idx_unit_aggregates_chunk_type
+                ON unit_aggregates(cx, cy, unit_type);",
         )?;
     }
 
@@ -1827,4 +1888,406 @@ pub unsafe extern "C" fn uniti_world_take_all_buildings(
         }
     }
     written as u32
+}
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy, Default)]
+pub struct FfiChunkSummary {
+    pub cx: i32,
+    pub cy: i32,
+    pub last_seen_ms: u64,
+    pub last_tick_ms: u64,
+    pub flags: u32,
+    pub threat_level: u32,
+    pub unit_count: u32,
+    pub building_count: u32,
+    pub aggregate_count: u32,
+    pub valid: u8,
+}
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy, Default)]
+pub struct FfiUnitAggregate {
+    pub cx: i32,
+    pub cy: i32,
+    pub unit_type: u8,
+    pub count: u32,
+    pub avg_health: f32,
+    pub hunger_pool: f32,
+    pub last_tick_secs: f32,
+}
+
+fn read_chunk_summary(conn: &Connection, cx: i32, cy: i32) -> FfiChunkSummary {
+    let mut s = FfiChunkSummary {
+        cx,
+        cy,
+        ..Default::default()
+    };
+    let row: rusqlite::Result<(i64, i64, i64, i64, i64, i64, i64)> = conn.query_row(
+        "SELECT last_seen_ms, last_tick_ms, flags, threat_level, unit_count, building_count, aggregate_count
+         FROM chunks WHERE cx = ?1 AND cy = ?2",
+        [cx as i64, cy as i64],
+        |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?, r.get(5)?, r.get(6)?)),
+    );
+    if let Ok((seen, tick, flags, threat, uc, bc, ac)) = row {
+        s.last_seen_ms = seen as u64;
+        s.last_tick_ms = tick as u64;
+        s.flags = flags as u32;
+        s.threat_level = threat as u32;
+        s.unit_count = uc as u32;
+        s.building_count = bc as u32;
+        s.aggregate_count = ac as u32;
+        s.valid = 1;
+    }
+    s
+}
+
+fn refresh_chunk_counts(conn: &Connection, cx: i32, cy: i32) -> rusqlite::Result<()> {
+    let uc: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM units WHERE cx = ?1 AND cy = ?2",
+        [cx as i64, cy as i64],
+        |r| r.get(0),
+    )?;
+    let bc: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM buildings WHERE cx = ?1 AND cy = ?2",
+        [cx as i64, cy as i64],
+        |r| r.get(0),
+    )?;
+    let ac: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM unit_aggregates WHERE cx = ?1 AND cy = ?2",
+        [cx as i64, cy as i64],
+        |r| r.get(0),
+    )?;
+    conn.execute(
+        "UPDATE chunks SET unit_count = ?1, building_count = ?2, aggregate_count = ?3
+         WHERE cx = ?4 AND cy = ?5",
+        [uc, bc, ac, cx as i64, cy as i64],
+    )?;
+    Ok(())
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_chunk_touch(
+    world: *mut c_void,
+    cx: i32,
+    cy: i32,
+    last_seen_ms: u64,
+    flags: u32,
+    threat_level: u32,
+) -> u8 {
+    if world.is_null() {
+        return 0;
+    }
+    let world = unsafe { &*(world as *const WorldStore) };
+    let db_guard = match world.db.lock() {
+        Ok(g) => g,
+        Err(_) => return 0,
+    };
+    let Some(conn) = db_guard.as_ref() else {
+        return 0;
+    };
+    let res = conn.execute(
+        "INSERT INTO chunks (cx, cy, last_seen_ms, flags, threat_level)
+         VALUES (?1, ?2, ?3, ?4, ?5)
+         ON CONFLICT(cx, cy) DO UPDATE SET
+            last_seen_ms = excluded.last_seen_ms,
+            flags = excluded.flags,
+            threat_level = excluded.threat_level",
+        [
+            cx as i64,
+            cy as i64,
+            last_seen_ms as i64,
+            flags as i64,
+            threat_level as i64,
+        ],
+    );
+    if res.is_ok() {
+        let _ = refresh_chunk_counts(conn, cx, cy);
+        1
+    } else {
+        0
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_chunk_summary(
+    world: *const c_void,
+    cx: i32,
+    cy: i32,
+) -> FfiChunkSummary {
+    if world.is_null() {
+        return FfiChunkSummary::default();
+    }
+    let world = unsafe { &*(world as *const WorldStore) };
+    let db_guard = match world.db.lock() {
+        Ok(g) => g,
+        Err(_) => return FfiChunkSummary::default(),
+    };
+    let Some(conn) = db_guard.as_ref() else {
+        return FfiChunkSummary::default();
+    };
+    read_chunk_summary(conn, cx, cy)
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_prefetch_neighbors(
+    world: *const c_void,
+    cx: i32,
+    cy: i32,
+    out: *mut FfiChunkSummary,
+    cap: u32,
+) -> u32 {
+    if world.is_null() || out.is_null() || cap < 6 {
+        return 0;
+    }
+    let world = unsafe { &*(world as *const WorldStore) };
+    let db_guard = match world.db.lock() {
+        Ok(g) => g,
+        Err(_) => return 0,
+    };
+    let Some(conn) = db_guard.as_ref() else {
+        return 0;
+    };
+    let neighbors = [
+        (cx + 1, cy),
+        (cx - 1, cy),
+        (cx, cy + 1),
+        (cx, cy - 1),
+        (cx + 1, cy - 1),
+        (cx - 1, cy + 1),
+    ];
+    let slice = unsafe { std::slice::from_raw_parts_mut(out, 6) };
+    for (i, (nx, ny)) in neighbors.iter().enumerate() {
+        slice[i] = read_chunk_summary(conn, *nx, *ny);
+    }
+    6
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_take_chunks_in_range(
+    world: *mut c_void,
+    cx_min: i32,
+    cy_min: i32,
+    cx_max: i32,
+    cy_max: i32,
+    out: *mut FfiChunkSummary,
+    cap: u32,
+) -> u32 {
+    if world.is_null() || out.is_null() || cap == 0 {
+        return 0;
+    }
+    let world = unsafe { &*(world as *const WorldStore) };
+    let db_guard = match world.db.lock() {
+        Ok(g) => g,
+        Err(_) => return 0,
+    };
+    let Some(conn) = db_guard.as_ref() else {
+        return 0;
+    };
+    let mut stmt = match conn.prepare(
+        "SELECT cx, cy, last_seen_ms, last_tick_ms, flags, threat_level,
+                unit_count, building_count, aggregate_count
+         FROM chunks
+         WHERE cx BETWEEN ?1 AND ?2 AND cy BETWEEN ?3 AND ?4
+         LIMIT ?5",
+    ) {
+        Ok(s) => s,
+        Err(_) => return 0,
+    };
+    let rows = stmt.query_map(
+        [
+            cx_min as i64,
+            cx_max as i64,
+            cy_min as i64,
+            cy_max as i64,
+            cap as i64,
+        ],
+        |r| {
+            Ok(FfiChunkSummary {
+                cx: r.get::<_, i64>(0)? as i32,
+                cy: r.get::<_, i64>(1)? as i32,
+                last_seen_ms: r.get::<_, i64>(2)? as u64,
+                last_tick_ms: r.get::<_, i64>(3)? as u64,
+                flags: r.get::<_, i64>(4)? as u32,
+                threat_level: r.get::<_, i64>(5)? as u32,
+                unit_count: r.get::<_, i64>(6)? as u32,
+                building_count: r.get::<_, i64>(7)? as u32,
+                aggregate_count: r.get::<_, i64>(8)? as u32,
+                valid: 1,
+            })
+        },
+    );
+    let Ok(rows) = rows else { return 0 };
+    let slice = unsafe { std::slice::from_raw_parts_mut(out, cap as usize) };
+    let mut written = 0usize;
+    for row in rows.flatten() {
+        if written >= cap as usize {
+            break;
+        }
+        slice[written] = row;
+        written += 1;
+    }
+    written as u32
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_save_unit_aggregate(
+    world: *mut c_void,
+    agg: FfiUnitAggregate,
+) -> u8 {
+    if world.is_null() {
+        return 0;
+    }
+    let world = unsafe { &*(world as *const WorldStore) };
+    let db_guard = match world.db.lock() {
+        Ok(g) => g,
+        Err(_) => return 0,
+    };
+    let Some(conn) = db_guard.as_ref() else {
+        return 0;
+    };
+    let res = conn.execute(
+        "INSERT INTO unit_aggregates (cx, cy, unit_type, count, avg_health, hunger_pool, last_tick_secs)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+         ON CONFLICT(cx, cy, unit_type) DO UPDATE SET
+            count = excluded.count,
+            avg_health = excluded.avg_health,
+            hunger_pool = excluded.hunger_pool,
+            last_tick_secs = excluded.last_tick_secs",
+        rusqlite::params![
+            agg.cx as i64,
+            agg.cy as i64,
+            agg.unit_type as i64,
+            agg.count as i64,
+            agg.avg_health as f64,
+            agg.hunger_pool as f64,
+            agg.last_tick_secs as f64,
+        ],
+    );
+    if res.is_ok() {
+        let _ = refresh_chunk_counts(conn, agg.cx, agg.cy);
+        1
+    } else {
+        0
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_take_unit_aggregates_in_chunk(
+    world: *mut c_void,
+    cx: i32,
+    cy: i32,
+    out: *mut FfiUnitAggregate,
+    cap: u32,
+) -> u32 {
+    if world.is_null() || out.is_null() || cap == 0 {
+        return 0;
+    }
+    let world = unsafe { &*(world as *const WorldStore) };
+    let db_guard = match world.db.lock() {
+        Ok(g) => g,
+        Err(_) => return 0,
+    };
+    let Some(conn) = db_guard.as_ref() else {
+        return 0;
+    };
+    let mut stmt = match conn.prepare(
+        "SELECT unit_type, count, avg_health, hunger_pool, last_tick_secs
+         FROM unit_aggregates WHERE cx = ?1 AND cy = ?2 LIMIT ?3",
+    ) {
+        Ok(s) => s,
+        Err(_) => return 0,
+    };
+    let rows = stmt.query_map([cx as i64, cy as i64, cap as i64], |r| {
+        Ok(FfiUnitAggregate {
+            cx,
+            cy,
+            unit_type: r.get::<_, i64>(0)? as u8,
+            count: r.get::<_, i64>(1)? as u32,
+            avg_health: r.get::<_, f64>(2)? as f32,
+            hunger_pool: r.get::<_, f64>(3)? as f32,
+            last_tick_secs: r.get::<_, f64>(4)? as f32,
+        })
+    });
+    let Ok(rows) = rows else { return 0 };
+    let slice = unsafe { std::slice::from_raw_parts_mut(out, cap as usize) };
+    let mut written = 0usize;
+    for row in rows.flatten() {
+        if written >= cap as usize {
+            break;
+        }
+        slice[written] = row;
+        written += 1;
+    }
+    if written > 0 {
+        let _ = conn.execute(
+            "DELETE FROM unit_aggregates WHERE cx = ?1 AND cy = ?2",
+            [cx as i64, cy as i64],
+        );
+        let _ = refresh_chunk_counts(conn, cx, cy);
+    }
+    written as u32
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_due_count(world: *const c_void, due_before_ms: u64) -> u32 {
+    if world.is_null() {
+        return 0;
+    }
+    let world = unsafe { &*(world as *const WorldStore) };
+    let db_guard = match world.db.lock() {
+        Ok(g) => g,
+        Err(_) => return 0,
+    };
+    let Some(conn) = db_guard.as_ref() else {
+        return 0;
+    };
+    conn.query_row(
+        "SELECT COUNT(*) FROM chunks WHERE last_tick_ms < ?1",
+        [due_before_ms as i64],
+        |r| r.get::<_, i64>(0),
+    )
+    .map(|n| n as u32)
+    .unwrap_or(0)
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_chunks_purge_stale(
+    world: *mut c_void,
+    older_than_ms: u64,
+) -> u32 {
+    if world.is_null() {
+        return 0;
+    }
+    let world = unsafe { &*(world as *const WorldStore) };
+    let db_guard = match world.db.lock() {
+        Ok(g) => g,
+        Err(_) => return 0,
+    };
+    let Some(conn) = db_guard.as_ref() else {
+        return 0;
+    };
+    let stale: Vec<(i32, i32)> = match conn.prepare(
+        "SELECT cx, cy FROM chunks
+         WHERE last_seen_ms < ?1 AND unit_count = 0 AND building_count = 0 AND aggregate_count = 0",
+    ) {
+        Ok(mut stmt) => stmt
+            .query_map([older_than_ms as i64], |r| {
+                Ok((r.get::<_, i64>(0)? as i32, r.get::<_, i64>(1)? as i32))
+            })
+            .map(|rows| rows.flatten().collect())
+            .unwrap_or_default(),
+        Err(_) => return 0,
+    };
+    let mut purged = 0u32;
+    for (cx, cy) in stale {
+        let res = conn.execute(
+            "DELETE FROM chunks WHERE cx = ?1 AND cy = ?2",
+            [cx as i64, cy as i64],
+        );
+        if res.is_ok() {
+            purged += 1;
+        }
+    }
+    purged
 }

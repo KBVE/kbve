@@ -33,6 +33,8 @@ namespace RareIcon
         public const byte Tower          = 18;  // Standalone defensive spire.
         public const byte Wall           = 19;  // Standalone barrier segment.
         public const byte Landmark       = 20;  // Naturally-spawned world object — neutral-owned, has HP, gameplay TBD.
+        public const byte Tavern         = 21;  // Inn tier 1 — heal-on-rest + coin trickle.
+        public const byte Lodge          = 22;  // Inn tier 2 — bigger sleep cap, faster heal, higher coin yield.
     }
 
     /// <summary>

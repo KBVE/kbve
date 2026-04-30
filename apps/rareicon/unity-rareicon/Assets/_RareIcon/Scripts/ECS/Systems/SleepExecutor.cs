@@ -33,14 +33,15 @@ namespace RareIcon
 
             var sleepHandle = new SleepJob
             {
-                Dt                  = SystemAPI.Time.DeltaTime,
-                HexLookup           = hexLookupSingleton.Lookup,
-                HexOccupantLookup   = SystemAPI.GetComponentLookup<HexOccupant>(true),
-                ProvidesSleepLookup = SystemAPI.GetComponentLookup<ProvidesSleep>(true),
-                SleeperCounts       = sleeperCounts,
-                SleepingLookup      = SystemAPI.GetComponentLookup<SleepingTag>(true),
-                HealthLookup        = SystemAPI.GetComponentLookup<Health>(false),
-                Ecb                 = ecb.AsParallelWriter(),
+                Dt                    = SystemAPI.Time.DeltaTime,
+                HexLookup             = hexLookupSingleton.Lookup,
+                HexOccupantLookup     = SystemAPI.GetComponentLookup<HexOccupant>(true),
+                ProvidesSleepLookup   = SystemAPI.GetComponentLookup<ProvidesSleep>(true),
+                ProvidesHealingLookup = SystemAPI.GetComponentLookup<ProvidesHealing>(true),
+                SleeperCounts         = sleeperCounts,
+                SleepingLookup        = SystemAPI.GetComponentLookup<SleepingTag>(true),
+                HealthLookup          = SystemAPI.GetComponentLookup<Health>(false),
+                Ecb                   = ecb.AsParallelWriter(),
             }.ScheduleParallel(countHandle);
 
             state.Dependency = sleeperCounts.Dispose(sleepHandle);
@@ -74,12 +75,14 @@ namespace RareIcon
         const float GoblinSleepMultiplier = 1.75f;
         const float WakeThresholdPct      = 0.15f;
         const float SleepHealPerSec       = 2f;
+        const float HealingScalePerTier   = 2f;
 
         public float Dt;
 
         [ReadOnly] public NativeHashMap<int2, Entity>     HexLookup;
         [ReadOnly] public ComponentLookup<HexOccupant>    HexOccupantLookup;
         [ReadOnly] public ComponentLookup<ProvidesSleep>  ProvidesSleepLookup;
+        [ReadOnly] public ComponentLookup<ProvidesHealing> ProvidesHealingLookup;
         [ReadOnly] public NativeParallelHashMap<Entity, int> SleeperCounts;
         [ReadOnly] public ComponentLookup<SleepingTag>    SleepingLookup;
 
@@ -122,7 +125,10 @@ namespace RareIcon
                     var h = HealthLookup[entity];
                     if (h.Value < h.Max)
                     {
-                        h.Value = math.min(h.Max, h.Value + SleepHealPerSec * Dt);
+                        float healRate = SleepHealPerSec;
+                        if (ProvidesHealingLookup.HasComponent(building))
+                            healRate += ProvidesHealingLookup[building].Priority * HealingScalePerTier;
+                        h.Value = math.min(h.Max, h.Value + healRate * Dt);
                         HealthLookup[entity] = h;
                     }
                 }

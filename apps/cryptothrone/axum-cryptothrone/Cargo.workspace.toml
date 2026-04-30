@@ -4,6 +4,7 @@ members = [
     "apps/cryptothrone/axum-cryptothrone",
     "packages/rust/jedi",
     "packages/rust/kbve",
+    "packages/rust/holy",
 ]
 
 [profile.release]

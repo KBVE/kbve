@@ -4,6 +4,7 @@ members = [
     "apps/memes/axum-memes",
     "packages/rust/jedi",
     "packages/rust/kbve",
+    "packages/rust/holy",
 ]
 
 [profile.release]
