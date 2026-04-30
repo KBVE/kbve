@@ -184,6 +184,8 @@ impl WorldStore {
             let _ = c.pragma_update(None, "journal_mode", "WAL");
             let _ = c.pragma_update(None, "synchronous", "NORMAL");
             let _ = c.pragma_update(None, "foreign_keys", "ON");
+            let _ = c.pragma_update(None, "mmap_size", 268_435_456i64);
+            let _ = c.pragma_update(None, "temp_store", "MEMORY");
             if let Err(e) = init_schema(c) {
                 eprintln!("[uniti-world] SQLite schema init failed: {e}");
             }
@@ -312,9 +314,7 @@ struct DirtySnapshot {
     per_chunk: Vec<FlushSnapshot>,
 }
 
-/// Current schema version. Bump and add a migration step in
-/// [`migrate_schema`] whenever the table layout changes.
-const SCHEMA_VERSION: i64 = 2;
+const SCHEMA_VERSION: i64 = 3;
 
 fn init_schema(conn: &Connection) -> rusqlite::Result<()> {
     conn.execute_batch(
@@ -386,7 +386,35 @@ fn init_schema(conn: &Connection) -> rusqlite::Result<()> {
             attack_kind INTEGER NOT NULL DEFAULT 0,
             target_mode INTEGER NOT NULL DEFAULT 0
          );
-         CREATE INDEX IF NOT EXISTS idx_buildings_chunk ON buildings(cx, cy);",
+         CREATE INDEX IF NOT EXISTS idx_buildings_chunk ON buildings(cx, cy);
+         CREATE TABLE IF NOT EXISTS chunks (
+            cx INTEGER NOT NULL,
+            cy INTEGER NOT NULL,
+            last_seen_ms INTEGER NOT NULL DEFAULT 0,
+            last_tick_ms INTEGER NOT NULL DEFAULT 0,
+            flags INTEGER NOT NULL DEFAULT 0,
+            threat_level INTEGER NOT NULL DEFAULT 0,
+            unit_count INTEGER NOT NULL DEFAULT 0,
+            building_count INTEGER NOT NULL DEFAULT 0,
+            aggregate_count INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY (cx, cy)
+         );
+         CREATE INDEX IF NOT EXISTS idx_chunks_due ON chunks(last_tick_ms);
+         CREATE INDEX IF NOT EXISTS idx_chunks_seen ON chunks(last_seen_ms);
+         CREATE INDEX IF NOT EXISTS idx_chunks_flags ON chunks(flags) WHERE flags != 0;
+         CREATE TABLE IF NOT EXISTS unit_aggregates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cx INTEGER NOT NULL,
+            cy INTEGER NOT NULL,
+            unit_type INTEGER NOT NULL,
+            count INTEGER NOT NULL,
+            avg_health REAL NOT NULL,
+            hunger_pool REAL NOT NULL DEFAULT 0,
+            last_tick_secs REAL NOT NULL DEFAULT 0
+         );
+         CREATE INDEX IF NOT EXISTS idx_unit_aggregates_chunk ON unit_aggregates(cx, cy);
+         CREATE UNIQUE INDEX IF NOT EXISTS idx_unit_aggregates_chunk_type
+            ON unit_aggregates(cx, cy, unit_type);",
     )?;
     migrate_schema(conn)?;
     Ok(())
@@ -427,6 +455,39 @@ fn migrate_schema(conn: &Connection) -> rusqlite::Result<()> {
              ALTER TABLE buildings ADD COLUMN time_since_attack REAL NOT NULL DEFAULT 0;
              ALTER TABLE buildings ADD COLUMN attack_kind INTEGER NOT NULL DEFAULT 0;
              ALTER TABLE buildings ADD COLUMN target_mode INTEGER NOT NULL DEFAULT 0;",
+        )?;
+    }
+
+    if current < 3 {
+        conn.execute_batch(
+            "CREATE TABLE IF NOT EXISTS chunks (
+                cx INTEGER NOT NULL,
+                cy INTEGER NOT NULL,
+                last_seen_ms INTEGER NOT NULL DEFAULT 0,
+                last_tick_ms INTEGER NOT NULL DEFAULT 0,
+                flags INTEGER NOT NULL DEFAULT 0,
+                threat_level INTEGER NOT NULL DEFAULT 0,
+                unit_count INTEGER NOT NULL DEFAULT 0,
+                building_count INTEGER NOT NULL DEFAULT 0,
+                aggregate_count INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (cx, cy)
+             );
+             CREATE INDEX IF NOT EXISTS idx_chunks_due ON chunks(last_tick_ms);
+             CREATE INDEX IF NOT EXISTS idx_chunks_seen ON chunks(last_seen_ms);
+             CREATE INDEX IF NOT EXISTS idx_chunks_flags ON chunks(flags) WHERE flags != 0;
+             CREATE TABLE IF NOT EXISTS unit_aggregates (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                cx INTEGER NOT NULL,
+                cy INTEGER NOT NULL,
+                unit_type INTEGER NOT NULL,
+                count INTEGER NOT NULL,
+                avg_health REAL NOT NULL,
+                hunger_pool REAL NOT NULL DEFAULT 0,
+                last_tick_secs REAL NOT NULL DEFAULT 0
+             );
+             CREATE INDEX IF NOT EXISTS idx_unit_aggregates_chunk ON unit_aggregates(cx, cy);
+             CREATE UNIQUE INDEX IF NOT EXISTS idx_unit_aggregates_chunk_type
+                ON unit_aggregates(cx, cy, unit_type);",
         )?;
     }
 
