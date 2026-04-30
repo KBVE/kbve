@@ -205,6 +205,16 @@
 		--forum-radius-sm: 8px;
 	}
 
+	.forum-shell {
+		max-width: 1180px;
+		margin: 0 auto;
+		padding: 1.5rem 1.25rem 4rem;
+		color: var(--forum-text);
+	}
+	:global(.sl-markdown-content):has(.forum-shell) {
+		max-width: none;
+		margin: 0;
+	}
 	.forum-shell.forum-compose {
 		max-width: 880px;
 	}
