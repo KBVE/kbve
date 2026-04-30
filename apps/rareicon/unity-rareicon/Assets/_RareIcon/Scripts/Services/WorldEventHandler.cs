@@ -41,6 +41,19 @@ namespace RareIcon
         const int    GoblinCaveMinDist    = 16;
         const int    GoblinCaveMaxDist    = 24;
         const ushort GoblinCaveMaxHp      = 220;
+        const int    LostCaravanMinDist   = 18;
+        const int    LostCaravanMaxDist   = 28;
+        const ushort LostCaravanCoin      = 30;
+        const int    MigrationMinCount    = 6;
+        const int    MigrationMaxCount    = 10;
+        const int    MigrationSpawnRadius = 5;
+        const ushort StrangerGoldGift     = 15;
+        const int    PlagueMinTargets     = 3;
+        const int    PlagueMaxTargets     = 5;
+        const float  PlagueDamageFrac     = 0.30f;
+        const int    CrowZombieMin        = 1;
+        const int    CrowZombieMax        = 2;
+        const int    CrowSpawnRadius      = 3;
 
         readonly LocaleService _locale;
         readonly ISubscriber<WorldEventTriggeredMessage> _eventSub;
@@ -140,20 +153,42 @@ namespace RareIcon
                 case WorldEventKind.GoblinCaveStir:
                     SpawnGoblinCave();
                     break;
+
+                case WorldEventKind.LostCaravan:
+                    SpawnLostCaravan();
+                    break;
+
+                case WorldEventKind.Migration:
+                    SpawnMigration();
+                    break;
+
+                case WorldEventKind.MysteriousStranger:
+                    _toastPub.Publish(new ToastMessage(
+                        _locale.Get("toast.event.stranger_arrives"), ToastKind.Info));
+                    _dialoguePub.Publish(new DialogueStartMessage(DialogueTreeId.MysteriousStranger));
+                    break;
+
+                case WorldEventKind.PlagueOutbreak:
+                    ApplyPlagueDamage();
+                    break;
+
+                case WorldEventKind.CrowOmen:
+                    SpawnCrowOmen();
+                    break;
             }
         }
 
         void OnDialogueEnded(DialogueEndedMessage msg)
         {
-            // Choice index 0 == accept across the random-event trees
-            // (matches DialogueDB tree authoring).
-            if (msg.LastChoiceIndex != 0) return;
-
-            switch (msg.TreeId)
-            {
-                case DialogueTreeId.LostGoblinBand: SpawnLostGoblins(); break;
-                case DialogueTreeId.MerchantCaravan: ResolveMerchantBarter(); break;
-            }
+            // Branch on (treeId, choice). Most random-event trees use
+            // choice 0 == accept; MysteriousStranger has 3 distinct paths
+            // (gold / blessing / refuse) with different rewards.
+            if (msg.TreeId == DialogueTreeId.LostGoblinBand && msg.LastChoiceIndex == 0)
+            { SpawnLostGoblins(); return; }
+            if (msg.TreeId == DialogueTreeId.MerchantCaravan && msg.LastChoiceIndex == 0)
+            { ResolveMerchantBarter(); return; }
+            if (msg.TreeId == DialogueTreeId.MysteriousStranger)
+            { ResolveMysteriousStranger(msg.LastChoiceIndex); return; }
         }
 
         void SpawnLostGoblins()
@@ -491,6 +526,197 @@ namespace RareIcon
 
             _toastPub.Publish(new ToastMessage(
                 _locale.Get("toast.event.sage_blessing"), ToastKind.Success));
+        }
+
+        void SpawnLostCaravan()
+        {
+            if (!TryGetCapitalHex(out var capitalHex)) return;
+            int dist = LostCaravanMinDist + _rng.Next(0, LostCaravanMaxDist - LostCaravanMinDist + 1);
+            float angle = (float)(_rng.NextDouble() * Math.PI * 2.0);
+            int2 hex = new int2(
+                capitalHex.x + (int)Math.Round(Math.Cos(angle) * dist),
+                capitalHex.y + (int)Math.Round(Math.Sin(angle) * dist));
+
+            var entity = LandmarkSpawnSystem.SpawnAt("luminous-alcove", hex);
+            if (entity == Entity.Null) return;
+
+            // Drop a small coin bonus alongside the discoverable landmark
+            // so the event still rewards the player even if they never walk
+            // out to find the wreckage.
+            if (TryGetCapitalEntity(out var capital, out _))
+            {
+                var world = GameplayWorld.Resolve();
+                if (world != null && world.IsCreated)
+                {
+                    var em = world.EntityManager;
+                    if (em.HasBuffer<CapitalLedger>(capital))
+                    {
+                        var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
+                        BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Coin, LostCaravanCoin, UlidFactory.NewUid());
+                    }
+                }
+            }
+
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.event.lost_caravan"), ToastKind.Info));
+        }
+
+        void SpawnMigration()
+        {
+            if (!TryGetCapitalHex(out var capitalHex)) return;
+            int count = MigrationMinCount + _rng.Next(0, MigrationMaxCount - MigrationMinCount + 1);
+            byte[] species = { UnitType.Chicken, UnitType.Sheep, UnitType.Cow };
+
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+
+            int spawned = 0;
+            for (int i = 0; i < count; i++)
+            {
+                int dq = NextOffset(MigrationSpawnRadius);
+                int dr = NextOffset(MigrationSpawnRadius);
+                int2 hex = new int2(capitalHex.x + dq, capitalHex.y + dr);
+                byte sp  = species[_rng.Next(0, species.Length)];
+                uint seed = unchecked((uint)_rng.Next() | 1u);
+                var entity = UnitSpawnSystem.SpawnAnimalAt(em, hex, seed, sp);
+                if (entity != Entity.Null) spawned++;
+            }
+            if (spawned == 0) return;
+
+            var sb = ZString.CreateStringBuilder();
+            try
+            {
+                sb.AppendFormat(_locale.Get("toast.event.migration"), spawned);
+                _toastPub.Publish(new ToastMessage(sb.ToString(), ToastKind.Success));
+            }
+            finally { sb.Dispose(); }
+        }
+
+        void ResolveMysteriousStranger(int choice)
+        {
+            // 0 = take gold, 1 = accept blessing, 2 = refuse.
+            switch (choice)
+            {
+                case 0:
+                    if (TryGetCapitalEntity(out var capital, out _))
+                    {
+                        var world = GameplayWorld.Resolve();
+                        if (world == null || !world.IsCreated) return;
+                        var em = world.EntityManager;
+                        if (em.HasBuffer<CapitalLedger>(capital))
+                        {
+                            var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
+                            BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Coin, StrangerGoldGift, UlidFactory.NewUid());
+                        }
+                    }
+                    _toastPub.Publish(new ToastMessage(
+                        _locale.Get("toast.event.stranger_gold"), ToastKind.Success));
+                    break;
+
+                case 1:
+                    HealAllPlayerUnits();
+                    _toastPub.Publish(new ToastMessage(
+                        _locale.Get("toast.event.stranger_blessing"), ToastKind.Success));
+                    break;
+
+                default:
+                    _toastPub.Publish(new ToastMessage(
+                        _locale.Get("toast.event.stranger_refuse"), ToastKind.Info));
+                    break;
+            }
+        }
+
+        void HealAllPlayerUnits()
+        {
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            var query = em.CreateEntityQuery(
+                ComponentType.ReadOnly<Unit>(),
+                ComponentType.ReadOnly<Faction>(),
+                ComponentType.ReadWrite<Health>());
+            using var arr = query.ToEntityArray(Allocator.Temp);
+            for (int i = 0; i < arr.Length; i++)
+            {
+                if (em.GetComponentData<Faction>(arr[i]).Value != FactionType.Player) continue;
+                var h = em.GetComponentData<Health>(arr[i]);
+                if (h.Value < h.Max) { h.Value = h.Max; em.SetComponentData(arr[i], h); }
+            }
+        }
+
+        void ApplyPlagueDamage()
+        {
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            var query = em.CreateEntityQuery(
+                ComponentType.ReadOnly<Unit>(),
+                ComponentType.ReadOnly<Faction>(),
+                ComponentType.ReadWrite<Health>());
+            using var arr = query.ToEntityArray(Allocator.Temp);
+            int targetCount = PlagueMinTargets + _rng.Next(0, PlagueMaxTargets - PlagueMinTargets + 1);
+            int picked = 0;
+            for (int i = 0; i < arr.Length && picked < targetCount; i++)
+            {
+                int idx = _rng.Next(0, arr.Length);
+                var ent = arr[idx];
+                if (em.GetComponentData<Faction>(ent).Value != FactionType.Player) continue;
+                var h = em.GetComponentData<Health>(ent);
+                float dmg = math.max(1f, h.Max * PlagueDamageFrac);
+                h.Value = math.max(1f, h.Value - dmg);
+                em.SetComponentData(ent, h);
+                picked++;
+            }
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.event.plague"), ToastKind.Warning));
+        }
+
+        void SpawnCrowOmen()
+        {
+            if (!TryGetCapitalHex(out var capitalHex)) return;
+            // Anchor on a random Player building when one exists; otherwise
+            // drop near the Capital with wider jitter so the omen still lands
+            // in the player's neighbourhood.
+            int2 anchor = capitalHex;
+            var world = GameplayWorld.Resolve();
+            if (world != null && world.IsCreated)
+            {
+                var em = world.EntityManager;
+                var query = em.CreateEntityQuery(ComponentType.ReadOnly<Building>());
+                using var arr = query.ToEntityArray(Allocator.Temp);
+                if (arr.Length > 0)
+                {
+                    for (int tries = 0; tries < 4; tries++)
+                    {
+                        int idx = _rng.Next(0, arr.Length);
+                        var b = em.GetComponentData<Building>(arr[idx]);
+                        if (b.OwnerFaction != FactionType.Player) continue;
+                        if (b.Type == BuildingType.Capital) continue;
+                        anchor = b.RootHex;
+                        break;
+                    }
+                }
+            }
+
+            int count = CrowZombieMin + _rng.Next(0, CrowZombieMax - CrowZombieMin + 1);
+            for (int i = 0; i < count; i++)
+            {
+                int2 hex = new int2(anchor.x + NextOffset(CrowSpawnRadius),
+                                    anchor.y + NextOffset(CrowSpawnRadius));
+                TrySpawnZombie(hex);
+            }
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.event.crow_omen"), ToastKind.Warning));
+        }
+
+        bool TrySpawnZombie(int2 hex)
+        {
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return false;
+            uint seed = unchecked((uint)_rng.Next() | 1u);
+            var entity = UnitSpawnSystem.SpawnZombieAt(world.EntityManager, hex, seed);
+            return entity != Entity.Null;
         }
 
         void SpawnGoblinCave()

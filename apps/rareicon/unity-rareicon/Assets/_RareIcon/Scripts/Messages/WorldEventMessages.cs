@@ -16,6 +16,11 @@ namespace RareIcon
         public const byte TreasureCache    = 10;
         public const byte SagesBlessing    = 11;
         public const byte GoblinCaveStir   = 12;
+        public const byte LostCaravan      = 13;
+        public const byte Migration        = 14;
+        public const byte MysteriousStranger = 15;
+        public const byte PlagueOutbreak   = 16;
+        public const byte CrowOmen         = 17;
     }
 
     /// <summary>Fired by <see cref="WorldEventScheduler"/> whenever a registered event passes its precondition + RNG roll. The handler subscribes once and branches on <see cref="Kind"/>; events that ask the player a question (Lost Goblin Band) start a dialogue and read the response off <see cref="DialogueEndedMessage.LastChoiceIndex"/>.</summary>
