@@ -387,21 +387,22 @@
     margin-top: 2px;
 }
 
-/* Locale row — wrapped in its own container so the row can carry an
-   explicit bottom margin AND the buttons inside use a non-collapsing
-   gap pattern (margin-right on first child, margin-left on last). UI
-   Toolkit doesn't support `gap` on flex containers and adjacent
-   button margins on the row's edge would leak into the parent. */
+/* Locale row — UI Toolkit USS doesn't support `:first-child` / `:last-child`
+   pseudos, so the inter-button gap uses the negative-margin trick: the row
+   pulls its content edges in by 6px on each side and every button adds 6px
+   horizontal margin. The leak cancels at the row's edges, the gap appears
+   between buttons. Bottom margin (28px) is explicit so the persona / next
+   element below has a deterministic gap. */
 .title-locale-row {
     flex-direction: row;
     flex-wrap: nowrap;
-    margin-bottom: 28px;
+    margin: 0 -6px 28px -6px;
 }
 .title-locale-btn {
     flex-grow: 1;
     flex-basis: 40%;
     flex-shrink: 1;
-    margin: 0;
+    margin: 0 6px;
     padding: 14px 0;
     -unity-text-align: middle-center;
     font-size: 14px;
@@ -410,8 +411,6 @@
     transition-duration: 0.16s;
     transition-timing-function: ease-out;
 }
-.title-locale-btn:first-child { margin-right: 6px; }
-.title-locale-btn:last-child  { margin-left:  6px; }
 .title-locale-btn:hover {
     background-color: rgba(252, 211, 77, 0.12);
 }
@@ -586,16 +585,14 @@
 .title-window--narrow .title-action-row {
     flex-direction: column;
 }
+.title-window--narrow .title-locale-row {
+    margin: 0 0 20px 0;
+}
 .title-window--narrow .title-locale-btn,
 .title-window--narrow .title-action-btn {
     flex-basis: 100%;
     margin: 4px 0;
     min-height: 48px;
-}
-.title-window--narrow .title-locale-btn:first-child,
-.title-window--narrow .title-locale-btn:last-child {
-    margin-left: 0;
-    margin-right: 0;
 }
 .title-window--narrow .title-info-card {
     flex-basis: 100%;
