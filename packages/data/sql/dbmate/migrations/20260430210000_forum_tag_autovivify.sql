@@ -42,19 +42,23 @@ BEGIN
         RAISE EXCEPTION 'p_created_by required for tag creation';
     END IF;
 
-    SELECT array_agg(s)
+    SELECT array_agg(s ORDER BY s)
       INTO v_clean
       FROM (
-          SELECT DISTINCT s
+          SELECT s
             FROM (
-                SELECT lower(trim(slug)) AS s
-                  FROM unnest(p_slugs) AS slug
-                 WHERE slug IS NOT NULL
-            ) projected
-           WHERE s ~ '^[a-z0-9][a-z0-9-]*$'
-             AND char_length(s) BETWEEN 1 AND 50
+                SELECT DISTINCT s
+                  FROM (
+                      SELECT lower(trim(slug)) AS s
+                        FROM unnest(p_slugs) AS slug
+                       WHERE slug IS NOT NULL
+                  ) projected
+                 WHERE s ~ '^[a-z0-9][a-z0-9-]*$'
+                   AND char_length(s) BETWEEN 1 AND 50
+          ) deduped
+           ORDER BY s
            LIMIT 20
-      ) clean;
+      ) capped;
 
     IF v_clean IS NULL OR cardinality(v_clean) = 0 THEN
         RETURN '{}'::INTEGER[];
@@ -68,8 +72,8 @@ BEGIN
     SELECT array_agg(DISTINCT t.canonical_id ORDER BY t.canonical_id)
       INTO v_out
       FROM forum.tags t
-     WHERE t.slug = ANY(v_clean)
-       AND t.status <> 'deprecated';
+      JOIN unnest(v_clean) AS s ON t.slug = s
+     WHERE t.status <> 'deprecated';
 
     RETURN COALESCE(v_out, '{}'::INTEGER[]);
 END;
@@ -108,22 +112,24 @@ BEGIN
     END IF;
 
     RETURN QUERY
+    WITH counts AS (
+        SELECT tr.tag_id, count(*)::BIGINT AS thread_count
+          FROM forum.thread_tags_resolved tr
+          JOIN forum.threads th ON th.id = tr.thread_id
+         WHERE th.status = 'active'
+           AND th.nsfw = FALSE
+         GROUP BY tr.tag_id
+    )
     SELECT canonical.id,
            canonical.canonical_id,
            canonical.slug,
            canonical.name,
            canonical.description,
            canonical.status,
-           COALESCE((
-               SELECT count(*)::BIGINT
-                 FROM forum.thread_tags_resolved tr
-                 JOIN forum.threads th ON th.id = tr.thread_id
-                WHERE tr.tag_id = canonical.id
-                  AND th.status = 'active'
-                  AND th.nsfw = FALSE
-           ), 0) AS thread_count
+           COALESCE(c.thread_count, 0) AS thread_count
       FROM forum.tags input
       JOIN forum.tags canonical ON canonical.id = input.canonical_id
+      LEFT JOIN counts c ON c.tag_id = canonical.id
      WHERE input.slug = v_slug
        AND canonical.status <> 'deprecated';
 END;
@@ -181,24 +187,19 @@ RETURNS TABLE (
     slug  TEXT,
     name  TEXT
 )
-LANGUAGE plpgsql
+LANGUAGE sql
 STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-BEGIN
-    IF p_thread_id IS NULL OR char_length(p_thread_id) > 64 THEN
-        RETURN;
-    END IF;
-
-    RETURN QUERY
     SELECT t.id, t.slug, t.name
       FROM forum.thread_tags_resolved tr
       JOIN forum.tags t ON t.id = tr.tag_id
-     WHERE tr.thread_id = p_thread_id
+     WHERE p_thread_id IS NOT NULL
+       AND char_length(p_thread_id) <= 64
+       AND tr.thread_id = p_thread_id
        AND t.status <> 'deprecated'
      ORDER BY t.slug ASC;
-END;
 $$;
 
 REVOKE ALL ON FUNCTION forum.service_get_thread_tags(TEXT) FROM PUBLIC, anon, authenticated;
@@ -213,8 +214,16 @@ CREATE INDEX IF NOT EXISTS idx_threads_active_public
     ON forum.threads (id)
     WHERE status = 'active' AND nsfw = FALSE;
 
+-- Partial slug lookup for active tags. The base UNIQUE on slug
+-- handles existence checks; this narrows the working set when
+-- the deprecated bucket grows.
+CREATE INDEX IF NOT EXISTS idx_tags_slug_active
+    ON forum.tags (slug)
+    WHERE status <> 'deprecated';
+
 -- migrate:down
 
+DROP INDEX IF EXISTS forum.idx_tags_slug_active;
 DROP INDEX IF EXISTS forum.idx_threads_active_public;
 
 DROP FUNCTION IF EXISTS forum.service_get_thread_tags(TEXT);

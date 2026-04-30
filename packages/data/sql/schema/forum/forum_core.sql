@@ -484,6 +484,9 @@ CREATE TABLE forum.tags (
 CREATE INDEX idx_tags_canonical ON forum.tags (canonical_id);
 CREATE INDEX idx_tags_status ON forum.tags (status) WHERE status <> 'deprecated';
 CREATE INDEX idx_tags_alias ON forum.tags (alias_of) WHERE alias_of IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tags_slug_active
+    ON forum.tags (slug)
+    WHERE status <> 'deprecated';
 
 CREATE OR REPLACE FUNCTION forum.set_tag_canonical_id()
 RETURNS TRIGGER AS $$
