@@ -60,6 +60,22 @@ export interface SiteGraphProps {
 		string,
 		{ fill: string; stroke: string; radius: number }
 	>;
+	/**
+	 * Optional SVG `stroke-dasharray` keyed by relationship. Layered on top
+	 * of `edgeColors` so color-blind users have a redundant signal for
+	 * relationship type. Example: `{ downgrade: '4 2', upgrade: '0' }`.
+	 */
+	edgeDashes?: Record<string, string>;
+	/**
+	 * Human-readable labels for relationships, used in the cluster legend
+	 * + tooltips. Falls back to the relationship key itself.
+	 */
+	edgeLabels?: Record<string, string>;
+	/**
+	 * Pretty labels for tags in the cluster legend. Falls back to the tag
+	 * key itself.
+	 */
+	tagLabels?: Record<string, string>;
 	/** Fixed-size mode (no ResizeObserver). Defaults to `false` (responsive). */
 	fixedSize?: boolean;
 	/** Min/max depth allowed in the depth selector. Defaults to 1..3. */
@@ -207,6 +223,31 @@ function radiusForDegree(degree: number, base: number): number {
  * except the hovered node + its immediate neighbors without re-running
  * BFS on every mouse-enter.
  */
+/**
+ * Returns an SVG path for a quadratic bezier from `s` to `t`. The control
+ * point is offset perpendicular to the segment by ~15% of its length so
+ * dense graphs read as a fan of curves instead of overlapping lines.
+ */
+function curvedEdgePath(
+	s: { x?: number; y?: number },
+	t: { x?: number; y?: number },
+): string {
+	const sx = s.x ?? 0;
+	const sy = s.y ?? 0;
+	const tx = t.x ?? 0;
+	const ty = t.y ?? 0;
+	const dx = tx - sx;
+	const dy = ty - sy;
+	const dist = Math.hypot(dx, dy) || 1;
+	const offset = dist * 0.15;
+	const mx = (sx + tx) / 2;
+	const my = (sy + ty) / 2;
+	// Perpendicular unit vector → control point.
+	const cx = mx + (-dy / dist) * offset;
+	const cy = my + (dx / dist) * offset;
+	return `M${sx} ${sy} Q${cx} ${cy} ${tx} ${ty}`;
+}
+
 function buildAdjacency(links: GraphLink[]): Map<string, Set<string>> {
 	const adj = new Map<string, Set<string>>();
 	for (const l of links) {
@@ -227,8 +268,11 @@ export function SiteGraph({
 	height: heightProp = 280,
 	endpoint,
 	edgeColors,
+	edgeDashes,
+	edgeLabels,
 	tagOf = () => null,
 	tagStyles,
+	tagLabels,
 	fixedSize = false,
 	minDepth = 1,
 	maxDepth = 3,
@@ -372,6 +416,24 @@ export function SiteGraph({
 		};
 	}, [graphData, currentSlug, depth, tagOf]);
 
+	// Distinct tags / relationships drive the cluster legend below the SVG.
+	const distinctTags = useMemo(
+		() => [
+			...new Set(nodes.map((n) => n.tag).filter((t): t is string => !!t)),
+		],
+		[nodes],
+	);
+	const distinctRelationships = useMemo(
+		() => [
+			...new Set(
+				links
+					.map((l) => l.relationship)
+					.filter((r): r is string => !!r),
+			),
+		],
+		[links],
+	);
+
 	useEffect(() => {
 		if (!graphData || !svgRef.current || nodes.length === 0) return;
 
@@ -428,13 +490,13 @@ export function SiteGraph({
 		simulationRef.current = simulation;
 
 		simulation.on('tick', () => {
-			const linkEls = svg.querySelectorAll<SVGLineElement>('.sg-link');
+			const linkEls = svg.querySelectorAll<SVGPathElement>('.sg-link');
 			links.forEach((link, i) => {
 				if (linkEls[i]) {
-					linkEls[i].setAttribute('x1', String(link.source.x ?? 0));
-					linkEls[i].setAttribute('y1', String(link.source.y ?? 0));
-					linkEls[i].setAttribute('x2', String(link.target.x ?? 0));
-					linkEls[i].setAttribute('y2', String(link.target.y ?? 0));
+					linkEls[i].setAttribute(
+						'd',
+						curvedEdgePath(link.source, link.target),
+					);
 				}
 			});
 
@@ -914,10 +976,14 @@ export function SiteGraph({
 								? 0.6
 								: 0.4
 							: 0.08;
+						const dash = l.relationship
+							? edgeDashes?.[l.relationship]
+							: undefined;
 						return (
-							<line
+							<path
 								key={`link-${i}`}
 								className="sg-link"
+								fill="none"
 								stroke={
 									l.relationship
 										? edgeColors?.[l.relationship] ||
@@ -928,6 +994,7 @@ export function SiteGraph({
 									l.relationship ? 1.5 / zoom : 1 / zoom
 								}
 								strokeOpacity={opacity}
+								strokeDasharray={dash}
 								style={{ transition: 'stroke-opacity 0.12s' }}
 							/>
 						);
@@ -957,6 +1024,17 @@ export function SiteGraph({
 						const adjPass = isAdjacent(node.id);
 						const visible = filterPass && adjPass;
 						const opacity = visible ? 1 : filterPass ? 0.18 : 0.05;
+
+						// Label-visibility heuristic: always show labels for the
+						// current node, hovered/pinned, search matches; show
+						// degree-≥5 hubs by default; hide other low-signal labels
+						// at low zoom to declutter dense neighborhoods.
+						const labelVisible =
+							node.isCurrent ||
+							hoveredId === node.id ||
+							(search && filterPass) ||
+							node.degree >= 5 ||
+							zoom >= 1.2;
 
 						return (
 							<g
@@ -1016,9 +1094,10 @@ export function SiteGraph({
 											? 600
 											: 400
 									}
+									opacity={labelVisible ? 1 : 0}
 									style={{
 										pointerEvents: 'none',
-										transition: 'fill 0.15s',
+										transition: 'fill 0.15s, opacity 0.15s',
 									}}>
 									{node.title.length > 20
 										? node.title.slice(0, 18) + '...'
@@ -1029,6 +1108,78 @@ export function SiteGraph({
 					})}
 				</g>
 			</svg>
+
+			{(distinctTags.length >= 2 || distinctRelationships.length > 0) && (
+				<ul
+					className="sg-legend"
+					aria-label="Graph legend"
+					style={{
+						listStyle: 'none',
+						margin: '6px 0 0',
+						padding: '0 8px',
+						display: 'flex',
+						flexWrap: 'wrap',
+						gap: '4px 10px',
+						fontSize: '10px',
+						color: 'var(--sl-color-gray-3, #8b949e)',
+					}}>
+					{distinctTags.length >= 2 &&
+						distinctTags.map((tag) => {
+							const style = tagStyles?.[tag];
+							return (
+								<li
+									key={`tag-${tag}`}
+									style={{
+										display: 'inline-flex',
+										alignItems: 'center',
+										gap: '4px',
+									}}>
+									<span
+										style={{
+											width: 8,
+											height: 8,
+											borderRadius: '50%',
+											background:
+												style?.fill ??
+												'var(--sl-color-white)',
+											border: `1px solid ${style?.stroke ?? 'var(--sl-color-gray-4)'}`,
+											display: 'inline-block',
+										}}
+										aria-hidden="true"
+									/>
+									{tagLabels?.[tag] ?? tag}
+								</li>
+							);
+						})}
+					{distinctRelationships.map((rel) => {
+						const dash = edgeDashes?.[rel];
+						const stroke =
+							edgeColors?.[rel] ?? 'var(--sl-color-gray-4)';
+						return (
+							<li
+								key={`rel-${rel}`}
+								style={{
+									display: 'inline-flex',
+									alignItems: 'center',
+									gap: '4px',
+								}}>
+								<svg width={16} height={6} aria-hidden="true">
+									<line
+										x1={0}
+										y1={3}
+										x2={16}
+										y2={3}
+										stroke={stroke}
+										strokeWidth={1.5}
+										strokeDasharray={dash}
+									/>
+								</svg>
+								{edgeLabels?.[rel] ?? rel}
+							</li>
+						);
+					})}
+				</ul>
+			)}
 
 			<div
 				ref={tooltipRef}

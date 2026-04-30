@@ -91,6 +91,38 @@ export const osrsEdgeColors: Record<string, string> = {
 	'drop-source': '#ec4899',
 };
 
+/**
+ * OSRS relationship → stroke-dasharray. Color-blind redundancy on top of
+ * `osrsEdgeColors`: relationships that share a hue lane (red/green) get
+ * distinct dash patterns so they remain distinguishable.
+ */
+export const osrsEdgeDashes: Record<string, string> = {
+	upgrade: '0',
+	downgrade: '4 2',
+	product: '0',
+	component: '2 2',
+	variant: '6 2 2 2',
+	'set-piece': '0',
+	alternative: '1 2',
+	'drop-source': '0',
+};
+
+/** Pretty labels used in the cluster legend / tooltips. */
+export const osrsEdgeLabels: Record<string, string> = {
+	upgrade: 'Upgrade',
+	downgrade: 'Downgrade',
+	product: 'Crafted from',
+	component: 'Component',
+	variant: 'Variant',
+	'set-piece': 'Set piece',
+	alternative: 'Alternative',
+	'drop-source': 'Drop source',
+};
+
+export const osrsTagLabels: Record<string, string> = {
+	osrs: 'OSRS item',
+};
+
 /** Tag function: marks any slug under `osrs/` as the `'osrs'` tag. */
 export const osrsTagOf = (slug: string): string | null =>
 	slug.startsWith('osrs/') ? 'osrs' : null;
