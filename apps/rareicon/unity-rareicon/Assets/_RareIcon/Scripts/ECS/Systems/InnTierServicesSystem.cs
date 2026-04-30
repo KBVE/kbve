@@ -1,4 +1,5 @@
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 
 namespace RareIcon
@@ -11,14 +12,13 @@ namespace RareIcon
     {
         EntityQuery _innsWithTier;
 
-        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            _innsWithTier = new Unity.Collections.EntityQueryBuilder(Unity.Collections.Allocator.Temp)
+            _innsWithTier = new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<InnTag, BuildingTier>()
                 .Build(ref state);
 
-            _innsWithTier.SetChangedVersionFilter(typeof(BuildingTier));
+            _innsWithTier.SetChangedVersionFilter(ComponentType.ReadOnly<BuildingTier>());
             state.RequireForUpdate(_innsWithTier);
         }
 
