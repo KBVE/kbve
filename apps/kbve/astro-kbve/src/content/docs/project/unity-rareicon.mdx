@@ -27,6 +27,8 @@ engine:
         - StandaloneLinux64
         - StandaloneWindows64
         - StandaloneOSX
+        - Android
+        - iOS
     license_method: personal
 external_publish:
     itch_user: kbve
@@ -50,8 +52,12 @@ RareIcon Unity client. Source: `apps/rareicon/unity-rareicon`. ECS DOTS world (H
 - `StandaloneLinux64`
 - `StandaloneWindows64`
 - `StandaloneOSX`
+- `Android` — APK / AAB (debug-signed for now; production keystore + Play upload pending)
+- `iOS` — Unity exports the Xcode project; the `.ipa` step is gated on an Apple Developer account
 
 WebGL deliberately omitted — DOTS hybrid renderer + Burst aren't WebGL-friendly.
+
+Steam integration is locked to standalone via `RareIcon.Platform.asmdef` (`includePlatforms` excludes mobile / WebGL) plus `SteamPluginPlatformGate` editor hook (disables `com.rlabrecque.steamworks.net` native binaries on iOS / Android / WebGL importers). Mobile builds compile without seeing Steamworks types and ship without `libsteam_api.so` in the APK / IPA.
 
 ## External publish
 

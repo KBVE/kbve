@@ -13,11 +13,15 @@ namespace RareIcon.EditorTools
     /// <remarks>
     /// Runs once on every domain reload so a UPM package re-resolve (which
     /// regenerates plugin .meta files inside Library/PackageCache) doesn't
-    /// silently re-enable the mobile binary.
+    /// silently re-enable the mobile binary. Uses the string-based
+    /// PluginImporter API so it compiles even when the Android, iOS, and
+    /// WebGL build modules aren't installed (CI runners ship minimal Unity).
     /// </remarks>
     [InitializeOnLoad]
     internal static class SteamPluginPlatformGate
     {
+        private static readonly string[] LockedPlatforms = { "Android", "iOS", "WebGL" };
+
         static SteamPluginPlatformGate()
         {
             ApplyMobileLockdown();
@@ -28,36 +32,16 @@ namespace RareIcon.EditorTools
 
         private static void ApplyMobileLockdown()
         {
-            foreach (var importer in PluginImporter.GetImporters(BuildTarget.Android))
+            foreach (var platform in LockedPlatforms)
             {
-                if (!IsSteamPlugin(importer.assetPath)) continue;
-                if (importer.GetCompatibleWithPlatform(BuildTarget.Android))
+                foreach (var importer in PluginImporter.GetImporters(platform))
                 {
-                    importer.SetCompatibleWithPlatform(BuildTarget.Android, false);
-                    importer.SaveAndReimport();
-                    Debug.Log($"[SteamPluginGate] disabled Android compat for {importer.assetPath}");
-                }
-            }
+                    if (!IsSteamPlugin(importer.assetPath)) continue;
+                    if (!importer.GetCompatibleWithPlatform(platform)) continue;
 
-            foreach (var importer in PluginImporter.GetImporters(BuildTarget.iOS))
-            {
-                if (!IsSteamPlugin(importer.assetPath)) continue;
-                if (importer.GetCompatibleWithPlatform(BuildTarget.iOS))
-                {
-                    importer.SetCompatibleWithPlatform(BuildTarget.iOS, false);
+                    importer.SetCompatibleWithPlatform(platform, false);
                     importer.SaveAndReimport();
-                    Debug.Log($"[SteamPluginGate] disabled iOS compat for {importer.assetPath}");
-                }
-            }
-
-            foreach (var importer in PluginImporter.GetImporters(BuildTarget.WebGL))
-            {
-                if (!IsSteamPlugin(importer.assetPath)) continue;
-                if (importer.GetCompatibleWithPlatform(BuildTarget.WebGL))
-                {
-                    importer.SetCompatibleWithPlatform(BuildTarget.WebGL, false);
-                    importer.SaveAndReimport();
-                    Debug.Log($"[SteamPluginGate] disabled WebGL compat for {importer.assetPath}");
+                    Debug.Log($"[SteamPluginGate] disabled {platform} compat for {importer.assetPath}");
                 }
             }
         }
