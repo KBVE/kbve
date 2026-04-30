@@ -35,6 +35,7 @@ namespace RareIcon
             var foodLookup    = SystemAPI.GetComponentLookup<ProvidesFood>(true);
             var sleepLookup   = SystemAPI.GetComponentLookup<ProvidesSleep>(true);
             var healLookup    = SystemAPI.GetComponentLookup<ProvidesHealing>(true);
+            var boardLookup   = SystemAPI.GetComponentLookup<QuestBoardState>(true);
 
             for (int i = 0; i < entities.Length; i++)
             {
@@ -44,6 +45,7 @@ namespace RareIcon
                 ApplyFood(ecb, e, tier, foodLookup);
                 ApplySleep(ecb, e, tier, sleepLookup);
                 ApplyHealing(ecb, e, tier, healLookup);
+                ApplyQuestBoard(ecb, e, tier, boardLookup);
             }
             entities.Dispose();
         }
@@ -86,6 +88,30 @@ namespace RareIcon
                 ecb.SetComponent(e, new ProvidesHealing { Priority = priority });
             else
                 ecb.AddComponent(e,  new ProvidesHealing { Priority = priority });
+        }
+
+        static void ApplyQuestBoard(EntityCommandBuffer ecb, Entity e, byte tier,
+                                    ComponentLookup<QuestBoardState> lookup)
+        {
+            if (tier == 0)
+            {
+                if (lookup.HasComponent(e))
+                {
+                    ecb.RemoveComponent<QuestBoardState>(e);
+                    ecb.RemoveComponent<QuestBoardSlot>(e);
+                }
+                return;
+            }
+            byte capacity = tier == 1 ? (byte)3 : (byte)5;
+            if (lookup.HasComponent(e))
+            {
+                ecb.SetComponent(e, new QuestBoardState { NextRefreshTurn = 0, Capacity = capacity });
+            }
+            else
+            {
+                ecb.AddComponent(e, new QuestBoardState { NextRefreshTurn = 0, Capacity = capacity });
+                ecb.AddBuffer<QuestBoardSlot>(e);
+            }
         }
     }
 }
