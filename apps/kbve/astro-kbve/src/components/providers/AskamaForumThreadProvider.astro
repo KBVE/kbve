@@ -173,10 +173,69 @@
 			</section>
 		</aside>
 	</div>
+
+	<dialog
+		id="forum-mod-dialog"
+		class="forum-mod-dialog"
+		aria-labelledby="forum-mod-dialog-title">
+		<form class="forum-mod-dialog__form" method="dialog">
+			<header class="forum-mod-dialog__header">
+				<h2 id="forum-mod-dialog-title" class="forum-mod-dialog__title">
+					Edit comment
+				</h2>
+				<button
+					type="button"
+					class="forum-mod-dialog__close"
+					data-action="cancel"
+					aria-label="Close dialog">
+					×
+				</button>
+			</header>
+			<p class="forum-mod-dialog__warning" hidden></p>
+			<label class="forum-mod-dialog__field" data-field="body">
+				<span class="forum-mod-dialog__label">Body (markdown)</span>
+				<textarea
+					name="body"
+					rows="6"
+					maxlength="20000"
+					class="forum-mod-dialog__textarea">
+				</textarea>
+			</label>
+			<label class="forum-mod-dialog__field" data-field="reason">
+				<span class="forum-mod-dialog__label">
+					Reason <span class="forum-mod-dialog__hint">
+						(optional)
+					</span>
+				</span>
+				<textarea
+					name="reason"
+					rows="2"
+					maxlength="500"
+					class="forum-mod-dialog__textarea"
+					placeholder="Visible in the moderation log.">
+				</textarea>
+			</label>
+			<footer class="forum-mod-dialog__footer">
+				<button
+					type="button"
+					class="forum-mod-dialog__btn"
+					data-action="cancel">
+					Cancel
+				</button>
+				<button
+					type="submit"
+					class="forum-mod-dialog__btn forum-mod-dialog__btn--primary"
+					data-action="confirm">
+					Save
+				</button>
+			</footer>
+		</form>
+	</dialog>
 </div>
 
 <script>
 	import { initSupa, getSupa } from '@/lib/supa';
+	import { addToast } from '@kbve/droid';
 
 	// Initial-letter fallback for the author avatar slot. The askama
 	// template emits `data-avatar="<url-or-empty>"` and `data-letter="<username>"`.
@@ -308,19 +367,19 @@
 
 		for (const row of rows) {
 			const authorId = row.dataset.authorId || '';
-			const actionsEl = row.querySelector<HTMLElement>(
-				'.forum-comment__actions',
+			const menuEl = row.querySelector<HTMLDetailsElement>(
+				'.forum-comment__menu',
 			);
-			if (!actionsEl) continue;
+			if (!menuEl) continue;
 
 			const isOwn = myId && authorId === myId;
-			const editOwnBtn = actionsEl.querySelector<HTMLButtonElement>(
+			const editOwnBtn = menuEl.querySelector<HTMLButtonElement>(
 				'[data-action="edit-own"]',
 			);
-			const modEditBtn = actionsEl.querySelector<HTMLButtonElement>(
+			const modEditBtn = menuEl.querySelector<HTMLButtonElement>(
 				'[data-action="mod-edit"]',
 			);
-			const modRemoveBtn = actionsEl.querySelector<HTMLButtonElement>(
+			const modRemoveBtn = menuEl.querySelector<HTMLButtonElement>(
 				'[data-action="mod-remove"]',
 			);
 
@@ -328,7 +387,121 @@
 			if (modEditBtn) modEditBtn.hidden = !isStaff;
 			if (modRemoveBtn) modRemoveBtn.hidden = !isStaff;
 
-			if (isOwn || isStaff) actionsEl.hidden = false;
+			if (isOwn || isStaff) menuEl.hidden = false;
+		}
+
+		// One <dialog> shared by all rows; mode + currentBody are passed
+		// per-open. Using HTMLDialogElement keeps focus trapping + ESC
+		// cancel free, no library required. Submission is gated on the
+		// dialog's `close` event, so the form's `method="dialog"` natively
+		// closes with returnValue="confirm" on submit.
+		type ModMode = 'edit-own' | 'mod-edit' | 'mod-remove';
+		type ModResult = { body?: string; reason?: string } | null;
+
+		const modDialog = document.getElementById(
+			'forum-mod-dialog',
+		) as HTMLDialogElement | null;
+		const modDialogTitle =
+			modDialog?.querySelector<HTMLElement>('.forum-mod-dialog__title') ??
+			null;
+		const modDialogWarn =
+			modDialog?.querySelector<HTMLElement>(
+				'.forum-mod-dialog__warning',
+			) ?? null;
+		const modBodyField =
+			modDialog?.querySelector<HTMLElement>('[data-field="body"]') ??
+			null;
+		const modReasonField =
+			modDialog?.querySelector<HTMLElement>('[data-field="reason"]') ??
+			null;
+		const modBodyInput =
+			modDialog?.querySelector<HTMLTextAreaElement>(
+				'textarea[name="body"]',
+			) ?? null;
+		const modReasonInput =
+			modDialog?.querySelector<HTMLTextAreaElement>(
+				'textarea[name="reason"]',
+			) ?? null;
+		const modPrimaryBtn =
+			modDialog?.querySelector<HTMLButtonElement>(
+				'.forum-mod-dialog__btn--primary',
+			) ?? null;
+		const modCancelBtns = modDialog
+			? modDialog.querySelectorAll<HTMLButtonElement>(
+					'[data-action="cancel"]',
+				)
+			: null;
+
+		let pendingResolve: ((r: ModResult) => void) | null = null;
+		let pendingMode: ModMode | null = null;
+
+		modCancelBtns?.forEach((btn) =>
+			btn.addEventListener('click', () => modDialog?.close('cancel')),
+		);
+
+		modDialog?.addEventListener('close', () => {
+			if (!pendingResolve) return;
+			const action = modDialog.returnValue;
+			const mode = pendingMode;
+			const showBody = mode !== 'mod-remove';
+			const showReason = mode !== 'edit-own';
+			const resolver = pendingResolve;
+			pendingResolve = null;
+			pendingMode = null;
+			if (action !== 'confirm') {
+				resolver(null);
+				return;
+			}
+			resolver({
+				body: showBody ? (modBodyInput?.value ?? '') : undefined,
+				reason: showReason ? (modReasonInput?.value ?? '') : undefined,
+			});
+		});
+
+		function openModDialog(
+			mode: ModMode,
+			currentBody: string,
+		): Promise<ModResult> {
+			if (!modDialog) return Promise.resolve(null);
+			const isRemove = mode === 'mod-remove';
+			const isModEdit = mode === 'mod-edit';
+			pendingMode = mode;
+			if (modDialogTitle) {
+				modDialogTitle.textContent = isRemove
+					? 'Remove comment'
+					: isModEdit
+						? 'Mod-edit comment'
+						: 'Edit your comment';
+			}
+			if (modDialogWarn) {
+				if (isRemove) {
+					modDialogWarn.textContent =
+						"This decrements the thread's comment count and cannot be undone.";
+					modDialogWarn.hidden = false;
+				} else {
+					modDialogWarn.hidden = true;
+					modDialogWarn.textContent = '';
+				}
+			}
+			if (modBodyField) modBodyField.hidden = isRemove;
+			if (modReasonField) modReasonField.hidden = mode === 'edit-own';
+			if (modBodyInput) {
+				modBodyInput.value = isRemove ? '' : currentBody;
+				modBodyInput.required = !isRemove;
+			}
+			if (modReasonInput) modReasonInput.value = '';
+			if (modPrimaryBtn) {
+				modPrimaryBtn.textContent = isRemove ? 'Remove' : 'Save';
+				modPrimaryBtn.classList.toggle(
+					'forum-mod-dialog__btn--danger',
+					isRemove,
+				);
+			}
+			modDialog.showModal();
+			(isRemove ? modReasonInput : modBodyInput)?.focus();
+			return new Promise((resolve) => {
+				pendingResolve = resolve;
+			});
 		}
 
 		document.addEventListener('click', async (ev) => {
@@ -344,15 +517,27 @@
 			);
 			if (!row) return;
 			const commentId = row.dataset.commentId || '';
-			const action = btn.dataset.action;
+			const action = btn.dataset.action as ModMode | undefined;
 			if (!commentId || !action) return;
 
 			ev.preventDefault();
+
+			// Close the kebab menu so the dialog has visual focus.
+			const menuEl = row.querySelector<HTMLDetailsElement>(
+				'.forum-comment__menu',
+			);
+			if (menuEl) menuEl.open = false;
+
 			const supa2 = getSupa();
 			const sr = await supa2.getSession().catch(() => null);
 			const sess = sr?.session ?? null;
 			if (!sess?.access_token) {
-				alert('Sign in first.');
+				addToast({
+					id: `forum-mod-auth-${Date.now()}`,
+					message: 'Sign in first to moderate or edit.',
+					severity: 'warning',
+					duration: 4000,
+				});
 				return;
 			}
 
@@ -361,36 +546,27 @@
 			);
 			const currentBody = rawTpl?.innerHTML?.trim() ?? '';
 
+			const result = await openModDialog(action, currentBody);
+			if (!result) return;
+
 			let url = '';
 			let method = 'PATCH';
 			let body: Record<string, string> | null = null;
-			let confirmMsg = '';
 
 			if (action === 'edit-own') {
-				const next = window.prompt(
-					'Edit your comment (markdown):',
-					currentBody,
-				);
-				if (next === null || next.trim() === currentBody) return;
+				const next = (result.body ?? '').trim();
+				if (!next || next === currentBody) return;
 				url = `/api/v1/forum/c/${commentId}`;
 				body = { body: next };
 			} else if (action === 'mod-edit') {
-				const next = window.prompt(
-					'Mod-edit comment (markdown):',
-					currentBody,
-				);
-				if (next === null || next.trim() === currentBody) return;
-				const reason = window.prompt('Reason (optional):') || '';
+				const next = (result.body ?? '').trim();
+				if (!next || next === currentBody) return;
 				url = `/api/v1/forum/c/${commentId}/moderate`;
-				body = { body: next, reason };
+				body = { body: next, reason: result.reason ?? '' };
 			} else if (action === 'mod-remove') {
-				confirmMsg =
-					"Remove this comment? This decrements the thread's comment count.";
-				if (!window.confirm(confirmMsg)) return;
-				const reason = window.prompt('Reason (optional):') || '';
 				url = `/api/v1/forum/c/${commentId}`;
 				method = 'DELETE';
-				body = { body: '', reason };
+				body = { body: '', reason: result.reason ?? '' };
 			} else {
 				return;
 			}
@@ -407,13 +583,33 @@
 				});
 				if (!res.ok) {
 					const text = await res.text().catch(() => '');
-					alert(`${res.status}: ${text || res.statusText}`);
+					addToast({
+						id: `forum-mod-err-${Date.now()}`,
+						message: `${res.status}: ${text || res.statusText}`,
+						severity: 'error',
+						duration: 6000,
+					});
 					btn.disabled = false;
 					return;
 				}
+				addToast({
+					id: `forum-mod-ok-${Date.now()}`,
+					message:
+						action === 'mod-remove'
+							? 'Comment removed.'
+							: 'Comment updated.',
+					severity: 'success',
+					duration: 3000,
+				});
 				window.location.reload();
 			} catch (err) {
-				alert(err instanceof Error ? err.message : 'Network error');
+				addToast({
+					id: `forum-mod-net-${Date.now()}`,
+					message:
+						err instanceof Error ? err.message : 'Network error',
+					severity: 'error',
+					duration: 6000,
+				});
 				btn.disabled = false;
 			}
 		});
@@ -796,36 +992,219 @@
 	.thread-comments__tree :global(.forum-comment__header a:hover) {
 		color: var(--forum-accent);
 	}
-	.thread-comments__tree :global(.forum-comment__actions) {
-		display: inline-flex;
-		gap: 0.3rem;
+	.thread-comments__tree :global(.forum-comment__menu) {
+		position: relative;
 		margin-left: auto;
+	}
+	.thread-comments__tree :global(.forum-comment__menu[hidden]) {
+		display: none;
+	}
+	.thread-comments__tree :global(.forum-comment__menu-toggle) {
+		list-style: none;
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.5rem;
+		height: 1.5rem;
+		border-radius: 6px;
+		color: var(--forum-muted);
+		font-size: 1rem;
+		line-height: 1;
+		user-select: none;
+		transition:
+			background 0.12s ease,
+			color 0.12s ease;
+	}
+	.thread-comments__tree
+		:global(.forum-comment__menu-toggle::-webkit-details-marker) {
+		display: none;
+	}
+	.thread-comments__tree :global(.forum-comment__menu-toggle:hover),
+	.thread-comments__tree
+		:global(.forum-comment__menu[open] .forum-comment__menu-toggle) {
+		background: var(--forum-bg-soft);
+		color: var(--forum-text);
+	}
+	.thread-comments__tree :global(.forum-comment__menu-items) {
+		position: absolute;
+		top: calc(100% + 0.25rem);
+		right: 0;
+		display: flex;
+		flex-direction: column;
+		min-width: 9rem;
+		padding: 0.25rem;
+		gap: 0.1rem;
+		background: var(--forum-bg-card);
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius-sm);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+		z-index: 4;
 	}
 	.thread-comments__tree :global(.forum-comment__action) {
 		appearance: none;
-		border: 1px solid var(--forum-border);
+		border: 0;
 		background: transparent;
 		color: var(--forum-muted);
-		padding: 0.15rem 0.55rem;
-		border-radius: 6px;
-		font-size: 0.75rem;
+		padding: 0.4rem 0.6rem;
+		border-radius: 4px;
+		font-size: 0.8125rem;
 		font-weight: 500;
+		text-align: left;
 		cursor: pointer;
 		transition:
 			color 0.12s ease,
-			border-color 0.12s ease;
+			background 0.12s ease;
+	}
+	.thread-comments__tree :global(.forum-comment__action[hidden]) {
+		display: none;
 	}
 	.thread-comments__tree :global(.forum-comment__action:hover) {
 		color: var(--forum-text);
-		border-color: var(--forum-accent);
+		background: var(--forum-bg-soft);
+	}
+	.thread-comments__tree :global(.forum-comment__action--danger) {
+		color: #f87171;
 	}
 	.thread-comments__tree :global(.forum-comment__action--danger:hover) {
-		color: #f87171;
-		border-color: #f87171;
+		color: #fff;
+		background: #b91c1c;
 	}
 	.thread-comments__tree :global(.forum-comment__action:disabled) {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+
+	.forum-mod-dialog {
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius);
+		background: var(--forum-bg-card);
+		color: var(--forum-text);
+		padding: 0;
+		width: min(36rem, calc(100vw - 2rem));
+		box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+	}
+	.forum-mod-dialog::backdrop {
+		background: rgba(0, 0, 0, 0.6);
+		backdrop-filter: blur(2px);
+	}
+	.forum-mod-dialog__form {
+		display: flex;
+		flex-direction: column;
+		gap: 0.85rem;
+		padding: 1.1rem 1.25rem 1.25rem;
+		margin: 0;
+	}
+	.forum-mod-dialog__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+	}
+	.forum-mod-dialog__title {
+		margin: 0;
+		font-size: 1.05rem;
+		font-weight: 600;
+	}
+	.forum-mod-dialog__close {
+		appearance: none;
+		border: 0;
+		background: transparent;
+		color: var(--forum-muted);
+		font-size: 1.25rem;
+		line-height: 1;
+		cursor: pointer;
+		padding: 0.15rem 0.5rem;
+		border-radius: 6px;
+	}
+	.forum-mod-dialog__close:hover {
+		color: var(--forum-text);
+		background: var(--forum-bg-soft);
+	}
+	.forum-mod-dialog__warning {
+		margin: 0;
+		padding: 0.55rem 0.75rem;
+		background: rgba(248, 113, 113, 0.1);
+		border: 1px solid rgba(248, 113, 113, 0.4);
+		border-radius: var(--forum-radius-sm);
+		color: #fca5a5;
+		font-size: 0.85rem;
+	}
+	.forum-mod-dialog__warning[hidden] {
+		display: none;
+	}
+	.forum-mod-dialog__field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+	}
+	.forum-mod-dialog__field[hidden] {
+		display: none;
+	}
+	.forum-mod-dialog__label {
+		font-size: 0.8rem;
+		font-weight: 500;
+		color: var(--forum-muted);
+	}
+	.forum-mod-dialog__hint {
+		color: var(--forum-muted);
+		font-weight: 400;
+	}
+	.forum-mod-dialog__textarea {
+		width: 100%;
+		resize: vertical;
+		padding: 0.55rem 0.7rem;
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius-sm);
+		background: var(--forum-bg);
+		color: var(--forum-text);
+		font: inherit;
+		font-size: 0.9rem;
+		line-height: 1.45;
+	}
+	.forum-mod-dialog__textarea:focus-visible {
+		outline: 2px solid var(--forum-accent);
+		outline-offset: 0;
+		border-color: var(--forum-accent);
+	}
+	.forum-mod-dialog__footer {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.5rem;
+	}
+	.forum-mod-dialog__btn {
+		appearance: none;
+		border: 1px solid var(--forum-border);
+		background: transparent;
+		color: var(--forum-text);
+		padding: 0.4rem 0.95rem;
+		border-radius: 6px;
+		font-size: 0.85rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition:
+			background 0.12s ease,
+			border-color 0.12s ease,
+			color 0.12s ease;
+	}
+	.forum-mod-dialog__btn:hover {
+		border-color: var(--forum-accent);
+	}
+	.forum-mod-dialog__btn--primary {
+		background: var(--forum-accent);
+		color: #fff;
+		border-color: var(--forum-accent);
+	}
+	.forum-mod-dialog__btn--primary:hover {
+		filter: brightness(1.05);
+	}
+	.forum-mod-dialog__btn--danger {
+		background: #b91c1c;
+		border-color: #b91c1c;
+		color: #fff;
+	}
+	.forum-mod-dialog__btn--danger:hover {
+		filter: brightness(1.05);
 	}
 	.thread-comments__tree :global(.forum-comment__body) {
 		font-size: 0.9375rem;
