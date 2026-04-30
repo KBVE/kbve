@@ -60,6 +60,7 @@ namespace RareIcon
             builder.RegisterMessageBroker<QuestFailedMessage>(options);
 
             builder.RegisterMessageBroker<WorldEventTriggeredMessage>(options);
+            builder.RegisterMessageBroker<LandmarkDemolishedEvent>(options);
 
             // -- Steam platform events (standalone-only; stripped on iOS/Android via asmdef) --
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS

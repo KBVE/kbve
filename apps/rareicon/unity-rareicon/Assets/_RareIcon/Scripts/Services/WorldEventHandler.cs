@@ -57,6 +57,7 @@ namespace RareIcon
 
         readonly LocaleService _locale;
         readonly ISubscriber<WorldEventTriggeredMessage> _eventSub;
+        readonly ISubscriber<LandmarkDemolishedEvent>    _landmarkSub;
         readonly ISubscriber<DialogueEndedMessage>       _dialogueEndSub;
         readonly IPublisher<DialogueStartMessage>        _dialoguePub;
         readonly IPublisher<ToastMessage>                _toastPub;
@@ -67,12 +68,14 @@ namespace RareIcon
         public WorldEventHandler(
             LocaleService locale,
             ISubscriber<WorldEventTriggeredMessage> eventSub,
+            ISubscriber<LandmarkDemolishedEvent>    landmarkSub,
             ISubscriber<DialogueEndedMessage>       dialogueEndSub,
             IPublisher<DialogueStartMessage>        dialoguePub,
             IPublisher<ToastMessage>                toastPub)
         {
             _locale         = locale;
             _eventSub       = eventSub;
+            _landmarkSub    = landmarkSub;
             _dialogueEndSub = dialogueEndSub;
             _dialoguePub    = dialoguePub;
             _toastPub       = toastPub;
@@ -82,9 +85,152 @@ namespace RareIcon
         {
             var b = DisposableBag.CreateBuilder();
             _eventSub.Subscribe(OnEvent).AddTo(b);
+            _landmarkSub.Subscribe(OnLandmarkDemolished).AddTo(b);
             _dialogueEndSub.Subscribe(OnDialogueEnded).AddTo(b);
             _bag = b.Build();
             return UniTask.CompletedTask;
+        }
+
+        void OnLandmarkDemolished(LandmarkDemolishedEvent msg)
+        {
+            string slug = msg.Slug.ToString();
+            if (string.IsNullOrEmpty(slug)) return;
+            var category = ClassifyLandmarkSlug(slug);
+            switch (category)
+            {
+                case LandmarkCategory.Shrine: ApplyShrineDemolish(msg.Hex); break;
+                case LandmarkCategory.Tree:   ApplyTreeDemolish();         break;
+                case LandmarkCategory.Vein:   ApplyVeinDemolish();         break;
+                case LandmarkCategory.Market: ApplyMarketDemolish();       break;
+                case LandmarkCategory.Curse:  ApplyCurseDemolish();        break;
+            }
+        }
+
+        enum LandmarkCategory : byte { None, Shrine, Tree, Vein, Market, Curse }
+
+        static LandmarkCategory ClassifyLandmarkSlug(string slug)
+        {
+            switch (slug)
+            {
+                case "quiet-spring":
+                case "the-still-pool":
+                case "ember-hearth":
+                case "luminous-alcove":
+                    return LandmarkCategory.Shrine;
+                case "oak-tree":
+                case "redwood-tree":
+                    return LandmarkCategory.Tree;
+                case "iron-vein":
+                case "silver-vein":
+                case "gold-vein":
+                case "copper-vein":
+                case "coal-vein":
+                case "salt-vein":
+                case "cobalt-vein":
+                case "mithril-vein":
+                case "adamantine-vein":
+                    return LandmarkCategory.Vein;
+                case "sunken-market":
+                case "dusty-bazaar":
+                case "mushroom-bazaar":
+                case "dwarven-outpost":
+                    return LandmarkCategory.Market;
+                case "shattered-crown":
+                case "prismatic-throne":
+                case "mirror-chamber":
+                case "ruby-crystal":
+                case "sapphire-crystal":
+                case "jade-crystal":
+                    return LandmarkCategory.Curse;
+                default:
+                    return LandmarkCategory.None;
+            }
+        }
+
+        void ApplyShrineDemolish(int2 hex)
+        {
+            const int ShrineZombieMin = 4;
+            const int ShrineZombieMax = 6;
+            const int ZombieRadius    = 2;
+            int count = ShrineZombieMin + _rng.Next(0, ShrineZombieMax - ShrineZombieMin + 1);
+            for (int i = 0; i < count; i++)
+            {
+                int dq = NextOffset(ZombieRadius);
+                int dr = NextOffset(ZombieRadius);
+                TrySpawnZombie(new int2(hex.x + dq, hex.y + dr));
+            }
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.landmark.shrine_demolished"), ToastKind.Warning));
+        }
+
+        void ApplyTreeDemolish()
+        {
+            const ushort TreeRefundTimber = 8;
+            if (!TryGetCapitalEntity(out var capital, out _)) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.HasBuffer<CapitalLedger>(capital)) return;
+            var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
+            BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Timber, TreeRefundTimber, UlidFactory.NewUid());
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.landmark.tree_demolished"), ToastKind.Success));
+        }
+
+        void ApplyVeinDemolish()
+        {
+            const ushort VeinRefundOre = 5;
+            if (!TryGetCapitalEntity(out var capital, out _)) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.HasBuffer<CapitalLedger>(capital)) return;
+            var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
+            BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.StoneBlock, VeinRefundOre, UlidFactory.NewUid());
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.landmark.vein_demolished"), ToastKind.Success));
+        }
+
+        void ApplyMarketDemolish()
+        {
+            const ushort MarketRefundCoin = 25;
+            if (!TryGetCapitalEntity(out var capital, out _)) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.HasBuffer<CapitalLedger>(capital)) return;
+            var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
+            BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Coin, MarketRefundCoin, UlidFactory.NewUid());
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.landmark.market_demolished"), ToastKind.Success));
+        }
+
+        void ApplyCurseDemolish()
+        {
+            const int   CurseTargetCount = 3;
+            const float CurseDamageFrac  = 0.25f;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            var query = em.CreateEntityQuery(
+                ComponentType.ReadOnly<Unit>(),
+                ComponentType.ReadOnly<Faction>(),
+                ComponentType.ReadWrite<Health>());
+            using var arr = query.ToEntityArray(Allocator.Temp);
+            int hits = 0;
+            for (int i = 0; i < arr.Length && hits < CurseTargetCount; i++)
+            {
+                int idx = _rng.Next(0, arr.Length);
+                var ent = arr[idx];
+                if (em.GetComponentData<Faction>(ent).Value != FactionType.Player) continue;
+                var h = em.GetComponentData<Health>(ent);
+                float dmg = math.max(1f, h.Max * CurseDamageFrac);
+                h.Value = math.max(1f, h.Value - dmg);
+                em.SetComponentData(ent, h);
+                hits++;
+            }
+            _toastPub.Publish(new ToastMessage(
+                _locale.Get("toast.landmark.curse_demolished"), ToastKind.Warning));
         }
 
         public void Dispose() => _bag?.Dispose();

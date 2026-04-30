@@ -29,4 +29,16 @@ namespace RareIcon
         public readonly byte Kind;
         public WorldEventTriggeredMessage(byte kind) => Kind = kind;
     }
+
+    /// <summary>Gameplay-triggered "a landmark was just torn down" event. Carries the mapdb ref slug + the hex it sat on so <see cref="WorldEventHandler"/> can route per-flavor consequences (shrine wakes zombies, tree drops timber, etc.) through the same channel as the scheduler-fired random events. Detector publishes from <see cref="LandmarkDemolishDetectorSystem"/>; handler subscribes alongside <see cref="WorldEventTriggeredMessage"/>.</summary>
+    public readonly struct LandmarkDemolishedEvent
+    {
+        public readonly Unity.Collections.FixedString64Bytes Slug;
+        public readonly Unity.Mathematics.int2               Hex;
+        public LandmarkDemolishedEvent(Unity.Collections.FixedString64Bytes slug, Unity.Mathematics.int2 hex)
+        {
+            Slug = slug;
+            Hex  = hex;
+        }
+    }
 }
