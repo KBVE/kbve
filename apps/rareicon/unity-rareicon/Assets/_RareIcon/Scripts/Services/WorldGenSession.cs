@@ -9,6 +9,7 @@ namespace RareIcon
 {
     public enum TitleStage : byte
     {
+        Info,
         Locale,
         Seed,
         Generating,
@@ -26,7 +27,7 @@ namespace RareIcon
         readonly RiverRouter _rivers;
         readonly LocaleService _locale;
 
-        readonly ReactiveProperty<TitleStage> _stage = new(TitleStage.Locale);
+        readonly ReactiveProperty<TitleStage> _stage = new(TitleStage.Info);
         readonly ReactiveProperty<int> _seed = new(unchecked((int)DateTime.UtcNow.Ticks));
         readonly ReactiveProperty<int> _chunksReady = new(0);
 
@@ -54,6 +55,12 @@ namespace RareIcon
             _locale = locale;
         }
 
+        /// <summary>Move from the AoE-style menu (Info stage) into the single-player launch flow (Locale → Seed → Generating). No-op if a sub-stage is already active — generation in flight cannot be re-entered.</summary>
+        public void BeginSinglePlayer()
+        {
+            if (_stage.Value == TitleStage.Info) _stage.Value = TitleStage.Locale;
+        }
+
         public void SelectLocale(string locale)
         {
             _locale.SetLocale(locale);
@@ -64,6 +71,12 @@ namespace RareIcon
         public void BackToLocale()
         {
             if (_stage.Value == TitleStage.Seed) _stage.Value = TitleStage.Locale;
+        }
+
+        /// <summary>Return to the AoE-style menu (Info stage) from any pre-generation sub-stage. No-op once generation is in flight.</summary>
+        public void BackToMenu()
+        {
+            if (_stage.Value == TitleStage.Locale || _stage.Value == TitleStage.Seed) _stage.Value = TitleStage.Info;
         }
 
         public void SetSeed(int seed) => _seed.Value = seed;

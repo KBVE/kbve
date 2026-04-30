@@ -5,6 +5,19 @@
    so it adapts to phones, tablets, and ultrawide without a fixed pixel
    layout. Padding/font scale also tighten for narrow viewports. */
 
+/* Display font — Iceberg ships as a legacy Font asset (TTF) so the
+   `-unity-font` property points at the .ttf directly. URL is resolved
+   relative to this USS file, so the font lives at
+   Resources/UI/fonts/Iceberg-Regular.ttf. */
+.title-window {
+    -unity-font: url('fonts/Iceberg-Regular.ttf');
+}
+.title-window .unity-text-element,
+.title-window Label,
+.title-window Button {
+    -unity-font: url('fonts/Iceberg-Regular.ttf');
+}
+
 .title-wrapper {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -27,16 +40,21 @@
 }
 
 .title-window {
-    /* Responsive sizing — scales with viewport, never exceeds 640px and
-       never drops below 320px so layout stays usable. */
-    width: 90%;
-    max-width: 640px;
+    /* Responsive sizing — three breakpoints handled via class toggle on
+       the C# side (.title-window--narrow / .title-window--wide):
+         narrow  (<640px,  phones)            single column, full-width
+         default (640-1280, laptops)          two-column AoE layout
+         wide    (>1280px, 1080p+ / 4K)       same two-column, scaled-up
+                                              padding + font sizes
+       Window scales 92% of viewport up to a generous 1080px cap so
+       4K screens don't get a tiny menu, but never drops below 320px so
+       iPhone portrait stays usable. */
+    width: 92%;
+    max-width: 1080px;
     min-width: 320px;
     max-height: 92%;
 
-    /* Extra bottom padding leaves room for the absolutely-positioned
-       socials row docked along the bottom-right edge. */
-    padding: 36px 36px 60px 36px;
+    padding: 32px 36px 96px 36px;
     background-color: var(--color-bg-panel);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -85,13 +103,10 @@
 }
 .title-close:active { scale: 0.94 0.94; }
 
-/* Bottom-right social row. Anchored absolute so it doesn't push the
-   stage content; sits inside the extra bottom padding. */
+/* Social row — sits in the right side of the .title-footer flex strip. */
 .title-socials {
-    position: absolute;
-    bottom: 14px;
-    right: 18px;
     flex-direction: row;
+    flex-shrink: 0;
 }
 .title-social-btn {
     width: 32px;
@@ -210,27 +225,145 @@
     white-space: normal;
 }
 
-/* Persona card — sits below the locale row as a "current user" footer.
-   margin-top is owned by .title-locale-row's bottom margin so the gap
-   never depends on margin collapse semantics. Padding is generous so
-   the avatar doesn't sit flush against the gold border. */
-.title-persona {
+/* ---- AoE-style two-column body ----
+   Left rail = .title-menu (vertical list of menu items)
+   Right pane = .title-content (carousel of stages — info / locale / seed / generating)
+   On narrow viewports both stack vertically; see breakpoint block below. */
+
+.title-body {
     flex-direction: row;
-    align-items: center;
-    padding: 16px;
-    margin-top: 0;
-    margin-bottom: 4px;
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-top: 4px;
+}
+
+/* Menu rail */
+.title-menu {
+    flex-direction: column;
+    width: 32%;
+    min-width: 200px;
+    max-width: 280px;
+    margin-right: 24px;
+    padding-right: 4px;
+    border-right-color: var(--color-accent);
+    border-right-width: 1px;
+}
+.title-menu-btn {
+    width: 100%;
+    margin: 4px 0;
+    padding: 14px 16px;
+    background-color: rgba(0, 0, 0, 0);
+    border-color: rgba(0, 0, 0, 0);
+    border-left-color: rgba(0, 0, 0, 0);
+    border-left-width: 3px;
+    border-width: 0;
+    color: var(--color-text-strong);
+    font-size: 15px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+    letter-spacing: 1px;
+    transition-property: background-color, color, translate, border-left-color;
+    transition-duration: 0.14s;
+}
+.title-menu-btn:hover {
+    background-color: rgba(252, 211, 77, 0.10);
+    border-left-color: var(--color-accent);
+    translate: 4px 0;
+}
+.title-menu-btn:active {
+    background-color: rgba(252, 211, 77, 0.20);
+    translate: 2px 0;
+}
+.title-menu-btn--disabled {
+    color: var(--color-text-muted);
+    opacity: 0.55;
+}
+.title-menu-btn--disabled:hover {
+    background-color: rgba(0, 0, 0, 0);
+    border-left-color: rgba(0, 0, 0, 0);
+    translate: 0 0;
+}
+.title-menu-btn--exit {
+    color: var(--color-accent-deep);
+    margin-top: 16px;
+    border-top-color: rgba(252, 211, 77, 0.25);
+    border-top-width: 1px;
+    padding-top: 18px;
+}
+
+/* Right pane — single visible stage at a time. */
+.title-content {
+    flex-direction: column;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+/* Info / news card grid (default Info stage). */
+.title-info-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: 8px -6px 0 -6px;
+}
+.title-info-card {
+    flex-direction: column;
+    flex-grow: 1;
+    flex-basis: 30%;
+    min-width: 140px;
+    margin: 6px;
+    padding: 14px 16px;
     background-color: rgba(0, 0, 0, 0.4);
     border-color: var(--color-accent);
     border-width: 1px;
-    flex-wrap: wrap;
-    flex-shrink: 0;
+}
+.title-info-card__label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--color-accent-deep);
+    -unity-font-style: bold;
+    margin-bottom: 4px;
+}
+.title-info-card__value {
+    font-size: 16px;
+    color: var(--color-text-strong);
+    -unity-font-style: bold;
+    margin-bottom: 2px;
+    white-space: normal;
+}
+.title-info-card__sub {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    white-space: normal;
+}
+
+/* Footer strip — persona left, socials right. Anchored at the bottom of
+   the window via .title-window's extra bottom padding (96px). */
+.title-footer {
+    position: absolute;
+    bottom: 18px;
+    left: 36px;
+    right: 36px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+.title-persona {
+    flex-direction: row;
+    align-items: center;
+    padding: 8px 14px;
+    background-color: rgba(0, 0, 0, 0.45);
+    border-color: var(--color-accent);
+    border-width: 1px;
+    flex-shrink: 1;
+    flex-grow: 0;
+    min-width: 200px;
+    max-width: 60%;
     opacity: 0.92;
 }
 .title-avatar {
-    width: 56px;
-    height: 56px;
-    margin-right: 14px;
+    width: 40px;
+    height: 40px;
+    margin-right: 12px;
     background-color: rgba(255, 255, 255, 0.05);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -405,14 +538,14 @@
 
 .title-start { margin-top: 10px; }
 
-/* ---- Narrow viewport adjustments ----
-   Toggled by UITitleScreen when window width crosses below 420px so the
-   brand row stays inside the panel and inner padding doesn't crowd the
-   buttons. UI Toolkit doesn't have media queries; the C# side adds /
-   removes `.title-window--narrow` on geometry-changed events. */
+/* ---- Breakpoints ----
+   UI Toolkit lacks media queries; UITitleScreen toggles `.title-window--narrow`
+   (<640px viewport) and `.title-window--wide` (>1280px) on geometry-changed
+   events so the same USS handles phone / laptop / 4K. */
 
+/* Narrow (phones / portrait tablets) — single column, larger touch targets. */
 .title-window--narrow {
-    padding: 22px 20px;
+    padding: 20px 16px 84px 16px;
 }
 .title-window--narrow .title-header {
     margin-bottom: 22px;
@@ -426,9 +559,29 @@
     letter-spacing: 2px;
     font-size: 10px;
 }
-.title-window--narrow .title-stage__title {
-    font-size: 14px;
+.title-window--narrow .title-body {
+    flex-direction: column;
 }
+.title-window--narrow .title-menu {
+    width: 100%;
+    max-width: none;
+    margin-right: 0;
+    margin-bottom: 16px;
+    padding-right: 0;
+    padding-bottom: 12px;
+    border-right-width: 0;
+    border-bottom-color: var(--color-accent);
+    border-bottom-width: 1px;
+}
+.title-window--narrow .title-menu-btn {
+    padding: 16px 14px;
+    font-size: 16px;
+    min-height: 48px;
+}
+.title-window--narrow .title-menu-btn:hover {
+    translate: 0 0;
+}
+.title-window--narrow .title-stage__title { font-size: 14px; }
 .title-window--narrow .title-locale-row,
 .title-window--narrow .title-action-row {
     flex-direction: column;
@@ -437,9 +590,94 @@
 .title-window--narrow .title-action-btn {
     flex-basis: 100%;
     margin: 4px 0;
+    min-height: 48px;
 }
 .title-window--narrow .title-locale-btn:first-child,
 .title-window--narrow .title-locale-btn:last-child {
     margin-left: 0;
     margin-right: 0;
+}
+.title-window--narrow .title-info-card {
+    flex-basis: 100%;
+}
+.title-window--narrow .title-footer {
+    left: 16px;
+    right: 16px;
+    bottom: 14px;
+    flex-direction: column;
+    align-items: stretch;
+}
+.title-window--narrow .title-persona {
+    max-width: none;
+    margin-bottom: 8px;
+}
+.title-window--narrow .title-socials {
+    justify-content: flex-end;
+}
+.title-window--narrow .title-seed-row {
+    flex-direction: column;
+}
+.title-window--narrow .title-seed-input {
+    margin-right: 0;
+    margin-bottom: 8px;
+}
+.title-window--narrow .title-seed-btn {
+    width: auto;
+    min-height: 48px;
+}
+
+/* Wide (1080p+ / 4K) — bigger panel padding, larger type for readable
+   distance from a couch / desk monitor. Two-column layout stays. */
+.title-window--wide {
+    padding: 48px 56px 120px 56px;
+}
+.title-window--wide .title-brand {
+    font-size: 56px;
+    letter-spacing: 12px;
+}
+.title-window--wide .title-tagline {
+    font-size: 14px;
+    letter-spacing: 6px;
+}
+.title-window--wide .title-tagline-rule {
+    width: 96px;
+    margin-top: 16px;
+}
+.title-window--wide .title-header {
+    margin-bottom: 44px;
+}
+.title-window--wide .title-menu {
+    min-width: 240px;
+    max-width: 320px;
+    margin-right: 32px;
+}
+.title-window--wide .title-menu-btn {
+    padding: 18px 20px;
+    font-size: 18px;
+    letter-spacing: 1.5px;
+}
+.title-window--wide .title-stage__title {
+    font-size: 22px;
+}
+.title-window--wide .title-stage__hint {
+    font-size: 13px;
+}
+.title-window--wide .title-info-card__value {
+    font-size: 20px;
+}
+.title-window--wide .title-info-card__sub {
+    font-size: 12px;
+}
+.title-window--wide .title-footer {
+    left: 56px;
+    right: 56px;
+    bottom: 24px;
+}
+.title-window--wide .title-avatar {
+    width: 48px;
+    height: 48px;
+}
+.title-window--wide .title-social-btn {
+    width: 40px;
+    height: 40px;
 }

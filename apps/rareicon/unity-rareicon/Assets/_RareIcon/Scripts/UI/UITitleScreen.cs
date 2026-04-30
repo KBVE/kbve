@@ -25,6 +25,7 @@ namespace RareIcon
 
         VisualElement _root;
         VisualElement _wrapper;
+        VisualElement _stageInfo;
         VisualElement _stageLocale;
         VisualElement _stageSeed;
         VisualElement _stageGenerating;
@@ -82,13 +83,18 @@ namespace RareIcon
 
                 window.RegisterCallback<GeometryChangedEvent>(evt =>
                 {
-                    bool narrow = evt.newRect.width > 0f && evt.newRect.width < 420f;
+                    float w = evt.newRect.width;
+                    bool narrow = w > 0f && w < 640f;
+                    bool wide   = w >= 1280f;
                     if (narrow) window.AddToClassList("title-window--narrow");
                     else        window.RemoveFromClassList("title-window--narrow");
+                    if (wide)   window.AddToClassList("title-window--wide");
+                    else        window.RemoveFromClassList("title-window--wide");
                 });
             }
 
             _wrapper         = _root.Q<VisualElement>("title-wrapper");
+            _stageInfo       = _root.Q<VisualElement>("title-stage-info");
             _stageLocale     = _root.Q<VisualElement>("title-stage-locale");
             _stageSeed       = _root.Q<VisualElement>("title-stage-seed");
             _stageGenerating = _root.Q<VisualElement>("title-stage-generating");
@@ -100,6 +106,7 @@ namespace RareIcon
             _progressLabel   = _root.Q<Label>("title-progress");
             _startBtn        = _root.Q<Button>("title-start");
 
+            BindMenu();
             BindLocaleStage();
             BindSeedStage();
             BindGeneratingStage();
@@ -119,10 +126,35 @@ namespace RareIcon
             _disposables.Add(bag.Build());
         }
 
+        /// <summary>Wire the AoE-style left menu rail. Single Player drops into the existing locale → seed → generating flow; Codex / Credits open external KBVE pages; Exit triggers Application.Quit. Multiplayer / Mods / Settings stay disabled visually until backend support lands.</summary>
+        void BindMenu()
+        {
+            var sp = _root.Q<Button>("title-menu-singleplayer");
+            if (sp != null) sp.clicked += _session.BeginSinglePlayer;
+
+            var codex = _root.Q<Button>("title-menu-codex");
+            if (codex != null) codex.clicked += () => Application.OpenURL("https://kbve.com/itemdb/");
+
+            var credits = _root.Q<Button>("title-menu-credits");
+            if (credits != null) credits.clicked += () => Application.OpenURL("https://kbve.com/about/");
+
+            var exit = _root.Q<Button>("title-menu-exit");
+            if (exit != null) exit.clicked += () =>
+            {
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+#else
+                Application.Quit();
+#endif
+            };
+        }
+
         void BindLocaleStage()
         {
             _root.Q<Button>("title-locale-en").clicked += () => _session.SelectLocale("en");
             _root.Q<Button>("title-locale-ja").clicked += () => _session.SelectLocale("ja");
+            var localeBack = _root.Q<Button>("title-locale-back");
+            if (localeBack != null) localeBack.clicked += _session.BackToMenu;
         }
 
         /// <summary>Wire the top-right × button to Application.Quit. In the editor we stop play mode so devs aren't dropped onto the desktop.</summary>
@@ -202,6 +234,7 @@ namespace RareIcon
 
         void OnStageChanged(TitleStage stage)
         {
+            SetStage(_stageInfo,       stage == TitleStage.Info);
             SetStage(_stageLocale,     stage == TitleStage.Locale);
             SetStage(_stageSeed,       stage == TitleStage.Seed);
             SetStage(_stageGenerating, stage == TitleStage.Generating || stage == TitleStage.Ready);
