@@ -13,7 +13,10 @@ categories = ["game-development", "api-bindings"]
 readme = "README.md"
 
 [lib]
-crate-type = ["cdylib"]
+# cdylib for desktop hosts (Unity loads via DllImport: .dll/.so/.dylib).
+# staticlib for Unity iOS — Apple requires static linkage so the FFI gets
+# baked into the Il2CPP-generated Xcode project. Same source, two artefacts.
+crate-type = ["cdylib", "staticlib"]
 
 [build-dependencies]
 csbindgen = "1.9"

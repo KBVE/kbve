@@ -50,6 +50,33 @@
 				"cwd": "packages/rust/bevy/uniti"
 			}
 		},
+		"build:ios": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"rustup target add aarch64-apple-ios aarch64-apple-ios-sim",
+					"cargo build -p uniti --release --target aarch64-apple-ios",
+					"cargo build -p uniti --release --target aarch64-apple-ios-sim",
+					"rm -rf ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/iOS/uniti.xcframework",
+					"mkdir -p ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/iOS",
+					"xcodebuild -create-xcframework -library ../../../../dist/target/aarch64-apple-ios/release/libuniti.a -library ../../../../dist/target/aarch64-apple-ios-sim/release/libuniti.a -output ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/iOS/uniti.xcframework"
+				],
+				"cwd": "packages/rust/bevy/uniti"
+			}
+		},
+		"build:android": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android",
+					"cargo ndk --version > /dev/null 2>&1 || cargo install cargo-ndk --locked",
+					"cargo ndk -t arm64-v8a -t armeabi-v7a -t x86 -t x86_64 -o ../../../../apps/rareicon/unity-rareicon/Assets/Plugins/Android/libs build -p uniti --release"
+				],
+				"cwd": "packages/rust/bevy/uniti"
+			}
+		},
 		"build:all": {
 			"executor": "nx:run-commands",
 			"options": {
@@ -57,7 +84,30 @@
 				"commands": [
 					"npx nx run uniti:build:macos",
 					"npx nx run uniti:build:windows",
+					"npx nx run uniti:build:linux",
+					"npx nx run uniti:build:ios",
+					"npx nx run uniti:build:android"
+				]
+			}
+		},
+		"build:desktop": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"npx nx run uniti:build:macos",
+					"npx nx run uniti:build:windows",
 					"npx nx run uniti:build:linux"
+				]
+			}
+		},
+		"build:mobile": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"npx nx run uniti:build:ios",
+					"npx nx run uniti:build:android"
 				]
 			}
 		},
