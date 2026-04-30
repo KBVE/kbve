@@ -646,7 +646,11 @@ impl ForumService {
     }
 
     /// Resolve hashtag slugs to canonical tag IDs, creating new rows on demand.
-    pub async fn resolve_or_create_tag_slugs(&self, slugs: &[String]) -> Result<Vec<i32>, String> {
+    pub async fn resolve_or_create_tag_slugs(
+        &self,
+        slugs: &[String],
+        created_by: &str,
+    ) -> Result<Vec<i32>, String> {
         if slugs.is_empty() {
             return Ok(Vec::new());
         }
@@ -655,7 +659,10 @@ impl ForumService {
             .config()
             .rpc_url("service_resolve_or_create_tag_slugs");
         let headers = self.client.rpc_headers(SCHEMA)?;
-        let payload = serde_json::json!({ "p_slugs": slugs });
+        let payload = serde_json::json!({
+            "p_slugs": slugs,
+            "p_created_by": created_by,
+        });
         let response = self
             .client
             .client()

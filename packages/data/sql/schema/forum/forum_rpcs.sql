@@ -74,7 +74,10 @@ GRANT EXECUTE ON FUNCTION forum.service_resolve_tag_ids(INTEGER[]) TO service_ro
 -- ===========================================
 -- service_resolve_or_create_tag_slugs — slug-driven tag autovivify
 -- ===========================================
-CREATE OR REPLACE FUNCTION forum.service_resolve_or_create_tag_slugs(p_slugs TEXT[])
+CREATE OR REPLACE FUNCTION forum.service_resolve_or_create_tag_slugs(
+    p_slugs       TEXT[],
+    p_created_by  UUID
+)
 RETURNS INTEGER[]
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -86,6 +89,10 @@ DECLARE
 BEGIN
     IF p_slugs IS NULL OR array_length(p_slugs, 1) IS NULL THEN
         RETURN '{}'::INTEGER[];
+    END IF;
+
+    IF p_created_by IS NULL THEN
+        RAISE EXCEPTION 'p_created_by required for tag creation';
     END IF;
 
     SELECT array_agg(DISTINCT lower(s) ORDER BY lower(s))
@@ -103,8 +110,8 @@ BEGIN
         v_clean := v_clean[1:20];
     END IF;
 
-    INSERT INTO forum.tags (slug, name, canonical_id)
-    SELECT s, s, 0
+    INSERT INTO forum.tags (slug, name, canonical_id, created_by)
+    SELECT s, s, 0, p_created_by
       FROM unnest(v_clean) AS s
     ON CONFLICT (slug) DO NOTHING;
 
@@ -118,9 +125,9 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION forum.service_resolve_or_create_tag_slugs(TEXT[])
+REVOKE ALL ON FUNCTION forum.service_resolve_or_create_tag_slugs(TEXT[], UUID)
     FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION forum.service_resolve_or_create_tag_slugs(TEXT[])
+GRANT EXECUTE ON FUNCTION forum.service_resolve_or_create_tag_slugs(TEXT[], UUID)
     TO service_role;
 
 -- ===========================================

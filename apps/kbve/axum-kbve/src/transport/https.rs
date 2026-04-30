@@ -2645,7 +2645,10 @@ async fn api_create_thread(
     let tag_ids = if body_render.hashtags.is_empty() {
         Vec::new()
     } else {
-        match svc.resolve_or_create_tag_slugs(&body_render.hashtags).await {
+        match svc
+            .resolve_or_create_tag_slugs(&body_render.hashtags, &user_id)
+            .await
+        {
             Ok(ids) => ids,
             Err(e) => {
                 tracing::warn!("forum: tag resolve failed, dropping tags: {}", e);
