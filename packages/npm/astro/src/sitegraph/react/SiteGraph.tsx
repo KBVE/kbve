@@ -81,6 +81,57 @@ const ZOOM_SENSITIVITY = 0.002;
 const ALPHA_MIN = 0.05;
 const ALPHA_DECAY = 0.05;
 
+/** localStorage key for the user's preferred neighborhood depth. */
+const DEPTH_STORAGE_KEY = 'kbve-sitegraph-depth';
+
+/** Reads the user's reduced-motion preference. SSR-safe. */
+function prefersReducedMotion(): boolean {
+	if (typeof window === 'undefined') return false;
+	return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+}
+
+/** Reads + writes the depth selection to localStorage. */
+function loadStoredDepth(fallback: number, min: number, max: number): number {
+	if (typeof localStorage === 'undefined') return fallback;
+	const raw = localStorage.getItem(DEPTH_STORAGE_KEY);
+	if (!raw) return fallback;
+	const n = Number(raw);
+	return Number.isFinite(n) && n >= min && n <= max ? n : fallback;
+}
+
+function persistDepth(depth: number): void {
+	if (typeof localStorage === 'undefined') return;
+	try {
+		localStorage.setItem(DEPTH_STORAGE_KEY, String(depth));
+	} catch {
+		// quota / disabled — ignore
+	}
+}
+
+/** Reads sg-prefixed query params for shareable graph state. */
+function readUrlState(): { depth: number | null; q: string | null } {
+	if (typeof window === 'undefined') return { depth: null, q: null };
+	const params = new URLSearchParams(window.location.search);
+	const depthRaw = params.get('sg-depth');
+	const depth = depthRaw ? Number(depthRaw) : null;
+	return {
+		depth: depth !== null && Number.isFinite(depth) ? depth : null,
+		q: params.get('sg-q'),
+	};
+}
+
+function writeUrlState(state: { depth: number; q: string }): void {
+	if (typeof window === 'undefined') return;
+	const params = new URLSearchParams(window.location.search);
+	params.set('sg-depth', String(state.depth));
+	if (state.q) params.set('sg-q', state.q);
+	else params.delete('sg-q');
+	const next = `${window.location.pathname}${
+		params.toString() ? '?' + params.toString() : ''
+	}${window.location.hash}`;
+	window.history.replaceState(null, '', next);
+}
+
 function getNeighborhood(
 	graph: SiteGraphData,
 	startSlug: string,
@@ -188,13 +239,24 @@ export function SiteGraph({
 	const containerRef = useRef<HTMLDivElement>(null);
 	const svgRef = useRef<SVGSVGElement>(null);
 	const tooltipRef = useRef<HTMLDivElement>(null);
+	const searchInputRef = useRef<HTMLInputElement>(null);
 	const [graphData, setGraphData] = useState<SiteGraphData | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [retryNonce, setRetryNonce] = useState(0);
 	const simulationRef = useRef<Simulation<GraphNode, GraphLink> | null>(null);
 
 	const [hoveredId, setHoveredId] = useState<string | null>(null);
-	const [depth, setDepth] = useState(depthProp);
-	const [search, setSearch] = useState('');
+	const [pinnedId, setPinnedId] = useState<string | null>(null);
+	// Depth seeds from (in order): URL `sg-depth` → localStorage → prop default.
+	const [depth, setDepth] = useState(() => {
+		const urlDepth = readUrlState().depth;
+		if (urlDepth !== null && urlDepth >= minDepth && urlDepth <= maxDepth) {
+			return urlDepth;
+		}
+		return loadStoredDepth(depthProp, minDepth, maxDepth);
+	});
+	const [search, setSearch] = useState(() => readUrlState().q ?? '');
+	const reducedMotion = useMemo(prefersReducedMotion, []);
 
 	// Responsive sizing — ResizeObserver on the container.
 	const [size, setSize] = useState({ width: widthProp, height: heightProp });
@@ -274,6 +336,7 @@ export function SiteGraph({
 
 	useEffect(() => {
 		let cancelled = false;
+		setError(null);
 		fetchSiteGraph(endpoint)
 			.then((data) => {
 				if (!cancelled) setGraphData(data);
@@ -285,7 +348,14 @@ export function SiteGraph({
 		return () => {
 			cancelled = true;
 		};
-	}, [endpoint]);
+	}, [endpoint, retryNonce]);
+
+	// Persist depth to localStorage and reflect depth + search in the URL so
+	// users can share/refresh into the same view.
+	useEffect(() => {
+		persistDepth(depth);
+		writeUrlState({ depth, q: search });
+	}, [depth, search]);
 
 	// Memoize neighborhood so adjacency + render don't recompute every keystroke.
 	const { nodes, links, adjacency } = useMemo(() => {
@@ -323,8 +393,8 @@ export function SiteGraph({
 		});
 
 		const simulation = forceSimulation<GraphNode>(nodes)
-			.alphaMin(ALPHA_MIN)
-			.alphaDecay(ALPHA_DECAY)
+			.alphaMin(reducedMotion ? 0.5 : ALPHA_MIN)
+			.alphaDecay(reducedMotion ? 0.4 : ALPHA_DECAY)
 			.force(
 				'link',
 				forceLink<GraphNode, GraphLink>(links)
@@ -383,7 +453,7 @@ export function SiteGraph({
 			simulation.stop();
 			simulationRef.current = null;
 		};
-	}, [graphData, nodes, links, width, height]);
+	}, [graphData, nodes, links, width, height, reducedMotion]);
 
 	useEffect(() => {
 		const svg = svgRef.current;
@@ -475,11 +545,102 @@ export function SiteGraph({
 		};
 	}, []);
 
+	// Click-drag pan on empty SVG space. Clicks that originate inside an
+	// `.sg-node` group are ignored — those are claimed by node-drag below.
+	useEffect(() => {
+		const svg = svgRef.current;
+		if (!svg) return;
+
+		let dragging = false;
+		let startX = 0;
+		let startY = 0;
+		let startPanX = 0;
+		let startPanY = 0;
+
+		const onDown = (e: MouseEvent) => {
+			if (e.button !== 0) return;
+			const target = e.target as SVGElement | null;
+			if (target?.closest('.sg-node')) return;
+			dragging = true;
+			startX = e.clientX;
+			startY = e.clientY;
+			startPanX = panX;
+			startPanY = panY;
+			svg.style.cursor = 'grabbing';
+		};
+		const onMove = (e: MouseEvent) => {
+			if (!dragging) return;
+			setPanX(startPanX + (e.clientX - startX));
+			setPanY(startPanY + (e.clientY - startY));
+		};
+		const onUp = () => {
+			if (!dragging) return;
+			dragging = false;
+			svg.style.cursor = 'grab';
+		};
+
+		svg.addEventListener('mousedown', onDown);
+		window.addEventListener('mousemove', onMove);
+		window.addEventListener('mouseup', onUp);
+		return () => {
+			svg.removeEventListener('mousedown', onDown);
+			window.removeEventListener('mousemove', onMove);
+			window.removeEventListener('mouseup', onUp);
+		};
+	}, [panX, panY]);
+
+	// Node drag — pin the node's simulation position while dragging by
+	// setting fx/fy, and release with `simulation.alphaTarget` ramping back
+	// down so the rest of the graph re-settles.
+	const dragNode = useCallback(
+		(node: GraphNode) => (e: React.MouseEvent) => {
+			e.stopPropagation();
+			const sim = simulationRef.current;
+			const svg = svgRef.current;
+			if (!sim || !svg) return;
+
+			const rect = svg.getBoundingClientRect();
+			const toSvg = (clientX: number, clientY: number) => {
+				const relX = clientX - rect.left - rect.width / 2 - panX;
+				const relY = clientY - rect.top - rect.height / 2 - panY;
+				return {
+					x: relX / zoom + width / 2,
+					y: relY / zoom + height / 2,
+				};
+			};
+
+			node.fx = node.x;
+			node.fy = node.y;
+			sim.alphaTarget(0.3).restart();
+
+			const onMove = (ev: MouseEvent) => {
+				const p = toSvg(ev.clientX, ev.clientY);
+				node.fx = p.x;
+				node.fy = p.y;
+			};
+			const onUp = () => {
+				node.fx = null;
+				node.fy = null;
+				sim.alphaTarget(0);
+				window.removeEventListener('mousemove', onMove);
+				window.removeEventListener('mouseup', onUp);
+			};
+			window.addEventListener('mousemove', onMove);
+			window.addEventListener('mouseup', onUp);
+		},
+		[panX, panY, zoom, width, height],
+	);
+
 	const handleNodeClick = useCallback(
-		(slug: string) => {
-			if (slug !== currentSlug) {
-				window.location.href = `/${slug}/`;
+		(slug: string, e: React.MouseEvent) => {
+			if (slug === currentSlug) return;
+			const url = `/${slug}/`;
+			// Match anchor-tag conventions: ctrl/meta/middle-click → new tab.
+			if (e.ctrlKey || e.metaKey || e.button === 1) {
+				window.open(url, '_blank', 'noopener');
+				return;
 			}
+			window.location.href = url;
 		},
 		[currentSlug],
 	);
@@ -497,16 +658,90 @@ export function SiteGraph({
 		setPanY(0);
 	}, []);
 
+	// Keyboard shortcuts (only fire when the pointer is over the graph or it's
+	// in fullscreen, so we don't hijack typing in unrelated parts of the page).
+	useEffect(() => {
+		const handler = (e: KeyboardEvent) => {
+			const inText =
+				e.target instanceof HTMLElement &&
+				(e.target.tagName === 'INPUT' ||
+					e.target.tagName === 'TEXTAREA' ||
+					e.target.isContentEditable);
+			if (!isFullscreen && !isPointerOverSvg.current && !inText) return;
+
+			if (e.key === '/' && !inText) {
+				e.preventDefault();
+				searchInputRef.current?.focus();
+				searchInputRef.current?.select();
+				return;
+			}
+			if (e.key === 'f' && !inText && onFullscreenChange) {
+				e.preventDefault();
+				onFullscreenChange(!isFullscreen);
+				return;
+			}
+			if (e.key === 'Escape') {
+				if (search) {
+					setSearch('');
+					return;
+				}
+				if (pinnedId) {
+					setPinnedId(null);
+					setHoveredId(null);
+					hideTooltip();
+					return;
+				}
+				if (isFullscreen && onFullscreenChange) {
+					onFullscreenChange(false);
+				}
+			}
+		};
+		window.addEventListener('keydown', handler);
+		return () => window.removeEventListener('keydown', handler);
+	}, [isFullscreen, onFullscreenChange, search, pinnedId, hideTooltip]);
+
+	// Background tap on the SVG dismisses any pinned tooltip (touch only).
+	useEffect(() => {
+		const svg = svgRef.current;
+		if (!svg) return;
+		const onTouch = (e: TouchEvent) => {
+			const target = e.target as SVGElement | null;
+			if (target?.closest('.sg-node')) return;
+			setPinnedId(null);
+			setHoveredId(null);
+			hideTooltip();
+		};
+		svg.addEventListener('touchstart', onTouch, { passive: true });
+		return () => svg.removeEventListener('touchstart', onTouch);
+	}, [hideTooltip]);
+
 	if (error) {
 		return (
 			<div
 				className="sg-error"
+				role="alert"
 				style={{
 					padding: '8px',
 					fontSize: '12px',
 					color: 'var(--sl-color-gray-4)',
+					display: 'flex',
+					alignItems: 'center',
+					gap: '8px',
 				}}>
-				Graph unavailable
+				<span>Graph unavailable</span>
+				<button
+					onClick={() => setRetryNonce((n) => n + 1)}
+					style={{
+						background: 'var(--sl-color-bg-nav)',
+						color: 'inherit',
+						border: '1px solid var(--sl-color-gray-5, #262626)',
+						borderRadius: 4,
+						padding: '2px 8px',
+						fontSize: '11px',
+						cursor: 'pointer',
+					}}>
+					Retry
+				</button>
 			</div>
 		);
 	}
@@ -614,11 +849,12 @@ export function SiteGraph({
 						</select>
 					</label>
 					<input
+						ref={searchInputRef}
 						type="search"
 						value={search}
 						onChange={(e) => setSearch(e.target.value)}
-						placeholder="Filter…"
-						aria-label="Filter nodes by title"
+						placeholder="Filter…  (/)"
+						aria-label="Filter nodes by title (press / to focus)"
 						style={{
 							flex: 1,
 							minWidth: 0,
@@ -731,7 +967,8 @@ export function SiteGraph({
 									opacity,
 									transition: 'opacity 0.12s',
 								}}
-								onClick={() => handleNodeClick(node.id)}
+								onClick={(e) => handleNodeClick(node.id, e)}
+								onMouseDown={dragNode(node)}
 								onMouseEnter={(e) => {
 									setHoveredId(node.id);
 									showTooltip(node.title, node.id, e);
@@ -739,9 +976,20 @@ export function SiteGraph({
 								}}
 								onMouseMove={moveTooltip}
 								onMouseLeave={() => {
+									if (pinnedId === node.id) return;
 									setHoveredId(null);
 									hideTooltip();
 									closeTooltip(`sg-node-${node.id}`);
+								}}
+								onTouchStart={(e) => {
+									setPinnedId(node.id);
+									setHoveredId(node.id);
+									const touch = e.touches[0];
+									if (!touch) return;
+									showTooltip(node.title, node.id, {
+										clientX: touch.clientX,
+										clientY: touch.clientY,
+									} as React.MouseEvent);
 								}}>
 								<circle
 									r={radius}
