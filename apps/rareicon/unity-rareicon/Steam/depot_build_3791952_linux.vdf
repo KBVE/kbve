@@ -1,0 +1,16 @@
+// Linux depot for RareIcon Demo (AppID 3791950).
+
+"DepotBuildConfig"
+{
+	"DepotID"        "3791952"
+
+	"FileMapping"
+	{
+		"LocalPath"  "StandaloneLinux64/*"
+		"DepotPath"  "."
+		"recursive"  "1"
+	}
+
+	"FileExclusion" "*_BurstDebugInformation_DoNotShip*"
+	"FileExclusion" "*_BackUpThisFolder_ButDontShipItWithYourGame*"
+}

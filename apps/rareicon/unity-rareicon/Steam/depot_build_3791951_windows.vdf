@@ -1,0 +1,23 @@
+// Windows depot for RareIcon Demo (AppID 3791950).
+//
+// LocalPath is relative to the parent app_build's `contentroot`
+// (../build/) so this depot pulls everything Unity exports under
+// build/StandaloneWindows64/.
+
+"DepotBuildConfig"
+{
+	"DepotID"        "3791951"
+
+	"FileMapping"
+	{
+		"LocalPath"  "StandaloneWindows64/*"
+		"DepotPath"  "."
+		"recursive"  "1"
+	}
+
+	// Strip Unity's debug symbol files — players don't need them and
+	// they bloat the demo download.
+	"FileExclusion" "*.pdb"
+	"FileExclusion" "*_BurstDebugInformation_DoNotShip*"
+	"FileExclusion" "*_BackUpThisFolder_ButDontShipItWithYourGame*"
+}

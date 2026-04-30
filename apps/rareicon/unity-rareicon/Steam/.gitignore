@@ -1,0 +1,3 @@
+# SteamPipe build output — populated by steamcmd at upload time, not
+# tracked in git. The actual demo binaries live under ../build/.
+/BuildOutput/

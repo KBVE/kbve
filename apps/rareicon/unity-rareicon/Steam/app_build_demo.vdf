@@ -1,0 +1,26 @@
+// SteamPipe app build script — RareIcon Demo (AppID 3791950).
+//
+// Usage:
+//   steamcmd +login <user> +run_app_build "$(pwd)/app_build_demo.vdf" +quit
+//
+// First upload: leave `setlive` empty so the build lands on the default
+// branch for review. Promote to a public-facing branch via the
+// Steamworks dashboard once it's verified.
+
+"appbuild"
+{
+	"appid"          "3791950"
+	"desc"           "RareIcon demo build"
+	"buildoutput"    "../BuildOutput/"
+	"contentroot"    "../build/"
+	"setlive"        ""
+	"preview"        "0"
+	"local"          ""
+
+	"depots"
+	{
+		"3791951"    "depot_build_3791951_windows.vdf"
+		"3791952"    "depot_build_3791952_linux.vdf"
+		"3791953"    "depot_build_3791953_macos.vdf"
+	}
+}
