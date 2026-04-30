@@ -10,13 +10,17 @@ namespace RareIcon
     [UpdateAfter(typeof(EconomySystemGroup))]
     public partial struct BuildingActiveVisualSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<Building>();
+            state.RequireForUpdate<WorldClock>();
+        }
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            if (!SystemAPI.HasSingleton<WorldClock>()) return;
             float now = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;
 
             state.Dependency = new ResetBuildingActiveJob()

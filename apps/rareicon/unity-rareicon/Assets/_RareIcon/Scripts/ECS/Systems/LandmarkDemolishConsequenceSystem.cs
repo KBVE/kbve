@@ -16,14 +16,13 @@ namespace RareIcon
             _requestQuery = new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<DemolishRequest>()
                 .Build(ref state);
+            state.RequireForUpdate(_requestQuery);
         }
 
         public void OnDestroy(ref SystemState state) { }
 
         public void OnUpdate(ref SystemState state)
         {
-            if (_requestQuery.CalculateEntityCount() == 0) return;
-
             IPublisher<LandmarkDemolishedEvent> pub;
             try { pub = GlobalMessagePipe.GetPublisher<LandmarkDemolishedEvent>(); }
             catch { return; }

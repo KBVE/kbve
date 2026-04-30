@@ -12,14 +12,16 @@ namespace RareIcon
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<LogisticsDBSingleton>();
+            state.RequireForUpdate<WorldClock>();
+            state.RequireForUpdate<FurnaceTag>();
+            state.RequireForUpdate<CapitalTag>();
         }
 
         public void OnDestroy(ref SystemState state) { }
 
         public void OnUpdate(ref SystemState state)
         {
-            if (!SystemAPI.HasSingleton<WorldClock>()) return;
-            if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
+            var capital = SystemAPI.GetSingletonEntity<CapitalTag>();
             if (!SystemAPI.HasBuffer<CapitalLedger>(capital)) return;
 
             float now  = SystemAPI.GetSingleton<WorldClock>().AbsSeconds;

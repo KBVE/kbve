@@ -15,6 +15,7 @@ namespace RareIcon
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<HexDBSingleton>();
+            state.RequireForUpdate<ReliefIntent>();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -25,7 +26,7 @@ namespace RareIcon
             float dt = SystemAPI.Time.DeltaTime;
             if (dt <= 0f) return;
 
-            if (!SystemAPI.TryGetSingleton<HexDBSingleton>(out var hexLookup)) return;
+            var hexLookup = SystemAPI.GetSingleton<HexDBSingleton>();
 
             var hexOccupantLookup   = SystemAPI.GetComponentLookup<HexOccupant>(true);
             var providesHealLookup  = SystemAPI.GetComponentLookup<ProvidesHealing>(true);
