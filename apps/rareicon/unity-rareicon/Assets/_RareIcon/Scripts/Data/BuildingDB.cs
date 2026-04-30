@@ -95,6 +95,24 @@ namespace RareIcon
         static readonly Ingredient[] UpgradeTavernToLodge         = { new((ushort)ItemId.Timber,   12),
                                                                       new((ushort)ItemId.StoneBlock, 8),
                                                                       new((ushort)ItemId.GoldBar,   15) };
+        static readonly Ingredient[] UpgradeFurnaceToForge         = { new((ushort)ItemId.StoneBlock, 8),
+                                                                       new((ushort)ItemId.IronOre,  4) };
+        static readonly Ingredient[] UpgradeForgeToFoundry         = { new((ushort)ItemId.StoneBlock, 14),
+                                                                       new((ushort)ItemId.IronOre,  10),
+                                                                       new((ushort)ItemId.GoldBar,    12) };
+        static readonly Ingredient[] UpgradeOutpostToWatchpost     = { new((ushort)ItemId.Timber,    6),
+                                                                       new((ushort)ItemId.StoneBlock, 6) };
+        static readonly Ingredient[] UpgradeWatchpostToGarrison    = { new((ushort)ItemId.Timber,   10),
+                                                                       new((ushort)ItemId.StoneBlock, 14),
+                                                                       new((ushort)ItemId.GoldBar,    8) };
+        static readonly Ingredient[] UpgradeTowerToBastion         = { new((ushort)ItemId.StoneBlock, 10),
+                                                                       new((ushort)ItemId.IronOre,   4) };
+        static readonly Ingredient[] UpgradeBastionToCitadel       = { new((ushort)ItemId.StoneBlock, 18),
+                                                                       new((ushort)ItemId.IronOre,  10),
+                                                                       new((ushort)ItemId.GoldBar,    14) };
+        static readonly Ingredient[] UpgradeWallToReinforced       = { new((ushort)ItemId.StoneBlock, 4) };
+        static readonly Ingredient[] UpgradeReinforcedToFortified  = { new((ushort)ItemId.StoneBlock, 8),
+                                                                       new((ushort)ItemId.IronOre,   3) };
 
         /// <summary>Returns the material cost to advance `type` from `fromTier` to `fromTier + 1`. Empty array if no further tier exists.</summary>
         public static Ingredient[] GetUpgradeCost(byte buildingType, byte fromTier)
@@ -130,6 +148,26 @@ namespace RareIcon
             {
                 if (fromTier == 0) return UpgradeDockToShipyard;
                 if (fromTier == 1) return UpgradeShipyardToHarbour;
+            }
+            else if (buildingType == BuildingType.Furnace)
+            {
+                if (fromTier == 0) return UpgradeFurnaceToForge;
+                if (fromTier == 1) return UpgradeForgeToFoundry;
+            }
+            else if (buildingType == BuildingType.Outpost)
+            {
+                if (fromTier == 0) return UpgradeOutpostToWatchpost;
+                if (fromTier == 1) return UpgradeWatchpostToGarrison;
+            }
+            else if (buildingType == BuildingType.Tower)
+            {
+                if (fromTier == 0) return UpgradeTowerToBastion;
+                if (fromTier == 1) return UpgradeBastionToCitadel;
+            }
+            else if (buildingType == BuildingType.Wall)
+            {
+                if (fromTier == 0) return UpgradeWallToReinforced;
+                if (fromTier == 1) return UpgradeReinforcedToFortified;
             }
             return CostNone;
         }
@@ -168,6 +206,26 @@ namespace RareIcon
             {
                 if (tier == 1) return BuildingType.Shipyard;
                 if (tier == 2) return BuildingType.Harbour;
+            }
+            else if (buildingType == BuildingType.Furnace)
+            {
+                if (tier == 1) return BuildingType.Forge;
+                if (tier == 2) return BuildingType.Foundry;
+            }
+            else if (buildingType == BuildingType.Outpost)
+            {
+                if (tier == 1) return BuildingType.Watchpost;
+                if (tier == 2) return BuildingType.Garrison;
+            }
+            else if (buildingType == BuildingType.Tower)
+            {
+                if (tier == 1) return BuildingType.Bastion;
+                if (tier == 2) return BuildingType.Citadel;
+            }
+            else if (buildingType == BuildingType.Wall)
+            {
+                if (tier == 1) return BuildingType.ReinforcedWall;
+                if (tier == 2) return BuildingType.FortifiedWall;
             }
             return 0;
         }
@@ -298,6 +356,26 @@ namespace RareIcon
             {
                 if (tier == 1) return "building.shipyard";
                 if (tier == 2) return "building.harbour";
+            }
+            else if (buildingType == BuildingType.Furnace)
+            {
+                if (tier == 1) return "building.forge";
+                if (tier == 2) return "building.foundry";
+            }
+            else if (buildingType == BuildingType.Outpost)
+            {
+                if (tier == 1) return "building.watchpost";
+                if (tier == 2) return "building.garrison";
+            }
+            else if (buildingType == BuildingType.Tower)
+            {
+                if (tier == 1) return "building.bastion";
+                if (tier == 2) return "building.citadel";
+            }
+            else if (buildingType == BuildingType.Wall)
+            {
+                if (tier == 1) return "building.reinforced_wall";
+                if (tier == 2) return "building.fortified_wall";
             }
             return GetLocaleKey(buildingType);
         }

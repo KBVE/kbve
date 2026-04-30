@@ -93,12 +93,15 @@ namespace RareIcon
                         Radius       = 3,
                         OwnerFaction = building.OwnerFaction,
                     });
+                    Ecb.AddComponent(chunkIdx, entity, new BuildingTier { Value = 0 });
                     break;
                 case BuildingType.Wall:
                     Ecb.AddComponent<WallTag>(chunkIdx, entity);
+                    Ecb.AddComponent(chunkIdx, entity, new BuildingTier { Value = 0 });
                     break;
                 case BuildingType.Furnace:
                     Ecb.AddComponent<FurnaceTag>(chunkIdx, entity);
+                    Ecb.AddComponent(chunkIdx, entity, new BuildingTier { Value = 0 });
                     break;
                 case BuildingType.GoblinCave:
                     Ecb.AddComponent<GoblinCaveTag>(chunkIdx, entity);
@@ -176,6 +179,7 @@ namespace RareIcon
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesFood    { Priority = 1 });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesSleep   { Capacity = 10 });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesHealing { Priority = 1 });
+                    Ecb.AddComponent(chunkIdx, entity, new BuildingTier    { Value = 0 });
                     break;
                 case BuildingType.Lumbercamp:
                     Ecb.AddComponent<LumbercampTag>(chunkIdx, entity);

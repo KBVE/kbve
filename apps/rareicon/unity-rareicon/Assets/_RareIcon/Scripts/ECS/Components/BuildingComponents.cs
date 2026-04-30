@@ -41,6 +41,14 @@ namespace RareIcon
         public const byte Shipyard       = 26;  // Dock tier 1 — keeps spawning FishingBoats AND unlocks Galley combat-boat production from Timber + StoneBlock.
         public const byte Harbour        = 27;  // Dock tier 2 — adds a passive Coin trickle and ups the FishingBoat / Galley cap.
         public const byte PirateCove     = 28;  // Hostile-owned coastal structure — drips out PirateShip raids on cadence (sister to BanditCamp on water).
+        public const byte Forge          = 29;  // Furnace tier 1 — keeps smelting AND adds steel/bronze alloy recipes + faster cadence.
+        public const byte Foundry        = 30;  // Furnace tier 2 — high-tier metallurgy; unlocks mithril / obsidian-tipped crafting.
+        public const byte Watchpost      = 31;  // Outpost tier 1 — wider territory radius + scout reveal aura.
+        public const byte Garrison       = 32;  // Outpost tier 2 — full territory ring + faction-pressure modifier + arrow-volley boost.
+        public const byte Bastion        = 33;  // Tower tier 1 — bigger HP + tighter cadence on the territory emitter.
+        public const byte Citadel        = 34;  // Tower tier 2 — area-denial aura + ranged garrison slot.
+        public const byte ReinforcedWall = 35;  // Wall tier 1 — more HP, blocks projectiles at low-velocity.
+        public const byte FortifiedWall  = 36;  // Wall tier 2 — full projectile block + LoS denier.
     }
 
     /// <summary>Tag for naturally-spawned Goblin Villages — sister structure to BanditCamp. Faction (Hostile or Player) is rolled once at spawn and never changes; <see cref="GoblinVillageState"/> + <see cref="TerritoryEmitter"/> carry the per-instance data.</summary>
