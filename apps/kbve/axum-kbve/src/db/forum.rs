@@ -8,8 +8,12 @@
 
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
+use std::time::{Duration, Instant};
+use tokio::sync::RwLock;
 
 use super::supabase::{SupabaseClient, SupabaseConfig};
+
+const SPACES_CACHE_TTL: Duration = Duration::from_secs(300);
 
 const SCHEMA: &str = "forum";
 
@@ -62,7 +66,7 @@ pub struct ThreadRow {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct SpaceRow {
     pub id: String,
     pub slug: String,
@@ -143,12 +147,14 @@ impl<'a> Default for FeedQuery<'a> {
 
 pub struct ForumService {
     client: SupabaseClient,
+    spaces_cache: RwLock<Option<(Instant, Vec<SpaceRow>)>>,
 }
 
 impl ForumService {
     pub fn new(config: SupabaseConfig) -> Result<Self, String> {
         Ok(Self {
             client: SupabaseClient::new(config)?,
+            spaces_cache: RwLock::new(None),
         })
     }
 
@@ -777,6 +783,50 @@ impl ForumService {
                 thread_count: 0,
             })
             .collect())
+    }
+
+    /// All active spaces, sorted by slug. Cached in-process for
+    /// SPACES_CACHE_TTL because spaces are admin-curated and rarely
+    /// change. Cache miss → PostgREST query (no RPC needed; the
+    /// existing spaces_public_read RLS policy permits anon SELECT
+    /// on non-suspended rows).
+    pub async fn list_spaces(&self) -> Result<Vec<SpaceRow>, String> {
+        if let Some((stamped, rows)) = self.spaces_cache.read().await.as_ref() {
+            if stamped.elapsed() < SPACES_CACHE_TTL {
+                return Ok(rows.clone());
+            }
+        }
+
+        let url = format!("{}/spaces", self.client.config().rest_url());
+        let headers = self.client.rpc_headers(SCHEMA)?;
+        let response = self
+            .client
+            .client()
+            .get(&url)
+            .headers(headers)
+            .query(&[
+                ("select", "id,slug,name,description,status"),
+                ("status", "eq.active"),
+                ("order", "slug.asc"),
+                ("limit", "200"),
+            ])
+            .send()
+            .await
+            .map_err(|e| format!("forum.list_spaces network error: {}", e))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!("forum.list_spaces {} → {}", status, body));
+        }
+
+        let rows: Vec<SpaceRow> = response
+            .json()
+            .await
+            .map_err(|e| format!("forum.list_spaces parse: {}", e))?;
+
+        *self.spaces_cache.write().await = Some((Instant::now(), rows.clone()));
+        Ok(rows)
     }
 
     pub async fn get_space_by_slug(&self, slug: &str) -> Result<Option<SpaceRow>, String> {

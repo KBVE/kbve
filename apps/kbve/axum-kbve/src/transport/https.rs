@@ -302,6 +302,7 @@ fn router(state: AppState) -> Router {
             axum::routing::patch(api_staff_edit_comment),
         )
         .route("/api/v1/me/staff", get(api_me_staff))
+        .route("/api/v1/forum/spaces", get(api_list_spaces))
         // SEO-friendly 301: /forum/c/{slug} → /forum/s/{slug}. `c/` reads
         // as "category" but the canonical URL is `s/` (space). Crawlers
         // collapse the duplicate into the canonical via the redirect.
@@ -2153,26 +2154,23 @@ fn build_pagination_html(rows: &[FeedRow], sort: &str, space_path: &str) -> Stri
     )
 }
 
-fn build_spaces_nav_html(current_slug: Option<&str>) -> String {
-    // Hard-coded until service_list_spaces RPC + caching layer lands.
-    // Each entry: (slug-or-empty for "All", display name).
-    // The current space gets aria-current="page" so the sidebar shows
-    // active state without an extra DB round trip.
-    const ENTRIES: &[(&str, &str)] = &[
-        ("", "All"),
-        ("announcements", "Announcements"),
-        ("support", "Support"),
-    ];
+/// Static fallback used when the `forum.spaces` PostgREST query is
+/// unreachable. Mirrors the seeded space list so /forum/ never 500s
+/// from a transient DB hiccup.
+const FALLBACK_SPACES: &[(&str, &str)] =
+    &[("announcements", "Announcements"), ("support", "Support")];
 
+async fn build_spaces_nav_html(current_slug: Option<&str>) -> String {
     let current = current_slug.unwrap_or("");
     let mut out = String::with_capacity(256);
-    for (slug, label) in ENTRIES {
+
+    let render_link = |out: &mut String, slug: &str, label: &str| {
         let href = if slug.is_empty() {
             "/forum/".to_string()
         } else {
             format!("/forum/s/{}/", slug)
         };
-        let is_active = *slug == current;
+        let is_active = slug == current;
         let class = if is_active {
             r#" class="forum-spaces__link forum-spaces__link--active""#
         } else {
@@ -2185,9 +2183,36 @@ fn build_spaces_nav_html(current_slug: Option<&str>) -> String {
         };
         out.push_str(&format!(
             r#"<a href="{}"{}{}>{}</a>"#,
-            href, class, aria, label
+            href,
+            class,
+            aria,
+            html_escape(label),
         ));
+    };
+
+    render_link(&mut out, "", "All");
+
+    let live_spaces = match get_forum_service() {
+        Some(svc) => svc.list_spaces().await.map_err(|e| {
+            tracing::warn!("forum: list_spaces failed, using fallback nav: {}", e);
+            e
+        }),
+        None => Err("forum service unavailable".to_string()),
+    };
+
+    match live_spaces {
+        Ok(rows) if !rows.is_empty() => {
+            for row in &rows {
+                render_link(&mut out, &row.slug, &row.name);
+            }
+        }
+        _ => {
+            for (slug, label) in FALLBACK_SPACES {
+                render_link(&mut out, slug, label);
+            }
+        }
     }
+
     out
 }
 
@@ -2212,6 +2237,37 @@ async fn forum_tag_handler(
 }
 
 /// GET /forum/tags — popularity-sorted tag listing.
+/// GET /api/v1/forum/spaces — JSON list of active spaces.
+/// Drives the astro-kbve build-time spaces.json artifact.
+async fn api_list_spaces() -> Response {
+    let svc = match get_forum_service() {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({"error": "forum service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+    match svc.list_spaces().await {
+        Ok(rows) => (
+            StatusCode::OK,
+            [(header::CACHE_CONTROL, "public, max-age=300")],
+            Json(json!({ "spaces": rows })),
+        )
+            .into_response(),
+        Err(e) => {
+            tracing::warn!("forum.list_spaces api failed: {}", e);
+            (
+                StatusCode::BAD_GATEWAY,
+                Json(json!({"error": "upstream error"})),
+            )
+                .into_response()
+        }
+    }
+}
+
 async fn forum_tags_index_handler() -> Response {
     let svc = match get_forum_service() {
         Some(s) => s,
@@ -2411,7 +2467,7 @@ async fn render_feed_page(
         feed_canonical_suffix: canonical_suffix,
         active_sort_label: sort_label(&sort).to_string(),
         feed_items_html,
-        spaces_nav_html: build_spaces_nav_html(space_slug.as_deref()),
+        spaces_nav_html: build_spaces_nav_html(space_slug.as_deref()).await,
         pagination_html,
     })
     .into_response()

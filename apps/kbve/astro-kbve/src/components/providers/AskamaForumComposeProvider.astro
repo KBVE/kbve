@@ -7,10 +7,12 @@
 //   {{ compose_meta_description }}  — SEO summary
 //   {{ default_space_slug }}        — pre-fill from `?space=<slug>`
 //
-// The form submits via fetch to POST /api/v1/forum/threads with a
-// Bearer token pulled from the local Supabase session. axum's API
-// resolves the space slug, calls forum.service_create_thread, and
-// returns the new thread id; on success we redirect to /forum/t/{id}.
+// Spaces are fetched at build time from /api/v1/forum/spaces so the
+// dropdown always reflects what the live database has.
+
+import { getForumSpaces } from '@/data/forum-spaces';
+
+const spaces = await getForumSpaces();
 ---
 
 <div class="forum-shell forum-compose">
@@ -39,16 +41,17 @@
 			<div class="compose-form__row">
 				<label class="compose-form__field">
 					<span>Space</span>
-					<input
-						type="text"
+					<select
 						name="space_slug"
-						value={`{{ default_space_slug }}`}
-						placeholder="announcements"
 						required
-						pattern="^[a-z0-9][a-z0-9-]*$"
-						maxlength="50"
-					/>
-					<small>The space (slug, lowercase) where this lands.</small>
+						data-default-space={`{{ default_space_slug }}`}>
+						{
+							spaces.map((s) => (
+								<option value={s.slug}>{s.name}</option>
+							))
+						}
+					</select>
+					<small>Where this thread lands.</small>
 				</label>
 				<label class="compose-form__field">
 					<span>Type</span>
@@ -113,6 +116,20 @@
 	const status = document.getElementById(
 		'compose-status',
 	) as HTMLOutputElement | null;
+
+	// Apply the askama-rendered default-space to the <select> on
+	// load. The option list is server-pre-rendered; we only set the
+	// active value here.
+	const spaceSelect = form?.querySelector<HTMLSelectElement>(
+		'select[name="space_slug"]',
+	);
+	const defaultSpace = spaceSelect?.dataset.defaultSpace?.trim();
+	if (spaceSelect && defaultSpace) {
+		const match = Array.from(spaceSelect.options).find(
+			(o) => o.value === defaultSpace,
+		);
+		if (match) spaceSelect.value = defaultSpace;
+	}
 
 	function setStatus(kind: 'idle' | 'busy' | 'error' | 'ok', msg = '') {
 		if (!status) return;
