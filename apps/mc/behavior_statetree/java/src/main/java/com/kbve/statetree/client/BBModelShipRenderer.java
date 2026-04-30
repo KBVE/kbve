@@ -45,6 +45,8 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
 
     /** Fallback if the entity's modelName is empty or unregistered. */
     private static final String DEFAULT_MODEL = "immersive_aircraft/airship";
+    private static final java.util.Set<String> MISSING_MODELS_LOGGED =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     /** Blockbench units → world blocks (1/16). */
     private static final float MODEL_SCALE = 1.0f / 16.0f;
@@ -81,7 +83,14 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
 
         BBModel model = BBModelLoader.MODELS.get(
                 Identifier.of("behavior_statetree", state.modelName));
-        if (model == null) return;
+        if (model == null) {
+            if (MISSING_MODELS_LOGGED.add(state.modelName)) {
+                org.slf4j.LoggerFactory.getLogger("behavior_statetree").warn(
+                        "[Ship Render] Model '{}' not found — known models: {}",
+                        state.modelName, BBModelLoader.MODELS.keySet());
+            }
+            return;
+        }
 
         matrices.push();
 

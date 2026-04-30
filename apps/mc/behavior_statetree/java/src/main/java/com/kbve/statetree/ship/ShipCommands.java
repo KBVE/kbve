@@ -15,14 +15,20 @@ import java.util.UUID;
  */
 public final class ShipCommands {
 
-    /** Available BBModel ship types. */
+    private static final String DEFAULT_NAMESPACE = "immersive_aircraft";
+
+    /** Short names exposed in /spawnship autocomplete. */
     private static final String[] SHIP_MODELS = {
-            "immersive_aircraft/airship",
-            "immersive_aircraft/biplane",
-            "immersive_aircraft/gyrodyne"
+            "airship",
+            "biplane",
+            "gyrodyne"
     };
 
     private ShipCommands() {}
+
+    private static String resolveModelPath(String input) {
+        return input.contains("/") ? input : DEFAULT_NAMESPACE + "/" + input;
+    }
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
                                 ShipManager manager) {
@@ -35,22 +41,32 @@ public final class ShipCommands {
                         })
                         .executes(ctx -> {
                             ServerPlayerEntity player = ctx.getSource().getPlayer();
-                            String modelName = StringArgumentType.getString(ctx, "model");
+                            String input = StringArgumentType.getString(ctx, "model");
+                            String modelName = resolveModelPath(input);
                             ServerWorld world = ctx.getSource().getWorld();
                             ShipEntity ship = manager.placeShip(world, modelName,
                                     player.getUuid(), player.getBlockPos());
                             if (ship != null) {
                                 ctx.getSource().sendFeedback(
-                                        () -> Text.of("Spawned " + modelName + " (id=" + ship.getShipId() + ")"), true);
+                                        () -> Text.of("Spawned " + modelName + " (id=" + ship.getShipId() + "). /boardship " + ship.getShipId() + " to teleport on."), true);
                                 return 1;
                             }
                             ctx.getSource().sendError(Text.of("Failed to spawn ship"));
                             return 0;
                         })));
 
+        com.mojang.brigadier.suggestion.SuggestionProvider<ServerCommandSource> shipUuidSuggestions =
+                (ctx, builder) -> {
+                    for (UUID id : manager.getActiveShips().keySet()) {
+                        builder.suggest(id.toString());
+                    }
+                    return builder.buildFuture();
+                };
+
         dispatcher.register(CommandManager.literal("removeship")
                 .requires(ServerCommandSource::isExecutedByPlayer)
                 .then(CommandManager.argument("uuid", StringArgumentType.string())
+                        .suggests(shipUuidSuggestions)
                         .executes(ctx -> {
                             String uuidStr = StringArgumentType.getString(ctx, "uuid");
                             try {
@@ -67,6 +83,7 @@ public final class ShipCommands {
         dispatcher.register(CommandManager.literal("boardship")
                 .requires(ServerCommandSource::isExecutedByPlayer)
                 .then(CommandManager.argument("uuid", StringArgumentType.string())
+                        .suggests(shipUuidSuggestions)
                         .executes(ctx -> {
                             ServerPlayerEntity player = ctx.getSource().getPlayer();
                             String uuidStr = StringArgumentType.getString(ctx, "uuid");
