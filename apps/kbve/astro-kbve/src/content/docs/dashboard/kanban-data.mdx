@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-04-30T08:53:32.913Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-05-01T08:46:28.157Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -42,10 +42,10 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **3** items
   </Card>
   <Card title="Review" icon="approve-check">
-    **0** items
+    **1** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **115** items
+    **110** items
   </Card>
 </CardGrid>
 
@@ -61,15 +61,16 @@ pie showData
     "Backlog" : 7
     "Error" : 9
     "Staging" : 3
-    "Done" : 115
+    "Review" : 1
+    "Done" : 110
 ```
 
 ```mermaid
 pie showData
     title Work State
-    "Active (Todo+Staging+Review)" : 12
+    "Active (Todo+Staging+Review)" : 13
     "Blocked (Error+Support)" : 9
-    "Done" : 115
+    "Done" : 110
     "Planning (Theory+AI+Backlog)" : 28
 ```
 
@@ -96,9 +97,9 @@ flowchart LR
     Support --> Staging
     Staging["Staging<br/><strong>3</strong>"]
     Staging --> Review
-    Review["Review<br/><strong>0</strong>"]
+    Review["Review<br/><strong>1</strong>"]
     Review --> Done
-    Done["Done<br/><strong>115</strong>"]
+    Done["Done<br/><strong>110</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -115,7 +116,7 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 108
+    "Pull Request" : 104
     "Issue" : 56
 ```
 
@@ -123,9 +124,9 @@ pie showData
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 108 |
-| dev→main | 51 |
-| atomic | 41 |
+| auto-pr | 104 |
+| dev→main | 49 |
+| atomic | 40 |
 | enhancement | 29 |
 | 0 | 22 |
 | unity | 16 |
@@ -216,7 +217,13 @@ pie showData
 | [#2267](https://github.com/KBVE/kbve/issues/2267) | [Concept] : CryptoThrone.com - King of the Hill App/Game | — | h0lybyte, BChip | 6 |
 | [#6943](https://github.com/KBVE/kbve/issues/6943) | Phase 2: Frontend - Orchestration Tab | — | — | todo |
 
-### Done (115)
+### Review (1)
+
+| # | Title | Priority | Assignees | Labels |
+|---|-------|----------|-----------|--------|
+| [#10356](https://github.com/KBVE/kbve/pull/10356) | Release: 10 features, 3 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
+
+### Done (110)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -227,18 +234,7 @@ pie showData
 | [#6436](https://github.com/KBVE/kbve/issues/6436) | [Concept] : [Unity] : NPCDB - ECS | — | h0lybyte | 0, enhancement, unity |
 | [#6446](https://github.com/KBVE/kbve/issues/6446) | [Concept] : [Unity] : MapDB - Schemas | — | h0lybyte | 0, enhancement, unity |
 | [#9327](https://github.com/KBVE/kbve/issues/9327) | feat(astro-kbve): site graph integration — polish, testing, and rollout | — | h0lybyte | 1, enhancement, todo |
-| [#10097](https://github.com/KBVE/kbve/pull/10097) | Release: 1 feature, 5 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#10102](https://github.com/KBVE/kbve/pull/10102) | Release: 2 features, 1 fix → Main | — | — | auto-pr, dev→main |
-| [#10107](https://github.com/KBVE/kbve/pull/10107) | Release: 1 feature, 1 fix → Main | — | — | auto-pr, dev→main |
-| [#10110](https://github.com/KBVE/kbve/pull/10110) | Atomic: mc v1.0.15 post-publish sync | — | — | auto-pr, atomic |
-| [#10111](https://github.com/KBVE/kbve/pull/10111) | Release: 1 feature, 1 doc, 3 chores → Main | — | — | auto-pr, dev→main |
-| [#10114](https://github.com/KBVE/kbve/pull/10114) | chore(dashboard): daily sync — 2026-04-16 | — | — | auto-pr |
-| [#10117](https://github.com/KBVE/kbve/pull/10117) | Atomic: mc-lobby v1.0.2 post-publish sync | — | — | auto-pr, atomic |
-| [#10118](https://github.com/KBVE/kbve/pull/10118) | Release: 1 feature, 4 chores → Main | — | — | auto-pr, dev→main |
-| [#10119](https://github.com/KBVE/kbve/pull/10119) | Atomic: axum-kbve v1.0.110 post-publish sync | — | — | auto-pr, atomic |
-| [#10120](https://github.com/KBVE/kbve/pull/10120) | chore(dashboard): daily sync — 2026-04-16 | — | — | auto-pr |
 | [#10123](https://github.com/KBVE/kbve/pull/10123) | Release: 4 features, 2 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#10124](https://github.com/KBVE/kbve/pull/10124) | Atomic: axum-kbve v1.0.111 post-publish sync | — | — | auto-pr, atomic |
 | [#10130](https://github.com/KBVE/kbve/pull/10130) | Atomic: mc-velocity v1.0.2 post-publish sync | — | — | auto-pr, atomic |
 | [#10131](https://github.com/KBVE/kbve/pull/10131) | Release: 3 chores → Main | — | — | auto-pr, dev→main |
 | [#10133](https://github.com/KBVE/kbve/pull/10133) | Atomic: mc-lobby v1.0.3 post-publish sync | — | — | auto-pr, atomic |
@@ -335,6 +331,12 @@ pie showData
 | [#10338](https://github.com/KBVE/kbve/pull/10338) | Release: 16 features, 11 fixes, 1 doc, 2 perfs, 6 chores → Main | — | — | auto-pr, dev→main |
 | [#10342](https://github.com/KBVE/kbve/pull/10342) | Release: 7 features, 2 fixes, 1 CI, 1 perf, 2 refactors, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#10343](https://github.com/KBVE/kbve/pull/10343) | Atomic: mc v1.0.30 post-publish sync | — | — | auto-pr, atomic |
+| [#10348](https://github.com/KBVE/kbve/pull/10348) | Release: 2 features, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#10349](https://github.com/KBVE/kbve/pull/10349) | chore(dashboard): daily sync — 2026-04-30 | — | — | auto-pr |
+| [#10352](https://github.com/KBVE/kbve/pull/10352) | Atomic: axum-kbve v1.0.126 post-publish sync | — | — | auto-pr, atomic |
+| [#10353](https://github.com/KBVE/kbve/pull/10353) | Release: 28 features, 5 fixes, 2 CI, 1 perf, 1 refactor, 1 test, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#10354](https://github.com/KBVE/kbve/pull/10354) | Atomic: irc-gateway v0.1.11 post-publish sync | — | — | auto-pr, atomic |
+| [#10357](https://github.com/KBVE/kbve/pull/10357) | Atomic: axum-kbve v1.0.127 post-publish sync | — | — | auto-pr, atomic |
 
 ---
 
