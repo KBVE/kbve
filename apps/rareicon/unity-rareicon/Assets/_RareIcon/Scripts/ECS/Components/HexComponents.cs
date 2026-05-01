@@ -104,6 +104,13 @@ namespace RareIcon
         public float Value;
     }
 
+    /// <summary>Fog-of-war classification for shader. 0 = clear (player can see this hex), 1 = explored-but-stale (player has seen it before, dimmed), 2 = unexplored (full fog). Rebaked by FogBakeSystem from current vision sources + persistent explored set.</summary>
+    [MaterialProperty("_Fog")]
+    public struct FogVisibility : IComponentData
+    {
+        public float Value;
+    }
+
     /// <summary>
     /// Per-instance MaterialProperty driving how many trees the shader
     /// renders on this hex. Value is HexResources.Wood normalized to
