@@ -113,10 +113,11 @@ namespace RareIcon
         public byte Tier;
     }
 
-    /// <summary>Per-camp loot stockpile fed by <c>BanditChoreSystem</c> when bandits return from chopping wood / mining stone in nearby hexes. <see cref="BanditCampEvolutionSystem"/> consumes this on tier-up so the camp must "earn" its growth in addition to surviving the time gate; excess loot beyond the next tier cost gets spent by <see cref="BanditCampRaidSystem"/> on opportunistic surprise-raid waves.</summary>
+    /// <summary>Per-camp loot stockpile fed by <c>BanditChoreSystem</c> when bandits return from chopping wood / mining stone in nearby hexes. <see cref="BanditCampEvolutionSystem"/> consumes this on tier-up so the camp must "earn" its growth in addition to surviving the time gate; excess loot beyond the next tier cost gets spent by <see cref="BanditCampRaidSystem"/> on opportunistic surprise-raid waves; <see cref="BanditCampLaborerRespawnSystem"/> spends loot to refill dead laborers; on camp death, <see cref="BanditCampLootDropSystem"/> dumps the remainder to the player's Capital as Coin.</summary>
     public struct BanditCampStockpile : IComponentData
     {
         public ushort Loot;
+        public uint   NextLaborerRespawnTick;
     }
 
     /// <summary>Cache of nearby resource-bearing hex coords keyed off the camp; <c>BanditCampResourceScanSystem</c> refreshes the buffer on a cadence so each laborer can pick a target with one buffer lookup instead of an O(R²) hex scan per tick. Buffer capacity caps the working set; depleted hexes get pruned on next refresh.</summary>
