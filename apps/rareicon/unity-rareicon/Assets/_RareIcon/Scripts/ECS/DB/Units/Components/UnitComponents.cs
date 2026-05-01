@@ -95,6 +95,21 @@ namespace RareIcon
         public int2 Hex;
     }
 
+    /// <summary>Per-bandit home reference. <c>BanditChoreSystem</c> walks bandits between their camp's <see cref="CampHex"/> and resource-bearing hexes nearby; arriving at a resource hex deplets <see cref="HexResources"/> + increments the camp's <see cref="BanditCampStockpile"/>. <see cref="Camp"/> may resolve to <c>Entity.Null</c> after the camp is destroyed; the chore system gates on stockpile presence.</summary>
+    public struct BanditHome : IComponentData
+    {
+        public Entity Camp;
+        public int2   CampHex;
+    }
+
+    /// <summary>Per-bandit chore state. Phase 0 = idle (waiting on cooldown), 1 = walking out to <see cref="TargetHex"/>, 2 = walking back to camp. Hunt (40) hijacks the chore goal mid-march so combat always takes priority. Resets to phase 0 when bandit returns to camp hex.</summary>
+    public struct BanditChore : IComponentData
+    {
+        public byte Phase;
+        public int2 TargetHex;
+        public uint NextActTick;
+    }
+
     /// <summary>Unit is resident inside Host building — hidden via DisableRendering, excluded from movement / collision / command queries until released. State (HP, inventory, stats) stays intact on the entity.</summary>
     public struct ShelteredInside : IComponentData
     {

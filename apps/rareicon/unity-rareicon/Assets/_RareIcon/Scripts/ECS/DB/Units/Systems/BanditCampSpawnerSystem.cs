@@ -20,8 +20,9 @@ namespace RareIcon
         const ushort CampMaxHp                  = 300;
         const int   MaxCamps                    = 3;
         const float CampGrowthIntervalSeconds   = 100f;
-        const int   DefenderCount               = 8;
+        const int   DefenderCount               = 4;
         const int   DefenderJitter              = 2;
+        const int   LaborerCount                = 4;
 
         float _spawnCheckTimer;
         uint  _rng = 0xCA11_CAFEu;
@@ -118,6 +119,7 @@ namespace RareIcon
                 Tier               = 0,
             });
             em.AddComponentData(camp, new Faction { Value = FactionType.Hostile });
+            em.AddComponentData(camp, new BanditCampStockpile { Loot = 0 });
 
             for (int i = 0; i < DefenderCount; i++)
             {
@@ -130,6 +132,25 @@ namespace RareIcon
                 var defender = UnitSpawnSystem.SpawnBanditAt(em, defHex, _rng | 1u);
                 if (defender != Entity.Null)
                     em.AddComponentData(defender, new GarrisonPost { Hex = defHex });
+            }
+
+            for (int i = 0; i < LaborerCount; i++)
+            {
+                _rng = XorShift(_rng);
+                int dx = (int)(_rng % (uint)(DefenderJitter * 2 + 1)) - DefenderJitter;
+                _rng = XorShift(_rng);
+                int dy = (int)(_rng % (uint)(DefenderJitter * 2 + 1)) - DefenderJitter;
+                int2 labHex = new int2(campHex.x + dx, campHex.y + dy);
+                _rng = XorShift(_rng);
+                var laborer = UnitSpawnSystem.SpawnBanditAt(em, labHex, _rng | 1u);
+                if (laborer == Entity.Null) continue;
+                em.AddComponentData(laborer, new BanditHome { Camp = camp, CampHex = campHex });
+                em.AddComponentData(laborer, new BanditChore
+                {
+                    Phase       = 0,
+                    TargetHex   = campHex,
+                    NextActTick = nowTick + (uint)(i * 800),
+                });
             }
 
             _lastKnownCampCount = active + 1;

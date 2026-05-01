@@ -46,6 +46,7 @@ namespace RareIcon
 
     [BurstCompile]
     [WithNone(typeof(GarrisonPost))]
+    [WithNone(typeof(BanditHome))]
     public partial struct HuntJob : IJobEntity
     {
         public int2                     CapitalHex;

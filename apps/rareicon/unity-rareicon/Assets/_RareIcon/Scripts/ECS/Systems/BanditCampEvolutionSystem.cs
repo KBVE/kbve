@@ -3,7 +3,7 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Per-camp tier evolution. While a BanditCamp sits at full <see cref="BuildingHealth"/>, the evolve clock counts down; once it elapses, <see cref="BanditCampGrowth.Tier"/> advances 0 → 1 → 2 and the camp's HP / raid party / raid cadence / territory radius all scale up. Any damage resets the clock — the player can deny evolution by keeping pressure on the camp. Toast fires per tier-up so the player gets a visible escalation cue. Main-thread SystemBase because <see cref="GlobalMessagePipe"/> publishes are managed.</summary>
+    /// <summary>Per-camp tier evolution. While a BanditCamp sits at full <see cref="BuildingHealth"/> AND its laborers have stockpiled enough loot, the evolve clock counts down; once it elapses, <see cref="BanditCampGrowth.Tier"/> advances 0 → 1 → 2, the matching <see cref="BanditCampStockpile"/> threshold is consumed, and the camp's HP / raid party / raid cadence / territory radius all scale up. Damaging the camp resets the clock and starving its laborers (no resource hexes nearby) starves growth — the player can deny evolution by either harassing the structure or felling the surrounding forest first. Toast fires per tier-up. Main-thread SystemBase because <see cref="GlobalMessagePipe"/> publishes are managed.</summary>
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(BanditCampSpawnerSystem))]
@@ -16,21 +16,26 @@ namespace RareIcon
             RequireForUpdate<BanditCampGrowth>();
         }
 
+        const ushort StrongholdLootCost = 30;
+        const ushort FortressLootCost   = 80;
+
         protected override void OnUpdate()
         {
             uint nowTick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
 
-            foreach (var (growthRef, stateRef, hpRef, territoryRef) in
+            foreach (var (growthRef, stateRef, hpRef, territoryRef, stockpileRef) in
                      SystemAPI.Query<RefRW<BanditCampGrowth>,
                                      RefRW<BanditCampState>,
                                      RefRW<BuildingHealth>,
-                                     RefRW<TerritoryEmitter>>()
+                                     RefRW<TerritoryEmitter>,
+                                     RefRW<BanditCampStockpile>>()
                               .WithAll<BanditCampTag>())
             {
                 ref var growth    = ref growthRef.ValueRW;
                 ref var raid      = ref stateRef.ValueRW;
                 ref var hp        = ref hpRef.ValueRW;
                 ref var territory = ref territoryRef.ValueRW;
+                ref var stockpile = ref stockpileRef.ValueRW;
 
                 if (growth.Tier >= 2) continue;
 
@@ -42,6 +47,10 @@ namespace RareIcon
 
                 if (nowTick < growth.NextEvolveTick) continue;
 
+                ushort lootCost = growth.Tier == 0 ? StrongholdLootCost : FortressLootCost;
+                if (stockpile.Loot < lootCost) continue;
+
+                stockpile.Loot = (ushort)(stockpile.Loot - lootCost);
                 growth.Tier++;
                 ApplyTierStats(growth.Tier, ref hp, ref raid, ref territory);
                 growth.NextEvolveTick = nowTick + growth.EvolveCadenceTicks;
