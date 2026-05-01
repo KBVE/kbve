@@ -162,10 +162,10 @@ spec:
                   resources:
                       requests:
                           cpu: '200m'
-                          memory: '100Mi'
+                          memory: '256Mi'
                       limits:
                           cpu: '300m'
-                          memory: '150Mi'
+                          memory: '512Mi'
                   securityContext:
                       privileged: true
                   terminationMessagePolicy: FallbackToLogsOnError
