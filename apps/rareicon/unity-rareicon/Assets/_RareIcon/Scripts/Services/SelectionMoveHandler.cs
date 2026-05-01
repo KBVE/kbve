@@ -35,7 +35,7 @@ namespace RareIcon
 
         void OnMove(SelectionMoveMessage msg)
         {
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
 
