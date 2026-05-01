@@ -62,6 +62,7 @@ namespace RareIcon
         int _disposed;
         int _blockFlags;
         int _target;
+        int _lastExitFrame = int.MinValue;
 
         public ReadOnlyReactiveProperty<byte> Target => _targetReactive;
         public ReadOnlyReactiveProperty<int> BlockFlags => _blockFlagsReactive;
@@ -74,6 +75,9 @@ namespace RareIcon
         public bool HasTarget => CurrentTarget != BuildTarget.None;
         public bool IsBlocked => CurrentBlockFlags != BuildBlockFlags.None;
         public bool IsActive => HasTarget && !IsBlocked;
+
+        /// <summary>True if the controller exited build mode on the current frame. Lets sibling click handlers (e.g. AppStateController) suppress the placement click so it doesn't double-route into unit inspect/move.</summary>
+        public bool ExitedThisFrame => Volatile.Read(ref _lastExitFrame) == UnityEngine.Time.frameCount;
 
         public BuildModeSnapshot Snapshot()
         {
@@ -125,6 +129,7 @@ namespace RareIcon
             var old = Interlocked.Exchange(ref _target, BuildTarget.None);
             if (old == BuildTarget.None) return;
 
+            StampExitFrame();
             PublishCurrentState();
         }
 
@@ -151,10 +156,12 @@ namespace RareIcon
                 if (next != BuildTarget.None && Volatile.Read(ref _blockFlags) != 0)
                 {
                     Interlocked.CompareExchange(ref _target, BuildTarget.None, next);
+                    StampExitFrame();
                     PublishCurrentState();
                     return;
                 }
 
+                if (next == BuildTarget.None) StampExitFrame();
                 PublishCurrentState();
                 return;
             }
@@ -243,6 +250,11 @@ namespace RareIcon
             Interlocked.Exchange(ref _target, BuildTarget.None);
             Interlocked.Exchange(ref _blockFlags, (int)BuildBlockFlags.None);
             PublishCurrentState();
+        }
+
+        void StampExitFrame()
+        {
+            Volatile.Write(ref _lastExitFrame, UnityEngine.Time.frameCount);
         }
 
         void PublishCurrentState()

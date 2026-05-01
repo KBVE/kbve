@@ -57,4 +57,10 @@ namespace RareIcon
         public FixedString32Bytes BonusKind;
         public float              Multiplier;
     }
+
+    /// <summary>Per-landmark visit gate. NextEligibleTurn rearms in <see cref="LandmarkInteractSystem"/> when a player Shop / Dungeon / QuestGiver / NpcDialog click fires, preventing spam-claim of the click reward.</summary>
+    public struct LandmarkVisitCooldown : IComponentData
+    {
+        public uint NextEligibleTurn;
+    }
 }
