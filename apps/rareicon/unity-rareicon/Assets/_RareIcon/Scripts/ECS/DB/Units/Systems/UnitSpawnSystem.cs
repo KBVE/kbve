@@ -517,6 +517,7 @@ namespace RareIcon
             em.AddComponentData(entity, new Faction    { Value = FactionType.Player });
             em.AddComponentData(entity, new Collidable { Radius = 0.18f });
             em.AddComponent<ScoutTag>(entity);
+            em.AddComponentData(entity, new VisionRadius { Value = 3f });
 
             em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
             em.AddBuffer<StatusEffect>(entity);

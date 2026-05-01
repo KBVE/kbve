@@ -14,7 +14,7 @@ namespace RareIcon
     {
         const float BakeIntervalSeconds = 0.5f;
         const float OriginRadius        = 10f;
-        const float UnitVisionRadius    = 4f;
+        const float DefaultUnitVisionRadius = 1f;
         const float BuildingVisionRadius = 6f;
         const float CapitalVisionRadius  = 8f;
         const float VisionInnerFrac     = 0.7f;
@@ -58,6 +58,7 @@ namespace RareIcon
             var factionLookup   = SystemAPI.GetComponentLookup<Faction>(true);
             var buildingLookup  = SystemAPI.GetComponentLookup<Building>(true);
             var capitalLookup   = SystemAPI.GetComponentLookup<CapitalTag>(true);
+            var visionRadiusLookup = SystemAPI.GetComponentLookup<VisionRadius>(true);
 
             var unitArr = _playerUnitQuery.ToEntityArray(Allocator.Temp);
             for (int i = 0; i < unitArr.Length; i++)
@@ -68,7 +69,10 @@ namespace RareIcon
                 if (!transformLookup.HasComponent(e)) continue;
                 var p = transformLookup[e].Position;
                 int2 hex = HexMeshUtil.WorldToHex(p.x, p.y, HexSize);
-                sources.Add(new VisionSource { CenterHex = hex, Radius = UnitVisionRadius });
+                float radius = visionRadiusLookup.HasComponent(e)
+                    ? visionRadiusLookup[e].Value
+                    : DefaultUnitVisionRadius;
+                sources.Add(new VisionSource { CenterHex = hex, Radius = radius });
             }
             unitArr.Dispose();
 

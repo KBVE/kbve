@@ -65,6 +65,12 @@ namespace RareIcon
     /// <summary>Marker tag for Hostile-faction BanditScouts — periodically dispatched by BanditCamps to wander far from camp + mark discovered Player buildings into the shared known-target set so HuntJob can divert raid waves to outposts beyond the camp's local TargetingRadius.</summary>
     public struct BanditScoutTag : IComponentData { }
 
+    /// <summary>Per-unit fog-of-war vision radius override. Attached to recon units (Scout = 3, future GriffinFlyer = 5+) so <see cref="FogBakeSystem"/> can give them a wider reveal than the default 1-hex unit baseline. Combat units leave this off and inherit the default — keeps the gather-loop in the bake job branchless except for the lookup probe.</summary>
+    public struct VisionRadius : IComponentData
+    {
+        public float Value;
+    }
+
     /// <summary>Unit only accepts river/ocean destinations when wandering. WaterWanderJob validates the rolled target's BiomeType against this tag before committing the goal. Attach to Fishing Boats + Whales.</summary>
     public struct WaterLockedTag : IComponentData { }
 
