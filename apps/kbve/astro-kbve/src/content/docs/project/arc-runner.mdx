@@ -1,0 +1,76 @@
+---
+title: ARC Runner
+description: |
+    Custom GitHub Actions Runner image for the arc-runner-set scale set. Bakes git-lfs, unzip, jq, xz, and the GitHub CLI into the upstream actions/runner base so workflows stop installing them at job runtime.
+sidebar:
+    label: ARC Runner
+    order: 57
+tags:
+    - docker
+    - github-actions
+    - infrastructure
+key: arc_runner
+pipeline: docker
+app_name: arc-runner
+version: "0.1.0"
+source_path: packages/docker/arc-runner
+version_toml: packages/docker/arc-runner/version.toml
+runner: ubuntu-latest
+image: kbve/arc-runner
+has_test: true
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Overview
+
+`arc-runner` is the custom Actions Runner Controller image consumed by the `arc-runner-set` scale set in the `arc-runners` namespace. It layers a small bundle of build tooling on top of `ghcr.io/actions/actions-runner` so CI jobs do not have to `apt-get install` the same packages on every cold start.
+
+### Why a custom image
+
+Workflows that run on `arc-runner-set` currently install `git-lfs`, `unzip`, and similar tools as the first step of every job. The Unity build matrix in `ci-unity.yml` re-installs `git-lfs` once per build target — three installs per workflow run today, more as we add Unity targets. Cumulatively this adds minutes of wall-clock time to every Unity matrix and burns ARC pod CPU on apt repo round-trips that are identical across runs.
+
+A baked image fixes the pattern in three ways:
+
+1. **No cold-start `apt-get`** — every tool the runner pool needs is on `PATH` the moment the runner pod starts.
+2. **Air-gap-safe under apt mirror outages** — image dependencies are pinned via the upstream `actions-runner` tag plus `apt` snapshots; a transient `archive.ubuntu.com` outage no longer fails Unity matrix legs.
+3. **Single source of truth** — bumping a tool happens once in this Dockerfile + version, not in every workflow that references it.
+
+### Image layout
+
+| Binary | Purpose |
+|--------|---------|
+| `actions-runner` | Upstream GitHub Actions self-hosted runner (`/home/runner/run.sh`) |
+| `git-lfs` | Forgejo LFS pulls (rareicon Unity, future chuck UE5) |
+| `unzip` | butler installer + generic archive tooling |
+| `jq` | Manifest dispatch + workflow shell glue |
+| `xz-utils` | `.tar.xz` extraction (Unity, butler, SDK installers) |
+| `gh` | GitHub CLI for workflows that shell out to it |
+| `curl` | Inherited from upstream, kept explicit for downstream callers |
+| `ca-certificates` | TLS trust for HTTPS-fetched dependencies |
+
+The image runs as the upstream `runner` user by default. The pod spec sets `runAsUser: 0` and the entrypoint hands control to `/home/runner/run.sh`; a sudoers entry for `root` is baked in so a future cleanup can drop the inline `command:` override on `arc-runner-set`.
+
+### Build args
+
+| Arg | Default | Purpose |
+|-----|---------|---------|
+| `ACTIONS_RUNNER_VERSION` | `2.333.0` | Upstream `ghcr.io/actions/actions-runner` tag the image is layered onto. Bump to follow upstream minor releases. |
+
+### Used by
+
+- `apps/kube/github/runners/manifests/values.yaml` — `template.spec.containers[].image` and `template.spec.initContainers[].image` will flip to `ghcr.io/kbve/arc-runner:<tag>` in a follow-up PR. The first publish of this image happens on the upstream runner image; subsequent rebuilds run on the custom image itself.
+
+### Rollout sequence
+
+This page tracks the image artefact only. The full migration runs across three PRs to keep rollback cheap:
+
+1. **This PR** — publish `ghcr.io/kbve/arc-runner:0.1.0` via the standard `ci-docker.yml` dispatch path.
+2. **Follow-up** — flip both `image:` references in `arc-runner-set` values.yaml and bump the `kbve.com/restart-trigger` annotation.
+3. **Follow-up** — strip the `Install git-lfs` step (and any other `apt-get install` band-aids) from `ci-unity.yml` once the new runner pods are confirmed serving jobs.
+
+### Version cadence
+
+- Track upstream `actions/runner` minor releases in `ACTIONS_RUNNER_VERSION`. Patch bumps can ride along on dependabot.
+- Every image publish bumps both `version.toml` (rebuild trigger via the dispatch manifest) and the `kbve.com/restart-trigger` annotation in values.yaml (forces a runner pod roll).
