@@ -23,8 +23,11 @@ namespace RareIcon
         readonly ReactiveProperty<bool> _isOpen = new(false);
         public ReadOnlyReactiveProperty<bool> IsOpen => _isOpen;
 
+        const long RefreshDebounceMs = 350;
+
         VisualElement _root;
         Label _bodyLabel;
+        bool _refreshScheduled;
 
         [Inject]
         public UITreasury(LocaleService locale, UIPanelManager panelManager,
@@ -81,7 +84,19 @@ namespace RareIcon
             if (!_isOpen.Value) return;
             if (!CapitalLocator.TryGetEntity(out var capital)) return;
             if (msg.Bank != capital) return;
-            Refresh();
+            ScheduleRefresh();
+        }
+
+        void ScheduleRefresh()
+        {
+            if (_refreshScheduled) return;
+            if (_root == null) return;
+            _refreshScheduled = true;
+            _root.schedule.Execute(() =>
+            {
+                _refreshScheduled = false;
+                if (_isOpen.Value) Refresh();
+            }).StartingIn(RefreshDebounceMs);
         }
 
         public void Toggle() => _isOpen.Value = !_isOpen.Value;
