@@ -1,6 +1,10 @@
 # ============================================================================
-# Local Steam tooling — interactive steamcmd + scripted upload via the
-# ghcr.io/kbve/steamcmd-ubuntu image.
+# Local Steam tooling — interactive steamcmd + scripted upload.
+#
+# Image source: packages/docker/steamcmd-ubuntu/Dockerfile.
+# Compose `build:` constructs it locally if not already on the host;
+# once CI publishes ghcr.io/kbve/steamcmd-ubuntu:24.04, `docker compose
+# pull` swaps to the published one without any compose changes.
 #
 # Reads STEAM_USERNAME / STEAM_PASSWORD from ../../../../.env (repo root)
 # so credentials never end up in this file or in any committed artifact.
@@ -17,15 +21,16 @@
 #               and ../build/ as the content root. Use after a Unity
 #               build to push to the demo app.
 #
-# Run with:
+# Run with (paths assumed relative to repo root):
 #   docker compose -f apps/rareicon/unity-rareicon/Steam/docker-compose.yml \
 #       --env-file .env run --rm capture
-# (paths assumed relative to repo root)
 # ============================================================================
 
 services:
     capture:
         image: ghcr.io/kbve/steamcmd-ubuntu:24.04
+        build:
+            context: ../../../../packages/docker/steamcmd-ubuntu
         # `tty + stdin_open` keeps the interactive prompt usable for the
         # password + Steam Guard mobile confirm flow.
         tty: true
@@ -45,6 +50,8 @@ services:
 
     upload:
         image: ghcr.io/kbve/steamcmd-ubuntu:24.04
+        build:
+            context: ../../../../packages/docker/steamcmd-ubuntu
         environment:
             STEAM_USERNAME: ${STEAM_USERNAME?STEAM_USERNAME missing in .env}
             STEAM_PASSWORD: ${STEAM_PASSWORD?STEAM_PASSWORD missing in .env}
