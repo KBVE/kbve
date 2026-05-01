@@ -18,12 +18,12 @@
 			"key": "arc_runner",
 			"app_name": "arc-runner",
 			"version": "0.1.0",
-			"version_toml": "apps/vm/arc-runner/version.toml",
+			"version_toml": "packages/docker/arc-runner/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arc-runner.mdx",
-			"source_path": "apps/vm/arc-runner",
-			"runner": "arc-runner-set",
+			"source_path": "packages/docker/arc-runner",
+			"runner": "ubuntu-latest",
 			"image": "kbve/arc-runner",
-			"has_test": false
+			"has_test": true
 		},
 		{
 			"key": "aria2_proxy",
