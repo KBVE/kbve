@@ -125,6 +125,160 @@ Access might require `root`.
 
 ---
 
+## Talos
+
+The KBVE production cluster runs **Talos Linux** (single control-plane node `talos-4bn-whr`, Hetzner). API-only, immutable, no SSH. All maintenance via `talosctl`.
+
+### Image Factory schematic
+
+Extensions are baked into the boot image via [Image Factory](https://factory.talos.dev). Current schematic (content-addressed):
+
+```
+613e1592b2da41ae5e265e8789429f22e121aab91cb4deb6bc3c0b6262961245
+```
+
+Bundles: `siderolabs/iscsi-tools` (Longhorn), `siderolabs/util-linux-tools`. Same SHA across Talos versions because content is identical — schematic ID changes only when extensions list changes.
+
+Re-resolve via API to confirm before any upgrade:
+
+```shell
+curl -sX POST --data-binary @- https://factory.talos.dev/schematics <<'EOF'
+customization:
+  systemExtensions:
+    officialExtensions:
+      - siderolabs/iscsi-tools
+      - siderolabs/util-linux-tools
+EOF
+# returns {"id":"613e1592..."}
+```
+
+Installer image URL pattern:
+
+```
+factory.talos.dev/installer/<schematic>:<version>
+```
+
+### Upgrade procedure
+
+Single-node cluster = full outage during reboot (~5–10 min graceful, 10–15 min after a hardware reset). Plan a maintenance window.
+
+#### 1. Pre-flight
+
+Take backups every time. The first attempt of the 1.12.5 → 1.13.0 upgrade deadlocked; etcd snapshot was the only thing that would have made recovery cheap if rollback had failed.
+
+```shell
+# etcd snapshot (mandatory)
+talosctl etcd snapshot ./etcd-pre-<version>.db --nodes 142.132.206.74
+
+# Machine config dump (forensic)
+talosctl get machineconfig v1alpha1 -o yaml > talos-mc-pre-<version>.yaml
+
+# Talos client config backup
+cp ~/.talos/config talosconfig-pre-<version>.bak
+```
+
+Verify Hetzner Robot KVM console is reachable **before** the upgrade — not while panicking.
+
+#### 2. Pause ArgoCD reconciliation
+
+ArgoCD's application-controller will fight any temporary scale-down made for the upgrade. Pause it:
+
+```shell
+kubectl -n argocd scale sts argocd-application-controller --replicas=0
+```
+
+Restore to `1` after the upgrade is verified.
+
+#### 3. Pre-drain Longhorn (REQUIRED — known deadlock otherwise)
+
+Talos 1.12.5 → 1.13.0 deadlocked on `task: unmountPodMounts (1/1): sync failed: ... globalmount: connection timed out` because longhorn-manager was killed during drain before iSCSI sessions could close. The drain phase then waited forever for an unmount that could never succeed.
+
+Fix: put Longhorn into maintenance mode **before** running `talosctl upgrade`. Eviction request signals Longhorn to close iSCSI sessions cleanly when consumer pods terminate.
+
+```shell
+# Cordon at the K8s level
+kubectl cordon talos-4bn-whr
+
+# Disable Longhorn scheduling + request eviction (node + each disk)
+kubectl -n longhorn-system patch nodes.longhorn.io talos-4bn-whr --type=merge -p '
+spec:
+  allowScheduling: false
+  evictionRequested: true
+  disks:
+    default-disk-080500000000:
+      allowScheduling: false
+      evictionRequested: true
+      path: /var/lib/longhorn
+      diskType: filesystem
+      tags: []
+    sdb-longhorn:
+      allowScheduling: false
+      evictionRequested: true
+      path: /var/mnt/longhorn-sdb
+      diskType: filesystem
+      tags: [dedicated, ssd]
+'
+```
+
+Single-node so replicas don't migrate (`autoEvicting: false`) — that's expected. The eviction flag still tells Longhorn to release iSCSI sessions on detach.
+
+For non-CNPG stateful workloads (ClickHouse, Elasticsearch, RabbitMQ, Redis, Prometheus, Alertmanager) scale to zero via their respective operators / CRs so they detach volumes early. **Leave Postgres (CNPG) alone** — let Talos drain SIGTERM it; CNPG handles graceful shutdown + primary handoff. Manually killing CNPG pods with the operator scaled down risks WAL inconsistency.
+
+#### 4. Run the upgrade
+
+```shell
+talosctl upgrade \
+  --nodes 142.132.206.74 \
+  --image factory.talos.dev/installer/613e1592b2da41ae5e265e8789429f22e121aab91cb4deb6bc3c0b6262961245:v1.13.0 \
+  --reboot-mode default
+```
+
+`--preserve` is deprecated in 1.18 (legacy flag; new upgrade API supersedes it). Skip unless on Talos &lt;1.10.
+
+Drain → install → reboot → boot is automated. The `talosctl` CLI typically exits with `code 1` due to the apid connection drop during reboot; that is **not** a failure on its own — confirm with `talosctl version` after the node returns.
+
+#### 5. Post-upgrade verification
+
+```shell
+talosctl version                              # Server: v1.13.0
+talosctl get extensions                       # iscsi-tools + util-linux-tools present
+kubectl get nodes -o wide                     # KERNEL-VERSION 6.18.24-talos
+kubectl uncordon talos-4bn-whr
+
+# Reverse Longhorn maintenance mode
+kubectl -n longhorn-system patch nodes.longhorn.io talos-4bn-whr --type=merge -p '
+spec:
+  allowScheduling: true
+  evictionRequested: false
+  disks:
+    default-disk-080500000000: { allowScheduling: true, evictionRequested: false, path: /var/lib/longhorn, diskType: filesystem, tags: [] }
+    sdb-longhorn:              { allowScheduling: true, evictionRequested: false, path: /var/mnt/longhorn-sdb, diskType: filesystem, tags: [dedicated, ssd] }
+'
+
+# Restore Argo
+kubectl -n argocd scale sts argocd-application-controller --replicas=1
+```
+
+### Recovery: stuck `upgrading` stage
+
+Symptom: `talosctl get machinestatus` reports `stage: upgrading` indefinitely + `apid` uptime > 0 (no reboot). `talosctl reboot --mode=powercycle` returns exit 0 but is silently rejected because the upgrade actor owns the lifecycle.
+
+The only unstick is **Hetzner Robot → "Execute an automatic hardware reset"** (physical reset button equivalent). Bypasses the OS state machine. After cold boot the node returns to the *previous* Talos version (install was queued but never written). Re-attempt upgrade after fixing the underlying drain blocker.
+
+### Known post-upgrade gotcha: `kube-multus` OOMKilled
+
+Default multus memory limits (`requests: 100Mi`, `limits: 150Mi`) are too small for the concurrent CNI request burst when ~150 pods come up in parallel after a Talos reboot. Multus dies (exit 137) → CoreDNS sandbox creation fails → DNS down → Longhorn webhook unreachable (`dial udp 10.96.0.10:53: connect: operation not permitted`) → all PVC mounts stall → ArgoCD won't start.
+
+The `operation not permitted` error looks like a Cilium policy block but is really "kube-dns Service has no healthy backing pods because CoreDNS sandbox creation failed because multus is dead."
+
+Fix is patched into [`apps/kube/multus/manifests/multus-daemonset.yaml`](https://github.com/kbve/kbve/blob/main/apps/kube/multus/manifests/multus-daemonset.yaml) — `requests: 256Mi`, `limits: 512Mi`. Verify before each upgrade.
+
+### Stale config drift: `install.image`
+
+The machine config still pins `install.image: ghcr.io/siderolabs/installer:v1.10.5` (upstream, no extensions). Only fires at first install — runtime upgrades ignore it. Patch it to the factory schematic image during a maintenance window so a future first-install / reset doesn't accidentally drop extensions.
+
+---
+
 ## Help
 
 -   Kubectl Help
