@@ -492,6 +492,120 @@ namespace RareIcon
             return entity;
         }
 
+        /// <summary>Spawn a Player-faction Scout (humanoid recon) at the given hex. No weapon, fast move speed, light HP. Carries <see cref="ScoutTag"/> so behavior systems can flag it as recon-only (no Hunt, no Harvest); FogBakeSystem reveals fog around any Player unit so the Scout's value is its mobility + survivability.</summary>
+        public static Entity SpawnScoutAt(EntityManager em, int2 hex, uint rngSeed)
+        {
+            if (!EnsureRenderAssets()) return Entity.Null;
+
+            var def = NPCDB.Get(UnitType.Scout);
+            var entity = em.CreateEntity();
+
+            float3 worldPos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
+            worldPos.z = -0.7f;
+
+            em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
+            em.AddComponentData(entity, new Unit { Type = def.UnitType, Weapon = WeaponType.None });
+            em.AddComponentData(entity, new Health { Value = def.MaxHealth, Max = def.MaxHealth });
+            if (def.MaxEnergy > 0)
+                em.AddComponentData(entity, new Energy { Value = def.MaxEnergy, Max = def.MaxEnergy });
+
+            em.AddComponentData(entity, new UnitVisual       { Value = (float)def.UnitType });
+            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)WeaponType.None });
+            em.AddComponentData(entity, new UnitFacingVisual { Value = (float)UnitFacing.East });
+            em.AddComponentData(entity, new UnitMovingVisual { Value = 1f });
+
+            em.AddComponentData(entity, new Faction    { Value = FactionType.Player });
+            em.AddComponentData(entity, new Collidable { Radius = 0.18f });
+            em.AddComponent<ScoutTag>(entity);
+
+            em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
+            em.AddBuffer<StatusEffect>(entity);
+
+            float speedJit = 0.95f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.20f;
+            em.AddComponentData(entity, new UnitMovement
+            {
+                CurrentHex      = hex,
+                TargetHex       = hex,
+                MoveSpeed       = def.MoveSpeed * speedJit,
+                Facing          = UnitFacing.East,
+                RandomState     = rngSeed | 1u,
+                WanderStep      = 0u,
+                DwellTimer      = (rngSeed % 200u) / 200f,
+                LastDir         = 255,
+                LastHarvestStep = uint.MaxValue,
+            });
+
+            em.AddComponentData(entity, new MovementGoal
+            {
+                Kind      = GoalKind.None,
+                Priority  = GoalPriority.None,
+                TargetHex = hex,
+            });
+
+            RenderMeshUtility.AddComponents(
+                entity, em, _renderDesc, _renderArray,
+                MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+            return entity;
+        }
+
+        /// <summary>Spawn a Hostile-faction BanditScout at the given hex. Mirrors <see cref="SpawnScoutAt"/> stat-line but Hostile + carries <see cref="BanditScoutTag"/> for the dispatch / behavior systems. No weapon — the scout flees combat and only reports player buildings into <c>KnownPlayerHexesSingleton</c>.</summary>
+        public static Entity SpawnBanditScoutAt(EntityManager em, int2 hex, uint rngSeed)
+        {
+            if (!EnsureRenderAssets()) return Entity.Null;
+
+            var def = NPCDB.Get(UnitType.BanditScout);
+            var entity = em.CreateEntity();
+
+            float3 worldPos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
+            worldPos.z = -0.7f;
+
+            em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
+            em.AddComponentData(entity, new Unit { Type = def.UnitType, Weapon = WeaponType.None });
+            em.AddComponentData(entity, new Health { Value = def.MaxHealth, Max = def.MaxHealth });
+            if (def.MaxEnergy > 0)
+                em.AddComponentData(entity, new Energy { Value = def.MaxEnergy, Max = def.MaxEnergy });
+
+            em.AddComponentData(entity, new UnitVisual       { Value = (float)def.UnitType });
+            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)WeaponType.None });
+            em.AddComponentData(entity, new UnitFacingVisual { Value = (float)UnitFacing.East });
+            em.AddComponentData(entity, new UnitMovingVisual { Value = 1f });
+
+            em.AddComponentData(entity, new Faction    { Value = FactionType.Hostile });
+            em.AddComponentData(entity, new Collidable { Radius = 0.18f });
+            em.AddComponent<BanditScoutTag>(entity);
+
+            em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
+            em.AddBuffer<StatusEffect>(entity);
+
+            float speedJit = 0.95f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.20f;
+            em.AddComponentData(entity, new UnitMovement
+            {
+                CurrentHex      = hex,
+                TargetHex       = hex,
+                MoveSpeed       = def.MoveSpeed * speedJit,
+                Facing          = UnitFacing.East,
+                RandomState     = rngSeed | 1u,
+                WanderStep      = 0u,
+                DwellTimer      = (rngSeed % 200u) / 200f,
+                LastDir         = 255,
+                LastHarvestStep = uint.MaxValue,
+            });
+
+            em.AddComponentData(entity, new MovementGoal
+            {
+                Kind      = GoalKind.None,
+                Priority  = GoalPriority.None,
+                TargetHex = hex,
+            });
+
+            RenderMeshUtility.AddComponents(
+                entity, em, _renderDesc, _renderArray,
+                MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+            return entity;
+        }
+
         /// <summary>Spawn a Hostile-faction Zombie (undead humanoid) at the given hex. Unarmed bite/claw melee with PreferUnits — the horde chases and eats people rather than bashing walls. Slower than Bandits but tougher per body; clusters spawn at night via ZombieNightSpawnSystem.</summary>
         public static Entity SpawnZombieAt(EntityManager em, int2 hex, uint rngSeed,
                                            UnitSpawnState state = default)

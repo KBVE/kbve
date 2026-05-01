@@ -126,6 +126,11 @@ namespace RareIcon
                 NextScanTick     = nowTick,
                 ScanCadenceTicks = 30000u,
             });
+            em.AddComponentData(camp, new BanditScoutDispatch
+            {
+                NextScoutTick     = nowTick + 60000u,
+                ScoutCadenceTicks = 90000u,
+            });
 
             for (int i = 0; i < DefenderCount; i++)
             {

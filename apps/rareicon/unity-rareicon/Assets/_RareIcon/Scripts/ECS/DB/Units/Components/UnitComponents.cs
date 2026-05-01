@@ -31,6 +31,8 @@ namespace RareIcon
         public const byte Whale         = 18; // Oceanic / river leviathan — FishingBoats' prey.
         public const byte Galley        = 19; // Water-locked Player-faction warship — Shipyard-built, ranged arrow attack.
         public const byte PirateShip    = 20; // Water-locked Hostile-faction raider — PirateCove-spawned, ranged arrow attack.
+        public const byte Scout         = 21; // Player-faction recon — fast, low HP, big vision radius for fog reveal. Recruited from Barracks.
+        public const byte BanditScout   = 22; // Hostile-faction recon — wanders far from BanditCamp, marks discovered Player buildings as raid targets.
         // Skeleton, etc. land here as we add them.
     }
 
@@ -56,6 +58,12 @@ namespace RareIcon
 
     /// <summary>Marker tag for Hostile-faction PirateShip raiders — PirateCove-spawned, water-locked, carries a <see cref="RangedAttack"/> arrow loadout. Treated as a threat by ProfessionDispatch + threat scan.</summary>
     public struct PirateShipTag : IComponentData { }
+
+    /// <summary>Marker tag for Player-faction Scouts — Barracks-recruited recon unit. Excluded from Hunt / harvesting so they purely run reveal patrols, contributing a long-radius vision source to <see cref="FogBakeSystem"/>.</summary>
+    public struct ScoutTag : IComponentData { }
+
+    /// <summary>Marker tag for Hostile-faction BanditScouts — periodically dispatched by BanditCamps to wander far from camp + mark discovered Player buildings into the shared known-target set so HuntJob can divert raid waves to outposts beyond the camp's local TargetingRadius.</summary>
+    public struct BanditScoutTag : IComponentData { }
 
     /// <summary>Unit only accepts river/ocean destinations when wandering. WaterWanderJob validates the rolled target's BiomeType against this tag before committing the goal. Attach to Fishing Boats + Whales.</summary>
     public struct WaterLockedTag : IComponentData { }

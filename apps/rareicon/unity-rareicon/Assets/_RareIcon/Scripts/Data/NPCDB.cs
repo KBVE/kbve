@@ -330,6 +330,36 @@ namespace RareIcon
                 strength:      14, agility: 10, intellect: 5, will: 10,
                 defaultWeapon: WeaponType.None));
 
+            // Player recon — fast, light, no weapon. Vision-source value
+            // comes from FogBakeSystem treating every Player unit as a
+            // reveal source.
+            Add(new NPCDef(
+                unitType:      UnitType.Scout,
+                nameKey:       "creature.scout",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     35f,  maxEnergy: 120f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.95f,
+                healthRegen:   0f,   energyRegen: 6.0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      6, agility: 16, intellect: 9, will: 7,
+                defaultWeapon: WeaponType.None));
+
+            // Bandit recon — same speed profile as Scout, slightly more HP
+            // so a single Player Archer can't one-shot it. No weapon; a
+            // BanditScout that runs into combat usually flees.
+            Add(new NPCDef(
+                unitType:      UnitType.BanditScout,
+                nameKey:       "creature.bandit_scout",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     45f,  maxEnergy: 120f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.95f,
+                healthRegen:   0f,   energyRegen: 6.0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      7, agility: 15, intellect: 8, will: 7,
+                defaultWeapon: WeaponType.None));
+
             // Future creatures land here — Skeleton, GoblinShaman, etc.
         }
 
